@@ -1,109 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.53
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.217.52
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793384004;
-	b=CIEmwMDaghOhFSLxydg8FPeNUpocJxur9JaAdw6Y8h6X7wrXqdr0ZycwJKVPrXNy8V7e
-	 BwuiLGLtjhnjBx+1yN/aqvNRDyxbhIokPJYGEnNxub5uopRT+f1erZXK+2RuccVGPHjDM
-	 oQL7LCIB7v9Q0t7FreuGVz+rxU3bm2zl85hllehyCjvjdv7H2sxdy2p0XoqAkZMXAiyj2
-	 6p4XsK4eCYJOLYMTQV5KIdfNaHvcBYxew+UlegUG1GeAlblok8h+wwMlz6JZNp2aiwuG9
-	 z5jP+K8GOi1ii4cWLh3CAFC1Bx0mpiAtn2/NjXzvB/gOB0AEY/5BuvgrcKiF6FeCh2A==
+	t=1793384146;
+	b=kGRmjliqdrl4hLtM1wE635Z095U02gO/xHANIw9Vyd1cXRg+0eA9id8hsP6P9rrD+r7y
+	 OdmwpTHuaLhwLMToc0gWmf9G0th0GYbAuSQOsFg7R8Qi3iwXdlBVzbjVTN1oc69mRdx9z
+	 sizI4TCFN+xMD1zQOdMq/YJih5Dsg1GOhIuL3itev6G6y1Jrvw4T16IZ2j1Jf/+AWrqwJ
+	 JQlVE9Or7cI71v2rxWFkVTV5KTk+H3WJN2yLssk0ZaNeazSqPo9Hx9JdJfSY5TNXvFwsW
+	 RnJVtSVV4d5MdVtktP4rdrqUy5ZrIsBTymb8jN+EsglqeyOuqcZyOZ1o1NtfmMhQdLg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793384004;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793384146;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
 	 MIME-Version:Content-Transfer-Encoding;
-	bh=fMT+So78QSqhuFKeOQlwYV6UaMLr+CNOGb0u2W5xmj4=;
-	b=ShzPbDAr2Jmx01WKGnY5gu9V11qrrNGWDoM+eWkk8JcWz39YHqNtp5Xpz+B5xVHwklM3
-	 0FbUR1BMlQGGTM0ooJOz8W7EzmZ23bx/CzvGO/FbOyBta5W24qziyCjO2fTSZcH6vJ5Dr
-	 Bk8/LNvfqz28YdC3ORc6Kl18PZx7wBGNwqlgomcIwH4RFs0/bZ0DK420izoLbfdlW8VhH
-	 483y9g1KwhZHeRERb6dc4+2XZp/opKL9F8Mdn/JfS7v1muzvvVT5ETflNju/z71sgSn7Z
-	 1Y8HAogD3Bn7eZKiuqMZQBYl4RhJkur/oqhGThN9tfAPL4zxkqRH/qL1ErIfXLtjRPw==
+	bh=nF9bQw3tAQtyXn+Lf9VhF9hLMi4KceB22RjvEpSde1s=;
+	b=pJfmQPl2VMIFeSaUjvYAQxAmfNxvwKK6bYeCcza5VmGrxqUVWdd+A91SuBSc9iAI/G+w
+	 kwYhbEuPa6opZZA12GvYqb63Pd5svjXCPKOOBzrVr/rS++qk4a33Ji/Yq65KF9xIeKewK
+	 uBe4lWzzPiYlIQT8CKqOUIGn+4ByQDLbyiiW8noaCWCfEjZ5+VKmRD/noBZc1vOBAJ/fi
+	 0CifAp+K/bec23pzTtUvoTkSJfIMZoZC2uHh6/v62bY31OXc6BvKhXcen+8aM095UoYaQ
+	 r6eWW6iFT8pUQDD0hKNVQpV5s85EjJmcmLTmIE9Nsvgw89xVMe5zBZ39KCGAXt3naWg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=OaE3o8Rj;
-	arc=none smtp.remote-ip=209.85.128.53
-Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+	dmarc=none header.from=x6u.co;
+	spf=pass smtp.mailfrom=x6u.co;
+	dkim=pass header.d=x6u.co header.i=@x6u.co header.a=rsa-sha256 header.s=google header.b=cPgDCuw4;
+	arc=none smtp.remote-ip=209.85.217.52
+Received: from mail-vs1-f52.google.com (mail-vs1-f52.google.com [209.85.217.52])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14715606A31A
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 18:13:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 14715606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CAEE606A323
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 18:15:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7CAEE606A323
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=x6u.co
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=x6u.co
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=OaE3o8Rj
-Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-4a60f9474c4so11743345e9.0
-        for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 11:13:23 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=x6u.co header.i=@x6u.co header.a=rsa-sha256 header.s=google header.b=cPgDCuw4
+Received: by mail-vs1-f52.google.com with SMTP id ada2fe7eead31-7cc0892f92cso329333137.3
+        for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 11:15:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793384002; x=1793988802; darn=vger.kernel.org;
+        d=x6u.co; s=google; t=1793384145; x=1793988945; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=fMT+So78QSqhuFKeOQlwYV6UaMLr+CNOGb0u2W5xmj4=;
-        b=OaE3o8RjEVR2zR75eyJC/w/NzOyHFo4/aqxLVy1sTOOTix0v/XRAORx0DvEXQvizgM
-         GxTHgDQzNXs28wuRg2tAdlgO4YFbkHs6wSwH1KlAI1xNAwZo7o36zCP4KnM/j5WijmTP
-         6Z15Z66ioDDzwi2MWRBKgTvweh+T2EYu4iDu55xkzRjld6HL856ZF+LbbQ9JjGnc7D0K
-         JZTexRxXbc+zHP469suaQUi5EcUd9aKst1j3ayVsyPLEsWdcsXAA52P3SDchoTerpujp
-         tppw+c0l0zQtKg9qiNVqXGoa3LIBe7VYE1HtlFeUKh5x4PNnZtS9WWdSHSvahFqtzjhJ
-         zRzg==
+        bh=nF9bQw3tAQtyXn+Lf9VhF9hLMi4KceB22RjvEpSde1s=;
+        b=cPgDCuw4S+88w1a4e65HGxEcO8nMD9xNx+iaSGqqULGZS5exzi9ys4cTfuAPe8Y4gt
+         S+InFiyCsYfwNYl2ctScgl4SBj7W9+OntGbXVub4jYaM7ojQEWlIbR4n/mJbOkL08uu0
+         FwurcLcJNVH2CZcu01ukpCEj82GuFyTI+p1d3O2lceWt3yVKicF4BgudeSVDpLeLTmtk
+         365hC8CiPWkgA+7luSEzpPd+6wdCbwUhJBCN5Tp2Z3GDvl3zzrCOGAOZFpr8bp6xn+kg
+         hVibNb7MZwX498XPv37cU2QO+tb70fmE4BL2tuJOxPQKCEfIZJyct42pds9ZjSSqtE1X
+         mZ7w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793384002; x=1793988802;
+        d=1e100.net; s=20260707; t=1793384145; x=1793988945;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=fMT+So78QSqhuFKeOQlwYV6UaMLr+CNOGb0u2W5xmj4=;
-        b=LUrD3rgy/cBma6vYgkvv+vNR+009hd3xQQJmbmsz13ciHziJtZqpt6kypQbpHkaRbG
-         KTwM76eGsxI8ARx2ZsfhDDqB8NxqxRMA4co2BCjIlp2Jhgsamg0qH6/iBcLK5nDWNdDz
-         nnasQBHwDk5IMLhVgPJcfRdUIc5Vwq7JdPFZWJZIFLxkPaGcPLIUMTJO8xzYvIUztFuB
-         n15/dzJ0XbCc3N9IxPLbbFwxxOFHqF0B4W34+VzkTFUfaYQHtiWsWmhqCSbJNZnx9BLk
-         fwAkrC2/rzHLusw2YaD07EZM4ggWBQu2Q9i8znYSuwbxHD9oBHKZye6FDp+CItW/Qnlz
-         5fng==
-X-Forwarded-Encrypted: i=1; AKwUvBw2tsoIZK68ICVCrOyvD9RZIOyeU9WXi+Ng90tIURqRVtth/vmmxtEUrNi1X389vmuSGDXbn9Bfrchv@vger.kernel.org
-X-Gm-Message-State: AFq9FYIokpIQy4q2NNpyZci26prjTOpHABJvj6VLoxBKmkLiSMkzXJr4
-	ypFz4v7juYspvkjBYXY4fQWZNrSiSVToX2/BapjICh/mSKXMb+OiafsT
-X-Gm-Gg: AYBFou04NnHHxBClMQhClGjjE9Oz5G3nn7AGp0ZQ/jUtHmQEIXFPXST65smDikf913w
-	OFl9fCfTMhLpAG8Gmiz6+xH8PfT0N085FedPMx0+VKwJzOHje7bN87f6ZoToYPLMuspqYhjl5Az
-	N7RQyDwpGba2FjQanceLm8cy8YMGRgAQXn8uqVRjs53fbcV2NrMbL10J7k4rFn1TF2/2M8JOL6c
-	S4ml7WMZUs4RyXXOn1dAINr8NxfC35RmCzs+NDmmIcMS/Rx2A+k1GmG5phAT9zGZ3WLkMKHLaq5
-	sl4MASgSrPwHbfnJAL29muI9oOICJfDL/1yJtlrBs70/nSC6f1fZ9zgqWmTr+QR7pkXVd5mQqMH
-	Ok05YFOFavwKco/7P7X2NLs5a5rBXrMf4hdoDa7kBr5zaeE4kqtLCZAHkqPUTgX0iVhjL99lPxO
-	cHKF+1biCbZx5ZMXG1WM9b8gNUmrO5h6ugQb4FUVC31J+NDE3Mit4y5w74VqzUHSoiDmFv2L0cx
-	TSYechqhlBkr1zdHN6ZxcgqlTnKYwJ7obBwg5tIErOgbgAfjPttPyNcpM511kEUkcYLWed4X7yi
-	pY6KRJLGIfUfOmEDj3fG74hsLXjRBBC2rGOQDjiFz2ky/c81mi4l63DTIqgUnaXiF/v6r505aSW
-	zE+3Ce19mmlNe5o9cikulaQ0X3J5CHoBTFLP9JBSDGt1fY4umxHUCW2V6/SWh
-X-Received: by 2002:a05:6000:1449:b0:48d:ff71:dd9d with SMTP id ffacd0b85a97d-48e6e2ef786mr7095121f8f.23.1793384002277;
-        Fri, 30 Oct 2026 11:13:22 -0700 (PDT)
-Received: from SD.cable.virginm.net (cpc117822-heme13-2-0-cust760.9-1.cable.virginm.net. [81.111.210.249])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48e71b8c0b6sm4198221f8f.41.2026.10.30.11.13.20
+        bh=nF9bQw3tAQtyXn+Lf9VhF9hLMi4KceB22RjvEpSde1s=;
+        b=XAMM+rFvC5JUn8uNz+oT/PcMHXE03mYTXANDsNAb1md2zPEPovsDA3OFzXrxarIOBb
+         +EsjECwV7wU5L61dNMaJUtfG/oxAzysA5LIvfNaNUEeR8TXCe2blTmzpMN46zRIutafO
+         iar1NiTFzRQCYjWS6NyW9ZDUHhUsLY7mtHC5W75R+RguobJugtAXdsYdS+l3SxyB9/q5
+         kgOICkLjmnHHZs9QU77n+SdW8Qw471R6wQm1hc5bCBhTQ9Tln8Kibv7SgfoQkWQW5t/o
+         4EgtQqnEfFrK7T7B61vyzzoHFwLC/C1dnN7sFf/EBZQ7x1Z59QL132AbYTQOnuDT2UdS
+         1yug==
+X-Forwarded-Encrypted: i=1; AKwUvBwNbU1gCCTQ+ju+c9sNM0v2oiSWO6vQk1X4B4NUVodzvk0YZxCXn2JrHK9P5feFM+JiSHEkAXTiLAaG@vger.kernel.org
+X-Gm-Message-State: AFq9FYK+kzpkKxRfeQFUDePr/3Pkxn10/HeM/lurOV+Bked49QRqU01B
+	dxwSN3YFQABUlciZDWFfEmepXQmeP8GqSN2ttjgCjiSNuviVvI6Cz6m8iu+i6vk0IM7r
+X-Gm-Gg: AYBFou0mkls7lw/EnURZAZ2sZwkCJLZBWkJ3Z9J32AfP0FdyWzeGs0jIwzNqEoRPYhl
+	9qOConaMoSaNlRd8rJ+4HTeYXmcHte45ZDWiwWDk3sqmL7Yf1pw5aHU0+FpGa2nt/KkcXBNjknW
+	YcuBFSlk36BZiPRMVAgg40i5kWgsPsLwC0H1NsNBo7cQf3pGQaMkRTH9gUS84mwFO6YV06Tk99x
+	7EOhRucmmXRvvNambCeHtXZMsXSkP8RKSnF28lk2LKlPTQPve8W5Z7eJT0DYo2O3tQ5Z7UOUnf/
+	WYr5kEdSrpYRQlhuHPF9vWH7WKQOH9FRd98MJvU1oOmO2Gm4ABy6p0vKjw+MLTIPyuCf9oC9K9k
+	JoYxNSk1legw8gK7uJERjQxB/6mnxr3+ZHh8adqZX3qIN7VGS0ykTQf5RRCqUuN4tHVyZDkSPUK
+	iFjOwqMNQu3equCUu4wV3ZfFw9GW9bomb22iwP1oehdB41NDe9PcFrZdSI0Gl0wzgXm991PifIw
+	KVZAEZKByfemy/Zcpsly8RoCdrceVCWWkAxNYkXCbQevPSFmYJ0xSTP0tCVvBMoxSEXDVhWPGrr
+	sFrngK2xI8QJ1/r9XKcp8r7PzOP/0v09zwGPKUGu8QEwejcxhUu+RcbkBLIKxMk7yFvMJL0sIAf
+	karI+YGTavndMVHsTi9zj7SZMZ8SCyePsmVb3+BpeGgM=
+X-Received: by 2002:a05:6102:14a3:b0:7cc:232b:f5a9 with SMTP id ada2fe7eead31-7d07272efedmr1462792137.24.1793384145522;
+        Fri, 30 Oct 2026 11:15:45 -0700 (PDT)
+Received: from worldpeace10.c.googlers.com.com (109.243.150.34.bc.googleusercontent.com. [34.150.243.109])
+        by smtp.gmail.com with ESMTPSA id ada2fe7eead31-7d07754c1c6sm3077931137.3.2026.10.30.11.15.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 30 Oct 2026 11:13:21 -0700 (PDT)
-From: Prathamesh Deshpande <prathameshdeshpande7@gmail.com>
-To: dtatulea@nvidia.com
-Cc: andrew+netdev@lunn.ch,
-	cjubran@nvidia.com,
-	cratiu@nvidia.com,
-	davem@davemloft.net,
-	edumazet@kernel.org,
-	erezsh@mellanox.com,
-	kuba@kernel.org,
-	leon@kernel.org,
-	linux-kernel@vger.kernel.org,
+        Fri, 30 Oct 2026 11:15:45 -0700 (PDT)
+From: David Hu <dhu@x6u.co>
+To: Mustafa Ismail <mustafa.ismail@intel.com>,
+	Shiraz Saleem <shiraz.saleem@intel.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jacob Moroni <jmoroni@google.com>,
+	intel-wired-lan@lists.osuosl.org,
 	linux-rdma@vger.kernel.org,
-	mbloch@nvidia.com,
-	netdev@vger.kernel.org,
-	pabeni@redhat.com,
-	prathameshdeshpande7@gmail.com,
-	saeedm@nvidia.com,
-	tariqt@nvidia.com,
-	valex@mellanox.com
-Subject: Re: [PATCH net] net/mlx5: IPOIB, Fix QPN lookup race
-Date: Fri, 30 Oct 2026 18:12:52 +0000
-Message-ID: <20261030181309.9266-1-prathameshdeshpande7@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <ade46454-e575-43e4-85aa-eeb5ad79408a@nvidia.com>
-References: <ade46454-e575-43e4-85aa-eeb5ad79408a@nvidia.com>
+	linux-kernel@vger.kernel.org,
+	David Hu <xuehaohu@google.com>
+Subject: [PATCH rdma-next v4 1/6] RDMA/irdma: Plumb uverbs_attr_bundle for QP, SRQ
+Date: Fri, 30 Oct 2026 18:15:07 +0000
+Message-ID: <20261030181512.2056056-2-dhu@x6u.co>
+X-Mailer: git-send-email 2.56.0.317.g454f8302e1-goog
+In-Reply-To: <20261030181512.2056056-1-dhu@x6u.co>
+References: <20261030181512.2056056-1-dhu@x6u.co>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -115,18 +106,107 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-On Fri, 30 Oct 2026 12:18:59 +0100, Dragos Tatulea wrote:
-> I don't think that all these cases can happen. But I can see how a
-> CQE completion on the parent can read a pointer from the hash
-> bucket that just got deleted.
->
-> Please improve the commit message.
+From: David Hu <xuehaohu@google.com>
 
-Thanks for reviewing. I will narrow the commit message to the parent CQE
-lookup racing with hash-entry removal.
+In preparation to support modern UVERBS ioctl attributes (such
+as UVERBS_ATTR_UMEM for CoCo DMA bounce buffers), we pass down
+`uverbs_attr_bundle` for inner QP, SRQ routines. Since standard
+uAPIs provide `ib_udata`, we derive it via the helper macro,
+`rdma_udata_to_uverbs_attr_bundle`. `irdma_create_cq()` supports
+`uverbs_attr_bundle` already, therefore, this patch fills the gap for QP
+and SRQ.
 
-> Holding the spinlock in the datapath is not a good idea. AFAIU
-> using hlist RCU variants will be enough.
+QP, SRQ uAPI will now have `ib_udata`, and CQ uAPI has `uverbs_attr_bundle`
+as a top level input. However, we think it is a future project to unify
+them.
 
-I will switch to RCU hlist operations with deferred freeing and send v2
-after validation.
+Signed-off-by: David Hu <xuehaohu@google.com>
+---
+ drivers/infiniband/hw/irdma/verbs.c | 19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+index c91c55917de9..811b1d532599 100644
+--- a/drivers/infiniband/hw/irdma/verbs.c
++++ b/drivers/infiniband/hw/irdma/verbs.c
+@@ -637,13 +637,15 @@ static void irdma_setup_virt_qp(struct irdma_device *iwdev,
+  * @iwqp: qp ptr (user or kernel)
+  * @info: initialize info to return
+  * @init_attr: Initial QP create attributes
++ * @attrs: uverbs attribute bundle
+  */
+ static int irdma_setup_umode_qp(struct irdma_ucontext *ucontext,
+ 				struct irdma_create_qp_req *req,
+ 				struct irdma_device *iwdev,
+ 				struct irdma_qp *iwqp,
+ 				struct irdma_qp_init_info *info,
+-				struct ib_qp_init_attr *init_attr)
++				struct ib_qp_init_attr *init_attr,
++				struct uverbs_attr_bundle *attrs)
+ {
+ 	struct irdma_qp_uk_init_info *ukinfo = &info->qp_uk_init_info;
+ 	unsigned long flags;
+@@ -981,10 +983,14 @@ static int irdma_create_qp(struct ib_qp *ibqp,
+ 	struct irdma_qp_init_info init_info = {};
+ 	struct irdma_qp_host_ctx_info *ctx_info;
+ 	struct irdma_create_qp_req ureq = {};
++	struct uverbs_attr_bundle *attrs = NULL;
+ 	struct irdma_srq *iwsrq;
+ 	bool srq_valid = false;
+ 	u32 srq_id = 0;
+ 
++	if (udata)
++		attrs = rdma_udata_to_uverbs_attr_bundle(udata);
++
+ 	if (init_attr->srq) {
+ 		iwsrq = to_iwsrq(init_attr->srq);
+ 		srq_valid = true;
+@@ -1071,7 +1077,7 @@ static int irdma_create_qp(struct ib_qp *ibqp,
+ 
+ 		init_info.qp_uk_init_info.abi_ver = iwpd->sc_pd.abi_ver;
+ 		err_code = irdma_setup_umode_qp(ucontext, &ureq, iwdev, iwqp,
+-						&init_info, init_attr);
++						&init_info, init_attr, attrs);
+ 	} else {
+ 		INIT_DELAYED_WORK(&iwqp->dwork_flush, irdma_flush_worker);
+ 		init_info.qp_uk_init_info.abi_ver = IRDMA_ABI_VER;
+@@ -2337,7 +2343,8 @@ static int irdma_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
+ static int irdma_setup_umode_srq(struct irdma_device *iwdev,
+ 				 struct irdma_srq *iwsrq,
+ 				 struct irdma_srq_init_info *info,
+-				 struct ib_udata *udata)
++				 struct ib_udata *udata,
++				 struct uverbs_attr_bundle *attrs)
+ {
+ 	struct irdma_create_srq_req req = {};
+ 	struct irdma_ucontext *ucontext;
+@@ -2420,6 +2427,7 @@ static int irdma_create_srq(struct ib_srq *ibsrq,
+ 	struct ib_srq_attr *attr = &initattrs->attr;
+ 	struct irdma_pd *iwpd = to_iwpd(ibsrq->pd);
+ 	struct irdma_srq *iwsrq = to_iwsrq(ibsrq);
++	struct uverbs_attr_bundle *attrs = NULL;
+ 	struct irdma_srq_uk_init_info *ukinfo;
+ 	struct irdma_cqp_request *cqp_request;
+ 	struct irdma_srq_init_info info = {};
+@@ -2430,6 +2438,9 @@ static int irdma_create_srq(struct ib_srq *ibsrq,
+ 	u32 depth;
+ 	u8 shift;
+ 
++	if (udata)
++		attrs = rdma_udata_to_uverbs_attr_bundle(udata);
++
+ 	uk_attrs = &rf->sc_dev.hw_attrs.uk_attrs;
+ 	ukinfo = &info.srq_uk_init_info;
+ 
+@@ -2470,7 +2481,7 @@ static int irdma_create_srq(struct ib_srq *ibsrq,
+ 	attr->max_wr = iwsrq->max_wr;
+ 
+ 	if (udata)
+-		err_code = irdma_setup_umode_srq(iwdev, iwsrq, &info, udata);
++		err_code = irdma_setup_umode_srq(iwdev, iwsrq, &info, udata, attrs);
+ 	else
+ 		err_code = irdma_setup_kmode_srq(iwdev, iwsrq, &info, depth,
+ 						 shift);
+-- 
+2.56.0.317.g454f8302e1-goog
+
