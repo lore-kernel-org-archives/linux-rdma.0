@@ -1,52 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1793336047;
-	b=OLZ2Fp5oWIiXJaJvrnpEbJ2KVyKvdpZehQAsi+ulMJaDgWsKZsrgmS6r6TdW9fcHDGoN
-	 A55OJnuFFvmPyQ5YFdRappI2PdMtA1zvRkZIy3xPKTF1aVyBrmhcKRh2r2YkzseS+jPbz
-	 aZejL7nfajZJ7Rvk4bv7S52YesZN5XmvzswB4A44bSIRm/Ie28RHhcxXYuV70pNprDv5F
-	 j0A23RS25pxuJsXfBDCiho59lQI/WESFXQK3Dvxy/29scv2FBtpqKiAS3c5vWW5gtgWCX
-	 ZkmquebQyEBzR9wrTmnD1HHINkttaIcyzim7llBWAGJ4u+hU4NairjKk3HgLnj9ipnw==
+	b=SMqX6LZlD/qJYdH51+KeQJ8Ej/dQMQqSsxWps2ZK9fFKoJqUKqf07vAO6xb8CF3s3dW/
+	 nJkgRaVXFs6FhiOfFdIkPhvPH7RgJGfVPJlQVIKopVoYX4JVV5TgDIczu5tami4zPDXcf
+	 UAbsvYkU1DSmRLbaDaHp9qGh1c/yhnghnm11KSzm6PeBqoF+WSNXu5NML/u0USLUsVwaM
+	 A+ap4K2ORKQA0SIDuFq4YWSKByxVMoNoEayEFwXC1EwdBJgg1HNSBbVxhG8yBpO0pCUv6
+	 SEx2+qGKPnXSaQepImMLIHKpoHy8UkIHAIMCnO8RYpyGL7g/S6Si2pXW+0FbeLSVqMQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1793336047;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=mFlnYRXt6kkYCz7qLsrR0bZ97Ul4eAtWvFF8Ha2RNnM=;
-	b=tb7dBz9jgHCoQo3PdRCr2h8YfZvSHDJ5A93/CDuUYnv5mDqTTrrfQmW3Y4QZX7FZti2b
-	 VWjC0sBWb4DKU5Y3mX7t2u1MFFBluuDcB5cpRtZUtbQ2mGdSD3UE/I1rjBPfW0GxZNroI
-	 soF5IcnVNoaq/n1wBSXz4zAhZwSeatlE9hvK4RNSvXvGP3zcLEOVKEN6pwL/Lyb9vnArM
-	 8FH/ZXp1hK0SjD0s4/iOh+6C7MadynMKGeQGLYNtTUwRnAwW73JQPMtESOvjc9bbE2aBj
-	 suIJQLT6ndiNobX8Ub+/pSZecVvch1RLMvvkyMLyGTZk8e7zpZE/MJMkcEEBRhmTmmA==
+	bh=cBex81e0yFizMSixzjyQPt2pLS5gx4uroBWLUxGmOvU=;
+	b=1+kBbx3/aRS+PAHFwbJr5Nfo1YVAFNIjATSQ2EBw9EXVtyjYkutiyAyCj1h+8gLXsQyS
+	 54uFT3m9UsRlfYrHo/rwzP5EvrHaO8PZq8A8bc2yqOXNGLaM05XM5cl5sw9NguTP1LL4s
+	 bTRAkSUYGj6Vv1j7ZodP1HPmM5OnQxwHsbTvvx8VqHwCviCJm9CpweKJJia6UeIQfB6gG
+	 yehcx3OJu1+ynnNYeHAtVCCp15wUqC9l6QFW2P51BtrohIi/QTOV4Qt1QkXRyVRerWzZQ
+	 0m963JrK5ZFuhX16IEs3VQ2djosBMfj40iNJr92hHpHt5JJcyoni8o2UwZj255OHeMA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XW00FVnK;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FNUcEYxw;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2999606A325
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:54:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F859606A320
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 04:54:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XW00FVnK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DBF81F000C1;
-	Fri, 30 Oct 2026 04:54:06 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FNUcEYxw
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44C031F0093A;
+	Fri, 30 Oct 2026 04:54:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793336046;
-	bh=mFlnYRXt6kkYCz7qLsrR0bZ97Ul4eAtWvFF8Ha2RNnM=;
+	s=k20260515; t=1793336047;
+	bh=cBex81e0yFizMSixzjyQPt2pLS5gx4uroBWLUxGmOvU=;
 	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=XW00FVnKmO1yj/aznMw3gJLEtGfaOiQxNdlwyaAHP7vW8fX8dSjpzACFeDkR8ICef
-	 dZq0OCKiAwd471ceSdjMqTU0VejXqUECLVetN772mYgzWee7W6ufAJwm6LTjmdF1Jd
-	 +XsQWH3z7ftDvBd2rmTPyq34R5C4phqlkKr//mfTYrv1bh9x+E25G2Pk3DNzKO6pCT
-	 3hqt39qFZfNVEwC1tAsN2fAArzRoNguotUmtVCZnl/eMKOl916R2LuVg9Ha3cBmb4V
-	 sNdW/Oao5pGHq5kOEEC1G9+eFw1yvqh7HYtOnbi4THKiZTXXHk++xI50irIvHRiq6m
-	 WpGopReSr+4ZA==
-Message-ID: <sashiko-outbox-190402@kernel.org>
+	b=FNUcEYxw4ovXOeWGvmFqM9CVlDR6BH3zr+vjgFhMT6IUk/X3B9GVLLWiy4LsavSED
+	 hSWtoW7ZKCgqh0K0Et60w6XxOP3XdM+XjUmm7/yHUMODWgsm6WqJ37xYiRjO5oPxsq
+	 3WQ+FYuo56w1AxeMVk+3kR/WH+NHx8co4JbSS0250YSqIJy8GwW8dW6eH/vxdvcrBX
+	 K6KWKJfot6pCZdxLTwq9V6A8ddKzq1l+FS66bZSkUaXgmhpJFL1JoN0xN1sfpenuzv
+	 MIFEKEau7lt5ZNS8KI90ux2W8hiTkmCL9xehjafDzi/VF0xyD+O/4v0GRuLONHUQXb
+	 UHRquo+9A8Whw==
+Message-ID: <sashiko-outbox-190403@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v12 net-next 8/9] octeontx2: cn20k: Respect NPC MCAM
- X2/X4 profile in flows and DFT alloc
+Subject: Re: [PATCH v12 net-next 9/9] octeontx2-af: npc: cn20k: Allocate
+ npc_priv and dstats dynamically.
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Ratheesh Kannoth" <rkannoth@marvell.com>, intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org
-In-Reply-To: <20260508034912.4082520-9-rkannoth@marvell.com>
-References: <20260508034912.4082520-9-rkannoth@marvell.com>
+In-Reply-To: <20260508034912.4082520-10-rkannoth@marvell.com>
+References: <20260508034912.4082520-10-rkannoth@marvell.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Fri, 30 Oct 2026 04:54:06 +0000
@@ -59,109 +59,242 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+Thank you for your contribution! Sashiko AI review found 7 potential issue(=
 s) to consider:
-- [High] The primary default rule allocation still hardcodes X2 keys and un=
-masked reference indices, completely ignoring the X4 hardware profile for P=
-Fs and successful VF attempts.
-- [Medium] Caching device-specific hardware profile information in a global=
- static variable causes a data race across concurrent device instances.
+- [Critical] Global file-scope pointers (`npc_priv` and `dstats`) are overw=
+ritten by per-device dynamic allocations, leading to memory leaks and Use-A=
+fter-Free crashes in multi-device systems.
+- [High] Unconditional memory leak of `npc_priv` during the `npc_priv_init(=
+)` error path.
+- [High] Unconditional memory leak of `npc_priv` and all its allocations if=
+ `npc_setup_mcam_section()` fails.
+- [High] Missing NULL pointer checks for `npc_priv` in debugfs and asynchro=
+nous handlers leads to NULL pointer dereferences.
+- [High] Out-of-bounds array access due to unvalidated hardware geometry ex=
+ceeding static array capacities.
+- [High] Pre-existing memory leak of `defrag_lh` nodes during `npc_cn20k_de=
+init()`.
+- [High] Pre-existing out-of-bounds write in `npc_create_srch_order()` when=
+ `num_subbanks` is 1.
 --
 
-commit 0a14e92cf2754f6d4cb9d8447914740b55c1a43e
+commit dfbf4e512f9599787a56a7a0ecf88e54713d70e8
 Author: Ratheesh Kannoth <rkannoth@marvell.com>
+Subject: octeontx2-af: npc: cn20k: Allocate npc_priv and dstats dynamically.
 
-octeontx2: cn20k: Respect NPC MCAM X2/X4 profile in flows and DFT alloc
+This commit modifies the npc_priv and dstats structures to be dynamically
+allocated instead of file-scope statics. It handles initialization and
+teardown of these allocations and updates usages across the code paths.
 
-This commit updates the default CN20K NPC rule allocation and flow-install=
-=20
-path to respect the active MCAM keyword width, dynamically selecting X2 or =
-X4=20
-and masking reference indices accordingly. It caches the profile informatio=
-n=20
-on the PF.
+> diff --git a/drivers/net/ethernet/marvell/octeontx2/af/cn20k/debugfs.c b/=
+drivers/net/ethernet/marvell/octeontx2/af/cn20k/debugfs.c
+> index 9a4c2ea5b19e4..15af7b0ccea64 100644
+> --- a/drivers/net/ethernet/marvell/octeontx2/af/cn20k/debugfs.c
+> +++ b/drivers/net/ethernet/marvell/octeontx2/af/cn20k/debugfs.c
+[ ... ]
+> -static u64 dstats[MAX_NUM_BANKS][MAX_SUBBANK_DEPTH * MAX_NUM_SUB_BANKS] =
+=3D {};
+> +static u64 (*dstats)[MAX_NUM_BANKS][MAX_SUBBANK_DEPTH * MAX_NUM_SUB_BANK=
+S];
+[ ... ]
+> @@ -396,6 +396,10 @@ int npc_cn20k_debugfs_init(struct rvu *rvu)
+>  	debugfs_create_file("vidx2idx", 0444, rvu->rvu_dbg.npc,
+>  			    npc_priv, &npc_vidx2idx_map_fops);
+> =20
+> +	dstats =3D devm_kzalloc(rvu->dev, sizeof(*dstats), GFP_KERNEL);
+> +	if (!dstats)
+> +		return -ENOMEM;
+> +
+
+Since dstats is a file-scoped static pointer, will it be overwritten if
+multiple RVU PCI devices are probed on the same system?
+
+It looks like devm_kzalloc ties the allocation to a specific device. If that
+device is unbound, the devres framework will automatically free the memory.
+Could this leave the global pointer dangling and cause a use-after-free for
+any remaining active devices that try to access the debugfs file?
 
 > diff --git a/drivers/net/ethernet/marvell/octeontx2/af/cn20k/npc.c b/driv=
 ers/net/ethernet/marvell/octeontx2/af/cn20k/npc.c
-> index 67dfbe5ca903f..15b3f29d60ee9 100644
+> index 15b3f29d60ee9..ea8fc43df0902 100644
 > --- a/drivers/net/ethernet/marvell/octeontx2/af/cn20k/npc.c
 > +++ b/drivers/net/ethernet/marvell/octeontx2/af/cn20k/npc.c
-> @@ -4467,11 +4467,18 @@ int npc_cn20k_dft_rules_alloc(struct rvu *rvu, u1=
-6 pcifunc)
->  	 * as NPC_DFT_RULE_PRIO - 1 (higher hw priority)
->  	 */
->  	req.contig =3D false;
-> -	req.kw_type =3D NPC_MCAM_KEY_X2;
->  	req.count =3D cnt;
->  	req.hdr.pcifunc =3D pcifunc;
->  	req.ref_prio =3D NPC_MCAM_LOWER_PRIO;
-> -	req.ref_entry =3D eidx + 1;
-> +
-> +	if (npc_priv.kw =3D=3D NPC_MCAM_KEY_X4) {
-> +		req.kw_type =3D NPC_MCAM_KEY_X4;
-> +		req.ref_entry =3D eidx & (npc_priv.bank_depth - 1);
-> +	} else {
-> +		req.kw_type =3D NPC_MCAM_KEY_X2;
-> +		req.ref_entry =3D eidx;
-> +	}
-> +
+> @@ -16,9 +16,7 @@
+>  #include "cn20k/reg.h"
+>  #include "rvu_npc_fs.h"
+> =20
+> -static struct npc_priv_t npc_priv =3D {
+> -	.num_banks =3D MAX_NUM_BANKS,
+> -};
+> +static struct npc_priv_t *npc_priv;
 
-Does the initial allocation attempt unconditionally hardcode X2 keys?
-
-Looking at the code just above this fallback path in
-npc_cn20k_dft_rules_alloc(), the primary allocation hardcodes the key type:
-
-    req.contig =3D false;
-    req.ref_prio =3D NPC_MCAM_HIGHER_PRIO;
-    req.ref_entry =3D eidx;
-    req.kw_type =3D NPC_MCAM_KEY_X2;
-    ...
-    ret =3D rvu_mbox_handler_npc_mcam_alloc_entry(rvu, &req, &rsp);
-
-If this first attempt succeeds, VFs might incorrectly get assigned X2 rules
-on X4 silicon. Since PFs bypass the fallback path entirely if this fails,
-will PF default rule allocation fail completely on X4 profiles?
+Similarly, since npc_priv is also a file-scoped global pointer, could probi=
+ng
+multiple devices cause previous allocations to be overwritten and leaked?
+Should this per-device state be stored within a device-specific context
+structure instead of a global pointer?
 
 [ ... ]
-
-> diff --git a/drivers/net/ethernet/marvell/octeontx2/nic/otx2_flows.c b/dr=
-ivers/net/ethernet/marvell/octeontx2/nic/otx2_flows.c
-> index 38cc539d724d8..5dd0591fed999 100644
-> --- a/drivers/net/ethernet/marvell/octeontx2/nic/otx2_flows.c
-> +++ b/drivers/net/ethernet/marvell/octeontx2/nic/otx2_flows.c
-> @@ -37,14 +37,13 @@ static void otx2_clear_ntuple_flow_info(struct otx2_n=
-ic *pfvf, struct otx2_flow_
->  	flow_cfg->max_flows =3D 0;
->  }
+> @@ -4185,8 +4183,8 @@ int rvu_mbox_handler_npc_get_pfl_info(struct rvu *r=
+vu, struct msg_req *req,
+>  		return -EOPNOTSUPP;
+>  	}
 > =20
-> -static int otx2_mcam_pfl_info_get(struct otx2_nic *pfvf, bool *is_x2,
-> -				  u16 *x4_slots)
-> +static int otx2_mcam_pfl_info_get(struct otx2_nic *pfvf, u16 *x4_slots, =
-u8 *kw_type)
+> -	rsp->kw_type =3D npc_priv.kw;
+> -	rsp->x4_slots =3D npc_priv.bank_depth;
+> +	rsp->kw_type =3D npc_priv->kw;
+> +	rsp->x4_slots =3D npc_priv->bank_depth;
+>  	return 0;
+>  }
+
+If a Virtual Function sends a mailbox message before initialization is
+complete or after teardown, could npc_priv be NULL here? Does this handler
+need a NULL pointer check to prevent a crash?
+
+[ ... ]
+> @@ -4599,34 +4597,40 @@ static int npc_priv_init(struct rvu *rvu)
+>  		return -EINVAL;
+>  	}
+> =20
+> -	npc_priv.num_subbanks =3D num_subbanks;
+> +	npc_priv =3D kcalloc(1, sizeof(*npc_priv), GFP_KERNEL);
+> +	if (!npc_priv)
+> +		return -ENOMEM;
+> +
+> +	npc_priv->num_banks =3D num_banks;
+> +
+> +	npc_priv->num_subbanks =3D num_subbanks;
+> =20
+>  	subbank_depth =3D	bank_depth / num_subbanks;
+> =20
+> -	npc_priv.bank_depth =3D bank_depth;
+> -	npc_priv.subbank_depth =3D subbank_depth;
+> +	npc_priv->bank_depth =3D bank_depth;
+> +	npc_priv->subbank_depth =3D subbank_depth;
+> =20
+>  	/* Get kex configured key size */
+>  	cfg =3D rvu_read64(rvu, blkaddr, NPC_AF_INTFX_KEX_CFG(0));
+> -	npc_priv.kw =3D FIELD_GET(GENMASK_ULL(34, 32), cfg);
+> +	npc_priv->kw =3D FIELD_GET(GENMASK_ULL(34, 32), cfg);
+> =20
+>  	dev_info(rvu->dev,
+>  		 "banks=3D%u depth=3D%u, subbanks=3D%u depth=3D%u, key type=3D%s\n",
+>  		 num_banks, bank_depth, num_subbanks, subbank_depth,
+> -		 npc_kw_name[npc_priv.kw]);
+> +		 npc_kw_name[npc_priv->kw]);
+> =20
+> -	npc_priv.sb =3D kcalloc(num_subbanks, sizeof(struct npc_subbank),
+> -			      GFP_KERNEL);
+> -	if (!npc_priv.sb)
+> +	npc_priv->sb =3D kcalloc(num_subbanks, sizeof(struct npc_subbank),
+> +			       GFP_KERNEL);
+> +	if (!npc_priv->sb)
+>  		return -ENOMEM;
+
+If the allocation for npc_priv->sb fails and returns -ENOMEM, does this leak
+the newly allocated npc_priv structure? Should there be a cleanup path here=
+ to
+free npc_priv?
+
+This isn't a bug introduced by your patch, but in this same file under
+npc_create_srch_order():
+
+static int npc_create_srch_order(int cnt)
+{
+        ...
+        for (int i =3D 0; i < cnt; i +=3D 2) {
+                subbank_srch_order[i] =3D cnt / 2 - val - 1;
+                subbank_srch_order[i + 1] =3D cnt / 2 + 1 + val;
+                val++;
+        }
+        ...
+}
+
+If the hardware reports num_subbanks as 1, cnt is 1, and the loop executes
+once. Could this cause an out-of-bounds write to subbank_srch_order[1] since
+the array size is only 1?
+
+[ ... ]
+> @@ -4674,25 +4680,30 @@ void npc_cn20k_deinit(struct rvu *rvu)
 >  {
->  	struct npc_get_pfl_info_rsp *rsp;
->  	struct msg_req *req;
->  	static struct {
->  		bool is_set;
-> -		bool is_x2;
-> +		u8 kw_type;
->  		u16 x4_slots;
->  	} pfl_info;
+>  	int i;
+> =20
+> -	xa_destroy(&npc_priv.xa_sb_used);
+> -	xa_destroy(&npc_priv.xa_sb_free);
+> -	xa_destroy(&npc_priv.xa_idx2pf_map);
+> -	xa_destroy(&npc_priv.xa_pf_map);
+> -	xa_destroy(&npc_priv.xa_pf2dfl_rmap);
+> -	xa_destroy(&npc_priv.xa_idx2vidx_map);
+> -	xa_destroy(&npc_priv.xa_vidx2idx_map);
+> +	if (!npc_priv)
+> +		return;
+> +
+> +	xa_destroy(&npc_priv->xa_sb_used);
+[ ... ]
+> +	kfree(npc_priv);
+> +	npc_priv =3D NULL;
+>  }
 
-Does caching this profile information in a static structure cause a data
-race across concurrent device instances?
+This might be a pre-existing issue, but during teardown in npc_cn20k_deinit=
+(),
+does the defrag_lh list need to be cleared? The list appears to contain
+dynamically allocated npc_defrag_show_node structures, and they might be
+leaked if they are still present when npc_priv is freed.
 
-The accesses to this shared cache are protected by mutex_lock(&pfvf->mbox.l=
-ock).
-Since this is a per-device instance lock, multiple network devices could
-concurrently acquire their own independent locks and read or write the shar=
-ed
-pfl_info structure.
+[ ... ]
+> @@ -4730,7 +4741,5 @@ int npc_cn20k_init(struct rvu *rvu)
+>  		return err;
+>  	}
+> =20
+> -	npc_priv.init_done =3D true;
+> -
+>  	return 0;
+>  }
 
-Could this lack of synchronization lead to torn reads, such as reading x4_s=
-lots
-as 0 if the compiler reorders the write to is_set before x4_slots?
+Looking at the earlier part of npc_cn20k_init():
+
+int npc_cn20k_init(struct rvu *rvu)
+{
+        err =3D npc_priv_init(rvu);
+        if (err) { ... }
+
+        err =3D npc_setup_mcam_section(rvu, NPC_MCAM_KEY_X2);
+        if (err) {
+                dev_err(rvu->dev, "%s: mcam section configuration failure\n=
+",
+                        __func__);
+                return err;
+        }
+        ...
+}
+
+If npc_setup_mcam_section() fails, it returns the error without calling
+npc_cn20k_deinit(). Does this leak the npc_priv structure and all of its
+internal allocations?
+
+> diff --git a/drivers/net/ethernet/marvell/octeontx2/af/cn20k/npc.h b/driv=
+ers/net/ethernet/marvell/octeontx2/af/cn20k/npc.h
+> index bf030e40fbf96..ee0bbeba7f259 100644
+> --- a/drivers/net/ethernet/marvell/octeontx2/af/cn20k/npc.h
+> +++ b/drivers/net/ethernet/marvell/octeontx2/af/cn20k/npc.h
+> @@ -191,7 +191,7 @@ struct npc_defrag_show_node {
+>   */
+>  struct npc_priv_t {
+>  	int bank_depth;
+> -	const int num_banks;
+> +	int num_banks;
+>  	int num_subbanks;
+>  	int subbank_depth;
+>  	DECLARE_BITMAP(en_map, MAX_NUM_BANKS *
+
+Since num_banks and bank_depth are now dynamically read from hardware rather
+than using strict compile-time constants, is it possible for a device to
+advertise geometry larger than the static sizes used for en_map and dstats
+(MAX_NUM_BANKS, etc.)?
+
+Could this cause out-of-bounds reads and writes when accessing those
+structures?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20260508034912.4082=
-520-1-rkannoth@marvell.com?part=3D8
+520-1-rkannoth@marvell.com?part=3D9
