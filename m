@@ -1,59 +1,60 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=82.195.75.108
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793377921;
-	b=Xkzx2zSkXlZQzT32v+onjoBmZEniUcdiXHngUKAIQs8PlbbLNb6/T6KyIDxcAWhxWekZ
-	 mJtSwEFfsDZvXUEyar36FRCEIc7EgyGTX3M13iZ+bIcQAmUT15w+GUVZj5jFZmtMa5nOx
-	 M6KoyAKb7iJaWrXoT2U3/kQfsWdfsf6eLRhPzAgmbA2m8PeX5eQcw7yGIVwc/bbyOHhio
-	 fjiYghFKVYpkAuwiIMDUqjaGEfqhJccpl2hTdGARtZ5Yy6qECu6yBjqx/ZMBvvTwbtYus
-	 KRon+khXc3VyaYZg1v2dBx5DXi5i5rfhtSo1xJ3iIzG6yzjgwskODyvLnoDqdtCxlsA==
+	t=1793377916;
+	b=Oci34ZhrCDE5ey+U0Aw791x0t7XRW2rSt+GBOWFlnyEqvqnZgNSEzEctmDhH3EUxvF5i
+	 cTJwbKqNsg3W4M9rZVfU9vt1j71NLOQsdKhM7jUwXCEDKbI5cgvp0DQEaDkH/N6iE/hPv
+	 MUjd3pOfb2dmkaN7LQ0Cd54v5njARiUifuOM+D5cPP5O7ukGvBDVOpbX6peSb6q9bk0mI
+	 D1gw6gA3XMCYUuyCJGk508Ho1/qaJDeGpUHgDBXKQt2gaVcZdXbXzSp8FQNH3cb7Cb4fV
+	 c/3d5yNeVMQf6Wx+izSmpa8GCMCzYCrQ4aSM2O1W0JA/nKqeBQNLvEob6c0AyQuL+fQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793377921;
-	h=DMARC-Filter:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:Message-Id:References:
-	 In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key:
+	a=rsa-sha256; c=relaxed/relaxed; t=1793377916;
+	h=DMARC-Filter:DKIM-Signature:Received:From:Subject:Date:Message-Id:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding:X-B4-Tracking:
+	 X-Change-ID:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key:
 	 X-Debian-User;
-	bh=SXMDUKU8JoAk/oFBq/P4B0/w2u2L8U9fM46BJ5h8xiU=;
-	b=wyIAKnQa/BzRV/V+4I9A6KYGkF6Ne2jF/3g3OHY7JwpA49t73+uHucnwN4rwAsB9fuwq
-	 B4mOcC8ISbg1YOIjjXAc/1EYn89Mr7Sv8Q03tLOQptJJ4g5i9ISbJM7/IoggpSBtEmszB
-	 2vFH8pjJZXWhaDM50iFNYTpo4axWS9UgxESXYO/vyreLyDevPPTEm9XmG9QUmgSOisMe0
-	 KSR4+VZmgHBLqTRpWXF8ha4CyJXWV8v+jh3Xi2Mx7xlkRcl4MYAvkUbjOL4Q15OfMdgkA
-	 MMRRk2q1rJQyeYjM803UmFT4WLrDldDbgKDvVc/B8cWYJpW++gKzjY82xifmj86i0kw==
+	bh=18iLjx7wEgVFJMWjkIMOjrBL+KFsjnRPIBJEFlbdmjc=;
+	b=UEm8gDdnCsBtgvDFrI1sMxqQ1PFocfqx3Wg+NlugchMTYzaJ6uUl196PaMM16GM7ds9l
+	 foq6HQW15xXqG1JEqq8hEFNbu7cawwOfEGq80DkIm1LksxHrQmmWb4iDXYnwEGpuhHl8c
+	 rLFBGfCOEPbjJEOMIubvpTaGvMnGzlmBVGyrxMXsQSjl9wBwsN3UPNUsPBGDVaDjgxCKw
+	 NVFzSF+0gBChalOSPVpBuQsCUUlsdjv6nUvw/RrX8ZSm61n19xgTgHaF0weurY/SKyUEO
+	 kBiVJJKIKZ5Hr9OiWK1BvDFGTV0UiwQSBTamq5vA1R1fsVCUqbc321Dr2Qe05v3YszQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=debian.org;
 	spf=pass smtp.mailfrom=debian.org;
-	dkim=pass header.d=debian.org header.i=@debian.org header.a=rsa-sha256 header.s=smtpauto.stravinsky header.b=gXVKqEIu;
+	dkim=pass header.d=debian.org header.i=@debian.org header.a=rsa-sha256 header.s=smtpauto.stravinsky header.b=fBbgBfwZ;
 	arc=none smtp.remote-ip=82.195.75.108
 Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26820606A320;
-	Fri, 30 Oct 2026 16:32:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 26820606A320
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1101F606A31C;
+	Fri, 30 Oct 2026 16:31:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1101F606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=debian.org header.i=@debian.org header.a=rsa-sha256 header.s=smtpauto.stravinsky header.b=gXVKqEIu
+	dkim=pass (2048-bit key, unprotected) header.d=debian.org header.i=@debian.org header.a=rsa-sha256 header.s=smtpauto.stravinsky header.b=fBbgBfwZ
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
-	s=smtpauto.stravinsky; h=X-Debian-User:Cc:To:In-Reply-To:References:
-	Message-Id:Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:
-	From:Reply-To:Content-ID:Content-Description;
-	bh=SXMDUKU8JoAk/oFBq/P4B0/w2u2L8U9fM46BJ5h8xiU=; b=gXVKqEIu5eViDtg7aRBlpU+gWd
-	AhpPHvjJH7Cq69v17pgBEPxUC4wD6Hn46nGg2n1krHnaP+HuMB0TIFgQqtov84RHKD+/L9dE0q9TR
-	gU2YLTnq3ds0rQgFJ1/jEm5yxZ37gfSV36viKuAyt9y+jCZ+C+Ey3R+x5A81ZVBTik2ZqSH3W7H3G
-	q8pVIr9K4Y7R+nNPH4YXDzW16O7MNUXVqQCwB+dQFdKxiP56EgEkq1yUKCCiH+j0IC3KNkJVTdA4b
-	sry0LcCdQsZWqNxkaIRoFT77z+IwUwpH0Cxgt1fzv65uWkNhBC7Gs9tKOrj53qupF1EPiOqMNGKw/
-	BXUtiYuw==;
+	s=smtpauto.stravinsky; h=X-Debian-User:Cc:To:Content-Transfer-Encoding:
+	Content-Type:MIME-Version:Message-Id:Date:Subject:From:Reply-To:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=18iLjx7wEgVFJMWjkIMOjrBL+KFsjnRPIBJEFlbdmjc=; b=fBbgBfwZBI7t5A1Qja0Z6xR5Zh
+	80mbJmMoLiW0Xjg039OjFMOlVm7jYeJiVq2j3K7R8jI32Jio4ZwGzDUQxTy3dUGZmSVIPk3BYMN0X
+	ZVw21m9mju3B+LD8sowr9rz57eHN2vEHLAa4Qz+qcZFfTfZ++yc7guHY5leYJytiSRir+aU8Hk4Xt
+	v02EHKcjnQLug47DN+OMkCHkuHCAHP9J8H13mrNePOmOAeorCJOeFCQWsR+V7YHSGEKbvQ/yWtCdL
+	LBPnDbkRL7yClDCmlHRACP4jajhwhokW4W/3m3DQp6gZFUuATKfS9XOqUWY/lBWDtmkFBJqvH72dW
+	yAfMBapA==;
 Received: from authenticated-user
 	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
 	(Exim 4.96)
 	(envelope-from <leitao@debian.org>)
-	id 1xMpWH-003x26-0k;
-	Fri, 30 Oct 2026 16:31:57 +0000
+	id 1xMpWA-003x1s-02;
+	Fri, 30 Oct 2026 16:31:50 +0000
 From: Breno Leitao <leitao@debian.org>
-Date: Fri, 30 Oct 2026 09:31:44 -0700
-Subject: [PATCH RFC 2/2] net/mlx5e: Rate limit the HW stats refresh from
- ndo_get_stats64
+Subject: [PATCH RFC 0/2] net/mlx5: Cut workqueue traffic of firmware
+ commands and stats
+Date: Fri, 30 Oct 2026 09:31:42 -0700
+Message-Id: <20261030-mlx5-cmd-wq-v1-0-1458b2aed637@debian.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -65,9 +66,10 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261030-mlx5-cmd-wq-v1-2-1458b2aed637@debian.org>
-References: <20261030-mlx5-cmd-wq-v1-0-1458b2aed637@debian.org>
-In-Reply-To: <20261030-mlx5-cmd-wq-v1-0-1458b2aed637@debian.org>
+X-B4-Tracking: v=1; b=H4sIAG7G5GoC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
+ vPSU3UzU4B8JSMDIzNDA2MD3dycClPd5NwU3fJC3URDUzMLY6C4SWKaElBHQVFqWmYF2LRopSA
+ 3Z6VYiGBxaVJWanIJyByl2loAkhji9XQAAAA=
+X-Change-ID: 20261030-mlx5-cmd-wq-a156836104af
 To: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
  Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, 
  Andrew Lunn <andrew+netdev@lunn.ch>, 
@@ -77,98 +79,67 @@ Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
  linux-kernel@vger.kernel.org, Breno Leitao <leitao@debian.org>, 
  kernel-team@meta.com
 X-Mailer: b4 0.15-dev-47773
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3173; i=leitao@debian.org;
- h=from:subject:message-id; bh=V8a1j1n1zFWm8kITR5H5OSwQjGYGT+ECI1w5aAdV+IM=;
- b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBq5MZyivdZFHmXJG6yY3CujPwA6Np/acktUbI+z
- ejmrhA6EH6JAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCauTGcgAKCRA1o5Of/Hh3
- bUf/D/9Hjz+rRFvo4iBG47H1R5XyzBKkt6Z5VsEPFjIkkUL9Q5I3tA5o6mrJQamsa8ONlJJJsEP
- nY+BlsPhTVSFEjh8uuBQvu6qLMgMgBdGcp4C68QaOn+cSfu78hj+Imrb6s8ZQNNFnLcnHSVEOn2
- /9XxmW8zbRYwn+oTpM8kl9sICTtfqunHhxM0N/S4jcdbzo024Bzkrmed1Q/U5PLg1cP9Znz+/Nt
- uwVUw+zj9Y8rHPhXdcfzwlJnhw/CBP1KxbDFIs504R9j98QD3TOcxgFzEmoWv8SY7dYIFWi3YfV
- a+eTiOngHw1G4vzcTkt/O4Rg0WDneT/tnwW+pdZ1F8iJyGvHwmaBKA6iGsISzAxBqA8A64mYR2E
- GamC/c82cVUXbl3KId/SNSBm0ClLUmskE936iXxtSsFrebPUGg3csOvr65BDLWV5Uk/1ENt66nu
- Bh+MojZdvOmoJH3Yusb5SBel3Y/4T1Xfr+/q3o01B8WSisF7EmVikbjmKMkxbFHG4PAx9tldDX4
- g11bYYJ9z3JgVxvN49eIU0o+U9XbFxQOuKSV51OTj0OLotEfwgofq6MI/dOJ4M++TkJbPPpuJv9
- f/3nvn9pwT2IUxuqS1QeIwoffXS8c1ifVtzWpFjL2g89CPc/1UpPxuPraceuZCF1cjlfQY03A/c
- gMcX6/0AAMOOS1w==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1993; i=leitao@debian.org;
+ h=from:subject:message-id; bh=fSYl3YbyV2t6dd8c0/OYqNO+5zzMvz+WgutkCutaf7k=;
+ b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBq5MZysrKXg7y6xjuVzIDGwQqgOhGpKI51hAczy
+ /Q71TivthGJAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCauTGcgAKCRA1o5Of/Hh3
+ bXf+D/9VTpEbaUSWrfBo4XO7zEo8VTP2E9GDAdqPBNa+x1+tiITaryl4wU+YQtmUG5MUeHF/Jwi
+ 9JB331eUDcyRABbMwJTw/vyQLpMUVnmvf8hi/3Rnj0krVA9DjP6U1qN84aQL7VqCQi4pAqhJPJf
+ yExm4uxyuaVr8/Kf+SJUPVy6TC69Mzm/NgIIxPp+p2s/4dOI7TUAKTGmibpojYQkRUzB6peEixO
+ RYpDCN7Gsw9KpUn/IHdnhX410hgDN0JH2aoCzUHn/9k35CfF7mg1EisGQ/eBJ+Lt1cE47UGFPul
+ yelSieAmggekIEXtV0bTvImklLpNFoX5XC6TDQfUKoqJ1cPLU7Snr9HJus8A6k8U/5WYrCfrX33
+ swAqnxozXRzK3itnj1NxItHXydyh5WKhmtzbZuu01gV/apVoQBIwt9L1TSkDATdjIrcJs6CKMDH
+ NyvLDVLc08Bk3f6UqiZa4MC0BgdW4+fGkFDG+xcVAXgAb6659xureWag356JLVLH/BM0noobc3/
+ BXpEPSBWsN32s3/SLbPqBPiz7USkdAspJPIcdEUPneSrJ417q+CaKSU2cfzlrNLz5pRc8T9AiTA
+ w+VHY2JMveBY+xtF9vVMcBi5VCb+B3OiBwtD4/vSKodOmc3rQC8bi6xeB5LCa8AA0hdQibX+q0t
+ QvpOVfQpP4S2AYw==
 X-Developer-Key: i=leitao@debian.org; a=openpgp;
  fpr=AC8539A6E8F46702CA4A439B35A3939FFC78776D
 X-Debian-User: leitao
 
-mlx5e_get_stats() and mlx5e_rep_get_stats() return the counters cached
-by the previous refresh and queue update_stats_work to refresh them in
-the background. queue_work() only merges requests while the work is
-still pending, so with several readers each netdev keeps refreshing,
-and every refresh sends one to three firmware commands. A single read
-of /proc/net/dev requests a refresh on every netdev, representors
-included.
+While looking for Meta's arm64 fleet wide lockstat, I found that mlx5 is
+one of the major culprit for the locks in the fleet, and this is the
+motivation for this patchset.
 
-Until commit ed56c5193ad8 ("net/mlx5e: Update NIC HW stats on demand
-only") the driver refreshed these counters every 200 msecs. Bring back
-that interval as the minimum time between two on-demand refreshes, and
-skip the requests that arrive sooner.
+On an arm64 host with a dozen mlx5 functions in switchdev mode, lock
+contention profiling showed the pool->lock of the unbound worker pool
+that all ordered workqueues share as the hottest workqueue lock.
+Monitoring daemons read /proc/net/dev, so every mlx5e netdev keeps
+queueing update_stats_work. Each refresh sends one to three firmware
+commands, and each command is one more work item, on the ordered
+cmd->wq of its function.
 
-Readers already get the values of the previous refresh, so at worst
-they are now up to 200 msecs older. The monitor counter event path
-queues the work directly and is not rate limited.
+Patch 1 submits blocking firmware commands from the caller's context,
+as page-queue commands already do, and keeps the workqueue for
+callback commands.
 
-In switchdev mode with 8 VFs, one /proc/net/dev reader at about 75 Hz
-caused 13.4k firmware commands in 13 seconds, and 1.8k with this
-change. With two readers the count drops from 27.3k to 1.6k.
+Patch 2 brings back the 200 msecs stats refresh interval that the
+driver used until 2018, as the minimum time between two on-demand
+refreshes.
+
+Tested on a ConnectX-4 Lx host (x86, firmware 14.32) against the base
+commit, in legacy mode and in switchdev mode with 8 VFs. With one
+/proc/net/dev reader in switchdev mode, the firmware commands of a
+13 second run drop from 13.4k to 1.8k, and the mlx5_cmd work items of
+32 parallel ethtool -S loops drop from 46.7k to none. Channel
+reconfiguration, switchdev enable/disable and the load above ran with
+no failed firmware commands and no warnings.
 
 Signed-off-by: Breno Leitao <leitao@debian.org>
 ---
+Breno Leitao (2):
+      net/mlx5: Submit blocking commands from the caller's context
+      net/mlx5e: Rate limit the HW stats refresh from ndo_get_stats64
+
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c     | 3 ++-
  drivers/net/ethernet/mellanox/mlx5/core/en.h      | 2 ++
  drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 9 +++++++++
- 2 files changed, 11 insertions(+)
+ 3 files changed, 13 insertions(+), 1 deletion(-)
+---
+base-commit: 4dd16e31135ea8437a720222df34e8745f385d6d
+change-id: 20261030-mlx5-cmd-wq-a156836104af
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-index a3945195f454e3..b66d40cdfdda53 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-@@ -151,6 +151,7 @@ struct page_pool;
- #define MLX5E_MAX_NUM_CHANNELS         256
- #define MLX5E_TX_CQ_POLL_BUDGET        128
- #define MLX5E_TX_XSK_POLL_BUDGET       64
-+#define MLX5E_UPDATE_STATS_INTERVAL    200 /* msecs */
- #define MLX5E_SQ_RECOVER_MIN_INTERVAL  500 /* msecs */
- 
- #define mlx5e_state_dereference(priv, p) \
-@@ -928,6 +929,7 @@ struct mlx5e_priv {
- 	struct work_struct         set_rx_mode_work;
- 	struct work_struct         tx_timeout_work;
- 	struct work_struct         update_stats_work;
-+	unsigned long              update_stats_jiffies;
- 	struct work_struct         monitor_counters_work;
- 	struct mlx5_nb             monitor_counters_nb;
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index c3c2c5720c6f32..307505e0a827c6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -169,12 +169,21 @@ static void mlx5e_update_stats_work(struct work_struct *work)
- 
- void mlx5e_queue_update_stats(struct mlx5e_priv *priv)
- {
-+	unsigned long last;
-+
- 	if (!priv->profile->update_stats)
- 		return;
- 
- 	if (unlikely(test_bit(MLX5E_STATE_DESTROYING, &priv->state)))
- 		return;
- 
-+	/* Stats readers may poll often, limit the rate of FW queries */
-+	last = READ_ONCE(priv->update_stats_jiffies);
-+	if (time_in_range(jiffies, last,
-+			  last + msecs_to_jiffies(MLX5E_UPDATE_STATS_INTERVAL)))
-+		return;
-+
-+	WRITE_ONCE(priv->update_stats_jiffies, jiffies);
- 	queue_work(priv->wq, &priv->update_stats_work);
- }
- 
-
--- 
-2.53.0-Meta
+Best regards,
+--  
+Breno Leitao <leitao@debian.org>
 
