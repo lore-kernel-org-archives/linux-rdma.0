@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793385259;
-	b=SSUiC6GjfSOSKVx0qNYeLO6Q1efZOSNh7ydMnnrDCYdGhaE7hYVHqhKVKnKeRZ3WY4R1
-	 F5C4exGO6EYTP48Tz6ym2/3qYz4V3ZqkhE2ftMyPxlpvKy2cJjvb/J3U7l6vzHX5qI4pl
-	 G5NDuILdBDSqYz0nBfOAaqG0/Z2paAQywFQvInOVbquCJQRF/Pk9UCur+Z6OQUM+cIf2p
-	 ekaU/WSuPDKJU7nQK4UsNnN3e9K4xT8imr2l0aquNPbhG4Gdz7vBeNHUPxmkxPOveyNfy
-	 Rc5V0LjJV9Le+hytngstf0Ztcr4uIWRosb8A2OchYWeWSmJa8dK+XIkOIQLkGtm/vMA==
+	t=1793386283;
+	b=yOapeRA8WKXdeKPGFwdr5USt3X++DtmBPoWYDCoJfUVsdvcvyBXv7RT0CgDrlvZkkWHz
+	 6tb/W+yLQ2A7TiYg/0CGUKkfQeLl8GNI/LzY/VpJbt4cUEuC0xjXdWq0UIACRJx8kzMRP
+	 6Kyn6kOvLXEPsyJ+tkxGUIh8O1ARSd6AG6e1FGlqe1VQbcyaNNPQK0wNmMIdvS8HKdwgJ
+	 Djg93eRaM5RFOAYCEMSGtZMokK1jvynwr4UnxKN6H1Lq+d7UY6MHEPtyp+kXNt9c5o8Qg
+	 S6bAmsxZsBMFp4+Kp8A3Z/XDfuLttF5EUf6Aggfuazpvk8QKlme4WdvcdlNJNd6B6Dg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793385259;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793386283;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=mZPmwsYSB1ZVPFcI57o02zSqU46o1+QOy/iizr/+8hM=;
-	b=kSubRApYC0+psvEUwGH+1TGg/oaC294Jr2EvUrnJ0S58hfwr7iMSinSiGZMH6wQoQg9C
-	 ZkeES7dsTY4hQTTNQSKJMf+6k+qQWSYZ10pIwfIj3wczq/8uLXIoIhKjH38Ww4quR5vWL
-	 H+sL2+WxJo+zRY/hNzNxWI/RK87okFdLyzLal9LDEiv7vadXXAaszk8snaj4o3WpML1IB
-	 9C1tCkwNRrt3buIz/zQR1jvbYEmKaSMNtmtICxjuqAJVwAT/rYzc8dZ8TvaNN+epPiggW
-	 YFOlov5+8gKowSs8Im/KCE33I/Xdi/sNg1qXeqBcT4JfasvMUyLPKV04+vffIDPxJdQ==
+	bh=qrGfF40MF/uhZUi2tUgV70oxS03FOLwE41uzskojOE4=;
+	b=YQYWosI5p21VegeUJ8ZOQSv8n4dSs6wvXxel7uTsRu7mXr80XEUCZ+4RT9MfHGBhCl82
+	 pVzXWsnQ/+hVo9ubn9oh1LAvL1D5GUpJwfKv7j0GY/mg2261eHUGy7UHU4xXXfCzWkIKX
+	 gKHmwxoWFxHknQRsaRYWzoc1ZNDEYF7NwZhMNLTEM97qVCvr3XWSbqV5I9460MMKosqEs
+	 P61sjkyatQlhgV7iEsZgARb4sWMt1onyrcA77kaSrrXt712TEWC+IbmTxo6PEclOyD0h/
+	 ZBx0m0+46+8eV7zA4b8WWg4686ZrIGBT7uHbX1seRBbjnRF7NY8WXJNHzBdHNXlxuhg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nkeXwMCh;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VWVYtAJb;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53432606A31C
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 18:34:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E518E606A32A
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 18:51:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nkeXwMCh
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC2E51F0093A;
-	Fri, 30 Oct 2026 18:34:18 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VWVYtAJb
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E3081F00A16;
+	Fri, 30 Oct 2026 18:51:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793385258;
-	bh=mZPmwsYSB1ZVPFcI57o02zSqU46o1+QOy/iizr/+8hM=;
+	s=k20260515; t=1793386282;
+	bh=qrGfF40MF/uhZUi2tUgV70oxS03FOLwE41uzskojOE4=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=nkeXwMCh94FdgAUPq2mdW6EDCqYZ0TVlpxjDQdhOZnEKI3MVA0BdR2S6cPjMehg3q
-	 oBoEySYPEg8cVWo5yMdNvwBzA/hEP93/4iy3bL+bX+nS/kjckzhVDwwgg4Oc8qfvmy
-	 UJzxDhm13GSLST38CswKKLOnrOQGWYygtjHJce8fopIKOFwWpXmsZcpIXuiPU4lQhg
-	 T6hczihisFCplYsKiupwh9BtzmtkJRr/dhWswIMEryXoqOBYVsLtlXWREsW/NBS6ZS
-	 TeOHfXj4fdN1/VOCJgQ6QrEIEoLevdB5nt+/raKR+nOq4locS7HrslTsrNa89hzmW9
-	 7ERT4PwJBDABw==
-Message-ID: <sashiko-outbox-191413@kernel.org>
+	b=VWVYtAJbjKeUD41JcZH2y9DI3er+ZUpf/+ZOtQ3TS9BTVvs950hdV4sJi/PwEcRmZ
+	 AKxQAmJbpeZrMRNSgn3kuetrgKuWmO2NoGBs5wRditCALcfCCU6AD7kU65pEpO6lVe
+	 a3kfOacNKGuaYeuGEUbAxMYQgIA7QnfuleVsdbf37FIb3DwBM344IG8dOLlQJUENmJ
+	 bGK8+82twJibe2qHlGQVSGPISGKc/01NGbZgKM5G9AuXuxqyhmx9xv+cq4Pb3tN/sP
+	 QP0DgNaEcfT9ZOPBLtnNXMHFmuoJe8tZB9yFKixPMcPwKBudGHEFcfBHlxEBXN8Lsd
+	 6mi5iSktI4+Rg==
+Message-ID: <sashiko-outbox-191416@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v4 6/6] RDMA/irdma: Support UMEM attribute for
- SRQ creation
+Subject: Re: [PATCH v9 1/2] RDMA/rxe: copy send WQE to kernel buffer before
+ processing
 Reply-To: sashiko-reviews@lists.linux.dev
-To: "David Hu" <dhu@x6u.co>
+To: "Tristan Madani" <tristmd@gmail.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261030181512.2056056-7-dhu@x6u.co>
-References: <20261030181512.2056056-1-dhu@x6u.co>
- <20261030181512.2056056-7-dhu@x6u.co>
+In-Reply-To: <20261030183409.195671-2-tristan@talencesecurity.com>
+References: <20261030183409.195671-1-tristan@talencesecurity.com>
+ <20261030183409.195671-2-tristan@talencesecurity.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 30 Oct 2026 18:34:18 +0000
+Date: Fri, 30 Oct 2026 18:51:21 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,25 +61,131 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> From: David Hu <xuehaohu@google.com>
->=20
-> Support the standard 1-step queue buffer creation for SRQ by
-> `UVERBS_ATTR_CREATE_SRQ_BUF_UMEM` via `ib_umem_get_attr()`.
->=20
-> Set up hardware pble directly from the pinned SRQ umem via
-> `irdma_setup_q_pbl_from_umem()`.
->=20
-> Proper umem and pble cleanup, and error unwind are added into existing
-> `irdma_srq_free_rsrc()` upon SRQ destruction.
->=20
-> We maintain backward compatibility for the legacy 2-step registration if
-> the UMEM attribute is not provided.
->=20
-> Signed-off-by: David Hu <xuehaohu@google.com>
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+s) to consider:
+- [Medium] RDMA/rxe: uninitialized skb pad leak for short atomic write in r=
+eq_next_wqe()
+- [Low] RDMA/rxe: build failure in rxe_requester() due to undeclared comp_w=
+qe_valid
+--
 
-Sashiko has reviewed this patch and found no issues.
+commit af65ad7c40a27fdf3681a52375dd72c8fe8b0691
+Author: Tristan Madani <tristmd@gmail.com>
+
+RDMA/rxe: copy send WQE to kernel buffer before processing
+
+This commit copies send WQEs from the userspace-mapped shared send queue in=
+to
+a kernel-private buffer in req_next_wqe() before processing, validates the =
+WR
+opcode and atomic write residual length, and writes updated WQE fields back
+to the shared queue.
+
+> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/=
+rxe/rxe_req.c
+> index 4f353abd76f55..ff1ec143d41f1 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_req.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
+[ ... ]
+> @@ -193,7 +213,35 @@ static struct rxe_send_wqe *req_next_wqe(struct rxe_=
+qp *qp)
+>  	}
+>  	spin_unlock_irqrestore(&qp->state_lock, flags);
+> =20
+> -	wqe->mask =3D wr_opcode_mask(wqe->wr.opcode, qp);
+> +	/* Reuse the existing kernel-private copy if still valid */
+> +	if (qp->req.send_wqe_valid && qp->req.shared_wqe =3D=3D wqe)
+> +		return &qp->req.send_wqe.wqe;
+> +
+> +	/* Copy WQE from userspace-mapped shared queue to kernel-private
+> +	 * buffer. Copy size matches the queue element data area.
+> +	 */
+> +	memcpy(&qp->req.send_wqe, wqe, sizeof(*wqe) +
+> +	       max_t(int, qp->sq.max_sge * sizeof(struct ib_sge),
+> +		    qp->sq.max_inline));
+> +	qp->req.shared_wqe =3D wqe;
+> +	qp->req.send_wqe_valid =3D true;
+> +
+> +	wqe =3D &qp->req.send_wqe.wqe;
+> +
+> +	/* Prevent OOB in wr_opcode_mask() for corrupted opcodes.
+> +	 * Mask 0 causes next_opcode() to fail, moving QP to error state.
+> +	 */
+> +	if (unlikely(wqe->wr.opcode > IB_WR_REG_MR))
+> +		wqe->mask =3D 0;
+> +	else
+> +		wqe->mask =3D wr_opcode_mask(wqe->wr.opcode, qp);
+> +
+> +	/* Atomic writes carry exactly sizeof(u64) payload.
+> +	 * Clamp oversized resid to prevent OOB read in finish_packet().
+> +	 */
+> +	if (unlikely((wqe->mask & WR_ATOMIC_WRITE_MASK) &&
+> +		     wqe->dma.resid > sizeof(u64)))
+> +		wqe->dma.resid =3D sizeof(u64);
+>  	return wqe;
+>  }
+
+[Severity: Medium]
+Can an undersized wqe->dma.resid on an IB_WR_ATOMIC_WRITE WQE leak
+uninitialized skb padding bytes onto the wire?
+
+In req_next_wqe(), wqe->dma.resid is only clamped when it exceeds
+sizeof(u64). If a user RC QP sets wqe->dma.resid in the mmap'd send queue
+to a smaller value that is not a multiple of 4 (for example, 1..3 or 5..7),
+rxe_requester() sets payload =3D wqe->dma.resid and init_req_packet() alloc=
+ates
+an skb with pad =3D (-payload) & 0x3 trailing bytes.
+
+In finish_packet(), bth_pad(pkt) trailing bytes are only zeroed under
+RXE_WRITE_OR_SEND_MASK, while RXE_ATOMIC_WRITE_MASK only copies payload
+bytes:
+
+	if (pkt->mask & RXE_ATOMIC_WRITE_MASK) {
+		memcpy(payload_addr(pkt), wqe->dma.atomic_wr, payload);
+		wqe->dma.resid -=3D payload;
+	}
+
+When rxe_xmit_packet() computes the ICRC and transmits the packet, those 1 =
+to
+3 uninitialized pad bytes from alloc_skb() are included in the packet. Shou=
+ld
+req_next_wqe() check wqe->dma.resid !=3D sizeof(u64) instead of only
+wqe->dma.resid > sizeof(u64)?
+
+[ ... ]
+> @@ -702,6 +758,8 @@ int rxe_requester(struct rxe_qp *qp)
+>  	if (unlikely(qp->req.need_retry && !qp->req.wait_for_rnr_timer)) {
+>  		req_retry(qp);
+>  		qp->req.need_retry =3D 0;
+> +		qp->req.send_wqe_valid =3D false;
+> +		qp->comp.comp_wqe_valid =3D false;
+>  	}
+> =20
+>  	wqe =3D req_next_wqe(qp);
+
+[Severity: Low]
+Does building the tree at this commit fail because comp_wqe_valid is not yet
+a member of struct rxe_comp_info?
+
+In rxe_requester(), the retry block sets qp->comp.comp_wqe_valid =3D false,
+but struct rxe_comp_info in drivers/infiniband/sw/rxe/rxe_verbs.h does not
+define comp_wqe_valid until the next patch in the series ("RDMA/rxe: copy
+send WQE to kernel buffer in completer path"):
+
+struct rxe_comp_info {
+	u32			psn;
+	int			opcode;
+	int			timeout;
+	int			timeout_retry;
+	int			started_retry;
+	u32			retry_cnt;
+	u32			rnr_retry;
+};
+
+Should this assignment (and the corresponding note in the commit message) be
+moved to the second patch so that each commit in the series compiles cleanly
+during bisection?
 
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261030181512.2056=
-056-1-dhu@x6u.co?part=3D6
-
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261030183409.1956=
+71-1-tristan@talencesecurity.com?part=3D1
