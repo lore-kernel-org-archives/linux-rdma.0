@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793366871;
-	b=MosuYwVMvX++FYNao6xwGpsVLFeGewHEw7mjEC11ytZZ1+NAQl84rycuwCXy0d1i/6fw
-	 vtSRAGaYogZqe9kJgqdbDMtGFbMO7+TrbtYPWktt3HfRucmUcb+Q3GYEOehLkdpBoacDR
-	 CxmVzbqQ+5Q+q3cM2hdbq0YISi1p7KLN3QxQvLIYtOFVCsj4a8MGbXibMXXUTuGFak6NM
-	 NiOOotMuAEccYmKlls0J2ckRseJeyvH9vd8mTd3/S8uj4Q52LS3bB1V6YPvsTwWTD6iyW
-	 KAEESdSmnSD80udgG2J+h2jE98nKcAiuAkA7JGQKuFVKV0lfHTle74OJsNkIfjMkI6g==
+	t=1793367257;
+	b=MHhuYxeHUQ6QlzO1IAiUglrcxAdAMKnl9HTx90L7DsnoBs5caGfDzbCaWer1YW+r811D
+	 1FV8ZoGPd4FsFkyGxnKcQUGPkYBH7ckC6+gnyMtML/YY/f+gc5QqgbhQ0f0yGQabLJJH5
+	 Bly1NWYG/6o0tzT97ohRi88gt5UPQP0Pn+5Ez16ehX4v2LQoZci2Q70L7neByhjraOjWV
+	 cDIFMbnDHt7T36fUEVpVQ7n+DPJ79stOEnEpeZOBH7RtDpp5molHhHSONYtZTYu80AUQu
+	 vx8J4L99KPoKRdlRsgB4zffJhUxUJFCTGJLTqhd+PfsMDcsWhUqbzhqHDOLnYIbSmIA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793366871;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793367257;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=vVjuDtZE2WZWH5j6GBAQs3NaBeG51yhJoSz/3zqFXmI=;
-	b=Fqvf79F8MhS5rk1+1asgS02EXEZC41N4xhyTDN3kejLi1Oheb1m/jtTmE+zyj2+Fpo9/
-	 mS+Cgp39IO0tkBwmneMPnpT4oT2ZrG1d2NFnJ0D5/zoDRKb+iKz8bDw7g8CD1RGDPYeHS
-	 iYlgkFHS7glNHAwAt/zJtHsftQD1KdHYWyLV/X92ckq4mGYCngn1PgNDKTcrLaanhuUEt
-	 xd74ldhS+W68GEm481Yap8QfeZpKC4/Ut0eFSY1eujaaM47G2WlDtH3p+cC1Xj4tQeqwl
-	 3S3qz/VjBpMH1icxVEoeQHscxTDPmUWsBF5dUFdIWqtPxWMy9ikmOIinKOJj0Z2GxsQ==
+	bh=lPEJy8PiLlOofpWGDf2SL7kz6PqadmcFQxUol8ZR75A=;
+	b=RschAScB67DxlHEc25MRuzT7CG9UTARXMHgwWy3fY+VJLBmIUuNqpchVpdYXuueWcMsn
+	 Br6sohEthRA4v5PJFYxeFNrkiN9th+wN8VyRrrz2eOCaXQ03kwQAKQ4bybRtJJog7s2zm
+	 TGDfK+cTDCjvLIJJg4hDQLBIQVvHskocYbYjzuGy+GEWYy0CfOQWPPAvzAjnxqrPDCVt7
+	 3TnHLRd7ner5ijfZSO68qdbukTlH3R2oDKwCJ1VBCgLPC8zyhIQeDuReadklJQ8CqHzhI
+	 9UF0C4MtbNrKTD28F4+o9XB6a4UrPC+UNhk7ac9lqmQOx1QQeuuj/skkR7evoR0X7bg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TH6av7LS;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SK6esX+o;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 756FD606A31A
-	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 13:27:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79BA5606A31C
+	for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2026 13:34:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TH6av7LS
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E56F61F000C1;
-	Fri, 30 Oct 2026 13:27:50 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SK6esX+o
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0A721F000C1;
+	Fri, 30 Oct 2026 13:34:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793366871;
-	bh=vVjuDtZE2WZWH5j6GBAQs3NaBeG51yhJoSz/3zqFXmI=;
+	s=k20260515; t=1793367257;
+	bh=lPEJy8PiLlOofpWGDf2SL7kz6PqadmcFQxUol8ZR75A=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=TH6av7LSv3Ag87xv727UQB+5mWMPq/05ZM+fNJ9wui96WsjbkJN5rqS/10TG4zTI8
-	 7J482MKsvoFkNkqfqbnBdsbQ2/Oki9EKaNyQhg9oBdXeNWFCSD/OtHgRFLqQVf1GIl
-	 yexxTzbPAxXcgvOa0sKL4MCTMFSGJJo3JHY6dlETCacrxnUwv5xXx9/s3XOYtETool
-	 wj8vNgGwrTC0nYnjKMhKNBrdE4dQNxXXh2Kcm0/2/Kziy1QhBcZjTp3zPs4Gedjw38
-	 bl1S+3ctT0k8ZQ+dDAPYNndWGUNyLzMpkNfIt/QSlRcuoS8O/VVIjCg89y9LzU7QeR
-	 XjsRpV6zBGX7g==
-Message-ID: <sashiko-outbox-191059@kernel.org>
+	b=SK6esX+oeuvGEDGM7Vb0UFv/VeF+TdSmi8IREymbR5QcsaWexl1SVr0vdNzhbm1SX
+	 sX8SgXwVvUNVTGOk7pOO6IeoKAUueFrg91+f0huwXU5zVni5jirVVwL9G9U8L1kqYo
+	 r8Tqkt6S6QaI2sQMLGp8YQZZ1ZY9+JhXNljfF8T1grwWiwWrclWglMny7KM8ImEyap
+	 mOf2pbqKkzR3Ls+n3pJPZQk0TMtumfGpVQkJIgyGt1k4J2WN0PGyCbUCej29OX6efC
+	 Z9+9383m/tJusgJAZOqvIZNkIIbDV/IhyygkayL/Hy9ZsdMyz6PGPiDpos4B7E48UM
+	 1NRBIdYD1xrSQ==
+Message-ID: <sashiko-outbox-191063@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v6 10/10] RDMA/mana_ib: Drain kernel receive
- and send queues
+Subject: Re: [PATCH rdma-next v6 09/10] RDMA/mana_ib: Handle error CQEs for
+ RC QPs
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261030130038.4040789-11-kotaranov@linux.microsoft.com>
+In-Reply-To: <20261030130038.4040789-10-kotaranov@linux.microsoft.com>
 References: <20261030130038.4040789-1-kotaranov@linux.microsoft.com>
- <20261030130038.4040789-11-kotaranov@linux.microsoft.com>
+ <20261030130038.4040789-10-kotaranov@linux.microsoft.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 30 Oct 2026 13:27:50 +0000
+Date: Fri, 30 Oct 2026 13:34:16 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,160 +63,145 @@ Precedence: list
 
 Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [Low] RDMA/mana_ib: redundant comp_handler calls and duplicated drain log=
-ic in qp.c
+- [High] RDMA/mana_ib: handle_error_cqe() leaves active GSI QPs on CQ error=
+ lists
 --
 
-commit 5e7a469ad596532936441484def77d5229b5cbff
+commit 1bb70d4df95cbf22f7fdb1b2cc6c47bc5b5ed6d5
 Author: Konstantin Taranov <kotaranov@microsoft.com>
 
-RDMA/mana_ib: Drain kernel receive and send queues
+RDMA/mana_ib: Handle error CQEs for RC QPs
 
-This commit implements the drain_sq and drain_rq device operations for
-mana_ib by transitioning RC QPs to the error state, posting a marker work
-request, and waiting for its completion.
+This commit adds handling for hardware error CQEs on RC QPs, deferring the
+transition to the ERR state via a workqueue so that other work queues can be
+flushed. It also cleans pending CQEs upon QP reset and tracks deferred error
+state to avoid transitioning reset and reused QPs to ERR.
 
-> diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana=
-/qp.c
-> index 1756e96b9c811..4854fc4c6d0dc 100644
-> --- a/drivers/infiniband/hw/mana/qp.c
-> +++ b/drivers/infiniband/hw/mana/qp.c
-> @@ -1398,3 +1398,106 @@ int mana_ib_destroy_qp(struct ib_qp *ibqp, struct=
- ib_udata *udata)
-> =20
->  	return -ENOENT;
+> diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana=
+/cq.c
+> index 74597c07f1cba..a707664f5ab8b 100644
+> --- a/drivers/infiniband/hw/mana/cq.c
+> +++ b/drivers/infiniband/hw/mana/cq.c
+
+[ ... ]
+
+> @@ -516,6 +594,79 @@ static bool handle_psn_cqe(struct mana_ib_qp *qp, u3=
+2 psn,
+>  	return consumed;
 >  }
-> +
-> +struct mana_ib_drain_cqe {
-> +	struct ib_cqe cqe;
-> +	struct completion done;
-> +};
-> +
-> +static void mana_ib_drain_qp_done(struct ib_cq *cq, struct ib_wc *wc)
+> =20
+
+[ ... ]
+
+> +static bool handle_error_cqe(struct mana_ib_cq *cq, struct mana_ib_qp *q=
+p,
+> +			     struct gdma_comp *cqe, struct mana_cq_poll *poll)
 > +{
-> +	struct mana_ib_drain_cqe *cqe =3D container_of(wc->wr_cqe,
-> +						     struct mana_ib_drain_cqe,
-> +						     cqe);
-> +	complete(&cqe->done);
-> +}
+> +	bool mmq =3D cqe->is_sq && (cqe->wq_num & MANA_QID_SUBTYPE_MASK) =3D=3D=
+ MANA_QID_SUBTYPE_MMQ;
+> +	struct mana_rdma_cqe *rdma_cqe =3D (struct mana_rdma_cqe *)cqe->cqe_dat=
+a;
+> +	bool send =3D mana_cqe_is_send(qp, cqe);
+> +	u32 vendor_err =3D rdma_cqe->error.vendor_error;
+> +	struct shadow_wqe_header *shadow_wqe;
+> +	struct shadow_queue *shadow_q;
 > +
-> +void mana_ib_drain_sq(struct ib_qp *ibqp)
-> +{
-> +	struct ib_qp_attr attr =3D { .qp_state =3D IB_QPS_ERR };
-> +	struct mana_ib_drain_cqe sdrain;
-> +	struct ib_rdma_wr swr =3D {
-> +		.wr =3D {
-> +			.next =3D NULL,
-> +			.wr_cqe =3D &sdrain.cqe,
-> +			.opcode =3D IB_WR_SEND,
-> +		},
-> +	};
-> +	const struct ib_send_wr *bad_swr;
-> +	struct ib_cq *cq =3D ibqp->send_cq;
-> +	int ret;
-> +
-> +	if (ibqp->qp_type !=3D IB_QPT_RC) {
-> +		ibdev_err(ibqp->device, "SQ drain is only supported for RC QPs (type %=
-u)\n",
-> +			  ibqp->qp_type);
-> +		return;
+> +	if (send && qp->ibqp.qp_type =3D=3D IB_QPT_RC) {
+> +		/* The error PSN/FSN belongs to the failing WQE, not a success. */
+> +		if (!mana_advance_send(qp, mmq, rdma_cqe->error.psn - 1, poll))
+> +			return false;
+> +		if (poll->produced =3D=3D poll->budget)
+> +			return false;
 > +	}
 > +
-> +	ret =3D ib_modify_qp(ibqp, &attr, IB_QP_STATE);
-> +	if (ret) {
-> +		ibdev_err(ibqp->device, "Failed to drain SQ: modify QP returned %d\n",=
- ret);
-> +		return;
+> +	if (!send)
+> +		shadow_q =3D &qp->shadow_rq;
+> +	else if (mmq)
+> +		shadow_q =3D &qp->shadow_mmq;
+> +	else
+> +		shadow_q =3D &qp->shadow_sq;
+> +
+> +	shadow_wqe =3D shadow_queue_get_next_to_consume(shadow_q);
+> +	if (shadow_wqe) {
+> +		if (send) {
+> +			if (!mana_complete_send_dependencies(qp, mmq, shadow_wqe, poll))
+> +				return false;
+> +
+> +			mana_complete_send(qp, mmq, poll, vendor_err);
+> +		} else {
+> +			mana_fill_wc(qp, poll, shadow_wqe, IB_WC_RECV, vendor_err);
+> +			shadow_queue_advance_consumer(shadow_q);
+> +		}
 > +	}
 > +
-> +	sdrain.cqe.done =3D mana_ib_drain_qp_done;
-> +	init_completion(&sdrain.done);
-> +
-> +	ret =3D ib_post_send(ibqp, &swr.wr, &bad_swr);
-> +	if (ret) {
-> +		ibdev_err(ibqp->device, "Failed to post SQ drain WR: %d\n", ret);
-> +		return;
-> +	}
-> +
-> +	if (cq->poll_ctx !=3D IB_POLL_DIRECT && cq->comp_handler)
-> +		cq->comp_handler(cq, cq->cq_context);
-> +
-> +	if (cq->poll_ctx =3D=3D IB_POLL_DIRECT) {
-> +		while (!wait_for_completion_timeout(&sdrain.done, HZ / 10))
-> +			ib_process_cq_direct(cq, -1);
+> +	/* Hardware has stopped DMA for the queues flushed below. */
+> +	if (send) {
+> +		if (list_empty(&qp->send_err_node))
+> +			list_add_tail(&qp->send_err_node, &cq->send_err_qp_list);
 > +	} else {
-> +		wait_for_completion(&sdrain.done);
+> +		if (list_empty(&qp->recv_err_node))
+> +			list_add_tail(&qp->recv_err_node, &cq->recv_err_qp_list);
 > +	}
-> +}
-> +
-> +void mana_ib_drain_rq(struct ib_qp *ibqp)
-> +{
-> +	struct ib_qp_attr attr =3D { .qp_state =3D IB_QPS_ERR };
-> +	struct mana_ib_drain_cqe rdrain;
-> +	struct ib_recv_wr rwr =3D {
-> +		.next =3D NULL,
-> +		.wr_cqe =3D &rdrain.cqe,
-> +	};
-> +	struct ib_cq *cq =3D ibqp->recv_cq;
-> +	int ret;
-> +
-> +	if (ibqp->qp_type !=3D IB_QPT_RC) {
-> +		ibdev_err(ibqp->device, "RQ drain is only supported for RC QPs (type %=
-u)\n",
-> +			  ibqp->qp_type);
-> +		return;
-> +	}
-> +
-> +	ret =3D ib_modify_qp(ibqp, &attr, IB_QP_STATE);
-> +	if (ret) {
-> +		ibdev_err(ibqp->device, "Failed to drain RQ: modify QP returned %d\n",=
- ret);
-> +		return;
-> +	}
-> +
-> +	rdrain.cqe.done =3D mana_ib_drain_qp_done;
-> +	init_completion(&rdrain.done);
-> +
-> +	ret =3D ib_post_recv(ibqp, &rwr, NULL);
-> +	if (ret) {
-> +		ibdev_err(ibqp->device, "Failed to post RQ drain WR: %d\n", ret);
-> +		return;
-> +	}
-> +
-> +	if (cq->poll_ctx !=3D IB_POLL_DIRECT && cq->comp_handler)
-> +		cq->comp_handler(cq, cq->cq_context);
-> +
-> +	if (cq->poll_ctx =3D=3D IB_POLL_DIRECT) {
-> +		while (!wait_for_completion_timeout(&rdrain.done, HZ / 10))
-> +			ib_process_cq_direct(cq, -1);
-> +	} else {
-> +		wait_for_completion(&rdrain.done);
-> +	}
-> +}
+> +	if (qp->ibqp.qp_type !=3D IB_QPT_GSI)
+> +		mana_ib_schedule_qp_error(qp);
 
-[Severity: Low]
-Are custom mana_ib_drain_sq() and mana_ib_drain_rq() callbacks needed in
-mana_ib_dev_ops, and does calling cq->comp_handler() here invoke the
-completion handler twice?
+[Severity: High]
+As reported by Sashiko on v5 [1], in handle_error_cqe(), mana_ib_schedule_q=
+p_error()
+is skipped when qp->ibqp.qp_type =3D=3D IB_QPT_GSI, but qp->send_err_node or
+qp->recv_err_node is still unconditionally added to cq->send_err_qp_list or
+cq->recv_err_qp_list.
 
-When ib_modify_qp() transitions the QP to IB_QPS_ERR,
-mana_ib_modify_qp_state() calls mana_add_qp_to_error_cqs() to link
-qp->send_err_node and qp->recv_err_node onto the CQ error lists.
+QPs are only removed from those error lists in mana_remove_qp_from_cqs() on=
+ a
+transition to IB_QPS_RESET in mana_ib_modify_qp_state(), or during QP
+destruction:
 
-Then, when ib_post_send() and ib_post_recv() run, mana_ib_post_send_rc()
-and mana_ib_post_recv_rc() already call mana_ib_notify_flush(), which
-invokes ibcq->comp_handler(ibcq, ibcq->cq_context) when ibcq->poll_ctx is
-not IB_POLL_DIRECT. Calling cq->comp_handler() again right after
-ib_post_send() and ib_post_recv() triggers a redundant second invocation.
+drivers/infiniband/hw/mana/qp.c:mana_ib_modify_qp_state() {
+	if (attr_mask & IB_QP_STATE) {
+		switch (attr->qp_state) {
+		case IB_QPS_RESET:
+			mana_remove_qp_from_cqs(qp, true);
+			...
+			break;
+		default:
+			break;
+		}
+}
 
-More broadly, since mana_ib_modify_qp(), mana_ib_post_sq() (which supports
-0-SGE IB_WR_RDMA_WRITE WRs), and mana_ib_post_rq() already handle software
-flushing and CQ notification via mana_ib_notify_flush(), could mana_ib
-simply rely on the generic __ib_drain_sq() and __ib_drain_rq() fallbacks in
-drivers/infiniband/core/verbs.c instead of duplicating them here (which
-also restricts drain_rq to IB_QPT_RC even though mana_ib_post_recv_ud()
-supports flushing UD and GSI receive queues)?
+However, the MAD layer never transitions a GSI QP to IB_QPS_RESET. On a GSI
+send error, ib_mad_send_done() -> ib_mad_send_error() transitions the QP fr=
+om
+IB_QPS_SQE back to IB_QPS_RTS and reposts the WRs via ib_post_send() ->
+mana_ib_post_send_ud():
+
+drivers/infiniband/hw/mana/wr.c:mana_ib_post_send_ud() {
+	...
+	if (ring_sq) {
+		mana_gd_wq_ring_doorbell(mdev_to_gc(mdev), queue);
+		mana_ib_notify_flush(qp->ibqp.send_cq, &qp->send_err_node);
+	}
+}
+
+Because qp->send_err_node remains on cq->send_err_qp_list while the GSI QP =
+is
+active in IB_QPS_RTS, won't mana_flush_completions() immediately software-f=
+lush
+all in-flight and newly posted GSI WRs with IB_WC_WR_FLUSH_ERR, causing
+ib_mad_send_done() to DMA-unmap buffers while hardware still owns them and
+permanently breaking GSI traffic on the port? Similarly, if a receive error
+occurs while the GSI RQ remains active in RTS, adding qp->recv_err_node wou=
+ld
+flush all pre-posted GSI receive WRs.
+
+Should adding the QP to cq->send_err_qp_list and cq->recv_err_qp_list also =
+be
+skipped for IB_QPT_GSI (or cleaned up when transitioning back to IB_QPS_RTS=
+)?
+
+[1] https://lore.kernel.org/r/20261017064413.995985-10-kotaranov@linux.micr=
+osoft.com
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261030130038.4040=
-789-1-kotaranov@linux.microsoft.com?part=3D10
+789-1-kotaranov@linux.microsoft.com?part=3D9
