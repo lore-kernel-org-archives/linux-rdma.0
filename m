@@ -1,13 +1,13 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=148.163.143.35
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793474848;
-	b=JWSbUkDJTXegKFyoZlU40gWdhEuZUUPzY6cnMWm/XPpsrw9IC18Cw4T3vuJ7F0uBE77E
-	 qXiSaJPczPVeA/A/vNyUP7JyPel4YDklM4+vqma4j/ELaNQ2dBNuR8Dxz0xYslnV0H8S0
-	 5TBtixKQxeSaGxPZW52y+jU7yzX0xos2EeJpOIs4pJ8j+KExh867ThZI7MKuOl4RMQRMi
-	 8ZLoRGrj1QveGkX65gDird3hcchOc3gPnHgiq8FDfQRvxgre7n+TkUmsBepD7Z4g1wDIL
-	 9LiXjW5wpqAQ4L04HhNzWRZVBLVeQ/xksygzGmWCPQXz6b/LQ4FaU127NB0Zn0Xa5NA==
+	t=1793474850;
+	b=A+EMc1/aBxtLWXdni7EsGkrxeENxNTCMObcKYLDB2EhU1QiQvhVJPrsgD0213QO90JcM
+	 L4lamZsKJddgBGf9prbv/K8lJUYLQl5sKYcEZ/UnkroVr/2atOjfq2YQdFhU6CM6FlV24
+	 nqZEuNZV5JwIcyKB/N85anRwf6WtA8hPLgQ9ix2fBKv272W5lXkLsS/d5p9jsexs7RvNU
+	 eQ2B1ZzY5Tf5EFQfq0LMNjioT/897yFVsVIV1B2vmKwglcwj31SUSs1Obvl6zje2REjDO
+	 KbJxDLMrLtKS9ECuypPheChw50JMgVUAntxD5XCcdp1BAZLD5kLyMLTCJYCdZSgLv8g==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793474848;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793474850;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
 	 Received:Received:Received:Received:From:Date:Subject:Content-Type:
 	 Content-Transfer-Encoding:Message-Id:References:In-Reply-To:To:CC:
@@ -25,73 +25,73 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
 	 X-MS-Exchange-CrossTenant-UserPrincipalName:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg:
-	 X-Authority-Analysis:X-Proofpoint-ORIG-GUID:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Spam-Info:
-	 X-Proofpoint-GUID:X-HPE-SCL:X-Proofpoint-Virus-Version:
+	 X-Proofpoint-ORIG-GUID:X-Authority-Analysis:
+	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-GUID:
+	 X-Proofpoint-Spam-Info:X-HPE-SCL:X-Proofpoint-Virus-Version:
 	 X-Proofpoint-Spam-Details;
-	bh=SrvUhXpMCuro3KPlz8R/QnZgTj8N8c5TQNW5rftN4lc=;
-	b=L5MsghoMdSMseWv2LP35rpFBiFv0gsBs7nVKpj/U+pX0/YLvirt2QoUBgn1q89qimFh3
-	 96BA0rCRl7IeMfS6222Fe7j1T3iLfpV6PnMD2MPWxs0a6XBlGYfHv1h42O7F82YQ3LzFK
-	 rOmYz+OQYLgQe8xPHGx69MqBHp69pAG3SslomLoDVq7ERHg+TWGpYGFYdIM/ha7E7cduw
-	 ffrUX5J98286pCpdzXjoULJCjajW5qDQ5EnNR2+C+do1EmUGY2TS2XH/BkXz3ybqoj4Xj
-	 sDhxHpxj6EHFtOEo79WhJyZhkkQIpA3mUaWWb5xcCv8MOJpTP5xAGyVjOZXY2HMPuKg==
+	bh=/qyiBrYh2tXcS3RIuCa+/n3ue7JW7MwMHyPqFGp6jII=;
+	b=dEwzX1HFV8AQ3hd7QQ5wsl3olR5IINFcyeld6E6y9vJx3lAca7VhGdt+996r94diV4qf
+	 lCSGkDigO5bUC/ZgRh9cNpnUDEHTJ/vS0FjWZhRxIFxzG/NRwSHjSUOaHezxpAssgXfs0
+	 1PBkJeHv7dKNci/HdNn3Tq50uWKU0IaKpQDU4i4NvN0wWHpdsBi+MCX0rAkHEXoT9F6xW
+	 CZGeTWYbcBDHjZdt32DgiW84AzQOO1oyLkiEQneTUalFxaO+WFmx8dX0/5cPtTQqYGmqf
+	 lKUxXniqoKSJ6+79bMU2rtuVb8pV8CfnHs2qfSLc7jT1ZNjgmugSyarlZ9YeV5bohyw==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=hpe.com;
 	spf=pass smtp.mailfrom=hpe.com;
-	dkim=pass header.d=hpe.com header.i=@hpe.com header.a=rsa-sha256 header.s=pps0720 header.b=kXVbVh1F;
+	dkim=pass header.d=hpe.com header.i=@hpe.com header.a=rsa-sha256 header.s=pps0720 header.b=oFPdmiCB;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=148.163.143.35
 Received: from mx0b-002e3701.pphosted.com (mx0b-002e3701.pphosted.com [148.163.143.35])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B39DD60A260E;
-	Sat, 31 Oct 2026 19:27:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B39DD60A260E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 695F560A261B;
+	Sat, 31 Oct 2026 19:27:29 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 695F560A261B
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=hpe.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hpe.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=hpe.com header.i=@hpe.com header.a=rsa-sha256 header.s=pps0720 header.b=kXVbVh1F
-Received: from pps.filterd (m0150244.ppops.net [127.0.0.1])
-	by mx0b-002e3701.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69VJCcPW010339;
-	Sat, 31 Oct 2026 19:27:24 GMT
+	dkim=pass (2048-bit key, unprotected) header.d=hpe.com header.i=@hpe.com header.a=rsa-sha256 header.s=pps0720 header.b=oFPdmiCB
+Received: from pps.filterd (m0134424.ppops.net [127.0.0.1])
+	by mx0b-002e3701.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69VJCg4m279239;
+	Sat, 31 Oct 2026 19:27:28 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hpe.com; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pps0720; bh=Sr
-	vUhXpMCuro3KPlz8R/QnZgTj8N8c5TQNW5rftN4lc=; b=kXVbVh1FBLvSpXbukD
-	Ifu/ue/lc1+7SdERs2ZX4h+B6X2bcwNfgU/ZPVQ+Ihte9XJzZzGk/qW5TKqZogUW
-	j4cHZh8gb0Bu2zgQ10Q+emDCQC1f2FpP/E3CixcXh39IdnFoKhrF3Ig5JtFWkTYx
-	JnvzYW1A9geCF/8hKYRUU8azx5dluC4mbx7+8de6O1ok6INSNs5iLkqmbci0hVUQ
-	RkNiu9YMpalkQqhEhb5O5xJbR2RDrj/OEVJPHPuGAtY3kZYwlPxqPjVhGHDAGdwt
-	+uJLC2AZhxeJPPKvVmA9vI5pVn8mRY9LqCskP6jGuEoWat2geUdx1FYtKRowykZ3
-	8B8w==
+	:message-id:mime-version:references:subject:to; s=pps0720; bh=/q
+	yiBrYh2tXcS3RIuCa+/n3ue7JW7MwMHyPqFGp6jII=; b=oFPdmiCBMtUriVqc3w
+	zwE1N2xzllA3cJIQGZUd+yTYwgr1lizO0HKZ4vqEBipuC0pMfVyuLWiYMdp3nDfJ
+	oee8Zyr29+f22y9oUZbQSXTaa/TzuY/JrlLJVHCIk4+7mvnk9R67i5yp2Xq5qtYS
+	/bH0hkdtmYXlIHj8iXjQD3qqo3IoeAqgGlVhdFYyM3bWTLySkbOOHyFgNmaFiBqX
+	dUtSzbgbJ9dQlB89QgLw+7zbuIDYgDhlylqqTXBTS8QnmiXe4u9kUB1EC+PogYcS
+	tEYEel4hzceQd4Y1PnfzSZgpJa/OUEaxgbysMuGH+AtRBClLvArv721oVrLObgih
+	9aNQ==
 Received: from p1lg14878.it.hpe.com (p1lg14878.it.hpe.com [16.230.97.204])
-	by mx0b-002e3701.pphosted.com (PPS) with ESMTPS id 4hn900e8ds-1
+	by mx0b-002e3701.pphosted.com (PPS) with ESMTPS id 4hn7ajq2b3-1
 	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Sat, 31 Oct 2026 19:27:24 +0000 (GMT)
-Received: from p1wg14926.americas.hpqcorp.net (unknown [10.119.18.115])
+	Sat, 31 Oct 2026 19:27:28 +0000 (GMT)
+Received: from p1wg14924.americas.hpqcorp.net (unknown [10.119.18.113])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by p1lg14878.it.hpe.com (Postfix) with ESMTPS id DF74ED241;
-	Sat, 31 Oct 2026 19:27:23 +0000 (UTC)
-Received: from p1wg14926.americas.hpqcorp.net (10.119.18.115) by
- p1wg14926.americas.hpqcorp.net (10.119.18.115) with Microsoft SMTP Server
+	by p1lg14878.it.hpe.com (Postfix) with ESMTPS id A3F04D2BB;
+	Sat, 31 Oct 2026 19:27:27 +0000 (UTC)
+Received: from p1wg14927.americas.hpqcorp.net (10.119.18.117) by
+ p1wg14924.americas.hpqcorp.net (10.119.18.113) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.43; Sat, 31 Oct 2026 07:27:08 -1200
-Received: from p1wg14920.americas.hpqcorp.net (16.230.19.123) by
- p1wg14926.americas.hpqcorp.net (10.119.18.115) with Microsoft SMTP Server
+ 15.2.2562.43; Sat, 31 Oct 2026 07:27:15 -1200
+Received: from P1WG14918.americas.hpqcorp.net (16.230.19.121) by
+ p1wg14927.americas.hpqcorp.net (10.119.18.117) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.43 via Frontend Transport; Sat, 31 Oct 2026 07:27:08 -1200
-Received: from SN1PR07CU001.outbound.protection.outlook.com (192.58.206.35) by
- edge.it.hpe.com (16.230.19.123) with Microsoft SMTP Server (version=TLS1_2,
+ 15.2.2562.43 via Frontend Transport; Sat, 31 Oct 2026 07:27:15 -1200
+Received: from SN1PR07CU001.outbound.protection.outlook.com (192.58.206.38) by
+ edge.it.hpe.com (16.230.19.121) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.43; Sat, 31 Oct
- 2026 07:27:08 -1200
+ 2026 19:27:14 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Wz+SNTLYFsvvIlyfg3/VnVJsU6APchfVpxl4S8Yv9zxgwMcbeCQlLq5B9svGxxv0+T6QEANjbKwZTZAo1towlV9HUwbF5WSrlAgGAwQJoEBNdrIEpDmK4ZPxIfdWxlVf8JeBihkH9XbuZCHt+KFeQYtJgc3jcV0jw/jYduYx9If/2e6o3NtQVpxZfKbOLElYd1Yx0dRvXPlIq3Nn1/grSELBKPkC3FTOKGnYHWPfhmM+Q7Q/W69DWFkzfZ08BBfEiq4gaNaGdSGc1HiwYLKHkTGM3QbjwAl0QhY4mPwm+MumB2vrP5ClFSJaIxgS4WWmvSxRiYy1YNr37fh7gv6svQ==
+ b=OOgWrYp8gB/ETiga/D4FyhtIRWfMp9W33g8TImQHZFwLmbS228FrfmD4uprxUwbBjmMfQ53euJTCcXbqtq/iPdyo/yMVvu3oQT7i8h8rsC3rv5jyiT5WD/TSxYRfPKogqav8e4i1lglwQCUWMEloUNpZJYGA+D7br3tj88OvsDq3I9rXwv7XpWyc5LRACO/rzPN29Xid1A0J4/ZcQQXH6NTpBf6cCQXmBK8PpbOmSljJhZSHVxfINL/qOfFdbwaq+QnEvkRUvlIiQF6nM1yaVBVvcesJIZZpdQp8yBtCf4gU5h53yJjUVfp86JZjy2Gwx2Q+vxysb66gZCd5eWsalQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=SrvUhXpMCuro3KPlz8R/QnZgTj8N8c5TQNW5rftN4lc=;
- b=QHJ+yJBv1LhMvs451pDhI5mA7wKer+ETFQCsBiX/7FdSTypnUfy6KGWCTVw8WTvlN0awLHdEgOlc5gayZYDoB60g8JqFjZ8rqY1O0ZrgI0Kvyl587F25UhCnaGMGRqS+GxLFefSJxetD+NVMxKmdk7xElXiPPtR8YMrWHz8HKRL5TNAI3JNBDF9FQG1Cb8QxsiNm8ZjodKgeH2M4AHUsseaxOHNIXSHfiIpIWxt+LUIOO5gpcTh3NqCKAW9fSYDz6LbCOUZdXhgLb45WgjKfODGuIKIE4baZUhN4/Apl8+8SeG+fY+ueD1q2438GViS9r+/DaVfRX6WarZXQFrqbMw==
+ bh=/qyiBrYh2tXcS3RIuCa+/n3ue7JW7MwMHyPqFGp6jII=;
+ b=O+cMqe+E41b5z2B0A25pWcJKStRAAzQi+DNyhs5UPxmuKVDG4bNFb4vhOOAmhO5O3FIGVHePoIxCTAD/JDiNPzDpqmB0XwYbf7vldEAu/U3+SoSZ4zHBME3brm5qO8nq0PW5DZoxvd5ojokSUx29WQAGJEhn0y6RjncH7zbJX8z5uPx288TR4dPCaBgZwu1HJZBJyw+Wf+bCVC65jxVFWBfVAEIsZtAqKbIsa9MRw6nbUasd4PQexq/ZisBXof9w2U+RQmxIf9LemvQznN28RWWOChZHcYx4ovF4lk6Vympx+ZZdk4BXosGZToh97lozmPdU3mxLNQ22S+tzNWMiaA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=hpe.com; dmarc=pass action=none header.from=hpe.com; dkim=pass
  header.d=hpe.com; arc=none
@@ -101,26 +101,26 @@ Received: from DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM (2603:10b6:8:225::20)
  by MW5PR84MB1891.NAMPRD84.PROD.OUTLOOK.COM (2603:10b6:303:1c5::10) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.11; Sat, 31 Oct
- 2026 19:27:05 +0000
+ 2026 19:27:11 +0000
 Received: from DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM
  ([fe80::d136:e75e:53c5:73d8]) by DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM
  ([fe80::d136:e75e:53c5:73d8%6]) with mapi id 15.21.0569.010; Sat, 31 Oct 2026
- 19:27:04 +0000
+ 19:27:10 +0000
 From: Doug Ledford <doug.ledford@hpe.com>
-Date: Sat, 31 Oct 2026 12:26:03 -0700
-Subject: [PATCH 10/12] cxiverbs: launch Slurm-style exact VNI TC and
- resource grants
+Date: Sat, 31 Oct 2026 12:26:05 -0700
+Subject: [PATCH 12/12] libibverbs: port RU examples to explicitly granted
+ resources
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261031-cxi-for-next-v1-10-93ce01907ce2@hpe.com>
+Message-Id: <20261031-cxi-for-next-v1-12-93ce01907ce2@hpe.com>
 References: <20261031-cxi-for-next-v1-0-93ce01907ce2@hpe.com>
 In-Reply-To: <20261031-cxi-for-next-v1-0-93ce01907ce2@hpe.com>
 To: <linux-rdma@vger.kernel.org>, <slingshot-os-team@groups.ext.hpe.com>
 CC: <linux-kernel@vger.kernel.org>, Doug Ledford <doug.ledford@hpe.com>,
         Iraimani P <iraimani.pavadai@hpe.com>
 X-Mailer: b4 0.16.0
-X-ClientProxiedBy: SN7PR04CA0079.namprd04.prod.outlook.com
- (2603:10b6:806:121::24) To DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM
+X-ClientProxiedBy: SN7PR04CA0046.namprd04.prod.outlook.com
+ (2603:10b6:806:120::21) To DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM
  (2603:10b6:8:225::20)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -133,1451 +133,809 @@ Precedence: list
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: DM4PR84MB3970:EE_|MW5PR84MB1891:EE_
-X-MS-Office365-Filtering-Correlation-Id: 0e698127-d4e0-45aa-0fe5-08df3784f209
+X-MS-Office365-Filtering-Correlation-Id: 73d663ad-3aa7-4403-a26b-08df3784f591
 X-LD-Processed: 105b2061-b669-4b31-92ac-24d304d195dc,ExtAddr
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|23010399003|1800799024|366016|260925022911599003|260925021911599003|260925021311599003|5023799004|261026135527099003|56012099006|261009223027099003|261028144727099003|261026121527099003|261021121427099003|261021123027099003|261021133027099003|261021135927099003|261021130227099003|261022105027099003|261026140227099003|261022115727099003|261022075727099003|261022113327099003|261026130827099003|10067099003|22082099003|18002099003|6133799003|3023799007;
-X-Microsoft-Antispam-Message-Info: YCFhr7Q3DYpS/CFms46ZxnSobHfES9VUqMGfjnYRljCTZzgQCoThLj5+0S1jGaFJIUJajOYci1QVlqa3MB5Y2Do2GZ45y1IaGrMVrvEXK2kvNo3UqvMOq4/qkutaJQsJBF/f1H3ZMSzOODLZIKn6msRjBixB8GtjhqUKBXSG/Um1iNtmJiI5x2yjYnSh41t1Pv7l1EZhhOq3m0mlm2lGOw+bpLtgoLM2PNB34Q3yr1Y1hQyh3/fYtLEPaDoQOmhfpAV9EHj7pPt2m6J0/hVLLvLGdCSCJ6f6UntvqjWuCFsxJAxkhEfTY+04au+hRW+6hGBhFGCKxs5FEzRCe2VQgw/bQ2DUFj2pVK43nI2CKOdXK0jA5OkZTCUqJ6RX9CehjiYYlr5y9G+5lkfaOQQ/U+oKzQHyGlPDHh+SoUpAPP7bX12EfsSq9ev6Xoy4ILyy+nARdXV7YDcKr4oUKNQ4AsjpDKZbuLerCQU4xeNAHK6W0dKsboi30xd40vkr/AXyToCioFjm65zDToTYOw7RfVki4USMIMJG/GCeOWILXTUuFxDrGABmnFJIrtuA1ej8kySRIzIS574NtOhe5WFNFa+Zo6YAYamzOqYkQj4Sqo+bdzCwOu79SCisepRZXsbqTyGvYMbXFFVTzuOcLb8ZeaVZQ5wpPtLFlrlPz68tanY=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(376014)(23010399003)(1800799024)(366016)(260925022911599003)(260925021911599003)(260925021311599003)(5023799004)(261026135527099003)(56012099006)(261009223027099003)(261028144727099003)(261026121527099003)(261021121427099003)(261021123027099003)(261021133027099003)(261021135927099003)(261021130227099003)(261022105027099003)(261026140227099003)(261022115727099003)(261022075727099003)(261022113327099003)(261026130827099003)(10067099003)(22082099003)(18002099003)(6133799003)(3023799007);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|23010399003|1800799024|366016|261026135527099003|56012099006|261009223027099003|261028144727099003|261026121527099003|261021121427099003|261021123027099003|261021133027099003|261021135927099003|261021130227099003|261022105027099003|261026140227099003|261022115727099003|261022075727099003|261022113327099003|261026130827099003|10067099003|22082099003|18002099003|6133799003;
+X-Microsoft-Antispam-Message-Info: oxhAbSWnZaezOVM9jYtwPPAXcY8NuHB1GJCz1i+0gL00ahg3SbHt3N2seZ3LEe6UmMcjYMW49hl4ESalNOUz0Y881R69lnM2EY0kMWiEjpIOf5hHbo/uSpKbwpgh/dxxC0AcuagwVHY8xLMUPjLY3/k51KjXh5KILGL3ajOBxNKBOiJqUQ7XLIpdjgM0Jy6rfhdlZRkWUGfdQI2WxEKAGCSP0Vd6aKEU84RgoJBK4xAPps1Q45pT7lAC/9a2db8KpAqTTXDRfKMzRVr3iys8ZV/0Hf2UH2/afVZxmYVrPNbEr5ea4sVPHntLR10seu3cWvXS5uu4MLAaAlgqTLaUxK2xDuK9t6BoaIeWZGhIILMwVjJkoqhEqYws5thp5rOOqzpB+nMVwo0XiitWOUhVyCzsfipLvIOeFGNBPQJFhOsBhaHy1zx0wQ9Zk1m/LH8v9rhIwnigmaQfCK/0odSqfC5+x1P/yOXJVAkte9EYvpG2znu61AsBNKS+vlkmXbcpY0nTq/CY8IC9l3IACtF88UFn3Lyvb0sHwGQI8Z+g7q/XBI6yq5XTv593bRX19tnbtftBoKLDe94KQxo6GG1CNiGq434I1x2yI7zGgKLjU4E9ktocdt2WYBZ72et90ClB3/9/xBDZfuLb2EWxOlkGwvisLVI7kvEIQqxcZpP22Gc=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(376014)(23010399003)(1800799024)(366016)(261026135527099003)(56012099006)(261009223027099003)(261028144727099003)(261026121527099003)(261021121427099003)(261021123027099003)(261021133027099003)(261021135927099003)(261021130227099003)(261022105027099003)(261026140227099003)(261022115727099003)(261022075727099003)(261022113327099003)(261026130827099003)(10067099003)(22082099003)(18002099003)(6133799003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?Q2JNeFBGejFUTjhJc1R5dWFiY1VxMzNhcktCdnQ2UjJxOVlLZUlCelNqRUx3?=
- =?utf-8?B?UHUrbXdjYTZjdzdkZ3NRMGdxQVFZQiswNEZXcmIzYXlSckRKSXN4NzlDektK?=
- =?utf-8?B?QXFSQlJqWkg3NEw0eWhJNTFqWEpMVjhWSHN2YlNIcW40OXJPOGpRM2RQbm5a?=
- =?utf-8?B?T3FVODFmdkdUWTlzT3B4QnBWSDJVZDlCRk9tc2s1ZFJkNTFYUHpkc1JKcHlo?=
- =?utf-8?B?VWZadTdIdXJiZ0ZQZ2tYbEZ4cDVlOEp4UnN3YkJKb3FoQlFIRW1HWkZpK0Fz?=
- =?utf-8?B?Nlp5dDNPTHFZaUtMcFVKYjdZM0p0OEhvYzcyNVRUVUxoY1B1S0Q4a2RQNktk?=
- =?utf-8?B?QzVhUUxYa1JSQWVuU2VuajJQRHVGSWk1Ynh6T25RTEdiQzJkdWI1MGN5MG94?=
- =?utf-8?B?YjdHZDV6ZEFlSXBUbVdDVmE2dVNjcVpIZW0vbThLTVZCQ3pHQWRVVEJRaDQ2?=
- =?utf-8?B?a3J2UXcwamNweWtJK3M1QmhZYkxqMnM4Y2xMQmx0WElGbmMvTXlaZVY3ck9I?=
- =?utf-8?B?ZW1vdy9WWllqRkt4SEJZbE9EbFgxVU5zNDhpVFZTNEc1WjZFTzdXU0RNR3hl?=
- =?utf-8?B?QXJ5TW9rYTZYNGEvNXl4N2NWZXA0WlVHYldDTWY1REdRbGFHTHlIV0NlWTV0?=
- =?utf-8?B?OWJRaHc4SUlUTVZQWnJqOXIwcitWUHlJOGZYNitJYmg4THJ2N1BSMFhYUENB?=
- =?utf-8?B?ekxYejdHckZabWljeTV2OWlObVkzVWd1VG1qbzd0OTMrUWVWb2FiNlkxVE5S?=
- =?utf-8?B?M3J6YzVNYzQ1VGlNclJmVTQyMUxGWklFYjNSUGVSTTNySkczUXFXQmYvOHFT?=
- =?utf-8?B?bEVIZGNkcHB1VTlvTDVLUUU4LzI3ZU85akdsY08zclFmR0FQTFNyRml3M1JF?=
- =?utf-8?B?azZwc0NCZmdPNEtOL1ZueXRYWkNIbzJRVURITk5TclVJUnM0dkh6K3JIZzN2?=
- =?utf-8?B?dHZmZ2dvTTA1VXNVWGx1TVpwTEJpb25saklmZ3BUeVArOFhFd281UDVHODF6?=
- =?utf-8?B?YXZvUEZHN0M2TDN1a2ZUYnpuWU5XRndqSnhBRmRqczhNeWVhL3Y3WGNSc1Zx?=
- =?utf-8?B?Q1V1UkkyN2QzbUNsSVVLNlUyZGZnTENPb2hIQnpMblBENmdvaGduRkZLdFpy?=
- =?utf-8?B?QmVMNFJ0Mk82aHNLOHhHMUtTVEFqTTdYTzJkQm10aGhkMExyNjltYW9pWU05?=
- =?utf-8?B?cURUTC9GcENVRGV4Rnk5b0h6Zm5xNk5WUzRvczBYdmQvUkQveFp3N1h6Wmk5?=
- =?utf-8?B?TnJsVFptTUZsMlk1cWMzYU12c3Z4ekVyK05BV3VtS1ZycHQ0eFZybWVoVFdv?=
- =?utf-8?B?alhyRE1pd3dWeXJ4akN3WndzbGoxWXZpT0xsQ2FWNnNDR083ek54VzZGQnNm?=
- =?utf-8?B?MElDekZKMmZmeGdnWVhGUU5KTU9DbHI3RlJ5cjNBSzYwNXh6b1VvbTJla3dX?=
- =?utf-8?B?OGdCZnhkUEhIYkk3MXpNOHFieXJIdllQL2dGZ2ZIQi9FNi9FVndyRUljaGly?=
- =?utf-8?B?ZVhlbjdRQ21IVm1IMjNaU09nbFBISHp4cU1kdWh3MTRXTDZSajN1UnlNNjZX?=
- =?utf-8?B?ZVozcEdqR2pHbU1SUlZGREhSREhrc0cyd1JJd3NvUjVld0pza0xNWkR3NS91?=
- =?utf-8?B?TFhKMnc5YXRsT2JzTW8za01CN2JkWFNkVVhNTUFaOUp6RUVaVWc2MElsZE9Z?=
- =?utf-8?B?L3F6L0J0b3loajdiTk1UOC9iTTM4QW94U1FpMWVQMDBUM3M3dTZPbVY3a3Ni?=
- =?utf-8?B?ZE1hNmF1eGN5TUhnT0oxeFh3cnNoaDNCTWc5amVpWWExRERjMnMzTGE4NzIz?=
- =?utf-8?B?clZqcU41UmVkemNzQTVPTUpGMUdFUmdaa0ZXSWVpMjBNU3VoNDNIRkFHclpo?=
- =?utf-8?B?SEsrTVduN1dHUm1tNzZGR2ZHaStJWHdmMlhJNEJZSDVLWVpsekRaa1Zsbyti?=
- =?utf-8?B?eVVCSjY0dHJVZDd0bEx4QWpaMXdOM2JGYy92VTgrSTBtbEpWRVUyck9zUURE?=
- =?utf-8?B?dERMcVYxMVNicTFhN1g1K1BXRVB1K2pBUkR4THZUUjFLOVNlS0d5cExoQkpS?=
- =?utf-8?B?amZXSjJlOS9Rb1dCSGV5MmNCL3ZqcldETk15d24yU1ZkbnFyZTlZSWRrcGV0?=
- =?utf-8?B?ZWNaUGNHWHdvbkpBMnBQT1dkVHNuTzVkandGV0h5eFBIZ3FNallaRmlILzZ5?=
- =?utf-8?B?YmhQU084bkp0Q21QN0RLbXFTQUdpMXZEOGlDcnd5aUV2RHZRTlQ5UnBJVzRk?=
- =?utf-8?B?M0xsODhXOHVITmlsOFdwWHdpRmtGTlpTcmJuMGxiOFdOdXkyQmRFQXpGYUVY?=
- =?utf-8?B?aE92aGJPS1N2Mm9oMVJSOFFtcTB4WVp1NkNmU0dOeE9DMENIVU9Rdz09?=
-X-Exchange-RoutingPolicyChecked: nZ55PPvfN6ruA00sDKGvIU1gyVDdQ64iGiMQKuo7ud69fJBTOddg0y266xjMheDY7SMohq8BJXYd/rmUWSdSTydwTAzCW/o2uG91nZzsma/w7uRs8Kip/4Lv1Y4spoq70BCHEvsh2QQI/z3wErC04ottqUFeRaQiHruCcFh4Y09Xk4yknNV6n7Cxu9tDq1ydqD/jp4q7nYIBdlwPxTWp3mWBfTLoTIBgO7PksaHgLRhBw5QHaGWEfBX3PpPiGieaJQcb+71ygSzv62byW7Hb7vr8MUAn9hGgRU4fdG8sjIzVIOYD7TilstBeqntEaclvJeBMJDbmf9OYkxbQFWq8jg==
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0e698127-d4e0-45aa-0fe5-08df3784f209
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?YTVYcndrYXlLWVU4a1U4V3pCQVZNeGxIUzRXWHBLNHhoeStkTDRzeFM4OG9T?=
+ =?utf-8?B?RWJoeGlkMllOMjl1aUtacDRqZGlDVFI5SjVBSWdXMExFMVZLZ3J5UnRReG1k?=
+ =?utf-8?B?cVgrOTFuOWxmdEUxdXppcC9xSTNhYm12bENuNjZzNGhyYmswUmR3KzU4ZU1j?=
+ =?utf-8?B?VUhRTXV0QUk2R1VQRmxBTVlRdjl0MG45TVMyeWI0VTIwVHVsdjJhc29sQUVJ?=
+ =?utf-8?B?elprdU9TNkY4YWFFcnlDdXVid2FwUjZLeTIvSUo1emk5c0tHQXdEdjY2d2hw?=
+ =?utf-8?B?SHBTYkxZNXk2ZkN3T0lUZVVMemFpU3cyclhpOEdvanhHbC8vSUMwZjk2dkg5?=
+ =?utf-8?B?NTRka2NFZndCK2p3dStKY1Z2akdnWGVwa1FxWFVPYVlhYWs0UG1NUDJpbW9s?=
+ =?utf-8?B?bFJhYU5KVWl1TmtZdlprdyttbVUyVlVxd3JiU2hHRWdDZDh0N21yVXFSY2kx?=
+ =?utf-8?B?cmtxVWF6R01pZGpaSlJtamZHYzl1RWFmZG1WMEd2d0dIV210MVdidjV5VGcy?=
+ =?utf-8?B?UkdGbldrSEtneVhlZHdzMzY5Q01sZzk1UjRMMFlMcXFueGtEZUhZcjR0aUM0?=
+ =?utf-8?B?V1lhMkdrZ1ZueEk0WEJ0M1pjVzJnV2piVVJpSW1oWmJjcDRwL3pXdkY2UDZC?=
+ =?utf-8?B?REhxeGI5TlJDdDZ1aXoxT3ZhTWtOMkZVZ0NMY3BoNElaSkl0aDJCbXd6VElO?=
+ =?utf-8?B?THR4dzVrdW00RllTcGR6NXVhQ01OdmxJZnNaWFFlWnoyR0hLYzRoM01JNE1Z?=
+ =?utf-8?B?RVhaalMrWlN2cnJ2RHdDVGxDZ1pUSmMyL3hqNGFTdDJ1Nmk5c1Q5RzlpcVpU?=
+ =?utf-8?B?eE5md3BXRjZDeFliNnhrZ3dEWlU4UENUY0hsUmFHRXNhcUF3MHM1QVpwbStF?=
+ =?utf-8?B?SkNZc2NUUFV1aU81MnJsTDNkRFgyUXdaY2RnNEdUZmVIRVdBd0VKYm52eTJY?=
+ =?utf-8?B?V210NTVLeVpYd2Z6eEd5Rm90dnBTdytyMWpQbCtIN0ZVeFB3T3BlSFovUFk1?=
+ =?utf-8?B?TkVoQUJtYUpaUmVHWFc1aTMxY1Y0d1h2SlNxSzQ3RGplT0EwZDhCVGVuMmxh?=
+ =?utf-8?B?U2pET3B4enFMaVV4UHc1NGVnSkJUQWJWNXVtR1F4c2E3aStvUm8zVjFhR2RQ?=
+ =?utf-8?B?SkdlTFY4a01sZ3NhTVg5bjZESjJaUkFxQmxyckJ2Q050MUJhQjgwOTdrdkNm?=
+ =?utf-8?B?L01zTis5aEdSRis5c0d6c0hkbFZROXYraFJHVlYrR29Benk3bXBnckc2LytW?=
+ =?utf-8?B?SGljeXdhTnZidGV3UlhpYi9JSzJLY1pFcGplZW9QUlFwZ0I1TFZjdVcxY2dh?=
+ =?utf-8?B?cWsrZHQwT0hLVmcxc1ZxaGhDeDJhalBGbVQrTWRRQkNXQWdRYnh2YnhET3VG?=
+ =?utf-8?B?RlZzL29INVlYVUhuQ2RFcmdmYlcvZE5Sbms0eVh6bStEVlF2dmJQUmZCWGVY?=
+ =?utf-8?B?eTZneFdRTGY0ZTRBbENPVXlYOXBnUFV0V0xUeFBKeWJSY0U2WGxqUm5IaWxJ?=
+ =?utf-8?B?K3VIMjZ3ODVqdUlNT2NjSjdKTXRlRjZaMk42bkFjRHNYQkRXQUZ6cldHWmVI?=
+ =?utf-8?B?a1JTelZSa2YweXdseUxVNU81cDZxQW1UenlUOC94Z2F3YjR2dS91LzBSczV6?=
+ =?utf-8?B?YUY4dHExL2NVUFRuQ0tqVlRUTVJtSG9NbHBHL3dPTmRPT2ZrZ2VOYzdBNDlp?=
+ =?utf-8?B?OUJxVXpxdHJxN2ttbUw1eHplSlFBTWNKL0F4bE1UL05NNFlBa2lkTkNvSmN6?=
+ =?utf-8?B?dW1kbnNlMElVM0tmSThXNlJFK0tDdm0wNGx4UlgvVm9ZQnNEMlByS0NBZVBt?=
+ =?utf-8?B?RkU0VzljS01BRlN6ZDlDVTVhRTZNNTNQZEpTNFRYVWp0STVnNGxYM3BSMzdi?=
+ =?utf-8?B?c2s4QnY0cEV5bkpWUnJTdXZOYlBKaWFlaFFldDNKL1RmTSt4WXc4bHdDbzBt?=
+ =?utf-8?B?TFRVMmVGWmM2OUxSV3NuczBTZnF1NytMMW9TdUZQcW9HR3c4ZkhoeCsrSUJx?=
+ =?utf-8?B?TU00RmhRbUgwSjJwdTUxdHU4djZIQkJSUnRKdWhuT29tZll0SVFRWnlhd0JZ?=
+ =?utf-8?B?K1pVb3dnOGorNEE2VkxJYitxeW81L3h6dGptNVBzZ3FBdWJFcXFUOTRNd0p3?=
+ =?utf-8?B?dncxcThBZHUxTGIrSnlmOEJtRnBSekZhS3hDcmhPMXNna1NLcUFwSG9Uek9u?=
+ =?utf-8?B?OUJTUEtXOTZDWThnOVg4L1dqTm9VcEJEcWFlYzd1VDFHSGhhbXRuc0dDL0t6?=
+ =?utf-8?B?RUpDWG5IdzNPMWRKME5HV0xYQm9sZy8wdTc0ZjQ2dEZuRTF3b2ord2c5bTc3?=
+ =?utf-8?B?TnVQNjVkNk0wN2w3aVUyU0Q4L0xTbldnS1I2NS9oZUsxU0MyVzVQZz09?=
+X-Exchange-RoutingPolicyChecked: Lteus3Dh15KPo7aG1ePowt/ZSd/UjLpHLs/QXjB69EZfgVFLShI2yctoShhtyq7dcG2g8GsKoOcQu3UGfFvQSp400JBFOO43AatUftVtr837y+bqHayhGCB5nvSuOa+g40hSAZEOx9eT674d2Fb6ZKQcY/66ObgA6kLhyxKxtURmEOZfjIIHyy0ySNxeJ8Li+vE9o6K7pGn1YwETk//JIV2jNin83scF/HoTMdEyDVEUvh919T9M3jW9+z92jQ8BwK7asxb4OErtcuRzWpyr3zpMpraLgllujw2XYgQon73G6FQs7GSs/NSAB/ZZRvobeSyQFijxs1kN9gjziUO1Bg==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 73d663ad-3aa7-4403-a26b-08df3784f591
 X-MS-Exchange-CrossTenant-AuthSource: DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 31 Oct 2026 19:27:04.9644
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 31 Oct 2026 19:27:10.8078
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 105b2061-b669-4b31-92ac-24d304d195dc
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: /yTahXvXwsxPjV8QYnb/ByTBLhF2Bl/x0/677p13HVKetGu4A6wgLJoFDIxp1OTJVjIKo7Ir9B0OQZO1cgn2hw==
+X-MS-Exchange-CrossTenant-UserPrincipalName: oRUF3VSStMcaL0sK3cqL7OWUn615Zpj3hyeBYjbOsEMEcoG2vxBBKP3N2soqJIPojyXYPP1UUPRvEybdWl0CoA==
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW5PR84MB1891
 X-OriginatorOrg: hpe.com
-X-Authority-Analysis: v=2.4 cv=J5I/fwnS c=1 sm=1 tr=0 ts=6ae6411c cx=c_pps
+X-Proofpoint-ORIG-GUID: HhahQBIydgucp8sGLVun3B5qjqFuUJpU
+X-Authority-Analysis: v=2.4 cv=O+asLx9W c=1 sm=1 tr=0 ts=6ae64120 cx=c_pps
  a=UObrlqRbTUrrdMEdGJ+KZA==:117 a=UObrlqRbTUrrdMEdGJ+KZA==:17
  a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=z/mQ4Ysz8XfWz/Q5cLBRGdckG28=:19
  a=lCpzRmAYbLLaTzLvsPZ7Mbvzbb8=:19 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
  a=660iZSQnnn4A:10 a=VkNPw1HP01LnGYTKEx00:22 a=gQcMVamqm3wCPoSYhaRC:22
- a=k7r4yCLl9DVLXMiQTbtC:22 a=MvuuwTCpAAAA:8 a=7wrLxfBo2xsZqo0QAsMA:9
- a=QEXdDO2ut3YA:10 a=O8hF6Hzn-FEA:10
-X-Proofpoint-ORIG-GUID: 34Qvt4rltdAlNFxkSkA7vYWp0lLow5SX
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDMxMDA3NyBTYWx0ZWRfX2c6QGUQBStyf
- 6UZ3NMcc8pmx8BSrJBO2FUB3P9C53Mo6O2TtGH7cnxczwg58KTxdvw4AvvnuGFOBp6mVOzkesKo
- V+8GHHeT0OJl4jUJ2HhCr1X2pLha44DS0A0jCLjGG4SwQki0XRzMEWr0CsWiEgG5upUAhZnqZi8
- V4VIDjOENzqiCYT0t2b64l2vJKQaXnMA7ZMzt3uZ1aa2674KMFN9fWKONJgji0SMio/dN/tFbzh
- HrT5MBhFf52H6V95+vGYJQLmymvK8PqNuQAq6jBwcPCjLtlx/XrmVarlTJVosU7q4meOkEASSZ2
- ZE6rAxSQOFk9EeEuPePXoEjMcUTQL9wmCZiVE+b7qLd49bcmvbj6e08ZxEnrqP2YFgxcg430DzM
- h6taRu0V+jGFqnBEwewVy7FvZCWVPIn8rEkFEoYp4x2ikfyeQ3KsYSXT9ljE9JLLV8zVBwLGLVr
- 5jSp51hp5VZriMafuGQ==
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDMxMDA3NyBTYWx0ZWRfX3yJ2d213DMC4
- KlegVVKcIwUPbQg8+4UT/qLoeHRpSfyuuR5DVdEAyPNp9OPEkLCQLVKodWDup5dk2hUZcIkvOQJ
- tBO99jRyUBahPGqxFr+8SFKtWfizQUY=
-X-Proofpoint-GUID: 34Qvt4rltdAlNFxkSkA7vYWp0lLow5SX
+ a=3haJ9R1Aw3gUfsUHDaCR:22 a=RiIid9coAAAA:8 a=MvuuwTCpAAAA:8
+ a=Bol2QhK9G5Jno62YP8wA:9 a=QEXdDO2ut3YA:10 a=XKWKsq0CuoyFKVVHhDP9:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDMxMDA3NyBTYWx0ZWRfXwtA0Oc7kyHZy
+ 4MGMP03aTatjnxK9HuTUj64PtkO/6i1SsyCc8Dtib892xko0s9WnN6r5v2BQCdCm6nkjOTLrEYD
+ A9lSMYqNq3yl8ylQx8CFt9YaAwYX8LoAdxpSZqSHFOlZLoNxihrFtrfxn5yKlAdHVePPG9ev2OO
+ pvXXqrwTIpqr9xMyPKb1ArKuU65H8yTvzPi6+xJGWhV+Slgs1m90qEHYZl4dxEPkin4660UI2AF
+ jvdpk/vm00NZWbhXrWOamarRCq0DKXbWQx65EqaBKLePUm0Fa5EFnU74CCOX2QAsOILf1peQ1Sv
+ WSBT254DQAnY8LUJRCurlf2gDb43WxrnwoU0vIQZRkAE/bk/5YA7Q+pY+6gViTpWaGuSyzKU8IA
+ PWKSTGml+Wh8PWJTYW95pafWgDFEcM3BRycFLX6a5IjeUQDInwwuM9tiutaWYAF5Kvfi0RlunDn
+ Qg02Adw4pJObydX4ETA==
+X-Proofpoint-GUID: HhahQBIydgucp8sGLVun3B5qjqFuUJpU
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDMxMDA3NyBTYWx0ZWRfXxE/Z3Qu6lKjX
+ fn2FUwrOxKOUGt1ROXe4EcaPEjsCl5wyW3KB+kLVb4I68be5F7MmyOC6cAl5RfB6PDvd52ZbmXo
+ uj+CUg6KX31QCuPgxaYsL589wqhuu/Q=
 X-HPE-SCL: -1
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
  definitions=2026-10-31_05,2026-10-21_02,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- lowpriorityscore=0 bulkscore=0 spamscore=0 impostorscore=0 malwarescore=0
- adultscore=0 priorityscore=1501 phishscore=0 suspectscore=0 clxscore=1015
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2610300000 definitions=main-2610310077
+ impostorscore=0 bulkscore=0 adultscore=0 lowpriorityscore=0
+ priorityscore=1501 phishscore=0 suspectscore=0 malwarescore=0 clxscore=1015
+ spamscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
+ adjust=0 reason=mlx scancount=1 engine=8.22.0-2610300000
+ definitions=main-2610310077
 
-Add cxi_launcher, which provisions a service and job grant for a
-single test process and then runs it.  It stands in for a workload
-manager when testing the provider without one: it creates a service
-restricted to the target UID with exact VNIs, traffic classes and
-resource limits, exports a job grant, drops privileges for the child
-and removes the service when the child exits.  The cxi_telem utility, a
-small telemetry dumper built on ibv_read_counters_ex(), is added with it.
-The environment the child
-sees follows the Slingshot names (SLINGSHOT_SVC_IDS,
-SLINGSHOT_VNIS, SLINGSHOT_TCS, SLINGSHOT_DEVICES) plus the UET_*
-names the RU examples read.
+Teach ibv_ru_pingpong and ibv_ru_rma to run on a Slingshot device.
 
-It is meant for developer testing.  It must be run by root and exits
-at once otherwise, and refuses to run setuid or with file capabilities.
-It keeps root only for service and job setup and cleanup.  The forked
-child closes every descriptor but stdio and the job grant, drops
-groups, gid and uid irreversibly and sets no_new_privs; the job
-runs as root only if --uid 0 is given. Inherited UET_*, SLINGSHOT_*
-and CXI_VERBS_* variables are
-scrubbed first.  README.md describes the options.
+CXI has no implicit resources and the service and job grant that
+authorise them can only be created by root.  On a Slingshot transport
+a program that finds no grant (UET_JOB_FD unset) runs itself again
+under cxi_launcher, which creates the grant and then runs the program
+as the sudo user.  The second run finds the grant, allocates its LNI,
+PD and PID from it, imports the job and runs the test.  A user
+starts it with "sudo ibv_ru_pingpong -d DEV ..." and, as with
+ibv_ru_rma, may choose the JobID (the VNI) with -j.  The launcher
+is found next to the program or in the install bindir, never through
+PATH.  Other transports use the existing code path.
 
-checkpatch (rdma-core CI settings) still reports VOLATILE (2) in this
-patch. Both are intentional, documented in providers/cxi/utils/README.md:
-the launcher's state is volatile sig_atomic_t because it is shared with
-its signal handler. If reviewers prefer a different form, it needs
-coordination with the internal repositories and will be changed in V2.
+The programs no longer create a service of their own.  The SGE count
+is checked against the device maximum instead of a fixed constant,
+and devinfo reports the Slingshot transport and GID type names.
+
+The Slingshot path uses the cxidv API.  It, and the link against
+libcxiverbs, is built only when the CXI provider is, which requires
+HAVE_COHERENT_DMA; elsewhere the examples build without it.
+
+UET ABI decision needed: this keeps the RU examples, and the generic
+pyverbs.ru module, available on platforms without coherent DMA.  If
+UET, and by extension the RU queue pair type, is not expected to
+support such platforms, the RU examples and pyverbs.ru should instead
+be built only when HAVE_COHERENT_DMA is set, as the mlx5 and efa
+pyverbs modules are.
 
 Co-developed-by: Iraimani P <iraimani.pavadai@hpe.com>
 Signed-off-by: Iraimani P <iraimani.pavadai@hpe.com>
 Signed-off-by: Doug Ledford <doug.ledford@hpe.com>
 ---
- providers/cxi/utils/README.md      | 134 +++++
- providers/cxi/utils/cxi_launcher.c | 967 +++++++++++++++++++++++++++++++++++++
- providers/cxi/utils/cxi_telem.c    | 201 ++++++++
- 3 files changed, 1302 insertions(+)
+ libibverbs/examples/CMakeLists.txt  |  10 +++
+ libibverbs/examples/devinfo.c       |   2 +
+ libibverbs/examples/ru_cxi_launch.h | 138 ++++++++++++++++++++++++++++++++++++
+ libibverbs/examples/ru_pingpong.c   | 126 ++++++++++++++++++++++++++++----
+ libibverbs/examples/ru_rma.c        | 112 +++++++++++++++++++++++++----
+ 5 files changed, 361 insertions(+), 27 deletions(-)
 
-diff --git a/providers/cxi/utils/README.md b/providers/cxi/utils/README.md
+diff --git a/libibverbs/examples/CMakeLists.txt b/libibverbs/examples/CMakeLists.txt
+index a3e5c26ac190..e2134f3e963c 100644
+--- a/libibverbs/examples/CMakeLists.txt
++++ b/libibverbs/examples/CMakeLists.txt
+@@ -25,6 +25,16 @@ target_link_libraries(ibv_ru_pingpong LINK_PRIVATE ibverbs ibverbs_tools)
+ rdma_executable(ibv_ru_rma ru_rma.c)
+ target_link_libraries(ibv_ru_rma LINK_PRIVATE ibverbs ibverbs_tools)
+ 
++# CXI is only built with coherent DMA. The examples run themselves again
++# under cxi_launcher on Slingshot devices.
++if (HAVE_COHERENT_DMA)
++  foreach(ru_example ibv_ru_pingpong ibv_ru_rma)
++    target_link_libraries(${ru_example} LINK_PRIVATE cxiverbs)
++    target_compile_definitions(${ru_example} PRIVATE HAVE_CXIVERBS
++      CXI_LAUNCHER_BINDIR="${CMAKE_INSTALL_FULL_BINDIR}")
++  endforeach()
++endif()
++
+ rdma_executable(ibv_srq_pingpong srq_pingpong.c)
+ target_link_libraries(ibv_srq_pingpong LINK_PRIVATE ibverbs ibverbs_tools)
+ 
+diff --git a/libibverbs/examples/devinfo.c b/libibverbs/examples/devinfo.c
+index c10c8e21f64a..eb87b3c40d1d 100644
+--- a/libibverbs/examples/devinfo.c
++++ b/libibverbs/examples/devinfo.c
+@@ -72,6 +72,7 @@ static const char *transport_str(enum ibv_transport_type transport)
+ 	case IBV_TRANSPORT_USNIC:	return "usNIC";
+ 	case IBV_TRANSPORT_USNIC_UDP:	return "usNIC UDP";
+ 	case IBV_TRANSPORT_UNSPECIFIED:	return "unspecified";
++	case IBV_TRANSPORT_SLINGSHOT:	return "Slingshot";
+ 	default:			return "invalid transport";
+ 	}
+ }
+@@ -173,6 +174,7 @@ static const char *gid_type_str(enum ibv_gid_type_sysfs type)
+ 	case IBV_GID_TYPE_SYSFS_ROCE_V2: return "RoCE v2";
+ 	case IBV_GID_TYPE_SYSFS_UET_UDP: return "UET UDP";
+ 	case IBV_GID_TYPE_SYSFS_UET_IP: return "UET IP";
++	case IBV_GID_TYPE_SYSFS_SLINGSHOT_UFH: return "SLINGSHOT UFH";
+ 	default: return "Invalid gid type";
+ 	}
+ }
+diff --git a/libibverbs/examples/ru_cxi_launch.h b/libibverbs/examples/ru_cxi_launch.h
 new file mode 100644
-index 000000000000..6d53fe39faa8
+index 000000000000..ba87a6cd506d
 --- /dev/null
-+++ b/providers/cxi/utils/README.md
-@@ -0,0 +1,134 @@
-+# CXI launcher
-+
-+`cxi_launcher` provides privileged setup and teardown for standalone CXI verbs
-+tests without a workload manager. It links directly to `libcxiverbs`; there is
-+no generic launcher, vendor plugin, or module-search environment variable.
-+
-+Build with `cmake --build build --target cxi_launcher`. For an uninstalled tree:
-+
-+```sh
-+sudo env IBV_DRIVERS=cxiverbs LD_LIBRARY_PATH="$PWD/build/lib" \
-+  build/bin/cxi_launcher -d rdmap1s0 --vni 42 --tc 3 -- \
-+  "$PWD/build/bin/ibv_ru_pingpong" -d rdmap1s0 -g 0 -c -n 1000
-+```
-+
-+Run the same command on the peer with the server hostname appended to
-+`ibv_ru_pingpong`. Use `ibv_ru_rma` in place of `ibv_ru_pingpong` for RMA.
-+Device/VNI/TC values must agree with the intended test policy on both ends.
-+
-+The ibv_ru_pingpong and ibv_ru_rma examples call the launcher themselves on
-+a Slingshot device: run them as `sudo ibv_ru_pingpong -d rdmap1s0 ...` (add
-+`-j ID` to choose the JobID/VNI). They re-run themselves under the launcher,
-+as the sudo user, and the second run finds `UET_JOB_FD` and starts the test.
-+Automatic relaunch uses only the compiled-in installation directory, never a
-+sibling executable from a build directory. For an uninstalled tree, invoke
-+the built `cxi_launcher` explicitly as in the command above.
-+
-+`cxi_launcher_test` checks the descriptor-closing fallback without creating
-+device resources. Run it under sudo if the process hard descriptor limit is
-+below 70001; only forked test children raise and then lower their own limits.
-+
-+The launcher must be run by root (real and effective uid 0) and exits at
-+once otherwise. It refuses to run if it is installed setuid or with file
-+capabilities, and it is never meant to be. It needs no privilege beyond
-+what root already has: it keeps root only to create and destroy the
-+service and job grant and to clean up after the command.
-+
-+The parent creates a service restricted to the child UID, allocates and
-+exports a generic job grant, launches the child, waits for it, and
-+releases its owned resources. The child UID is `SUDO_UID` or `--uid`; the
-+command is not run as root unless `--uid 0` is given explicitly. Immediately after fork the child closes
-+every descriptor except stdio and the exported job grant, drops
-+supplementary groups, gid and uid for good, and sets no_new_privs, so
-+it holds no capabilities and cannot regain them. Inherited `UET_*`,
-+`SLINGSHOT_*` and `CXI_VERBS_*` variables are removed before the launcher
-+defines its own, so the caller cannot pre-set a service or job.
-+SIGINT/SIGTERM/SIGHUP are forwarded to the child process group, and
-+cleanup errors make the launch fail.
-+
-+`--service ID` reuses an existing enabled service only if its UID, every VNI,
-+and every requested TC are permitted. The launcher does not modify or destroy
-+that service. There is no default-service fallback. `--tc` selects the child's
-+class; repeat `--allow-tc` to grant the service additional classes. The selected
-+class must be included. `SLINGSHOT_TCS` receives the full bitmask, while
-+`UET_TC` remains the selected class. Without `--allow-tc`, the selected class is
-+the only grant. `--create-tc` configures all granted classes on a newly owned
-+service. `--tc-* MAX[:RESERVED]` options set resource limits; unspecified maxima
-+come from device capacity, and explicit zero limits are retained. These are
-+administrator test grants, not Slurm's per-thread resource-budget calculation.
-+
-+`--threads-per-task N` models Slurm's depth-based defaults by reserving the
-+per-thread resource default multiplied by N, capped at the configured maximum.
-+The design defaults are PTES=6, TXQS=2, TGQS=1, EQS=2, CTS=1, ACS=2, TLES=1,
-+and LES=16 per thread. Override them with
-+`--default-{ptes,txqs,tgqs,eqs,cts,acs,tles,les}`. Explicit `--tc-* MAX`
-+options override the maximum while retaining the depth-based reservation;
-+`MAX:RESERVED` supplies both values explicitly. Resource-limit calculations
-+apply only when creating a service, not when reusing one.
-+
-+The child receives `SLINGSHOT_SVC_IDS`, `SLINGSHOT_VNIS`, `SLINGSHOT_TCS` and
-+the native `SLINGSHOT_DEVICES` name correlated by NID. `UET_JOB_ID`,
-+`UET_JOB_FD`, `UET_SERVICE_ID`, `UET_TC` and `CXI_VERBS_DEVICE` retain the current
-+RU example handoff. Values alone are not authorization: the service and exported
-+grant must permit the operations.
-+
-+Repeat `--vni` to grant a step VNI and an optional shared-job VNI (up to the
-+native four-VNI service limit). The first value is used as the transport job
-+ID; every value is placed, in order, in `SLINGSHOT_VNIS` and is checked against
-+an existing service before reuse. The service stores the exact list, not the
-+min/max range around it. Multi-device provisioning, full native
-+membership/update/LPR management and the complete unchanged Slurm/libcxi
-+workflow remain separate required work.
-+
-+## Optional Job Address Tables
-+
-+The launcher keeps zero-entry jobs as its default. Explicit-AH requests do not
-+need a table. Applications choosing indexed addressing must explicitly request
-+a positive `max_addr_entries` with `IBV_JOB_ATTR_MAX_ADDR_ENTRIES`.
-+For example, `cxi_launcher --max-addr-entries 16` opts a launched job into a
-+16-entry table; omitting the option preserves the zero-entry default. The RU
-+RMA example requests 16 entries automatically when `-A` is selected.
-+
-+Build `cxi_le_test` and run it without arguments for device-free checks. These
-+exercise omitted/zero capacity through the public API, actual provider command
-+encoding for explicit and indexed SEND/WRITE/READ, pre-lock address resolution,
-+extended-batch abort/rollback, and concurrent mock table updates/submissions.
-+The command ring and doorbell are ordinary memory, not hardware mappings.
-+
-+With hardware-test approval, run `cxi_le_test --resources DEVICE` for the
-+existing explicit-AH/zero-entry resource checks. Running the same command with
-+`CXI_TEST_INDEXED=1` opts the sending job into a two-entry table and exercises
-+real insert/query/remove, duplicate/unset/out-of-bounds entries, and indexed
-+SEND at index 1. These resource tests alter device resources and must not be
-+run as part of device-free validation.
-+
-+NIC RMA completion, concurrent kernel-table updates versus NIC sends, and
-+performance measurements remain hardware validation gates. Compare explicit-AH
-+and indexed paths with identical message sizes, batch sizes, thread counts,
-+completion handling, and device setup; report throughput, CPU time, and latency
-+including lookup cost. The indexed path queries the kernel for each address
-+snapshot rather than caching possibly stale entries. The extended API stages
-+requests in a reusable buffer before emission. Neither CPU-only tests nor a
-+successful build establish a NIC performance result. Indexed addressing must
-+not become the default without this comparison.
-+
-+## Checkpatch Exceptions
-+
-+Use the userspace exclusions in `buildlib/azp-checkpatch` when reviewing this
-+series. In particular, kernel type names and negative errno returns are not
-+the libibverbs API conventions. Do not change those contracts for checkpatch.
-+
-+The following additional diagnostics are documented exceptions, not disabled
-+checks:
-+
-+- Imported UAPI headers use portable packed attributes and explicit bit
-+  constants rather than kernel-private `__packed` and `BIT()` helpers.
-+- The command-queue status and event accesses retain `volatile` for device
-+  updates. The launcher's `volatile sig_atomic_t` state is shared with signal
-+  handlers. Removing these qualifiers is not a formatting change.
-+- `CXI_MATCH_ID` repeats its width argument to remain a constant expression
-+  in static initializers. Callers must pass a side-effect-free width.
-+
-+Check each patch separately to avoid false duplicate-trailer diagnostics.
-+If a combined header-import patch produces type-inference diagnostics in a
-+later file, check that file independently before changing valid declarations.
-diff --git a/providers/cxi/utils/cxi_launcher.c b/providers/cxi/utils/cxi_launcher.c
-new file mode 100644
-index 000000000000..9e32e31f680e
---- /dev/null
-+++ b/providers/cxi/utils/cxi_launcher.c
-@@ -0,0 +1,967 @@
-+// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
-+/*
-+ * Copyright 2026 Hewlett Packard Enterprise Development LP
-+ */
-+
-+#define _GNU_SOURCE
-+#include <config.h>
-+
-+#include <ctype.h>
-+#include <errno.h>
-+#include <dirent.h>
-+#include <fcntl.h>
-+#include <getopt.h>
-+#include <grp.h>
-+#include <limits.h>
-+#include <pwd.h>
-+#include <signal.h>
-+#include <stdbool.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/auxv.h>
-+#include <sys/prctl.h>
-+#include <sys/syscall.h>
-+#include <sys/wait.h>
-+#include <unistd.h>
-+
-+#include <infiniband/cxidv.h>
-+#include <infiniband/verbs.h>
-+#include <ccan/array_size.h>
-+
-+#define CXI_MAX_TRAFFIC_CLASS CXIDV_TC_ETH
-+
-+struct cxirdma_state {
-+	struct cxidv_job_tc_attr tc_attr;
-+	uint32_t traffic_class;
-+	uint32_t allowed_tc_mask;
-+	uint32_t threads_per_task;
-+	uint16_t thread_defaults[CXIDV_SVC_RSRC_COUNT];
-+	bool create_tc;
-+	bool explicit_tc;
-+	bool list_tcs;
-+	bool dry_run;
-+	bool threads_per_task_set;
-+	uint32_t svc_id;
-+	uint32_t max_addr_entries;
-+	bool owns_svc;
-+	uint16_t vnis[CXIDV_SVC_MAX_VNIS];
-+	uint32_t vni_count;
-+	uid_t uid;
-+	uint32_t limits_mask;
-+	uint32_t explicit_reserved_mask;
-+	uint32_t thread_default_mask;
-+};
-+
-+static const struct option cxirdma_options[] = {
-+	{ "device", required_argument, NULL, 'd' },
-+	{ "vni", required_argument, NULL, 'j' },
-+	{ "job-id", required_argument, NULL, 'j' },
-+	{ "uid", required_argument, NULL, 'u' },
-+	{ "service", required_argument, NULL, 'S' },
-+	{ "port", required_argument, NULL, 'i' },
-+	{ "gid-index", required_argument, NULL, 'g' },
-+	{ "max-addr-entries", required_argument, NULL, 1002 },
-+	{ "help", no_argument, NULL, 'h' },
-+	{ "tc", required_argument, NULL, 1000 },
-+	{ "create-tc", required_argument, NULL, 1000 },
-+	{ "allow-tc", required_argument, NULL, 1000 },
-+	{ "default-ptes", required_argument, NULL, 1000 },
-+	{ "default-txqs", required_argument, NULL, 1000 },
-+	{ "default-tgqs", required_argument, NULL, 1000 },
-+	{ "default-eqs", required_argument, NULL, 1000 },
-+	{ "default-cts", required_argument, NULL, 1000 },
-+	{ "default-acs", required_argument, NULL, 1000 },
-+	{ "default-tles", required_argument, NULL, 1000 },
-+	{ "default-les", required_argument, NULL, 1000 },
-+	{ "threads-per-task", required_argument, NULL, 1001 },
-+	{ "dry-run", no_argument, NULL, 1000 },
-+	{ "tc-ptes", required_argument, NULL, 1000 },
-+	{ "tc-txqs", required_argument, NULL, 1000 },
-+	{ "tc-tgqs", required_argument, NULL, 1000 },
-+	{ "tc-eqs", required_argument, NULL, 1000 },
-+	{ "tc-cts", required_argument, NULL, 1000 },
-+	{ "tc-tles", required_argument, NULL, 1000 },
-+	{ "tc-les", required_argument, NULL, 1000 },
-+	{ "tc-acs", required_argument, NULL, 1000 },
-+	{ "list-tcs", no_argument, NULL, 1000 },
-+	{}
-+};
-+
-+static volatile sig_atomic_t child_group;
-+static volatile sig_atomic_t interrupted;
-+
-+static void forward_signal(int number)
-+{
-+	int saved_errno = errno;
-+
-+	interrupted = number;
-+	if (child_group)
-+		kill(-(pid_t)child_group, number);
-+	errno = saved_errno;
-+}
-+
-+static int parse_number(const char *text, uint32_t maximum, uint32_t *value)
-+{
-+	char *end;
-+	unsigned long parsed;
-+
-+	if (!text || !*text)
-+		return -1;
-+	errno = 0;
-+	parsed = strtoul(text, &end, 0);
-+	if (errno || *end || parsed > maximum || !isdigit((unsigned char)*text))
-+		return -1;
-+	*value = parsed;
-+	return 0;
-+}
-+
-+static int parse_limit(const char *arg, struct cxidv_limits *limit, bool *reserved_specified)
-+{
-+	unsigned long max, res = 0;
-+	char *end;
-+	bool has_reserved = false;
-+
-+	if (!arg || !*arg || *arg == '-')
-+		return -1;
-+	errno = 0;
-+	max = strtoul(arg, &end, 0);
-+	if (errno || max > UINT16_MAX)
-+		return -1;
-+	if (*end == ':') {
-+		has_reserved = true;
-+		arg = end + 1;
-+		if (!*arg || *arg == '-')
-+			return -1;
-+		errno = 0;
-+		res = strtoul(arg, &end, 0);
-+		if (errno || res > UINT16_MAX)
-+			return -1;
-+	}
-+	if (*end)
-+		return -1;
-+
-+	limit->max = max;
-+	limit->res = res;
-+	*reserved_specified = has_reserved;
-+	return 0;
-+}
-+
-+static int parse_tc(const char *arg, const char *option, uint32_t *out)
-+{
-+	unsigned long tc;
-+	char *end;
-+
-+	if (!arg || !*arg || *arg == '-')
-+		return -1;
-+	errno = 0;
-+	tc = strtoul(arg, &end, 0);
-+	if (errno || *end || tc > CXI_MAX_TRAFFIC_CLASS) {
-+		fprintf(stderr, "--%s must be 0..%d\n", option, CXI_MAX_TRAFFIC_CLASS);
-+		return -1;
-+	}
-+
-+	*out = tc;
-+	return 0;
-+}
-+
-+static bool service_allows_vni(const struct cxidv_svc_attr *attr, uint16_t vni)
-+{
-+	unsigned int index;
-+
-+	if (attr->vni_count) {
-+		if (attr->vni_count > CXIDV_SVC_MAX_VNIS)
-+			return false;
-+		for (index = 0; index < attr->vni_count; index++)
-+			if (attr->vnis[index] == vni)
-+				return true;
-+		return false;
-+	}
-+	if (attr->is_range)
-+		return vni >= attr->vnis[0] && vni <= attr->vnis[1];
-+
-+	return false;
-+}
-+
-+static int format_vni_list(const uint16_t *vnis, uint32_t count, char *buffer, size_t capacity)
-+{
-+	size_t used = 0;
-+	uint32_t index;
-+
-+	for (index = 0; index < count; index++) {
-+		int length = snprintf(buffer + used, capacity - used, "%s%u", index ? "," : "",
-+				      vnis[index]);
-+
-+		if (length < 0 || (size_t)length >= capacity - used)
-+			return -1;
-+		used += length;
-+	}
-+	return 0;
-+}
-+
-+static int list_tcs(struct ibv_context *context)
-+{
-+	struct cxidv_tc_entry entries[32];
-+	uint32_t capacity = ARRAY_SIZE(entries);
-+	uint32_t count = 0;
-+	uint32_t shown;
-+	uint32_t i;
-+	int ret;
-+
-+	ret = cxidv_query_tcs(context, entries, capacity, &count);
-+	if (ret) {
-+		fprintf(stderr, "couldn't query CXI traffic classes: %s\n", strerror(ret));
-+		return -1;
-+	}
-+
-+	shown = count < capacity ? count : capacity;
-+	printf("%5s %7s %12s %14s %12s %14s %7s %7s %7s %7s %7s %7s\n", "TC", "TYPE", "RES_REQ",
-+	       "UNRES_REQ", "RES_RSP", "UNRES_RSP", "REQPCP", "RSPPCP", "OCUSET", "CQTC", "REQBC",
-+	       "FLAGS");
-+	for (i = 0; i < shown; i++)
-+		printf("%5u %7u %12u %14u %12u %14u %7u %7u %7u %7u %7u 0x%05x\n", entries[i].tc,
-+		       entries[i].tc_type, entries[i].res_req_dscp, entries[i].unres_req_dscp,
-+		       entries[i].res_rsp_dscp, entries[i].unres_rsp_dscp, entries[i].req_pcp,
-+		       entries[i].rsp_pcp, entries[i].ocuset, entries[i].cq_tc, entries[i].req_bc,
-+		       entries[i].flags);
-+	if (shown < count)
-+		printf("... %u more entries not shown\n", count - shown);
-+
-+	return 0;
-+}
-+
-+static int validate_tc_mask(struct ibv_context *context, uint32_t mask, bool create_tc)
-+{
-+	struct cxidv_tc_entry entries[32];
-+	uint32_t count = 0;
-+	uint32_t tc;
-+	int ret;
-+
-+	if (create_tc)
-+		return 0;
-+	ret = cxidv_query_tcs(context, entries, ARRAY_SIZE(entries), &count);
-+	if (ret) {
-+		fprintf(stderr, "couldn't query CXI traffic classes: %s\n", strerror(ret));
-+		return -1;
-+	}
-+
-+	for (tc = 0; tc <= CXI_MAX_TRAFFIC_CLASS; tc++) {
-+		uint32_t index;
-+		bool found = false;
-+
-+		if (!(mask & (1U << tc)))
-+			continue;
-+		for (index = 0; index < count && index < ARRAY_SIZE(entries); index++) {
-+			if (entries[index].tc == tc) {
-+				found = true;
-+				break;
-+			}
-+		}
-+		if (!found) {
-+			fprintf(stderr, "traffic class %u is not configured\n", tc);
-+			return -1;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static int cxirdma_parse_option(void *priv, const char *name, const char *value)
-+{
-+	struct cxirdma_state *state = priv;
-+
-+	if (!strcmp(name, "tc")) {
-+		state->explicit_tc = true;
-+		return parse_tc(value, name, &state->traffic_class);
-+	}
-+	if (!strcmp(name, "create-tc")) {
-+		state->create_tc = true;
-+		return parse_tc(value, name, &state->traffic_class);
-+	}
-+	if (!strcmp(name, "allow-tc")) {
-+		uint32_t tc;
-+
-+		if (parse_tc(value, name, &tc))
-+			return -1;
-+		state->allowed_tc_mask |= 1U << tc;
-+		return 0;
-+	}
-+	if (!strcmp(name, "list-tcs")) {
-+		state->list_tcs = true;
-+		return 0;
-+	}
-+	if (!strcmp(name, "dry-run")) {
-+		state->dry_run = true;
-+		return 0;
-+	}
-+
-+	{
-+		static const struct {
-+			const char *name;
-+			size_t offset;
-+		} limits[] = {
-+			{ "tc-ptes", offsetof(struct cxidv_job_tc_attr, ptes) },
-+			{ "tc-txqs", offsetof(struct cxidv_job_tc_attr, txqs) },
-+			{ "tc-tgqs", offsetof(struct cxidv_job_tc_attr, tgqs) },
-+			{ "tc-eqs", offsetof(struct cxidv_job_tc_attr, eqs) },
-+			{ "tc-cts", offsetof(struct cxidv_job_tc_attr, cts) },
-+			{ "tc-acs", offsetof(struct cxidv_job_tc_attr, acs) },
-+			{ "tc-tles", offsetof(struct cxidv_job_tc_attr, tles) },
-+			{ "tc-les", offsetof(struct cxidv_job_tc_attr, les) },
-+		};
-+		size_t i;
-+		bool reserved_specified;
-+
-+		for (i = 0; i < ARRAY_SIZE(limits); i++) {
-+			if (strcmp(name, limits[i].name))
-+				continue;
-+			if (parse_limit(value,
-+					(struct cxidv_limits *)((char *)&state->tc_attr +
-+								limits[i].offset),
-+					&reserved_specified)) {
-+				fprintf(stderr, "--%s expects MAX[:RESERVED]\n", name);
-+				return -1;
-+			}
-+			state->limits_mask |= 1U << i;
-+			if (reserved_specified)
-+				state->explicit_reserved_mask |= 1U << i;
-+			else
-+				state->explicit_reserved_mask &= ~(1U << i);
-+			return 0;
-+		}
-+	}
-+
-+	{
-+		static const struct {
-+			const char *name;
-+			enum cxidv_svc_resource resource;
-+		} defaults[] = {
-+			{ "default-ptes", CXIDV_SVC_PTES }, { "default-txqs", CXIDV_SVC_TXQS },
-+			{ "default-tgqs", CXIDV_SVC_TGQS }, { "default-eqs", CXIDV_SVC_EQS },
-+			{ "default-cts", CXIDV_SVC_CTS },   { "default-acs", CXIDV_SVC_ACS },
-+			{ "default-tles", CXIDV_SVC_TLES }, { "default-les", CXIDV_SVC_LES },
-+		};
-+		size_t index;
-+		uint32_t parsed;
-+
-+		for (index = 0; index < ARRAY_SIZE(defaults); index++) {
-+			if (strcmp(name, defaults[index].name))
-+				continue;
-+			if (parse_number(value, UINT16_MAX, &parsed)) {
-+				fprintf(stderr, "--%s expects 0..%u\n", name, UINT16_MAX);
-+				return -1;
-+			}
-+			state->thread_defaults[defaults[index].resource] = parsed;
-+			state->thread_default_mask |= 1U << defaults[index].resource;
-+			return 0;
-+		}
-+	}
-+
-+	fprintf(stderr, "unknown cxirdma option --%s\n", name);
-+	return -1;
-+}
-+
-+static void print_service_plan(const struct cxirdma_state *state, const struct cxidv_svc_attr *attr)
-+{
-+	static const char *const names[CXIDV_SVC_RSRC_COUNT] = {
-+		"ptes", "txqs", "tgqs", "eqs", "cts", "acs", "tles", "les",
-+	};
-+	unsigned int index;
-+
-+	printf("service=%s uid=%u tc_mask=0x%x\n", state->svc_id ? "reuse" : "create", state->uid,
-+	       attr->tc_mask);
-+	if (attr->vni_count) {
-+		printf("vnis=");
-+		for (index = 0; index < attr->vni_count; index++)
-+			printf("%s%u", index ? "," : "", attr->vnis[index]);
-+		printf("\n");
-+	} else if (attr->is_range) {
-+		printf("vnis=%u-%u\n", attr->vnis[0], attr->vnis[1]);
-+	} else if (attr->is_system_svc) {
-+		printf("vnis=restricted-empty\n");
-+	} else {
-+		printf("vnis=invalid\n");
-+	}
-+	for (index = 0; index < CXIDV_SVC_RSRC_COUNT; index++)
-+		printf("%s max=%u reserved=%u\n", names[index], attr->maximum[index],
-+		       attr->reserved[index]);
-+}
-+
-+static int cxirdma_configure(void *priv, struct ibv_context *context, uint32_t job_id)
-+{
-+	struct cxirdma_state *state = priv;
-+
-+	if (state->create_tc && state->explicit_tc) {
-+		fprintf(stderr, "--tc and --create-tc are mutually exclusive\n");
-+		return -1;
-+	}
-+	if (!(state->allowed_tc_mask & (1U << state->traffic_class))) {
-+		fprintf(stderr, "selected --tc must be included in --allow-tc grants\n");
-+		return -1;
-+	}
-+	if (validate_tc_mask(context, state->allowed_tc_mask, state->create_tc))
-+		return -1;
-+
-+	{
-+		struct cxidv_svc_attr attr = {
-+			.vni_count = state->vni_count,
-+			.tc_mask = state->allowed_tc_mask,
-+			.uid = state->uid,
-+			.flags = state->create_tc ? CXIDV_SVC_CREATE_TC : 0,
-+		};
-+		const struct cxidv_limits *limits[] = {
-+			&state->tc_attr.ptes, &state->tc_attr.txqs, &state->tc_attr.tgqs,
-+			&state->tc_attr.eqs,  &state->tc_attr.cts,  &state->tc_attr.acs,
-+			&state->tc_attr.tles, &state->tc_attr.les,
-+		};
-+		unsigned int index;
-+		int ret;
-+
-+		memcpy(attr.vnis, state->vnis, state->vni_count * sizeof(state->vnis[0]));
-+		if (state->svc_id) {
-+			if (state->limits_mask || state->threads_per_task_set) {
-+				fprintf(stderr, "limits cannot change a selected service\n");
-+				return -1;
-+			}
-+			ret = cxidv_query_svc(context, state->svc_id, &attr);
-+			if (ret || !(attr.flags & CXIDV_SVC_ENABLED) || attr.uid != state->uid ||
-+			    (attr.tc_mask & state->allowed_tc_mask) != state->allowed_tc_mask) {
-+				fprintf(stderr,
-+					"selected service does not grant the requested policy\n");
-+				return -1;
-+			}
-+			for (index = 0; index < state->vni_count; index++) {
-+				if (!service_allows_vni(&attr, state->vnis[index])) {
-+					fprintf(stderr, "selected service does not grant VNI %u\n",
-+						state->vnis[index]);
-+					return -1;
-+				}
-+			}
-+			if (state->create_tc) {
-+				fprintf(stderr, "--create-tc cannot change a selected service\n");
-+				return -1;
-+			}
-+			if (state->dry_run) {
-+				print_service_plan(state, &attr);
-+				return 0;
-+			}
-+		} else {
-+			struct cxidv_devinfo info;
-+			bool have_limits = state->limits_mask != 0 || state->threads_per_task_set;
-+
-+			if (have_limits) {
-+				ret = cxidv_query_device(context, &info);
-+				if (ret)
-+					return -1;
-+				attr.maximum[CXIDV_SVC_PTES] = info.num_ptes;
-+				attr.maximum[CXIDV_SVC_TXQS] = info.num_txqs;
-+				attr.maximum[CXIDV_SVC_TGQS] = info.num_tgqs;
-+				attr.maximum[CXIDV_SVC_EQS] = info.num_eqs;
-+				attr.maximum[CXIDV_SVC_CTS] = info.num_cts;
-+				attr.maximum[CXIDV_SVC_ACS] = info.num_acs;
-+				attr.maximum[CXIDV_SVC_TLES] = info.num_tles;
-+				attr.maximum[CXIDV_SVC_LES] = info.num_les;
-+			}
-+			for (index = 0; index < CXIDV_SVC_RSRC_COUNT; index++) {
-+				uint32_t bit = 1U << index;
-+				uint16_t maximum = attr.maximum[index];
-+				uint64_t reservation = 0;
-+				bool reservation_set = state->threads_per_task_set;
-+
-+				if (state->threads_per_task_set)
-+					reservation = (uint64_t)state->thread_defaults[index] *
-+						      state->threads_per_task;
-+				if (state->limits_mask & bit) {
-+					maximum = limits[index]->max;
-+					if ((state->explicit_reserved_mask & bit) ||
-+					    !state->threads_per_task_set) {
-+						reservation = limits[index]->res;
-+						reservation_set = true;
-+					}
-+				}
-+				if (reservation_set) {
-+					if (reservation > maximum && !state->threads_per_task_set) {
-+						fprintf(stderr,
-+							"--tc resource reservation exceeds maximum\n");
-+						return -1;
-+					}
-+					if (reservation > maximum) {
-+						fprintf(stderr,
-+							"resource %u reservation clamped to maximum %u\n",
-+							index, maximum);
-+						reservation = maximum;
-+					}
-+					attr.reserved[index] = reservation;
-+				}
-+				attr.maximum[index] = maximum;
-+				if (state->threads_per_task_set || (state->limits_mask & bit))
-+					attr.flags |= CXIDV_SVC_LIMITS;
-+			}
-+			if (state->dry_run) {
-+				print_service_plan(state, &attr);
-+				return 0;
-+			}
-+			ret = cxidv_alloc_svc(context, &attr, &state->svc_id);
-+			if (ret) {
-+				fprintf(stderr, "couldn't provision service for JobID %u: %s\n",
-+					job_id, strerror(ret));
-+				return -1;
-+			}
-+			state->owns_svc = true;
-+		}
-+	}
-+
-+	/*
-+	 * The target picks its service from UET_SERVICE_ID; without this it
-+	 * falls back to the default service, which is not the one the binding
-+	 * just provisioned for this traffic class.
-+	 */
-+	if (state->svc_id) {
-+		char value[16];
-+
-+		snprintf(value, sizeof(value), "%u", state->svc_id);
-+		if (setenv("UET_SERVICE_ID", value, 1)) {
-+			perror("setenv UET_SERVICE_ID");
-+			return -1;
-+		}
-+		if (setenv("SLINGSHOT_SVC_IDS", value, 1))
-+			return -1;
-+	}
-+
-+	/*
-+	 * The service authorises the VNI, but QP creation still needs
-+	 * UET_TC to pick the same traffic class; ctx->tc_valid never
-+	 * survives exec() into the target process.
-+	 */
-+	{
-+		char value[16];
-+
-+		snprintf(value, sizeof(value), "%u", state->traffic_class);
-+		if (setenv("UET_TC", value, 1)) {
-+			perror("setenv UET_TC");
-+			return -1;
-+		}
-+		snprintf(value, sizeof(value), "%x", state->allowed_tc_mask);
-+		if (setenv("SLINGSHOT_TCS", value, 1))
-+			return -1;
-+	}
-+
-+	return 0;
-+}
-+
-+static int cxirdma_cleanup(void *priv, struct ibv_context *context)
-+{
-+	struct cxirdma_state *state = priv;
-+
-+	if (state->owns_svc) {
-+		int ret = cxidv_destroy_svc(context, state->svc_id);
-+
-+		if (ret)
-+			fprintf(stderr, "couldn't destroy launcher service %u: %s\n", state->svc_id,
-+				strerror(ret));
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+static void usage(const char *program)
-+{
-+	printf("Usage: %s [options] -- command [args...]\n", program);
-+	printf("  -d, --device NAME        RDMA device\n");
-+	printf("  -j, --vni NUMBER         granted VNI; repeat up to %u times\n",
-+	       CXIDV_SVC_MAX_VNIS);
-+	printf("  -u, --uid NUMBER         child/service owner (default sudo user; 0=root)\n");
-+	printf("  -S, --service NUMBER     reuse a permitted service without destroying it\n");
-+	printf("  --tc NUMBER              existing TC (default best effort)\n");
-+	printf("  --allow-tc NUMBER        grant a TC; repeat to grant more classes\n");
-+	printf("  --create-tc NUMBER       provision a TC for the owned service\n");
-+	printf("  --tc-{ptes,txqs,tgqs,eqs,cts,acs,tles,les} MAX[:RESERVED]\n");
-+	printf("  --threads-per-task N     apply Slurm per-thread resource defaults\n");
-+	printf("  --default-{ptes,txqs,tgqs,eqs,cts,acs,tles,les} N\n");
-+	printf("  --dry-run                print policy without creating a service\n");
-+	printf("  -i, --port NUMBER        port (default 1)\n");
-+	printf("  -g, --gid-index NUMBER   GID index (default 0)\n");
-+	printf("  --max-addr-entries N     opt in to a job address table\n");
-+	printf("  --list-tcs               query traffic classes without launching\n");
-+}
-+
-+static int child_environment(const struct cxirdma_state *state, int descriptor, const char *device)
-+{
-+	char value[32];
-+	char vni_list[CXIDV_SVC_MAX_VNIS * 6];
-+
-+	snprintf(value, sizeof(value), "%u", state->vnis[0]);
-+	if (format_vni_list(state->vnis, state->vni_count, vni_list, sizeof(vni_list)) ||
-+	    setenv("UET_JOB_ID", value, 1) || setenv("SLINGSHOT_VNIS", vni_list, 1))
-+		return -1;
-+	snprintf(value, sizeof(value), "%d", descriptor);
-+	if (setenv("UET_JOB_FD", value, 1) || setenv("CXI_VERBS_DEVICE", device, 1))
-+		return -1;
-+	return 0;
-+}
-+
-+static int native_device_name(struct ibv_context *context, char *name, size_t capacity)
-+{
-+	struct cxidv_devinfo info;
-+	struct dirent *entry;
-+	DIR *directory;
-+	int result = -1;
-+
-+	if (cxidv_query_device(context, &info))
-+		return -1;
-+	directory = opendir("/sys/class/cxi");
-+	if (!directory)
-+		return -1;
-+	while ((entry = readdir(directory))) {
-+		char path[PATH_MAX];
-+		FILE *property;
-+		unsigned int nid;
-+		int parsed;
-+
-+		if (strncmp(entry->d_name, "cxi", 3))
-+			continue;
-+		snprintf(path, sizeof(path), "/sys/class/cxi/%s/device/properties/nid",
-+			 entry->d_name);
-+		property = fopen(path, "r");
-+		if (!property)
-+			continue;
-+		parsed = fscanf(property, "%x", &nid);
-+		fclose(property);
-+		if (parsed != 1 || nid != info.nid)
-+			continue;
-+		if (strlen(entry->d_name) >= capacity)
-+			break;
-+		memcpy(name, entry->d_name, strlen(entry->d_name) + 1);
-+		result = 0;
-+		break;
-+	}
-+	closedir(directory);
-+	return result;
-+}
-+
-+/*
-+ * Variables this tool defines for the child. Inherited values are removed so
-+ * a caller cannot make the child use a service or job it was not granted.
-+ */
-+static void scrub_environment(void)
-+{
-+	char **env;
-+
-+	for (env = environ; env && *env;) {
-+		if (!strncmp(*env, "UET_", 4) || !strncmp(*env, "SLINGSHOT_", 10) ||
-+		    !strncmp(*env, "CXI_VERBS_", 10)) {
-+			char *name = strndup(*env, strcspn(*env, "="));
-+
-+			if (!name)
-+				_exit(1);
-+			unsetenv(name);
-+			free(name);
-+			env = environ;
-+			continue;
-+		}
-+		env++;
-+	}
-+}
-+
-+/* Close everything except stdio and the exported job grant. */
-+static int close_inherited_fds(int keep)
-+{
-+	struct dirent *entry;
-+	DIR *directory;
-+	int ret = 0;
-+
-+#ifdef SYS_close_range
-+	unsigned int first = keep < 3 ? 3 : (unsigned int)keep + 1;
-+
-+	if (keep > 3 && syscall(SYS_close_range, 3, keep - 1, 0))
-+		goto slow;
-+	if (!syscall(SYS_close_range, first, ~0U, 0))
-+		return 0;
-+slow:
-+#endif
-+	directory = opendir("/proc/self/fd");
-+	if (!directory)
-+		return -1;
-+	for (;;) {
-+		char *end;
-+		long number;
-+
-+		errno = 0;
-+		entry = readdir(directory);
-+		if (!entry) {
-+			ret = errno ? -1 : 0;
-+			break;
-+		}
-+		number = strtol(entry->d_name, &end, 10);
-+		if (*end || number < 3 || number > INT_MAX ||
-+		    number == keep || number == dirfd(directory))
-+			continue;
-+		close((int)number);
-+	}
-+	closedir(directory);
-+	return ret;
-+}
-+
-+/* Runs in the forked child, before anything of the user's runs. */
-+static int drop_privileges(uid_t uid, gid_t gid, const char *name)
-+{
-+	if (initgroups(name, gid) || setresgid(gid, gid, gid) || setresuid(uid, uid, uid))
-+		return -1;
-+	/* Explicit --uid 0 runs the job as root: nothing to take away. */
-+	if (!uid)
-+		return prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) ? -1 : 0;
-+	/* Irreversible: the real, effective and saved ids are all the user's. */
-+	if (setuid(0) == 0 || seteuid(0) == 0 || setgid(0) == 0)
-+		return -1;
-+	if (getuid() != uid || geteuid() != uid || getgid() != gid || getegid() != gid)
-+		return -1;
-+	if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) || prctl(PR_SET_DUMPABLE, 0, 0, 0, 0) ||
-+	    prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_CLEAR_ALL, 0, 0, 0))
-+		return -1;
-+	return 0;
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	struct cxirdma_state state = {
-+		.traffic_class = CXIDV_TC_BEST_EFFORT,
-+		.thread_defaults = { 6, 2, 1, 2, 1, 2, 1, 16 },
-+	};
-+	struct ibv_device **devices = NULL;
-+	struct ibv_device *device = NULL;
-+	struct ibv_context *context = NULL;
-+	struct ibv_job *job = NULL;
-+	struct ibv_job_attr job_attr = {
-+		.comp_mask = IBV_JOB_ATTR_ID | IBV_JOB_ATTR_PORT_NUM | IBV_JOB_ATTR_SGID_INDEX,
-+		.port_num = 1,
-+	};
-+	struct sigaction action = { .sa_handler = forward_signal };
-+	struct passwd *owner;
-+	const char *device_name = NULL;
-+	const char *sudo_uid = getenv("SUDO_UID");
-+	char *owner_name = NULL;
-+	char native_name[64];
-+	gid_t owner_gid;
-+	uint32_t value;
-+	bool uid_set = false;
-+	int descriptor = -1, result = 1, status, option_index, option;
-+	pid_t child;
-+	sigset_t blocked, previous;
-+
-+	/*
-+	 * Root only, and never setuid or file-capability installed: the real
-+	 * uid must be 0 and the loader must not be in secure-exec mode.
-+	 */
-+	if (getuid() != 0 || geteuid() != 0 || getauxval(AT_SECURE)) {
-+		fprintf(stderr, "%s: must be run by root, not setuid\n", argv[0]);
-+		return 1;
-+	}
-+	/* Default target is the sudo invoker; root only if asked with --uid 0. */
-+	if (sudo_uid) {
-+		if (parse_number(sudo_uid, UINT32_MAX, &value))
-+			return 1;
-+		state.uid = value;
-+		uid_set = true;
-+	}
-+	scrub_environment();
-+	while ((option = getopt_long(argc, argv, "+d:j:u:S:i:g:h", cxirdma_options,
-+				     &option_index)) != -1) {
-+		if (option == 'h') {
-+			usage(argv[0]);
-+			return 0;
-+		}
-+		if (option == 'd') {
-+			device_name = optarg;
-+			continue;
-+		}
-+		if (option == 1000) {
-+			if (cxirdma_parse_option(&state, cxirdma_options[option_index].name,
-+						 optarg))
-+				return 1;
-+			continue;
-+		}
-+		if (option == 1001) {
-+			if (state.threads_per_task_set ||
-+			    parse_number(optarg, UINT32_MAX, &value) || !value) {
-+				fprintf(stderr, "--threads-per-task requires a positive integer\n");
-+				return 1;
-+			}
-+			state.threads_per_task = value;
-+			state.threads_per_task_set = true;
-+			continue;
-+		}
-+		if (option == 1002) {
-+			if (parse_number(optarg, UINT32_MAX, &value) || !value) {
-+				fprintf(stderr, "--max-addr-entries requires a positive integer\n");
-+				return 1;
-+			}
-+			state.max_addr_entries = value;
-+			continue;
-+		}
-+		if (parse_number(optarg, UINT32_MAX, &value))
-+			return 1;
-+		switch (option) {
-+		case 'j':
-+			if (!value || value > UINT16_MAX || state.vni_count == CXIDV_SVC_MAX_VNIS) {
-+				fprintf(stderr,
-+					"--vni requires a unique nonzero value; at most %u are allowed\n",
-+					CXIDV_SVC_MAX_VNIS);
-+				return 1;
-+			}
-+			for (uint32_t index = 0; index < state.vni_count; index++)
-+				if (state.vnis[index] == value) {
-+					fprintf(stderr, "duplicate --vni %u\n", value);
-+					return 1;
-+				}
-+			state.vnis[state.vni_count++] = value;
-+			break;
-+		case 'u':
-+			state.uid = value;
-+			uid_set = true;
-+			break;
-+		case 'S':
-+			if (!value)
-+				return 1;
-+			state.svc_id = value;
-+			break;
-+		case 'i':
-+			if (!value || value > UINT8_MAX)
-+				return 1;
-+			job_attr.port_num = value;
-+			break;
-+		case 'g':
-+			if (value > UINT8_MAX)
-+				return 1;
-+			job_attr.sgid_index = value;
-+			break;
-+		default:
-+			return 1;
-+		}
-+	}
-+	if ((!state.vni_count && !state.list_tcs) ||
-+	    (optind == argc && !state.list_tcs && !state.dry_run)) {
-+		usage(argv[0]);
-+		return 1;
-+	}
-+	if (state.vni_count)
-+		job_attr.id = state.vnis[0];
-+	if (state.max_addr_entries) {
-+		job_attr.comp_mask |= IBV_JOB_ATTR_MAX_ADDR_ENTRIES;
-+		job_attr.max_addr_entries = state.max_addr_entries;
-+	}
-+	if (state.thread_default_mask && !state.threads_per_task_set) {
-+		fprintf(stderr, "--default-* requires --threads-per-task\n");
-+		return 1;
-+	}
-+	if (!state.allowed_tc_mask)
-+		state.allowed_tc_mask = 1U << state.traffic_class;
-+	if (!(state.allowed_tc_mask & (1U << state.traffic_class))) {
-+		fprintf(stderr, "selected --tc must be included in --allow-tc grants\n");
-+		return 1;
-+	}
-+	if (!uid_set && !state.list_tcs) {
-+		fprintf(stderr, "no target user: run under sudo or pass --uid\n");
-+		return 1;
-+	}
-+	owner = getpwuid(state.uid);
-+	if (!owner)
-+		return 1;
-+	owner_gid = owner->pw_gid;
-+	owner_name = strdup(owner->pw_name);
-+	if (!owner_name)
-+		return 1;
-+	devices = ibv_get_device_list(NULL);
-+	if (!devices)
-+		goto out;
-+	for (size_t index = 0; devices[index]; index++) {
-+		if (devices[index]->transport_type != IBV_TRANSPORT_SLINGSHOT)
-+			continue;
-+		if (!device_name || !strcmp(device_name, ibv_get_device_name(devices[index]))) {
-+			device = devices[index];
-+			break;
-+		}
-+	}
-+	if (!device)
-+		goto out;
-+	context = ibv_open_device(device);
-+	if (!context)
-+		goto out;
-+	if (state.list_tcs) {
-+		result = list_tcs(context) ? 1 : 0;
-+		goto out;
-+	}
-+	if (native_device_name(context, native_name, sizeof(native_name)) ||
-+	    setenv("SLINGSHOT_DEVICES", native_name, 1)) {
-+		fprintf(stderr, "couldn't identify the native CXI device\n");
-+		goto out;
-+	}
-+	if (sigaction(SIGINT, &action, NULL) || sigaction(SIGTERM, &action, NULL) ||
-+	    sigaction(SIGHUP, &action, NULL))
-+		goto out;
-+	if (cxirdma_configure(&state, context, job_attr.id))
-+		goto out;
-+	if (state.dry_run) {
-+		result = 0;
-+		goto out;
-+	}
-+	job = ibv_alloc_job(context, &job_attr, NULL);
-+	if (!job || ibv_export_job(job, &descriptor))
-+		goto out;
-+	value = fcntl(descriptor, F_GETFD);
-+	if (value == (uint32_t)-1 || fcntl(descriptor, F_SETFD, value & ~FD_CLOEXEC))
-+		goto out;
-+	if (child_environment(&state, descriptor, ibv_get_device_name(device)))
-+		goto out;
-+	sigemptyset(&blocked);
-+	sigaddset(&blocked, SIGINT);
-+	sigaddset(&blocked, SIGTERM);
-+	sigaddset(&blocked, SIGHUP);
-+	if (sigprocmask(SIG_BLOCK, &blocked, &previous))
-+		goto out;
-+	child = fork();
-+	if (child == 0) {
-+		signal(SIGINT, SIG_DFL);
-+		signal(SIGTERM, SIG_DFL);
-+		signal(SIGHUP, SIG_DFL);
-+		/* The child must not keep the root-owned verbs context. */
-+		if (close_inherited_fds(descriptor) || setpgid(0, 0) ||
-+		    drop_privileges(state.uid, owner_gid, owner_name) ||
-+		    sigprocmask(SIG_SETMASK, &previous, NULL))
-+			_exit(126);
-+		execvp(argv[optind], &argv[optind]);
-+		perror("execvp");
-+		_exit(127);
-+	}
-+	if (child > 0) {
-+		setpgid(child, child);
-+		child_group = child;
-+	}
-+	sigprocmask(SIG_SETMASK, &previous, NULL);
-+	if (child < 0)
-+		goto out;
-+	if (interrupted)
-+		kill(-child, interrupted);
-+	while (waitpid(child, &status, 0) < 0) {
-+		if (errno != EINTR)
-+			goto out;
-+	}
-+	child_group = 0;
-+	if (WIFEXITED(status))
-+		result = WEXITSTATUS(status);
-+	else if (WIFSIGNALED(status))
-+		result = 128 + WTERMSIG(status);
-+out:
-+	if (descriptor >= 0)
-+		close(descriptor);
-+	if (job && ibv_dealloc_job(job)) {
-+		perror("deallocate launcher job");
-+		result = 1;
-+	}
-+	if (context && cxirdma_cleanup(&state, context))
-+		result = 1;
-+	if (context && ibv_close_device(context))
-+		result = 1;
-+	if (devices)
-+		ibv_free_device_list(devices);
-+	free(owner_name);
-+	return result;
-+}
-diff --git a/providers/cxi/utils/cxi_telem.c b/providers/cxi/utils/cxi_telem.c
-new file mode 100644
-index 000000000000..e8b94ab2dd49
---- /dev/null
-+++ b/providers/cxi/utils/cxi_telem.c
-@@ -0,0 +1,201 @@
-+// SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
++++ b/libibverbs/examples/ru_cxi_launch.h
+@@ -0,0 +1,138 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause */
 +/* Copyright 2026 Hewlett Packard Enterprise Development LP */
 +
 +/*
-+ * Print Cassini telemetry, one "name value@seconds.nanoseconds" per line,
-+ * the format the telemetry sysfs files used to have.
++ * Slingshot (CXI) devices need a service and job grant that only root can
++ * create. cxi_launcher creates them and runs a command under the grant. A
++ * program that finds no grant calls ru_cxi_relaunch() to run itself again
++ * under the launcher; the second run finds UET_JOB_FD and carries on.
 + */
 +
++#ifndef RU_CXI_LAUNCH_H
++#define RU_CXI_LAUNCH_H
++
 +#include <errno.h>
-+#include <getopt.h>
-+#include <stdbool.h>
++#include <limits.h>
 +#include <stdint.h>
 +#include <stdio.h>
 +#include <stdlib.h>
 +#include <string.h>
++#include <unistd.h>
++#include <fcntl.h>
 +
-+#include <infiniband/verbs.h>
-+#include <infiniband/cxidv_telem.h>
++#ifndef CXI_LAUNCHER_BINDIR
++#define CXI_LAUNCHER_BINDIR "/usr/bin"
++#endif
 +
-+static const char *const set_names[] = {
-+	[CXIDV_TELEM_SET_ETHTOOL] = "ethtool", [CXIDV_TELEM_SET_ATU] = "atu",
-+	[CXIDV_TELEM_SET_CQ] = "cq",	       [CXIDV_TELEM_SET_EE] = "ee",
-+	[CXIDV_TELEM_SET_HNI] = "hni",	       [CXIDV_TELEM_SET_IXE] = "ixe",
-+	[CXIDV_TELEM_SET_LPE] = "lpe",	       [CXIDV_TELEM_SET_MB] = "mb",
-+	[CXIDV_TELEM_SET_MST] = "mst",	       [CXIDV_TELEM_SET_OXE] = "oxe",
-+	[CXIDV_TELEM_SET_PARBS] = "parbs",     [CXIDV_TELEM_SET_PCT] = "pct",
-+	[CXIDV_TELEM_SET_PI] = "pi",
-+	[CXIDV_TELEM_SET_RMU] = "rmu",         [CXIDV_TELEM_SET_TOU] = "tou",
-+};
++#define RU_CXI_MAX_ARGS 256
 +
-+static void usage(const char *prog)
++/* Returns 0 if already running under a grant, -1 on error; else never returns. */
++static inline int ru_cxi_relaunch(const char *devname, uint32_t job_id, int port, int gidx,
++				  uint32_t max_addr_entries)
 +{
-+	fprintf(stderr,
-+		"Usage: %s [-d DEVICE] [-a | -s SET | -i NAME[,NAME...]] [-l]\n"
-+		"  -a  all items defined on the device (default)\n"
-+		"  -s  a predefined set: ethtool, atu, cq, ee, hni, ixe, lpe, mb,\n"
-+		"      mst, oxe, parbs, pct, pi, rmu, tou\n"
-+		"  -i  the named items\n"
-+		"  -l  list item names without reading them\n",
-+		prog);
++	char exe[PATH_MAX], launcher[PATH_MAX + 16], cmdline[16384];
++	const char *args[RU_CXI_MAX_ARGS + 16];
++	char idbuf[16], portbuf[16], gidbuf[16], addrbuf[16];
++	ssize_t len, total;
++	size_t n = 0, i;
++	int fd;
++
++	if (getenv("UET_JOB_FD"))
++		return 0;
++	if (geteuid() != 0) {
++		fprintf(stderr,
++			"Slingshot jobs are set up by cxi_launcher, which must run as root; use sudo\n");
++		return -1;
++	}
++
++	len = readlink("/proc/self/exe", exe, sizeof(exe) - 1);
++	if (len < 0 || (size_t)len == sizeof(exe) - 1) {
++		if (len >= 0)
++			errno = ENAMETOOLONG;
++		perror("readlink /proc/self/exe");
++		return -1;
++	}
++	exe[len] = 0;
++
++	len = snprintf(launcher, sizeof(launcher), "%s/cxi_launcher", CXI_LAUNCHER_BINDIR);
++	if (len < 0 || (size_t)len >= sizeof(launcher)) {
++		errno = ENAMETOOLONG;
++		return -1;
++	}
++
++	fd = open("/proc/self/cmdline", O_RDONLY | O_CLOEXEC);
++	if (fd < 0) {
++		perror("open /proc/self/cmdline");
++		return -1;
++	}
++	total = 0;
++	while ((len = read(fd, cmdline + total, sizeof(cmdline) - 1 - total)) > 0)
++		total += len;
++	if ((size_t)total == sizeof(cmdline) - 1) {
++		char extra;
++
++		len = read(fd, &extra, sizeof(extra));
++		if (len > 0) {
++			close(fd);
++			errno = E2BIG;
++			fprintf(stderr, "command line exceeds launcher capacity\n");
++			return -1;
++		}
++	}
++	close(fd);
++	if (len < 0 || total <= 0) {
++		fprintf(stderr, "couldn't read the command line\n");
++		return -1;
++	}
++	if (cmdline[total - 1] != '\0') {
++		errno = E2BIG;
++		return -1;
++	}
++	cmdline[total] = 0;
++
++	snprintf(idbuf, sizeof(idbuf), "%u", job_id);
++	args[n++] = launcher;
++	args[n++] = "-d";
++	args[n++] = devname;
++	args[n++] = "--vni";
++	args[n++] = idbuf;
++	if (port > 0) {
++		snprintf(portbuf, sizeof(portbuf), "%d", port);
++		args[n++] = "-i";
++		args[n++] = portbuf;
++	}
++	if (gidx >= 0) {
++		snprintf(gidbuf, sizeof(gidbuf), "%d", gidx);
++		args[n++] = "-g";
++		args[n++] = gidbuf;
++	}
++	if (max_addr_entries) {
++		snprintf(addrbuf, sizeof(addrbuf), "%u", max_addr_entries);
++		args[n++] = "--max-addr-entries";
++		args[n++] = addrbuf;
++	}
++	/* Run as the sudo caller; a plain root login runs the job as root. */
++	if (!getenv("SUDO_UID")) {
++		args[n++] = "--uid";
++		args[n++] = "0";
++	}
++	args[n++] = "--";
++	args[n++] = exe;
++	/* Skip argv[0] of the original command line. */
++	i = strlen(cmdline) + 1;
++	while (i < (size_t)total && n < RU_CXI_MAX_ARGS) {
++		args[n++] = cmdline + i;
++		i += strlen(cmdline + i) + 1;
++	}
++	if (i < (size_t)total) {
++		fprintf(stderr, "too many arguments\n");
++		return -1;
++	}
++	args[n] = NULL;
++
++	execv(launcher, (char *const *)args);
++	fprintf(stderr, "couldn't run %s: %s\n", launcher, strerror(errno));
++	return -1;
 +}
 +
-+int main(int argc, char **argv)
-+{
-+	const char *devname = NULL, *setname = NULL, *names = NULL;
-+	struct ibv_counters_init_attr init_attr = {};
-+	struct ibv_device **list = NULL, *dev = NULL;
-+	const uint64_t *set_items = NULL;
-+	uint64_t *items = NULL, *values = NULL, *stamps = NULL;
-+	struct ibv_counters *counters = NULL;
-+	struct ibv_context *ctx = NULL;
-+	uint32_t count = 0, i;
-+	bool all = true, list_only = false, items_allocated = false;
-+	int opt, ret, exit_code = 1;
++#endif
+diff --git a/libibverbs/examples/ru_pingpong.c b/libibverbs/examples/ru_pingpong.c
+index 21cc068f2f5b..21a467715a0e 100644
+--- a/libibverbs/examples/ru_pingpong.c
++++ b/libibverbs/examples/ru_pingpong.c
+@@ -51,8 +51,14 @@
+ #include <time.h>
+ #include <inttypes.h>
+ #include <endian.h>
++#include <stdbool.h>
+ 
+ #include "pingpong.h"
++#ifdef HAVE_CXIVERBS
++#include <infiniband/cxidv.h>
 +
-+	while ((opt = getopt(argc, argv, "d:as:i:lh")) != -1) {
-+		switch (opt) {
-+		case 'd':
-+			devname = optarg;
++#include "ru_cxi_launch.h"
++#endif
+ 
+ #include <ccan/minmax.h>
+ 
+@@ -92,6 +98,11 @@ struct pingpong_context {
+ 	union ibv_gid		 gid;
+ 	struct ibv_comp_channel *channel;
+ 	struct ibv_pd		*pd;
++#ifdef HAVE_CXIVERBS
++	struct cxidv_lni *cxi_lni;
++	uint32_t cxi_svc_id;
++#endif
++	uint32_t job_id;
+ 	struct ibv_mr		*mr;
+ 	struct ibv_job		*job;
+ 	struct ibv_job_key	*job_key;
+@@ -439,13 +450,10 @@ static int pp_check_dev_caps(struct ibv_context *context)
+ 		return -1;
+ 	}
+ 
+-	/* The scatter/gather buffer array is sized at PP_MAX_SGE; make sure
+-	 * the device can actually accept that many SGEs per WR.
+-	 */
+-	if (attr.orig_attr.max_sge < PP_MAX_SGE) {
++	if (use_sge > attr.orig_attr.max_sge) {
+ 		fprintf(stderr,
+-			"PP_MAX_SGE (%d) exceeds device max_sge (%d)\n",
+-			PP_MAX_SGE, attr.orig_attr.max_sge);
++			"Requested SGEs (%d) exceed device max_sge (%d)\n",
++			use_sge, attr.orig_attr.max_sge);
+ 		return -1;
+ 	}
+ 
+@@ -510,7 +518,39 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
+ 		ctx->channel = NULL;
+ 	}
+ 
+-	ctx->pd = ibv_alloc_pd(ctx->context);
++	ctx->job_id = DEFAULT_JOB_ID;
++	if (getenv("UET_JOB_ID"))
++		ctx->job_id = strtoul(getenv("UET_JOB_ID"), NULL, 0);
++#ifdef HAVE_CXIVERBS
++	if (ib_dev->transport_type == IBV_TRANSPORT_SLINGSHOT) {
++		const char *service = getenv("UET_SERVICE_ID");
++		uint32_t pid;
++		int ret;
++
++		if (!service) {
++			fprintf(stderr, "No service granted; run under cxi_launcher\n");
++			goto clean_comp_channel;
++		}
++		ctx->cxi_svc_id = strtoul(service, NULL, 0);
++		ret = cxidv_alloc_lni(ctx->context, ctx->cxi_svc_id, &ctx->cxi_lni);
++		if (ret) {
++			fprintf(stderr, "Couldn't allocate LNI: %s\n", strerror(ret));
++			goto clean_comp_channel;
++		}
++		ctx->pd = cxidv_alloc_pd(ctx->cxi_lni);
++		if (!ctx->pd)
++			goto clean_comp_channel;
++		ret = cxidv_alloc_pid(ctx->pd, 0, &pid);
++		if (ret) {
++			fprintf(stderr, "Couldn't bind PD PID: %s\n", strerror(ret));
++			goto clean_pd;
++		}
++		pid_on_fep = pid;
++	} else
++#endif
++	{
++		ctx->pd = ibv_alloc_pd(ctx->context);
++	}
+ 	if (!ctx->pd) {
+ 		fprintf(stderr, "Couldn't allocate PD\n");
+ 		goto clean_comp_channel;
+@@ -522,13 +562,20 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
+ 				      IBV_JOB_ATTR_MAX_ADDR_ENTRIES |
+ 				      IBV_JOB_ATTR_PORT_NUM |
+ 				      IBV_JOB_ATTR_SGID_INDEX),
+-			.id = DEFAULT_JOB_ID,
++			.id = ctx->job_id,
+ 			.max_addr_entries = DEFAULT_ADDR_ENTRIES,
+ 			.port_num = port,
+ 			.sgid_index = gidx,
+ 		};
+ 
+-		ctx->job = ibv_alloc_job(ctx->context, &job_attr, NULL);
++		if (getenv("UET_JOB_FD")) {
++			int fd = strtol(getenv("UET_JOB_FD"), NULL, 0);
++
++			if (ibv_import_job(ctx->context, fd, &ctx->job))
++				ctx->job = NULL;
++		} else {
++			ctx->job = ibv_alloc_job(ctx->context, &job_attr, NULL);
++		}
+ 		if (!ctx->job) {
+ 			fprintf(stderr, "Couldn't allocate job\n");
+ 			goto clean_pd;
+@@ -692,6 +739,10 @@ clean_pd:
+ 	ibv_dealloc_pd(ctx->pd);
+ 
+ clean_comp_channel:
++#ifdef HAVE_CXIVERBS
++	if (ctx->cxi_lni)
++		cxidv_destroy_lni(ctx->cxi_lni);
++#endif
+ 	if (ctx->channel)
+ 		ibv_destroy_comp_channel(ctx->channel);
+ 
+@@ -709,6 +760,8 @@ clean_ctx:
+ 
+ static int pp_close_ctx(struct pingpong_context *ctx)
+ {
++	int ret = 0;
++
+ 	if (ibv_destroy_qp(ctx->qp)) {
+ 		fprintf(stderr, "Couldn't destroy QP\n");
+ 		return 1;
+@@ -747,8 +800,16 @@ static int pp_close_ctx(struct pingpong_context *ctx)
+ 
+ 	if (ibv_dealloc_pd(ctx->pd)) {
+ 		fprintf(stderr, "Couldn't deallocate PD\n");
+-		return 1;
++		ret = 1;
+ 	}
++#ifdef HAVE_CXIVERBS
++	if (ctx->cxi_lni && cxidv_destroy_lni(ctx->cxi_lni)) {
++		fprintf(stderr, "Couldn't destroy LNI\n");
++		ret = 1;
++	}
++#endif
++	if (ret)
++		return ret;
+ 
+ 	if (ctx->channel) {
+ 		if (ibv_destroy_comp_channel(ctx->channel)) {
+@@ -1044,6 +1105,8 @@ static void usage(const char *argv0)
+ 	printf("  -p, --port <port>         listen on/connect to port <port> (default 18515)\n");
+ 	printf("  -d, --ib-dev <dev>        use IB device <dev> (default first device found)\n");
+ 	printf("  -i, --ib-port <port>      use port <port> of IB device (default 1)\n");
++	printf("  -j, --job-id <id>         JobID (Slingshot VNI) for this side (default %d)\n",
++	       DEFAULT_JOB_ID);
+ 	printf("  -s, --size <size>         size of message to exchange (default 4096)\n");
+ 	printf("  -m, --mtu <size>          path MTU (default 1024, same on both sides)\n");
+ 	printf("  -r, --rx-depth <dep>      number of receives to post at a time (default 500)\n");
+@@ -1099,6 +1162,7 @@ int main(int argc, char *argv[])
+ 		static struct option long_options[] = {
+ 			{ .name = "port",     .has_arg = 1, .val = 'p' },
+ 			{ .name = "ib-dev",   .has_arg = 1, .val = 'd' },
++		{ .name = "job-id",   .has_arg = 1, .val = 'j' },
+ 			{ .name = "ib-port",  .has_arg = 1, .val = 'i' },
+ 			{ .name = "size",     .has_arg = 1, .val = 's' },
+ 			{ .name = "mtu",      .has_arg = 1, .val = 'm' },
+@@ -1117,7 +1181,7 @@ int main(int argc, char *argv[])
+ 			{}
+ 		};
+ 
+-		c = getopt_long(argc, argv, "p:d:i:s:m:r:n:eg:cNQI:S:L",
++		c = getopt_long(argc, argv, "p:d:i:j:s:m:r:n:eg:cNQI:S:L",
+ 				long_options, NULL);
+ 
+ 		if (c == -1)
+@@ -1163,6 +1227,9 @@ int main(int argc, char *argv[])
+ 		case 'g':
+ 			gidx = strtol(optarg, NULL, 0);
+ 			break;
++		case 'j':
++			setenv("UET_JOB_ID", optarg, 1);
 +			break;
-+		case 'a':
-+			all = true;
-+			break;
-+		case 's':
-+			setname = optarg;
-+			all = false;
-+			break;
-+		case 'i':
-+			names = optarg;
-+			all = false;
-+			break;
-+		case 'l':
-+			list_only = true;
-+			break;
-+		default:
-+			usage(argv[0]);
+ 		case 'c':
+ 			validate_buf = 1;
+ 			break;
+@@ -1245,6 +1312,19 @@ int main(int argc, char *argv[])
+ 		}
+ 	}
+ 
++#ifdef HAVE_CXIVERBS
++	if (ib_dev->transport_type == IBV_TRANSPORT_SLINGSHOT) {
++		const char *job = getenv("UET_JOB_ID");
++
++		if (ru_cxi_relaunch(ibv_get_device_name(ib_dev),
++				    job ? strtoul(job, NULL, 0) : DEFAULT_JOB_ID,
++				    ib_port, gidx, 0)) {
++			ibv_free_device_list(dev_list);
 +			return 1;
 +		}
 +	}
++#endif
 +
-+	if (list_only) {
-+		for (i = 1; i < CXIDV_TELEM_COUNT; i++)
-+			printf("%s\n", cxidv_telem_name(i));
-+		return 0;
+ 	ctx = pp_init_ctx(ib_dev, size, rx_depth, ib_port, gidx, use_event,
+ 			  pid_on_fep, resource_index);
+ 	if (!ctx)
+@@ -1289,8 +1369,11 @@ int main(int argc, char *argv[])
+ 		rem_dest = pp_server_exch_dest(ctx, ib_port, mtu, port, 0,
+ 					       &my_dest, gidx);
+ 
+-	if (!rem_dest)
++	if (!rem_dest) {
++		pp_close_ctx(ctx);
++		ibv_free_device_list(dev_list);
+ 		return 1;
 +	}
+ 
+ 	inet_ntop(AF_INET6, &rem_dest->gid, gid, sizeof(gid));
+ 	printf("  remote address: LID 0x%04x, QPN 0x%06x, PSN 0x%06x, GID %s\n",
+@@ -1298,8 +1381,12 @@ int main(int argc, char *argv[])
+ 
+ 	if (servername) {
+ 		if (pp_connect_ctx(ctx, ib_port, my_dest.psn, mtu, 0,
+-				   rem_dest, gidx))
++				  rem_dest, gidx)) {
++			pp_close_ctx(ctx);
++			ibv_free_device_list(dev_list);
++			free(rem_dest);
+ 			return 1;
++		}
+ 	}
+ 
+ 	ctx->pending = PINGPONG_RECV_WRID;
+@@ -1408,11 +1495,22 @@ int main(int argc, char *argv[])
+ 		       iters, usec / 1000000., usec / iters);
+ 
+ 		if ((!servername) && (validate_buf)) {
++			int invalid = 0;
 +
-+	list = ibv_get_device_list(NULL);
-+	if (!list) {
-+		perror("ibv_get_device_list");
-+		goto out;
-+	}
-+	for (i = 0; list && list[i]; i++) {
-+		if (list[i]->transport_type != IBV_TRANSPORT_SLINGSHOT)
-+			continue;
-+		if (!devname || !strcmp(devname, ibv_get_device_name(list[i]))) {
-+			dev = list[i];
-+			break;
-+		}
-+	}
-+	if (!dev) {
-+		fprintf(stderr, "no Slingshot device found\n");
-+		goto out;
-+	}
-+	ctx = ibv_open_device(dev);
-+	if (!ctx) {
-+		perror("ibv_open_device");
-+		goto out;
-+	}
-+	ibv_free_device_list(list);
-+	list = NULL;
-+	counters = ibv_create_counters(ctx, &init_attr);
-+	if (!counters) {
-+		perror("ibv_create_counters");
-+		goto out;
-+	}
-+
-+	if (setname) {
-+		for (i = 0; i < CXIDV_TELEM_SET_COUNT; i++)
-+			if (set_names[i] && !strcmp(set_names[i], setname))
-+				break;
-+		if (i == CXIDV_TELEM_SET_COUNT || cxidv_telem_get_set(i, &set_items, &count)) {
-+			fprintf(stderr, "unknown set %s\n", setname);
-+			goto out;
-+		}
-+		items = (uint64_t *)set_items;
-+	} else if (names) {
-+		char *copy = strdup(names), *tok, *save = NULL;
-+		int item;
-+
-+		if (!copy) {
-+			perror("strdup");
-+			goto out;
-+		}
-+		items = calloc(strlen(names) + 1, sizeof(*items));
-+		if (!items) {
-+			perror("calloc");
-+			free(copy);
-+			goto out;
-+		}
-+		items_allocated = true;
-+		for (tok = strtok_r(copy, ",", &save); tok; tok = strtok_r(NULL, ",", &save)) {
-+			item = cxidv_telem_lookup(tok);
-+			if (item < 0) {
-+				fprintf(stderr, "unknown item %s\n", tok);
-+				free(copy);
-+				goto out;
+ 			for (int i = 0; i < size; i += page_size) {
+-				if (ctx->buf[i] != i / page_size % sizeof(char))
++				if (ctx->buf[i] != i / page_size % sizeof(char)) {
+ 					printf("invalid data in page %d\n",
+ 					       i / page_size);
++					invalid = 1;
++				}
 +			}
-+			items[count++] = item;
++			if (invalid) {
++				pp_close_ctx(ctx);
++				ibv_free_device_list(dev_list);
++				free(rem_dest);
++				return 1;
+ 			}
++			printf("validate: buffer verified\n");
+ 		}
+ 	}
+ 
+diff --git a/libibverbs/examples/ru_rma.c b/libibverbs/examples/ru_rma.c
+index ba3f3d1ea198..bd78d9383dbc 100644
+--- a/libibverbs/examples/ru_rma.c
++++ b/libibverbs/examples/ru_rma.c
+@@ -52,8 +52,14 @@
+ #include <time.h>
+ #include <inttypes.h>
+ #include <endian.h>
++#include <sys/random.h>
+ 
+ #include "pingpong.h"
++#ifdef HAVE_CXIVERBS
++#include <infiniband/cxidv.h>
++
++#include "ru_cxi_launch.h"
++#endif
+ 
+ #include <ccan/minmax.h>
+ 
+@@ -151,6 +157,7 @@ struct ru_cfg {
+ 	uint64_t imm_data64;
+ 	int use_event;
+ 	int validate_buf;
++	bool mtu_set;
+ 	enum ibv_mtu mtu;
+ };
+ 
+@@ -162,6 +169,10 @@ struct ru_exchange_info {
+ };
+ 
+ struct ru_context {
++#ifdef HAVE_CXIVERBS
++	struct cxidv_lni *cxi_lni;
++	uint32_t cxi_svc_id;
++#endif
+ 	struct ru_cfg cfg;
+ 	struct ibv_job *job;
+ 	struct ibv_job_key *job_key;
+@@ -243,6 +254,10 @@ static void ru_free_res(struct ru_context *ctx)
+ 		ibv_destroy_qp(ctx->qp);
+ 		ctx->qp = NULL;
+ 	}
++	if (ctx->ah) {
++		ibv_destroy_ah(&ctx->ah->ah_base);
++		ctx->ah = NULL;
++	}
+ 
+ 	if (ctx->cq) {
+ 		ibv_destroy_cq(ctx->cq);
+@@ -286,6 +301,15 @@ static void ru_free_res(struct ru_context *ctx)
+ 		ibv_dealloc_pd(ctx->pd);
+ 		ctx->pd = NULL;
+ 	}
++#ifdef HAVE_CXIVERBS
++	if (ctx->cxi_lni) {
++		int ret = cxidv_destroy_lni(ctx->cxi_lni);
++
++		if (ret)
++			RU_ERR("Couldn't destroy LNI: %s", strerror(ret));
++		ctx->cxi_lni = NULL;
++	}
++#endif
+ 
+ 	if (ctx->channel) {
+ 		ibv_destroy_comp_channel(ctx->channel);
+@@ -338,6 +362,8 @@ static int ru_init_cfg(int argc, char *argv[], struct ru_context *ctx)
+ 	ctx->cfg.do_rma_ex = false;
+ 	ctx->cfg.do_rma_ex64 = true;  /* default to rma_ex64 */
+ 	ctx->cfg.job_id = RU_DEFAULT_JOB_ID;
++	if (getenv("UET_JOB_ID"))
++		ctx->cfg.job_id = strtoul(getenv("UET_JOB_ID"), NULL, 0);
+ 
+ 	while (1) {
+ 		int c;
+@@ -402,6 +428,7 @@ static int ru_init_cfg(int argc, char *argv[], struct ru_context *ctx)
+ 				RU_USAGE(argv[0]);
+ 				return RU_ERR_RC;
+ 			}
++			ctx->cfg.mtu_set = true;
+ 			break;
+ 		case 'r':
+ 			ctx->cfg.rx_depth = strtoul(optarg, NULL, 0);
+@@ -540,12 +567,9 @@ static int ru_check_dev_caps(struct ru_context *ctx)
+ 		return RU_ERR_RC;
+ 	}
+ 
+-	/* the local SGE array is sized at RU_MAX_SGE; the device must accept
+-	 * that many SGEs per WR.
+-	 */
+-	if (attr.orig_attr.max_sge < RU_MAX_SGE) {
+-		RU_ERR("RU_MAX_SGE (%d) exceeds device max_sge (%d)",
+-		       RU_MAX_SGE, attr.orig_attr.max_sge);
++	if (ctx->cfg.sge > attr.orig_attr.max_sge) {
++		RU_ERR("Requested SGEs (%d) exceed device max_sge (%d)",
++		       ctx->cfg.sge, attr.orig_attr.max_sge);
+ 		return RU_ERR_RC;
+ 	}
+ 
+@@ -574,7 +598,7 @@ static int ru_init_ctx(struct ru_context *ctx)
+ 		ib_dev = *dev_list;
+ 		if (!ib_dev) {
+ 			RU_ERR("No IB devices found");
+-			return RU_ERR_RC;
++			goto err_free_devices;
+ 		}
+ 	} else {
+ 		int i;
+@@ -588,16 +612,24 @@ static int ru_init_ctx(struct ru_context *ctx)
+ 		ib_dev = dev_list[i];
+ 		if (!ib_dev) {
+ 			RU_ERR("IB device %s not found", ctx->cfg.ib_devname);
+-			return RU_ERR_RC;
++			goto err_free_devices;
+ 		}
+ 	}
+ 
++#ifdef HAVE_CXIVERBS
++	if (ib_dev->transport_type == IBV_TRANSPORT_SLINGSHOT &&
++	    ru_cxi_relaunch(ibv_get_device_name(ib_dev), ctx->cfg.job_id,
++			    ctx->cfg.ib_port, ctx->cfg.gidx,
++			    ctx->cfg.addr_table ? RU_ADDR_ENTRIES : 0))
++		goto err_free_devices;
++#endif
++
+ 	page_size = sysconf(_SC_PAGESIZE);
+ 
+ 	ctx->buf = memalign(page_size, ctx->cfg.msg_size);
+ 	if (!ctx->buf) {
+ 		RU_ERR("Couldn't allocate buffer");
+-		return RU_ERR_RC;
++		goto err_free_devices;
+ 	}
+ 
+ 	if (ctx->cfg.client)
+@@ -636,8 +668,48 @@ static int ru_init_ctx(struct ru_context *ctx)
+ 	}
+ 
+ 	memcpy(&ctx->src_id, &ctx->gid.raw[12], sizeof(ctx->src_id));
++	if (ctx->context->device->transport_type == IBV_TRANSPORT_SLINGSHOT &&
++	    (ctx->cfg.write32 || ctx->cfg.read32) && !ctx->cfg.user_rkey) {
++		uint32_t key;
++
++		if (getrandom(&key, sizeof(key), 0) != sizeof(key)) {
++			RU_PRINT_ERRNO("Couldn't generate narrow remote key");
++			goto err_exit;
 +		}
-+		free(copy);
-+		if (!count) {
-+			fprintf(stderr, "no telemetry items selected\n");
-+			goto out;
++		ctx->cfg.user_rkey = true;
++		ctx->cfg.user_rkey_val = key | (1U << 31);
++	}
++
++#ifdef HAVE_CXIVERBS
++	if (ctx->context->device->transport_type == IBV_TRANSPORT_SLINGSHOT) {
++		const char *service = getenv("UET_SERVICE_ID");
++		uint32_t pid;
++		int ret;
+ 
+-	ctx->pd = ibv_alloc_pd(ctx->context);
++		if (!service) {
++			RU_ERR("No service granted; run under cxi_launcher");
++			goto err_exit;
 +		}
-+	} else if (all) {
-+		count = CXIDV_TELEM_COUNT;
++		ctx->cxi_svc_id = strtoul(service, NULL, 0);
++		ret = cxidv_alloc_lni(ctx->context, ctx->cxi_svc_id, &ctx->cxi_lni);
++		if (ret) {
++			RU_ERR("Couldn't allocate LNI: %s", strerror(ret));
++			goto err_exit;
++		}
++		ctx->pd = cxidv_alloc_pd(ctx->cxi_lni);
++		if (!ctx->pd)
++			goto err_exit;
++		ret = cxidv_alloc_pid(ctx->pd, ctx->cfg.absolute ? CXIDV_PID_ABSOLUTE : 0, &pid);
++		if (ret) {
++			RU_ERR("Couldn't bind PD PID: %s", strerror(ret));
++			goto err_exit;
++		}
++		ctx->cfg.pid_on_fep = pid;
++	} else
++#endif
++	{
++		ctx->pd = ibv_alloc_pd(ctx->context);
 +	}
+ 	if (!ctx->pd) {
+ 		RU_PRINT_ERRNO("Couldn't allocate protection domain");
+ 		goto err_exit;
+@@ -654,9 +726,16 @@ static int ru_init_ctx(struct ru_context *ctx)
+ 		.sgid_index = ctx->cfg.gidx,
+ 	};
+ 
+-	ctx->job = ibv_alloc_job(ctx->context, &job_attr, NULL);
++	if (getenv("UET_JOB_FD")) {
++		int fd = strtol(getenv("UET_JOB_FD"), NULL, 0);
 +
-+	if (!count) {
-+		fprintf(stderr, "no telemetry items selected\n");
-+		goto out;
++		if (ibv_import_job(ctx->context, fd, &ctx->job))
++			ctx->job = NULL;
++	} else {
++		ctx->job = ibv_alloc_job(ctx->context, &job_attr, NULL);
 +	}
-+	values = calloc(count, sizeof(*values));
-+	stamps = calloc(count, sizeof(*stamps));
-+	if (!values || !stamps) {
-+		perror("calloc");
-+		goto out;
+ 	if (!ctx->job) {
+-		RU_ERR("Couldn't allocate job");
++		RU_PRINT_ERRNO("Couldn't allocate job");
+ 		goto err_exit;
+ 	}
+ 
+@@ -816,7 +895,11 @@ static int ru_init_ctx(struct ru_context *ctx)
+ 	memset(&qp_attr, 0, sizeof(struct ibv_qp_attr));
+ 	qp_attr.path_mtu = ctx->cfg.mtu;
+ 	qp_init_attr_ex.qp_attr = &qp_attr;
+-	qp_init_attr_ex.qp_attr_mask = IBV_QP_PATH_MTU;
++	qp_init_attr_ex.qp_attr_mask = ctx->cfg.mtu_set ? IBV_QP_PATH_MTU : 0;
++	if (ctx->context->device->transport_type == IBV_TRANSPORT_SLINGSHOT) {
++		qp_attr.port_num = ctx->cfg.ib_port;
++		qp_init_attr_ex.qp_attr_mask |= IBV_QP_PORT;
 +	}
-+
-+	ret = ibv_read_counters_ex(counters, items, values, stamps, count, 0);
-+	if (ret) {
-+		fprintf(stderr, "ibv_read_counters_ex: %s\n", strerror(ret));
-+		goto out;
-+	}
-+
-+	for (i = 0; i < count; i++) {
-+		uint32_t item = items ? items[i] : i;
-+
-+		/* A zero timestamp marks an item this device doesn't have. */
-+		if (!stamps[i])
-+			continue;
-+		printf("%s %llu@%llu.%09llu\n", cxidv_telem_name(item),
-+		       (unsigned long long)values[i],
-+		       (unsigned long long)(stamps[i] / 1000000000ULL),
-+		       (unsigned long long)(stamps[i] % 1000000000ULL));
-+	}
-+
-+	exit_code = 0;
-+out:
-+	free(stamps);
-+	free(values);
-+	if (items_allocated)
-+		free(items);
-+	if (counters)
-+		ibv_destroy_counters(counters);
-+	if (ctx)
-+		ibv_close_device(ctx);
-+	if (list)
-+		ibv_free_device_list(list);
-+	return exit_code;
-+}
+ 
+ 	memset(&semantics, 0, sizeof(struct ibv_qp_semantics));
+ 
+@@ -893,12 +976,15 @@ static int ru_init_ctx(struct ru_context *ctx)
+ 	}
+ 
+ 	ctx->mr_attached = true;
++	ibv_free_device_list(dev_list);
+ 
+ 	/* the RU QP is created directly in RTS (no INIT/RTR modify) */
+ 	return RU_SUCCESS_RC;
+ 
+ err_exit:
+ 	ru_free_res(ctx);
++err_free_devices:
++	ibv_free_device_list(dev_list);
+ 	return RU_ERR_RC;
+ }
+ 
 
 -- 
 2.56.0
