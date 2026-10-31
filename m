@@ -1,13 +1,13 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=148.163.143.35
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793421386;
-	b=haKEFO93GssLCmrbe8mDNkSSrzkL1kYYSYvM6BVJpiLzeCysBXyrEBmcbY7rPQTFoNyk
-	 y+JWkzhBHUUf/wOD6CiE8PMG6UWF5pcR78i21+x48chfwkG1Z0XWW1dDPrgtmhVWnJGgg
-	 TPBgoqRLxDodX0tMunk2EWNo3LvEP8Z4WWPOBEGLbOTOsipwUQfYOMvCYnlamCWnh43ca
-	 RDuJ9SHQKm3588jVjka+TB84aWiP03406OlPAD/yEHI+1O2vhW0hRDBGNgUqwBSsRRgkx
-	 2AJBhudqrLL74UTJsEtXEi9RkeX9znEzJrOtwXE9sSo2YfymV7ZhojhSAZeH2Zk5YOw==
+	t=1793421397;
+	b=SYunEew1v2Y/hGjomiYVryNaoZIPgjEZ94bJIm9NMh2P0ewvkR/H8HYPe88r4xscnJ2B
+	 T+PlxxpknvAyriDeI4dJ3Fcf+9ULWb4tRKyfCt6MCs+rrvKpOGnVDuf35qVA40q2eHo6V
+	 7LPeTg76b5n3QRljUKckhvdxHm07LagzA60beiApm0y/5AKG+1AP/H20MkZxr8NQ679Wd
+	 /adHxxalU3DiqLvno4UrDItS3Lut0c8MBLp7dnYQSFskX6D8rMNI8/kjXONPufbLWz5mp
+	 w95VqbP4KnVMT3wMSrIBiR4s+zLzidZUrtTsB0xan4PWHOBYelKqWrPYway0ORqDwyQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793421386;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793421397;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
 	 Received:Received:Received:Received:From:Date:Subject:Content-Type:
 	 Content-Transfer-Encoding:Message-Id:References:In-Reply-To:To:CC:
@@ -25,73 +25,73 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
 	 X-MS-Exchange-CrossTenant-UserPrincipalName:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg:
-	 X-Proofpoint-ORIG-GUID:X-Authority-Analysis:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-GUID:
-	 X-Proofpoint-Spam-Info:X-HPE-SCL:X-Proofpoint-Virus-Version:
+	 X-Authority-Analysis:X-Proofpoint-ORIG-GUID:
+	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Spam-Info:
+	 X-Proofpoint-GUID:X-HPE-SCL:X-Proofpoint-Virus-Version:
 	 X-Proofpoint-Spam-Details;
-	bh=hbaj3Ct3ps8wBiutJ9MOAZGoJl5sk+kpIb0VOnT1vkg=;
-	b=KkXRidTSJ3Qpkt7VkSConGygvGbvsxMpsW56H59pQatqKH9Z4ekoUUB1ZSeWTp9lxvu2
-	 H2FxMhUBg9xAjk27XgOU0yi3mrv/uVW6bZfdIMKyJnt6P3jYVQKR9lBgjU70bBHGVWVGa
-	 +bNQJ9Jtu9pWQfQNHLsmv19sfc1/BqVSE3oE78E2sBdk6dsQH2TLUNag2ZJj3pv9AEiko
-	 PaJvju+LKle5dwd9eab4dGFzACtKoUUkgGyj8YCwzSTVrkLmyb6MdAS4D6gBlP8cw/i8A
-	 IeNopbotOsbogPpeKhQ9VHEMEdQYVI+4oCiiUx2spuRnrIIdQfHHRqgF2FRA4lTmhvg==
+	bh=mFLvntX/Tu7E2x4GikNpPNo2hbPkra+eNCXEjN4cFck=;
+	b=XBSqXGvrulrkdyE67ZcivxXEE5X0gTgJUKYRZ1Csvrq2xFnGDoRgceAuV7/7cU7O5hN6
+	 dD+72rNVFMxaVSou55GfcZILWi5j+DQA2tosqT9J5wxdGgKg8FQMvyLRS+08KU13s4931
+	 TFN8GXkUy0wvDHeE/XhK47lLNNXYG6a4vNxMBXadp/6w4M85DAxwFaPQp7TD4XL8kN23Z
+	 938QrIBjnWU7Oj5JyOBx+/eU0U3uax0Kc88/OGo32aj0EM4TLB1Qh0WEOV3XxBZlbyjHD
+	 SR0on3VaPeliNnSp2SIP9B0BSq2OPnY7w/+G29RKofY8jgwWSIQYWRqBN899aoqb0cA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=hpe.com;
 	spf=pass smtp.mailfrom=hpe.com;
-	dkim=pass header.d=hpe.com header.i=@hpe.com header.a=rsa-sha256 header.s=pps0720 header.b=K4hBzT8B;
+	dkim=pass header.d=hpe.com header.i=@hpe.com header.a=rsa-sha256 header.s=pps0720 header.b=NN5HFONo;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=148.163.143.35
 Received: from mx0b-002e3701.pphosted.com (mx0b-002e3701.pphosted.com [148.163.143.35])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32D76606A31E;
-	Sat, 31 Oct 2026 04:36:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 32D76606A31E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E69B5606A31D;
+	Sat, 31 Oct 2026 04:36:34 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E69B5606A31D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=hpe.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hpe.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=hpe.com header.i=@hpe.com header.a=rsa-sha256 header.s=pps0720 header.b=K4hBzT8B
-Received: from pps.filterd (m0134424.ppops.net [127.0.0.1])
-	by mx0b-002e3701.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69V2ALaF2221350;
-	Sat, 31 Oct 2026 04:36:15 GMT
+	dkim=pass (2048-bit key, unprotected) header.d=hpe.com header.i=@hpe.com header.a=rsa-sha256 header.s=pps0720 header.b=NN5HFONo
+Received: from pps.filterd (m0150244.ppops.net [127.0.0.1])
+	by mx0b-002e3701.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69V44VAw2205853;
+	Sat, 31 Oct 2026 04:36:30 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hpe.com; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pps0720; bh=hb
-	aj3Ct3ps8wBiutJ9MOAZGoJl5sk+kpIb0VOnT1vkg=; b=K4hBzT8Bthi6mKJhux
-	WIy9DVeewn/cm95YssesL9qJRn8CvxDvKngqNOmM7MfkSCxz8pi9Xm9in4wRcSbZ
-	QJves/Cyp0s6QU8CKNfGGS2PItFwUbXbSl9YTw7wUPua1KWclxQVB59/afxAue+9
-	UOOemTx4IC7Cqv+D6Lml9YlJmZaB4L7O0eE2L8Zq+uLe8AF4TG6p1fqwMYycueHe
-	+/nRChDndy0JlK8h0gzkRX7lIpZWHsoX1rIsADVeTN5LCwrtAoIoE6+sqtEHTBhx
-	XmZSvDjocMuAq+N2JT1ziqGSJDesgCAFpwliieYasHaeiIeOxiEZPocaK4XUfMB0
-	Mvzg==
+	:message-id:mime-version:references:subject:to; s=pps0720; bh=mF
+	LvntX/Tu7E2x4GikNpPNo2hbPkra+eNCXEjN4cFck=; b=NN5HFONoISTlGxuQf9
+	fH32ZYQVzp6VbgN+m+AS8eWCf01SZ7UIg7vbecvFvsFQ2L/WZbWWVfMUT8mCOn9q
+	6XVM5a4pUl4e15nhnAdnGuFZQqKusHyhf49pHXgkciDHuL9/e6hTvY60CtAd4IRk
+	0bzEhV1bD+CuVEv8GXoOj4lQPQ0avQtJnM3nzEOJRNTFQAabFYeLRnLkFTnwnvFT
+	bhj+HfDPWWb79ZGxKos8/QJQOUs/pDarLK3/bVDfggqb8rsnGeWiinhH3n0JYL/B
+	IK75faIOgxhFA8hUoNkmoAsG5L8fZ+MRfJQBFCf7CorTaeT1tc0hsF4skXzWeLAh
+	DZDw==
 Received: from p1lg14880.it.hpe.com (p1lg14880.it.hpe.com [16.230.97.201])
-	by mx0b-002e3701.pphosted.com (PPS) with ESMTPS id 4hn7ajh1hs-1
+	by mx0b-002e3701.pphosted.com (PPS) with ESMTPS id 4hn90087b8-1
 	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Sat, 31 Oct 2026 04:36:14 +0000 (GMT)
-Received: from p1wg14924.americas.hpqcorp.net (unknown [10.119.18.113])
+	Sat, 31 Oct 2026 04:36:29 +0000 (GMT)
+Received: from p1wg14923.americas.hpqcorp.net (unknown [10.119.18.111])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by p1lg14880.it.hpe.com (Postfix) with ESMTPS id D5615800EC4;
-	Sat, 31 Oct 2026 04:36:13 +0000 (UTC)
-Received: from p1wg14928.americas.hpqcorp.net (10.119.18.116) by
- p1wg14924.americas.hpqcorp.net (10.119.18.113) with Microsoft SMTP Server
+	by p1lg14880.it.hpe.com (Postfix) with ESMTPS id 52099800EE5;
+	Sat, 31 Oct 2026 04:36:29 +0000 (UTC)
+Received: from p1wg14926.americas.hpqcorp.net (10.119.18.115) by
+ p1wg14923.americas.hpqcorp.net (10.119.18.111) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.43; Fri, 30 Oct 2026 16:36:13 -1200
+ 15.2.2562.43; Fri, 30 Oct 2026 16:36:24 -1200
 Received: from p1wg14919.americas.hpqcorp.net (16.230.19.122) by
- p1wg14928.americas.hpqcorp.net (10.119.18.116) with Microsoft SMTP Server
+ p1wg14926.americas.hpqcorp.net (10.119.18.115) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.43 via Frontend Transport; Fri, 30 Oct 2026 16:36:13 -1200
-Received: from DM2PR0701CU001.outbound.protection.outlook.com (192.58.206.35)
+ 15.2.2562.43 via Frontend Transport; Fri, 30 Oct 2026 16:36:24 -1200
+Received: from DM2PR0701CU001.outbound.protection.outlook.com (192.58.206.38)
  by edge.it.hpe.com (16.230.19.122) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.43; Fri, 30 Oct 2026 16:36:13 -1200
+ 15.2.2562.43; Fri, 30 Oct 2026 16:36:23 -1200
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=iwmIlQdTqUi2eNMDXZ3ofjzxApCMXsviMO+brm5Ybt7POVYckmSAsQAUO8/5QDT/wHLogYFPDV7UvnDyoChYbeeQL6j6SLRtoSJ5tQAgR77ebhRbQjB0RTyZBlqbXkZ28WgtieJNtHAZYs8EDzxLPZ6epQ3gR+OoOl9Yuufcf3HDJpRb2bVx/Mf4RGpUKb/UGXA8UEyAFCcz0NMo2TC1N/4OD5YVmLiRfmVVDQsR+Wtycw6uSGRaY0/ZHlDiFBmZJzEWuFlcK4el3K7k4bV7R1WffAu21NCfNE1EuDtssN4zkGWyLGkBNqfO4OXnsaCG1P7Awo7g7t7u8I81jasN8w==
+ b=Lg80SpOydkTyxpa83UAprQrw4qeINNBsKdkKe+5QPbXacvyxkYyJm4+erk7BnoawKiQ0npBF132lJ1KegljcliiY2e5FK0S7+N5gZRCUO+45mPL2e86qCILrAV//77HAXaeEx4rZq2VK91I7l0IAaZ5FTFvLUON6WS0IEp1yA2MMQY8yPmpaEKLPXRcMBFnhG+XcJkHlte9586qvoFYsJj5nScrAT4a+JYH0vRMCfZ0KVq6N9Mcc98sG+Md3p/kO9t3o6lHBv7J9JcJ3BjtZKDZGxYTlGxEMV/U3btIdr7TqxIP+mKTUffiaezlmqiaXBXR9DMTt+AYt9pPfpM2snA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=hbaj3Ct3ps8wBiutJ9MOAZGoJl5sk+kpIb0VOnT1vkg=;
- b=ZcyDO4yE7yKTQhll80pHCdlpzocuFCZF8DeXVwYbUZxQiikyyMHtlpzibyF65Vg2blQ+YiofXFeuDz3Ra5UCsRmRITDfcq6M6NtOB6F3GfcQ3bmP30VKs4xhOTO3cGPffybeO/iksyW+olGZoTyn5Y0jYYj38DHwaIF7PVrvBDpevMcXVCrGB1ZBsyl2tI+SagT2wLZjmZSfCe5lxlkX2Mbu4xHlT4foam3hVelsn7e/JBfUNBev/GWC9jU97rFz7FrmLRW1M4PNP06P6b+mADcHMgP2RyX4QNu2JAr95Io8YnV/cJCAyHTtCED7KG9jMpFJlSfEwOqratPhp4q7Tg==
+ bh=mFLvntX/Tu7E2x4GikNpPNo2hbPkra+eNCXEjN4cFck=;
+ b=lp/xvvRuVEH9BZE59mLAMAG62KvT4QoPSxF6sr5YNi8r38z2AIH4Wy2hlHcS4+To8HHNxmJNkkSbjPwkeySepVpJSFNLp70CB7RGqm8B6sY3e88phEErIyWKjAx6mHwAs2DjdEbo7nQY46i4RNei4YVNc2RAHyP2HIY85rRmHmiOFA7NXit3tpZV6/B/bOhczClhA11enty9sbSPsXDcIoOoNIxcSwwigfILfCmwc+KYThxM7k5dKw+2TPvzqkfGSG6UBySBiAcV7i3ZffcfeJBbN4DAATKkOYw83LCsyFqywyW8CUJNldXTpK5eXJnYAIm5onmOKYgRdq3OPTiZig==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=hpe.com; dmarc=pass action=none header.from=hpe.com; dkim=pass
  header.d=hpe.com; arc=none
@@ -101,17 +101,18 @@ Received: from DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM (2603:10b6:8:225::20)
  by MW4PR84MB2091.NAMPRD84.PROD.OUTLOOK.COM (2603:10b6:303:1b2::8) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.10; Sat, 31 Oct
- 2026 04:36:09 +0000
+ 2026 04:36:18 +0000
 Received: from DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM
  ([fe80::d136:e75e:53c5:73d8]) by DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM
  ([fe80::d136:e75e:53c5:73d8%6]) with mapi id 15.21.0569.009; Sat, 31 Oct 2026
- 04:36:09 +0000
+ 04:36:18 +0000
 From: Doug Ledford <doug.ledford@hpe.com>
-Date: Fri, 30 Oct 2026 21:35:34 -0700
-Subject: [PATCH 06/11] RDMA/cxi: add explicit context LNI and PID lifetimes
+Date: Fri, 30 Oct 2026 21:35:37 -0700
+Subject: [PATCH 09/11] RDMA/cxi: add services jobs profiles queues and
+ counting triggers
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20261030-cxi-for-next-v1-6-bc6e49e07037@hpe.com>
+Message-Id: <20261030-cxi-for-next-v1-9-bc6e49e07037@hpe.com>
 References: <20261030-cxi-for-next-v1-0-bc6e49e07037@hpe.com>
 In-Reply-To: <20261030-cxi-for-next-v1-0-bc6e49e07037@hpe.com>
 To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
@@ -119,10 +120,10 @@ To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
 CC: <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
         Doug Ledford
 	<doug.ledford@hpe.com>,
-        Iraimani P <iraimani.pavadai@hpe.com>
+        Mamila Santosh <santosh-kumar.mamila@hpe.com>
 X-Mailer: b4 0.16.0
-X-ClientProxiedBy: SA9P223CA0025.NAMP223.PROD.OUTLOOK.COM
- (2603:10b6:806:26::30) To DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM
+X-ClientProxiedBy: SA0PR11CA0119.namprd11.prod.outlook.com
+ (2603:10b6:806:d1::34) To DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM
  (2603:10b6:8:225::20)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -135,1255 +136,2062 @@ Precedence: list
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: DM4PR84MB3970:EE_|MW4PR84MB2091:EE_
-X-MS-Office365-Filtering-Correlation-Id: 72059050-69eb-4f5a-af17-08df37087c59
+X-MS-Office365-Filtering-Correlation-Id: 1a783075-c3aa-427a-0f58-08df3708815e
 X-LD-Processed: 105b2061-b669-4b31-92ac-24d304d195dc,ExtAddr
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|23010399003|366016|376014|6133799003|10067099003|18002099003|22082099003|3023799007|56012099006|261021121427099003|5023799004|261021130227099003|261021135927099003|261021123027099003|261022105027099003|261022113327099003|261026135527099003|261026140227099003|261021133027099003|261026121527099003|261026130827099003|261022115727099003|261028144727099003|261022075727099003|261009223027099003;
-X-Microsoft-Antispam-Message-Info: 8+a9S6NNFkXLfN0+dwk8EPMsGncvVoaDWv1CN2XDUIWEpBkeQpYROh9AUs2f0IN0j5SKVtlleXA61zr7r18SD40wplBYh2QojbDnvLq4EscJoied+LXQMzmD2+3oKyHeBiD0rostn2QWTVz6U9MjNWkHc6f7n9IDSu1LIs6qGg3E/G/aYmzVtWaaWQZGFPwb0AADaqOytc2Td3gGdtEyXgIz6/3H8K1r6yKCrlAr78h4KYr+PRvnqZ6ufuyeqDf6Fb3VnrH5PA6OZV1R+TLCjkFKm8fDemt4f7C6s7a2yoUW7bUuAtZhmh2++44Hsfla5I/gnS2yHIh5Z0LOzkbE0+5Mx4giOvKjT19qst2vfgDirLIHESkFASmxOVwsFAsIySwz57i0cAliFjOKWCuhJts2npTlM+L9CTugURq9zArka9khcskIAOPi09rkosIhTZaR3dVjFQA/VbE8zzzvzfQPwJmTBXroldfNJ95+m1f6OnCQgFta6mScfgReTWcXEXSqa8L0v+zggm1UQsF+MDk/dEB7RnkV8VJNStq073EWvnDoQdqcRtCtyeI1iBZPXpRQsrGzpMIHc0FXMYMRxLsM91q+rKh4+SO10t9H2P7k4QeuaLR0g2vBYnCS5nfP49lajdPheEbUi8Vmp9GLUtaiZyWbgTNvXxupxJbojB8=
+X-Microsoft-Antispam-Message-Info: Q7eyaWr6ZfdRQPYqvKumbVonWNST5uN+SAm1ys2ohdVbMhQxh4LGzLIIJQASeaYwmmXWw2YtezfgFjU6+38aWhGlw+mmKxoAy3DR5nmPWKs7XRTajBSLfEsXfyKdGGDinLLVWp120TLG0rS1wS9q+iE1mzMZdpnc1ANLNYUlvQnpm7K2O0GWtyIpUfnOPHcZd/8j8+ihCU/p+d8MqnhZtsaLPrWnNwz9b6ijp/l2yqiklwabhgAEUUBmLG4UjnSOZKhB0VX8eAaqYo7lmueFD+jQ4LGD4kCbPVWoJNGPBfuhTbJjWccb9+lO29HYV58oqL9QeG81UugHMuAFv0WpHhVWekulcn9wi0qHx8P7mlygl/vcr/+gfpMQC3zl/6KLlfRXHuQaFeixawKheHfBP+KLgMuYc50/5uek3KqizJRMNJy1fM7hDkzrhIoivZmwSGbiS3xwtWBK1f6NjCVmZ7yc8ljXzvwp0J/g62Ukub/dcqkb8+86jMnDchV6pJbwvgcVbOvaHgTDRk9zCe/mRsLrjLgC3bo+PGQeoCBV9sEFtImKtu/GOJT5fZsxUiQc8nbyR+lHt1O5yFF/ruu+uM1OK/c66xlKUenJXvcPSje23oJgUIqSDkB18uoFoyqDpu677xokFAcH9q3FRwez7y64ewJJs+zIIDGNbsCs4lE=
 X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(23010399003)(366016)(376014)(6133799003)(10067099003)(18002099003)(22082099003)(3023799007)(56012099006)(261021121427099003)(5023799004)(261021130227099003)(261021135927099003)(261021123027099003)(261022105027099003)(261022113327099003)(261026135527099003)(261026140227099003)(261021133027099003)(261026121527099003)(261026130827099003)(261022115727099003)(261028144727099003)(261022075727099003)(261009223027099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?ODA2YS9tZlB6Mk1Gc0JzVFpucFE2U3ZsbU8vMGoweE1sbk5pNnhOSnZONGVv?=
- =?utf-8?B?MlE1N3hhVzFNT1krUG5wVWlhOURONkVMVWdUQlFTZ3NYb2t2Smc4cndML3pi?=
- =?utf-8?B?UkFGb0cvTmxtUmhNRnhBbnVxYWZyYk9CWEh3U2RwTHJCNVBvQXpvdU5jMlRn?=
- =?utf-8?B?aWpoTVU1UDl6MGtxbEdnUC92RFNPWndyc0c4blkrVW96dmRmTHNDc1UyQnZQ?=
- =?utf-8?B?cXI5OHJhbjBvMXZyWnpjYzg4Q3FEbkhIS3JYY0NIanFjZEdjeHgwa1E5YnBr?=
- =?utf-8?B?WTdBWFBPbFNXcUMvVHRBQmN2TzV0LzVJWTIvMXpjN0lRdDFTZVdHRS9OdGtk?=
- =?utf-8?B?M0F6ZXY1ZjdqcEUxb1Vvd3ZobFBKNWQ0cjIrSUxFMG1la0p2dFp6TVI3KzJX?=
- =?utf-8?B?Y3o1UUN0ZkJOUWt0a2JXek4yR0JwS1VJWndNM0U0M0ZTY0ppbHArV2kzMFBh?=
- =?utf-8?B?WjRlVWxXMjhrcUdrbDVlMEp1bWdjeUIxRFVYMHd6T1hPWlJVVzhHdFdQc0VZ?=
- =?utf-8?B?cWhXamN6UWxremdOSUJEUFRseWt6Zk5PUEM2c3lsRU5FRnUzYUllZklaLyt2?=
- =?utf-8?B?RUhZVXlLSCtWRnFtZGN2VFBScGpUZjM5dENiQ2RlMjM4RlphbXBjWmEvazdG?=
- =?utf-8?B?Q1RqV3hOT3F1WnJHbk4raHp0M1RJRktmMlZ2Qm1URXMxd08wKzQ3ZTg3SXVD?=
- =?utf-8?B?TjZqQ1UxSWQ1VUlGVjJVa25jS0c4aXN3RlJjRjdDcURkQ3ZkVjM5azhITmUv?=
- =?utf-8?B?ZEkyOENSMzFZMUM4aHBPcnN0L1hzcDVDZm9jVEtheE42MEtYSWtITmNpVWdI?=
- =?utf-8?B?bXRXMU1LRVVZME84KzNsTTVXMlpjY1B3VkVUZnNzRmZ2cWlHbHZVK3YxbUVQ?=
- =?utf-8?B?SnBwdVpVUzZzRk9uc3dKQW1MV3pHMmpoc2xDeDFiNE15R1RYdDRBZzZjbi9i?=
- =?utf-8?B?d1lOcXZOeEthbGZxZ2pReVUvQ3dUV0hLVkd5L3ZiQVBqbExwVHJmQUE2bUhZ?=
- =?utf-8?B?ZkkzMFdrSzJaTWhZbVZpR2h2N0Z4bkFEU295L201VkJUY3pRZldiUGc1QXZE?=
- =?utf-8?B?SFpENU5HemR1b1lSZnhvMTJUUWl6QU5xZXdJSWU2ZmozcEFOb0FpM3Nlb2RS?=
- =?utf-8?B?ZlZLM3JRdXlPSVVMSGQvcnFnOFZwV2QvaHl2OW5TbmZ2U2p3MCtPYlplT1k2?=
- =?utf-8?B?ZC9uR0JSKzN3Vi9wTFQwSXlaSkdpVDNIZEsxcldCaTBvTG95NGJjSmk2ZkhT?=
- =?utf-8?B?UG5oNjV1NGIyaDlycHI3L0JmNnpEWUM5YWhlNFZlRkM4MWw3NWRyQlJ6MmxC?=
- =?utf-8?B?VSs1aWlpUkVjS1YxZTJDdmlBM0VaRzJXU0NlaTBxdDM0a0xBSmhleVVETEg3?=
- =?utf-8?B?RGN2bThsNHpmL1VUMk16Y2w2TGlFajR6SU1LM1B2VFVNY2w5Ti9jSXRIQ2Zu?=
- =?utf-8?B?anY2YmNpbUlLN2p1TnBjWmZuNjZkbUtDelRVdk93OERRUjlUYjZjLzV4KzZt?=
- =?utf-8?B?a0FxdjFBNjJMYXBRWVlzcWZ4Y1VVTGlXc3NxUGtwejlPVkNYZXRRR2ZOZEZV?=
- =?utf-8?B?SFNGWE5Ya0hJY0FzZWNhSjgzaURXb3I2MUNsRUNjTVNINjBUNWs4c0NOa2l3?=
- =?utf-8?B?YkIycWFsczQzSWMySUdiRHBVQ1dCemxuTXlVQUd1bXFvZFdXK0gzZ1FTYXZh?=
- =?utf-8?B?YVptNlhleHhyQm5sb05wdXlrTytPNWVBVEN1ZVlGMHA0L3RsUVQwSVkra3hr?=
- =?utf-8?B?cHhCVG9xbTlQTUpTcWtFUlJNejUwdDVKejdqZmt3aGV4QUFIc21pbjNHT1gz?=
- =?utf-8?B?M21ybUl3UTgva2oxL084UjNMcU5ramh4L0JsUi9hUkIrUnRhUHNZS2U4Z2hk?=
- =?utf-8?B?MmFLeTBHV1kzSFdMbWl2VVQ3ditpL0FNdk1USENyRnRFK2wvRlFQM0dVWU16?=
- =?utf-8?B?QjdqejVYYkNLYjQrVEZMWkFwWHJ0WlZ5RktZaWpXb0R6d3IvUWxYOTNSNG1V?=
- =?utf-8?B?bjQrWmMwRUdISUs4a3J4b3Bob2ZLVUlxeWNJdEwxN05JTU5MVXQyY0p4aGhv?=
- =?utf-8?B?WnJIWGFWWmNXMWMyR3dlOVpjdjFQci8xRVRaL2xwN3AvRmcwOFNuaWpnYyth?=
- =?utf-8?B?UW5NZmNTMDg3S0VxZXpyWW03YTlQZXluN2hIS2F1MUNTTThTWFdCTzFzTmlC?=
- =?utf-8?B?ZitpZUZ6QWc5WFVUYjJjYzNid2w1eGh1ajhFdk9BMVMxL3lPNjhSdDAzYlRi?=
- =?utf-8?B?ZndBUWdFa0ZlNE93WG00Mm5MbUFxdTJwaGdNOGt5YnY5ODVaVzg4bktvNDhv?=
- =?utf-8?B?aUpBOTlUUGMxRlY5cE5MMHN5N0lBT1Q2RkJmVEVlSmx1Q1J0OUhIdz09?=
-X-Exchange-RoutingPolicyChecked: hYMM9Y7yjHcabbxpEXZ3Kgjojx5xMVbvSE32QFagzZsuWtkiXzuJb1tzJSRNo+BRm8Uo98zdDv+VaTTh+AxwiMovN/Hb8sbUQVB3QHiB70/2KF72Rv1PuAKxKTlI213G7psSC5LBdta5AGQZRMHDJQ3561Bv0AoEa8Yb47GNBvrNb37JORw4OPXzmFJ+ZCL6XI1uy4crkIf/A2QQBEM5DjQRsRDaTdijB/UhCu9zEfTp45abOnqfr0OtDAvKDcBVlXVnMEw2BAf8B4o3FMU0GGKF/wYtaR6V99OhTWozWnKNUNRbyyNKr56q/EPVyVdq2LVoj1Uy3coHU8p+ZWuOBg==
-X-MS-Exchange-CrossTenant-Network-Message-Id: 72059050-69eb-4f5a-af17-08df37087c59
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?YU52VXpHOEZlSVNqS2p1b3k3NnNONWxrM0V5ODVBT3N3R3N1RWg1dy9vcW5G?=
+ =?utf-8?B?WjZ6L2daSzdVUHdsek1GZFRBMEFkMmJra2dwd1pWRmJXdmxOVkxBMml4NlJp?=
+ =?utf-8?B?R2d0OGdJYWxpbTE3MGhJckxDR0Z3S1B2TVFvdDlzclptc0t1cjVNUUlEdWFO?=
+ =?utf-8?B?SEJlZUg5VGhQeXNBYmdDK2F3OXNVT3FrWWNSU0xDUkk0dnhQeGhBNHRDU1BH?=
+ =?utf-8?B?dVNUUHRvbFIwL2dFdTBsKzc2bXAxZm5LWkMyM2ZkeXU5eXZ2SFpHUnpNcmJ4?=
+ =?utf-8?B?OC8yTUpFTzhnS2l6Mm9idlhUWGh2MWExTzFiZlBVNkFJQVdleDQrSVNmNHly?=
+ =?utf-8?B?M3pTTzFoaUQwVkxZUVdNRXd0QWVGSUZCWmFpSk1KN3p2c25IejRTcmFmYTk3?=
+ =?utf-8?B?TWo4K3JrSkErVFRURWh5UGNNWXgyZ3h0dnczWmlGRDg0NmxhbS9ja1RNcG9C?=
+ =?utf-8?B?SXg3d0VMb0N1Sk14SGFJMFRMcVFKRVc0Z3c5WGlHUGNSWTRWVzE3WnErSmx1?=
+ =?utf-8?B?dEZNSVFVRXhXdTY1NGNzWjNrZk1BOWdyN0hXVzI4ZjB3TUMvVy8ya21KaE9y?=
+ =?utf-8?B?Y1JJMVdRU0FBR3FyRHNjbmFaSWpJYVBWMmVGRU5oQVM0OVV2UFZQYTRia0w0?=
+ =?utf-8?B?MnNnSjBXUDhnUGwzaDA4dENnbDQwczU1TllUNjVkYzlxd0ZDZEdWc2NNUTlu?=
+ =?utf-8?B?WEJIeFBDQmtOUEQ0bStFWWZyNEQwQ1lsVVdvNnE0TVNybEx0cGhKbW1XWUtF?=
+ =?utf-8?B?NXpXYXQrTS8rMjlSOVZGRUJVbVQrRUtFTlBJM3NYbDRYT1hLQlA0U3FjYWtT?=
+ =?utf-8?B?bkExVXNLZjM1Qjl1TkpYT0NZa2dLbW5US3FoL1hsNkFaVDliTlpEMjNVbWxp?=
+ =?utf-8?B?QktqbzgzSFV4MnpuOWRVZmVtaDdaeTVXOUVYT2RXejJmcHdhR3FSUXZwWHZX?=
+ =?utf-8?B?SHA5ZUsrUGhzRktNNTViMGI0WnNHanBZUk9WR25qUDRYYkpFcUZKT3NCdGdT?=
+ =?utf-8?B?Nmc5NHY0YjFlYkM5NldJTm1keVYzNjNuL0pVK2QrUkZnZ1plZ1U4anBCYVhI?=
+ =?utf-8?B?Qk4yeUNZMjlIN0x2VUFTZWZxVTlzSE8ySzNOdWs1anhyRmxaWmtueTEvaWhp?=
+ =?utf-8?B?aTZ4WXQ3Z1pFVWJ0ZEthOCtCZ2pnTlpUdkZKMGZITEhkUUNsUVJYU1RueG0y?=
+ =?utf-8?B?MWJuLzhSQzJFSnkxVkVpZVJjV3JnQlF0UnB0VTM3Z3dYM0RkV2hOV2IrcWts?=
+ =?utf-8?B?aW5JQU5iNjRZUk5vZmNRSTR6aDVkblM5a0RPUmZ4eWoyT3BvSm90UmhLazVy?=
+ =?utf-8?B?Q2tVRm5lWUxTMW1XY2k0bEs2d0pib0RMZ3ZrVU9QSHJrbDROWlZ0eDZPMi9Z?=
+ =?utf-8?B?K053WTNvc0sxNTdXL2VXdDR5NUVORnZSZDBML2RIRm5BRTEva1p6NEo5cUU5?=
+ =?utf-8?B?aURoUGpsUVNSbVVLSlUyNTUwU2x3cGRqVGRWaXB5bTNsdUhRc2UwWVJnVzNH?=
+ =?utf-8?B?elpDWFp3Zk9mbUp2NXdtYjNFRjBmaDVKd0RCVXlIcHFpQjduQ1RGS3RvaFY1?=
+ =?utf-8?B?bHdRZTFkbDZWbU5KRWNOcmc2cGZVL2xVc2RzQ3o2OUxiQ0UxbTRtWVpKWkYr?=
+ =?utf-8?B?L2tIcUNTMm1nY3VkTHU0cW9sblJyOGxlSmtQYzZzV2RxeDJabFYzdkhrR0pF?=
+ =?utf-8?B?bzJEelczcEd3TG8ydGd3MkNicDFUNGRKRzlPS0RUYWJPaE9HMitLaGpIK0Ni?=
+ =?utf-8?B?TG9PaDI1dVR5VVMwRXA2dnk5RDVKa0pueUNRSEczZUdLQjhuQ2NCTGNWUjh5?=
+ =?utf-8?B?NWJlbk5MY2xQc20wNkpmV1BuZEJHVDF3WFROdjF6TzRGaVFvZ1k3RkNrWjh6?=
+ =?utf-8?B?TnpkRDZNeXVMOG11Uy9sdkRHeU8wRlBZdmtuUTFsWHFrLzFtejNYdnJvd0pv?=
+ =?utf-8?B?YXVsdUJmQU9meGR0NVNKeUVSVzE4eDFYQWxnNlBVQzZBcXpxeXdFYVNTMjVq?=
+ =?utf-8?B?MWVBWDAwbnVkV2YvcnByaGRpZlRES3FzNm5jbC8yMVpFY0p5R0c3d3lleisr?=
+ =?utf-8?B?RzlaZTVjOFBVK0lmRWVvZ1FWcEtGVFU1RXU3d3ZDa3lQbWhhNGU3N2dzRVJn?=
+ =?utf-8?B?VE1BcXZPTXlackIzWmU4S0x6NCtPdVVhQ0Z6OTBDS01lV1lKbEMvZ2JtelJE?=
+ =?utf-8?B?SWRFb0IxMkExaDIvaWlOM3Qybmw0UC9uRitkcm9kL2Izd0ZPZllCTE5YcTF3?=
+ =?utf-8?B?MUNOVFlFTDVxaGJBb2x0dWg4andPR0lLZmZLU0hRNnJwdnZVNXFENnNWYjBK?=
+ =?utf-8?B?ays5SGxHdTFUNDFhTEQ3elhuY2hCOWhOMmRSNm82d0RvS1NpMWJKdz09?=
+X-Exchange-RoutingPolicyChecked: gFYa7WRGJOhR14uFZxPLbpC7jDIOB+9T5PhOOYhxORi/HF5LNa3PchFm9jdBjowalBkYTwsJqxQztQ8p02wDQciYAMOVlCBuL/N5oJpaIiHwDX3Prb1d5NFu5nmQUJTNY3jeiN97eQc4nlHN+XfIpTdEVNjBDSRj3FtcbgdEPw7gAdoJBrEmXSjoKr6jhOrHoMvV49Kc22m6X6rViPakf2aTHnqmCTP7h4Uw2UbosEsRnPdojRRNpKEZ9s6xO+wEsMqCyUUdLmqyCZ7PIdMohD4uWaGmDO3u/uDRFLr7HWkt/DgZdOOI9WW4Epq1ai4vOohCW6yq+HzfDx98Rbv3Ag==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1a783075-c3aa-427a-0f58-08df3708815e
 X-MS-Exchange-CrossTenant-AuthSource: DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 31 Oct 2026 04:36:09.7455
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 31 Oct 2026 04:36:18.3182
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 105b2061-b669-4b31-92ac-24d304d195dc
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: JbuqqXJfpJoArNzjo0fQ5mjLaMGSLvzb8uIWsWu76GI79c9YdXsqpTCsYIM0Q9DaQnsrHoLz+U1MEOG5Is96eQ==
+X-MS-Exchange-CrossTenant-UserPrincipalName: 2BlACe4ceVAJEv+WYPE2fJcoWYXU2grbk3XOwZtrCxVlDQFVxmmGSqb9HMCrcClYWpkmOTI8qjKfGnJFJ24uNg==
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR84MB2091
 X-OriginatorOrg: hpe.com
-X-Proofpoint-ORIG-GUID: 8ZODIoGgbh_rXa-0n39XClvwrM80ZXLU
-X-Authority-Analysis: v=2.4 cv=O+asLx9W c=1 sm=1 tr=0 ts=6ae5703e cx=c_pps
+X-Authority-Analysis: v=2.4 cv=J5I/fwnS c=1 sm=1 tr=0 ts=6ae5704e cx=c_pps
  a=A+SOMQ4XYIH4HgQ50p3F5Q==:117 a=A+SOMQ4XYIH4HgQ50p3F5Q==:17
  a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=z/mQ4Ysz8XfWz/Q5cLBRGdckG28=:19
  a=lCpzRmAYbLLaTzLvsPZ7Mbvzbb8=:19 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
  a=660iZSQnnn4A:10 a=VkNPw1HP01LnGYTKEx00:22 a=gQcMVamqm3wCPoSYhaRC:22
- a=3haJ9R1Aw3gUfsUHDaCR:22 a=MvuuwTCpAAAA:8 a=LbMNpL0TmfN9__oXkIIA:9
+ a=k7r4yCLl9DVLXMiQTbtC:22 a=MvuuwTCpAAAA:8 a=Zl8AJmhLbWmzNFpIJEkA:9
  a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDMxMDAxNyBTYWx0ZWRfX3FJvzHpARbhG
- d/qQ7Ww2zf9F6xnYHkaS1v2j8fw64QJmmAKn1hWJF2Fk6W6PJJ2q5gS/9+FpbEAawIxup3fomoX
- zZI0bah/Wy7dq3wkih2rgYv1qsjuPghD1BxkejoSR8HrQZ6fCtxpL4aKyQIirSXn0dNDCX3+5zf
- PiT4EL2OEVHWko0xdvVfpNFArb6ebPr6gCeWWmNiPBGJrGYToEijxwONB9U33gSWN2xGFaFZ50c
- vP1YEHivzRLkig6PZgIe6oN/kIBTQSZwpaNoYMKfJO3hEg04Iwfv3dOyrRfFKLmQz7w1TWZK+iG
- V8+3MBxXGtGTJshybEGBfUCRFZIwMYDJb1hhRKsr+Uvs1Yx+7xGBw2YXegNn+N1XuaejI3eHMcY
- M5JkZsJbyrBL1c8i+wxVkfmCcWfflN5dTb2iSgoz0RDhjyItOlmhSNNerfqrF86Nk+0D98/phXM
- LRKDUUQyQQhRLiG1H8g==
-X-Proofpoint-GUID: 8ZODIoGgbh_rXa-0n39XClvwrM80ZXLU
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDMxMDAxNyBTYWx0ZWRfX2W8WjCKbl2K0
- 9i54SUUj1+hQvEIV5yX4CBVyOu+LASzAXmKafXHp4sl6EOdJzzibgZW0SpUtryBZofGo0ZBSWJ7
- ZB91DfRhlQ077xDWRgrPUOKYJCinHFw=
+X-Proofpoint-ORIG-GUID: uUvLLuoCKIqR3Ez9Rnsoww_MVGUXNnF8
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDMxMDAxNyBTYWx0ZWRfX/4NVB/mLiFtK
+ TCWEVhCCBWwtVWCcEvfSQEPE5bEkfprRjA/024ejgNLNi0hBGegZ2ufPldX97Szl9mDJAHl7oAQ
+ jvZyV2WCYuqRTyPJ4Q+hceWZXyIwqxDAQwjERDI93XqL+NQc/Y2vKiGS1rL7KJnuHnFRl4/sgIY
+ fK4GoDROAQyz1TwzbJUAXz6eA8YQMHrYVYrifaUYI8V+gIP5aFKxSYBo3hbPl3sJ+xWUcARQmFA
+ JeH6MRJgbyI5ap7KbCFL7ljkZ0lyy2qpgLN8wGK3TUzlLWYQ/gVKi2P6GN2oSvWEb0g2dKw2MkL
+ lqNlIJp+nDw2o3RknpRweq3+SU7rbklQ0+E+f0RvU2JCkDHbLaQBccDsiojQ9N1rVY9PJp4jziO
+ OEu+kYTv/xZQ5+pHSiorWzCTCIK1kA68Ab4xZgVKt0nEDrh0NUpeK46qCuX0dKfKHrCup2KHA6c
+ rRH3vDxZOxdZr9k48vA==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDMxMDAxNyBTYWx0ZWRfXywUKFSFjcRVE
+ fwtqlbWtTnquhbTfjWlim7utV1tzGHiHS7vNrNu/xeOI49PTxS9u/Ap4vX8j3Ne70nYsdep25Kq
+ ZVA9NzXNZ+rhubzQDp9PJpravyUOJxA=
+X-Proofpoint-GUID: uUvLLuoCKIqR3Ez9Rnsoww_MVGUXNnF8
 X-HPE-SCL: -1
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
  definitions=2026-10-31_01,2026-10-21_02,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- impostorscore=0 bulkscore=0 adultscore=0 lowpriorityscore=0
- priorityscore=1501 phishscore=0 suspectscore=0 malwarescore=0 clxscore=1015
- spamscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
- adjust=0 reason=mlx scancount=1 engine=8.22.0-2610300000
- definitions=main-2610310017
+ lowpriorityscore=0 bulkscore=0 spamscore=0 impostorscore=0 malwarescore=0
+ adultscore=0 priorityscore=1501 phishscore=0 suspectscore=0 clxscore=1015
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2610300000 definitions=main-2610310017
 
-Add the context and device-level verbs: ucontext allocation, jobs and
-job keys, protection domains, completion queues, address handles,
-GIDs, device/port queries and the mmap entries for doorbells and
-queues.
+Add the private uverbs object methods through which a privileged
+process provisions and drives native Cassini resources.  They exist
+so a launcher or workload manager can set policy on the NIC and the
+provider can reach native queues without the kernel interpreting every
+command:
 
-An LNI and a PID are never created implicitly.  They are bound to the
-context or PD by explicit methods added with the object patch, and
-are released in an order the mmap entries enforce: a mapping holds
-the resource it maps until the last VMA goes away.
+ - services: allocate, enable, query and destroy a CXI service, with
+   VNI, traffic class and resource limits; retry and range VNI modes
+   are selectable
+ - jobs and job keys, LNI and PD PID allocation and query
+ - communication profiles, event queues (with optional pinned PCT
+   registration and PCT passthrough), command queues including a target
+   command queue and a restricted trigger mode, and counting events
+   with a user supplied write-back page
+ - priority wait descriptors: a pollable file descriptor that holds the
+   LNI and reports event and status wakeups, with positional reads so
+   the generation can be consumed without seeking
+ - a privileged mapping of the device CSR aperture and an
+   administrative inbound-wait method, both requiring CAP_SYS_ADMIN
+   and a C1/C2 physical function
 
-Shared RAM buffers are mapped with rdma_user_mmap_io(), as for
-device memory, rather than remap_pfn_range() directly.  The helper
-registers the VMA with the mmap entry, so the owning CT or queue and
-its LNI stay allocated until the last mapping is unmapped; mapping
-RAM directly released them when the owning object was destroyed while
-a mapping still existed.
+Lifetime rules worth knowing when reviewing: a native object stays
+allocated until the last VMA that maps it is released, even if the
+uverbs object was destroyed first; counting events are accounted
+against the LNI and freed together with it; the write-back page for a
+counting event must be user memory and is pinned, never a kernel
+page, because the core driver treats a kernel address passed this
+way as device memory.
 
-Replies to user space use ib_respond_udata() so that a short response
-buffer is truncated and a long one is zero filled, as the ib_udata
-compatibility rules require.
+Known open issue, deferred to the V2 SR-IOV update (Sashiko H87,
+duplicate M88): on a physical function cxi_eq_free() cannot fail. On a
+virtual function it fails when the PF mailbox is unreachable; if that
+happens while the file is closed or the device is removed, the RDMA core
+drops the EQ object without native cleanup and the VF EQ and its
+references leak. Explicit EQ destroys are retried.
 
-The CSR aperture mapping is privileged and publishes the mmap entry
-only after its permission flags are set, so the entry is never
-visible half initialised.  Privileged mappings (CSR, PCT EQ doorbell)
-require CAP_SYS_ADMIN when created and when mapped.  These mappings
-are specifically for use by the card's Retry Handler (to be introduced
-in the rdma-core submission).  The existing Cassini hardware does not
-handle retries in hardware, and these CAP_SYS_ADMIN mapping is needed
-for the Retry Handler to be able to directly program the card's CSRs
-for the necessary packet resends.
-
-Implement optional, sparse per-job address tables with device-capacity
-and per-operation index bounds. Explicit-AH callers may allocate jobs
-with zero entries; release stored addresses when the job is destroyed.
+Known limitation, deferred to V2: this patch carries SR-IOV
+virtual-function code (VF-to-PF mailbox requests, mailbox opcodes or VF
+resource handling) from an older, incomplete version of the Cassini
+SR-IOV support. V2 of this series will include the updated SR-IOV
+implementation, so issues in the VF paths should be ignored for now.
 
 checkpatch --strict (100 columns) still reports the following in this
 patch. They need coordination with the internal repositories this code
 is maintained in and will be fixed in V2:
-- CHECK: PARENTHESIS_ALIGNMENT (13), OPEN_ENDED_LINE (3), LINE_SPACING
-  (1)
+- CHECK: PARENTHESIS_ALIGNMENT (82), OPEN_ENDED_LINE (23),
+  UNCOMMENTED_DEFINITION (1)
 
-Co-developed-by: Iraimani P <iraimani.pavadai@hpe.com>
-Signed-off-by: Iraimani P <iraimani.pavadai@hpe.com>
+Co-developed-by: Mamila Santosh <santosh-kumar.mamila@hpe.com>
+Signed-off-by: Mamila Santosh <santosh-kumar.mamila@hpe.com>
 Signed-off-by: Doug Ledford <doug.ledford@hpe.com>
 ---
- drivers/infiniband/hw/cxi/cxiverbs_main.c | 1105 +++++++++++++++++++++++++++++
- 1 file changed, 1105 insertions(+)
+ drivers/infiniband/hw/cxi/cxiverbs_ct.c | 1906 +++++++++++++++++++++++++++++++
+ 1 file changed, 1906 insertions(+)
 
-diff --git a/drivers/infiniband/hw/cxi/cxiverbs_main.c b/drivers/infiniband/hw/cxi/cxiverbs_main.c
+diff --git a/drivers/infiniband/hw/cxi/cxiverbs_ct.c b/drivers/infiniband/hw/cxi/cxiverbs_ct.c
 new file mode 100644
-index 000000000000..19a796cd5c27
+index 000000000000..c8f8974c649b
 --- /dev/null
-+++ b/drivers/infiniband/hw/cxi/cxiverbs_main.c
-@@ -0,0 +1,1105 @@
++++ b/drivers/infiniband/hw/cxi/cxiverbs_ct.c
+@@ -0,0 +1,1906 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
-+ * CXI InfiniBand RDMA driver — Phase 0-3 and Phase 5 implementations.
-+ * Copyright 2022-2025 Hewlett Packard Enterprise Development LP
++ * cxiverbs_ct.c: Counting Triggers custom uverbs for the CXI RDMA driver.
++ * Copyright 2025 Hewlett Packard Enterprise Development LP
 + *
-+ * Covers:
-+ *   Phase 0: query_device, query_port, get_port_immutable, query_pkey
-+ *   Phase 1: alloc/dealloc_ucontext, alloc/dealloc_pd
-+ *   Phase 3: create/destroy_cq, poll_cq, req_notify_cq, mmap/mmap_free
-+ *   Phase 5: create/destroy_ah, add/del_gid
++ * Exposes CXI Counting Triggers (CTs) to userspace via the RDMA ioctl()
++ * interface.  A CT is a hardware counter that the NIC decrements when a
++ * triggered operation completes; when the counter hits zero the deferred
++ * command is dispatched.
++ *
++ * ABI:
++ *   CXI_IB_OBJECT_CT / CXI_IB_METHOD_CT_ALLOC
++ *     - allocates a CT against the caller's ucontext LNI
++ *     - returns: ctn, writeback-page mmap params, doorbell CSR mmap params
++ *   CXI_IB_METHOD_CT_DESTROY
++ *     - frees all CT resources; uses default destroy handler
++ *
++ * UVERBS_MODULE_NAME must be defined before uverbs_named_ioctl.h.
 + */
++#define UVERBS_MODULE_NAME cxiverbs
++#include <rdma/uverbs_named_ioctl.h>
 +
-+#include <linux/module.h>
-+#include <linux/pci.h>
 +#include <linux/slab.h>
 +#include <linux/gfp.h>
-+#include <linux/random.h>
-+#include <linux/mm.h>
-+#include <linux/vmalloc.h>
-+#include <linux/io.h>
-+#include <net/net_namespace.h>
-+
++#include <linux/file.h>
++#include <linux/poll.h>
++#include <linux/refcount.h>
 +#include <rdma/ib_verbs.h>
-+#include <rdma/ib_mad.h>
 +#include <rdma/uverbs_ioctl.h>
-+
++#include <uapi/rdma/cxiverbs-abi.h>
 +#include "cxiverbs.h"
 +
-+/* =======================================================================
-+ * Phase 0: Device and port query
-+ * =======================================================================
-+ */
-+
-+int cxiverbs_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
-+			 struct ib_udata *udata)
++static struct cxiverbs_ucontext *cxiverbs_get_ucontext(
++		struct uverbs_attr_bundle *attrs)
 +{
-+	struct cxiverbs_dev *dev = to_cxiverbs_dev(ibdev);
-+	const struct cxi_properties_info *p = &dev->cdev->prop;
++	struct ib_ucontext *context = ib_uverbs_get_ucontext(attrs);
 +
-+	memset(props, 0, sizeof(*props));
-+
-+	props->vendor_id      = dev->cadev->pdev->vendor;
-+	props->vendor_part_id = dev->cadev->pdev->device;
-+	props->hw_ver         = dev->cadev->pdev->subsystem_device;
-+	props->fw_ver         = 0;
-+
-+	props->max_mr_size    = ~0ULL;
-+	props->page_size_cap  = PAGE_SIZE;
-+
-+	/* Queue pair limits (bounded by portal table entries) */
-+	props->max_qp     = min_t(u32, p->rsrcs.ptes.max, 1024);
-+	props->max_qp_wr  = 1024;
-+	props->device_cap_flags =
-+		IB_DEVICE_MEM_MGT_EXTENSIONS | IB_DEVICE_RU |
-+		IB_DEVICE_KEY64 | IB_DEVICE_USER_RKEY | IB_DEVICE_IMM64;
-+	/*
-+	 * No CXI initiator command carries a gather list and a list entry
-+	 * describes one buffer, so a work request maps to exactly one segment.
-+	 */
-+	props->max_send_sge = 1;
-+	props->max_recv_sge = 1;
-+
-+	/* Completion queue limits (bounded by event queue count) */
-+	props->max_cq  = min_t(u32, p->rsrcs.eqs.max, 2048);
-+	props->max_cqe = 65536;
-+
-+	/* Memory registration limits */
-+	props->max_mr  = 32768;
-+	props->max_pd  = 1024;
-+	props->max_job_ids = CXI_IBV_JOB_ID_MAX;
-+	props->max_job_keys = props->max_qp;
-+	/* The table is sparse and software-managed; the API uses u32 indices. */
-+	props->max_addr_entries = U32_MAX;
-+
-+	/* RDMA atomics */
-+	props->max_qp_rd_atom      = 1;
-+	props->max_qp_init_rd_atom = 1;
-+	props->max_res_rd_atom     = 1024;
-+	props->atomic_cap          = IB_ATOMIC_GLOB;
-+
-+	/* Pkeys / GIDs */
-+	props->max_pkeys          = 1;
-+	props->local_ca_ack_delay = 0;
-+	props->max_sge_rd         = 1;
-+
-+	/* On-Demand Paging capabilities */
-+	props->odp_caps.general_caps = IB_ODP_SUPPORT;
-+	props->odp_caps.per_transport_caps.rc_odp_caps =
-+		IB_ODP_SUPPORT_WRITE | IB_ODP_SUPPORT_READ | IB_ODP_SUPPORT_SEND;
-+
-+	/* Driver-specific UEC / vendor capabilities via udata */
-+	if (udata) {
-+		const struct cxi_dev_info_use *di = &dev->devinfo;
-+		struct cxi_ibv_query_device_resp vresp = {
-+			.features = CXI_DEVICE_CAP_UEC_QPN |
-+				    CXI_DEVICE_CAP_TRIGGERED_OPS |
-+				    CXI_DEVICE_CAP_ODP,
-+			.max_ctn  = 1024,
-+		};
-+
-+		/*
-+		 * Device-wide properties normally read from native's
-+		 * DEV_INFO_GET ioctl / sysfs tree — neither exists on the
-+		 * RDMA path, so hand them back here instead (see the
-+		 * cxi_ibv_devinfo comment in the uapi header).
-+		 */
-+		vresp.devinfo.nid                 = READ_ONCE(di->nid);
-+		vresp.devinfo.pid_bits            = di->pid_bits;
-+		vresp.devinfo.pid_count           = di->pid_count;
-+		vresp.devinfo.pid_granule         = di->pid_granule;
-+		vresp.devinfo.min_free_shift      = di->min_free_shift;
-+		vresp.devinfo.rdzv_get_idx        = di->rdzv_get_idx;
-+		vresp.devinfo.vendor_id           = di->vendor_id;
-+		vresp.devinfo.device_id           = di->device_id;
-+		vresp.devinfo.device_rev          = di->device_rev;
-+		vresp.devinfo.device_proto        = di->device_proto;
-+		vresp.devinfo.device_platform     = di->device_platform;
-+		vresp.devinfo.pct_eq              = di->pct_eq;
-+		vresp.devinfo.uc_nic              = di->uc_nic;
-+		vresp.devinfo.link_mtu            = di->link_mtu;
-+		vresp.devinfo.link_speed          = di->link_speed;
-+		vresp.devinfo.link_state          = di->link_state;
-+		vresp.devinfo.num_ptes            = di->num_ptes;
-+		vresp.devinfo.num_txqs            = di->num_txqs;
-+		vresp.devinfo.num_tgqs            = di->num_tgqs;
-+		vresp.devinfo.num_eqs             = di->num_eqs;
-+		vresp.devinfo.num_cts             = di->num_cts;
-+		vresp.devinfo.num_acs             = di->num_acs;
-+		vresp.devinfo.num_tles            = di->num_tles;
-+		vresp.devinfo.num_les             = di->num_les;
-+		vresp.devinfo.cassini_version     = di->cassini_version;
-+		vresp.devinfo.vni_matching        = p->vni_matching;
-+		vresp.devinfo.system_type_identifier = di->system_type_identifier;
-+		BUILD_BUG_ON(sizeof(vresp.devinfo.fru_description) !=
-+			     sizeof(di->fru_description));
-+		memcpy(vresp.devinfo.fru_description, di->fru_description,
-+		       sizeof(di->fru_description));
-+
-+		return ib_respond_udata(udata, vresp);
-+	}
-+
-+	return 0;
++	if (IS_ERR(context))
++		return ERR_CAST(context);
++	return to_cxiverbs_ucontext(context);
 +}
 +
-+int cxiverbs_query_port(struct ib_device *ibdev, u32 port,
-+		       struct ib_port_attr *props)
-+{
-+	struct cxiverbs_dev *dev = to_cxiverbs_dev(ibdev);
-+
-+	if (port != 1)
-+		return -EINVAL;
-+
-+	memset(props, 0, sizeof(*props));
-+
-+	props->state  = dev->cadev->is_link_up(dev->cdev) ? IB_PORT_ACTIVE
-+						   : IB_PORT_DOWN;
-+	props->phys_state = (props->state == IB_PORT_ACTIVE) ?
-+		IB_PORT_PHYS_STATE_LINK_UP : IB_PORT_PHYS_STATE_POLLING;
-+	props->max_mtu       = IB_MTU_4096;
-+	props->active_mtu    = IB_MTU_4096;
-+	props->gid_tbl_len   = 1;
-+	props->pkey_tbl_len  = 1;
-+	props->max_msg_sz    = 0x80000000U;
-+	props->active_width  = IB_WIDTH_4X;
-+	props->active_speed  = IB_SPEED_HDR; /* nearest IB speed for 200 Gbit */
-+	props->port_cap_flags = IB_PORT_CM_SUP;
-+
-+	return 0;
-+}
-+
-+struct net_device *cxiverbs_get_netdev(struct ib_device *ibdev, u32 port)
-+{
-+	struct cxiverbs_dev *dev = to_cxiverbs_dev(ibdev);
-+
-+	if (port != 1 || !dev->cdev->eth_name[0])
-+		return NULL;
-+
-+	return dev_get_by_name(&init_net, dev->cdev->eth_name);
-+}
-+
-+int cxiverbs_get_port_immutable(struct ib_device *ibdev, u32 port_num,
-+			       struct ib_port_immutable *immutable)
-+{
-+	struct ib_port_attr attr;
-+	int ret;
-+
-+	if (port_num != 1)
-+		return -EINVAL;
-+
-+	ret = cxiverbs_query_port(ibdev, port_num, &attr);
-+	if (ret)
-+		return ret;
-+
-+	immutable->core_cap_flags = RDMA_CORE_PORT_SLINGSHOT;
-+	immutable->gid_tbl_len    = attr.gid_tbl_len;
-+	immutable->pkey_tbl_len   = attr.pkey_tbl_len;
-+	immutable->max_mad_size   = 0;
-+
-+	return 0;
-+}
-+
-+int cxiverbs_query_pkey(struct ib_device *device, u32 port_num,
-+		       u16 index, u16 *pkey)
-+{
-+	if (index != 0)
-+		return -EINVAL;
-+	*pkey = 0xffff;
-+	return 0;
-+}
-+
-+int cxiverbs_query_gid(struct ib_device *device, u32 port_num, int index,
-+		      union ib_gid *gid)
-+{
-+	struct cxiverbs_dev *dev = to_cxiverbs_dev(device);
-+
-+	if (port_num != 1 || index != 0)
-+		return -EINVAL;
-+
-+	memset(gid, 0, sizeof(*gid));
-+	gid->global.interface_id = cpu_to_be64(READ_ONCE(dev->nid));
-+	return 0;
-+}
-+
-+/* =======================================================================
-+ * Phase 1: User context  ->  one JobID-anchored CXI LNI per process open
-+ *
-+ * GET_CONTEXT opens an unbound context. A later privileged Job allocation gets
-+ * or creates the device-wide JobID entry and binds this context to that entry's
-+ * LNI. Services are selected later, when QPs are created.
-+ * =======================================================================
-+ */
-+
-+static int cxiverbs_parse_ucontext_cmd(struct cxi_ibv_alloc_ucontext_cmd *cmd,
-+					     struct ib_udata *udata)
-+{
-+	static const u32 known_mask = CXI_IBV_ALLOC_UCONTEXT_PIDONFEP;
-+	size_t copy_len;
-+	int ret;
-+
-+	if (!udata || !udata->inlen)
-+		return 0;
-+
-+	copy_len = min_t(size_t, udata->inlen, sizeof(*cmd));
-+	ret = ib_copy_from_udata(cmd, udata, copy_len);
-+	if (ret)
-+		return ret;
-+
-+	if (cmd->comp_mask & ~known_mask)
-+		return -EOPNOTSUPP;
-+	if ((cmd->comp_mask & CXI_IBV_ALLOC_UCONTEXT_PIDONFEP) &&
-+	    cmd->pidonfep > CXI_IBV_PIDONFEP_MAX)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+int cxiverbs_alloc_ucontext(struct ib_ucontext *uctx, struct ib_udata *udata)
-+{
-+	struct ib_device *ibdev   = uctx->device;
-+	struct cxiverbs_dev *dev    = to_cxiverbs_dev(ibdev);
-+	struct cxiverbs_ucontext *ctx = to_cxiverbs_ucontext(uctx);
-+	struct cxi_adev *cadev    = dev->cadev;
-+	struct cxi_ibv_alloc_ucontext_cmd  cmd  = {};
-+	struct cxi_ibv_alloc_ucontext_resp resp = {};
-+	int ret;
-+	int i;
-+
-+	ctx->cadev = cadev;
-+	xa_init(&ctx->lnis);
-+	mutex_init(&ctx->resource_lock);
-+	ctx->lni = NULL;
-+	ctx->job_id = 0;
-+	ctx->default_pidonfep = 0;
-+	ctx->default_pidonfep_valid = false;
-+
-+	/* Parse launch defaults; jobs and LNIs are allocated explicitly. */
-+	ret = cxiverbs_parse_ucontext_cmd(&cmd, udata);
-+	if (ret) {
-+		mutex_destroy(&ctx->resource_lock);
-+		xa_destroy(&ctx->lnis);
-+		return ret;
-+	}
-+
-+	if (cmd.comp_mask & CXI_IBV_ALLOC_UCONTEXT_PIDONFEP) {
-+		ctx->default_pidonfep = cmd.pidonfep;
-+		ctx->default_pidonfep_valid = true;
-+	}
-+
-+	/* Initialize TC limits (placeholder; typically populated by service query) */
-+	mutex_init(&ctx->tc_lock);
-+	ctx->num_tc_limits = 0;
-+	/* TODO: Query service for TC limits and populate tc_limits[] */
-+	for (i = 0; i < CXIVERBS_TC_MAX; i++) {
-+		ctx->tc_limits[i].tc = i;
-+		ctx->tc_limits[i].max_ptes = 0;	/* will be filled by service query */
-+		ctx->tc_limits[i].max_cps = 0;
-+		ctx->tc_limits[i].max_qps = 0;
-+	}
-+
-+	/* Populate response */
-+	resp.nid         = READ_ONCE(dev->nid);
-+	resp.pid_bits    = dev->pid_bits;
-+	resp.pid_count   = dev->pid_count;
-+	resp.pid_granule = dev->pid_granule;
-+	resp.lni_id      = ctx->lni ? ctx->lni->id : 0;
-+	resp.num_tc_limits = ctx->num_tc_limits;
-+
-+	if (udata) {
-+		ret = ib_respond_udata(udata, resp);
-+		if (ret)
-+			goto err_destroy_context;
-+	}
-+
-+	return 0;
-+
-+err_destroy_context:
-+	xa_destroy(&ctx->lnis);
-+	mutex_destroy(&ctx->resource_lock);
-+	mutex_destroy(&ctx->tc_lock);
-+	return ret;
-+}
-+
-+int cxiverbs_alloc_job(struct ib_job *job, struct ib_job_attr *attr,
-+		       struct uverbs_attr_bundle *attrs)
-+{
-+	struct cxiverbs_dev *dev = to_cxiverbs_dev(job->device);
-+	struct cxiverbs_job_entry *entry =
-+		container_of(job, struct cxiverbs_job_entry, ibjob);
-+	int ret;
-+
-+	if (!capable(CAP_NET_ADMIN))
-+		return -EPERM;
-+	if (!attr->job_id || attr->job_id > CXI_IBV_JOB_ID_MAX ||
-+	    attr->port_num != 1 || attr->sgid_index)
-+		return -EINVAL;
-+	if (attr->max_addr_entries > dev->ib_dev.attrs.max_addr_entries)
-+		return -EINVAL;
-+
-+	entry->job_id = attr->job_id;
-+	entry->attr = *attr;
-+	mutex_init(&entry->addr_lock);
-+	xa_init(&entry->addr_table);
-+	mutex_lock(&dev->jobs_lock);
-+	ret = xa_insert(&dev->jobs, entry->job_id, entry, GFP_KERNEL);
-+	mutex_unlock(&dev->jobs_lock);
-+	if (ret) {
-+		xa_destroy(&entry->addr_table);
-+		mutex_destroy(&entry->addr_lock);
-+	}
-+	return ret;
-+}
-+
-+int cxiverbs_query_job(struct ib_job *job, struct ib_job_attr *attr)
-+{
-+	struct cxiverbs_job_entry *entry =
-+		container_of(job, struct cxiverbs_job_entry, ibjob);
-+
-+	*attr = entry->attr;
-+	return 0;
-+}
-+
-+int cxiverbs_job_addr_insert(struct ib_job *job, u32 index,
-+			     struct rdma_ah_attr_ex *ah_attr)
-+{
-+	struct cxiverbs_job_entry *entry =
-+		container_of(job, struct cxiverbs_job_entry, ibjob);
-+	struct rdma_ah_attr_ex *copy;
-+	int ret;
-+
-+	if (!ah_attr || index >= job->max_addr_entries)
-+		return -EINVAL;
-+	copy = kmemdup(ah_attr, sizeof(*copy), GFP_KERNEL);
-+	if (!copy)
-+		return -ENOMEM;
-+
-+	mutex_lock(&entry->addr_lock);
-+	ret = xa_insert(&entry->addr_table, index, copy, GFP_KERNEL);
-+	mutex_unlock(&entry->addr_lock);
-+	if (ret)
-+		kfree(copy);
-+	return ret;
-+}
-+
-+int cxiverbs_job_addr_remove(struct ib_job *job, u32 index)
-+{
-+	struct cxiverbs_job_entry *entry =
-+		container_of(job, struct cxiverbs_job_entry, ibjob);
-+	struct rdma_ah_attr_ex *addr;
-+
-+	if (index >= job->max_addr_entries)
-+		return -EINVAL;
-+	mutex_lock(&entry->addr_lock);
-+	addr = xa_erase(&entry->addr_table, index);
-+	mutex_unlock(&entry->addr_lock);
-+	if (!addr)
-+		return -ENOENT;
-+	kfree(addr);
-+	return 0;
-+}
-+
-+int cxiverbs_job_addr_query(struct ib_job *job, u32 index,
-+			    struct rdma_ah_attr_ex *ah_attr)
-+{
-+	struct cxiverbs_job_entry *entry =
-+		container_of(job, struct cxiverbs_job_entry, ibjob);
-+	struct rdma_ah_attr_ex *addr;
-+
-+	if (!ah_attr || index >= job->max_addr_entries)
-+		return -EINVAL;
-+	mutex_lock(&entry->addr_lock);
-+	addr = xa_load(&entry->addr_table, index);
-+	if (addr)
-+		*ah_attr = *addr;
-+	mutex_unlock(&entry->addr_lock);
-+	return addr ? 0 : -ENOENT;
-+}
-+
-+void cxiverbs_dealloc_job(struct ib_job *job)
-+{
-+	struct cxiverbs_dev *dev = to_cxiverbs_dev(job->device);
-+	struct cxiverbs_job_entry *entry =
-+		container_of(job, struct cxiverbs_job_entry, ibjob);
-+	struct cxiverbs_tc_entry *tc_entry;
-+	struct cxiverbs_job_tc_binding *binding, *tmp;
-+	struct rdma_ah_attr_ex *addr;
-+	unsigned long index;
-+
-+	mutex_lock(&dev->jobs_lock);
-+	xa_erase(&dev->jobs, entry->job_id);
-+	xa_for_each(&dev->tcs, index, tc_entry) {
-+		list_for_each_entry_safe(binding, tmp, &tc_entry->job_list, entry) {
-+			if (binding->job != entry)
-+				continue;
-+			list_del(&binding->entry);
-+			kfree(binding);
-+		}
-+	}
-+	mutex_unlock(&dev->jobs_lock);
-+	mutex_lock(&entry->addr_lock);
-+	xa_for_each(&entry->addr_table, index, addr)
-+		kfree(addr);
-+	xa_destroy(&entry->addr_table);
-+	mutex_unlock(&entry->addr_lock);
-+	mutex_destroy(&entry->addr_lock);
-+}
-+
-+void cxiverbs_dealloc_ucontext(struct ib_ucontext *uctx)
-+{
-+	struct cxiverbs_ucontext *ctx = to_cxiverbs_ucontext(uctx);
-+
-+	xa_destroy(&ctx->lnis);
-+	mutex_destroy(&ctx->resource_lock);
-+	mutex_destroy(&ctx->tc_lock);
-+}
-+
-+/* =======================================================================
-+ * Protection domain -> selected explicit LNI + RGID
-+ *
-+ * PDs select an LNI from the ucontext's handle table and carry PD-local
-+ * defaults such as preferred service ID and PIDonFEP.
-+ * =======================================================================
-+ */
-+
-+
-+int cxiverbs_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
-+{
-+	struct cxiverbs_ucontext *uctxt;
-+	struct cxiverbs_pd *pd          = to_cxiverbs_pd(ibpd);
-+	struct cxi_ibv_alloc_pd_cmd  cmd  = {};
-+	struct cxi_ibv_alloc_pd_resp resp = {};
-+	int ret;
-+
-+	if (!ibpd->uobject)
-+		return -EOPNOTSUPP;
-+	uctxt = to_cxiverbs_ucontext(ibpd->uobject->context);
-+
-+	/* Parse optional preferred_svc_id from user */
-+	if (udata && udata->inlen >= sizeof(cmd)) {
-+		ret = ib_copy_from_udata(&cmd, udata, sizeof(cmd));
-+		if (ret)
-+			return ret;
-+	}
-+
-+	if (cmd.comp_mask & ~(CXI_IBV_ALLOC_PD_LNI |
-+			      CXI_IBV_ALLOC_PD_SVC_ID_PREFERRED))
-+		return -EOPNOTSUPP;
-+	pd->lni_ref = cxiverbs_lni_get(uctxt,
-+		(cmd.comp_mask & CXI_IBV_ALLOC_PD_LNI) ?
-+		cmd.lni_handle : CXI_IBV_LNI_ANY);
-+	if (IS_ERR(pd->lni_ref))
-+		return PTR_ERR(pd->lni_ref);
-+
-+	if ((cmd.comp_mask & CXI_IBV_ALLOC_PD_SVC_ID_PREFERRED) &&
-+	    cmd.preferred_svc_id &&
-+	    cmd.preferred_svc_id != pd->lni_ref->svc_id) {
-+		cxiverbs_lni_put(pd->lni_ref);
-+		return -EINVAL;
-+	}
-+
-+	pd->job_id = uctxt->job_id;
-+	pd->preferred_svc_id = pd->lni_ref->svc_id;
-+	pd->rgid = pd->lni_ref->lni->rgid;
-+	pd->pd_id = pd->lni_ref->lni->id;
-+	pd->qpn_addr_mode = 0;
-+
-+	/* Inherit PIDonFEP defaults from ucontext if available */
-+	pd->default_pidonfep = uctxt->default_pidonfep;
-+	pd->default_pidonfep_valid = uctxt->default_pidonfep_valid;
-+	pd->pidonfep_valid = false;
-+
-+	mutex_init(&pd->resource_lock);
-+	xa_init_flags(&pd->qpns, XA_FLAGS_ALLOC);
-+
-+	resp.pd_id = pd->pd_id;
-+	if (udata) {
-+		ret = ib_respond_udata(udata, resp);
-+		if (ret) {
-+			mutex_destroy(&pd->resource_lock);
-+			xa_destroy(&pd->qpns);
-+			cxiverbs_lni_put(pd->lni_ref);
-+			return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+int cxiverbs_dealloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
-+{
-+	struct cxiverbs_pd *pd = to_cxiverbs_pd(ibpd);
-+	struct cxiverbs_dev *dev = to_cxiverbs_dev(ibpd->device);
-+
-+	if (pd->pidonfep_valid)
-+		dev->cadev->pid_free(pd->lni_ref->lni, pd->pidonfep);
-+	xa_destroy(&pd->qpns);
-+	mutex_destroy(&pd->resource_lock);
-+	cxiverbs_lni_put(pd->lni_ref);
-+	return 0;
-+}
-+
-+int cxiverbs_create_jkey(struct ib_jkey *jkey,
-+			 struct uverbs_attr_bundle *attrs)
-+{
-+	struct cxiverbs_jkey *key =
-+		container_of(jkey, struct cxiverbs_jkey, ibjkey);
-+	struct cxiverbs_pd *pd = to_cxiverbs_pd(jkey->pd);
-+	struct cxiverbs_dev *dev = to_cxiverbs_dev(jkey->device);
-+	struct cxi_ibv_create_jkey_cmd cmd = { .tc = CXI_TC_BEST_EFFORT };
-+	int ret;
-+
-+	if (!pd->lni_ref)
-+		return -EINVAL;
-+	if (attrs->driver_udata.inlen >= sizeof(cmd)) {
-+		ret = ib_copy_from_udata(&cmd, &attrs->driver_udata, sizeof(cmd));
-+		if (ret)
-+			return ret;
-+	}
-+	key->cp = dev->cadev->cp_alloc(pd->lni_ref->lni, jkey->job->job_id,
-+				     cmd.tc, CXI_TC_TYPE_DEFAULT);
-+	if (IS_ERR(key->cp))
-+		return PTR_ERR(key->cp);
-+	jkey->jkey = key->cp->lcid;
-+	return 0;
-+}
-+
-+int cxiverbs_destroy_jkey(struct ib_jkey *jkey,
-+			  struct uverbs_attr_bundle *attrs)
-+{
-+	struct cxiverbs_jkey *key =
-+		container_of(jkey, struct cxiverbs_jkey, ibjkey);
-+	struct cxiverbs_dev *dev = to_cxiverbs_dev(jkey->device);
-+
-+	dev->cadev->cp_free(key->cp);
-+	return 0;
-+}
-+
-+/* =======================================================================
-+ * Phase 3: Completion queue  →  CXI Event Queue (EQ)
-+ *
-+ * The EQ ring buffer is allocated from compound pages, pinned in RAM, and
-+ * registered with the ATU so hardware can write events directly.  Both the
-+ * ring buffer and the doorbell CSR are exposed to user-space via mmap.
-+ * =======================================================================
-+ */
-+
-+/*
-+ * EQ event callback — called from the CXI interrupt handler.
-+ * Notifies the RDMA core that new completions are available.
-+ */
-+struct cxiverbs_cq_resources {
-+	refcount_t refs;
-+	spinlock_t callback_lock; /* protects cq during callback delivery */
-+	struct cxiverbs_cq *cq;
-+	struct cxiverbs_lni *lni;
-+	struct cxi_adev *cadev;
-+	struct cxi_eq *eq;
-+	struct cxi_md *eq_md;
-+	struct page **pages;
-+	unsigned int order;
++struct cxiverbs_csr {
++	struct cxiverbs_mmap_entry *mapping;
 +};
 +
-+static void cxiverbs_eq_event_cb(void *cb_data)
++static int cxiverbs_csr_cleanup(struct ib_uobject *uobj,
++			       enum rdma_remove_reason why,
++			       struct uverbs_attr_bundle *attrs)
 +{
-+	struct cxiverbs_cq_resources *resources = cb_data;
-+	struct cxiverbs_cq *cq;
-+	unsigned long flags;
++	struct cxiverbs_csr *csr = uobj->object;
 +
-+	spin_lock_irqsave(&resources->callback_lock, flags);
-+	cq = resources->cq;
-+	if (cq && cq->ibcq.comp_handler)
-+		cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
-+	spin_unlock_irqrestore(&resources->callback_lock, flags);
++	rdma_user_mmap_entry_remove(&csr->mapping->rdma_entry);
++	kfree(csr);
++	return 0;
 +}
 +
-+/*
-+ * Allocate a heap-allocated cxiverbs_mmap_entry and register it for mmap.
-+ * Returns ERR_PTR on failure.
-+ */
-+static struct cxiverbs_mmap_entry *
-+cxiverbs_mmap_entry_create(struct ib_ucontext *ibctx, bool is_io,
-+			  bool admin_only, phys_addr_t phys,
-+			  struct page *first_page, size_t size, u64 *offset_out,
-+			  void *owner, void (*release_owner)(void *))
++static int UVERBS_HANDLER(CXI_IB_METHOD_CSR_MAP)(
++		struct uverbs_attr_bundle *attrs)
 +{
-+	struct cxiverbs_mmap_entry *ent;
++	struct ib_uobject *uobj =
++		uverbs_attr_get_uobject(attrs, CXI_IB_ATTR_CSR_HANDLE);
++	struct cxi_ibv_csr_info info = {};
++	struct cxiverbs_ucontext *ctx;
++	struct cxiverbs_csr *csr;
++	struct cxi_dev *cdev;
++	phys_addr_t physical;
++	size_t length;
++	u32 generation;
 +	int ret;
 +
-+	ent = kzalloc_obj(*ent);
-+	if (!ent)
-+		return ERR_PTR(-ENOMEM);
-+
-+	ent->is_io      = is_io;
-+	ent->admin_only = admin_only;
-+	ent->phys       = phys;
-+	ent->first_page = first_page;
-+	ent->owner = owner;
-+	ent->release_owner = release_owner;
-+
-+	ret = rdma_user_mmap_entry_insert(ibctx, &ent->rdma_entry, size);
-+	if (ret) {
-+		kfree(ent);
-+		return ERR_PTR(ret);
-+	}
-+
-+	*offset_out = rdma_user_mmap_get_offset(&ent->rdma_entry);
-+	return ent;
-+}
-+
-+struct cxiverbs_mmap_entry *
-+cxiverbs_mmap_entry_alloc(struct ib_ucontext *ibctx, bool is_io,
-+			 phys_addr_t phys, struct page *first_page,
-+			 size_t size, u64 *offset_out)
-+{
-+	return cxiverbs_mmap_entry_create(ibctx, is_io, false, phys, first_page,
-+					  size, offset_out, NULL, NULL);
-+}
-+
-+struct cxiverbs_mmap_entry *
-+cxiverbs_mmap_entry_alloc_owned(struct ib_ucontext *ibctx, bool is_io,
-+			       phys_addr_t phys, struct page *first_page,
-+			       size_t size, u64 *offset_out, void *owner,
-+			       void (*release_owner)(void *))
-+{
-+	return cxiverbs_mmap_entry_create(ibctx, is_io, false, phys, first_page,
-+					  size, offset_out, owner,
-+					  release_owner);
-+}
-+
-+struct cxiverbs_mmap_entry *
-+cxiverbs_mmap_entry_alloc_admin(struct ib_ucontext *ibctx, phys_addr_t phys,
-+			       size_t size, u64 *offset_out)
-+{
-+	return cxiverbs_mmap_entry_create(ibctx, true, true, phys, NULL,
-+					  size, offset_out, NULL, NULL);
-+}
-+
-+static void cxiverbs_cq_free_ring(struct page *first, unsigned int order)
-+{
-+	unsigned long i;
-+
-+	for (i = 0; i < (1UL << order); i++)
-+		__free_page(first + i);
-+}
-+
-+static void cxiverbs_cq_resources_put(void *owner)
-+{
-+	struct cxiverbs_cq_resources *resources = owner;
-+
-+	if (!refcount_dec_and_test(&resources->refs))
-+		return;
-+	if (resources->eq && WARN_ON(resources->cadev->eq_free(resources->eq)))
-+		return;
-+	if (resources->eq_md &&
-+	    WARN_ON(resources->cadev->cxi_unmap(resources->eq_md)))
-+		return;
-+	if (resources->pages) {
-+		if (resources->pages[0])
-+			cxiverbs_cq_free_ring(resources->pages[0], resources->order);
-+		kfree(resources->pages);
-+	}
-+	cxiverbs_lni_put(resources->lni);
-+	kfree(resources);
-+}
-+
-+static void cxiverbs_cq_release(struct cxiverbs_cq *cq)
-+{
-+	struct cxiverbs_cq_resources *resources = cq->resources;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&resources->callback_lock, flags);
-+	resources->cq = NULL;
-+	spin_unlock_irqrestore(&resources->callback_lock, flags);
-+
-+	if (cq->db_mmap)
-+		rdma_user_mmap_entry_remove(&cq->db_mmap->rdma_entry);
-+	if (cq->buf_mmap)
-+		rdma_user_mmap_entry_remove(&cq->buf_mmap->rdma_entry);
-+	cq->resources = NULL;
-+	cxiverbs_cq_resources_put(resources);
-+}
-+
-+int cxiverbs_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
-+		      struct uverbs_attr_bundle *bundle)
-+{
-+	struct cxiverbs_cq *cq      = to_cxiverbs_cq(ibcq);
-+	struct cxiverbs_dev *dev    = to_cxiverbs_dev(ibcq->device);
-+	(void)dev; /* reserved for future use */
-+	struct ib_udata *udata;
-+	struct cxi_ibv_create_cq_cmd cmd = { .lni_handle = CXI_IBV_LNI_ANY };
-+	struct cxi_ibv_create_cq_resp resp = {};
-+	struct cxiverbs_ucontext *ctx;
-+	struct cxi_eq_attr eq_attr = {};
-+	unsigned int n_entries     = attr->cqe;
-+	unsigned int cpu_aff       = 0;
-+	size_t buf_sz;
-+	unsigned int npages;
-+	int order, i, ret;
-+	phys_addr_t db_phys;
-+	size_t db_size;
-+
-+	/* Kernel CQs are not yet supported */
-+	if (!bundle || !bundle->context)
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++	ctx = cxiverbs_get_ucontext(attrs);
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
++	cdev = ctx->cadev->cxi_dev;
++	generation = cdev->prop.cassini_version & 0xf0;
++	if (!cdev->is_physfn ||
++	    (generation != CASSINI_1 && generation != CASSINI_2))
 +		return -EOPNOTSUPP;
-+	udata = &bundle->driver_udata;
-+	ctx = to_cxiverbs_ucontext(bundle->context);
-+
-+	cq->cadev = ctx->cadev;
-+
-+	/* Optional driver-private fields from user-space */
-+	if (udata && udata->inlen >= sizeof(cmd)) {
-+		ret = ib_copy_from_udata(&cmd, udata, sizeof(cmd));
-+		if (ret)
-+			return ret;
-+		if (cmd.n_entries)
-+			n_entries = cmd.n_entries;
-+		cpu_aff = cmd.cpu_affinity;
++	cxi_get_csrs_range(cdev, &physical, &length);
++	if (!length || !IS_ALIGNED(physical, PAGE_SIZE) ||
++	    !IS_ALIGNED(length, PAGE_SIZE))
++		return -EINVAL;
++	csr = kzalloc_obj(*csr, GFP_KERNEL);
++	if (!csr)
++		return -ENOMEM;
++	csr->mapping = cxiverbs_mmap_entry_alloc_admin(&ctx->ibucontext,
++						     physical, length,
++						     &info.offset);
++	if (IS_ERR(csr->mapping)) {
++		ret = PTR_ERR(csr->mapping);
++		kfree(csr);
++		return ret;
 +	}
-+	cq->lni_ref = cxiverbs_lni_get(ctx, cmd.lni_handle);
-+	if (IS_ERR(cq->lni_ref))
-+		return PTR_ERR(cq->lni_ref);
++	info.length = length;
++	uobj->object = csr;
++	uverbs_finalize_uobj_create(attrs, CXI_IB_ATTR_CSR_HANDLE);
++	return uverbs_copy_to(attrs, CXI_IB_ATTR_CSR_INFO, &info, sizeof(info));
++}
 +
-+	cq->resources = kzalloc_obj(*cq->resources);
-+	if (!cq->resources) {
-+		ret = -ENOMEM;
-+		goto err_put_lni;
++DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_CSR_MAP,
++	UVERBS_ATTR_IDR(CXI_IB_ATTR_CSR_HANDLE, CXI_IB_OBJECT_CSR,
++		       UVERBS_ACCESS_NEW, UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_CSR_INFO,
++			    UVERBS_ATTR_TYPE(struct cxi_ibv_csr_info),
++			    UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_METHOD_DESTROY(CXI_IB_METHOD_CSR_UNMAP,
++	UVERBS_ATTR_IDR(CXI_IB_ATTR_CSR_HANDLE, CXI_IB_OBJECT_CSR,
++		       UVERBS_ACCESS_DESTROY, UA_MANDATORY));
++
++static int
++UVERBS_HANDLER(CXI_IB_METHOD_CSR_INBOUND_WAIT)(struct uverbs_attr_bundle *attrs)
++{
++	struct cxiverbs_ucontext *ctx;
++	struct cxi_dev *cdev;
++	u32 generation;
++
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++	ctx = cxiverbs_get_ucontext(attrs);
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
++	cdev = ctx->cadev->cxi_dev;
++	generation = cdev->prop.cassini_version & 0xf0;
++	if (!cdev->is_physfn ||
++	    (generation != CASSINI_1 && generation != CASSINI_2))
++		return -EOPNOTSUPP;
++	return cxi_inbound_wait(cdev);
++}
++
++DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_CSR_INBOUND_WAIT);
++
++DECLARE_UVERBS_NAMED_OBJECT(CXI_IB_OBJECT_CSR,
++	UVERBS_TYPE_ALLOC_IDR(cxiverbs_csr_cleanup),
++	&UVERBS_METHOD(CXI_IB_METHOD_CSR_MAP),
++	&UVERBS_METHOD(CXI_IB_METHOD_CSR_UNMAP),
++	&UVERBS_METHOD(CXI_IB_METHOD_CSR_INBOUND_WAIT));
++
++struct cxiverbs_lni *cxiverbs_lni_get(struct cxiverbs_ucontext *ctx, u32 handle)
++{
++	struct cxiverbs_lni *lni = NULL;
++	struct cxiverbs_lni *candidate;
++	unsigned long index;
++
++	mutex_lock(&ctx->resource_lock);
++	if (handle != CXI_IBV_LNI_ANY) {
++		lni = xa_load(&ctx->lnis, handle);
++	} else {
++		xa_for_each(&ctx->lnis, index, candidate) {
++			if (lni) {
++				lni = NULL;
++				break;
++			}
++			lni = candidate;
++		}
 +	}
-+	refcount_set(&cq->resources->refs, 1);
-+	spin_lock_init(&cq->resources->callback_lock);
-+	cq->resources->cq = cq;
-+	cq->resources->lni = cq->lni_ref;
-+	cq->resources->cadev = cq->cadev;
++	if (lni)
++		atomic_inc(&lni->usecnt);
++	mutex_unlock(&ctx->resource_lock);
++	return lni ? lni : ERR_PTR(-EINVAL);
++}
 +
-+	/* Clamp and round up to hardware constraints */
-+	n_entries = min_t(unsigned int, n_entries, 65536);
-+	n_entries = max_t(unsigned int, n_entries, 64);
-+	n_entries = roundup_pow_of_two(n_entries);
++void cxiverbs_lni_put(struct cxiverbs_lni *lni)
++{
++	atomic_dec(&lni->usecnt);
++}
 +
-+	/* Each event slot is C_EE_CFG_ECB_SIZE bytes */
-+	buf_sz  = (size_t)n_entries * C_EE_CFG_ECB_SIZE;
-+	buf_sz  = PAGE_ALIGN(buf_sz);
-+	npages  = buf_sz >> PAGE_SHIFT;
-+	order   = get_order(buf_sz);
-+	cq->resources->order = order;
++static int cxiverbs_lni_cleanup(struct ib_uobject *uobj,
++			       enum rdma_remove_reason why,
++			       struct uverbs_attr_bundle *attrs)
++{
++	struct cxiverbs_lni *lni = uobj->object;
++	struct cxiverbs_ucontext *ctx = lni->ctx;
 +
-+	/* Allocate and zero the event ring buffer */
-+	cq->pages = kcalloc(npages, sizeof(*cq->pages), GFP_KERNEL);
-+	cq->resources->pages = cq->pages;
-+	if (!cq->pages) {
-+		ret = -ENOMEM;
-+		goto err_release;
++	mutex_lock(&ctx->resource_lock);
++	if (atomic_read(&lni->usecnt)) {
++		mutex_unlock(&ctx->resource_lock);
++		return -EBUSY;
 +	}
++	xa_erase(&ctx->lnis, lni->handle);
++	mutex_unlock(&ctx->resource_lock);
++	ctx->cadev->lni_free(lni->lni);
++	kfree(lni);
++	return 0;
++}
 +
-+	cq->pages[0] = alloc_pages(GFP_KERNEL | __GFP_ZERO, order);
-+	if (!cq->pages[0]) {
-+		ret = -ENOMEM;
-+		goto err_release;
-+	}
-+	split_page(cq->pages[0], order);
-+	for (i = 1; i < (int)npages; i++)
-+		cq->pages[i] = cq->pages[0] + i;
++static int UVERBS_HANDLER(CXI_IB_METHOD_LNI_ALLOC)(
++		struct uverbs_attr_bundle *attrs)
++{
++	struct ib_uobject *uobj =
++		uverbs_attr_get_uobject(attrs, CXI_IB_ATTR_LNI_ALLOC_HANDLE);
++	struct cxiverbs_ucontext *ctx = cxiverbs_get_ucontext(attrs);
++	struct cxiverbs_lni *lni;
++	u32 svc_id;
++	int ret;
 +
-+	cq->eq_buf      = page_address(cq->pages[0]);
-+	cq->eq_buf_size = buf_sz;
-+	cq->npages      = npages;
-+
-+	/* Register with the ATU so hardware can DMA events into the buffer */
-+	cq->eq_md = ctx->cadev->cxi_map(cq->lni_ref->lni,
-+			    (uintptr_t)cq->eq_buf,
-+			    buf_sz, CXI_MAP_PIN | CXI_MAP_WRITE | CXI_MAP_READ,
-+			    NULL);
-+	if (IS_ERR(cq->eq_md)) {
-+		ret = PTR_ERR(cq->eq_md);
-+		cq->eq_md = NULL;
-+		goto err_release;
-+	}
-+	cq->resources->eq_md = cq->eq_md;
-+
-+	/* Configure and allocate the EQ */
-+	eq_attr.queue               = cq->eq_buf;
-+	eq_attr.queue_len           = buf_sz;
-+	eq_attr.cpu_affinity        = cpu_aff;
-+	eq_attr.status_thresh_base  = 95;
-+	eq_attr.status_thresh_delta = 15;
-+	eq_attr.status_thresh_count = 2;
-+
-+	cq->eq = ctx->cadev->eq_alloc(cq->lni_ref->lni, cq->eq_md, &eq_attr,
-+			      cxiverbs_eq_event_cb, cq->resources, NULL, NULL);
-+	if (IS_ERR(cq->eq)) {
-+		ret = PTR_ERR(cq->eq);
-+		cq->eq = NULL;
-+		goto err_release;
-+	}
-+	cq->resources->eq = cq->eq;
-+
-+	/* Get the doorbell CSR address for user mmap */
-+	ret = ctx->cadev->eq_user_info(cq->eq, &db_phys, &db_size);
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
++	ret = uverbs_copy_from(&svc_id, attrs, CXI_IB_ATTR_LNI_ALLOC_SVC_ID);
 +	if (ret)
-+		goto err_release;
-+	cq->db_phys = db_phys;
-+	cq->db_size = db_size;
-+
-+	/* Register mmap entry for the event ring buffer (normal pages) */
-+	refcount_inc(&cq->resources->refs);
-+	cq->buf_mmap = cxiverbs_mmap_entry_alloc_owned(bundle->context,
-+						       false, 0, cq->pages[0], buf_sz,
-+						       &resp.eq_buf_offset, cq->resources,
-+						       cxiverbs_cq_resources_put);
-+	if (IS_ERR(cq->buf_mmap)) {
-+		ret = PTR_ERR(cq->buf_mmap);
-+		cq->buf_mmap = NULL;
-+		refcount_dec(&cq->resources->refs);
-+		goto err_release;
++		return ret;
++	if (!svc_id)
++		return -EINVAL;
++	lni = kzalloc_obj(*lni, GFP_KERNEL);
++	if (!lni)
++		return -ENOMEM;
++	lni->lni = ctx->cadev->lni_alloc(ctx->cadev->cxi_dev, svc_id);
++	if (IS_ERR(lni->lni)) {
++		ret = PTR_ERR(lni->lni);
++		goto err_free;
 +	}
-+	resp.eq_buf_size = buf_sz;
-+
-+	/* Register mmap entry for the doorbell CSR (IO memory) */
-+	refcount_inc(&cq->resources->refs);
-+	cq->db_mmap = cxiverbs_mmap_entry_alloc_owned(bundle->context,
-+						      true, db_phys, NULL, db_size,
-+						      &resp.eq_db_offset, cq->resources,
-+						      cxiverbs_cq_resources_put);
-+	if (IS_ERR(cq->db_mmap)) {
-+		ret = PTR_ERR(cq->db_mmap);
-+		cq->db_mmap = NULL;
-+		refcount_dec(&cq->resources->refs);
-+		goto err_release;
-+	}
-+	resp.eq_db_size = db_size;
-+	resp.eqn        = cq->eq->eqn;
-+
-+	if (udata) {
-+		ret = ib_respond_udata(udata, resp);
-+		if (ret)
-+			goto err_release;
-+	}
-+
-+	return 0;
-+
-+err_release:
-+	cxiverbs_cq_release(cq);
-+	return ret;
-+err_put_lni:
-+	cxiverbs_lni_put(cq->lni_ref);
++	lni->ctx = ctx;
++	lni->svc_id = svc_id;
++	lni->handle = uobj->id;
++	atomic_set(&lni->usecnt, 0);
++	mutex_lock(&ctx->resource_lock);
++	ret = xa_insert(&ctx->lnis, lni->handle, lni, GFP_KERNEL);
++	mutex_unlock(&ctx->resource_lock);
++	if (ret)
++		goto err_lni;
++	uobj->object = lni;
++	uverbs_finalize_uobj_create(attrs, CXI_IB_ATTR_LNI_ALLOC_HANDLE);
++	return uverbs_copy_to(attrs, CXI_IB_ATTR_LNI_ALLOC_ID,
++			     &lni->lni->id, sizeof(lni->lni->id));
++err_lni:
++	ctx->cadev->lni_free(lni->lni);
++err_free:
++	kfree(lni);
 +	return ret;
 +}
 +
-+int cxiverbs_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
-+{
-+	struct cxiverbs_cq *cq = to_cxiverbs_cq(ibcq);
++DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_LNI_ALLOC,
++	UVERBS_ATTR_IDR(CXI_IB_ATTR_LNI_ALLOC_HANDLE, CXI_IB_OBJECT_LNI,
++			UVERBS_ACCESS_NEW, UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_LNI_ALLOC_SVC_ID,
++			   UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_LNI_ALLOC_ID,
++			    UVERBS_ATTR_TYPE(u32), UA_MANDATORY));
 +
-+	cxiverbs_cq_release(cq);
-+	return 0;
-+}
++DECLARE_UVERBS_NAMED_METHOD_DESTROY(CXI_IB_METHOD_LNI_DESTROY,
++	UVERBS_ATTR_IDR(CXI_IB_ATTR_LNI_DESTROY_HANDLE, CXI_IB_OBJECT_LNI,
++			UVERBS_ACCESS_DESTROY, UA_MANDATORY));
 +
-+/*
-+ * Translate a CXI return code to an IB work completion status.
-+ */
-+static enum ib_wc_status cxi_rc_to_wc_status(int rc)
++DECLARE_UVERBS_NAMED_OBJECT(CXI_IB_OBJECT_LNI,
++	UVERBS_TYPE_ALLOC_IDR(cxiverbs_lni_cleanup),
++	&UVERBS_METHOD(CXI_IB_METHOD_LNI_ALLOC),
++	&UVERBS_METHOD(CXI_IB_METHOD_LNI_DESTROY));
++
++static int UVERBS_HANDLER(CXI_IB_METHOD_PD_PID_ALLOC)(
++		struct uverbs_attr_bundle *attrs)
 +{
-+	switch (rc) {
-+	case C_RC_OK:			return IB_WC_SUCCESS;
-+	case C_RC_PERM_VIOLATION:
-+	case C_RC_OP_VIOLATION:		return IB_WC_REM_ACCESS_ERR;
-+	case C_RC_NO_MATCH:		return IB_WC_REM_OP_ERR;
-+	case C_RC_NO_TRANSLATION:
-+	case C_RC_PAGE_PERM_ERROR:	return IB_WC_LOC_PROT_ERR;
-+	case C_RC_DROPPED:
-+	case C_RC_UNDELIVERABLE:	return IB_WC_RETRY_EXC_ERR;
-+	case C_RC_AMO_INVAL_OP_ERROR:
-+	case C_RC_AMO_ALIGN_ERROR:
-+	case C_RC_AMO_FP_INVALID:	return IB_WC_LOC_QP_OP_ERR;
-+	default:			return IB_WC_GENERAL_ERR;
++	struct ib_pd *ibpd = uverbs_attr_get_obj(attrs, CXI_IB_ATTR_PD_PID_HANDLE);
++	struct cxiverbs_pd *pd = to_cxiverbs_pd(ibpd);
++	struct cxiverbs_dev *dev = to_cxiverbs_dev(ibpd->device);
++	u32 flags = 0;
++	u32 value;
++	int pid;
++	int ret;
++
++	ret = uverbs_get_flags32(&flags, attrs, CXI_IB_ATTR_PD_PID_FLAGS,
++				CXI_IB_PD_PID_ABSOLUTE);
++	if (ret)
++		return ret;
++	if (flags || !dev->cadev->pid_alloc || !dev->cadev->pid_free)
++		return -EOPNOTSUPP;
++	mutex_lock(&pd->resource_lock);
++	if (pd->pidonfep_valid) {
++		ret = -EBUSY;
++		goto out_unlock;
 +	}
++	pid = dev->cadev->pid_alloc(pd->lni_ref->lni);
++	if (pid < 0) {
++		ret = pid;
++		goto out_unlock;
++	}
++	value = pid;
++	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_PD_PID_VALUE,
++			     &value, sizeof(value));
++	if (ret) {
++		dev->cadev->pid_free(pd->lni_ref->lni, pid);
++		goto out_unlock;
++	}
++	pd->pidonfep = pid;
++	pd->pidonfep_valid = true;
++out_unlock:
++	mutex_unlock(&pd->resource_lock);
++	return ret;
 +}
 +
-+int cxiverbs_poll_cq(struct ib_cq *ibcq, int ne, struct ib_wc *wc)
++static int UVERBS_HANDLER(CXI_IB_METHOD_PD_PID_QUERY)(
++		struct uverbs_attr_bundle *attrs)
 +{
-+	struct cxiverbs_cq *cq = to_cxiverbs_cq(ibcq);
-+	const union c_event *ev;
-+	bool consumed = false;
-+	int npolled = 0;
++	struct ib_pd *ibpd = uverbs_attr_get_obj(attrs, CXI_IB_ATTR_PD_PID_HANDLE);
++	struct cxiverbs_pd *pd = to_cxiverbs_pd(ibpd);
++	int ret;
 +
-+	while (npolled < ne) {
-+		ev = cq->cadev->eq_get_event(cq->eq);
-+		if (!ev)
-+			break;
++	mutex_lock(&pd->resource_lock);
++	ret = pd->pidonfep_valid ?
++		uverbs_copy_to(attrs, CXI_IB_ATTR_PD_PID_VALUE,
++			       &pd->pidonfep, sizeof(pd->pidonfep)) : -ENOENT;
++	mutex_unlock(&pd->resource_lock);
++	return ret;
++}
 +
-+		consumed = true;
-+		memset(&wc[npolled], 0, sizeof(wc[npolled]));
++DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_PD_PID_ALLOC,
++	UVERBS_ATTR_IDR(CXI_IB_ATTR_PD_PID_HANDLE, UVERBS_OBJECT_PD,
++			UVERBS_ACCESS_WRITE, UA_MANDATORY),
++	UVERBS_ATTR_FLAGS_IN(CXI_IB_ATTR_PD_PID_FLAGS, u32, UA_OPTIONAL),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_PD_PID_VALUE,
++			    UVERBS_ATTR_TYPE(u32), UA_MANDATORY));
 +
-+		switch (ev->hdr.event_type) {
-+		case C_EVENT_SEND:
-+		case C_EVENT_ACK:
-+		case C_EVENT_REPLY:
-+			/* Initiator completion (post_send) */
-+			wc[npolled].wr_id  = ev->init_short.user_ptr;
-+			wc[npolled].status = cxi_rc_to_wc_status(
-+				cxi_init_event_rc(ev));
-+			if (ev->hdr.event_type == C_EVENT_REPLY)
-+				wc[npolled].opcode = IB_WC_RDMA_READ;
-+			else
-+				wc[npolled].opcode = IB_WC_SEND;
-+			if (wc[npolled].status == IB_WC_SUCCESS)
-+				wc[npolled].byte_len =
-+					(ev->hdr.event_size == C_EVENT_SIZE_16_BYTE) ?
-+					ev->init_short.mlength : 0;
-+			break;
++DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_PD_PID_QUERY,
++	UVERBS_ATTR_IDR(CXI_IB_ATTR_PD_PID_HANDLE, UVERBS_OBJECT_PD,
++			UVERBS_ACCESS_READ, UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_PD_PID_VALUE,
++			    UVERBS_ATTR_TYPE(u32), UA_MANDATORY));
 +
-+		case C_EVENT_PUT:
-+		case C_EVENT_GET:
-+			/* Target completion (post_recv) */
-+			wc[npolled].wr_id  = 0;
-+			wc[npolled].status = cxi_rc_to_wc_status(
-+				cxi_tgt_event_rc(ev));
-+			wc[npolled].opcode = IB_WC_RECV;
-+			if (wc[npolled].status == IB_WC_SUCCESS &&
-+			    ev->hdr.event_size >= C_EVENT_SIZE_32_BYTE)
-+				wc[npolled].byte_len = ev->tgt_short.length;
-+			break;
++DECLARE_UVERBS_GLOBAL_METHODS(UVERBS_OBJECT_PD,
++	&UVERBS_METHOD(CXI_IB_METHOD_PD_PID_ALLOC),
++	&UVERBS_METHOD(CXI_IB_METHOD_PD_PID_QUERY));
 +
-+		case C_EVENT_ATOMIC:
-+		case C_EVENT_FETCH_ATOMIC:
-+			wc[npolled].wr_id  = ev->init_short.user_ptr;
-+			wc[npolled].status = cxi_rc_to_wc_status(
-+				cxi_init_event_rc(ev));
-+			wc[npolled].opcode = IB_WC_FETCH_ADD;
-+			break;
++static int UVERBS_HANDLER(CXI_IB_METHOD_SVC_ALLOC)(
++		struct uverbs_attr_bundle *attrs)
++{
++	struct cxiverbs_ucontext *ctx = cxiverbs_get_ucontext(attrs);
++	struct cxi_ibv_svc_config config;
++	struct cxi_svc_desc desc = {};
++	struct cxi_svc_fail_info fail = {};
++	struct cxi_limits *limits[] = {
++		&desc.limits.ptes, &desc.limits.txqs, &desc.limits.tgqs,
++		&desc.limits.eqs, &desc.limits.cts, &desc.limits.acs,
++		&desc.limits.tles, &desc.limits.les,
++	};
++	u32 svc_id;
++	unsigned int index;
++	unsigned int vni_index;
++	int ret;
 +
-+		case C_EVENT_COMMAND_FAILURE:
-+			wc[npolled].status     = IB_WC_LOC_QP_OP_ERR;
-+			wc[npolled].vendor_err = ev->cmd_fail.return_code;
-+			wc[npolled].opcode     = IB_WC_SEND;
-+			break;
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
++	if (!capable(CAP_NET_ADMIN))
++		return -EPERM;
++	ret = uverbs_copy_from(&config, attrs, CXI_IB_ATTR_SVC_CONFIG);
++	if (ret)
++		return ret;
++	if (config.is_system_svc && !capable(CAP_SYS_ADMIN))
++		return -EPERM;
++	if (config.is_system_svc > 1 || config.is_range > 1 ||
++	    config.vni_count > CXI_IB_SVC_MAX_VNIS ||
++	    config.vni_min || config.vni_max ||
++	    (config.tc_mask >> CXI_TC_MAX) ||
++	    (config.flags & ~(CXI_IB_SVC_LIMITS | CXI_IB_SVC_CREATE_TC)))
++		return -EINVAL;
++	if (config.is_range) {
++		if (config.is_system_svc || config.vni_count ||
++		    !config.vnis[0] || config.vnis[0] > config.vnis[1] ||
++		    config.vnis[2] || config.vnis[3])
++			return -EINVAL;
++	} else if (config.is_system_svc) {
++		if (config.svc_id || config.vni_count || config.tc_mask ||
++		    (config.flags & CXI_IB_SVC_CREATE_TC) ||
++		    !(config.flags & CXI_IB_SVC_LIMITS) ||
++		    config.vnis[0] || config.vnis[1] || config.vnis[2] ||
++		    config.vnis[3])
++			return -EINVAL;
++		for (index = 0; index < ARRAY_SIZE(limits); index++) {
++			u16 expected = index == CXI_IB_SVC_EQS ||
++				       index == CXI_IB_SVC_ACS ? 1 : 0;
 +
-+		default:
-+			/* Administrative / unknown event: consume and skip */
++			if (config.maximum[index] != expected ||
++			    config.reserved[index] != expected)
++				return -EINVAL;
++		}
++	} else if (!config.vni_count || !config.tc_mask) {
++		return -EINVAL;
++	}
++	for (index = 0; index < CXI_IB_SVC_MAX_VNIS; index++) {
++		if (index >= config.vni_count) {
++			if (!config.is_range && config.vnis[index] &&
++			    !config.is_system_svc)
++				return -EINVAL;
 +			continue;
 +		}
-+
-+		npolled++;
++		if (!config.vnis[index])
++			return -EINVAL;
++		for (vni_index = 0; vni_index < index; vni_index++)
++			if (config.vnis[index] == config.vnis[vni_index])
++				return -EINVAL;
 +	}
-+
-+	if (consumed)
-+		cxi_eq_ack_events(cq->eq);
-+
-+	return npolled;
-+}
-+
-+int cxiverbs_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags)
-+{
-+	/*
-+	 * The EQ interrupt is wired via event_cb in create_cq; the RDMA core
-+	 * will re-check the queue after arming.  Always report success.
-+	 */
-+	return 0;
-+}
-+
-+/* =======================================================================
-+ * Phase 3: mmap  —  map EQ ring buffer and doorbell to user space
-+ * =======================================================================
-+ */
-+
-+int cxiverbs_mmap(struct ib_ucontext *ibctx, struct vm_area_struct *vma)
-+{
-+	struct rdma_user_mmap_entry *rdma_entry;
-+	struct cxiverbs_mmap_entry *ent;
-+	unsigned long size = vma->vm_end - vma->vm_start;
-+	int ret;
-+
-+	rdma_entry = rdma_user_mmap_entry_get(ibctx, vma);
-+	if (!rdma_entry)
-+		return -EINVAL;
-+
-+	ent = container_of(rdma_entry, struct cxiverbs_mmap_entry, rdma_entry);
-+
-+	if (ent->admin_only && !capable(CAP_SYS_ADMIN)) {
-+		ret = -EPERM;
-+		goto out;
++	desc.svc_id = config.svc_id;
++	desc.enable = true;
++	desc.restricted_members = true;
++	desc.members[0].type = CXI_SVC_MEMBER_UID;
++	desc.members[0].svc_member.uid = config.uid;
++	desc.is_system_svc = config.is_system_svc;
++	desc.restricted_tcs = !config.is_system_svc;
++	desc.resource_limits = !!(config.flags & CXI_IB_SVC_LIMITS);
++	for (index = 0; index < ARRAY_SIZE(limits); index++) {
++		if (config.reserved[index] > config.maximum[index])
++			return -EINVAL;
++		limits[index]->max = config.maximum[index];
++		limits[index]->res = config.reserved[index];
 +	}
-+
-+	if (ent->is_io) {
-+		/* Doorbell CSR: uncached IO mapping */
-+		ret = rdma_user_mmap_io(ibctx, vma,
-+					ent->phys >> PAGE_SHIFT,
-+					size,
-+					pgprot_noncached(vma->vm_page_prot),
-+					rdma_entry);
++	for (index = 0; index < CXI_TC_MAX; index++) {
++		desc.tcs[index] = !!(config.tc_mask & BIT(index));
++		if (!desc.tcs[index] || !(config.flags & CXI_IB_SVC_CREATE_TC))
++			continue;
++		ret = ctx->cadev->tc_cfg(ctx->cadev->cxi_dev, index,
++					CXI_TC_TYPE_DEFAULT);
++		if (ret && ret != -EEXIST)
++			return ret;
++	}
++	if (config.is_system_svc) {
++		desc.restricted_vnis = true;
++	} else if (config.is_range) {
++		desc.restricted_vnis = false;
 +	} else {
-+		/* Ring buffer: normal page mapping */
-+		ret = rdma_user_mmap_io(ibctx, vma,
-+					page_to_pfn(ent->first_page), size,
-+					vma->vm_page_prot, rdma_entry);
++		desc.restricted_vnis = true;
++		desc.num_vld_vnis = config.vni_count;
++		memcpy(desc.vnis, config.vnis,
++		       config.vni_count * sizeof(config.vnis[0]));
 +	}
-+
-+out:
-+	rdma_user_mmap_entry_put(rdma_entry);
++	ret = ctx->cadev->svc_alloc(ctx->cadev->cxi_dev, &desc, &fail,
++				   "cxidv-service");
++	if (ret < 0)
++		return ret;
++	svc_id = ret;
++	if (config.is_range) {
++		ret = ctx->cadev->svc_set_vni_range(ctx->cadev->cxi_dev, svc_id,
++						   config.vnis[0], config.vnis[1]);
++		if (ret)
++			goto err_destroy;
++		ret = ctx->cadev->svc_enable(ctx->cadev->cxi_dev, svc_id, true);
++		if (ret)
++			goto err_destroy;
++	}
++	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_SVC_ID, &svc_id, sizeof(svc_id));
++	if (!ret)
++		return 0;
++err_destroy:
++	ctx->cadev->svc_destroy(ctx->cadev->cxi_dev, svc_id);
 +	return ret;
 +}
 +
-+void cxiverbs_mmap_free(struct rdma_user_mmap_entry *rdma_entry)
++static int UVERBS_HANDLER(CXI_IB_METHOD_SVC_DESTROY)(
++		struct uverbs_attr_bundle *attrs)
 +{
-+	struct cxiverbs_mmap_entry *ent =
-+		container_of(rdma_entry, struct cxiverbs_mmap_entry, rdma_entry);
-+	if (ent->release_owner)
-+		ent->release_owner(ent->owner);
-+	kfree(ent);
++	struct cxiverbs_ucontext *ctx = cxiverbs_get_ucontext(attrs);
++	u32 svc_id;
++	int ret;
++
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
++	if (!capable(CAP_NET_ADMIN))
++		return -EPERM;
++	ret = uverbs_copy_from(&svc_id, attrs, CXI_IB_ATTR_SVC_ID);
++	return ret ? ret : ctx->cadev->svc_destroy(ctx->cadev->cxi_dev, svc_id);
 +}
 +
-+/* =======================================================================
-+ * Phase 5: Address handle  —  NID resolution from GID
-+ * =======================================================================
-+ */
-+
-+/*
-+ * Extract the Cassini NID from a GID. Anything set outside CXI_IBV_NID_MASK
-+ * belongs to some other fabric's addressing, so reject it rather than
-+ * truncating it into a NID that names a different node.
-+ */
-+static int cxi_gid_to_nid(const union ib_gid *gid, u32 *nid)
++static int UVERBS_HANDLER(CXI_IB_METHOD_SVC_ENABLE)(
++		struct uverbs_attr_bundle *attrs)
 +{
-+	u64 id = be64_to_cpu(gid->global.interface_id);
++	struct cxiverbs_ucontext *ctx = cxiverbs_get_ucontext(attrs);
++	u32 svc_id;
++	u32 enable;
++	int ret;
 +
-+	if (gid->global.subnet_prefix || (id & ~CXI_IBV_NID_MASK))
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
++	if (!capable(CAP_NET_ADMIN))
++		return -EPERM;
++	ret = uverbs_copy_from(&svc_id, attrs, CXI_IB_ATTR_SVC_ID);
++	if (ret)
++		return ret;
++	ret = uverbs_copy_from(&enable, attrs, CXI_IB_ATTR_SVC_FLAGS);
++	if (ret)
++		return ret;
++	if (enable > 1)
 +		return -EINVAL;
++	return ctx->cadev->svc_enable(ctx->cadev->cxi_dev, svc_id, enable);
++}
 +
-+	*nid = (u32)id;
++static int UVERBS_HANDLER(CXI_IB_METHOD_SVC_QUERY)(
++		struct uverbs_attr_bundle *attrs)
++{
++	struct cxiverbs_ucontext *ctx = cxiverbs_get_ucontext(attrs);
++	struct cxi_ibv_svc_config config = {};
++	struct cxi_svc_desc desc;
++	const struct cxi_limits *limits[] = {
++		&desc.limits.ptes, &desc.limits.txqs, &desc.limits.tgqs,
++		&desc.limits.eqs, &desc.limits.cts, &desc.limits.acs,
++		&desc.limits.tles, &desc.limits.les,
++	};
++	unsigned int first, last, index;
++	int ret;
++
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
++	ret = uverbs_copy_from(&config.svc_id, attrs, CXI_IB_ATTR_SVC_ID);
++	if (ret)
++		return ret;
++	ret = ctx->cadev->svc_get(ctx->cadev->cxi_dev, config.svc_id, &desc);
++	if (ret)
++		return ret;
++	if (desc.enable)
++		config.flags |= CXI_IB_SVC_ENABLED;
++	if (desc.resource_limits)
++		config.flags |= CXI_IB_SVC_LIMITS;
++	config.is_system_svc = desc.is_system_svc;
++	if (uverbs_attr_is_valid(attrs, CXI_IB_ATTR_SVC_FLAGS)) {
++		ret = uverbs_copy_to(attrs, CXI_IB_ATTR_SVC_FLAGS,
++				     &config.flags, sizeof(config.flags));
++		if (ret)
++			return ret;
++	}
++	if (uverbs_attr_is_valid(attrs, CXI_IB_ATTR_SVC_USAGE)) {
++		struct cxi_rsrc_use native = {};
++		struct cxi_ibv_svc_rsrc_use usage = {};
++
++		BUILD_BUG_ON(sizeof(native.in_use) != sizeof(usage.in_use));
++		ret = ctx->cadev->svc_rsrc_get(ctx->cadev->cxi_dev,
++					      config.svc_id, &native);
++		if (ret)
++			return ret;
++		usage.svc_id = native.svc_id;
++		usage.tle_pool_id = native.tle_pool_id;
++		memcpy(usage.in_use, native.in_use, sizeof(usage.in_use));
++		ret = uverbs_copy_to(attrs, CXI_IB_ATTR_SVC_USAGE,
++				     &usage, sizeof(usage));
++		if (ret)
++			return ret;
++	}
++	if (uverbs_attr_is_valid(attrs, CXI_IB_ATTR_SVC_LPR)) {
++		u32 lpr;
++
++		ret = cxi_svc_get_lpr(ctx->cadev->cxi_dev, config.svc_id);
++		if (ret < 0)
++			return ret;
++		lpr = ret;
++		ret = uverbs_copy_to(attrs, CXI_IB_ATTR_SVC_LPR, &lpr, sizeof(lpr));
++		if (ret)
++			return ret;
++	}
++	if (!uverbs_attr_is_valid(attrs, CXI_IB_ATTR_SVC_CONFIG))
++		return uverbs_attr_is_valid(attrs, CXI_IB_ATTR_SVC_FLAGS) ||
++		       uverbs_attr_is_valid(attrs, CXI_IB_ATTR_SVC_USAGE) ||
++		       uverbs_attr_is_valid(attrs, CXI_IB_ATTR_SVC_LPR) ? 0 : -EINVAL;
++	if (desc.restricted_vnis) {
++		if ((!desc.num_vld_vnis && !desc.is_system_svc) ||
++		    desc.num_vld_vnis > CXI_IB_SVC_MAX_VNIS)
++			return -EOPNOTSUPP;
++		config.vni_count = desc.num_vld_vnis;
++		if (desc.num_vld_vnis)
++			memcpy(config.vnis, desc.vnis,
++			       desc.num_vld_vnis * sizeof(config.vnis[0]));
++	} else {
++		ret = ctx->cadev->svc_get_vni_range(ctx->cadev->cxi_dev,
++						   config.svc_id, &first, &last);
++		if (ret)
++			return ret;
++		config.is_range = 1;
++		config.vnis[0] = first;
++		config.vnis[1] = last;
++	}
++	for (index = 0; index < CXI_TC_MAX; index++)
++		if (!desc.is_system_svc &&
++		    (!desc.restricted_tcs || desc.tcs[index]))
++			config.tc_mask |= BIT(index);
++	config.uid = desc.members[0].svc_member.uid;
++	for (index = 0; index < ARRAY_SIZE(limits); index++) {
++		config.maximum[index] = limits[index]->max;
++		config.reserved[index] = limits[index]->res;
++	}
++	return uverbs_copy_to(attrs, CXI_IB_ATTR_SVC_CONFIG,
++			     &config, sizeof(config));
++}
++
++DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_SVC_ALLOC,
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_SVC_CONFIG,
++			   UVERBS_ATTR_TYPE(struct cxi_ibv_svc_config), UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_SVC_ID,
++			    UVERBS_ATTR_TYPE(u32), UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_SVC_DESTROY,
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_SVC_ID,
++			   UVERBS_ATTR_TYPE(u32), UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_SVC_ENABLE,
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_SVC_ID,
++			   UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_SVC_FLAGS,
++			   UVERBS_ATTR_TYPE(u32), UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_SVC_QUERY,
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_SVC_ID,
++			   UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_SVC_CONFIG,
++			    UVERBS_ATTR_TYPE(struct cxi_ibv_svc_config), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_SVC_FLAGS,
++			    UVERBS_ATTR_TYPE(u32), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_SVC_USAGE,
++			    UVERBS_ATTR_TYPE(struct cxi_ibv_svc_rsrc_use), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_SVC_LPR,
++			    UVERBS_ATTR_TYPE(u32), UA_OPTIONAL));
++
++DECLARE_UVERBS_GLOBAL_METHODS(CXI_IB_OBJECT_SVC,
++	&UVERBS_METHOD(CXI_IB_METHOD_SVC_ALLOC),
++	&UVERBS_METHOD(CXI_IB_METHOD_SVC_DESTROY),
++	&UVERBS_METHOD(CXI_IB_METHOD_SVC_QUERY),
++	&UVERBS_METHOD(CXI_IB_METHOD_SVC_ENABLE));
++
++struct cxiverbs_wait {
++	struct ib_uobject uobj;
++	struct cxiverbs_lni *lni;
++	wait_queue_head_t poll_wait;
++	struct mutex read_lock;
++	atomic64_t generation;
++	atomic64_t cleared;
++	bool initialized;
++	bool dead;
++};
++
++static ssize_t cxiverbs_wait_read(struct file *file, char __user *buffer,
++				size_t length, loff_t *offset)
++{
++	struct cxiverbs_wait *wait =
++		container_of(file->private_data, struct cxiverbs_wait, uobj);
++	u64 generation;
++	char value = '1';
++	int ret;
++
++	if (!length)
++		return 0;
++	ret = mutex_lock_interruptible(&wait->read_lock);
++	if (ret)
++		return ret;
++	if (READ_ONCE(wait->dead)) {
++		ret = -EIO;
++		goto unlock;
++	}
++	generation = atomic64_read(&wait->generation);
++	if (copy_to_user(buffer, &value, sizeof(value))) {
++		ret = -EFAULT;
++		goto unlock;
++	}
++	atomic64_set(&wait->cleared, generation);
++	ret = sizeof(value);
++unlock:
++	mutex_unlock(&wait->read_lock);
++	return ret;
++}
++
++static __poll_t cxiverbs_wait_poll(struct file *file, poll_table *table)
++{
++	struct cxiverbs_wait *wait =
++		container_of(file->private_data, struct cxiverbs_wait, uobj);
++
++	poll_wait(file, &wait->poll_wait, table);
++	if (READ_ONCE(wait->dead))
++		return EPOLLHUP | EPOLLERR;
++	if (atomic64_read(&wait->generation) != atomic64_read(&wait->cleared))
++		return EPOLLPRI;
 +	return 0;
 +}
 +
-+int cxiverbs_create_ah(struct ib_ah *ibah, struct rdma_ah_init_attr *init_attr,
-+		      struct ib_udata *udata)
++static const struct file_operations cxiverbs_wait_fops = {
++	.owner = THIS_MODULE,
++	.read = cxiverbs_wait_read,
++	.poll = cxiverbs_wait_poll,
++	.release = uverbs_uobject_fd_release,
++	.llseek = noop_llseek,
++};
++
++static void cxiverbs_wait_cleanup(struct ib_uobject *object,
++				 enum rdma_remove_reason reason)
 +{
-+	struct cxiverbs_ah *ah             = to_cxiverbs_ah(ibah);
-+	const struct rdma_ah_attr *attr  = init_attr->ah_attr;
-+	const struct ib_global_route *grh = rdma_ah_read_grh(attr);
++	struct cxiverbs_wait *wait =
++		container_of(object, struct cxiverbs_wait, uobj);
++
++	if (!wait->initialized)
++		return;
++	WRITE_ONCE(wait->dead, true);
++	wake_up_interruptible_poll(&wait->poll_wait, EPOLLHUP | EPOLLERR);
++	if (wait->lni) {
++		cxiverbs_lni_put(wait->lni);
++		wait->lni = NULL;
++	}
++}
++
++static int UVERBS_HANDLER(CXI_IB_METHOD_WAIT_ALLOC)(
++		struct uverbs_attr_bundle *attrs)
++{
++	struct ib_uobject *object =
++		uverbs_attr_get_uobject(attrs, CXI_IB_ATTR_WAIT_FD);
++	struct file *file = object->object;
++	struct cxiverbs_wait *wait =
++		container_of(object, struct cxiverbs_wait, uobj);
++	struct cxiverbs_ucontext *ctx;
++	u32 handle;
 +	int ret;
 +
-+	if (!grh)
++	init_waitqueue_head(&wait->poll_wait);
++	mutex_init(&wait->read_lock);
++	atomic64_set(&wait->generation, 1);
++	atomic64_set(&wait->cleared, 0);
++	wait->initialized = true;
++	ctx = cxiverbs_get_ucontext(attrs);
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
++	ret = uverbs_copy_from(&handle, attrs, CXI_IB_ATTR_WAIT_LNI);
++	if (ret)
++		return ret;
++	wait->lni = cxiverbs_lni_get(ctx, handle);
++	if (IS_ERR(wait->lni)) {
++		ret = PTR_ERR(wait->lni);
++		wait->lni = NULL;
++		return ret;
++	}
++	file->f_mode |= FMODE_PREAD;
++	return 0;
++}
++
++DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_WAIT_ALLOC,
++	UVERBS_ATTR_FD(CXI_IB_ATTR_WAIT_FD, CXI_IB_OBJECT_WAIT,
++		       UVERBS_ACCESS_NEW, UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_WAIT_LNI,
++			   UVERBS_ATTR_TYPE(u32), UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_OBJECT(CXI_IB_OBJECT_WAIT,
++	UVERBS_TYPE_ALLOC_FD(sizeof(struct cxiverbs_wait),
++			     cxiverbs_wait_cleanup,
++			     &cxiverbs_wait_fops, "[cxiwait]", O_RDONLY),
++	&UVERBS_METHOD(CXI_IB_METHOD_WAIT_ALLOC));
++
++static void cxiverbs_wait_notify(void *data)
++{
++	struct file *file = data;
++	struct cxiverbs_wait *wait =
++		container_of(file->private_data, struct cxiverbs_wait, uobj);
++
++	if (READ_ONCE(wait->dead))
++		return;
++	atomic64_inc(&wait->generation);
++	wake_up_interruptible_poll(&wait->poll_wait, EPOLLPRI);
++}
++
++static int cxiverbs_eq_get_wait(struct uverbs_attr_bundle *attrs, u16 attr,
++			       struct cxiverbs_lni *lni, struct file **file)
++{
++	struct ib_uobject *object;
++	struct cxiverbs_wait *wait;
++
++	if (!uverbs_attr_is_valid(attrs, attr))
++		return 0;
++	object = uverbs_attr_get_uobject(attrs, attr);
++	wait = container_of(object, struct cxiverbs_wait, uobj);
++	if (READ_ONCE(wait->dead) || wait->lni != lni)
++		return -EINVAL;
++	*file = get_file(object->object);
++	return 0;
++}
++
++struct cxiverbs_native_eq {
++	struct cxiverbs_lni *lni;
++	struct cxiverbs_mr *mr;
++	struct file *event_wait;
++	struct file *status_wait;
++	struct cxi_eq *eq;
++	struct cxiverbs_mmap_entry *doorbell;
++	atomic_t users;
++};
++
++/*
++ * Runs once the hardware EQ is gone and the last doorbell mapping is closed.
++ * Only drops references and frees memory, so it cannot fail.
++ */
++static void cxiverbs_native_eq_release(void *owner)
++{
++	struct cxiverbs_native_eq *queue = owner;
++
++	if (queue->status_wait)
++		fput(queue->status_wait);
++	if (queue->event_wait)
++		fput(queue->event_wait);
++	if (queue->mr)
++		atomic_dec(&queue->mr->native_users);
++	cxiverbs_lni_put(queue->lni);
++	kfree(queue);
++}
++
++static int cxiverbs_native_eq_cleanup(struct ib_uobject *object,
++				     enum rdma_remove_reason reason,
++				     struct uverbs_attr_bundle *attrs)
++{
++	struct cxiverbs_native_eq *queue = object->object;
++	int ret;
++
++	if (atomic_read(&queue->users))
++		return -EBUSY;
++	/*
++	 * eq_free() can fail (a VF may be unable to reach the PF) and leaves
++	 * the EQ untouched when it does. Do it here, where rdma-core can
++	 * report the error and retry, rather than from mmap_free(), which
++	 * has no way to fail.
++	 */
++	ret = queue->lni->ctx->cadev->eq_free(queue->eq);
++	if (ret)
++		return ret;
++	/*
++	 * The queue, and the LNI reference it holds, stay alive until the last
++	 * doorbell mapping is closed, so the EQ number cannot be recycled
++	 * while the page is still mapped.
++	 */
++	if (queue->doorbell)
++		rdma_user_mmap_entry_remove(&queue->doorbell->rdma_entry);
++	else
++		cxiverbs_native_eq_release(queue);
++	return 0;
++}
++
++static int UVERBS_HANDLER(CXI_IB_METHOD_EQ_ALLOC)(struct uverbs_attr_bundle *attrs)
++{
++	struct cxiverbs_ucontext *ctx = cxiverbs_get_ucontext(attrs);
++	struct ib_uobject *object = uverbs_attr_get_uobject(attrs, CXI_IB_ATTR_EQ_HANDLE);
++	struct ib_mr *ibmr = NULL;
++	struct cxiverbs_mr *mr = NULL;
++	struct cxiverbs_native_eq *queue;
++	struct cxi_ibv_eq_config config;
++	struct cxi_ibv_eq_info info = {};
++	struct cxi_eq_attr native = {};
++	phys_addr_t physical;
++	size_t size;
++	u64 offset;
++	u32 lni_handle;
++	u32 flags = 0;
++	bool passthrough;
++	int ret;
++
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
++	ret = uverbs_get_flags32(&flags, attrs, CXI_IB_ATTR_EQ_FLAGS,
++				CXI_IB_EQ_REGISTER_PCT | CXI_IB_EQ_PASSTHROUGH);
++	if (ret)
++		return ret;
++	passthrough = flags & CXI_IB_EQ_PASSTHROUGH;
++	if (passthrough && !(flags & CXI_IB_EQ_REGISTER_PCT))
++		return -EINVAL;
++	if (passthrough == uverbs_attr_is_valid(attrs, CXI_IB_ATTR_EQ_MR))
++		return -EINVAL;
++	if (!passthrough) {
++		ibmr = uverbs_attr_get_obj(attrs, CXI_IB_ATTR_EQ_MR);
++		mr = to_cxiverbs_mr(ibmr);
++	}
++	if (flags & CXI_IB_EQ_REGISTER_PCT) {
++		struct cxi_dev *cdev = ctx->cadev->cxi_dev;
++		u32 generation = cdev->prop.cassini_version & 0xf0;
++
++		if (!capable(CAP_SYS_ADMIN))
++			return -EPERM;
++		if (!cdev->is_physfn ||
++		    (generation != CASSINI_1 && generation != CASSINI_2))
++			return -EOPNOTSUPP;
++	}
++	ret = uverbs_copy_from(&lni_handle, attrs, CXI_IB_ATTR_EQ_LNI);
++	if (ret)
++		return ret;
++	ret = uverbs_copy_from(&config, attrs, CXI_IB_ATTR_EQ_CONFIG);
++	if (ret)
++		return ret;
++	if (!config.length)
++		return -EINVAL;
++	if (mr && (config.address < mr->md->va ||
++		   config.length > mr->md->len ||
++		   config.address - mr->md->va > mr->md->len - config.length))
++		return -EINVAL;
++	queue = kzalloc_obj(*queue, GFP_KERNEL);
++	if (!queue)
++		return -ENOMEM;
++	queue->lni = cxiverbs_lni_get(ctx, lni_handle);
++	if (IS_ERR(queue->lni)) {
++		ret = PTR_ERR(queue->lni);
++		goto free_queue;
++	}
++	if (mr && to_cxiverbs_pd(ibmr->pd)->lni_ref != queue->lni) {
++		ret = -EINVAL;
++		goto put_lni;
++	}
++	queue->mr = mr;
++	if (mr)
++		atomic_inc(&mr->native_users);
++	native.queue = (void *)(uintptr_t)config.address;
++	native.queue_len = config.length;
++	native.flags = CXI_EQ_USER;
++	if (flags & CXI_IB_EQ_REGISTER_PCT)
++		native.flags |= CXI_EQ_REGISTER_PCT;
++	if (passthrough)
++		native.flags |= CXI_EQ_PASSTHROUGH;
++	native.status_thresh_base = config.threshold_base;
++	native.status_thresh_delta = config.threshold_delta;
++	native.status_thresh_count = config.threshold_count;
++	native.ec_delay = config.ec_delay;
++	native.cpu_affinity = config.cpu;
++	native.reserved_slots = config.reserved_slots;
++	ret = cxiverbs_eq_get_wait(attrs, CXI_IB_ATTR_EQ_EVENT_WAIT,
++				   queue->lni, &queue->event_wait);
++	if (ret)
++		goto put_waits;
++	ret = cxiverbs_eq_get_wait(attrs, CXI_IB_ATTR_EQ_STATUS_WAIT,
++				   queue->lni, &queue->status_wait);
++	if (ret)
++		goto put_waits;
++	queue->eq = ctx->cadev->eq_alloc(queue->lni->lni, mr ? mr->md : NULL,
++		&native, queue->event_wait ? cxiverbs_wait_notify : NULL,
++		queue->event_wait,
++		queue->status_wait ? cxiverbs_wait_notify : NULL,
++		queue->status_wait);
++	if (IS_ERR(queue->eq)) {
++		ret = PTR_ERR(queue->eq);
++		goto put_waits;
++	}
++	ret = ctx->cadev->eq_user_info(queue->eq, &physical, &size);
++	if (ret)
++		goto destroy_eq;
++	if (flags & CXI_IB_EQ_REGISTER_PCT)
++		queue->doorbell = cxiverbs_mmap_entry_alloc_admin(
++			&ctx->ibucontext, physical, size, &offset);
++	else
++		queue->doorbell = cxiverbs_mmap_entry_alloc(
++			&ctx->ibucontext, true, physical, NULL, size, &offset);
++	if (IS_ERR(queue->doorbell)) {
++		ret = PTR_ERR(queue->doorbell);
++		queue->doorbell = NULL;
++		goto destroy_eq;
++	}
++	queue->doorbell->owner = queue;
++	queue->doorbell->release_owner = cxiverbs_native_eq_release;
++	info.doorbell_offset = offset;
++	info.doorbell_size = size;
++	info.eqn = queue->eq->eqn;
++	object->object = queue;
++	uverbs_finalize_uobj_create(attrs, CXI_IB_ATTR_EQ_HANDLE);
++	return uverbs_copy_to(attrs, CXI_IB_ATTR_EQ_INFO, &info, sizeof(info));
++destroy_eq:
++	/*
++	 * The hardware EQ exists, so let rdma-core unwind it through
++	 * cxiverbs_native_eq_cleanup(). If eq_free() fails there, the core
++	 * keeps the object and retries instead of leaking it.
++	 */
++	object->object = queue;
++	uverbs_finalize_uobj_create(attrs, CXI_IB_ATTR_EQ_HANDLE);
++	return ret;
++put_waits:
++	if (queue->status_wait)
++		fput(queue->status_wait);
++	if (queue->event_wait)
++		fput(queue->event_wait);
++	if (mr)
++		atomic_dec(&mr->native_users);
++put_lni:
++	cxiverbs_lni_put(queue->lni);
++free_queue:
++	kfree(queue);
++	return ret;
++}
++
++DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_EQ_ALLOC,
++	UVERBS_ATTR_IDR(CXI_IB_ATTR_EQ_HANDLE, CXI_IB_OBJECT_EQ,
++			UVERBS_ACCESS_NEW, UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_EQ_LNI, UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_IDR(CXI_IB_ATTR_EQ_MR, UVERBS_OBJECT_MR,
++			UVERBS_ACCESS_READ, UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_EQ_CONFIG,
++			   UVERBS_ATTR_TYPE(struct cxi_ibv_eq_config), UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_EQ_INFO,
++			    UVERBS_ATTR_TYPE(struct cxi_ibv_eq_info),
++			    UA_MANDATORY),
++	UVERBS_ATTR_FLAGS_IN(CXI_IB_ATTR_EQ_FLAGS, u32, UA_OPTIONAL),
++	UVERBS_ATTR_FD(CXI_IB_ATTR_EQ_EVENT_WAIT, CXI_IB_OBJECT_WAIT,
++		       UVERBS_ACCESS_READ, UA_OPTIONAL),
++	UVERBS_ATTR_FD(CXI_IB_ATTR_EQ_STATUS_WAIT, CXI_IB_OBJECT_WAIT,
++		       UVERBS_ACCESS_READ, UA_OPTIONAL));
++
++DECLARE_UVERBS_NAMED_METHOD_DESTROY(CXI_IB_METHOD_EQ_DESTROY,
++	UVERBS_ATTR_IDR(CXI_IB_ATTR_EQ_HANDLE, CXI_IB_OBJECT_EQ,
++			UVERBS_ACCESS_DESTROY, UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_OBJECT(CXI_IB_OBJECT_EQ,
++	UVERBS_TYPE_ALLOC_IDR(cxiverbs_native_eq_cleanup),
++	&UVERBS_METHOD(CXI_IB_METHOD_EQ_ALLOC),
++	&UVERBS_METHOD(CXI_IB_METHOD_EQ_DESTROY));
++
++struct cxiverbs_cp {
++	struct cxiverbs_lni *lni;
++	struct cxi_cp *cp;
++};
++
++static int cxiverbs_cp_cleanup(struct ib_uobject *object,
++			      enum rdma_remove_reason reason,
++			      struct uverbs_attr_bundle *attrs)
++{
++	struct cxiverbs_cp *profile = object->object;
++
++	profile->lni->ctx->cadev->cp_free(profile->cp);
++	cxiverbs_lni_put(profile->lni);
++	kfree(profile);
++	return 0;
++}
++
++static int UVERBS_HANDLER(CXI_IB_METHOD_CP_ALLOC)(struct uverbs_attr_bundle *attrs)
++{
++	struct ib_uobject *object = uverbs_attr_get_uobject(attrs, CXI_IB_ATTR_CP_HANDLE);
++	struct cxiverbs_ucontext *ctx = cxiverbs_get_ucontext(attrs);
++	struct cxiverbs_cp *profile;
++	struct cxi_ibv_cp_info info;
++	u32 lni_handle, vni, tc, type;
++	int ret;
++
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
++	ret = uverbs_copy_from(&lni_handle, attrs, CXI_IB_ATTR_CP_LNI);
++	if (ret)
++		return ret;
++	ret = uverbs_copy_from(&vni, attrs, CXI_IB_ATTR_CP_VNI);
++	if (ret)
++		return ret;
++	ret = uverbs_copy_from(&tc, attrs, CXI_IB_ATTR_CP_TC);
++	if (ret)
++		return ret;
++	ret = uverbs_copy_from(&type, attrs, CXI_IB_ATTR_CP_TYPE);
++	if (ret)
++		return ret;
++	if (!vni || vni > U16_MAX || tc >= CXI_TC_MAX || type >= CXI_TC_TYPE_MAX)
++		return -EINVAL;
++	profile = kzalloc_obj(*profile, GFP_KERNEL);
++	if (!profile)
++		return -ENOMEM;
++	profile->lni = cxiverbs_lni_get(ctx, lni_handle);
++	if (IS_ERR(profile->lni)) {
++		ret = PTR_ERR(profile->lni);
++		goto free_profile;
++	}
++	profile->cp = ctx->cadev->cp_alloc(profile->lni->lni, vni, tc, type);
++	if (IS_ERR(profile->cp)) {
++		ret = PTR_ERR(profile->cp);
++		goto put_lni;
++	}
++	info.vni = profile->cp->vni_pcp;
++	info.tc = profile->cp->tc;
++	info.type = profile->cp->tc_type;
++	info.lcid = profile->cp->lcid;
++	object->object = profile;
++	uverbs_finalize_uobj_create(attrs, CXI_IB_ATTR_CP_HANDLE);
++	return uverbs_copy_to(attrs, CXI_IB_ATTR_CP_INFO, &info, sizeof(info));
++put_lni:
++	cxiverbs_lni_put(profile->lni);
++free_profile:
++	kfree(profile);
++	return ret;
++}
++
++DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_CP_ALLOC,
++	UVERBS_ATTR_IDR(CXI_IB_ATTR_CP_HANDLE, CXI_IB_OBJECT_CP,
++			UVERBS_ACCESS_NEW, UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_CP_LNI, UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_CP_VNI, UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_CP_TC, UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_CP_TYPE, UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_CP_INFO,
++			    UVERBS_ATTR_TYPE(struct cxi_ibv_cp_info), UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_METHOD_DESTROY(CXI_IB_METHOD_CP_DESTROY,
++	UVERBS_ATTR_IDR(CXI_IB_ATTR_CP_HANDLE, CXI_IB_OBJECT_CP,
++			UVERBS_ACCESS_DESTROY, UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_OBJECT(CXI_IB_OBJECT_CP,
++	UVERBS_TYPE_ALLOC_IDR(cxiverbs_cp_cleanup),
++	&UVERBS_METHOD(CXI_IB_METHOD_CP_ALLOC),
++	&UVERBS_METHOD(CXI_IB_METHOD_CP_DESTROY));
++
++/* -----------------------------------------------------------------------
++ * Per-CT kernel object.  Heap-allocated; freed in cxiverbs_ct_cleanup().
++ * -----------------------------------------------------------------------
++ */
++struct cxiverbs_ct {
++	refcount_t refs;
++	struct cxi_ct            *ct;       /* CXI counting trigger          */
++	struct cxiverbs_lni *lni_ref;
++	struct page              *wb_page;  /* writeback-buffer page         */
++	struct cxiverbs_mmap_entry *wb_mmap;  /* userspace mmap: writeback buf */
++	struct cxiverbs_mmap_entry *db_mmap;  /* userspace mmap: CT doorbell   */
++};
++
++static void cxiverbs_ct_release(void *owner)
++{
++	struct cxiverbs_ct *ct = owner;
++
++	if (!refcount_dec_and_test(&ct->refs))
++		return;
++	if (ct->ct)
++		cxi_ct_free(ct->ct);
++	if (ct->wb_page)
++		unpin_user_page(ct->wb_page);
++	cxiverbs_lni_put(ct->lni_ref);
++	kfree(ct);
++}
++
++/* -----------------------------------------------------------------------
++ * IDR object cleanup — called on CT_DESTROY and on context teardown.
++ * -----------------------------------------------------------------------
++ */
++static int cxiverbs_ct_cleanup(struct ib_uobject *uobj,
++			      enum rdma_remove_reason why,
++			      struct uverbs_attr_bundle *attrs)
++{
++	struct cxiverbs_ct *ct = uobj->object;
++
++	if (ct->db_mmap)
++		rdma_user_mmap_entry_remove(&ct->db_mmap->rdma_entry);
++	if (ct->wb_mmap)
++		rdma_user_mmap_entry_remove(&ct->wb_mmap->rdma_entry);
++	cxiverbs_ct_release(ct);
++	return 0;
++}
++
++/* -----------------------------------------------------------------------
++ * CXI_IB_METHOD_CT_ALLOC handler
++ * -----------------------------------------------------------------------
++ */
++static int UVERBS_HANDLER(CXI_IB_METHOD_CT_ALLOC)(
++		struct uverbs_attr_bundle *attrs)
++{
++	struct ib_uobject  *uobj   = uverbs_attr_get_uobject(attrs,
++					CXI_IB_ATTR_CT_ALLOC_HANDLE);
++	struct ib_ucontext *ibctx  = ib_uverbs_get_ucontext(attrs);
++	struct cxiverbs_ucontext *uctx;
++	struct cxi_adev *cadev;
++	struct cxiverbs_ct   *ct_obj;
++	struct c_ct_writeback *wb;
++	phys_addr_t db_phys;
++	size_t      db_sz;
++	u64         wb_offset = 0, db_offset = 0;
++	u64         wb_len, db_len;
++	u64 wb_address;
++	u32         ctn;
++	u32 lni_handle = CXI_IBV_LNI_ANY;
++	int         ret;
++
++	if (IS_ERR(ibctx))
++		return PTR_ERR(ibctx);
++
++	uctx = to_cxiverbs_ucontext(ibctx);
++	cadev = uctx->cadev;
++	ret = uverbs_copy_from(&wb_address, attrs,
++			       CXI_IB_ATTR_CT_ALLOC_WB_ADDRESS);
++	if (ret)
++		return ret;
++	if (!wb_address || !IS_ALIGNED(wb_address, PAGE_SIZE) ||
++	    wb_address != (unsigned long)wb_address ||
++	    !access_ok(u64_to_user_ptr(wb_address), PAGE_SIZE))
 +		return -EINVAL;
 +
-+	ret = cxi_gid_to_nid(&grh->dgid, &ah->nid);
++	ct_obj = kzalloc_obj(*ct_obj);
++	if (!ct_obj)
++		return -ENOMEM;
++	if (uverbs_attr_is_valid(attrs, CXI_IB_ATTR_CT_ALLOC_LNI_HANDLE)) {
++		ret = uverbs_copy_from(&lni_handle, attrs,
++				       CXI_IB_ATTR_CT_ALLOC_LNI_HANDLE);
++		if (ret)
++			goto err_free_object;
++	}
++	ct_obj->lni_ref = cxiverbs_lni_get(uctx, lni_handle);
++	if (IS_ERR(ct_obj->lni_ref)) {
++		ret = PTR_ERR(ct_obj->lni_ref);
++		goto err_free_object;
++	}
++	refcount_set(&ct_obj->refs, 1);
++
++	ret = pin_user_pages_fast(wb_address, 1, FOLL_WRITE | FOLL_LONGTERM,
++				  &ct_obj->wb_page);
++	if (ret != 1) {
++		ct_obj->wb_page = NULL;
++		if (ret >= 0)
++			ret = -EFAULT;
++		goto err_release;
++	}
++	wb = (struct c_ct_writeback *)(unsigned long)wb_address;
++
++	ct_obj->ct = cadev->ct_alloc(ct_obj->lni_ref->lni, wb, true);
++	if (IS_ERR(ct_obj->ct)) {
++		ret = PTR_ERR(ct_obj->ct);
++		ct_obj->ct = NULL;
++		goto err_release;
++	}
++
++	/* Get the physical address of the CT doorbell CSR for mmap. */
++	ret = cxi_ct_user_info(ct_obj->ct, &db_phys, &db_sz);
++	if (ret)
++		goto err_release;
++
++	wb_len = PAGE_SIZE;
++	db_len = (u64)db_sz;
++
++	/* Create mmap entry for the writeback buffer page. */
++	refcount_inc(&ct_obj->refs);
++	ct_obj->wb_mmap = cxiverbs_mmap_entry_alloc_owned(ibctx, false, 0,
++				ct_obj->wb_page, wb_len, &wb_offset, ct_obj,
++				cxiverbs_ct_release);
++	if (IS_ERR(ct_obj->wb_mmap)) {
++		ret = PTR_ERR(ct_obj->wb_mmap);
++		ct_obj->wb_mmap = NULL;
++		refcount_dec(&ct_obj->refs);
++		goto err_release;
++	}
++
++	/* Create mmap entry for the CT doorbell CSR (IO mapping). */
++	refcount_inc(&ct_obj->refs);
++	ct_obj->db_mmap = cxiverbs_mmap_entry_alloc_owned(ibctx, true, db_phys,
++				NULL, db_len, &db_offset, ct_obj,
++				cxiverbs_ct_release);
++	if (IS_ERR(ct_obj->db_mmap)) {
++		ret = PTR_ERR(ct_obj->db_mmap);
++		ct_obj->db_mmap = NULL;
++		refcount_dec(&ct_obj->refs);
++		goto err_remove_wb;
++	}
++
++	ctn = ct_obj->ct->ctn;
++
++	/* Commit the uobject — after this, returning an error will cause the
++	 * framework to call cxiverbs_ct_cleanup() automatically.
++	 */
++	uobj->object = ct_obj;
++	uverbs_finalize_uobj_create(attrs, CXI_IB_ATTR_CT_ALLOC_HANDLE);
++
++	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_CT_ALLOC_CTN,
++			     &ctn, sizeof(ctn));
 +	if (ret)
 +		return ret;
 +
-+	ah->dscp = rdma_ah_get_sl(attr); /* SL used as DSCP / TC class index */
-+	ah->vni  = 0;                    /* resolved from QP at post_send time */
++	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_CT_ALLOC_WB_MMAP_OFFSET,
++			     &wb_offset, sizeof(wb_offset));
++	if (ret)
++		return ret;
++
++	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_CT_ALLOC_WB_MMAP_LENGTH,
++			     &wb_len, sizeof(wb_len));
++	if (ret)
++		return ret;
++
++	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_CT_ALLOC_DB_MMAP_OFFSET,
++			     &db_offset, sizeof(db_offset));
++	if (ret)
++		return ret;
++
++	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_CT_ALLOC_DB_MMAP_LENGTH,
++			     &db_len, sizeof(db_len));
++	return ret;
++
++err_remove_wb:
++	rdma_user_mmap_entry_remove(&ct_obj->wb_mmap->rdma_entry);
++err_release:
++	cxiverbs_ct_release(ct_obj);
++	return ret;
++err_free_object:
++	kfree(ct_obj);
++	return ret;
++}
++
++/* -----------------------------------------------------------------------
++ * Method definitions
++ * -----------------------------------------------------------------------
++ */
++DECLARE_UVERBS_NAMED_METHOD(
++	CXI_IB_METHOD_CT_ALLOC,
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_CT_ALLOC_WB_ADDRESS,
++			   UVERBS_ATTR_TYPE(u64), UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_CT_ALLOC_LNI_HANDLE,
++			   UVERBS_ATTR_TYPE(u32), UA_OPTIONAL),
++	UVERBS_ATTR_IDR(CXI_IB_ATTR_CT_ALLOC_HANDLE,
++			CXI_IB_OBJECT_CT,
++			UVERBS_ACCESS_NEW,
++			UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_CT_ALLOC_CTN,
++			    UVERBS_ATTR_TYPE(u32),
++			    UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_CT_ALLOC_WB_MMAP_OFFSET,
++			    UVERBS_ATTR_TYPE(u64),
++			    UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_CT_ALLOC_WB_MMAP_LENGTH,
++			    UVERBS_ATTR_TYPE(u64),
++			    UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_CT_ALLOC_DB_MMAP_OFFSET,
++			    UVERBS_ATTR_TYPE(u64),
++			    UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_CT_ALLOC_DB_MMAP_LENGTH,
++			    UVERBS_ATTR_TYPE(u64),
++			    UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_METHOD_DESTROY(
++	CXI_IB_METHOD_CT_DESTROY,
++	UVERBS_ATTR_IDR(CXI_IB_ATTR_CT_DESTROY_HANDLE,
++			CXI_IB_OBJECT_CT,
++			UVERBS_ACCESS_DESTROY,
++			UA_MANDATORY));
++
++/* -----------------------------------------------------------------------
++ * Object definition
++ * -----------------------------------------------------------------------
++ */
++DECLARE_UVERBS_NAMED_OBJECT(
++	CXI_IB_OBJECT_CT,
++	UVERBS_TYPE_ALLOC_IDR(cxiverbs_ct_cleanup),
++	&UVERBS_METHOD(CXI_IB_METHOD_CT_ALLOC),
++	&UVERBS_METHOD(CXI_IB_METHOD_CT_DESTROY));
++
++struct cxiverbs_cmdq {
++	refcount_t refs;
++	struct cxiverbs_lni *lni;
++	struct cxi_cq *cq;
++	struct cxiverbs_mmap_entry *commands;
++	struct cxiverbs_mmap_entry *doorbell;
++};
++
++static void cxiverbs_cmdq_release(void *owner)
++{
++	struct cxiverbs_cmdq *cmdq = owner;
++
++	if (!refcount_dec_and_test(&cmdq->refs))
++		return;
++	if (cmdq->cq)
++		cmdq->lni->ctx->cadev->cq_free(cmdq->cq);
++	cxiverbs_lni_put(cmdq->lni);
++	kfree(cmdq);
++}
++
++static int cxiverbs_cmdq_cleanup(struct ib_uobject *object,
++				enum rdma_remove_reason reason,
++				struct uverbs_attr_bundle *attrs)
++{
++	struct cxiverbs_cmdq *cmdq = object->object;
++
++	if (cmdq->doorbell)
++		rdma_user_mmap_entry_remove(&cmdq->doorbell->rdma_entry);
++	if (cmdq->commands)
++		rdma_user_mmap_entry_remove(&cmdq->commands->rdma_entry);
++	cxiverbs_cmdq_release(cmdq);
 +	return 0;
 +}
 +
-+int cxiverbs_destroy_ah(struct ib_ah *ibah, u32 flags)
++static int UVERBS_HANDLER(CXI_IB_METHOD_CMDQ_ALLOC)(
++		struct uverbs_attr_bundle *attrs)
 +{
-+	/* Nothing to free; struct is embedded in the slab allocation */
-+	return 0;
++	struct ib_uobject *object =
++		uverbs_attr_get_uobject(attrs, CXI_IB_ATTR_CMDQ_HANDLE);
++	struct cxi_cq_alloc_opts opts = { .flags = CXI_CQ_USER };
++	struct cxi_ibv_cmdq_info info = {};
++	struct cxiverbs_ucontext *ctx;
++	struct cxiverbs_cmdq *cmdq;
++	struct page *pages;
++	phys_addr_t doorbell;
++	size_t commands_size;
++	size_t doorbell_size;
++	u64 offset;
++	u32 handle;
++	u32 flags = 0;
++	int ret;
++
++	ctx = cxiverbs_get_ucontext(attrs);
++	if (IS_ERR(ctx))
++		return PTR_ERR(ctx);
++	if (!ctx->cadev->cq_alloc || !ctx->cadev->cq_free ||
++	    !ctx->cadev->cq_user_info)
++		return -EOPNOTSUPP;
++	ret = uverbs_copy_from(&handle, attrs, CXI_IB_ATTR_CMDQ_LNI);
++	if (ret)
++		return ret;
++	ret = uverbs_copy_from(&opts.count, attrs, CXI_IB_ATTR_CMDQ_COUNT);
++	if (ret)
++		return ret;
++	if (!opts.count || opts.count > CXI_MAX_CQ_COUNT)
++		return -EINVAL;
++	if (uverbs_attr_is_valid(attrs, CXI_IB_ATTR_CMDQ_FLAGS)) {
++		ret = uverbs_copy_from(&flags, attrs, CXI_IB_ATTR_CMDQ_FLAGS);
++		if (ret)
++			return ret;
++	}
++	if (flags & ~CXI_IB_CMDQ_TRIGGER)
++		return -EINVAL;
++	if (flags & CXI_IB_CMDQ_TRIGGER)
++		opts.flags |= CXI_CQ_IS_TX | CXI_CQ_TX_WITH_TRIG_CMDS;
++	cmdq = kzalloc_obj(*cmdq, GFP_KERNEL);
++	if (!cmdq)
++		return -ENOMEM;
++	cmdq->lni = cxiverbs_lni_get(ctx, handle);
++	if (IS_ERR(cmdq->lni)) {
++		ret = PTR_ERR(cmdq->lni);
++		kfree(cmdq);
++		return ret;
++	}
++	refcount_set(&cmdq->refs, 1);
++	cmdq->cq = ctx->cadev->cq_alloc(cmdq->lni->lni, NULL, &opts,
++				       NUMA_NO_NODE);
++	if (IS_ERR(cmdq->cq)) {
++		ret = PTR_ERR(cmdq->cq);
++		cmdq->cq = NULL;
++		goto release;
++	}
++	ret = ctx->cadev->cq_user_info(cmdq->cq, &commands_size, &pages,
++				      &doorbell, &doorbell_size);
++	if (ret)
++		goto release;
++	info.count = cmdq->cq->size;
++	info.index = cmdq->cq->idx;
++	info.commands_length = commands_size;
++	info.doorbell_length = doorbell_size;
++	refcount_inc(&cmdq->refs);
++	cmdq->commands = cxiverbs_mmap_entry_alloc_owned(&ctx->ibucontext,
++			false, 0, pages, commands_size, &offset, cmdq,
++			cxiverbs_cmdq_release);
++	if (IS_ERR(cmdq->commands)) {
++		ret = PTR_ERR(cmdq->commands);
++		cmdq->commands = NULL;
++		refcount_dec(&cmdq->refs);
++		goto release;
++	}
++	info.commands_offset = offset;
++	refcount_inc(&cmdq->refs);
++	cmdq->doorbell = cxiverbs_mmap_entry_alloc_owned(&ctx->ibucontext,
++			true, doorbell, NULL, doorbell_size, &offset, cmdq,
++			cxiverbs_cmdq_release);
++	if (IS_ERR(cmdq->doorbell)) {
++		ret = PTR_ERR(cmdq->doorbell);
++		cmdq->doorbell = NULL;
++		refcount_dec(&cmdq->refs);
++		rdma_user_mmap_entry_remove(&cmdq->commands->rdma_entry);
++		goto release;
++	}
++	info.doorbell_offset = offset;
++	object->object = cmdq;
++	uverbs_finalize_uobj_create(attrs, CXI_IB_ATTR_CMDQ_HANDLE);
++	return uverbs_copy_to(attrs, CXI_IB_ATTR_CMDQ_INFO,
++			     &info, sizeof(info));
++release:
++	cxiverbs_cmdq_release(cmdq);
++	return ret;
 +}
 +
-+int cxiverbs_add_gid(const struct ib_gid_attr *attr, void **context)
++DECLARE_UVERBS_NAMED_METHOD(CXI_IB_METHOD_CMDQ_ALLOC,
++	UVERBS_ATTR_IDR(CXI_IB_ATTR_CMDQ_HANDLE, CXI_IB_OBJECT_CMDQ,
++		       UVERBS_ACCESS_NEW, UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_CMDQ_LNI,
++			   UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_CMDQ_COUNT,
++			   UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_CMDQ_INFO,
++			    UVERBS_ATTR_TYPE(struct cxi_ibv_cmdq_info),
++			    UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_CMDQ_FLAGS, UVERBS_ATTR_TYPE(u32)));
++
++DECLARE_UVERBS_NAMED_METHOD_DESTROY(CXI_IB_METHOD_CMDQ_DESTROY,
++	UVERBS_ATTR_IDR(CXI_IB_ATTR_CMDQ_HANDLE, CXI_IB_OBJECT_CMDQ,
++		       UVERBS_ACCESS_DESTROY, UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_OBJECT(CXI_IB_OBJECT_CMDQ,
++	UVERBS_TYPE_ALLOC_IDR(cxiverbs_cmdq_cleanup),
++	&UVERBS_METHOD(CXI_IB_METHOD_CMDQ_ALLOC),
++	&UVERBS_METHOD(CXI_IB_METHOD_CMDQ_DESTROY));
++
++static int cxiverbs_copy_job_tc_limit(struct uverbs_attr_bundle *attrs,
++				    int max_attr, int res_attr,
++				    struct cxi_limits *limit)
 +{
-+	/* Accept any GID; no hardware GID table maintenance at this layer */
-+	return 0;
++	int ret;
++
++	if (uverbs_attr_is_valid(attrs, max_attr)) {
++		ret = uverbs_copy_from(&limit->max, attrs, max_attr);
++		if (ret)
++			return ret;
++	}
++	if (uverbs_attr_is_valid(attrs, res_attr)) {
++		ret = uverbs_copy_from(&limit->res, attrs, res_attr);
++		if (ret)
++			return ret;
++	}
++
++	return limit->max < limit->res ? -EINVAL : 0;
 +}
 +
-+int cxiverbs_del_gid(const struct ib_gid_attr *attr, void **context)
++static u32 cxiverbs_tc_key(u32 tc, u32 tc_type)
 +{
-+	return 0;
++	return (tc_type << 16) | tc;
 +}
++
++static int UVERBS_HANDLER(CXI_IB_METHOD_JOB_TC_BIND)(
++		struct uverbs_attr_bundle *attrs)
++{
++	struct ib_ucontext *ibctx = ib_uverbs_get_ucontext(attrs);
++	struct cxiverbs_ucontext *uctx;
++	struct cxiverbs_dev *dev;
++	struct cxiverbs_job_entry *job;
++	struct cxiverbs_job_tc_binding *binding = NULL;
++	struct cxiverbs_tc_entry *tc_entry = NULL;
++	struct cxi_rsrc_limits limits = {};
++	u32 flags = 0;
++	u32 tc_key;
++	u32 job_id;
++	u32 svc_id;
++	u32 bound_svc_id;
++	u32 tc;
++	u32 tc_type = CXI_TC_TYPE_DEFAULT;
++	bool create_tc;
++	bool created_tc = false;
++	int ret;
++
++	if (IS_ERR(ibctx))
++		return PTR_ERR(ibctx);
++	if (!capable(CAP_NET_ADMIN))
++		return -EPERM;
++
++	uctx = to_cxiverbs_ucontext(ibctx);
++	dev = to_cxiverbs_dev(ibctx->device);
++	if (!uctx->cadev->job_tc_bind)
++		return -EOPNOTSUPP;
++
++	ret = uverbs_get_flags32(&flags, attrs,
++				  CXI_IB_ATTR_JOB_TC_BIND_FLAGS,
++				  CXI_IB_JOB_TC_F_CREATE);
++	if (ret)
++		return ret;
++
++	ret = uverbs_copy_from(&job_id, attrs, CXI_IB_ATTR_JOB_TC_BIND_JOB_ID);
++	if (ret)
++		return ret;
++	ret = uverbs_copy_from(&tc, attrs, CXI_IB_ATTR_JOB_TC_BIND_TC);
++	if (ret)
++		return ret;
++
++	svc_id = 0;
++	if (uverbs_attr_is_valid(attrs, CXI_IB_ATTR_JOB_TC_BIND_SVC_ID)) {
++		ret = uverbs_copy_from(&svc_id, attrs,
++				       CXI_IB_ATTR_JOB_TC_BIND_SVC_ID);
++		if (ret)
++			return ret;
++	}
++	if (uverbs_attr_is_valid(attrs, CXI_IB_ATTR_JOB_TC_BIND_TC_TYPE)) {
++		ret = uverbs_copy_from(&tc_type, attrs,
++				       CXI_IB_ATTR_JOB_TC_BIND_TC_TYPE);
++		if (ret)
++			return ret;
++	}
++
++	ret = cxiverbs_copy_job_tc_limit(attrs,
++			CXI_IB_ATTR_JOB_TC_BIND_PTES_MAX,
++			CXI_IB_ATTR_JOB_TC_BIND_PTES_RES,
++			&limits.ptes);
++	if (ret)
++		return ret;
++	ret = cxiverbs_copy_job_tc_limit(attrs,
++			CXI_IB_ATTR_JOB_TC_BIND_TXQS_MAX,
++			CXI_IB_ATTR_JOB_TC_BIND_TXQS_RES,
++			&limits.txqs);
++	if (ret)
++		return ret;
++	ret = cxiverbs_copy_job_tc_limit(attrs,
++			CXI_IB_ATTR_JOB_TC_BIND_TGQS_MAX,
++			CXI_IB_ATTR_JOB_TC_BIND_TGQS_RES,
++			&limits.tgqs);
++	if (ret)
++		return ret;
++	ret = cxiverbs_copy_job_tc_limit(attrs,
++			CXI_IB_ATTR_JOB_TC_BIND_EQS_MAX,
++			CXI_IB_ATTR_JOB_TC_BIND_EQS_RES,
++			&limits.eqs);
++	if (ret)
++		return ret;
++	ret = cxiverbs_copy_job_tc_limit(attrs,
++			CXI_IB_ATTR_JOB_TC_BIND_CTS_MAX,
++			CXI_IB_ATTR_JOB_TC_BIND_CTS_RES,
++			&limits.cts);
++	if (ret)
++		return ret;
++	ret = cxiverbs_copy_job_tc_limit(attrs,
++			CXI_IB_ATTR_JOB_TC_BIND_LES_MAX,
++			CXI_IB_ATTR_JOB_TC_BIND_LES_RES,
++			&limits.les);
++	if (ret)
++		return ret;
++	ret = cxiverbs_copy_job_tc_limit(attrs,
++			CXI_IB_ATTR_JOB_TC_BIND_TLES_MAX,
++			CXI_IB_ATTR_JOB_TC_BIND_TLES_RES,
++			&limits.tles);
++	if (ret)
++		return ret;
++	ret = cxiverbs_copy_job_tc_limit(attrs,
++			CXI_IB_ATTR_JOB_TC_BIND_ACS_MAX,
++			CXI_IB_ATTR_JOB_TC_BIND_ACS_RES,
++			&limits.acs);
++	if (ret)
++		return ret;
++
++	mutex_lock(&dev->jobs_lock);
++	job = uctx->job;
++	if (!job || job->job_id != job_id) {
++		ret = -EINVAL;
++		goto out_unlock;
++	}
++
++	create_tc = flags & CXI_IB_JOB_TC_F_CREATE;
++	tc_key = cxiverbs_tc_key(tc, tc_type);
++	tc_entry = xa_load(&dev->tcs, tc_key);
++	if (create_tc) {
++		if (tc_entry) {
++			ret = -EEXIST;
++			goto out_unlock;
++		}
++	}
++
++	if (tc_entry) {
++		list_for_each_entry(binding, &tc_entry->job_list, entry) {
++			if (binding->job == job) {
++				ret = -EEXIST;
++				goto out_unlock;
++			}
++		}
++		binding = NULL;
++	}
++
++	binding = kzalloc_obj(*binding);
++	if (!binding) {
++		ret = -ENOMEM;
++		goto out_unlock;
++	}
++
++	ret = uctx->cadev->job_tc_bind(uctx->cadev->cxi_dev, job_id, svc_id,
++					 tc, tc_type, create_tc, &limits,
++					 &bound_svc_id, &created_tc);
++	if (ret)
++		goto err_free_binding;
++
++	if (!tc_entry) {
++		tc_entry = kzalloc_obj(*tc_entry);
++		if (!tc_entry) {
++			ret = -ENOMEM;
++			goto err_clear_created_tc;
++		}
++		tc_entry->key = tc_key;
++		tc_entry->tc = tc;
++		tc_entry->tc_type = tc_type;
++		tc_entry->created = created_tc;
++		INIT_LIST_HEAD(&tc_entry->job_list);
++		ret = xa_insert(&dev->tcs, tc_key, tc_entry, GFP_KERNEL);
++		if (ret) {
++			kfree(tc_entry);
++			tc_entry = NULL;
++			goto err_clear_created_tc;
++		}
++	}
++
++	binding->job = job;
++	binding->svc_id = bound_svc_id;
++	list_add_tail(&binding->entry, &tc_entry->job_list);
++	mutex_unlock(&dev->jobs_lock);
++
++	return uverbs_copy_to(attrs, CXI_IB_ATTR_JOB_TC_BIND_RESP_SVC_ID,
++				    &bound_svc_id, sizeof(bound_svc_id));
++err_clear_created_tc:
++	if (created_tc && uctx->cadev->tc_clear)
++		uctx->cadev->tc_clear(uctx->cadev->cxi_dev, tc, tc_type);
++	if (uctx->cadev->svc_destroy)
++		uctx->cadev->svc_destroy(uctx->cadev->cxi_dev, bound_svc_id);
++err_free_binding:
++	kfree(binding);
++out_unlock:
++	mutex_unlock(&dev->jobs_lock);
++	return ret;
++}
++
++DECLARE_UVERBS_NAMED_METHOD(
++	CXI_IB_METHOD_JOB_TC_BIND,
++	UVERBS_ATTR_FLAGS_IN(CXI_IB_ATTR_JOB_TC_BIND_FLAGS, u32, UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_JOB_ID,
++			    UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_TC,
++			    UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_TC_TYPE,
++			    UVERBS_ATTR_TYPE(u32), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_SVC_ID,
++			    UVERBS_ATTR_TYPE(u32), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_PTES_MAX,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_PTES_RES,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_TXQS_MAX,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_TXQS_RES,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_TGQS_MAX,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_TGQS_RES,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_EQS_MAX,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_EQS_RES,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_CTS_MAX,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_CTS_RES,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_LES_MAX,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_LES_RES,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_TLES_MAX,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_TLES_RES,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_ACS_MAX,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_BIND_ACS_RES,
++			    UVERBS_ATTR_TYPE(u16), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_JOB_TC_BIND_RESP_SVC_ID,
++			     UVERBS_ATTR_TYPE(u32), UA_MANDATORY));
++
++static int UVERBS_HANDLER(CXI_IB_METHOD_JOB_TC_CLEAR)(
++		struct uverbs_attr_bundle *attrs)
++{
++	struct ib_ucontext *ibctx = ib_uverbs_get_ucontext(attrs);
++	struct cxiverbs_ucontext *uctx;
++	struct cxiverbs_dev *dev;
++	struct cxiverbs_tc_entry *tc_entry;
++	u32 tc;
++	u32 tc_type = CXI_TC_TYPE_DEFAULT;
++	u32 tc_key;
++	int ret;
++
++	if (IS_ERR(ibctx))
++		return PTR_ERR(ibctx);
++	if (!capable(CAP_NET_ADMIN))
++		return -EPERM;
++
++	uctx = to_cxiverbs_ucontext(ibctx);
++	dev = to_cxiverbs_dev(ibctx->device);
++	if (!uctx->cadev->tc_clear)
++		return -EOPNOTSUPP;
++
++	ret = uverbs_copy_from(&tc, attrs, CXI_IB_ATTR_JOB_TC_CLEAR_TC);
++	if (ret)
++		return ret;
++	if (uverbs_attr_is_valid(attrs, CXI_IB_ATTR_JOB_TC_CLEAR_TC_TYPE)) {
++		ret = uverbs_copy_from(&tc_type, attrs,
++				       CXI_IB_ATTR_JOB_TC_CLEAR_TC_TYPE);
++		if (ret)
++			return ret;
++	}
++
++	if (tc >= CXI_TC_MAX || tc_type >= CXI_TC_TYPE_MAX)
++		return -EINVAL;
++
++	tc_key = cxiverbs_tc_key(tc, tc_type);
++	mutex_lock(&dev->jobs_lock);
++	tc_entry = xa_load(&dev->tcs, tc_key);
++	if (!tc_entry) {
++		ret = -ENOENT;
++		goto out_unlock;
++	}
++	if (!list_empty(&tc_entry->job_list)) {
++		ret = -EBUSY;
++		goto out_unlock;
++	}
++
++	ret = tc_entry->created ?
++		uctx->cadev->tc_clear(uctx->cadev->cxi_dev, tc, tc_type) : 0;
++	if (ret)
++		goto out_unlock;
++	xa_erase(&dev->tcs, tc_key);
++	kfree(tc_entry);
++
++out_unlock:
++	mutex_unlock(&dev->jobs_lock);
++	return ret;
++}
++
++DECLARE_UVERBS_NAMED_METHOD(
++	CXI_IB_METHOD_JOB_TC_CLEAR,
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_CLEAR_TC,
++			    UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_CLEAR_TC_TYPE,
++			    UVERBS_ATTR_TYPE(u32), UA_OPTIONAL));
++
++static int UVERBS_HANDLER(CXI_IB_METHOD_JOB_TC_QUERY)(
++		struct uverbs_attr_bundle *attrs)
++{
++	struct ib_ucontext *ibctx = ib_uverbs_get_ucontext(attrs);
++	struct cxiverbs_ucontext *uctx;
++	struct cxiverbs_dev *dev;
++	struct cxi_tc_info *tc_info;
++	struct cxi_ibv_tc_entry *entries;
++	u32 max_entries = 0;
++	u32 count = 0;
++	u32 copied;
++	int ret;
++	u32 i;
++
++	if (IS_ERR(ibctx))
++		return PTR_ERR(ibctx);
++
++	uctx = to_cxiverbs_ucontext(ibctx);
++	dev = to_cxiverbs_dev(ibctx->device);
++	if (!uctx->cadev->tc_list)
++		return -EOPNOTSUPP;
++
++	if (uverbs_attr_is_valid(attrs, CXI_IB_ATTR_JOB_TC_QUERY_MAX_ENTRIES)) {
++		ret = uverbs_copy_from(&max_entries, attrs,
++				       CXI_IB_ATTR_JOB_TC_QUERY_MAX_ENTRIES);
++		if (ret)
++			return ret;
++	}
++
++	if (!max_entries || max_entries > CXI_TC_MAX * CXI_TC_TYPE_MAX)
++		max_entries = CXI_TC_MAX * CXI_TC_TYPE_MAX;
++
++	tc_info = kcalloc(max_entries, sizeof(*tc_info), GFP_KERNEL);
++	if (!tc_info)
++		return -ENOMEM;
++	entries = kcalloc(max_entries, sizeof(*entries), GFP_KERNEL);
++	if (!entries) {
++		kfree(tc_info);
++		return -ENOMEM;
++	}
++
++	ret = uctx->cadev->tc_list(uctx->cadev->cxi_dev, tc_info, max_entries,
++				    &count);
++	if (ret)
++		goto out_free;
++
++	copied = min(count, max_entries);
++	mutex_lock(&dev->jobs_lock);
++	for (i = 0; i < copied; i++) {
++		struct cxiverbs_tc_entry *tracked;
++
++		entries[i].tc = tc_info[i].tc;
++		entries[i].tc_type = tc_info[i].tc_type;
++		entries[i].res_req_dscp = tc_info[i].res_req_dscp;
++		entries[i].unres_req_dscp = tc_info[i].unres_req_dscp;
++		entries[i].res_rsp_dscp = tc_info[i].res_rsp_dscp;
++		entries[i].unres_rsp_dscp = tc_info[i].unres_rsp_dscp;
++		entries[i].req_pcp = tc_info[i].req_pcp;
++		entries[i].rsp_pcp = tc_info[i].rsp_pcp;
++		entries[i].ocuset = tc_info[i].ocuset;
++		entries[i].cq_tc = tc_info[i].cq_tc;
++		entries[i].req_bc = tc_info[i].req_bc;
++
++		tracked = xa_load(&dev->tcs,
++				  cxiverbs_tc_key(entries[i].tc, entries[i].tc_type));
++		if (tracked && tracked->created)
++			entries[i].flags |= CXI_IBV_TC_ENTRY_F_CREATED_BY_RDMA;
++	}
++	mutex_unlock(&dev->jobs_lock);
++
++	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_JOB_TC_QUERY_RESP_COUNT,
++			     &count, sizeof(count));
++	if (ret)
++		goto out_free;
++	ret = uverbs_copy_to(attrs, CXI_IB_ATTR_JOB_TC_QUERY_RESP_ENTRIES,
++			     entries, copied * sizeof(*entries));
++
++out_free:
++	kfree(entries);
++	kfree(tc_info);
++	return ret;
++}
++
++DECLARE_UVERBS_NAMED_METHOD(
++	CXI_IB_METHOD_JOB_TC_QUERY,
++	UVERBS_ATTR_PTR_IN(CXI_IB_ATTR_JOB_TC_QUERY_MAX_ENTRIES,
++			    UVERBS_ATTR_TYPE(u32), UA_OPTIONAL),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_JOB_TC_QUERY_RESP_COUNT,
++			     UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(CXI_IB_ATTR_JOB_TC_QUERY_RESP_ENTRIES,
++			     UVERBS_ATTR_MIN_SIZE(0), UA_MANDATORY));
++
++DECLARE_UVERBS_GLOBAL_METHODS(CXI_IB_OBJECT_JOB_TC,
++	&UVERBS_METHOD(CXI_IB_METHOD_JOB_TC_BIND),
++	&UVERBS_METHOD(CXI_IB_METHOD_JOB_TC_CLEAR),
++	&UVERBS_METHOD(CXI_IB_METHOD_JOB_TC_QUERY));
++
++/* -----------------------------------------------------------------------
++ * Driver uapi_definition table — assigned to ib_dev.driver_def in probe.
++ * -----------------------------------------------------------------------
++ */
++const struct uapi_definition cxiverbs_defs[] = {
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(CXI_IB_OBJECT_WAIT),
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(CXI_IB_OBJECT_CSR),
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(CXI_IB_OBJECT_EQ),
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(CXI_IB_OBJECT_CP),
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(CXI_IB_OBJECT_SVC),
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(UVERBS_OBJECT_PD),
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(CXI_IB_OBJECT_LNI),
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(CXI_IB_OBJECT_CT),
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(CXI_IB_OBJECT_CMDQ),
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(CXI_IB_OBJECT_JOB_TC),
++	{},
++};
 
 -- 
 2.56.0
