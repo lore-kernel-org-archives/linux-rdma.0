@@ -1,55 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=101.71.155.101
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793451029;
-	b=MIEBY2IwOw7ypnsMdLxYJppJYf76qhx5/+h90Hjcc2WRN3CO48gn86Z5YAiAjly5FgMr
-	 DyevTaTOr3tQ6Qev8wFDfZVr5YpdsLWLI/YjoAeOoH4GP+uopinDfKOWONdQI9JKZtj3u
-	 jjm45vtuxl2xxye1weHTZka25/1wXloQblx77UuTN/bzxJsKR3gZKqd2gC6YF1IiaJjfN
-	 2SiBwndYZJiv2993ErKOaK3N+jCs2iUfDpQT+QvF53IP8FoFpfBa1zawb6R7GEh/yg1Je
-	 nKdXUghizG9mplkDeHAj0HoSD3ZlHnZSgHG7fKkC0UtsRIKy4bIFfiw9LHW4ay+1AxQ==
+	t=1793456094;
+	b=xOhlpfAS74L7uKXm5tyqdkJrsPJofiGu2YnWv6qhDa0vaFvhNFnGvos2FjUfvJzP8o75
+	 KmBLZD1Fl5hqxX8+EUIos7mKO1hlCACL0anUkQn8qamK1nT54v7y2qOmwSXjBNQD8btMP
+	 SUm35qmzpobZBJONSqpyxKwvinmLPnV8ZoIP06U3eVxTK1UYhCv8x8w7aCZmT3uOozSl3
+	 gtxOXBvHnUPdgahl7HIP1i4/FoGJfW3ixWQaUU+Ihh+pQxhLmqG2mnLc3AH3aPt7uA2CN
+	 HF0lQG4ENOq3Wqk+kA8WQFOtlx0717yC8ffJBPxZYr6MBjg2CUaJZeRSWDbZ/+/PU5w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793451029;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=855nSihgJxWPmK/GjrHlfXOpPZnhxUNNchV+utP1W5U=;
-	b=PbG01IiaaqgK+0OQg2nt5QjD3t8Ismh7YjnosoJVktwvwlHKCFUazgQhpiM2lpUSgoPr
-	 q239yMdiHPboal1PefqTmv5JBFz/2//eTvuEcUMvXoBAudPW/LTOGIzaOd663efIBAfPb
-	 kj101Nov5LFivUyO6nG+pXxyxOkdmT5S+akfvq6FmjM7+v9eWWJTCebaP+kcYv6cn/qNQ
-	 NFrxrod1bzwDD8DN2uwjEUQqdsFmGfpfGiC/Iftjtm9WeLRYMttvw+ITFIB/8cgdtKqXu
-	 Uw/ZAtWS4vmqRkHpRoWsitiirGxv7FLRiWC3V6zHXwTZgQyTksjkIVOP4dGnv9S9p6A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793456094;
+	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding:X-HM-Tid:X-HM-MType:
+	 X-HM-Spam-Status:DKIM-Signature;
+	bh=nQE+kY731hvXbr2q1nKgJpSmVlQMBl967e7BSiBAfHA=;
+	b=xVypvHQo96OwUF6xzT8G7zq1jfchBN2gcKm+h/UgwrW/C4KsqbJCBuBYWhowld21zXcB
+	 5QcIzKUc5X0SBqTd/Z8gbN9+ApcQJ8BPNoldgOzlbcXNYY5UTMguxZFqqaUqv1rztkMAm
+	 bjETroLGWUu2a1WhmHOC52MteaRz+IwGSr2ylz0KV3JnOCIJ+HrAmi+otQDF2IBvDAqOe
+	 +v1bJ3GQwGUB2plp3PkFE6khLmyLUrxEwcnT/WYJc7Oi1ke+dj804DIPRIsFujvLCpEAC
+	 umYJjOeSnDhdxz/yFAlTOokl8vfdTssEUcTInv1YxVBywnQzMgf/vCQTe1KFmud057g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NHN+0jiR;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=mail.sdu.edu.cn;
+	spf=pass smtp.mailfrom=mail.sdu.edu.cn;
+	dkim=pass header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=Lhb5qPAY;
+	arc=none smtp.remote-ip=101.71.155.101
+Received: from mail-m155101.qiye.163.com (mail-m155101.qiye.163.com [101.71.155.101])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 653C6606A31C;
-	Sat, 31 Oct 2026 12:50:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ED0D606A31A;
+	Sat, 31 Oct 2026 14:14:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0ED0D606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mail.sdu.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mail.sdu.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NHN+0jiR
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2C391F000C1;
-	Sat, 31 Oct 2026 12:50:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793451028;
-	bh=855nSihgJxWPmK/GjrHlfXOpPZnhxUNNchV+utP1W5U=;
-	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=NHN+0jiR/hvhURG6dSdCdv/WkC1d7eFQENt7ZIo06gKiGDK/BKsaRiCWs/qJq7Dxq
-	 25m1y1s2gaGjXcPo5JN2wqKZ8Zu78p2sulEnbk5VKAxjn88QV3vEOSLscfmXwHhC7e
-	 fq7kvmNowOarsuTKkxKwhIL+cJ5WWzQu5Ah1kHflkyG87u+NZ0UFZCO7m25FDEqYDX
-	 wkxMJcLJ6UtgQOvpoKImIbJllFu+9is9zYOQDOcqBww1Mp7YrQYd1NknOvBfOufp6W
-	 uE5QhvCAlwX7oeNxqzc5Ns3PAWLieL1/24E7gDRTAG7LklvcYiTsQ5BNK+Y36MVK8k
-	 Mv8i0oAGkAYfg==
-Message-ID: <sashiko-outbox-191945@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net v2] net: mana: Avoid waiting on dead HWC after
- device reset
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Sahil Chandna" <sahilchandna@linux.microsoft.com>, linux-hyperv@vger.kernel.org, linux-rdma@vger.kernel.org
-In-Reply-To: <20261030125009.3758592-1-sahilchandna@linux.microsoft.com>
-References: <20261030125009.3758592-1-sahilchandna@linux.microsoft.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Sat, 31 Oct 2026 12:50:28 +0000
+	dkim=pass (1024-bit key, unprotected) header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=Lhb5qPAY
+Received: from lgs.. (unknown [101.76.249.61])
+	by smtp.qiye.163.com (Hmail) with ESMTP id 53071d161;
+	Sat, 31 Oct 2026 22:14:47 +0800 (GMT+08:00)
+From: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>,
+	stable@vger.kernel.org,
+	"Md. Haris Iqbal" <haris.iqbal@ionos.com>,
+	Jack Wang <jinpu.wang@ionos.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] RDMA/rtrs: Fix potential use-after-free on client sysfs setup failure
+Date: Sat, 31 Oct 2026 22:14:46 +0800
+Message-ID: <ddd08640709b149408b616c3eec8fee847af757e.1793455791.git.liguangshuo@mail.sdu.edu.cn>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,232 +57,149 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-HM-Tid: 0aa19250209103a1kunm24bc911186afc
+X-HM-MType: 10
+X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
+	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVkZTUtMVkxKS0keQ0NOS0wdTFYeHw
+	5VEwETFhoSFyQUDg9ZV1kYEgtZQVlKS0pVTE1VSU9CVU1KWVdZFhoPEhUdFFlBWUtVS1VLVUtZBg
+	++
+DKIM-Signature: a=rsa-sha256;
+	b=Lhb5qPAYic70+h1+PEBwbGgHR1nCua+WkHNmFBR4RPjwfrIjfElXbogm43DV5yfzBWJ8uevdp0meuYiMqJyiX9iS/lmT7BBm4S/moqZVhzPHg90eDyT1MMg/Y/u5KbaG2NPreR0cCgxXbC19kTMx8hYB9+3Cm7bLa1TBUMZN8hM=; s=default; c=relaxed/relaxed; d=mail.sdu.edu.cn; v=1;
+	bh=nQE+kY731hvXbr2q1nKgJpSmVlQMBl967e7BSiBAfHA=;
+	h=date:mime-version:subject:message-id:from;
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
-s) to consider:
-- [High] net: mana: missing TX CQ poll after final sleep in mana_dealloc_qu=
-eues()
-- [Medium] net: mana: incomplete dead HWC checks in mana_dealloc_queues()
---
+rtrs_clt_create_path_files() drops the path reference on failure, but
+its callers still close connections and free the path. This can access
+freed memory and free the path twice.
 
-commit 4704079fb73cc77fdb1cc7581dd8e498b290c328
-Author: Sahil Chandna <sahilchandna@linux.microsoft.com>
+Keep the caller's path reference until its cleanup completes. Move
+per-CPU stats cleanup to the path release callback and let the embedded
+stats kobject hold a path reference until its own release callback, so
+delayed kobject release cannot outlive the enclosing allocation. Keep
+direct cleanup for failures before the path kobject is initialized.
 
-net: mana: Avoid waiting on dead HWC after device reset
+This issue was found by our static analysis tool under development.
 
-This commit replaces the 120s sleep-based TX drain in mana_dealloc_queues()
-with synchronous CQ polling and marks the hardware channel dead after a
-device reset so subsequent HWC commands fail fast instead of waiting for a
-timeout.
+Fixes: 215378b838df ("RDMA/rtrs: client: sysfs interface functions")
+Cc: stable@vger.kernel.org
+Assisted-by: OpenAI:gpt-6-astra
+Signed-off-by: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>
+---
+Build-tested the changed objects with x86_64 allmodconfig (W=1):
+GCC with CONFIG_DEBUG_KOBJECT_RELEASE=n/y, and Clang with it enabled.
+A host harness executing extracted cleanup functions passed 198
+failure/teardown cases, including delayed release (also under ASan/UBSan).
+No kernel runtime or RDMA hardware testing was performed.
 
-> diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/=
-ethernet/microsoft/mana/mana_en.c
-> index 6b7c027e497ed..2bf17fdcfa2bd 100644
-> --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-> +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+ drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c | 10 +++++++---
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c       | 14 ++++++++++----
+ 2 files changed, 17 insertions(+), 7 deletions(-)
 
-[ ... ]
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
+index f8b833bd81ad..44edc405f400 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
+@@ -22,6 +22,7 @@ static void rtrs_clt_path_release(struct kobject *kobj)
+ 
+ 	clt_path = container_of(kobj, struct rtrs_clt_path, kobj);
+ 
++	free_percpu(clt_path->stats->pcpu_stats);
+ 	free_path(clt_path);
+ }
+ 
+@@ -32,11 +33,13 @@ static struct kobj_type ktype_sess = {
+ 
+ static void rtrs_clt_path_stats_release(struct kobject *kobj)
+ {
++	struct rtrs_clt_path *clt_path;
+ 	struct rtrs_clt_stats *stats;
+ 
+ 	stats = container_of(kobj, struct rtrs_clt_stats, kobj_stats);
+ 
+-	free_percpu(stats->pcpu_stats);
++	clt_path = container_of_const(stats, struct rtrs_clt_path, stats[0]);
++	kobject_put(&clt_path->kobj);
+ }
+ 
+ static struct kobj_type ktype_stats = {
+@@ -422,6 +425,7 @@ static const struct attribute_group rtrs_clt_path_attr_group = {
+ 	.attrs = rtrs_clt_path_attrs,
+ };
+ 
++/* The caller retains the initial path reference on all exits. */
+ int rtrs_clt_create_path_files(struct rtrs_clt_path *clt_path)
+ {
+ 	struct rtrs_clt_sess *clt = clt_path->clt;
+@@ -438,7 +442,6 @@ int rtrs_clt_create_path_files(struct rtrs_clt_path *clt_path)
+ 				   "%s", str);
+ 	if (err) {
+ 		pr_err("kobject_init_and_add: %pe\n", ERR_PTR(err));
+-		kobject_put(&clt_path->kobj);
+ 		return err;
+ 	}
+ 	err = sysfs_create_group(&clt_path->kobj, &rtrs_clt_path_attr_group);
+@@ -446,6 +449,8 @@ int rtrs_clt_create_path_files(struct rtrs_clt_path *clt_path)
+ 		pr_err("sysfs_create_group(): %pe\n", ERR_PTR(err));
+ 		goto put_kobj;
+ 	}
++	/* Keep the path alive until its embedded stats kobject is released. */
++	kobject_get(&clt_path->kobj);
+ 	err = kobject_init_and_add(&clt_path->stats->kobj_stats, &ktype_stats,
+ 				   &clt_path->kobj, "stats");
+ 	if (err) {
+@@ -470,7 +475,6 @@ int rtrs_clt_create_path_files(struct rtrs_clt_path *clt_path)
+ 	sysfs_remove_group(&clt_path->kobj, &rtrs_clt_path_attr_group);
+ put_kobj:
+ 	kobject_del(&clt_path->kobj);
+-	kobject_put(&clt_path->kobj);
+ 
+ 	return err;
+ }
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index bf3a0377da3f..547313136598 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -2880,8 +2880,7 @@ struct rtrs_clt_sess *rtrs_clt_open(struct rtrs_clt_ops *ops,
+ 		if (err) {
+ 			list_del_rcu(&clt_path->s.entry);
+ 			rtrs_clt_close_conns(clt_path, true);
+-			free_percpu(clt_path->stats->pcpu_stats);
+-			free_path(clt_path);
++			kobject_put(&clt_path->kobj);
+ 			goto close_all_path;
+ 		}
+ 	}
+@@ -3161,7 +3160,7 @@ int rtrs_clt_create_path_from_sysfs(struct rtrs_clt_sess *clt,
+ 
+ 	err = init_path(clt_path);
+ 	if (err)
+-		goto close_path;
++		goto close_path_free;
+ 
+ 	err = rtrs_clt_create_path_files(clt_path);
+ 	if (err)
+@@ -3169,12 +3168,19 @@ int rtrs_clt_create_path_from_sysfs(struct rtrs_clt_sess *clt,
+ 
+ 	return 0;
+ 
+-close_path:
++close_path_free:
+ 	rtrs_clt_remove_path_from_arr(clt_path);
+ 	rtrs_clt_close_conns(clt_path, true);
+ 	free_percpu(clt_path->stats->pcpu_stats);
+ 	free_path(clt_path);
+ 
++	return err;
++
++close_path:
++	rtrs_clt_remove_path_from_arr(clt_path);
++	rtrs_clt_close_conns(clt_path, true);
++	kobject_put(&clt_path->kobj);
++
+ 	return err;
+ }
+ 
 
-> @@ -3774,42 +3784,104 @@ static int mana_dealloc_queues(struct net_device=
- *ndev)
->  	 * a txq because it may not timely see apc->port_is_up being cleared
->  	 * to false, but it doesn't matter since mana_start_xmit() drops any
->  	 * new packets due to apc->port_is_up being false.
-> -	 *
-> -	 * Drain all the in-flight TX packets.
-> -	 * A timeout of 120 seconds for all the queues is used.
-> -	 * This will break the while loop when h/w is not responding.
-> -	 * This value of 120 has been decided here considering max
-> -	 * number of queues.
-> +	 * Drain the in-flight TX completions for each queue. TX is already
-> +	 * stopped, so pending_sends can no longer grow. For each queue,
-> +	 * disable NAPI so it cannot run at the same time as this drain,
-> +	 * then process all completions still in the CQ. If some are still
-> +	 * missing after that, the hardware is not responding: reset device
-> +	 * and stop waiting on the now-unavailable HWC.
->  	 */
-> =20
->  	if (apc->tx_qp) {
->  		for (i =3D 0; i < apc->num_queues; i++) {
-> +			struct napi_struct *napi;
-> +			struct mana_cq *tx_cq;
-> +			int pending;
-> +
-> +			if (!apc->tx_qp[i])
-> +				continue;
-> +
-> +			tx_cq =3D &apc->tx_qp[i]->tx_cq;
->  			txq =3D &apc->tx_qp[i]->txq;
-> -			tsleep =3D 1000;
-> -			while (atomic_read(&txq->pending_sends) > 0 &&
-> -			       time_before(jiffies, timeout)) {
-> -				usleep_range(tsleep, tsleep + 1000);
-> -				tsleep <<=3D 1;
-> -			}
-> -			if (atomic_read(&txq->pending_sends)) {
-> -				err =3D mana_gd_dev_reset(gd->gdma_context);
-> -				if (err) {
-> -					netdev_err(ndev, "device reset failed %d with %d pkts pending in tx=
-q %u\n",
-> -						   err,
-> -					    atomic_read(&txq->pending_sends),
-> -					    txq->gdma_txq_id);
-> +			napi =3D &tx_cq->napi;
-> +
-> +			if (txq->napi_initialized) {
-> +				/* Stop the NAPI poll so it cannot run
-> +				 * concurrently with the synchronous drain.
-> +				 */
-> +				napi_synchronize(napi);
-> +				napi_disable_locked(napi);
-> +				cancel_work_sync(&tx_cq->dim.work);
-> +
-> +				/* Reap all TX completions currently in the CQ.
-> +				 * For completion which have still not arrived
-> +				 * allow time to settle.
-> +				 * A zero budget frees skbs via the non-NAPI
-> +				 * path, which is required outside softirq.
-> +				 */
-> +				tx_cq->budget =3D 0;
-> +				for (retry =3D 0; retry < MANA_TX_DRAIN_RETRIES;
-> +				     retry++) {
-> +					do {
-> +						tx_cq->work_done =3D 0;
-> +						mana_poll_tx_cq(tx_cq);
-> +					} while (tx_cq->work_done);
-> +
-> +					if (!atomic_read(&txq->pending_sends) ||
-> +					    trigger_flr)
-> +						break;
-> +
-> +					msleep(100);
->  				}
-> -				break;
->  			}
-> +
-> +			pending =3D atomic_read(&txq->pending_sends);
-> +
-> +			if (!trigger_flr && pending > 0) {
-> +				trigger_flr =3D true;
-> +				flr_txq_id =3D txq->gdma_txq_id;
-> +				flr_pending =3D pending;
-> +			}
-> +		}
-
-[Severity: High]
-In mana_dealloc_queues(), NAPI is disabled on tx_cq via napi_disable_locked=
-()
-before entering the MANA_TX_DRAIN_RETRIES loop, so only mana_poll_tx_cq()
-inside this loop can reap CQEs and decrement txq->pending_sends.
-
-On the last iteration (retry =3D=3D MANA_TX_DRAIN_RETRIES - 1), if
-txq->pending_sends is still non-zero after polling, the loop calls
-msleep(100) and then exits without calling mana_poll_tx_cq(tx_cq) again.
-
-Because NAPI is disabled, any TX completions that arrive during that final
-100 ms sleep remain unpolled in the CQ when pending =3D
-atomic_read(&txq->pending_sends) is checked right after the loop. Can this
-cause mana_dealloc_queues() to miss completions that arrived during the fin=
-al
-sleep and trigger an unnecessary mana_gd_dev_reset() and hwc->hwc_dead =3D =
-true?
-
-> +
-> +		if (trigger_flr && !(hwc && hwc->hwc_dead)) {
-> +			/* Completions never arrived: the device is
-> +			 * unresponsive. Issue device reset and
-> +			 * mark the HWC dead so subsequent HWC commands
-> +			 * fail fast instead of each waiting the full
-> +			 * hwc_timeout.
-> +			 */
-> +			err =3D mana_gd_dev_reset(gd->gdma_context);
-> +			if (err)
-> +				netdev_err(ndev, "device reset failed %d with %d pkts pending in txq=
- %u\n",
-> +					   err,
-> +					   flr_pending,
-> +					   flr_txq_id);
-> +			else if (hwc)
-> +				WRITE_ONCE(hwc->hwc_dead, true);
->  		}
-> =20
->  		for (i =3D 0; i < apc->num_queues; i++) {
-> +			struct napi_struct *napi;
-> +			struct mana_cq *tx_cq;
-> +
-> +			if (!apc->tx_qp[i])
-> +				continue;
-> +
-> +			tx_cq =3D &apc->tx_qp[i]->tx_cq;
-> +			napi =3D &tx_cq->napi;
-> +
->  			txq =3D &apc->tx_qp[i]->txq;
->  			while ((skb =3D skb_dequeue(&txq->pending_skbs))) {
->  				mana_unmap_skb(skb, apc);
->  				dev_kfree_skb_any(skb);
->  			}
->  			atomic_set(&txq->pending_sends, 0);
-> +
-> +			if (txq->napi_initialized) {
-> +				netif_napi_del_locked(napi);
-> +				txq->napi_initialized =3D false;
-> +			}
->  		}
->  	}
-> =20
-> @@ -3822,7 +3894,8 @@ static int mana_dealloc_queues(struct net_device *n=
-dev)
->  	if (err && mana_en_need_log(apc, err))
->  		netdev_err(ndev, "Failed to disable vPort: %d\n", err);
-> =20
-> -	mana_fence_rqs(apc);
-> +	if (!(hwc && hwc->hwc_dead))
-> +		mana_fence_rqs(apc);
-
-[Severity: Medium]
-Should the dead-HWC checks in mana_dealloc_queues() also account for
-hwc->hwc_timeout =3D=3D 0 (or mana_disable_vport_rx() timing out) and check
-whether the HWC is already dead inside the TX drain retry loop?
-
-Specifically:
-
-1. In mana_serv_reset(), an unresponsive HWC is marked by setting
-   WRITE_ONCE(hwc->hwc_timeout, 0) before calling
-   mana_gd_suspend() -> mana_remove() -> mana_detach() ->
-   mana_dealloc_queues():
-
-   drivers/net/ethernet/microsoft/mana/gdma_pci.c:mana_serv_reset() {
-       ...
-       WRITE_ONCE(hwc->hwc_timeout, 0);
-       dev_info(&pdev->dev, "MANA reset cycle start\n");
-       mana_gd_suspend(pdev, PMSG_SUSPEND);
-   }
-
-   If no TX packets are pending (so trigger_flr is false and hwc->hwc_dead
-   stays false), or if the HWC dies while TX is idle and
-   mana_disable_vport_rx() fails with -ETIMEDOUT (reducing hwc->hwc_timeout
-   to 1 without setting hwc->hwc_dead), checking only !(hwc && hwc->hwc_dea=
-d)
-   still calls mana_fence_rqs(apc), which logs an error and sleeps 100 ms p=
-er
-   RX queue while holding rtnl_lock.
-
-2. In the TX drain retry loop above, the early break only checks the local
-   variable trigger_flr:
-
-       if (!atomic_read(&txq->pending_sends) ||
-           trigger_flr)
-           break;
-
-   On a multi-port device during mana_remove(), after the first port resets
-   the device and sets hwc->hwc_dead =3D true (or when hwc->hwc_timeout =3D=
-=3D 0),
-   subsequent calls to mana_dealloc_queues() start with trigger_flr =3D=3D =
-false
-   and will still sleep through MANA_TX_DRAIN_RETRIES on the first queue wi=
-th
-   pending sends.
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261030125009.3758=
-592-1-sahilchandna@linux.microsoft.com?part=3D1
+base-commit: d89e1d186ec9271bf78e62771779e9fc03bf0fc3
