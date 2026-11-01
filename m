@@ -1,108 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.58
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793555066;
-	b=CXh0rqYuJwQXQxGfGsMnphx/QS1kTNC6cqyditnns5OsDPzYpZIAdXWvHOm5vvZqyDXl
-	 4TFAzMSsW749wDJLSBS7kEXXAUjQvUQrjXYy41AUZeGKfmqc/XqI35gj95vTx57SxgPxG
-	 cFGGNDPOG5xLCRlkiI6Txn6Hcka9BaafVGibCCroW6CDtWL+p6kLF/1N0If4agh21jqJZ
-	 VgtRG1+C41kqfYBF8QRmr7BXrLztXHCYjrLH3HNSdBncNKCde2yLkDnh+8VCZl1ZsPEv6
-	 96NbM0XYDLaBKZtzZq8nmLoCwqCrRJ+w3jl/NbfB4AvhaPPnx93U7gxgMYg5k/7BWeA==
+	t=1793564808;
+	b=lsCDZDJaAmMvZ2hMMQ8RvwAUX7mi9+2KvkbtycVUaUNZNNWiwMhJOwmPCCU4LSMjjiY0
+	 NSXL8e10IeLSBeLsiSP0quBncm1uP8WvutHc1QcDaM6ZWEQ6u4KP0mr065yAVnCG8YKZR
+	 3gof6Mao6TSlbllkaTJ1A5S6Aq1LFjolK/KpzwCHJPn/X/EAWl1v1hvjNL+GiKoJHXj+0
+	 Rt8wk0mWyT1nZc2oOZclSrcRjFVoy6k+YXgPuYM0CoBf70cXWyzii2MjhhXDo+H0uXaTz
+	 UsBUrQlVMf4+LCGTDOiYel2VAaQmaCE0AojOpl4GSZv1NkO8fq+8VMmOVRKPWH+g/BA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793555066;
-	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
-	 X-Mimecast-MFC-AGG-ID:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 X-Received:Received:Message-ID:Date:MIME-Version:User-Agent:Subject:
-	 To:Cc:References:Content-Language:From:In-Reply-To:Content-Type:
+	a=rsa-sha256; c=relaxed/relaxed; t=1793564808;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:From:In-Reply-To:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=XNm3LmvLDAoOMp150KbZwglunPFF846Cqv2g3FpPcDc=;
-	b=rw8tipzntLjLVpmrF9X2Skeo6h6H+w7wOZ3+gnAPxUdcvodAt/Qslr2cxd+JDaDuTzyr
-	 UJpiG+wnQB4a23jNp9tJis2OqA44/mS0cLU7D9j5yiRukaytSoPu89Pj1WzPW6PqE14fW
-	 OTFziiCJ74QmKTnxyomRN7vLWXj6+e/Mggpxays9nNhTPtcEspVVFZlrbY2xNq5+3AzzR
-	 m4gEwBB4u+rh+6+Fvce2UdjVu4yRJ01pRSqMbXIvOTrMaAzQICWUH7v1Gr7K+F9NSpq5l
-	 rQeq4/BUzlZmm2iorQsrWiDiEFPZQXTOMEMENcQeT9/qni4IkAElP7GPmWvPgjG1nRQ==
+	bh=TZTclBM2Rc74lAXSIjJcSZwH1U5B8657jxGK0J7gMB0=;
+	b=AbJO/ydEdJHj6UMDOOqVdUZ5zfmJSvwKQdAefxhEtWqHSKcafKFAX/lY7TzOTWy0U0E/
+	 +seSyaywlNSty9+7REuiFv8w97mO2njaMq3bqyiZtcMbgihd5l8ITeSGa+L/H5KQdQxDl
+	 1I6rtglGJtyUuFTjN8xzIxJvtMn/wKResimlVADhH0aeH3m4Ms4pHtbEaFoHInf9TtkVU
+	 eG1FcnYASf23t56sRwTU/fdiDud/3uodMwsN2z/jULsNHpk8evwz9v3VRlpJ8ZYao7z2K
+	 o8ZtVb/z9WGjweUWCVSnyOhcCf8LEK/cfgDNMVhViig0135KdbV8Z73CGZf3Prv/Pyw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=redhat.com;
-	spf=pass smtp.mailfrom=redhat.com;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=VJ215M29;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=lQAOWYS6;
-	arc=none smtp.remote-ip=170.10.129.124
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=dl47iK8C;
+	arc=none smtp.remote-ip=91.218.175.58
+Received: from mta0.migadu.com (out-58.mta0.migadu.com [91.218.175.58])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94D5E606A32C
-	for <linux-rdma@vger.kernel.org>; Sun,  1 Nov 2026 17:44:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 94D5E606A32C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 781A3606A324
+	for <linux-rdma@vger.kernel.org>; Sun,  1 Nov 2026 20:26:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 781A3606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=VJ215M29;
-	dkim=pass (2048-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=lQAOWYS6
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1793555064;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=XNm3LmvLDAoOMp150KbZwglunPFF846Cqv2g3FpPcDc=;
-	b=VJ215M292f97S1XO38lWLbyWQMyGURPGPjdo0SoOByIgzhPEf8Bm3jjxqVARlsrzsEesSi
-	FoCAYYzaV5YK0n5/t5J0ocI9IwSnY9zuW9C4+XxrAiRHvsb2ipPprS5372mWIQ3Rlw6lDN
-	ksNpk27DFqDYtJODFSwoM3a/ejRPwhg=
-Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
- [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-131-_1Qam_QXOumPEroqYBRLPg-1; Sun, 01 Nov 2026 12:44:23 -0500
-X-MC-Unique: _1Qam_QXOumPEroqYBRLPg-1
-X-Mimecast-MFC-AGG-ID: _1Qam_QXOumPEroqYBRLPg_1793555062
-Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-48e1291432aso1824635f8f.2
-        for <linux-rdma@vger.kernel.org>; Sun, 01 Nov 2026 09:44:23 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1793555062; x=1794159862; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=XNm3LmvLDAoOMp150KbZwglunPFF846Cqv2g3FpPcDc=;
-        b=lQAOWYS6S+5Yf9TTn5qo1vLRs/TKvPqiCoXOqp5mNMeDDCFVPvK+Ms8pruPNkilKOk
-         XKyiuEGS2IYRBo6rqQIQrPCZnX9wlUSHhQmSoRMub96VP3zDcsoqk8M7zS1zQQzipL7T
-         T37Qk2PXzQ1gjvJ4MOzQhEMEua8/epD5iax13CfLh30QdzNx2wyDkkyurqP1y71z5hfg
-         ENIJJK/0K8LlR76g1BQr+JKqMgO7gX3ra6jqb2jjqR9ySdDs9+4zAnzyf2Z1XZDjyDux
-         Cdiqb+GFdiTpSjuZjpbSy+6CvJPxbpsCZ5gktrNlcn8qdm82zHYOF7i0B6bXqfJU/Yzp
-         /smA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793555062; x=1794159862;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=XNm3LmvLDAoOMp150KbZwglunPFF846Cqv2g3FpPcDc=;
-        b=Uor4VY0Cvmae7MzxkNiW1vRbFm6CkCZ7BMHdITtVtN7y2sFpwaK89G8oM7DZ2fnfGH
-         JWd9W/zQQphMIh/RGYcEX8iQ4YTSN8Gn+jFxFdET0Ls7fkovEcMRMT5RsvzaZaAhrCDf
-         cuX/KbEVdiV1jV7lgdwZfYz5isZr6LNWelCB4YvSn17DBUQOmXRcLdwlrPJF51UFdYBd
-         jIcSdyZRJGW6BCc+2BZI7rCczwdXql9sUXi883REIk5cqOEn27PhMVp6Ma4aWXA4PppZ
-         djhnYLdDGag1tB2sl8EkJD70t5ajFgoxzIv1vttpa2PfFJStMZzzr+MMGu9NLIt7lX4+
-         wY0w==
-X-Forwarded-Encrypted: i=1; AKwUvBygbhYg0FfLTJfD17tSFjcLLwDllliZO2RgZwlVu0DcwsQTlOSmVUroV4s/AMvHqPqV/3ggOSCUe+hN@vger.kernel.org
-X-Gm-Message-State: AFq9FYL0jifASMHsmBsP/tQJxvkUyKpOdL+PiqdDOmlDJ5avQUqr2P/z
-	Pif5s7Qwzh6aSFaH6M1tUgn9o8wOhhshR+3/nTOW14OJ2pT+qi4Zu10u+yylfg/w3AAvO+kPMGt
-	DtxeZMh8YnoMIWWk/VwqIPggtcSj49bph9X+OpeCyi1eBFDRjqmQPQ4EBgqJKe9k=
-X-Gm-Gg: AYBFou3LwVzEditpC+VuPjnKT0bZZBlkAYsfbBMfvnaAnL4T1LMVLPPJAz2ADQoZbg+
-	lUkzHR0jr51t42onGTatDDESVdZvhjyp5JzlKb4uWD3rB5P/UebbRxSEh/00HiQtg9X1EgInN2+
-	b+ZzpbJ7iGQCc3arpDYiNUboCYbsLzJXokaLzOPZSi7PvK8MEfE9Mj+bHm0DC88d8FkupsJD7Uh
-	ldiA9nLmBYGNKlbOW5otDr5Cccbgd3hHSxcf20rRuENUkRZAaj1wk+X6j39VtDSrB5AT905dB4h
-	8jgHtwLcJLsW47Qz/V26c+u5vCmoZDGBXlR+VWHK3pYjlGWPW9kHHeRXmUV3SFGf3p9WorC1uW+
-	2aCAUH9T5o3MTmWNUm6WgS4Mq5116R/nbooZEtn5qCCTXEqQgn9Y0y2Tx+kYonGXj7kvjI09k9K
-	bTWMfY8PN+SHIVi5LJ14ESJ/YKzFXFVUEmqRiRX3duc2U=
-X-Received: by 2002:a05:600c:1f93:b0:4a1:7e76:d02f with SMTP id 5b1f17b1804b1-4ac180f299emr171019025e9.14.1793555062123;
-        Sun, 01 Nov 2026 09:44:22 -0800 (PST)
-X-Received: by 2002:a05:600c:1f93:b0:4a1:7e76:d02f with SMTP id 5b1f17b1804b1-4ac180f299emr171018685e9.14.1793555061751;
-        Sun, 01 Nov 2026 09:44:21 -0800 (PST)
-Received: from [192.168.88.29] (ip231-128-192-82.pool-bba.aruba.it. [82.192.128.231])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4abf751c2d2sm233727495e9.15.2026.11.01.09.44.20
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 01 Nov 2026 09:44:21 -0800 (PST)
-Message-ID: <ce0bdf39-d514-42ba-bbc4-066054737944@redhat.com>
-Date: Sun, 1 Nov 2026 18:44:19 +0100
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=dl47iK8C
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=BiW9W2LRzF4ZdW9KoJHA1R7S7b9EP70fCKyOtVqjN5Q=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1793564804; v=1; x=1794169604;
+ b=dl47iK8CiQjkULbr31BebNC1rutAC3Gqsb6Ui8Wb005JEgng2kb/6azUYINS9b4E7d+DMFWl
+ 5aK//0Bg/aQxRACx436j69o31gyqjPEmGyt9zOlbfm+4y1oVHKaXuYBakpf0GGGyFlVcwhtx8Lg
+ fMZkdXEgOLhK2Y7qgioTXfeE=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 5ce2a615c38b8cee;
+	Sun, 01 Nov 2026 20:26:44 +0000
+X-Mizu-Trace-ID: 5ce2a615c38b8cee
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <577128ea-4d44-45cd-8b3e-5f103e530d98@linux.dev>
+Date: Sun, 1 Nov 2026 12:26:38 -0800
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -113,44 +59,84 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] net/rds: Do not unpin a page after a failed atomic pin
-To: Kyle Zeng <kylebot@openai.com>, rds-devel@oss.oracle.com
-Cc: Allison Henderson <achender@kernel.org>, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- outbounddisclosures@openai.com
-References: <20261030042110.73571-1-kylebot@openai.com>
-Content-Language: en-US
-From: Paolo Abeni <pabeni@redhat.com>
-In-Reply-To: <20261030042110.73571-1-kylebot@openai.com>
+Subject: Re: [PATCH] RDMA/cma: Don't warn when device removal races with
+ rdma_resolve_addr()
+To: Deepanshu Kartikey <kartikey406@gmail.com>, jgg@ziepe.ca,
+ leon@kernel.org, "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
+Cc: metze@samba.org, stfrench@microsoft.com, xiongweimin@kylinos.cn,
+ ammrat13@gmail.com, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org,
+ syzbot+6699995b421c8ec7d2fe@syzkaller.appspotmail.com
+References: <20261101105615.20253-1-kartikey406@gmail.com>
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <20261101105615.20253-1-kartikey406@gmail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 10/30/26 05:21, Kyle Zeng wrote:
-> rds_cmsg_atomic() assumes that a non-NULL output from rds_pin_pages()
-> represents a pin that it owns. However, pin_user_pages_fast() can roll
-> back a fast-GUP pin after racing fork() and then fail in the slow path,
-> for example after a concurrent mprotect(PROT_NONE). The output slot can
-> still contain the already-unpinned page.
-> 
-> The common error path calls unpin_user_page() on that stale pointer.
-> This can consume another subsystem's pin and allow the page to be
-> freed while it is still in use.
-> 
-> Clear page when rds_pin_pages() does not return one. The error path
-> continues to release the page on errors after a successful pin, and
-> successful requests retain their existing ownership and behavior. All
-> four RDS atomic ancillary operations share this path.
-> 
-> Signed-off-by: Kyle Zeng <kylebot@openai.com>
-Picking this patch randomly.
 
-Please slow down a bit: you have already a dozen standalone patches in flight.
+在 2026/11/1 2:56, Deepanshu Kartikey 写道:
+> rdma_resolve_addr() on an unbound ID (RDMA_CM_IDLE) first binds it with
+> cma_bind_addr() and then moves it from RDMA_CM_ADDR_BOUND to
+> RDMA_CM_ADDR_QUERY with a second cma_comp_exch(). These are two
+> separate steps. Once the ID is bound it is attached to the device, so
+> cma_send_device_removal_put() can find it and set RDMA_CM_DEVICE_REMOVAL
+> before the second step runs. The exchange then fails and hits the
+> WARN_ON() added by the commit below.
+>
+> syzbot triggers this with RDS over rxe, where rds_connect_worker()
+> calls rdma_resolve_addr() while the rxe device is being deleted:
+>
+>    WARNING: drivers/infiniband/core/cma.c:4120 at resolve_prepare_src
+>    Call Trace:
+>     rdma_resolve_addr
+>     rds_ib_conn_path_connect
+>     rds_connect_worker
+>
+> This is a valid race and not a kernel bug. If removal wins before the
+> bind, cma_bind_addr() already fails and the error is returned to the
+> caller, and err_state in the same function already ignores a failed
+> state exchange. The caller gets -EINVAL, and RDS destroys the ID on any
+> error from rdma_resolve_addr(), so nothing is leaked.
+>
+> Drop the WARN_ON() and keep returning -EINVAL, and document in a comment
+> that the state may change because of device removal.
 
-Note that that 15 patches limits apply to patches tied in a single series, having more
-than a couple of series in flight is quite unusual. Having more than an handful is putting
-quite a bit of pressure on the maintainers.
+Resend this becase some error occurred.
 
-Thanks,
+For this specific case, we can consider this behavior expected rather 
+than an error and remove the WARN_ON().
 
-Paolo
+However, I'm not sure whether the WARN_ON() is still necessary for other 
+test cases.
+
+Yanjun Zhu
+>
+> Reported-by: syzbot+6699995b421c8ec7d2fe@syzkaller.appspotmail.com
+> Closes: https://syzkaller.appspot.com/bug?extid=6699995b421c8ec7d2fe
+> Fixes: 732d41c545bb ("RDMA/cma: Make the locking for automatic state transition more clear")
+> Tested-by: syzbot+6699995b421c8ec7d2fe@syzkaller.appspotmail.com
+> Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
+> ---
+>   drivers/infiniband/core/cma.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index 337a49d1acf7..46741c1fd34b 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -4117,8 +4117,8 @@ static int resolve_prepare_src(struct rdma_id_private *id_priv,
+>   		ret = cma_bind_addr(&id_priv->id, src_addr, dst_addr);
+>   		if (ret)
+>   			return ret;
+> -		if (WARN_ON(!cma_comp_exch(id_priv, RDMA_CM_ADDR_BOUND,
+> -					   RDMA_CM_ADDR_QUERY)))
+> +		if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_BOUND,
+> +				   RDMA_CM_ADDR_QUERY))
+>   			return -EINVAL;
+>   
+>   	} else {
+
+-- 
+Best Regards,
+Yanjun.Zhu
 
