@@ -1,49 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.170
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793571358;
-	b=WRYXjjqcdiymMtLEDeK4EJy4oXhfR3SovdrmA1GLFQOmfNzWwBt4WpuGr7vYd5qznl7B
-	 tw3HpHJB/w5TjnMS1bZQjJ6TeiUhZGEKcQZeU/gYj2E27gClQas20c2X2P8dPfozszdS9
-	 Kor4lxKNJrrUpAHIBVqgecKnqgEnwwr5xTsHpKKxAvdR9xC1fp0ReZZ0OUDT9TfXHsPN/
-	 SnZ9M0nNSPH7RQ4oolC7q9oW8SuP/bDDtavfwEJINKNAGNqbG17QWpZ6WJ6Y33P3rKQWQ
-	 mUqLi2ovjm3FdZt513vPID4dlSWahY2H0YWYo9W1gbhOpkwH7VkXo9yKdJvIjvCnTXA==
+	t=1793600210;
+	b=z+EkyezmAfupvtpuapopvHwOHI4O7/P0i2T1RDAA+mG7Ys/Jst2pG9LomuwOLiTJju+J
+	 EsYnyH7+on7RsTzs3gq9ijNTWY3+8ONMmDk/KrcyafT4SnS9agHmswif8wg7mN25uUr2B
+	 GPt8l6kYdrUjZHPFsOqShEPbhotxs7b/Qj3pERV6YRLBrHWdhJyQPtV2hW8VYXrUMRhUc
+	 sObZ+ZK3cgFRsKwdUFTeHKxIdjvRnqriDQ1m78hQbpZXBhZj/ibzVqNRWhBED7W/tcZMD
+	 VvyLYvQd73nF40KUEdTmsa4EPK0SPILEZkfGPj5phWjt/ds4Cl+hrywP4+v5F5E1PbA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793571358;
-	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
-	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc;
-	bh=FTHI4iJKGW8nTdZJYWi2ZEsJRVp05NwkVgRYnkQTnQI=;
-	b=1QHtu6rNVURm7eD0rqTrDslkatx7XA0p/kvhzHe/A3lWszK0pPcVd4b6Yj0NUWYhq7bO
-	 dYTFONS1nTgl3HIy6MaT2k+lWdzFfp28U6CLkCrfemkqR02GGE/QI8ktiTsjX5dAicfD5
-	 mTiCP2dmdXI+LJfYkXxdQhphEYRWZvtZQlMkz2p+nTEoYtsm++RRFMPeR9RF4D7+WI7nX
-	 BPfxmKmPZL1wFmoE+JZdRUTW5MYN/e2sDKTcR+shOEGorjHfH6Z3y4Rbc3EYKDi0nA00D
-	 wjoCzNMpYhOETbbxvNiIMX0fVVT6ZBRl/V+UIu50+SKBIc6Gbf7DVzuR6M8GLMYXH4Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793600210;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=8sxqxZ/tFXcG65LJjLwgkRyGP3NtvdBgfC4fFF1s2qo=;
+	b=FhNn5QwngzE9IVr7CzlAP7hhfynihTOMWiI2ws9nZBIsLa76/rBwKijwrd6PjALKNibQ
+	 wxrr3jklEdDD3PV8WJyEa+O7MK1/pRcxd2XXZaBOTi8fTQFfeBVXnGYptLQrA1wx8clQX
+	 3Zv+WrJyTg3jT1xBheyX7yhC+q8cD+vLHq2Mf690LqyCdhj+tRT6Qz2xK44q66Jp1rr7U
+	 hCDlYXLGZ0/fr+KNvZo+h6Xx2ChxskEdCAKTdkxxiOuldhQ9HzcnKHzVU2r1jMAi3EoeQ
+	 48qykhjOOchzAzbNy3ih1xSvjU63EWeNVATm4W13ec2WpQI1eeK4cL+37P+Q7MuPGPg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kSuQm1gi;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=fail header.from=isslab.korea.ac.kr;
+	spf=none smtp.mailfrom=isslab.korea.ac.kr;
+	dkim=pass header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=nC0e+Cq4;
+	arc=none smtp.remote-ip=209.85.210.170
+Received: from mail-pf1-f170.google.com (mail-pf1-f170.google.com [209.85.210.170])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C24F60A2602;
-	Sun,  1 Nov 2026 22:15:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA3B9606A326
+	for <linux-rdma@vger.kernel.org>; Mon,  2 Nov 2026 06:16:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BA3B9606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kSuQm1gi
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 225BF1F00A1B;
-	Sun,  1 Nov 2026 22:15:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793571353;
-	bh=FTHI4iJKGW8nTdZJYWi2ZEsJRVp05NwkVgRYnkQTnQI=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=kSuQm1gig26F3a5hbFrlCEgTV6KZdAUm8pVgji64pGU9IHFtmj1+0lqa6FjFwtpwY
-	 RQDDMAWpx0nuTd442k2/dkXZmO3ak6/b0bODbLMMOiXHR7sqan7+OYTSomVvsVhatc
-	 5sO4YlxH84ZbDrCWiv6NIlf3enn6ckTlaSH0A2hbLwanZ7TAw2vRzqI9LjdgxD9mYw
-	 rVyzHjy74WbfzuCKilIc61p8YM/etpQQgk31aiPP5AoELP2cxYQDze2rDXYJz/8udp
-	 9mbnMTtDK0Vamho7QvOMgWKAobDTF7XMy60kwODafcPU8OakiOi1fCrlQV4kt03Hd9
-	 bPj8B6YTEsy3w==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 032DA38003B8;
-	Sun,  1 Nov 2026 22:15:53 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key, unprotected) header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=nC0e+Cq4
+Received: by mail-pf1-f170.google.com with SMTP id d2e1a72fcca58-8a07078200fso851986b3a.2
+        for <linux-rdma@vger.kernel.org>; Sun, 01 Nov 2026 22:16:48 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=isslab-korea-ac-kr.20260707.gappssmtp.com; s=20260707; t=1793600208; x=1794205008; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=8sxqxZ/tFXcG65LJjLwgkRyGP3NtvdBgfC4fFF1s2qo=;
+        b=nC0e+Cq45eM+HVVdGpNmmpZS/oyYsZ9qFW2MtwXPsfRdNKHsSDsZiLackYQQRAUDSf
+         ML5QADHEVcWWGrvMsTEaKFP311norQwlD9GKA23Xzv85tGYAeN89IK6QTbC6tVqstn4o
+         yR5EGAZftrHLYT1VDsW4agAbXj1wK9R3Jh4aOZOm+f3jnIjdCu0OqPHwZFVYsXLRG+8N
+         GgZ/L+X3r7pDpZEXBQ+IixNJEC/f2iabWC/ZQhj23ultZEnFSUx2Ws5rbwoWdemRFoFS
+         IZvS6KR7T4h/yTa9FJ22p8Oioq1wIaKYXiI7DhuWTtpIohriIlXU8jUB/9c0VVp3rv0e
+         wItg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793600208; x=1794205008;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=8sxqxZ/tFXcG65LJjLwgkRyGP3NtvdBgfC4fFF1s2qo=;
+        b=Xau0uuPL9K7nSdttDfgmPikuzeCmXiVoMU1euj+wlqOZFuZDfoXcOpX3OnT2LmOdyn
+         LM80GKGBduUxym57XpIjo2cnu0MBSsA29ryT1b6c5yrCBUcf1kHyr/6gEulNWe/dgwhU
+         JqiOAGlGCaLJrJPZZzblW116r+0mK5ln/bvZTQ/RvprKmUxe9TEUG8K/Ss0CpDA6VDnb
+         62w/h667cTYvfgzvkTD5ytRZQUINEtZoURhQrMXseRCtD1Hg3n/XPs6wOg5J2r4wAIwU
+         B3F58fmPpEeDFIf5neo58xQDXl5ppknBGBrFk0uZyCRHIc+pYn3G7yBh6Bcs9/urNooM
+         MTNQ==
+X-Forwarded-Encrypted: i=1; AKwUvBx4nvivnXu2hB+UZr32tYK2upLd1xcnrHBuud48Y583vBpvS6ouFLXSVso+HdhyeUEAl7a7ByzpVCuj@vger.kernel.org
+X-Gm-Message-State: AFq9FYIgbZNd24P7C2N/vWYeKroJHVTQFVVpE0D/AqgM9sYd7wtazy/E
+	uLWpsrAioAy28CpG7tqWpRM6XOTMdEqpbmLE2Sq4sQstPFTkRdya7gAlr/gTmwYlbJU=
+X-Gm-Gg: AYBFou0BXPckIFx21x/mqK8WfRg+efxi5ilHNzQBcCXPFl/kJYqGzJ5oAI4fxt2Lf3T
+	slxaO0CC1HkLtdOpCRuKS5Bdcsy7+uSPHxrODX9k8K0cKkAxEg3H/p9rc3XHJefu+1BhBkgKHsN
+	TVQowA3A+7tkt/D1a7Pf0IxCDbj21cGYNSkoNKRUK11mEShdQHQSyR5t3I+02+uaMFdmJh6eVYS
+	7fohT+gQMLWLFmw37HTdQm6N6YRjxsD1kiWvKqnPti4veKsd/3S2a199lYmMG7b6HzAxlGnGIuv
+	nN9km0tNTKbrSBHcBlbLk7CnoAscJ+M62jpj6H2hAnyyInaO1Y+w+RenIX1VQ1+MHXfggzdJxMr
+	tFRBS14jAOQAJ5WTg59q8USF7+Pi66qbgtMcN7DtPCJjO3PpLZhtpgNyRaMrOtGG/hvdlzstRrU
+	8/SCT+4o2qSVjK6xddHzM9bUPHtzfW4MW2vjiArOjlFizsZ8d8gbygIJUeojE7Ub/PJjrvdsQUW
+	LfcwdjEebbkrgJwKqxkV+blRfNXZHTDRElLZAQowAoxoL6CxlV2DofFTfVqoeHKp+ACGZ8hlq1w
+	fAV1jkIaDSBMqZftPAecnLObbWRW3inRDeG68YqcIgkWMYmRfdir9DrEPfSjSk7v14vY1cjM5sZ
+	AvUGb7lEaCbSNRffOb+MwgYBAwxo5Q1HJScs0yPFvcGhU1BY/SNgZbcsZ1do=
+X-Received: by 2002:a05:6300:6301:b0:3eb:3b69:77d2 with SMTP id adf61e73a8af0-3eb3b699956mr2989335637.37.1793600207806;
+        Sun, 01 Nov 2026 22:16:47 -0800 (PST)
+Received: from yhlee-960QFG.Davolink ([2406:5900:1044:110c:d115:e4f4:23fd:61df])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8aad9d03be0sm1509071b3a.27.2026.11.01.22.16.44
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 01 Nov 2026 22:16:47 -0800 (PST)
+From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+To: Sagi Grimberg <sagi@grimberg.me>,
+	Max Gurtovoy <mgurtovoy@nvidia.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: "Martin K . Petersen" <martin.petersen@oracle.com>,
+	Mike Christie <michael.christie@oracle.com>,
+	linux-rdma@vger.kernel.org,
+	target-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+Subject: [PATCH v3 0/2] IB/isert: fix the device removal use-after-free
+Date: Mon,  2 Nov 2026 15:16:05 +0900
+Message-ID: <20261102061608.617186-1-yhlee@isslab.korea.ac.kr>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -54,167 +103,91 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH v6 00/39] mm: make VMA flag semantics explicit, eliminate
- VM_SPECIAL
-From: patchwork-bot+linux-riscv@kernel.org
-Message-Id: 
- <179357135155.2624073.13862678489444424470.git-patchwork-notify@kernel.org>
-Date: Sun, 01 Nov 2026 22:15:51 +0000
-References: 
- <20261013-b4-mmap-prepare-vma-flag-sanify-v6-0-1aa3c9b139f9@kernel.org>
-In-Reply-To: 
- <20261013-b4-mmap-prepare-vma-flag-sanify-v6-0-1aa3c9b139f9@kernel.org>
-To: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: linux-riscv@lists.infradead.org, akpm@linux-foundation.org,
- liam@infradead.org, vbabka@kernel.org, jannh@google.com, pfalcato@suse.de,
- david@kernel.org, rppt@kernel.org, surenb@google.com, mhocko@suse.com,
- corbet@lwn.net, gregkh@linuxfoundation.org,
- dennis.dalessandro@cornelisnetworks.com, jgg@ziepe.ca, leon@kernel.org,
- paul@paul-moore.com, stephen.smalley.work@gmail.com, perex@perex.cz,
- tiwai@suse.com, ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org,
- eddyz87@gmail.com, memxor@gmail.com, ziy@nvidia.com,
- baolin.wang@linux.alibaba.com, nico.pache@linux.dev, ryan.roberts@arm.com,
- dev.jain@arm.com, baohua@kernel.org, lance.yang@linux.dev,
- usama.arif@linux.dev, kas@kernel.org, dgilbert@interlog.com,
- James.Bottomley@HansenPartnership.com, mkp@kernel.org, simona@ffwll.ch,
- deller@gmx.de, sre@kernel.org, jhubbard@nvidia.com, peterx@redhat.com,
- mhiramat@kernel.org, oleg@redhat.com, peterz@infradead.org, tglx@kernel.org,
- mingo@redhat.com, bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
- acme@kernel.org, namhyung@kernel.org, mark.rutland@arm.com, riel@surriel.com,
- harry@kernel.org, juri.lelli@redhat.com, vincent.guittot@linaro.org,
- maarten.lankhorst@linux.intel.com, mripard@kernel.org, tzimmermann@suse.de,
- airlied@gmail.com, will@kernel.org, aneesh.kumar@kernel.org,
- npiggin@gmail.com, arnd@arndb.de, muchun.song@linux.dev, osalvador@suse.de,
- willy@infradead.org, jack@suse.cz, maz@kernel.org, oupton@kernel.org,
- catalin.marinas@arm.com, maddy@linux.ibm.com, anup@brainfault.org,
- pjw@kernel.org, palmer@dabbelt.com, aou@eecs.berkeley.edu,
- borntraeger@linux.ibm.com, frankja@linux.ibm.com, imbrenda@linux.ibm.com,
- agordeev@linux.ibm.com, gerald.schaefer@linux.ibm.com, hca@linux.ibm.com,
- gor@linux.ibm.com, davem@davemloft.net, andreas@gaisler.com,
- viro@zeniv.linux.org.uk, brauner@kernel.org, matthew.brost@intel.com,
- joshua.hahnjy@gmail.com, rakie.kim@sk.com, byungchul@sk.com,
- gourry@gourry.net, ying.huang@linux.alibaba.com, apopple@nvidia.com,
- chrisl@kernel.org, kasong@tencent.com, shikemeng@huaweicloud.com,
- nphamcs@gmail.com, baoquan.he@linux.dev, youngjun.park@lge.com,
- hannes@cmpxchg.org, qi.zheng@linux.dev, shakeel.butt@linux.dev,
- axelrasmussen@google.com, yuanchu@google.com, weixugc@google.com,
- chengming.zhou@linux.dev, mhocko@kernel.org, miklos@szeredi.hu,
- xu.xin@linux.dev, linux-mm@kvack.org, linux-kernel@vger.kernel.org,
- linux-doc@vger.kernel.org, linux-usb@vger.kernel.org,
- linux-rdma@vger.kernel.org, selinux@vger.kernel.org,
- linux-sound@vger.kernel.org, bpf@vger.kernel.org, linux-scsi@vger.kernel.org,
- linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
- linux-trace-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org,
- linux-arch@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, kvmarm@lists.linux.dev,
- linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org,
- kvm-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
- sparclinux@vger.kernel.org, fuse-devel@lists.linux.dev,
- ihor.solodrai@linux.dev, spasswolf@web.de, tiwai@suse.de,
- emil@etsalapatis.com
 
-Hello:
+The RDMA_CM_EVENT_DEVICE_REMOVAL callback in ib_isert waits for the
+connection it was handed to reach ISER_CONN_DOWN and then frees it, which
+is a use-after-free against isert_connect_release(), and the wait itself
+deadlocks against the handler_mutex that rdma_destroy_id() needs.  2/2
+moves the teardown into an ib_client removal callback, the way nvmet-rdma
+did in commit f1d4ef7d8883.
 
-This series was applied to riscv/linux.git (fixes)
-by Andrew Morton <akpm@linux-foundation.org>:
+1/2 is a separate problem that the review of v2 found.  It predates the
+device removal work: isert_free_np() publishes the connections it is about
+to release on a stack-local list without emptying isert_conn->node, so
+isert_handle_unbound_conn() treats them as unclaimed, unlinks them from a
+list it does not own and queues a second release.  It needs to go first
+because 2/2 adds another caller of that path.
 
-On Tue, 13 Oct 2026 16:04:40 +0100 you wrote:
-> The VM_SPECIAL / VMA_SPECIAL_FLAGS mask conflates several unrelated
-> properties:
-> 
-> * Is this managed by core mm, or by a driver mapping MMIO, kernel-allocated
->   pages, or even ordinary pages itself?
-> * Can it be expanded or merged?
-> * Is this a 'weird' case like mlock where migration might race and we
->   'have' to set invalid flags to notify?
-> * Is it another 'weird' case where we just want to stop GUP from touching
->   it?
-> 
-> [...]
+v2 -> v3
 
-Here is the summary with links:
-  - [v6,01/39] mm/vma: fix mmap_prepare file handling, remove file_doesnt_need_get
-    (no matching commit)
-  - [v6,02/39] mm/vma: introduce and use vma_[flags_]can_merge()
-    https://git.kernel.org/riscv/c/86a779c53204
-  - [v6,03/39] mm: consistently validate VMA state after mmap[_prepare] hooks
-    https://git.kernel.org/riscv/c/9cae38dc11da
-  - [v6,04/39] mm/vma: ensure mmap_prepare doesn't set actions on a mergeable vma
-    https://git.kernel.org/riscv/c/6335c786299f
-  - [v6,05/39] mm: make map_kernel_pages_[prepare,complete] internal and unexported
-    https://git.kernel.org/riscv/c/2a234f79d416
-  - [v6,06/39] mm/vma: tidy up map kernel pages enum values
-    https://git.kernel.org/riscv/c/4852f3421456
-  - [v6,07/39] mm: assert mmap lock held, use new flags API in vm_insert_page[s]
-    https://git.kernel.org/riscv/c/dad8e88fcfce
-  - [v6,08/39] mm: add mmap action for discontiguous kernel page mapping
-    https://git.kernel.org/riscv/c/b7b4d8f37a4f
-  - [v6,09/39] docs: filesystems: update mmap_prepare docs for discontig kernel pgs
-    https://git.kernel.org/riscv/c/ae60723abb65
-  - [v6,10/39] drivers/usb/mon: update to use mmap_prepare + map kernel pages
-    https://git.kernel.org/riscv/c/5323bb5f6ef3
-  - [v6,11/39] infiniband: update hfi1 to use remap_vmalloc_range()
-    (no matching commit)
-  - [v6,12/39] selinux: reject writable opens of policy file, drop mmap shared/write check
-    https://git.kernel.org/riscv/c/c6ce4378f20a
-  - [v6,13/39] ALSA: pcm: use vm_insert_page() to map PCM status page
-    https://git.kernel.org/riscv/c/ceb0de27371f
-  - [v6,14/39] bpf: arena: mark arena_map_mmap() mappings VM_MIXEDMAP
-    https://git.kernel.org/riscv/c/0c2c9885c5e9
-  - [v6,15/39] mm/vma: add vma[_flags]_is_mm_managed() predicates
-    https://git.kernel.org/riscv/c/7fdbc26b69c0
-  - [v6,16/39] mm/vma: only allow mmap to clear VMA_MAYWRITE_BIT if not mm-managed
-    https://git.kernel.org/riscv/c/d99c4a302c5a
-  - [v6,17/39] mm/vma: add and use vma_[flags]_is_fixed_mapping
-    https://git.kernel.org/riscv/c/9201d0f5b9d5
-  - [v6,18/39] scsi: sg: convert mmap hook to mmap_prepare and rework
-    https://git.kernel.org/riscv/c/abdd54cef5fc
-  - [v6,19/39] fbdev: defio: assert FBINFO_VIRTFB, drop VM_IO, add VM_MIXEDMAP
-    https://git.kernel.org/riscv/c/19458d015fcc
-  - [v6,20/39] HSI: cmt_speech: convert mmap hook to mmap_prepare, refactor
-    https://git.kernel.org/riscv/c/5605c40895fc
-  - [v6,21/39] mm/gup: error out early on !VMA_MAYREAD_BIT VMAs
-    https://git.kernel.org/riscv/c/2d2b1c508f21
-  - [v6,22/39] uprobes: remove VM_IO, set VM_MIXEDMAP for mapped kernel pages
-    https://git.kernel.org/riscv/c/0d219bc3cb88
-  - [v6,23/39] mm/mlock: clear VMA_LOCKED_MASK over mmap callback
-    https://git.kernel.org/riscv/c/61e012ab9a1c
-  - [v6,24/39] mm/mlock: eliminate weird VMA_IO_BIT abuse and simplify
-    https://git.kernel.org/riscv/c/aea83f2694ed
-  - [v6,25/39] mm/vma: enforce that mm-managed mappings may not set VMA_IO_BIT
-    https://git.kernel.org/riscv/c/99fd6bf43d5d
-  - [v6,26/39] mm: remove VMA_IO_BIT check in vma[_flags]_is_mm_managed()
-    https://git.kernel.org/riscv/c/88d77002e1a1
-  - [v6,27/39] mm: remove hugetlb_inline.h
-    https://git.kernel.org/riscv/c/94c86564538e
-  - [v6,28/39] mm: rename is_vm_hugetlb_page() to vma_is_hugetlb()
-    (no matching commit)
-  - [v6,29/39] mm: drop some redundant checks around hugetlb VMAs
-    (no matching commit)
-  - [v6,30/39] mm/vma: introduce vma[_flags]_is_mm_backed()
-    https://git.kernel.org/riscv/c/44debd840ec9
-  - [v6,31/39] mm/madvise: update is_valid_guard_vma() to use vma_is_mm_backed()
-    https://git.kernel.org/riscv/c/fc95d1cf4a13
-  - [v6,32/39] mm/uffd: use predicates for userfaultfd checks
-    https://git.kernel.org/riscv/c/fb700342f506
-  - [v6,33/39] mm/madvise: use predicates for madvise(..., MADV_DOFORK)
-    https://git.kernel.org/riscv/c/1d1104fe6dc6
-  - [v6,34/39] mm: eliminate VMA_SPECIAL_FLAGS usage when hugetlb explicitly tested
-    https://git.kernel.org/riscv/c/531e56359ffb
-  - [v6,35/39] mm: eliminate VMA_SPECIAL_FLAGS check in lru_gen_look_around()
-    https://git.kernel.org/riscv/c/5997da57a09b
-  - [v6,36/39] mm: avoid use of VMA_SPECIAL_FLAGS in migrate_vma_setup()
-    https://git.kernel.org/riscv/c/8bf792b7afcb
-  - [v6,37/39] mm: eliminate VM_SPECIAL, VMA_SPECIAL_FLAGS
-    https://git.kernel.org/riscv/c/72a993449cb0
-  - [v6,38/39] fuse: dax: do not set VM_MIXEDMAP
-    https://git.kernel.org/riscv/c/b0d88bfa7515
-  - [v6,39/39] mm/huge_memory: remove vma_is_special_huge()
-    https://git.kernel.org/riscv/c/e2a1d080f510
+v2: https://lore.kernel.org/r/20261026060505.409476-1-yhlee@isslab.korea.ac.kr
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+The review of v2 raised four problems.  All four were real.
 
+The race between isert_remove_one() and isert_free_np() on unbound
+connections is 1/2.  Holding isert_np->mutex over the release loop would
+close it and would also bring back the deadlock that commit 691b0480933f
+("IB/isert: Fix dead lock in ib_isert") fixed, so 1/2 takes the
+connections off isert_np one at a time, which empties isert_conn->node
+before the mutex is dropped.
 
+The race between isert_connected_handler() and isert_remove_one() was
+introduced by v2.  Both handlers used to be reached only from
+isert_cma_handler(), which the CM serialises per cm_id, so splitting the
+ISER_CONN_UP store and the move onto isert_np->pending was safe until
+isert_remove_one() started calling the teardown without that mutex.  2/2
+keeps isert_conn->mutex across both.
+
+The hang on an ISER_CONN_INIT connection is closed by marking it in
+isert_teardown_conn() and having isert_connected_handler() release it
+rather than promote it.  A marked connection whose peer never answers
+holds the removal until the CM gives up on max_cm_retries.
+
+The hang on racing connects is closed for the half where a connection the
+walk has passed is promoted afterwards, which the previous item covers.
+For a connect request arriving during the removal I have no measurement,
+because no further RDMA_CM_EVENT_CONNECT_REQUEST arrived on soft-RoCE once
+rdma link delete had started.  While isert_remove_one() is still running,
+2/2 refuses such a request: isert_connect_request() fills isert_conn_list
+and isert_np->accepted in one isert_conn_mutex section and returns -ENODEV
+if the device is already being removed.
+
+One window is left open and 2/2 does not close it.  Once
+isert_remove_one() has returned, the isert_device for that ib_device is
+gone, so a CONNECT_REQUEST that arrives before cma_remove_one() tears the
+listener down makes isert_device_get() create a fresh isert_device, with
+removing clear, and the connection stays in ISER_CONN_INIT.
+cma_process_remove() then raises DEVICE_REMOVAL on that cm_id,
+isert_teardown_conn() only marks the connection, and no further rdma_cm
+event can reach it: cma_send_device_removal_put() has already set the id
+to RDMA_CM_DEVICE_REMOVAL, and cma_ib_handler() drops every non-timewait
+event for an id that is not in RDMA_CM_CONNECT.
+Nothing destroys the cm_id, so the wait_for_completion(&cma_dev->comp) at
+the end of cma_process_remove() does not return.  The unpatched code
+blocks in the same case, in wait_event_interruptible(), so this is not a
+regression, and it is not a memory-safety problem.  I have not reproduced
+it.  A follow-up patch can close it.
+
+One thing changed beyond answering the review.  The branch in
+isert_connected_handler() that releases a connection it refuses to promote
+disconnects and drains the QP first, because the login receive buffer is
+still posted and isert_login_recv_done() dereferences isert_conn.
+
+Measured with soft-RoCE under KASAN, removing the device under 32
+connections: 4 of 12 unpatched runs hit the use-after-free, 76 reports in
+all, and no removal finished within the cutoff; with this patch none did
+and all 12 finished.  A connection held in ISER_CONN_INIT across the walk
+took the removal to 73 seconds, 59 of them waiting for
+RDMA_CM_EVENT_UNREACHABLE with status -110, against 14 seconds without
+that delay.  Login and I/O showed no regression over 12 runs, and a
+PROVE_LOCKING build reported nothing over 6 runs on each side.
+
+Yehyeong Lee (2):
+  IB/isert: do not publish connections being released on a second list
+  IB/isert: tear connections down from an ib_client on device removal
+
+ drivers/infiniband/ulp/isert/ib_isert.c | 203 +++++++++++++++++++++++---------
+ drivers/infiniband/ulp/isert/ib_isert.h |   5 +-
+ 2 files changed, 151 insertions(+), 57 deletions(-)
+
+base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
