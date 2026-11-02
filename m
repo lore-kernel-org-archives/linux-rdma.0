@@ -1,101 +1,108 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.82.173
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793654897;
-	b=FYWPWHIqYWZ7Dw1EiQswY/XJN12fq9wFLrihSweMQhyE+dhyTzp/f9lYKdSlRTVGvvfI
-	 JHQNgnMt9EURWucBYpQ53u4hk76xWhgtvwt+y0ZaaEJH8jSTYuSp6oMG0XDoEtX+hdg3O
-	 uOgfVTtwGes+gLpv9B9c9wIxfXcDY19TuLI+/ghfSqHVVj2fBuE2IjmqswEv4gM2KaBuB
-	 mG6BWSVVuI5g3qlV6fztxQdTLnydRVuMwweC3ZXiQFDqyK3VbrLaUy0ZPFKoR6vRasihY
-	 bviGw1vZfUkoYs5zHv4hpA8RswA5DUt1/Q6ZpjqO8bzl3u9PZ/iyQRY43K2g/7wpxWQ==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793654897;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.133.124
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793655977;
+	b=QzBLRJCvlEHspyOi0VYaYArbUeyvf/gyhP29vhXyFwH9HP6Y4W6hzWVbcR0vIsp84cfh
+	 lIv4l7+FWOC7JkEcSsY1j5G+x2bwHk1rmT+Q+G231o6XbTK6ZI51dVfAWuqUpw6lJZe2M
+	 eqa2NgZqjoYJ/ZnMKTO4Rza62p09++1dzZBeqWM54+mXRMI32N97xDh5lUYZL8kQ8Fdz/
+	 PlEmcHnDKmJ42YAN66grkRbbUd5ngsRB7MKv1LloRKwZyPgCzTgMXLvOosA/Y1VERi74M
+	 HEtPvYBUrVQe5UP/WB9pzQqPGvz8sqBisHBZQ+bVHjq4NfB2YfewwqS7lMZMDtbLAtA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793655977;
+	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
+	 X-Mimecast-MFC-AGG-ID:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=05WhMxae0rz15h1TGq0mYQ3vTYNApMzOi4Y++NBdM+w=;
-	b=ET2I9O9H3swbo8r/QPz2K5kcKGEc7wLdJK2j9fuM8plDD5uXQH4nJSKRVsXtv8ZSowOu
-	 dJQgt+zsEihkP5+ABflzcYh4ddqXXsuuz4ByXMVpWE9ttSbyUYq0kHxGJthQXIaFZxpxj
-	 nooSls45ene8GRetFgeVG6J6U6Zt7/mULu4XhIpjhROcHiw5U4TuAn1Xyn8KxtDyMErA7
-	 UFbiYguG1th9jm38F/U8uDXlFqOIqYtZbg10rClboKV8XvBOrLwLfZZV8fsaJNU9CCIGV
-	 yNcglG59UuBknh4W6URys4h4GvLt1IZ9SwmwkE0U9HUh5nJzfFo5Qj0FpksEO5LXHQg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=none header.from=x6u.co;
-	spf=pass smtp.mailfrom=x6u.co;
-	dkim=pass header.d=x6u.co header.i=@x6u.co header.a=rsa-sha256 header.s=google header.b=hEG4+6q+;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.82.173
-Received: from mail-dy1-f173.google.com (mail-dy1-f173.google.com [74.125.82.173])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 X-Received:Received:Message-ID:Date:MIME-Version:User-Agent:Subject:
+	 To:Cc:References:Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=FJPSwS1dKDAOqkSA6MWiKD6GwRfZLBYjMISnGkKuJ+c=;
+	b=KhNgSPxGwr360ODpgv/fDKQxRuwMARApWqUJ7AJmpInQ9CVVCCzitNhlNG9xJz13heDR
+	 NIS/gnAZTr+PAKnWyag4Q3K6NWQd13kYfWu03s9yNL8RfNmngLz6fFpv03dKB/Vtfw0Hu
+	 w1P1niK22Y2TE8EnGUpem2O5WGcTeJGvqE2+LnkjvEtSKofhkwGQAs5BNUsZt3pft692T
+	 x5CPgeW2dgxhWDvsNxrNG0x6WUblPBmsaMNQqiRqhREHqUADGmM+bAxF7J+GLF63TttxD
+	 ebxBty07z+FwD385XZjMPERtzSb05NQ5cTNVlvc9uSJlZO8+N6P4TrfO3TIh/V1qklQ==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=redhat.com;
+	spf=pass smtp.mailfrom=redhat.com;
+	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b="C5OXb/sc";
+	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=bBY+q+Jb;
+	arc=none smtp.remote-ip=170.10.133.124
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3808A606A324
-	for <linux-rdma@vger.kernel.org>; Mon,  2 Nov 2026 21:28:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3808A606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=x6u.co
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=x6u.co
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AC95606A329
+	for <linux-rdma@vger.kernel.org>; Mon,  2 Nov 2026 21:46:16 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9AC95606A329
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=x6u.co header.i=@x6u.co header.a=rsa-sha256 header.s=google header.b=hEG4+6q+
-Received: by mail-dy1-f173.google.com with SMTP id 5a478bee46e88-35b2c599f43so5962087eec.0
-        for <linux-rdma@vger.kernel.org>; Mon, 02 Nov 2026 13:28:15 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1793654895; cv=none;
-        d=google.com; s=arc-20260327;
-        b=DOo8uF2d4qZyAyMhqc/24lhztjMF+0GO9Cjo6RF3THGkg3/CtE9QOTO8sxp9kK4Jk0
-         34vC7rStktTElD6mzsQnjPpA8f0ToSRiu8dq7wKh8MbdboQ+E4APaBpJpxWUgqPswGJK
-         sLv61eCk+j76X3HJMDLxlII2fpZmfmQzDhJKsk0q8lSBsLI5NAnaZbxnwdUJabrXM1BY
-         q9wq6CEy1yDIYzmftVnPQXBQ4hMmwklDwbeJSjfGCuwbMKpi7Ci1S1DCZa9NgA4Mxa90
-         So9H3aDjbg8mkeFzf6BR0ABrnHebEIGJv2GJ6CJ6QMInfjUx1RRVv9f7+dW4dyEv7TP8
-         n0AQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=05WhMxae0rz15h1TGq0mYQ3vTYNApMzOi4Y++NBdM+w=;
-        fh=6t8yjtqkLGjTOpT2lPKEXlx5HWZqQIKOMugbfiE1r2o=;
-        b=YCNDYprKnWrc2lbkMqQbOGrmmce1duENN1a5m6xJIiLL1mYnRCvKO6YlOxcD+jdjnB
-         irC/a/s4iu4koRg8SaQ6svqYO4IuXtOC4VAmtR8TaEmeyyur/qAO2wRww2YtioucaYdY
-         FaU9MumM6EAwpYlAcBHW4tjoBBcasR7E1AreyYJR3bfCGWoxyZeauOoCI+L2uPRroliY
-         I15MJN4nODEAorji1aZ9HQA+6cpjSS4xNL48+QnExDSyozQ1Pf+NZVMQFRoyFSe8wAtD
-         5YoOniC3r18ldaCy1yYlIEHziJhEp3G3hTM9MwBtc5B3HZrenU1EY2ijJeuHxlfimgX0
-         fbiw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (1024-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=C5OXb/sc;
+	dkim=pass (2048-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=bBY+q+Jb
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1793655975;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=FJPSwS1dKDAOqkSA6MWiKD6GwRfZLBYjMISnGkKuJ+c=;
+	b=C5OXb/scUI6lDM32iI3IXS+geTXgkSyFEjMPbOeyx3ZfE7l2mDRp7rNdSsQSQoLG/QdkL9
+	jP/A2G1X/tn+8DMjflRHHD1D2MLLPtom8BcUnouH0UgPOWv6e5bPeunsL97cvYTRPNmpOx
+	vB0lkCxJuUvRsKkUw+MZVSZ6fkwcCZA=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-404-dzOKGR_PPOW827K83g-F1g-1; Mon, 02 Nov 2026 16:46:14 -0500
+X-MC-Unique: dzOKGR_PPOW827K83g-F1g-1
+X-Mimecast-MFC-AGG-ID: dzOKGR_PPOW827K83g-F1g_1793655973
+Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-4a77c1cbd15so34683025e9.0
+        for <linux-rdma@vger.kernel.org>; Mon, 02 Nov 2026 13:46:14 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=x6u.co; s=google; t=1793654895; x=1794259695; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=05WhMxae0rz15h1TGq0mYQ3vTYNApMzOi4Y++NBdM+w=;
-        b=hEG4+6q+KyVPPUo8SnlyqwcXoS0RVm1MxiQlzJat8aHKaQZubChz3jtickPF9oSle7
-         n0XuQtb0VtKXE7pRYtHKvihXPltq83G1g3fF2idqzO4R6gtMXFkNfIdb127clfcPdzzx
-         kxNj4OcHvfdTxul0rW+cMIzXdlyn6gmPx4ib5OflV9fHuVV21yT+aXGjztyrydmTv1bU
-         1zrTtt+sENlAM6Dn2g+3fl31l1l1nPXEKOQ+iIouzBiU0yEblZME2a3ZcetnIWoFPjGb
-         AF8p0e3mI5+1+bCVbHRmt7aV4DcmQv+Ne8CPjnrl6kcEcRz4YRFV6dsIEOYMaUeQeJ5J
-         O2GQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793654895; x=1794259695;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=redhat.com; s=google; t=1793655973; x=1794260773; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=05WhMxae0rz15h1TGq0mYQ3vTYNApMzOi4Y++NBdM+w=;
-        b=exPu80DiPWqjQvwR6B0sbpif5h/7YaAUMVm+oEfnYCSMUDML40LQ7QvaMy4odnZnvA
-         qNktAgVqZSrATIikyr6xXsHvbT3L+1BY2LGkljrS/Cd0clen/i/JsfP5KpqaK7eFs3cz
-         qSaxIVFJqxWgRUIl2xCrOntpxjq8abfKMZQ+9JHSvJyy+TIgXrMMe5/sNUFkHnitiH3t
-         Oh2epUb841mCaUBtJIWopldliAtEKD+BEacSEpce12RfBVZI8jLMq9DzktR+Jl6KFL+W
-         OTfkRmGW2IAteIWwoEglI/Zkr/d3U9OAALMgzP8ZKudww/HjMdUVWMdHpGBMjRhGJpyN
-         bTVA==
-X-Forwarded-Encrypted: i=1; AKwUvBzax7L5cyuCKc3c9p4+2CBYr9FySTEAsamqZAvEcIv48/GObR42+E9DqJjzDiqpTvnXd8Pj8NMtUXlL@vger.kernel.org
-X-Gm-Message-State: APuU4Z84IIRH9ZOc3C1rawHGTmlAMvGMUfuFYjCYh2RVSQtda4kngJjq
-	PtDCGtd36j7Xmqb9cH/nIZNVy2GXgP9Gv47nbXl8vIh+Wv4c4mJNOF9ndiv/dMM13sxLho0se48
-	jJ+vaeSJhtA4kl0O6zQMj5qF/7XGxuC2Q1iacdNdm7OUyTzIDw8lZOw==
-X-Gm-Gg: AYBFou3UmEg+5QSOKmMi9AfVTT4Eec/KlrItNH+SxyHhvqv91lBug7OrjOsXmwucpAG
-	GIwSZ9MONX29ArbL38aI4ISKGdCbrv1qMVZHTpuKIE9hk5hCQUiPJnvISq6wPz/LgjdLRiUnGj4
-	DesZ71rGONuz4Se3L9dV+eVOuU3xnL76uFcUpC6KjLLfhU80NV6AmX9uHCP/MOvsrU7yi+SNXoQ
-	YuBsIkpu/Dw/5rXbZjTfXugqQ8d+UUvcO70ZlMHNdbS4Y8jB0kRrhMwU5DHU9Eus4lJjn/igApR
-	6dcV+mfTTVx5pRqTxEh+ENiu7TyRNexI5PhSsG3p61HlQNmSvSbYsSnx7BIWJG2dwYiqRq/UVfv
-	jSSdVo6uagXnp7+s9k4wX2UuoiYyhG5pHz2hkzPENBuXiabUqVdK0VR+9XtziAD9Zduj+D+VtEm
-	5+2f3kuwiIWR9NGJecNAZyfD9IP1NQQDaQ2U8wbL9F0u/t
-X-Received: by 2002:a05:7300:a9f:b0:369:fb01:2eb7 with SMTP id
- 5a478bee46e88-36a4235f45emr16292049eec.13.1793654895131; Mon, 02 Nov 2026
- 13:28:15 -0800 (PST)
+        bh=FJPSwS1dKDAOqkSA6MWiKD6GwRfZLBYjMISnGkKuJ+c=;
+        b=bBY+q+Jbl1OsCdVUPAc3TLlm2ZdLn1POJ2xcKXxLkIiOMLhO4zTl1hwKgrbW7uigE0
+         RWcL9DiLQ8STUShPfY11USg/VkHDKRamOPGCCwcRzv8Hwvd70OBGKLHtdJ9fCHRS5xy2
+         /0SOsMST8FHpmdI5w1RBs/9u7XncRx8M32gyWSelaIYH3Ep22HJLtxyVE0jq7OQwMNpv
+         ZmESJxWKu6Sd9HoWN50IQMeXDhnaRZLKxkRr35beuX1tKa5myRlLfqKIlgm5CcyaLptO
+         IiQR6ns+//XRSJ+N+vYW7tTYU/KHwBqr3pYJmEtMDJFY91/0VJfCSbMEeSXkIFH9Xq/W
+         vrDw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793655973; x=1794260773;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=FJPSwS1dKDAOqkSA6MWiKD6GwRfZLBYjMISnGkKuJ+c=;
+        b=X0qDnGwAgL3+GXawZVe+XbTLTiZtyMr6VXR63W3DMtu7pQ+JCnr/mquvO7Z4GefcLe
+         NM+yumVg/Dm9NhnViwPnom4rfJqD0Ez/QSCV+v7HSkXsDVoSx6SWmwby3EKNRk3kAzS7
+         +cTMOP7XsjBFiHFYbG/JybzSYL53YZ5p1G4w8yC8TJSGwjgzAzfSOOuii/dWiuw4HwmA
+         P+Pc9eL+IYZ3AmKpqD3SS4T/4r2jnI2J0wlxII0H2KHA5fiVOVvJcYXnjoydLydeIkV4
+         kMd7+lBlQG358n3J/yaozNszp5FPh1qI6rZpbReux+TadqFjPaYP++lGIdpBZ10oTJy7
+         RvWA==
+X-Forwarded-Encrypted: i=1; AKwUvBzmwCW+zJ/ndOfkMLaNI2eb4Q9PH+az+/gebwlLYlyhRBVtT5Tn0ZriQ0CxQEzdxc38syBWs7EbLUsz@vger.kernel.org
+X-Gm-Message-State: AFq9FYKIjsH5T7ZiAcEAj3w19FJIfSgq3bgEgxze1FIhtVSfUYnQ/kDh
+	8Y3cKcaRHM/hX/L5U+ldCy4hf6zVVa+asqk4xvcmXWOFDSODl8xE3PKcoXJF57Q5u2rGj2TjhSh
+	Rn0/Fv0ilOZHA1N+t2/oDJ7LBBAmoOvVKdjc0cHQp6gCvyPpWBPlsh8+VRDDHnmw=
+X-Gm-Gg: AYBFou2zwiZPqhD+9anHYAiSdWja5Iag6PnOxm3CETMQWfqY2/A0yQJWjV2lype/1MW
+	kcP7EPquSyixcXnwbhQhXX1c9VEVofaeOBKCVJVLaaNAy0ua55PcpeUV4QoiFVcizulG3MhhNkN
+	49H4ucKBosiYaFCd4ELTqtR1yRpje2P2elLFB3v7MNZeEKxqB0zXjUVEk1LuEP+f8cAPYHniSgu
+	/nmsVgos7tIUlCLwyG120zERR0Cj2HV+lZscGa6cxSYe40vXZQeeT8uBqBAisayOp0D1AHKGKK1
+	nGIXq+BP2riKWjR1xz9uZlWzGmzpp5o7/Msn8JiEqy+NUXlQ1RnbSsgNc72JBZXOWxM0Z4MqunK
+	8kMx9Uf55jNqT6eD/dzXKb9mglH47oDHghFHHfIbTdkmOqIpFXKQ2/VH44pExAOYZM7R13dNbPA
+	yyiMQJorjvJuNglFBWL5oMxa/ZHjZNiIejzoC82JK1LOE=
+X-Received: by 2002:a05:600c:848a:b0:4a3:59c9:a756 with SMTP id 5b1f17b1804b1-4ac17b2ce84mr286349235e9.6.1793655973261;
+        Mon, 02 Nov 2026 13:46:13 -0800 (PST)
+X-Received: by 2002:a05:600c:848a:b0:4a3:59c9:a756 with SMTP id 5b1f17b1804b1-4ac17b2ce84mr286348985e9.6.1793655972889;
+        Mon, 02 Nov 2026 13:46:12 -0800 (PST)
+Received: from [192.168.88.29] (ip231-128-192-82.pool-bba.aruba.it. [82.192.128.231])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4ac09ad5ff8sm207221675e9.4.2026.11.02.13.46.11
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 02 Nov 2026 13:46:12 -0800 (PST)
+Message-ID: <07a21553-8ab1-4478-8a22-b1a13e70faba@redhat.com>
+Date: Mon, 2 Nov 2026 22:46:10 +0100
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -105,132 +112,192 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261030181512.2056056-1-dhu@x6u.co> <20261030181512.2056056-6-dhu@x6u.co>
- <sashiko-outbox-191412@kernel.org>
-In-Reply-To: <sashiko-outbox-191412@kernel.org>
-From: David Hu <dhu@x6u.co>
-Date: Mon, 2 Nov 2026 16:28:04 -0500
-X-Gm-Features: AclHuK_7wNCsAnLumnQoSsGTieVm4sqRwJoszEVTk588c59ZDICEF5LaB7IXra8
-Message-ID: <CABdL-LQPkSO74Fn+Cv1XxCmESq+7cNFG1-Km6FwqKYh_hQ+3AQ@mail.gmail.com>
-Subject: Re: [PATCH rdma-next v4 5/6] RDMA/irdma: Support UMEM attribute for
- CQ creation
-To: sashiko-reviews@lists.linux.dev
-Cc: intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net v4] net: mana: Add support to process throttled EQEs
+To: netdev-bot+sashiko@kernel.org, sahilchandna@linux.microsoft.com
+Cc: haiyangz@microsoft.com, wei.liu@kernel.org, decui@microsoft.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, kotaranov@microsoft.com, horms@kernel.org,
+ ernis@linux.microsoft.com, gargaditya@linux.microsoft.com,
+ mawasthi@linux.microsoft.com, leitao@debian.org,
+ linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ stable@vger.kernel.org
+References: <20261028084020.2051254-1-sahilchandna@linux.microsoft.com>
+ <179352349805.3131.9139142774275348324@kernel.org>
+Content-Language: en-US
+From: Paolo Abeni <pabeni@redhat.com>
+In-Reply-To: <179352349805.3131.9139142774275348324@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Fri, Oct 30, 2026 at 2:33=E2=80=AFPM <sashiko-bot@kernel.org> wrote:
->
-> Thank you for your contribution! Sashiko AI review found 1 potential issu=
-e(s) to consider:
-> - [Medium] RDMA/irdma: wrong DMA direction in irdma_setup_umode_cq() via =
-ib_umem_get_cq_buf()
+On 11/1/26 09:58, netdev-bot+sashiko@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 2 potential
+> issue(s) to consider.
+> 
+> Critical: 0 · High: 1 (1) · Medium: 0 · Low: 1
+> 
+> If you believe none of the issues are legitimate, please reply to each
+> issue of Medium severity or higher and explain why the AI is wrong.
+> If any of them are legitimate and you plan to respin, please let patchwork
+> know by including "pw-bot: cr" as a separate line at the end of your reply
+> (one such reply per series is enough).
+> 
+> - [High] The patch tells firmware that every EQ on the function handles
+>    throttled EQEs.
+> - [Low] The patch marks only one side of the concurrent accesses.
+> 
+> Pre-existing issues:
+> - [High] mana_gd_destroy_cq() waits for a grace period
+>    (synchronize_net()) only when mana_gd_detach_cq() returns true,…
+> 
 > --
->
-> commit 8981c5869a8245f4b87a31412a16b517815f3a39
-> Author: David Hu <xuehaohu@google.com>
->
-> RDMA/irdma: Support UMEM attribute for CQ creation
->
-> This commit adds support for one-step user-mode CQ buffer creation using
-> UVERBS_ATTR_CREATE_CQ_BUF_UMEM and IRDMA_IB_ATTR_CREATE_CQ_SHADOW_BUF_UME=
-M,
-> sets up hardware PBLEs directly from the pinned UMEMs, and adds UMEM and =
-PBLE
-> cleanup in irdma_cq_free_rsrc() and irdma_resize_cq().
->
-> > diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/h=
-w/irdma/verbs.c
-> > index 9f4905fdb791a..41e56ab8aa6df 100644
-> > --- a/drivers/infiniband/hw/irdma/verbs.c
-> > +++ b/drivers/infiniband/hw/irdma/verbs.c
->
+> 
+> net: mana: Add support to process throttled EQEs
+> 
+> This commit handles GDMA_EQE_THROTTLE events. It records up to two child
+> CQs per EQ and calls their callbacks when a throttle EQE arrives. CQ
+> teardown now detaches the CQ from its parent EQ and from cq_table[]
+> before a grace period. The patch also advertises a new capability bit and
+> adds a per-EQ throttle counter to ethtool stats.
+> 
+>> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+>> index 8c915e0087846..ab942d5bfe058 100644
+>> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
+>> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+>> @@ -757,6 +757,27 @@ void mana_gd_free_service_wq(struct gdma_context *gc)
+>>   	gc->service_wq = NULL;
+>>   }
+>>   
+>> +static void mana_gd_schedule_eq_cqs(struct gdma_queue *eq)
+>> +{
+>> +	struct gdma_context *gc = eq->gdma_dev->gdma_context;
+>> +	struct gdma_queue *cq;
+>> +	u8 i;
+>> +
+>> +	for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++) {
+>> +		cq = rcu_dereference(eq->eq.child_cq[i]);
+>> +
+>> +		if (!cq)
+>> +			continue;
+>> +
+>> +		if (cq->id >= READ_ONCE(gc->max_num_cqs) ||
+>> +		    !gc->cq_table || gc->cq_table[cq->id] != cq)
+>> +			continue;
+> 
+> [Severity: Low]
+> This patch marks only the write side. mana_gd_detach_cq() clears
+> gc->cq_table[id] with WRITE_ONCE(), and mana_hwc_destroy_channel() now
+> sets gc->max_num_cqs with WRITE_ONCE().
+> 
+> The readers still use plain loads. Here that means gc->cq_table and
+> gc->cq_table[cq->id]. The GDMA_EQE_COMPLETION branch of
+> mana_gd_process_eqe() also reads both fields without READ_ONCE():
+> 
+> 	if (WARN_ON_ONCE(cq_id >= gc->max_num_cqs))
+> 		break;
+> 
+> 	cq = gc->cq_table[cq_id];
+> 
+> Could KCSAN report these as data races? Should the readers use
+> READ_ONCE() to pair with the marked writers?
+> 
+> This is mostly an annotation issue. The completion-path race was already
+> there before this patch, and the loads in mana_gd_schedule_eq_cqs() only
+> compare the pointer value.
+> 
+>> +
+>> +		if (cq->cq.callback)
+>> +			cq->cq.callback(cq->cq.context, cq);
+>> +	}
+>> +}
+> 
 > [ ... ]
->
-> > @@ -2767,26 +2793,87 @@ static int irdma_setup_umode_cq(struct irdma_de=
-vice *iwdev,
-> >       if (err_code)
-> >               return err_code;
-> >
-> > -     spin_lock_irqsave(&ucontext->cq_reg_mem_list_lock, flags);
-> > -     iwcq->iwpbl =3D irdma_get_pbl((unsigned long)req.user_cq_buf,
-> > -                                 &ucontext->cq_reg_mem_list);
-> > -     spin_unlock_irqrestore(&ucontext->cq_reg_mem_list_lock, flags);
-> > -     if (!iwcq->iwpbl)
-> > -             return -EPROTO;
-> > +     cqe_64byte_ena =3D dev->hw_attrs.uk_attrs.feature_flags & IRDMA_F=
-EATURE_64_BYTE_CQE ?
-> > +                      true : false;
-> > +     cqe_size =3D cqe_64byte_ena ? 64 : 32;
-> > +
-> > +     if (uverbs_attr_is_valid(attrs, UVERBS_ATTR_CREATE_CQ_BUF_UMEM)) =
-{
-> > +             struct ib_umem *umem;
-> > +             struct irdma_mem_reg_req cq_req =3D {};
-> > +             u8 shadow_pgcnt =3D (rf->sc_dev.hw_attrs.uk_attrs.feature=
-_flags &
-> > +                                IRDMA_FEATURE_CQ_RESIZE) ? 0 : IRDMA_S=
-HADOW_PGCNT;
-> > +             u32 min_size;
-> > +
-> > +             cq_req.cq_pages =3D DIV_ROUND_UP(ukinfo->cq_size * cqe_si=
-ze,
-> > +                                            IRDMA_HW_PAGE_SIZE);
-> > +             min_size =3D (cq_req.cq_pages + shadow_pgcnt) << IRDMA_HW=
-_PAGE_SHIFT;
-> > +
-> > +             umem =3D ib_umem_get_cq_buf(&iwdev->ibdev, attrs, min_siz=
-e,
-> > +                                       IB_ACCESS_LOCAL_WRITE);
->
-> [Severity: Medium]
-> When IRDMA_FEATURE_CQ_RESIZE is not set in
-> rf->sc_dev.hw_attrs.uk_attrs.feature_flags, the UMEM passed via
-> UVERBS_ATTR_CREATE_CQ_BUF_UMEM backs both the CQ ring and the trailing sh=
-adow
-> area page (shadow_pgcnt is IRDMA_SHADOW_PGCNT, and irdma_setup_umode_cq()
-> later sets info->shadow_area_pa =3D cqmr->shadow from that same UMEM).
->
-> However, ib_umem_get_cq_buf() in drivers/infiniband/core/umem.c hardcodes
-> DMA_FROM_DEVICE instead of deriving DMA_BIDIRECTIONAL from
-> IB_ACCESS_LOCAL_WRITE:
->
-> drivers/infiniband/core/umem.c:ib_umem_get_cq_buf() {
->         return ib_umem_get_from_attrs(device, attrs,
->                                       UVERBS_ATTR_CREATE_CQ_BUF_UMEM,
->                                       uverbs_create_cq_get_buffer_desc,
->                                       size, access, DMA_FROM_DEVICE);
+> 
+>> @@ -1073,25 +1104,66 @@ static void mana_gd_create_cq(const struct gdma_queue_spec *spec,
+>>   			      struct gdma_queue *queue)
+>>   {
+>>   	u32 log2_num_entries = ilog2(spec->queue_size / GDMA_CQE_SIZE);
+>> +	struct gdma_queue *parent;
+>> +	u8 i;
+>>   
+>>   	queue->head |= INITIALIZED_OWNER_BIT(log2_num_entries);
+>> -	queue->cq.parent = spec->cq.parent_eq;
+>> +	parent = spec->cq.parent_eq;
+>> +	queue->cq.parent = parent;
+>>   	queue->cq.context = spec->cq.context;
+>>   	queue->cq.callback = spec->cq.callback;
+>> +
+>> +	if (!parent)
+>> +		return;
+>> +
+>> +	/* For throttled EQE store the child CQ */
+>> +	for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++) {
+>> +		if (!rcu_access_pointer(parent->eq.child_cq[i])) {
+>> +			rcu_assign_pointer(parent->eq.child_cq[i], queue);
+>> +			return;
+>> +		}
+>> +	}
+>> +
+>> +	WARN_ONCE(1, "mana: EQ %u has no free child CQ slot\n", parent->id);
+>>   }
+> 
+> [Severity: High]
+> Do mana_ib CQs ever end up in child_cq[]?
+> 
+> This is the only place that writes child_cq[], and it returns early when
+> spec->cq.parent_eq is NULL. mana_ib_create_kernel_queue() uses a zeroed
+> spec:
+> 
+> drivers/infiniband/hw/mana/main.c:mana_ib_create_kernel_queue() {
+> 	struct gdma_queue_spec spec = {};
+> 	...
+> 	err = mana_gd_create_mana_wq_cq(mdev->gdma_dev, &spec, &queue->kmem);
+> 	...
 > }
->
-> Since the CPU writes the CQ head index to the shadow area and hardware re=
-ads
-> shadow_area_pa via DMA, mapping this UMEM with DMA_FROM_DEVICE omits IOMM=
-U
-> read permissions (and skips CPU-to-device bounce buffer syncs).
->
-> Should irdma_setup_umode_cq() use ib_umem_get_attr() with
-> UVERBS_ATTR_CREATE_CQ_BUF_UMEM when IRDMA_FEATURE_CQ_RESIZE is not set (o=
-r
-> unconditionally, as noted in the commit message) so the buffer is mapped =
-with
-> DMA_BIDIRECTIONAL?
+> 
+> mana_ib_gd_create_cq() then binds the RNIC CQ in hardware to an mana_ib
+> EQ:
+> 
+> 	req.eq_id = mdev->eqs[cq->comp_vector]->id;
+> 
+> mana_ib_install_cq_cb() adds it only to gc->cq_table[].
+> 
+> mana_ib_create_qp_rss() and mana_ib_create_qp_raw() attach raw and RSS
+> QP CQs to the per-vPort mana_en EQs:
+> 
+> 	eq = &mpc->eqs[cq->comp_vector % mpc->num_queues];
+> 	cq_spec.attached_eq = eq->eq->id;
+> 
+> These CQs are also registered only through mana_ib_install_cq_cb().
+> 
+> The patch also adds GDMA_DRV_CAP_FLAG_1_THROTTLED_EVENT_QUEUE to
+> GDMA_DRV_CAP_FLAGS1, which mana_gd_verify_vf_version() sends for the
+> whole function.
+> 
+> Suppose hardware folds one of these CQs' completions into a
+> GDMA_EQE_THROTTLE. mana_gd_schedule_eq_cqs() walks child_cq[], which is
+> empty on mdev->eqs and holds only the mana_en TX and RX CQs on mpc->eqs.
+> mana_ib_cq_handler() never runs, and nothing polls or re-arms the CQ.
+> 
+> Wouldn't that stall the RDMA CQ the same way the commit message
+> describes for TX?
+> 
+> A fixed two-entry child_cq[] also cannot represent an EQ shared by many
+> RDMA CQs on the same comp_vector.
+> 
+> The commit message says:
+> 
+>    "A mana_en EQ serves one TX CQ and one RX CQ, and the HWC EQ serves
+>    the HWC CQ."
+> 
+> Is that still true once raw QPs attach CQs to mpc->eqs?
+> 
+> If advertising the bit is what turns on throttle EQEs, this patch adds a
+> new RDMA stall. If it is not, the RDMA case stays unfixed. Could the
+> commit message cover mana_ib in either case?
+I understand from discussion on v3 that this will be handled separately,
+am I correct?
 
-This finding is not practical.
+/P
 
-The AI finding alludes to a very narrow scenario on older HW (Gen 1,
-iWarp) without CQ resize. With iommu on, `DMA_FROM_DEVICE` leads to
-lack of IOMMU_READ for NIC iommu group, and leads to iommu faults,
-while NIC tries to fetch CQ consumer index from shadow area in dram.
-This will only happen for VA, since dma-buf in iWarp is rejected.
-
-However, `UVERBS_ATTR_CREATE_CQ_BUF_UMEM` will never land in kernel in
-case of VA, since `fill_attr_in_buf_umem` (in ucreate_cq) skips VA.
-
-Further, switching to `ib_umem_get_attr()` would also mean mapping
-DMA_BIDIRECTIONAL for cq buf for Gen2, and Gen3 (when cq resize is
-possible), defeating the standards established in ib core.
-
->
-> --
-> Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261030181512.20=
-56056-1-dhu@x6u.co?part=3D5
