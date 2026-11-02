@@ -1,57 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793609139;
-	b=kA/0DU4NM3x1Gr1sYUl+ZLHBfP9RTKdTRfxVAnPPifw7bL1PuaZVoTMqnBDvtQ9wxIhY
-	 yCRXgygqKs5b6PjdHXMfo8ql7YSjY52UntSfRWC7NJuR1kzb+uowBZbzGzaxcREWDOynp
-	 bFOtnwOLfRSeTA+dSEnNT5qWIy5lmtJGx+0ojseIB2/hJq1XMCx3BADG5LDlit2LO1zGp
-	 JFVA5JyDtmZPkA8825V2hsO/833QClnT2IsiV/OP3ofxqJ/Bd5ImBJ3yrajUP4BhGWWWx
-	 jYMzms65kTHzATy/vYwXp2IBr/yWMDt+quuzsMrV/hsdgAybRnbNlrm0lsT0p/o/3yA==
+	t=1793609713;
+	b=Ub3fU9eg7aNMHrBmlF0H29Dk0JhH/HNTDfUYtBeDaNIVbKoYfbgedvmXC1OdrrYPMMyE
+	 kNyAcUVzc/ErTRgV52mZjgrXxewoPpvNw7JL/mjH+yIM/7FNc/TLYJmXQqSC0u416uwk+
+	 tEiw6mFDBfO6gWQVP6IXa5AkFBrx9lyUqQePUzP8A9svJETCVHMFD5HS5mvBKNdt6qymn
+	 yfl6C/RE/gmdiVJ3tuR+zYmBXm1xXCb4gpSyZ9kugaYFXjCyVLDpwyVXojPQOLTMEi7rG
+	 qm09r7fECyM9DAuobAHab2z9Abn6/hU2qJpCFud1ogETGfP2033mmCYuLvWqOgA0mBg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793609139;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793609713;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=GEoP8p1u7+tQlnXZ6QlOaos4Cpv4KSHbS5iP+/R6UVw=;
-	b=PuX8s/610z096YngEUOifP/odXU7S8xSr+Wdg679KQJFqJm9b5xGPQnFIDq/+vkyPaJO
-	 fbpTXRqZMedaQrMp9TZzPxB0nBVOCDZ6+K+cY4bD6h7Q0Zibfiz85LG+ZE/pb7KH4ObCF
-	 fSoxDf0h93cBNNy5VB8ojV+PtpCjEytyWdtqCDXmou2fKWRzqyovzcJf3zMAKBvyJXJ4W
-	 xUbJhyc6Hbdy1L7h75fCpDGD6oIr51t75Q6rbs8CBxIyf9WZKm1SAMJnk3j4cYBC4l5t9
-	 ALTo/pqL3ISAnsY4GjKZZ0HH8NYPGWcfDOUhIHe3tqpKSbuFbafCyClnObvDCJ9ezZA==
+	bh=nssa5NPr2BP4A+uknfAVciu/0FccJaC44xNIsk5S368=;
+	b=E8r2RWsjo+uJgR7zIUpzhckO/uwRQHvBPCKr154K9two4AEYwnhVCuCM5dznfIInuMYK
+	 jXTTJDJ9hdnVxJrkU7u7waXV8Fg6DxNqZvyLXFLxFnrEtyv+x8bMjKkxfotUbmpzXpjtg
+	 a8SyhPOZzmAttqeTOqdq0nywh+fat7BAf2pGrRDK4Jhe0ceNDReNQMoQEXxOGD1SOrPkt
+	 qqBrD0+iuT14v8bVGWBxnDy6WtBFfpCWp6KTZc1KKqPkPvc4F7ubX0PWqOGdfQhuJ4qT/
+	 u6CXgmeNtTQcVp4v8X86QBPUU/l1dXjS4ij5nxUsdy/CX9wBuLu3OqFBtTTbVnYGRsQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JUvkLV8T;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E6C5606A326
-	for <linux-rdma@vger.kernel.org>; Mon,  2 Nov 2026 08:45:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JUvkLV8T
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7B9F1F00919;
-	Mon,  2 Nov 2026 08:45:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9730606A333
+	for <linux-rdma@vger.kernel.org>; Mon,  2 Nov 2026 08:55:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FB251F00919;
+	Mon,  2 Nov 2026 08:55:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793609139;
-	bh=GEoP8p1u7+tQlnXZ6QlOaos4Cpv4KSHbS5iP+/R6UVw=;
+	s=k20260515; t=1793609707;
+	bh=nssa5NPr2BP4A+uknfAVciu/0FccJaC44xNIsk5S368=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=JUvkLV8TQXI00YFf5J6WHLfi/xN9sNtu3dn1n5hDKuRTWoLoAeCElbN5OnCIlieyK
-	 6svcd93hn5djPA04F5J5UROdoSZObLyaN7dWZ/AqCfIgnIlYaezRDMPDP2824+XxVi
-	 tXRFMLmAZtD1R3w5d7RPwY5Hh4HPPNXW6wD4SPTFUKUsl8QwNulhPsH8U1aeA4H7sJ
-	 G8d1iDViKyeCIQWMy+1XC0c70JPBJVHdtaFYqWeGtd82cXedxef/gyXbJdEUnU8TPK
-	 gnl+8aFiIgWQYha8Z58stX7t4jWl+W1g7cXkhzNRxiifuW+8u7Ruk/6CUFHWF3p6sm
-	 mz5Qm1jDiUWfA==
-Message-ID: <sashiko-outbox-193136@kernel.org>
+	b=Jtd4nUJ1//3yyArFGPbCzFbZqODDilbrV+UBQxbZtW9gsJr4qsSM1LHMLSpkHgT9E
+	 3Bg6K7eN66t6GNbYFtpDz4aTa8LoPuYZn9eF4E6Zngu0L+c6h69Up5pxi3uCEgxEXf
+	 5wuo22J3p9NkJml1eXrrN1YfrMW52rGIuZr13vUdO3ZN2XgZuRZhMVbCCaTebLS0Rb
+	 vWb33KzeXEjNDyW7rnal5zyG8Bup3XozLSR4KB3qV7RbTiWd8SDZuVETXL9vaolGne
+	 ADexnjSOuceyCVNs/0dR+Iq34PUmNc6OlpJio3Rf3K49fjj1PucBfW93MHXjUdgzPs
+	 ySp8tsNb2IW0Q==
+Message-ID: <sashiko-outbox-193142@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma v8 1/7] RDMA/zrdma: Add build infrastructure and
- module skeleton
+Subject: Re: [PATCH rdma v8 2/7] RDMA/zrdma: Add core data structures and
+ ABI definitions
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Yanze Zhang" <zhang.yanze@zte.com.cn>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261102082026.2645777-2-zhang.yanze@zte.com.cn>
+In-Reply-To: <20261102082026.2645777-3-zhang.yanze@zte.com.cn>
 References: <20261102082026.2645777-1-zhang.yanze@zte.com.cn>
- <20261102082026.2645777-2-zhang.yanze@zte.com.cn>
+ <20261102082026.2645777-3-zhang.yanze@zte.com.cn>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 02 Nov 2026 08:45:38 +0000
+Date: Mon, 02 Nov 2026 08:55:06 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,95 +58,97 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [Medium] RDMA/zrdma: Kconfig depends on bool DINGHAI instead of tristate =
-DINGHAI_PF
-- [Low] RDMA/zrdma: open-coded zrdma_module_init() instead of module_auxili=
-ary_driver()
+- [Medium] RDMA/zrdma: private untyped auxiliary device contract in zrdma_t=
+ype.h
 --
 
-commit 255288601ed5fbab9c26b7e4b182fd67e8a9395c
+commit 8cc318d7731f01390658d794db981381eb4bcc2c
 Author: Yanze Zhang <zhang.yanze@zte.com.cn>
 
-RDMA/zrdma: Add build infrastructure and module skeleton
+RDMA/zrdma: Add core data structures and ABI definitions
 
-This commit adds the MAINTAINERS entry, Kconfig, Makefile, and a minimal
-auxiliary driver module skeleton for the ZTE DingHai RDMA (zrdma) driver.
+This commit adds core data structures, hardware control definitions, and the
+userspace ABI header for the ZTE DingHai RDMA driver.
 
-> diff --git a/drivers/infiniband/hw/zrdma/Kconfig b/drivers/infiniband/hw/=
-zrdma/Kconfig
+> diff --git a/drivers/infiniband/hw/zrdma/zrdma_type.h b/drivers/infiniban=
+d/hw/zrdma/zrdma_type.h
 > new file mode 100644
-> index 0000000000000..43cb55ae9c93b
+> index 0000000000000..ded4052453455
 > --- /dev/null
-> +++ b/drivers/infiniband/hw/zrdma/Kconfig
-> @@ -0,0 +1,11 @@
-> +# SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-> +config INFINIBAND_ZRDMA
-> +	tristate "ZTE Ethernet Protocol Driver for RDMA"
-> +	depends on DINGHAI
-> +	select AUXILIARY_BUS
-
-[Severity: Medium]
-As reported by Zhu Yanjun on v3 [1], should INFINIBAND_ZRDMA depend on
-DINGHAI_PF instead of DINGHAI?
-
-In drivers/net/ethernet/zte/dinghai/Kconfig, DINGHAI is only a boolean vend=
-or
-menu guard, whereas the DingHai PF driver (dinghai10e.o) that creates the
-dinghai10e.rdma_aux auxiliary device is controlled by the tristate symbol
-DINGHAI_PF:
-
-drivers/net/ethernet/zte/dinghai/Kconfig:
-    config DINGHAI_PF
-        tristate "ZTE DingHai PF (Physical Function) driver"
-
-drivers/net/ethernet/zte/dinghai/Makefile:
-    obj-$(CONFIG_DINGHAI_PF) +=3D dinghai10e.o
-
-Depending only on the bool DINGHAI symbol allows configuring
-CONFIG_INFINIBAND_ZRDMA=3Dy when CONFIG_DINGHAI_PF=3Dn or CONFIG_DINGHAI_PF=
-=3Dm.
-
-> diff --git a/drivers/infiniband/hw/zrdma/zrdma_main.c b/drivers/infiniban=
-d/hw/zrdma/zrdma_main.c
-> new file mode 100644
-> index 0000000000000..af1d37be63362
-> --- /dev/null
-> +++ b/drivers/infiniband/hw/zrdma/zrdma_main.c
-> @@ -0,0 +1,57 @@
-
+> +++ b/drivers/infiniband/hw/zrdma/zrdma_type.h
+> @@ -0,0 +1,86 @@
 [ ... ]
-
-> +static struct auxiliary_driver zxdh_auxiliary_drv =3D {
-> +	.name =3D ZXDH_RDMA_DEV_NAME,
-> +	.id_table =3D zxdh_auxiliary_id_table,
-> +	.probe =3D zxdh_probe,
-> +	.remove =3D zxdh_remove,
+> +struct zxdh_rdma_core_dev;
+> +
+> +struct zxdh_rdma_core_ops {
+> +	int (*request_reset)(struct zxdh_rdma_core_dev *cdev,
+> +			     enum zxdh_rdma_reset_type reset_type);
+> +	int (*zxdh_common_func)(void *in_param, void *out_param, u32 opcode);
+> +};
+[ ... ]
+> +struct zxdh_rdma_core_dev {
+> +	struct pci_dev *pdev;
+> +	struct auxiliary_device *adev;
+> +	u8 __iomem *hw_addr;
+> +	int zdev_info_id;
+> +	struct zxdh_rdma_ver_info ver;
+> +	void *auxiliary_priv;
+> +	enum zxdh_function_type ftype;
+> +	u16 vport_id;
+> +	u16 slot_id;
+> +	enum zxdh_rdma_protocol rdma_protocol;
+> +
+> +	struct zxdh_qos_params qos_info;
+> +	struct msix_entry *msix_entries;
+> +	u16 msix_count;
+> +	const struct zxdh_rdma_core_ops *ops;
+> +	void *dh_dev;
 > +};
 > +
-> +static int __init zrdma_module_init(void)
-> +{
-> +	return auxiliary_driver_register(&zxdh_auxiliary_drv);
-> +}
+> +struct zxdh_rdma_if {
+> +	void *(*get_rdma_netdev)(void *dh_dev);
+> +};
 > +
-> +static void __exit zrdma_module_exit(void)
-> +{
-> +	auxiliary_driver_unregister(&zxdh_auxiliary_drv);
-> +}
-> +
-> +module_init(zrdma_module_init);
-> +module_exit(zrdma_module_exit);
+> +struct zxdh_auxiliary_dev {
+> +	struct auxiliary_device adev;
+> +	struct zxdh_rdma_core_dev *zxdh_info;
+> +	struct zxdh_rdma_if *rdma_ops;
+> +	void *ops;
+> +	void *parent;
+> +	s32 aux_id;
+> +	void *auxiliary_ops[18];
+> +};
 
-[Severity: Low]
-This isn't a bug, but since zrdma_module_init() and zrdma_module_exit() only
-register and unregister zxdh_auxiliary_drv, could this use
-module_auxiliary_driver(zxdh_auxiliary_drv) instead of open-coding the modu=
-le
-init and exit functions?
+[Severity: Medium]
+Should struct zxdh_auxiliary_dev, struct zxdh_rdma_core_dev,
+struct zxdh_rdma_core_ops, and struct zxdh_rdma_if be defined with full
+concrete types in a shared header under include/linux/ that both the parent
+PCI PF driver and this RDMA auxiliary driver include, rather than in a
+driver-private RDMA header?
 
-[1] https://lore.kernel.org/r/21b7b324-9fd2-402d-8695-5dd061adb957@linux.dev
+In the subsequent patch "RDMA/zrdma: Add device probe and remove logic",
+zxdh_probe() binds to the dinghai10e.rdma_aux auxiliary device, converts
+struct auxiliary_device *aux_dev via container_of(aux_dev,
+struct zxdh_auxiliary_dev, adev), and calls
+zxdh_adev->rdma_ops->get_rdma_netdev(zxdh_adev->parent) and
+zxdh_adev->zxdh_info->ops->zxdh_common_func().
+
+Because drivers/infiniband/hw/zrdma/zrdma_type.h defines a private copy of
+these structures padded with opaque placeholders such as void *ops,
+void *parent, void *auxiliary_ops[18], void *dh_dev,
+void *(*get_rdma_netdev)(void *dh_dev) (instead of returning
+struct net_device *), and int (*zxdh_common_func)(void *in_param,
+void *out_param, u32 opcode), the compiler cannot verify that the struct
+layout or callback signatures match the parent PF driver. In addition, the
+in-tree driver under drivers/net/ethernet/zte/dinghai/ does not appear to
+define or register this auxiliary device yet.
+
+Could this private definition cause memory corruption or invalid function
+pointer calls during zxdh_probe() if the parent driver layout or signatures
+diverge?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261102082026.2645=
-777-1-zhang.yanze@zte.com.cn?part=3D1
+777-1-zhang.yanze@zte.com.cn?part=3D2
