@@ -1,95 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.180
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793601880;
-	b=SlxzKQ4ta0+aEVptOyMXeVmn00i+ijn0FGgAYTmmAZKAEsXoIDH6YPgCbrM8DLJChCwL
-	 56lMi1As0LcAQ1RUCOPDP3YRI6pprdRoGf/m8GhLy5D756W9XGpAMQTdT3x7denJ5XBN+
-	 zch16x0f3r06PhTZ/an6v0hofd0kjVKgUEdG6VHVV6YDStHVuj9LuYjgDmLUeyLLlf/5M
-	 8ytL9v61F8mahN7LCqyUrHToHe178m/6VzuJu1yCl9MA1tviZo2ApmQJbjaS/lYOGX/56
-	 VILuZFA3lyBlhLTEreBLaV84xDHZqQXE799Uf5dgkKjw13FQwJeCereVht3Gc368xvg==
+	t=1793601894;
+	b=ZcRAMnq7Qzjnki9lM7U42GqkBknbHQPp0Kjit5Dw3Auh3psjJNuHVyhCVhopxz1xQEs0
+	 0P+f+8E8v7xWVxdBBf4Q7CPFs0xPc2OeC+fUeiBlPhVqFDE3hNquNyuSzKGpHK/G/eNlr
+	 lN9ojZNSrEuiMQrgp3vDN1u4/xyZ3yHMoFb3vC9sXSmsP7/xOMOFdeI8+BcQJu+h0yHt7
+	 qGZ9mF95pfKNNl8nFLjMrnW6hetWgnIhcaqgFQ/HiazH5cHuHCRBAmvmQKVXRSBPDf7nn
+	 DhSP/GMJnjAyhlfUP4RwbIxWAdis/1py+Wt7wJah3tzlB9g99d8BVHr+QmmP7fOJZ/Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793601880;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=JBahlw0BSTFIK+2BYvIp2lv3jJCouVM8oLSKaKh5Bf0=;
-	b=oCkV38iF3sMehOngHu2VE2CNP1L4k4/JlTnlscMoF3L4q6tyOdVhJNmlBurSLzp6Usdq
-	 5uZ9IqT+OHeAYQ467E73GWT5G7zwfaybNQkcyV3ABZv1eHgmpZNwjnt38WnX2pS8ckDC1
-	 ZYIVDkfTrjN+NGJ9Ywic0kgKjoKpuUDncmn474mvIFVBs2cRogzykzVmZH5OovOvjRafC
-	 OH4MCxmqUN3dH+Y3qVQYo8epickHzECvMNrM75bJerHNLrPDMehr8BlpP7Xq4YkoGSOu3
-	 UUM8DtrdqegNAwbbOJnyPpYW8BgWRCn24hhhSIefw07UEKAJ5tg4/xHzz9eHUynv4Kg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793601894;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=CLT8W9DzftwgB4qFwnDteNsBQWMtTaGwHbGPfNFBweI=;
+	b=GUbL2ep68VfSdY8ljnQA7UNriTAsSHEu9YDpCBr3i+8mKwWyGQZYQbJub1yvKkrcTL5V
+	 LjyrukrVWw0ZV7oUxt7S4KDGdy868E8r4YQU0JMtvLyrQqgy4PKT1HWKWlmsuSJzOCoiI
+	 WUEEtlrplk6vf51lMbHbRohJsCksbhWQkpFjqpTaIitdkY+Va7UO3ckpUDYNGWVYt1Fz0
+	 r+OGBbH6TSPE8i790V4R7XbjseZ8vVhlr+9xBsUshaUPppW4rAL1EOu9NcvQ+6q4A5l8r
+	 HeDb3NX7o2hCwgdGkkLRIhz4DZbDebLYpBLK2X9k4aHfe0ExF3IxONdYG3watmL9/5w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=jQZY3bed;
-	arc=none smtp.remote-ip=209.85.222.180
-Received: from mail-qk1-f180.google.com (mail-qk1-f180.google.com [209.85.222.180])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CBmCxm36;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D299606A327
-	for <linux-rdma@vger.kernel.org>; Mon,  2 Nov 2026 06:44:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9D299606A327
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A71C606A324;
+	Mon,  2 Nov 2026 06:44:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=jQZY3bed
-Received: by mail-qk1-f180.google.com with SMTP id af79cd13be357-943e8d35f74so259285385a.0
-        for <linux-rdma@vger.kernel.org>; Sun, 01 Nov 2026 22:44:39 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793601878; x=1794206678; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=JBahlw0BSTFIK+2BYvIp2lv3jJCouVM8oLSKaKh5Bf0=;
-        b=jQZY3bedA75h5mL9U4lJCKKP1OWkkjax5oaslpe0icrr7xNWD+mT9VPSDNloxGrivs
-         CoSj0zZDZHESTYv0dGlNcRkq+VcC0fmjMjUou9DGIVy0c+hahq1xN/uCr9esUs9FMpbD
-         txHYgHneSfSn8BL9uFovhc4iAklrhyJsyeHxcQNQ0gLx2q2z5sn6cJ7o0aLE9eVBnQPf
-         g2Aa2bzjwIJH5NSZqkM8K5a999TqigiSILmvNv2fPrrXy5tJkfcJWFVNmgi/67XpR3Rg
-         2OhY6zU+gGfWHpkeycAPv2U12ZpJpFSt0VYJgb5b3MXLGRD9fC/20zgnE5fU8z91wXsC
-         c0/g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793601878; x=1794206678;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=JBahlw0BSTFIK+2BYvIp2lv3jJCouVM8oLSKaKh5Bf0=;
-        b=LNQ1lCed05qEQ6Zop6vOIP+2PMD6GDTeSOktSGXyuSgf4kcqAVP+aO5BRRmiJTYOQ7
-         k177cRZLBNkxeCBbZcJxGIjmA5/Celpj6nMQF3Y/MciM8xu7Ikoee9OMs7ZGj5cH7g0x
-         OCC6S5XgWYbVZUa1V3tzrdqn50OrtKbxRPOMxmDnBZfaWl4EQ/2expdHNGI+FqFtjgZ7
-         dt5cTk1ZEcHR2c+ZXFLL9/Mt3klTPETxsEQk8Iw1HnJUXMTdgw9aFIsyS99EaDb7gYod
-         rCAnDD22iuxW0S1yxAOHGVvH490apdc/IWn/uKqDALnyXLe91YN3KLXGRCxkF9cgxevk
-         iOaQ==
-X-Forwarded-Encrypted: i=1; AKwUvBxrFF5y1cCSMFU8G0CIFbwL/sIVQwL5gr0AthoF/hG7JAQZiT5gkffgUMlbOXyeDAbKm6HJzO04lHpa@vger.kernel.org
-X-Gm-Message-State: AFq9FYJYSTxNd/76TJOBYAL3ABZqfAdHMf7YTuGwtyC77HIH/3lsRBaE
-	IWHuCGvvcOFbWVdb1LN7S/1AJcMZX5ajjj3P5616ImH9WcMRrhqztGD5
-X-Gm-Gg: AYBFou3nuxV9rzwNVmWnyYjM+osr0lm8V+tYcxGupV34ptfRWCzuZKyv2O5qrHHfZd/
-	2MIUesVjXoxBveaq/zKkA0Yg+L1OSDXw5psEIW0E013Tqk/81yfmGfSRH3SkX2OvXw3GMO7WpLO
-	lX7KmnunH2TQmtjQQw/LJy58f/FKJKdI5jt6NBmip/tTNb1b6RhKA32zWkJzWUCfvSC2fiyLSvo
-	f4xxLRBrFA0fEv5Z+hglo2qJ8s1W8igZmDN/8TMhqipBOhQVW7VyiP/u0di6eITgAtLDiNE5QAa
-	mmzBy3JwCYnelIqkmVQCCxF+x9e0cno4EY4iKGV2CBsijZi+VxbVUu/t1hlEXiVLuaxvRMoZodU
-	fFe5SPhiE9vZkbmefw9zYikDbgFBxhjlkpMDbR82cznFHpejprbUJBmscJGY9Ds81lJkJ+nq6p+
-	1gbEGk/7yfO38hijsVgjk6LfMwHES5JvObHJctKpbqKj0eVpD6VVwngeX2uF1cORIp2J/gR6v7E
-	eoBDybEVhN66P3o2+q/XtlKo/xS1R/omW5QYzzAK/A+Idvph/lQB7UJV4NNzAQv+F7igsBSs4Dq
-	19Ea5JJWLuQRAgzvuDPnEHrqVotxUybfec35UaRreZabx6p2djw9sxSt9T0Senk9NctIvmwnBbr
-	qwbxhpTlfhBq0Jgg+Uc6iLnhpIxzuDyuqWpa9Cct6BsXKLSFeYi2izg==
-X-Received: by 2002:a05:620a:2686:b0:93f:5f83:2cbb with SMTP id af79cd13be357-94421581847mr1475900885a.7.1793601878603;
-        Sun, 01 Nov 2026 22:44:38 -0800 (PST)
-Received: from ip-172-31-15-253.ec2.internal (ec2-32-195-47-40.compute-1.amazonaws.com. [32.195.47.40])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9442581b2a9sm765276585a.13.2026.11.01.22.44.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 01 Nov 2026 22:44:38 -0800 (PST)
-From: Deep Shah <deepshah146@gmail.com>
-To: Bernard Metzler <bernard.metzler@linux.dev>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Deep Shah <deepshah146@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH rdma-rc] RDMA/siw: Fix use-after-free in siw_mem_id2obj()
-Date: Mon,  2 Nov 2026 06:44:37 +0000
-Message-ID: <20261102064437.23976-1-deepshah146@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CBmCxm36
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE5031F000C1;
+	Mon,  2 Nov 2026 06:44:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793601894;
+	bh=CLT8W9DzftwgB4qFwnDteNsBQWMtTaGwHbGPfNFBweI=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=CBmCxm36npVmthff4SGtzV873cCpvdpDIa+Iic7oubsI8Fo3JCfU/tCItryZvBonD
+	 SXc2RcnwAMIZOM1HRBXCbr/LysmRuvzAQV/g8lk1ExeH28DnX2eRFJdw5qBiCT1uRY
+	 NKQOWRDch5JTBJG6iZ2dnc5+Oemx2fpn2FiZrfSfMqJi6/ZI/HnGcs6kMnEg5rhi4L
+	 zZR9ka9MbrFa0r8Hth26ZGYwbynTZi79ZvltxszHa/4P4RCBBL5CTTP5iW0ndghEn8
+	 V0gSCVxTinwNM+jQAXSKQl2oKm+31xztPxDNMGNjCZ+IrcEU+GCfTns/etBk8SRMii
+	 +iTuS6P+GmdQA==
+Message-ID: <sashiko-outbox-192964@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH v3 2/2] IB/isert: tear connections down from an
+ ib_client on device removal
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Yehyeong Lee" <yhlee@isslab.korea.ac.kr>
+Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+In-Reply-To: <20261102061608.617186-3-yhlee@isslab.korea.ac.kr>
+References: <20261102061608.617186-1-yhlee@isslab.korea.ac.kr>
+ <20261102061608.617186-3-yhlee@isslab.korea.ac.kr>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 02 Nov 2026 06:44:53 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -98,70 +60,273 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-siw_mem_id2obj() finds a siw_mem with xa_load() under rcu_read_lock()
-and then takes a reference with kref_get_unless_zero(). This is only
-safe if the object stays allocated until RCU readers are done with it.
-siw_free_mem() frees it with kfree() as soon as the last reference is
-dropped, so a lookup that races with the final put reads freed memory.
+Thank you for your contribution! Sashiko AI review found 4 potential issue(=
+s) to consider:
+- [Critical] IB/isert: UAF and invalid reject on removing check in isert_co=
+nnect_request()
+- [High] IB/isert: hang and connection leak in isert_teardown_conn() on ISE=
+R_CONN_INIT
+- [High] IB/isert: new isert_device and conn created after isert_remove_one=
+() runs
+- [High] IB/isert: ABBA deadlock calling ib_drain_qp() under isert_conn->mu=
+tex
+--
 
-This happens when an MR is deregistered while an incoming RDMA WRITE
-looks up its STag:
+commit 0865225bbb6b53b508af1b272b6ebb49c8aac4d5
+Author: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
 
-  BUG: KASAN: slab-use-after-free in siw_mem_id2obj+0xe5/0x310
-  Read of size 4 at addr ff110001042aed88 by task repro-rcu2/90
-  Call Trace:
-   <IRQ>
-   siw_mem_id2obj+0xe5/0x310
-   siw_proc_write+0x282/0x430
-   siw_tcp_rx_data+0x12e/0xbf0
-   __tcp_read_sock+0x12c/0x440
-   siw_qp_llp_data_ready+0x147/0x260
-  Allocated by task 89:
-   siw_mr_add_mem+0xb2/0x2a0
-   siw_reg_user_mr+0x19f/0x380
-   ib_uverbs_reg_mr+0x2a7/0x4c0
-  Freed by task 89:
-   kfree+0x301/0x530
-   siw_dereg_mr+0x31/0x50
-   ib_dereg_mr_user+0xb9/0x200
+IB/isert: tear connections down from an ib_client on device removal
 
-Free siw_mem with kfree_rcu(). A lookup that loses the race then sees
-a zero refcount and fails. The umem or PBL is still released at the
-last put, since a failed lookup never touches it.
+This commit replaces the RDMA_CM_EVENT_DEVICE_REMOVAL wait and kfree with an
+ib_client removal callback (isert_remove_one) that tears down active
+connections and waits for the last isert_device reference to be released.
 
-Fixes: 2251334dcac9 ("rdma/siw: application buffer management")
-Cc: stable@vger.kernel.org
-Signed-off-by: Deep Shah <deepshah146@gmail.com>
----
- drivers/infiniband/sw/siw/siw.h     | 1 +
- drivers/infiniband/sw/siw/siw_mem.c | 2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband=
+/ulp/isert/ib_isert.c
+> index 5371bba71ba3c..223a727c1d0de 100644
+> --- a/drivers/infiniband/ulp/isert/ib_isert.c
+> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
+[ ... ]
+> @@ -464,9 +470,19 @@ isert_connect_request(struct rdma_cm_id *cma_id, str=
+uct rdma_cm_event *event)
+>  	if (ret)
+>  		goto out_destroy_qp;
+> =20
+> +	mutex_lock(&isert_conn_mutex);
+> +	if (device->removing) {
+> +		mutex_unlock(&isert_conn_mutex);
+> +		isert_info("device %p is being removed, rejecting conn %p\n",
+> +			   device, isert_conn);
+> +		ret =3D -ENODEV;
+> +		goto out_destroy_qp;
+> +	}
 
-diff --git a/drivers/infiniband/sw/siw/siw.h b/drivers/infiniband/sw/siw/siw.h
-index dbc998248b1e..4ec9c2ac75e7 100644
---- a/drivers/infiniband/sw/siw/siw.h
-+++ b/drivers/infiniband/sw/siw/siw.h
-@@ -157,6 +157,7 @@ struct siw_mem {
- 		void *mem_obj;
- 	};
- 	struct ib_pd *pd;
-+	struct rcu_head rcu;
- };
- 
- struct siw_mr {
-diff --git a/drivers/infiniband/sw/siw/siw_mem.c b/drivers/infiniband/sw/siw/siw_mem.c
-index 2a08817d3cce..be70dc9c8f81 100644
---- a/drivers/infiniband/sw/siw/siw_mem.c
-+++ b/drivers/infiniband/sw/siw/siw_mem.c
-@@ -115,7 +115,7 @@ void siw_free_mem(struct kref *ref)
- 		else
- 			kfree(mem->pbl);
- 	}
--	kfree(mem);
-+	kfree_rcu(mem, rcu);
- }
- 
- /*
+[Severity: Critical]
+By the time isert_connect_request() acquires isert_conn_mutex and checks
+device->removing, it has already called isert_login_post_recv() and
+isert_rdma_accept():
+
+drivers/infiniband/ulp/isert/ib_isert.c:isert_connect_request() {
+	...
+	ret =3D isert_login_post_recv(isert_conn);
+	if (ret)
+		goto out_destroy_qp;
+
+	ret =3D isert_rdma_accept(isert_conn);
+	if (ret)
+		goto out_destroy_qp;
+
+	mutex_lock(&isert_conn_mutex);
+	if (device->removing) {
+		...
+		ret =3D -ENODEV;
+		goto out_destroy_qp;
+	}
+	...
+out_destroy_qp:
+	isert_destroy_qp(isert_conn);
+out_rsp_dma_map:
+	isert_free_login_buf(isert_conn);
+out_conn_dev:
+	isert_device_put(device);
+out:
+	kfree(isert_conn);
+	rdma_reject(cma_id, NULL, 0, IB_CM_REJ_CONSUMER_DEFINED);
+	return ret;
+}
+
+Because rdma_accept() has already transitioned isert_conn->qp to RTR/RTS,
+jumping to out_destroy_qp destroys the QP and returns the shared
+IB_POLL_WORKQUEUE CQ to the CQ pool via ib_cq_pool_put() without calling
+ib_drain_qp(), then immediately frees login_desc, device, and isert_conn. I=
+f a
+receive or flush CQE for the posted login_desc->rx_cqe was already queued on
+the shared CQ, won't ib_cq_poll_work() invoke isert_login_recv_done() on the
+freed login_desc, isert_conn, and device?
+
+In addition, jumping to out after rdma_accept() succeeded calls rdma_reject=
+()
+and returns -ENODEV to the CMA REQ handler on an already-accepted cm_id. On
+iWARP, iw_cm_accept() has already set IWCM_F_CONNECT_WAIT and taken a
+reference on isert_conn->qp, which causes iw_destroy_cm_id() to hang waiting
+for IWCM_F_CONNECT_WAIT to clear. Should the device->removing check happen
+before isert_login_post_recv() and isert_rdma_accept() while holding a lock
+that serializes against isert_remove_one()?
+
+[ ... ]
+> @@ -521,13 +537,25 @@ isert_connected_handler(struct rdma_cm_id *cma_id)
+>  	isert_info("conn %p\n", isert_conn);
+> =20
+>  	mutex_lock(&isert_conn->mutex);
+> +	if (isert_conn->state >=3D ISER_CONN_TERMINATING) {
+> +		/* The login receive is still posted, drain before releasing. */
+> +		isert_info("conn %p is terminating, state %d\n",
+> +			   isert_conn, isert_conn->state);
+> +		if (rdma_disconnect(isert_conn->cm_id))
+> +			isert_warn("Failed rdma_disconnect isert_conn %p\n",
+> +				   isert_conn);
+> +		ib_drain_qp(isert_conn->qp);
+> +		isert_handle_unbound_conn(isert_conn, false);
+> +		mutex_unlock(&isert_conn->mutex);
+> +		return;
+> +	}
+
+[Severity: High]
+Can calling ib_drain_qp(isert_conn->qp) while holding isert_conn->mutex here
+(and in isert_teardown_conn() under the ISER_CONN_UP case) cause an ABBA
+deadlock with the CQ completion workqueue?
+
+In isert_create_qp(), isert_conn->cq is allocated from the shared pool with
+IB_POLL_WORKQUEUE. If the initiator's login request PDU arrives before
+rdma_disconnect() moves the QP to error, login_desc->rx_cqe completes with
+IB_WC_SUCCESS ahead of the drain CQE on isert_conn->cq, and ib_cq_poll_work=
+()
+runs isert_login_recv_done():
+
+drivers/infiniband/ulp/isert/ib_isert.c:isert_login_recv_done() {
+	...
+	mutex_lock(&isert_conn->mutex);
+	complete(&isert_conn->login_req_comp);
+	mutex_unlock(&isert_conn->mutex);
+	...
+}
+
+Because isert_login_recv_done() blocks on isert_conn->mutex, ib_cq_poll_wor=
+k()
+cannot advance to the drain CQE that ib_drain_qp() is waiting on while hold=
+ing
+isert_conn->mutex (and isert_conn_mutex when called from isert_remove_one()=
+).
+
+[ ... ]
+> @@ -625,20 +654,23 @@ isert_np_cma_handler(struct isert_np *isert_np,
+>  	return -1;
+>  }
+> =20
+> -static int
+> -isert_disconnected_handler(struct rdma_cm_id *cma_id,
+> -			   enum rdma_cm_event_type event)
+> +static void
+> +isert_teardown_conn(struct isert_conn *isert_conn)
+>  {
+> -	struct isert_conn *isert_conn =3D cma_id->qp->qp_context;
+> +	lockdep_assert_held(&isert_conn->mutex);
+> =20
+> -	mutex_lock(&isert_conn->mutex);
+>  	switch (isert_conn->state) {
+>  	case ISER_CONN_TERMINATING:
+> +	case ISER_CONN_DOWN:
+> +		break;
+> +	case ISER_CONN_INIT:
+> +		/* Mark only; isert_connected_handler() releases it. */
+> +		isert_conn->state =3D ISER_CONN_TERMINATING;
+>  		break;
+
+[Severity: High]
+As reported by Sashiko on v2 [1], when a connection in ISER_CONN_INIT is to=
+rn
+down in isert_teardown_conn(), it is only marked ISER_CONN_TERMINATING and
+relies on isert_connected_handler() (RDMA_CM_EVENT_ESTABLISHED) to disconne=
+ct,
+drain the QP, and schedule release_work. What happens if
+RDMA_CM_EVENT_ESTABLISHED never arrives?
+
+For example, if the peer disconnects after CM REQ/REP without sending RTU (=
+or
+closes the connection before establishment on iWARP), cma_ib_handler() /
+cma_iw_handler() delivers RDMA_CM_EVENT_DISCONNECTED, which calls
+isert_disconnected_handler() -> isert_teardown_conn(). That transitions
+isert_conn->state to ISER_CONN_TERMINATING without scheduling cleanup, and
+since the CM state is now disconnecting, neither RDMA_CM_EVENT_ESTABLISHED =
+nor
+RDMA_CM_EVENT_UNREACHABLE will ever fire. Similarly, if isert_remove_one()
+runs while a connection is in ISER_CONN_INIT and the peer never sends RTU,
+isert_remove_one() runs before cma_remove_one() and cm_remove_one() in the
+ib_client removal order. Won't that leak isert_conn and its isert_device
+reference and cause isert_remove_one() to hang indefinitely in
+wait_for_completion(&removal_comp)?
+
+[ ... ]
+> @@ -2697,8 +2727,54 @@ static struct iscsit_transport iser_target_transpo=
+rt =3D {
+>  	.iscsit_get_sup_prot_ops =3D isert_get_sup_prot_ops,
+>  };
+> =20
+> +static void
+> +isert_remove_one(struct ib_device *ib_device, void *client_data)
+> +{
+> +	DECLARE_COMPLETION_ONSTACK(removal_comp);
+> +	struct isert_device *device, *found =3D NULL;
+> +	struct isert_conn *isert_conn;
+> +
+> +	mutex_lock(&device_list_mutex);
+> +	list_for_each_entry(device, &device_list, dev_node) {
+> +		if (device->ib_device !=3D ib_device)
+> +			continue;
+> +		device->refcount++;
+> +		device->removal_comp =3D &removal_comp;
+> +		found =3D device;
+> +		break;
+> +	}
+> +	mutex_unlock(&device_list_mutex);
+> +
+> +	if (!found)
+> +		return;
+> +
+> +	mutex_lock(&isert_conn_mutex);
+> +	found->removing =3D true;
+> +	list_for_each_entry(isert_conn, &isert_conn_list, conn_list) {
+> +		if (isert_conn->device !=3D found)
+> +			continue;
+> +
+> +		isert_info("removing conn %p state %d\n",
+> +			   isert_conn, isert_conn->state);
+> +		mutex_lock(&isert_conn->mutex);
+> +		isert_teardown_conn(isert_conn);
+> +		mutex_unlock(&isert_conn->mutex);
+> +	}
+> +	mutex_unlock(&isert_conn_mutex);
+> +
+> +	isert_device_put(found);
+> +	wait_for_completion(&removal_comp);
+> +}
+
+[Severity: High]
+As reported by Sashiko on v2 [2], during IB device unregistration,
+disable_device() invokes ib_client remove callbacks in reverse registration
+order, so isert_remove_one() runs and returns before cma_remove_one() destr=
+oys
+listening rdma_cm_ids.
+
+Because struct isert_device entries only exist on device_list while
+device->refcount > 0, if no connections exist when isert_remove_one() runs
+(found =3D=3D NULL), or after wait_for_completion(&removal_comp) returns an=
+d found
+has been removed from device_list and freed by isert_device_put(), there is=
+ no
+record that ib_device is being removed.
+
+If an RDMA_CM_EVENT_CONNECT_REQUEST arrives on a still-active listener befo=
+re
+cma_remove_one() runs, isert_connect_request() -> isert_device_get() will
+allocate a fresh struct isert_device with removing =3D=3D false and accept =
+the new
+connection in ISER_CONN_INIT after isert_remove_one() has already finished.
+When cma_remove_one() -> cma_process_remove() subsequently delivers
+RDMA_CM_EVENT_DEVICE_REMOVAL to that connection, isert_cma_handler() return=
+s 0
+and isert_teardown_conn() only sets state =3D ISER_CONN_TERMINATING while
+id_priv->state is set to RDMA_CM_DEVICE_REMOVAL (suppressing any further CM
+events). Won't cma_process_remove() then block forever waiting for that cm_=
+id
+to be destroyed?
+
+[1] https://lore.kernel.org/r/20261026060505.409476-1-yhlee@isslab.korea.ac=
+.kr
+[2] https://lore.kernel.org/r/20261026060505.409476-1-yhlee@isslab.korea.ac=
+.kr
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261102061608.6171=
+86-1-yhlee@isslab.korea.ac.kr?part=3D2
