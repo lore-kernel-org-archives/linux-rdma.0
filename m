@@ -1,20 +1,20 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.54
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.52.2
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793658834;
-	b=qatQhsaJghhIv8saeyFuKCNLe+Esx35lZwfKyy9Wxoztill/6eOYCmUcWt8jUa3MX3PC
-	 DhDgvjzS5s8QEHjr3iVbGsF9+DLqjNI+jcYVDCKDAnud4tbw8jS1loNpFTDi1dwKqsoyY
-	 AjdfJMmzRPjNj2ezW2au0brOFh0GmgOnRgKT1EWm4LzCjf86s6Htg/4Yhr6V7NytpBkzF
-	 KAh3AydnYp7iriAGt6++7Hc2HTkqddpKdApAt63wB3N+qt4M0wm8H3UlfauIEX78lQ/N2
-	 Uv1pqLZo1ytyEmT7IxqbhqsKD8YbVB86Eel/J+wVTsE/H45PsFLWOAm2rx+NB+wwbNg==
+	t=1793658842;
+	b=KeoJWC4dd68ysTfY86D0TolJMn7rxnN35CyjwkFbvFLUmJNQipe0gUOdxc6aDFyEH7bk
+	 9CCuzpCaxnu/r+2Or1NciKqKBi2xVlSBWhVyqpCiyq9l+pBqufXGHB/X3FuQLBU8IXOLM
+	 V8bS5tgyuNMqfC6UJn4JiPckOxfUZM4Dz+KM9qjcr8oXcve5nNXfNSVm6aLo5GNqFL5Vb
+	 khGSvbsuurzaMaRp7T5ENJlAfpbSGDaDNZsMxyr7aPMZRGe16yOLuNly4SMgshnIkGBFY
+	 iP/nodvhTGfmztqOFpYzqVKv00I6qip1VJFj3Y4RXScQRxvPQf3Jp9PEhDCMpTHpedQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793658834;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793658842;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:Content-Transfer-Encoding:Content-Type:
-	 X-ClientProxiedBy:MIME-Version:X-MS-PublicTrafficType:
-	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 Content-Transfer-Encoding:Content-Type:X-ClientProxiedBy:MIME-Version:
+	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
 	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
 	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
 	 X-MS-Exchange-CrossTenant-Network-Message-Id:
@@ -24,69 +24,77 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
 	 X-MS-Exchange-CrossTenant-UserPrincipalName:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=cTZ/Wpg+WPs3RgRnxjlGKxQYsxRWdSq7xlQZf4SzG5I=;
-	b=n06VYCzLO5+fCxuvTdhLe6fB8yw9jndIAWJSfasrNDZwDDMAO33JKvD6Uy3zIEpnIZUS
-	 tAD4UUWbOb+Dj++9Gw7cc1ixKf2dw/aK819ZAJNCImIrErpKDHO07v1xIcXHLMU26X4V9
-	 R8jUWVEitv2aBgptQfV32dkbWinj8Mu0khyQGN6XAybfFtvvg+CCIuEiLutTY2HrL52g7
-	 jI2sH+1gJC8WPJ65fNwhkJQ0acm9CxU68K8iZ6yqHhc2TlvrLMb8+msHbVbYDOSJ8TCGT
-	 8Zj+IhuKs8bKfR09r46S5WQjkbNbmVyNn/6ge6bEMqBOw8sF5bWKvVS6SOWC7gAi2Tg==
+	bh=slPvKjQ1oqVmV/jYMkvFy9zleMULrA0jd9JLWtLszig=;
+	b=fLxBUHDEG17SCsgYqcSTBDDos0oXd4yDQ9dF7mqcPOrP1VyCSsUeDqsUCrWnqsvYslq+
+	 cwy/ffg6nUjEpTAZ0BH/hsjtb7bi2i1YXFzqlSVzZSRlAF9mxIJckrNDnawZwjU9kL3M2
+	 dHKN/pqcefKtV3LK7I3hQrTp8Advs4dcWU4ZgV4tHDGNMhG+Ed+dz/1NV2haw1wdoq2NJ
+	 fcTN47h6bAZPhyjKK1rWOOyMxpopMrnEEIachbndMzdoqHyV6bojJiyrhiqpkJsFtoz4o
+	 admJ+4dBzyDE2t120a3/hAj4dmGQCLVmm3OxhPhjFv8VaGn6fZP1mnZODpMk1xO+fzw==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=djtOxh8y;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.54
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013054.outbound.protection.outlook.com [40.93.201.54])
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=htF+6yKt;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.52.2
+Received: from BL2PR02CU003.outbound.protection.outlook.com (mail-eastusazon11011002.outbound.protection.outlook.com [52.101.52.2])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC874606A324
-	for <linux-rdma@vger.kernel.org>; Mon,  2 Nov 2026 22:33:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DC874606A324
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A42AA606A329;
+	Mon,  2 Nov 2026 22:34:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A42AA606A329
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=djtOxh8y
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=htF+6yKt
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=wL3dRZc19iVLtRNISQK0XvF0B1N6014q9VDkhnRlRKst+eo8wIbkC5Fc75gSC4XNseBatSMd4JdAXzAEQy28RZxHDWPPtdGq4Gd1ISXF+AoW/CdX2U4XWZ9arXAQ7z5zYOIf25UMPQKizb6CkulT9X7ib5wpFyWRRqOq5u7VCi1FEsCbhTMWwUs/5YOB/mEsZCTJarQRadq0h4ztUMe34dBU/exyNw7lBCemtGMRS0+0V1As6382ZGWpT8wRQ3JwareE3CXBDCI7kiyksD2ha740/1VwT7tINn1X6ooVFQqT+SvFeUsR8olZh6ZXAWkOrAxSQVjUZQ7CAz7eyruNyg==
+ b=JQHT70oXgLnT6dDNBj8LUayGcMBTKNja8c6dLe87wI9M1WxTPHPIaYMRCHbo0KOyzWleeuw7QlPBirchvXQP1/4cYFzyIrMuGzN4lbDwC+0V2g0IuIBs1VBGeigcP8/r62zY/Q2YIezbtfjzthXTYjkvpzOiYt1j+y85QgaNUupbgs35w4YdrAxBIo+ilja8bZ8wO+BVV2z6I2kCjaxrQRjRKAMHtWz0rFHAYtdseX4HmjyxIRIitFV7+CN77lx+DzdRSEzQLV1PHVBAo/zf3Q0Kw9OWMtUbPyvvrfI9PKanFkAMOIAgpHaPmmetJrv8YGrmO96djha/QIcHMSQIaA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=cTZ/Wpg+WPs3RgRnxjlGKxQYsxRWdSq7xlQZf4SzG5I=;
- b=q5UfxaopF1XXdAf4gb2iGOBdFZBwNP/w9Huah629pLMZ6euuAv5Qltn0T8XuGS3EY38uEyUxPxN0dkGySIXt8JWIo4/7muXQ+YbE0LbhiYqfLKUUlP7nNkxDknU4KfctPeWk8aTzU5lhDUhcXNfLFEuBFaUDBeZom+z+59B9IsQ0LVIdz0h57QgwhnzAlG/uBsr7QpeEOlcDeMj1d4n9jlDrbaBCM1QLxX/YZrPGF/7clWDA0CQ2NIf8mKJQ223qIjXzQbGyTNI8gmsvblBn61AnzGcm9E4QqyKqqL/TrBI460UowxarEzaNGPcGlk3ETlexvZS2a4vCX1NMswq/Zg==
+ bh=slPvKjQ1oqVmV/jYMkvFy9zleMULrA0jd9JLWtLszig=;
+ b=gxiiz4/BhWX6Y/sGod8jktZjyTIo+1maDGZD4gsOvFML60AlszGJT5hx0UHxcI9ZrbNvy9vB3jkOUTUgKPiV+3Cq861wDUbbvdE7R3GdpqtWlcOyyvhTSPFXfG75l4qrJcqQY+HtJcMSP4TwpzKPLa8l4PynVedFzlFYl6tlUYdiQVPJ2NcRxvyOJkA2S9SkvkIxKeG/x3xNPnShQMLYpDxGGsPQrVosVx/9X+2TrAfo3C06A79bUDHclFTQiF0CvEcFSC5iwDN8crspg+zpr0ov9qtc3RDNrPytRTg4ssvJVnNRa6Q2G3nIcsvHcnqJpCzhcwZsJqicF9sw5N0Wtg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=cTZ/Wpg+WPs3RgRnxjlGKxQYsxRWdSq7xlQZf4SzG5I=;
- b=djtOxh8ysZza7GD7XgVvbzWAK+/NmKX9j2wNajcJDcJU3qeZ4c0rLHdfAYWrduYA2Zx7LZnVMeW80t2AMBQ2nkRMiQlH/Au0NowGEWqMq2a/q3FnzQmZJFf8ecTMn1bJxu1bjuZ8DSPzcYA3XEIVN2tQmoaLxVPAWOUgvPKu31nnsKMdD0YjS90BUYx5N6yjpmeD7J6/1EOxjG+LCgiuMiUwI73vuCd9onDD+uNS/8uqfD6goohHWI/PHlHHWV6KVJzYXz5KAGqj/m6JF62pavPWGDtZWH/6jYpugsqPjQujr+Y2Nubzgd8eP1kYtwEFWzxRZLL+mY8XkjxmK24cHQ==
+ bh=slPvKjQ1oqVmV/jYMkvFy9zleMULrA0jd9JLWtLszig=;
+ b=htF+6yKttmShs4LKyZXYh2ZDZMl3FwS9LyRdsBuYU4KpoCYzURw+9Fs2ZY9qjcsgWUj/x0f9/i1reK/y150/80MyFP7NLTNfuE85e+0tMglrr1lD51+VyqpkKgW3z/j3sRnjzxDuLVwLdDNWo6glnqVkpKlGP1GGmIVPmhcfGLyX6p0hyirARSVMSQVa4dujbOu7YmgmNoFRPHbW+sJqs3R2WgFFPWBCgauTvyj/vR5WuJmPLQSUVRPl9KcFSoiklWs88X8dTSGtiZ1zmCVpAtWX46zbV8kzXxrx3usmwX66wJeGDdJRxXNJTVF7gjtv7UOLo6agh2CR2uw0MnIGzA==
 Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from CY5PR12MB6478.namprd12.prod.outlook.com (2603:10b6:930:35::19)
- by LV1PR12MB999305.namprd12.prod.outlook.com (2603:10b6:408:3f8::16) with
+ by DS7PR12MB5792.namprd12.prod.outlook.com (2603:10b6:8:77::22) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.12; Mon, 2 Nov
- 2026 22:33:51 +0000
+ 2026 22:33:56 +0000
 Received: from CY5PR12MB6478.namprd12.prod.outlook.com
  ([fe80::51f:ab92:7d1a:441b]) by CY5PR12MB6478.namprd12.prod.outlook.com
  ([fe80::51f:ab92:7d1a:441b%2]) with mapi id 15.21.0569.011; Mon, 2 Nov 2026
- 22:33:51 +0000
+ 22:33:55 +0000
 From: Michael Gur <michaelgur@nvidia.com>
 To: jgg@ziepe.ca,
 	leon@kernel.org,
 	linux-rdma@vger.kernel.org
 Cc: Edward Srouji <edwards@nvidia.com>,
 	Yishai Hadas <yishaih@nvidia.com>,
-	Michael Gur <michaelgur@nvidia.com>
-Subject: [PATCH rdma-next v2 00/15] RDMA: Support HW requiring relaxed ordering and add Unordered access flag
-Date: Tue,  3 Nov 2026 00:32:53 +0200
-Message-ID: <20261102223325.2115128-1-michaelgur@nvidia.com>
+	Michael Gur <michaelgur@nvidia.com>,
+	stable@vger.kernel.org,
+	Jason Gunthorpe <jgg@nvidia.com>,
+	Yishai Hadas <yishaih@mellanox.com>,
+	Michael Guralnik <michaelgur@mellanox.com>,
+	linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH rdma-next v2 01/15] RDMA/mlx5: Allow optional access flags in DM registration
+Date: Tue,  3 Nov 2026 00:32:54 +0200
+Message-ID: <20261102223325.2115128-2-michaelgur@nvidia.com>
 X-Mailer: git-send-email 2.52.0
+In-Reply-To: <20261102223325.2115128-1-michaelgur@nvidia.com>
+References: <20261102223325.2115128-1-michaelgur@nvidia.com>
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: TL2P290CA0007.ISRP290.PROD.OUTLOOK.COM (2603:1096:950:2::9)
- To CY5PR12MB6478.namprd12.prod.outlook.com (2603:10b6:930:35::19)
+X-ClientProxiedBy: TL2P290CA0005.ISRP290.PROD.OUTLOOK.COM
+ (2603:1096:950:2::15) To CY5PR12MB6478.namprd12.prod.outlook.com
+ (2603:10b6:930:35::19)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -97,149 +105,97 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY5PR12MB6478:EE_|LV1PR12MB999305:EE_
-X-MS-Office365-Filtering-Correlation-Id: 0f102d0d-8643-4d04-7c41-08df39315e6d
+X-MS-TrafficTypeDiagnostic: CY5PR12MB6478:EE_|DS7PR12MB5792:EE_
+X-MS-Office365-Filtering-Correlation-Id: 413edf3c-9f62-45b2-1f2a-08df39316127
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|366016|23010399003|376014|261102123227099003|261021121427099003|11063799006|56012099006|261009220027099003|261009223327099003|261009221727099003|261021123027099003|261009221227099003|261009223027099003|261028144727099003|261022105027099003|261026121527099003|261026140227099003|261022075727099003|10067099003|3023799007|18002099003|6133799003;
+	BCL:0;ARA:13230040|366016|1800799024|376014|23010399003|18002099003|22082099003|10067099003|56012099006|261102123227099003|261009223027099003|261022105027099003|261028144727099003|261021121427099003|11063799006|261026140227099003;
 X-Microsoft-Antispam-Message-Info:
-	DLVn96c0pWKBPpiXPbjAHfk6z4/+pPFmwqDFONyt61SM7550BsNrLzbmffTxVzMJGodQhQkM5f7gnT0kjwOjYBl+/lELDu6gLu0zXLD+h5H/NiCHdvGZzjgJxS6msJ+am6GGsJZ1ZDobfGjFcRR5amAUPyG8HFoRUPAgRJaowT5eWux1d3WOcYDTpUDD89pDen0P4H6+1/CXdrcQNziYCod1L2xV8JwPwjEXbfqwzkD7vg4LsWZzZ4y8ARN3ccwF/v9Oclw51KQ2txwCUyxekF9TDwW70qaJUWyVOmieJ/pPJTKZU9k+/dNNRtoZzF/d8xx0ls5VfyPjNtjDoMFXF342Ot3Jx4D714Tp96jwma28Q7GsjfIGo2vC0RZvN54Tsy0OEl9mBbK7FhThVpuAimOEE8zkjzioO1QA4BR8ITvixfkBWI7Y2rVcRG2xbTEOiS6JOznm3x0O3mRAV6teUbYXf/UWi6yhm0v6XXpPzwcEA1luatIggCL5pCI4a/WUocJGH4TzLlprfZ4bGS7D6dWmIw7IN+dwMENVP7LlU0lWTXZtiJGhy4G/1uiwhIWrZZwgA4dQrgp7mGagWU4eKdpVggjkyXsaY4mEyJDZtwtcSUy1ZuPrBPpf7uQUYlGwGvAKANHGlKRP5Hd1ncR1D+nTsP5+6Zu8J8qK1//tC4w=
+	5qyG5tRcSMWrApynW30mlf1dj38Sy4BHq2vsFSYtLvhQIY6v1Pr9uzr7dgWfUcltlu6sQpQh/FI4T/rz2NQkgPyfHvz5GuNGy4KprF2i+RJlRikeAf3WQiqEvvKBemAbFFFOLTCwgabE/JdoEmwcy0kvsIei4II5ZLatC+pcGrLiaWdRcFSc+2YU9UHQcDhh4Ounyypj0f32nZeyMmnysB0j7FcytScExGgX44iGZQ2UA81z5kdzbgAMeL0WKOGR7ifxQo3sttjSck1Zfp1gOMx+um8hgbFMG4Q7Awgc8h06g7M8+95AUs76wfF6Ha6iTHQtFXWP9coBdEzquWMORH3LYFlMyaMmqD1rHg01ECMT2gHQVls8J92GWkKELJ+ZG+Qc64dlnXXtcK/ndEZcsmJ1aGYc3IDLaUQ8Ek/4uDSr3fioxNjD8eQG+07vh7mj8yvCFCxHwdjwwaHhwKjg4l67sIMyCYqhJXRg+jiyM2xVTLFrIse0ao7kF78JWgovZ5n3DDrNl26m4FzwbX0S//WWDr9KIamLnXw6JixwpFSh8IRp8mrec6l9aaGczjcU/n56E+PygJAjw1Y4B6hRckE5vFEBhUZqFWu4jfTOrGhfoyxJOPtnHoTK8p2+CjTrqg40b/LPcCQ+IMmYXJl+oQ7oGv1PxGoymJbGN9wGMhs=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CY5PR12MB6478.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(23010399003)(376014)(261102123227099003)(261021121427099003)(11063799006)(56012099006)(261009220027099003)(261009223327099003)(261009221727099003)(261021123027099003)(261009221227099003)(261009223027099003)(261028144727099003)(261022105027099003)(261026121527099003)(261026140227099003)(261022075727099003)(10067099003)(3023799007)(18002099003)(6133799003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CY5PR12MB6478.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(23010399003)(18002099003)(22082099003)(10067099003)(56012099006)(261102123227099003)(261009223027099003)(261022105027099003)(261028144727099003)(261021121427099003)(11063799006)(261026140227099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?e+jq5uii5Koxwjnk1EnoPjpBSp1Ixjh6zTowYBJfP8/hpIPc4QEhFtZnUzZm?=
- =?us-ascii?Q?5MX2H3QNCAMrJvF3+0bu8Shbjta7QbgTduG1di++8swLepP+4QFSs9eUePsz?=
- =?us-ascii?Q?jzCCulwI1xEr4JN71pwlKM6bIM5Lqa1mPdP9VG1fIUeASEGv3LTqjYEBh2cE?=
- =?us-ascii?Q?uxFmGuioz8D8tgXnAkcnRrThx4bmkTN4D1Og2jxubRzs6s2dovWtmmXEtQbT?=
- =?us-ascii?Q?Seq78ceFRvC2JteKofaXja2jZevTIZ7vsOJDNcA4jWwkSk59H68ZWADsTytz?=
- =?us-ascii?Q?0MVlS3ygj8hGR4LfuEt6GIq8xArgJJlTrUGdCLRycJbT7q5cIYneApHnUIf4?=
- =?us-ascii?Q?jGuFsmnKKtXJyi2zQV0XaTvkDlr1XkLuPWlRPZbNyBineKHDOnWQOKvo/++s?=
- =?us-ascii?Q?C77TtJ25eF2bR1NEGps8d3q7xmo52z5jt0AtVUAmW6xclU5w/kJt1QF7PzRm?=
- =?us-ascii?Q?84cSzVgLIIFC9Ot890ncO8646VzeV4gCHLVMHO18pRbHEGi8Ukq25b0szM9B?=
- =?us-ascii?Q?sd31cN18LwhwzIIlaqhKTsv/rRpWswm6YFWo3M0J1A2Xb/ChaazKpkJD92+p?=
- =?us-ascii?Q?BsNUmwQmr6LiZqW/jjvnhqVCiZohC2bUoTvLjvjut491FEfdcCUELWv+pNih?=
- =?us-ascii?Q?i6PGNRKeVO+s/yuZyJW+EKDKG5Cb06W2Z33+/Q6M0XaUKOKO/c/BU7eowWN1?=
- =?us-ascii?Q?Kg5vWV6QuijZAR6GLxlKX37Q1K+hg7QWGoZY63DguTyzcTqT2ECejjHlY5b2?=
- =?us-ascii?Q?aD5GScKzISSUqxhplqFxa7EzlHYHMtnw6n7So709tt6MbS22RaymcYyqkvXd?=
- =?us-ascii?Q?4c77vo8UjOt9DoPBjBb08JOhsHtoY8jXdtasBf9slYjZl0fHN+AqrL6yCRi5?=
- =?us-ascii?Q?1i4ZhpY6EHygTWOQx69cRdTZHG00NlLlyf9HhwI5W0ijJjABPIxqnvDVa0bv?=
- =?us-ascii?Q?NNkSuI6yLL4YVjwOpPq8N8XhA4Csc9zuTIK1hGgzVgc+tvtvjw/u/nK6o9cL?=
- =?us-ascii?Q?8x7ex40t7MdxU1eg3Vb669eZb5f8wvOFak9afdRZYmHT+P4U/eg4tltVtycA?=
- =?us-ascii?Q?we7qePPBF/S9PGOLk3gZS80G5rPXCKl3zvX+waXZlly2v1smqyKHijBQuBD2?=
- =?us-ascii?Q?ejFgojqVUtg65bQvDVzze1LtRub5cvWJJPF6gTL6Zr7PcGxFDC3l2wg/9zVg?=
- =?us-ascii?Q?VXUG8lvnNlJ1yDRfmjDK+ER0rJDMHqUxJQMJdN8WvHmLoDRAgtTLpeCmUeXH?=
- =?us-ascii?Q?46Z1YGyBdb8aI0W8q6mVtNrDbHEQlp/gkGMjixh2fH6vWmeCONYzNJjteD/g?=
- =?us-ascii?Q?NQI/Ilu4QH73hkepSyP7MAw6Rbs/WA60ybkAevSpO4sCHDUIxcfttfmVwMOc?=
- =?us-ascii?Q?xKPlqgohk4wi4rLYpnBEOy6J625nwX3CjzxrIAXdhB4iqerbIaai5FmA8JCW?=
- =?us-ascii?Q?zj8MY1V5u9qNHrpSNSnW2hOcJecI6eQj0EDjeGwDX/E2Evrjbx5Qvzp3TByC?=
- =?us-ascii?Q?sPUrh2nZT7qQh3LYhWf8nSb8EIptds8NTbzpiXOctstb9ywu1FSS18IbxWCY?=
- =?us-ascii?Q?SaA2IQricpIvmSTvXNbWsC2ILRf2AHjGPFDNm8pPvqp8xuWBRcwiddRrufFe?=
- =?us-ascii?Q?KGbi9PxphaRyIfPN7eit1M6ESUpMwNZT3hv3ORGFxyCXfS3Wn3EddfFnSAEp?=
- =?us-ascii?Q?I0BY9gxeh/XmLPWvtxENVmKICKTmVtBUP5Y4AUbN70/6rsLCUW2UrLHsy0DJ?=
- =?us-ascii?Q?ly3xTORzSA=3D=3D?=
+	=?us-ascii?Q?AP/15BXUmnyk7en7aDY6kVkee0gcL6ZnyPkEZr2hMKIVd3l/V6iQGh4Uueuc?=
+ =?us-ascii?Q?mrD1hsSZBW2W78XfnxUVB4eqzg0TRSgfPiAMf/PzeyzDS+/2M0gZ0FHUOYKS?=
+ =?us-ascii?Q?FexWYH3Ur7Fw1mIIrYQrqtKPdGygq0e1KMH9YI2ZfqBbAdhLltWk3gMf5aan?=
+ =?us-ascii?Q?G48kaTZw465EcjH8VRyWgxe7Beraa8kt5UTc3mAfGXQ7iZBBx4IpdAWQiHu3?=
+ =?us-ascii?Q?GZOFcZCb6CUqQ7Afz7fcB/kwF76cyF5MSEaKRn6SqpIiOzT6WPAXfN3ZRFtK?=
+ =?us-ascii?Q?VxwNFzyXB5YMgy8EU5aYqJtMGEBmYP1MJhKrBfsLW+X7FBOPDZPfwht4QYdQ?=
+ =?us-ascii?Q?ruL8pYlMkp0hv/kYT+BZ6XjxFQ8z7Tk9glsAgIKp4k4Dq5bOgjBaQ9Rybhuv?=
+ =?us-ascii?Q?zG5hJoKlP9X/fxnZufBqJ7PAr9kIDkwo2rQyNw9YshVB5dnIvbVj/TWrlIsU?=
+ =?us-ascii?Q?i9+ImgWaotYScCpjoP/Yxy730HHFzwzRVVPz5FnMdn3NNs1w+oAJO354c2qo?=
+ =?us-ascii?Q?Z0fTCo9qqJkF1yXGUjNXM2iF/jp8gPs8VDmM8GNzwqbFiFdxJ+1h1CeoFMsu?=
+ =?us-ascii?Q?KLuApfdjWKm4rCXPNCljW3M0rEfQyPMIGYYXHdiRyFLkGQG4qCXkjaBvYD5M?=
+ =?us-ascii?Q?2LdtrCpUjGYRRw97QICkLKKPjeg0eBmAtNLhg9Ema7S7CIKE1SEmT6G/g/Gn?=
+ =?us-ascii?Q?8o7GS0XCqy9mzDnu04d0f8/XCRyV/jEjmTBWyWC15gMG9ItMn1rnisbI0Fgp?=
+ =?us-ascii?Q?GCbryerFMwOvOaoE8Fxc171R8KraHZ065YvEkNmpt8uaIDXF3baphxVVuM7/?=
+ =?us-ascii?Q?d/lTNCTMAUxoKSFa4uCdkF02aEWghFuXUItyXwrCgvpgYt1TzGr8qG17JS7r?=
+ =?us-ascii?Q?xNyKcY+FkQ63YQgNUHL7EIuefkudRsWszCN+A68cd308s44iW6qSrj5lPM0n?=
+ =?us-ascii?Q?aAqfCCGUIBcf6FEVMVb07ILaG9W2m+6dySLVJxqcp2X2ZY0TvDc13zMSuqRd?=
+ =?us-ascii?Q?SMXecBgCdBisYoAesuv3Dg2V2QQbvBiNXbcqKjq0pZIvurT17tYIYlPqb0FR?=
+ =?us-ascii?Q?WXP8iqtUHPcXJi/utctAgLhlizKWB8ZL2FCUnBhClnBx3w6ohrLDqBoEzh0a?=
+ =?us-ascii?Q?nNqunM/3q7cE5HYwSF17BU/qujA1rtgX3XrGXH0a7muqiC/IO2F1/zqxvZaC?=
+ =?us-ascii?Q?kioYZVgC1YwLMWUlQjm3sgfmThe0FH2tVTViD+H0K6AhwD86hk2XGIzjMlo+?=
+ =?us-ascii?Q?IxUyiZIrDCLzHmgT65xFfcxJHb/Ui7RzV2qR6CUQjxUxo4NqP/js3J1ThTD+?=
+ =?us-ascii?Q?CILin8Lv18KbOps/adrfqQi9XyD1/mQYuNjESDlwgcw6IBVAbiDlo0aI9l+z?=
+ =?us-ascii?Q?dXrrwV0v94DfwfAWGSpM0Xaz84072yPomSqP2HbX4e4djTX+Qvef+Fq1CqaD?=
+ =?us-ascii?Q?dgOOXa7eYdhVBUUCl3BNjCHZKzK7Frn+8dSjjMplEzhq0d0iEeYD9JIHnssg?=
+ =?us-ascii?Q?xTTJF0uirFIMF2ktJ8wbvlf6SgQ/ku4SLiFjZtewe6kN5ta34iEul3I72Z0k?=
+ =?us-ascii?Q?qF52kSW0E83l/1CZMBKZVY1y+ApgJnLU57wbwth617TUU2JsBXn+tTtTAvpJ?=
+ =?us-ascii?Q?VuJc1MWXkL/GeNWRlM5p02OI1vf0KBKMOyk+X1XLrasKPgZO6/8Hhrp0SQMa?=
+ =?us-ascii?Q?EuiDXx4c80Q8Jh1/mRSmhiQIYIi02zd186vhzfaapb9J47q9uXlp8aFw+uHh?=
+ =?us-ascii?Q?Yn4I8qMklg=3D=3D?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0f102d0d-8643-4d04-7c41-08df39315e6d
+X-MS-Exchange-CrossTenant-Network-Message-Id: 413edf3c-9f62-45b2-1f2a-08df39316127
 X-MS-Exchange-CrossTenant-AuthSource: CY5PR12MB6478.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Nov 2026 22:33:51.1554
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Nov 2026 22:33:55.6866
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: KW0gQhCtEzUQV7NKBXsCf1KduaHdipWUE0hUolFSKBCRTEP/QO58VsBMgdaxDOEPxgJtZfE/6o/8ReEuGKIF6A==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV1PR12MB999305
+X-MS-Exchange-CrossTenant-UserPrincipalName: Q40BfZs3Rp+yh8yiamlDUnejTQOSxzWeI25/UglfK8KPE1/wgq66elzWM/PQ7mWiBEcCEyq9i990925ZDL/ITg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB5792
 
-This series prepares the mlx5 stack for hardware that restricts strong-
-ordered memory accesses, i.e. HW whose fabric doesn't guarantee memory
-operation ordering. The HW may choose to reject creation of an mkey that
-doesn't request relaxed ordering, so every mkey the driver creates -
-internal and user-facing - has to be handled accordingly.
+The uverbs ABI reserves the optional access flags range as best-effort:
+drivers should accept any flag in this range and treat the actual support
+as opportunistic, never failing registration when an optional flag is
+requested.
 
-The previously added 'ConnectX-10 NVLink-C2C' PCI device is such a device,
-as will be any future PCIe Gen7 UIO devices.
+Add the optional access flag to the allow-lists of DM registrations.
+Uverbs users can now request any optional access flag on DM registrations
+and mlx5 will apply the flag's effect on a best-effort basis when
+supported.
 
-The series does four things:
+Fixes: 68d384b906cf ("RDMA/core: Add optional access flags range")
+Cc: stable@vger.kernel.org
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: Yishai Hadas <yishaih@nvidia.com>
+Signed-off-by: Michael Gur <michaelgur@nvidia.com>
+---
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-1. Allow optional access flags on all memory registration
-   The uverbs ABI defines the optional access flags range as best-effort:
-   drivers must accept any flag in this range and treat support as
-   opportunistic, never failing registration. Several registration paths
-   (DM, DEVX UMEM, dmabuf ioctl, reg_mr ioctl) did not allow this range
-   and would reject such requests. These are fixed to allow newly added
-   optional access flag added later in the series and any future optional
-   access flag.
-
-2. Groundwork and internal mkeys
-   Rename the relaxed-ordering IFC fields to the new naming, add the new
-   ordering capability and mkey-context bits, and consolidate RO-setting
-   to a single helper in mlx5_core so all consumers share one cap-gated
-   implementation. Then enable relaxed ordering on the internal mkeys that
-   don't require strong ordering (resource dump, vfio live-migration data,
-   ODP null mkey and FW tracer), so they keep working on strict-RO HW.
-
-3. New Unordered access flag and enforcement
-   Add IB_ACCESS_UNORDERED, an optional access flag that additionally
-   allows read-after-write reordering, and wire up mlx5 support for it.
-   The rdma-core series adding the flag, with its full definition in the
-   man pages: https://github.com/linux-rdma/rdma-core/pull/1780
-
-4. Enforce no strong-ordering in user MR registration on HW that requires
-   it.
-
-Changes in v2:
-- Dropped the patch that enabled relaxed ordering on Memory Window mkey on
-  strict-RO HW. Following Jason's comment, RO is not enforced over indirect
-  mkeys, as it takes no effect.
-- Added enabling of RO on FW tracer mkey, setting RO only on HW that
-  restricts strong ordering, to work around the mkey creation limitation
-  (patch 9).
-- Following Jason's comment, extended the new RO setter to support setting
-  the new Unordered access as well (patch 7).
-- Added RO enforcement on FRMR 'set pinned' commands (patch 15).
-- Link to v1: https://lore.kernel.org/r/20260726092943.2880176-1-michaelgur@nvidia.com
-
-Michael Gur (15):
-  RDMA/mlx5: Allow optional access flags in DM registration
-  RDMA/mlx5: Allow optional access flags in DEVX UMEM registration
-  RDMA/core: Allow optional access flags in dmabuf reg ioctl
-  RDMA/core: Allow optional access flags in reg mr ioctl
-  mlx5: Rename IFC bits of relaxed ordering fields
-  net/mlx5: Add IFC bits for new ordering caps
-  mlx5: Consolidate mkey ordering setting into a single core helper
-  net/mlx5: Enable relaxed ordering on resource dump mkey
-  net/mlx5: Enable relaxed ordering on FW tracer mkey
-  vfio/mlx5: Enable relaxed ordering on the live migration data mkey
-  RDMA/mlx5: Enable relaxed ordering on ODP null mkey
-  RDMA/mlx5: Converge UMR access-flag cap checks
-  RDMA/uverbs: Add new Unordered MR access flag
-  RDMA/mlx5: Support new Unordered access flag
-  RDMA/mlx5: Enforce relaxed ordering when HW requires it
-
- drivers/infiniband/core/umem.c                |  2 +-
- drivers/infiniband/core/uverbs_std_types_mr.c |  4 +-
- drivers/infiniband/hw/mlx5/devx.c             |  2 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h          | 13 +++-
- drivers/infiniband/hw/mlx5/mr.c               | 76 +++++++++----------
- drivers/infiniband/hw/mlx5/odp.c              |  1 +
- drivers/infiniband/hw/mlx5/umr.c              | 18 ++---
- drivers/infiniband/hw/mlx5/umr.h              | 45 ++++++-----
- .../ethernet/mellanox/mlx5/core/data_direct.c |  8 +-
- .../mellanox/mlx5/core/diag/fw_tracer.c       |  2 +
- .../mellanox/mlx5/core/diag/rsc_dump.c        |  1 +
- drivers/net/ethernet/mellanox/mlx5/core/en.h  |  1 -
- .../ethernet/mellanox/mlx5/core/en/params.c   |  2 +-
- .../ethernet/mellanox/mlx5/core/en_common.c   | 13 +---
- .../net/ethernet/mellanox/mlx5/core/en_main.c |  4 +-
- drivers/net/ethernet/mellanox/mlx5/core/mr.c  | 32 ++++++++
- drivers/vfio/pci/mlx5/cmd.c                   |  7 +-
- include/linux/mlx5/driver.h                   |  8 ++
- include/linux/mlx5/mlx5_ifc.h                 | 24 ++++--
- include/rdma/ib_verbs.h                       |  1 +
- include/uapi/rdma/ib_user_ioctl_verbs.h       |  1 +
- 21 files changed, 160 insertions(+), 105 deletions(-)
-
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 4a6ee14ffd7d..86465d9d2b5a 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -661,11 +661,13 @@ struct mlx5_ib_mkey {
+ 					 IB_ACCESS_REMOTE_WRITE  |\
+ 					 IB_ACCESS_REMOTE_READ   |\
+ 					 IB_ACCESS_REMOTE_ATOMIC |\
++					 IB_ACCESS_OPTIONAL      |\
+ 					 IB_ZERO_BASED)
+ 
+ #define MLX5_IB_DM_SW_ICM_ALLOWED_ACCESS (IB_ACCESS_LOCAL_WRITE   |\
+ 					  IB_ACCESS_REMOTE_WRITE  |\
+ 					  IB_ACCESS_REMOTE_READ   |\
++					  IB_ACCESS_OPTIONAL      |\
+ 					  IB_ZERO_BASED)
+ 
+ #define mlx5_update_odp_stats(mr, counter_name, value)		\
 -- 
 2.52.0
 
