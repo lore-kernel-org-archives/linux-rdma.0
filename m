@@ -1,116 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.47
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.180
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793601808;
-	b=DHha/7igbyCrWMLokSDh36EsUvrmZAmkARoA2/rfDiORLpwpUjgbuHe47k8rd0keISna
-	 3ZJDkcZxCBXE2WDbjPi6WZuagujW1GkpLfaO7Lnh+Y5pzehn4btfXEiAdoEVOzoVh0y7N
-	 lGnshGrccyIwN/Niu/ZOBr43JSW4oNKBFlvIyP5SuNRgfqXPjtsXiHNzH30BBmDh0KlUZ
-	 keJVPn8NmB/abh8uiLfeswNCm+bIo6XN8ShNS9c1oolnpETjSckzB6gZAmzdAVVA7lVJ3
-	 rSEpu2NfYSoLbKChxwAudlFlNj6J3wcor6XxE97Xnfs+5/jzVCcwtxF8SqLM6AwBevQ==
+	t=1793601880;
+	b=SlxzKQ4ta0+aEVptOyMXeVmn00i+ijn0FGgAYTmmAZKAEsXoIDH6YPgCbrM8DLJChCwL
+	 56lMi1As0LcAQ1RUCOPDP3YRI6pprdRoGf/m8GhLy5D756W9XGpAMQTdT3x7denJ5XBN+
+	 zch16x0f3r06PhTZ/an6v0hofd0kjVKgUEdG6VHVV6YDStHVuj9LuYjgDmLUeyLLlf/5M
+	 8ytL9v61F8mahN7LCqyUrHToHe178m/6VzuJu1yCl9MA1tviZo2ApmQJbjaS/lYOGX/56
+	 VILuZFA3lyBlhLTEreBLaV84xDHZqQXE799Uf5dgkKjw13FQwJeCereVht3Gc368xvg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793601808;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793601880;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=cch0bi9+NbFtuaXErBFOK272My4N6BW/oY3L9VqLD5s=;
-	b=3eqAIsTFu7CyYRpYUVczhFs4eLxZQnfBMm28/ZaH4MUOj274WZGKoVDlPz9x269Upl9o
-	 7cr720MINc1zjdcDVJitBVbo7Xztoj181lO6ejQ6Krb2ISEwwKcTFVftXN+qk6yTBvPDQ
-	 TNNzY5wYV4nQwJVYGvhOlgp/qQI9OqaspiH1UOGy4vairYL6SOmryrH+JHMnIINU8uAT/
-	 wPo2EWeOIdxsVARuaqjzSOzzwSkHdTOlUWwZiy7+3Kl7K4kmacrM1hYXOC2kNVPoBEmkv
-	 nR0BmujzsfJLWGVLjwlxWsRh41g45GiED3nRLCRa4pSaqS7YjzVv9eW9EIwxF51Lrtw==
+	bh=JBahlw0BSTFIK+2BYvIp2lv3jJCouVM8oLSKaKh5Bf0=;
+	b=oCkV38iF3sMehOngHu2VE2CNP1L4k4/JlTnlscMoF3L4q6tyOdVhJNmlBurSLzp6Usdq
+	 5uZ9IqT+OHeAYQ467E73GWT5G7zwfaybNQkcyV3ABZv1eHgmpZNwjnt38WnX2pS8ckDC1
+	 ZYIVDkfTrjN+NGJ9Ywic0kgKjoKpuUDncmn474mvIFVBs2cRogzykzVmZH5OovOvjRafC
+	 OH4MCxmqUN3dH+Y3qVQYo8epickHzECvMNrM75bJerHNLrPDMehr8BlpP7Xq4YkoGSOu3
+	 UUM8DtrdqegNAwbbOJnyPpYW8BgWRCn24hhhSIefw07UEKAJ5tg4/xHzz9eHUynv4Kg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Fd2IgLOb;
-	arc=none smtp.remote-ip=209.85.221.47
-Received: from mail-wr1-f47.google.com (mail-wr1-f47.google.com [209.85.221.47])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=jQZY3bed;
+	arc=none smtp.remote-ip=209.85.222.180
+Received: from mail-qk1-f180.google.com (mail-qk1-f180.google.com [209.85.222.180])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DECD7606A329
-	for <linux-rdma@vger.kernel.org>; Mon,  2 Nov 2026 06:43:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DECD7606A329
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D299606A327
+	for <linux-rdma@vger.kernel.org>; Mon,  2 Nov 2026 06:44:39 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9D299606A327
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Fd2IgLOb
-Received: by mail-wr1-f47.google.com with SMTP id ffacd0b85a97d-48dfc0421d9so2125000f8f.1
-        for <linux-rdma@vger.kernel.org>; Sun, 01 Nov 2026 22:43:27 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=jQZY3bed
+Received: by mail-qk1-f180.google.com with SMTP id af79cd13be357-943e8d35f74so259285385a.0
+        for <linux-rdma@vger.kernel.org>; Sun, 01 Nov 2026 22:44:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793601806; x=1794206606; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1793601878; x=1794206678; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=cch0bi9+NbFtuaXErBFOK272My4N6BW/oY3L9VqLD5s=;
-        b=Fd2IgLObu+O8EIDuwqEXSbT+Lmt6lkFZ1vGgxdrQyksTyVsALvAxVk34TZsr8GH3zz
-         PPGYvfq9SYbmsff5dWp45lus2GhoaISJMbYsdnZha8HNfZaY34MB7FP0S9OMebo1SWRX
-         DoZF3bkpBFxfSpvqhRT/elcXplgxaCDqUPOLsR5JfJ+kwObifDHqlgAW3lFxdoR+JXMG
-         7iv8IfRgEQZAI6nuskgCXTsP0D6+pudlZ15AW8IZRduFDjfUP3farFxaB5Dj48LMEr6C
-         OpMyu699mFDJR+dwZcmew/L6JtiMvIfDKLHz6EzHcMUAcYMf9OZc5gDZovNxBxaXPG7p
-         z0+g==
+        bh=JBahlw0BSTFIK+2BYvIp2lv3jJCouVM8oLSKaKh5Bf0=;
+        b=jQZY3bedA75h5mL9U4lJCKKP1OWkkjax5oaslpe0icrr7xNWD+mT9VPSDNloxGrivs
+         CoSj0zZDZHESTYv0dGlNcRkq+VcC0fmjMjUou9DGIVy0c+hahq1xN/uCr9esUs9FMpbD
+         txHYgHneSfSn8BL9uFovhc4iAklrhyJsyeHxcQNQ0gLx2q2z5sn6cJ7o0aLE9eVBnQPf
+         g2Aa2bzjwIJH5NSZqkM8K5a999TqigiSILmvNv2fPrrXy5tJkfcJWFVNmgi/67XpR3Rg
+         2OhY6zU+gGfWHpkeycAPv2U12ZpJpFSt0VYJgb5b3MXLGRD9fC/20zgnE5fU8z91wXsC
+         c0/g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793601806; x=1794206606;
+        d=1e100.net; s=20260707; t=1793601878; x=1794206678;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=cch0bi9+NbFtuaXErBFOK272My4N6BW/oY3L9VqLD5s=;
-        b=LUdZq3KSGbJthjfKOrqFXrqhQtgw/STrjfuuqQmCUrGuSmdEA7yJuQCBW3q6zeT3cb
-         e6eWTHvLu4/Lcx2DnenqA5sAGateWq7kcP2J2d1i7vCqX8XXf++q/bUuUmm9PNZAifeL
-         BeExtE9llKXDdI3YS4Zze+TvgFE5tEMuE3GNPST8oCgyLZNm84xeCLkGdjMas6lLEsIt
-         cHy8EuZvQdp6OldhEdLn+AQ5grq8N8KETN3dHQGn80YGeucChqqWLjl6Wm+r0G1cz4TX
-         X7LJEGNVdnB5kVIVHT6EDGYjHWpUd9KTzgZ149FCSDWlND2APfwtmjIrgp4ECxoA0lza
-         kCdQ==
-X-Forwarded-Encrypted: i=1; AKwUvByyUeWHn0Zcwq+DfN5pqU7xLmgYKP2/ZseZfN9SNUU2NYI6nv+JUaB81XXC+qjw30wJvv/HApf9/qMC@vger.kernel.org
-X-Gm-Message-State: APuU4Z/izQi/6kM1RbI2B1a2nyaLyZ+DQI4lcOa6fyM2B/lMhv4h/PWD
-	4kVZyqi6YVyjE680acWZh48naO5PkFYODw3soR5HPwFsPtQpTFszi6uE
-X-Gm-Gg: AYBFou3JXxNBYBZ8FJOYcozMa6/ffy+vVn8XVOi2mb7bqIiApyUAl28YlCIMjSQLcQH
-	WnRkG+ZEAu66k5RZn5pjx59x1Utlmvlf6zrArAsszgpvj6wOByioWjMmc9CHOs+tHlYxJUovrvr
-	TFPTG9VFQvtgM7cW2rLDH3ACNaY/pwfD4Ip6ZFeRDCNUYuKEoIJwU+4fzpHvFQDKwqM8Cj1+dz2
-	Zvmr4D76gOs5mnFO46hNKJAaLUchl2I+rS6dz+52kwfVEm2x924cImtexU2gYcrAB9f+xwnaiFL
-	0+fhKl+P1GpG7Y23VkCx/guX9I+7mb7fPIknlvBfA69EKRVWQ/1Kcy0t9jHFEiDTUPOwrBcqTMQ
-	2Bp8Pdibg24gY02zjZZYZDdNK4Gz2H6roZ6bS0OZ4Cr+9BWpfSfU2KGZxPz9SIf1/P8tEdOLTEF
-	3FEmJt4xoQzC+FWY5aFdM08CkMEtO+kRvbzAP8H4Fn0AdJ4+OnLNnIAKCduGFA+k4/qk87RDBsV
-	jf5RzShjpQ7eZpz2V1q0xZE9hvnANNXDdP9e4mC0i7fZZXsIv5qI/ja42VFw984ODrcgWAM7YBH
-	cS4VlcXZMLtLGDWTU2LdAqwyWVuJwcof9Q4KCszkSQTQKShBNRZi6Id+52ihQVKKnxHA9Y8Vip4
-	Kw6PdttKeryEXeQUpr/J05HNGVbafreJMM9asCXHDJ0EOYwQi7tzIhun9GOHs71loNaCp
-X-Received: by 2002:a05:6000:26ce:b0:48a:f454:3d4 with SMTP id ffacd0b85a97d-48e6e52a7e3mr19310220f8f.53.1793601805912;
-        Sun, 01 Nov 2026 22:43:25 -0800 (PST)
-Received: from center.jhjvjihww5qejoy14qwv1cc4td.frax.internal.cloudapp.net ([131.189.143.225])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48e71ba4ac6sm19305747f8f.52.2026.11.01.22.43.24
+        bh=JBahlw0BSTFIK+2BYvIp2lv3jJCouVM8oLSKaKh5Bf0=;
+        b=LNQ1lCed05qEQ6Zop6vOIP+2PMD6GDTeSOktSGXyuSgf4kcqAVP+aO5BRRmiJTYOQ7
+         k177cRZLBNkxeCBbZcJxGIjmA5/Celpj6nMQF3Y/MciM8xu7Ikoee9OMs7ZGj5cH7g0x
+         OCC6S5XgWYbVZUa1V3tzrdqn50OrtKbxRPOMxmDnBZfaWl4EQ/2expdHNGI+FqFtjgZ7
+         dt5cTk1ZEcHR2c+ZXFLL9/Mt3klTPETxsEQk8Iw1HnJUXMTdgw9aFIsyS99EaDb7gYod
+         rCAnDD22iuxW0S1yxAOHGVvH490apdc/IWn/uKqDALnyXLe91YN3KLXGRCxkF9cgxevk
+         iOaQ==
+X-Forwarded-Encrypted: i=1; AKwUvBxrFF5y1cCSMFU8G0CIFbwL/sIVQwL5gr0AthoF/hG7JAQZiT5gkffgUMlbOXyeDAbKm6HJzO04lHpa@vger.kernel.org
+X-Gm-Message-State: AFq9FYJYSTxNd/76TJOBYAL3ABZqfAdHMf7YTuGwtyC77HIH/3lsRBaE
+	IWHuCGvvcOFbWVdb1LN7S/1AJcMZX5ajjj3P5616ImH9WcMRrhqztGD5
+X-Gm-Gg: AYBFou3nuxV9rzwNVmWnyYjM+osr0lm8V+tYcxGupV34ptfRWCzuZKyv2O5qrHHfZd/
+	2MIUesVjXoxBveaq/zKkA0Yg+L1OSDXw5psEIW0E013Tqk/81yfmGfSRH3SkX2OvXw3GMO7WpLO
+	lX7KmnunH2TQmtjQQw/LJy58f/FKJKdI5jt6NBmip/tTNb1b6RhKA32zWkJzWUCfvSC2fiyLSvo
+	f4xxLRBrFA0fEv5Z+hglo2qJ8s1W8igZmDN/8TMhqipBOhQVW7VyiP/u0di6eITgAtLDiNE5QAa
+	mmzBy3JwCYnelIqkmVQCCxF+x9e0cno4EY4iKGV2CBsijZi+VxbVUu/t1hlEXiVLuaxvRMoZodU
+	fFe5SPhiE9vZkbmefw9zYikDbgFBxhjlkpMDbR82cznFHpejprbUJBmscJGY9Ds81lJkJ+nq6p+
+	1gbEGk/7yfO38hijsVgjk6LfMwHES5JvObHJctKpbqKj0eVpD6VVwngeX2uF1cORIp2J/gR6v7E
+	eoBDybEVhN66P3o2+q/XtlKo/xS1R/omW5QYzzAK/A+Idvph/lQB7UJV4NNzAQv+F7igsBSs4Dq
+	19Ea5JJWLuQRAgzvuDPnEHrqVotxUybfec35UaRreZabx6p2djw9sxSt9T0Senk9NctIvmwnBbr
+	qwbxhpTlfhBq0Jgg+Uc6iLnhpIxzuDyuqWpa9Cct6BsXKLSFeYi2izg==
+X-Received: by 2002:a05:620a:2686:b0:93f:5f83:2cbb with SMTP id af79cd13be357-94421581847mr1475900885a.7.1793601878603;
+        Sun, 01 Nov 2026 22:44:38 -0800 (PST)
+Received: from ip-172-31-15-253.ec2.internal (ec2-32-195-47-40.compute-1.amazonaws.com. [32.195.47.40])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-9442581b2a9sm765276585a.13.2026.11.01.22.44.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 01 Nov 2026 22:43:25 -0800 (PST)
-From: Orgad Shaneh <orgads@gmail.com>
-To: Haiyang Zhang <haiyangz@microsoft.com>,
-	Wei Liu <wei.liu@kernel.org>,
-	Dexuan Cui <decui@microsoft.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>
-Cc: netdev@vger.kernel.org,
-	linux-hyperv@vger.kernel.org,
+        Sun, 01 Nov 2026 22:44:38 -0800 (PST)
+From: Deep Shah <deepshah146@gmail.com>
+To: Bernard Metzler <bernard.metzler@linux.dev>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
 	linux-rdma@vger.kernel.org,
-	bpf@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	Wei Hu <weh@microsoft.com>,
-	Konstantin Taranov <kotaranov@microsoft.com>,
-	Simon Horman <horms@kernel.org>,
-	Alexei Starovoitov <ast@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Jesper Dangaard Brouer <hawk@kernel.org>,
-	John Fastabend <john.fastabend@gmail.com>,
-	Stanislav Fomichev <sdf@fomichev.me>,
-	Long Li <longli@microsoft.com>,
-	Dipayaan Roy <dipayanroy@linux.microsoft.com>,
-	Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>,
-	Aditya Garg <gargaditya@linux.microsoft.com>,
-	Erni Sri Satya Vennela <ernis@linux.microsoft.com>,
-	Muhammad Falak R Wani <falakreyaz@gmail.com>,
-	Jesse Brandeburg <jbrandeb@kernel.org>
-Subject: [PATCH net] net: mana: fix XDP_REDIRECT of pre-allocated RX buffers
-Date: Mon,  2 Nov 2026 06:43:24 +0000
-Message-ID: <20261102064324.806414-1-orgads@gmail.com>
-X-Mailer: git-send-email 2.47.3
+	Deep Shah <deepshah146@gmail.com>,
+	stable@vger.kernel.org
+Subject: [PATCH rdma-rc] RDMA/siw: Fix use-after-free in siw_mem_id2obj()
+Date: Mon,  2 Nov 2026 06:44:37 +0000
+Message-ID: <20261102064437.23976-1-deepshah146@gmail.com>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -122,147 +101,67 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-mana_pre_alloc_rxbufs() fills the RX rings with plain pages from
-dev_alloc_pages() (from_pool == false), but the rxq is registered with
-MEM_TYPE_PAGE_POOL and mana_run_xdp() builds every xdp_buff with that
-rxq info. mana_rx_skb() frees a !from_pool buffer correctly on
-XDP_PASS, XDP_TX and XDP_DROP, but a redirected buffer is freed through
-its memory model: __xdp_return() hands the plain page to
-page_pool_put_full_netmem(). This triggers the WARN in
-include/net/page_pool/helpers.h, breaks the page refcount, RX refills
-fail and the queue stops receiving.
+siw_mem_id2obj() finds a siw_mem with xa_load() under rcu_read_lock()
+and then takes a reference with kref_get_unless_zero(). This is only
+safe if the object stays allocated until RCU readers are done with it.
+siw_free_mem() frees it with kfree() as soon as the last reference is
+dropped, so a lookup that races with the final put reads freed memory.
 
-The pre-allocated buffers fill the whole ring of every rxq created by
-an MTU change, by ethtool -L / -G and, since
-commit 730ff06d3f5c ("net: mana: Use page pool fragments for RX buffers
-instead of full pages to improve memory efficiency."), by every XDP
-attach and detach. So on current kernels the first ring of redirected
-packets after attaching an XDP program always hits this.
+This happens when an MR is deregistered while an incoming RDMA WRITE
+looks up its STag:
 
-Reproduced on 7.2.11, and on 6.12.113 after ethtool -L, on an Azure
-MANA VF: an XDP program that redirects UDP to an XSKMAP with an AF_XDP
-socket in copy mode gives WARNINGs at __xdp_return+0x249 (stack
-__xsk_map_redirect, xdp_do_redirect, mana_run_xdp, mana_poll), then
-the queue stops.
+  BUG: KASAN: slab-use-after-free in siw_mem_id2obj+0xe5/0x310
+  Read of size 4 at addr ff110001042aed88 by task repro-rcu2/90
+  Call Trace:
+   <IRQ>
+   siw_mem_id2obj+0xe5/0x310
+   siw_proc_write+0x282/0x430
+   siw_tcp_rx_data+0x12e/0xbf0
+   __tcp_read_sock+0x12c/0x440
+   siw_qp_llp_data_ready+0x147/0x260
+  Allocated by task 89:
+   siw_mr_add_mem+0xb2/0x2a0
+   siw_reg_user_mr+0x19f/0x380
+   ib_uverbs_reg_mr+0x2a7/0x4c0
+  Freed by task 89:
+   kfree+0x301/0x530
+   siw_dereg_mr+0x31/0x50
+   ib_dereg_mr_user+0xb9/0x200
 
-Give each rxq a second xdp_rxq_info registered with
-MEM_TYPE_PAGE_SHARED, the model these buffers had before the page pool
-was added, and use it for buffers that are not from the pool. Those
-buffers are already DMA-unmapped by mana_refill_rx_oob() before XDP
-runs, and page_frag_free() frees them whatever their order. Allocating
-the pre-allocated buffers from the page pool instead would need the
-pools to exist before the rxqs and to outlive them, a much larger
-change.
+Free siw_mem with kfree_rcu(). A lookup that loses the race then sees
+a zero refcount and fails. The umem or PBL is still released at the
+last put, since a failed lookup never touches it.
 
-Found, fixed and tested with an AI coding assistant (Claude Code).
-
-Fixes: b1d13f7a3b53 ("net: mana: Add page pool for RX buffers")
-Signed-off-by: Orgad Shaneh <orgads@gmail.com>
+Fixes: 2251334dcac9 ("rdma/siw: application buffer management")
+Cc: stable@vger.kernel.org
+Signed-off-by: Deep Shah <deepshah146@gmail.com>
 ---
-Tested on an Azure D2s_v6 MANA VF, net at cb284914e749 with and
-without this patch (same config), XDP program redirecting UDP to an
-AF_XDP socket in copy mode on queue 0, 25k pps offered right after
-attach:
-- without: 41 WARNINGs at __xdp_return+0x252, 0 packets relayed,
-  hc_rx_discards_no_wqe 301470.
-- with: no WARNING, 25k of 25k pps relayed, 0 loss; also over three
-  more attach/detach cycles, two ethtool -L combined 1/2 cycles and an
-  MTU 4000/1500 change before attach. MemAvailable unchanged.
-W=1 build of the mana directories: no new warnings.
+ drivers/infiniband/sw/siw/siw.h     | 1 +
+ drivers/infiniband/sw/siw/siw_mem.c | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
- drivers/net/ethernet/microsoft/mana/mana_bpf.c |  9 +++++++--
- drivers/net/ethernet/microsoft/mana/mana_en.c  | 11 ++++++++++-
- include/net/mana/mana.h                        |  5 ++++-
- 3 files changed, 21 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_bpf.c b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-index 7c55f8724441..494267b3069a 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-@@ -78,7 +78,8 @@ int mana_xdp_xmit(struct net_device *ndev, int n, struct xdp_frame **frames,
+diff --git a/drivers/infiniband/sw/siw/siw.h b/drivers/infiniband/sw/siw/siw.h
+index dbc998248b1e..4ec9c2ac75e7 100644
+--- a/drivers/infiniband/sw/siw/siw.h
++++ b/drivers/infiniband/sw/siw/siw.h
+@@ -157,6 +157,7 @@ struct siw_mem {
+ 		void *mem_obj;
+ 	};
+ 	struct ib_pd *pd;
++	struct rcu_head rcu;
+ };
+ 
+ struct siw_mr {
+diff --git a/drivers/infiniband/sw/siw/siw_mem.c b/drivers/infiniband/sw/siw/siw_mem.c
+index 2a08817d3cce..be70dc9c8f81 100644
+--- a/drivers/infiniband/sw/siw/siw_mem.c
++++ b/drivers/infiniband/sw/siw/siw_mem.c
+@@ -115,7 +115,7 @@ void siw_free_mem(struct kref *ref)
+ 		else
+ 			kfree(mem->pbl);
+ 	}
+-	kfree(mem);
++	kfree_rcu(mem, rcu);
  }
  
- u32 mana_run_xdp(struct net_device *ndev, struct mana_rxq *rxq,
--		 struct xdp_buff *xdp, void *buf_va, uint pkt_len)
-+		 struct xdp_buff *xdp, void *buf_va, bool from_pool,
-+		 uint pkt_len)
- {
- 	struct mana_stats_rx *rx_stats;
- 	struct bpf_prog *prog;
-@@ -90,7 +91,11 @@ u32 mana_run_xdp(struct net_device *ndev, struct mana_rxq *rxq,
- 	if (!prog)
- 		goto out;
- 
--	xdp_init_buff(xdp, PAGE_SIZE, &rxq->xdp_rxq);
-+	/* A redirected buffer is freed by its memory model, so a buffer not
-+	 * from the page pool must not claim MEM_TYPE_PAGE_POOL.
-+	 */
-+	xdp_init_buff(xdp, PAGE_SIZE,
-+		      from_pool ? &rxq->xdp_rxq : &rxq->xdp_rxq_shared);
- 	xdp_prepare_buff(xdp, buf_va, rxq->headroom, pkt_len, true);
- 
- 	act = bpf_prog_run_xdp(prog, xdp);
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index 6b7c027e497e..7547aeb3235d 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -2157,7 +2157,7 @@ static void mana_rx_skb(void *buf_va, bool from_pool,
- 		return;
- 	}
- 
--	act = mana_run_xdp(ndev, rxq, &xdp, buf_va, pkt_len);
-+	act = mana_run_xdp(ndev, rxq, &xdp, buf_va, from_pool, pkt_len);
- 
- 	if (act == XDP_REDIRECT && !rxq->xdp_rc)
- 		return;
-@@ -2947,6 +2947,9 @@ static void mana_destroy_rxq(struct mana_port_context *apc,
- 	if (xdp_rxq_info_is_reg(&rxq->xdp_rxq))
- 		xdp_rxq_info_unreg(&rxq->xdp_rxq);
- 
-+	if (xdp_rxq_info_is_reg(&rxq->xdp_rxq_shared))
-+		xdp_rxq_info_unreg(&rxq->xdp_rxq_shared);
-+
- 	if (rxq->rxobj != INVALID_MANA_HANDLE)
- 		mana_destroy_wq_obj(apc, GDMA_RQ, rxq->rxobj);
- 
-@@ -3225,6 +3228,12 @@ static struct mana_rxq *mana_create_rxq(struct mana_port_context *apc,
- 	WARN_ON(xdp_rxq_info_reg_mem_model(&rxq->xdp_rxq, MEM_TYPE_PAGE_POOL,
- 					   rxq->page_pool));
- 
-+	/* The pre-allocated buffers (mana_pre_alloc_rxbufs) are plain pages */
-+	WARN_ON(xdp_rxq_info_reg(&rxq->xdp_rxq_shared, ndev, rxq_idx,
-+				 cq->napi.napi_id));
-+	WARN_ON(xdp_rxq_info_reg_mem_model(&rxq->xdp_rxq_shared,
-+					   MEM_TYPE_PAGE_SHARED, NULL));
-+
- 	/* Initialize the DIM work before enabling NAPI, so that a poll
- 	 * cannot reach net_dim() with an uninitialized cq->dim.work.
- 	 */
-diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
-index 71d726b1f784..11ceb5946ee0 100644
---- a/include/net/mana/mana.h
-+++ b/include/net/mana/mana.h
-@@ -420,6 +420,8 @@ struct mana_rxq {
- 
- 	struct bpf_prog __rcu *bpf_prog;
- 	struct xdp_rxq_info xdp_rxq;
-+	/* For buffers not from the page pool (from_pool == false) */
-+	struct xdp_rxq_info xdp_rxq_shared;
- 	void *xdp_save_va; /* for reusing */
- 	bool xdp_flush;
- 	int xdp_rc; /* XDP redirect return code */
-@@ -695,7 +697,8 @@ void mana_xdp_tx(struct sk_buff *skb, struct net_device *ndev);
- int mana_xdp_xmit(struct net_device *ndev, int n, struct xdp_frame **frames,
- 		  u32 flags);
- u32 mana_run_xdp(struct net_device *ndev, struct mana_rxq *rxq,
--		 struct xdp_buff *xdp, void *buf_va, uint pkt_len);
-+		 struct xdp_buff *xdp, void *buf_va, bool from_pool,
-+		 uint pkt_len);
- struct bpf_prog *mana_xdp_get(struct mana_port_context *apc);
- void mana_chn_setxdp(struct mana_port_context *apc, struct bpf_prog *prog);
- int mana_bpf(struct net_device *ndev, struct netdev_bpf *bpf);
-
-base-commit: cb284914e749388eef402938bdb3115fe1f6d337
--- 
-2.52.0
-
+ /*
