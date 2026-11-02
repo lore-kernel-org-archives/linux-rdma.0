@@ -1,59 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793636721;
-	b=rNP/fLlUGlWea86YrSYk2g4f0o2MYjWlNI9hHzSFO4kbdz5KsrI+dc1TpZn2PWrGlvah
-	 Kv4113lvkEwS6SApTNUToDQ22M8PM/Fv+YvtE6uiKb1a9XDmmv379BsOc8AQYtJ/PQIEP
-	 Zd0sLutLNspvZ630KhuDIpDwl0NVrSy8qMzNgFr6SKJF0obPeZiDMVrSzY0+1NiOS8PMp
-	 hIb3DgTJZj++JM09cPkxc/qjAiIz/9CICaMt56SpwSvf5Ba0Tk6mMgfKfhDf0gDp2+bke
-	 IuxN7aAVeKqqOcXktmUrrV3UHj8mH9RE+j+uCQwl/Yru3L3oV/rKXYY72CBbpr2BE2g==
+	t=1793637194;
+	b=O4WPbAl90MXqTP7KTF1AtM2Vnt28JYoL/4vedd/on24T9wy7KaVjcpJo7gTdoQ29hokY
+	 9aum1VnMrI98sAfie8UYMr1L9t84zHPk5aIewOoJe9Inw1IBR2hC3Z15zxm3iT6f/AHj2
+	 2iq6Us7FhSy802pIpUOjWDv9dkHLKqpKKe6DULvXVitKTGVqdFBfSyzVrtcuUl73jHjdJ
+	 OGR3UnFuaGaLNm4F6msWOJRBeP/jRI+SZZzUcVOM8/9mEXwGgvrrfx9rpKLha6JcNtVe+
+	 ayXRrxya6g5t/A1RKIimk7Q7CYuZjkzjuTGR6pAy1lEMAVnJAIqvQv42Tp+Gik6Bhyg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793636721;
-	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=rtAWr8aLJJGbLMkAW/QfAjNkIGwj00v3ffiqGlnvDJI=;
-	b=UBVY2BQLEBRBSnBm/0yuBXVCA42GtDsSVr8aEp5o09rGKugmyFQBlDXa8jBPp6UJQYAG
-	 0OBKWvVN6bzUaRm1XCaKqy299Z32kgrC+371r1G//OY3NlRrZGmtrLCKGpPS4qzrQbDTF
-	 SsetGwi43seZA5tkQ66mmMtlfYGBFLOfaQXd0+p5CP1kTEcw0r6WZH5a4P4voqAThQN+q
-	 7l2C1gRfje1UIbx7m07zu+9oW9BG7Dvr8TL4DRo8maqw0UX1AptHOkesK9dD4wxxwcyFX
-	 4JsY3tFzodNeAFHrkjRnfXYEV/cdXLZTqnm5Hz835TaWur9OTvFctQQI9vQDAr+/BoQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793637194;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=EGk51I8do2kx5m1tjTDYfkh3cqLIM3UkQ2CPBxDibrk=;
+	b=aJ263dsgcFKT13qza1nHYznDEGB1kpjWDmlkMKUISi0z2onB6jsUEmiIQrfBXD6gdNsz
+	 NP87pruoQVGchOV43VlnBFVTgsXYXzywRxa/iOt648mZv+k+7dmBAe98BNQXWE7akc+tJ
+	 wo19SXWD2ReMPGE0ApwFU74XkHfm97YWG6DIoNLzet1iy+dOzVUEN4PwTPk0SSNr50Grg
+	 m2pA/uoqWuwEfZxWwPrPwpB7141+DaB1do+Z3kgC9IgPBh1cD0KfAbZRqYC1hxFPLcWzz
+	 Htqt57Zh3ikvlITOwgWS9FhWFsG5Kdg+QoD45mnpNrcesyN4s1AAc5aRTkz8a2htfRg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.microsoft.com;
-	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=m0+BW3m5;
-	arc=none smtp.remote-ip=13.77.154.182
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5B9A5606AB90;
-	Mon,  2 Nov 2026 16:25:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5B9A5606AB90
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=At1f3h3g;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09C30606B0E5
+	for <linux-rdma@vger.kernel.org>; Mon,  2 Nov 2026 16:33:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=m0+BW3m5
-Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id 7F96920B716B; Mon,  2 Nov 2026 08:25:05 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 7F96920B716B
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1793636705;
-	bh=rtAWr8aLJJGbLMkAW/QfAjNkIGwj00v3ffiqGlnvDJI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=m0+BW3m5WiL7Hg0O7gdrEEJ5W715roswM6eNbR6YhMNmoCxo8ncoob4qsFihY8ytC
-	 F7g5Mjy6Ng7PiruYSvb93aItgDZ9m5laWbGF8M9clggo5L2l8uQqQR0iuO08+FuSxE
-	 zKA5fhCYFO1DohDjEdrARTf8NHHwZOR2f+4sLNmI=
-From: Konstantin Taranov <kotaranov@linux.microsoft.com>
-To: kotaranov@microsoft.com,
-	snsanghvi@microsoft.com,
-	longli@microsoft.com,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v7 5/9] RDMA/mana_ib: Post receive WRs on kernel RC QPs
-Date: Mon,  2 Nov 2026 08:25:01 -0800
-Message-ID: <20261102162505.501853-6-kotaranov@linux.microsoft.com>
-X-Mailer: git-send-email 2.43.7
-In-Reply-To: <20261102162505.501853-1-kotaranov@linux.microsoft.com>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=At1f3h3g
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72C701F00A1C;
+	Mon,  2 Nov 2026 16:33:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793637193;
+	bh=EGk51I8do2kx5m1tjTDYfkh3cqLIM3UkQ2CPBxDibrk=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=At1f3h3gZ+SWrCaxUYWfH7jin4M28TxhgsILOrYx73O/VGfdKVipYX+mL8QG5fDT0
+	 uSMCtpse4W3+u94kbXwZpeH520pAJ7SGAZ/KYi5BZvuUj7HRfivXXpc0lzsQplnCpL
+	 MoPckZJXTTWYSJ9umjQx66W7tv+8lImnPgwldu3Ap008jGIvBc2TguWE3gjft+e+eQ
+	 tIPcC2j+hunwLH9BeN4snV9sraOVas42n7Q9WE/BqOhyebKLjev7LbeAALwukGRPpd
+	 fG5x8SqCXHuinrPcNrLjCVURqOR9ABmo9099QT61sWnE18yqNitGUQxTGxlGL4LNlv
+	 KHZ2VBat2pwgw==
+Message-ID: <sashiko-outbox-193753@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH rdma-next v7 4/9] RDMA/mana_ib: Maintain kernel RC QP
+ state
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261102162505.501853-5-kotaranov@linux.microsoft.com>
 References: <20261102162505.501853-1-kotaranov@linux.microsoft.com>
+ <20261102162505.501853-5-kotaranov@linux.microsoft.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 02 Nov 2026 16:33:13 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -62,74 +60,21 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-From: Konstantin Taranov <kotaranov@microsoft.com>
+> From: Konstantin Taranov <kotaranov@microsoft.com>
+>=20
+> Update mana_ib_modify_qp_state() to support RC QPs. Initialize the
+> packet, message, and frame counters for use by work requests.
+>=20
+> Arm the requester receive queue at the initial PSN so that a CQE is
+> generated when the specified PSN is acknowledged, indicating send
+> completions.
+>=20
+> Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 
-Implement receive request posting for RC QPs. When posting a batch of
-WRs, ring the doorbell periodically to prevent the u8 counter from
-overflowing.
+Sashiko has reviewed this patch and found no issues.
 
-Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
----
- drivers/infiniband/hw/mana/wr.c | 37 +++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261102162505.5018=
+53-1-kotaranov@linux.microsoft.com?part=3D4
 
-diff --git a/drivers/infiniband/hw/mana/wr.c b/drivers/infiniband/hw/mana/wr.c
-index 250d673f58f2..5d42af91fce4 100644
---- a/drivers/infiniband/hw/mana/wr.c
-+++ b/drivers/infiniband/hw/mana/wr.c
-@@ -70,6 +70,41 @@ static int mana_ib_post_recv_ud(struct mana_ib_qp *qp, const struct ib_recv_wr *
- 	return err;
- }
- 
-+static int mana_ib_post_recv_rc(struct mana_ib_qp *qp, const struct ib_recv_wr *wr,
-+				const struct ib_recv_wr **bad_wr)
-+{
-+	struct mana_ib_dev *mdev = container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
-+	struct mana_ib_queue *ib_rq = mana_qp_get_rq(qp);
-+	unsigned long flags;
-+	u8 wqe_cnt = 0;
-+	int err = 0;
-+
-+	spin_lock_irqsave(&qp->rq_lock, flags);
-+
-+	for (; wr; wr = wr->next) {
-+		err = mana_ib_post_rq(qp, wr);
-+		if (unlikely(err)) {
-+			*bad_wr = wr;
-+			break;
-+		}
-+		wqe_cnt++;
-+		if (wqe_cnt == 0xFF) {
-+			mana_gd_wq_ring_doorbell_ext(mdev_to_gc(mdev), ib_rq->kmem,
-+						     ib_rq->kmem->head * GDMA_WQE_BU_SIZE,
-+						     wqe_cnt, 0);
-+			wqe_cnt = 0;
-+		}
-+	}
-+
-+	if (wqe_cnt)
-+		mana_gd_wq_ring_doorbell_ext(mdev_to_gc(mdev), ib_rq->kmem,
-+					     ib_rq->kmem->head * GDMA_WQE_BU_SIZE,
-+					     wqe_cnt, 0);
-+
-+	spin_unlock_irqrestore(&qp->rq_lock, flags);
-+	return err;
-+}
-+
- int mana_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
- 		      const struct ib_recv_wr **bad_wr)
- {
-@@ -79,6 +114,8 @@ int mana_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
- 	case IB_QPT_UD:
- 	case IB_QPT_GSI:
- 		return mana_ib_post_recv_ud(qp, wr, bad_wr);
-+	case IB_QPT_RC:
-+		return mana_ib_post_recv_rc(qp, wr, bad_wr);
- 	default:
- 		/* Unsupported QP type */
- 		*bad_wr = wr;
--- 
-2.43.0
