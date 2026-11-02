@@ -1,57 +1,102 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793612864;
-	b=AS/5Fn+IOBlivik/PciKdAmHKZC8M0+SrRYolAtPArsH0q6VRv8IdHTpjjH2R4mn6iw/
-	 yYCv2vVhpZ+W0bgJzVNHOCSO8quK65ynimJvH+24CzXdmFSxHHBGSgyA3OjcasOYrrCTS
-	 Mpe2mmurr+x28xVTipXK6973z/F2QeFXb6euiEpMNgknXvgyFWZ9UW86jZbeyf1WuJawt
-	 3P3vqNFSPey16zMY/Rh/bjmKSgXoW8wngPEuTN0Z/50iAvn4uwgbHCHynmr3jsvm4O9j+
-	 EdXoT1ntze6cyyWbO4CoPQDaIgeFTiOse6IOhSQg6mXgE0ef0v24AhpH2YGQEmiMbRQ==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793612864;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=4sOlI3Y3GiGnp4mrMu9VcEXgklsU8LZWy3NI59MfFYc=;
-	b=VjMt8rTvSpTh74P41L9DbVtqcmOIU8pXfXwe4886kSW6NZevFtjOsoTwOKwk95FIlp/k
-	 tdCc+lEULMJ9j32Y5Nsz87EXZn5fPfi0uSM3YC/lefLsKhuQvO/x26ruKXfKslAqT6LAd
-	 Folrj9S99Ni1OVYXOV3fKRDTq8XtJ4x0f1NxnFIRKYjw5RNSpJsw1JgMtjlZ8HxY004Ff
-	 4m9vd3Us0ZAECeBlwT/e/uE7eo9vqUtCbURUY0++GUuEHaW7wDtcBnlS4BD1HoeZFJH1S
-	 8Wv+r+A+QioKLKdNtDwBra22UM1YH1yYuaUGcmMe4FxXYq3jWPGZtnvrohwIK8o4ceA==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZHVpgWCZ;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.41
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793614098;
+	b=bGgUj3DzWAzb8S/9Ox73vmbN91lB1DnxoBfnTUfZVlUzoXemmm1nhNYDQFMhKIUtkLJJ
+	 3mWfPN7a3fBYFY76ebFi2yKrmpgEBtaRlJcataD0W6rNGJ6wC0ayf16dJOpcsjf1W9v8T
+	 BCog621JoOq/6z7CHlHk7HAqA6Ts45KZj/xYPD1SWCEUKwcjOLWaCe6AY8cBN58LA+yM0
+	 uEV48TnQ7TojxzB35lMKsrFyPYJsA9f548Ijblym2HbzCEm+euFxfYE5Br+rJk0sTFFfK
+	 dTsYAnfrPUVQQX3xSoZ2FPTSNynzTkpmGIvMPNMI1OpRr5n+Zwva0t3IhztIUAEe7uw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793614098;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=wjdX9vjSkHROmqfsKSKqGYi8+XO+tioACNXCf5IEahg=;
+	b=m9Cd31BDY4/6k2GKkzPZL/uSEoq8Abfd4vyWHNTmOozJs5bhXBfQaQpdkuBoP1yu2HS8
+	 heEB+Dh/1hv9dss7yPXOtxWnPn2x2KtzpAObVARuUx2/+I0ADg5GtZkb3vIEFkGuaIceT
+	 fOIes41n6F4tQuWFpZc1FkJahMPPlDkB67IG+TYXVoYVpULthHsjg3UE7KfFR+r9V1hQu
+	 AcrJFW+RvPhkI32guy/Yiv++uTH5lAgx6nP6a+T8L2dhmkHReOwnmCcRjReHMdY1qFfi9
+	 4WTvBLeJCe8i+ubPeIZa/MrMaaM/OjK05aBXz2VvBrDH0k7y/mDpdYvJPjC1QZ2UeoA==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=JA8H98Wr;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.41
+Received: from mail-yx1-f41.google.com (mail-yx1-f41.google.com [74.125.224.41])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D7FB606A337
-	for <linux-rdma@vger.kernel.org>; Mon,  2 Nov 2026 09:47:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D89BD606A329
+	for <linux-rdma@vger.kernel.org>; Mon,  2 Nov 2026 10:08:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D89BD606A329
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZHVpgWCZ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D202D1F00A1A;
-	Mon,  2 Nov 2026 09:47:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793612864;
-	bh=4sOlI3Y3GiGnp4mrMu9VcEXgklsU8LZWy3NI59MfFYc=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=ZHVpgWCZTRt6NtSuvwWX4tg91+rnp5fw8FW2dn/clOSwPPlZ2qWORKIycG+eK+tq+
-	 nNkLoo8nkwaaHreySNgZ+wfTSa0ZQRbLdMYHlJECN2yd9vsggBsHY2OVTXHF7I4BE3
-	 WgDc+RUG9mYONpO9N3vgoOuOtPxNzVSJ8HzVo2gCdy/nbuP7An3SAAd3wTa7NwdT8E
-	 l2jiqkBTqq6NbDo2dwI4eTZOi1i7shjk+IzfcNkFPSr+/PJXzgWmbc+timK90TY/nz
-	 n92ir5egOFaUIqMUtRNpTiTgDe04LZMwpnT039TsK0hEMbBfbA50vmxz0vUZpDrOA9
-	 XEBTGSvXgNJ/g==
-Message-ID: <sashiko-outbox-193206@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma v8 7/7] RDMA/zrdma: Implement context, PD, and mmap
- operations
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Yanze Zhang" <zhang.yanze@zte.com.cn>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261102082026.2645777-8-zhang.yanze@zte.com.cn>
-References: <20261102082026.2645777-1-zhang.yanze@zte.com.cn>
- <20261102082026.2645777-8-zhang.yanze@zte.com.cn>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Mon, 02 Nov 2026 09:47:43 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=JA8H98Wr
+Received: by mail-yx1-f41.google.com with SMTP id 956f58d0204a3-677d35fd1d2so2536854d50.1
+        for <linux-rdma@vger.kernel.org>; Mon, 02 Nov 2026 02:08:17 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1793614097; cv=none;
+        d=google.com; s=arc-20260327;
+        b=Jl3GzNjH74r5bCj82b1tCo5oZydfnFag2FJ+z0iKubwUvIApMCo3u8xsEj7beM62bC
+         y1IOJ8Cpmq1P7cvVmnmy0ZoYmxjUr94is7UKFhMiZN93B15BBtpoevGLX1VRn5VkkF8R
+         X90/grwAgDDrGs6vN/LjQWxVj6Ty5t6R97OGwYP5f1eWMKma1BWkCqhChnAeu0qFNGeN
+         azqWxQiUZAlXiLBBEiZDaXBOpIoWpQbf8Rk4mRHmnBC5hFQ91u4ewjBFV4nZAx18nltk
+         jnDqqns3mSfOR2+ivLWS8MH7/PayEwwVcq2WH9DshdD7FkaDGkUO3nDIDgvCOqru4uL3
+         hG1w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=wjdX9vjSkHROmqfsKSKqGYi8+XO+tioACNXCf5IEahg=;
+        fh=SF388+yM8GKrfuIWgxvYZzLKgjAy/ceZ2ol/bG3y8pI=;
+        b=JTF5KAq7oJiDFxlXe543adRxj0Z9vVe6eFqvOh7xMzQTyUwLh58AOeTolqPluB0K+7
+         +EVrF+rLDCCHtErk8bmHl+ZQNTlP7uFX93NoXUmZeXdj3R+8T6Fw1PPyt9UzxQ1gf0td
+         ry8Yz06elePrSIFaZpYM8hlggY6imUwiqG3K/rns/bTJOKksPtAPjU2E4MygrQ/cBDDS
+         M03vE4jXjoF6HLrX/SMrtwjljlvyIwWEOnHOh8oN0zjHDkTPPFyF3GdT+8Pbldm8USBD
+         9O6AU1Qci5RN1vB9FAMbRuza+URGXG9Q9OcTJGkFScZsQYfcEvN8e6MKI5Af+DqZHLIa
+         vbiQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793614097; x=1794218897; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=wjdX9vjSkHROmqfsKSKqGYi8+XO+tioACNXCf5IEahg=;
+        b=JA8H98WrxbjorH6fYzNlpwEnkRdhQP78BDVAampLqxnP18Mi6TFaP3r8pDXLYzayuV
+         IzeR8POsWALnuR3XXhVpJwWzkP10lwcmKF4EOuIBgPE57n56qSoi15c+jKmufdjg5JL0
+         2dJKVdOppcgpGuMRa1S0+JOKiMS7GN6mE5+f2bSkv1EFR5wTN0WOB1bi7/YvKD8v0A7m
+         YtW9yL4mB4JcX2a6ROGUSkw8diE4HyG+Oo01BH0Jvr9spQI2uUS94x5onQ9B7pGFgz6R
+         hQcJm4dcsS4m2LQLE0LAjdWhLsQBLnuz1e8TZSPPMw6SkGPqhWmOeNY1AlZscvTVBg6i
+         EXOg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793614097; x=1794218897;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=wjdX9vjSkHROmqfsKSKqGYi8+XO+tioACNXCf5IEahg=;
+        b=ZtjB2SxpT8fbRMrWhNRBEFhmf7R39FmW60POo60bN5kedUG+Q9NVs2an3jQTtet/JB
+         zpoE/+1f2DT23D9K8dN9r46rot7z9sisEOii0mJyNSKxBu+OJza2B51Y540ZzMCDDtRJ
+         Dn/tGrnQzlrgAeD92nPjxd2VzhVs2JAKL+6NTLwDaO+Y4gDIhAoq+oZL/fCKp3UziCbG
+         Ku5JbpmudWZHlAcXdc3gCqMvuKGLRScnKU4TZwKw47lhZ6lUfhbKS3CckYM0DPXcy2B6
+         gp1zXgBl02CQvQ/Vo0fWlRVloMY2IPJWh1WuiAfb0DGz3qYXOh2FHXy/lf9d8lLdquh3
+         c+bg==
+X-Forwarded-Encrypted: i=1; AKwUvBzafaCMKanl6yG1QbtThqSBawR2qtulsMuydLKkl+teZjcBEiq/XFrlJMIaFa9XnwyGaTPF5NJLDjQS@vger.kernel.org
+X-Gm-Message-State: APuU4Z9Qb7XDq2ksaIWbmjHZUe4n/SjxQzp1sRE+oq60cws39Xj9i9zu
+	vLEjKGwYVwWu7ySBo25RsTl9nuXvq6X4gWHrSLMjohV4VaSGKGLALzXkLf+hUCG3nGRX/JnFHmf
+	5kYynB7g4G5UKyJsKcfPXWTNXPaFB3ik=
+X-Gm-Gg: AYBFou0ZYyS4AE0Y/ZKGOHjJs/PHs4MxrfcTz2HKZKh4a93kv5panJMs7WJyXmJHJRc
+	yKwR3FUolJ+wX0AbgEoNv2nM8wXvgmSBiXJXDziWAyPFqfSPYBEuRu4OiDuq5Lik+XST0+3TKJT
+	7Jz98qw7e7SeMWFu0fjQMqLyUKPHPgVf9JNmZfCFsTbgjHcug2AwK4Xl85fsz8eBNEsji4jB/AY
+	3uOlU7Zay+n1L5GYbMvdOA7oJcoRmWOzIZowdp5CiazWWfCAVxhpHSaN6UzxE2fgzav50CQdG9V
+	mFGZd/axX3ulieAfIKu5npl+MFeqFUUOrjEQ2lrdfqO8eqR74xnKHE/YHoz1Py2PFpBXlf6ocVj
+	ghl7WPEO4pOltPTx8fMX921onx+kK9bVgh5diSCtTc/sDXOYX5urTescHiHSVh9WK70e1DU5c7T
+	XO+fs7G9IUEy2dsmlAeRJK04VHC+SVE05UljbMCZRyp4MuFogaJs0SsUaeLc8dXJufVhyf3vACl
+	o07yB9I6fo=
+X-Received: by 2002:a05:690e:12cc:b0:679:b2ba:3cb4 with SMTP id
+ 956f58d0204a3-67ba503171cmr5496564d50.59.1793614096717; Mon, 02 Nov 2026
+ 02:08:16 -0800 (PST)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,201 +105,77 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+References: <20261101105615.20253-1-kartikey406@gmail.com> <577128ea-4d44-45cd-8b3e-5f103e530d98@linux.dev>
+In-Reply-To: <577128ea-4d44-45cd-8b3e-5f103e530d98@linux.dev>
+From: Deepanshu Kartikey <kartikey406@gmail.com>
+Date: Mon, 2 Nov 2026 15:38:05 +0530
+X-Gm-Features: AclHuK_qPDvsdMb9b1bWcQf48bDpbIfluE3IgFGIXnQRQWbM2y9h1fsbTWibNzM
+Message-ID: <CADhLXY6WuOVmZLkgffcy2yd5tuOBPKYm38mhBFy4LRTQ89ZDuQ@mail.gmail.com>
+Subject: Re: [PATCH] RDMA/cma: Don't warn when device removal races with rdma_resolve_addr()
+To: Zhu Yanjun <yanjun.zhu@linux.dev>
+Cc: jgg@ziepe.ca, leon@kernel.org, metze@samba.org, stfrench@microsoft.com, 
+	xiongweimin@kylinos.cn, ammrat13@gmail.com, linux-rdma@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, 
+	syzbot+6699995b421c8ec7d2fe@syzkaller.appspotmail.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
-s) to consider:
-- [Medium] RDMA/zrdma: missing udata validation and response zeroing in uco=
-ntext and PD ops
-- [Low] RDMA/zrdma: unratelimited pr_err() on user-triggerable paths in zxd=
-h_alloc_ucontext() and zxdh_mmap()
---
+On Mon, Nov 2, 2026 at 1:56=E2=80=AFAM Zhu Yanjun <yanjun.zhu@linux.dev> wr=
+ote:
+>
+>
+> =E5=9C=A8 2026/11/1 2:56, Deepanshu Kartikey =E5=86=99=E9=81=93:
+> > rdma_resolve_addr() on an unbound ID (RDMA_CM_IDLE) first binds it with
+> > cma_bind_addr() and then moves it from RDMA_CM_ADDR_BOUND to
+> > RDMA_CM_ADDR_QUERY with a second cma_comp_exch(). These are two
+> > separate steps. Once the ID is bound it is attached to the device, so
+> > cma_send_device_removal_put() can find it and set RDMA_CM_DEVICE_REMOVA=
+L
+> > before the second step runs. The exchange then fails and hits the
+> > WARN_ON() added by the commit below.
+> >
+> > syzbot triggers this with RDS over rxe, where rds_connect_worker()
+> > calls rdma_resolve_addr() while the rxe device is being deleted:
+> >
+> >    WARNING: drivers/infiniband/core/cma.c:4120 at resolve_prepare_src
+> >    Call Trace:
+> >     rdma_resolve_addr
+> >     rds_ib_conn_path_connect
+> >     rds_connect_worker
+> >
+> > This is a valid race and not a kernel bug. If removal wins before the
+> > bind, cma_bind_addr() already fails and the error is returned to the
+> > caller, and err_state in the same function already ignores a failed
+> > state exchange. The caller gets -EINVAL, and RDS destroys the ID on any
+> > error from rdma_resolve_addr(), so nothing is leaked.
+> >
+> > Drop the WARN_ON() and keep returning -EINVAL, and document in a commen=
+t
+> > that the state may change because of device removal.
+>
+> Resend this becase some error occurred.
+>
+> For this specific case, we can consider this behavior expected rather
+> than an error and remove the WARN_ON().
+>
+> However, I'm not sure whether the WARN_ON() is still necessary for other
+> test cases.
+>
 
-commit 34250bc80391a0c4ba1beb61faa1ec946d1b1b77
-Author: Yanze Zhang <zhang.yanze@zte.com.cn>
+Hi Yanjun,
 
-RDMA/zrdma: Implement context, PD, and mmap operations
+Thanks for the review. After cma_bind_addr() succeeds the state is
+ADDR_BOUND, and the only legitimate change before the second exchange is
+device removal (cma_send_device_removal_put() sets DEVICE_REMOVAL under
+id_priv->lock without comparing the old state). The other ways to fail
+are ULP misuse (a concurrent destroy or a concurrent call on the same
+ID), and those still get -EINVAL returned to the caller, as before.
+Only the stack trace is dropped.
 
-This commit implements protection domain allocation and deallocation, user
-context management, and doorbell memory mapping operations for the zrdma
-driver.
+I can send a v2 that adds a comment explaining the race, and keeps the
+WARN_ON() for states other than DEVICE_REMOVAL if you or the
+maintainers prefer. Please let me know.
 
-> diff --git a/drivers/infiniband/hw/zrdma/zrdma_verbs.c b/drivers/infiniba=
-nd/hw/zrdma/zrdma_verbs.c
-> index 821ccbc2054ea..239d607f7d182 100644
-> --- a/drivers/infiniband/hw/zrdma/zrdma_verbs.c
-> +++ b/drivers/infiniband/hw/zrdma/zrdma_verbs.c
-[ ... ]
-> @@ -392,15 +393,343 @@ int zxdh_ib_register_device(struct zxdh_device *zd=
-ev)
->  	return ret;
->  }
-> =20
-> +static void zxdh_sc_pd_init(struct zxdh_sc_dev *dev, struct zxdh_sc_pd *=
-pd,
-> +			    u32 pd_id, int abi_ver)
-> +{
-> +	pd->pd_id =3D pd_id;
-> +	pd->abi_ver =3D abi_ver;
-> +	pd->dev =3D dev;
-> +}
-> +
-> +static int zxdh_alloc_pd(struct ib_pd *pd, struct ib_udata *udata)
-> +{
-> +	struct zxdh_device *zdev =3D to_zdev(pd->device);
-> +	struct zxdh_sc_dev *dev =3D &zdev->rf->sc_dev;
-> +	struct zxdh_alloc_pd_resp uresp =3D {};
-> +	struct zxdh_pd *zpd =3D to_zpd(pd);
-> +	struct zxdh_pci_f *rf =3D zdev->rf;
-> +	struct zxdh_sc_pd *sc_pd;
-> +	u32 pd_id;
-> +	int err;
-> +
-> +	/* The user has to provide a buffer for the whole response. A short
-> +	 * buffer is reported instead of being silently truncated, and no
-> +	 * resource is taken for it.
-> +	 */
-> +	if (udata && udata->outlen < sizeof(uresp))
-> +		return -ENOSPC;
-> +
-> +	err =3D zxdh_alloc_rsrc(rf, rf->allocated_pds, rf->max_pd, &pd_id,
-> +			      &rf->next_pd, "PD");
-> +	if (err) {
-> +		pr_warn_ratelimited("zrdma: PD allocation failed err=3D%d\n",
-> +				    err);
-> +		return err;
-> +	}
-> +
-> +	sc_pd =3D &zpd->sc_pd;
-> +	if (udata) {
-> +		struct zxdh_ucontext *ucontext;
-> +
-> +		ucontext =3D rdma_udata_to_drv_context(udata,
-> +						     struct zxdh_ucontext,
-> +						     ibucontext);
-> +
-> +		zxdh_sc_pd_init(dev, sc_pd, pd_id, ucontext->abi_ver);
-> +		uresp.pd_id =3D pd_id;
-> +		if (ib_copy_to_udata(udata, &uresp, sizeof(uresp))) {
-> +			err =3D -EFAULT;
-> +			goto error;
-> +		}
-[ ... ]
-> +static int zxdh_alloc_ucontext(struct ib_ucontext *uctx, struct ib_udata=
- *udata)
-> +{
-> +	struct zxdh_ucontext *ucontext =3D to_ucontext(uctx);
-> +	struct zxdh_alloc_ucontext_resp uresp =3D {};
-> +	struct ib_device *ibdev =3D uctx->device;
-> +	struct zxdh_device *zdev =3D to_zdev(ibdev);
-> +	struct zxdh_alloc_ucontext_req req =3D {};
-> +	u64 srq_db_mmap_size;
-> +
-> +	if (ib_copy_from_udata(&req, udata, min(sizeof(req), udata->inlen)))
-> +		return -EINVAL;
-> +
-> +	if (req.userspace_ver !=3D ZXDH_CONTEXT_VER_V1 &&
-> +	    req.userspace_ver !=3D ZXDH_CONTEXT_VER_V2 &&
-> +	    req.userspace_ver !=3D ZXDH_CONTEXT_VER_V3) {
-> +		pr_err("zrdma: Invalid userspace_ver%d\n", req.userspace_ver);
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* The response carries the keys of the doorbell mappings, so the
-> +	 * user has to provide a buffer for the whole of it. A short buffer
-> +	 * is reported instead of being silently truncated.
-> +	 */
-> +	if (udata->outlen < sizeof(uresp))
-> +		return -ENOSPC;
-[ ... ]
-> +	if (ib_copy_to_udata(udata, &uresp, sizeof(uresp))) {
-> +		rdma_user_mmap_entry_remove(ucontext->sq_db_mmap_entry);
-> +		ucontext->sq_db_mmap_entry =3D NULL;
-> +		rdma_user_mmap_entry_remove(ucontext->cq_db_mmap_entry);
-> +		ucontext->cq_db_mmap_entry =3D NULL;
-> +		rdma_user_mmap_entry_remove(ucontext->srq_db_mmap_entry);
-> +		ucontext->srq_db_mmap_entry =3D NULL;
-> +		return -EFAULT;
-> +	}
-[ ... ]
-> +static int zxdh_dealloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
-> +{
-> +	struct zxdh_pd *zpd =3D to_zpd(ibpd);
-> +	struct zxdh_device *zdev =3D to_zdev(ibpd->device);
-> +
-> +	zxdh_free_rsrc(zdev->rf, zdev->rf->allocated_pds, zpd->sc_pd.pd_id);
-> +	return 0;
-> +}
-
-[Severity: Medium]
-Should the ucontext and PD operations in drivers/infiniband/hw/zrdma/zrdma_=
-verbs.c
-validate udata input and zero-fill trailing response bytes to preserve UAPI
-forward compatibility?
-
-In zxdh_alloc_ucontext(), copying req via ib_copy_from_udata() with
-min(sizeof(req), udata->inlen) and returning -EINVAL masks -EFAULT on bad u=
-ser
-pointers, accepts truncated input buffers smaller than sizeof(req), and
-silently ignores non-zero trailing bytes when udata->inlen > sizeof(req).
-
-Additionally, struct zxdh_alloc_ucontext_req in include/uapi/rdma/zrdma_abi=
-.h
-defines reserved fields:
-
-struct zxdh_alloc_ucontext_req {
-	__u32 rsvd32;
-	/* Version of the user space, one of the ZXDH_CONTEXT_VER_*. */
-	__u8 userspace_ver;
-	__u8 rsvd8[3];
-};
-
-However, zxdh_alloc_ucontext() does not check that req.rsvd32 and req.rsvd8
-are zeroed. Using ib_copy_validate_udata_in(udata, req, rsvd8) and checking
-req.rsvd32 and req.rsvd8 for zero would ensure these fields remain usable f=
-or
-future extensions.
-
-Similarly, zxdh_alloc_pd() does not check ib_is_udata_in_empty(udata) when
-udata is present, zxdh_dealloc_pd() does not check ib_no_udata_io(udata)
-before freeing the PD, and both zxdh_alloc_pd() and zxdh_alloc_ucontext() u=
-se
-ib_copy_to_udata(udata, &uresp, sizeof(uresp)) instead of
-ib_respond_udata(udata, uresp), leaving trailing bytes in udata->outbuf
-unzeroed when udata->outlen > sizeof(uresp).
-
-[ ... ]
-> +static int zxdh_mmap(struct ib_ucontext *context, struct vm_area_struct =
-*vma)
-> +{
-> +	struct rdma_user_mmap_entry *rdma_entry;
-> +	struct zxdh_user_mmap_entry *entry;
-> +	struct zxdh_ucontext *ucontext;
-> +	u64 pfn;
-> +	int ret;
-> +
-> +	ucontext =3D to_ucontext(context);
-> +
-> +	rdma_entry =3D rdma_user_mmap_entry_get(&ucontext->ibucontext, vma);
-> +	if (!rdma_entry) {
-> +		pr_err("zrdma: pgoff[0x%lx] does not have valid entry\n",
-> +		       vma->vm_pgoff);
-> +		return -EINVAL;
-> +	}
-
-[Severity: Low]
-Can unprivileged users flood the kernel log via these unratelimited pr_err()
-calls in drivers/infiniband/hw/zrdma/zrdma_verbs.c?
-
-In zxdh_alloc_ucontext(), passing an unsupported req.userspace_ver value
-triggers an unratelimited pr_err(). In zxdh_mmap(), calling mmap() on the
-uverbs file descriptor with an invalid page offset, a mismatched VMA length,
-or without VM_SHARED causes rdma_user_mmap_entry_get() to return NULL and a=
-lso
-triggers an unratelimited pr_err().
-
-Would ibdev_dbg() or ratelimited logging be more appropriate for these
-user-triggerable error paths?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261102082026.2645=
-777-1-zhang.yanze@zte.com.cn?part=3D7
+Thanks,
+Deepanshu
