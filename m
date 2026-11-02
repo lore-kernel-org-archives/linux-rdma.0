@@ -1,108 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793619600;
-	b=S124oQv9ONtJMecEtYJUxC6dmi43xKT9t1lUINswgeXDdR5/79cl3EnlbqOylV6FN9OU
-	 H9/jwQwJTFiJoaNrMA7PTPsjtSb3VnyIq/kIzIBaXDc3lzYgpmnyC3hmrjmoHccrHVvgK
-	 P0sK+qogHgiS1DWfBhkv1WhGAdAPXrKyq+mI63Rw0N0JEgpujcWzry36aRE4CHXUL698E
-	 7QcEPFZRhLFQUO8HKWQWczYaer/X/2PJY281ZPwMr17GR0E2/lNanIsCbfIH1gk8ZjYxQ
-	 cYqyq3yj0w8ixmuUIwEdidet3zObi6GsFPA/sihE3Ilub2WePTpOdEkstrJ3Nuh6lhw==
+	t=1793636720;
+	b=EZ2fUit2R6ziuKKqH/0O22fEkU1ANuQ350e4nTG41DtyMeS/wsVGsWQxAzfQPjpEflSr
+	 n7MMrnngUCe/S21IxIsnLfX1jcx6mkA5/yyXufcmUd21sX3jnvCx61BegirAs6lawLlNG
+	 PZYSXDEumAQru7yR55WIRGAd8/a2mEfQQSSXiEskLHX5It8arJzWljTKvoYVN3DyGj0GF
+	 FUDJXn57nrqu1T3yHLxEJ6MvmK5Ikz8MDjmZiRjRyfdX4qZZ03KOVW6F2jF+z4DYAfjBS
+	 5AsLBGWibie7Wcv282rzpQl+6OGbt1ZLz3upWwvWn4eOZaaZBsqU3DY0drg9KlZjuBw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793619600;
-	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
-	 X-Mimecast-MFC-AGG-ID:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 X-Received:Received:Message-ID:Date:MIME-Version:User-Agent:Subject:
-	 To:Cc:References:Content-Language:From:In-Reply-To:Content-Type:
+	a=rsa-sha256; c=relaxed/relaxed; t=1793636720;
+	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=BVuyCsNuPDKfGswdTC+QFH5JQ3zW3jmol69S0GRJXKg=;
-	b=j6/04pOAccK4+q7AdBhDYjUroPWeaI7EZ911p5MDQNWMG1bpB4+wVk4gxDwAw8lLB8xQ
-	 oXjRKu+buZtxIHbFO98xK3wmG+4rBKDlF18gf8HJMG1SsPhUZXx5cs8exRW+jiDdeSm0s
-	 L6hN2/JV+1pbjvoc0hfTHCl1t2at9GSZAf1Gu77EpjhzL1tSWJTLEtsAFczy3cL4f7VGZ
-	 CB2NmxL4FqYPdTSmjeL6xoXwmsq8g0Qj6ErmiJnKhFOmxUfqmwdYr2+xS4ZvYBZLIwJet
-	 VOlJXRMdsFkDIKs7T47d40Q2h5CYMWaHgMy+ZPOxyW3kQK5yjmty8BV6+4R4THqiJXA==
+	bh=bEuYIRZvDtvBEBZICTqM+tPT23TNfC5S5qTvcTBWToc=;
+	b=axqxJjnnwFR6qdjx4jAxyBgmwZTHb5/rUQRMXxQwIefRf+nifqkAEnt5BPmWzh7AANhi
+	 nKRPj3XcSMGhDAVEAOOV+tv82HF+eskvmLYROFL2AGwY6cNmjsuiNng8YTCohv+2/ms+O
+	 pJhPrI7Ucr/XsHogZ5fVrqR8Q/MmqBJaG3QzCZTjq7yFcJxoTSoTc+pQVAcC1ck3Jdmvm
+	 5PCjSZpRIGg/Uyjzwa9u6ynLqFET65rncvcG63/AIvL3vg0H2FuiQTajQ5t8x2NqkAvDq
+	 9Yzlw6ki1gf0BKMvvFWph2Ot9chGDEd/7fA93RGrwuo6zE8k8FOuMhKDkusKjUcOvCg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=redhat.com;
-	spf=pass smtp.mailfrom=redhat.com;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=ZM6LT10v;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=nEN0JHII;
-	arc=none smtp.remote-ip=170.10.133.124
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A73D606A324
-	for <linux-rdma@vger.kernel.org>; Mon,  2 Nov 2026 11:40:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4A73D606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	dmarc=pass header.from=linux.microsoft.com;
+	spf=pass smtp.mailfrom=linux.microsoft.com;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=V0aDcyj5;
+	arc=none smtp.remote-ip=13.77.154.182
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A0F9C606A918;
+	Mon,  2 Nov 2026 16:25:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A0F9C606A918
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=ZM6LT10v;
-	dkim=pass (2048-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=nEN0JHII
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1793619599;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=BVuyCsNuPDKfGswdTC+QFH5JQ3zW3jmol69S0GRJXKg=;
-	b=ZM6LT10vKq0TVbzxmugbDLhAYGd6wgKjaNYKWTYUuVpwHjtVjSvaZ/1VQVdeBy0uOxOK7I
-	Eo9ey0eYqonkXgSMQSCbAn72AyicKHydGkpRPExIC2B/h+2vhQxQlQC96xPMdjJL9TSLtG
-	dWWiWRN9/I0T4NXNNo+q3t8nV5gag2s=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-618-IfgEElhbPji4f5sFjCwziw-1; Mon, 02 Nov 2026 06:39:58 -0500
-X-MC-Unique: IfgEElhbPji4f5sFjCwziw-1
-X-Mimecast-MFC-AGG-ID: IfgEElhbPji4f5sFjCwziw_1793619597
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-4a2065a2ef9so28063795e9.3
-        for <linux-rdma@vger.kernel.org>; Mon, 02 Nov 2026 03:39:57 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1793619597; x=1794224397; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=BVuyCsNuPDKfGswdTC+QFH5JQ3zW3jmol69S0GRJXKg=;
-        b=nEN0JHII4mPkqlER0y17oAezn9JUpYdUYZ0YQjlajHgjn13MgT2ny9hkkqSxMuNG1s
-         PO7NsMYDsALDmvjGXZSUcag+Ene9nQwektWd8DzBtjxk8UeUrBr98wRcUSO/LCJmzydO
-         oBHWefuu3VxGgsW3Ictk57IKTzJf30ZU9L4W6pbc7xo7fEvem5mHNJjod3RdipTWtdwW
-         Qx1y7OaVUHCT+FT9f4/ts/CcDi6aF8Eb9OZZ2duPXp5Vg61hfnftpfJ/Be57Ca+5uP+S
-         lxbPls6yb7i5ymBcyQI8HWq1eh2GCrk4uSA/1TX6QcKBzVatvBAKt8e07p9efKMpq8uC
-         WVWw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793619597; x=1794224397;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=BVuyCsNuPDKfGswdTC+QFH5JQ3zW3jmol69S0GRJXKg=;
-        b=p+LuKgmpaHT3AgAXiAb4l7DQlIKe//I+71WWM1WGpHFirJU0oEo52t2gdYIl1rdyce
-         x/q6vyImwQ8tDJxZgVE0/e8K9r4I+KZGA74QR5hnqTbm+yntZBbDG90l08xcSZ0g4tAG
-         ni6P6d9Ys/sJer+4UAi7d0j0ZVFIlUxsJog2Eqmunk85UmT+YVX8SPWEH0XcjzKVivxB
-         JQlYJhZeGN8qcKYeqbmCuFc/MK9XpwlRBqgwdtWQ5MP4iptFZuvNG62l87Ihnq8t203v
-         CrO/9eotHfYlBxmA34ZCWgN68aOiZk4G3EfZ739FovN81tTTdtkLxnAT/bKmJgCCoFwY
-         nwdw==
-X-Forwarded-Encrypted: i=1; AKwUvByn700A6y+/7z9ExuN7hTbjXAuv9ZTB2xdr5lQzSXt3qM/6eJ+tqb8GeQddSDJJiJGevwxbuTh1PNfT@vger.kernel.org
-X-Gm-Message-State: AFq9FYLKclH/vGz/qPmLMoazck3qnD5nwjVBFHK583Yr676AEOBGuyUf
-	sBxgAyb+iq9TGjd5CYDu8Wn7YGy+/Kdr9ypqjw6P8eRniurw1tnei2qvVLbo9I0/X2nP9qqXBB/
-	N647ZaCqbaIooFyhrM/TWqMIo7wFvYOM+1wRa3lDCv04tsM0jYsSs36HmYCbo2ek=
-X-Gm-Gg: AYBFou0B1yc0HlwW99L5sUKSCfdxk7e1t0a9ShKqc8XTxwc1zM2r37GgKHWfZwP8Jey
-	gzRkZLODuJbk6iR9e3UhvEgGp/VzPwTtF9NQ/3jCxeMiUY/hSDX/VWy3bLuOvLsOq1QXjrNtxWW
-	d80euLISJZUDlb/DMvdplumGxhNZQ3TE9jX7l6IIjxc8XusRQl9oODAsENNtWCF6cWOiH7Phkik
-	Dc4oRPxSdaM6nyejmBrvI6oecmsccbFwvqpOm5JwzKd/TnWY9Hhu3vHi+1mX2wi/1N1TYDthxHI
-	hl9qhzzC0sMuwJ9punBdhiJjBitAYeeTD0k2+4+JPVoMx34mLPw+v2/oWzov6NrUTTkH71gW45i
-	sQwQ8hszEGChRSuZHRDvr3qlgQQznUNRYlRjw73kGoEZgrRs7yC2p1qn0NnqlRQkU20V4T88NCG
-	KuenMIk9sXvmb3pfAb0PCJQF+ywwFFjImxZ/m0IvLdJoM=
-X-Received: by 2002:a05:600c:4715:b0:4a3:598e:e7a8 with SMTP id 5b1f17b1804b1-4ac150b28bamr228460005e9.4.1793619596759;
-        Mon, 02 Nov 2026 03:39:56 -0800 (PST)
-X-Received: by 2002:a05:600c:4715:b0:4a3:598e:e7a8 with SMTP id 5b1f17b1804b1-4ac150b28bamr228459035e9.4.1793619596015;
-        Mon, 02 Nov 2026 03:39:56 -0800 (PST)
-Received: from [192.168.88.29] (ip231-128-192-82.pool-bba.aruba.it. [82.192.128.231])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4abf5b27e46sm431693975e9.3.2026.11.02.03.39.54
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 02 Nov 2026 03:39:55 -0800 (PST)
-Message-ID: <c0021e03-2590-4aac-b4ee-9a8fdf26d520@redhat.com>
-Date: Mon, 2 Nov 2026 12:39:54 +0100
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=V0aDcyj5
+Received: by linux.microsoft.com (Postfix, from userid 1186)
+	id 4DD0220B7167; Mon,  2 Nov 2026 08:25:05 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 4DD0220B7167
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1793636705;
+	bh=bEuYIRZvDtvBEBZICTqM+tPT23TNfC5S5qTvcTBWToc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=V0aDcyj5yX+/kOZsWOrhW3l8hVdPZoFvaheNuew7gp4M5zpYvRbLqW3eOdTeO39E8
+	 63dv0NbVq1UEPlnTdvJUt8G9MhJvAO/9k/Fq7968vNo+h3yQRfNOlvlcJSOuLBOv79
+	 ALdRmni4FqULUUburCUK2GFlLC5gHBcO/UQmqqxI=
+From: Konstantin Taranov <kotaranov@linux.microsoft.com>
+To: kotaranov@microsoft.com,
+	snsanghvi@microsoft.com,
+	longli@microsoft.com,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH rdma-next v7 1/9] RDMA/mana_ib: Allocate and map fast-registration MRs
+Date: Mon,  2 Nov 2026 08:24:57 -0800
+Message-ID: <20261102162505.501853-2-kotaranov@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.7
+In-Reply-To: <20261102162505.501853-1-kotaranov@linux.microsoft.com>
+References: <20261102162505.501853-1-kotaranov@linux.microsoft.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -112,52 +63,337 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net v2] net/mlx5: macsec: free struct mlx5_fs_id after an
- RCU grace period
-To: Joas Antonio dos Santos <joasantonio108@gmail.com>,
- Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
- Leon Romanovsky <leon@kernel.org>, Mark Bloch <mbloch@nvidia.com>
-Cc: Cosmin Ratiu <cratiu@nvidia.com>, Boris Pismenny <borisp@nvidia.com>,
- Sabrina Dubroca <sd@queasysnail.net>, Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
- Jakub Kicinski <kuba@kernel.org>, Simon Horman <horms@kernel.org>,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <179313582625.87630.11382992904624255106@gmail.com>
-Content-Language: en-US
-From: Paolo Abeni <pabeni@redhat.com>
-In-Reply-To: <179313582625.87630.11382992904624255106@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 10/27/26 22:17, Joas Antonio dos Santos wrote:
-> macsec_fs_id_del() removes a struct mlx5_fs_id from its rhashtable with
-> rhashtable_remove_fast() and then frees it with kfree() right away.
-> 
-> The TX (SCI) table is read locklessly from the transmit path:
-> mlx5e_macsec_handle_tx_skb() and mlx5e_macsec_tx_build_eseg() call
-> mlx5_macsec_fs_get_fs_id_from_hashtable(), which does
-> rhashtable_lookup() under rcu_read_lock() and then reads
-> mlx5_fs_id->id. A transmit that looked the entry up just before it was
-> removed reads freed memory.
-> 
-> Before commit d4ece08f4b1d ("net/mlx5: Maintain fs_id xarray per MACsec
-> device inside macsec steering") the SCI table held struct
-> mlx5e_macsec_sa directly, and mlx5e_macsec_del_txsa() freed it with
-> kfree_rcu_mightsleep(). That commit moved the table into macsec_fs.c
-> with the new struct mlx5_fs_id, but frees it with a plain kfree().
-> 
-> Add an rcu_head to struct mlx5_fs_id and free it with kfree_rcu().
-> 
-> The same issue was flagged by the Sashiko AI review as a pre-existing
-> problem while reviewing the HW-GRO for PSP series.
-> 
-> Fixes: d4ece08f4b1d ("net/mlx5: Maintain fs_id xarray per MACsec device inside macsec steering")
-> Link: https://lore.kernel.org/all/20260909065542.4B80D1F00ACA@smtp.kernel.org/
-> Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
-> Assisted-by: Yaga Agent HackerSec Claude:claude-opus-5-5
-Waiting for an explicit ack from Mellanox.
+From: Konstantin Taranov <kotaranov@microsoft.com>
 
-/P
+Implement alloc_mr and map_mr_sg for memory-registration MRs.
 
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+---
+v5:
+- Reject max_num_sg above MANA_MAX_FMR_PAGES
+v4:
+- Use an explicit 64-byte FMR MST alignment
+
+ drivers/infiniband/hw/mana/device.c  |  2 +
+ drivers/infiniband/hw/mana/main.c    |  3 +-
+ drivers/infiniband/hw/mana/mana_ib.h | 48 +++++++++++++++
+ drivers/infiniband/hw/mana/mr.c      | 87 +++++++++++++++++++++++++++-
+ include/net/mana/gdma.h              | 15 +++++
+ 5 files changed, 153 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
+index 62c7803ca6c6..cdaada7f6e8a 100644
+--- a/drivers/infiniband/hw/mana/device.c
++++ b/drivers/infiniband/hw/mana/device.c
+@@ -19,6 +19,7 @@ static const struct ib_device_ops mana_ib_dev_ops = {
+ 
+ 	.add_gid = mana_ib_gd_add_gid,
+ 	.alloc_mw = mana_ib_alloc_mw,
++	.alloc_mr = mana_ib_alloc_mr,
+ 	.alloc_pd = mana_ib_alloc_pd,
+ 	.alloc_ucontext = mana_ib_alloc_ucontext,
+ 	.create_ah = mana_ib_create_ah,
+@@ -40,6 +41,7 @@ static const struct ib_device_ops mana_ib_dev_ops = {
+ 	.get_dma_mr = mana_ib_get_dma_mr,
+ 	.get_link_layer = mana_ib_get_link_layer,
+ 	.get_port_immutable = mana_ib_get_port_immutable,
++	.map_mr_sg = mana_ib_map_mr_sg,
+ 	.mmap = mana_ib_mmap,
+ 	.modify_qp = mana_ib_modify_qp,
+ 	.modify_wq = mana_ib_modify_wq,
+diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
+index 672bd3f650dd..ceb4ec58023a 100644
+--- a/drivers/infiniband/hw/mana/main.c
++++ b/drivers/infiniband/hw/mana/main.c
+@@ -133,7 +133,7 @@ int mana_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
+ 			     sizeof(resp));
+ 
+ 	if (!udata)
+-		flags |= GDMA_PD_FLAG_ALLOW_GPA_MR;
++		flags |= GDMA_PD_FLAG_ALLOW_GPA_MR | GDMA_PD_FLAG_ALLOW_FMR_MR;
+ 
+ 	req.flags = flags;
+ 	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
+@@ -647,6 +647,7 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
+ 	props->max_ah = INT_MAX;
+ 	props->max_pkeys = 1;
+ 	props->local_ca_ack_delay = MANA_CA_ACK_DELAY;
++	props->max_fast_reg_page_list_len = MANA_MAX_FMR_PAGES;
+ 	if (!mana_ib_is_rnic(dev))
+ 		props->raw_packet_caps = IB_RAW_PACKET_CAP_IP_CSUM;
+ 
+diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
+index 74edb6e707a1..5ca6e2acf974 100644
+--- a/drivers/infiniband/hw/mana/mana_ib.h
++++ b/drivers/infiniband/hw/mana/mana_ib.h
+@@ -39,6 +39,8 @@
+  */
+ #define MANA_IB_MAX_MR		0xFFFFFFu
+ 
++#define MANA_MAX_FMR_PAGES	504
++
+ /*
+  * The CA timeout is approx. 260ms (4us * 2^(DELAY))
+  */
+@@ -51,6 +53,8 @@
+ 
+ #define MANA_GSI_QPN		(1)
+ 
++#define MANA_PTE_VALID_MASK	0x1ULL
++
+ struct mana_ib_adapter_caps {
+ 	u32 max_sq_id;
+ 	u32 max_rq_id;
+@@ -150,10 +154,46 @@ struct mana_ib_mw {
+ 	mana_handle_t mw_handle;
+ };
+ 
++#define MANA_FMR_MST_ALIGNMENT 64
++
++struct mana_fmr_mst_entry {
++	u32 reserved1;
++	u32 reserved2		: 8;
++	u32 page_size		: 5;
++	u32 reserved3		: 3;
++	u32 access_right	: 8;
++	u32 addr_type		: 2;
++	u32 reserved4		: 6;
++	u32 reserved5[2];
++	u64 start_va;
++	u64 length;
++	u32 reserved6[8];
++}; /* HW DATA */
++
++static inline u32 mana_ib_fmr_header_offset(u32 num_ptes)
++{
++	/* The header follows the PTEs with the required MST alignment. */
++	return ALIGN(sizeof(u64) * num_ptes, MANA_FMR_MST_ALIGNMENT);
++}
++
++static inline u32 mana_ib_fmr_buf_sz(u32 num_ptes)
++{
++	return mana_ib_fmr_header_offset(num_ptes) + sizeof(struct mana_fmr_mst_entry);
++}
++
++struct mana_ib_fmr {
++	u64 *ptes;
++	dma_addr_t dma_handle;
++	size_t size;
++	u32 max_ptes;
++	u32 pte_count;
++};
++
+ struct mana_ib_mr {
+ 	struct ib_mr ibmr;
+ 	struct ib_umem *umem;
+ 	mana_handle_t mr_handle;
++	struct mana_ib_fmr fmr;
+ };
+ 
+ struct mana_ib_dm {
+@@ -840,8 +880,16 @@ int mana_ib_create_rwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_table,
+ 
+ int mana_ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_tbl);
+ 
++enum gdma_mr_access_flags
++mana_ib_verbs_to_gdma_access_flags(int access_flags);
++
+ struct ib_mr *mana_ib_get_dma_mr(struct ib_pd *ibpd, int access_flags);
+ 
++struct ib_mr *mana_ib_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
++			       u32 max_num_sg);
++int mana_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		      unsigned int *sg_offset);
++
+ struct ib_mr *mana_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  u64 iova, int access_flags,
+ 				  struct ib_dmah *dmah,
+diff --git a/drivers/infiniband/hw/mana/mr.c b/drivers/infiniband/hw/mana/mr.c
+index 1233685b4b89..2be252778e17 100644
+--- a/drivers/infiniband/hw/mana/mr.c
++++ b/drivers/infiniband/hw/mana/mr.c
+@@ -10,7 +10,7 @@
+ 
+ #define VALID_DMA_MR_FLAGS (IB_ACCESS_LOCAL_WRITE)
+ 
+-static enum gdma_mr_access_flags
++enum gdma_mr_access_flags
+ mana_ib_verbs_to_gdma_access_flags(int access_flags)
+ {
+ 	enum gdma_mr_access_flags flags = GDMA_ACCESS_FLAG_LOCAL_READ;
+@@ -55,6 +55,11 @@ static int mana_ib_gd_create_mr(struct mana_ib_dev *dev, struct mana_ib_mr *mr,
+ 		req.gva.virtual_address = mr_params->gva.virtual_address;
+ 		req.gva.access_flags = mr_params->gva.access_flags;
+ 		break;
++	case GDMA_MR_TYPE_FMR:
++		/* page_size is deprecated field and must be 0. */
++		req.fmr.page_size = 0;
++		req.fmr.rsvd_pte_count = mr_params->fmr.rsvd_pte_count;
++		break;
+ 	case GDMA_MR_TYPE_ZBVA:
+ 		req.zbva.dma_region_handle = mr_params->zbva.dma_region_handle;
+ 		req.zbva.access_flags = mr_params->zbva.access_flags;
+@@ -294,6 +299,80 @@ err_free:
+ 	return ERR_PTR(err);
+ }
+ 
++struct ib_mr *mana_ib_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
++			       u32 max_num_sg)
++{
++	struct mana_ib_pd *pd = container_of(ibpd, struct mana_ib_pd, ibpd);
++	struct gdma_create_mr_params mr_params = {};
++	struct gdma_context *gc;
++	struct mana_ib_dev *dev;
++	struct mana_ib_mr *mr;
++	int err;
++
++	dev = container_of(ibpd->device, struct mana_ib_dev, ib_dev);
++	gc = mdev_to_gc(dev);
++
++	if (mr_type != IB_MR_TYPE_MEM_REG)
++		return ERR_PTR(-EOPNOTSUPP);
++
++	if (max_num_sg > MANA_MAX_FMR_PAGES)
++		return ERR_PTR(-EINVAL);
++
++	mr = kzalloc_obj(*mr);
++	if (!mr)
++		return ERR_PTR(-ENOMEM);
++
++	mr->fmr.max_ptes = max_num_sg;
++	mr->fmr.size = mana_ib_fmr_buf_sz(max_num_sg);
++	mr->fmr.ptes = dma_alloc_coherent(gc->dev, mr->fmr.size, &mr->fmr.dma_handle,
++					  GFP_KERNEL);
++	if (!mr->fmr.ptes) {
++		err = -ENOMEM;
++		goto err_free;
++	}
++
++	mr_params.pd_handle = pd->pd_handle;
++	mr_params.mr_type = GDMA_MR_TYPE_FMR;
++	mr_params.fmr.rsvd_pte_count = max_num_sg;
++
++	err = mana_ib_gd_create_mr(dev, mr, &mr_params);
++	if (err)
++		goto err_dma;
++
++	return &mr->ibmr;
++
++err_dma:
++	dma_free_coherent(gc->dev, mr->fmr.size, mr->fmr.ptes,
++			  mr->fmr.dma_handle);
++
++err_free:
++	kfree(mr);
++	return ERR_PTR(err);
++}
++
++static int mana_ib_set_page(struct ib_mr *ibmr, u64 addr)
++{
++	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
++
++	if (mr->fmr.pte_count >= mr->fmr.max_ptes)
++		return -ENOMEM;
++
++	mr->fmr.ptes[mr->fmr.pte_count] = addr | MANA_PTE_VALID_MASK;
++	mr->fmr.pte_count++;
++
++	return 0;
++}
++
++int mana_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		      unsigned int *sg_offset)
++{
++	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
++
++	mr->fmr.pte_count = 0;
++
++	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, mana_ib_set_page);
++}
++
+ static int mana_ib_gd_create_mw(struct mana_ib_dev *dev, struct mana_ib_pd *pd, struct ib_mw *ibmw)
+ {
+ 	struct mana_ib_mw *mw = container_of(ibmw, struct mana_ib_mw, ibmw);
+@@ -352,6 +431,7 @@ int mana_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+ {
+ 	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
+ 	struct ib_device *ibdev = ibmr->device;
++	struct gdma_context *gc;
+ 	struct mana_ib_dev *dev;
+ 	int err;
+ 
+@@ -360,11 +440,16 @@ int mana_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+ 		return err;
+ 
+ 	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
++	gc = mdev_to_gc(dev);
+ 
+ 	err = mana_ib_gd_destroy_mr(dev, mr->mr_handle);
+ 	if (err)
+ 		return err;
+ 
++	if (mr->fmr.ptes)
++		dma_free_coherent(gc->dev, mr->fmr.size, mr->fmr.ptes,
++				  mr->fmr.dma_handle);
++
+ 	if (mr->umem)
+ 		ib_umem_release(mr->umem);
+ 
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 2a28fcaa637d..332f394b82e1 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -865,6 +865,8 @@ enum gdma_mr_access_flags {
+ 	GDMA_ACCESS_FLAG_REMOTE_WRITE = BIT_ULL(3),
+ 	GDMA_ACCESS_FLAG_REMOTE_ATOMIC = BIT_ULL(4),
+ 	GDMA_ACCESS_FLAG_BIND_MW = BIT_ULL(5),
++	GDMA_ACCESS_FLAG_INVALIDATE = BIT_ULL(6),
++	GDMA_ACCESS_FLAG_FMR = BIT_ULL(7),
+ };
+ 
+ /* GDMA_CREATE_DMA_REGION */
+@@ -917,6 +919,7 @@ struct gdma_destroy_dma_region_req {
+ 
+ enum gdma_pd_flags {
+ 	GDMA_PD_FLAG_ALLOW_GPA_MR = BIT(0),
++	GDMA_PD_FLAG_ALLOW_FMR_MR = BIT(1),
+ 	GDMA_PD_FLAG_SHORT_PDN = BIT(2),
+ };
+ 
+@@ -953,6 +956,11 @@ enum gdma_mr_type {
+ 	 * address that is set up in the MST
+ 	 */
+ 	GDMA_MR_TYPE_GVA = 2,
++	/* Fast Memory - MRs are initially put in the free state,
++	 * and the specified number of PTEs are reserved for future fast
++	 * memory registrations
++	 */
++	GDMA_MR_TYPE_FMR = 3,
+ 	/* Guest zero-based address MRs */
+ 	GDMA_MR_TYPE_ZBVA = 4,
+ 	/* Device address MRs */
+@@ -982,6 +990,9 @@ struct gdma_create_mr_params {
+ 			u64 length;
+ 			enum gdma_mr_access_flags access_flags;
+ 		} da;
++		struct {
++			u32 rsvd_pte_count;
++		} fmr;
+ 	};
+ };
+ 
+@@ -1006,6 +1017,10 @@ struct gdma_create_mr_request {
+ 			u64 offset;
+ 			enum gdma_mr_access_flags access_flags;
+ 		} __packed da;
++		struct {
++			u32 page_size;
++			u32 rsvd_pte_count;
++		} __packed fmr;
+ 	} __packed;
+ 	u32 reserved_2;
+ 	union {
+-- 
+2.43.0
