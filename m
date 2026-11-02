@@ -1,54 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793609713;
-	b=Ub3fU9eg7aNMHrBmlF0H29Dk0JhH/HNTDfUYtBeDaNIVbKoYfbgedvmXC1OdrrYPMMyE
-	 kNyAcUVzc/ErTRgV52mZjgrXxewoPpvNw7JL/mjH+yIM/7FNc/TLYJmXQqSC0u416uwk+
-	 tEiw6mFDBfO6gWQVP6IXa5AkFBrx9lyUqQePUzP8A9svJETCVHMFD5HS5mvBKNdt6qymn
-	 yfl6C/RE/gmdiVJ3tuR+zYmBXm1xXCb4gpSyZ9kugaYFXjCyVLDpwyVXojPQOLTMEi7rG
-	 qm09r7fECyM9DAuobAHab2z9Abn6/hU2qJpCFud1ogETGfP2033mmCYuLvWqOgA0mBg==
+	t=1793610043;
+	b=hn/noqeABTNDF2byEvaAK4Gxp98mpbf2VTezO4Ikjgw41ezAnmmCTbJb78VsZRcinD3a
+	 tuoTkdQuUc0lET6gHWkejlWCRt8XURMq400Qw2XibBzwe/cKk/mUv8KiwmGvpPzI8jOH1
+	 jokTzNEXcx97HoBjkJGxWpCd6uMjrerb2sVZy9VtbInL9m9C/9yFtwGJJTkTujkXQiKl/
+	 P23VCQ5Oz3xE1gAtdLK2uvwx2O6Fiwd/AK3nSYFZP/w0PehVoUrhdyxu9yjhDEvTXwHXc
+	 PgxZWx0vEuoFJm1nkzC0Jhzi5GE9dsLmUlyEDf0NRa+mARQLZ2RB0AiCYq0but4x+iA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793609713;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793610043;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=nssa5NPr2BP4A+uknfAVciu/0FccJaC44xNIsk5S368=;
-	b=E8r2RWsjo+uJgR7zIUpzhckO/uwRQHvBPCKr154K9two4AEYwnhVCuCM5dznfIInuMYK
-	 jXTTJDJ9hdnVxJrkU7u7waXV8Fg6DxNqZvyLXFLxFnrEtyv+x8bMjKkxfotUbmpzXpjtg
-	 a8SyhPOZzmAttqeTOqdq0nywh+fat7BAf2pGrRDK4Jhe0ceNDReNQMoQEXxOGD1SOrPkt
-	 qqBrD0+iuT14v8bVGWBxnDy6WtBFfpCWp6KTZc1KKqPkPvc4F7ubX0PWqOGdfQhuJ4qT/
-	 u6CXgmeNtTQcVp4v8X86QBPUU/l1dXjS4ij5nxUsdy/CX9wBuLu3OqFBtTTbVnYGRsQ==
+	bh=gGLnaTRpx0YwHYJcyA+n88jpWelqhxWitk2gcx7TvnI=;
+	b=j1FETOAHFg6/4LE5gQzMsEfz7C/hpA+PQa24ND938vwKY8/K5Qf7LBEJPPejxOghXPGi
+	 YOYbUqaMdXSD6JReI/IPQZKckONk2WT3k9KLlT4mM9SXsiLQijbun9SQUaezt2RKePG9n
+	 hNLgmLHQz8znaInWrvmaRXHVIsag20M7C8KdfN5SySOo6YJZkUPqIvzBqNwWFAxoVP8CM
+	 Z/fh2tR2rH1XRDfgRhb3dXdW14URo7rqJmD/Oc8RWeG09qWOc2E8PWhikvI6ivOkLCUz7
+	 XHT4CpNUoejI43mvvL/s38CgYz3+UT2kc7gsZh2uW+Lhj6D+mIS0I/YC1BxYJtUGb8g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nyi4xlS3;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9730606A333
-	for <linux-rdma@vger.kernel.org>; Mon,  2 Nov 2026 08:55:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FB251F00919;
-	Mon,  2 Nov 2026 08:55:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D0D6606A327
+	for <linux-rdma@vger.kernel.org>; Mon,  2 Nov 2026 09:00:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nyi4xlS3
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F3461F000C1;
+	Mon,  2 Nov 2026 09:00:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793609707;
-	bh=nssa5NPr2BP4A+uknfAVciu/0FccJaC44xNIsk5S368=;
+	s=k20260515; t=1793610042;
+	bh=gGLnaTRpx0YwHYJcyA+n88jpWelqhxWitk2gcx7TvnI=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Jtd4nUJ1//3yyArFGPbCzFbZqODDilbrV+UBQxbZtW9gsJr4qsSM1LHMLSpkHgT9E
-	 3Bg6K7eN66t6GNbYFtpDz4aTa8LoPuYZn9eF4E6Zngu0L+c6h69Up5pxi3uCEgxEXf
-	 5wuo22J3p9NkJml1eXrrN1YfrMW52rGIuZr13vUdO3ZN2XgZuRZhMVbCCaTebLS0Rb
-	 vWb33KzeXEjNDyW7rnal5zyG8Bup3XozLSR4KB3qV7RbTiWd8SDZuVETXL9vaolGne
-	 ADexnjSOuceyCVNs/0dR+Iq34PUmNc6OlpJio3Rf3K49fjj1PucBfW93MHXjUdgzPs
-	 ySp8tsNb2IW0Q==
-Message-ID: <sashiko-outbox-193142@kernel.org>
+	b=nyi4xlS37ApiyKgkdzkcuyk86AY4IjiSAZoxLrNxxFBl7A5CVyaS5xlYYT3MN9By1
+	 p7Up0kTMx2EaNpo7u1KUkUXu0NdEHZ+0YZA2imqKwJkI2E8Vzyn+xTtMWzYTrixQe3
+	 oxpXJebJ0MFFShgbUoeN5+wetY5YaeA91HnGJMCRIk016Vs3tecZa6pNFTst1k0oZS
+	 MLG9r2dI5Ndj6UKNDehe5T8nnGeWrWSsVDLWLWK26XgP9gA04Y/y+w97r//sQ5+4si
+	 sW4o1IYdd7q0OXW6R6ZXEtDxYzO8teL4dDRePGUUKm9RAsl2QBr7ijUaf9EVuSRyln
+	 KKxLqK4RPWHuw==
+Message-ID: <sashiko-outbox-193147@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma v8 2/7] RDMA/zrdma: Add core data structures and
- ABI definitions
+Subject: Re: [PATCH rdma v8 3/7] RDMA/zrdma: Add internal headers and
+ hardware register definitions
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Yanze Zhang" <zhang.yanze@zte.com.cn>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261102082026.2645777-3-zhang.yanze@zte.com.cn>
+In-Reply-To: <20261102082026.2645777-4-zhang.yanze@zte.com.cn>
 References: <20261102082026.2645777-1-zhang.yanze@zte.com.cn>
- <20261102082026.2645777-3-zhang.yanze@zte.com.cn>
+ <20261102082026.2645777-4-zhang.yanze@zte.com.cn>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 02 Nov 2026 08:55:06 +0000
+Date: Mon, 02 Nov 2026 09:00:42 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,95 +63,148 @@ Precedence: list
 
 Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [Medium] RDMA/zrdma: private untyped auxiliary device contract in zrdma_t=
-ype.h
+- [Low] RDMA/zrdma: unused declarations and intra-series churn in zrdma_mai=
+n.h
 --
 
-commit 8cc318d7731f01390658d794db981381eb4bcc2c
+commit a9658ee0b0f7725e37243f230a2652c3cd0f13de
 Author: Yanze Zhang <zhang.yanze@zte.com.cn>
 
-RDMA/zrdma: Add core data structures and ABI definitions
+RDMA/zrdma: Add internal headers and hardware register definitions
 
-This commit adds core data structures, hardware control definitions, and the
-userspace ABI header for the ZTE DingHai RDMA driver.
+This commit adds internal header files (zrdma_hw.h and zrdma_main.h) and
+updates zrdma_type.h to define structures, enums, and constants for the ZTE
+DingHai RDMA driver.
 
-> diff --git a/drivers/infiniband/hw/zrdma/zrdma_type.h b/drivers/infiniban=
-d/hw/zrdma/zrdma_type.h
+> diff --git a/drivers/infiniband/hw/zrdma/zrdma_main.h b/drivers/infiniban=
+d/hw/zrdma/zrdma_main.h
 > new file mode 100644
-> index 0000000000000..ded4052453455
+> index 0000000000000..31679b4eccb2c
 > --- /dev/null
-> +++ b/drivers/infiniband/hw/zrdma/zrdma_type.h
-> @@ -0,0 +1,86 @@
+> +++ b/drivers/infiniband/hw/zrdma/zrdma_main.h
 [ ... ]
-> +struct zxdh_rdma_core_dev;
+> +#define PCI_SBDF_SAFE_LEN 64
+> +#define ZXDH_RST_TIMEOUT_HZ 4
 > +
-> +struct zxdh_rdma_core_ops {
-> +	int (*request_reset)(struct zxdh_rdma_core_dev *cdev,
-> +			     enum zxdh_rdma_reset_type reset_type);
-> +	int (*zxdh_common_func)(void *in_param, void *out_param, u32 opcode);
+> +#define ZXDH_RDMA_COMMON_FUNC_CAP 1
+> +#define ZXDH_RDMA_COMM_FUNC BIT_ULL(24)
+> +
+> +extern struct list_head zxdh_handlers;
+> +extern spinlock_t zxdh_handler_lock;
+> +extern const struct ib_device_ops zxdh_dev_ops;
+> +
+> +struct zxdh_pci_f;
+> +
+> +struct zxdh_rdma_node {
+> +	char name[IB_DEVICE_NAME_MAX];
+> +	char sbdf[PCI_SBDF_SAFE_LEN];
+> +	struct list_head list;
+> +};
+> +
+> +enum zxdh_func_type {
+> +	ZXDH_FUNC_NUM_REQUIRE =3D 0,
+> +	ZXDH_FUNC_NP_MAC =3D 1,
+> +	ZXDH_FUNC_IRQ_REQUEST =3D 2,
+> +	ZXDH_FUNC_IRQ_FREE =3D 3,
+> +	ZXDH_FUNC_PMTU_INFO_ADD =3D 4,
+> +	ZXDH_FUNC_PMTU_INFO_DEL =3D 5,
+> +	ZXDH_FUNC_QP_INFO_DEL_WX =3D 6,
+> +	ZXDH_FUNC_NETDEV_SPEED_GET =3D 7,
+> +	ZXDH_FUNC_SEARCH_MAC_FROM_FW =3D 8,
+> +	ZXDH_COMM_FUNC_GET_TRUST_TYPE =3D 9,
+> +	ZXDH_FUNC_VF_VLAN_GET =3D 10,
+> +	ZXDH_FUNC_NUM_MAX,
+> +};
+> +
+> +enum init_completion_state {
+> +	INVALID_STATE =3D 0,
+> +	INITIAL_STATE,
+> +	CQP_CREATED,
+> +	SMMU_PAGETABLE_INITIALIZED,
+> +	DATA_CAP_CREATED,
+> +	HMC_OBJS_CREATED,
+> +	HW_RSRC_INITIALIZED,
+> +	CQP_QP_CREATED,
+> +	AEQ_CREATED,
+> +	CCQ_CREATED,
+> +	CEQ0_CREATED,
+> +	CEQS_CREATED,
+> +	PBLE_CHUNK_MEM,
+> +};
+> +
+> +enum zxdh_rdma_vers {
+> +	ZXDH_GEN_RSVD,
+> +	ZXDH_GEN_1,
+> +	ZXDH_GEN_2,
+> +};
+> +
+> +struct zxdh_handler {
+> +	struct list_head list;
+> +	struct zxdh_device *zdev;
 > +};
 [ ... ]
-> +struct zxdh_rdma_core_dev {
-> +	struct pci_dev *pdev;
-> +	struct auxiliary_device *adev;
-> +	u8 __iomem *hw_addr;
-> +	int zdev_info_id;
-> +	struct zxdh_rdma_ver_info ver;
-> +	void *auxiliary_priv;
-> +	enum zxdh_function_type ftype;
-> +	u16 vport_id;
-> +	u16 slot_id;
-> +	enum zxdh_rdma_protocol rdma_protocol;
+> +struct zxdh_pci_f {
+[ ... ]
+> +	spinlock_t rsrc_lock; /* protects resource allocation arrays */
+> +	spinlock_t qptable_lock; /* protects qp_table access */
+> +	spinlock_t cqtable_lock; /* protects cq_table access */
+> +	struct zxdh_qp **qp_table;
+> +	struct zxdh_cq **cq_table;
+> +	spinlock_t srqtable_lock; /* protects srq_table access */
+> +	struct zxdh_srq **srq_table;
 > +
-> +	struct zxdh_qos_params qos_info;
 > +	struct msix_entry *msix_entries;
-> +	u16 msix_count;
-> +	const struct zxdh_rdma_core_ops *ops;
+> +	struct zxdh_gen_ops gen_ops;
+> +	struct zxdh_device *zdev;
+> +	u16 qp_index;
+> +	u32 srq_mem_size;
+> +	bool net_irq_cap;
+> +	int common_func_num_max;
 > +	void *dh_dev;
 > +};
 > +
-> +struct zxdh_rdma_if {
-> +	void *(*get_rdma_netdev)(void *dh_dev);
-> +};
-> +
-> +struct zxdh_auxiliary_dev {
-> +	struct auxiliary_device adev;
-> +	struct zxdh_rdma_core_dev *zxdh_info;
-> +	struct zxdh_rdma_if *rdma_ops;
-> +	void *ops;
-> +	void *parent;
-> +	s32 aux_id;
-> +	void *auxiliary_ops[18];
-> +};
+> +struct zxdh_device {
+> +	struct ib_device ibdev;
+> +	struct zxdh_pci_f *rf;
+> +	struct net_device *netdev;
+> +	struct net_device *source_netdev;
+> +	struct zxdh_handler *hdl;
+[ ... ]
+> +int zxdh_get_del_rdma_name(const char *sbdf, char *name, size_t name_len=
+);
+> +int zxdh_ctrl_init_hw(struct zxdh_pci_f *rf);
+> +int zxdh_ib_register_device(struct zxdh_device *zdev);
+> +void zxdh_del_handler(struct zxdh_handler *hdl);
 
-[Severity: Medium]
-Should struct zxdh_auxiliary_dev, struct zxdh_rdma_core_dev,
-struct zxdh_rdma_core_ops, and struct zxdh_rdma_if be defined with full
-concrete types in a shared header under include/linux/ that both the parent
-PCI PF driver and this RDMA auxiliary driver include, rather than in a
-driver-private RDMA header?
+[Severity: Low]
+As reported by Leon Romanovsky on v2 [1], unused defines and functions
+should be removed from the driver and the patches should be split cleanly to
+simplify review.
 
-In the subsequent patch "RDMA/zrdma: Add device probe and remove logic",
-zxdh_probe() binds to the dinghai10e.rdma_aux auxiliary device, converts
-struct auxiliary_device *aux_dev via container_of(aux_dev,
-struct zxdh_auxiliary_dev, adev), and calls
-zxdh_adev->rdma_ops->get_rdma_netdev(zxdh_adev->parent) and
-zxdh_adev->zxdh_info->ops->zxdh_common_func().
+This patch adds PCI_SBDF_SAFE_LEN, zxdh_handlers, zxdh_handler_lock,
+struct zxdh_rdma_node, struct zxdh_handler, struct zxdh_device::hdl,
+zxdh_get_del_rdma_name(), and zxdh_del_handler() in
+drivers/infiniband/hw/zrdma/zrdma_main.h, which are never defined or used
+and are then deleted in the subsequent patch "RDMA/zrdma: Add device probe
+and remove logic".
 
-Because drivers/infiniband/hw/zrdma/zrdma_type.h defines a private copy of
-these structures padded with opaque placeholders such as void *ops,
-void *parent, void *auxiliary_ops[18], void *dh_dev,
-void *(*get_rdma_netdev)(void *dh_dev) (instead of returning
-struct net_device *), and int (*zxdh_common_func)(void *in_param,
-void *out_param, u32 opcode), the compiler cannot verify that the struct
-layout or callback signatures match the parent PF driver. In addition, the
-in-tree driver under drivers/net/ethernet/zte/dinghai/ does not appear to
-define or register this auxiliary device yet.
+In addition, even at the end of the series ("RDMA/zrdma: Implement context,
+PD, and mmap operations"), zrdma_main.h still contains declarations that are
+never used anywhere in the series:
+- srq_mem_size in struct zxdh_pci_f and source_netdev in struct zxdh_device
+  are never read or written.
+- struct zxdh_qp, struct zxdh_cq, and struct zxdh_srq are never defined, and
+  their corresponding tables in struct zxdh_pci_f are allocated but never
+  populated or read.
+- CQP_CREATED through PBLE_CHUNK_MEM in enum init_completion_state, along
+  with unused values in enum zxdh_func_type and enum zxdh_rdma_vers, are
+  never referenced.
 
-Could this private definition cause memory corruption or invalid function
-pointer calls during zxdh_probe() if the parent driver layout or signatures
-diverge?
+Could these unused declarations and the intra-series churn be dropped from
+zrdma_main.h?
+
+[1] https://lore.kernel.org/r/20260705112915.GB15188@unreal
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261102082026.2645=
-777-1-zhang.yanze@zte.com.cn?part=3D2
+777-1-zhang.yanze@zte.com.cn?part=3D3
