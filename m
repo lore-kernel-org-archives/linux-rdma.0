@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793677998;
-	b=sZWsYn6IeF6dq7VAxubgLYipEB3iZKmBL4N0vT77f7DxxS/jBU4pCE+8UWLUgmS4rO1u
-	 AphKQHUFgn+JIS16NPJED4z2DU8nth1IGGxM9Q/H35L9H7ss4SKeEhdm+EWUqD5BHumUD
-	 7c+g0yFMexEEDVQmjQFZygU8HX7MCough1P8H01s72/ToX/l/TnMDRSgIiXFx3Hb62OTx
-	 TXZpxqdHOaIIFGgdTggU58u+xkR8tEpjksYO+ttUo9GJwmF/6lzbkVjyXxnaAwvQVGcDt
-	 vaVCW8w4Vl4dyzMfcg0+D9opPjP++hlU3hFGEGsMqpLEf1UmMFNF21T7Ss6atOQJRug==
+	t=1793678210;
+	b=q3vHZF2Do0axPe7gP1oQfMfhvJggtPEMdSef6d/lomUabnO1CPO15Vqwc6Ek+4QyrUOl
+	 HGM+COATWfajecWMVNyW4KUk7zU1dUYdWLrkqwHOXpvrulm9WP321hCbMX3D2dE8VUlam
+	 YKwoJ+42g08NhiISoCwc2Qk/L7gw606adxIE2swUN9AfIFO3ezUvDJo4qx3yunL7859TH
+	 7rZMv2VR0IRlpmWkcR8mnob90mWQsUShedJH6WTod7NE6d7nANl6iNXA7XTQL26RpBKpE
+	 gcEjtGPBDyWTa2rF1JY/9raPwQLOps9bR4R2LbslhoxYPscWLrybl1mHcc6/gMbT2FQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793677998;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793678210;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=9xY3CayYf/RBq01cUopaStSjs5t8Y3rv6jNAohup/X4=;
-	b=N112zu3PlsKTHip67nJwVa70YN9ZBxJgCmdk1SDB9SEoHX3WBmw63+e3swNkQIRs05Sy
-	 meMMMAwtI5eog10+5nQpVSkWv3SKKdiwgd1Jws86ZaDnNdjJuZUywWLNPaj8qBySYEU1O
-	 O6Vwl3C82IeR7MNoNJfkyzx6C+drUjIIamxxIKlUWiCYkDuOkYFSSrgY7Q5Js3ybWPUBB
-	 SZEXcSX7vulSwAfhnUCU3gD++Wsko9riO0haxalNKx2vYeGtcVWAyalBXhQEnSyptMIB5
-	 /APOocflWxFm8DXHgCaRowGhy+FapqS8MiSMSJxGL1L36uCDAkd2z6UAD0RiXOlXjtA==
+	bh=FtGi3s2UvkJR3RzSGKTla7Hz2Hp1Zqs/NhkGfiE84M4=;
+	b=Isrms+rBcv/2RjfLuStZvRNvBeqKQb5Q/SYyuJlft29ApzDabfqxunxrAuFMgCQDo7xl
+	 fF4T9KgDhlI6RNg5joxp1C5wWsWJjcWEMGV61NbuucWpRBNLv+WBsXW5rupHXaOdLGcx7
+	 MT90/scNgEVEwFGIursj09/hD5uON8CJ0yZX0DbYloCadGuinbZyMFAO9GJj+B8fkxYmr
+	 QOchfjlaey8091MI+wmgh2WJ1l8eFVLqrEmDAM+uUea1lxaUGEUw21uNFOlS85NNfBXSY
+	 JdDWRNMLkTlMLk2DqxhuLFpRPKo8m67b0Egoehsmqncur0FFaQOupAMA+oXz6CtCh5w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="aSaqdVP/";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jh9ZvgJw;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D50A606A327;
-	Tue,  3 Nov 2026 03:53:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D57C8606A324;
+	Tue,  3 Nov 2026 03:56:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aSaqdVP/
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76FFF1F000C1;
-	Tue,  3 Nov 2026 03:53:17 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jh9ZvgJw
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 440EC1F00A15;
+	Tue,  3 Nov 2026 03:56:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793677997;
-	bh=9xY3CayYf/RBq01cUopaStSjs5t8Y3rv6jNAohup/X4=;
+	s=k20260515; t=1793678209;
+	bh=FtGi3s2UvkJR3RzSGKTla7Hz2Hp1Zqs/NhkGfiE84M4=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=aSaqdVP/r06YXLH/+KjoTPTNvK0eFn214SffoAHQe3UvQ8iVUrT5vLUT/Yn4xOJAd
-	 GmNDW8dK/fO4IC1FIRUqhJ+a0Ur5E8s+8Cj+q3ywqZQDGvmaKz8ghwaKHh1IIQc54D
-	 rLm29L6vqZSY1stnOTlILZx3j5tB7maRQsV+H/vVSs39N7g8ED3AuYkNNvYYlmMMee
-	 sdBnijfvpFKpmti8j/dlIIcZeI85eMEMfx+uAZdaJl4xeVNU0hdZKSAvnjhLLAaDCx
-	 0LV2a/nvchlFNgLypvEdf+kdWPa8RbYcfWwiPmy+TyAttOKhTvkYYG+dalucH7VNsc
-	 Y2uR8+ez0L4WA==
-Message-ID: <sashiko-outbox-194545@kernel.org>
+	b=jh9ZvgJwKxIQ2/yvcb6JEfZMsly8mSkq3bMj3IK6APVMcV2+9R8a/cwp1J6xQ+xnj
+	 82Lxxqb0IWXDA29wx7nbQ3bQvEQ83yZw/hQ494clklVwCWSLcgpFeMOxDmPrD6Sx65
+	 A9h5e/aHWJPQzd8t5yv326wO/60QpwVqUyv/lfRu53uwNKjJncYOj9mB3KHfJNvsBQ
+	 MQz9EjltQTmH42OgbdggFcW3Gkyhg+MJEZpLv8kmeGItjpGnplFdenJ74GL+KfFS1P
+	 9K/Z+S0337fUYz4JINjNLu8Jmw1Yg2vSGo9NKHgBa5OjVp0P05umr9YQbXDAzd7wsg
+	 JXrJNvt4VQAPA==
+Message-ID: <sashiko-outbox-194551@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v4 1/3] IB/isert: do not publish connections being
- released on a second list
+Subject: Re: [PATCH v4 3/3] IB/isert: tear connections down from an
+ ib_client on device removal
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Yehyeong Lee" <yhlee@isslab.korea.ac.kr>
 Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
-In-Reply-To: <20261103032924.1073138-2-yhlee@isslab.korea.ac.kr>
+In-Reply-To: <20261103032924.1073138-4-yhlee@isslab.korea.ac.kr>
 References: <20261103032924.1073138-1-yhlee@isslab.korea.ac.kr>
- <20261103032924.1073138-2-yhlee@isslab.korea.ac.kr>
+ <20261103032924.1073138-4-yhlee@isslab.korea.ac.kr>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 03 Nov 2026 03:53:17 +0000
+Date: Tue, 03 Nov 2026 03:56:48 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,134 +61,347 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 4 potential issue(=
 s) to consider:
-- [Critical] IB/isert: missing ib_drain_qp() in isert_free_np() and isert_c=
-onnect_error()
+- [Critical] IB/isert: race between isert_teardown_conn() and isert_connect=
+_error()
+- [High] IB/isert: QP destroyed after accept in isert_connect_request() on =
+removal
+- [High] IB/isert: new isert_device created after isert_remove_one() comple=
+tes
+- [High] IB/isert: race between isert_teardown_conn() and isert_accept_np()
 --
 
-commit 56a817f50afa9a4dae171633af8e54e1c447db9f
+commit b4ccbe89413aac4cc5fc070bd4b49d33beb67439
 Author: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
 
-IB/isert: do not publish connections being released on a second list
+IB/isert: tear connections down from an ib_client on device removal
 
-This commit changes isert_free_np() to unlink connections from
-isert_np->pending and isert_np->accepted one at a time rather than moving
-them onto a local list, and updates the CM handlers to check whether
-isert_conn->node is already empty under isert_np->mutex before acting on
-the connection.
+This commit registers an ib_client removal callback to tear down iSER
+connections without holding the rdma_cm_id handler_mutex, waiting for the
+last isert_device reference to be dropped and reference counting isert_np.
 
 > diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband=
 /ulp/isert/ib_isert.c
-> index efa8d7b7844c9..8255208e30c7d 100644
+> index c6f417bb20690..5486fbdc6aa39 100644
 > --- a/drivers/infiniband/ulp/isert/ib_isert.c
 > +++ b/drivers/infiniband/ulp/isert/ib_isert.c
 
 [ ... ]
 
-> @@ -658,12 +663,19 @@ isert_connect_error(struct rdma_cm_id *cma_id)
->  {
->  	struct isert_conn *isert_conn =3D cma_id->qp->qp_context;
->  	struct isert_np *isert_np =3D cma_id->context;
-> -
-> -	ib_drain_qp(isert_conn->qp);
-> +	bool owned;
+> @@ -456,20 +466,42 @@ isert_connect_request(struct rdma_cm_id *cma_id, st=
+ruct rdma_cm_event *event)
+>  		goto out_rsp_dma_map;
+>  	}
 > =20
->  	mutex_lock(&isert_np->mutex);
-> +	owned =3D !list_empty(&isert_conn->node);
->  	list_del_init(&isert_conn->node);
->  	mutex_unlock(&isert_np->mutex);
-> +
-> +	if (!owned) {
-> +		isert_info("conn %p is being released already\n", isert_conn);
-> +		return 0;
+> +	if (READ_ONCE(device->removing)) {
+> +		isert_info("device %p is being removed, rejecting conn %p\n",
+> +			   device, isert_conn);
+> +		ret =3D -ENODEV;
+> +		goto out_destroy_qp;
 > +	}
 > +
-> +	ib_drain_qp(isert_conn->qp);
->  	isert_conn->cm_id =3D NULL;
->  	isert_put_conn(isert_conn);
+>  	ret =3D isert_login_post_recv(isert_conn);
+>  	if (ret)
+>  		goto out_destroy_qp;
 > =20
-> @@ -2479,12 +2491,33 @@ isert_accept_np(struct iscsi_np *np, struct iscsi=
-t_conn *conn)
+>  	ret =3D isert_rdma_accept(isert_conn);
+>  	if (ret)
+> -		goto out_destroy_qp;
+> -
+> +		goto out_drain_qp;
+> +	accepted =3D true;
+> +
+> +	mutex_lock(&isert_conn_mutex);
+> +	if (device->removing) {
+> +		mutex_unlock(&isert_conn_mutex);
+> +		isert_info("device %p is being removed, dropping conn %p\n",
+> +			   device, isert_conn);
+> +		ret =3D -ENODEV;
+> +		goto out_drain_qp;
+> +	}
+> +	isert_conn->np =3D isert_np;
+> +	kref_get(&isert_np->kref);
+> +	list_add_tail(&isert_conn->conn_list, &isert_conn_list);
+>  	mutex_lock(&isert_np->mutex);
+>  	list_add_tail(&isert_conn->node, &isert_np->accepted);
+>  	mutex_unlock(&isert_np->mutex);
+> +	mutex_unlock(&isert_conn_mutex);
+> =20
+>  	return 0;
+> =20
+> +out_drain_qp:
+> +	ib_drain_qp(isert_conn->qp);
+>  out_destroy_qp:
+>  	isert_destroy_qp(isert_conn);
+>  out_rsp_dma_map:
+> @@ -478,7 +510,9 @@ isert_connect_request(struct rdma_cm_id *cma_id, stru=
+ct rdma_cm_event *event)
+>  	isert_device_put(device);
+>  out:
+>  	kfree(isert_conn);
+> -	rdma_reject(cma_id, NULL, 0, IB_CM_REJ_CONSUMER_DEFINED);
+> +	/* cma destroys an accepted cm id when this handler returns an error. */
+> +	if (!accepted)
+> +		rdma_reject(cma_id, NULL, 0, IB_CM_REJ_CONSUMER_DEFINED);
+>  	return ret;
+>  }
+
+[Severity: High]
+As reported by Sashiko on v3 [1], if device->removing becomes true between
+the unlocked READ_ONCE(device->removing) check and mutex_lock(&isert_conn_m=
+utex)
+in isert_connect_request(), isert_rdma_accept() has already succeeded, yet
+the error path jumps to out_drain_qp -> out_destroy_qp and calls
+ib_destroy_qp(isert_conn->qp) before returning -ENODEV to the RDMA CM
+CONNECT_REQUEST handler.
+
+On iWARP transports, cma_accept_iw() -> iw_cm_accept() sets
+IWCM_F_CONNECT_WAIT, stores cm_id_priv->qp =3D qp, and takes a provider QP
+reference via iw_add_ref(qp) that is not released until iw_destroy_cm_id() =
+or
+cm_close_handler() runs on iwcm_wq after the CONNECT_REQUEST callback
+returns. Won't calling ib_destroy_qp() here before returning from
+isert_connect_request() deadlock in iWARP provider destroy_qp callbacks that
+wait for the QP reference count to drop to zero (such as siw_destroy_qp() or
+_irdma_destroy_qp()), or deadlock destroy_cm_id() on iwcm_wq waiting for
+IWCM_F_CONNECT_WAIT to clear after iw_conn_req_handler() returns an error?
+
+Also on IB/RoCE, doesn't destroying isert_conn->qp directly with
+ib_destroy_qp() after cma_accept_ib() has already sent the CM REP leave
+cma_id->qp pointing to a freed QP while the CM ID is still being torn down?
 
 [ ... ]
 
-> @@ -2497,32 +2530,25 @@ isert_free_np(struct iscsi_np *np)
-
-[ ... ]
-
-> +	for (;;) {
-> +		mutex_lock(&isert_np->mutex);
-> +		isert_conn =3D isert_np_take_conn(isert_np, &promoted);
-> +		mutex_unlock(&isert_np->mutex);
-> +
-> +		if (!isert_conn)
-> +			break;
-> +
-> +		isert_info("cleaning isert_conn %p state (%d)\n",
-> +			   isert_conn, isert_conn->state);
-> +		if (promoted)
-> +			isert_put_conn(isert_conn);
-> +		isert_put_conn(isert_conn);
+> @@ -628,17 +695,17 @@ isert_np_cma_handler(struct isert_np *isert_np,
+>  	return -1;
+>  }
+> =20
+> -static int
+> -isert_disconnected_handler(struct rdma_cm_id *cma_id,
+> -			   enum rdma_cm_event_type event)
+> +static void
+> +isert_teardown_conn(struct isert_conn *isert_conn)
+>  {
+> -	struct isert_conn *isert_conn =3D cma_id->qp->qp_context;
+>  	bool terminated =3D false;
+> =20
+>  	mutex_lock(&isert_conn->mutex);
+>  	switch (isert_conn->state) {
+>  	case ISER_CONN_TERMINATING:
+> +	case ISER_CONN_DOWN:
+>  		break;
+> +	case ISER_CONN_INIT:
+>  	case ISER_CONN_UP:
+>  		terminated =3D isert_conn_terminate(isert_conn);
+>  		break;
+> @@ -652,10 +719,20 @@ isert_disconnected_handler(struct rdma_cm_id *cma_i=
+d,
 >  	}
+>  	mutex_unlock(&isert_conn->mutex);
+> =20
+> -	if (terminated) {
+> -		ib_drain_qp(isert_conn->qp);
+> -		isert_handle_unbound_conn(isert_conn);
+> -	}
+> +	if (!terminated)
+> +		return;
+> +
+> +	ib_drain_qp(isert_conn->qp);
+> +	isert_handle_unbound_conn(isert_conn);
+> +}
 
 [Severity: Critical]
-Can skipping ib_drain_qp(isert_conn->qp) when isert_free_np() takes ownersh=
-ip
-of the connection cause a use-after-free in isert_login_recv_done()?
+Can isert_teardown_conn() called from isert_remove_one() race with
+isert_connect_error()?
 
-During RDMA_CM_EVENT_CONNECT_REQUEST, isert_connect_request() allocates a QP
-using a shared workqueue-polled CQ from ib_cq_pool_get(..., IB_POLL_WORKQUE=
-UE),
-posts the login receive WR with wr_cqe =3D &isert_conn->login_desc->rx_cqe
-(callback isert_login_recv_done) via isert_login_post_recv(), and transitio=
-ns
-the QP to RTS in isert_rdma_accept() before adding isert_conn->node to
-isert_np->accepted.
+Previously, connection teardown and connection error handling both ran under
+the cm_id handler_mutex, and ISER_CONN_INIT was not handled in
+isert_disconnected_handler(). With this change, isert_remove_one() takes a
+reference on isert_conn via kref_get_unless_zero(&isert_conn->kref) and cal=
+ls
+isert_teardown_conn() outside the cm_id handler_mutex, while
+isert_connect_error() does not take isert_conn->mutex or update
+isert_conn->state:
 
-When an IB_CM_REJ_RECEIVED event (or a cma_rep_recv() failure) occurs,
-cma_ib_handler() calls cma_modify_qp_err() before invoking
-cma_cm_event_handler() -> isert_cma_handler() -> isert_connect_error(). That
-QP state transition flushes the pre-posted login receive WR into the shared=
- CQ
-and queues cq->work (ib_cq_poll_work). Likewise, for a connection on
-isert_np->accepted or isert_np->pending, the remote initiator may already h=
-ave
-sent a login PDU that completed into the shared CQ.
+drivers/infiniband/ulp/isert/ib_isert.c:isert_connect_error() {
+	mutex_lock(&isert_np->mutex);
+	owned =3D !list_empty(&isert_conn->node);
+	list_del_init(&isert_conn->node);
+	mutex_unlock(&isert_np->mutex);
 
-Previously, isert_connect_error() unconditionally called
-ib_drain_qp(isert_conn->qp) at the start of the function (added in commit
-cd52cb26e7ea ("IB/isert: Fix use-after-free in isert_connect_error")) before
-taking isert_np->mutex. With this change, if isert_free_np() unlinks
-isert_conn->node via isert_np_take_conn() first, isert_connect_error() sees
-!owned and returns 0 without draining the QP, and neither isert_free_np() n=
-or
-isert_connect_release() calls ib_drain_qp(isert_conn->qp):
+	if (!owned) {
+		isert_info("conn %p is being released already\n", isert_conn);
+		return 0;
+	}
 
-drivers/infiniband/ulp/isert/ib_isert.c:isert_connect_release() {
-	...
-	if (isert_conn->cm_id &&
-	    !isert_conn->dev_removed)
-		rdma_destroy_id(isert_conn->cm_id);
+	ib_drain_qp(isert_conn->qp);
+	isert_conn->cm_id =3D NULL;
+	isert_put_conn(isert_conn);
 
-	if (isert_conn->qp)
-		isert_destroy_qp(isert_conn);
-
-	isert_unmap_tx_desc(&isert_conn->login_tx_desc, device->ib_device);
-
-	if (isert_conn->login_desc)
-		isert_free_login_buf(isert_conn);
-	...
-	kfree(isert_conn);
+	return -1;
 }
 
-Because isert_destroy_qp() releases the shared CQ via ib_cq_pool_put(), whi=
-ch
-only decrements cq->cqe_used without canceling or flushing cq->work, can
-ib_cq_poll_work concurrently invoke isert_login_recv_done() and dereference
-wc->qp->qp_context, isert_conn->device, isert_conn->login_desc, and
-isert_conn->mutex after isert_connect_release() has already freed them?
+If isert_connect_error() runs after isert_remove_one() grabs a kref on a
+connection in ISER_CONN_INIT and before isert_remove_one() calls
+isert_teardown_conn(), isert_connect_error() sets isert_conn->cm_id =3D NUL=
+L,
+drops only the initial kref, and returns -1 (causing RDMA CM to destroy
+cma_id), leaving isert_conn->state as ISER_CONN_INIT. When
+isert_remove_one() then calls isert_teardown_conn() ->
+isert_conn_terminate(), won't rdma_disconnect(isert_conn->cm_id) dereference
+a NULL (or freed) cm_id?
+
+Conversely, if isert_teardown_conn() runs isert_conn_terminate() first, it
+sets isert_conn->state =3D ISER_CONN_TERMINATING and drops isert_conn->mute=
+x to
+call ib_drain_qp(isert_conn->qp) before isert_handle_unbound_conn() unlinks
+isert_conn->node. While ib_drain_qp() is sleeping, can't a concurrent
+isert_connect_error() see !list_empty(&isert_conn->node), unlink it, call
+ib_drain_qp(isert_conn->qp) concurrently on the same QP, clear
+isert_conn->cm_id =3D NULL, and free cma_id?
+
+Also, if RDMA_CM_EVENT_UNREACHABLE triggers isert_connect_error() after
+isert_connected_handler() has promoted the connection to ISER_CONN_UP (with
+isert_conn->promoted =3D=3D true and an extra kref), isert_connect_error()
+unlinks isert_conn->node without dropping the promoted reference. Won't that
+leak isert_conn and hang wait_for_completion(&removal_comp) in
+isert_remove_one()?
+
+[ ... ]
+
+> @@ -2480,6 +2546,7 @@ isert_accept_np(struct iscsi_np *np, struct iscsit_=
+conn *conn)
+>  	isert_conn =3D list_first_entry(&isert_np->pending,
+>  			struct isert_conn, node);
+>  	list_del_init(&isert_conn->node);
+> +	isert_conn->promoted =3D false;
+>  	mutex_unlock(&isert_np->mutex);
+> =20
+>  	conn->context =3D isert_conn;
+
+[Severity: High]
+What happens if isert_teardown_conn() races with isert_accept_np() on a
+connection in ISER_CONN_UP?
+
+In isert_teardown_conn(), when isert_conn->state is ISER_CONN_UP, it sets
+isert_conn->state =3D ISER_CONN_TERMINATING under isert_conn->mutex, unlocks
+isert_conn->mutex, and calls ib_drain_qp(isert_conn->qp) before calling
+isert_handle_unbound_conn() to unlink isert_conn->node from
+isert_np->pending.
+
+During that ib_drain_qp() window, isert_accept_np() only acquires
+isert_np->mutex (without acquiring isert_conn->mutex or checking
+isert_conn->state):
+
+	mutex_lock(&isert_np->mutex);
+	if (list_empty(&isert_np->pending)) {
+		mutex_unlock(&isert_np->mutex);
+		goto accept_wait;
+	}
+	isert_conn =3D list_first_entry(&isert_np->pending,
+			struct isert_conn, node);
+	list_del_init(&isert_conn->node);
+	isert_conn->promoted =3D false;
+	mutex_unlock(&isert_np->mutex);
+
+	conn->context =3D isert_conn;
+	isert_conn->conn =3D conn;
+	isert_conn->state =3D ISER_CONN_BOUND;
+
+If isert_accept_np() pops the connection from isert_np->pending while
+ib_drain_qp() is in progress, it overwrites isert_conn->state from
+ISER_CONN_TERMINATING to ISER_CONN_BOUND. Then isert_handle_unbound_conn()
+sees list_empty(&isert_conn->node) and does nothing, while
+isert_teardown_conn() never called iscsit_cause_connection_reinstatement()
+because the state was ISER_CONN_UP when it checked. If the login request PDU
+already arrived before the QP drained and finishes a single-stage login, the
+login timer is stopped and iscsi_target_rx_thread() blocks in
+isert_get_rx_pdu() -> wait_for_completion_interruptible(&comp) on the
+already-drained QP. Doesn't this leave the connection stuck and hang
+isert_remove_one() at wait_for_completion(&removal_comp)?
+
+[ ... ]
+
+> @@ -2717,8 +2783,61 @@ static struct iscsit_transport iser_target_transpo=
+rt =3D {
+>  	.iscsit_get_sup_prot_ops =3D isert_get_sup_prot_ops,
+>  };
+> =20
+> +static void
+> +isert_remove_one(struct ib_device *ib_device, void *client_data)
+> +{
+> +	DECLARE_COMPLETION_ONSTACK(removal_comp);
+> +	struct isert_device *device, *found =3D NULL;
+> +	struct isert_conn *isert_conn, *tmp;
+> +	LIST_HEAD(removal_list);
+> +
+> +	mutex_lock(&device_list_mutex);
+> +	list_for_each_entry(device, &device_list, dev_node) {
+> +		if (device->ib_device !=3D ib_device)
+> +			continue;
+> +		device->refcount++;
+> +		device->removal_comp =3D &removal_comp;
+> +		found =3D device;
+> +		break;
+> +	}
+> +	mutex_unlock(&device_list_mutex);
+> +
+> +	if (!found)
+> +		return;
+> +
+> +	mutex_lock(&isert_conn_mutex);
+> +	WRITE_ONCE(found->removing, true);
+> +	list_for_each_entry(isert_conn, &isert_conn_list, conn_list) {
+> +		if (isert_conn->device !=3D found)
+> +			continue;
+> +		/* A connection with no reference left is already releasing. */
+> +		if (!kref_get_unless_zero(&isert_conn->kref))
+> +			continue;
+> +		list_add_tail(&isert_conn->removal_node, &removal_list);
+> +	}
+> +	mutex_unlock(&isert_conn_mutex);
+> +
+> +	list_for_each_entry_safe(isert_conn, tmp, &removal_list, removal_node) {
+> +		list_del_init(&isert_conn->removal_node);
+> +		isert_info("removing conn %p state %d\n",
+> +			   isert_conn, isert_conn->state);
+> +		isert_teardown_conn(isert_conn);
+> +		isert_put_conn(isert_conn);
+> +	}
+> +
+> +	isert_device_put(found);
+> +	wait_for_completion(&removal_comp);
+> +}
+
+[Severity: High]
+As reported by Sashiko on v2 [2], because isert_ib_client is registered aft=
+er
+cma_client, disable_device() invokes isert_remove_one() before
+cma_remove_one() destroys listening RDMA CM IDs.
+
+In ib_isert.c, struct isert_device is only present on device_list while its
+refcount is non-zero: if there are no active connections when
+isert_remove_one() runs (or once existing connections drop the refcount to 0
+in isert_device_put() and complete removal_comp), the isert_device is remov=
+ed
+from device_list and freed, and isert_remove_one() returns.
+
+If an incoming RDMA_CM_EVENT_CONNECT_REQUEST arrives on a listener before
+cma_remove_one() runs, won't isert_device_get() find no matching entry in
+device_list, allocate a fresh struct isert_device with removing =3D=3D fals=
+e, and
+accept the new connection after isert_remove_one() has already completed?
+When cma_remove_one() then delivers RDMA_CM_EVENT_DEVICE_REMOVAL to that
+connection, isert_disconnected_handler() queues release_work asynchronously,
+and isert_connect_release() calls rdma_destroy_id() (which unblocks
+cma_remove_one()) before destroying the QP, returning the shared CQ to the
+pool, unmapping DMA buffers, and deallocating the PD.
+
+[1] https://lore.kernel.org/r/20261102061608.617186-3-yhlee@isslab.korea.ac=
+.kr
+[2] https://lore.kernel.org/r/sashiko-outbox-184744@kernel.org
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103032924.1073=
-138-1-yhlee@isslab.korea.ac.kr?part=3D1
+138-1-yhlee@isslab.korea.ac.kr?part=3D3
