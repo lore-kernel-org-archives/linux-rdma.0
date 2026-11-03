@@ -1,22 +1,22 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=159.226.251.81
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793693848;
-	b=z9Uh5wwMsDI9vNm04G12wBjQBIXJ+kwsBiHZp1yTq/k+nAAOSGsz56/EDci0+kPwWCUp
-	 F1F3XF5CNiBYYljeK1DECB3BRMnZYYs94mk7nPwNJe+zMyIbAF4aT9FPtNaHlFIg1m2xa
-	 bk90NIyIU8j91Fc7fRCjrX+B5Hfo+1BWut/L/CSWnWd9oTLbMfJHgNJ24rcaFQKK1Y6KI
-	 tZ6XgFSCQFnByeDiXCjdIrQ1OqTVn5cmMpNTBgUK5g3Ff1cmhrLsPh6/mrNvU4DSH/xE8
-	 gtoZYTseBHjsG4GwsS03JHC9yj+3Uss2j0IT+KgsDM3PSzfOTcuADNUrQRGbp0V3PYw==
+	t=1793693950;
+	b=1gJoqaI9qlVsSFxVbUIRuOIysOOaZ5REa9FjBk6c5aQOvFfrKBYDXvPn1+l044jGoH2H
+	 JoTmhme73pevoaOmwyr1NbRkZidQTvpA2eMYPyJq1imAAf5+4U7DawAqiCaJG6esxFrNZ
+	 SWK6Wwx3A/9cIqyqFlSX0tD0CdcVXWkXQEvdtXo8V1774NYxWQRmrcUs0qUUyNyNwHobh
+	 RBPBhVO1IrTXxMrzWmItS8pHJhUampSE1P09rolKcfDiluFOm7CUEsmfg/mtQ8NhydFBt
+	 pEixxtB3yPBun/JgNfEqHt5bM3xjjuY4crBG1v70Q81Yg4gcVrv0WNiSgNL7B+IQhSg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793693848;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793693950;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-Id:X-Mailer:
 	 MIME-Version:Content-Transfer-Encoding:X-CM-TRANSID:
 	 X-Coremail-Antispam:X-Originating-IP:X-CM-SenderInfo;
-	bh=ByCs/mZsFgrdq9mpwG3he7XLV2D3BV8wO7JHEOzQf9A=;
-	b=v/3HQwx5j+4M1Kbbz3b2g7mKxuNEtOTGPFjCQep4wgtpCbS71wNpQDOj5bqlX+fkuT5U
-	 iv6MqDI8ds9m7Y1iZ2Zf77Zlm1c9+BR4ofSyeV2zcEB4ptHP6Nn7Ky2GvuumPMlBJBiX1
-	 C2PCx9LoKX9YowlNkCOJjwmUvBOv6i4+VCC7HPANjDOs2MoK0T5eW9CZJC1TPg7gxKcWW
-	 TDDe9Q4X6ZopM7eA3xQkL2OGr6cJ5rSlXaWekdSUHYYf6NYhP7oqzAyNMwVmQD5sWecWz
-	 jT5sirCr95y0VuBNal0QIVuQ2pyamRANh9fXWaAorCS/0j806Ht9/6ItRVD7QgGcq1A==
+	bh=0eH5aVQYUtNQwxUKjm8Xd4TfFeiPp0mMM52IQ05Kxrc=;
+	b=UW3VjuSxcivsZVqkHva8cQZb8T+NbWIiboMXENg7v/JnLFCKQKnBIZtiblyWA1GHrvYI
+	 VGzpvOitTHTHfl5J4TcpX6j6iA3Lm5ic12O/fxwNQ/ncEK6jcMGitSx+AHV4HY0bTYyn5
+	 xY8ue9sguTz1MV/TrwDiUzvPl1LtPRIZ1Ky46GVgcMo1IFSYpNyTULX453JKXqYdeakcK
+	 7Vu2YXOu/Y3JerPS+mThk6iGa76uiEwwFpRPxfbSqNjdftm65EPYOLwF7xC4xk7ayx6tW
+	 Ec2ZMCCY13GBvJzgu6ztOPMztE04kKXhdIl26r9Xm75n87P9SW7b93VCJwxn1Lvp7AQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=iscas.ac.cn;
 	spf=pass smtp.mailfrom=iscas.ac.cn;
@@ -25,25 +25,25 @@ Received: from cstnet.cn (smtp81.cstnet.cn [159.226.251.81])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B58C9606A324;
-	Tue,  3 Nov 2026 08:17:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B58C9606A324
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8E8B606A329;
+	Tue,  3 Nov 2026 08:19:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E8E8B606A329
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
 Received: from dfae2b116770.home.arpa (unknown [36.110.52.2])
-	by APP-03 (Coremail) with SMTP id rQCowAA3QZKTmOlqmVU6AA--.1291S2;
-	Tue, 03 Nov 2026 16:17:23 +0800 (CST)
+	by APP-03 (Coremail) with SMTP id rQCowADn8JH6mOlq8lk6AA--.1314S2;
+	Tue, 03 Nov 2026 16:19:06 +0800 (CST)
 From: Wentao Liang <vulab@iscas.ac.cn>
-To: mkalderon@marvell.com,
+To: dennis.dalessandro@cornelisnetworks.com,
 	jgg@ziepe.ca,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Wentao Liang <vulab@iscas.ac.cn>,
 	stable@vger.kernel.org
-Subject: [PATCH] RDMA/qedr: Unwind user queue setup if doorbell recovery setup fails
-Date: Tue,  3 Nov 2026 08:17:32 +0000
-Message-Id: <20261103081732.1144512-1-vulab@iscas.ac.cn>
+Subject: [PATCH] RDMA/hfi1: Free the trap send buffer when no address handle is available
+Date: Tue,  3 Nov 2026 08:19:15 +0000
+Message-Id: <20261103081915.1147987-1-vulab@iscas.ac.cn>
 X-Mailer: git-send-email 2.34.1
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -55,10 +55,10 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:rQCowAA3QZKTmOlqmVU6AA--.1291S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7Ar4xWw1DGrW8uFykZFW3trb_yoW8WFWrpr
-	ZxXrWYkryjgF47AanrJr1UtaySgaykCFWUKrZ29w1rZ3ZIkF129asIkF1UXFykAFs2qa1S
-	yr4qyr45Crn7CFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+X-CM-TRANSID:rQCowADn8JH6mOlq8lk6AA--.1314S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7AFW5Jw1kKFyDtF1rGF4rKrg_yoW8GrWkpF
+	Wqga4YkryDXF4aqa1UJw1DAFWFk3Z3t3yUurWvk34Du3Z8Zry7tr1Ska40qrW8Jrn7ur4a
+	vrs8XF48ur1kCw7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
 	9KBjDU0xBIdaVrnRJUUUkE14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
 	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
 	1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
@@ -72,48 +72,43 @@ X-Coremail-Antispam: 1UD129KBjvJXoW7Ar4xWw1DGrW8uFykZFW3trb_yoW8WFWrpr
 	AKxVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Gr0_
 	Cr1lIxAIcVC2z280aVCY1x0267AKxVW8Jr0_Cr1UYxBIdaVFxhVjvjDU0xZFpf9x0JUMGQ
 	DUUUUU=
-X-CM-SenderInfo: pyxotu46lvutnvoduhdfq/1tbiBgkAA2rpWmXrlAAAsP
+X-CM-SenderInfo: pyxotu46lvutnvoduhdfq/1tbiCRIAA2rpWfXuFAAAsN
 
-qedr_init_user_queue() pins user memory and allocates its PBL before
-initializing the doorbell recovery record. If the last step fails, it
-returns directly without releasing either resource. The CQ and QP
-creation callers treat this as a failed queue initialization and do not
-release that queue, leaving its user pages pinned and PBL storage leaked.
+send_trap() allocates a MAD send buffer before checking the subnet
+manager address handle. If creating that handle fails, or if the subnet
+manager LID is permissive, it unlocks and returns without submitting or
+freeing the buffer. No send completion can release an unsubmitted MAD.
 
-Free the PBL on doorbell recovery setup failure, then use the existing
-umem cleanup. Match the PBL allocation mode: RoCE uses the populated PBL
-allocator, while the other path allocates only the table descriptor.
-Clear the freed pointer as well.
+Free the send buffer after releasing the lock on both early returns,
+matching the other failures after ib_create_send_mad().
 
-Fixes: 97f612509294 ("RDMA/qedr: Add doorbell overflow recovery support")
+Fixes: bf90aadd630c ("IB/hfi1: Send MAD traps until repressed")
 Cc: stable@vger.kernel.org
 Assisted-by: DeepSeek-V4.1-Flash and OpenAI Codex
 Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
 ---
- drivers/infiniband/hw/qedr/verbs.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/hfi1/mad.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 3c777bfdef8f..f7a4b2bd7398 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -818,7 +818,15 @@ static inline int qedr_init_user_queue(struct ib_udata *udata,
- 	}
- 
- 	/* mmap the user address used to store doorbell data for recovery */
--	return qedr_init_user_db_rec(udata, dev, q, requires_db_rec);
-+	rc = qedr_init_user_db_rec(udata, dev, q, requires_db_rec);
-+	if (!rc)
-+		return 0;
-+
-+	if (alloc_and_init)
-+		qedr_free_pbl(dev, &q->pbl_info, q->pbl_tbl);
-+	else
-+		kfree(q->pbl_tbl);
-+	q->pbl_tbl = NULL;
- 
- err0:
- 	ib_umem_release(q->umem);
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index 585f1d99b91b..dbc2dd55689e 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -335,12 +335,14 @@ static void send_trap(struct hfi1_ibport *ibp, struct trap_node *trap)
+ 			ah = hfi1_create_qp0_ah(ibp, ibp->rvp.sm_lid);
+ 			if (IS_ERR(ah)) {
+ 				spin_unlock_irqrestore(&ibp->rvp.lock, flags);
++				ib_free_send_mad(send_buf);
+ 				return;
+ 			}
+ 			send_buf->ah = ah;
+ 			ibp->rvp.sm_ah = ibah_to_rvtah(ah);
+ 		} else {
+ 			spin_unlock_irqrestore(&ibp->rvp.lock, flags);
++			ib_free_send_mad(send_buf);
+ 			return;
+ 		}
+ 	} else {
 -- 
 2.34.1
 
