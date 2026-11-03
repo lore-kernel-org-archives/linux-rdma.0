@@ -1,45 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1793704665;
-	b=QAA15TZwGZbASg4S6yg/boDPbYAmOJhtIBlnTd7toL6QdB8j9Ikt3g+MzclurKyxyITo
-	 pvrFsOlFFgkdhlboB+XMLVjSVj48yOytSwjhZxfG4orV4m48Txf76iOudo6BhEY5Ka0fp
-	 nblksa6ry/1WgfxzMNsnDHZgfU5mAFhPn8vy/GwfOhkrM3kYwkRmbvNP/tFlqz2Y3UlnS
-	 dFcReP3Wc2O8UeH+UlUvkBfb7JAlv1OM8r8RQ2VBatu4UHIX1jyJ5cz5LkMydkhf2znX8
-	 oTBV0w2GlksaWFhiZO1rQypAieo/yTxub6ZW6xKGD/h8HV80ihtOdyKLn4RySlzbHvA==
+	b=dpZLqupzoK0z5EoqL1vg0M3BWxoXCtET0DE48DoIDxmkanChFLKwYJ3kcc87ulNSE6xv
+	 ne2YtPMhb4P+6p7O152v67oMBOZZC1NCdwJCawuE1+tR+eeCCG65kB0GdrO1orUlMFRCX
+	 yQHF9EksWlEV+FCHCnZNEiJmAFheCSDn1dfSpu0UpRXYWrjI8ne6XKz0fR8ByehgmB1lQ
+	 zmonpBydOLmLBL1XvQ9A/IoEqdyHwvfDDOZWMY0DIkqFmIC792qAevECncxn6ikNsdoi8
+	 PMahUI4+p/83D5CNPKJ5BgjEdNPcremOU1bOYmfeYd7DOug5ewn58zjduawwearmabw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1793704665;
 	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=rtAWr8aLJJGbLMkAW/QfAjNkIGwj00v3ffiqGlnvDJI=;
-	b=W9j+0OpFcJf7CfQ4u1zLr0YxUlkiZRNFIRXbYdPP2WAhBy5u/umsH/3iyElMYqUjBfX5
-	 mwg6RprdKwaVCla16W1RKzS8yO8XC3XR43lNtWAgMfMSsDAOiHEsS/GeSrk6Jp8QqVxJJ
-	 dbV/8ZxoRCrFmNKeeCf/I+hcuFldo3pG5+jbQWwmGC/D8hyfbNk4N3cO7/KeJgu61DKHR
-	 Vc8ZjxOJ4k5GXxTCtHaI4gvWu1xKOgNGpD7mv//Gb4ctLPIJDQo3spOdte0qUAn6IxcjS
-	 K5spZ3CBYWfr5vRxjzL2tDVzLvF9d9Lg8BHSWnTLsHjdDyc3EbGethi2y4REXvsYjkw==
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=EBO/bCkZUVwX4wNiyWd+6LkL6t+oxWYMxsCLdhnYOXY=;
+	b=cmhlhEGaL5nnebuWc2Yg73CAzCf/5M8044LXEOpFmkvKG8LRzGgE458NUSqShmWZ6rPn
+	 eXqR3uyiZidfm6dR+ObzOKOre/mv4Kd+0rPqTTRITvF9+Fk6Jahf2Wvj6e84Bomi0DDw7
+	 LZieELn/k6wZbA1z2DSoFnS9hZ0kY+AzKSZ/p0U1JYju34bf+zGJs3h6wHJ3aVnkNtmdf
+	 BYxA9NnlwxnXvEDAeky//Q5K6iQpf+6jZUZGnxRYC4YwxO4isKwV/BEuM32a815v69Kot
+	 WuDChwi8QLsn6sEUh774btKsJQD3AlPXJKSdsaEaiaccqtRWTvPz98CHi2K49qgSkYw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.microsoft.com;
 	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=PHzXZrac;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=WO2sJTNA;
 	arc=none smtp.remote-ip=13.77.154.182
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A6A8D606D81F;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1DA65606D80F;
 	Tue,  3 Nov 2026 11:17:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A6A8D606D81F
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1DA65606D80F
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=PHzXZrac
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=WO2sJTNA
 Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id 80C5020B716B; Tue,  3 Nov 2026 03:17:29 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 80C5020B716B
+	id 375F220B7167; Tue,  3 Nov 2026 03:17:29 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 375F220B7167
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1793704649;
-	bh=rtAWr8aLJJGbLMkAW/QfAjNkIGwj00v3ffiqGlnvDJI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=PHzXZracq/FACEYGrjwsNKh1FO1ZH+KKLlnz8zCoIbFnCoLt1nu1RO/9ZmVFEX4AV
-	 Lt3kfhaO9bzdapPUj3I3WsG+b1hljMQvxj7vOsZnRfUZN2/QdOZNHEXpAZyaeu0l3n
-	 ktQsLrpqZ8o609CFxg6mpu4EXo7mZ1TlQxIYR/sQ=
+	bh=EBO/bCkZUVwX4wNiyWd+6LkL6t+oxWYMxsCLdhnYOXY=;
+	h=From:To:Cc:Subject:Date:From;
+	b=WO2sJTNA8Nt2pZG3zVVSFmKZciOOP8fFLjiX8YfWtLVoeyNuMMpiRQ2R4aseSWaTo
+	 JmzUU5x1bZ33iRmt2LOPSU26pKWTa3xu5YATCl3TPQQL89WVN9HCtzBNcptisjHv9d
+	 VrQeRZVYL8HaBCPM6Hb8tjyXdPY36jXforYpZXUk=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	snsanghvi@microsoft.com,
@@ -48,12 +47,10 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v8 5/9] RDMA/mana_ib: Post receive WRs on kernel RC QPs
-Date: Tue,  3 Nov 2026 03:17:25 -0800
-Message-ID: <20261103111729.729886-6-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next v8 0/9] RDMA/mana_ib: Add kernel RC and fast registration support
+Date: Tue,  3 Nov 2026 03:17:20 -0800
+Message-ID: <20261103111729.729886-1-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
-In-Reply-To: <20261103111729.729886-1-kotaranov@linux.microsoft.com>
-References: <20261103111729.729886-1-kotaranov@linux.microsoft.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -67,69 +64,91 @@ Content-Transfer-Encoding: 8bit
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Implement receive request posting for RC QPs. When posting a batch of
-WRs, ring the doorbell periodically to prevent the u8 counter from
-overflowing.
+Add kernel RC QPs and fast-registration MRs to the MANA RDMA driver
+for kernel consumers such as NVMe/RDMA and NFS/RDMA.
 
-Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
----
- drivers/infiniband/hw/mana/wr.c | 37 +++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+Implement QP creation and state management, work request posting,
+completion processing, and error handling. Use the RDMA core's generic
+queue drains for kernel RC QPs, with software-flush notification in the
+posting paths. Kernel RC QPs require extended-WQE and power-of-two-SQ
+hardware support.
 
-diff --git a/drivers/infiniband/hw/mana/wr.c b/drivers/infiniband/hw/mana/wr.c
-index 250d673f58f2..5d42af91fce4 100644
---- a/drivers/infiniband/hw/mana/wr.c
-+++ b/drivers/infiniband/hw/mana/wr.c
-@@ -70,6 +70,41 @@ static int mana_ib_post_recv_ud(struct mana_ib_qp *qp, const struct ib_recv_wr *
- 	return err;
- }
- 
-+static int mana_ib_post_recv_rc(struct mana_ib_qp *qp, const struct ib_recv_wr *wr,
-+				const struct ib_recv_wr **bad_wr)
-+{
-+	struct mana_ib_dev *mdev = container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
-+	struct mana_ib_queue *ib_rq = mana_qp_get_rq(qp);
-+	unsigned long flags;
-+	u8 wqe_cnt = 0;
-+	int err = 0;
-+
-+	spin_lock_irqsave(&qp->rq_lock, flags);
-+
-+	for (; wr; wr = wr->next) {
-+		err = mana_ib_post_rq(qp, wr);
-+		if (unlikely(err)) {
-+			*bad_wr = wr;
-+			break;
-+		}
-+		wqe_cnt++;
-+		if (wqe_cnt == 0xFF) {
-+			mana_gd_wq_ring_doorbell_ext(mdev_to_gc(mdev), ib_rq->kmem,
-+						     ib_rq->kmem->head * GDMA_WQE_BU_SIZE,
-+						     wqe_cnt, 0);
-+			wqe_cnt = 0;
-+		}
-+	}
-+
-+	if (wqe_cnt)
-+		mana_gd_wq_ring_doorbell_ext(mdev_to_gc(mdev), ib_rq->kmem,
-+					     ib_rq->kmem->head * GDMA_WQE_BU_SIZE,
-+					     wqe_cnt, 0);
-+
-+	spin_unlock_irqrestore(&qp->rq_lock, flags);
-+	return err;
-+}
-+
- int mana_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
- 		      const struct ib_recv_wr **bad_wr)
- {
-@@ -79,6 +114,8 @@ int mana_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
- 	case IB_QPT_UD:
- 	case IB_QPT_GSI:
- 		return mana_ib_post_recv_ud(qp, wr, bad_wr);
-+	case IB_QPT_RC:
-+		return mana_ib_post_recv_rc(qp, wr, bad_wr);
- 	default:
- 		/* Unsupported QP type */
- 		*bad_wr = wr;
+Previous revisions were tested with krping, NVMe/RDMA, and NFS/RDMA,
+including RC send and receive error recovery with krping and NVMe/RDMA.
+
+The v7 series also passed 22 NVMe/fio profiles and 20 krping cases on
+two MANA VMs. Active-I/O resets and disconnects exercised generic SQ/RQ
+drains with softirq, workqueue, and direct-poll CQs. Tracing confirmed
+post-marker notifications and completion of all 200 captured drains.
+
+v8:
+- Patch 06: Annotate rc_send.immediate and immediate_ext as __le32
+
+v7:
+- Patch 09: Include GSI QPs in deferred ERR handling.
+- Patch 09: Complete software-flush setup even if the deferred firmware
+  ERR request fails. An error CQE guarantees whole-QP DMA shutdown for
+  all QP types.
+- Drop patch 10 to use the generic SQ/RQ drains for RC.
+
+v6:
+- Patch 08: Notify software flushes after posting to error-listed QPs.
+  Add reporting pending software flush for IB_CQ_REPORT_MISSED_EVENTS.
+- Patch 09: Check fenced WQEs on error cqes to prevent flushing completed WQEs.
+  Add mana_ib_cq_clean on QP reset to discard stale CQEs. QID 0 is an invalid
+  value for RNIC and safe dor discarding. Add error_pending flag to prevent
+  a deffered ERR request to error reset QPs.
+
+v5:
+- Patch 01: Reject max_num_sg above MANA_MAX_FMR_PAGES.
+- Patch 02: Validate kernel QP queue sizes and SGE limits to prevent
+  overflows. Ensure that queue size cannnot be 0.
+- Patch 06: Preserve fence flags on unsignaled WQEs. Check message
+  length and read sges before posting a wqe.
+- Patch 08: Remove the unused QP state field.
+
+v4:
+- Patch 01: Use an explicit 64-byte FMR MST alignment
+- Patch 02: Validate that the RNIC firmware reports at least two send
+  SGEs and subtract the reserved SGE only for RNIC-based mana_ib.
+- Patch 07: Add missing wqe_size to shadow wqe for SEND/Write, and
+  return a missed-event hint for cached CQEs when CQ is armed
+
+v3:
+- Patch 07: Mask arm_psn to 24 bits before ringing the doorbell.
+- Patch 08: Exclude userspace QPs from kernel software-state handling
+  and CQ error-list insertion, and unlink UC QPs during destruction.
+
+v2:
+- Patch 03: Validate fixed-WQE capacity for the header, OOB and SGEs.
+- Patch 04: Preserve UC QP modification support.
+- Patch 08: Skip software CQ notifications for direct-polling CQs.
+- Patch 09: Flush that ERR work during QP teardown.
+- Patch 10: Limit drain callbacks to RC QPs and avoid completion
+  callbacks for direct-polling CQs.
+
+Konstantin Taranov (9):
+  RDMA/mana_ib: Allocate and map fast-registration MRs
+  RDMA/mana: Create and destroy kernel RC QPs
+  net/mana: Extend GDMA encoding for new RDMA WQEs
+  RDMA/mana_ib: Maintain kernel RC QP state
+  RDMA/mana_ib: Post receive WRs on kernel RC QPs
+  RDMA/mana_ib: Post send and memory-management WRs on RC QPs
+  RDMA/mana_ib: Poll RC completions using PSN and FSN progress
+  RDMA/mana_ib: Flush and notify CQs when kernel QPs enter ERR
+  RDMA/mana_ib: Handle error CQEs for kernel QPs
+
+ drivers/infiniband/hw/mana/cq.c                 | 353 +++++++++++++++++--
+ drivers/infiniband/hw/mana/device.c             |   2 +
+ drivers/infiniband/hw/mana/main.c               |  15 +-
+ drivers/infiniband/hw/mana/mana_ib.h            | 139 +++++++-
+ drivers/infiniband/hw/mana/mr.c                 |  87 ++++-
+ drivers/infiniband/hw/mana/qp.c                 | 327 ++++++++++++++++--
+ drivers/infiniband/hw/mana/shadow_queue.h       |  22 ++
+ drivers/infiniband/hw/mana/wr.c                 | 433 +++++++++++++++++++++++-
+ drivers/net/ethernet/microsoft/mana/gdma_main.c |  55 ++-
+ include/net/mana/gdma.h                         |  38 ++-
+ 10 files changed, 1402 insertions(+), 69 deletions(-)
+
 -- 
 2.43.0
