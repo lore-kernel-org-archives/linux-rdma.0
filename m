@@ -1,57 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793711904;
-	b=WYkqJ294Gnij6vYEsdJhTWJ7XwAeoPgnu8dN/Wtz26ioHQqP/WS4bOyqACjtQo77u9mw
-	 jxpo6AIzospeVF0x0YYwmXA6ECeYjDo1WAhzz+t0y0fRGFSVEfJIMqbNLZjop/Dv26nnl
-	 8zy59ZAEOQSon25WQvcBKSVL1RoGuHyoP7KfOOGwURElbg+aRU9B+ZcMBSG01EdZl0B0r
-	 32jleP78e7X09AH0xCPtpRnyFU3+UFFiOyumMoM2Me2MF7xmI6FW5tWh0yHsN3b/6LK9M
-	 JzHzlrw8qIC26Ao+Db5voXz16DVXnu2YJB55vOzWuwANFar84x/OWYGtn7d2YZ6MfMw==
+	t=1793711896;
+	b=Ash+XRTvBxu8KKP+6pBTm+A7WKJgatYJCxXUPk8RIzG9MP3zjl7NKZIsm04sSSZWuKuv
+	 mU4Fa+7ZKcvwFT53QwXieWCAbReSTERcukkkezTT4MN2tIw7J/lcAUKIP11g2XLvRnyks
+	 +DIes23+84vOZuMqu7pwmowyGwM+AC5eZiXr0zfkx+z1mnpYRVag0QC4QFJj8LpdHZhCU
+	 n2cYMz2yheu8SXJGoYGY0foEyVlzNNCrQrzANFxuIhHVRLt9J2gZxHjwJWt273yYZtIbD
+	 qNLQQ+j4W5ORV7gtzvoa8NbSqtOs+qOiyTUr1QXYxPL6N8cruvl2x7ln9A0Ah/K2dLg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793711904;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=M+8QB+YuJQscZ5e11Kfm7HKByeBile3uF5gBl/vc5As=;
-	b=qcUzdYdAdG10icIUrWTEoaZOUlxCoq3KNv3NKM635GMCIv/IgVNBtZyeeyjI0q77WC86
-	 nPCXEL07s7GUenh+0RLAFuFmqZhs/Y0hY7q+V01o4j7B/PT962Y5uLl6DGr789HN3UGk7
-	 WrQFygxv/LjcPMbribBdvcNu2kLgoCNcciejmOYFXemExXQbfrVNy83y3Ktc/TMjD0EAH
-	 B1LFrC5U1asUoNUWi60mijXeykyMgBCfNd7/OWHfIHpCcS2kGZtQByU1QFSULsSJ/vQMl
-	 tBiUXEbn8fETkRtN/IMVjuv0zOY2wipPu+nPWUczPCrHiWaDZJeb8o5OEr9BNu+v95w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793711896;
+	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
+	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Mailer;
+	bh=Mg+sRO/KXxvHyFf8BGRU0spjt12/Bths67pMAyAuXQM=;
+	b=boJQeAQ3BjGL7Lp1lC6xnpAUuKw+rIonvBMXKvFFEVm1pcgZjcvZ+q3rLi8hU2KIQMVT
+	 Fk0UOza8yrCUh/22SSEXdE4HQs4j99+2Hsb3nhsx9EnrVrQsSM9NZbeMQOb2fGiAfOUX0
+	 acGoq/iHZL+FAl/G0Tp6/N2DojwYKzHfwiPRh/716XwHLwfpKW7j/j9oPZgMpgFjeHlwk
+	 3MJEMVVM6TXI2eyiBdKOmYK8ty2Xh5VCm5+zyCfIDwoBupdEdsn4mm49BUSbW9HVd085Q
+	 975np8aOB6AF0BR3NW43NMcbYNidxgmREoGwc31Pv1GpKmW39g9kNO57gw02dO5BQQA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="d/cCONWE";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ze6Ur0Km;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C7DB606D83B
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 13:18:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 354D8606D806
+	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 13:18:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=d/cCONWE
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10D8E1F00919;
-	Tue,  3 Nov 2026 13:18:23 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ze6Ur0Km
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40DA21F0093A;
+	Tue,  3 Nov 2026 13:18:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793711903;
-	bh=M+8QB+YuJQscZ5e11Kfm7HKByeBile3uF5gBl/vc5As=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=d/cCONWEp3RcSaJfvcmtMXmTFlF8Ba1MsW1IdN9wnXJM4+SOWFsT7bOYgGfSJwZh4
-	 RKxsMoA+zaeR6KK8qzc7BRG8Nj3d9Z6h0mwuI5sLufT+pWk3oyY+u+9FANFbChRE+C
-	 0w8LpTfyY7m8XK8hJ3LxjFih0Np9/gJ9PiYKHQ5fv6URo9OknrXitl0kbQrOIQMxs8
-	 R9qt4PHIhc8lF7t6A5uJVfy+X3dxLEV64a4Q0+zaAxEhYLH56L3emWpSjKVPZjnHpy
-	 LNoAm8DeG4h7RHE8jwLZ6kvIZ+fR/LxhjL/cmTwPWNNizZGFzZK3OhHXsZndp/P8Mo
-	 JaOIQKBJYBoXw==
-Message-ID: <sashiko-outbox-195319@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma v9 3/7] RDMA/zrdma: Add internal headers and
- hardware register definitions
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Yanze Zhang" <zhang.yanze@zte.com.cn>
+	s=k20260515; t=1793711895;
+	bh=Mg+sRO/KXxvHyFf8BGRU0spjt12/Bths67pMAyAuXQM=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=Ze6Ur0KmdrysVdx+mYIQU9NBv2fPEEsU/C1mTyALWE1IzRAsBpXeQlyAV9Qb5DvUg
+	 Vkppo+iMFczLKYSDUF4cZqkaLY7CBPn8B7FO6L7yYs8fVjySvK6tuWwoJrIfCJlOJ7
+	 zkKgS6JMDmg+06rVrZ0iZsGIbw1KP4PA8QU/TGhNl4mxDgpcutH+TEPzYb+hDxf/pd
+	 W74VTHOZHMibJFCziBeG8PMz+JgYlEyy6nQYpN3r/CxQx1s34QFuvFGMpoCKwQ9vlu
+	 3okyagjs/EAsXGUS9ohVFBOj9h6B91Ypa6pTvz62PLiFeAl4jjXWXABYwRMDZmtJQm
+	 N8zRqmuNpxC7g==
+From: Leon Romanovsky <leon@kernel.org>
+To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, 
+ Jacob Moroni <jmoroni@google.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261103125654.2707069-4-zhang.yanze@zte.com.cn>
-References: <20261103125654.2707069-1-zhang.yanze@zte.com.cn>
- <20261103125654.2707069-4-zhang.yanze@zte.com.cn>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 03 Nov 2026 13:18:22 +0000
+In-Reply-To: <20261029133121.1204636-1-jmoroni@google.com>
+References: <20261029133121.1204636-1-jmoroni@google.com>
+Subject: Re: [PATCH rdma-next 2/3] RDMA/irdma: Do not allow rereg_mr to
+ revive defunct MRs
+Message-Id: <179371189316.1725532.6470435945125559364.b4-ty@kernel.org>
+Date: Tue, 03 Nov 2026 08:18:13 -0500
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,106 +58,29 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [Medium] RDMA/zrdma: private duplication of PF driver auxiliary device st=
-ructures
---
 
-commit 41373c3ba84c37bb5af763979de45792b2597a0b
-Author: Yanze Zhang <zhang.yanze@zte.com.cn>
+On Thu, 29 Oct 2026 13:31:21 +0000, Jacob Moroni wrote:
+> An MR can become "defunct" if a previous rereg_mr happened
+> to fail in between deregistering the old MR in HW and
+> reregistering it (e.g., due to ib_umem_get_va() failing
+> in the IB_MR_REREG_TRANS case).
+> 
+> In this case, the MR is left in a state where the umem may
+> have already been released.
+> 
+> [...]
 
-RDMA/zrdma: Add internal headers and hardware register definitions
+Applied, thanks!
 
-This commit adds internal header files defining driver device structures,
-resource allocation helpers, and hardware limits for the ZTE DingHai RDMA
-driver.
+[2/3] RDMA/irdma: Do not allow rereg_mr to revive defunct MRs
+      https://git.kernel.org/rdma/rdma/c/6b5c8236e3008f
 
-> diff --git a/drivers/infiniband/hw/zrdma/zrdma_main.h b/drivers/infiniban=
-d/hw/zrdma/zrdma_main.h
-> new file mode 100644
-> index 0000000000000..d65811735e74e
-> --- /dev/null
-> +++ b/drivers/infiniband/hw/zrdma/zrdma_main.h
-> @@ -0,0 +1,177 @@
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
 
-[ ... ]
-
-> +struct zxdh_pci_f {
-
-[ ... ]
-
-> +	struct zxdh_sc_dev sc_dev;
-> +	struct pci_dev *pcidev;
-> +	struct zxdh_rdma_core_dev *zdev_info;
-> +	struct zxdh_hw hw;
-> +
-> +	spinlock_t rsrc_lock; /* protects resource allocation arrays */
-> +
-> +	struct msix_entry *msix_entries;
-> +	struct zxdh_gen_ops gen_ops;
-> +	struct zxdh_device *zdev;
-> +	u16 qp_index;
-> +	bool net_irq_cap;
-> +	int common_func_num_max;
-> +	void *dh_dev;
-> +};
-> +
-> +struct zxdh_device {
-> +	struct ib_device ibdev;
-> +	struct zxdh_pci_f *rf;
-> +	struct net_device *netdev;
-> +	struct list_head ah_list;
-> +	struct mutex ah_list_lock; /* protects ah_list operations */
-> +	u8 ibdev_status;
-> +	u8 roce_mode : 1;
-> +	enum init_completion_state init_state;
-> +	struct zxdh_auxiliary_dev *zxdh_adev;
-
-[ ... ]
-
-> diff --git a/drivers/infiniband/hw/zrdma/zrdma_type.h b/drivers/infiniban=
-d/hw/zrdma/zrdma_type.h
-> index ded4052453455..c6ad2be17c159 100644
-> --- a/drivers/infiniband/hw/zrdma/zrdma_type.h
-> +++ b/drivers/infiniband/hw/zrdma/zrdma_type.h
-> @@ -21,6 +21,12 @@ enum zxdh_function_type {
->  	ZXDH_FUNCTION_TYPE_VF,
->  };
-> =20
-> +/*
-> + * The structures below describe the auxiliary device of the DingHai PF
-> + * driver. Their layout has to match the definition of the PF driver
-> + * exactly, because the probe path reads them through the auxiliary devi=
-ce
-> + * that the PF driver provides.
-> + */
->  struct zxdh_rdma_core_dev;
-
-[Severity: Medium]
-Should the cross-driver auxiliary device structures (struct
-zxdh_auxiliary_dev, struct zxdh_rdma_core_dev, struct zxdh_rdma_core_ops, a=
-nd
-struct zxdh_rdma_if) be defined in a shared header under include/linux/
-rather than privately duplicated in drivers/infiniband/hw/zrdma/zrdma_type.h
-and referenced by struct zxdh_pci_f (zdev_info) and struct zxdh_device
-(zxdh_adev) in drivers/infiniband/hw/zrdma/zrdma_main.h?
-
-In a subsequent patch in the series, zxdh_probe() in
-drivers/infiniband/hw/zrdma/zrdma_main.c casts the auxiliary_device pointer
-via container_of(aux_dev, struct zxdh_auxiliary_dev, adev) and dereferences
-zxdh_adev->rdma_ops and zxdh_adev->zxdh_info.
-
-However, the in-tree DingHai PF driver under drivers/net/ethernet/zte/dingh=
-ai/
-(en_pf.c, en_pf.h, dh_queue.h) does not define struct zxdh_auxiliary_dev or
-struct zxdh_rdma_core_dev and does not register any auxiliary device. Relyi=
-ng
-on manual struct layout matching across subsystems with untyped void *
-placeholders (such as ops, parent, auxiliary_ops[18], and dh_dev) risks type
-confusion and memory corruption if either driver changes.
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103125654.2707=
-069-1-zhang.yanze@zte.com.cn?part=3D3
