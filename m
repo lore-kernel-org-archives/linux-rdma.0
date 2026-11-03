@@ -1,57 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793706181;
-	b=UK03N0YiKBUiSJ4Pp8WY6MOSEH8cXExtvwPuxO7qA5nUn1M4B7TaHZM6zurSHIujC9XW
-	 0iURX/WCvbdMoXacfeUYpYoVr9NeG8NUeAaQi3m4M2378YJe0jZd5uWTPf+VjijlwhQbD
-	 z6TJ9atFgpodj+GE6je7DUb9wJy9weCoiETvnMmwrJBLmNNQox0y/7lSw+GBdlPyYN1iY
-	 RxARiIkbr+G61XtaGv/HYBPQmYmnhPDc08CmK1VUuei6yewuJQBufwfg0tuJAu01sRwFE
-	 a/l9WxpjFGVFS8vyhQfhUc7LhYPTOMRvHBkctIZBDemy2d6dNhfOxwqRGYAlQQn/tVg==
+	t=1793706647;
+	b=3OZvAGk28+qLuYeHlOqWaULa2+aL6W9GZz+pGEXTcj/IKvow59igILQfP4i1WzuRmLpi
+	 odxxDdmuV+whnPmOuu0M7jFiBObQ/Zgz6f1/8zOr1xHTrr+5XoIPF0T3BssH1ATj2+P+E
+	 vp10baiKbHaIrZkX3On3CJeym7m/Nyf6h4P84mwhRpAmVvX+OUrJlx/ZQV6ydudkq8BN5
+	 aPZwXStzh/JcsGG0I1z0OFruSIPd/JZxIruu/P851pU+GbVYMzLOnYu4EnNvQSK7tG3SY
+	 r/za/C1fkEMmVDNzc5G2wJcu8FLH/lymeB8Dn/vZu2OfBR6GXc7PMqBTJ8zvLqVeIJg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793706181;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=BdgKMI/foV8vOYerI0Xy9aiATnZvVdLVnLAk8HR1TE4=;
-	b=M4aqwh0PfkOik9/qbRUIozO33ch8etL/4kcYx5PQbttMJTIsjTxGlJOGj9DFr0pjrN3u
-	 O2X54vNdS2w5nyxbqmiQh8jnUfE14J1fOwnwS65lcJ6xyI2AG7/Hj+5EMECqMm2fkKYtt
-	 6H0PPTdWvAtCgOC5FX1x+PrkMZ770No1pbk4l9sTeomIR4wnJEj+9oQRUrTKNQzzO/qTv
-	 vBiz/+XQ5VB3d9snMf9OZT2yiAP5JlYrJrbrqskOPsETyDnVSl5cQelAN36B8YLmYXoWw
-	 dbm5f3KF+A5u6YmMHt+2+e0iTXvMOAza3JyCVaahn1bNfk7/nrUWdu25yzIK6mbP8FQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793706647;
+	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=9bGsescVcCTMSoGoxEzsBVUuqwxJfWKZTtlOq3cqGT0=;
+	b=01focG0Dk4FlCQYViQx8pBdFbjDuPdRd2v17NQBMgT2PB4Ton34Vy+xLTb1G6QaGffiu
+	 DoysspUtCJ4Lt/fQhKYFdflSaWepMJu2LLHg2tXz38wfeFrhxv0/xCVK9piBcOgerAFpu
+	 NKwShXx7jlMy/dZJeAaGJCb8OuWUrLGuBXtJ3CZ6lLua13C+US3FlKt+PXQRLq9oBIyu+
+	 9HFd5L98O02Nzy/MaO5Bz50TJrLiquD00uZIpfGeyAcRXG4hCyCRHBGW1iSH+9zgkMYtg
+	 aI7b5JJ9q44vaNU2UVoSUUtvGGmfz2JnimLDxMfXbbEqeKhZEdev1Ee4TWsFMmDxwIw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="nKr3/rpV";
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00033606EEBA
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 11:43:00 +0000 (UTC)
+	dmarc=pass header.from=linux.microsoft.com;
+	spf=pass smtp.mailfrom=linux.microsoft.com;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=qfI0B5Uz;
+	arc=none smtp.remote-ip=13.77.154.182
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4415C6082BEC;
+	Tue,  3 Nov 2026 11:50:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4415C6082BEC
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nKr3/rpV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F4931F000C1;
-	Tue,  3 Nov 2026 11:43:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793706180;
-	bh=BdgKMI/foV8vOYerI0Xy9aiATnZvVdLVnLAk8HR1TE4=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=nKr3/rpVBIvXXY4VJ06TipdUodFKrL48e51hqbpn/yyShfRbif1IqbuFPMlGcp9Hp
-	 zVSEPpBj/AwoXLXrtJ5sCzbBHHGLIYvAjKCi5Eb12TM1KBRr/loOacYvsc8SKIq8tc
-	 gbvg+FGjx3ael3C3jhK2rPvdY0Hu3IaRbnkyTnYZdZ7b2aq/aTZLQb7kBxQKy8aeip
-	 wAJbX9joXwJYEM7L+bERdytSkq5GAHDgA2iPFKirVJbZUGyL+Jr+RIoM3YwdmrUv4H
-	 u0kZOCon98wTEhNe9iR+RmtLVgZ16evvm2gtbO34VYFrI3guhtK6Hn+sxZZ5yyMKRW
-	 84ha4IyLqUGCw==
-Message-ID: <sashiko-outbox-195171@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v8 7/9] RDMA/mana_ib: Poll RC completions
- using PSN and FSN progress
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261103111729.729886-8-kotaranov@linux.microsoft.com>
-References: <20261103111729.729886-1-kotaranov@linux.microsoft.com>
- <20261103111729.729886-8-kotaranov@linux.microsoft.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 03 Nov 2026 11:42:59 +0000
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=qfI0B5Uz
+Received: by linux.microsoft.com (Postfix, from userid 1186)
+	id 5F18E20B7167; Tue,  3 Nov 2026 03:50:32 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 5F18E20B7167
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1793706632;
+	bh=9bGsescVcCTMSoGoxEzsBVUuqwxJfWKZTtlOq3cqGT0=;
+	h=From:To:Cc:Subject:Date:From;
+	b=qfI0B5UzdcHHuZASIiJSfwdzjdunShRI56Emsb0OZzSnty9qvmBe59vvK35ZoiCf1
+	 4E5161+nVm1RukiagMtzHDHv6iEOew60xgpP6F4bIEjcelgpztbK6jNiymHBGKm3ZT
+	 g3b6zdnjftg43DSPEaziqNvqsuQYnco4GvScF5To=
+From: Konstantin Taranov <kotaranov@linux.microsoft.com>
+To: kotaranov@microsoft.com,
+	snsanghvi@microsoft.com,
+	zhiyueqiu@microsoft.com,
+	longli@microsoft.com,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH rdma-next] RDMA/mana_ib: Enable RDMA devices on the CDX bus
+Date: Tue,  3 Nov 2026 03:50:32 -0800
+Message-ID: <20261103115032.736554-1-kotaranov@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.7
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,146 +60,93 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [High] RDMA/mana_ib: early budget return on unsignaled WQEs in mana_advan=
-ce_send()
---
+From: Zhiyue Qiu <zhiyueqiu@microsoft.com>
 
-commit 9f65c018972a66e7f324e13ff6cdbb436c550724
-Author: Konstantin Taranov <kotaranov@microsoft.com>
+Enable MANA RDMA on CDX by depending on the shared GDMA core and matching
+the CDX auxiliary devices.
 
-RDMA/mana_ib: Poll RC completions using PSN and FSN progress
+Map non-PCI userspace doorbells with pgprot_device() to match the CDX
+transport, and report the Microsoft vendor ID directly.
 
-This commit adds RC completion polling for receive completions, armed-PSN
-notifications, and MMQ completions, retiring requester and MMQ shadow
-entries using sequence numbers while honoring fence dependencies and
-rearming the next signal PSN on armed completions.
+Signed-off-by: Zhiyue Qiu <zhiyueqiu@microsoft.com>
+Co-developed-by: Konstantin Taranov <kotaranov@microsoft.com>
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+---
+ drivers/infiniband/hw/mana/Kconfig  | 10 +++++-----
+ drivers/infiniband/hw/mana/device.c |  2 ++
+ drivers/infiniband/hw/mana/main.c   |  8 +++++---
+ 3 files changed, 12 insertions(+), 8 deletions(-)
 
-> diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana=
-/cq.c
-> index 843e2c64b32bc..cd77e305c38f9 100644
-> --- a/drivers/infiniband/hw/mana/cq.c
-> +++ b/drivers/infiniband/hw/mana/cq.c
+diff --git a/drivers/infiniband/hw/mana/Kconfig b/drivers/infiniband/hw/mana/Kconfig
+index 546640657..6eae7fa91 100644
+--- a/drivers/infiniband/hw/mana/Kconfig
++++ b/drivers/infiniband/hw/mana/Kconfig
+@@ -1,10 +1,10 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ config MANA_INFINIBAND
+ 	tristate "Microsoft Azure Network Adapter support"
+-	depends on NETDEVICES && ETHERNET && PCI && MICROSOFT_MANA
++	depends on NETDEVICES && ETHERNET && MICROSOFT_GDMA_CORE
+ 	help
+ 	  This driver provides low-level RDMA support for Microsoft Azure
+-	  Network Adapter (MANA). MANA supports RDMA features that can be used
+-	  for workloads (e.g. DPDK, MPI etc) that uses RDMA verbs to directly
+-	  access hardware from user-mode processes in Microsoft Azure cloud
+-	  environment.
++	  Network Adapter (MANA) on the PCI or CDX bus. MANA supports RDMA
++	  features that workloads such as DPDK and MPI can use to directly
++	  access hardware from user-mode processes in the Microsoft Azure
++	  cloud environment.
+diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
+index 62c7803ca..33e474907 100644
+--- a/drivers/infiniband/hw/mana/device.c
++++ b/drivers/infiniband/hw/mana/device.c
+@@ -257,6 +257,8 @@ static void mana_ib_remove(struct auxiliary_device *adev)
+ static const struct auxiliary_device_id mana_id_table[] = {
+ 	{ .name = "mana.rdma", },
+ 	{ .name = "mana.eth", },
++	{ .name = "mana_cdx.rdma", },
++	{ .name = "mana_cdx.eth", },
+ 	{},
+ };
+ 
+diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
+index 858bbc325..c63ac20e7 100644
+--- a/drivers/infiniband/hw/mana/main.c
++++ b/drivers/infiniband/hw/mana/main.c
+@@ -572,7 +572,10 @@ int mana_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vma)
+ 	pfn = (gc->phys_db_page_base +
+ 	       gc->db_page_size * mana_ucontext->doorbell) >>
+ 	      PAGE_SHIFT;
+-	prot = pgprot_writecombine(vma->vm_page_prot);
++	if (dev_is_pci(gc->dev))
++		prot = pgprot_writecombine(vma->vm_page_prot);
++	else
++		prot = pgprot_device(vma->vm_page_prot);
+ 
+ 	ret = rdma_user_mmap_io(ibcontext, vma, pfn, PAGE_SIZE, prot,
+ 				NULL);
+@@ -623,14 +626,13 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
+ 			 struct ib_udata *uhw)
+ {
+ 	struct mana_ib_dev *dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
+-	struct pci_dev *pdev = to_pci_dev(mdev_to_gc(dev)->dev);
+ 	int err;
+ 
+ 	err = ib_no_udata_io(uhw);
+ 	if (err)
+ 		return err;
+ 
+-	props->vendor_id = pdev->vendor;
++	props->vendor_id = PCI_VENDOR_ID_MICROSOFT;
+ 	props->vendor_part_id = dev->gdma_dev->dev_id.type;
+ 	props->max_mr_size = MANA_IB_MAX_MR_SIZE;
+ 	props->page_size_cap = dev->adapter_caps.page_size_cap;
 
-[ ... ]
+base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
+-- 
+2.43.0
 
-> @@ -390,17 +425,105 @@ static void handle_rq_cqe(struct mana_ib_qp *qp, s=
-truct gdma_comp *cqe,
->  	shadow_queue_advance_consumer(&qp->shadow_rq);
->  }
-> =20
-> +/*
-> + * A fenced WQE can acknowledge the other send queue. Retire those depen=
-dencies
-> + * first, without losing the fence when the caller's WC array fills up.
-> + */
-> +static bool mana_advance_send(struct mana_ib_qp *qp, bool mmq, u32 seq,
-> +			      struct mana_cq_poll *poll)
-> +{
-> +	struct shadow_queue *shadow =3D mmq ? &qp->shadow_mmq : &qp->shadow_sq;
-> +	struct shadow_queue *other =3D mmq ? &qp->shadow_sq : &qp->shadow_mmq;
-> +	struct shadow_wqe_header *shadow_wqe;
-> +
-> +	while ((shadow_wqe =3D shadow_queue_get_next_to_consume(shadow))) {
-> +		if (PSN_LT(seq, mmq ? shadow_wqe->fsn : shadow_wqe->wqe_offset_or_psn))
-> +			break;
-> +		if (poll->produced =3D=3D poll->budget)
-> +			return false;
-> +		if (shadow_wqe->flags & MANA_WQ_FENCE_WC) {
-> +			u32 dependency =3D mmq ? shadow_wqe->wqe_offset_or_psn : shadow_wqe->=
-fsn;
-> +			struct shadow_wqe_header *other_wqe;
-> +
-> +			while ((other_wqe =3D shadow_queue_get_next_to_consume(other))) {
-> +				if (PSN_LT(dependency, mmq ? other_wqe->wqe_offset_or_psn :
-> +							     other_wqe->fsn))
-> +					break;
-> +				mana_complete_send(qp, !mmq, poll, VENDOR_ERR_OK);
-> +				if (poll->produced =3D=3D poll->budget)
-> +					return false;
-> +			}
-> +		}
-> +
-> +		mana_complete_send(qp, mmq, poll, VENDOR_ERR_OK);
-> +	}
-> +
-> +	return true;
-> +}
-> +
-> +static bool handle_mmq_cqe(struct mana_ib_qp *qp, u32 fsn,
-> +			   struct mana_cq_poll *poll)
-> +{
-> +	return mana_advance_send(qp, true, fsn, poll);
-> +}
-> +
-> +static bool handle_psn_cqe(struct mana_ib_qp *qp, u32 psn,
-> +			   struct mana_cq_poll *poll)
-> +{
-> +	struct mana_ib_dev *mdev =3D container_of(qp->ibqp.device, struct mana_=
-ib_dev, ib_dev);
-> +	struct shadow_wqe_header *shadow_wqe;
-> +	struct gdma_queue *recv_q;
-> +	bool consumed;
-> +	u32 arm_psn;
-> +
-> +	if (qp->ibqp.qp_type !=3D IB_QPT_RC)
-> +		return true;
-> +
-> +	recv_q =3D qp->rc_qp.queues[MANA_RC_RECV_QUEUE_REQUESTER].kmem;
-> +
-> +	consumed =3D mana_advance_send(qp, false, psn, poll);
-> +	if (consumed) {
-> +		shadow_wqe =3D shadow_queue_get_next_to_signal(&qp->shadow_sq);
-> +		arm_psn =3D shadow_wqe ? shadow_wqe->wqe_offset_or_psn : psn + 1;
-> +		arm_psn &=3D MANA_WQE_OFFSET_MASK;
-> +		mana_gd_wq_ring_doorbell_ext(mdev_to_gc(mdev), recv_q, arm_psn,
-> +					     SET_ARM_BIT, MANA_PSN_CLIENT_OFFSET);
-> +	}
-> +
-> +	return consumed;
-> +}
-
-[Severity: High]
-Can mana_advance_send() return false when only unsignaled WQEs remain to be
-retired, causing handle_psn_cqe() to skip rearming the requester PSN
-doorbell?
-
-In mana_complete_send(), when vendor_error is VENDOR_ERR_OK, mana_fill_wc()
-is only called when MANA_WQ_NO_SIGNAL_WC is not set:
-
-	if (vendor_error || !(wqe->flags & MANA_WQ_NO_SIGNAL_WC))
-		mana_fill_wc(qp, poll, wqe, wqe->send_opcode, vendor_error);
-
-Unsignaled WQEs do not consume an entry in poll->wc or increment
-poll->produced.
-
-However, mana_advance_send() checks poll->produced =3D=3D poll->budget
-unconditionally at the start of the outer loop before checking whether
-shadow_wqe has MANA_WQ_NO_SIGNAL_WC set, and again at the end of the inner
-fence loop right after mana_complete_send(qp, !mmq, poll, VENDOR_ERR_OK).
-
-If a caller posts a signaled WR followed by an unsignaled WR that is
-acknowledged by the same CQE (for example, a signaled IB_WR_REG_MR on MMQ
-followed by a fenced unsignaled SQ WR, or a signaled SQ WR followed by an
-unsignaled SQ WR covered by the same CQE_TYPE_ARMED_CMPL) and polls with
-budget equal to the number of signaled WRs, completing the signaled WR
-brings poll->produced to poll->budget. Before retiring the remaining
-acknowledged unsignaled WQE, mana_advance_send() sees poll->produced =3D=3D
-poll->budget and returns false.
-
-When that happens via mana_handle_cqe() -> handle_psn_cqe(), consumed is
-false, so handle_psn_cqe() skips calling mana_gd_wq_ring_doorbell_ext() on
-recv_q and leaves cq->has_pending_cqe set even though no signaled WCs remain
-for that CQE. If the caller waits for completions of subsequent signaled WRs
-before polling again, hardware will not generate another CQE_TYPE_ARMED_CMPL
-and the RC send queue can stall.
-
-Should mana_advance_send() only check poll->produced =3D=3D poll->budget wh=
-en the
-next WQE to be completed does not have MANA_WQ_NO_SIGNAL_WC set?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103111729.7298=
-86-1-kotaranov@linux.microsoft.com?part=3D7
