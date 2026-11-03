@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793695399;
-	b=nWPyjY/pZ94qXf0D4vCK1q+IYEapLJ74nIeNRR7WGr5B9n32Azw/DGrCKLjkxxAijoPO
-	 Qxo8a5N/K5UgTzveFFbOAdwjsu19uTgj20np1gDuw25+CDWN2VUNfa47OQVdpXb6fXfh8
-	 CKkRRozfmNLONOqmZafCiO0QAinlDuw4Jsz/7m7foW614cOC8eWw62mQMYlwbO7K6xFo8
-	 eCZwplADn92QIdKj5mw7D937hm69vXjCXws+tmd6ZgRiKa/WYeHm+okcFsT0RXgHIMoJE
-	 0N+idmME6+XUNgLp/b2HqX6VdWw4mau4+9hHkU1gKXrI3NmUuItpb2M2of4h8AYrpOQ==
+	t=1793695531;
+	b=XJbzY1JW9spPrMkZllVT44EN7uz7vYJPGxCbq125PYMjPsOFjyIl3ZCpGNt6rnzIy0B+
+	 M6GCsI1fR/JChKSrzKGCqR1Z1N0bQK8spGOJqQ2O45o+moPo9UBqAeWFj5YfUqpFpCVM9
+	 dWxJ55gFLi2VF6ZNvOmfvwl2enfD3WoIiLGTxUR0sWahQ4phgdkZDS05NtTCcPZp3brV2
+	 t5taj7QB2Hjnjuo7RiRtsb3PpbyjJBshPP5tt7eipeA0wOqpQvVJQtZ/2utDXpbPjqmC/
+	 A/HeY7KgMiPNEkHMCfRqYvL/JPoxwQEa+vvzoDbaWeNlndjonXmmwvMsoOcQQ+dtt4g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793695399;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793695531;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=t2wVESkVQnlznXAGBnJHwQZD4xLfgLe9Ua/8tzqmHqU=;
-	b=MybcE9cqyjPFIUaZiPzVlfLqOG0S9wW7Oz8j1P/xOjSsV/uKQOih7/QuZn6SVtA0s3RI
-	 I6OPlIgO6tph44u5xqrXBr6Y6BbtyIesS0ogFnjyVjlqKmI8l5tpsMJT+9qFew1AjSHY/
-	 Noo64fF9UGilRbtZl8UiiOVbOgN0TzDG0n92D/K6n6t9SkMNCjPAGVkc+rBcwMkPuPNz7
-	 qRv/x/8Kj/i73HRrqcheKtPBLEcQITStXQBY9bGQTRSNxzpdvxth5iGux16NIbPooPABn
-	 UskmCbtdX0MlQs2c/zbhiLn6xHelPNJjsyLw93KKeaCmoGUGM3R/q9RsmIIebaRHN8g==
+	bh=N/k3Z2oxYwWYYQ3hDZ2q/nSnk+cGWSITXdi5mL1nwAI=;
+	b=m79nyuSmPWw1b3BmnP4QjeAMT5m8gjB1EipOXGlaqaG2sldr1HVj0eQop6shq43oR1Dl
+	 aPtwuzHIVTSwM7nZ5UGhUqruLfNjKKpLhxxr7r3RUMPzeUwT6K0zHTDnJjalVXo4PoS7D
+	 7rW0maRNnvomPoNq84x5z/cF5dEr/1V/ovtJel7zk2/LQMMRqFOuHbvDGB9fqTCseZySB
+	 Mt3exJsbmdKaZmx1xU1nrWVbEtCxiObrikefOPYMKB54dxX220UXQe5bU1j+DVlhq3tOp
+	 a2nfCO/ThFKdR8JPc1aiZowGEG9wG0cLFH7DVNe/ek/F06mFqxMBzB3pmDdPt2zm7HA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OUjkSM5Y;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=K5cQ3xln;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EED22606A960;
-	Tue,  3 Nov 2026 08:43:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E850A606A326;
+	Tue,  3 Nov 2026 08:45:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OUjkSM5Y
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A45081F000C1;
-	Tue,  3 Nov 2026 08:43:18 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=K5cQ3xln
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C9261F00A1C;
+	Tue,  3 Nov 2026 08:45:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793695398;
-	bh=t2wVESkVQnlznXAGBnJHwQZD4xLfgLe9Ua/8tzqmHqU=;
+	s=k20260515; t=1793695530;
+	bh=N/k3Z2oxYwWYYQ3hDZ2q/nSnk+cGWSITXdi5mL1nwAI=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=OUjkSM5Y3fPkO4z29Yv/1nyV8eNAI/O+GP2JLqmBfsKwd7ZMKOLCwRQ8nYG0sfoWo
-	 HZfQh2gVOFBXaouUjLGvsXI1c3Neuqjo4oCVGy/bVjjE2veBIbzRfWrt7k6c9oyHgG
-	 AEpjpUVPlRdcfj/CuWJYBiilsP+OpeT1IuPaX0YkG+jDVUAqzvakPLYau39hQzC4qt
-	 xiV9nnIiMOcnshu1vLuA2Bp+4lJ6wEAx6Dqr0SO1Qbzk6ZGXSihcREem9+Q0HBUaBz
-	 zHJjCwIDhs7HEE2W+7G+HsKuBtK/NUftRXkILGBDY7t+K2IHKR3pc5mpxpGHToRUCR
-	 EKiEg1Od2ERNA==
-Message-ID: <sashiko-outbox-194858@kernel.org>
+	b=K5cQ3xlntBMbyC4tnB4IJ/Xc8BCWn94slHjZW5U3yKsWnTNYbHmMI1tWc56UD/5zj
+	 O1/ugZNPtJpsSjIUEo+6SeOS5Bt95TErXzthbm3+WUIonmqpnCbrUX5Dmu7/EBipIx
+	 PEkEdi6WmXO0dt0kApjo7v3vXlw5bp1T0ANGSMOcbp8kqW9l4n46LpzjJZHVQlc9s6
+	 eui3nPZZI9iKyH7a2PJuc4ZTXq9izSw72MfEToiWMmhC7+zqYaWtpYIGN3YyDkee5F
+	 mZglAIJZAeXZOjNqaUH6UiiSMn3e4Ho/D2CmVvgz+tq4VQyD2Cy/shGo2JRbsR+Wsx
+	 V4TnsUnyFTarA==
+Message-ID: <sashiko-outbox-194865@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v12 01/19] PCI/P2PDMA: Honor device-specific ACS
- redirection
+Subject: Re: [PATCH v12 02/19] PCI/P2PDMA: Document the TLP attribute
+ assumptions
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Leon Romanovsky" <leon@kernel.org>
 Cc: linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org
-In-Reply-To: <20261103-fix-p2p-acs-v4-0-v12-1-912101f93517@nvidia.com>
+In-Reply-To: <20261103-fix-p2p-acs-v4-0-v12-2-912101f93517@nvidia.com>
 References: <20261103-fix-p2p-acs-v4-0-v12-0-912101f93517@nvidia.com>
- <20261103-fix-p2p-acs-v4-0-v12-1-912101f93517@nvidia.com>
+ <20261103-fix-p2p-acs-v4-0-v12-2-912101f93517@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 03 Nov 2026 08:43:18 +0000
+Date: Tue, 03 Nov 2026 08:45:29 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,25 +63,21 @@ Precedence: list
 
 > From: Leon Romanovsky <leonro@nvidia.com>
 >=20
-> Some ports, such as Zhaoxin Switch Downstream Ports, redirect peer-to-peer
-> traffic without an ACS capability, as their device-specific ACS quirks
-> report. P2PDMA reads only ACS Control, so below such a port it hands out
-> bus addresses for traffic that goes to the host bridge.
+> P2PDMA selects a mapping without receiving the Request's ordering or
+> Address Type attributes. Its ACS handles only strictly ordered Requests
+> carrying an Untranslated address.
 >=20
-> Take Request and Completion Redirect from a bridge's quirk too. Ignore
-> endpoint quirks, which only describe traffic between an endpoint's own
-> functions. Skip bridges on a root bus: they never sit between two peers,
-> and the AMD southbridge quirk may sleep there during DMA mapping.
+> Document that the result is not defined for Relaxed Ordering or
+> ATS-translated Requests because those TLP attributes can select different
+> routes through the fabric.
 >=20
-> pci=3Ddisable_acs_redir=3D cannot override a quirk, so name such ports
-> separately.
->=20
-> Fixes: 52916982af48 ("PCI/P2PDMA: Support peer-to-peer memory")
+> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+> Tested-by: Tushar Dave <tdave@nvidia.com>
 > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103-fix-p2p-ac=
-s-v4-0-v12-0-912101f93517@nvidia.com?part=3D1
+s-v4-0-v12-0-912101f93517@nvidia.com?part=3D2
 
