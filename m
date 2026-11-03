@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793694659;
-	b=LGBENannGktmGgUUtNWBK6X3foqVK0E7WKmg0M3EvmmtRXFG/kQH1RYrxmsDE2hwT/rP
-	 u6s6FL68VUJSJz+shLqtfS9pBbhKBjBSrJ3q+Kvgj4Cib2c2xYfbfLKstcOjrd0DWbKR9
-	 ZOb66Lr4PBKtpvcywXpXMUxr0UTJVh/htBTkhJFNNCjp7hiD74aA9tE4IlcHvuZEaT+V0
-	 BApHHbm6E8W44g00c5n7zuaNmxaVrG33GL/BGKVa/k1Fb08AKp5rf1+Ck4VG6g91WwjTF
-	 zmpKb302NFw43SivZ6ZGqAh2ux5n3d2MzNCEyzv1323Kf9IFuLd6dHKG+uG+euMWwbw==
+	t=1793694665;
+	b=JW9jscMoEqgiFnN9dQ1RrmrAPfFDYFqLzX8ufl1Aepr0LFHpij/tCZ8/UrAGDbnajg1C
+	 37lBzlgMcoIt2msgQd2QXzluOmd6df2cnrLFrQhpSM2dVGEzWKIQHKRvX4jm79pckn+TK
+	 FYqX2UvRqtZrPpFTZNsQ5Gkp4pKHFp/usWlK9CjMmpgBu9dD8dxG//sBYj7iVnbx7tYMO
+	 qaj+lrdiIJW/xTwr6Y2I21krHcuRhNHVB2yu+DqNNsk55IwRGVo5yXQiX1jFxWPsQcOjO
+	 kWyvhYSRJmOaY/fHk3RiZmgHCOUz52RUJ5TpzlCAve6Rlu/DpKsGTOzRUWNXeHddkBg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793694659;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793694665;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
 	 Content-Transfer-Encoding;
-	bh=8ywQjiRQCWSFq2yn68/Xx90X0KCg7x7eO8tTr0XOneg=;
-	b=Z77cflATRWDAVWQXhBdRmbG73lQ1Fy1ieKiGxu9FYJxinRChBvJgYCANyAhs9PayCvGe
-	 bJUn7G6YWjzOhQxGhh9OSyL5HtewXlf0yrIrKtakIZsfo422DtGowDRJS/mG9OZ7W8GM8
-	 LCIAkqElWsJE3how3HJ3+5Q6/a8BrRsPCWxARmVgiWYN7nyisPuR910PT0UdcZV3+9gF+
-	 ERMmCaG3aQ/aKReNYssFY9S3GQR8Vd/SNl8TZ7mwPZ1NqiwCZ1SjRmdG5/nIuW1q5iFYn
-	 P0qZhF/BU3Oa8NbPfkSbK/F4wUG5AK1LsmCM4DPYJPb7jPurd3jG5rt+CHjZMyGdsLg==
+	bh=JB/FCHhyt3s38a6k8/1WBtPYBZ5iG4ZU4anWsPmm/tA=;
+	b=HGUl0HkFrc2FRW5HJXMzqtr5SjHe1OhejAVLM4poUqjkBDIpV2XKo4x4WnTsnCt8vTUE
+	 ofTMgstc9ibCqQp30gPmPaJqN5LQBJuFYcFkmX+pGuJPf1rewPgeKeZS3Co/28l8rzQO5
+	 gcNqjTClOwnDWBBPCZKjlYmaGHes2XzfW1RmHJd58FJfjb/EJaF/VIexEVGJlzB3ZBfql
+	 jsar8QdT2Wrgta39XJWOjboLjmGZqgUWU0EYTi2GyGK4j+I4RO4a4kv8rWp/tR05z23BD
+	 OEyFgs4H0xaFVl4WlkSwvtVxL3vmekW3D4RcA6zHanP6Ff7qWzoLzyeWFPJ6BdkHKOQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BUM+JcLy;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XVVQhJ9m;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ED9B60A383D;
-	Tue,  3 Nov 2026 08:30:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ECC560A6F69;
+	Tue,  3 Nov 2026 08:31:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BUM+JcLy
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D4581F00A15;
-	Tue,  3 Nov 2026 08:30:58 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XVVQhJ9m
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76F4E1F00A1D;
+	Tue,  3 Nov 2026 08:31:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793694659;
-	bh=8ywQjiRQCWSFq2yn68/Xx90X0KCg7x7eO8tTr0XOneg=;
+	s=k20260515; t=1793694665;
+	bh=JB/FCHhyt3s38a6k8/1WBtPYBZ5iG4ZU4anWsPmm/tA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=BUM+JcLyNxf8QV+iEKhqZwjAsx8uEhjGAMwKvDwHpaU6nWCj50+BG18cZ6/jzgTNp
-	 HFD7IssKjtU2XMl/y3D4KGxETAV1403Gy9oFts/Pdfxg87HomgZYu+xq0an4ZErK7t
-	 Wm/cbQ1tow2b2FWOhjTm69KN6OmR+qHji428a1klgiGTL93/59SRd3fOEsABGY8nrr
-	 UVYYeUO7qFY3tosOBNm3xuqIv+ZxEYQEcAFXgocQV6p62I8c02Kmoo9SdLvUdevR+y
-	 K6RUPUQHCSsEGPZWicUmTAuD5CUnAM7Gvs7atCrqDXO+9xE5s3XwDaugNCnmX0KJKu
-	 pbIPJBfpW5/Qw==
+	b=XVVQhJ9mffRCnzP9ySyEVmzD4l+z9+puOS+H8EJ6/hSnr6xzXj8AUPg8f3l4xxR8m
+	 yjKxtZszqr+39/wCynko6w8DQQSXJa/p/Ggr2VvmjTyaHL6gMGXmV3Paaor36FcEpj
+	 VyfNVI3BWojmRNRWdWmpsBVjOLq4uO0auL+owHnGU2lBK+GzGAnnYFxAr7KVxBHdau
+	 0MtjOLsf9pGYQc4VHPgeStvqpl6CWp/Rjg+6Dyw0dfgjs6De4K6xDoC6gHcG/br1Zn
+	 oqSKXi1Yw2ZnRQHArekaRUq6Zdx9GVBIDynhRtM5yq7yWptrRre3Jz8b7cFWX2OV5y
+	 xxcPWFq+4AO5g==
 From: Leon Romanovsky <leon@kernel.org>
 To: Bjorn Helgaas <bhelgaas@google.com>,
 	Logan Gunthorpe <logang@deltatee.com>,
@@ -69,9 +69,9 @@ Cc: linux-pci@vger.kernel.org,
 	Shuah Khan <skhan@linuxfoundation.org>,
 	Randy Dunlap <rdunlap@infradead.org>,
 	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH v12 15/19] PCI: Add KUnit coverage for ACS isolation checks
-Date: Tue,  3 Nov 2026 10:29:54 +0200
-Message-ID: <20261103-fix-p2p-acs-v4-0-v12-15-912101f93517@nvidia.com>
+Subject: [PATCH v12 16/19] PCI/P2PDMA: Document TLP-class routing
+Date: Tue,  3 Nov 2026 10:29:55 +0200
+Message-ID: <20261103-fix-p2p-acs-v4-0-v12-16-912101f93517@nvidia.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <20261103-fix-p2p-acs-v4-0-v12-0-912101f93517@nvidia.com>
 References: <20261103-fix-p2p-acs-v4-0-v12-0-912101f93517@nvidia.com>
@@ -90,217 +90,98 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Direct Translated P2P does not weaken IOMMU isolation because a Translated
-Request carries an address supplied by the IOMMU. Config-space reads that
-fail or return all ones, however, leave ACS state unknown and must not
-report isolation.
+The P2PDMA documentation leaves Relaxed Ordering and ATS-translated
+Requests undefined, although routing now depends on their attributes.
 
-Exercise both cases with fake config-space operations. Also cover missing
-and unrequested controls and a missing ACS capability.
+Describe the three TLP-sensitive ACS controls and the outcomes for each
+class. Clarify that Direct Translated P2P and Relaxed Ordering cannot
+create an internal route between sibling functions when hardware lacks that
+route.
 
-Tested-by: Tushar Dave <tdave@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/pci/pci.c          |   4 +-
- drivers/pci/pci.h          |   1 +
- drivers/pci/pci_acs_test.c | 139 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 143 insertions(+), 1 deletion(-)
+ Documentation/driver-api/pci/p2pdma.rst | 68 ++++++++++++++++++++++++++++++---
+ 1 file changed, 62 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index 6d677695c0f5..930c35fcca69 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -3611,7 +3611,8 @@ void pci_configure_ari(struct pci_dev *dev)
- 	}
- }
+diff --git a/Documentation/driver-api/pci/p2pdma.rst b/Documentation/driver-api/pci/p2pdma.rst
+index 7b11d7d1fdc6..05f896a0814b 100644
+--- a/Documentation/driver-api/pci/p2pdma.rst
++++ b/Documentation/driver-api/pci/p2pdma.rst
+@@ -49,12 +49,68 @@ rejects a host route without this forwarding support. The host bridge must
+ also support P2P. Clearing redirect controls cannot create an internal route
+ that the device does not support.
  
--static bool pci_acs_flags_enabled(struct pci_dev *pdev, u16 acs_flags)
-+VISIBLE_IF_KUNIT
-+bool pci_acs_flags_enabled(struct pci_dev *pdev, u16 acs_flags)
- {
- 	int pos;
- 	u16 ctrl;
-@@ -3632,6 +3633,7 @@ static bool pci_acs_flags_enabled(struct pci_dev *pdev, u16 acs_flags)
- 		return false;
- 	return (ctrl & acs_flags) == acs_flags;
- }
-+EXPORT_SYMBOL_IF_KUNIT(pci_acs_flags_enabled);
+-This evaluation assumes clients issue strictly ordered Requests carrying an
+-Untranslated address. Its result is not defined when clients use Relaxed
+-Ordering or issue ATS-translated Requests because those TLP attributes can
+-select different routes through the fabric. Unless ACS Translation Blocking
+-is enabled, a Port with ACS Direct Translated P2P enabled routes a
+-Translated Request directly to the peer regardless of the redirect controls.
++Three of those controls act on TLP attributes that the Requester chooses rather
++than on the topology, so the same path routes differently for different
++traffic. ACS Translation Blocking rejects any upstream Request whose Address
++Type is not Untranslated, and takes precedence over every other P2P control.
++ACS Direct Translated P2P routes a Translated Request to the peer regardless of
++Request Redirect and Egress Control. ACS Completion Redirect leaves alone
++Completions that carry the Relaxed Ordering attribute, which a Completion
++copies from the Request it answers.
++
++P2PDMA therefore decides each class of traffic separately, and
++``pci_p2pdma_map_type()`` answers for the one a DMA mapping is built for:
++strictly ordered Requests carrying an Untranslated address.
++
++The two directions are decided independently. Translation Blocking (TB),
++Direct Translated P2P (DT), Request Redirect (RR) and Egress Control (EC) on
++the Requester-side port decide the Request:
++
++=====  =====  =======  ============  ==========
++TB     DT     RR/EC    TLP class     Request
++=====  =====  =======  ============  ==========
++set    x      x        translated    blocked
++clear  set    x        translated    direct
++clear  clear  clear    translated    direct
++clear  clear  set      translated    redirected
++x      x      clear    untranslated  direct
++x      x      set      untranslated  redirected
++=====  =====  =======  ============  ==========
++
++Completion Redirect (CR) on the Completer-side port decides the Completions:
++
++=====  =========  ==========
++CR     TLP class  Completion
++=====  =========  ==========
++x      relaxed    direct
++clear  strict     direct
++set    strict     redirected
++=====  =========  ==========
++
++Combining the two tables gives the mapping type. A class is bus addressable
++when its Request and its Completions both route directly, and anything else
++goes through the host bridge. A blocked Request has neither route, because
++Translation Blocking rejects the Address Type itself rather than the
++destination. With no ACS control set anywhere, every class routes directly
++provided that any required internal route between sibling functions exists.
++Neither Direct Translated P2P nor Relaxed Ordering can create such a route.
++
++Some ports without an ACS capability, such as certain Zhaoxin Switch
++Downstream Ports, redirect peer-to-peer traffic anyway, and a device-specific
++ACS quirk tells the kernel so. P2PDMA treats such a port as having Request and
++Completion Redirect set, but with no exception for Relaxed Ordering, so it
++redirects every Completion.
++
++Note that DT only matters where RR or EC would otherwise redirect: it
++overrides them for a Translated address rather than granting a direct route
++that was not already there.
++
++Translation Blocking is not a routing control, so it is evaluated on every
++port the Request passes on its way upstream rather than at the divergence
++alone. A direct route turns around at the divergence and only passes the ports
++below it, while the host bridge route keeps climbing and passes that port and
++everything above it as well. Neither route falls back to the other, because
++the Address Type is rejected wherever the Request is addressed.
  
- /**
-  * pci_acs_enabled - test ACS against required flags for a given device
-diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-index 2dc394722d8f..8c38817c967e 100644
---- a/drivers/pci/pci.h
-+++ b/drivers/pci/pci.h
-@@ -1135,6 +1135,7 @@ enum pci_acs_p2pdma_state {
- };
- 
- #if IS_ENABLED(CONFIG_KUNIT)
-+bool pci_acs_flags_enabled(struct pci_dev *pdev, u16 acs_flags);
- enum pci_acs_p2pdma_state pci_acs_p2pdma_request(u16 ctrl,
- 						unsigned int tlp_flags);
- enum pci_acs_p2pdma_state pci_acs_p2pdma_completion(u16 ctrl,
-diff --git a/drivers/pci/pci_acs_test.c b/drivers/pci/pci_acs_test.c
-index 18c697226762..369444d2a04a 100644
---- a/drivers/pci/pci_acs_test.c
-+++ b/drivers/pci/pci_acs_test.c
-@@ -103,10 +103,145 @@ static void pci_acs_p2pdma_completion_test(struct kunit *test)
- 			c->expect);
- }
- 
-+/* Flags an IOMMU asks for; see REQ_ACS_FLAGS in drivers/iommu/iommu.c. */
-+#define ACS_REQ_FLAGS	(PCI_ACS_SV | PCI_ACS_RR | PCI_ACS_CR | PCI_ACS_UF)
- #define ACS_ALL_CAPS	(PCI_ACS_SV | PCI_ACS_TB | PCI_ACS_RR | PCI_ACS_CR | \
- 			 PCI_ACS_UF | PCI_ACS_DT)
- #define ACS_TEST_CAP	0x100
- 
-+struct acs_ctrl_cfg {
-+	unsigned int devfn;
-+	u16 cap;	/* Offset where the ACS capability responds */
-+	u16 ctrl;
-+	bool fail_read;
-+};
-+
-+static int acs_ctrl_read(struct pci_bus *bus, unsigned int devfn,
-+			 int where, int size, u32 *val)
-+{
-+	struct acs_ctrl_cfg *cfg = bus->sysdata;
-+
-+	*val = 0;
-+	if (cfg->fail_read)
-+		return PCIBIOS_DEVICE_NOT_FOUND;
-+
-+	if (devfn == cfg->devfn && size == 2 &&
-+	    where == cfg->cap + PCI_ACS_CTRL)
-+		*val = cfg->ctrl;
-+	return PCIBIOS_SUCCESSFUL;
-+}
-+
-+static int acs_ctrl_write(struct pci_bus *bus, unsigned int devfn,
-+			  int where, int size, u32 val)
-+{
-+	return PCIBIOS_SUCCESSFUL;
-+}
-+
-+static struct pci_ops acs_ctrl_ops = {
-+	.read	= acs_ctrl_read,
-+	.write	= acs_ctrl_write,
-+};
-+
-+struct acs_isolation_case {
-+	const char *desc;
-+	u16 ctrl;
-+	u16 req;
-+	bool expect;
-+};
-+
-+static const struct acs_isolation_case acs_isolation_cases[] = {
-+	{ "all_enabled", ACS_REQ_FLAGS, ACS_REQ_FLAGS, true },
-+	/* Translated Requests remain isolated by their IOMMU translation. */
-+	{ "dt", ACS_REQ_FLAGS | PCI_ACS_DT, ACS_REQ_FLAGS, true },
-+	{ "rr_not_enabled", PCI_ACS_SV | PCI_ACS_CR | PCI_ACS_UF,
-+	  ACS_REQ_FLAGS, false },
-+	{ "rr_not_required", PCI_ACS_SV | PCI_ACS_CR | PCI_ACS_UF,
-+	  PCI_ACS_SV | PCI_ACS_CR | PCI_ACS_UF, true },
-+};
-+
-+static void acs_isolation_desc(const struct acs_isolation_case *c, char *desc)
-+{
-+	strscpy(desc, c->desc, KUNIT_PARAM_DESC_SIZE);
-+}
-+
-+KUNIT_ARRAY_PARAM(acs_isolation, acs_isolation_cases, acs_isolation_desc);
-+
-+static void pci_acs_flags_enabled_test(struct kunit *test)
-+{
-+	const struct acs_isolation_case *c = test->param_value;
-+	struct acs_ctrl_cfg cfg = {
-+		.devfn = PCI_DEVFN(0, 0),
-+		.cap = ACS_TEST_CAP,
-+		.ctrl = c->ctrl,
-+	};
-+	struct pci_bus *bus = kunit_kzalloc(test, sizeof(*bus), GFP_KERNEL);
-+	struct pci_dev *pdev = kunit_kzalloc(test, sizeof(*pdev), GFP_KERNEL);
-+
-+	KUNIT_ASSERT_NOT_NULL(test, bus);
-+	KUNIT_ASSERT_NOT_NULL(test, pdev);
-+
-+	bus->ops = &acs_ctrl_ops;
-+	bus->sysdata = &cfg;
-+
-+	pdev->bus = bus;
-+	pdev->devfn = cfg.devfn;
-+	pdev->acs_cap = ACS_TEST_CAP;
-+	pdev->acs_capabilities = ACS_ALL_CAPS;
-+
-+	KUNIT_EXPECT_EQ(test, pci_acs_flags_enabled(pdev, c->req), c->expect);
-+}
-+
-+static bool acs_isolated(struct kunit *test, struct acs_ctrl_cfg *cfg,
-+			 u16 acs_cap, u16 acs_flags)
-+{
-+	struct pci_bus *bus = kunit_kzalloc(test, sizeof(*bus), GFP_KERNEL);
-+	struct pci_dev *pdev = kunit_kzalloc(test, sizeof(*pdev), GFP_KERNEL);
-+
-+	KUNIT_ASSERT_NOT_NULL(test, bus);
-+	KUNIT_ASSERT_NOT_NULL(test, pdev);
-+
-+	bus->ops = &acs_ctrl_ops;
-+	bus->sysdata = cfg;
-+
-+	pdev->bus = bus;
-+	pdev->devfn = cfg->devfn;
-+	pdev->acs_cap = acs_cap;
-+	pdev->acs_capabilities = ACS_ALL_CAPS;
-+
-+	return pci_acs_flags_enabled(pdev, acs_flags);
-+}
-+
-+static void pci_acs_flags_no_cap_test(struct kunit *test)
-+{
-+	struct acs_ctrl_cfg cfg = {
-+		.devfn = PCI_DEVFN(0, 0),
-+		.cap = 0,
-+		.ctrl = ACS_REQ_FLAGS,
-+	};
-+
-+	KUNIT_EXPECT_FALSE(test, acs_isolated(test, &cfg, 0, ACS_REQ_FLAGS));
-+}
-+
-+static void pci_acs_flags_read_fails_test(struct kunit *test)
-+{
-+	u16 no_rr = ACS_REQ_FLAGS & ~PCI_ACS_RR;
-+	struct acs_ctrl_cfg cfg = {
-+		.devfn = PCI_DEVFN(0, 0),
-+		.cap = ACS_TEST_CAP,
-+		.ctrl = ACS_REQ_FLAGS,
-+	};
-+
-+	KUNIT_EXPECT_TRUE(test, acs_isolated(test, &cfg, ACS_TEST_CAP, no_rr));
-+
-+	cfg.fail_read = true;
-+	KUNIT_EXPECT_FALSE(test, acs_isolated(test, &cfg, ACS_TEST_CAP, no_rr));
-+
-+	/* A device that does not answer reads as all ones, without an error */
-+	cfg.fail_read = false;
-+	cfg.ctrl = 0xffff;
-+	KUNIT_EXPECT_FALSE(test, acs_isolated(test, &cfg, ACS_TEST_CAP, no_rr));
-+}
-+
- /*
-  * Drive calc_map_type_and_dist() over a fabricated PCIe fabric matching the
-  * canonical topology of two devices below one switch:
-@@ -920,6 +1055,10 @@ static struct kunit_case pci_acs_test_cases[] = {
- 			 acs_request_gen_params),
- 	KUNIT_CASE_PARAM(pci_acs_p2pdma_completion_test,
- 			 acs_completion_gen_params),
-+	KUNIT_CASE_PARAM(pci_acs_flags_enabled_test,
-+			 acs_isolation_gen_params),
-+	KUNIT_CASE(pci_acs_flags_no_cap_test),
-+	KUNIT_CASE(pci_acs_flags_read_fails_test),
- 	KUNIT_CASE(acs_walk_bus_addr_test),
- 	KUNIT_CASE(acs_walk_request_redirect_test),
- 	KUNIT_CASE(acs_walk_completion_redirect_test),
+ However, if the P2P transaction reaches the host bridge then it might have to
+ hairpin back out the same root port, be routed inside the CPU SOC to another
 
 -- 
 2.56.0
