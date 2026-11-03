@@ -1,52 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793707970;
-	b=Rx7nd46H7xXqRe0B74r81Aejwo0DL623/hxkIar0gnxqq8PO/+CaczVlhUEeL6/9Q81Y
-	 4kqa+u96AF7neaj/mpEwRhiE7t7KNo1SGJJXgr9oqhFwDk6gGW26Mo4lWsQEGtYNumNCT
-	 x6qbhulzEG2c5VgxJpyW8EH3jcADW3C1Td0cevzJBBQeNxmbce/6QKgrdPvssNkmQM1Gl
-	 Movw9H4XGxKeIJFLur+kAZQlm5EafknRpI76tZ6XSHfAnTjL7kDvlH7IJzlkYa8GoaV+Q
-	 zzv0vU9o9jt2XM9WWDMMXLvHroQkPjRw2a99F2wOLRT24WcPrjV+d5TyphUD6krQjnQ==
+	t=1793708105;
+	b=To17ezh62GeGRC+y/GujRNgPL5c3q8Q/SvtEDj5U1fQTMW23WzTcSlH0Knj/MAdG8mgc
+	 908Pxro6WrUbR1lbrUSfLSycuUTR4tOXT8cR3DfuR/eV29NMB+k824dIXeg5Zn/1lGIex
+	 qAqfqlqGViYCKJtje9JKCfGhErmecFf1yMe/RWHuVk70z5xyDNjbodHeJlo+LPvFC3+v3
+	 shrvzKzpdKKKvkikqdY5wgjNaqoqhfUgkBe17+oxJjg2hqOnQii3TO9LE4Yz+S/icO0MF
+	 tGZbHoPQ4hE46syQPdXPdw1vWg4SbjSZPCfgvZ85U8kyT1pE2/ncRrCCbA6Vg9wm0EQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793707970;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=bYgNjmIYMf8GGiJRFq8Z2C527I+wZyryF4hYP2gQ2zQ=;
-	b=rIool9IxqkiEGi4ePGONRlYuripWuJ+VMP/6SClZeWgZf6uFhBeP4vl+8YB9MFFleESN
-	 RRw0Cy9mbmxn96sK3MrPyGR2ljm8fq9xsgwr+8IYeXyhAAD7YxjYgqdBPELk8RRDyn43L
-	 RO4sTjZFoML/vwhRk02NuFivQ7g5HHMC62EiFUJYxpCaXHqct2U1nsTmVfC0UUKW5BY8f
-	 voaHS3HL2H2zL54Emk50QXLJBF+f8j00cZoD5hyoBRCwN106qExsMvFESO5G5ivp4wTZV
-	 DRvsVHvWSS7gBEpf2zcckmgrfAtjT5r8aS605is04WLZcfPvbjC4xYolyweEiwhNxqw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793708105;
+	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
+	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Mailer;
+	bh=YPuUVtDGgigWI04eSSxvP43obSKXgU81OUIabuAn5sw=;
+	b=f1JUH8Bdy+gAjEUiQRYW/00l2Q4fWAkEi3Mmn1DOJeJlUSQl3zlq/spSp+Hu+bdGjKxt
+	 XD1rTLKGwPk56793UcmE6151y1Pp8/NPAVzXFQFimZa3BkUKsWf8PmpUnWBgzUTLVtTu8
+	 GFtxB0ccF/m7at3A+VihtV2P9NREYJU9djAZ74DmQi1+ICuwr38jw8xGcBCm3f5LX+HVT
+	 KtskCAkcB+aM6Ii8hk6G8wgIUkDUI7G+uQ1NDpx5UzTsgAKWBU92l+2+jKPHDmcjX2PRI
+	 scpS3SG+0MF4BOD8Iwiw4WPayhUYcwansXKiw6rfFY8GJC8jDJ/onzp5pJmRyntZVOQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=o1fKkQ5i;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="V8/v3eCx";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BD8A606A324
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 12:12:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9323606A32E
+	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 12:15:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=o1fKkQ5i
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5ACCF1F000C1;
-	Tue,  3 Nov 2026 12:12:49 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=V8/v3eCx
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D412A1F000C1;
+	Tue,  3 Nov 2026 12:15:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793707970;
-	bh=bYgNjmIYMf8GGiJRFq8Z2C527I+wZyryF4hYP2gQ2zQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=o1fKkQ5i1SMu8CQ1JwuMfpQjlwyyCsqFTbFdcUZLuZRiVWx5gRleTr6L2j4oB9RlG
-	 E08Y/qMcLqWYY2lkoomarVhrbZSl3rQvI768zde/4HWuw16ibirvIpLq9PLA7TJ+3/
-	 B6k4InG1hUhAoazZBBnAZcOzxwmTloqT64H/HrHAEFeBHZz34PN0DdqO3ZJodnVwVa
-	 rQvg8/YZeJDUFr1tfsykcItqX0Oq73G98/W0Q86oBn0bWJqnODw0uiDG5I82ltbBH+
-	 WKn6d+ASdGPTBAc5/Nm581gmX2ampCjflSaWk7fu1B+70LM6RLWqdqtffMx8GAG2ZX
-	 rH/9giad5f1CA==
-Date: Tue, 3 Nov 2026 14:12:46 +0200
+	s=k20260515; t=1793708104;
+	bh=YPuUVtDGgigWI04eSSxvP43obSKXgU81OUIabuAn5sw=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=V8/v3eCxQXvaliqN/7O/8qYtNrTKJXIIH/7cuQocMBQMfIQhP9cEvpX5vhVnbUkn5
+	 zu+KFUCDu9z7LhgJXplpsbxrelrL78/jgOE9u5KuMuFHFVj5yXGqLbDHloLYkjvXw3
+	 5MOdeujir7Q60KXhpldZPM6FnptCs7fO7ueMnzy5o9RuWvT+vjUkxUjXcaDiSiD6g5
+	 oE7a62qGv9Igzm1hl6QIStgE/FQyHUDoT/9myKr/gFAH2EmkvnAyvsr2sXVEuGzOTZ
+	 aVOmu2M+6vI7k7/MpnA2lQkb41OPbO0gHM6jOOkNPk/jntuXlyPnJvBrmK09pC3ys5
+	 zznnUzrLf5P6Q==
 From: Leon Romanovsky <leon@kernel.org>
-To: Mohamad Pishdar <mohamadpishdar@gmail.com>
-Cc: security@kernel.org, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
-	shiraz.saleem@intel.com, tatyana.e.nikolova@intel.com
-Subject: Re: [PATCH] RDMA/irdma: Restore original PD on rereg_user_mr failure
-Message-ID: <20261103121246.GF264423@unreal>
-References: <CAAAp7fgvKfLqxsZrvmq2+xtq=_AuGOmKLYijAsMk=bKCJFkSGQ@mail.gmail.com>
+To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, 
+ Jacob Moroni <jmoroni@google.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261022210650.1182000-1-jmoroni@google.com>
+References: <20261022210650.1182000-1-jmoroni@google.com>
+Subject: Re: [PATCH rdma-next 0/2] RDMA/irdma: Fix FRWR and PBLE handling
+ for PAGE_SIZE > 4K
+Message-Id: <179370810170.1720786.3422648734982367754.b4-ty@kernel.org>
+Date: Tue, 03 Nov 2026 07:15:01 -0500
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -56,22 +59,32 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAAp7fgvKfLqxsZrvmq2+xtq=_AuGOmKLYijAsMk=bKCJFkSGQ@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-On Wed, Oct 28, 2026 at 11:07:01AM +0100, Mohamad Pishdar wrote:
-> Hi,
+
+On Thu, 22 Oct 2026 21:06:48 +0000, Jacob Moroni wrote:
+> The irdma HW only supports 4K and 2M pages (plus 1G on newer HW), but
+> parts of the driver assumed PAGE_SIZE == 4K. On kernels with a larger
+> PAGE_SIZE (like arm64 with 64K pages), this resulted in a few issues:
 > 
-> While auditing the memory-region re-registration path in the irdma driver I
-> found a case where irdma_rereg_user_mr() can leave a struct ib_mr pointing
-> at a PD that the uverbs core no longer considers it to hold a reference on,
-> if the reregistration itself fails partway through. I think this is worth a
-> look before someone hits it in the field, so I'm sending the analysis and a
-> proposed fix together rather than just the report.
+>   - FRWRs from ULPs that pass PAGE_SIZE to ib_map_mr_sg() end up
+>     getting mistranslated by the HW (discovered by observing SMMU
+>     faults).
+>   - Paged PBLE chunks and the virtual AEQ PBL point to the wrong
+>     offsets compared to what the driver assumed.
+> 
+> [...]
 
-Thanks for the bug report. Please submit a patch following the guidance in
-Documentation/process/submitting-patches.rst. There is no need to CC the
-security@ mailing list; this is a regular bug.
+Applied, thanks!
 
-Thanks
+[1/2] RDMA/irdma: Fix FRWR logic for PAGE_SIZE > 4K
+      https://git.kernel.org/rdma/rdma/c/d706625c62b451
+[2/2] RDMA/irdma: Fix paged PBLE and virtual AEQ for PAGE_SIZE > 4K
+      https://git.kernel.org/rdma/rdma/c/cefc2270e42bae
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
+
