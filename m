@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793699581;
-	b=lX/+9zC7Er1kB9BHB3Lt3JB/adFr/dJVB5alqZI9UJQVD2wFRWih3P14kDlgFQWo62R+
-	 HDeHFxZQbQPRdiR/V/ks5Eqmah5xHGSUmqaZty1EfYSMdbZbNLFkzOyeP6wfv/5kHfIzK
-	 mBwl/VUH5eDGwde9TkbxUomBsqQeVeQUHtusIIQn0avAXdT+HjmQIbsNuuI5RSNNdG1pe
-	 giCHNDdHrTV6aQmBo5g1xejMAf4FhyzcgvHlBjxfY+IAwVenuXLlA8IrxFgCS3u9L+Enx
-	 E/Bj/tN97kkLj8yAq1dgiI16QlZmMo5WYVLSisA+VgNb0WrsQamYFjpqI82SZ/jh22A==
+	t=1793699616;
+	b=1Gz5jF3rLBI2cX5R6HvfkBB1bxTM0foPUCTEkwVvqkghFxV7RU55QDS5AjREwYWv30TQ
+	 SEs91l7ZBDKRn4SUMqmVfqwLlRD/gpv7NlG/xxYXcIL7cB3ygHUO28JNyvIKBRHPjKDjN
+	 3TP1PB0UgGN/b0ELvUKD/GsKq9GLtvbpQW8zJquS8dJNt8igY4eWEqYR7gqyJfljnyqOD
+	 abjSXV/0eTSl1DuZkMgSpqxoJlysRISps7az8vZBhb0vz8XKR2Gz8sGJMf4s/6FT5ZfVw
+	 DVWvubfCgrZd1Jvfes1LYQajLUSQxgHaby2EvUEbFr55l3+wtvyvrUamCUbX+i/Stew==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793699581;
-	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
-	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Mailer;
-	bh=My0Z66KYNuRTAK3B795dnm8lK2ZMXMW4aavFw/8R0xM=;
-	b=eOQZ5KRLjDlZU8MVeV4lpdPq7W/zdekm9NES2bMIHNTechzyRsY6cE9Qaf5sTaZi8Uc0
-	 /j5KrMTsZNyZ/DzBEgVpOPXjwzGoplXAFXmnjgjJ9wgjhwy2n326pY7moODYXrk948xlT
-	 mIfdNBDd4wxYyBoLnR2GD2+bQWd5ckVir5+4eYSpmy1Cfcozpnmg1goXeTwaONwAla73Y
-	 Ntsoj8gObdod/NO9mPctmi1ElfatASheHxTY4QPD9pZkVGn7PqsObY5DZOhB3uLdadUJU
-	 rRabUIPoPceYwS0y60OQdZFFDS2qXPKvbDU/VkUQ0nH0ePA4JIQfbZPXHX+aCkY0QhQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793699616;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=sEgS6M8l2DlGp0iy0oTdHaY42KKNYn6YbCYOh7uX8Uk=;
+	b=5aBTE8Zav5ZOo1tnQasVascYT5B3+yWi2piO5Pu5n80aanNH897e5ixLr6PYneQJD8yB
+	 rqIWjIkorUMumwW9QqdE4LFSxyw/FCnLOPYXwVFoYDirtOckcHSvp1Z7Uh1zMthXTekMB
+	 0BHqDeNkrA3m8C/+oqrSj8Iwopg8K5Tq/TGj/es60nstourUA6i4zUnQsyI+/tcR0W/P+
+	 b5CphHQBeHjsVixi21ZaJHkmiRJDl5d83xVZvEKrJVzDjV1BA28uJa2QaKHKJ5Ah3B8iP
+	 3g5bHPDGfKodUxwGCpi3z7k3z+a1ZcQnIpRJU6e+5ezEuYqZ/CxUBBNtay8OB3//rzA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZtqS1jy+;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oTVFVc5h;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35EA16082BED;
-	Tue,  3 Nov 2026 09:53:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFA91606D802;
+	Tue,  3 Nov 2026 09:53:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZtqS1jy+
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9A851F00A1B;
-	Tue,  3 Nov 2026 09:53:00 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oTVFVc5h
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E5C11F000C1;
+	Tue,  3 Nov 2026 09:53:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793699581;
-	bh=My0Z66KYNuRTAK3B795dnm8lK2ZMXMW4aavFw/8R0xM=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=ZtqS1jy+YkNh/dusWp74kZOjGgEJPbo09JcPUd7JZiNBgXFL68rxZb76qlpeP5PHY
-	 +sY/GPIG7+iuKTV6cDE42VArd0HnhotreVjoORDNIsiUzEMMzHfIoK6mh6kNSmysM7
-	 NzksDfTukp22zaCX39Ff260mkElMwMg3Adh2F2Zdo9+c6/PjXjFGk/K/SpB3HDJGKy
-	 lLvAVHAdQEFm0Iuo3Kqgkv0/iTxWUqzXZYlQt+XxrZlkqzDsIA6mcyO6m04yF3rXoM
-	 zY5eVeJWjFJL0eWS29GEfgqGQPFBt2tpHBM+W7hm4QMrfUASOjbNbeWQkmYDFbKLDd
-	 OPbZSIZ67pdrg==
-From: Leon Romanovsky <leon@kernel.org>
-To: Bart Van Assche <bvanassche@acm.org>, 
- Yehyeong Lee <yhlee@isslab.korea.ac.kr>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, 
- target-devel@vger.kernel.org, linux-kernel@vger.kernel.org, 
- stable@vger.kernel.org
-In-Reply-To: <20261025013748.3755639-1-yhlee@isslab.korea.ac.kr>
-References: <20261025013748.3755639-1-yhlee@isslab.korea.ac.kr>
-Subject: Re: [PATCH v5 0/3] RDMA/srpt: fix the descriptor table checks and
- the context counters
-Message-Id: <179369957811.1712752.1012285000662293438.b4-ty@kernel.org>
-Date: Tue, 03 Nov 2026 04:52:58 -0500
+	s=k20260515; t=1793699615;
+	bh=sEgS6M8l2DlGp0iy0oTdHaY42KKNYn6YbCYOh7uX8Uk=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=oTVFVc5hIWJekLNawgFtET2tFSYtyBQYWT+bAgibRD2zISfHRn13AzcPbzZ/k8B3s
+	 EcHXWfACvgcLZUFMQ4QVm9sQIv1ab1/XYFKYURDW7VjL8MQRq+Syjo3AR+pTlreZxa
+	 4OXb8R+rX5hMRKz2aG9lwy+wH/egdFwFi1gmni3IjQ5R/+3+DZzszpCg575weOzwjl
+	 aN9E8cBwcKFVupGL6JTaoWxMHE0hL2udlXwurHukhSinUs1xhwcD2p/vqytNhO5Ngj
+	 OF3Ocj8k/TDpsNkvDMq9zxEYxirGIK0wA/pdeWhnORXAIgdIjz3ZiGZEhByJgrO9dL
+	 GEzHblCuhBNIA==
+Message-ID: <sashiko-outbox-194977@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH v12 07/19] PCI/P2PDMA: Collect the path's ACS controls
+ before deciding
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Leon Romanovsky" <leon@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org
+In-Reply-To: <20261103-fix-p2p-acs-v4-0-v12-7-912101f93517@nvidia.com>
+References: <20261103-fix-p2p-acs-v4-0-v12-0-912101f93517@nvidia.com>
+ <20261103-fix-p2p-acs-v4-0-v12-7-912101f93517@nvidia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Tue, 03 Nov 2026 09:53:34 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,35 +60,24 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
 
+> From: Leon Romanovsky <leonro@nvidia.com>
+>=20
+> calc_map_type_and_dist() combines ACS reads, routing decisions and
+> diagnostics. Adding decisions for different TLP attributes would duplicate
+> the walk or thread each attribute through its counters.
+>=20
+> Collect the divergence controls, internal-route restrictions and upstream
+> forwarding state in struct pci_p2pdma_acs_path, then decide each direction
+> from it. Keep the existing rule that both directions must route directly
+> for bus addressing, and reject unusable upstream forwarding before
+> considering the host bridge.
+>=20
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 
-On Sun, 25 Oct 2026 10:37:45 +0900, Yehyeong Lee wrote:
-> The first two patches bound initiator supplied descriptor data, and the
-> third widens the counters that hold what the first one admits.
-> 
-> A 510 entry table fits in the default 8276 byte IU when the additional CDB
-> is empty, so the bound accepts it and the counters then have to hold it.
-> With only the bound, a conforming command carrying 256 or more descriptors
-> still wraps n_rw_ctx and leaks every context it allocated. With only the
-> wider counters, a command that sets ADDITIONAL CDB LENGTH to its maximum
-> still walks a descriptor table that runs past the receive buffer.
-> 
-> [...]
+Sashiko has reviewed this patch and found no issues.
 
-Applied, thanks!
-
-[1/3] RDMA/srpt: bound the indirect descriptor table to the IU
-      https://git.kernel.org/rdma/rdma/c/d5e2467b86d496
-[2/3] RDMA/srpt: reject zero-length buffer descriptors
-      https://git.kernel.org/rdma/rdma/c/f38458ac4ff689
-[3/3] RDMA/srpt: widen the indirect RDMA context counters
-      https://git.kernel.org/rdma/rdma/c/f9258be57e3e19
-
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103-fix-p2p-ac=
+s-v4-0-v12-0-912101f93517@nvidia.com?part=3D7
 
