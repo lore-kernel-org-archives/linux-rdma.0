@@ -1,59 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793704666;
-	b=GSp+7SAP9JA0MC5ntKgQA3y43lYYCVVD96lZBeXpH9QDOQSqOJXFPBneJMtPKa+Pmj8p
-	 yKfcf/jwgWeDOWJzw5Tvzm3vBAdsvWHs9lRIJ6c/sI5xDtsXC181pU1nKzq0Aq2E73wn+
-	 LxSaSLp9esmN5g3VivQOgR9QWvxwLtvk3w/fNsGbFzIq1FeZYCSJr+L1vKMhFTIY8ayHi
-	 9LjnixAeOMDyR84sBWw3uWdzOnDdrd2wXzWPVz+FKCETw/QEaV6dxVWErWECOYGVAWOwG
-	 k82024dWmNgxAg1OLiV9LRPNvsf31hoTjY3bAoyT0uqMaDw1M/sd5VQeef1QAP2KGcA==
+	t=1793704664;
+	b=rk1vy7ypzIdrRe2Hz/w2BsVdO8XQuBi8VdAGyE9KbguEnMj7Yc7S6LScCjj+pP2Vuvzs
+	 Mhu14oiGqTWOE6KFmYvTntIg67CVswVtywLVVOSWBiB22RIk3NzfPnwF8IVLAzh3G05ND
+	 oyPadZf58ZyXNC/sHaNsAXjkH2et2XV4/vsXATVr1VKVDKxHPE2DlmFlkBQ251xxjZls9
+	 1DFISwpFkJ6IZ1rovwQdV5LDobGtAVBOGBhhysTeNv90xYl9gPfh9V3Q9TlHH8PKD8ni8
+	 tWF1j2otAnlwl/8SgDL8dpVGJaHrETbtNzE9acZJw1emYRST5VI2PNrlooCVar4mVBA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793704666;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:
-	 Content-Transfer-Encoding:In-Reply-To;
-	bh=14PADosa9LGZypBRqhyHl1GEnIAFICXyC3zXl4MGCeM=;
-	b=pOSsJsFE+jhVEMMGAty2eYHApwtdoqJPc3HfSOYqfhWqfJF1yYN89K9eijd0YqvuXjvb
-	 l5da/0JY9hmxMxVftjVnPUq+mGteYrnEd7foOP/iO8rRgx5nCQAPI4FjDPNOmacxeaTNg
-	 Wn4wjWbjs8CC2EtYEwomZOGLAsRIRqCEosK0gW9iJ1026o5T4PI9eT50qxEP1DEAL7r6X
-	 45656Blv7bd9m+3yoh1wynNYGA5RRqFlkz+SUUIyEFl1t3+Q4CL0qlcdo2hyG892sKrb0
-	 BrnYuXbmKaehH0f2m6oTjPs5KrsnAX4XMrIujVrS5NZDefjHObMZUy53L/io1nUDvEw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793704664;
+	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=hNDJzQmSC49rCorInZnk0GrVrXqYyUi3HmJjx7wIXA0=;
+	b=KQsCBsyu6fQnK00xQsX9e8i+6heVRnT/6e7NifuvyqibEp8L7Mms4m+CkFsEzD+outoc
+	 cTNVn+XcxigOPkR7VbedDhzvpDvzvnGgVS19YBjtt4eCzJDjWNMYg+fnk9W2ADWGqwbeM
+	 eDCN/J7H4zpmFnwwtbe6rbrPeEFIWsO+c8x3zo9aR/vKoMc2SYzGeidHqNMAXwk/hnlXc
+	 4B/J/16s6BRrlSdGOw1/XJuq6v0od7o/HetyNovn8GsFU57EVIYQTLvPZZntUlouZ+xp6
+	 PmHuW8V3nbgm+1v3aysUkKj7THCLjSMflYzBPNIX7zdJHTjq9cZA9VHQTEVQQa1+jaw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NAtWGEMP;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6643F606EEAB;
-	Tue,  3 Nov 2026 11:17:46 +0000 (UTC)
+	dmarc=pass header.from=linux.microsoft.com;
+	spf=pass smtp.mailfrom=linux.microsoft.com;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=pPIYq7+V;
+	arc=none smtp.remote-ip=13.77.154.182
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1D9BC606D809;
+	Tue,  3 Nov 2026 11:17:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1D9BC606D809
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NAtWGEMP
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53EEB1F00A15;
-	Tue,  3 Nov 2026 11:17:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793704666;
-	bh=14PADosa9LGZypBRqhyHl1GEnIAFICXyC3zXl4MGCeM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=NAtWGEMPOLaU/NIOwRea79LCxRdmTRThHZGEPvUuuUXdK2DUiElp62+wv8q5vqNgo
-	 FMaU7+zvLHCthHnuM3x2Urx91FwqxWh2Fmmln4VU/9N3j3q7C0HDrA3B8IwTIDDVrp
-	 9H+dy3+Iqo3EU9d8OwuOltDFAeB+h6Wi0ezedkK7V/B8PitV6zmY1Okir2TIknoiow
-	 FsTlwaFeypF7rtvHosSHOsmtcVsKJDT3Zsx4KHCts8DpwV/M5Aru7TY9eOeVuP/uSP
-	 mV/xdLA36XO6MFagkRkslj5et9m5fltv8N5Q3QAO5iKQRF8MNqcXcTwhHZfiODetxH
-	 4/2E36sUgThLA==
-Date: Tue, 3 Nov 2026 13:17:41 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: David Hu <dhu@x6u.co>
-Cc: Jacob Moroni <jmoroni@google.com>, sashiko-reviews@lists.linux.dev,
-	linux-rdma@vger.kernel.org
-Subject: Re: [PATCH rdma-next v3 3/6] RDMA/irdma: Support UMEM attribute for
- QP creation
-Message-ID: <20261103111741.GC264423@unreal>
-References: <20261016202909.1289496-1-dhu@x6u.co>
- <20261016202909.1289496-4-dhu@x6u.co>
- <sashiko-outbox-174922@kernel.org>
- <CABdL-LTgFTwJPTD0vyScNsvCSAW_04TgOyO1swVBgHxDcmJsfg@mail.gmail.com>
- <CAHYDg1QGH=GwAB-acW_oj3DJdSZBPidv9Xxn+n9=RT9Ss2PC1Q@mail.gmail.com>
- <CABdL-LQUdPaHu1tKW7fyXraBEUQBK-Xuv59e6u9_U7+AO7NivQ@mail.gmail.com>
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=pPIYq7+V
+Received: by linux.microsoft.com (Postfix, from userid 1186)
+	id 667B920B7166; Tue,  3 Nov 2026 03:17:29 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 667B920B7166
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1793704649;
+	bh=hNDJzQmSC49rCorInZnk0GrVrXqYyUi3HmJjx7wIXA0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=pPIYq7+VYJ0FFUCcrsSY8JH2P6b3axj1BIN0M9E3hGAPrkHZjedKgjhAfqLW6swRT
+	 wG0b9LPifQxYbxLGVf+tABOYXcbcmhYRUJLFCtukQ7GeaPPQab+WRKFG1VPOEt9SGJ
+	 mMlmCEF6IBFrmYKtY3hY9V3anxgYAv0lPmqcxI7c=
+From: Konstantin Taranov <kotaranov@linux.microsoft.com>
+To: kotaranov@microsoft.com,
+	snsanghvi@microsoft.com,
+	longli@microsoft.com,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH rdma-next v8 3/9] net/mana: Extend GDMA encoding for new RDMA WQEs
+Date: Tue,  3 Nov 2026 03:17:23 -0800
+Message-ID: <20261103111729.729886-4-kotaranov@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.7
+In-Reply-To: <20261103111729.729886-1-kotaranov@linux.microsoft.com>
+References: <20261103111729.729886-1-kotaranov@linux.microsoft.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,35 +63,183 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CABdL-LQUdPaHu1tKW7fyXraBEUQBK-Xuv59e6u9_U7+AO7NivQ@mail.gmail.com>
 
-On Tue, Oct 27, 2026 at 06:37:56PM -0400, David Hu wrote:
-> On Mon, Oct 26, 2026 at 8:02 AM Jacob Moroni <jmoroni@google.com> wrote:
-> >
-> > Hi David,
-> >
-> > Looks good in general, but since this IRDMA driver is used with iWARP
-> > NICs today,
-> > can you double check this Sashiko finding? Maybe this newer path can be rejected
-> > for iWARP NIC types at first? Or if there's a way to make this new path work for
-> > iWARP, even better. I am not sure if there's some generic way to map the generic
-> > umem for CPU access that works even for dmabufs?
-> 
-> Hi Jacob,
-> 
-> Thank you for the feedback. I double-checked the Sashiko finding -
-> yes, we can make the rejection explicit. I'll send out a v4 shortly.
-> 
-> re: Making the path work for dma-buf + iWARP.  This seems doable; it
-> just requires moderate work to plumb iWARP specific quirks to be
-> dma-buf aware. However, I wasn't able to find a compelling real-world
-> use case for this. If there is a strong preference to pursue this as
-> part of this series, please let me know.
+From: Konstantin Taranov <kotaranov@microsoft.com>
 
-I wouldn't recommend investing too much effort in this. Ultimately, iWARP is
-not widely used in practice, so dma-buf + iWARP is unlikely to see much use.
+Extend mana_gd_post_work_request() to support extra-large OOB data and
+fixed-size WQEs. These formats are supported only for power-of-two WQE
+sizes.
 
-Thanks
+For fixed-size WQEs, use num_pad_sge to specify the padding size. Encode
+the WQE header fields required by RC QPs based on the WR flags.
+
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+---
+v2:
+- Reject fixed WQEs that cannot fit the header, aligned OOB and SGEs.
+
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 55 ++++++++++++++++---
+
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 55 ++++++++++++++++---
+ include/net/mana/gdma.h                       | 21 +++++--
+ 2 files changed, 63 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index 05ba7055405d..2717889e626e 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -1699,8 +1699,27 @@ static u32 mana_gd_write_client_oob(const struct gdma_wqe_request *wqe_req,
+ 	header->num_sge = wqe_req->num_sge;
+ 	header->inline_oob_size_div4 = client_oob_size / sizeof(u32);
+ 
++	if (client_oob_size == INLINE_OOB_EXTRA_LARGE_SIZE) {
++		/* Extra large oob is encoded as 7 */
++		header->inline_oob_size_div4 = 7;
++		/* Extra large oob has 8 byte padding  */
++		client_oob_size += 8;
++	}
++
++	if (wqe_req->wqe_size_in_bu) {
++		header->num_sge = (wqe_req->wqe_size_in_bu * GDMA_WQE_BU_SIZE
++			- sizeof(struct gdma_wqe) - client_oob_size) / sizeof(struct gdma_sge);
++		header->num_pad_sge = header->num_sge - wqe_req->num_sge;
++	}
++
++	header->check_rsn = !!(wqe_req->flags & GDMA_WR_CHECK_RSN);
++	header->check_sn = !!(wqe_req->flags & GDMA_WR_CHECK_SN);
++	header->fence = !!(wqe_req->flags & GDMA_WR_FENCE);
++	header->fence_extended = !!(wqe_req->flags & GDMA_WR_FENCE_EXTENDED);
++	header->generation1 = !!(wqe_req->flags & GDMA_WR_GENERATION_1);
++
+ 	if (oob_in_sgl) {
+-		WARN_ON_ONCE(wqe_req->num_sge < 2);
++		WARN_ON_ONCE(wqe_req->num_sge < 1);
+ 
+ 		header->client_oob_in_sgl = 1;
+ 
+@@ -1714,8 +1733,10 @@ static u32 mana_gd_write_client_oob(const struct gdma_wqe_request *wqe_req,
+ 	/* The size of gdma_wqe + client_oob_size must be less than or equal
+ 	 * to one Basic Unit (i.e. 32 bytes), so the pointer can't go beyond
+ 	 * the queue memory buffer boundary.
++	 * The exception is when the WQE size is fixed and a power of 2, as
++	 * such a wqe cannot go beyond the queue memory buffer boundary.
+ 	 */
+-	ptr = wqe_ptr + sizeof(header);
++	ptr = wqe_ptr + sizeof(struct gdma_wqe);
+ 
+ 	if (wqe_req->inline_oob_data && wqe_req->inline_oob_size > 0) {
+ 		memcpy(ptr, wqe_req->inline_oob_data, wqe_req->inline_oob_size);
+@@ -1724,8 +1745,8 @@ static u32 mana_gd_write_client_oob(const struct gdma_wqe_request *wqe_req,
+ 			memset(ptr + wqe_req->inline_oob_size, 0,
+ 			       client_oob_size - wqe_req->inline_oob_size);
+ 	}
+-
+-	return sizeof(header) + client_oob_size;
++	/* The hw requires that (gdma_wqe + client_oob_size) is sge size aligned */
++	return ALIGN(sizeof(struct gdma_wqe) + client_oob_size, sizeof(struct gdma_sge));
+ }
+ 
+ static void mana_gd_write_sgl(struct gdma_queue *wq, u32 sgl_offset,
+@@ -1784,7 +1805,8 @@ int mana_gd_post_work_request(struct gdma_queue *wq,
+ 		return -EINVAL;
+ 
+ 	if (wq->type == GDMA_RQ) {
+-		if (client_oob_size != 0)
++		if (client_oob_size != 0 &&
++		    client_oob_size != INLINE_OOB_SMALL_SIZE)
+ 			return -EINVAL;
+ 
+ 		client_oob_size = INLINE_OOB_SMALL_SIZE;
+@@ -1792,15 +1814,32 @@ int mana_gd_post_work_request(struct gdma_queue *wq,
+ 		max_wqe_size = GDMA_MAX_RQE_SIZE;
+ 	} else {
+ 		if (client_oob_size != INLINE_OOB_SMALL_SIZE &&
+-		    client_oob_size != INLINE_OOB_LARGE_SIZE)
++		    client_oob_size != INLINE_OOB_LARGE_SIZE &&
++		    client_oob_size != INLINE_OOB_EXTRA_LARGE_SIZE)
+ 			return -EINVAL;
+ 
+ 		max_wqe_size = GDMA_MAX_SQE_SIZE;
+ 	}
+ 
+ 	sgl_data_size = sizeof(struct gdma_sge) * wqe_req->num_sge;
+-	wqe_size = ALIGN(sizeof(struct gdma_wqe) + client_oob_size +
+-			 sgl_data_size, GDMA_WQE_BU_SIZE);
++	if (wqe_req->wqe_size_in_bu) {
++		wqe_size = wqe_req->wqe_size_in_bu * GDMA_WQE_BU_SIZE;
++		oob_len = ALIGN(sizeof(struct gdma_wqe) + client_oob_size,
++				sizeof(struct gdma_sge));
++		if (wqe_size < oob_len ||
++		    wqe_req->num_sge > (wqe_size - oob_len) / sizeof(struct gdma_sge))
++			return -EINVAL;
++	} else {
++		wqe_size = ALIGN(sizeof(struct gdma_wqe) + client_oob_size +
++				 sgl_data_size, GDMA_WQE_BU_SIZE);
++	}
++	/* Ensure the WQE size is a power of 2 when a fixed wqe size or extra large OOB are used.
++	 * Otherwise, the WQE may cross the queue memory buffer boundary, which is not allowed.
++	 */
++	if (wqe_req->wqe_size_in_bu || client_oob_size == INLINE_OOB_EXTRA_LARGE_SIZE) {
++		if (!is_power_of_2(wqe_size))
++			return -EINVAL;
++	}
+ 	if (wqe_size > max_wqe_size)
+ 		return -EINVAL;
+ 
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 332f394b82e1..508da28591ae 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -56,6 +56,11 @@ enum gdma_work_request_flags {
+ 	GDMA_WR_OOB_IN_SGL		= BIT(0),
+ 	GDMA_WR_PAD_BY_SGE0		= BIT(1),
+ 	GDMA_WR_IB_SGL			= BIT(2),
++	GDMA_WR_CHECK_SN                = BIT(3),
++	GDMA_WR_CHECK_RSN               = BIT(4),
++	GDMA_WR_FENCE                   = BIT(5),
++	GDMA_WR_FENCE_EXTENDED          = BIT(6),
++	GDMA_WR_GENERATION_1            = BIT(7),
+ };
+ 
+ enum gdma_eqe_type {
+@@ -219,8 +224,8 @@ struct gdma_wqe_request {
+ 		struct ib_sge *ib_sgl;
+ 	};
+ 	u32 num_sge;
+-
+-	u32 inline_oob_size;
++	u16 wqe_size_in_bu;
++	u16 inline_oob_size;
+ 	const void *inline_oob_data;
+ 
+ 	u32 flags;
+@@ -538,7 +543,9 @@ void mana_gd_ring_dim(struct gdma_queue *cq, u32 mod_usec, bool mod_usec_vld,
+ 		      u32 mod_comps, bool mod_comps_vld);
+ 
+ struct gdma_wqe {
+-	u32 reserved	:24;
++	u32 num_pad_sge	:5;
++	u32 generation1	:1;
++	u32 reserved	:18;
+ 	u32 last_vbytes	:8;
+ 
+ 	union {
+@@ -548,9 +555,13 @@ struct gdma_wqe {
+ 			u32 num_sge		:8;
+ 			u32 inline_oob_size_div4:3;
+ 			u32 client_oob_in_sgl	:1;
+-			u32 reserved1		:4;
++			u32 check_rsn		:1;
++			u32 fence		:1;
++			u32 fence_extended	:1;
++			u32 reserved1		:1;
+ 			u32 client_data_unit	:14;
+-			u32 reserved2		:2;
++			u32 check_sn		:1;
++			u32 reserved2		:1;
+ 		};
+ 	};
+ }; /* HW DATA */
+-- 
+2.43.0
