@@ -1,90 +1,118 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.46
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793725633;
-	b=Yoz1ENMGgaFWEwBsytAyHxFGnVtPnqilHTOEZuR8kXqA/by0KcNPDwEyDCJILvT+Kb0P
-	 GLR9NXmE9nmwqYS6DMheJrHys2oLQnnBVUuz3gX9Zi4lPMiAWS9ObmgZCgFsop5PtQ2BB
-	 3BYsON/3Xv43srOV5kDvKVBQC3+GS8CLVGBk4JV7ep5UrcWK/JeXLLjc0bCUf4sPhb6OV
-	 RyuJO49IN1NFjrWwlx79c0ubIeCLNKc9KGo0YYiwQbsN7Rb+E/MEYQ5vqZiAarqwPutIj
-	 nfzWQHWTzx3NSZhgawdKC2uW2Hu8I0meQpVifX8i1RqfzdOqe3OdvqPzrCUeGZ8yDmA==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793725633;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=U+uq6o7h5QCzlT0B6D4QGcxxj9excjN11FXi6rk4g1s=;
-	b=Ezt0CPGY3pGO2zXdHXajs1eGRnqSWSIMKwhpa1knN9IdP1fMynzTDsb02pCVW/ZjZiky
-	 7nfn1puYG3Vt8s0Y3FtGHva+IYaw9TxqdNxKJcDJw7CS0YoQoVC4EunPbHKzf4RBZ+XtZ
-	 XDlO28/F0vjnwcQX5YirClylDHNGZmC1ja4xEVOdcqIXjRcjswA2YsuuzVJOEBCXj76VC
-	 yvtQrTdVbGIUGsDSd/F9z0kfR5hva2UzLmv2RjLl51AOChS6FT8LwY7oTLIxnG5QbznSD
-	 SuXPOmBsDXNe/fxUsgxSo85wdcpgC+IaZybt/nK2qgMlc+PNH4wVx6LJugHkS8WEHKg==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=iGWyDvgf;
-	arc=none smtp.remote-ip=74.125.82.46
-Received: from mail-dl1-f46.google.com (mail-dl1-f46.google.com [74.125.82.46])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.198.66
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793725867;
+	b=XpZsDfr2In/ert7HTxLbE40YirE6ihCgJANSChNkZZbaUb6WnSyu5u0jy/1S3rB6Ek9u
+	 XMB6Bd6WL2mk18U1L6KDizQlLFpZP0mD1DGly/F1ZHqI424/BrToYD4ek4SZlk8AHCXn7
+	 hRmH5+aybLdn+njQFAlL9WbsINtMdl5Pfh9PA1rdmnVqvLCfr/sE8okoj3kfec0fiNY4B
+	 NNPrFJl7uxEe94tA/I+zUWQERlWBLE+2zsjzzT/EkA/r7KFCgq2/O1LQUx/YUU4PRk4ob
+	 X8/7OqSSKByRLpYndNlPvH36gD544ue/Cn2FW8bKJQbzTwYmTCUIrR7kiAO4mCE41yg==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793725867;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:
+	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
+	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
+	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:
+	 Content-Type:X-NV-OnPremToCloud:X-EOPAttributedMessage:
+	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-Id:
+	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=zp/bTwdff6VAKtIn/+RrxwAsSEZkSKmqa2VC/z/IHCg=;
+	b=lwsEotTEOvEHJhqBgs8p8tsUWKNzvDe0zdkaHwkW0LYNepfZ3gaMFQamrAE6FRtz4X2r
+	 SJ4EPnCAf9rIDbEV2sUhIK4BaL6q15/LAwndi/KBZRI8A5GLm0xXdezHfWP7YE1cC639h
+	 AuJ06to1oL2DsDRCoyqffJstqtomsOCNlS7fY2EGyKvCVqH952Dp7v3+YXCGOLlfGW67b
+	 3LkBlTV5RtQS6yZg1TaVbhNK8IgsZtJO3XHLNXHpYi2XcGmvqKBxMNy8MB2KiQzFtEmcM
+	 MxjFAUgLkTntus9QmBxy0o37oV89Le2VATwPIkjAhEKLUfbf0OYudto1Zlda2017FSQ==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=JIggy3in;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.198.66
+Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010066.outbound.protection.outlook.com [40.93.198.66])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AA92606A32C
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 17:07:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7AA92606A32C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AB59606A324;
+	Tue,  3 Nov 2026 17:11:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3AB59606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=iGWyDvgf
-Received: by mail-dl1-f46.google.com with SMTP id a92af1059eb24-1430eec0070so141233c88.3
-        for <linux-rdma@vger.kernel.org>; Tue, 03 Nov 2026 09:07:13 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793725632; x=1794330432; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=U+uq6o7h5QCzlT0B6D4QGcxxj9excjN11FXi6rk4g1s=;
-        b=iGWyDvgfWA7BABkCv2yaRDP+Ci1wwzDKEsG2/WxT2q3MSsLyE3lSmy32j0dnvGTIiE
-         G5iBtFTfje+3OwTTkO8OdTrFB7+DyS1zn8lDkvVtr8uh/gazstnu4y5yedxcqwvXkL9k
-         45WcsTyH83pI4bphWwo5FHm2HBZ9Go3Sv2CP2HuZv/qD+IgTIGutraHmvob4MydjsFyS
-         NIpaywLWw9Ckc+LoCPi3nBL5l3GOWA7ut4LBQd/QIIKPun0kpsJo5KptsWZVy2n4YY8V
-         cvRQrKTVD8AhAQKbUEUCQXvbcReKRMhijrvPG849xYBKMVlS10FaUjb2kN+6+cFJy4my
-         0R2Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793725632; x=1794330432;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=U+uq6o7h5QCzlT0B6D4QGcxxj9excjN11FXi6rk4g1s=;
-        b=MrQewplrTAAa8lPsWpepk0Jn/AruDMZUb94lcC7knogOzqyBba7QPJ72KYpIyuQMtY
-         vockGfW1j2HB6UKRmmJ1jfKfhXpcIT5USdhEl2CE0I8tKDvP/8S4/qPsk7v+6Cy9VjSJ
-         C+mlwws+VWfP3nyNP2Lk8w413Fo6QjAEUmCG0uqJBo87uKvL0fIjlD1wsbaO8FrekBJd
-         mUuZYP4fQK6l17cOFliDiCLmXtJTM4qWJ75D6d34ada5eSUFBdEDW6m6HEu94MRHyO8d
-         nLAJykbjny87V3iVVDCxByliiAzGlxElpQtAVg+wG9JpaaaZQe9lROCRh/LvtDws/jpA
-         c0cA==
-X-Gm-Message-State: APuU4Z8vgxc+LEDBocPivggrYOfUO3gzZnvRGoGMKMOLLHOfYGVPcrjJ
-	boOL9ctfSq516fGuSEJJ2AtAAQEm02wRSt/5vcNGy0PjZbxpH5Seqwxx
-X-Gm-Gg: AYBFou3ti6VV/hwhB8ZVuKfvhbKannQ5J1J2PfQzSgvQ40x7onQpjmtEeU7HiBS0UoG
-	eG68++x1EGbVyVwNOokdQ8wVKGSK9CDNzK8lH7ab/i3j3cvncvqvQQKF4e+LKpE2V5TAlgfzwn4
-	LDmW/1w2VC/mBIlvidyF7PWC0fBWVJEYMfbScLWXnCr4Ebyg3rXVvygCX23K19nrG7xtM7q+Rw9
-	sGtK6p/cATHvVeUx5xNpYZlJ2H/1PJnfr2chvIFKPEle6ZMzuZIZb1jC3wwxZnGrKnv0lTjRcNA
-	jymqJXeSPg5keVzZVq+yaeAIqV4Q6/PU9nTdXVlIDP7f8Xh/Hh8RV6r5GX1x9dYwP7G7WdzbXn5
-	h1ErbWw3Mn5qJz0nK662eK4vrI8j6Hp2EGXuDvx0gRIqBsTbq1n3qYqSugjVAv+MaeMBSv15gSh
-	1iQS3nGVKDkOCHWvaejNoO5GmTOZIfKhjmHIPBqHJ0atCRb8HTXg92O/g7nebl99Sso285klOOs
-	52mYVU/qEQ2/RGePULi9OmqUyuubF6h7OCQD69QlyUqvNErx4tjF2nUHPCv8a4Owh0zt5r/0/up
-	MVrnFUeOPnY0HBVeYgkpApNaAiiXV1Kvd748Gb60OA==
-X-Received: by 2002:a05:701b:2515:b0:17f:641e:7f6b with SMTP id a92af1059eb24-1ac5904ae73mr28989298c88.1.1793725632414;
-        Tue, 03 Nov 2026 09:07:12 -0800 (PST)
-Received: from CRASHEDROM.localdomain ([142.249.36.161])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1b245b87c4asm305684c88.3.2026.11.03.09.07.10
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 03 Nov 2026 09:07:12 -0800 (PST)
-From: Chengyu Liu <lui2012qwq@gmail.com>
-To: jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	Chengyu Liu <lui2012qwq@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH] RDMA/ipoib: cancel the AH reaper work synchronously
-Date: Wed,  4 Nov 2026 01:07:03 +0800
-Message-Id: <20261103170703.1600310-1-lui2012qwq@gmail.com>
-X-Mailer: git-send-email 2.25.1
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=JIggy3in
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=xfUPLJZvgCHCJvbTe6XlMWigAXUYNnz0Uu+TRGCo49ZFuRL93/GY0s+yOeJVmxDUCnaUt4GdOy5865xZktf869uTG0tI7WRX6Z6mScQDn1129cJW4kk2f6CRYZ5yG2cyIryH5CiQNvHi5rXjNpm+8O7M5vEGRZJNC9H2/aoLfhWeM850FiX5PAv1rl01SGZl4WNsPb6akZ1XRtmAAvPRjXUvLCKioSmP3IXqE86aJbas0oFzftweWUXgTtPsaTeBWzsYflERngEvZp55PMQYJvttp1c+3ko9+cKSvgqu4/i9wZe52ZQ3thv1WJ2vzvM0RDPMOPGpdux07KqOLaoUyQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=zp/bTwdff6VAKtIn/+RrxwAsSEZkSKmqa2VC/z/IHCg=;
+ b=aEqSSQ4uA6MkpXzNx4GHrRIGnC8pbBsvPWV+WMOhEvAB/AFYvcCgMUOgm4nKFxByme+PXYoNAwuDevh+YtjMKFIiWx1tYMuTGk2elIgT+mEkCJ5dYSB6p39U9cJyd27M/dgWm0z2yu7nyOd06Fge4kbSyXHHIhQ4tHq6ip+j5kxDpdzkd8fQPECDuDzKoUnmmrEGKPgwiG+m1ujQOFpFu4bdQdWV9qSErMoxS5CoQ8XgmvO9cFwHc4eEJqzThpmuvEXAVc9lg3nQoIsYp342Ergyc7fXJ2Sat3TQadf/Lz3a6dNOZXqJbpaE4Ymx6dJTyM3p5pqNKhKdm2+ZspWTUg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.118.232) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=zp/bTwdff6VAKtIn/+RrxwAsSEZkSKmqa2VC/z/IHCg=;
+ b=JIggy3inUydit0yPmrEbEb+ayIHC5y16PxghiQuiur+LiPVbDLyA2RTEdi2P3bbrxLpaUkMevoVXzOMORomxmBKyb6rwsE5A2ZJHvXCpyxqclqV3ntZfFa9f5PdIkNnmnaWT8u9NtTYztXXYAzAySobgR2+9eN/fwsqC7xwfPKZ4KmTy4BZx/gbLMfv73RidvcmqzJNembUAG0t+v8BPhs/a7DkkMxNIxPjqIUReHMiUljNKgDXfBKQYpyVMRCtlqKNoqSqG+X41X1F16D10HbDPHkh3QxjqxyzgROibKZ9HpAtfhxKjiLb2m3+vWJ8R40adkUNiXr7QbxVcwwSBsg==
+Received: from MW4PR04CA0151.namprd04.prod.outlook.com (2603:10b6:303:85::6)
+ by MW4PR12MB7437.namprd12.prod.outlook.com (2603:10b6:303:21a::18) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.12; Tue, 3 Nov
+ 2026 17:11:02 +0000
+Received: from SJ5PEPF000001CF.namprd05.prod.outlook.com
+ (2603:10b6:303:85:cafe::43) by MW4PR04CA0151.outlook.office365.com
+ (2603:10b6:303:85::6) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.592.8 via Frontend Transport; Tue, 3
+ Nov 2026 17:11:01 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 216.228.118.232) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.232) by
+ SJ5PEPF000001CF.mail.protection.outlook.com (10.167.242.43) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.592.5 via Frontend Transport; Tue, 3 Nov 2026 17:11:01 +0000
+Received: from drhqmail203.nvidia.com (10.126.190.182) by mail.nvidia.com
+ (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Tue, 3 Nov
+ 2026 09:10:40 -0800
+Received: from drhqmail201.nvidia.com (10.126.190.180) by
+ drhqmail203.nvidia.com (10.126.190.182) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.56; Tue, 3 Nov 2026 09:10:40 -0800
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
+ (10.126.190.180) with Microsoft SMTP Server id 15.2.2562.56 via Frontend
+ Transport; Tue, 3 Nov 2026 09:10:35 -0800
+From: Tariq Toukan <tariqt@nvidia.com>
+To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
+	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
+CC: Akiva Goldberger <agoldberger@nvidia.com>, Carolina Jubran
+	<cjubran@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>, Edward Srouji
+	<edwards@nvidia.com>, Gal Pressman <gal@nvidia.com>, Leon Romanovsky
+	<leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, Moshe Shemesh
+	<moshe@nvidia.com>, Or Har-Toov <ohartoov@nvidia.com>, Patrisious Haddad
+	<phaddad@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Shay Drory
+	<shayd@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>
+Subject: [PATCH net-next 01/15] net/mlx5: Distinguish VFs/SFs in the SW system image GUID for LAG grouping
+Date: Tue, 3 Nov 2026 19:09:55 +0200
+Message-ID: <20261103171009.563034-2-tariqt@nvidia.com>
+X-Mailer: git-send-email 2.44.0
+In-Reply-To: <20261103171009.563034-1-tariqt@nvidia.com>
+References: <20261103171009.563034-1-tariqt@nvidia.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -95,180 +123,168 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ5PEPF000001CF:EE_|MW4PR12MB7437:EE_
+X-MS-Office365-Filtering-Correlation-Id: bc04a039-77ca-4ff9-683b-08df39cd6fe1
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|82310400026|36860700016|23010399003|1800799024|376014|10067099003|22082099003|18002099003|56012099006|261022113327099003|11063799006|261021121427099003|261022115727099003|261021135927099003|261022075727099003|261021133027099003|261102123227099003|261021130227099003|261022105027099003|261026135527099003|261026130827099003|261028144727099003|261026121527099003|261102130727099003|261026140227099003|261021123027099003|261009223027099003;
+X-Microsoft-Antispam-Message-Info:
+	LKLgiWyicL9/oOjLTJ9f6X+nQqkwO680D7LRDiVmp6zCsniBegM2cI7W3Q/rSSMrAlwnAFdjKIm/mk+eHUkwCTG3ZtuFJkl3bNon+438OEnmb3BDdEMPeq0p8vD3VpcMdS3pdkTSYMXu734786d4kHMp0oXyKpcwKaENv7yKFFhKa2wbga8+I9AiYbYfnAADOrhrKu2+6nON8NgIXQxpdEVVmF0zafRJ5h6a3stSAn/HswrvTZXtkTKorsVEK65H3h2SfU5E/ETuCGkfVm7UxIrGEGtlI9lvWd46eJC1nlEXokvousXMzy11mM15QQvUghINPrfJ17O7Bs98XLx3CJWnbE7ijTe7GURMLlG+taSmxDrID6QbiuapUQZOgF8n2CxKmSOYt8DWjCS2TIpv8zumt7uwqvV9EIVtA4TLfFI6MzYaukUJmJ/gUspJ3/O9mwpd947/JCbZfAWTmysVRQQaU8o7CEdQYeEEWGzFLlksACWCzYbdcIKa2hHspatsNYV05BBVfMDsL403HHlVvnI50/T6GOtq1idCHX3Fq4/2X26fVnhlXVy1D3NSA0+yj/4EEatusHnAiQtopXpkROYnGU0nVSwxose41DhVvoTkYg7inL2ZS8X1dzZ14prfxcH34/DvSTh/0NnwUTS4yXtW/rsnmXRh0cIrFGLvn1L369m2QopS746BW0xdGRpzOsYbP9bUXY9UvajMPpnfoA==
+X-Forefront-Antispam-Report:
+	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(36860700016)(23010399003)(1800799024)(376014)(10067099003)(22082099003)(18002099003)(56012099006)(261022113327099003)(11063799006)(261021121427099003)(261022115727099003)(261021135927099003)(261022075727099003)(261021133027099003)(261102123227099003)(261021130227099003)(261022105027099003)(261026135527099003)(261026130827099003)(261028144727099003)(261026121527099003)(261102130727099003)(261026140227099003)(261021123027099003)(261009223027099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	QAIldzfndbBIe2EkP6z2yIYTplmGjP1+HiewFS4cu5siNEOLK+VZN6tFpBKEZj7hU6sVbAMFpyHfuHtM2JAt7Gz2FXytFCHlTMCQmg0zWZRF2yXz/HKF6TiOa6Uc7LMP4w8XBjHR85j9BULwup9bq29MT8fFiGRsozyiKlGDxoZCSxZSY3vUCm5qdGCvYUG9bNuBAp4MOvDTgweRR7vU4OoCLyYxQ6sTT7ec/7wnDBxm3S8OPp7+ZASOkPQXpj5jQPKyiaX4Z6aDYvonD2bGBZt5V1yfBPtfp4wLeM7kHWvRUUvjHHP9g7fQSIeQMYH+2SDw/mng0cle/jhzzkBKhAO3I5x4OYErUKtestIcTxaSt33g9OHMpv7d/uKA2q68XwLq91JedKNGT4arWkx2RH6+SiCeM9BVMUw/sRp8CmU3+hqLTNrN5QtS/cme2hUP
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Nov 2026 17:11:01.7855
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: bc04a039-77ca-4ff9-683b-08df39cd6fe1
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	SJ5PEPF000001CF.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB7437
 
-ipoib_stop_ah_reaper() uses cancel_delayed_work(), which cannot stop a
-callback that is already running.  ipoib_reap_ah() re-arms itself after
-an unlocked test_bit(IPOIB_STOP_REAPER) check, so a callback that has
-passed the check but has not re-armed yet still queues the delayed work
-after the "stop":
+From: Shay Drory <shayd@nvidia.com>
 
-  CPU0 (reaper)                     CPU1 (stop/teardown)
-  test_bit(STOP_REAPER) == 0
-                                    set_bit(STOP_REAPER)
-                                    cancel_delayed_work()  (no-op)
-                                    ... destroy_workqueue(priv->wq)
-  queue_delayed_work(priv->wq, ...)  <- delayed work sits on the timer
+mlx5_query_nic_sw_system_image_guid() builds the key used to group
+devices that may form a LAG. A PF and its VFs/SFs share the same FW
+system image GUID, so without a discriminator a VF/SF that can join a
+virt LAG would be grouped with its PF.
 
-destroy_workqueue() cannot see a delayed work that is pending on the
-timer wheel, so the re-armed work fires after the workqueue is
-destroyed and priv is freed: both the queueing onto the dead queue and
-the callback's container_of() on freed memory are use-after-free.
+Appending bare discriminator bytes at conditional offsets is not enough:
+distinct capability sets can collapse to the same key (a PF ending in a
+load_balance byte of 0x01 vs a VF whose marker is 0x01). Give each
+discriminator a fixed position instead, and add the VF and SF as such
+fields. Trailing zero fields are trimmed, so keys of devices that set
+none of the new fields are unchanged.
 
-Use cancel_delayed_work_sync(), which waits for a running callback and
-prevents its re-arm from taking effect.
+Set the VF/SF markers only when mlx5_virt_lag_is_supported(). The same
+key also backs mlx5_same_hw_devs(), so a VF/SF that cannot join a virt
+LAG keeps its current key and is still identified as the same HW as its
+PF.
 
-The comment above claims ipoib_reap_dead_ahs() "ensures the work is
-really stopped", but it never touches the work item - it only walks the
-dead_ahs list under priv->lock.  The stop guarantee comes from the
-cancel; fix the comment along with it.
-
-Found by static analysis.  The race was reproduced on a KASAN build
-with a small module exercising this exact guard/cancel/free pattern
-(no Infiniband hardware available); PoC and splat are below.
-
-Cc: stable@vger.kernel.org
-Signed-off-by: Chengyu Liu <lui2012qwq@gmail.com>
+Signed-off-by: Shay Drory <shayd@nvidia.com>
+Reviewed-by: Mark Bloch <mbloch@nvidia.com>
+Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
+ .../net/ethernet/mellanox/mlx5/core/lag/lag.h |  9 ++++
+ .../net/ethernet/mellanox/mlx5/core/vport.c   | 41 +++++++++++++++++--
+ include/linux/mlx5/driver.h                   |  2 +-
+ 3 files changed, 48 insertions(+), 4 deletions(-)
 
-Reproducer notes (PoC source below; a module parameter selects the
-shape): mode=3 (cancel_delayed_work + lockless guard race, this bug's shape) produces
-
-    [    2.05] BUG: KASAN: slab-use-after-free in queue_delayed_work_on+0x27/0x70
-    [    2.05] Workqueue: events pm_td_cb [pm_flush_poc]
-
-after the teardown frees the container; mode=1
-(cancel_delayed_work_sync, i.e. this fix) stays clean.
-
----------------------------- reproducer: pm_flush_poc.c ----------------------------
-// SPDX-License-Identifier: GPL-2.0
-/*
- * pm_teardown_poc - mechanism PoC for the drv-teardown-sync C/D variants
- * (F-026 ipoib / F-028 epf-ntb / F-029 habanalabs).
- *
- * Modes (module parameter):
- *   0  F-029 vuln shape:  flush_delayed_work + lockless guard
- *   1  control:           cancel_delayed_work_sync (>=6.9 swallows re-arm)
- *   2  F-028 vuln shape:  cancel_delayed_work (non-sync) + unconditional re-arm
- *   3  F-026 vuln shape:  cancel_delayed_work (non-sync) + guard check/queue
- *                         race window (test passes, teardown slips in before
- *                         the queue_delayed_work)
- *
- * Every vuln mode must produce KASAN slab-use-after-free when the orphaned
- * work fires after kfree; the control mode must stay clean.
- */
-#include <linux/module.h>
-#include <linux/workqueue.h>
-#include <linux/slab.h>
-#include <linux/delay.h>
-
-static int mode;
-module_param(mode, int, 0444);
-MODULE_PARM_DESC(mode, "0=flush(F-029) 1=cancel_sync(ctrl) 2=cancel_nosync(F-028) 3=cancel_nosync+guard-race(F-026)");
-
-struct pm_td_ctx {
-	bool			fini_pending;
-	struct delayed_work	work;
-};
-
-static struct pm_td_ctx *ctx;
-
-static void pm_td_cb(struct work_struct *w)
-{
-	struct pm_td_ctx *c = container_of(to_delayed_work(w),
-					   struct pm_td_ctx, work);
-
-	pr_info("PM-POC: cb running, fini_pending=%d\n", c->fini_pending);
-
-	switch (mode) {
-	case 0:		/* F-029: lockless guard then long body then re-arm */
-		if (c->fini_pending)
-			return;
-		msleep(300);
-		schedule_delayed_work(&c->work, HZ / 10);
-		pr_info("PM-POC: re-armed (flush shape)\n");
-		break;
-	case 2:		/* F-028: unconditional re-arm, cancel must catch running cb */
-		msleep(300);	/* long body so cancel lands mid-run */
-		schedule_delayed_work(&c->work, HZ / 10);
-		pr_info("PM-POC: re-armed (no guard)\n");
-		break;
-	case 3:		/* F-026: guard check passes, THEN teardown slips in */
-		if (c->fini_pending)
-			return;
-		/* widen the check->queue race window like ipoib's 724->725 */
-		msleep(300);
-		schedule_delayed_work(&c->work, HZ / 10);
-		pr_info("PM-POC: re-armed past guard (test-queue race)\n");
-		break;
-	default:
-		break;
-	}
-}
-
-static int __init pm_poc_init(void)
-{
-	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-	if (!ctx)
-		return -ENOMEM;
-	ctx->fini_pending = false;
-	INIT_DELAYED_WORK(&ctx->work, pm_td_cb);
-
-	pr_info("PM-POC: arming, mode=%d\n", mode);
-	schedule_delayed_work(&ctx->work, 0);
-
-	msleep(50);	/* callback is mid-run now */
-
-	/* teardown sequence for the selected variant */
-	ctx->fini_pending = true;
-	switch (mode) {
-	case 1:
-		cancel_delayed_work_sync(&ctx->work);
-		break;
-	case 0:
-		flush_delayed_work(&ctx->work);
-		break;
-	default:
-		cancel_delayed_work(&ctx->work);	/* non-sync: C variants */
-		break;
-	}
-
-	pr_info("PM-POC: teardown done, freeing ctx\n");
-	kfree(ctx);
-
-	msleep(600);
-	pr_info("PM-POC: SURVIVED (no KASAN splat)\n");
-	return 0;
-}
-
-static void __exit pm_poc_exit(void) { }
-
-module_init(pm_poc_init);
-module_exit(pm_poc_exit);
-MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("drv-teardown-sync C/D variant mechanism PoC (F-026/028/029)");
-
- drivers/infiniband/ulp/ipoib/ipoib_ib.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 81bbb3f7c1..5ed4f709cb 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -736,11 +736,11 @@ static void ipoib_start_ah_reaper(struct ipoib_dev_priv *priv)
- static void ipoib_stop_ah_reaper(struct ipoib_dev_priv *priv)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h
+index 8552792b9035..0ff337983a6d 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h
+@@ -266,6 +266,15 @@ static inline void mlx5_lag_set_vports_agg_speed(struct mlx5_lag *ldev) {}
+ static inline void mlx5_lag_reset_vports_speed(struct mlx5_lag *ldev) {}
+ #endif
+ 
++static inline bool mlx5_virt_lag_is_supported(const struct mlx5_core_dev *dev)
++{
++	if (!MLX5_CAP_GEN(dev, multi_uplink_eswitch) ||
++	    !MLX5_CAP_GEN(dev, lag_master) ||
++	    MLX5_CAP_GEN(dev, num_lag_ports) >= 2)
++		return false;
++	return true;
++}
++
+ static inline bool mlx5_lag_is_supported(struct mlx5_core_dev *dev)
  {
- 	set_bit(IPOIB_STOP_REAPER, &priv->flags);
--	cancel_delayed_work(&priv->ah_reap_task);
-+	cancel_delayed_work_sync(&priv->ah_reap_task);
- 	/*
- 	 * After ipoib_stop_ah_reaper() we always go through
--	 * ipoib_reap_dead_ahs() which ensures the work is really stopped and
--	 * does a final flush out of the dead_ah's list
-+	 * ipoib_reap_dead_ahs() which does a final flush out of the
-+	 * dead_ah's list
- 	 */
+ 	if (!MLX5_CAP_GEN(dev, vport_group_manager) ||
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+index 78f3d15b599d..50d2609374c4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+@@ -38,6 +38,7 @@
+ #include "mlx5_core.h"
+ #include "eswitch.h"
+ #include "sf/sf.h"
++#include "lag/lag.h"
+ 
+ /* Mutex to hold while enabling or disabling RoCE */
+ static DEFINE_MUTEX(mlx5_roce_en_lock);
+@@ -1308,10 +1309,37 @@ u64 mlx5_query_nic_system_image_guid(struct mlx5_core_dev *mdev)
+ }
+ EXPORT_SYMBOL_GPL(mlx5_query_nic_system_image_guid);
+ 
++static u8 mlx5_sw_guid_load_balance(const struct mlx5_core_dev *mdev)
++{
++	if (MLX5_CAP_GEN_2(mdev, load_balance_id) &&
++	    MLX5_CAP_GEN_2(mdev, lag_per_mp_group))
++		return MLX5_CAP_GEN_2(mdev, load_balance_id);
++	return 0;
++}
++
++static u8 mlx5_sw_guid_sf(const struct mlx5_core_dev *mdev)
++{
++	return mlx5_core_is_sf(mdev) && mlx5_virt_lag_is_supported(mdev);
++}
++
++static u8 mlx5_sw_guid_vf(const struct mlx5_core_dev *mdev)
++{
++	return mlx5_core_is_vf(mdev) && mlx5_virt_lag_is_supported(mdev);
++}
++
++static u8 (* const mlx5_sw_guid_fields[])(const struct mlx5_core_dev *mdev) = {
++	mlx5_sw_guid_load_balance,
++	mlx5_sw_guid_vf,
++	mlx5_sw_guid_sf,
++	/* New fields should be added at the end */
++};
++
+ void mlx5_query_nic_sw_system_image_guid(struct mlx5_core_dev *mdev, u8 *buf,
+ 					 u8 *len)
+ {
+ 	u64 fw_system_image_guid;
++	u8 trim_len;
++	int i;
+ 
+ 	*len = 0;
+ 
+@@ -1321,10 +1349,17 @@ void mlx5_query_nic_sw_system_image_guid(struct mlx5_core_dev *mdev, u8 *buf,
+ 
+ 	memcpy(buf, &fw_system_image_guid, sizeof(fw_system_image_guid));
+ 	*len += sizeof(fw_system_image_guid);
++	trim_len = *len;
+ 
+-	if (MLX5_CAP_GEN_2(mdev, load_balance_id) &&
+-	    MLX5_CAP_GEN_2(mdev, lag_per_mp_group))
+-		buf[(*len)++] = MLX5_CAP_GEN_2(mdev, load_balance_id);
++	for (i = 0; i < ARRAY_SIZE(mlx5_sw_guid_fields); i++) {
++		u8 val = mlx5_sw_guid_fields[i](mdev);
++
++		buf[(*len)++] = val;
++		if (val)
++			trim_len = *len;
++	}
++
++	*len = trim_len;
  }
  
+ bool mlx5_vport_use_vhca_id_as_func_id(struct mlx5_core_dev *dev,
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index abb99371ff13..d9d91faa0a1d 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1395,7 +1395,7 @@ static inline struct net *mlx5_core_net(struct mlx5_core_dev *dev)
+ 	return devlink_net(priv_to_devlink(dev));
+ }
+ 
+-#define MLX5_SW_IMAGE_GUID_MAX_BYTES 9
++#define MLX5_SW_IMAGE_GUID_MAX_BYTES 11
+ 
+ static inline bool mlx5_data_direct_supported(struct mlx5_core_dev *mdev)
+ {
 -- 
-2.25.1
+2.44.0
 
