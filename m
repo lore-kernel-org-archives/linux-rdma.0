@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793745304;
-	b=vAJbiaNb/X/TiyYvo/pwQ3V7Jtn+YE1KHRR7IlBSsDU9BGg/XKUccRIftU4XovoGpJZK
-	 iEq0nhTffQb1eqKIbyQhcEFZ2SOgh+UbilhzaKA1S4+rE4IqlOKz759fB/kyWbyxnG8vY
-	 qntargwFwWyszyj/yZT7LUGA3qQ290yBLzr7sBvaQFFfTv6kMRu2nfRfKDhU3+lxUAL8S
-	 qERQ7a+GQ7XacPwUFHMmJ4DIYT1guEin76ttWvZFsYmYuElRr/vqyPZzLj6ZY4D4gp7U4
-	 MXj3CEX3ofaihQss89aZw3I7/AUJyKx3TlI/uP83XJkqBBi7IXf+HWu99/wM9vOMzwQ==
+	t=1793745305;
+	b=n9me2PuuzI1wUkVPMcd2ZfYDBNmjbFeJWqi39s9B7wDPzFnOhTubT4eqh347/qHslKLR
+	 YHBu1XCcsQeJZivomTeB8SLjvhoPeahxR20xky0nqAZcuf5YHv6oWwSV0015rT4kpOyi4
+	 EYTF0sv5sfOCpcrlzL3t/t0/uc6BDbwzQ0Yg7Sk0GCGp74uy7HHUHxLt5QQ800Bx7C1pv
+	 2W1yJ841UAt2xCMMgRQRAcvqEangbpDItD1EW166CiuDcVD8ydjlcMLyw7wrFmLIqnrgc
+	 WjcDbLDSimkZBchlrNtZ+M1o4VzctX4RotYYS1UJmVm1CxIhWrpylJN5ergUf9yUYvQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793745304;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793745305;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=5Azq7Lycc1U9gm0StXIJm64sszExgnDEd9Y7QyGS7jA=;
-	b=qscehMWtPZcovVjwh9UAVD5ctLxBMf7RAJoxSHtf4AS7P6Zy7S2SHK95LqAE6XhTp9kO
-	 hXy3gRQzo+OR3obZZv1fOeUl4KurBuPYQDF4+re+cF4Fidwm+PQNWLnrORQdQXsoFEwir
-	 ZE1dFysngnHAmeopN1gZnAOu3k30mUsxZeEs6vLVIjGxtWeebluFHJT73oAH9e8/1mwm8
-	 5nqo29kRag3tbXf4IUdENMljQGufGY6XlkLN5my3u2grVilRnx/yUtI6Wz0nPCaQPUb0p
-	 IMy9RHFBh/sS0xUKgWUix8oLBNIIrLoCBhYU5pj+drhVV3cUNK8jQ0zkhOVTNwlFtfg==
+	bh=F2BBnlwDwcHtInTKfplpnXw2yBGEHaha01Kg5t2hNRQ=;
+	b=OOsPY0pHgsF6rQGU4XgUIlrtZdvDKa2lzgHqKJ+FbvXry30wjA+hAaT6GoBBb9Eva67G
+	 fItUcdQkk1LQa2wOa+Hi9eQIR8RM22FGftiRJemVGWJFXjQEIEoenL1Y1cQbPFVUs58E+
+	 mCKp0vSOjixn0RgDE+zUW0gzgVnd5WWdBwZXrPucxu4VNWTe7MCP9iGBXlGz5aLDXuHD8
+	 0rz7B1pY6dGm+I8cDr6KIAs1mh1bZZ0uVJH8yZe7ccYBkdPiVFAotOfojgNZnQ6DDHUys
+	 jjERsuQsBaD1Vhlo5wRmO3K31zW0NI2BXvNzJRPlqkRkXPyvfthjm38BxCse4B44f/Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BmPS6qig;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AcSV2a9t;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E154606A328
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3579606A324
 	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 22:35:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BmPS6qig
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E48991F00919;
-	Tue,  3 Nov 2026 22:35:03 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AcSV2a9t
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 965671F000C1;
+	Tue,  3 Nov 2026 22:35:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1793745304;
-	bh=5Azq7Lycc1U9gm0StXIJm64sszExgnDEd9Y7QyGS7jA=;
+	bh=F2BBnlwDwcHtInTKfplpnXw2yBGEHaha01Kg5t2hNRQ=;
 	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=BmPS6qig1jjEdUwASaoyBup05GKUPOfPQwj8sxczHBMbj+pS647nW6oEyK2xjK3s1
-	 ymS+SB9YnubT/TorViiOicdaHBopo0tBGrgS5FiPAjmqM9tRBq3wEJeQ6tmkhgrtnA
-	 Np/7YL/diL2Bym7lzH6QPOD1blFuZyPFfC74Om4JaiQVbyhwJGGYLz62i/+bkvBnh9
-	 UjIY4Ns1RRNaZHqh4qX3DhqF4HrFoTTvoZKq1qJvvbCnPjMO3Ldv+XdV/T686arbnf
-	 hqL8x+JZVvYGEDrEXo2B4ShUZ2r+whw33sNsPmxJn1nngSoMW2hT50BSTudRhfalbV
-	 6yJh7UDpsR7Qw==
-Message-ID: <sashiko-outbox-196137@kernel.org>
+	b=AcSV2a9t4r+Cxhq2caWDE1NyUifi8EWYVZ599uvvRIom+/TBIqf9Q3739qp6pgg4M
+	 H+HiF0K9aHZvLOJZVLAFSONJIgT3I6lkZBTO/Gx9BXveyF7wVTpPMga+BZaZ7FnLUo
+	 opgldr9AF9zuBp7OyuKBsAswZ7TeL4wqDF01ycPAvQSXX59UGCO7s0Pzr7IxsF6JML
+	 DCW2UAnzrLBk84WClz8HSZNBqKStKf4y2GWpcs6XUNh1CgzLcK1dOvszwstGvODmRw
+	 aV+ro87WCkDAc8PpoOpfSyV2+x+wHaAZ9mIF3/xmCfDDYYEH6goxKyLat+Giy0gv6g
+	 Uf2+S/AJJjRnw==
+Message-ID: <sashiko-outbox-196138@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v2 12/15] RDMA/mlx5: Converge UMR access-flag
- cap checks
+Subject: Re: [PATCH rdma-next v2 13/15] RDMA/uverbs: Add new Unordered MR
+ access flag
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Michael Gur" <michaelgur@nvidia.com>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261102223325.2115128-13-michaelgur@nvidia.com>
+In-Reply-To: <20261102223325.2115128-14-michaelgur@nvidia.com>
 References: <20261102223325.2115128-1-michaelgur@nvidia.com>
- <20261102223325.2115128-13-michaelgur@nvidia.com>
+ <20261102223325.2115128-14-michaelgur@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 03 Nov 2026 22:35:03 +0000
+Date: Tue, 03 Nov 2026 22:35:04 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,13 +60,15 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> Move the UMR cap check from both MR registration and UMR paths to a
-> single helper checking the access flags non-modifiable by UMR.
+> Add a new Unordered access flag for MR registrations.
+> This access flag allows additional relaxing of the order of memory
+> accesses to the memory region.
+> Using this access flag allows for concurrent reads and writes of this MR
+> to be reordered.
 >=20
-> No behavior change for the current flag set.
-> Converge to prevent code duplication when adding support to new access
-> flags that are not modifiable by UMR, like the new Unordered access flag
-> added in following patches.
+> This access flag is part of the optional access flags range, drivers
+> shouldn't fail registration for any value in this range and are expected
+> to treat them as best-effort.
 >=20
 > Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 > Reviewed-by: Yishai Hadas <yishaih@nvidia.com>
@@ -76,5 +78,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261102223325.2115=
-128-1-michaelgur@nvidia.com?part=3D12
+128-1-michaelgur@nvidia.com?part=3D13
 
