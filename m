@@ -1,50 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=159.226.251.81
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793699197;
-	b=KMfflabj7LsJebc5xJGFipssalXxU0wcVdUbgDidY+uzPmqH93rcLVuiwZlguxIkuvii
-	 Q8qqhheodAevEtCL5nnxnVUcA+vK05Yq+yjcEkE5XAP6swrdt1ntO1ypuV/TDN3EmxlKy
-	 aKUazCJlGEhjk2qNMgKU3/1v2HUAlF0X6LHXhXlKPkb4ZyTJr/BedtiLnbVpyfA88SpRH
-	 q3vj1QX7XDaQeNd7o9xhIyFV+PnVTXi3Pbe6TyyiL6D9bqMIU+cgJbAIolkDHijZADD/0
-	 o38EXRdddnCT3rJu4K+QZGbrG90SsKwyvO9jdG9vABdHJPu+y6O+24yhZDGq6nOPZZA==
+	t=1793699581;
+	b=lX/+9zC7Er1kB9BHB3Lt3JB/adFr/dJVB5alqZI9UJQVD2wFRWih3P14kDlgFQWo62R+
+	 HDeHFxZQbQPRdiR/V/ks5Eqmah5xHGSUmqaZty1EfYSMdbZbNLFkzOyeP6wfv/5kHfIzK
+	 mBwl/VUH5eDGwde9TkbxUomBsqQeVeQUHtusIIQn0avAXdT+HjmQIbsNuuI5RSNNdG1pe
+	 giCHNDdHrTV6aQmBo5g1xejMAf4FhyzcgvHlBjxfY+IAwVenuXLlA8IrxFgCS3u9L+Enx
+	 E/Bj/tN97kkLj8yAq1dgiI16QlZmMo5WYVLSisA+VgNb0WrsQamYFjpqI82SZ/jh22A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793699197;
-	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-Id:X-Mailer:
-	 MIME-Version:Content-Transfer-Encoding:X-CM-TRANSID:
-	 X-Coremail-Antispam:X-Originating-IP:X-CM-SenderInfo;
-	bh=FDCgLLohogj15TP7M5cXtpTUp765Lir5+ELlDyW+FDQ=;
-	b=ajdxb8CABW/bSUX7dkBVMLsItryr71gaxwMaPLjSrhiLYCV0PvNZJq6P3RD7LZbzDw5J
-	 H0iDeQMj7FSPudPQb6tnt5ZlRI2pJseRs+ant8qqUORpmzp+0wbh7bOPnxYm3lbf2Zltb
-	 oIMKEGGYd6lsLOK74cGgPWmhB8buPCP/PtFxfCl9YgC81OFS+KeAXwCrN0VPlurDhtkzo
-	 J3lYDqgMvnN1SfIIBYy23c13lmxCP+OXLt5IMuaHMiC/1bVourk6LAC9F4FeUXmSIYIm3
-	 IMRsRxszyrsJSU306kAXawitbkWbz8+6jtpE0NTMvozSeX+LVmg5nHbxK2E5OZv1h6g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793699581;
+	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
+	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Mailer;
+	bh=My0Z66KYNuRTAK3B795dnm8lK2ZMXMW4aavFw/8R0xM=;
+	b=eOQZ5KRLjDlZU8MVeV4lpdPq7W/zdekm9NES2bMIHNTechzyRsY6cE9Qaf5sTaZi8Uc0
+	 /j5KrMTsZNyZ/DzBEgVpOPXjwzGoplXAFXmnjgjJ9wgjhwy2n326pY7moODYXrk948xlT
+	 mIfdNBDd4wxYyBoLnR2GD2+bQWd5ckVir5+4eYSpmy1Cfcozpnmg1goXeTwaONwAla73Y
+	 Ntsoj8gObdod/NO9mPctmi1ElfatASheHxTY4QPD9pZkVGn7PqsObY5DZOhB3uLdadUJU
+	 rRabUIPoPceYwS0y60OQdZFFDS2qXPKvbDU/VkUQ0nH0ePA4JIQfbZPXHX+aCkY0QhQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=iscas.ac.cn;
-	spf=pass smtp.mailfrom=iscas.ac.cn;
-	arc=none smtp.remote-ip=159.226.251.81
-Received: from cstnet.cn (smtp81.cstnet.cn [159.226.251.81])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZtqS1jy+;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA4AC606D80F;
-	Tue,  3 Nov 2026 09:46:35 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DA4AC606D80F
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from dfae2b116770.home.arpa (unknown [36.110.52.2])
-	by APP-03 (Coremail) with SMTP id rQCowAA3Q5R5relqBVA7AA--.4976S2;
-	Tue, 03 Nov 2026 17:46:33 +0800 (CST)
-From: Wentao Liang <vulab@iscas.ac.cn>
-To: Potnuri Bharat Teja <bharat@chelsio.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Wentao Liang <vulab@iscas.ac.cn>,
-	stable@vger.kernel.org
-Subject: [PATCH RESEND] RDMA/cxgb4: Balance the extra skb reference on rx_pkt() error paths
-Date: Tue,  3 Nov 2026 09:46:42 +0000
-Message-Id: <20261103094642.1289811-1-vulab@iscas.ac.cn>
-X-Mailer: git-send-email 2.34.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35EA16082BED;
+	Tue,  3 Nov 2026 09:53:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZtqS1jy+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9A851F00A1B;
+	Tue,  3 Nov 2026 09:53:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793699581;
+	bh=My0Z66KYNuRTAK3B795dnm8lK2ZMXMW4aavFw/8R0xM=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=ZtqS1jy+YkNh/dusWp74kZOjGgEJPbo09JcPUd7JZiNBgXFL68rxZb76qlpeP5PHY
+	 +sY/GPIG7+iuKTV6cDE42VArd0HnhotreVjoORDNIsiUzEMMzHfIoK6mh6kNSmysM7
+	 NzksDfTukp22zaCX39Ff260mkElMwMg3Adh2F2Zdo9+c6/PjXjFGk/K/SpB3HDJGKy
+	 lLvAVHAdQEFm0Iuo3Kqgkv0/iTxWUqzXZYlQt+XxrZlkqzDsIA6mcyO6m04yF3rXoM
+	 zY5eVeJWjFJL0eWS29GEfgqGQPFBt2tpHBM+W7hm4QMrfUASOjbNbeWQkmYDFbKLDd
+	 OPbZSIZ67pdrg==
+From: Leon Romanovsky <leon@kernel.org>
+To: Bart Van Assche <bvanassche@acm.org>, 
+ Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, 
+ target-devel@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ stable@vger.kernel.org
+In-Reply-To: <20261025013748.3755639-1-yhlee@isslab.korea.ac.kr>
+References: <20261025013748.3755639-1-yhlee@isslab.korea.ac.kr>
+Subject: Re: [PATCH v5 0/3] RDMA/srpt: fix the descriptor table checks and
+ the context counters
+Message-Id: <179369957811.1712752.1012285000662293438.b4-ty@kernel.org>
+Date: Tue, 03 Nov 2026 04:52:58 -0500
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -54,69 +61,34 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:rQCowAA3Q5R5relqBVA7AA--.4976S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7WrW8Kry8Zw4Utw4fXw15CFg_yoW8Zw1fpa
-	15Ca4qkFZ8CF4jk3W8Jw42vrW2ywn2y3s5uFyvy3sIvwsxZry7Jrn2gFWIgF4DCFZ5ur12
-	vr4Yy3ykGrZrZrJanT9S1TB71UUUUUDqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUvY14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
-	JVWxJr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Gc
-	CE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E
-	2Ix0cI8IcVAFwI0_Jw0_WrylYx0Ex4A2jsIE14v26F4UJVW0owAm72CE4IkC6x0Yz7v_Jr
-	0_Gr1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxkF7I0En4kS14v2
-	6r1q6r43MxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrV
-	AFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUAVWUtwCI
-	c40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r4j6ryUMIIF0xvE2Ix0cI8IcVCY1x0267
-	AKxVW8Jr0_Cr1UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWx
-	JVW8Jr1lIxAIcVC2z280aVCY1x0267AKxVW8Jr0_Cr1UYxBIdaVFxhVjvjDU0xZFpf9x0J
-	jU-B_UUUUU=
-X-CM-SenderInfo: pyxotu46lvutnvoduhdfq/1tbiBgQAA2rpnIRRqQAAsi
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-rx_pkt() takes an extra reference on the skb with skb_get() so that the
-pointer stored in req->cookie stays valid after the handler returns.
-process_work() frees the skb once when the handler returns 0, and the
-firmware completion path releases the extra reference through that
-cookie.
 
-If the route, neighbour or L2 table lookup fails, rx_pkt() returns
-without calling send_fw_pass_open_req(), so the extra reference is never
-released and the skb is leaked.
+On Sun, 25 Oct 2026 10:37:45 +0900, Yehyeong Lee wrote:
+> The first two patches bound initiator supplied descriptor data, and the
+> third widens the counters that hold what the first one admits.
+> 
+> A 510 entry table fits in the default 8276 byte IU when the additional CDB
+> is empty, so the bound accepts it and the counters then have to hold it.
+> With only the bound, a conforming command carrying 256 or more descriptors
+> still wraps n_rw_ctx and leaks every context it allocated. With only the
+> wider counters, a command that sets ADDITIONAL CDB LENGTH to its maximum
+> still walks a descriptor table that runs past the receive buffer.
+> 
+> [...]
 
-Move skb_get() down to just before send_fw_pass_open_req(), where the
-reference is actually handed to the firmware.  The early error paths now
-leave only the reference owned by process_work(), which releases it when
-the handler returns.
+Applied, thanks!
 
-Fixes: 1cab775c3e75 ("RDMA/cxgb4: Fix LE hash collision bug for passive open connection")
-Cc: stable@vger.kernel.org
-Assisted-by: DeepSeek-V4.1-Flash and OpenAI Codex
-Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
----
- drivers/infiniband/hw/cxgb4/cm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+[1/3] RDMA/srpt: bound the indirect descriptor table to the IU
+      https://git.kernel.org/rdma/rdma/c/d5e2467b86d496
+[2/3] RDMA/srpt: reject zero-length buffer descriptors
+      https://git.kernel.org/rdma/rdma/c/f38458ac4ff689
+[3/3] RDMA/srpt: widen the indirect RDMA context counters
+      https://git.kernel.org/rdma/rdma/c/f9258be57e3e19
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index a6f520f49d59..2cdc4744a24a 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -4134,7 +4134,6 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
- 	tcph = (struct tcphdr *)(iph + 1);
- 	skb_set_network_header(skb, (void *)iph - (void *)rss);
- 	skb_set_transport_header(skb, (void *)tcph - (void *)rss);
--	skb_get(skb);
- 
- 	pr_debug("lip 0x%x lport %u pip 0x%x pport %u tos %d\n",
- 		 ntohl(iph->daddr), ntohs(tcph->dest), ntohl(iph->saddr),
-@@ -4193,6 +4192,7 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
- 	 * in cpl and pass it through the regular cpl_pass_accept_req path.
- 	 */
- 	build_cpl_pass_accept_req(skb, stid, iph->tos);
-+	skb_get(skb);
- 	send_fw_pass_open_req(dev, skb, iph->daddr, tcph->dest, iph->saddr,
- 			      tcph->source, ntohl(tcph->seq), filter, window,
- 			      rss_qid, pi->port_id);
+Best regards,
 -- 
-2.34.1
+Leon Romanovsky <leon@kernel.org>
 
