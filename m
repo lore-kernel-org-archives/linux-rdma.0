@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793675778;
-	b=PioprisYdlC9bUsv+mhbO//mjG8s60DHiFXU7wSuiqnD2bTnFvGyBFGtn5VDOgTqSVCU
-	 738v3bq9K5ormzJ0oDo3IjblIqYy2ARfupIvYLhE+rfFiI1Ohg9xdjX9pKCJcSMKh2v7K
-	 WVifjiTM+ykm3n0xIbI+Vv0UIH5MEfScnpVYSe5LcvkfuX2TPl07ETCvSN9iUWIpqRTcV
-	 2uz6kWWFfAfoZuExK86nDmHF6h2ShKp//uGUTs3Z8Qfka1cg0kXNeXAsmW1VeDyaHSXg+
-	 M9JSK8qi15A6yxbrUvpVuCO9ESFSWNOvzqUU41+cwzTvENX1m8NaraprMW3dTcHYeBQ==
+	t=1793676077;
+	b=3/vrU+TpL7WyJl4dsLgrEjttzfF3/QxxdY+awXnn09ZwORnaxLL0UzMbkdRsXwcFk4xa
+	 eDzGdhXe8WUqe+1on3tKizCef5xK6Hk8fnE780K3ABqHjEIXWoJMt4S5gslx3VHeInOLL
+	 fZhD9yJ6LlPXiZbkttEhBjhc8Y7ro7w4vT+Bsm8ZeyA2HJS2lBhr0+BhtvD+IdAy8+/gh
+	 5HhcEvXoavtLUwv6NhIV8AhEV7GA3md4BDmxFhL/RNtHK2LKN24XQx5qLZfxxqGdXxIpo
+	 lolJp5ARnFQKbW8t4CryF2LWvorev/AIPxlea6RYLZKPfj1Cw/0wkflwG19kjwNup8Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793675778;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793676077;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=zI1tzutuu7aQB59gmhklsLpqzXXFGye8RpX42x+13JY=;
-	b=Yc62nGY+/FU3bU7pAGBDpb/BbiTB1V2mXawqJ7lJwAMm3Hr9AyppQ+ikOq/JBWbobSCF
-	 EjYWVT7txSoUEra5yu9FeMk3F8NtZLsTEfGtAdb0WH3oFZ3OF6fYuH5nRLUI9XZSuXkI/
-	 Pve7O4yJuqK9SrR9CXE5ph+TJD3bCx2RQl4d068tmXYUaXI4+xNLzjLKcN+NvAKZFDtbL
-	 xqLD/pxwAJpJZ4MoG8npo/t3bz2wQcgQ0Np+Dj0n9vPWbc8MBn2Mk503V6jcDLBdZcAoz
-	 0bKpXnpY2uN7UwdSWHQHZWJn1/Is2daa2a+QuwwLt8Wj9gvcHgVB0tKHAnvI+mObgMw==
+	bh=vHT8bkkLW/9XxIIDt95V7F9nojsMSnOqrDB92GHmzSY=;
+	b=BRtN5SnRUungSS3YHaqHz0opKBBfhiRmrhx0lDE4FliIRBJWfEDshbFUWFEjPkqLKJCf
+	 HZItmY2oXaBRyR+E/vKENV7etIWgoUNJV8wZPyZW5DuqMrPcVnJF1Hr0hgopjV96DmJkB
+	 GR//UtsLaB6Rnzi4LsTUGNPDz+Opa7CFFo/vZWr20iWxTJvLOUSEzpGH6JMzqEVeydWlW
+	 mWiYMSyfezS14+rsEuQMxWHY1P6upn2BqP9HZ4Lrd0HndLq/zwVDUGmNX6hMUEWbN2RX6
+	 0thXObew31YmgAcdtzE3LHPw1LBJ27Ao4g/MuvBnQ9vAl2t18B92Nzx967JeRUdL97w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nN1YRU5F;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ONJn9Pen;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F5E1606A324
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 03:16:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8A54606A324
+	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 03:21:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nN1YRU5F
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4555C1F000C1;
-	Tue,  3 Nov 2026 03:16:17 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ONJn9Pen
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 558BE1F000C1;
+	Tue,  3 Nov 2026 03:21:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793675777;
-	bh=zI1tzutuu7aQB59gmhklsLpqzXXFGye8RpX42x+13JY=;
+	s=k20260515; t=1793676076;
+	bh=vHT8bkkLW/9XxIIDt95V7F9nojsMSnOqrDB92GHmzSY=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=nN1YRU5FjJeayLaodu6Vq7QFKNB0f+aXrl3HU7AP/DmVpQmqMIJcJFOmHGBE+vbcD
-	 b3YzXCVRMddpu2L71955Wa+Gvs+iaQq8G+6vaLxYqXgeDiBCuGQOlLqjQCQ2AO2Z2D
-	 73r7scX8WcpKVX4UbuaNOlunU4pZq0fMHzTkuvKWzHbJkldp4UgDPg4LXuB0nyNAXs
-	 wmdf0vLAxR5FchUbyowsrpuiYkbhPl6cC2dr8GZpdRWRR+9uDb+xrAXNbW5eXv8LAH
-	 kUhmOIB2r3WM5/e5WYoQjQXfH30KCzXXF6vue+XnFs3aaJFPcw7r//1T0ogG3+lIQ/
-	 GlLf7/gGeFOPA==
-Message-ID: <sashiko-outbox-194502@kernel.org>
+	b=ONJn9PenuvCjOmlx8kQdVNLdpBzFc7L6OPaJe0AaxdWkMbYC3LB+V18bC1R65Jl8f
+	 CBV33a+mrONPPH9gFLaXIuyj43zXRLWbnQTATq2oT9IuuTheUbXFzZnc6wHrNlUdtX
+	 FNjgyHQPNoF03vH2Tp0aoNK4TZKKe2eEXEeOHK0fD3ZN9YDwrFcvLSyRAvBjiGykH4
+	 ZqggXz0mxBI/tEAV6cFK5oI/Jf6hFaHD4SiIt31anYWa+UEMJkx2zccbh7BtECkYQ9
+	 5MWs2t2ufBTXEi3i4vk34Mg7CV5clKeklVFtNC58ofCJKvx6t3YtcKQoVoZIDKw0f3
+	 F3qde9NdfTE9Q==
+Message-ID: <sashiko-outbox-194507@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2 1/3] rpcrdma: Serialize notification registration
- with device removal
+Subject: Re: [PATCH v2 2/3] rpcrdma: Pin notifications during removal
+ callbacks
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Li Xiasong" <lixiasong1@huawei.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261103032758.1302493-2-lixiasong1@huawei.com>
+In-Reply-To: <20261103032758.1302493-3-lixiasong1@huawei.com>
 References: <20261103032758.1302493-1-lixiasong1@huawei.com>
- <20261103032758.1302493-2-lixiasong1@huawei.com>
+ <20261103032758.1302493-3-lixiasong1@huawei.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 03 Nov 2026 03:16:16 +0000
+Date: Tue, 03 Nov 2026 03:21:15 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,20 +61,16 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> rpcrdma_rn_register() checks RPCRDMA_RD_F_REMOVING before publishing the
-> notification and taking a reference on the rpcrdma_device. Nothing
-> serializes these operations with rpcrdma_remove_one(). Device removal
-> can therefore free the private data after the check but before xa_alloc()
-> or kref_get(), resulting in a use-after-free. It can also finish its
-> notification walk before a new registration is published, leaving the
-> removal path waiting for a registrant that was never notified.
+> rpcrdma_remove_one() can race with unregister and invoke a notification
+> callback after its owner is freed. XArray RCU does not pin stored objects.
 >=20
-> Use a module-wide mutex to protect the client-data lookup, removal-state
-> check, notification publication and reference acquisition against the
-> transition to REMOVING. Clear client-data under the same mutex before
-> destroying the XArray and freeing the private data, so a later lookup
-> cannot return a stale pointer. Keep notification callbacks and completion
-> waits outside the critical sections.
+> Pin notification owners under rpcrdma_device_mutex and serialize
+> unregister with the same lock. Also pin client RPC transports. Skip
+> owners in final release with kref_get_unless_zero().
+>=20
+> Invoke rn_done and release references outside the mutex. Track references
+> separately so partial acquisition can be unwound without accessing freed
+> owners or waiting for XPRT_LOCKED under the device mutex.
 >=20
 > Fixes: 7e86845a0346 ("rpcrdma: Implement generic device removal")
 > Signed-off-by: Li Xiasong <lixiasong1@huawei.com>
@@ -83,5 +79,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103032758.1302=
-493-1-lixiasong1@huawei.com?part=3D1
+493-1-lixiasong1@huawei.com?part=3D2
 
