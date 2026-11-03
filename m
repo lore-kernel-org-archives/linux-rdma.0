@@ -1,22 +1,22 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=159.226.251.81
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793693770;
-	b=M7n7dfa9/+oVXU+0zMRs3iZ28OCciN+thjG7q9a1Rr7Whi0A81ddN4yoUUpEICwxeypS
-	 FDLAlpMw0scMFba6UQhm8fqenAdp+gtOvfYwD18p3+PyvK2pkSHhCdFFZ9mEgzV1I92Kg
-	 M6yjSHpuutcBNhFTeVP4fm3OVcv7a2Xa1Deuh6QR0TuIrHI9nkKHOIYl5w6aoXwYGHw8x
-	 vvfBnwgyOpz9GVmnNkeguxS5nLO/s/ND/QcWzvLfBGhPo0Ee2w4RTwCK8Y1a4TNpTQSZ+
-	 CdmEtxF14lKA6Midttv8zZE0Gp6hJU8DmZuS3pJbwvcCM5sLmG4I0yghzssGs9Rsw6w==
+	t=1793693848;
+	b=z9Uh5wwMsDI9vNm04G12wBjQBIXJ+kwsBiHZp1yTq/k+nAAOSGsz56/EDci0+kPwWCUp
+	 F1F3XF5CNiBYYljeK1DECB3BRMnZYYs94mk7nPwNJe+zMyIbAF4aT9FPtNaHlFIg1m2xa
+	 bk90NIyIU8j91Fc7fRCjrX+B5Hfo+1BWut/L/CSWnWd9oTLbMfJHgNJ24rcaFQKK1Y6KI
+	 tZ6XgFSCQFnByeDiXCjdIrQ1OqTVn5cmMpNTBgUK5g3Ff1cmhrLsPh6/mrNvU4DSH/xE8
+	 gtoZYTseBHjsG4GwsS03JHC9yj+3Uss2j0IT+KgsDM3PSzfOTcuADNUrQRGbp0V3PYw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793693770;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793693848;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-Id:X-Mailer:
 	 MIME-Version:Content-Transfer-Encoding:X-CM-TRANSID:
 	 X-Coremail-Antispam:X-Originating-IP:X-CM-SenderInfo;
-	bh=7Qfv2RrlktjTn/mFNJau1qV3Ljc+Bg56TPja324C4EE=;
-	b=tkMETNHRscZyfdIXK2Ql/jJhh5rd1VKUVNuZDRXhlLrIAe2yaHlLbNP91KXWqjLUmg2l
-	 Fenec6hiul41B1skIc40ywk85cwP9TDZgcuyfhafYFnLc3g/VLAVpvdhonH0EL49P6IW5
-	 zFUx8FLTCHk+EAdu1UanvGhbfs64tzZL9lddQ9SmYZLnYgPb6OnuOcRnoQJku42vFwwZT
-	 AlnrQAk6KiPqLrD3cqMU/No1bR3ISceUJ4QISGzyBFDQvI7riD+enXzSo3LyqvBD/RpLQ
-	 T91hwRl9MBBZBHClXE5grxU6YwTLgQMVkXV/IpVdSE0sZZOlxk/Qppx19F07M6knRDg==
+	bh=ByCs/mZsFgrdq9mpwG3he7XLV2D3BV8wO7JHEOzQf9A=;
+	b=v/3HQwx5j+4M1Kbbz3b2g7mKxuNEtOTGPFjCQep4wgtpCbS71wNpQDOj5bqlX+fkuT5U
+	 iv6MqDI8ds9m7Y1iZ2Zf77Zlm1c9+BR4ofSyeV2zcEB4ptHP6Nn7Ky2GvuumPMlBJBiX1
+	 C2PCx9LoKX9YowlNkCOJjwmUvBOv6i4+VCC7HPANjDOs2MoK0T5eW9CZJC1TPg7gxKcWW
+	 TDDe9Q4X6ZopM7eA3xQkL2OGr6cJ5rSlXaWekdSUHYYf6NYhP7oqzAyNMwVmQD5sWecWz
+	 jT5sirCr95y0VuBNal0QIVuQ2pyamRANh9fXWaAorCS/0j806Ht9/6ItRVD7QgGcq1A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=iscas.ac.cn;
 	spf=pass smtp.mailfrom=iscas.ac.cn;
@@ -25,14 +25,14 @@ Received: from cstnet.cn (smtp81.cstnet.cn [159.226.251.81])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94566606A32C;
-	Tue,  3 Nov 2026 08:16:09 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 94566606A32C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B58C9606A324;
+	Tue,  3 Nov 2026 08:17:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B58C9606A324
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
 Received: from dfae2b116770.home.arpa (unknown [36.110.52.2])
-	by APP-03 (Coremail) with SMTP id rQCowACHkpNGmOlqQVI6AA--.1655S2;
-	Tue, 03 Nov 2026 16:16:06 +0800 (CST)
+	by APP-03 (Coremail) with SMTP id rQCowAA3QZKTmOlqmVU6AA--.1291S2;
+	Tue, 03 Nov 2026 16:17:23 +0800 (CST)
 From: Wentao Liang <vulab@iscas.ac.cn>
 To: mkalderon@marvell.com,
 	jgg@ziepe.ca,
@@ -41,9 +41,9 @@ Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Wentao Liang <vulab@iscas.ac.cn>,
 	stable@vger.kernel.org
-Subject: [PATCH] RDMA/qedr: Release user memory on MR registration failure
-Date: Tue,  3 Nov 2026 08:16:15 +0000
-Message-Id: <20261103081615.1143267-1-vulab@iscas.ac.cn>
+Subject: [PATCH] RDMA/qedr: Unwind user queue setup if doorbell recovery setup fails
+Date: Tue,  3 Nov 2026 08:17:32 +0000
+Message-Id: <20261103081732.1144512-1-vulab@iscas.ac.cn>
 X-Mailer: git-send-email 2.34.1
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -55,10 +55,10 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:rQCowACHkpNGmOlqQVI6AA--.1655S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7Aw1rtFW3CrWruw4xXw17Awb_yoW8Jw4UpF
-	4fWrZ0krWUtF4293WDAF10vFWSga4rAayjg3sIy34fZFsxZF109FnYka4UZryDGF95Xr4f
-	Zr4Utws8uF1xCFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+X-CM-TRANSID:rQCowAA3QZKTmOlqmVU6AA--.1291S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7Ar4xWw1DGrW8uFykZFW3trb_yoW8WFWrpr
+	ZxXrWYkryjgF47AanrJr1UtaySgaykCFWUKrZ29w1rZ3ZIkF129asIkF1UXFykAFs2qa1S
+	yr4qyr45Crn7CFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
 	9KBjDU0xBIdaVrnRJUUUkE14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
 	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
 	1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
@@ -72,37 +72,48 @@ X-Coremail-Antispam: 1UD129KBjvJXoW7Aw1rtFW3CrWruw4xXw17Awb_yoW8Jw4UpF
 	AKxVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Gr0_
 	Cr1lIxAIcVC2z280aVCY1x0267AKxVW8Jr0_Cr1UYxBIdaVFxhVjvjDU0xZFpf9x0JUMGQ
 	DUUUUU=
-X-CM-SenderInfo: pyxotu46lvutnvoduhdfq/1tbiDAEAA2rpWwroEgAAsm
+X-CM-SenderInfo: pyxotu46lvutnvoduhdfq/1tbiBgkAA2rpWmXrlAAAsP
 
-qedr_reg_user_mr() acquires user memory before initializing the PBL and
-allocating and registering a hardware TID. The error paths after that
-acquisition release the MR storage and PBL resources, but skip
-ib_umem_release(), leaving the user pages pinned and DMA mapped.
+qedr_init_user_queue() pins user memory and allocates its PBL before
+initializing the doorbell recovery record. If the last step fails, it
+returns directly without releasing either resource. The CQ and QP
+creation callers treat this as a failed queue initialization and do not
+release that queue, leaving its user pages pinned and PBL storage leaked.
 
-Release the umem at err1, which is reached after a successful acquisition.
-The failure path of ib_umem_get_va() still jumps directly to err0 and
-never passes its error pointer to ib_umem_release().
+Free the PBL on doorbell recovery setup failure, then use the existing
+umem cleanup. Match the PBL allocation mode: RoCE uses the populated PBL
+allocator, while the other path allocates only the table descriptor.
+Clear the freed pointer as well.
 
-Fixes: e0290cce6ac0 ("qedr: Add support for memory registeration verbs")
+Fixes: 97f612509294 ("RDMA/qedr: Add doorbell overflow recovery support")
 Cc: stable@vger.kernel.org
 Assisted-by: DeepSeek-V4.1-Flash and OpenAI Codex
 Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
 ---
- drivers/infiniband/hw/qedr/verbs.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/qedr/verbs.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index acab3cb98caa..3c777bfdef8f 100644
+index 3c777bfdef8f..f7a4b2bd7398 100644
 --- a/drivers/infiniband/hw/qedr/verbs.c
 +++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -3006,6 +3006,7 @@ struct ib_mr *qedr_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
- err2:
- 	dev->ops->rdma_free_tid(dev->rdma_ctx, mr->hw_mr.itid);
- err1:
-+	ib_umem_release(mr->umem);
- 	qedr_free_pbl(dev, &mr->info.pbl_info, mr->info.pbl_table);
+@@ -818,7 +818,15 @@ static inline int qedr_init_user_queue(struct ib_udata *udata,
+ 	}
+ 
+ 	/* mmap the user address used to store doorbell data for recovery */
+-	return qedr_init_user_db_rec(udata, dev, q, requires_db_rec);
++	rc = qedr_init_user_db_rec(udata, dev, q, requires_db_rec);
++	if (!rc)
++		return 0;
++
++	if (alloc_and_init)
++		qedr_free_pbl(dev, &q->pbl_info, q->pbl_tbl);
++	else
++		kfree(q->pbl_tbl);
++	q->pbl_tbl = NULL;
+ 
  err0:
- 	kfree(mr);
+ 	ib_umem_release(q->umem);
 -- 
 2.34.1
 
