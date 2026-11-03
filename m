@@ -1,56 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793719524;
-	b=49bai9dotTxw9ewxqfAlB7kwonX467UJLTooxXRU/Mv90sgKnB5i041nRx1HEFeUz0PJ
-	 Jdgw4e8eLvufUbQlovyQJq2avNzG7mcTQA/OFH5G6FKI6iAhD/XVd+1KmXZRsK+kgLp8w
-	 SRCL7x0razXjtxIggoSwvsgv/X1cGo2gb2YDjDv5kePjskZdxb2ls8ZrJZdBC9lfaITtb
-	 jNvTrG/j9qNb0gyly3zoFN2y6vr6NaujQ7u+K8qPkKQ3e0pUzMl79ZrIS9wktNKMV7Upz
-	 Wu6chfWSS2A0cxXQHcdEc7TEYpP3RpDhVNTKd9lDQwnYdrM8ePSkGlMM/jhFDUxN2jw==
+	t=1793719867;
+	b=LhBqu6NU+br2xxd7jvzW0XyDkcyJuY88xUq2Betp5dWcEEfvTrcfc2ttOp6BXiec3OUm
+	 Lud1Xhl0/2mKs0k+S0BWK/rr8DGWa+EaZgk5PF5KX+lVRi7EHCU9tRsBeZ3JT6iECkXmb
+	 NGNE+a/gwt5ulHFPb1sgB1YwSFUKu8g/vOg6hXeR0hRZGO7Tf2p036debniet0qeGpPoo
+	 hYnoIsPzIWiG1Yt1veFikJSdz862FxduN3uGe6ksUwlqEZVeVxK1HN4OF7xdVH6A7abPH
+	 YK4vhTfTxfgkFhjjI05l65eZdOnSuG+VuA51qP7HrGGt/4yZVaHJjmTP7setudPdHhA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793719524;
-	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
-	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Mailer;
-	bh=oJM+5qKm3HChtsYW/9jpiIl6Et4WsbvoNBr/kloQ5Lk=;
-	b=C0PDUNRgrJs0kLhgeX30iB+o+lg1D7LrvIedcUzssVmOcmFai1eI2gOX/pBRz/tioj5q
-	 U69bhaKRbGUJ9jN/ukLL+nTPilNu1SLJLCo7g9ITmbUlWSUCzVcUQPOaYOkP/Kk0BFwHz
-	 sPzf7W24v8hVsZJD/bQXFANqN8RHd8PbLKKG6mEDuANAwIawxapuNlaOj5mH6PAaly9WX
-	 GKPsd5QWul+leKuDpAZyc/yakahdOlga2y2kW5iHPFo6uHPOS0oQ8Ok3diRbXEWrBb5ET
-	 5Z2OB4lE6Sb18WIMagf1SYdqE+jj5lGKi6hw2V4j7wth5r/lNjayRpYUajqZWwU8wSg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793719867;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=Y3kUf34boZHw1a7xo3DJMv9OLUvYTHwcOWlcJGn6b/Q=;
+	b=2brRd7jwRkpW8GJVPOmqgAfPPWH1K4oSvx/iOETaFMcGK8qoc9FB5/wlizKFgKaxI6jg
+	 WybyGbZmtNXaAnQqdRNQPQ/rqhFfst2vffuRcjQId23fWSf2pVlPR8ISh0HOSoBqaD7lf
+	 D9aej/EqnGmaCqmZQdZVFKd4qlxFEyoqj3iZT8Y/Ch5O1sKcrSR6pzD6jkRyylLhDLzSN
+	 r3aOniav5dpJcv3e0Uycb7C0qV8oRw8r/5ER25hOu+sEusjhlDIxkR3Ye/is8dZYQ35pU
+	 RnTuKgE2P7iG7ZrOQPymJvZ+zQvzV38nsEdnNOl20Uh32OYFCj9nGxLV/30W/8cZmBw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=omF+WVOC;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lkXSLK3v;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63C71606A324;
-	Tue,  3 Nov 2026 15:25:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08E07606A324;
+	Tue,  3 Nov 2026 15:31:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=omF+WVOC
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65C941F000C1;
-	Tue,  3 Nov 2026 15:25:23 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lkXSLK3v
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C7951F000C1;
+	Tue,  3 Nov 2026 15:31:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793719524;
-	bh=oJM+5qKm3HChtsYW/9jpiIl6Et4WsbvoNBr/kloQ5Lk=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=omF+WVOCLzpnRBDyoU5lB3T44CT4XKWHTI5qISQiLMsOXACli8TvtNz4DsUSBPSCa
-	 2qV9kQzRnOaiET+RXh5aYuMsR+v/sDjCijD/YeOfQahqs5JMjXx179mOjo+6gtV8ev
-	 nvqkVMSnW4JzsJXCHqrcYLSJwiU8MJU1k1qJiQioEszcprBuxy1Xdf95lk/De2tRP/
-	 lG4lrPFsvForIPe6Xl1AQ8+8FpsTxltRH8xhpf/zjNCoa7NN46iZPWY1uuly2ZoTFf
-	 YWpAhpIUWzp5L7n00pzBe+Upt3srJYxzfjX31CSkht+EaDOgtxAbd3dWrdlOf2RCTp
-	 SruWZ1mGJa5+w==
+	s=k20260515; t=1793719866;
+	bh=Y3kUf34boZHw1a7xo3DJMv9OLUvYTHwcOWlcJGn6b/Q=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=lkXSLK3v6YB9cC7ClPbpU/KgJ6Qp+vhZQeb22shfjV0lvNUaR9MwlsugOWDb/9Urh
+	 AaKpO17PurFu7sBMc85q8/LgYd8CdQFxfFhCeZUztXwuOCJ7Eo7zVSr/F/86uKZ6eE
+	 No6duRU0QsDwMzJInx04eM2U2vVzt75jpptVYYGsrceBBf42ERtw9comqH/ONrGxDR
+	 cA7hJ5WJIh+YT030+gFvpfK6GUQsNc3KYDwb6EPpMACIBN7jHc5NeaJoDdMlTN+vcL
+	 vVNaReidnote0rC7HV9QmANuO3pvfrMFZuPLZqw82RgDUr6fyljZd0zIb0ykYTxxrh
+	 T4p173XtDHY8A==
+Date: Tue, 3 Nov 2026 17:31:02 +0200
 From: Leon Romanovsky <leon@kernel.org>
-To: Bernard Metzler <bernard.metzler@linux.dev>, 
- Deep Shah <deepshah146@gmail.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, 
- linux-kernel@vger.kernel.org, stable@vger.kernel.org
-In-Reply-To: <20261102064437.23976-1-deepshah146@gmail.com>
-References: <20261102064437.23976-1-deepshah146@gmail.com>
-Subject: Re: [PATCH rdma-rc] RDMA/siw: Fix use-after-free in
- siw_mem_id2obj()
-Message-Id: <179371952100.1731945.2108233244777170457.b4-ty@kernel.org>
-Date: Tue, 03 Nov 2026 10:25:21 -0500
+To: Binbin Deng <18983559317@163.com>
+Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v1] RDMA/iwpm: Fix use-after-free in mapping info dump
+Message-ID: <20261103153102.GK264423@unreal>
+References: <20261102081813.37754-1-18983559317@163.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,29 +55,50 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261102081813.37754-1-18983559317@163.com>
 
-
-On Mon, 02 Nov 2026 06:44:37 +0000, Deep Shah wrote:
-> siw_mem_id2obj() finds a siw_mem with xa_load() under rcu_read_lock()
-> and then takes a reference with kref_get_unless_zero(). This is only
-> safe if the object stays allocated until RCU readers are done with it.
-> siw_free_mem() frees it with kfree() as soon as the last reference is
-> dropped, so a lookup that races with the final put reads freed memory.
+On Mon, Nov 02, 2026 at 04:18:13PM +0800, Binbin Deng wrote:
+> iwpm_send_mapinfo() walks the mapinfo hash table while holding
+> iwpm_mapinfo_lock, but when the current skb is full it temporarily drops
+> that lock to send the skb and allocate another one.  The hlist iterator is
+> not protected across that window:
 > 
-> This happens when an MR is deregistered while an incoming RDMA WRITE
-> looks up its STag:
+> CPU0                                                CPU1
+> iwpm_send_mapinfo()
+> spin_lock_irqsave(&iwpm_mapinfo_lock, flags)
+> hlist_for_each_entry(..., map_info, ...)
+>   map_info points at map_info A
+>   fill the current skb
+>   spin_unlock_irqrestore(&iwpm_mapinfo_lock,flags)
+>   send the skb / allocate the next skb
+>                                                     iwpm_remove_mapinfo()
+>                                                     spin_lock_irqsave(&iwpm_mapinfo_lock,flags)
+>                                                     find map_info A
+>                                                     hlist_del_init(&A->hlist_node)
+>                                                     kfree(A)
+>                                                     spin_unlock_irqrestore(&iwpm_mapinfo_lock, flags)
+> spin_lock_irqsave(&iwpm_mapinfo_lock, flags)
+> hlist_for_each_entry() reads A->hlist_node.next
 > 
-> [...]
+> CPU0 then resumes an iterator whose object has been freed, producing a
+> use-after-free.  The race is reachable with many mapped iWARP CM IDs when
+> the port mapper hello path dumps the mapinfo table concurrently with
+> teardown of the ID at the iterator position.  It can be reported by KASAN
+> or lead to memory corruption and a panic.
+> 
+> The spinlock still protects the hash table itself, but it cannot protect
+> an iterator that is retained across an unlock.  Add a mutex which covers
+> the complete dump and also serializes individual removal and full-table
+> cleanup.  The netlink dump and CM ID teardown paths can sleep, so this
+> outer lock is appropriate.
+> 
+> Found during a static-analysis-assisted audit: candidate sites were
+> surfaced by a Coccinelle rule, and the reader/writer paths were
+> confirmed by deep code inspection. Due to a lack of hardware
+> infrastructure, the issue was not observed at runtime.
 
-Applied, thanks!
+Sorry, but we should not add locks to legacy code without thorough testing.
 
-[1/1] RDMA/siw: Fix use-after-free in siw_mem_id2obj()
-      https://git.kernel.org/rdma/rdma/c/a70672b9b3ac7d
-
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
-
+Thanks
