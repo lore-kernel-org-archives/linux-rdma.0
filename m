@@ -1,52 +1,53 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793697711;
-	b=GAQ2qpFwa0tzYIKGqTTWG9+BBVtQ7HlEpvIxZsqjyZZLcsvLqAk4taWH2Dq7sCBUc9S6
-	 wxZ/CThAK/tUVpLxmfgzWuWzACEdl3Ca/Dkem3z1PwUGBOO/hTmn5g+45THfMj5BWTafC
-	 XtI1OnLPqSpSfbHqAlYtd+evt3p3v0yKhmskFGrhgCbcD2pm9+94UXrTvh780DBbbleeT
-	 b5rUMrbAQTgatjE+XeWb2aBwYfp+3NI3ApwAOjLSaJJgK/vyiCADDXGMRPQ90yOMSEp7x
-	 KMIIp/EdzN4X5z872Q93fbhESk9TUO+KsNOvNlkeGwpmP3r8DlgRPt3oAYRw5mUwTEw==
+	t=1793698090;
+	b=ENhJJ2nvi9i1gHO2B8OCl/EyLzXdBl9+9kGgZgIBYKN4DABvU+akee6O6Um6h2yJAMm6
+	 HuSnrbFDwY8TgBwJ2PFQmnBqgcrv32uCBulzxGY0ZLBw60DPI692FulYAQDb2OP1sCjTt
+	 3Cahku/7Cw6ZG7IXypbSEV4p1DxPPAsmZW8gSpEkqqyM3ztnwjF8tADMZD5xXoUV0VC5X
+	 Zfc7rHOjCAJIuI2e3jslGjhGQYgiP1dj7a4QxUhnSh/alc7UT67M0bgNat3ggadBDlQNC
+	 PzBNzUquyczPFVQ9GYtp8lzllgqJGw3E3jCoH5WK4GRgPwceFUy9z5YhgmWBf77QAIA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793697711;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793698090;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=Dm6OMR92xAevISjMzNLDdpd0lsO0u5q4NStQZiJFruo=;
-	b=EslQOHxp8CpOYPWW1NJ/jj6U3VJztz9+guCcwoFryXQw/UhGj259IiXv3TDJEF1wo5lQ
-	 oYobmAfwxxctCnOpWoixFbe/U5U9mCT16Daz2wNIsH3QrjLa0ew2CrcJEYCTOwrzUF5Bs
-	 U1sd8vHmisyI1LzY/fN95AM+7Ywc5H8kg328svmEtJv0smoB0/I3Wi0ip70BC3r9REivu
-	 R/4qClXuwm1i6MtM4Ox8oPRxoOl4pX1IAQ9u/h5R3VAk3AivwMXH3qKujEIjyTTKQd5Jp
-	 nKPuLpdn/Dq84wJAhWMug5ZiTKNoovXcrxzF0+o0J9D/ZFKx7zu9qfziDcNzFByAj4A==
+	bh=tkRdaw9CKQa+QeUibzAbt0S2MJfnrjPZ7a/LQzcZE6w=;
+	b=Nwp0WGTaV8lBARLxuJ6fgEke6RAePwZYORpDi8PP3uXmKzgvUA8AJmD6CZemZNTHkUEN
+	 dJl92t/dj5WlorxTLR18suUprMUYEsPemq38mnrH8/6NKgvFs1MgNJRY2dWtiTCb2jsW1
+	 8DOoWDpCbNcni1kitZH7EckQ82XsrYKXIf4/HjiijDEVxFuUs75s0j2O37k0tRg/dKdIc
+	 BBqeQ75Fh7hOBf/dlHUvaeh090R04fCShXnLHRFevfs2TJxt2r3OCoy3lHMKRrLxAm6SY
+	 eQXh3kvtT6lAGi7GVus98y+gFBhVUXVrRWhV0Muq8hHyoeNOuuVM8oI/2fYZ8xZ3HIg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gkndL+Tk;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WKGs0U2u;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65A4C6083617;
-	Tue,  3 Nov 2026 09:21:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6F2B606A324;
+	Tue,  3 Nov 2026 09:28:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gkndL+Tk
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E64F1F00A15;
-	Tue,  3 Nov 2026 09:21:50 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WKGs0U2u
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3315C1F000C1;
+	Tue,  3 Nov 2026 09:28:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793697711;
-	bh=Dm6OMR92xAevISjMzNLDdpd0lsO0u5q4NStQZiJFruo=;
+	s=k20260515; t=1793698089;
+	bh=tkRdaw9CKQa+QeUibzAbt0S2MJfnrjPZ7a/LQzcZE6w=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=gkndL+TkokuC5gxc3W6193nSDBfRnsKAT1QfgWrfCgFtnS9r7pWhvMjYoxcJIcvVv
-	 bj6MeZivoDiIR2OnqZPLUnmQjwLy/PrWSJocp0oQA/j5ju56NzrBxJRXoD+GdlACTZ
-	 OkD9GLty6DUtNHA5H4gpJP6h+cr3Y9NAsHJSdQfr6jGyh5jhMNNhhjQCS8rfi910rV
-	 FmEyjCfPw5iyxvezJmEwmbVEhRPuVoyaauC2EHTdykb79wvoAZFZVIdqd92GV2/hbg
-	 EuvSMDTBa0oywJYHMl8trQ2N+9pbqbdT2nf7lbdo2hQPUoGwip5WiAD5b3DhjGsNpO
-	 Dv2fwPj3tGWdg==
-Date: Tue, 3 Nov 2026 10:21:48 +0100
+	b=WKGs0U2uGQwcpplaJ/N1mP5f/Zq71mKyFkNT6Cd+4p2XF62MvsD6kbR/8csoPZ+OY
+	 8vxQTP5JsMws6nsboiweSh2A8lanneCplfYuVjB/RIM2FX/dMq+dDg/72lEn4wto97
+	 cagT0i+5SGx7eYF4e3WAyuu1Wl+yjtcjwtyhcRx1ZImvcRoJr1/y1uzfya/+3esNHK
+	 YDg2pRMvd2HO/AZYNwNErJ9/sGzYlXGQmY8UnHFFIxyTdk/szXCb/dUf12O3DK3b0V
+	 M9yIS2JjjXL5VzAt0TkOYMtu7LRzToF7zmWagY43wK0DJqXZ3I0yDclkRnCyN1Sitm
+	 Bd1sbEJY5C1Fg==
+Date: Tue, 3 Nov 2026 10:28:05 +0100
 From: Krzysztof Kozlowski <krzk@kernel.org>
 To: Wentao Liang <vulab@iscas.ac.cn>
-Cc: stable@vger.kernel.org, jgg@ziepe.ca, linux-rdma@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, mkalderon@marvell.com, leon@kernel.org
-Subject: Re: [PATCH] RDMA/qedr: Release user memory on MR registration failure
-Message-ID: <20261103-artificial-delightful-beluga-cf9fda@quoll>
-References: <20261103081615.1143267-1-vulab@iscas.ac.cn>
+Cc: leon@kernel.org, linux-kernel@vger.kernel.org, jgg@ziepe.ca, 
+	linux-rdma@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH] RDMA/cm: Release the GID attribute even if its port has
+ no CM support
+Message-ID: <20261103-exotic-savvy-spider-5fb44f@quoll>
+References: <20261103081103.1134475-1-vulab@iscas.ac.cn>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,26 +59,27 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20261103081615.1143267-1-vulab@iscas.ac.cn>
+In-Reply-To: <20261103081103.1134475-1-vulab@iscas.ac.cn>
 
 
-On Tue, 03 Nov 2026 08:16:15 +0000, Wentao Liang wrote:
-> qedr_reg_user_mr() acquires user memory before initializing the PBL and
-> allocating and registering a hardware TID. The error paths after that
-> acquisition release the MR storage and PBL resources, but skip
-> ib_umem_release(), leaving the user pages pinned and DMA mapped.
+On Tue, 03 Nov 2026 08:11:03 +0000, Wentao Liang wrote:
+> When no source GID attribute is supplied, get_cm_port_from_path() looks
+> one up with rdma_find_gid(). A successful lookup takes a reference even
+> if the matching port has no CM port object. cm_add_one() skips ports
+> without IB CM support, so cm_dev->port[] can contain NULL entries.
 > 
-> Release the umem at err1, which is reached after a successful acquisition.
-> The failure path of ib_umem_get_va() still jumps directly to err0 and
-> never passes its error pointer to ib_umem_release().
+> The current cleanup tests port instead of the lookup result, leaking the
+> GID attribute reference when a matching non-CM port is found. Test whether
+> the attribute is valid before releasing it. Keep the put outside the
+> CM device lock and skip it for a failed lookup or an empty device list.
 > 
-> Fixes: e0290cce6ac0 ("qedr: Add support for memory registeration verbs")
+> Fixes: 398391071f25 ("IB/cm: Replace members of sa_path_rec with 'struct sgid_attr *'")
 > Cc: stable@vger.kernel.org
 > Assisted-by: DeepSeek-V4.1-Flash and OpenAI Codex
 > Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
 > ---
->  drivers/infiniband/hw/qedr/verbs.c | 1 +
->  1 file changed, 1 insertion(+)
+>  drivers/infiniband/core/cm.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
 
 
