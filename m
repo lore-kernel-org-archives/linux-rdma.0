@@ -1,57 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.171
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793676615;
-	b=DUSd6UYKQNJpiN2vC31UWGAfhUIA9ZmEmVRdk7QLqorXHapY7p0L/YRanpszqE0mpHFm
-	 XFcJ2Kf+z5gASVFGHYrUVz10AdITKLor7Wlh14WJ/SyqiVYMkmIo3CirqSli8jU+jFxBj
-	 dvwhx0K3mpudQ57uXGmHJ+/r/iiR1p863vRnTMK4+xJLgq5bOB5Q0QSVxjJkrY4Lf3Fnp
-	 j/tWFn5fXMRd5OtQEn1LEVZSW0QvL3gM1um65UtMn+xAXQOnHihJae3uvSigCUMeVS+n6
-	 leJ1oNMMmW2HCV7Isem4DRID4ywrTwxfBmbwBkof5lHYosujTvM0Tucggai5vcg0GOg==
+	t=1793676621;
+	b=0aamSb8xCwpLcORZ/ewFcC//8FhTK2cwsuz71JXsUsdPAKeaqe0z/7HscOZO2hLj8ge0
+	 x8x53m2svxpX5NGBOP+w1ntpdXBbhlz1a3/uRmswlQFoPK85D0A5ofQJzjySIXWltqtW1
+	 MrZtHZ2uI9jz6t7lH2OY8Zuwpz43EP0sFBUvDCVTwnM/P7QDpybNQjosCwzE6gZVCty06
+	 869AuTwnMPKh4A1wMz1XbJ7prDkyuLb2o/axPE7sCMQWMgeprty8eQua3bAqJckqdjHvo
+	 k5prker49munEUlrHHOQdX6rE4Oyhz5dASo97oQFPinQSTjHbmJr3la5SxsV9UEN7Fg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793676615;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=4lG3JPIqDiso+6UXofdYqVLl0bQM2VdUGS2F9oMopDA=;
-	b=HWzsKTg1nMbB+iRu0C2Gv1H91QXtzz/+Jep8VFAQfjTnFV3KUJhDMufCxaiWg9xDesn3
-	 VQql79Bfmfk/yeEE6A6eDI+P8i9wRAgjaDH1TxBs69qXt/GaWZob50vURnZP0uu/+3WWW
-	 VDxTgTAUK8UELU0atPF3SojY7Okjo+1FPzQs5tgJB1r8lIMwnOtNXM3d1xfd0TIsp8GVX
-	 NytvTRVVMnKarg8JqP/Yy/BoxK9SxkU0B70VeU6iXfiLzx3OWMRwtDXdJKr7hdjnuu2Or
-	 4xsyk8/NlHl2rfL76OQMRotnTnOL4eWXiILCkjBv2mxtlbLREXLJKxvlu2MxPHq8ZMQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793676621;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=T+mw2F1yUJNs8kyybctMrCnprUG4stRbsOjx9W2agMg=;
+	b=GU+upF7I3tdvrSbce/98zSVbiFIsWO5w4R8KLGyUzAqfzeNPAy1t7mcw9P4VbmlDj4gf
+	 KvWzy9GflYtegLMMUKaLWJd8Ad4Ye4SxHFs8VQkpJH9aC30k7+hgLI0z/IPg2bB3u395z
+	 7kU8rxG53z4UuEzhygqElBYLov/tCA1oKyH6YcX2aYSXkCAR86kwuQe2gWYkegW02qko1
+	 kZ/vDputVfFUN/cbgGElfpBNKWcJ2JnPKnW5xzMPeeabT0GDa11sZXl7TVugZ5wtjMIWS
+	 rc0o8X3ClOc9ciAlziY3MmKUp8s7IpvMpMHULy8Hoiag87vgn/wevyt/ucnz9Dfv+Gw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NXGbYqz6;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=fail header.from=isslab.korea.ac.kr;
+	spf=none smtp.mailfrom=isslab.korea.ac.kr;
+	dkim=pass header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=KzxtzkSG;
+	arc=none smtp.remote-ip=74.125.82.171
+Received: from mail-dy1-f171.google.com (mail-dy1-f171.google.com [74.125.82.171])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9687606A32D
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 03:30:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EAED606A327
+	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 03:30:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4EAED606A327
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NXGbYqz6
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A0E61F00919;
-	Tue,  3 Nov 2026 03:30:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793676614;
-	bh=4lG3JPIqDiso+6UXofdYqVLl0bQM2VdUGS2F9oMopDA=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=NXGbYqz6G25yfIWtcfXIwsQ1uZHO9qHzUsdhDt3L7fpAoXi0ekAxsoPwhSrcLEtCp
-	 6s1NhSZZe/1ePktiUXeIQ74xivwpNyqv6EWEsbpDuorAZv0AC7dFRejVfSGmDEi7j5
-	 E18O8Ss+G9PRMWJe8AtPRX4eCor9aMYOV90Kq6Xi4Dhu4r3XiXJYxHsGiOIq/swK2w
-	 dBMaV42BsE1ShkWijqVfxlk11lTLp8IPT2U89g5uygA+pG20CHXGkaS2zN/h8VHY6h
-	 Dh/AwdwsQZr2rLBrne4vEnZeqU/Mw8wfmijDq+IYNIG614RnekR9HvlA90p/qER3Tk
-	 jvbur9SA7wwPA==
-Message-ID: <sashiko-outbox-194517@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2 3/3] xprtrdma: Wake connect worker on device removal
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Li Xiasong" <lixiasong1@huawei.com>
-Cc: linux-rdma@vger.kernel.org, "Chuck Lever" <cel@kernel.org>, "Jeff Layton" <jlayton@kernel.org>, "Anna
- Schumaker" <anna@kernel.org>
-In-Reply-To: <20261103032758.1302493-4-lixiasong1@huawei.com>
-References: <20261103032758.1302493-1-lixiasong1@huawei.com>
- <20261103032758.1302493-4-lixiasong1@huawei.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 03 Nov 2026 03:30:13 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=KzxtzkSG
+Received: by mail-dy1-f171.google.com with SMTP id 5a478bee46e88-36a1947498bso3282440eec.1
+        for <linux-rdma@vger.kernel.org>; Mon, 02 Nov 2026 19:30:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=isslab-korea-ac-kr.20260707.gappssmtp.com; s=20260707; t=1793676619; x=1794281419; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=T+mw2F1yUJNs8kyybctMrCnprUG4stRbsOjx9W2agMg=;
+        b=KzxtzkSGjZqscMAingZKA1OcYOowm5TmBc8gYCvXnCGeIRDmwx7W+7o5rZ5LPkkX97
+         G1KWVEt5Tc+UPOTHQzRo5DhYzJ3KDKf90vzWwuujQGeu2sNmZ/QShKQCvVEzXhbTHxrf
+         2nvNllAe5+dA33UMtgaNJbNRWw5wCWiR3u3zX/DX3QZT4W1Otg5tzFPXP6+qr0OYCWnt
+         3BTKlwAXvwhIjRlsXHn4wvkAREADqB03AMgHi8nF2f5WPcf6zuDhw+mre3HDoWR3r1g9
+         wZ0VUsr0g2KwUq6+NpFEIVZMjQNBbwHMw5rC2Bp6Vwl5xrDKZ9So/gdWtAnxyks6wna9
+         Na0A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793676619; x=1794281419;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=T+mw2F1yUJNs8kyybctMrCnprUG4stRbsOjx9W2agMg=;
+        b=ETur+JZTOn/CMrfNHmdogLLqxavHKU91ixGN2deJYGy9katnjbdU9CfYtgeXNXjClc
+         sMFwqCvbNWsIZNSp9PG7DqmOsl/oE6PTuJ2Tf3w0vHR/zA3faJwNHFYjCb2duz26LeaI
+         EjNvBDZaumRWof62DfxEjAa9rJ16/Q5TAZYsYfb60QT/cRZmkq4aU/hPRg9sXNcxFyXR
+         iZsMBYSovrcpeYBbf2gojefJ5a3WPESbNJf5I4bIAKNustdkJfr3Uhp8KXrVfK4F4WAp
+         QPm3XQir3CJFkStCdVHDMkl2FQDMLoyaG0/+6GS90gya8OG0142FFcv6PFyunbnAp+K0
+         oEAw==
+X-Forwarded-Encrypted: i=1; AKwUvBwm7i9h31CtNpWJUKGPWhEU1o0BgCGRcKIVOZcsUtdwO/V5UjYag0s7JqIbrEwpE0llN7B2h6Zar8Qe@vger.kernel.org
+X-Gm-Message-State: APuU4Z8ZgfwdlG608+GABJE1P6x4/MvzCqgXzHNobOL5IdtaIbkKRcxf
+	kQBPP/BElE5cjJynn40i7qyrzqFMUWEMNQ3Bj/HfpEqe38OI8bNz95luCDw0YmdhR/0=
+X-Gm-Gg: AYBFou2FPDDsO4k2Ene+HZq9IQJG509DGH+wY5ZG8vrbKNgwIRXcSkajeIPYOsv2uH1
+	g8KE7vJYWA0hSH6q1A+c1YcIWv0bO2Y9r8FlKVJeclk0W+MTLyKmIi9MOqp/9gS8vLQ9ghOqxtq
+	UbOMTfAoXipQDMcFtbCLpVBIOl5tk5L1EJd0kK84ValtTIv31T4n68nLLWK/JOHaEQbJq61JTwb
+	982oIDmcgHqgmXlx0o9S6hZIY1p5QUsAwlpmp8PHsOyuIYomNuVecQjGg9zHA88zwKSsxe5x2ou
+	hg8O8Cv6+lXqbeUsWon0zPGwwhmsEuW7hFlSAb7cQU76pZDViDuwsjY0Kh9GfkbJfgmRfjEXFHE
+	T2h/865NA8+D2dLWheV9SnlaLfBRBwF2Lb6IK4OHeVnA9xaiRnukjRpeSmHAS9PCKuGZxw3/eOa
+	i3Oa8raFOKqc+2BYoV8HF0J/cG7Pw9gesHT3B6xFH9mOL7ZMHW1V8Z8wWgKMpL67eYv5lfjKRMl
+	QtbP2EM3fZ2HVguSxFxTwFq+UZkvZwzo1ykvHPkgjdFlXjcDBOOcV68amftV5d7jM4FUVqq59Pr
+	LeWpvqOrjcNMC1x4/2cFNTs0c7F3OUYhydACp/U3G2DGG29jj1C/d+BClGT37gzEvQr/3XLr9dz
+	LhAYdQqGpEEPk67KaDsYr026vhy42aZ4tA/vCcw==
+X-Received: by 2002:a05:693c:2504:b0:36a:8a6:6916 with SMTP id 5a478bee46e88-36a4236f746mr17282888eec.18.1793676618913;
+        Mon, 02 Nov 2026 19:30:18 -0800 (PST)
+Received: from yhlee-960QFG.Davolink ([2406:5900:1044:110c:2da3:4696:4c5e:89c1])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36a428af91bsm41498577eec.8.2026.11.02.19.30.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 02 Nov 2026 19:30:18 -0800 (PST)
+From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+To: Sagi Grimberg <sagi@grimberg.me>,
+	Max Gurtovoy <mgurtovoy@nvidia.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: "Martin K . Petersen" <martin.petersen@oracle.com>,
+	Mike Christie <michael.christie@oracle.com>,
+	linux-rdma@vger.kernel.org,
+	target-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+Subject: [PATCH v4 0/3] IB/isert: fix the device removal use-after-free
+Date: Tue,  3 Nov 2026 12:29:21 +0900
+Message-ID: <20261103032924.1073138-1-yhlee@isslab.korea.ac.kr>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,170 +101,78 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
-s) to consider:
-- [Critical] xprtrdma: rpcrdma_cm_event_handler() forces disconnect on unpi=
-nned xprt
-- [High] xprtrdma: rpcrdma_ep_disconnect() fails to update established stat=
-us
---
+The RDMA_CM_EVENT_DEVICE_REMOVAL callback in ib_isert waits for the
+connection it was handed to reach ISER_CONN_DOWN and then frees it, which
+is a use-after-free against isert_connect_release(), and the wait itself
+deadlocks against the handler_mutex that rdma_destroy_id() needs.  3/3
+moves the teardown into an ib_client callback, as nvmet-rdma did in commit
+f1d4ef7d8883.  1/3 is a separate problem that 3/3 adds a caller to, and
+2/3 is an older deadlock that 3/3 would otherwise inherit.
 
-commit d1bbd79b2434442573f7ee7831bc287ea9096c3a
-Author: Li Xiasong <lixiasong1@huawei.com>
+The design is one owner per connection: publishing happens in the same
+isert_conn_mutex section that tests isert_device->removing, and whoever
+empties isert_conn->node under isert_np->mutex owns the release.
 
-xprtrdma: Wake connect worker on device removal
+v3 -> v4
 
-This commit updates endpoint connection status transitions and CM ID teardo=
-wn
-during RDMA device removal and CM events so that pending connect workers are
-woken and endpoint destruction synchronizes with CM callbacks.
+v3: https://lore.kernel.org/r/20261102061608.617186-1-yhlee@isslab.korea.ac.kr
 
-> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> index 69d1796bb4f3b..9eec462cffd92 100644
-> --- a/net/sunrpc/xprtrdma/verbs.c
-> +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -75,7 +75,7 @@ static void rpcrdma_reps_unmap(struct rpcrdma_xprt *r_x=
-prt);
->  static void rpcrdma_mrs_create(struct rpcrdma_xprt *r_xprt);
->  static void rpcrdma_mrs_destroy(struct rpcrdma_xprt *r_xprt);
->  static void rpcrdma_ep_get(struct rpcrdma_ep *ep);
-> -static int rpcrdma_ep_put(struct rpcrdma_ep *ep);
-> +static void rpcrdma_ep_put(struct rpcrdma_ep *ep);
->  static struct rpcrdma_regbuf *
->  rpcrdma_regbuf_alloc_node(size_t size, enum dma_data_direction direction,
->  			  int node);
-> @@ -124,6 +124,20 @@ void rpcrdma_force_disconnect(struct rpcrdma_ep *ep)
->  		xprt_force_disconnect(ep->re_xprt);
->  }
-> =20
-> +static void rpcrdma_ep_disconnect(struct rpcrdma_ep *ep, int status)
-> +{
-> +	switch (cmpxchg(&ep->re_connect_status, 0, status)) {
-> +	case 0:
-> +		wake_up_all(&ep->re_connect_wait);
-> +		break;
-> +	case 1:
-> +		rpcrdma_force_disconnect(ep);
-> +		break;
-> +	default:
-> +		break;
-> +	}
-> +}
+Review of v3 raised six problems, all real; the first was a regression.
 
-[Severity: High]
-When ep->re_connect_status is already 1 (established), cmpxchg(&ep->re_conn=
-ect_status, 0, status) in rpcrdma_ep_disconnect() returns 1 without updatin=
-g ep->re_connect_status to status.
+The refusal path in isert_connect_request() was that regression: v3 tested
+removing after isert_rdma_accept() had run, so it destroyed an accepted QP
+without draining it and rejected an id it had accepted.  v4 tests removing
+before the accept and rejects there; if the test at the publish point
+catches it, v4 drains the QP and returns an error so cma destroys the id.
 
-Unlike the previous xchg(&ep->re_connect_status, -ENODEV) in RDMA_CM_EVENT_=
-ADDR_CHANGE (and the xchg() calls used for RDMA_CM_EVENT_REJECTED and RDMA_=
-CM_EVENT_DISCONNECTED), calling rpcrdma_ep_disconnect() from rpcrdma_ep_rem=
-oval_done(), RDMA_CM_EVENT_ADDR_CHANGE, or RDMA_CM_EVENT_UNREACHABLE leaves=
- ep->re_connect_status set to 1.
+Draining under isert_conn->mutex was the second, and not v3's doing:
+mainline has done it since commit 6d1fba0c2cc7 ("iser-target: Rework
+connection termination").  2/3 fixes it, and I split the drain fix out
+with its own Fixes tag so it can reach stable without the rest.
 
-If RDMA_CM_EVENT_ESTABLISHED transitions ep->re_connect_status to 1 and wak=
-es ep->re_connect_wait, and then rpcrdma_ep_disconnect() (or rpcrdma_ep_rem=
-oval_get() when xprt_get() fails) runs before rpcrdma_xprt_connect() checks=
- the status:
+The connection left in ISER_CONN_INIT was the third.  v3 marked it and
+waited for a CM event that never comes; in v4 the removal walk owns it.
 
-net/sunrpc/xprtrdma/verbs.c:rpcrdma_xprt_connect() {
-	...
-	wait_event_interruptible(ep->re_connect_wait,
-				 ep->re_connect_status !=3D 0);
-	if (ep->re_connect_status <=3D 0) {
-		rc =3D ep->re_connect_status;
-		goto out;
-	}
-	...
-}
+The trigger review named there, a DREQ before the RTU, needs the RTU lost
+after the initiator sent it; a test-only drop left eight connections
+unreleased on v3 with the removal never finishing, and none on v4.
 
-won't rpcrdma_xprt_connect() observe ep->re_connect_status =3D=3D 1 and pro=
-ceed to allocate and post send contexts, receive buffers, and MRs on the di=
-sconnecting or removing device while holding XPRT_LOCKED?
+The fourth and fifth were races on the np lists, both in 1/3.  The CM
+handlers test isert_conn->node under isert_np->mutex and stand back when
+it is empty, and connect_error returns zero there.
 
-Leaving ep->re_connect_status =3D=3D 1 also allows rpcrdma_mrs_refresh() to=
- continue queueing buf->rb_refresh_worker until xprt_autoclose() runs:
+The sixth, a CONNECT_REQUEST after isert_remove_one() returns, is still
+open: a test-only delay showed a new isert_device torn down cleanly by
+cma's DEVICE_REMOVAL, but nothing orders that against device release.
 
-net/sunrpc/xprtrdma/verbs.c:rpcrdma_mrs_refresh() {
-	...
-	if (ep->re_connect_status !=3D 1)
-		return;
-	queue_work(system_highpri_wq, &buf->rb_refresh_worker);
-}
+One change is mine: the teardown now runs outside isert_conn_mutex, which
+let a connection outlive its portal, so isert_np is reference counted.
 
-Should rpcrdma_ep_disconnect() update ep->re_connect_status when transition=
-ing from 1 as well (for example, using xchg() or a second transition from 1=
- to status)?
+With soft-RoCE, three v3 against three v4 runs per case: accept and INIT
+went from a removal that never finished to one finished in seconds, drain
+from six stuck drains to none, np list from 32 use after frees to none.
+2/3 alone turned ten hung task warnings a run into none, three runs each.
+Under KASAN one of twelve unpatched runs finished the removal and two
+reported the use-after-free, 17 and 11 times; all twelve patched runs
+finished and reported nothing.  Making rdma_accept() fail on every fourth
+connection refused 48 connections over three runs with no KASAN report,
+and every removal finished.  Login and I/O ran 18 times a side with no
+difference and PROVE_LOCKING gave no splat in eight runs.
 
-[ ... ]
+Yehyeong Lee (3):
+  IB/isert: do not publish connections being released on a second list
+  IB/isert: drain the QP without holding isert_conn->mutex
+  IB/isert: tear connections down from an ib_client on device removal
 
-> @@ -247,20 +262,18 @@ rpcrdma_cm_event_handler(struct rdma_cm_id *id, str=
-uct rdma_cm_event *event)
->  		complete(&ep->re_done);
->  		return 0;
->  	case RDMA_CM_EVENT_ADDR_CHANGE:
-> -		switch (xchg(&ep->re_connect_status, -ENODEV)) {
-> +		rpcrdma_ep_disconnect(ep, -ENODEV);
-> +		return 0;
-> +	case RDMA_CM_EVENT_ESTABLISHED:
-> +		switch (cmpxchg(&ep->re_connect_status, 0, 1)) {
->  		case 0:
-> -			goto wake_connect_worker;
-> -		case 1:
-> -			/* The later DISCONNECTED event balances the
-> -			 * ESTABLISHED get; do not put here.
-> -			 */
-> +			break;
-> +		case -ENODEV:
->  			rpcrdma_force_disconnect(ep);
->  			return 0;
-> +		default:
-> +			return 0;
->  		}
+ drivers/infiniband/ulp/isert/ib_isert.c | 310 ++++++++++++++++++------
+ drivers/infiniband/ulp/isert/ib_isert.h |   9 +-
+ 2 files changed, 240 insertions(+), 79 deletions(-)
 
-[Severity: Critical]
-As reported by Sashiko on v1 [1], when the final xprt_put() has already dro=
-pped xprt->kref to 0 and xprt_destroy() is waiting on XPRT_LOCKED, rpcrdma_=
-ep_removal_get() sees !xprt_get(xprt) and sets ep->re_connect_status to -EN=
-ODEV via cmpxchg() to wake the connect worker without touching the unpinned=
- xprt:
 
-net/sunrpc/xprtrdma/verbs.c:rpcrdma_ep_removal_get() {
-	if (!xprt_get(xprt)) {
-		if (cmpxchg(&ep->re_connect_status, 0, -ENODEV) =3D=3D 0)
-			wake_up_all(&ep->re_connect_wait);
-		return false;
-	}
-}
+base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
+-- 
+2.43.0
 
-If RDMA_CM_EVENT_ESTABLISHED arrives in rpcrdma_cm_event_handler() before t=
-he connect worker finishes rpcrdma_xprt_disconnect(), cmpxchg(&ep->re_conne=
-ct_status, 0, 1) returns -ENODEV and executes:
-
-	rpcrdma_force_disconnect(ep);
-	  -> xprt_force_disconnect(ep->re_xprt);
-	    -> xprt_schedule_autoclose_locked(xprt);
-
-which sets XPRT_CLOSE_WAIT on the unpinned xprt whose kref is already 0.
-
-When xprt_rdma_connect_worker() subsequently unlocks the transport via xprt=
-_unlock_connect() -> xprt_release_xprt_cong() -> xprt_clear_locked(), seein=
-g XPRT_CLOSE_WAIT causes xprt_clear_locked() to queue xprt->task_cleanup (x=
-prt_autoclose) instead of clearing XPRT_LOCKED. Once xprt_autoclose() calls=
- xprt_release_write() and clears XPRT_LOCKED, xprt_destroy() wakes from wai=
-t_on_bit_lock(), reinitializes xprt->task_cleanup with INIT_WORK(&xprt->tas=
-k_cleanup, xprt_destroy_cb), and frees xprt while xprt_autoclose() is still=
- finishing.
-
-Since ep->re_connect_status was never 1 when cmpxchg(&ep->re_connect_status=
-, 0, 1) observes -ENODEV, rpcrdma_xprt_connect() is already guaranteed to s=
-ee ep->re_connect_status <=3D 0 and trigger rpcrdma_xprt_disconnect() from =
-xprt_rdma_connect_worker(). Can the -ENODEV case in RDMA_CM_EVENT_ESTABLISH=
-ED simply return 0 without calling rpcrdma_force_disconnect(ep)?
-
-[1] https://lore.kernel.org/r/20261023125033.528835-4-lixiasong1@huawei.com
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103032758.1302=
-493-1-lixiasong1@huawei.com?part=3D3
