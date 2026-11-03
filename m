@@ -1,101 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.160.41
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793709903;
-	b=GsVWZq8iiZD1YIAyv7KSUtogxsauxXrcRbqWsJU03VP6zr154JiawQcdW+2ubEgLy/SB
-	 mUA1DU1wO++CXTtW78IqkwBfX0KxgX/bE4T759sNFtctU+5h/kb7IssOauXy/lCatoDhA
-	 66aWigo/Skmo+iQQgz64agxTN/KfpQjYfQlDwvKOdb6VnrORslKw9vGNh3AkZoYVpj+9N
-	 50pklAP6vRwi4XQ5PZzL5tDjvb3MNFR2Mk6zaiDMovoQhxADklwS2OBvjFJZuQU+eG70I
-	 oHzrIUHCubSCwNUiaYK/fzkVURcXpkFMIvAw0zS3Fs9ts6H7TTxkfl9lvUc1PUH94Hg==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793709903;
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.174
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793710822;
+	b=G37sqoNi77CXvof/VElLUw0xS2G5P+uDv6cw2xi5aqnqgp1ctu2jno1YXjHf3oopRNQI
+	 MFqlQpGLuShpIbjqfNhnFBS1GV8OvykoNxnK9a2mIN5j2CNmxujYUZHTzYiERAVvkAx9X
+	 265lD3owYyp+2caHuo1q7nNDt9gg/D4mHP6XCaizSjE1YCdoG2BG2oNXqPNHLvRQE/E+X
+	 WzCv1/UbxlC9kaLoYK7hHE7+PmjSmthdXgWlvkNSs//oI4ItwaRBu3LZnyirpXjP+K7IF
+	 ntEt5lbat9ZlNXSr2YGTq7mDTM7coYY5AGp+vxNTDgFyuSt06X03aoXx3QPEmu5ZhDQ==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793710822;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=cJss4DTSAFF0TC2y24FFpMgu2U/hDyAjjGTYiZ+imqE=;
-	b=PQSERFljCwteuyldxdkEmXWaTMdp93EZ+Onre9YyrQx1+Aqxgw3Z8JDF69WitL4wbK27
-	 sDp8LK6rWvKVcfU7ZMgcKimSQ2eyMP1mQ4R8hSB0HTYIchoCKJ7C/bgzJ3TVcnAKMCH64
-	 ogo7kKG+K8MQKpq/0ACI6nIQG5yZgXEBhe9rB4rg+dmGiyi4CjFxKkH8Jg8OK55LxMSyi
-	 GNpGOEX3hGYm3j85ZTAnZBeFH/hgZmhrU7Zck8xqn2HX1waFKKGNftMzPIsjnHfS30xDD
-	 XS9PA09TNyZhnSGQUbsyGdOHa5aCKLJvaNKlq/9493rx1iKO+CjpEvJfpr7Ml0hOgIQ==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=google.com;
-	spf=pass smtp.mailfrom=google.com;
-	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=X7YIwu+P;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.160.41
-Received: from mail-oa1-f41.google.com (mail-oa1-f41.google.com [209.85.160.41])
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=BbsthUcH6RMTf08/pwvouxwtu/eP2PPkhDBbmB5Ln7s=;
+	b=EUVw6kZCXBu27lV04pf5KAz4KbilU/kDVDaT5BSR2zOBIr6Yf8ZbNz8qPjtn5R/k3RKp
+	 hw5KxLhYJAzUTvqeBAEAm1qGWVovzrc7n58jAls8vAyEDCo1envrKJzHIxuQVXnoy+b1Y
+	 RVzr7SgwQuzPuF14F/YzHtWrtqmexo1g9oneAu94KO4OwEATctd6dCWQWhbq0rEmy7iKF
+	 DIcfMQ3DVxP4Jkfg+NU3WBWuRtoUwe2MVQKP5mmbIHystxZ60Eo43g+eD/k4Ljl1t96Ke
+	 uStaM4CKWivX3P5jlimZBHkVqq08Y81fDiFDnEGIwCB6cANnID3L+eJa1v9jPdcd4/w==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=fail header.from=isslab.korea.ac.kr;
+	spf=none smtp.mailfrom=isslab.korea.ac.kr;
+	dkim=pass header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=oAjH1ZKn;
+	arc=none smtp.remote-ip=74.125.82.174
+Received: from mail-dy1-f174.google.com (mail-dy1-f174.google.com [74.125.82.174])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EA30606EE99
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 12:45:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3EA30606EE99
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A20E606A328
+	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 13:00:20 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6A20E606A328
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=X7YIwu+P
-Received: by mail-oa1-f41.google.com with SMTP id 586e51a60fabf-49e08af5fd4so1853669fac.1
-        for <linux-rdma@vger.kernel.org>; Tue, 03 Nov 2026 04:45:01 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1793709901; cv=none;
-        d=google.com; s=arc-20260327;
-        b=VKJOdUYr6DgmszvbTxmGeDfbzUwbUVxGr2BgCmW5yuFtRTuiRQhL9LijTPvpR7l/St
-         mu5erpfxvGUOglCma7w4mJvFfnBuhOJW+bC7+kW/3u+c7wunFd8G9gvCM4vsRlEjOo4j
-         ScIqSz0XcdLGvsTV3bXzB4lOZoc1OBf8yvDCnSWyJ05achHeauD37wCSOw46Y0oc7Cwk
-         InAnjpO9Vpv+4J57naCSRiVf6wiwLYN9uLIIpKYH2+AHIe4vw7q76GGZ+5Jz5vqalPaW
-         K00x9032UURLU8AJZsbLonQjR4hNzEt06KKz+GFdCQYgHeLRudxKTbpUk69UPrzPA9/Y
-         K3YQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=cJss4DTSAFF0TC2y24FFpMgu2U/hDyAjjGTYiZ+imqE=;
-        fh=wdlQNzcnviMZxZcZ4FRSDiTFrEERUyD4G+N9ho6Q/hc=;
-        b=sTWFF+7hLfxOo/1BjuX+H64ba9ccasScygetUQaHJXI0KrUDchGVR/0z7J+HAWZQO8
-         PfRaZQT2EEFNQxbjF+uKaysmW3d9V6KQkVZ/xxPKg7gxARmgnbB5FqTZwYhcpF/pE8Wm
-         SFm9lyvEYmlScuwC0fRpWXBue966Z6aYvo2lg29wrAu1MiwxFB+dPc5lVU+ECYjT3zwL
-         oGgwzpGfMl2LNGQb2VgA+HDuF2cJnV4SH8t06Cq3xk3+wrEb21Y907bB8kM8CDrDuNlw
-         zWawBM50DLYpe6lssOgv6GHh+quEptQ++HabMS5mVJMhC/1qj31KEj3ZdPHNW8Un4qH1
-         PSQQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key, unprotected) header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=oAjH1ZKn
+Received: by mail-dy1-f174.google.com with SMTP id 5a478bee46e88-36a315ed211so776747eec.0
+        for <linux-rdma@vger.kernel.org>; Tue, 03 Nov 2026 05:00:20 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20260707; t=1793709901; x=1794314701; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=cJss4DTSAFF0TC2y24FFpMgu2U/hDyAjjGTYiZ+imqE=;
-        b=X7YIwu+P57YbvarctNfqfO7T/pAsbLAUPr1ZHvH/QyvkiDBJARSLe/e5hzhvwmWD1m
-         FDB9O1eM0jLjHjBT7zIhZtEfxB9hxtt+GPeuaY5adipemtw5ydKNpOA0sR63qXoszWhS
-         87S1+WFmEQeF/jRnHieppIfgUe2st71Xy4FZmpakVMOZzWdeMduHI6JUsrvD/P86AWrf
-         Z7ARWoEr3qErGbGvkfpcLu5SYYuErQ1f4g8XJOZuHfQ02SjF5rMvGCqIViryEQwVKXpB
-         d+nxfcnLqnitYjnnRLlt9+xm2QRhKRcsb0HU82egfjN2OYCC5xcxMpwf7/RukhY6xzVx
-         /Rzg==
+        d=isslab-korea-ac-kr.20260707.gappssmtp.com; s=20260707; t=1793710820; x=1794315620; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=BbsthUcH6RMTf08/pwvouxwtu/eP2PPkhDBbmB5Ln7s=;
+        b=oAjH1ZKn6wTySY2nbMWWWqQPMptHJelubTqNlspvs8725hkLJV3O8Cj0wo3A9M1u3Y
+         /pAcm9c820eFfGOFsdFEvm4a67mTdH4tTeq17q5lUEvB0ExMldRJKgcxy6bzi8+MHq15
+         qXkpsFZXbSXGE0JIk+996NFig/CuS+aXCcnx9tPtvEncsMl4CJ93jdGrO1Ldrbb+akup
+         VN626w7rVpm9vtJotTqFB1/QOQed8bnSk4c2UhNlHj/Cbp9Mv8UGEVgFIJ+fg4o/9kjb
+         GCfbWyFHRGm9LXxSXsM9w6pWBzb2TNUOQQPFcCaiHAvU6M9NLvVYVCuJC56vvzh97Tk+
+         GhdA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793709901; x=1794314701;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=cJss4DTSAFF0TC2y24FFpMgu2U/hDyAjjGTYiZ+imqE=;
-        b=aGszUagIt2kwkHNaThfq5PoxRVytBZA+DA7iwNz7JzomBEsYntlfNbJvlk2qzEIFmv
-         ok9iocFUw1mTsL+OMINN4gJCy9VOrbxfl7BVESNe76M1fzr5TDBQOD0Yl9+981PcYjKo
-         eRQgOdXIMcPMg+lh1lB6EgHt8zajakyl5Fd4CNSJIitohMp+K3mEITx1l02K2FDmTSXm
-         PcFeZKmFfftTNCK/BYzg4Wn1C1h4t5xU1bp5Dy4+mjqoHX6FMhuH4Pw9M636fQoHQ6UP
-         RcBkJ8T/f1GZSiOS3ysglFA3KnhWldOfQOU7chBPGKzz2fhJXXRlSvozNOrXR7NkZm4W
-         9aNw==
-X-Forwarded-Encrypted: i=1; AKwUvBwgFfP+POYwRH6BpUDzCcPl9bL2ej0LyRRPIBsy06w56TK0/ep9NDu5G7vIboa+f0O93FQhaerqNJfG@vger.kernel.org
-X-Gm-Message-State: APuU4Z8+EhOp6nByhvGVJ2w7MnthAuJrCWTrMnhti0O0XkyEZJqyL3Hy
-	og43/wlRKuSWwkp9lgffrt9LKaadkNXgOUzfzsQJXd4TrOAHaTuHW4o+u22rkuahnn/1K37sZ/7
-	0RV0sAkrVSCQhKL3ltkLt/47p7Yt6GiPZBSKpU3rV
-X-Gm-Gg: AYBFou1EvbhF9tEtcuvfoFYhPlc8tT7VqtHmdTp0iaVuXMTDZN4LNKF94jbYaVDPE97
-	wN5HO9H2QUezmrZytJ0g1jsxbbDLl0dgT+C4lTS5JBBfNnD+lg2rEyunEyrK8KPFKuzMm+cqw58
-	Jcqg3tYR7Kb6ssnq8LdOkPCL0K2em33rjW76KdXHo5RAfZUdaf4B8bINPWhXyKSiu8JHwWLjKEv
-	u702peKQq137Rxz7o0KzNDxqg9CDihBo65/J67Ckp8ADs3zx/ZP3+9bn7s0gMMYM+etUL8wIm/e
-	9LzEKUL1n3WiXoTYG28wQVhvx7lJil+WhteEJJY1mKV6DRW3xabNAjmbOKEXrnn+5oOwRMRiwsU
-	qTZQVXmUvMiYVrDlFOrdwt5p+TglwKEjbcnDsk4vEZ4P8ab+OWkHGhbDlOJFzyzUYFvtLfuHbZN
-	YKGL79VBo=
-X-Received: by 2002:a05:6871:c8cd:b0:494:76db:2aa8 with SMTP id
- 586e51a60fabf-4a90730f375mr7994740fac.5.1793709900334; Tue, 03 Nov 2026
- 04:45:00 -0800 (PST)
+        d=1e100.net; s=20260707; t=1793710820; x=1794315620;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=BbsthUcH6RMTf08/pwvouxwtu/eP2PPkhDBbmB5Ln7s=;
+        b=Tk0RnGY+yfu8S74cug+Sbi2ITbMOCl5iNU0vlRCjQMXFXi2egbwZ8UE+0H08iXjnt8
+         dITDG+Vn5zDyb5d2iZipRHI777Y3Uc3MDg3YWArt+JdtOh2sfzXXSdnajW6x7j+grRtj
+         kiljUMVRKu4rGNPezY5f8bm9M1aWs9ZtErI/C/UV13lZYAc72jw+yNGWejHxAUptJqeJ
+         hAIZpLo74P3oIyGMAnzzHnbFhgFpyiELlh04pYUixgieclX/Okx2+v1+N+orM88psCYP
+         CHeZ5zkldr19XLvR/f0pNQlohkfMuBbBHyhYhzyq63Va2gP0oKxYgqjBFVGkN6N2BPZY
+         Ih8A==
+X-Forwarded-Encrypted: i=1; AKwUvBxEoluDZrrnyvPSFkDm017P+mgeBihB4LmYKzuv6AMAtfEaVTKF1AKZHJafY0wwMPHo68OJVXiD1gkI@vger.kernel.org
+X-Gm-Message-State: APuU4Z+00zVZP4Ms/RCOvsWZWXmFsxLkbp0xXkS+S5C0HjK7BCFoHH70
+	CW2UuTNbheGe3lYQ55rwv6PxtTeBob8QaJ0AfdTXhDiYnhKuc8fhGybrz8VixGFZys4=
+X-Gm-Gg: AYBFou2myQoWpeCPHIfrWY/f9O+UJ0L5JWqXKuwcbkkw8nLIwq9SjgA8ib8zZZBRSdJ
+	uC/qJT+/5TKmxmm7Ik6kFaBcqkVe+IHodoMFHlA19MD22OK6xHhun1XdgNVjnLLEHLREWU/2MlX
+	dZiFE0gOzQpCD1bkrm3Ixnb20EvT3T8CIOVGxVHNDIpUs0d/D1u8ffZOew/AKGlPVIe/F64qqTH
+	jA+8y32CRaOIxwr2qRDP3Lmhv//GlCY8tFHQWB1Ak1zeniFh7JLrCMTlPFhP048DQFU5N50s+xD
+	XWVMkiUV9Js3qxL8vd03Vx4YOERjoDh9+fHk5afpIOyH/fT9fgGliUxRMyTV+x18je8A7Z6Hgr7
+	+QSW+f2qbjevZX779lk0gopa7Hq+hrsrBjT6+ZWQu/yrvBHWehW3ooy0psg/7M+G9/Z7PTg66dT
+	naxgkon0GmikKO2203KAY7DIySgl5Wf+IRphyh8iXga18tY5perIB0sIw435HOjqrWtbEQvx8vQ
+	OCGaSe2LtcvjyqMKAxqhdolDBS2WxTWPW/XQlMucWtPm/9+phuENYqGDVLQHjYqkl66UlDZmUy2
+	Nyk/GibdthFwn8kXv3usIBeX5c+qPiUVtRNND1Bz33AGJLVXXTFDH6o6IsExbK2Bv4hVn6vOoI1
+	RKYTm7sctjd0cdR8L/arRVs2/8VvMigN/dVYYbw==
+X-Received: by 2002:a05:693c:4088:b0:36a:2f6c:490e with SMTP id 5a478bee46e88-36a30009ecemr25851381eec.6.1793710819910;
+        Tue, 03 Nov 2026 05:00:19 -0800 (PST)
+Received: from yhlee-960QFG.Davolink ([2406:5900:1044:110c:2da3:4696:4c5e:89c1])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36a42669128sm50806107eec.3.2026.11.03.05.00.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 03 Nov 2026 05:00:19 -0800 (PST)
+From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+To: Sagi Grimberg <sagi@grimberg.me>,
+	Max Gurtovoy <mgurtovoy@nvidia.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: "Martin K . Petersen" <martin.petersen@oracle.com>,
+	Mike Christie <michael.christie@oracle.com>,
+	linux-rdma@vger.kernel.org,
+	target-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+Subject: [PATCH v5 0/5] IB/isert: fix the device removal use-after-free
+Date: Tue,  3 Nov 2026 21:59:50 +0900
+Message-ID: <20261103125955.1530355-1-yhlee@isslab.korea.ac.kr>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -105,72 +102,82 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261030173254.2000665-1-dhu@x6u.co>
-In-Reply-To: <20261030173254.2000665-1-dhu@x6u.co>
-From: Jacob Moroni <jmoroni@google.com>
-Date: Tue, 3 Nov 2026 07:44:19 -0500
-X-Gm-Features: AclHuK8nDugVTssmfIb-0C2nE1vAsrv5to5v5OGV3nTs3pUaP90m0Vgw84uKISA
-Message-ID: <CAHYDg1QgFnyKEA_Dbx5dpdUV6Hfs3w+japBgBGeR3iD9UG72dg@mail.gmail.com>
-Subject: Re: [PATCH rdma-next] RDMA/irdma: Free cq with a safer cq num reference
-To: David Hu <dhu@x6u.co>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
-	Tatyana Nikolova <tatyana.e.nikolova@intel.com>, linux-rdma@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, David Hu <xuehaohu@google.com>, 
-	sashiko-bot <sashiko-bot@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Reviewed-by: Jacob Moroni <jmoroni@google.com>
+The RDMA_CM_EVENT_DEVICE_REMOVAL callback in ib_isert waits for the
+connection it was handed to reach ISER_CONN_DOWN and then frees it, a
+use-after-free against isert_connect_release(), and the wait deadlocks
+against the handler_mutex rdma_destroy_id() needs.  3/5 moves the teardown
+into an ib_client callback, as nvmet-rdma did in f1d4ef7d8883, and gives
+every connection one owner.  1/5 and 2/5 are older problems; 4/5 and 5/5
+close two holes the walk makes visible.
 
-On Fri, Oct 30, 2026 at 1:33=E2=80=AFPM David Hu <dhu@x6u.co> wrote:
->
-> From: David Hu <xuehaohu@google.com>
->
-> Within a iwcq, `cq_num` is allocated first, and only
-> copied to an inner uk structure, `cq_uk.cq_id` at a
-> later stage. Freeing cq by `cq_uk.cq_id` before the
-> later stage leads to a cq id leak.
->
-> Free `iwcq->cq_num` instead, which is allocated
-> right after initial rsrc allocation.
->
-> Fixes: b48c24c2d710 ("RDMA/irdma: Implement device supported verb APIs")
-> Reported-by: sashiko-bot <sashiko-bot@kernel.org>
-> Closes: https://sashiko.dev/#/patchset/20261016202909.1289496-1-dhu@x6u.c=
-o?part=3D4
-> Signed-off-by: David Hu <xuehaohu@google.com>
-> ---
->  drivers/infiniband/hw/irdma/verbs.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/=
-irdma/verbs.c
-> index c91c55917de9..1726a0ddeac8 100644
-> --- a/drivers/infiniband/hw/irdma/verbs.c
-> +++ b/drivers/infiniband/hw/irdma/verbs.c
-> @@ -1948,8 +1948,6 @@ static void irdma_srq_free_rsrc(struct irdma_pci_f =
-*rf, struct irdma_srq *iwsrq)
->   */
->  static void irdma_cq_free_rsrc(struct irdma_pci_f *rf, struct irdma_cq *=
-iwcq)
->  {
-> -       struct irdma_sc_cq *cq =3D &iwcq->sc_cq;
-> -
->         if (!iwcq->user_mode) {
->                 dma_free_coherent(rf->sc_dev.hw->device, iwcq->kmem.size,
->                                   iwcq->kmem.va, iwcq->kmem.pa);
-> @@ -1975,7 +1973,7 @@ static void irdma_cq_free_rsrc(struct irdma_pci_f *=
-rf, struct irdma_cq *iwcq)
->                 }
->         }
->
-> -       irdma_free_rsrc(rf, rf->allocated_cqs, cq->cq_uk.cq_id);
-> +       irdma_free_rsrc(rf, rf->allocated_cqs, iwcq->cq_num);
->  }
->
->  /**
->
-> base-commit: c3e8e9451e6f1b69f685b75e0fbf14f3d0fb2539
-> --
-> 2.56.0.317.g454f8302e1-goog
->
+v4 -> v5
+
+v4: https://lore.kernel.org/r/20261103032924.1073138-1-yhlee@isslab.korea.ac.kr
+
+The critical point on 1/3 was the skipped drain.  v4 checked ownership
+first and returned without draining, so a posted login receive could
+complete after kfree().  1/5 drains before it takes the connection, the
+order mainline already uses.  I did not reproduce the failure: with
+isert_free_np() parked inside its take window and a reject arriving on the
+connection it held, two runs of v4 and two of v5 both reported nothing.
+
+The high point on 2/3 was isert_accept_np() taking the connection while the
+drain ran outside isert_conn->mutex.  2/5 empties isert_conn->node under
+isert_np->mutex before it terminates, so only that owner drains; if
+accept_np got there first the node is already empty, and the handler
+rereads the state under the same lock and hands the connection to iscsi.
+That is the same race as the teardown against accept_np below, and I did
+not reproduce it either.  The low point, the kdoc, is a Return: line on
+isert_conn_terminate() now.
+
+The critical point on 3/3 was ib_destroy_qp() after accept, and iWARP.  v5
+has no post-accept error path left to destroy a QP on.  iWARP I could not
+measure: a siw portal cannot listen here, because enabling iser adds a
+child np at the parent portal's address and siw binds a TCP socket to it.
+
+A high point on 3/3 was the walk against isert_connect_error(), with the
+leaked promotion reference.  isert_conn->cm_id was written with no lock, so
+the walk could call rdma_disconnect(NULL), and a promoted connection that
+errored out leaked a reference.  The owner clears cm_id under
+isert_conn->mutex now and 4/5 drops that reference.  A REJ after the RTU is
+the cell for both; the INIT-only half I could not open alone, because the
+device whose removal opens it must carry the reject.
+
+A high point on 3/3 was the teardown against isert_accept_np().  isert_np
+is reference counted now and the teardown runs on a reference taken under
+isert_conn_mutex.  Nothing faulted in over forty window entries a run, so
+that one is not reproduced.
+
+The last high point on 3/3 was the late isert_device.  5/5 refuses
+isert_device_get() for a device being removed and keeps a marker until
+isert_exit(), measured with a CONNECT_REQUEST parked before the lookup.
+
+Measured on soft-RoCE, three runs a side unless noted.  The nine cells v4
+already passed report no KASAN, no lockdep splat and no refcount warning on
+either side, login and I/O eighteen runs a side.  A REJ delivered to eight
+promoted connections faulted the v4 removal walk every run and returned no
+isert_device reference, where v5 finished it in fifteen seconds.  Over nine
+runs a side the late-device window opened four times on v4, each of those
+building one and taking ten or eleven core warnings, and twice on v5, which
+built none.  1/5 alone took twenty-two use-after-frees to none, 2/5 alone
+ten hung tasks to none, and PROVE_LOCKING gave no splat in twenty single
+runs.
+
+Yehyeong Lee (5):
+  IB/isert: do not publish connections being released on a second list
+  IB/isert: drain the QP without holding isert_conn->mutex
+  IB/isert: tear connections down from an ib_client on device removal
+  IB/isert: drop the promotion reference when a connection errors out
+  IB/isert: do not build a new isert_device for a device being removed
+
+ drivers/infiniband/ulp/isert/ib_isert.c | 420 ++++++++++++++++++------
+ drivers/infiniband/ulp/isert/ib_isert.h |   9 +-
+ 2 files changed, 319 insertions(+), 110 deletions(-)
+
+
+base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
+-- 
+2.43.0
+
