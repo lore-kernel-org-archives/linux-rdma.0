@@ -1,11 +1,11 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=183.62.165.209
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=160.30.148.34
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1793711284;
-	b=2tpT6e3ivVe9LywcqpNHd6uS/eb4DnmSTuLsmB3xVypz0aC3GcqQwfMvL7Ha3JwZ0X5S
-	 8YLvLMgnBkDz0cz3TrpjTGv7h0xipyp8oNbxzYKyWYNYzWQKuGiQ/u6fA3boAQTjl2KUY
-	 8gdexgK4aEKiarwLsRZbkZo53FqwDkndcPgysfdVavtIfd7PM0gq+nNT4DmRC84UU6qK9
-	 fzTxVBZnXKfkom6geJaGiC4RvYwKUWu+wjQ1L7BvO491I6DqA2VMDeIgRm4zQumlGA/UK
-	 Vs1NZeKXkfVQRNr1Dg0Z5oipaZnM2Rs/xsr2pCV+/XRVqcf2xSN9uArBvDjE3+Jql5A==
+	b=J79kJIIwpv+C4DFXNeNmvrAnexowoft9yjy13GrUX3vP6srjmOgVrNeG2JEnSGHDuOq/
+	 rE5SE9IYR/rAGlv4y4nXhVOzmVBqk4jcWBJkPLrQ/XoaLYKfBmgbOrvbj1u1nXPad3W17
+	 d6NhNyHOtLanQLBxepSTqSzCTUaKzLsGQJ6EWAXzH59P7aVUoTncpGkSBB+UAo5k16ZEg
+	 3pO8YfPyqoFixrqYYaNdzKe3Rki55VEHz5vshnDEBaMgdO/nbsXf+Ki09shh4N9d0q5EP
+	 MMVn/pDuMSeQ/g2NvEKK5ZwLgcyKz7keXB7K17iO90NeZIAhkxfH/pUYlbIWV4qE5Ug==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1793711284;
 	h=DMARC-Filter:Received:Received:Received:X-Zmail-TransId:
@@ -14,39 +14,39 @@ ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	 X-ZMAIL-USEORIGINALEMLTOOUTBOUND:Content-Transfer-Encoding:X-MAIL:
 	 X-TLS:X-ENVELOPE-SENDER:X-SOURCE-IP:X-CLEAN:
 	 X-Fangmail-Anti-Spam-Filtered:X-Fangmail-MID-QID;
-	bh=W2xyD++8XiWlS4AbutD+lsd/dYfEJDqvy16CGeerZrM=;
-	b=AW7j0QuTmUA3OZ7foSJjsaiYuDxSG504KfHYaBahIXMef247T2qYx13IxsRhIOF/XM3M
-	 6VIp0RAX1Ic8rnMcq1EN6Snk8XRSQQxrxTOa4QWxfHP4YSodrJTPvwzSynTF1KWX/krYF
-	 aj0g2qjJqkrYN9ZKWsJaqwJvSnVR2XU6xNdcs0B4L+0a4PcjB8T7VkL1v01XfblrCJkbd
-	 tfPvaihOMaTgmVB8mL7qGivQZD5v+qzrB6IUKk1WNsNQw+95BkBP/rSo+jBYttMRsSf6v
-	 8k0uCEKspLKTApGba0tshPOPJA251+tILa1ugqkY9jyT8WehHESODZUN+47PkKZi2mA==
+	bh=cdvDy8rMPbkSNTGmKMJTmBpVktDHQgaFQ59bZJHCJgg=;
+	b=nCJBcMAglz+iJjcWvknaZO6GcCzd0bxyh2YqNumzIBjOjKjYOIZQogLmkyFxEEffBfxq
+	 bEIu2TCdyxKXOZWO0TlA6ZGGKjxQCLh0HgMatvA4YhIWDtm71eePowayrZV4P3HE+OMSe
+	 1CL8kKRXQDdZIqfN1CSnWYuNgdpzxK7JJ/joyLMp2s0vO8UnlhVSRk9/bxTA3fVViGlnI
+	 r5Ejpkjws4SH72k9sFloGaqPR6aEgHcm+BA5nqL6GGOdcZFo/cYcc7uA8M27Q6fnQDW2G
+	 wDzKFOe9hR7l5x2Ha92K2Nxu5qmZfbcTo/J6+NdSrHRJkdY+r5ZZT9ldxPBO1MSIMgQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=zte.com.cn;
 	spf=pass smtp.mailfrom=zte.com.cn;
-	arc=none smtp.remote-ip=183.62.165.209
-Received: from mxct.zte.com.cn (mxct.zte.com.cn [183.62.165.209])
+	arc=none smtp.remote-ip=160.30.148.34
+Received: from mxhk.zte.com.cn (mxhk.zte.com.cn [160.30.148.34])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B58A06082BE7;
-	Tue,  3 Nov 2026 13:08:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B58A06082BE7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B16F6082BF9;
+	Tue,  3 Nov 2026 13:08:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9B16F6082BF9
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zte.com.cn
-Received: from mse-fl1.zte.com.cn (unknown [10.5.228.132])
+Received: from mse-fl2.zte.com.cn (unknown [10.5.228.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange x25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mxct.zte.com.cn (FangMail) with ESMTPS id 4jJplZ1pQ2z55y2H;
-	Tue, 03 Nov 2026 21:07:54 +0800 (CST)
+	by mxhk.zte.com.cn (FangMail) with ESMTPS id 4jJplk0szrz58fgW;
+	Tue, 03 Nov 2026 21:08:02 +0800 (CST)
 Received: from szxl2zmapp05.zte.com.cn ([10.1.32.37])
-	by mse-fl1.zte.com.cn with SMTP id 6A3D7ikf004967;
-	Tue, 3 Nov 2026 21:07:44 +0800 (+08)
+	by mse-fl2.zte.com.cn with SMTP id 6A3D7lp8057800;
+	Tue, 3 Nov 2026 21:07:47 +0800 (+08)
 	(envelope-from zhang.yanze@zte.com.cn)
 Received: from localhost.localdomain (unknown [192.168.6.15])
 	by smtp (Zmail) with SMTP;
-	Tue, 3 Nov 2026 21:07:47 +0800
-X-Zmail-TransId: 3e816ae9dca3029-7eddf
+	Tue, 3 Nov 2026 21:07:50 +0800
+X-Zmail-TransId: 3e816ae9dca5029-7ee12
 X-Zmail-LocalSMTP: 1
 X-Zmail-RealSender: zhang.yanze@zte.com.cn
 From: Yanze Zhang <zhang.yanze@zte.com.cn>
@@ -56,9 +56,9 @@ Cc: Markus.Elfring@web.de, lkp@intel.com, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, wei.quan@zte.com.cn,
         han.junyang@zte.com.cn, ran.ming@zte.com.cn, han.chengfei@zte.com.cn,
         zhang.yanze@zte.com.cn
-Subject: [PATCH rdma v9 2/7] RDMA/zrdma: Add core data structures and ABI definitions
-Date: Tue,  3 Nov 2026 20:56:49 +0800
-Message-ID: <20261103125654.2707069-3-zhang.yanze@zte.com.cn>
+Subject: [PATCH rdma v9 7/7] RDMA/zrdma: Implement context, PD, and mmap operations
+Date: Tue,  3 Nov 2026 20:56:54 +0800
+Message-ID: <20261103125654.2707069-8-zhang.yanze@zte.com.cn>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261103125654.2707069-1-zhang.yanze@zte.com.cn>
 References: <20261103125654.2707069-1-zhang.yanze@zte.com.cn>
@@ -73,297 +73,406 @@ Precedence: list
 MIME-Version: 1.0
 X-ZMAIL-USEORIGINALEMLTOOUTBOUND: 1
 Content-Transfer-Encoding: 8bit
-X-MAIL:mse-fl1.zte.com.cn 6A3D7ikf004967
+X-MAIL:mse-fl2.zte.com.cn 6A3D7lp8057800
 X-TLS: YES
 X-ENVELOPE-SENDER: zhang.yanze@zte.com.cn
-X-SOURCE-IP: 10.5.228.132 unknown Tue, 03 Nov 2026 21:07:54 +0800
+X-SOURCE-IP: 10.5.228.133 unknown Tue, 03 Nov 2026 21:08:02 +0800
 X-CLEAN: YES
 X-Fangmail-Anti-Spam-Filtered: true
-X-Fangmail-MID-QID: 6AE9DCAA.000/4jJplZ1pQ2z55y2H
+X-Fangmail-MID-QID: 6AE9DCB2.000/4jJplk0szrz58fgW
 
-Add fundamental data structures, hardware control structures, and
-user-space ABI definitions required by the driver. These headers
-provide the type definitions for the subsequent implementation patches.
+Add implementation for allocation/deallocation of Protection Domains (PD),
+User Contexts, and memory mapping (mmap) for doorbells.
 
-The UAPI header is installed to userspace, so it carries the
-Linux-syscall-note SPDX tag that headers_install requires for a
-GPL-licensed UAPI header.
+The SRQ doorbell area is not page aligned on 16K and 64K page systems, so
+the mapping length is extended to the page boundary and the size
+reported to userspace is the very same length. The V1 and V2 contexts do
+not know the size of the SRQ doorbell area, so only the first page is
+mapped for them.
 
 Signed-off-by: Yanze Zhang <zhang.yanze@zte.com.cn>
 ---
- drivers/infiniband/hw/zrdma/zrdma_ctrl.h |  20 ++++
- drivers/infiniband/hw/zrdma/zrdma_defs.h |  19 ++++
- drivers/infiniband/hw/zrdma/zrdma_type.h |  86 +++++++++++++++++
- include/uapi/rdma/zrdma_abi.h            | 114 +++++++++++++++++++++++
- 4 files changed, 239 insertions(+)
- create mode 100644 drivers/infiniband/hw/zrdma/zrdma_ctrl.h
- create mode 100644 drivers/infiniband/hw/zrdma/zrdma_defs.h
- create mode 100644 drivers/infiniband/hw/zrdma/zrdma_type.h
- create mode 100644 include/uapi/rdma/zrdma_abi.h
+ drivers/infiniband/hw/zrdma/zrdma_verbs.c | 351 ++++++++++++++++++++++
+ 1 file changed, 351 insertions(+)
 
-diff --git a/drivers/infiniband/hw/zrdma/zrdma_ctrl.h b/drivers/infiniband/hw/zrdma/zrdma_ctrl.h
-new file mode 100644
-index 0000000000000..935b4cbd3e4a9
---- /dev/null
-+++ b/drivers/infiniband/hw/zrdma/zrdma_ctrl.h
-@@ -0,0 +1,20 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+ *
-+ * ZTE DingHai Rdma driver
-+ * Copyright (c) 2022-2026, ZTE Corporation
-+ */
+diff --git a/drivers/infiniband/hw/zrdma/zrdma_verbs.c b/drivers/infiniband/hw/zrdma/zrdma_verbs.c
+index a410ef4521ad5..fb33bf1bde615 100644
+--- a/drivers/infiniband/hw/zrdma/zrdma_verbs.c
++++ b/drivers/infiniband/hw/zrdma/zrdma_verbs.c
+@@ -10,6 +10,7 @@
+ #include <linux/ctype.h>
+ #include <linux/etherdevice.h>
+ #include <linux/rtnetlink.h>
++#include <rdma/ib_user_verbs.h>
+ 
+ /* Release everything the probe path may have allocated. The hook is
+  * called from ib_dealloc_device(), so it must tolerate a partially
+@@ -392,15 +393,365 @@ int zxdh_ib_register_device(struct zxdh_device *zdev)
+ 	return ret;
+ }
+ 
++static void zxdh_sc_pd_init(struct zxdh_sc_dev *dev, struct zxdh_sc_pd *pd,
++			    u32 pd_id, int abi_ver)
++{
++	pd->pd_id = pd_id;
++	pd->abi_ver = abi_ver;
++	pd->dev = dev;
++}
 +
-+#ifndef ZRDMA_CTRL_H
-+#define ZRDMA_CTRL_H
-+
-+struct zxdh_hw {
-+	struct device *device;
-+};
-+
-+struct zxdh_sc_dev {
-+	u32 max_ceqs;
-+	u8 ep_id;
-+	u8 driver_load;
-+};
-+
-+#endif
-diff --git a/drivers/infiniband/hw/zrdma/zrdma_defs.h b/drivers/infiniband/hw/zrdma/zrdma_defs.h
-new file mode 100644
-index 0000000000000..208f1f60bbaee
---- /dev/null
-+++ b/drivers/infiniband/hw/zrdma/zrdma_defs.h
-@@ -0,0 +1,19 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+ *
-+ * ZTE DingHai Rdma driver
-+ * Copyright (c) 2022-2026, ZTE Corporation
-+ */
-+
-+#ifndef ZRDMA_DEFS_H
-+#define ZRDMA_DEFS_H
-+
-+#include <linux/bitfield.h>
-+#include <rdma/ib_verbs.h>
-+
-+#define ZXDH_FEATURE_RTS_AE 1ULL
-+#define ZXDH_FEATURE_CQ_RESIZE 2ULL
-+#define ZXDH_FEATURE_64_BYTE_CQE 128ULL
-+
-+#define ZXDH_MAX_USER_PRIORITY 8
-+
-+#endif /* ZRDMA_DEFS_H */
-diff --git a/drivers/infiniband/hw/zrdma/zrdma_type.h b/drivers/infiniband/hw/zrdma/zrdma_type.h
-new file mode 100644
-index 0000000000000..ded4052453455
---- /dev/null
-+++ b/drivers/infiniband/hw/zrdma/zrdma_type.h
-@@ -0,0 +1,86 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+ *
-+ * ZTE DingHai Rdma driver
-+ * Copyright (c) 2022-2026, ZTE Corporation
-+ */
-+
-+#ifndef ZRDMA_TYPE_H
-+#define ZRDMA_TYPE_H
-+
-+#include <linux/auxiliary_bus.h>
-+#include <linux/msi.h>
-+
-+enum zxdh_rdma_reset_type {
-+	ZXDH_RDMA_PFR,
-+	ZXDH_RDMA_CORER,
-+	ZXDH_RDMA_GLOBR,
-+};
-+
-+enum zxdh_function_type {
-+	ZXDH_FUNCTION_TYPE_PF,
-+	ZXDH_FUNCTION_TYPE_VF,
-+};
-+
-+struct zxdh_rdma_core_dev;
-+
-+struct zxdh_rdma_core_ops {
-+	int (*request_reset)(struct zxdh_rdma_core_dev *cdev,
-+			     enum zxdh_rdma_reset_type reset_type);
-+	int (*zxdh_common_func)(void *in_param, void *out_param, u32 opcode);
-+};
-+
-+struct zxdh_rdma_ver_info {
-+	u16 major;
-+	u16 minor;
-+	u64 support; /* 0~7:net_major,8~15:net_minor,16~23:rdma_minor,24~63:rscv */
-+};
-+
-+enum zxdh_rdma_protocol {
-+	ZXDH_RDMA_PROTOCOL_IWARP = BIT(0),
-+	ZXDH_RDMA_PROTOCOL_ROCEV2 = BIT(1),
-+};
-+
-+struct zxdh_qos_params {
-+	u8 num_tc;
-+};
-+
-+struct zxdh_rdma_core_dev {
-+	struct pci_dev *pdev;
-+	struct auxiliary_device *adev;
-+	u8 __iomem *hw_addr;
-+	int zdev_info_id;
-+	struct zxdh_rdma_ver_info ver;
-+	void *auxiliary_priv;
-+	enum zxdh_function_type ftype;
-+	u16 vport_id;
-+	u16 slot_id;
-+	enum zxdh_rdma_protocol rdma_protocol;
-+
-+	struct zxdh_qos_params qos_info;
-+	struct msix_entry *msix_entries;
-+	u16 msix_count;
-+	const struct zxdh_rdma_core_ops *ops;
-+	void *dh_dev;
-+};
-+
-+struct zxdh_rdma_if {
-+	void *(*get_rdma_netdev)(void *dh_dev);
-+};
-+
-+struct zxdh_auxiliary_dev {
-+	struct auxiliary_device adev;
-+	struct zxdh_rdma_core_dev *zxdh_info;
-+	struct zxdh_rdma_if *rdma_ops;
-+	void *ops;
-+	void *parent;
-+	s32 aux_id;
-+	void *auxiliary_ops[18];
-+};
-+
-+struct zxdh_sc_pd {
-+	struct zxdh_sc_dev *dev;
++static int zxdh_alloc_pd(struct ib_pd *pd, struct ib_udata *udata)
++{
++	struct zxdh_device *zdev = to_zdev(pd->device);
++	struct zxdh_sc_dev *dev = &zdev->rf->sc_dev;
++	struct zxdh_alloc_pd_resp uresp = {};
++	struct zxdh_pd *zpd = to_zpd(pd);
++	struct zxdh_pci_f *rf = zdev->rf;
++	struct zxdh_sc_pd *sc_pd;
 +	u32 pd_id;
-+	int abi_ver;
-+};
++	int err;
 +
-+#endif /* ZRDMA_TYPE_H */
-diff --git a/include/uapi/rdma/zrdma_abi.h b/include/uapi/rdma/zrdma_abi.h
-new file mode 100644
-index 0000000000000..53f15591f894e
---- /dev/null
-+++ b/include/uapi/rdma/zrdma_abi.h
-@@ -0,0 +1,114 @@
-+/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR Linux-OpenIB)
-+ *
-+ * ZTE DingHai Rdma driver
-+ * Copyright (c) 2022-2026, ZTE Corporation
++	/* The user has to provide a buffer for the whole response. A short
++	 * buffer is reported instead of being silently truncated, and no
++	 * resource is taken for it.
++	 */
++	if (udata && udata->outlen < sizeof(uresp))
++		return -ENOSPC;
++
++	/* The command takes no input from the user space. */
++	if (udata) {
++		err = ib_is_udata_in_empty(udata);
++		if (err)
++			return err;
++	}
++
++	err = zxdh_alloc_rsrc(rf, rf->allocated_pds, rf->max_pd, &pd_id,
++			      &rf->next_pd, "PD");
++	if (err) {
++		pr_warn_ratelimited("zrdma: PD allocation failed err=%d\n",
++				    err);
++		return err;
++	}
++
++	sc_pd = &zpd->sc_pd;
++	if (udata) {
++		struct zxdh_ucontext *ucontext;
++
++		ucontext = rdma_udata_to_drv_context(udata,
++						     struct zxdh_ucontext,
++						     ibucontext);
++
++		zxdh_sc_pd_init(dev, sc_pd, pd_id, ucontext->abi_ver);
++		uresp.pd_id = pd_id;
++		if (ib_respond_udata(udata, uresp)) {
++			err = -EFAULT;
++			goto error;
++		}
++	} else {
++		/* A protection domain that the kernel allocates has no user
++		 * context, it uses the default ABI version.
++		 */
++		zxdh_sc_pd_init(dev, sc_pd, pd_id, ZXDH_ABI_VER);
++	}
++
++	return 0;
++
++error:
++	zxdh_free_rsrc(rf, rf->allocated_pds, pd_id);
++
++	return err;
++}
++
++static struct rdma_user_mmap_entry *
++zxdh_mmap_entry_insert(struct zxdh_ucontext *ucontext, u64 bar_offset,
++		       size_t length, enum zxdh_mmap_flag mmap_flag,
++		       u64 *mmap_offset)
++{
++	struct zxdh_user_mmap_entry *entry =
++		kzalloc(sizeof(*entry), GFP_KERNEL);
++	int ret;
++
++	if (!entry)
++		return NULL;
++
++	entry->bar_offset = bar_offset;
++	entry->mmap_flag = mmap_flag;
++
++	ret = rdma_user_mmap_entry_insert(&ucontext->ibucontext,
++					  &entry->rdma_entry, length);
++	if (ret) {
++		kfree(entry);
++		return NULL;
++	}
++	*mmap_offset = rdma_user_mmap_get_offset(&entry->rdma_entry);
++
++	return &entry->rdma_entry;
++}
++
++/* The SRQ doorbell area starts at SRQ_DB_BAR_OFF, which is not page
++ * aligned once the page size is 16K or 64K. The mapping therefore has to
++ * start at the page holding the doorbell and has to be large enough to
++ * cover the whole doorbell area.
 + */
++static u64 zxdh_get_srq_db_mmap_size(void)
++{
++	return round_up((SRQ_DB_BAR_OFF & ZXDH_PAGE_OFFSET_NUM) +
++			SRQ_DB_MMAP_SIZE, PAGE_SIZE);
++}
 +
-+#ifndef ZRDMA_ABI_H
-+#define ZRDMA_ABI_H
++static int zxdh_alloc_ucontext(struct ib_ucontext *uctx, struct ib_udata *udata)
++{
++	struct zxdh_ucontext *ucontext = to_ucontext(uctx);
++	struct zxdh_alloc_ucontext_resp uresp = {};
++	struct ib_device *ibdev = uctx->device;
++	struct zxdh_device *zdev = to_zdev(ibdev);
++	struct zxdh_alloc_ucontext_req req = {};
++	u64 srq_db_mmap_size;
++	int err;
 +
-+#include <linux/types.h>
-+
-+/* The version of the user space ABI that this driver implements. It is
-+ * reported to the core as the uverbs ABI version of the device.
-+ */
-+#define ZXDH_ABI_VER 5
-+
-+/* The versions of the context that the user space can ask for with
-+ * struct zxdh_alloc_ucontext_req.userspace_ver. A version tells the
-+ * driver which features of the user space are available.
-+ */
-+#define ZXDH_CONTEXT_VER_V1 5
-+#define ZXDH_CONTEXT_VER_V2 6
-+#define ZXDH_CONTEXT_VER_V3 7
-+
-+enum zxdh_rdma_tool_flags {
-+	ZXDH_QP_EXTEND_OP = 1 << 0,
-+	ZXDH_CAPTURE = 1 << 1,
-+	ZXDH_GET_HW_DATA = 1 << 2,
-+	ZXDH_GET_HW_OBJECT_DATA = 1 << 3,
-+	ZXDH_CHECK_HW_HEALTH = 1 << 4,
-+	ZXDH_RDMA_TOOL_CFG_DEV_PARAM = 1 << 5,
-+	ZXDH_RDMA_TOOL_READ_RAM = 1 << 6,
-+	ZXDH_RDMA_TOOL_DEVX_MODIFY_CQ = 1 << 7,
-+	ZXDH_RDMA_SET_CREDIT_CAP = 1 << 8,
-+	ZXDH_RDMA_SWITCH = 1 << 9,
-+	ZXDH_RDMA_TOOL_DEVX_EXT_MEM = 1 << 10,
-+	ZXDH_RDMA_TOOL_PRIV_EXT = 1 << 11,
-+	ZXDH_RDMA_TOOL_IOVA_CAP = 1 << 12,
-+};
-+
-+enum zxdh_db_addr_type {
-+	ZXDH_DB_ADDR_PHY = 0,
-+	ZXDH_DB_ADDR_BAR = 1,
-+};
-+
-+/* Request of the uverbs command INFINIBAND_UVERBS_CMD_ALLOC_CONTEXT. */
-+struct zxdh_alloc_ucontext_req {
-+	__u32 rsvd32;
-+	/* Version of the user space, one of the ZXDH_CONTEXT_VER_*. */
-+	__u8 userspace_ver;
-+	__u8 rsvd8[3];
-+};
-+
-+/* Response of the uverbs command INFINIBAND_UVERBS_CMD_ALLOC_CONTEXT. */
-+struct zxdh_alloc_ucontext_resp {
-+	/* Number of protection domains that the user space can create. */
-+	__u32 max_pds;
-+	/* Number of queue pairs that the user space can create. */
-+	__u32 max_qps;
-+	/* Size of the work queues (SQ+RQ) in the mmaped area. */
-+	__u32 wq_size;
-+	/* Version of the driver that created the context. */
-+	__u8 kernel_ver;
-+	/* Type of the address that a doorbell is written to, one of the
-+	 * enum zxdh_db_addr_type.
++	/* The request is validated against the size of the structure, so
++	 * that a truncated or an oversized buffer is rejected instead of
++	 * being read partially.
 +	 */
-+	__u8 db_addr_type;
-+	/* The RDMA tool features that the driver supports, one of the
-+	 * enum zxdh_rdma_tool_flags.
-+	 */
-+	__u16 rdma_tool_flags;
-+	/* The features that the driver supports. */
-+	__aligned_u64 feature_flags;
-+	/* The keys of the mappings of the doorbell areas. The user space
-+	 * passes a key to mmap() to get the address of a doorbell.
-+	 */
-+	__aligned_u64 sq_db_mmap_key;
-+	__aligned_u64 cq_db_mmap_key;
-+	/* The limits of the work queue entries. */
-+	__u32 max_hw_wq_frags;
-+	__u32 max_hw_read_sges;
-+	__u32 max_hw_inline;
-+	__u32 max_hw_rq_quanta;
-+	__u32 max_hw_srq_quanta;
-+	__u32 max_hw_wq_quanta;
-+	__u32 max_hw_srq_wr;
-+	__u32 min_hw_cq_size;
-+	__u32 max_hw_cq_size;
-+	__u16 max_hw_sq_chunk;
-+	/* The revision of the hardware and of the chip. */
-+	__u8 hw_rev;
-+	__u8 chip_rev;
-+	__aligned_u64 srq_db_mmap_key;
-+	/* The offset of the doorbell area in the page that is mapped. */
-+	__aligned_u64 sq_db_bar_off;
-+	__aligned_u64 cq_db_bar_off;
-+	__aligned_u64 srq_db_bar_off;
-+	/*
-+	 * Size of the mapped SRQ doorbell area. The V1 and V2 contexts do
-+	 * not have this field, so only the first page of the area is mapped
-+	 * for them and they must not access beyond it.
-+	 */
-+	__u32 srq_db_mmap_size;
-+	__u16 rsv[6];
-+};
++	err = ib_copy_validate_udata_in(udata, req, rsvd8);
++	if (err)
++		return err;
 +
-+/* Response of the uverbs command INFINIBAND_UVERBS_CMD_ALLOC_PD. */
-+struct zxdh_alloc_pd_resp {
-+	/* The identifier of the protection domain. */
-+	__u32 pd_id;
-+	__u8 rsvd[4];
-+};
++	if (req.userspace_ver != ZXDH_CONTEXT_VER_V1 &&
++	    req.userspace_ver != ZXDH_CONTEXT_VER_V2 &&
++	    req.userspace_ver != ZXDH_CONTEXT_VER_V3) {
++		pr_err_ratelimited("zrdma: Invalid userspace_ver%d\n",
++				   req.userspace_ver);
++		return -EINVAL;
++	}
 +
-+#endif /* ZRDMA_ABI_H */
++	/* The response carries the keys of the doorbell mappings, so the
++	 * user has to provide a buffer for the whole of it. A short buffer
++	 * is reported instead of being silently truncated.
++	 */
++	if (udata->outlen < sizeof(uresp))
++		return -ENOSPC;
++
++	ucontext->zdev = zdev;
++	ucontext->abi_ver = req.userspace_ver;
++
++	uresp.srq_db_bar_off = SRQ_DB_BAR_OFF & ZXDH_PAGE_OFFSET_NUM;
++
++	ucontext->sq_db_mmap_entry =
++		zxdh_mmap_entry_insert(ucontext, SQ_DB_BAR_OFF, PAGE_SIZE,
++				       ZXDH_MMAP_IO_NC,
++				       &uresp.sq_db_mmap_key);
++	if (!ucontext->sq_db_mmap_entry)
++		return -ENOMEM;
++
++	ucontext->cq_db_mmap_entry =
++		zxdh_mmap_entry_insert(ucontext, CQ_DB_BAR_OFF, PAGE_SIZE,
++				       ZXDH_MMAP_IO_NC,
++				       &uresp.cq_db_mmap_key);
++	if (!ucontext->cq_db_mmap_entry) {
++		rdma_user_mmap_entry_remove(ucontext->sq_db_mmap_entry);
++		ucontext->sq_db_mmap_entry = NULL;
++		return -ENOMEM;
++	}
++
++	/* The mapping length and the size reported to userspace have to
++	 * match, otherwise rdma_user_mmap_entry_get() rejects the mmap.
++	 *
++	 * The V1 and V2 contexts do not know the size of the SRQ doorbell
++	 * area, so only the first page is mapped for them. The V3 context
++	 * gets the size of the whole area in the response.
++	 */
++	if (ucontext->abi_ver == ZXDH_CONTEXT_VER_V1 ||
++	    ucontext->abi_ver == ZXDH_CONTEXT_VER_V2)
++		srq_db_mmap_size = PAGE_SIZE;
++	else
++		srq_db_mmap_size = zxdh_get_srq_db_mmap_size();
++
++	ucontext->srq_db_mmap_entry =
++		zxdh_mmap_entry_insert(ucontext, SRQ_DB_BAR_OFF,
++				       srq_db_mmap_size,
++				       ZXDH_MMAP_IO_NC_BY_SIZE,
++				       &uresp.srq_db_mmap_key);
++	if (!ucontext->srq_db_mmap_entry) {
++		rdma_user_mmap_entry_remove(ucontext->sq_db_mmap_entry);
++		ucontext->sq_db_mmap_entry = NULL;
++		rdma_user_mmap_entry_remove(ucontext->cq_db_mmap_entry);
++		ucontext->cq_db_mmap_entry = NULL;
++		pr_err("zrdma: srq_db_mmap_entry is NULL!\n");
++		return -ENOMEM;
++	}
++
++	uresp.srq_db_mmap_size = srq_db_mmap_size;
++	uresp.kernel_ver = ZXDH_CONTEXT_VER_V3;
++	uresp.hw_rev = ZXDH_GEN_2;
++	uresp.chip_rev = CHIP_VERSION;
++	uresp.rdma_tool_flags =
++		ZXDH_QP_EXTEND_OP | ZXDH_CAPTURE | ZXDH_GET_HW_DATA |
++		ZXDH_GET_HW_OBJECT_DATA | ZXDH_CHECK_HW_HEALTH |
++		ZXDH_RDMA_TOOL_CFG_DEV_PARAM | ZXDH_RDMA_TOOL_READ_RAM |
++		ZXDH_RDMA_TOOL_DEVX_MODIFY_CQ | ZXDH_RDMA_SET_CREDIT_CAP |
++		ZXDH_RDMA_SWITCH | ZXDH_RDMA_TOOL_DEVX_EXT_MEM |
++		ZXDH_RDMA_TOOL_PRIV_EXT |
++		ZXDH_RDMA_TOOL_IOVA_CAP;
++
++	uresp.feature_flags = ZXDH_FEATURE_RTS_AE | ZXDH_FEATURE_CQ_RESIZE |
++			      ZXDH_FEATURE_64_BYTE_CQE;
++	uresp.max_hw_wq_frags = MAX_HW_WQ_FRAGS;
++	uresp.max_hw_read_sges = MAX_HW_READ_SGES;
++	uresp.max_hw_inline = MAX_HW_INLINE;
++	uresp.max_hw_srq_wr = MAX_HW_SRQ_WR;
++	uresp.max_hw_rq_quanta = MAX_HW_RQ_QUANTA;
++	uresp.max_hw_srq_quanta = MAX_HW_SRQ_QUANTA;
++	uresp.max_hw_wq_quanta = MAX_HW_WQ_QUANTA;
++	uresp.max_hw_sq_chunk = MAX_HW_SQ_CHUNK;
++	uresp.max_hw_cq_size = MAX_HW_CQ_SIZE;
++	uresp.min_hw_cq_size = MIN_HW_CQ_SIZE;
++	uresp.db_addr_type = ZXDH_DB_ADDR_BAR;
++	uresp.sq_db_bar_off = SQ_DB_BAR_OFF & ZXDH_PAGE_OFFSET_NUM;
++	uresp.cq_db_bar_off = CQ_DB_BAR_OFF & ZXDH_PAGE_OFFSET_NUM;
++
++	if (ib_respond_udata(udata, uresp)) {
++		rdma_user_mmap_entry_remove(ucontext->sq_db_mmap_entry);
++		ucontext->sq_db_mmap_entry = NULL;
++		rdma_user_mmap_entry_remove(ucontext->cq_db_mmap_entry);
++		ucontext->cq_db_mmap_entry = NULL;
++		rdma_user_mmap_entry_remove(ucontext->srq_db_mmap_entry);
++		ucontext->srq_db_mmap_entry = NULL;
++		return -EFAULT;
++	}
++
++	atomic_set(&ucontext->tx_port_affinity,
++		   atomic_add_return(1, &zdev->tx_port_affinity));
++
++	INIT_LIST_HEAD(&ucontext->cq_reg_mem_list);
++	spin_lock_init(&ucontext->cq_reg_mem_list_lock);
++	INIT_LIST_HEAD(&ucontext->qp_reg_mem_list);
++	spin_lock_init(&ucontext->qp_reg_mem_list_lock);
++	INIT_LIST_HEAD(&ucontext->srq_reg_mem_list);
++	spin_lock_init(&ucontext->srq_reg_mem_list_lock);
++
++	return 0;
++}
++
++static int zxdh_dealloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
++{
++	struct zxdh_pd *zpd = to_zpd(ibpd);
++	struct zxdh_device *zdev = to_zdev(ibpd->device);
++	int err;
++
++	/* The command takes no input from the user space and returns no
++	 * response data.
++	 */
++	err = ib_no_udata_io(udata);
++	if (err)
++		return err;
++
++	zxdh_free_rsrc(zdev->rf, zdev->rf->allocated_pds, zpd->sc_pd.pd_id);
++	return 0;
++}
++
++static void zxdh_dealloc_ucontext(struct ib_ucontext *context)
++{
++	struct zxdh_ucontext *ucontext = to_ucontext(context);
++
++	if (!ucontext)
++		return;
++
++	if (ucontext->sq_db_mmap_entry) {
++		rdma_user_mmap_entry_remove(ucontext->sq_db_mmap_entry);
++		ucontext->sq_db_mmap_entry = NULL;
++	}
++	if (ucontext->cq_db_mmap_entry) {
++		rdma_user_mmap_entry_remove(ucontext->cq_db_mmap_entry);
++		ucontext->cq_db_mmap_entry = NULL;
++	}
++	if (ucontext->srq_db_mmap_entry) {
++		rdma_user_mmap_entry_remove(ucontext->srq_db_mmap_entry);
++		ucontext->srq_db_mmap_entry = NULL;
++	}
++}
++
++static void zxdh_mmap_free(struct rdma_user_mmap_entry *entry)
++{
++	struct zxdh_user_mmap_entry *zentry = to_zxdh_mmap_entry(entry);
++
++	kfree(zentry);
++}
++
++static int zxdh_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
++{
++	struct rdma_user_mmap_entry *rdma_entry;
++	struct zxdh_user_mmap_entry *entry;
++	struct zxdh_ucontext *ucontext;
++	u64 pfn;
++	int ret;
++
++	ucontext = to_ucontext(context);
++
++	rdma_entry = rdma_user_mmap_entry_get(&ucontext->ibucontext, vma);
++	if (!rdma_entry) {
++		pr_err_ratelimited("zrdma: pgoff[0x%lx] does not have valid entry\n",
++				   vma->vm_pgoff);
++		return -EINVAL;
++	}
++
++	entry = to_zxdh_mmap_entry(rdma_entry);
++
++	pfn = (entry->bar_offset +
++	       pci_resource_start(ucontext->zdev->rf->pcidev, 0)) >>
++	      PAGE_SHIFT;
++
++	switch (entry->mmap_flag) {
++	case ZXDH_MMAP_IO_NC:
++		ret = rdma_user_mmap_io(context, vma, pfn, PAGE_SIZE,
++					pgprot_noncached(vma->vm_page_prot),
++					rdma_entry);
++		break;
++	case ZXDH_MMAP_IO_NC_BY_SIZE:
++		ret = rdma_user_mmap_io(context, vma, pfn,
++					vma->vm_end - vma->vm_start,
++					pgprot_noncached(vma->vm_page_prot),
++					rdma_entry);
++		break;
++	case ZXDH_MMAP_IO_WC:
++		ret = rdma_user_mmap_io(context, vma, pfn, PAGE_SIZE,
++					pgprot_writecombine(vma->vm_page_prot),
++					rdma_entry);
++		break;
++	default:
++		pr_err("zrdma: unsupported mmap_flag[%d]\n",
++		       entry->mmap_flag);
++		ret = -EINVAL;
++	}
++
++	if (ret)
++		pr_err("zrdma: bar_offset [0x%llx] mmap_flag[%d] err[%d]\n",
++		       entry->bar_offset, entry->mmap_flag, ret);
++
++	rdma_user_mmap_entry_put(rdma_entry);
++
++	return ret;
++}
++
+ const struct ib_device_ops zxdh_dev_ops = {
+ 	.owner = THIS_MODULE,
+ 	.driver_id = RDMA_DRIVER_ZRDMA,
+ 	.uverbs_abi_ver = ZXDH_ABI_VER,
+ 	.dealloc_driver = zxdh_ib_dealloc_device,
++	.alloc_pd = zxdh_alloc_pd,
++	.alloc_ucontext = zxdh_alloc_ucontext,
++	.dealloc_pd = zxdh_dealloc_pd,
++	.dealloc_ucontext = zxdh_dealloc_ucontext,
+ 	.query_device = zxdh_query_device,
+ 	.query_port = zxdh_query_port,
+ 	.query_pkey = zxdh_query_pkey,
+ 	.get_link_layer = zxdh_get_link_layer,
+ 	.get_port_immutable = zxdh_roce_port_immutable,
+ 	.get_dev_fw_str = zxdh_get_dev_fw_str,
++	.mmap = zxdh_mmap,
++	.mmap_free = zxdh_mmap_free,
++
++	INIT_RDMA_OBJ_SIZE(ib_pd, zxdh_pd, ibpd),
++	INIT_RDMA_OBJ_SIZE(ib_ucontext, zxdh_ucontext, ibucontext),
+ };
 -- 
 2.43.5
 
