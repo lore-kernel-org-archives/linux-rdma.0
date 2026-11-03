@@ -1,49 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793718949;
-	b=Bd0pTxJ+SyitDYnyRsv14irxfjYSluXSOBUuV9FmSdUOsO2y1oVPnX295+hrR6pLqa6M
-	 VIJb+M3wcS3khJYQiA8Psurb+lSoyojO/yNc2P84Xbz31GQY5efLtrfOQEpH1T8NvlNhW
-	 qHammzg9XQv5eTRP0WWN27F1qbP9tJ15NlXqXXHD5LpbJQDxvlvB3A35gzSJI1CsXyhEX
-	 ZgvTPLjWAdAzjHonTLJ9ZcgE2G8MbbO0W3PCRXTrRrhmj2tKon0IHsNB+ke/JVWzYvTQf
-	 W27xTdWKE2GG9h/ODMQx8J0NOw0Wt0D3L+iMPh8fcBj1F1EmKzNOqMVbm65rufJJgng==
+	t=1793719524;
+	b=49bai9dotTxw9ewxqfAlB7kwonX467UJLTooxXRU/Mv90sgKnB5i041nRx1HEFeUz0PJ
+	 Jdgw4e8eLvufUbQlovyQJq2avNzG7mcTQA/OFH5G6FKI6iAhD/XVd+1KmXZRsK+kgLp8w
+	 SRCL7x0razXjtxIggoSwvsgv/X1cGo2gb2YDjDv5kePjskZdxb2ls8ZrJZdBC9lfaITtb
+	 jNvTrG/j9qNb0gyly3zoFN2y6vr6NaujQ7u+K8qPkKQ3e0pUzMl79ZrIS9wktNKMV7Upz
+	 Wu6chfWSS2A0cxXQHcdEc7TEYpP3RpDhVNTKd9lDQwnYdrM8ePSkGlMM/jhFDUxN2jw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793718949;
-	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
-	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding:X-Spam-Status:
-	 X-Spam-Checker-Version;
-	bh=W0s7ZEWF8co8VYOGI85E38Dt868T5tqn4KMr7YPDLx4=;
-	b=rfty5BZ36Y3jHjquGTMO1ZoFx3wEFGCs3qBaW3WV9EEK5vqMMdQIKsGOgrMdUQGBcRsl
-	 xxuKdtdkkKGcnhASaftQoHsR46FIym/jFH5+e6LtsE613lpzdWTswpQM5D5G0bChPQpIy
-	 Iroj/BrWl135rwm6fUlqRZH9e39WhpyVe48yTKn7d714qilP9edRFSkp4XgCZ1u7MbThy
-	 96M6Yj2JNXxPzXo0NYJCpY+sMp+8UOX941eLdzMJlUnw4wByBdTy54QfzMRXbuDJczKS0
-	 O3yA18XbL1kQeICSQnECaWoo8YS4ig0wwjVrjUehRYjFyRDgvILNH7S9PuSeLyszTmA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793719524;
+	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
+	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Mailer;
+	bh=oJM+5qKm3HChtsYW/9jpiIl6Et4WsbvoNBr/kloQ5Lk=;
+	b=C0PDUNRgrJs0kLhgeX30iB+o+lg1D7LrvIedcUzssVmOcmFai1eI2gOX/pBRz/tioj5q
+	 U69bhaKRbGUJ9jN/ukLL+nTPilNu1SLJLCo7g9ITmbUlWSUCzVcUQPOaYOkP/Kk0BFwHz
+	 sPzf7W24v8hVsZJD/bQXFANqN8RHd8PbLKKG6mEDuANAwIawxapuNlaOj5mH6PAaly9WX
+	 GKPsd5QWul+leKuDpAZyc/yakahdOlga2y2kW5iHPFo6uHPOS0oQ8Ok3diRbXEWrBb5ET
+	 5Z2OB4lE6Sb18WIMagf1SYdqE+jj5lGKi6hw2V4j7wth5r/lNjayRpYUajqZWwU8wSg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.microsoft.com;
-	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=fb2BBPzZ;
-	arc=none smtp.remote-ip=13.77.154.182
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 98CAE6071A06;
-	Tue,  3 Nov 2026 15:15:48 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 98CAE6071A06
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=omF+WVOC;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63C71606A324;
+	Tue,  3 Nov 2026 15:25:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=fb2BBPzZ
-Received: from [10.26.7.43] (unknown [4.213.232.16])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 8D0D620B7166;
-	Tue,  3 Nov 2026 07:15:28 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 8D0D620B7166
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1793718933;
-	bh=W0s7ZEWF8co8VYOGI85E38Dt868T5tqn4KMr7YPDLx4=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=fb2BBPzZx0r364zjrBTyixV4UjCX9yqZab3TgOEp+I7KXTPdkLhH/d1Xh0WkpXyZj
-	 2MOn5TigDJl4bxbuLWsQAALsgAva5eG1udYtFVcfDv+qYm+h57iZ/OUiOyNiDase4x
-	 ZhqpG/21G6UdYzqMpkZ77Y8Q2m++FpWpsoQJYQeg=
-Message-ID: <d8a49b6a-36b9-4ebb-9d26-b6ce58248ed7@linux.microsoft.com>
-Date: Tue, 3 Nov 2026 20:45:40 +0530
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=omF+WVOC
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65C941F000C1;
+	Tue,  3 Nov 2026 15:25:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793719524;
+	bh=oJM+5qKm3HChtsYW/9jpiIl6Et4WsbvoNBr/kloQ5Lk=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=omF+WVOCLzpnRBDyoU5lB3T44CT4XKWHTI5qISQiLMsOXACli8TvtNz4DsUSBPSCa
+	 2qV9kQzRnOaiET+RXh5aYuMsR+v/sDjCijD/YeOfQahqs5JMjXx179mOjo+6gtV8ev
+	 nvqkVMSnW4JzsJXCHqrcYLSJwiU8MJU1k1qJiQioEszcprBuxy1Xdf95lk/De2tRP/
+	 lG4lrPFsvForIPe6Xl1AQ8+8FpsTxltRH8xhpf/zjNCoa7NN46iZPWY1uuly2ZoTFf
+	 YWpAhpIUWzp5L7n00pzBe+Upt3srJYxzfjX31CSkht+EaDOgtxAbd3dWrdlOf2RCTp
+	 SruWZ1mGJa5+w==
+From: Leon Romanovsky <leon@kernel.org>
+To: Bernard Metzler <bernard.metzler@linux.dev>, 
+ Deep Shah <deepshah146@gmail.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, stable@vger.kernel.org
+In-Reply-To: <20261102064437.23976-1-deepshah146@gmail.com>
+References: <20261102064437.23976-1-deepshah146@gmail.com>
+Subject: Re: [PATCH rdma-rc] RDMA/siw: Fix use-after-free in
+ siw_mem_id2obj()
+Message-Id: <179371952100.1731945.2108233244777170457.b4-ty@kernel.org>
+Date: Tue, 03 Nov 2026 10:25:21 -0500
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -53,199 +60,29 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net v4] net: mana: Add support to process throttled EQEs
-To: Paolo Abeni <pabeni@redhat.com>, netdev-bot+sashiko@kernel.org
-Cc: haiyangz@microsoft.com, wei.liu@kernel.org, decui@microsoft.com,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, kotaranov@microsoft.com, horms@kernel.org,
- ernis@linux.microsoft.com, gargaditya@linux.microsoft.com,
- mawasthi@linux.microsoft.com, leitao@debian.org,
- linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
- stable@vger.kernel.org, weh@linux.microsoft.com
-References: <20261028084020.2051254-1-sahilchandna@linux.microsoft.com>
- <179352349805.3131.9139142774275348324@kernel.org>
- <07a21553-8ab1-4478-8a22-b1a13e70faba@redhat.com>
-Content-Language: en-US
-From: Sahil Chandna <sahilchandna@linux.microsoft.com>
-In-Reply-To: <07a21553-8ab1-4478-8a22-b1a13e70faba@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-On 03-11-2026 03:16, Paolo Abeni wrote:
-> On 11/1/26 09:58, netdev-bot+sashiko@kernel.org wrote:
->> Thank you for your contribution! Sashiko AI review found 2 potential
->> issue(s) to consider.
->>
->> Critical: 0 · High: 1 (1) · Medium: 0 · Low: 1
->>
->> If you believe none of the issues are legitimate, please reply to each
->> issue of Medium severity or higher and explain why the AI is wrong.
->> If any of them are legitimate and you plan to respin, please let patchwork
->> know by including "pw-bot: cr" as a separate line at the end of your reply
->> (one such reply per series is enough).
->>
->> - [High] The patch tells firmware that every EQ on the function handles
->>    throttled EQEs.
->> - [Low] The patch marks only one side of the concurrent accesses.
->>
->> Pre-existing issues:
->> - [High] mana_gd_destroy_cq() waits for a grace period
->>    (synchronize_net()) only when mana_gd_detach_cq() returns true,…
->>
->> --
->>
->> net: mana: Add support to process throttled EQEs
->>
->> This commit handles GDMA_EQE_THROTTLE events. It records up to two child
->> CQs per EQ and calls their callbacks when a throttle EQE arrives. CQ
->> teardown now detaches the CQ from its parent EQ and from cq_table[]
->> before a grace period. The patch also advertises a new capability bit and
->> adds a per-EQ throttle counter to ethtool stats.
->>
->>> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
->>> index 8c915e0087846..ab942d5bfe058 100644
->>> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
->>> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
->>> @@ -757,6 +757,27 @@ void mana_gd_free_service_wq(struct gdma_context *gc)
->>>   	gc->service_wq = NULL;
->>>   }
->>>   
->>> +static void mana_gd_schedule_eq_cqs(struct gdma_queue *eq)
->>> +{
->>> +	struct gdma_context *gc = eq->gdma_dev->gdma_context;
->>> +	struct gdma_queue *cq;
->>> +	u8 i;
->>> +
->>> +	for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++) {
->>> +		cq = rcu_dereference(eq->eq.child_cq[i]);
->>> +
->>> +		if (!cq)
->>> +			continue;
->>> +
->>> +		if (cq->id >= READ_ONCE(gc->max_num_cqs) ||
->>> +		    !gc->cq_table || gc->cq_table[cq->id] != cq)
->>> +			continue;
->>
->> [Severity: Low]
->> This patch marks only the write side. mana_gd_detach_cq() clears
->> gc->cq_table[id] with WRITE_ONCE(), and mana_hwc_destroy_channel() now
->> sets gc->max_num_cqs with WRITE_ONCE().
->>
->> The readers still use plain loads. Here that means gc->cq_table and
->> gc->cq_table[cq->id]. The GDMA_EQE_COMPLETION branch of
->> mana_gd_process_eqe() also reads both fields without READ_ONCE():
->>
->> 	if (WARN_ON_ONCE(cq_id >= gc->max_num_cqs))
->> 		break;
->>
->> 	cq = gc->cq_table[cq_id];
->>
->> Could KCSAN report these as data races? Should the readers use
->> READ_ONCE() to pair with the marked writers?
->>
->> This is mostly an annotation issue. The completion-path race was already
->> there before this patch, and the loads in mana_gd_schedule_eq_cqs() only
->> compare the pointer value.
->>
->>> +
->>> +		if (cq->cq.callback)
->>> +			cq->cq.callback(cq->cq.context, cq);
->>> +	}
->>> +}
->>
->> [ ... ]
->>
->>> @@ -1073,25 +1104,66 @@ static void mana_gd_create_cq(const struct gdma_queue_spec *spec,
->>>   			      struct gdma_queue *queue)
->>>   {
->>>   	u32 log2_num_entries = ilog2(spec->queue_size / GDMA_CQE_SIZE);
->>> +	struct gdma_queue *parent;
->>> +	u8 i;
->>>   
->>>   	queue->head |= INITIALIZED_OWNER_BIT(log2_num_entries);
->>> -	queue->cq.parent = spec->cq.parent_eq;
->>> +	parent = spec->cq.parent_eq;
->>> +	queue->cq.parent = parent;
->>>   	queue->cq.context = spec->cq.context;
->>>   	queue->cq.callback = spec->cq.callback;
->>> +
->>> +	if (!parent)
->>> +		return;
->>> +
->>> +	/* For throttled EQE store the child CQ */
->>> +	for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++) {
->>> +		if (!rcu_access_pointer(parent->eq.child_cq[i])) {
->>> +			rcu_assign_pointer(parent->eq.child_cq[i], queue);
->>> +			return;
->>> +		}
->>> +	}
->>> +
->>> +	WARN_ONCE(1, "mana: EQ %u has no free child CQ slot\n", parent->id);
->>>   }
->>
->> [Severity: High]
->> Do mana_ib CQs ever end up in child_cq[]?
->>
->> This is the only place that writes child_cq[], and it returns early when
->> spec->cq.parent_eq is NULL. mana_ib_create_kernel_queue() uses a zeroed
->> spec:
->>
->> drivers/infiniband/hw/mana/main.c:mana_ib_create_kernel_queue() {
->> 	struct gdma_queue_spec spec = {};
->> 	...
->> 	err = mana_gd_create_mana_wq_cq(mdev->gdma_dev, &spec, &queue->kmem);
->> 	...
->> }
->>
->> mana_ib_gd_create_cq() then binds the RNIC CQ in hardware to an mana_ib
->> EQ:
->>
->> 	req.eq_id = mdev->eqs[cq->comp_vector]->id;
->>
->> mana_ib_install_cq_cb() adds it only to gc->cq_table[].
->>
->> mana_ib_create_qp_rss() and mana_ib_create_qp_raw() attach raw and RSS
->> QP CQs to the per-vPort mana_en EQs:
->>
->> 	eq = &mpc->eqs[cq->comp_vector % mpc->num_queues];
->> 	cq_spec.attached_eq = eq->eq->id;
->>
->> These CQs are also registered only through mana_ib_install_cq_cb().
->>
->> The patch also adds GDMA_DRV_CAP_FLAG_1_THROTTLED_EVENT_QUEUE to
->> GDMA_DRV_CAP_FLAGS1, which mana_gd_verify_vf_version() sends for the
->> whole function.
->>
->> Suppose hardware folds one of these CQs' completions into a
->> GDMA_EQE_THROTTLE. mana_gd_schedule_eq_cqs() walks child_cq[], which is
->> empty on mdev->eqs and holds only the mana_en TX and RX CQs on mpc->eqs.
->> mana_ib_cq_handler() never runs, and nothing polls or re-arms the CQ.
->>
->> Wouldn't that stall the RDMA CQ the same way the commit message
->> describes for TX?
->>
->> A fixed two-entry child_cq[] also cannot represent an EQ shared by many
->> RDMA CQs on the same comp_vector.
->>
->> The commit message says:
->>
->>    "A mana_en EQ serves one TX CQ and one RX CQ, and the HWC EQ serves
->>    the HWC CQ."
->>
->> Is that still true once raw QPs attach CQs to mpc->eqs?
->>
->> If advertising the bit is what turns on throttle EQEs, this patch adds a
->> new RDMA stall. If it is not, the RDMA case stays unfixed. Could the
->> commit message cover mana_ib in either case?
-> I understand from discussion on v3 that this will be handled separately,
-> am I correct?
+
+On Mon, 02 Nov 2026 06:44:37 +0000, Deep Shah wrote:
+> siw_mem_id2obj() finds a siw_mem with xa_load() under rcu_read_lock()
+> and then takes a reference with kref_get_unless_zero(). This is only
+> safe if the object stays allocated until RCU readers are done with it.
+> siw_free_mem() frees it with kfree() as soon as the last reference is
+> dropped, so a lookup that races with the final put reads freed memory.
 > 
-Yes, that is correct. I have discussed this already with Wei Hu for RDMA
-CQ handling.
+> This happens when an MR is deregistered while an incoming RDMA WRITE
+> looks up its STag:
+> 
+> [...]
 
-Regards,
-Sahil
-> /P
+Applied, thanks!
+
+[1/1] RDMA/siw: Fix use-after-free in siw_mem_id2obj()
+      https://git.kernel.org/rdma/rdma/c/a70672b9b3ac7d
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
 
