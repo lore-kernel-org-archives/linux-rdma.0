@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793712228;
-	b=p2qpYFGR56F+TubrIqR1/5wn0tekFafC+RO6NqnZ5jtM20J/R+akKO3Oe/093CwlwWfo
-	 jjVLZziQ/8FBatYVNUw6l6z+cToqTHFkPrTvLpDcWwouwFyShtcRWhJEHFOZIcyTaJ5oH
-	 MI3ZVYZb/ziB5hPzNZMFJWkVlN0N3ebOoLnYg7xLT9ukNTyQbhGVLZ1uK7vIAfF/bTzqs
-	 /U6HdYeGL9u1k2sYGsw5A74mg8BZCv3dRn1Mpmz2YpkPpF16DVslCMyKFOSafteyj7t5Y
-	 qtRLHk2InXEwsCKd6wrZLELda13KyBHk3ca/Bn9soOYqewcjjiStzL0mM4v5d/wgy2w==
+	t=1793712359;
+	b=jMoGX5TEajd5lJ1xc1nNrcSHkJUR6nbNHo81zV9Kwew1LV0Qf6Z0wYXYtPHTGj/6I+TY
+	 M6qmzuQtJ0Y0vkskYF0mQaBS8l6IYEnMD/ypF7qszhTSdIbVo0yQGKtw14yA1d92frVQg
+	 OtY5uFWKwkv5BKwIIWP0iGM9fG98S899HR9ly2df+DygjHVKFlQEA7WEI8BwulJumKuIp
+	 EspZKuc8pvqH3+JkpeYKOu4B2776bYsdaomNRLEzTznokiAi4Sk3QW9rdqNVCdGHddweU
+	 SEQzucRK1hhaHtxE0hEbdU5ZrOKR0/ypsaev1YuXEIgV0tRddwHvX2FbZ/64O2Sw66g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793712228;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793712359;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=0VLDRMMKdGSDwQjs78pqtryqWvWaM//5I2vQKkhwcCk=;
-	b=4H8f5+xuovPCrJ27v6T5RcIjC6ahkl9jLXou3t7eV7BKVgaKYk5kQuDBR+zBg8nrGTke
-	 WDeCgAQw6qMMtUNMKzXa+fsSNiw739F8BGxVAhbBYw55pvy5ZrCOYFD+/lXfd0xRjKgf6
-	 LROaOfYeUcTT5T46djJrAmbHleV+24zaHmf69LaxS/HtLCnF887GVFdw2xxvY+6Osmmhr
-	 GjXpbpjI6gtd0HvnNFDOAZUJzNUAkdWLwNRI0QI0phVhZQMvKbeUNfblfjVQhAAtpliVy
-	 mSmQE7uHOqG6TSGm0Mspktjt4ArNeHyy4bXrIrdOfUd4yXwLVqoaSoS0RePGukOvgJA==
+	bh=rlb8XKAG/M38r62+aakmQz5BuJLw4GtMoMIqt140Ehw=;
+	b=p+X0DcXR3xhTHDqFc87TMcILOlBESf11UoEBq54jMODY2KKgxfrQm8RXLAzCtZoKm9oc
+	 7L7fpe5RKYjcvEArslD/A1sCB17hfQb8Nju7oGX4qVGwvH37M/6zoEkJxf0fzyRHZQRhz
+	 rDMzK2FLp6ge3kKP7ntGxA5H9Hb1OFEdCD+dYXg5jZR3R9VB9FsI91T3QggMU5aJ7FolL
+	 XbQCcDr3EEiJISAoPwXnSlaQ1rYBiwgw18WuI+1hG6rMEiAxbUMuH4K8/JVUZlc2U0Rhu
+	 QtS5WMLpkuWXVD+V1RepiK2k0p3kTCUOb7Tvm47XXGG/NT12EDom7KAxyKxyJzapZDQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="kyoj/Q5M";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="GD/p2/X1";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DB8D606A32E
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 13:23:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 686C8606A328
+	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 13:25:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kyoj/Q5M
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 141E01F00A1B;
-	Tue,  3 Nov 2026 13:23:48 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GD/p2/X1
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4DD01F00919;
+	Tue,  3 Nov 2026 13:25:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793712228;
-	bh=0VLDRMMKdGSDwQjs78pqtryqWvWaM//5I2vQKkhwcCk=;
+	s=k20260515; t=1793712359;
+	bh=rlb8XKAG/M38r62+aakmQz5BuJLw4GtMoMIqt140Ehw=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=kyoj/Q5M9VhXH+eEVJcxHI0+ChoMNZNrU3C1/8SGlileT6lfBqQWnWvlQBYQmNMDj
-	 7dwBrwcHfqZmCNPpIzxXWfbFbLMQieys5PywwRc+FmLMeE0/u2kD07o3jQXW6wG07q
-	 R31dFLVw1Trz1G5svFcXpmmXjBGx4iKZGXSuzC299MbtBdu14X8grPvgBtkZj3hrsK
-	 NbmumPHCqNdjKVHizqDdC3lkTUvxawCRZuyRK/MvjN8fnb0jSYg4hM1iadmx2cGXHD
-	 ttv4FuXL4pMmlEHxwOofkWs96ox/MElZ120J7hvQ/nVvK7BWWvbXHe9lqomna5A2qU
-	 vfZIkH18qZo+A==
-Message-ID: <sashiko-outbox-195334@kernel.org>
+	b=GD/p2/X1vEZnFtUX1VZ0nEBwj+ly0Q5/iZkEbRgSZJwwKw2nFOruNhO7GldbtkNO/
+	 IVjCanYyuNDd6a3k99/2CYL4Ii/IFHBKjezBzleTuc8q+/qbAElggj81y2vMeSebS0
+	 dyFsad+pyQV/7AmgD2+LZCgYf0PbbKMNVIj2LNdjN/TNPX2daet+Bz24XWW6PCcRQP
+	 n/MEC8LquEFj0pyrMa458gjwRDy/lVL/konyBCCqYYmcWttzsjPG7oEGUzyb/HUs+f
+	 V33/sv2X+jGYW+g9XNPDD38IPnplfQCtZZce8xnbZa/vpArW2w93HVFFS1EsgzO6j5
+	 pEfJHR5twhFXQ==
+Message-ID: <sashiko-outbox-195337@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma v9 7/7] RDMA/zrdma: Implement context, PD, and mmap
+Subject: Re: [PATCH rdma v9 5/7] RDMA/zrdma: Implement device and port query
  operations
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Yanze Zhang" <zhang.yanze@zte.com.cn>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261103125654.2707069-8-zhang.yanze@zte.com.cn>
+In-Reply-To: <20261103125654.2707069-6-zhang.yanze@zte.com.cn>
 References: <20261103125654.2707069-1-zhang.yanze@zte.com.cn>
- <20261103125654.2707069-8-zhang.yanze@zte.com.cn>
+ <20261103125654.2707069-6-zhang.yanze@zte.com.cn>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 03 Nov 2026 13:23:47 +0000
+Date: Tue, 03 Nov 2026 13:25:58 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,14 +61,16 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> Add implementation for allocation/deallocation of Protection Domains (PD),
-> User Contexts, and memory mapping (mmap) for doorbells.
+> Add implementation for querying device attributes, port attributes,
+> PKey, and link layer information. Also include firmware version string
+> retrieval.
 >=20
-> The SRQ doorbell area is not page aligned on 16K and 64K page systems, so
-> the mapping length is extended to the page boundary and the size
-> reported to userspace is the very same length. The V1 and V2 contexts do
-> not know the size of the SRQ doorbell area, so only the first page is
-> mapped for them.
+> The device attributes report the limits of the hardware, the vendor id
+> and the firmware version, which is taken from the driver info of the
+> network device. The port attributes report the state and the speed of
+> the port, which is taken from the network device on every query. The
+> immutable port information describes the RoCE encapsulation of the
+> port.
 >=20
 > Signed-off-by: Yanze Zhang <zhang.yanze@zte.com.cn>
 
@@ -76,5 +78,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103125654.2707=
-069-1-zhang.yanze@zte.com.cn?part=3D7
+069-1-zhang.yanze@zte.com.cn?part=3D5
 
