@@ -1,80 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793694674;
-	b=Hmw/Sk4hMD4AO6vikc7wz3kw6SzYnVsAn5k/EgEO0Z6HHEpoHQvhYBlcbZvDE3jn22Ey
-	 Bss4uo4G7wt6ZV5uL0et4WG6gwiFx9sO/PXDmaeZPp/pNvsAG7tm3fBTo5U9/zmvpGXMa
-	 9tchDDLJewxTEOv5E1Exy0a/pMEOwgabJ8iZRMQOjaZwopTnUflmHHg91JjDmyo3uRQSO
-	 9qrxRrUAmMBPySEs9FedEf4dgCK+GPhzgFw7Av/EbqOqB2i7NB+CC0g3CPcdzsreMfoSd
-	 i92MWbZKs+tojbGFa0fnU9UuCSjQKM06cw1RS9i+OG3xWiSpw1pfbfQtJdK9wiWwqhg==
+	t=1793695399;
+	b=nWPyjY/pZ94qXf0D4vCK1q+IYEapLJ74nIeNRR7WGr5B9n32Azw/DGrCKLjkxxAijoPO
+	 Qxo8a5N/K5UgTzveFFbOAdwjsu19uTgj20np1gDuw25+CDWN2VUNfa47OQVdpXb6fXfh8
+	 CKkRRozfmNLONOqmZafCiO0QAinlDuw4Jsz/7m7foW614cOC8eWw62mQMYlwbO7K6xFo8
+	 eCZwplADn92QIdKj5mw7D937hm69vXjCXws+tmd6ZgRiKa/WYeHm+okcFsT0RXgHIMoJE
+	 0N+idmME6+XUNgLp/b2HqX6VdWw4mau4+9hHkU1gKXrI3NmUuItpb2M2of4h8AYrpOQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793694674;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
-	 Content-Transfer-Encoding;
-	bh=n410ETS7lVaZbhJ2PCDjAMJ1Xx97zul32vr6dhkh048=;
-	b=4DlIYjrs9L4IptCmdxMh5r5ESqviNuZb5o2Y6+dNgyUXslRcTw+gN3haCgdVSwLntn35
-	 1a9HhwFYt+Rr2Hhh7x1BsOWPU3CG1mjQuGAuzvxjhRgfWdKX4l/BXHHwRl5vTFFKSNp1v
-	 gr0A3/aBrdyRlWkssoczBXg8XcyEnGju9o66w7Hqto9jixS9ToVxarVaJE0wBuG/F+7+O
-	 BNbjtqhYVllW7IIsduW5l4k2VzlQIZ4PE9grBw+EBV1rDSZIHmK4d1e3ZZPY170GdKeiq
-	 zQGRmtLxoT9c69sYQ1pIfBXPNeINTBgSuTx6N1qdWrZBI/dke3icXj5N0Kezc7B9N2Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793695399;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=t2wVESkVQnlznXAGBnJHwQZD4xLfgLe9Ua/8tzqmHqU=;
+	b=MybcE9cqyjPFIUaZiPzVlfLqOG0S9wW7Oz8j1P/xOjSsV/uKQOih7/QuZn6SVtA0s3RI
+	 I6OPlIgO6tph44u5xqrXBr6Y6BbtyIesS0ogFnjyVjlqKmI8l5tpsMJT+9qFew1AjSHY/
+	 Noo64fF9UGilRbtZl8UiiOVbOgN0TzDG0n92D/K6n6t9SkMNCjPAGVkc+rBcwMkPuPNz7
+	 qRv/x/8Kj/i73HRrqcheKtPBLEcQITStXQBY9bGQTRSNxzpdvxth5iGux16NIbPooPABn
+	 UskmCbtdX0MlQs2c/zbhiLn6xHelPNJjsyLw93KKeaCmoGUGM3R/q9RsmIIebaRHN8g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=eLQ83BXM;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OUjkSM5Y;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93BFE606B6DE;
-	Tue,  3 Nov 2026 08:31:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EED22606A960;
+	Tue,  3 Nov 2026 08:43:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=eLQ83BXM
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AEFE1F000C1;
-	Tue,  3 Nov 2026 08:31:13 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OUjkSM5Y
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A45081F000C1;
+	Tue,  3 Nov 2026 08:43:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793694674;
-	bh=n410ETS7lVaZbhJ2PCDjAMJ1Xx97zul32vr6dhkh048=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=eLQ83BXMyfHTouTsfSD+kL5HE/Vtis8OXIxwfKk90CLPlhSJGyNgl80UJZkQA/wgC
-	 L8KPro6pNM0C8WhbsGr6YRPd4DBhmPiilSjKPufnSBtvXiKnSZyUP5yKvn5QPgidOm
-	 7eJDwOP9Yt+2hD9gtN7KCMlWVSgJ3WTDOvDLw2kc+lJIbq+ORmjY36secFYx8ApXes
-	 76T6/d5AFpSaJcvs6CWiWoLnSgn+Wl3PHiyzMdj9BOUzDdQq37p7j7RAACBs6hQpGG
-	 DHm40Ee716coVPkhiizq7lTmDLnH3y2ilG9Xl5H7CrqAk4mHwCELOF2HApJTLzZpKQ
-	 4Ah6vQGTbooYw==
-From: Leon Romanovsky <leon@kernel.org>
-To: Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Leon Romanovsky <leon@kernel.org>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	=?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
-	=?utf-8?q?Thomas_Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>
-Cc: linux-pci@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	iommu@lists.linux.dev,
-	Tushar Dave <tdave@nvidia.com>,
-	linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org,
-	linux-rdma@vger.kernel.org,
-	kvm@vger.kernel.org,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jens Axboe <axboe@kernel.dk>,
-	Alex Williamson <alex@shazbot.org>,
-	Ankit Agrawal <ankita@nvidia.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH v12 17/19] PCI/P2PDMA: Let a client declare that it selects ATS per mapping
-Date: Tue,  3 Nov 2026 10:29:56 +0200
-Message-ID: <20261103-fix-p2p-acs-v4-0-v12-17-912101f93517@nvidia.com>
-X-Mailer: git-send-email 2.56.0
-In-Reply-To: <20261103-fix-p2p-acs-v4-0-v12-0-912101f93517@nvidia.com>
+	s=k20260515; t=1793695398;
+	bh=t2wVESkVQnlznXAGBnJHwQZD4xLfgLe9Ua/8tzqmHqU=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=OUjkSM5Y3fPkO4z29Yv/1nyV8eNAI/O+GP2JLqmBfsKwd7ZMKOLCwRQ8nYG0sfoWo
+	 HZfQh2gVOFBXaouUjLGvsXI1c3Neuqjo4oCVGy/bVjjE2veBIbzRfWrt7k6c9oyHgG
+	 AEpjpUVPlRdcfj/CuWJYBiilsP+OpeT1IuPaX0YkG+jDVUAqzvakPLYau39hQzC4qt
+	 xiV9nnIiMOcnshu1vLuA2Bp+4lJ6wEAx6Dqr0SO1Qbzk6ZGXSihcREem9+Q0HBUaBz
+	 zHJjCwIDhs7HEE2W+7G+HsKuBtK/NUftRXkILGBDY7t+K2IHKR3pc5mpxpGHToRUCR
+	 EKiEg1Od2ERNA==
+Message-ID: <sashiko-outbox-194858@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH v12 01/19] PCI/P2PDMA: Honor device-specific ACS
+ redirection
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Leon Romanovsky" <leon@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org
+In-Reply-To: <20261103-fix-p2p-acs-v4-0-v12-1-912101f93517@nvidia.com>
 References: <20261103-fix-p2p-acs-v4-0-v12-0-912101f93517@nvidia.com>
+ <20261103-fix-p2p-acs-v4-0-v12-1-912101f93517@nvidia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Tue, 03 Nov 2026 08:43:18 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -83,101 +60,28 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Mailer: b4 0.15-dev-18f8f
-Content-Transfer-Encoding: 8bit
 
-From: Leon Romanovsky <leonro@nvidia.com>
+> From: Leon Romanovsky <leonro@nvidia.com>
+>=20
+> Some ports, such as Zhaoxin Switch Downstream Ports, redirect peer-to-peer
+> traffic without an ACS capability, as their device-specific ACS quirks
+> report. P2PDMA reads only ACS Control, so below such a port it hands out
+> bus addresses for traffic that goes to the host bridge.
+>=20
+> Take Request and Completion Redirect from a bridge's quirk too. Ignore
+> endpoint quirks, which only describe traffic between an endpoint's own
+> functions. Skip bridges on a root bus: they never sit between two peers,
+> and the AMD southbridge quirk may sleep there during DMA mapping.
+>=20
+> pci=3Ddisable_acs_redir=3D cannot override a quirk, so name such ports
+> separately.
+>=20
+> Fixes: 52916982af48 ("PCI/P2PDMA: Support peer-to-peer memory")
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 
-The PCIe ATS Enable bit covers the whole device, so P2PDMA cannot tell
-from it whether a client will translate a given address. Most devices
-translate any address once ATS is enabled, but some choose ATS per DMA
-mapping and can still use bus addresses for the rest.
+Sashiko has reviewed this patch and found no issues.
 
-Add pcim_p2pdma_set_ats_per_mapping() so the driver of such a device can
-declare that before P2PDMA starts treating clients with ATS enabled as
-translating everything. Keep it in the device's P2PDMA state, which
-already ends with the driver binding.
-
-Reviewed-by: Thomas Hellström <thomas.hellstrom@linux.intel.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/pci/p2pdma.c       | 30 ++++++++++++++++++++++++++++++
- include/linux/pci-p2pdma.h |  4 ++++
- 2 files changed, 34 insertions(+)
-
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index 6a05a5019daf..144314ab5fae 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -26,6 +26,7 @@
- struct pci_p2pdma {
- 	struct gen_pool *pool;
- 	bool p2pmem_published;
-+	bool ats_per_mapping;
- 	struct xarray map_types;
- 	struct p2pdma_provider mem[PCI_STD_NUM_BARS];
- };
-@@ -1750,6 +1751,35 @@ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
- }
- EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
- 
-+/**
-+ * pcim_p2pdma_set_ats_per_mapping - Declare per-mapping ATS for a client
-+ * @pdev: PCI device that initiates peer-to-peer DMA
-+ *
-+ * Declare that @pdev issues Translated Requests only for the DMA mappings its
-+ * driver sets up to use ATS, rather than for any address once ATS is enabled.
-+ * P2PDMA then routes this client's Requests with the Address Type each query
-+ * asks about, rather than the one its ATS Enable bit implies.
-+ *
-+ * Call it once pcim_p2pdma_init() has succeeded. Without P2PDMA state the
-+ * declaration is dropped and the ATS Enable bit keeps deciding.
-+ */
-+void pcim_p2pdma_set_ats_per_mapping(struct pci_dev *pdev)
-+{
-+	struct pci_p2pdma *p2p;
-+
-+	p2p = rcu_dereference_protected(pdev->p2pdma, 1);
-+	if (!p2p)
-+		/*
-+		 * ats_per_mapping is a performance optimization,
-+		 * if pcim_p2pdma_init() didn't set pdev->p2pdma pointer
-+		 * for some reason, let's simply use ATS global settings.
-+		 */
-+		return;
-+
-+	p2p->ats_per_mapping = true;
-+}
-+EXPORT_SYMBOL_GPL(pcim_p2pdma_set_ats_per_mapping);
-+
- /**
-  * pci_p2pdma_map_type_tlp - Determine the mapping type for P2PDMA transfers
-  * @provider: P2PDMA provider structure
-diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
-index dd17501ba1b6..ce389e18d023 100644
---- a/include/linux/pci-p2pdma.h
-+++ b/include/linux/pci-p2pdma.h
-@@ -82,6 +82,7 @@ struct scatterlist *pci_p2pmem_alloc_sgl(struct pci_dev *pdev,
- 					 unsigned int *nents, u32 length);
- void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
- void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
-+void pcim_p2pdma_set_ats_per_mapping(struct pci_dev *pdev);
- int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
- 			    bool *use_p2pdma);
- ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
-@@ -138,6 +139,9 @@ static inline void pci_p2pmem_free_sgl(struct pci_dev *pdev,
- static inline void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
- {
- }
-+static inline void pcim_p2pdma_set_ats_per_mapping(struct pci_dev *pdev)
-+{
-+}
- static inline int pci_p2pdma_enable_store(const char *page,
- 		struct pci_dev **p2p_dev, bool *use_p2pdma)
- {
-
--- 
-2.56.0
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103-fix-p2p-ac=
+s-v4-0-v12-0-912101f93517@nvidia.com?part=3D1
 
