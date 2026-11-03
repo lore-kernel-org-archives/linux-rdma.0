@@ -1,65 +1,64 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=160.30.148.35
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793711196;
-	b=lQeLMF2F5BjObBankrNIWQmYjHuaeIMfopaYk1LW66MgI8dnEjJH/YdKh4vaX16cr3lf
-	 eT3R7wMOvLVMcm4ley0hVJ8Ca0O2DPpcWdZ5fUNRPYQyLso+FvymS/crDIP6/UoA4UGTJ
-	 sQrnm9jwLkumnwjif/vFOzbn1Efax+5RVqoaJiHqjoFiF/iHHHR701eIf+Dp5xO1GKDL5
-	 G4VXY1///d8Kn67xDPmWJ+vIiWXz3gXcbi9oHv/whV4+XX7NJ37rMCLwsC1lc4LfF7aaj
-	 TmLRSGS2yzoKYKJCxA5LBdEo/28ViAgW0EXMUB+VjuZ1WlHUJghaBv5lUueXUXBz1uw==
+	t=1793711274;
+	b=PnIS0e/5PKwwMwlv5mbnp1LBFjrAlo6IQ/02hbmQ3A19uAXBTZjMhdh+BVkFFMCT35dI
+	 YXqkVjEvy4gQs6wch/+YBef/MGWMUdN/FyVCxqeWR61RrD1wKM+VmnmfKto2OtxQPY0Wb
+	 h8vExfELus28zeDwUJ01DbNoVTYRxHY5XzKwzYUv9NoP2gEOB0bSxWakEvYKoK/Dcg2zD
+	 4MyN4BrtA1C5BXA7tzWl0G6KzMAE/ECcgSXfpEgUpwdGAcPJvQHt+ZzcKwE5Q88d23+x3
+	 CecYXaM/zgyEy3+8PeXjvLAJETQpF2urFZmmzNXU1fo/PrbZhENV4lgXG85+AikzT9g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793711196;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=GpnTD0Y8foNyYZLXMIcPDF4aNhJHeN2XBgEwyfG41to=;
-	b=g+u4XG1RmE3+J2t9c6CGQ2Ds0eM3uJTT7tndWuGtf+/c+fjDwSHkCyObgogtoCtBeG/l
-	 OczsLU4gTZ6OM8SPwfYBD6ZYccz0ljIxHRdlS3/BSjZq66FT82CqlM/7hhhXI1vRDrxZ+
-	 hVKTj0EGPHhRZwNR0qxolh8ACUOSJq0lGSnjuy9PM+cqJ0Ul++XAWwz6tVd5BR8rmi6jm
-	 mFAarMduAQGsG5Ba7Tld9QwvwzK/8aYwZVzJiHolQCIVBOtJxfBJVhtSTXCQhlWVYWPCF
-	 WntjRzo+jn9A7IgZW33nhvUV6tDtvc/oWAD2q5nI+hnNiRvRD8rCtzrzyVubrg/xzOw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793711274;
+	h=DMARC-Filter:Received:Received:Received:X-Zmail-TransId:
+	 X-Zmail-LocalSMTP:X-Zmail-RealSender:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:MIME-Version:X-ZMAIL-USEORIGINALEMLTOOUTBOUND:
+	 Content-Transfer-Encoding:X-MAIL:X-TLS:X-ENVELOPE-SENDER:X-SOURCE-IP:
+	 X-CLEAN:X-Fangmail-Anti-Spam-Filtered:X-Fangmail-MID-QID;
+	bh=oOr1nDYvT/doa+VeM0wbzdZ7cLIVzJDj7MimKXzVUN8=;
+	b=IrWD06leiADk3v1YyCh5ED2JOLFRTc7CU8TfHUcTMvYvdHRvyc1TK3TDN8qoxA0xZcQN
+	 2IPX5B6IVPsZxEhtuBQz7KE8h5v8zQnndPyj204EqeF11LZxZVCLMKUTgbJC4P7FTTfDh
+	 tu4+5d/2moDCp96gtovvdZw2cEijmKZbGMbDzdu/UkbcDtmHIMO1T3k6ohk9iIf4L+K6a
+	 +i4vdnDJH06wKm+fmNc3AptboUfQpgb0bFH5xGCDsbT6k+QgAa+O+oS9HT92uK435aBF7
+	 0+5+dIO2CyChckEH7OH0QGu9IGI3zsDsut0wXTkEad39XlKZ/4dDuYrkwLUTTRPfXBA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=M19R1cWi;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=zte.com.cn;
+	spf=pass smtp.mailfrom=zte.com.cn;
+	arc=none smtp.remote-ip=160.30.148.35
+Received: from mxhk.zte.com.cn (mxhk.zte.com.cn [160.30.148.35])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 740FA60850BA;
-	Tue,  3 Nov 2026 13:06:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=M19R1cWi
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1580C1F00A15;
-	Tue,  3 Nov 2026 13:06:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793711196;
-	bh=GpnTD0Y8foNyYZLXMIcPDF4aNhJHeN2XBgEwyfG41to=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=M19R1cWi1iIgdzxrg5bA8vh/gO+eF1WBudfOveIotw0sC6L9MnxSlnfi8FJTG9GXq
-	 0wgy6+KI7s4dJhXtBvZOicvixbhvht3J2bh6UmizYHexT1lJHv30LrvntKmQuLNsf/
-	 hPAuvhZ4mY5PAsOmx08lNT3vm1pHHD3i2AJ93lKX9G5N0nsSXAnj0lMkRqC/xA/n57
-	 Wi74+HJo3fou0XYnKoa9OspAI+jZ/Dv4sYTgetCyKItDUm/IEn9DMMSjCC1XwAs62B
-	 r9AMOpoeHyhPBKsfrmYtKFAYDvsPdm8bhDFEn5hoqvdzEc63RIrlg/BvMEw1lNX2Vl
-	 Nh+Ud6lqhsvmA==
-Subject:
- Re: [PATCH net v2] net: mana: Avoid waiting on dead HWC after device reset
-From: netdev-bot+sashiko@kernel.org
-To: sahilchandna@linux.microsoft.com
-Cc: haiyangz@microsoft.com, wei.liu@kernel.org, decui@microsoft.com,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, pabeni@redhat.com, kotaranov@microsoft.com, horms@kernel.org,
- ernis@linux.microsoft.com, gargaditya@linux.microsoft.com,
- mawasthi@linux.microsoft.com, kees+treewide@kernel.org,
- schakrabarti@linux.microsoft.com, leitao@debian.org,
- linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
- stable@vger.kernel.org
-Date: Tue, 03 Nov 2026 13:06:34 +0000
-Message-ID: <179371119457.488856.15091459505678902875@kernel.org>
-In-Reply-To: <20261030125009.3758592-1-sahilchandna@linux.microsoft.com>
-References: <20261030125009.3758592-1-sahilchandna@linux.microsoft.com>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63B10606A326;
+	Tue,  3 Nov 2026 13:07:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 63B10606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zte.com.cn
+Received: from mse-fl1.zte.com.cn (unknown [10.5.228.132])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange x25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mxhk.zte.com.cn (FangMail) with ESMTPS id 4jJplV74MNz8Xrr9;
+	Tue, 03 Nov 2026 21:07:50 +0800 (CST)
+Received: from szxlzmapp03.zte.com.cn ([10.5.231.207])
+	by mse-fl1.zte.com.cn with SMTP id 6A3D7hWq004956;
+	Tue, 3 Nov 2026 21:07:43 +0800 (+08)
+	(envelope-from zhang.yanze@zte.com.cn)
+Received: from localhost.localdomain (unknown [192.168.6.15])
+	by smtp (Zmail) with SMTP;
+	Tue, 3 Nov 2026 21:07:46 +0800
+X-Zmail-TransId: 3e816ae9dc90029-7eda2
+X-Zmail-LocalSMTP: 1
+X-Zmail-RealSender: zhang.yanze@zte.com.cn
+From: Yanze Zhang <zhang.yanze@zte.com.cn>
+To: jgg@ziepe.ca, leon@kernel.org, julianbraha@gmail.com,
+        huangjunxian6@hisilicon.com, yanjun.zhu@linux.dev
+Cc: Markus.Elfring@web.de, lkp@intel.com, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, wei.quan@zte.com.cn,
+        han.junyang@zte.com.cn, ran.ming@zte.com.cn, han.chengfei@zte.com.cn,
+        zhang.yanze@zte.com.cn
+Subject: [PATCH rdma v9 0/7] Add ZTE DingHai Ethernet Protocol Driver for RDMA
+Date: Tue,  3 Nov 2026 20:56:47 +0800
+Message-ID: <20261103125654.2707069-1-zhang.yanze@zte.com.cn>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -69,416 +68,233 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-
-Thank you for your contribution! Sashiko AI review found 6 potential
-issue(s) to consider.
-
-Critical: 0 · High: 0 · Medium: 4 (3) · Low: 2
-
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] The new TX drain in mana_dealloc_queues()
-  (drivers/net/ethernet/microsoft/mana/mana_en.c, lines 3822-3844)…
-- [Medium] In mana_dealloc_queues(), hwc_dead is set only when
-  mana_gd_dev_reset() succeeds: `if (err) netdev_err(...); else if (hwc)…
-- [Medium] mana_hwc_send_request() checks hwc_dead and hwc_timeout
-  locklessly (READ_ONCE at hw_channel.c:878 and 918-919), then posts the…
-- [Medium] mana_hwc_send_request() now returns -ETIMEDOUT without posting
-  the WQE whenever hwc_timeout == 0 (hw_channel.c:878-879 and 918-922),…
-- [Low] The comment this patch rewrote in mana_destroy_txq()
-  (mana_en.c:2733) says "Forget the SKBs freed in mana_dealloc_queue()…
-- [Low] The timeout path of mana_hwc_send_request() does `if
-  (READ_ONCE(hwc->hwc_timeout) > 1) WRITE_ONCE(hwc->hwc_timeout, 1);`…
-
-Pre-existing issues:
-- [Medium] This problem wasn't introduced by this patch, but in
-  mana_dealloc_queues(), when mana_gd_dev_reset() fails after…
-- [Medium] This problem wasn't introduced by this patch, but when
-  wait_for_completion_timeout() expires in mana_hwc_send_request()…
-- [Medium] This problem wasn't introduced by this patch, but
-  mana_hwc_destroy_channel() (hw_channel.c:831-838) frees hwc->txq and…
-
---
-
-net: mana: Avoid waiting on dead HWC after device reset
-
-This patch replaces the sleep-based TX drain in mana_dealloc_queues(),
-which could last up to 120s, with a bounded synchronous CQ poll (3
-retries, 100 ms apart) after NAPI is disabled. If sends are still
-pending it resets the device at most once. A successful reset sets a new
-hwc_dead flag, which mana_hwc_send_request() checks together with
-hwc_timeout == 0 so it can return -ETIMEDOUT without posting a WQE, and
-mana_fence_rqs() and the SHM teardown handshake are skipped once
-hwc_dead is set.
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> index 3bca4b683134b..a50a36ba25710 100644
-> --- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> +++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-
-[ ... ]
-
-> @@ -819,7 +819,12 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
->  	 * non-zero, the HWC worked and we should tear down the HWC here.
->  	 */
->  	if (gc->max_num_cqs > 0) {
-> -		mana_smc_teardown_hwc(&gc->shm_channel, false);
-> +		if (READ_ONCE(hwc->hwc_dead))
-> +			dev_warn(hwc->dev,
-> +				 "HWC unavailable, skip SHM teardown handshake\n");
-> +		else
-> +			mana_smc_teardown_hwc(&gc->shm_channel, false);
-> +
->  		gc->max_num_cqs = 0;
->  	}
-
-[Severity: Medium]
-This is a pre-existing issue, not one introduced by this patch. Can the
-rest of this teardown race with an HWC completion interrupt that is
-already running on another CPU?
-
-Setting gc->max_num_cqs = 0 is a plain store. It stops new CQ dispatch,
-but it doesn't wait for a mana_hwc_comp_event() that is already in
-progress. After that:
-
-mana_hwc_destroy_channel()
-  mana_hwc_destroy_wq(hwc, hwc->txq)    <- frees msg buffers and hwc_wq
-  mana_hwc_destroy_wq(hwc, hwc->rxq)
-  mana_hwc_destroy_cq()
-    kfree(hwc_cq->comp_buf);
-    mana_gd_destroy_queue(gc, hwc_cq->gdma_eq)
-      ...
-        mana_gd_deregister_irq()        <- list_del_rcu() + synchronize_rcu()
-
-The only drain of the EQ callback happens after comp_buf and the work
-queues have been freed. An in-flight handler uses hwc_cq->comp_buf, and
-the tx/rx event handlers dereference hwc->txq and hwc->rxq. The hwc_dead
-branch added here doesn't change this ordering.
-
-> @@ -862,9 +867,17 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
-
-[ ... ]
-
-> +	/* Fail fast before taking the HWC slot, after a device reset, a
-> +	 * request already holding it may never complete.
-> +	 */
-> +
-> +	if (!READ_ONCE(hwc->hwc_timeout) || READ_ONCE(hwc->hwc_dead))
-> +		return -ETIMEDOUT;
-
-[Severity: Medium]
-Is it intended that hwc_timeout == 0 now means the WQE is never posted?
-This check and the second one before mana_hwc_post_tx_wqe() return
--ETIMEDOUT without submitting anything whenever the timeout is 0, not
-only after a device reset. Before this patch, a zero timeout meant the
-WQE was still posted and wait_for_completion_timeout() was called with 0
-jiffies.
-
-mana_serv_reset() sets the zero timeout to mean "don't wait", and it
-never resets the device:
-
-	/* HWC is not responding in this case, so don't wait */
-	WRITE_ONCE(hwc->hwc_timeout, 0);
-	...
-	mana_gd_suspend(pdev, PMSG_SUSPEND);
-
-That path handles GDMA_EQE_HWC_RESET_REQUEST, gf_stats HWC timeouts and
-probe-time recovery. Along mana_gd_suspend() -> mana_remove() ->
-mana_detach() -> mana_dealloc_queues(), none of these commands reach the
-hardware now: the MANA_CONFIG_VPORT_RX disable, the fences, and the
-WQ/CQ object and DMA region destroys. An FLR only happens if TX sends
-happen to be pending.
-
-mana_destroy_rxq() still DMA-unmaps and frees the RX buffers and the
-page pool while the hardware RQ and RX steering may still be live. The
-SHM teardown that makes the hardware invalidate MST entries only runs
-later, in mana_gd_cleanup(). If the RX data path is still active at that
-point, can RX DMA land in buffers that were already unmapped and freed?
-
-mana_fence_rqs() also still runs on this path, since only hwc_dead is
-checked. Its msleep(100) per queue now waits on fences that were never
-posted.
-
-> +
->  	mana_hwc_get_msg_index(hwc, &msg_id);
-
-[ ... ]
-
-> @@ -897,6 +910,17 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
-
-[ ... ]
-
-> +	timeout = READ_ONCE(hwc->hwc_timeout);
-> +	if (timeout == 0 || READ_ONCE(hwc->hwc_dead)) {
-> +		err = -ETIMEDOUT;
-> +		goto out;
-> +	}
-> +
->  	err = mana_hwc_post_tx_wqe(txq, tx_wr, dest_vrq, dest_vrcq, false);
-
-[Severity: Medium]
-What serializes this lockless check against the
-WRITE_ONCE(hwc->hwc_dead, true) in mana_dealloc_queues()?
-
-Some HWC users don't hold RTNL, for example
-mana_gf_stats_work_handler() -> mana_query_gf_stats() every 2 seconds,
-or mana_ib verbs. They can run while mana_dealloc_queues() issues the
-FLR. Such a request may already be posted when the FLR happens. It may
-also pass this check, get preempted, and then post to the freshly reset
-device.
-
-Setting hwc_dead, or hwc_timeout = 0 in mana_serv_reset(), never
-completes ctx->comp_event. That request then sleeps in
-wait_for_completion_timeout() for the full captured timeout (60s in the
-commit message's example).
-
-The commit message says the driver returns "-ETIMEDOUT immediately
-without submitting commands to hardware that cannot respond", but in
-this window commands are still submitted and wait. Doesn't this also
-delay the gf_stats worker's scheduling of the service reset by the same
-amount?
-
->  	if (err) {
->  		dev_err(hwc->dev, "HWC: Failed to post send WQE: %d\n", err);
-> @@ -904,14 +928,13 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
->  	}
->  
->  	if (!wait_for_completion_timeout(&ctx->comp_event,
-> -					 (msecs_to_jiffies(hwc->hwc_timeout)))) {
-> -		if (hwc->hwc_timeout != 0)
-> -			dev_err(hwc->dev, "Command 0x%x timed out: %u ms\n",
-> -				command, hwc->hwc_timeout);
-> +					 (msecs_to_jiffies(timeout)))) {
-> +		dev_err(hwc->dev, "Command 0x%x timed out: %u ms\n",
-> +			command, timeout);
->  
->  		/* Reduce further waiting if HWC no response */
-> -		if (hwc->hwc_timeout > 1)
-> -			hwc->hwc_timeout = 1;
-> +		if (READ_ONCE(hwc->hwc_timeout) > 1)
-> +			WRITE_ONCE(hwc->hwc_timeout, 1);
-
-[Severity: Low]
-This read-check-write isn't atomic. If mana_serv_reset() runs
-WRITE_ONCE(hwc->hwc_timeout, 0) between the READ_ONCE() and the
-WRITE_ONCE() here, can the 0 be overwritten with 1?
-
-With this patch, hwc_timeout == 0 is the sticky "don't submit" signal
-for both new checks above. If it is lost, later requests during the
-service-reset teardown take a slot, post a WQE and wait 1 ms instead of
-failing fast. mana_need_log() also goes back to returning true for them.
-Would a cmpxchg() here keep the zero from being lost?
-
->  
->  		err = -ETIMEDOUT;
->  		goto out;
-
-[Severity: Medium]
-This isn't a bug introduced by this patch. On this timeout path,
-mana_hwc_put_msg_index() at the out label releases the slot while the
-posted WQE is still outstanding, and ctx->comp_event is never
-reinitialized. A late response is then handled by
-mana_hwc_handle_resp():
-
-	if (!test_bit(msg_id, hwc->inflight_msg_res.map)) {
-	...
-	memcpy(ctx->output_buf, resp_msg, resp_len);
-	...
-	complete(&ctx->comp_event);
-
-If a new request has taken the same msg_id (find_first_zero_bit() tends
-to hand out slot 0 again), can it get the old command's response? Can it
-return immediately because of the leftover completion count?
-
-If the handler passes test_bit() just before bitmap_clear() and is then
-delayed, can memcpy() write into the stack buffer of a caller that has
-already returned?
-
-The 1 ms reduction after the first timeout is kept, which makes such
-late responses more likely while the HWC is slow but not dead.
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> index 6b7c027e497ed..2bf17fdcfa2bd 100644
-> --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-> +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-
-[ ... ]
-
-> @@ -2725,10 +2730,10 @@ static void mana_destroy_txq(struct mana_port_context *apc)
->  			apc->tx_qp[i]->txq.napi_initialized = false;
->  		}
->  
-> -		/* Forget the SKBs freed without being completed after a drain
-> -		 * timeout, now that NAPI can't complete any. Doing it here also
-> -		 * covers the queues that a lower channel count won't recreate,
-> -		 * which could otherwise stay stopped.
-> +		/* Forget the SKBs freed in mana_dealloc_queue() without
-> +		 * completion, now that NAPI can't complete any. Doing it
-> +		 * here also covers the queues that a lower channel count
-> +		 * won't recreate, which could otherwise stay stopped.
->  		 */
-
-[Severity: Low]
-This isn't a bug, but there is no function called mana_dealloc_queue().
-Should this say mana_dealloc_queues()?
-
-Also, on the dealloc path the NAPI teardown block just above this
-comment is now always skipped. mana_dealloc_queues() already calls
-netif_napi_del_locked() and clears txq->napi_initialized before it calls
-mana_destroy_txq(). Could the comment say that NAPI teardown for this
-path now happens in mana_dealloc_queues()?
-
-[ ... ]
-
-> @@ -3774,42 +3784,104 @@ static int mana_dealloc_queues(struct net_device *ndev)
-
-[ ... ]
-
->  	if (apc->tx_qp) {
->  		for (i = 0; i < apc->num_queues; i++) {
-
-[ ... ]
-
-> +			if (txq->napi_initialized) {
-> +				/* Stop the NAPI poll so it cannot run
-> +				 * concurrently with the synchronous drain.
-> +				 */
-> +				napi_synchronize(napi);
-> +				napi_disable_locked(napi);
-> +				cancel_work_sync(&tx_cq->dim.work);
-
-[ ... ]
-
-> +				tx_cq->budget = 0;
-> +				for (retry = 0; retry < MANA_TX_DRAIN_RETRIES;
-> +				     retry++) {
-> +					do {
-> +						tx_cq->work_done = 0;
-> +						mana_poll_tx_cq(tx_cq);
-> +					} while (tx_cq->work_done);
-> +
-> +					if (!atomic_read(&txq->pending_sends) ||
-> +					    trigger_flr)
-> +						break;
-> +
-> +					msleep(100);
->  				}
-> -				break;
->  			}
-> +
-> +			pending = atomic_read(&txq->pending_sends);
-> +
-> +			if (!trigger_flr && pending > 0) {
-> +				trigger_flr = true;
-> +				flr_txq_id = txq->gdma_txq_id;
-> +				flr_pending = pending;
-> +			}
-
-[Severity: Medium]
-Is this drain window as long as it looks? On the last pass (retry == 2)
-the loop polls, sees pending_sends > 0, does msleep(100), and then exits
-without polling again. pending is read straight after that sleep.
-
-pending_sends is only decremented in mana_poll_tx_cq(), and NAPI is
-already disabled, so CQEs written during that final sleep are never
-counted. In practice, completions are only seen if they arrive within
-about 200 ms of napi_disable_locked(). Once trigger_flr is set, every
-later queue gets a single poll.
-
-If pending is still nonzero, mana_gd_dev_reset() resets the whole PCI
-function:
-
-    static int mana_pci_dev_reset(struct gdma_context *gc)
-    {
-            return pcie_flr(to_pci_dev(gc->dev));
-    }
-
-hwc_dead is then set, which affects every vPort and the RDMA aux device
-until a service reset rebuilds the HWC.
-
-The driver itself allows much longer TX stalls on healthy hardware, in
-mana_probe_port():
-
-    /* Recommended timeout based on HW FPGA re-config scenario. */
-    ndev->watchdog_timeo = 15 * HZ;
-
-Could a slow but working device get a function level reset here during a
-routine close, MTU change, channel or ring change, or XDP attach?
-
-The commit message says the device is reset "only if sends remain
-unacknowledged", but acknowledgements that arrive during the final sleep
-are never checked. Is there a hardware basis for the roughly 200-300 ms
-budget?
-
-> +		}
-> +
-> +		if (trigger_flr && !(hwc && hwc->hwc_dead)) {
-
-[ ... ]
-
-> +			err = mana_gd_dev_reset(gd->gdma_context);
-> +			if (err)
-> +				netdev_err(ndev, "device reset failed %d with %d pkts pending in txq %u\n",
-> +					   err,
-> +					   flr_pending,
-> +					   flr_txq_id);
-> +			else if (hwc)
-> +				WRITE_ONCE(hwc->hwc_dead, true);
->  		}
-
-[Severity: Medium]
-What happens when mana_gd_dev_reset() fails here? trigger_flr means the
-device already looks unresponsive, but the failure branch only logs an
-error. hwc_dead stays false and hwc_timeout keeps the firmware value.
-
-The reset can fail in several ways: pcie_flr() fails when pci_dev_wait()
-times out, cdx_dev_reset() can fail, and mana_gd_dev_reset() returns
--EOPNOTSUPP when there is no dev_reset op. In that case both new checks
-in mana_hwc_send_request() pass:
-
-mana_dealloc_queues()
-  mana_disable_vport_rx()
-    ...
-      mana_hwc_send_request()
-        mana_hwc_post_tx_wqe()
-        wait_for_completion_timeout()   <- full hwc_timeout, e.g. 60s
-
-The !(hwc && hwc->hwc_dead) check doesn't skip mana_fence_rqs() either,
-so each RX queue adds another 1 ms timeout plus msleep(100).
-
-All of this runs under RTNL. Can the RTNL stall this patch is meant to
-fix still happen when the reset fails?
-
->  
->  		for (i = 0; i < apc->num_queues; i++) {
-
-[ ... ]
-
->  			txq = &apc->tx_qp[i]->txq;
->  			while ((skb = skb_dequeue(&txq->pending_skbs))) {
->  				mana_unmap_skb(skb, apc);
->  				dev_kfree_skb_any(skb);
->  			}
-
-[Severity: Medium]
-This isn't a bug introduced by this patch. When mana_gd_dev_reset()
-fails above, this loop still unmaps and frees every SKB on
-txq->pending_skbs. The device may still own WQEs for those
-unacknowledged sends.
-
-If the device is still alive, can it DMA-read through the stale IOVAs
-into memory that has been freed and reused? With an IOMMU that would
-show up as IOMMU faults. Without one, unrelated kernel data could be
-sent on the wire.
-
-The code before this patch did the same thing: it broke out of the loop
-after the failed reset and then freed the SKBs.
-
-[ ... ]
-
+X-ZMAIL-USEORIGINALEMLTOOUTBOUND: 1
+Content-Transfer-Encoding: 8bit
+X-MAIL:mse-fl1.zte.com.cn 6A3D7hWq004956
+X-TLS: YES
+X-ENVELOPE-SENDER: zhang.yanze@zte.com.cn
+X-SOURCE-IP: 10.5.228.132 unknown Tue, 03 Nov 2026 21:07:51 +0800
+X-CLEAN: YES
+X-Fangmail-Anti-Spam-Filtered: true
+X-Fangmail-MID-QID: 6AE9DCA6.000/4jJplV74MNz8Xrr9
+
+The ZTE DingHai (ZXDH) RDMA driver provides RoCEv2 support for ZTE DingHai
+network adapters. It binds to the auxiliary device that the DingHai
+Ethernet PF driver creates.
+
+The PF driver is being merged through net-next: the first batch, which
+introduces the DINGHAI and DINGHAI_PF Kconfig symbols and the
+"dinghai10e" PF driver, is already in net-next [1], and the second batch
+is still under review [2]. The patch that creates the auxiliary device
+is still being prepared and has not been posted yet, so this series is
+posted for review ahead of it and the driver does not probe on the
+upstream baseline until it lands. The series is based on an rdma/for-next
+baseline that already contains the first batch, so "depends on
+DINGHAI_PF" resolves. The driver matches the auxiliary device by name
+only, so it cannot bind to an unrelated PCI function.
+
+This series covers the registration of the device, the device and the port
+queries, the user context, the protection domains and the mapping of the
+doorbell areas. The queue pair and completion queue data path is not part
+of it and follows separately. Protection domains that the kernel
+allocates are not supported either, because the driver does not provide
+the memory registration of the core yet.
+
+Testing: the driver builds, and every commit of the series was built on
+its own to make sure that the series stays bisectable. The build was
+tested with CONFIG_DINGHAI_PF=y, and the Kconfig dependency was
+verified: with DINGHAI_PF disabled, the driver is not built at all.
+
+The series was probed on DingHai hardware, with 'rdma link' /
+'ibv_devinfo' enumerating the device. The hardware testing was done with
+a PF driver that already creates the auxiliary device, because the
+baseline that this series is based on only has the first batch, which
+does not create it yet.
+
+Two other points are noted for completeness. An __iomem annotation on
+mem_rsrc is moot, since it is plain vzalloc'd memory rather than a BAR
+mapping. Replacing the resource bitmaps with XArray/IDA is a cleanup
+that does not change behaviour and will follow separately. Neither of
+them affects probe/remove or the verbs that are implemented here.
+
+Two review findings of the last round are deliberately not taken:
+
+ - The module registration is kept as open coded init and exit
+   functions, because the registration of the driver will grow more
+   steps when the data path is added.
+ - The structures of the auxiliary device are still in the private
+   header of this driver. The DingHai PF driver does not create the
+   auxiliary device yet, so the shared header between the two drivers
+   will follow with the PF driver patch.
+
+---
+Changes in v9:
+- The Kconfig depends on DINGHAI_PF instead of DINGHAI, because DINGHAI
+  is only the boolean vendor guard and the PF driver is the one that
+  creates the auxiliary device (Zhu Yanjun on v3).
+- The declarations that were added and removed again within the series
+  are gone, the auxiliary device names are used directly instead of
+  macros, and so are the queue pair, completion queue and shared receive
+  queue tables that were reserved in the resource memory but never used
+  (Leon Romanovsky on v2, Sashiko on v8).
+- The patches that introduced a piece of code now introduce it in its
+  final form, so that the later patches only add to it and no patch
+  rewrites what an earlier patch has added.
+- The MTU is converted with ib_mtu_int_to_enum() of the core instead of
+  a private copy of the same conversion (Sashiko on v8).
+- The uverbs requests are validated with ib_copy_validate_udata_in() and
+  the responses are copied with ib_respond_udata(), so that a truncated
+  request is rejected and the trailing bytes of the response are zeroed
+  (Sashiko on v8).
+- The error messages that the user space can trigger are rate limited
+  (Sashiko on v8).
+- The MAINTAINERS entry covers the uapi header as well.
+- Link to v8: https://lore.kernel.org/linux-rdma/20261102082026.2645777-1-zhang.yanze@zte.com.cn/
+
+Changes in v8:
+- The 8K index counter array is released with a cleared pointer on the
+  probe error path, so that the dealloc hook does not free the same
+  allocation twice.
+- The number of completion vectors is no longer reported as zero.
+- The driver info is read with the rtnl lock held unconditionally,
+  because rtnl_is_locked() does not tell whether the current task holds
+  it.
+- The unused handler and name lists are gone.
+- The device and port query operations moved ahead of the probe path,
+  because ib_register_device() calls the query callbacks without
+  checking them for NULL.
+- Link to v7: https://lore.kernel.org/linux-rdma/20261027021119.2325798-1-zhang.yanze@zte.com.cn/
+
+Changes in v7:
+- Patch 2/7: the uapi header is tagged with the Linux-syscall-note SPDX
+  identifier, which headers_install requires for a header that is
+  installed to userspace.
+- Patch 3/7: the name buffer length is passed to zxdh_get_del_rdma_name()
+  and zxdh_free_rsrc() uses guard(spinlock_irqsave).
+- Patch 4/7: zrdma_main.c is kept in place, because v6 removed it in the
+  middle of the series, which broke both bisection and the build of that
+  single commit.
+- Patch 5/7: the device ops are installed right after ib_alloc_device(),
+  so that the dealloc_driver hook is in place before any resource is
+  taken.
+- Patch 6/7: the SRQ doorbell offset is reported like the SQ and CQ
+  doorbells, and the SRQ mapping covers the whole doorbell area on 16K
+  and 64K page systems. The size handed to userspace is the very same
+  length that is registered, otherwise rdma_user_mmap_entry_get()
+  rejects the mmap.
+- Patch 7/7: query_device() accepts a NULL udata, which is how the core
+  calls it during registration; the number of send and receive SGEs is
+  reported; the firmware version is parsed as unsigned values; the
+  driver info is read with rtnl held; the port speed comes from
+  ib_get_eth_speed() instead of a cached value that goes stale on a link
+  change; the immutable port information is filled in directly, so that
+  it does not depend on the port query running during the registration;
+  the port number is passed to rdma_protocol_roce() instead of being
+  hard coded; the query_gid callback is dropped, as the RoCE GID cache is
+  owned by the core.
+- Link to v6: https://lore.kernel.org/linux-rdma/20261024071539.2182864-1-zhang.yanze@zte.com.cn/
+
+Changes in v6:
+- Patch 1/7: the ineffective .driver.name indirection in
+  auxiliary_driver is dropped.
+- Patch 2/7: ZXDH_RDMA_TOOL_SHOW_RES_MAP is dropped, as bit 5 collides
+  with ZXDH_RDMA_TOOL_CFG_DEV_PARAM; zrdma_abi.h moves to
+  include/uapi/rdma/ and includes <linux/types.h>, so that userspace can
+  use the ABI directly.
+- Patch 5/7: .dealloc_driver is used for the probe/remove cleanup, the
+  duplicate ib_register_device retry is dropped, the handler is published
+  only after ib_register_device() succeeds, the common_func() result is
+  taken as int, so that a negative errno is not mistaken for a
+  capability, and max_ceqs is guarded against msix_count == 0.
+- Patch 6/7: kvfree is used for the vzalloc'd regions, the PD allocation
+  warning is rate limited, and the page-offset mask is applied to
+  srq_db_bar_off like the SQ/CQ doorbells.
+- Patch 7/7: rtnl_trylock is used when walking the bond's lower
+  devices, the ethtool_ops NULL guard is added, sys_image_guid is built
+  with addrconf_addr_eui48(), and extract_version() handles both the
+  "E310-V25.30.103.01" and the "<ver> (<vendor>)" layouts.
+- Link to v5: https://lore.kernel.org/linux-rdma/20260811093740.2607476-1-zhang.yanze@zte.com.cn/
+
+Changes in v5:
+- The driver is split into seven smaller, logically independent patches,
+  each of them below 300 lines and independently compilable, as Leon
+  Romanovsky asked for.
+- The driver registers with a valid driver_id, so that it is functional
+  and loads without errors, as Leon Romanovsky asked for.
+- The Kconfig depends on PCI and NETDEVICES and selects AUXILIARY_BUS,
+  as Zhu Yanjun suggested.
+- The build error for the incomplete type 'struct msix_entry' is fixed
+  by including <linux/msi.h> (kernel test robot).
+- The unused defines, functions and dead code paths are removed, and all
+  new files follow the kernel coding style (checkpatch.pl --strict).
+- Link to v4: https://lore.kernel.org/linux-rdma/20260704082640.664061-1-zhang.yanze@zte.com.cn/
+
+Changes in v4:
+- Fixed Kconfig help text indentation (Julian Braha).
+- Self-correction: Updated SPDX license tag and fixed Makefile
+  indentation to strictly follow subsystem standards.
+- Link to v3: https://lore.kernel.org/linux-rdma/20260702122256.569952-1-zhang.yanze@zte.com.cn/
+
+Changes in v3:
+- Fixed missing handle release in zxdh_remove() as pointed out by Junxian
+  on v1.
+- Removed outdated reference to "auxiliary bus following hns pattern" from
+  cover letter description.
+- Addressed Junxian's indentation concern on v1: verified code against
+  checkpatch.pl --strict and confirmed 8-character indentation is used
+  throughout.
+- Link to v2: https://lore.kernel.org/linux-rdma/20260626165050955lBuUhmj0yLn5xCsQ-tbx4@zte.com.cn/
+
+Changes in v2:
+- Removed redundant 'depends on INFINIBAND' from Kconfig as it is already
+  wrapped by the parent if-block (Julian Braha, v1 review).
+- Link to v1: https://lore.kernel.org/linux-rdma/202606241644572798vwNbZEAtt3c2IHcJUtCs@zte.com.cn/
+
+[1] https://lore.kernel.org/netdev/178598040988.599522.8462097247667886071.git-patchwork-notify@kernel.org/
+[2] https://lore.kernel.org/netdev/20261014151200489685SCIlolykW0NGfL5EtQ@zte.com.cn/
+---
+
+Yanze Zhang (7):
+  RDMA/zrdma: Add build infrastructure and module skeleton
+  RDMA/zrdma: Add core data structures and ABI definitions
+  RDMA/zrdma: Add internal headers and hardware register definitions
+  RDMA/zrdma: Add hardware resource initialization and verbs skeleton
+  RDMA/zrdma: Implement device and port query operations
+  RDMA/zrdma: Add device probe and remove logic
+  RDMA/zrdma: Implement context, PD, and mmap operations
+
+ MAINTAINERS                               |   7 +
+ drivers/infiniband/Kconfig                |   1 +
+ drivers/infiniband/hw/Makefile            |   1 +
+ drivers/infiniband/hw/zrdma/Kconfig       |  11 +
+ drivers/infiniband/hw/zrdma/Makefile      |   7 +
+ drivers/infiniband/hw/zrdma/zrdma_ctrl.h  |  20 +
+ drivers/infiniband/hw/zrdma/zrdma_defs.h  |  19 +
+ drivers/infiniband/hw/zrdma/zrdma_hw.c    | 118 ++++
+ drivers/infiniband/hw/zrdma/zrdma_hw.h    |  21 +
+ drivers/infiniband/hw/zrdma/zrdma_main.c  | 223 +++++++
+ drivers/infiniband/hw/zrdma/zrdma_main.h  | 177 +++++
+ drivers/infiniband/hw/zrdma/zrdma_type.h  |  92 +++
+ drivers/infiniband/hw/zrdma/zrdma_verbs.c | 757 ++++++++++++++++++++++
+ drivers/infiniband/hw/zrdma/zrdma_verbs.h | 119 ++++
+ include/uapi/rdma/ib_user_ioctl_verbs.h   |   1 +
+ include/uapi/rdma/zrdma_abi.h             | 114 ++++
+ 16 files changed, 1688 insertions(+)
+ create mode 100644 drivers/infiniband/hw/zrdma/Kconfig
+ create mode 100644 drivers/infiniband/hw/zrdma/Makefile
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_ctrl.h
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_defs.h
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_hw.c
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_hw.h
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_main.c
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_main.h
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_type.h
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_verbs.c
+ create mode 100644 drivers/infiniband/hw/zrdma/zrdma_verbs.h
+ create mode 100644 include/uapi/rdma/zrdma_abi.h
+
+
+base-commit: c3e8e9451e6f1b69f685b75e0fbf14f3d0fb2539
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261030125009.3758592-1-sahilchandna%40linux.microsoft.com
+2.43.5
+
