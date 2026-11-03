@@ -1,13 +1,13 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.209.36
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.62.64
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793724114;
-	b=J9offvEvCEecQMkZlRWaJk7aonDGbPm0cAyn2vv1Jr6eq4A0AHDON4EWEMZhnCyEoxb6
-	 DLwgB9n4YjBvON5ezezPEIBQ7RKhZfgn1FQa961+zD7NDmQvw8qXUmbYnvDlDgRWhZlJB
-	 CmOTKXGzhjCY6KWJT2dHklnKxFOMCZejZWAsIhAVwHIIAPSnQ4G68jHZ327MyZWOYdHeo
-	 2InaZbDc0scBBAnG5eWZYGY7HzQ7XGgRMUkfH62tx/KWT0Yezf1HbTWAKhHWeyBp1aHdA
-	 meN/MRc345OckjOuZWFlqXytuqWm2omTPg7xZPt5iw6kDHRrQmaDlH0Omdx/S+i6upg==
+	t=1793724100;
+	b=tsuLrCEl1b3m8Ts2UO1XaZUbmrXtsp6kkLIFotclOhpIpf7ZSXvE1fR6iNfpq0Yytuyh
+	 1hMb2UMQLQ82zlmsj3+eLUxObysG4cfKXYD1rIJCFL6Lv9l3/5MFTlxkhF4PiWX7Gm/wM
+	 kvZ+rrwX8qUdGgPnIuLhwpO7K6i7gk94eNYf6GCny+4M2NYKZ80odwrxLusI4hgG1Og0x
+	 QAvBYde90CxzZRZSQla4T2g/Z2lMqj7UgDFAAAX1nficWcO23M3pNeOccFWfjFI2al7xq
+	 noozmD0E3umluw7R27CS+L8k/Ex1ZRBNu9sXGwNOFX6OufnojNwvQceve7G2R3nzEYA==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793724114;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793724100;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:
 	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
 	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
@@ -26,35 +26,35 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=y1dqJhYy87wM6Hg0z2R088z6zlwII5pYx8g7E2ZD3r4=;
-	b=Mj+tFUxh5DoU+gj/BrEJ/TwaZlnrHq2APf0CQU7zcFrtlCUosKA9nTvXRVb84/4tq+im
-	 n8QJcinvVu1xQmULefHXDY0kraG2O3ePHtUHQi9l1OFvcwVplZ/H+Mhgjst6rgRRqkjjn
-	 oa6h1WZRpS2PBg2F2BoijUsubBgeG0ajL0Gj80sL8olIT0jk2+ZkoHs/jUw9afHYe4nlZ
-	 xf1I1vLDsqGBnCBnd2Z5XSH04/BTpzE+qjKPHx/+Z5fcu10XpiIuw1DpS5qHtMjgUO4ip
-	 E58IdyS1HfLSf7JAG8eteT+uXr8/uuC5F0H2bdAb8dyMp9YrC3OHVxDdAFb1Z9D4j5Q==
+	bh=UVdlhV6REm1e00s8GzoJMmtK6VFxIIRWTEvRLovhjzI=;
+	b=5fTuIvfViPBxyKZcVimZda5+I5eeaTYdzdbz1qbt5ac3W/CwUYu59krzp3tYDFsAOHr1
+	 5AtmgJqqoTP0pa5wVtdu3xP95v8ocRfy6wkeP4Br4KlV6dje15+1Ywv1Jr6+BalWED5yp
+	 LsFCX+S/tgFjB3RKEmJ59Ws0WkOpdl46WGzrEcaKQ0ctB7PjAI6plAL+ss5mYnaXOlQuO
+	 Wjs7SaAWhCSaCrVwJ1Hfu3M5phedKgp2JxYos7StX/zAdTRTos3wUGnIo4sbdKkAuFMN8
+	 TEiZGhu4NdAG1VCjJNopEkU8NVYCdfbSPl4UW7nOUGtV7uSlZgzqT15x4Y4xLpbWcCQ==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=YuzXnxE4;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.209.36
-Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012036.outbound.protection.outlook.com [40.107.209.36])
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=r+DAnFlm;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.62.64
+Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011064.outbound.protection.outlook.com [52.101.62.64])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95B28606EEAF;
-	Tue,  3 Nov 2026 16:41:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 95B28606EEAF
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5C1560A2608;
+	Tue,  3 Nov 2026 16:41:39 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B5C1560A2608
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=YuzXnxE4
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=r+DAnFlm
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=M+RN1gqDodTYCPoU2jvKS91jpG3gtcYeKJA7cbJtKneZ/yDPepO+XFyY0EVseBeWZvOISIYprfWGyhWXZYn/XBaWdmQniyuq6/QFed+sEnDwQHQTgXT+o2Zun3JE3qim1Y4bl5SGpOM4KfScMll7SkImOvUbCqbyhhKRNTJvipumHuYM9nNjkQ9wkdm+9tez/YENta+KO+O2/WkT8/0QiyBzIvDa4sl4NAYocDfMxq4bWK9Su6Ik0jrtTEPCLedIMkKU0jzAKtbf0ns9mzUP/0xRyzTBJAx3LjfYzO2ylsvR5W0pdYcoyTWwv1KIfBNes+s3tB5Su/JpmChKZsoCvQ==
+ b=UQouggHgYQve7/qNDKlpQYD5kcTPhGeiqPhF6/Vm6vA6LxwQvu/dqzQVIp96+matocuiYhNfpXCn0oKM142hDNUFLlthDyjAB6EAUj9RHQGei20v4lAiNrqspPqF3X2l1E7x44AfP6Xro7jf0dRVYuWKiXd7HCbQQtlBu8R2SI8RJ36HWgYSZ55Qloie5DFTrMU/DzeWn2SPepQ2/sOUdMdh/KCPGtW0mpUbQbFC6kPIMl5ACbzSIzWXUHlQFVg2GmxXPv6v4/W5tcE3XS5miSjvakXBjKbJt59bnWjVLFoQO9STVbrehobowarxC0rQHdaP/uL+zqSpxL4FTHh93A==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=y1dqJhYy87wM6Hg0z2R088z6zlwII5pYx8g7E2ZD3r4=;
- b=pQdt30TKo19djAqk7UQn4uq6fQ0xKw0ZXwM4Dafia+FR+8P7YIhtHYeOHUEBR3dCOwA6Lc0ekQa5RwZthavq4qx14cQxVvF4RFZOIGc4IdbgiswJXfh6talYbVOdwQStIusDA0uUd54EmdW+OoExEgLOSoNIjOs4uAtgyi473t5JT7LILhYJ4O30ELv/Yu1dxoiNQX94xNL65qc2X0HqB0F4IYeHxT9mFckBR4bWxZyg6+9tdb2ZarCm6VSfoaE3JHKMuh5+ZhC2Hehne5/K341Wee3z98ToxmHuVgYCaqHyDCVXFL4Hp0h6Aax9iako1A/8pBmm3VJXDluIs4Aflw==
+ bh=UVdlhV6REm1e00s8GzoJMmtK6VFxIIRWTEvRLovhjzI=;
+ b=cWFVXQ21At+OaoaTFMx+IQDQmalI/7WOFdpgCKpIMXxjMMADeSCNY1hIXANSZNT2JiP0/ccpAwtzJVn9OuQsC8qBfkfzzxDWubfPQqh2SRqPxb3S4RCnPU55SmfdH9RuqscBedMSpLhlG5qzBi5X2SOb4fQ98aBcUpUpfB7h0NgNDp2M6VWyWoo3XBz+uGHiX3FbH4G0zzCTm5UcEPB4df6EY6M6EXUPQkRefAu7RYtZJf7YeSpuqjwOdTtWOJqzV2Mpfxg7YXMk0gK1QockJyRI6HjFnEW+qKIl2o1HxoTLIjiEM2Tfu2AxnUIwe8+qvfl+iY5N/9AwqTqGHPNj6A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.161) smtp.rcpttodomain=ziepe.ca smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -62,18 +62,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=y1dqJhYy87wM6Hg0z2R088z6zlwII5pYx8g7E2ZD3r4=;
- b=YuzXnxE4dzuRYBZgRNHgYigqhyiPuj7VzFQ3fw3K9MtQ/bgoxYiAQgef1P7SzZAFs2vr53a1y2FFL4HV8LmdgLp+fu5B2HNy+SBYOA32u02IjHMWDaobCUrW0sZqbZPpXK5gytsr40WpzkwaHLcU6vKqoao5Y1rshXwtsly5wbQvmloQCwQX02/3zwaIioUq1FOVlg6ad9GqpA5cXVx9x7WbnUNkp92XXgv44Mo3VW2bGLCQJIF8XjIa1QefJr4E0bfmuJ3Nj6YAk05lAR0MCShMk4kdM7260eDJ6eef2W4Gv5EPb2/qkk0cNnkSTeDiqMAcoQKBPT/0C7hb2WLYSA==
-Received: from CH5PR03CA0015.namprd03.prod.outlook.com (2603:10b6:610:1f1::13)
- by CH1PR12MB9600.namprd12.prod.outlook.com (2603:10b6:610:2ae::19) with
+ bh=UVdlhV6REm1e00s8GzoJMmtK6VFxIIRWTEvRLovhjzI=;
+ b=r+DAnFlm74JKsO7sJ+39L6NZgGRmhFVopRcqkwm7uJX93CNrJ9IKHhfRtu9WEkb3R0b9bXE74crnVe/HAlBanMv/pLqfqO6vFeW0MA/u9z1x1bvE4B0DQwv+gvyypTPWUM1QrwnwCocRxHGwXjuXUELmts7V6J25i80oOzAilV0uGF5DlCc2e0O7/nvC77Xz5+0BfDwpBf/Z/LxrsVhDh1uYe7ztXyc22dU7ktvnZbJ08uvJB45gQkGt3N7J318AwHI1+UwLH2YxuJqngYpCsLpmpHbMeD2IjeVKw+8Z1bVOktx72EVTlUSjpTy4jFwaTP5akVL87T9qBEWAWHVJWQ==
+Received: from CH0PR03CA0077.namprd03.prod.outlook.com (2603:10b6:610:cc::22)
+ by SA3PR12MB9177.namprd12.prod.outlook.com (2603:10b6:806:39d::5) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.12; Tue, 3 Nov
- 2026 16:41:44 +0000
-Received: from BL2PEPF000352CB.namprd02.prod.outlook.com
- (2603:10b6:610:1f1:cafe::6e) by CH5PR03CA0015.outlook.office365.com
- (2603:10b6:610:1f1::13) with Microsoft SMTP Server (version=TLS1_3,
+ 2026 16:41:12 +0000
+Received: from BL2PEPF000352CC.namprd02.prod.outlook.com
+ (2603:10b6:610:cc:cafe::9c) by CH0PR03CA0077.outlook.office365.com
+ (2603:10b6:610:cc::22) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.21.592.8 via Frontend Transport; Tue, 3
- Nov 2026 16:41:41 +0000
+ Nov 2026 16:41:09 +0000
 X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
  is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -81,20 +81,20 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.117.161 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.117.161) by
- BL2PEPF000352CB.mail.protection.outlook.com (10.167.249.133) with Microsoft
+ BL2PEPF000352CC.mail.protection.outlook.com (10.167.249.134) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.592.5 via Frontend Transport; Tue, 3 Nov 2026 16:41:41 +0000
+ 15.21.592.5 via Frontend Transport; Tue, 3 Nov 2026 16:41:09 +0000
 Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
  (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Tue, 3 Nov
- 2026 08:41:12 -0800
+ 2026 08:40:41 -0800
 Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail203.nvidia.com
  (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Tue, 3 Nov
- 2026 08:41:12 -0800
+ 2026 08:40:40 -0800
 Received: from vdi.nvidia.com (10.127.8.12) by mail.nvidia.com (10.129.68.10)
  with Microsoft SMTP Server id 15.2.2562.56 via Frontend Transport; Tue, 3 Nov
- 2026 08:41:08 -0800
+ 2026 08:40:36 -0800
 From: Yishai Hadas <yishaih@nvidia.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
@@ -102,9 +102,9 @@ CC: <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
 	<kuba@kernel.org>, <pabeni@redhat.com>, <edumazet@kernel.org>,
 	<davem@davemloft.net>, <andrew+netdev@lunn.ch>, <dtatulea@nvidia.com>,
 	<moshe@nvidia.com>, <yishaih@nvidia.com>, <maorg@nvidia.com>
-Subject: [PATCH rdma-next 11/23] RDMA/mlx5: Add shadow FIFO infrastructure for UMR completions
-Date: Tue, 3 Nov 2026 18:39:37 +0200
-Message-ID: <20261103163949.1554-12-yishaih@nvidia.com>
+Subject: [PATCH rdma-next 04/23] net/mlx5: Add macros for reading log-based caps
+Date: Tue, 3 Nov 2026 18:39:30 +0200
+Message-ID: <20261103163949.1554-5-yishaih@nvidia.com>
 X-Mailer: git-send-email 2.18.1
 In-Reply-To: <20261103163949.1554-1-yishaih@nvidia.com>
 References: <20261103163949.1554-1-yishaih@nvidia.com>
@@ -121,205 +121,90 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL2PEPF000352CB:EE_|CH1PR12MB9600:EE_
-X-MS-Office365-Filtering-Correlation-Id: 9dc84aba-fe0d-425d-40a5-08df39c956a3
+X-MS-TrafficTypeDiagnostic: BL2PEPF000352CC:EE_|SA3PR12MB9177:EE_
+X-MS-Office365-Filtering-Correlation-Id: 72db1835-5cc5-4579-64f4-08df39c943a6
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|1800799024|376014|36860700016|23010399003|18002099003|22082099003|261102123227099003|56012099006|10067099003|261009223027099003|261022115727099003|261022113327099003|261022105027099003|261021121427099003|261021130227099003|261021133027099003|261021123027099003|261021135927099003|261022075727099003|5023799004|11063799006|261026130827099003|261026121527099003|261028144727099003|261026135527099003|261026140227099003;
+	BCL:0;ARA:13230040|82310400026|1800799024|376014|36860700016|23010399003|6133799003|18002099003|22082099003|261102123227099003|3023799007|56012099006|10067099003|261009223027099003|261022105027099003|261021121427099003|11063799006|261026121527099003|261028144727099003|261026140227099003;
 X-Microsoft-Antispam-Message-Info:
-	aeCHCjOOK5pZxZtPNI/oAJl+MYru2l8dOgDQc657JR2gBQkOQx/CBio8AWQ1dullv8+iNZgfJOWpsse//eumnBAeO9kRccMaYCTIX6u5JpT+Qwm8GzMRxWyvdZwIzlGcsu8VFqF8/xKglocfhJdB/eKLQubpJKEjK+BNlUWzEvOV2ZoDiJ10jAu5JGDZBN6ExZDmP7F9p1No7Wr02ZhWCxBxmsr4c0dccGafxLUk9Y9XxI2uL6st9RnyX9+lFaP+XtQw82bpuzjyI5FTZgH5cUq9ShNIO6n9nOVmb8HLA/FTOQbcO1/iPtTpsxus4Z7W+xbcnkJm5Jb+G+jwmCoZxY+HRsG+Ls8e6B6ia81HOObvlckrzl1jEOH+ZNYgTw+bsYpfw8Z0TdxpvHxafNDDvrQMQhWpNaRzLdH0Sxfg/apeL25CMTIBtb1npRjm42eLpuIOyqNVUCyDxYfGj8xU8EYJOeZDRyKPnZIY39q5wE12+MGFTVHIE8Qey/Pk2kHp5Hltd+7GP0tmcqDVONQZvwsB1ylKpoFGXfK9egG2EuC8D2onm/LLJeXj6wNjyLZvbxdZmzcavu+qeHFl865dDUjO/d8YH+c5lO8KQyO/O1jx1QCPL/FCSh6kfTJ5TIpJhMzAoiw6BZXkSo9nCKsIwqPvqXMlDDPRN+ENlmVq3w0r6xqVqsCaCVrgqfba/eaBZbZ0cMPQENn1ycdCdjFHTQ==
+	07AAKHRqRT/ZxQjWZ5rdDFUvtoSWlrArDJWj6LXyLq33jf9ENkz4NZfBk47PrG+lASMf2KoaAQ7wjb2yPp3Td/MRtcEtgUSFlgW8+ZtXVEWjhnacQdCMl/w72hTy284jbzi23Z1e/b0QOsKLQtp1u40SW+frCiz+ErMe74YotCW7Y2XrqO4b76bn85ZugcDGB0RxP4whPCd1jhekHu8eOA8yAI01PqTVWVFu1Biz5ks/6xQRY585LPeJgE4+WKi5XunhxWy075b55LwOojeHTqkJJl7/A9OBkTke8LDN6mmL7sKzAHZfcB9Xt0SLLogXzqeNDi6zIDCpLUtG32gswweBNQmfCkI9XYoNT2o4ttzPOUoFkLfeOChf3or3Ees0tcNpVhM33HeF1KSF5PLAGfoDJw7LCvmex2UL3cY+1S1b3RQbpvEFms5iQQZjYOOzZjgVEMEwX2Abw18hBOMPvfRnEAVdVL5GEJDuazRyRcGXDVa7B1i07cK7v2AlKIz+So6/b4kMmNEkUih96fo3B/7R4rMOYQG6F0pPjl6eEOKqy4DtVYQz2g/1Lz7ojWRE/DMix6aceTUpkvXva/Sx1agaS0+4I1uq6shzWNajJd+42ymJ6/FVL3cnoEbqlz19TGWyO2sl61ZOV+/brL5g4sddlhWD4zAIxgdGEQD5UEtce6E2vyns1k+n2+xMEX03K16SDaYnczu5+nTTjMPKOQ==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(376014)(36860700016)(23010399003)(18002099003)(22082099003)(261102123227099003)(56012099006)(10067099003)(261009223027099003)(261022115727099003)(261022113327099003)(261022105027099003)(261021121427099003)(261021130227099003)(261021133027099003)(261021123027099003)(261021135927099003)(261022075727099003)(5023799004)(11063799006)(261026130827099003)(261026121527099003)(261028144727099003)(261026135527099003)(261026140227099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(376014)(36860700016)(23010399003)(6133799003)(18002099003)(22082099003)(261102123227099003)(3023799007)(56012099006)(10067099003)(261009223027099003)(261022105027099003)(261021121427099003)(11063799006)(261026121527099003)(261028144727099003)(261026140227099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	fniTOyB2EzXQCPjthuH2f0+9/6SkUyJmI3cpc0/ym9Dal6XrGf4t4eiH341uZJvXGY7/TI0vOKxQzp4DWaWdm78DS87+1hztlanRjK9C0empSTvsv462PCwDnICBhQtFwjz6nqrk3LGA+1uwHIla9rqSRBL46i46C23XiXrWhqTTItFbCX87KfNak1WO0lSvt5iDqKVLInlp6sEX1K1ZvjUCTxqvPfJvsSdRJQA4pgvzwqEirJYwOetwhz5eV/9VyedqX55QbLBAGoj7XayTuIvFyG83i2sjrahlIrg0x4y9NaWpAeSY+AEMA735V5B/z67wxWStof9VAsWPcIBWk0wFLdNwGNbmSx1w3n9K3Bi1trpUYqDGVBZ/PTGhy6eWFSiwDGsuI+XQsAV8TqX62/jKAK06dYEE/cpQFjK4X/JETCLFWiEQkyJIkEyTYjiK
+	itTBG1+a5tX9tjZQvXhUB/yRTdznBnKKbZ6wbPBGSr4wa4sQq50RXVNbh+cIN4fcnPLrW5W5D60k/idG/CPtdODuSYc7L8W/5frbXJCjJ7pva9KjRGwDOYrO/4JZ2x+SgA4vbjVj5ooVmKFZtDeARfLwNA3lQtUee9rWCCpYCCvFeZ1b/53pMClaBqeoUdzxfZ+OgkdOsjwyrdZjDO+p3nG0JWxIA5PM5Qf6FW1vXRgAWtI+yCGhd9JarV21Rj2eWH9iSRNGXs8HA3JF1cPqxRa6SHld60cBT0N835kzMUnKuw9+Kt86H/BtOskal0Dy2kcP0/pOAurQ1BVOl7wX8WmAF8Myf0nZrs0AN9FE92/IHsU3cLCH9BGPY06fJr45vwm7WWuoA2OGbn7r+xlHz+kReBaKo0mkH6A+RRoi0ZIsLZPpNkiiZUsj0JC01XYl
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Nov 2026 16:41:41.2923
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Nov 2026 16:41:09.4404
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9dc84aba-fe0d-425d-40a5-08df39c956a3
+X-MS-Exchange-CrossTenant-Network-Message-Id: 72db1835-5cc5-4579-64f4-08df39c943a6
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BL2PEPF000352CB.namprd02.prod.outlook.com
+	BL2PEPF000352CC.namprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH1PR12MB9600
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA3PR12MB9177
 
-The UMR CQ is polled by the generic path, which finds the completed
-request by indexing qp->sq.wrid[] with the CQE wqe_counter. A hostile
-NIC can forge it to complete a request other than the one that really
-completed, or one that is not pending at all.
+From: Dragos Tatulea <dtatulea@nvidia.com>
 
-The UMR QP is RC and signals every WR, so its completions arrive in
-posting order. In adversarial mode, keep a FIFO of the posted UMR
-contexts, so a follow-up patch can check each CQE against the oldest
-pending request instead of trusting it. Each context also records the
-SQ producer counter it was posted at, as its address alone doesn't
-identify the post: it is usually on the stack and reused across posts.
+Add macros that can be used to exponentiate log based capabilities.
 
-Nothing consumes the FIFO yet.
+When a capability can represent more than the used version (u32 , u64),
+value will be clamped to the largest representable power of two.
 
-Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
+Reviewed-by: Tariq Toukan <tariqt@nvidia.com>
+Reviewed-by: Yishai Hadas <yishaih@nvidia.com>
+Signed-off-by: Dragos Tatulea <dtatulea@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 10 +++++++
- drivers/infiniband/hw/mlx5/umr.c     | 42 +++++++++++++++++++++++-----
- drivers/infiniband/hw/mlx5/umr.h     |  6 ++++
- 3 files changed, 51 insertions(+), 7 deletions(-)
+ include/linux/mlx5/device.h | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 4833f42b3fd1..9cc4b2f99b69 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -758,6 +758,12 @@ enum {
- 	MLX5_UMR_STATE_ERR,
- };
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 37727b5ab78f..f45454f65d5c 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -38,6 +38,7 @@
+ #include <linux/mlx5/mlx5_ifc.h>
+ #include <linux/mlx5/mlx5_ifc_macros.h>
+ #include <linux/bitfield.h>
++#include <linux/minmax.h>
  
-+#define MLX5_UMR_MAX_WR 128
-+static_assert((MLX5_UMR_MAX_WR & (MLX5_UMR_MAX_WR - 1)) == 0,
-+	      "MLX5_UMR_MAX_WR must be a power of two for FIFO index masking");
+ #if defined(__LITTLE_ENDIAN)
+ #define MLX5_SET_HOST_ENDIANNESS	0
+@@ -47,6 +48,16 @@
+ #error Host endianness not defined
+ #endif
+ 
++/* Largest shift count that is defined behaviour for a value of type @T. */
++#define __mlx5_max_shift(T) (BITS_PER_TYPE(T) - 1 - is_signed_type(T))
 +
-+struct mlx5r_umr_context;
++/* Calculate 2^@fld from a log2 cap field. Exponents that don't fit in @T
++ * saturate to the largest representable power of two (not to the type
++ * maximum), avoiding undefined shifts.
++ */
++#define MLX5_GET_LOGSZ_CLAMP(typ, p, fld, T) \
++	((T)((T)1 << min_t(u32, MLX5_GET(typ, p, fld), __mlx5_max_shift(T))))
 +
- struct umr_common {
- 	struct ib_pd	*pd;
- 	struct ib_cq	*cq;
-@@ -771,6 +777,10 @@ struct umr_common {
- 	unsigned int state;
- 	/* Protects from repeat UMR QP creation */
- 	struct mutex init_lock;
-+	/* Posted UMR contexts in posting order, adversarial_mode only */
-+	struct mlx5r_umr_context **pending;
-+	u32 pending_head;
-+	u32 pending_tail;
- };
+ enum mlx5_inline_modes {
+ 	MLX5_INLINE_MODE_NONE,
+ 	MLX5_INLINE_MODE_L2,
+@@ -1096,6 +1107,15 @@ enum mlx5_qcam_feature_groups {
+ #define MLX5_CAP_GEN_MAX(mdev, cap) \
+ 	MLX5_GET(cmd_hca_cap, mdev->caps.hca[MLX5_CAP_GENERAL]->max, cap)
  
- struct mlx5_ib_port_resources {
-diff --git a/drivers/infiniband/hw/mlx5/umr.c b/drivers/infiniband/hw/mlx5/umr.c
-index 4a3fa79eba3a..aba79a19d627 100644
---- a/drivers/infiniband/hw/mlx5/umr.c
-+++ b/drivers/infiniband/hw/mlx5/umr.c
-@@ -98,9 +98,7 @@ static int umr_check_mkey_mask(struct mlx5_ib_dev *dev, u64 mask)
- 	return 0;
- }
- 
--enum {
--	MAX_UMR_WR = 128,
--};
-+#define MAX_UMR_WR MLX5_UMR_MAX_WR
- 
- static int mlx5r_umr_qp_rst2rts(struct mlx5_ib_dev *dev, struct ib_qp *qp)
- {
-@@ -181,6 +179,16 @@ int mlx5r_umr_resource_init(struct mlx5_ib_dev *dev)
- 	if (ret)
- 		goto destroy_qp;
- 
-+	if (mlx5_ib_adversarial_mode) {
-+		dev->umrc.pending = kcalloc(MAX_UMR_WR,
-+					    sizeof(*dev->umrc.pending),
-+					    GFP_KERNEL);
-+		if (!dev->umrc.pending) {
-+			ret = -ENOMEM;
-+			goto destroy_qp;
-+		}
-+	}
++/* 2^cap for log2-encoded general caps */
++#define MLX5_CAP_GEN_LOGSZ_U32(mdev, cap) \
++	MLX5_GET_LOGSZ_CLAMP(cmd_hca_cap, \
++			     mdev->caps.hca[MLX5_CAP_GENERAL]->cur, cap, u32)
 +
- 	dev->umrc.cq = cq;
- 
- 	sema_init(&dev->umrc.sem, MAX_UMR_WR);
-@@ -208,6 +216,7 @@ void mlx5r_umr_resource_cleanup(struct mlx5_ib_dev *dev)
- 	/* After device init, UMR cp/qp are not unset during the lifetime. */
- 	ib_destroy_qp(dev->umrc.qp);
- 	ib_free_cq(dev->umrc.cq);
-+	kfree(dev->umrc.pending);
- }
- 
- int mlx5r_umr_init(struct mlx5_ib_dev *dev)
-@@ -236,7 +245,8 @@ void mlx5r_umr_cleanup(struct mlx5_ib_dev *dev)
- }
- 
- 
--static int mlx5r_umr_post_send(struct ib_qp *ibqp, u32 mkey, struct ib_cqe *cqe,
-+static int mlx5r_umr_post_send(struct ib_qp *ibqp, u32 mkey,
-+			       struct mlx5r_umr_context *ctx,
- 			       struct mlx5r_umr_wqe *wqe, bool with_data)
- {
- 	unsigned int wqe_size =
-@@ -245,6 +255,7 @@ static int mlx5r_umr_post_send(struct ib_qp *ibqp, u32 mkey, struct ib_cqe *cqe,
- 				    sizeof(struct mlx5_wqe_data_seg);
- 	struct mlx5_ib_dev *dev = to_mdev(ibqp->device);
- 	struct mlx5_core_dev *mdev = dev->mdev;
-+	struct umr_common *umrc = &dev->umrc;
- 	struct mlx5_ib_qp *qp = to_mqp(ibqp);
- 	struct mlx5_wqe_ctrl_seg *ctrl;
- 	union {
-@@ -267,13 +278,30 @@ static int mlx5r_umr_post_send(struct ib_qp *ibqp, u32 mkey, struct ib_cqe *cqe,
- 		goto out;
- 
- 	qp->sq.wr_data[idx] = MLX5_IB_WR_UMR;
-+	if (mlx5_ib_adversarial_mode) {
-+		/* mlx5r_finish_wqe() advances cur_post, so record it first */
-+		ctx->wqe_ctr = qp->sq.cur_post;
-+	}
- 
- 	mlx5r_memcpy_send_wqe(&qp->sq, &cur_edge, &seg, &size, wqe, wqe_size);
- 
--	id.ib_cqe = cqe;
-+	id.ib_cqe = &ctx->cqe;
- 	mlx5r_finish_wqe(qp, ctrl, seg, size, cur_edge, idx, id.wr_id, 0,
- 			 MLX5_FENCE_MODE_INITIATOR_SMALL, MLX5_OPCODE_UMR);
- 
-+	/*
-+	 * Push to the shadow FIFO before the doorbell, so the entry exists
-+	 * before a CQE for it can arrive. A hostile NIC can post a CQE before
-+	 * the doorbell, so the UMR CQ poller, on another CPU, can't rely on
-+	 * the doorbell to see ctx->wqe_ctr and ctx->cqe.done with the entry.
-+	 * Publish it with a release, which pairs with the poller's acquire.
-+	 */
-+	if (mlx5_ib_adversarial_mode) {
-+		smp_store_release(&umrc->pending[umrc->pending_tail & (MAX_UMR_WR - 1)],
-+				  ctx);
-+		umrc->pending_tail++;
-+	}
++#define MLX5_CAP_GEN_LOGSZ_U64(mdev, cap) \
++	MLX5_GET_LOGSZ_CLAMP(cmd_hca_cap, \
++			     mdev->caps.hca[MLX5_CAP_GENERAL]->cur, cap, u64)
 +
- 	mlx5r_ring_db(qp, 1, ctrl);
+ #define MLX5_CAP_GEN_2(mdev, cap) \
+ 	MLX5_GET(cmd_hca_cap_2, mdev->caps.hca[MLX5_CAP_GENERAL_2]->cur, cap)
  
- out:
-@@ -303,7 +331,7 @@ static int mlx5r_umr_recover(struct mlx5_ib_dev *dev, u32 mkey,
- 	 * This will ensure that all the previous WRs got a completion before
- 	 * we set the QP state to RESET.
- 	 */
--	err = mlx5r_umr_post_send(umrc->qp, mkey, &umr_context->cqe, wqe,
-+	err = mlx5r_umr_post_send(umrc->qp, mkey, umr_context, wqe,
- 				  with_data);
- 	if (err) {
- 		mlx5_ib_warn(dev, "UMR recovery post send failed, err %d\n", err);
-@@ -380,7 +408,7 @@ static int mlx5r_umr_post_send_wait(struct mlx5_ib_dev *dev, u32 mkey,
- 			continue;
- 		}
- 
--		err = mlx5r_umr_post_send(umrc->qp, mkey, &umr_context.cqe, wqe,
-+		err = mlx5r_umr_post_send(umrc->qp, mkey, &umr_context, wqe,
- 					  with_data);
- 		mutex_unlock(&umrc->lock);
- 		if (err) {
-diff --git a/drivers/infiniband/hw/mlx5/umr.h b/drivers/infiniband/hw/mlx5/umr.h
-index bda7123781a9..0b245eec521f 100644
---- a/drivers/infiniband/hw/mlx5/umr.h
-+++ b/drivers/infiniband/hw/mlx5/umr.h
-@@ -84,6 +84,12 @@ struct mlx5r_umr_context {
- 	struct ib_cqe cqe;
- 	enum ib_wc_status status;
- 	struct completion done;
-+	/*
-+	 * SQ producer counter the WQE was posted at, matched against the CQE
-+	 * wqe_counter in adversarial_mode. Unlike the context address, which
-+	 * is reused across posts, or the ring slot, it identifies the WQE.
-+	 */
-+	u16 wqe_ctr;
- };
- 
- struct mlx5r_umr_wqe {
 -- 
 2.18.1
 
