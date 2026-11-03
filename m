@@ -1,84 +1,84 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.178
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.50
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793745499;
-	b=q+hRU7+MeR9glmQ1pjTkmTPGGaKGD5r2mO0886wWkDzcAjMr2bCyNpzvhKwFkdfRYoxz
-	 cb0SefHOcnhb8nl1cy7njcil4lgtcyIlEs2liE7WZANV2zI0lZX12sN04/2noIgFbyteO
-	 NP4vzNarp7GYqLjFx3huKksJk2y+SrTpWFp4i9Hxe9I+JRemgo2NzWA+0lTYR8kv7jdWS
-	 ZsWaT7Z4J+sGKF28cWuSTLko309sORSysUV27K3RNbHTF/Yq/+tJH82yqTq4TU/8LcOW+
-	 VITzGKoJlFOft4vXSYPs0kf378gSI78bb+28Q6JPl/6HtLBOgPLlRJYXpfHluLhmV9Q==
+	t=1793745502;
+	b=Utqojrco1/g9m3eXuqLZOyFWrTyz+4dyIycGEyO0sXMxFpULhuawdfjaClcEWkFvvWcz
+	 Akg4MhpTfBYenaNy9yYL1gWS5ARr07bYvOttGoOoPSdQs59q3WCJfmhJC1ZS6iymLe1AH
+	 88+DpPfgWIL3pn1cApmjJDsbCR6iv648A3wK+Bz5N74WR8l9l7zwOojeaNochMbYFOnhE
+	 XBHT+d4Dt49Fduxfo08ltjhDKzXvqSP9zIsJrLL6wyNeOT8cYaJpzq5rlPuo/3R9SivmD
+	 7u5sDCHknfJ42XPerZbpByVwE/TNqnS3srFqX7rVmoYqfENYg5KRs7XQo+kOT55Jp3w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793745499;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793745502;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
 	 MIME-Version:Content-Transfer-Encoding;
-	bh=9TbVYvpSeD3EGVYLSVcnsamFqScX3vaSw3kvz6iivhs=;
-	b=43A3x/FxjypwiisRKYBA1mqwJuZ/HCXXExDoT5NZsZTZGeQ7JQpxWtfz49xVI3+JqcLP
-	 s8h/ZkWqdE2JJZ272iJ8XfM6pkzVEDQ/1PqrGoXo3VncUvsL2V9Kg7khOwerdrfLj8GXx
-	 8QFzwCSxYA1OpcY6gqhs/4eNd+9Uh55qUeg0ptF10AwX3xNoawpQFlqPIGJjT2BjFzsD1
-	 gOGdrzGMpSIB2zf3va+u0j4RNnJUpbSN1jTT7EmZ8XuK56v5FTqOCtog4xMxx3LPdqiRW
-	 nUv74qaEO4b4tbOkJbOM0RKzYDQPVUccmdDU1T7F1NxTreOhJHqovW3mVbg0MUo9jcQ==
+	bh=oVa6CCAH519bjAZCKZQVejZVAzQohLPWeK+tg1l7Elc=;
+	b=k+MIu8g5VslbEqUJEes0yZFSPs+TH9XRfEqzFsmzCLAlhO/UM64DaoKFdmdmBWldDQN/
+	 lOjSVhVelt52P6EHG58/tJJzbhZ6h8qOMOgWf1H2a9n0K8+36txL2ivgAY8QcymwDNfZm
+	 p82lOySwgcECIW7zTNqW8CJv2A66DpEImRbNKvouBLb9wWQ96ISlsYZJB5XAnS0PsdRBW
+	 8CI34WwOac+SvNumrsWT8HZDvPc1AB/Qkvq19jdJmkH7D1PYtBhdIO+In7IFxLRuXSv71
+	 0+gtJ+VrWGMb6Fyn4qIS95nlbdH6cWY1dXq8N5WKrGD/PkTU2bmDu/oYgua4o4JkZmA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=fail header.from=isslab.korea.ac.kr;
 	spf=none smtp.mailfrom=isslab.korea.ac.kr;
-	dkim=pass header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=fnTrAVT8;
-	arc=none smtp.remote-ip=209.85.214.178
-Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
+	dkim=pass header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=UzljqbMO;
+	arc=none smtp.remote-ip=209.85.216.50
+Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68B15606A333
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 22:38:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 68B15606A333
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27770606A33F
+	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 22:38:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 27770606A33F
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=fnTrAVT8
-Received: by mail-pl1-f178.google.com with SMTP id d9443c01a7336-2e8da6ef7ddso326285ad.3
-        for <linux-rdma@vger.kernel.org>; Tue, 03 Nov 2026 14:38:18 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=UzljqbMO
+Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-3acb512a7a0so96371a91.1
+        for <linux-rdma@vger.kernel.org>; Tue, 03 Nov 2026 14:38:21 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=isslab-korea-ac-kr.20260707.gappssmtp.com; s=20260707; t=1793745498; x=1794350298; darn=vger.kernel.org;
+        d=isslab-korea-ac-kr.20260707.gappssmtp.com; s=20260707; t=1793745501; x=1794350301; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=9TbVYvpSeD3EGVYLSVcnsamFqScX3vaSw3kvz6iivhs=;
-        b=fnTrAVT8QfAbg7omcsCzzb4GUnbKCu2nF7EmKq9xmtFY/RMAWktsmYPFTwFdjV9JQT
-         Oznw3/iYEM8tWWHknLc9kCDqE0oC5ED9F7+fCYAHg5ppLN9A+onYKDCA8Nz8nJvp57Yo
-         MWKmGBnm8pMHCgw5oFCoBfHEjxIkh6FtME5nenaprtmIbjZ7VKlWWGCDCIN0qtEYZwkv
-         YYst5mWuTjCJV3hbXtHdY0FV1YthgLvVvo4PE4XqtaStJ5ipIZoRQvyMbE1dqAPTw4gk
-         wYOXzAEDiwgQXGgZz6U/ouvW2cR21xia/bmzlp4yPWgUjbZkiMa8qxXfQ+itdmIbEy3t
-         EnPg==
+        bh=oVa6CCAH519bjAZCKZQVejZVAzQohLPWeK+tg1l7Elc=;
+        b=UzljqbMOliahk7tS2CmmVxJlobWE9nr6OvmSJkwEivVJG+m3CeyFS7evD5FD3KbHr6
+         E44hGb4xP6BzyJKIksQmXx98WbHtpVJZOptHuaKojNtlrpMTD1H8iLDtmxuJWIgk/0Hh
+         OBPKgNAg2zXhBfE2KnjedMK+fRKa7Y1YkXoI2ZXaqdoL2Jr2n8JCUT7Xvbs1rbPM30LR
+         wqpbvZfYnin2M/NmP+nVhz8bm2HhK9yq+zcKMuBw29Mng9msPb9tc2R1yh15mntvDzo9
+         Quc+gRL1fhVkfm9Wh6elS7DIgmEAZ7QwH2dWWKgXExgr5ndzJxEmLi7UGajXHg2E27G8
+         oAcw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793745498; x=1794350298;
+        d=1e100.net; s=20260707; t=1793745501; x=1794350301;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=9TbVYvpSeD3EGVYLSVcnsamFqScX3vaSw3kvz6iivhs=;
-        b=OWBUeAk6ubym98d0ANR8EjXFE3JVwaWbeEDDtPoGWSjdakvUdcASELQfZJqGEeO5Ev
-         0a0EDmULwmwLYAYtDABEzKLfr9gv7Zgjt7qoafUfoJVuCGrJtAcDQcCFHOaNdpozz/Du
-         KwGFsZHymIuCCMNMxNHvzs+HECCDrC1tIpjFTlUQ8tL3DZ+/32zuIQO7wiM/HywFqxzm
-         bRtZrZwaTZGhbgJprRoPCxYq4rF1akpjKue7b8dv4tv6+8gHxI2OB919+Z77epsU7A/C
-         ZOYzdPH11kdHXo+Kv7ekavyJO5pndGkMn/q0mJxi7fiqPTDL7KBeZMHlFFLEaSuirqdT
-         o6lQ==
-X-Forwarded-Encrypted: i=1; AKwUvBzslus4v18pxd0H4vkcz4DoMXJgsuQ27OZD2gAFa3uTdWrEcfMG3wqZxlIuuPaajQXNeQ2lBqo7z4GT@vger.kernel.org
-X-Gm-Message-State: APuU4Z/AhMGnOAlCj0UwPrCc00LJ2zED7XkyL/n0ixFJ/uRRAmDa2i6r
-	Ty0eQiQFrttSR6yhTimYAoG4kvErZGpXODyT3oTV7TEXFzjw2jv3hDdDSXrh9eubdUs=
-X-Gm-Gg: AYBFou1zdt/bqlTtWFt3/maXKk6bWDy1MwpMh0q6xAtt6L7HVsI0QksmGNGVYBs9zqd
-	ZAC4J73mWYsV6TRhZgKRYdA38HSToM0+mLUSDjRDZkpq2oc3u18i7SI8e3W9VykFPxCkXL2zUPv
-	bEQ3Bu9cbVDT6F6CaE9j+l0GHX+4flA+6yD4jzgw/REBVfCf1k43rjJ0ajgI3WDVI4nqoC9p1J8
-	VYGl4wv0xY9Vj+HaD25mzJCR31pBjgz59cR7UprIBPOVXrLJU8tkR5TaWlbksZaqCuGmG8XAT1l
-	dUIXc6UxqpJmdL+F+hMsVzsAkKta1OYdz+lixYwX8n4Sg823g6hw508mGLRtg9+XFVRsE/CRHCP
-	8ELBNXpNlZIQ2F5rMmvyH/JOlX98uW9FIbP69IUBoWVaKXEIbN+wWjcrJXYpu0clHJz9Z0kurSD
-	7oWHtWPfMfe7SiaYEa6TCRGQw2puz+jPLoswd9TNUzhqUp3mvrc+Q6gGf8HqBZBlOXyzcadB1qE
-	efwfbPcDnmnnYd67YHSoR9MXh77n/NCDn8Ctm1ScMxiDZIPyfEyOq8xoBDtYjLAmE2ampg2WFqv
-	bK6texyGGJL1Xj85k7MxzQKfmdYV+lVC0DShB1d8wQHp8LSPQ6u57zXBUqc3r+9DISYSoplzYfr
-	8ZmZAM/Cow9yTv2Fa7RMiflqfTIBXV6UkE++L
-X-Received: by 2002:a17:90b:570c:b0:3ab:e588:c288 with SMTP id 98e67ed59e1d1-3ae897ccb52mr12652566a91.11.1793745497619;
-        Tue, 03 Nov 2026 14:38:17 -0800 (PST)
+        bh=oVa6CCAH519bjAZCKZQVejZVAzQohLPWeK+tg1l7Elc=;
+        b=nPw+5uZP36sXpZJ5jPXlKo7C+/9UfdIJge01pmGmcar2PHQzMAtjSL5q8HLdIeSiz/
+         dTyvLad7zhD0dHS/3tzLZsku0ETBo3XSFbA2ptvw4RfAlJ5YWMVZvfFKpbOyY1RZRGZd
+         tZMJaYKsV6/OWnW95wIwIWrul2VBrCrG7z7y/qvgnU1KI07tduvr/sgytn/WbMiDLlCz
+         o6FhXxWqlVVv+FFrIIOrjIVBNjm6ZfJJpXGUd/A732JLmpHiQTeUa7tKGczFymCb+Trs
+         a5zOJXyHHT9aeyq4dist5Khmr5c2tkGmyCldbh/2Lh5aNLrO3FWVseOg9wjzt4clPz7I
+         6HQQ==
+X-Forwarded-Encrypted: i=1; AKwUvByQKKCIpxH4Mr8FPKHsJXaeL/ybqPQXSIerbET/W7ha6zTCVwrLIGNxvMr3MVULWyi6EEDRNHSyVayj@vger.kernel.org
+X-Gm-Message-State: APuU4Z8K50oc7r8iTP+vsYEfUFmDJAsB6vd9AqkmIPPboxeSwBObgvEd
+	TbhciZTc492eqgotJyqUiUs5L/GX6BhEfwHlPU4i/IsRWm1odkPJGMSUv9hehP7+/eM=
+X-Gm-Gg: AYBFou0Gf9N4bCjppP1qgWskDdnYTUtJGEb1xuT0sXmTU5YztKqgcWoiqAGpWbpc2/i
+	AU5CAlXF/IgwOofyfUTxl9tsXPW9eURAOnVk1bJv+taeNfUr0mKFKdwlw/2msMkOWxRn0or8+5C
+	Ez9Pqtr2vv1Ujha5cmfJB00l3kXyj6U5MH2cQZpJYgtwi7sdCDq0ziRztYX8LOs2fN6x7j76e9S
+	dCtyQi63nsoayGNqfyLp+8hDKM9+oMQrM0GDkRtbP2S0Zyr/rgfnzUYW+9UAi+q8lOgPM+sFKPX
+	Ik8XKYxY3ys0tHBDOPXjYZkPeWcGNEUoPbFv92FXLjDFSuBbBKEmzlKC7hkFmAYvbBUD9ASVlX/
+	ZJIcFWDmxA+FB5TPgfvvWtgyG177FXu2lxRBqgkWR4MQ0FqJdxbYlfAO4HehdxL84JdRMQRzQOW
+	EWa8/lYBmErXfavVBy65+OZnRjlHZ22RPxRubVVpui8DYUFKolTitOQu05aWef3sg23RxypB3y/
+	hRUcD7oJDrPF1obFDFKDAHUaBeg63F2GvrdXcaXOvKzxNzBEu2kmlQwXiKctf7671Mzct1KDejq
+	akKOgcFFBemY2z/INTAu8yPJX8TPuBo2E2gFHxybYuDpJn1gTmTMHhcUfxLI4MIhkM4oOFeBEWa
+	hNMw0axuKD+/GFp6yP2n3E+JuxYeIEMw1ARZBd8NLoGZJtr/97qSt+ILmZg==
+X-Received: by 2002:a17:90b:48c6:b0:3ac:9717:afd1 with SMTP id 98e67ed59e1d1-3ae897e07b5mr12133097a91.63.1793745501324;
+        Tue, 03 Nov 2026 14:38:21 -0800 (PST)
 Received: from yhlee-960QFG.Davolink ([2406:5900:1044:110c:744:cf40:a7b2:e78f])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b096b6116bsm223711a91.4.2026.11.03.14.38.14
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b096b6116bsm223711a91.4.2026.11.03.14.38.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 03 Nov 2026 14:38:17 -0800 (PST)
+        Tue, 03 Nov 2026 14:38:20 -0800 (PST)
 From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
 To: Sagi Grimberg <sagi@grimberg.me>,
 	Max Gurtovoy <mgurtovoy@nvidia.com>,
@@ -91,9 +91,9 @@ Cc: "Martin K . Petersen" <martin.petersen@oracle.com>,
 	linux-kernel@vger.kernel.org,
 	Yehyeong Lee <yhlee@isslab.korea.ac.kr>,
 	stable@vger.kernel.org
-Subject: [PATCH v6 1/6] IB/isert: do not publish connections being released on a second list
-Date: Wed,  4 Nov 2026 07:37:57 +0900
-Message-ID: <20261103223802.1697607-2-yhlee@isslab.korea.ac.kr>
+Subject: [PATCH v6 2/6] IB/isert: drain the QP without holding isert_conn->mutex
+Date: Wed,  4 Nov 2026 07:37:58 +0900
+Message-ID: <20261103223802.1697607-3-yhlee@isslab.korea.ac.kr>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261103223802.1697607-1-yhlee@isslab.korea.ac.kr>
 References: <20261103223802.1697607-1-yhlee@isslab.korea.ac.kr>
@@ -108,242 +108,258 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-isert_connect_error() and isert_disconnected_handler() take a connection
-off isert_np->accepted or isert_np->pending and release it, but they do not
-check whether the other one got there first, and the connection also stays
-reachable from the list that isert_free_np() walks.  Two callers can
-therefore release the same connection, and isert_free_np() can release one
-a CM handler has already freed.
+isert_disconnected_handler() drains the QP with isert_conn->mutex held.
+The drain waits for the flush completions of the send and receive queues,
+and those are reaped by ib_cq_poll_work() on ib-comp-wq, where
+isert_login_recv_done() takes isert_conn->mutex before it looks at the
+connection state.  If a login receive completes while the handler holds
+the mutex, the completion handler blocks on the mutex and the drain blocks
+on the completion that handler would have reaped.
 
-Make the list the single owner token.  A caller that empties
-isert_conn->node under isert_np->mutex owns the drain and the release; one
-that finds it already empty stands back and returns zero, so cma keeps the
-id and the owner destroys it.  isert_connect_error() drains before it takes
-the connection, which is the order mainline already uses, so no drain can
-run on a QP whose id another handler is tearing down.
+Return from isert_conn_terminate() whether this caller moved the
+connection to ISER_CONN_TERMINATING, and drain after dropping
+isert_conn->mutex.  Only the owner of isert_conn->node drains, so two
+callers cannot drain the same QP; the send and receive queues reserve room
+for one drain each, and a second concurrent drain hits the WARN_ONCE in
+__ib_drain_sq() and returns without draining.
 
-A test-only delay in isert_free_np(), right after it has taken a
-connection, opens the window; it does not open on its own in this setup.
-With it, two runs of 7.4-rc1 reported 22 use-after-frees each and then an
-oops at a NULL instruction pointer in the rmdir task, which was killed.
-Two runs with this patch reported neither, and the rmdir returned in seven
-seconds.
+Two test-only delays open the window, one in isert_login_recv_done() and
+one before the drain.  Three runs of 7.4-rc1 plus patch 1 of this series
+printed ten hung task warnings each, eight, five and five of them waiting
+in ib_drain_qp().  Three runs with this patch printed none, and
+PROVE_LOCKING reported no splat in two runs a side.
 
-  BUG: KASAN: slab-use-after-free in isert_connect_release+0x5c1/0x620
-  Read of size 8 at addr ffff888109c5d160 by task rmdir/191
-
-  CPU: 1 UID: 0 PID: 191 Comm: rmdir Not tainted 7.4.0-rc1-NSR-00001-gffec6cbc0e7e #129 PREEMPT(full)
-  Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+  INFO: task kworker/0:1:10 blocked for more than 10 seconds.
+        Not tainted 7.4.0-rc1-NS1-00002-g7b7ecb49489e #121
+  "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+  task:kworker/0:1     state:D stack:26248 pid:10    tgid:10    ppid:2      task_flags:0x4208060 flags:0x00080000
+  Workqueue: ib_cm cm_work_handler
   Call Trace:
    <TASK>
-   dump_stack_lvl+0x53/0x70
-   print_report+0xd0/0x630
+   __schedule+0x180f/0x4bb0
+   ? _raw_spin_lock_irq+0x1/0xe0
+   ? __pfx___schedule+0x10/0x10
+   schedule+0x70/0x1f0
+   schedule_timeout+0x1cd/0x200
+   ? __pfx_schedule_timeout+0x10/0x10
+   ? rxe_qp_from_attr+0x1497/0x18c0
+   ? __pfx__raw_spin_lock_irq+0x10/0x10
    ? __pfx__raw_spin_lock_irqsave+0x10/0x10
-   ? isert_connect_release
-   ? isert_connect_release+0x5c1/0x620
-   kasan_report+0xce/0x100
-   ? isert_connect_release+0x5c1/0x620
-   isert_connect_release+0x5c1/0x620
-   isert_free_np+0x4cf/0xb20
-   ? __pfx_isert_free_np+0x10/0x10
-   iscsit_del_np+0x163/0x340
-   iscsit_tpg_del_network_portal+0x3c3/0x530
-   ? mutex_unlock+0x7b/0xd0
-   lio_target_call_delnpfromtpg+0x40/0x60
-   config_item_cleanup+0x115/0x190
-   configfs_rmdir+0x7c7/0x9f0
-   ? __pfx_configfs_rmdir+0x10/0x10
-   vfs_rmdir+0x291/0x7b0
-   ? lookup_one_qstr_excl+0x1a/0x1d0
-   filename_rmdir+0x390/0x560
-   ? __pfx_filename_rmdir+0x10/0x10
+   ? _raw_spin_lock_irqsave+0x86/0xe0
+   __wait_for_common+0x29e/0x420
+   ? __pfx_schedule_timeout+0x10/0x10
+   ? __pfx___wait_for_common+0x10/0x10
+   __ib_drain_sq+0x251/0x340
+   ? __pfx___ib_drain_sq+0x10/0x10
+   ? __pfx_ib_drain_qp_done+0x10/0x10
+   ? irq_work_queue+0x1c/0xb0
+   ? __pfx__printk+0x10/0x10
+   ? __pfx_process_timeout+0x10/0x10
+   ib_drain_sq+0x146/0x1a0
+   ib_drain_qp+0xd/0x50
+   isert_disconnected_handler.isra.0+0xc4/0x3f0
+   isert_cma_handler+0xd74/0x27d0
+   ? kasan_save_stack+0x42/0x60
+   ? kasan_save_stack+0x33/0x60
    ? kasan_save_track+0x14/0x30
-   ? __kasan_slab_alloc+0x6e/0x70
-   ? strncpy_from_user+0x2b/0x1c0
-   __x64_sys_rmdir+0x41/0x60
-   do_syscall_64+0xdd/0x4a0
-   entry_SYSCALL_64_after_hwframe+0x77/0x7f
-  RIP: 0033:0x463b6b
-  Code: 77 05 c3 0f 1f 40 00 48 c7 c2 e0 ff ff ff f7 d8 64 89 02 48 c7 c0 ff ff ff ff c3 0f 1f 40 00 f3 0f 1e fa b8 54 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 05 c3 0f 1f 40 00 48 c7 c2 e0 ff ff ff f7 d8
-  RSP: 002b:00007ffcc34f26c8 EFLAGS: 00000246 ORIG_RAX: 0000000000000054
-  RAX: ffffffffffffffda RBX: 000000003b607218 RCX: 0000000000463b6b
-  RDX: 0000000000000000 RSI: 000000003b5ea9e0 RDI: 000000003b607218
-  RBP: 00007ffcc34f2700 R08: 0000000000000000 R09: 0000000000000000
-  R10: 00007ffcc34f2040 R11: 0000000000000246 R12: 000000003b607288
-  R13: 0000000000000000 R14: 0000000000000000 R15: 00000000005e6245
-   </TASK>
-
-  Allocated by task 72:
-   kasan_save_stack+0x33/0x60
-   kasan_save_track+0x14/0x30
-   __kasan_kmalloc+0x8f/0xa0
-   __kmalloc_cache_noprof+0x148/0x360
-   isert_cma_handler+0x1e3/0x28a0
-   cma_cm_event_handler+0x3e/0x240
-   cma_ib_req_handler+0x17d9/0x4480
-   cm_process_work+0x41/0x330
-   cm_work_handler+0x5727/0xc160
-   process_one_work+0x697/0x1060
-   worker_thread+0x45b/0xd10
-   kthread+0x2c8/0x3b0
-   ret_from_fork+0x36e/0x5a0
-   ret_from_fork_asm+0x1a/0x30
-
-  Freed by task 10:
-   kasan_save_stack+0x33/0x60
-   kasan_save_track+0x14/0x30
-   kasan_save_free_info+0x3b/0x60
-   __kasan_slab_free+0x43/0x70
-   kfree+0x121/0x390
-   isert_cma_handler+0x1148/0x28a0
+   ? kasan_save_free_info+0x3b/0x60
+   ? __kasan_slab_free+0x43/0x70
+   ? kfree+0x121/0x390
+   ? cm_process_work+0x8b/0x330
+   ? __pfx_isert_cma_handler+0x10/0x10
+   ? kthread+0x2c8/0x3b0
+   ? ret_from_fork+0x36e/0x5a0
+   ? ret_from_fork_asm+0x1a/0x30
+   ? _raw_spin_lock_irqsave+0x86/0xe0
    cma_cm_event_handler+0x3e/0x240
    cma_ib_handler+0x190/0x750
+   ? __pfx_cma_ib_handler+0x10/0x10
    cm_process_work+0x41/0x330
-   cm_work_handler+0x1de2/0xc160
+   cm_work_handler+0x582b/0xc160
+   ? _raw_spin_lock_irqsave+0x86/0xe0
+   ? __pfx__raw_spin_lock_irqsave+0x10/0x10
+   ? hrtimer_start_range_ns+0xa6/0x2c0
+   ? __pfx_cm_work_handler+0x10/0x10
+   ? finish_task_switch.isra.0+0x1d9/0xa70
    process_one_work+0x697/0x1060
+   ? __pfx___schedule+0x10/0x10
+   ? __pfx_process_one_work+0x10/0x10
+   ? _raw_spin_lock_irq+0x81/0xe0
+   ? __pfx_cm_work_handler+0x10/0x10
+   ? assign_work+0x11d/0x370
    worker_thread+0x45b/0xd10
+   ? __pfx_worker_thread+0x10/0x10
+   ? __pfx_worker_thread+0x10/0x10
    kthread+0x2c8/0x3b0
+   ? recalc_sigpending+0x15c/0x1e0
+   ? __pfx_kthread+0x10/0x10
    ret_from_fork+0x36e/0x5a0
+   ? __pfx_ret_from_fork+0x10/0x10
+   ? __switch_to+0x572/0xdc0
+   ? __pfx_kthread+0x10/0x10
    ret_from_fork_asm+0x1a/0x30
+   </TASK>
 
-Fixes: 691b0480933f ("IB/isert: Fix dead lock in ib_isert")
+Fixes: 6d1fba0c2cc7 ("iser-target: Rework connection termination")
 Cc: stable@vger.kernel.org
 Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c | 81 ++++++++++++++++---------
- 1 file changed, 54 insertions(+), 27 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c | 75 ++++++++++++-------------
+ 1 file changed, 36 insertions(+), 39 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index efa8d7b7844c97..ef2edaa3218fee 100644
+index ef2edaa3218fee..61b214012a70b0 100644
 --- a/drivers/infiniband/ulp/isert/ib_isert.c
 +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -521,13 +521,18 @@ isert_connected_handler(struct rdma_cm_id *cma_id)
- 	isert_info("conn %p\n", isert_conn);
+@@ -556,43 +556,21 @@ isert_put_conn(struct isert_conn *isert_conn)
+ 	kref_put(&isert_conn->kref, isert_release_kref);
+ }
  
- 	mutex_lock(&isert_conn->mutex);
-+	mutex_lock(&isert_np->mutex);
-+	if (list_empty(&isert_conn->node)) {
-+		mutex_unlock(&isert_np->mutex);
-+		mutex_unlock(&isert_conn->mutex);
-+		isert_info("conn %p is being released already\n", isert_conn);
-+		return;
-+	}
- 	isert_conn->state = ISER_CONN_UP;
- 	kref_get(&isert_conn->kref);
--	mutex_unlock(&isert_conn->mutex);
+-static void
+-isert_handle_unbound_conn(struct isert_conn *isert_conn)
+-{
+-	struct isert_np *isert_np = isert_conn->cm_id->context;
 -
 -	mutex_lock(&isert_np->mutex);
- 	list_move_tail(&isert_conn->node, &isert_np->pending);
- 	mutex_unlock(&isert_np->mutex);
-+	mutex_unlock(&isert_conn->mutex);
+-	if (!list_empty(&isert_conn->node)) {
+-		/*
+-		 * This means iscsi doesn't know this connection
+-		 * so schedule a cleanup ourselves
+-		 */
+-		list_del_init(&isert_conn->node);
+-		isert_put_conn(isert_conn);
+-		queue_work(isert_release_wq, &isert_conn->release_work);
+-	}
+-	mutex_unlock(&isert_np->mutex);
+-}
+-
+ /**
+  * isert_conn_terminate() - Initiate connection termination
+  * @isert_conn: isert connection struct
+  *
+- * Notes:
+- * In case the connection state is BOUND, move state
+- * to TEMINATING and start teardown sequence (rdma_disconnect).
+- * In case the connection state is UP, complete flush as well.
+- *
+- * This routine must be called with mutex held. Thus it is
+- * safe to call multiple times.
++ * Return: true if this caller moved the connection to ISER_CONN_TERMINATING.
+  */
+-static void
++static bool
+ isert_conn_terminate(struct isert_conn *isert_conn)
+ {
+ 	int err;
  
- 	isert_info("np %p: Allow accept_np to continue\n", isert_np);
- 	up(&isert_np->sem);
-@@ -658,12 +663,20 @@ isert_connect_error(struct rdma_cm_id *cma_id)
++	lockdep_assert_held(&isert_conn->mutex);
++
+ 	if (isert_conn->state >= ISER_CONN_TERMINATING)
+-		return;
++		return false;
+ 
+ 	isert_info("Terminating conn %p state %d\n",
+ 		   isert_conn, isert_conn->state);
+@@ -601,6 +579,8 @@ isert_conn_terminate(struct isert_conn *isert_conn)
+ 	if (err)
+ 		isert_warn("Failed rdma_disconnect isert_conn %p\n",
+ 			   isert_conn);
++
++	return true;
+ }
+ 
+ static int
+@@ -635,26 +615,44 @@ isert_disconnected_handler(struct rdma_cm_id *cma_id,
+ 			   enum rdma_cm_event_type event)
  {
  	struct isert_conn *isert_conn = cma_id->qp->qp_context;
- 	struct isert_np *isert_np = cma_id->context;
-+	bool owned;
++	struct isert_np *isert_np = cma_id->context;
++	bool owned = false, bound = false, terminated = false;
  
- 	ib_drain_qp(isert_conn->qp);
- 
- 	mutex_lock(&isert_np->mutex);
-+	owned = !list_empty(&isert_conn->node);
- 	list_del_init(&isert_conn->node);
- 	mutex_unlock(&isert_np->mutex);
+ 	mutex_lock(&isert_conn->mutex);
+ 	switch (isert_conn->state) {
+-	case ISER_CONN_TERMINATING:
+-		break;
+ 	case ISER_CONN_UP:
+-		isert_conn_terminate(isert_conn);
+-		ib_drain_qp(isert_conn->qp);
+-		isert_handle_unbound_conn(isert_conn);
++		mutex_lock(&isert_np->mutex);
++		if (list_empty(&isert_conn->node)) {
++			bound = isert_conn->state == ISER_CONN_BOUND ||
++				isert_conn->state == ISER_CONN_FULL_FEATURE;
++		} else {
++			owned = true;
++			list_del_init(&isert_conn->node);
++		}
++		mutex_unlock(&isert_np->mutex);
+ 		break;
+ 	case ISER_CONN_BOUND:
+ 	case ISER_CONN_FULL_FEATURE: /* FALLTHRU */
+-		iscsit_cause_connection_reinstatement(isert_conn->conn, 0);
++		bound = true;
+ 		break;
+ 	default:
+-		isert_warn("conn %p terminating in state %d\n",
+-			   isert_conn, isert_conn->state);
++		break;
+ 	}
 +
-+	if (!owned) {
-+		isert_info("conn %p is being released already\n", isert_conn);
++	if (owned)
++		terminated = isert_conn_terminate(isert_conn);
++	else if (bound)
++		iscsit_cause_connection_reinstatement(isert_conn->conn, 0);
+ 	mutex_unlock(&isert_conn->mutex);
+ 
++	if (!owned)
 +		return 0;
-+	}
 +
- 	isert_conn->cm_id = NULL;
- 	isert_put_conn(isert_conn);
- 
-@@ -2479,12 +2492,33 @@ isert_accept_np(struct iscsi_np *np, struct iscsit_conn *conn)
++	if (terminated)
++		ib_drain_qp(isert_conn->qp);
++	isert_put_conn(isert_conn);
++	queue_work(isert_release_wq, &isert_conn->release_work);
++
  	return 0;
  }
  
-+static struct isert_conn *
-+isert_np_take_conn(struct isert_np *isert_np, bool *promoted)
-+{
-+	struct isert_conn *isert_conn;
-+
-+	lockdep_assert_held(&isert_np->mutex);
-+
-+	*promoted = true;
-+	isert_conn = list_first_entry_or_null(&isert_np->pending,
-+					      struct isert_conn, node);
-+	if (!isert_conn) {
-+		*promoted = false;
-+		isert_conn = list_first_entry_or_null(&isert_np->accepted,
-+						      struct isert_conn, node);
-+	}
-+	if (isert_conn)
-+		list_del_init(&isert_conn->node);
-+
-+	return isert_conn;
-+}
-+
- static void
- isert_free_np(struct iscsi_np *np)
- {
- 	struct isert_np *isert_np = np->np_context;
--	struct isert_conn *isert_conn, *n;
--	LIST_HEAD(drop_conn_list);
-+	struct isert_conn *isert_conn;
-+	bool promoted;
+@@ -665,8 +663,6 @@ isert_connect_error(struct rdma_cm_id *cma_id)
+ 	struct isert_np *isert_np = cma_id->context;
+ 	bool owned;
  
- 	if (isert_np->cm_id)
- 		rdma_destroy_id(isert_np->cm_id);
-@@ -2497,32 +2531,25 @@ isert_free_np(struct iscsi_np *np)
- 	 * up in accepted and pending lists.
- 	 */
- 	mutex_lock(&isert_np->mutex);
--	if (!list_empty(&isert_np->pending)) {
-+	if (!list_empty(&isert_np->pending))
- 		isert_info("Still have isert pending connections\n");
--		list_for_each_entry_safe(isert_conn, n,
--					 &isert_np->pending,
--					 node) {
--			isert_info("cleaning isert_conn %p state (%d)\n",
--				   isert_conn, isert_conn->state);
--			list_move_tail(&isert_conn->node, &drop_conn_list);
--		}
--	}
+-	ib_drain_qp(isert_conn->qp);
 -
--	if (!list_empty(&isert_np->accepted)) {
-+	if (!list_empty(&isert_np->accepted))
- 		isert_info("Still have isert accepted connections\n");
--		list_for_each_entry_safe(isert_conn, n,
--					 &isert_np->accepted,
--					 node) {
--			isert_info("cleaning isert_conn %p state (%d)\n",
--				   isert_conn, isert_conn->state);
--			list_move_tail(&isert_conn->node, &drop_conn_list);
--		}
--	}
- 	mutex_unlock(&isert_np->mutex);
- 
--	list_for_each_entry_safe(isert_conn, n, &drop_conn_list, node) {
--		list_del_init(&isert_conn->node);
--		isert_connect_release(isert_conn);
-+	for (;;) {
-+		mutex_lock(&isert_np->mutex);
-+		isert_conn = isert_np_take_conn(isert_np, &promoted);
-+		mutex_unlock(&isert_np->mutex);
-+
-+		if (!isert_conn)
-+			break;
-+
-+		isert_info("cleaning isert_conn %p state (%d)\n",
-+			   isert_conn, isert_conn->state);
-+		if (promoted)
-+			isert_put_conn(isert_conn);
-+		isert_put_conn(isert_conn);
+ 	mutex_lock(&isert_np->mutex);
+ 	owned = !list_empty(&isert_conn->node);
+ 	list_del_init(&isert_conn->node);
+@@ -677,6 +673,7 @@ isert_connect_error(struct rdma_cm_id *cma_id)
+ 		return 0;
  	}
  
- 	np->np_context = NULL;
++	ib_drain_qp(isert_conn->qp);
+ 	isert_conn->cm_id = NULL;
+ 	isert_put_conn(isert_conn);
+ 
+@@ -2479,11 +2476,10 @@ isert_accept_np(struct iscsi_np *np, struct iscsit_conn *conn)
+ 	isert_conn = list_first_entry(&isert_np->pending,
+ 			struct isert_conn, node);
+ 	list_del_init(&isert_conn->node);
+-	mutex_unlock(&isert_np->mutex);
+-
+ 	conn->context = isert_conn;
+ 	isert_conn->conn = conn;
+ 	isert_conn->state = ISER_CONN_BOUND;
++	mutex_unlock(&isert_np->mutex);
+ 
+ 	isert_set_conn_info(np, conn, isert_conn);
+ 
+@@ -2547,6 +2543,7 @@ isert_free_np(struct iscsi_np *np)
+ 
+ 		isert_info("cleaning isert_conn %p state (%d)\n",
+ 			   isert_conn, isert_conn->state);
++		ib_drain_qp(isert_conn->qp);
+ 		if (promoted)
+ 			isert_put_conn(isert_conn);
+ 		isert_put_conn(isert_conn);
 -- 
 2.43.0
 
