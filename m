@@ -1,55 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793700524;
-	b=nTjsvRM7KJh7qCHYQ9XZ025XxWvG021INqKfdc4Yqdsp911Ap1Cb5L9ClJhnvLEjx0Ob
-	 zeS7ucDi6S/7H0KyjKSMeG3yXyIblCD0izVN7xRsbBOrB7o8mcQNuvey1HFWjxM5zVlhv
-	 0oDUR2XUslCx2gnLV+fIso0hZH9B9iHuq0a1JkcGWvhe2ulK1gLKDIMfmfVSgb10aEb/6
-	 BqJxOnh+kiufb6sjWMz6aTrz/JvOieU0uCEdXXtvjF8OA+ldYiVBKJ22rXxU8oHANM+0V
-	 8RJ/NugIk7zSVxdK2W9Xs0GY1oaIcjlmalw9jlBHaYgDUlmwXrRD22oq5lxC48KCSxQ==
+	t=1793700612;
+	b=PdlTZprKcgNk6VfXjqM94d69sIIwytMyFtCgss1k2FmyZkveHKoULKpeW+rxVpCXV5HH
+	 4i67QBpgfYXYiEVhJLIBblYDl1XgkzzdyK4JUtgJ3SQCUbuGk0sydnUKAgCtFqLFCqzka
+	 t/duhsQEd7AcvHttiUDeVJ//zZmjy0Ed4op6cMFo1Lh4V/pt5GnYGU8MtOdOkJPRlzZSk
+	 h82+pnpGAOgUlvQinH7gooT5Qw4L3t+5E+NTkD/gLRSppnW2NLaw5LZFX3LYwjeazOGNE
+	 Vw3XztbT7MsyINRV3qPefWDEZ5RnF7imAUFLGNi2eBfI0R0U6WFnbWic3szaUs3Mjsw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793700524;
-	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
-	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Mailer;
-	bh=swdTypR9uUvAnD2bDnj7k3fz81yQtU6FPJ1wUHvFkwI=;
-	b=Aahujy/Xa8r+bfgaEwfN+iz18gUrYpc0DoMFaI0zd1WfZX0bMMdLj81JbU8CKfxkEWYQ
-	 ZhQytRWNN//ZNmnZFxgZyY765ZgNdE05qcWHGZyeA1LfZnvv04Es/yvU6C0n5zlkSVSJh
-	 Fe2p2zZg8JyvnEVoGnqUWTAA97zNAvLRR2BPB9Iwkz83mdi/7W4uq5UY6QHwAqUdDV8cc
-	 Z805Z2l1Id+1NmHxkTMAjNTO1uRl7mc5SounjdbCqchgbkue9mSKc7lqzwm9Bj2XBWGh7
-	 9ld8mrLvZJh72CYrILwtoCu4v+35uJ62AFyuf46FZ/nejwJ4UhH4NI75OQ0b6H9+fmQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793700612;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=FzKSPFtrnMdQXUg8B+1w3hd31jRQQ2g4UAoa0AdufIo=;
+	b=W+sjUAxt4wWe8b2yyzhA/jJBbbl0j8q+rBjj9O5C6D/EOEnc8rgsAAuXvLX7T/yJ5Ry+
+	 sWV/Tmo7p9TJ52/gbW23KXAz9C7xTmElJ0KoTqGWoN/W9wUiXDYQaa6rGbqyOsFdC1wLN
+	 wk1rgKjOLWtBleYUAVj/q+ga9QWIhvezuEI3J12mhuAblQ7QFzII4mgxRw2QNLWcUJQ+D
+	 VqkLWuKxFcko4NINDJ70qUrEx0fzdaMQ+x/f6GAVV6Sac0Y52JG7gqWtV49ywbimN+TBm
+	 jeWBi5Oe60vvgcIoDmo5a3rIjXE8ESqUCuwkz3C1uBkg8bmYuUkoaWnqRULRDdIimPA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=osGSGPlv;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=duFtv6CA;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C6B0606A817;
-	Tue,  3 Nov 2026 10:08:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC89660850A1;
+	Tue,  3 Nov 2026 10:10:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=osGSGPlv
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D4AF1F000C1;
-	Tue,  3 Nov 2026 10:08:43 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=duFtv6CA
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87A1F1F0093A;
+	Tue,  3 Nov 2026 10:10:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793700523;
-	bh=swdTypR9uUvAnD2bDnj7k3fz81yQtU6FPJ1wUHvFkwI=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=osGSGPlvNq1u3P3HRQCuQxVQKk7aBFb2Zu86APBhfj9PFRB+EIoC5cYrDls1aY5NI
-	 iBZMWBUNFp0IbJH4XK58xD/pCM/4Ijpgiiw6zEsr6eoaooFyHvhjfM4PDY2vimLxRL
-	 AVURGVxOpQpqFbqLW3/NCWE/CN8DLEHp3ZxiDkWqBVH3oMBEWf1QZtU44pCNHyBEK4
-	 xaYJ51H/346ii7rjw+QS5z4NUOp8ZBX4bWKMtjA5PGk0Yvac3examoxAhT7kSUjI65
-	 73UeQDkJGqg5kzFQOnu0xqyXIKt1jmDIlFJonkCwqGtRh35zAjAq8umEQKiXzthg0x
-	 XOTzVBHsJxTiA==
-From: Leon Romanovsky <leon@kernel.org>
-To: jgg@ziepe.ca, Abhijit Gangurde <abhijit.gangurde@amd.com>
-Cc: allen.hubbe@amd.com, a.k@amd.com, nikhil.agarwal@amd.com, 
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <20261027092353.1961552-1-abhijit.gangurde@amd.com>
-References: <20261027092353.1961552-1-abhijit.gangurde@amd.com>
-Subject: Re: [for-next 1/3] RDMA/ionic: size the MR PTE reservation to
- max_sg
-Message-Id: <179370052089.1715411.8295798950749355699.b4-ty@kernel.org>
-Date: Tue, 03 Nov 2026 05:08:40 -0500
+	s=k20260515; t=1793700611;
+	bh=FzKSPFtrnMdQXUg8B+1w3hd31jRQQ2g4UAoa0AdufIo=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=duFtv6CATf8pWAONDDaZBCQlohFu3RdGpP4Vg7G2W3zM1ZBc5h7wQu75rmkQJz6Hd
+	 8iFj3msv064vkEIBn4lYX2KADsySFLrRNRi7PfJFDikQy8ALG1AcAMXVisayC+RkXR
+	 n6W4HEwNXCuOOiLGdcH/xh9o3Dw3rcrXBISsOvkCkPMtnNNznXIgwuLnLSlDFWB3Kp
+	 0ctT/SnyiWm/ZGnXLFnBpW8lsS2arT1zqVg2JERCF2E9yCGXT1Qkfz3+ZNG9RvIH1F
+	 vGHmg1Ta7urVkAk1ZAcRvP5uu97WcBePlD5f/wYNNOBEKTZ8UjtnE2x7OY43wJhKUv
+	 FQ7xekrLVa3JA==
+Message-ID: <sashiko-outbox-195011@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH v12 09/19] PCI/P2PDMA: Route Relaxed Ordering
+ Completions directly
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Leon Romanovsky" <leon@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org
+In-Reply-To: <20261103-fix-p2p-acs-v4-0-v12-9-912101f93517@nvidia.com>
+References: <20261103-fix-p2p-acs-v4-0-v12-0-912101f93517@nvidia.com>
+ <20261103-fix-p2p-acs-v4-0-v12-9-912101f93517@nvidia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Tue, 03 Nov 2026 10:10:11 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,32 +60,25 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
 
+> From: Leon Romanovsky <leonro@nvidia.com>
+>=20
+> ACS P2P Completion Redirect leaves Completions carrying Relaxed Ordering
+> alone, per PCIe r7.0 sec 6.12.1.1. A Completion copies that attribute from
+> its Request, so a client setting it on Non-Posted Requests need not use t=
+he
+> host bridge solely because Completion Redirect is enabled.
+>=20
+> Route Completions directly for PCI_P2PDMA_TLP_RELAXED_CPL unless a device
+> quirk redirects them or the Completer lacks an internal route to its
+> sibling. Neither restriction promises a Relaxed Ordering exception. No
+> caller selects these classes yet.
+>=20
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 
-On Tue, 27 Oct 2026 14:53:51 +0530, Abhijit Gangurde wrote:
-> CREATE_MR with map_count zero makes firmware reserve its default number
-> of PTEs. A fast-registration memory region (MR) whose max_sg is larger
-> than that default fails at REG_MR.
-> 
-> Pass max_sg as map_count. The virtual address (VA) and length stay zero
-> because no buffer is mapped yet.
-> 
-> [...]
+Sashiko has reviewed this patch and found no issues.
 
-Applied, thanks!
-
-[1/3] RDMA/ionic: size the MR PTE reservation to max_sg
-      https://git.kernel.org/rdma/rdma/c/bfef8b13241cdb
-[2/3] RDMA/ionic: set the SQ WQE color bit
-      https://git.kernel.org/rdma/rdma/c/d1b8977f3a009e
-[3/3] RDMA/ionic: key recv completions by producer index
-      https://git.kernel.org/rdma/rdma/c/9ca2239d2fd274
-
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103-fix-p2p-ac=
+s-v4-0-v12-0-912101f93517@nvidia.com?part=3D9
 
