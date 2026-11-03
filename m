@@ -1,57 +1,63 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793712781;
-	b=trEFPwF8JcomnEwW3Am7Y+Uz0Z8nQl7gXBoTerpcvFMxyDFj7ApaWIzxDkdLzPO1/Rau
-	 knnAeJpfZrYY6Rd7q6gGv6dFEwl/aEAblNSfoDSWLLh5atVqsJgd0Y/TI64ugPQgDzp5Z
-	 yCB2NuPVGpyv/bwokcbCS44PqIrZN2rAfb/F+Nog/tXYS7RWeJa4O+PZJejtEuDOd4jLG
-	 BY246Z2rAwTrJZ8Pd28akvm2poIgYOEVfPZ2508UJy9v+KVVlFk6RsPHm1cpNt1EjitE9
-	 XQu9yHEJGddqm7syTurN0VmWYbu7yBEKIEgP9gt2KL6EfD5RcfHZCLwkOIt/ird203g==
+	t=1793712790;
+	b=4/cckegL9WQ0M1JDz6Hc+P2d3PNDFWNpw3ojSX1fEbrrq+5Tdh4fHq8fO3UMEwbLiYFw
+	 VtO/tzE0qC3FZnXFqbmGE+ZPLOBsXzps5WT8V/4zCQ+K3hMPlQNqyrkFn9SWBp6IU3c/h
+	 dJNO9hyu2FyIunEDpjgcQ3tMHdl5O27wNhT9it6urxrJSxObny44Az6Fqjq+ggzOd1Auu
+	 MaYWSSDKnOarh5vaGsphWLNojc57Jdl1/MdLb/AbGqDJTGvEa3SxxdQaYnaDxz9+X5hMK
+	 IdRI2ft0Ffa6IzB9lMy0Zf3KjjyTrwZoOTwkxX+Kuq5gxSKrTLFegUaee+LP9dxymsg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793712781;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793712790;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=z66IJvRsxHOgUIzPPCi2BqeXwiNJpMUq53kMmMzM7i0=;
-	b=ea30Eypbzb+ECKWAlZoxo0zUbvejsl0fwIck1wXgjFyHMFIJQweKkkPfmTngOXoYm4bH
-	 1niqS/HQbmIbkNWET/Qww6yysnyAwaGRTSQX7Lp0arDjCPW2IVltIGpUHEhDrRNxX4OJE
-	 tpeSiNLtvGrz9khQeBv1XGR5aBgNC1EVtJnJWdwSodIsbVtmIGfPQeOfhmFq8rXsBhuTk
-	 kGIROvJTHZqVUuC32/ultiRzs+xsssmQifxh8kV+r9E6nTHz5i3+fM0ke3O1PWGqtybfU
-	 p1lu6/flgKsaWjcGxt/U9iGmmUpoXCb1ZRnAbvKlopg4TYVUVTGxbU53dUQpQZTdRvw==
+	bh=RMRHszNpCciqBBPZUBDOV70emHMegVWchWySc/2suFw=;
+	b=w0HlQsbSLh19Wd5eVIhb2SSan2STP4mVhLM/VFPS20i1XhH54aI8u7sHwwoagF50s2ZW
+	 BdqJg9n3COeAwW+VDRkDkcZFsVdUgRoop81a1zw1GeFhgvZHjBObMar762yIR7kuRAd7k
+	 bfN5k0ozBQSiYH6kZ5X4oDlJcEz5sZ5sx2fMDWLrqMy9PyYJOjXNUo0XyV2sOPvj28F24
+	 QkhaYB8XBEV+eXMIJ0KHr009/dOB83nE+FbpYhK0w5znxNfH9LYpE0tPIDgQNHKsF9wbE
+	 zgLC7XJSvDYEx7tNQgB9RbY8WKcy2rsQ5nofnhV2suqZ1LCJxdU87GOJfSObMyArdfg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Nt/lkrxN";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OMtvuhnv;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 734B7606A32E;
-	Tue,  3 Nov 2026 13:33:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6932B608508C;
+	Tue,  3 Nov 2026 13:33:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Nt/lkrxN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA15E1F00A25;
-	Tue,  3 Nov 2026 13:33:00 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OMtvuhnv
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5932E1F0093A;
+	Tue,  3 Nov 2026 13:33:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793712781;
-	bh=z66IJvRsxHOgUIzPPCi2BqeXwiNJpMUq53kMmMzM7i0=;
+	s=k20260515; t=1793712790;
+	bh=RMRHszNpCciqBBPZUBDOV70emHMegVWchWySc/2suFw=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Nt/lkrxNhGcb+EDFbGugnOKZjb0SLIRgQ1B8QtgrJ41MAx1rZ/Z0ZUdQBep+W3APx
-	 SyR2j3I051Va5lIZ46oRbA9JAZZn45Zz0UQpcYcKuelmdOLA0Lnqtqg3XO8Z/0FTkK
-	 ArFerxTRLwBhJhy2CKA0yTmlEJdCbJTt6UIaQ6xWzTF4gNym9Lkc0NPfJ9Xx99qenr
-	 gF/lVBgpWt/15j/prwkQ8lBu7unWDVXIuDhKcuLYLV3UvCDL1/v20kuph1MO3e5Ihc
-	 eDjAjU25T3/z+ur7QrnngZjgaDfAHkoFYi4BNVbUcrJn/gWzG72Bm/VOV/ZDuukHAI
-	 qJKwnANsLlBmA==
-Date: Tue, 3 Nov 2026 14:20:24 +0200
+	b=OMtvuhnv6GU7f2DlPAU0Ih/0W+Rv05MWsmj9kELv94tdKdWyovlQV5yZrexjgvhhp
+	 nOznbw7Xan62brbddvdJE/5Cy0cOzAo5ZWmuMzrYzaqJoJpc0uBiV3nTLLBEUmM7Ea
+	 /DNqO+EmZnKtxf849lXVc3OFBzCYxRYffpsov64fu6DJUSUjkTzXt9P3s/ew30xO3B
+	 btMPRls3hbYJ216eoBXTwq0BNm9W2ll2WndqqYuaQWgWXeAmAylNwvPUE87aAKBE0X
+	 DJzDihkJ8pVbEYvlBNjrIAkJzlLaNRzrvyDY/LlBCw2cf1zKxYNRTwJzHacBPaOxpl
+	 pTad+vw2rb0AQ==
+Date: Tue, 3 Nov 2026 15:28:00 +0200
 From: Leon Romanovsky <leon@kernel.org>
-To: Yuqiang Sun <izaiahsun@gmail.com>
-Cc: haris.iqbal@ionos.com, jinpu.wang@ionos.com, jgg@ziepe.ca,
-	guoqing.jiang@linux.dev, gi-oh.kim@ionos.com,
-	aleksei.marov@ionos.com, lgs201920130244@gmail.com,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH 1/3] RDMA/rtrs-srv: Do not free the path on path file
- creation failure
-Message-ID: <20261103122024.GG264423@unreal>
-References: <20261029042719.75868-1-izaiahsun@gmail.com>
- <20261029042719.75868-2-izaiahsun@gmail.com>
+To: Pranjal Shrivastava <praan@google.com>
+Cc: linux-nfs@vger.kernel.org, Trond Myklebust <trondmy@kernel.org>,
+	Anna Schumaker <anna@kernel.org>, Chuck Lever <cel@kernel.org>,
+	Jeff Layton <jlayton@kernel.org>, linux-kernel@vger.kernel.org,
+	Christoph Hellwig <hch@lst.de>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, linux-pci@vger.kernel.org,
+	linux-rdma@vger.kernel.org, Shivaji Kant <shivajikant@google.com>,
+	Tom Talpey <tom@talpey.com>,
+	Unnati Sachan <unnatisachan@google.com>
+Subject: Re: [RFC PATCH v1 4/8] xprtrdma: return -EREMOTEIO on P2PDMA map
+ failure
+Message-ID: <20261103132800.GI264423@unreal>
+References: <20261006233248.705086-1-praan@google.com>
+ <20261006233248.705086-5-praan@google.com>
+ <20261012070134.GG27033@unreal>
+ <auCRpd73dok7Yys7@google.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,158 +69,81 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261029042719.75868-2-izaiahsun@gmail.com>
+In-Reply-To: <auCRpd73dok7Yys7@google.com>
 
-On Thu, Oct 29, 2026 at 12:27:17PM +0800, Yuqiang Sun wrote:
-> When rtrs_srv_create_path_files() fails after kobject_init_and_add() of
-> srv_path->kobj, its error path ends with kobject_put(&srv_path->kobj),
-> and the release, rtrs_srv_release(), frees srv_path.  The caller does
-> not expect that: process_info_req() goes on to free its tx IU through
-> srv_path->s.dev, and rtrs_srv_info_req_done() then closes the path,
-> whose close work tears down the connections, puts the session and
-> finally frees srv_path again in free_path().
+On Tue, Oct 27, 2026 at 11:57:25AM +0000, Pranjal Shrivastava wrote:
+> On Mon, Oct 12, 2026 at 10:01:34AM +0300, Leon Romanovsky wrote:
+> > On Tue, Oct 06, 2026 at 11:32:44PM +0000, Pranjal Shrivastava wrote:
+> > > ib_dma_map_sg() returns 0 on any failure, so frwr_map() cannot tell
+> > > why a mapping failed and reports -EIO. Use ib_dma_map_sgtable_attrs()
+> > > instead, which returns the reason. Pass up -EREMOTEIO, which means
+> > > the device cannot reach the P2PDMA memory, so the RPC fails with the
+> > > same error as other P2PDMA refusals. Every other mapping failure
+> > > still returns -EIO.
+> > > 
+> > > Signed-off-by: Pranjal Shrivastava <praan@google.com>
+> > > ---
+> > >  net/sunrpc/xprtrdma/frwr_ops.c | 15 ++++++++++-----
+> > >  1 file changed, 10 insertions(+), 5 deletions(-)
+> > > 
+> > > diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+> > > index e83cef19e656..a55d5e11c0e2 100644
+> > > --- a/net/sunrpc/xprtrdma/frwr_ops.c
+> > > +++ b/net/sunrpc/xprtrdma/frwr_ops.c
+> > > @@ -293,7 +293,8 @@ int frwr_map(struct rpcrdma_xprt *r_xprt,
+> > >  	bool sg_gaps = ep->re_mrtype == IB_MR_TYPE_SG_GAPS;
+> > >  	unsigned int max_depth = ep->re_max_fr_depth;
+> > >  	struct ib_reg_wr *reg_wr;
+> > > -	int i, n, dma_nents;
+> > > +	struct sg_table sgt;
+> > > +	int i, n, dma_nents, ret;
+> > >  	struct ib_mr *ibmr;
+> > >  	u8 key;
+> > >  
+> > > @@ -381,10 +382,13 @@ int frwr_map(struct rpcrdma_xprt *r_xprt,
+> > >  	mr->mr_dir = rpcrdma_data_dir(writing);
+> > >  	mr->mr_nents = i;
+> > >  
+> > > -	dma_nents = ib_dma_map_sg(ep->re_id->device, mr->mr_sg, mr->mr_nents,
+> > > -				  mr->mr_dir);
+> > > -	if (!dma_nents)
+> > > +	/* Unlike ib_dma_map_sg(), this reports why a mapping failed */
+> > > +	sgt.sgl = mr->mr_sg;
+> > > +	sgt.orig_nents = mr->mr_nents;
+> > > +	ret = ib_dma_map_sgtable_attrs(ep->re_id->device, &sgt, mr->mr_dir, 0);
+> > 
+> > Please avoid using this function. We are gradually moving away from SG tables
+> > in the RDMA code.
+> > 
+> > In general, it is never good thing to built API around try-and-fail
+> > approach. It will require from us to be aware of "specific" usage for
+> > the return value from one subsystem by another.
+> > 
 > 
-> Commit 5b7437339011 ("RDMA/rtrs: Fix use-after-free in path file
-> creation cleanup") reordered the cleanup inside
-> rtrs_srv_create_path_files() so that the helper runs before the put, but
-> the final put still frees srv_path under the caller.  The same pattern
-> exists one level down: rtrs_srv_create_stats_files() puts
-> srv_path->stats->kobj_stats on failure, whose release frees
-> srv_path->stats, which free_path() frees again.
+> Fair, I'll drop ib_dma_map_sgtable_attrs(), keep ib_dma_map_sg() as it 
+> is today, and check reachability explicitly before mapping instead.
 > 
-> With one allocation failure injected into kobject_init_and_add() of the
-> path kobject (failslab restricted to rtrs_srv_create_path_files), KASAN
-> reports while a client connects:
+> rpcrdma_p2pdma_allowed() already asks ib_dma_pci_p2p_dma_supported()
+> whether the device can do P2PDMA at all. It would also run
+> pci_p2pdma_state() against the device's dma_device for the payload
+> pages, and refuse the RPC with -EREMOTEIO on
+> PCI_P2PDMA_MAP_NOT_SUPPORTED. A mapping failure then stays a plain
+> -EIO, and nothing depends on the DMA layer's return value.
 > 
->   BUG: KASAN: slab-use-after-free in rtrs_srv_info_req_done+0xe43/0x1740
->   Read of size 8 by task kworker/0:1H/84
->   Call Trace:
->    rtrs_srv_info_req_done
->    __ib_process_cq
->    ib_cq_poll_work
->   Freed by task 84:
->    kfree
->    kobject_put
->    rtrs_srv_create_path_files
->    rtrs_srv_info_req_done
-> 
-> These paths run in the server's completion worker when a client sends
-> its info request, and are reached when allocating or creating the sysfs
-> entries for the new path fails.
-> 
-> Keep srv_path and its stats owned by the caller on failure: the error
-> paths only delete what they added, and free_path(), which runs in every
-> case, drops the kobjects that were initialized but never made it into
-> sysfs, so their releases free the structures; otherwise it frees them
-> as before.  This keeps the kobject names from leaking, which is what the
-> puts in the error paths were added for.
-> 
-> The problem was found with kbound, a static analysis prototype that
-> checks whether callers rely on an object after a callee returns a value
-> for which the callee may have released it, on v7.2.12; it is present in
-> the rdma for-next branch.
-> 
-> Build-tested with x86_64 and arm64 allmodconfig (W=1, sparse): no new
-> warnings.  Run-tested under KVM (KASAN, lockdep, kmemleak), failing the
-> path or the stats kobject allocation with failslab during a client's
-> connection: before this series KASAN reports use-after-free in
-> rtrs_srv_info_req_done() and rtrs_srv_close_work() and a general
-> protection fault follows; with this series nothing is reported, also
-> with CONFIG_DEBUG_KOBJECT_RELEASE.  Failures of the two
-> sysfs_create_group() calls were not injected.  With this patch alone,
-> the close work still uses the session freed as described in the next
-> patch.  Not tested on RDMA hardware.
+> xprtrdma can be built as a module, though, and pci_p2pdma_state() is
+> an inline wrapper around __pci_p2pdma_update_state(), which isn't
+> exported. I see two ways to handle that: export
+> __pci_p2pdma_update_state() as is, or add a small exported helper in
+> p2pdma.c that returns the map type for a page and a device, e.g.
+> pci_p2pdma_page_map_type(). Which would you prefer?
 
-Interesting claim. How did you trigger the KASAN warning in the RDMA ULP?
+This isn't my decision to make, but my understanding is that these functions
+should not be exported. They are intended for use by subsystem core code,
+which should export the processed results to its local callers.
 
 Thanks
 
 > 
-> Fixes: 424774c9f3fa ("RDMA/rtrs: Call kobject_put in the failure path")
-> Cc: stable@vger.kernel.org
-> Assisted-by: Claude:claude-opus-5-5 kbound
-> Signed-off-by: Yuqiang Sun <izaiahsun@gmail.com>
-> ---
->  drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c | 16 +++++++---------
->  drivers/infiniband/ulp/rtrs/rtrs-srv.c       | 14 +++++++++++++-
->  2 files changed, 20 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c b/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
-> index 9dd9141c86a5..45ee07a98ca8 100644
-> --- a/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
-> +++ b/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
-> @@ -238,25 +238,24 @@ static int rtrs_srv_create_stats_files(struct rtrs_srv_path *srv_path)
->  				   &srv_path->kobj, "stats");
->  	if (err) {
->  		rtrs_err(s, "kobject_init_and_add(): %pe\n", ERR_PTR(err));
-> -		kobject_put(&srv_path->stats->kobj_stats);
->  		return err;
->  	}
->  	err = sysfs_create_group(&srv_path->stats->kobj_stats,
->  				 &rtrs_srv_stats_attr_group);
->  	if (err) {
->  		rtrs_err(s, "sysfs_create_group(): %pe\n", ERR_PTR(err));
-> -		goto err;
-> +		kobject_del(&srv_path->stats->kobj_stats);
-> +		return err;
->  	}
->  
->  	return 0;
-> -
-> -err:
-> -	kobject_del(&srv_path->stats->kobj_stats);
-> -	kobject_put(&srv_path->stats->kobj_stats);
-> -
-> -	return err;
->  }
->  
-> +/*
-> + * On failure, the caller still owns srv_path and frees it in free_path(),
-> + * which also drops the kobjects initialized here.  Do not put them here:
-> + * their releases free srv_path and srv_path->stats.
-> + */
->  int rtrs_srv_create_path_files(struct rtrs_srv_path *srv_path)
->  {
->  	struct rtrs_srv_sess *srv = srv_path->srv;
-> @@ -296,7 +295,6 @@ int rtrs_srv_create_path_files(struct rtrs_srv_path *srv_path)
->  	kobject_del(&srv_path->kobj);
->  destroy_root:
->  	rtrs_srv_destroy_once_sysfs_root_folders(srv_path);
-> -	kobject_put(&srv_path->kobj);
->  
->  	return err;
->  }
-> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> index 5314599d29fe..641a7bf5e02c 100644
-> --- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> +++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> @@ -1584,11 +1584,23 @@ static void free_path(struct rtrs_srv_path *srv_path)
->  	if (srv_path->kobj.state_in_sysfs) {
->  		kobject_del(&srv_path->kobj);
->  		kobject_put(&srv_path->kobj);
-> +		return;
-> +	}
-> +
-> +	/*
-> +	 * rtrs_srv_create_path_files() may have failed after initializing
-> +	 * these kobjects; then their releases free the structures.
-> +	 */
-> +	if (srv_path->stats->kobj_stats.state_initialized) {
-> +		kobject_put(&srv_path->stats->kobj_stats);
->  	} else {
->  		free_percpu(srv_path->stats->rdma_stats);
->  		kfree(srv_path->stats);
-> -		kfree(srv_path);
->  	}
-> +	if (srv_path->kobj.state_initialized)
-> +		kobject_put(&srv_path->kobj);
-> +	else
-> +		kfree(srv_path);
->  }
->  
->  static void rtrs_srv_close_work(struct work_struct *work)
-> 
-> base-commit: c3e8e9451e6f1b69f685b75e0fbf14f3d0fb2539
-> -- 
-> 2.53.0
+> Thanks,
+> Praan
 > 
