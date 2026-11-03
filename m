@@ -1,53 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793697714;
-	b=tP1hyRKVL+5qhLxfsIrDit0QwFXXVQDvCa+S+6EQOGMM89SEFkdTXRN8JP2AEqoWxxmj
-	 5ejlWX5jq2jPDRFsyxfDqmh4D0vxD4cFCyI1B9Uab0emlSnWL+m7dAl63yoFfigGxuepV
-	 VFbBWjOE/y3d8ZeXR7LQAlO/HRCK1mmGutYITNaj2l3LgTL9fVHTFZdgTbr52D3nfsxrd
-	 EVXBC0hqq4eMvb3eyCPnXcq0TXrAdqb6UCQSno4+zd30NMZA7Zyb/0243FKwevf7HoEr3
-	 8R4UkFF0S4kfHknWPUIssOx2EraKmlPPCu5bJPZF1nIx9I/b5wB87nB5DZRqEG8Cy1Q==
+	t=1793697711;
+	b=GAQ2qpFwa0tzYIKGqTTWG9+BBVtQ7HlEpvIxZsqjyZZLcsvLqAk4taWH2Dq7sCBUc9S6
+	 wxZ/CThAK/tUVpLxmfgzWuWzACEdl3Ca/Dkem3z1PwUGBOO/hTmn5g+45THfMj5BWTafC
+	 XtI1OnLPqSpSfbHqAlYtd+evt3p3v0yKhmskFGrhgCbcD2pm9+94UXrTvh780DBbbleeT
+	 b5rUMrbAQTgatjE+XeWb2aBwYfp+3NI3ApwAOjLSaJJgK/vyiCADDXGMRPQ90yOMSEp7x
+	 KMIIp/EdzN4X5z872Q93fbhESk9TUO+KsNOvNlkeGwpmP3r8DlgRPt3oAYRw5mUwTEw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793697714;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793697711;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=LUWpwYBuIGEbLF9N0wJhb3n/Cjc8fUlO3M1H4nDXmts=;
-	b=c9Yugb3TGn6n/agsIckED7i21GbhxtAbBcp4DtbEfjiADDcell5Xpp8RYY0v/9Ez3T1+
-	 s0upl+dqKj0KiMqPwDz+TzJdALpKmVUUhR9u5eOv2d7WLJxzCz1JeABP7aBWVNYU/lnfh
-	 8FwTftJyVou5CXOZa/OUGCmyX8ef08MnNSMf39ysRaey8qeEhKzOoMTBPOjnZRqnlOadl
-	 LonsWHhTi6rj5UUc25qIG6nFGAkHzDIAqNw7ebW+Lupzk/D7hKFUbSg6xKwKKzguHW79z
-	 TKJhaELa44CXnJ4ro84cNxbhx3X/Ltw+eS1STF6vLU+OG8J8XIf02nb0d//sLNPiGuQ==
+	bh=Dm6OMR92xAevISjMzNLDdpd0lsO0u5q4NStQZiJFruo=;
+	b=EslQOHxp8CpOYPWW1NJ/jj6U3VJztz9+guCcwoFryXQw/UhGj259IiXv3TDJEF1wo5lQ
+	 oYobmAfwxxctCnOpWoixFbe/U5U9mCT16Daz2wNIsH3QrjLa0ew2CrcJEYCTOwrzUF5Bs
+	 U1sd8vHmisyI1LzY/fN95AM+7Ywc5H8kg328svmEtJv0smoB0/I3Wi0ip70BC3r9REivu
+	 R/4qClXuwm1i6MtM4Ox8oPRxoOl4pX1IAQ9u/h5R3VAk3AivwMXH3qKujEIjyTTKQd5Jp
+	 nKPuLpdn/Dq84wJAhWMug5ZiTKNoovXcrxzF0+o0J9D/ZFKx7zu9qfziDcNzFByAj4A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UQoXHkVd;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gkndL+Tk;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AC356083629;
-	Tue,  3 Nov 2026 09:21:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65A4C6083617;
+	Tue,  3 Nov 2026 09:21:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UQoXHkVd
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67CB21F0093A;
-	Tue,  3 Nov 2026 09:21:53 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gkndL+Tk
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E64F1F00A15;
+	Tue,  3 Nov 2026 09:21:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793697714;
-	bh=LUWpwYBuIGEbLF9N0wJhb3n/Cjc8fUlO3M1H4nDXmts=;
+	s=k20260515; t=1793697711;
+	bh=Dm6OMR92xAevISjMzNLDdpd0lsO0u5q4NStQZiJFruo=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=UQoXHkVdAP3hp1hkDdM7PbjS+tJ6HvOefKfoKPlMb60OaELYUmK0Gg/L1YV9UlPTB
-	 k89D8cHO9dS35rDFBwHjwpZZ1ST8irBFruBdyoRGlf4YX8720VIwedOa51q+Q+CQpC
-	 bRCfkcMJ/7/fqAvaM6gp4zJBIHrs2BvA2op7npsnxlh5y8Ftc2XfANp19ABc4vbuno
-	 6XfvdOHE4dxphUVW5YTca3LQEeFFoJbdLLVezs1kT4jyujn/gNRmalTzuPrwfqqGs6
-	 Zo6zKSrqY/RJSjC8wCzk/mH7GX2millelPFfM8Ml6tx680rkKgwfIqyL9PmK/Ff8yO
-	 DmRq0QlQAblsA==
-Date: Tue, 3 Nov 2026 10:21:51 +0100
+	b=gkndL+TkokuC5gxc3W6193nSDBfRnsKAT1QfgWrfCgFtnS9r7pWhvMjYoxcJIcvVv
+	 bj6MeZivoDiIR2OnqZPLUnmQjwLy/PrWSJocp0oQA/j5ju56NzrBxJRXoD+GdlACTZ
+	 OkD9GLty6DUtNHA5H4gpJP6h+cr3Y9NAsHJSdQfr6jGyh5jhMNNhhjQCS8rfi910rV
+	 FmEyjCfPw5iyxvezJmEwmbVEhRPuVoyaauC2EHTdykb79wvoAZFZVIdqd92GV2/hbg
+	 EuvSMDTBa0oywJYHMl8trQ2N+9pbqbdT2nf7lbdo2hQPUoGwip5WiAD5b3DhjGsNpO
+	 Dv2fwPj3tGWdg==
+Date: Tue, 3 Nov 2026 10:21:48 +0100
 From: Krzysztof Kozlowski <krzk@kernel.org>
 To: Wentao Liang <vulab@iscas.ac.cn>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	stable@vger.kernel.org, selvin.xavier@broadcom.com, jgg@ziepe.ca, leon@kernel.org
-Subject: Re: [PATCH] RDMA/ocrdma: Release user memory when MR registration
- fails
-Message-ID: <20261103-fulmar-of-stereotyped-beauty-011538@quoll>
-References: <20261103081212.1137625-1-vulab@iscas.ac.cn>
+Cc: stable@vger.kernel.org, jgg@ziepe.ca, linux-rdma@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, mkalderon@marvell.com, leon@kernel.org
+Subject: Re: [PATCH] RDMA/qedr: Release user memory on MR registration failure
+Message-ID: <20261103-artificial-delightful-beluga-cf9fda@quoll>
+References: <20261103081615.1143267-1-vulab@iscas.ac.cn>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,27 +58,26 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20261103081212.1137625-1-vulab@iscas.ac.cn>
+In-Reply-To: <20261103081615.1143267-1-vulab@iscas.ac.cn>
 
 
-On Tue, 03 Nov 2026 08:12:12 +0000, Wentao Liang wrote:
-> ocrdma_reg_user_mr() pins and maps user memory before preparing its page
-> buffer list and registering the MR. If any subsequent step fails, the
-> error paths free the MR and any allocated PBL tables, but never release
-> the user memory. The pages remain pinned and DMA mapped, and the locked
-> memory accounting is not restored.
+On Tue, 03 Nov 2026 08:16:15 +0000, Wentao Liang wrote:
+> qedr_reg_user_mr() acquires user memory before initializing the PBL and
+> allocating and registering a hardware TID. The error paths after that
+> acquisition release the MR storage and PBL resources, but skip
+> ib_umem_release(), leaving the user pages pinned and DMA mapped.
 > 
-> Release the umem on these failures. Use a separate label for failure of
-> ib_umem_get_va() itself so its error pointer is never passed to the
-> release function.
+> Release the umem at err1, which is reached after a successful acquisition.
+> The failure path of ib_umem_get_va() still jumps directly to err0 and
+> never passes its error pointer to ib_umem_release().
 > 
-> Fixes: fe2caefcdf58 ("RDMA/ocrdma: Add driver for Emulex OneConnect IBoE RDMA adapter")
+> Fixes: e0290cce6ac0 ("qedr: Add support for memory registeration verbs")
 > Cc: stable@vger.kernel.org
 > Assisted-by: DeepSeek-V4.1-Flash and OpenAI Codex
 > Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
 > ---
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+>  drivers/infiniband/hw/qedr/verbs.c | 1 +
+>  1 file changed, 1 insertion(+)
 > 
 
 
