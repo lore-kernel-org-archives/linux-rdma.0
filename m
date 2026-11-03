@@ -1,55 +1,49 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=159.226.251.81
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793691713;
-	b=3naBllhPOavbEJT84IMFEA/tcKGWagIiKQmp0AZoY8U0F4YLTlWTHiJjI0UjM4nzRqQ3
-	 Kf0iDJmkEHkVKN7R6DXzkA/E9Mqf4tOdiDJMxkmqEuwr15FJF50YdqsadWVly6lwkVxG+
-	 nXyvJ9HT+Hgcrli1fz0k/Lhh2c/fXLEnO0stj985KbUmuE1qOaBMq0HDYS5/GW4jSRCOT
-	 s+vGsC4wBiG5uzDxBL3rXqJJ5/V889Sv9CzAP2trQoebJe6YXwr/dGAtlV0FNSAZkmXAa
-	 KS2ulcQO90cq+Et8B2RimCYOK/5E5f+bfHxiCSiEpGh9JzRrx2MtGOielEK8IRT6I/w==
+	t=1793693458;
+	b=SyH7WShOiG+aeW9gSWtmJOcv/aFNzeauyfpevkV+2Ru3kZpf083jXijQCUw8ot6+6MA0
+	 vQyftokaE7ileUrIRu26MdjvVEQbe6LVJ0832sMkLyKpZ3YJTxubTAMJKddMzd7/T2ERs
+	 wMl+f8C7wt7htm11P3MmI3lQBrinTglVwJ/ZFK6TvYXzcM3rIdoOxXMuT2BcryJQT+JiI
+	 Y0h9ApcJ208Xycu6znnReRT548Jj09VP2CJjITgctZZh15bAT20kL0rUsIJm+7D99Ex89
+	 SAGIwXNQExPDUi8K0TfV3sHVglRPB7rvHSwhoyVMIPTkwTBG7fu261jokSmQDl68Saw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793691713;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=lKAUc/iUJmPR/HMF9aaTsKUQAf3GWXkhJoXNRjtJvi4=;
-	b=x19FCUUS2+8GHZNfO6zlSGQvpvB/ossIcrZpzUOCglOX05M9eWKKKc19yd0grUxzzT+7
-	 zh5D901+RFPRJyNZx/2R9mQVC/lLc3MS2s8v+kisapz8M5EOob3L5Te2x//QeNSJuzx1B
-	 WG75srIDj4DtH1p9apu+TUGdXzQYWlXNX2fj1cwuuxTL3BjH6lZetDNJLUJph6dhIaK2f
-	 +FQDhQ8cD06xayzMQm1WripBnMBUTkgY7gId6TYVmPrx+VzoktgT4mmZqafZMfVWYtDiL
-	 2SPqShNaiJEZtUjEgEJad98fpTmKtrabe5gnNsMm9BljYPJdF6i7D69ZVbi/8mIoRDQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793693458;
+	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-Id:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding:X-CM-TRANSID:
+	 X-Coremail-Antispam:X-Originating-IP:X-CM-SenderInfo;
+	bh=HUZpK24o84wPwNtUK+OHNr/ldBfN/PVneAO/2TSEglk=;
+	b=IJk5T7UGeF/Df9XWqnYPJDexpjKsGIQMH8gAiA3o7nJJ1LClzcA9TqHZIo6b9pfjkd2D
+	 vDBCDGRxoQxIBsx3guduMWPe1xAWG246gaqqiNn+OUREmoTQyt68HhFCsy48EqTgJLWCQ
+	 /jkYTF35+4JgGPhWmoSQeSQCPqByLXPvwd4Nisz6FW8l2S9NXnHIGxM4uAGWYwvrwoGY8
+	 edVscJZIzBS6qDG/Ie8ub/ADy2FUdm6jZUPvqk8QVCe7D5sj4oTsxuS/ONsHWgic8zm/E
+	 TZBriZiy9KggJpViegLupG/rm6rU9366x37ZAxJLX2rtxyh7X7zkhVwUfof6of/pNTg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OnN8Hoob;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=none header.from=iscas.ac.cn;
+	spf=pass smtp.mailfrom=iscas.ac.cn;
+	arc=none smtp.remote-ip=159.226.251.81
+Received: from cstnet.cn (smtp81.cstnet.cn [159.226.251.81])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84F52606A329
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 07:41:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OnN8Hoob
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACA231F00919;
-	Tue,  3 Nov 2026 07:41:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793691712;
-	bh=lKAUc/iUJmPR/HMF9aaTsKUQAf3GWXkhJoXNRjtJvi4=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=OnN8Hoobd+JYqEcLK5LQv20DnNG+ZLmc26akxR8nQDvKKGMHELaASBfpnSDXJBLOO
-	 ROr0KUcATJMOwO9gpfogPiERi2eszWRY2Wf1FFhU2dSdlduhS00IfbyQD0AN9giOc4
-	 F4RAmXoV8KNtSNyUdPhYASBM20jRVMOqAM6taOGqAecV4NCwAi6EQbQdwdrqCCcZdh
-	 tMv+dnqN6Kxx/s4zDzH0Q7JRkdiF5QmtB9DmI/qppIHxYvOtsixJrl2Mk+f18VoLWw
-	 9XW9qGSP9grJOOsDrCjemmKd5FR0eK8IRuv9hNX5NB00Pu0NVM4ITNOZ4iI0IRLY7x
-	 //mETGmCJ6PKA==
-Message-ID: <sashiko-outbox-194725@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v1] net/mlx5e: IPoIB: Fix race in QPN to netdev mapping
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Binbin Deng" <18983559317@163.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261102074107.32859-1-18983559317@163.com>
-References: <20261102074107.32859-1-18983559317@163.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 03 Nov 2026 07:41:52 +0000
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4666606A33A;
+	Tue,  3 Nov 2026 08:10:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E4666606A33A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
+Received: from dfae2b116770.home.arpa (unknown [36.110.52.2])
+	by APP-03 (Coremail) with SMTP id rQCowAAHE5QOl+lqDUQ6AA--.1272S2;
+	Tue, 03 Nov 2026 16:10:54 +0800 (CST)
+From: Wentao Liang <vulab@iscas.ac.cn>
+To: jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Wentao Liang <vulab@iscas.ac.cn>,
+	stable@vger.kernel.org
+Subject: [PATCH] RDMA/cm: Release the GID attribute even if its port has no CM support
+Date: Tue,  3 Nov 2026 08:11:03 +0000
+Message-Id: <20261103081103.1134475-1-vulab@iscas.ac.cn>
+X-Mailer: git-send-email 2.34.1
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,109 +52,58 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:rQCowAAHE5QOl+lqDUQ6AA--.1272S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7tFyrZr4fZFy8KrW8Wr4fuFg_yoW8Grykpa
+	yDJ34YkFy5XF47Kw48Ja1UZa45G3s7Ja42gFykW3s29rn8X3W2vFyFk3WI9F98Xr97X3y7
+	Xr12yF1kWrykXrJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUkE14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26F4j
+	6r4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oV
+	Cq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0
+	I7IYx2IY67AKxVWUtVWrXwAv7VC2z280aVAFwI0_Cr1j6rxdMcvjeVCFs4IE7xkEbVWUJV
+	W8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lc7CjxVAaw2AFwI0_
+	JF0_Jw1l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67
+	AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r126r1DMIIY
+	rxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_JFI_Gr1lIxAIcVC0I7IYx2IY6xkF7I0E14
+	v26F4j6r4UJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Gr0_
+	Cr1lIxAIcVC2z280aVCY1x0267AKxVW8Jr0_Cr1UYxBIdaVFxhVjvjDU0xZFpf9x0JUXID
+	7UUUUU=
+X-CM-SenderInfo: pyxotu46lvutnvoduhdfq/1tbiCRUAA2rpWfXlIgAAs3
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
-s) to consider:
-- [Critical] net/mlx5e: use-after-free of node in mlx5i_pkey_get_netdev() a=
-fter unlock
-- [High] net/mlx5e: missing spin_unlock_bh() on error in mlx5i_pkey_get_net=
-dev()
---
+When no source GID attribute is supplied, get_cm_port_from_path() looks
+one up with rdma_find_gid(). A successful lookup takes a reference even
+if the matching port has no CM port object. cm_add_one() skips ports
+without IB CM support, so cm_dev->port[] can contain NULL entries.
 
-commit ce671ddaa82c0cc9dedd5f6d773ead36eb9647fc
-Author: Binbin Deng <18983559317@163.com>
+The current cleanup tests port instead of the lookup result, leaking the
+GID attribute reference when a matching non-CM port is found. Test whether
+the attribute is valid before releasing it. Keep the put outside the
+CM device lock and skip it for a failed lookup or an empty device list.
 
-net/mlx5e: IPoIB: Fix race in QPN to netdev mapping
+Fixes: 398391071f25 ("IB/cm: Replace members of sa_path_rec with 'struct sgid_attr *'")
+Cc: stable@vger.kernel.org
+Assisted-by: DeepSeek-V4.1-Flash and OpenAI Codex
+Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
+---
+ drivers/infiniband/core/cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-This commit adds spin_lock_bh(&ht->ht_lock) protection around QPN-to-netdev
-hash table lookups in mlx5i_pkey_del_qpn() and mlx5i_pkey_get_netdev() to
-prevent concurrent node removal and freeing during NAPI RX processing.
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 1a2c2775b14d..0d95cb27ad17 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -517,7 +517,7 @@ get_cm_port_from_path(struct sa_path_rec *path, const struct ib_gid_attr *attr)
+ 			}
+ 		}
+ 		read_unlock_irqrestore(&cm.device_lock, flags);
+-		if (port)
++		if (!IS_ERR_OR_NULL(attr))
+ 			rdma_put_gid_attr(attr);
+ 	}
+ 	return port;
+-- 
+2.34.1
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib_vlan.c b=
-/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib_vlan.c
-> index 4120afd097c36..8aea23e0183b7 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib_vlan.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib_vlan.c
-> @@ -109,13 +109,14 @@ int mlx5i_pkey_del_qpn(struct net_device *netdev, u=
-32 qpn)
->  	struct mlx5i_pkey_qpn_ht *ht =3D ipriv->qpn_htbl;
->  	struct qpn_to_netdev *node;
-> =20
-> +	spin_lock_bh(&ht->ht_lock);
->  	node =3D mlx5i_find_qpn_to_netdev_node(ht->buckets, qpn);
->  	if (!node) {
->  		mlx5_core_warn(epriv->mdev, "QPN to netdev delete from HT failed\n");
-> +		spin_unlock_bh(&ht->ht_lock);
->  		return -EINVAL;
->  	}
-> =20
-> -	spin_lock_bh(&ht->ht_lock);
->  	hlist_del_init(&node->hlist);
->  	spin_unlock_bh(&ht->ht_lock);
->  	kfree(node);
-> @@ -128,9 +129,11 @@ struct net_device *mlx5i_pkey_get_netdev(struct net_=
-device *netdev, u32 qpn)
->  	struct mlx5i_priv *ipriv =3D netdev_priv(netdev);
->  	struct qpn_to_netdev *node;
-> =20
-> +	spin_lock_bh(&ipriv->qpn_htbl->ht_lock);
->  	node =3D mlx5i_find_qpn_to_netdev_node(ipriv->qpn_htbl->buckets, qpn);
->  	if (!node)
->  		return NULL;
-
-[Severity: High]
-Does this early return in mlx5i_pkey_get_netdev() in
-drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib_vlan.c leave
-ipriv->qpn_htbl->ht_lock held and bottom halves disabled when
-mlx5i_find_qpn_to_netdev_node() returns NULL?
-
-During NAPI RX completion processing in
-drivers/net/ethernet/mellanox/mlx5/core/en_rx.c:mlx5i_complete_rx_cqe(),
-a child interface going down can still have unprocessed CQEs queued on the
-shared parent RQ:
-
-	netdev =3D mlx5i_pkey_get_netdev(rq->netdev, qpn);
-
-	/* No mapping present, cannot process SKB. This might happen if a child
-	 * interface is going down while having unprocessed CQEs on parent RQ
-	 */
-	if (unlikely(!netdev)) {
-
-When that happens, mlx5i_find_qpn_to_netdev_node() returns NULL and
-mlx5i_pkey_get_netdev() returns without calling
-spin_unlock_bh(&ipriv->qpn_htbl->ht_lock), which will deadlock on the next
-attempt to acquire ht_lock.
-
-> +	spin_unlock_bh(&ipriv->qpn_htbl->ht_lock);
-> =20
->  	return node->netdev;
->  }
-
-[Severity: Critical]
-Can dereferencing node->netdev after releasing ipriv->qpn_htbl->ht_lock in
-mlx5i_pkey_get_netdev() in
-drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib_vlan.c still trigger a
-use-after-free of node?
-
-Once spin_unlock_bh(&ipriv->qpn_htbl->ht_lock) is called, a concurrent
-mlx5i_pkey_del_qpn() on another CPU can acquire ht->ht_lock, unlink node,
-and free it before mlx5i_pkey_get_netdev() reads node->netdev:
-
-CPU0                                    CPU1
-mlx5i_pkey_get_netdev()
-  spin_lock_bh(&ht->ht_lock)
-  node =3D mlx5i_find_qpn_to_netdev_node()
-  spin_unlock_bh(&ht->ht_lock)
-                                        mlx5i_pkey_del_qpn()
-                                          spin_lock_bh(&ht->ht_lock)
-                                          hlist_del_init(&node->hlist)
-                                          spin_unlock_bh(&ht->ht_lock)
-                                          kfree(node)
-  return node->netdev;
-
-Should mlx5i_pkey_get_netdev() read node->netdev into a local variable
-before calling spin_unlock_bh(&ipriv->qpn_htbl->ht_lock)?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261102074107.3285=
-9-1-18983559317@163.com?part=3D1
