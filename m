@@ -1,53 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793707109;
-	b=l6wyPxYRCGJemvEDV4QqJkC1N02IyfKjV863PyNqm1f7UfVxywls36d/aQtym3FrvIE9
-	 KWdK1tIk3eJAYMJawnKv6JMS4JEz7XYUfuPGLJfFpxEjhI/25YSKpVo/tnv897T15lU/4
-	 cNtRsJlGxqhyEJmbj80kHYv7xCmXECVDdECoHF4M4K+6v0HyplfvG3Mr/vwJ+g3kwJx4j
-	 TlIO5j+L7p9FpJHv/j7QD/GpYyT/BTWt/hC+kpQwPL3GN50HTchvkX9s4bqpgdKzv3RHl
-	 EUQ46JThxM/1NOY/czZngsCBMPaS9ZTIdrHtzT/oKY0bJoNbTIAMDbHX+n8H81NJXmg==
+	t=1793707543;
+	b=inedXraFtq27v01eNYLZYxkHDxq43i4kHSkhRY55yu+iCdC1s3s6/p7V/n5TyYp+pXwQ
+	 u8xMPR3CK0AEr58rEKfnGC4rG06pHK/SvZx541b89rHJzFEdUjzXgjnmHXnyJa+TzrKai
+	 2lafvt0AlGt2PyQA2veZJ+BRcUGjP/htCdD0NSxQLdcD6MM/lRV//fdZrvR0Mywy4VxBd
+	 cNE6nyta1xVWm3PeRfFM6rM1dldMm0LXYvR0JAjExlByNyJS87Ikg6+redOyNA8tNO0zV
+	 zwGKvYMwmYOQyWWSUrxbZnfpRCOygX08vQDgs/ySHKiND72CRR9jhczsFSigA4I5hiw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793707109;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=s6xmGZ3xUhukgQni0sDZOjbv8PpzzD3hGUC+eLiqtZk=;
-	b=jiAjLBbSwfMgW8Ch/NPToZ/rLx9M9Qfr9DCfnX+Af7gSWABvlUZIgOczjaxxYvB56yQ9
-	 rWwzUx+htvjterGrthUZbWGtSQ4GYktWQanQrico2kBMk42eQ9mjJcP+peQy2PYE1fs+I
-	 OEkSU4vOOOyogjf+He8Cu+oo3fhalM0yjJf46DhCaayZIQO9QQPJUEmh0Xtofa+aJTLIT
-	 6DjlR/D9+BmrULzIvGoPQsD97G8PZtCKic7vw4qgXrFJH8YvydxjSbkwZnTQOMxnZEX8l
-	 fvV9iOl8WaWoQBNENXSd+MPXtN8aAh5VeH+Xt4kxQ5SgLd0l4NN1F0je6Bn6owDrwEg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793707543;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=dCad/WNvnjhrjMBXES7ne6y+qjP6xtVG9UIsX5JrXNc=;
+	b=2G36YkF1tR+gzVGv0hNThCPG+wS3UvZuNJeYCwxrmVX4yYY0Df5vpJ40Q9eKbf3zriO/
+	 JOzfWPgfWEWEfG55CHspg4qQCzooZi3inZmZn2RnXNiGJQeBYeNJwCN2Wr4+NEtrOazoH
+	 +9N9fbfh7eKM9doJkkwrouacUFqOhudWRL2BCnbKgEo58K58qAtW2efDdh4UUALpAWpyn
+	 TrRVNlUgTCPc6QJOMWXfo+l7mzSIg4izjAm9utddfj9ykX6I0FmWMj6/Mn1tTXlVfs1dv
+	 lKyUb7jNVso1QxAxDQgNBz2e9RYGVkgGV02OzO1xSxS0yeZn+xCMuhTLKJrLdzqwwVA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Q2zIQK3t;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="C4/d3RzG";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1441E606A327
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 11:58:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBFE3606A324
+	for <linux-rdma@vger.kernel.org>; Tue,  3 Nov 2026 12:05:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Q2zIQK3t
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0916B1F000C1;
-	Tue,  3 Nov 2026 11:58:27 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=C4/d3RzG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40CB71F000C1;
+	Tue,  3 Nov 2026 12:05:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793707108;
-	bh=s6xmGZ3xUhukgQni0sDZOjbv8PpzzD3hGUC+eLiqtZk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Q2zIQK3tQ1QdhdEoaY20F3Ti5oCXJB9/DasJ0qBwBitBvVxaUV0vqWvYnPHn9vDTD
-	 6/Ygl8xL7Ki6hN2EMbcpES1h6aVrC+vhXic9DESGRZGqXyjaTlaV84MTH6aXUTMa4w
-	 vaExkh5kemuF4lM0vJ3UXBTPDmsApDSooTBcI5TWdsYTTF+vzuxr0AQUgL8bxve/5T
-	 neQnz9TB9OqvXdBA2i2VTwvxtG23JrqT2Dks2LDFXyEumCCAgjJB3G9xktIZvussaq
-	 GAvP/qsIXqpjmtf12s3MzvaxCEzEAs5K/8jBR08CXJf55P2npKCSmJGr7c5rsiJwIQ
-	 viErbX8zcLyZA==
-Date: Tue, 3 Nov 2026 13:58:25 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Yuho Choi <oss.patchbox@gmail.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Yishai Hadas <yishaih@nvidia.com>,
-	linux-rdma@vger.kernel.org
-Subject: Re: RDMA/mlx5: question about a failed destroy in the SRQ create
- error path
-Message-ID: <20261103115825.GE264423@unreal>
-References: <20261028053903.209809-2-oss.patchbox@gmail.com>
+	s=k20260515; t=1793707542;
+	bh=dCad/WNvnjhrjMBXES7ne6y+qjP6xtVG9UIsX5JrXNc=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=C4/d3RzGBRsoSLOtcwLzHKG7oFC1LNHMaMpy+nM42QEjypggbpw+7O6P7WmVbcsTX
+	 8aG9ussPZNRjE+IYb9rTx0OFf8YUfFecw7+eR2U5Kva/EjoKhzJq0cYAaLgoCZvSRy
+	 yZTkXOgLyRy53Y5oYQvj6S41vrJija88EgUJ2RA0us760zEyU5qxTbjdcaMfOTO/ig
+	 bUUGd5neJpne3Kbs69lCX9X0MEjxtELP44wkxNanIwkijry7sen9KcrGzVSNN8S0+h
+	 AZ+7bj3DXaczOx5vLUV3kP4+MHawtSWTde5Wd7HLRcYVDEAJD9mGPK6JZzurQF3X9y
+	 GWWhlWbFI43pw==
+Message-ID: <sashiko-outbox-195213@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH rdma-next] RDMA/mana_ib: Enable RDMA devices on the CDX
+ bus
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261103115032.736554-1-kotaranov@linux.microsoft.com>
+References: <20261103115032.736554-1-kotaranov@linux.microsoft.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Tue, 03 Nov 2026 12:05:41 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -56,42 +59,67 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261028053903.209809-2-oss.patchbox@gmail.com>
 
-On Wed, Oct 28, 2026 at 01:38:57AM -0400, Yuho Choi wrote:
-> Hi Leon,
-> 
-> I have a question about the error path of mlx5_ib_create_srq() (rdma
-> for-next, c3e8e9451e6f) and would appreciate your view. When copying
-> the response to user space fails, the result of the destroy is not
-> checked:
-> 
-> 	err_core:
-> 		mlx5_cmd_destroy_srq(dev, &srq->msrq);
-> 
-> 	err_usr_kern_srq:
-> 		if (udata)
-> 			destroy_srq_user(ib_srq->pd, srq, udata);
-> 
-> If I read it correctly, a failed destroy here would leave the firmware
-> SRQ using the SRQ buffer and doorbell record that are then released.
-> Since fd89099d635e ("RDMA/mlx5: Issue FW command to destroy SRQ on
-> reentry") the SRQ would also be back in dev->srq_table after the core
-> frees the ib_srq, so SRQ events and ODP page faults (odp_get_rsc())
-> could find freed memory.
-> 
-> Thanks for explaining in [1] that DESTROY of kernel-owned objects does
-> not fail on working firmware. I wondered whether user SRQs might be
-> different, since they carry the uid of their context and a DEVX QP of
-> the same uid can use them, which 43d781b9fa56 ("RDMA: Allow fail of
-> destroy CQ") mentions as a reason for destroy to fail. For example,
-> could user space create such a DEVX QP on the new SRQ number (probing
-> for it) 
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [High] RDMA/mana_ib: NULL dma_parms in mana_ib_probe() on CDX devices
+--
 
-Userspace does not control QP numbers; firmware assigns them. If firmware
-considers a number to be in use, neither the kernel nor userspace can obtain it.
+commit 4f88c8811c923b9c16d7e0dbf8674249f05b4f08
+Author: Zhiyue Qiu <zhiyueqiu@microsoft.com>
 
-Thanks
+RDMA/mana_ib: Enable RDMA devices on the CDX bus
+
+This commit enables MANA RDMA on the CDX bus by depending on the shared GDMA
+core, matching CDX auxiliary devices, mapping non-PCI userspace doorbells
+with pgprot_device(), and reporting the Microsoft vendor ID directly.
+
+> diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/=
+mana/device.c
+> index 62c7803ca6c60..33e47490755f6 100644
+> --- a/drivers/infiniband/hw/mana/device.c
+> +++ b/drivers/infiniband/hw/mana/device.c
+> @@ -257,6 +257,8 @@ static void mana_ib_remove(struct auxiliary_device *a=
+dev)
+>  static const struct auxiliary_device_id mana_id_table[] =3D {
+>  	{ .name =3D "mana.rdma", },
+>  	{ .name =3D "mana.eth", },
+> +	{ .name =3D "mana_cdx.rdma", },
+> +	{ .name =3D "mana_cdx.eth", },
+
+[Severity: High]
+When mana_ib_probe() binds to mana_cdx.rdma or mana_cdx.eth, does passing
+gc->dev to ib_register_device() trigger a warning and fall back to a 64 KiB
+DMA segment size limit because gc->dev->dma_parms is NULL?
+
+In drivers/infiniband/hw/mana/device.c, mana_ib_probe() registers the IB
+device with gc->dev as the dma_device:
+
+	ret =3D ib_register_device(&dev->ib_dev, mana_ib_is_rnic(dev) ? "mana_%d" =
+: "manae_%d",
+				 gc->dev);
+
+And in drivers/infiniband/core/device.c, ib_register_device() checks:
+
+	WARN_ON(dma_device && !dma_device->dma_parms);
+	device->dma_device =3D dma_device;
+
+Unlike struct pci_dev, struct cdx_device does not attach a dma_parms
+structure, which is noted in mana_cdx_setup_hwc_irqs() in
+drivers/net/ethernet/microsoft/mana/gdma_cdx.c:
+
+	/* The PCI path also calls dma_set_max_seg_size(), but that is
+	 * deliberately omitted here: the CDX core does not attach a
+	 * dma_parms to the device, so the helper would only WARN, and MANA
+	 * never builds scatter-gather lists, so the limit is never read.
+	 */
+
+In addition to triggering the warning in ib_register_device() on probe,
+mana_ib_create_queue() and mana_ib_reg_user_mr() build scatter-gather lists
+via ib_umem_get_cq_buf_or_va() and ib_umem_get_va(), where
+__ib_umem_get_va() calls ib_dma_max_seg_size() -> dma_get_max_seg_size() and
+falls back to SZ_64K instead of UINT_MAX when dma_parms is NULL.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103115032.7365=
+54-1-kotaranov@linux.microsoft.com?part=3D1
