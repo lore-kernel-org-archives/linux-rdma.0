@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793812429;
-	b=UJOWw08i0tWPWFvwSSxp+gjkYznl6yvpmtuQWmM3b/0Xmvq1l8ri5Jy7TfQM0/6OpeWr
-	 WZd2RzMZZ7k3hmy0cNnNZBDSxDkasFWqmkU0sEpT0ugFM/38+3RhbTXgd4F0r8pxCxrxl
-	 6ala5BFpZmh/svql0/hpsw1tVH3CUF8UH7yX0hHsNB4j9J8A2Kt1FwLNo7TA9BRxMqx6M
-	 3diDZ3Ps/6ouWA/inSIGLq5CC7WOBbqZQHW5vz48d8UzKacJUjkovZ64Ka5c9BoJkety9
-	 infD0nZkMnEyJDwvH1oktXPOeYhAhh02Pa3Bkh4w/DdCw8mVrNdPH9JoyJ+M6c+tzIw==
+	t=1793812430;
+	b=mnO7t+MVHAPQLmfZ5XbmvcOAGyKMe4wCh1Z5YaZ5r+wM0NgGIlmLqoLFPfWjPTPUknM3
+	 2z4Pn/w32ivAH8+eUUIkUal1QX7QGGcO4nqAD0loY1Jfryht9wH6joRk8AfgaRW8deYb/
+	 WJImd5QbDMpEuW7YfYUUQASgNXw3FryTARf7dgEQrzFyKqqsGO5avyNOYth7Qlj0nZwzL
+	 GURrTWnZKoB+1W/GRj0OPAi7YWQVHOfDR84Y7se8hsD7w1ua7QfLpnpRU5uehdtNFYDPM
+	 8/7RM1kT3eX0V9Jjro+ybJTCb96eBuFBt7gdMFMr6y7CrB+5sThEXYO/X0XeX1VPyXw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793812429;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793812430;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=uQxxJ4cQvAZJyc6lZsbEcTAblLxQDmIFmAjuXuDUuQw=;
-	b=DzGsdwSSFGkF+lZldLOx/h2ljIs3yuq0OlbT1d/RkZzoi9BE/oX8AmO7uGBmAqDMC1Bq
-	 TINyzpQh5u7dInreW0gNaF5h0r3rRuTv8fi05q0xp4W/wvNI5N+6aX+Mnvrne8FMX9gg5
-	 dhti1mfIpREDnmfW4iuaPjdcDx+k+zXu0qx0Hywdv2Hzvkb2lwOSVjQ+M9X/oqfbjOn4B
-	 CAw05ayU1LfiMCxIA69kT4ViQmoeozq5rcFQJbGy1BfiO0tj1p7I37yIUQHu499gUKkth
-	 HRs/Kj4UK1C8JGmdwR7VsK+KxxjjF9fKvFiY8cAXZr3i8zcz7Ai3fZkfaTKyl8Go89Q==
+	bh=4jrz0K101TrKc+vbBrkHIWsSvPoNX1YwhXUoLDeFZSA=;
+	b=TrwckBpD/K26WwSDAHnIVpCvp3Z/a1N66J5qT+0JrDOTP7J89FDNTekbPVjySthb655e
+	 KRnrovxlPnt5Vugd3IhI13WQvmPjYkslEbQbwy4fe2HyhO/QVLmvle1Uw3pK10QEIxQOP
+	 Uah7sVmfs6hLvMlsiYCZ9Sg4FUYmIGzO8830zP3pImOr1zcQWN7l+RFRF+Mk8kdtWmy1L
+	 wVMLtPvI524gea0EPfQLosBbXR/EXHjb8ZCkw2kzCsPCLuR4wPcHdRuejsaqqI2aTeu0E
+	 /zqYiY5Fy7cKsDh4YZloxeWRjIxjg9c3IKzp564MMH/YhlK0VVAqWb6KK4A6g97T2Ng==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nXEmmV7G;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lJtVmVWF;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D7C3606D807
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEC20606A32D
 	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 17:13:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nXEmmV7G
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 028931F00A16;
-	Wed,  4 Nov 2026 17:13:48 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lJtVmVWF
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91C2B1F000C1;
+	Wed,  4 Nov 2026 17:13:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1793812429;
-	bh=uQxxJ4cQvAZJyc6lZsbEcTAblLxQDmIFmAjuXuDUuQw=;
+	bh=4jrz0K101TrKc+vbBrkHIWsSvPoNX1YwhXUoLDeFZSA=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=nXEmmV7GJStLLlMRvtWkMnjiBJDPaV1QqSifDhcDBnSf9ymrlAWHxJhi5LZlhaBmE
-	 bc+rjQLqzSiPn5edMwpCqwBcdsf2FbhDyh3VAq2FbX74OR3bKzhFusDhHOOlJfpnaq
-	 ypVFu1KVNfbh85xfZrPF8yMjnN8zAcLkaM7Vhhl8Ih3V6v6t0AwOgFfLhFJS6R3iMB
-	 gOWP65VLj+Rq1tiH7jZvf3C7NwnfKyKfDzQvKe7VIw1HO6Zj/tTaHtP9dz8Mwddld4
-	 aga4N/qRext+OI2wrvbTosUTloZexpPbseg17Pfjs7+lYD+e/I0gxXhGHkHUIjoQK6
-	 64r4usWYPheMA==
-Message-ID: <sashiko-outbox-197736@kernel.org>
+	b=lJtVmVWFeoSQFNHF7DNQxpmkWRdMVCK3oRh3eQ2BamTt44HoaxXcCKYzPnqwZd19n
+	 H7M4xIuRFfpE3gwabATheZw7UQjP7eehFu11Hc2nKMWNwT99NJsKffpIiRp9qTBWSt
+	 8JXLYSth4AsFmu1cwEV0LNzzDSfkjOHauAAVfKz+uVc5Xg5cpged1OKQa2VkvRisMj
+	 ahgOE9f/tUpzTck8sRi8pj9Y4iSK+nmqKsHyc9rsgntCcHSmaune1hE1HnEPb+s0tT
+	 DJ8GIEDsbv33miZDaXk1rBJ/MmOV/xXBhGF8Lb+QYUJ4xloDvIkGSYOlYkxX35QKgp
+	 AYdnHvlj7RnFQ==
+Message-ID: <sashiko-outbox-197737@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next 09/15] net/mlx5: LAG, drop MLX5_MAX_PORTS
- scratch array from device rescan
+Subject: Re: [PATCH net-next 10/15] net/mlx5: LAG, do not add a device to an
+ already-active LAG
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261103171009.563034-10-tariqt@nvidia.com>
+In-Reply-To: <20261103171009.563034-11-tariqt@nvidia.com>
 References: <20261103171009.563034-1-tariqt@nvidia.com>
- <20261103171009.563034-10-tariqt@nvidia.com>
+ <20261103171009.563034-11-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 04 Nov 2026 17:13:48 +0000
+Date: Wed, 04 Nov 2026 17:13:49 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,22 +63,32 @@ Precedence: list
 
 > From: Shay Drory <shayd@nvidia.com>
 >=20
-> mlx5_lag_rescan_devices_locked_filter() collected the participating LAG
-> members into a fixed-size devs[MLX5_MAX_PORTS] array only to iterate
-> over it a second time for the rescan calls. Drop the scratch array and
-> re-walk the members directly with mlx5_lag_for_each().
+> mlx5_ldev_add_mdev() would add a newly probed device to the LAG even
+> when the LAG is already active, mutating membership while getters may be
+> iterating it and while the active mapping assumes a fixed member set.
 >=20
-> This removes another dependency on the compile-time MLX5_MAX_PORTS bound
-> with no functional change.
+> Reject the join when the group's LAG is active:
+> __mlx5_lag_dev_add_mdev() returns -EOPNOTSUPP, and mlx5_lag_add_mdev()
+> treats that as terminal - unregister the HCA devcom component and leave
+> the device standalone, rather than the -EAGAIN retry used for the
+> bounded mode-change window.
+> The device stays out of the LAG until it is reprobed.
+>=20
+> This keeps LAG membership stable while active. It is a no-op for
+> existing configurations, where no device is added to a LAG once it is
+> active.
+>=20
+> In addition, do not register the eswitch devcom component of such a
+> device, so it does not pair with the eswitches of the LAG members.
 >=20
 > Signed-off-by: Shay Drory <shayd@nvidia.com>
-> Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
 > Reviewed-by: Mark Bloch <mbloch@nvidia.com>
+> Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
 > Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103171009.5630=
-34-1-tariqt@nvidia.com?part=3D9
+34-1-tariqt@nvidia.com?part=3D10
 
