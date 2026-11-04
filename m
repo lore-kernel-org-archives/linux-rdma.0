@@ -1,102 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.171
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.41
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793752770;
-	b=q7Fdv9c2X/YmTMu7h28n3sojLYoYbdKyWxaMPe/5z4MZcp0cIyA13JuQ2+y7rZ3jDHUt
-	 SvqzvBGSr1OOiSLFSQUFuZOlbOBrBBUJS0nLMkih38THZ3jnEAR0o+f0VDRfgsiXa2WN+
-	 CRjD3E5MF0+AJFMkovCW2wpa8zn/hfTUAPwQEv3DW4WISIiHUE+WdwuwRSPyBDAseZho2
-	 /+Jgye4XJWkbMjtLP37W5N8CO97fkyCr7yx3Kawz4obgoxismu0eq4IQn6e7y8qSQG1jU
-	 oiGN7+neR/gtFL1o1tJSAciIOhSfqyHat2xDZLrMzBueViHmZBmci013sQT9BRgwS/g==
+	t=1793755354;
+	b=nakPQhfi98xfAAvcewZ2kF2wmeSnaisKQ5sTysqU8l3wDp+REnsMQEuHUmlDlktgGSjb
+	 FtMfrWvzfWkJwfjHkcgxLNVtHvQKPSJm6Pi758Rin5IU/WdFqu815azAPb3kHoZ2R97em
+	 Wzy4yfk12AkwrUyXC2xN4vq5GupfQLnVTW8G4oqBdPRCXvK8Ppj+btQdeW6Q+c6eZLPWG
+	 8GelJ+E4va5nh0bdCbhC06Ie3ZNLJ343HfeGE3jZmETHHkIGMUqaSRaZP8TlFLu890vYM
+	 yZVsz0OHdFZHdo+t1K6EjZzd6fSDGtWMaWF8gv0wzGnCi6AK1vTvMIzD/zzTpu1jFVg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793752770;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793755354;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Content-Type:Date:Message-Id:From:To:Cc:Subject:In-Reply-To:
-	 References:Content-Transfer-Encoding:MIME-Version;
-	bh=lQ2xOzxsF+CEtv2Z632brvuKrWBZQypDKsxmzWa1C5s=;
-	b=pfTSSAeS/Eq4i3MoZSXh3ja1vugcupcrFKcSEUTW8MAKBhejPDNRR4/v4qkwVFVIW0+S
-	 EPGGQcQP84Eghhre90QDXk77zl7R4mYGCUxVJHnavi/xi8vzXTHmf//6Tg1J8NIsvGfhl
-	 aCzhx7UsV9lXdSaGtupqeKidGXs5Gu0Z+g7V4MnNEQq6UolNsTILI804ERrktVKSO04Kn
-	 hjrNZLBd0W21m8nu8a7NpUY1tqgJCgOcKaOhMN+YEWzlUR3ub075pzJ/bx7HyHLVzkxVk
-	 /zeO/Itx+mY7ZcZs9V5DixpzFqXK0XX/iRtFUSioFWgeGHBlrUBCYi5tBmLrefTvbBQ==
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=PJBuNB6AkmZaXTR0pd/HV7JvJHCCmg2tFqwhpuFbIGs=;
+	b=gXbaX/u7lZ9JjmqWVhWj8Pj8w7BSDMqUM5cwTGXrepCYpCWe9tkS0byRkDYPShVB7rYa
+	 OfqzbrvpiN9HVfTyjTVT7tgMbmHLwd9V4LIwxhGBETs6fZRwotwUMYju4RgYZXC+GbTNE
+	 49gAbDM7+dBni1RC0CqvxJTsGWwnEi14XRQr4BZ5EtzSYecnKvc9rBtvRrloKziIkg7UE
+	 qDKdd386rCSrSoAELUxRKIrxTc9ZudITpnXkVcQAOpsB5+vZPLTHY1a7vYdiEcXBrwuAF
+	 hBfahq9XrJvv6GmqUVCnj8/u0ogik6N7NgUIOv6s/xCKXUjXGEsanSwr7WREqNZv/QQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=hr+JzZTf;
-	arc=none smtp.remote-ip=209.85.214.171
-Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
+	dmarc=fail header.from=isslab.korea.ac.kr;
+	spf=none smtp.mailfrom=isslab.korea.ac.kr;
+	dkim=pass header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=QY3a6FxG;
+	arc=none smtp.remote-ip=209.85.216.41
+Received: from mail-pj1-f41.google.com (mail-pj1-f41.google.com [209.85.216.41])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ACE9606A328
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 00:39:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1ACE9606A328
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ABD7606A328
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 01:22:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4ABD7606A328
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=hr+JzZTf
-Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-2e8246b13cbso967525ad.2
-        for <linux-rdma@vger.kernel.org>; Tue, 03 Nov 2026 16:39:29 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=QY3a6FxG
+Received: by mail-pj1-f41.google.com with SMTP id 98e67ed59e1d1-3ac6794fe45so208149a91.0
+        for <linux-rdma@vger.kernel.org>; Tue, 03 Nov 2026 17:22:32 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793752769; x=1794357569; darn=vger.kernel.org;
-        h=mime-version:content-transfer-encoding:references:in-reply-to
-         :subject:cc:to:from:message-id:date:content-type:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=lQ2xOzxsF+CEtv2Z632brvuKrWBZQypDKsxmzWa1C5s=;
-        b=hr+JzZTfML76aUBPRMSo/3TW8wG01zPPhuL/+lyor+y27KaG7K0wNq1h4XbItsLlae
-         9aQFRKvZAF64WmcAU2FaEbMNIk3lag9vklnCV1nNbvazHFxJvS86TiagPTxFNZsiE0Xs
-         vmuzGeSSudENZM5KFICQTPzdSCrbJ9JQ10LroE06YTO1PjeHV/Dey+drr3CWhXurH1oh
-         /BkuNs0yz8eGrh5zbvxZUepb3LrXz0S3lsC414wKo84s+rmkO8uiO1APW2AtNOlMixgt
-         ht6OtwB6e0WNLNDXQ1ZF55RHYIVaS/nYeFn69hB3sXqqBm+PAgLA4S4QokHq0OhiU7Ro
-         6fUA==
+        d=isslab-korea-ac-kr.20260707.gappssmtp.com; s=20260707; t=1793755352; x=1794360152; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=PJBuNB6AkmZaXTR0pd/HV7JvJHCCmg2tFqwhpuFbIGs=;
+        b=QY3a6FxGWEEGE0Gke5rLu5IpVBl4gWuFlimWmeG5zx1mMNskq5V77WjWyyzimEg8uY
+         TJOV9SCzvRaSFGuOoF70o5cPppKTGFF2KIECNiVjFvJiXY1hZUrrqQD48Z0l25a1V7H5
+         JHgvJfrH130y7YkWuO1yf5lUsfMVZamq5LXWQnf18HmS2Xf9QImZ7crpjUzRs3rBwHHy
+         22BdLzCOLM4dhFNJ5Rwb4HePT/r/rk17BapFFcjw+5mrLaiNuN13zeexRTK46NFhQCJN
+         f3zBmLyyv10UTuJ00qViyGH16PGlFU7U9QPLSybdWuni8i9E70v+h4OFvIcOsDhf4dt1
+         S75Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793752769; x=1794357569;
-        h=mime-version:content-transfer-encoding:references:in-reply-to
-         :subject:cc:to:from:message-id:date:content-type:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=lQ2xOzxsF+CEtv2Z632brvuKrWBZQypDKsxmzWa1C5s=;
-        b=cTFas6JGkRcdy4kApLrkUYlMxWetGSS41OxJl1C7YOSSGeB2zMBKrXUROM3D2S7tPW
-         iAYE0FR5sAte9zCCIaURR3qfm2VVHKSYTK4lgXD3wopvrpK/q4DBljTZuUT0dmF/b8qW
-         BFWAdYZ42VzC2qVm7QnJLwbtZv5foTv9GaDsex/qx5bQQAaYl51r2U4PX+/LcmdeuMRg
-         dfuLHU6zIaemPP9VyQRMiUSm+lVV2UcQg0SaNmdAFbJlGsrGQvV4TT2IpOe6GcdFmqWC
-         TmYfWw41HSd0FjBFgVi8gLIrZZmwTZadVTfpxCc4eGdbZVWSV4gqQq3YjlmaYqtx8y7r
-         AnyA==
-X-Forwarded-Encrypted: i=1; AKwUvBzH79bmMLicDd6q57kvyqnclclib0vn84cmfQXGCjcBVSz52FnDW87XUb/9ioJrhCNKSBMHlr/QLNkH@vger.kernel.org
-X-Gm-Message-State: APuU4Z+QcUYBaQxYzJ5kt6t2p+GjLJ2ZxOr1EtM3b4Eh9IbUm1CJz7F8
-	Z9SUQ9Q5LPJbrGPzJz1gpkeBSu1EmxW3ipmYvB3bYPL/47xuOEUNr6w9
-X-Gm-Gg: AYBFou2zX6MSxykvB4IVgGyZ1JQJK4Vb4OsETXZxuUVmItD9MZZJRZLGR/5WldDVl1f
-	vJ7g9ec7xJ/Vvim/bQRhsIXTiJdk8VmKgUjab9Hj+DIaeXKpzH0WEwItfGMT47NfBw+7AzCkeZS
-	1gWREHGFgHSuvDIIN/ugTMdrr+Ma10386gqWyiSC+dFenTlBArDQ3oeHfqPmr2Icn/zc5XwMAx8
-	BU804+65k7WnvYRsMbgfDudH+jkobPbCF8FTEtrPZuYTLSr7PImzDThxw7L+zuaaXDkEyPNXyjo
-	9v8IOrIQy4qkprbiNjRkziMWJkPDwiQOQUQmkBLnxG6+9+zfPha0bDxPJhb/RelHMf/8/wdiYW4
-	KQLilhiTZgs9vVZEZ5YVnoaskuBzffSCa+gR+XT5YinzAj4J15PYbbSIZL2QfSfnUXMhS564FuE
-	InLykyWbMbESIOV8MJkUNo0znGe38nAxujlnafKW6wNvA1U/ZNDNiIFrKoOu4PUwKXeAMOAdg42
-	acj0V8pWkK6Ixi1R2JC+Va0yXobJTEvZoOo+awcI1KRhxlmvN245rg5nlDz6kykDAeLRipOUglx
-	QZB16jTJgxifnTA5ih/v7AqEH404UWC/I6boVKbr7//oQmR0+57eVB4DW1Z+YEXd9F1LvRe4yUB
-	BUpC82hwBUDszZtzW1HTkLY52HeaTGHCTQa3I0OEOmmURLwNdcggIAfM=
-X-Received: by 2002:a17:903:2306:b0:2e9:628d:e9c1 with SMTP id d9443c01a7336-2eb364b0c7emr143562815ad.26.1793752769163;
-        Tue, 03 Nov 2026 16:39:29 -0800 (PST)
-Received: from localhost ([153.61.198.255])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ed090f7313sm510055ad.45.2026.11.03.16.39.27
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 03 Nov 2026 16:39:28 -0800 (PST)
-Content-Type: text/plain; charset=UTF-8
-Date: Wed, 04 Nov 2026 00:39:27 +0000
-Message-Id: <DMM0ADCEGAAB.2RFNF1ZI5TGWK@gmail.com>
-From: "Alexei Starovoitov" <alexei.starovoitov@gmail.com>
-To: "Antonio Quartulli" <antonio@openvpn.net>, <netdev@vger.kernel.org>
-Cc: <saeedm@nvidia.com>, <leon@kernel.org>, <tariqt@nvidia.com>,
- <mbloch@nvidia.com>, <dtatulea@nvidia.com>, <cratiu@nvidia.com>,
- <andrew+netdev@lunn.ch>, <davem@davemloft.net>, <edumazet@kernel.org>,
- <kuba@kernel.org>, <pabeni@redhat.com>, <daniel@iogearbox.net>,
- <hawk@kernel.org>, <john.fastabend@gmail.com>, <sdf@fomichev.me>,
- <linux-rdma@vger.kernel.org>, <bpf@vger.kernel.org>,
- <linux-kernel@vger.kernel.org>, "Antonio Quartulli" <antonio@mandelbit.com>
-Subject: Re: [PATCH net-next] net/mlx5e: Prefetch packets of upcoming CQEs
- in the linear MPWQE path
-In-Reply-To: <20261103235823.536706-1-antonio@openvpn.net>
-References: <20261103235823.536706-1-antonio@openvpn.net>
-Content-Transfer-Encoding: 8bit
+        d=1e100.net; s=20260707; t=1793755352; x=1794360152;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=PJBuNB6AkmZaXTR0pd/HV7JvJHCCmg2tFqwhpuFbIGs=;
+        b=p1KUw3JFGq6vSfEN4zlXJItIrUd+jIMzZ/2mgKz93K39ulMKdqnAGRU6o5CjQN55f2
+         BmgqpjBrkjeGR8qX9UeHG4i34t2FYh6Y6cSZDiD8DT2c9q3Sv6cSevnFgWtuGtI0AwiZ
+         ngZMtnPztmuo0k+5ZhrygVl+DOjth6fzgdGYgW25csbfDQNgR4wWHc7A024rN6Mu+9OA
+         aWChO90ow36RVJsN5GN8tP+cw52Sdba0ynODWrVgozNH3Cimrw1wQ5C5x1yaOdBS+NoS
+         abYasspbpDd1I7n+7rgntH7kcBnTSszT4WL79OWJel9jnpKtkFKhIOb+0EjATqt8n6F9
+         PWqA==
+X-Forwarded-Encrypted: i=1; AKwUvBwKrUA0IK6dPnUTQk6qQnkf0j/zSqERaHfk8MduhXlNoscS/wwdkXlkQpih8Dc1N62VjPWASH6hJAk4@vger.kernel.org
+X-Gm-Message-State: APuU4Z9i37jE6sqaKvHpinAdjeWsjXwCfU0vbvFnuDVU0EEfxAurtRtH
+	SwtYuXZAoBBra4K0mB49/Seho5thLsfiAPySeyqSwUJVHceaZERb6YW09oNxMLoVYJ4=
+X-Gm-Gg: AYBFou34eGzl4Fxl/f+8JIJsZOHQrP5k0jozPV1ROaTl0R6WEo/1N4f3R5njonZfDKG
+	7u7D0LsatFVd+hvl/JLIHm3JxO+4OBOe/UAJzuZ5OX2ZGThoNJxkfRBx1MdI9QEV50FAAcVXNi0
+	BU9Eq+J9iwtQehypy5TIsgrcMNJBcDpNAlA5xyBqe7oTQ3Tly+poC5uHQyRSrmhFs2YkRnuW3od
+	60yc/CZQYiEFTq/aPGEkkguJssnnVBjeOj33Ok77SFaPSttbNGo/2iG1jtbv0WlfhPex0xU38wm
+	FECtezgssdILIeQQtKn/eVBGEKZI9WYftXyCPuJPkQUkJ2R8BakGUNV78BDpMrT/FvG88yuU7PX
+	NTlFDftbj33laIo7UA7Au8VnxvWGDY6gr2OqrW47ejJ4bGA0gdgiN1xAZJgheZZ+TeDJcDyV3n2
+	YDapeoGrehRKbaFOQAajcqR3uUX+VF5p2Bi3tUE5P2pvdvAFdekPMG1VO0v19iKwKUeaklJm0/M
+	ADndn//JKFtciSJgCmCDoVaJ49whNg/2NHU0T1IfaPNXUfjE/W6etC1bCmISK393LrhNZWoynoy
+	vCYNHiJvguJZQf7ed9bNi0aiZNx3lHGwb2FSg+xBctdwXFoFDGGq8EE25H+7lOEIDj0rofEqspu
+	HEgvKRxF8LDAiNFYi1LAVi2/iVDOyaLTmOHp9
+X-Received: by 2002:a17:90b:4b8c:b0:3a8:9d0d:ca50 with SMTP id 98e67ed59e1d1-3ae897c853cmr12849266a91.10.1793755352365;
+        Tue, 03 Nov 2026 17:22:32 -0800 (PST)
+Received: from yhlee-960QFG.Davolink ([2406:5900:1044:110c:744:cf40:a7b2:e78f])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b09452d89bsm678045a91.0.2026.11.03.17.22.29
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 03 Nov 2026 17:22:31 -0800 (PST)
+From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+To: Sagi Grimberg <sagi@grimberg.me>,
+	Max Gurtovoy <mgurtovoy@nvidia.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: "Martin K . Petersen" <martin.petersen@oracle.com>,
+	Mike Christie <michael.christie@oracle.com>,
+	linux-rdma@vger.kernel.org,
+	target-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+Subject: [PATCH v7 0/6] IB/isert: fix the device removal use-after-free
+Date: Wed,  4 Nov 2026 10:22:13 +0900
+Message-ID: <20261104012219.1759523-1-yhlee@isslab.korea.ac.kr>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -106,82 +102,59 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Tue, Nov 03, 2026 at 03:58 PM Antonio Quartulli <antonio@openvpn.net> wrote:
-> While processing a CQE, look at the CQE MLX5E_RX_PREFETCH_DIST (4) entries
-> ahead and, if it is completed, prefetch its packet headers, skb_shared_info
-> and page. Also prefetch the CQE twice as far ahead.
->
-> Looking ahead requires uncompressed CQEs, so this is enabled only for
-> linear striding RQs without CQE compression.
+The RDMA_CM_EVENT_DEVICE_REMOVAL callback in ib_isert waits for the
+connection it was handed to reach ISER_CONN_DOWN and then frees it, a
+use-after-free against isert_connect_release(), and the wait deadlocks
+against the handler_mutex rdma_destroy_id() needs.  3/6 moves the teardown
+into an ib_client callback, as nvmet-rdma did in f1d4ef7d8883, and gives
+every connection one owner.  1/6 and 2/6 are older problems; 4/6, 5/6 and
+6/6 close three holes the walk makes visible.
 
-can we prefetch 4 strides ahead without the CQE, like gve_rx() ?
-In linear mode a packet takes one stride and HW fills the strides in order.
-mlx5e_alloc_rx_mpwqe() allocates all pages of the WQE.
-So mlx5e_skb_from_cqe_mpwrq_linear() can compute the address of the packet
-4 strides ahead from head_offset and page_idx.
+v6 -> v7
 
-  per packet                 the patch     4 strides ahead
-  -------------------------  ------------  ------------------
-  CQE reads                  2             1
-  dma_rmb()                  2             1
-  mlx5e_get_mpw_info()       2             1
-  headers, page              prefetch      prefetch
-  skb_shared_info            prefetch      no, needs cqe_bcnt
-  next CQEs                  prefetch      no
-  first 4 strides of a WQE   prefetch      no
-  stride is not filled yet   no prefetch   wasted prefetch
-  CQE compression            not covered   covered
+v6: https://lore.kernel.org/r/20261103223802.1697607-1-yhlee@isslab.korea.ac.kr
 
-Then no need for MLX5E_RQ_STATE_PREFETCH_NEXT and mlx5_cqwq_get_cqe_ctr().
+v5: https://lore.kernel.org/r/20261103125955.1530355-1-yhlee@isslab.korea.ac.kr
 
-Something like this (not even compile tested):
+v4: https://lore.kernel.org/r/20261103032924.1073138-1-yhlee@isslab.korea.ac.kr
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-index 22fea47..31d5bc4 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-@@ -2094,6 +2094,29 @@ mlx5e_skb_from_cqe_mpwrq_nonlinear(struct mlx5e_rq *rq, struct mlx5e_mpw_info *w
- 	return skb;
- }
+Sashiko v6 5/6 Medium: set removing in the same critical section that
+clears the client data.  isert_remove_one() cleared the ib_client data and
+took its device reference under device_list_mutex, and set the removing
+flag only in a later section.  Between the two an isert_device_get() for
+another device with the same node_guid still saw the departing device as
+usable and raised its reference count.  5/6 now takes isert_conn_mutex
+first and does the clear, the lookup, the reference, the completion and
+the flag in one device_list_mutex section.  No path in the series holds
+device_list_mutex while taking isert_conn_mutex.  Nothing else changed:
+1/6 to 4/6 and 6/6 are the same commits as in v6.
 
-+#define MLX5E_RX_PREFETCH_DIST	4
-+
-+/* A packet takes one stride of a linear MPWQE. The address of the packet
-+ * MLX5E_RX_PREFETCH_DIST strides ahead is known without its CQE.
-+ */
-+static void mlx5e_mpwrq_linear_prefetch(struct mlx5e_rq *rq,
-+					struct mlx5e_mpw_info *wi,
-+					u32 head_offset, u32 page_idx)
-+{
-+	struct mlx5e_frag_page *frag_page;
-+
-+	head_offset += MLX5E_RX_PREFETCH_DIST << rq->mpwqe.log_stride_sz;
-+	page_idx += head_offset >> rq->mpwqe.page_shift;
-+	if (page_idx >= rq->mpwqe.pages_per_wqe)
-+		return;
-+
-+	head_offset &= BIT(rq->mpwqe.page_shift) - 1;
-+	frag_page = &wi->alloc_units.frag_pages[page_idx];
-+	prefetch(netmem_to_page(frag_page->netmem));
-+	net_prefetch(netmem_address(frag_page->netmem) + head_offset +
-+		     rq->buff.headroom);
-+}
-+
- static struct sk_buff *
- mlx5e_skb_from_cqe_mpwrq_linear(struct mlx5e_rq *rq, struct mlx5e_mpw_info *wi,
- 				struct mlx5_cqe64 *cqe, u16 cqe_bcnt, u32 head_offset,
-@@ -2114,6 +2137,8 @@ mlx5e_skb_from_cqe_mpwrq_linear(struct mlx5e_rq *rq, struct mlx5e_mpw_info *wi,
- 		return NULL;
- 	}
+Measured over soft-RoCE with KASAN.  Parking isert_remove_one() after its
+lookup and connecting on a second device with the same node_guid gave the
+departing device two more references on v6 in both runs and none on v7.
+Everything else is unchanged from v6: 140 runs with no KASAN, no Oops, no
+lockdep splat and no refcount warning on either side, the late-device
+window building one device and no core warning in six of eighteen runs,
+twenty link removals and re-adds leaving device_list empty, and the login
+park finishing in eight seconds.  I still could not measure the namespace
+move, for the reason given in v6.
 
-+	mlx5e_mpwrq_linear_prefetch(rq, wi, head_offset, page_idx);
-+
- 	va             = netmem_address(frag_page->netmem) + head_offset;
- 	data           = va + rx_headroom;
- 	frag_size      = MLX5_SKB_FRAG_SZ(rx_headroom + cqe_bcnt);
+Yehyeong Lee (6):
+  IB/isert: do not publish connections being released on a second list
+  IB/isert: drain the QP without holding isert_conn->mutex
+  IB/isert: tear connections down from an ib_client on device removal
+  IB/isert: drop the promotion reference when a connection errors out
+  IB/isert: do not build a new isert_device for a device being removed
+  IB/isert: only reinstate a connection that reached full feature phase
 
-> - With XDP, skb_shared_info is not prefetched. XDP_DROP rate, low-rate
->   traffic and multiple queues were not measured.
+ drivers/infiniband/ulp/isert/ib_isert.c | 399 +++++++++++++++++-------
+ drivers/infiniband/ulp/isert/ib_isert.h |   9 +-
+ 2 files changed, 297 insertions(+), 111 deletions(-)
 
-Pls add XDP_DROP and XDP_TX numbers.
+
+base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
+-- 
+2.43.0
+
