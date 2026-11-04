@@ -1,57 +1,70 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=115.124.30.131
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793810635;
-	b=aJfHdGx7b9lMLcwKZ6OmS5dRLf+U1zRGZE1WIA5KGi/7vAKID6HvEzxNMnFQbbc5tzyc
-	 4ZxLLBx9AyCGqbYKW/6doHrLz6R0KI/9JRjyxeKUhvGStBL/EPDnbBLyH4q+viSjYGbuY
-	 xvj6FQ83qB7ztb0hlJKImYihoDeXHbuHGW83xWRAYzJ4K++PhflZ5p3epfc7Ys0JMySYL
-	 KLLI/f+Og8fowYYRuxLDM4L2H9EzvSVegV9ao5uwQ0b7H8q60/Op2zI6mnqEfQQgQC7NK
-	 Ie7EH2HNzPzymLi+gQGdLOCdqIbn4TR1XiSn++gzgoi7Ow1lr6AJoLQGYWrnslLw+5w==
+	t=1793811411;
+	b=tB0E/JLKheOElIrsYEiB4J7d6sEzYDLpe1HJrQjUNZT9JkZRqXVZOFEuSsar7aIBcl50
+	 RNyDhWy72DAG0U9cOfqvpGUwSZoNkz040i17OCa983uAmBA0akLumuGvoRqrsvtR/6dV5
+	 4CB7jh5gG3VPCj0AREhdaJ65q5Elyx10D9x38xPaR4CFdl4eAtHkljEidnvBR2ArF6YsY
+	 btBb+cHejc7FNmIO1RHAKk2Ulh5HsKF+vBt53mokyF5BfIXnaCalCaJ6v2tZHkc/zAWgZ
+	 iyWIgCmKkWLg2UjUSQqzORjI2ggtHBuzl4NiC8ErJJOP1OkeVhop2aoYw3FIBTKpH4w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793810635;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=aQ04UU0WdvIRQ5jHpwG9gu8oPw2FlhE+rTStVoHxutU=;
-	b=GffSgW6LfSoTy7g/whpx25n/aa0tpX3hRncJyDaXA5L7u+JMODoPImZpRw3s/+SBBR7X
-	 vnbyodMVSke9sdZ7pUGpgc3z15hopKWeQ0uuzLRFQcWr/bksZzNLRs/OfexEZajcHa8xw
-	 juHoewnV5NuRkytX5qMNHakpyPPwxxMQJ1DbqyhXQzMImDra6bq2Q8V81/Py+nHqCCuy1
-	 4XX9J3QP81QXjvk1NkQWOjcS2AbWpY7QQkHHV7r34R01ApJnU+0ghYsEGtz4gL6OSPPg+
-	 RNmalXm0OUDrKN7zv7M6/H73D6M9L4nWSwH3V98JK5yMBPOcoN0HVyzo0hyu48BEJbw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793811411;
+	h=DMARC-Filter:DKIM-Signature:X-Alimail-AntiSpam:Received:Date:From:To:
+	 Cc:Subject:Message-ID:Reply-To:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=7oCUzc0IQ+/X/VuHpS7xyE9gBpY1n2hc0ad7jzb6Ehw=;
+	b=JqeMU1HbckVczoRcweA15kajEGoDWhEZ6j9/88qR0S1aPmtI0VF07jpFdCO4p5E1Zfzk
+	 kLB/j0jQtXrXbcFZBO2j0a2feEwKUOZeB+A2puavJUUkygtTKjDA/R0lk/SjjNbRT9ftE
+	 yh1CzIsnH908RpU1f+B/Q/gwdVmyCJuaH1gSouLX+oq9FErGUfIetnxX4D7WOZo/wUJGx
+	 a3IZwrlO1yW3uuYwrTLZ/hubqRwN8cVHrANWzf/nAw1gUk/WQFf2yk1vWOo0tWl3Yitph
+	 zMX8ekZPc3Xs2TKr2eEN1NI1o3Zm2uB+uvfJDmSvtIdFSIT6oS8iZCaki4jzLQCLZ5A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WzbBFSJf;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=linux.alibaba.com;
+	spf=pass smtp.mailfrom=linux.alibaba.com;
+	dkim=pass header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=mqOaBcjR;
+	arc=none smtp.remote-ip=115.124.30.131
+Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35281606D803
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 16:43:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC3BB606A329;
+	Wed,  4 Nov 2026 16:56:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BC3BB606A329
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WzbBFSJf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E07871F000C1;
-	Wed,  4 Nov 2026 16:43:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793810635;
-	bh=aQ04UU0WdvIRQ5jHpwG9gu8oPw2FlhE+rTStVoHxutU=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=WzbBFSJf2bSbISEzr2CSMlCJM//fr0kglM6WHrjqpN7Q2D9RpMq7cEt8CAb6G+mRd
-	 P2pq+/zEgmDhFq/eT0D5R1Qx+Vxn0lEv1dW2bOw3kW6tY1z4LdQrGQNc9t2PxTo1FT
-	 /izy8rzwPWri1gYQK67sOZu8ute1r6kLYiUdEEmb2mfTzeIbLPik7ZDm+nOPN6XCUM
-	 6UtWHl7pAcY5eBgjBdlKlLM6UgRmMhLRc6w8FbeqdC6DU7ZvtX+8TKz+671cGh0qdX
-	 2LremxqGdujIzagGL1+XS0i1YuYDjj88R4mnDIWOCvIitUOcpRWohNbHOevIaMfk9r
-	 yli/NGdPg9H7w==
-Message-ID: <sashiko-outbox-197676@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next 23/23] RDMA/mlx5: Advertise adversarial mode
- via ib_device::adversarial_mode
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Yishai Hadas" <yishaih@nvidia.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261103163949.1554-24-yishaih@nvidia.com>
-References: <20261103163949.1554-1-yishaih@nvidia.com>
- <20261103163949.1554-24-yishaih@nvidia.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 04 Nov 2026 16:43:54 +0000
+	dkim=pass (1024-bit key, unprotected) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=mqOaBcjR
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1793811401; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
+	bh=7oCUzc0IQ+/X/VuHpS7xyE9gBpY1n2hc0ad7jzb6Ehw=;
+	b=mqOaBcjRpqGpjCGLVzSSRUeVouDO/Ewh7UfRw6Wwf+fNKP31s1voVAX4AQofQ2zLAm0XXJbmrLtGePnFwmq4ixu32m2FLvUxD/S59b3s6Q9nUTmgOC4RMk7Xxnf74VoEeGqQkE2nuThQXQThuDEJcWHJ4Rh6DLoCJhq6GHggoak=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R101e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam011083073210;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=19;SR=0;TI=SMTPD_---0XE6Ix9y_1793811400;
+Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0XE6Ix9y_1793811400 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Thu, 05 Nov 2026 00:56:40 +0800
+Date: Thu, 5 Nov 2026 00:56:40 +0800
+From: Dust Li <dust.li@linux.alibaba.com>
+To: Paolo Abeni <pabeni@redhat.com>,
+	Bryam Vargas <hexlabsecurity@proton.me>,
+	"D. Wythe" <alibuda@linux.alibaba.com>,
+	Mahanta Jambigi <mjambigi@linux.ibm.com>,
+	Sidraya Jayagond <sidraya@linux.ibm.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Eric Dumazet <edumazet@kernel.org>
+Cc: linux-s390@vger.kernel.org, Wen Gu <guwen@linux.alibaba.com>,
+	linux-rdma@vger.kernel.org, Tony Lu <tonylu@linux.alibaba.com>,
+	Wenjia Zhang <wenjia@linux.ibm.com>, netdev@vger.kernel.org,
+	Stefan Raspl <raspl@linux.ibm.com>,
+	Hidayath Khan <hidayath@linux.ibm.com>,
+	Simon Horman <horms@kernel.org>,
+	Ursula Braun <ubraun@linux.ibm.com>, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net v2] net/smc: don't spin in smc_rx_recvmsg() while a
+ pipe holds spliced data
+Message-ID: <autjyLEDJ_quR4Nm@linux.alibaba.com>
+Reply-To: dust.li@linux.alibaba.com
+References: <20261029-b4-disp-da7f8e6a-v2-1-9052904adf72@proton.me>
+ <4d97a782-8d88-4dd0-b819-fb704582f2ec@redhat.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,17 +73,46 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4d97a782-8d88-4dd0-b819-fb704582f2ec@redhat.com>
 
-> Set ib_device::adversarial_mode during capability init so that the
-> uverbs core layer can report adversarial mode to rdma-core and enforce
-> that only adversarial-mode-aware userspace opens a context on this
-> device.
->=20
-> Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
+On 2026-11-03 15:18:36, Paolo Abeni wrote:
+>On 10/29/26 09:03, Bryam Vargas wrote:
+>> While bytes spliced off the RMB are still in a pipe, recvmsg() waits
+>> for the pipe to release them before it copies the data behind them.
+>> The path to that wait skips the timeout and signal checks, and
+>> smc_rx_wait() returns at once on RCV_SHUTDOWN. With a signal pending,
+>> after SHUT_RD, or once the peer closes or shuts down writing,
+>> recvmsg() spins on a CPU until the pipe is drained, and SIGKILL cannot
+>> stop it. MSG_DONTWAIT and an expired SO_RCVTIMEO wait there too
+>> instead of returning -EAGAIN.
+>> 
+>> Check the timeout and signals before that wait, and end it when the
+>> pipe releases the data or the connection is killed, not on RCV_SHUTDOWN.
+>> A zero-length read returns 0 without waiting for the pipe; a
+>> non-blocking one returns -EAGAIN while poll() still reports the socket
+>> readable (splice() can still take those bytes).
+>
+>@SMC experts, please review. IMHO the above trade-off sounds like a better
+>solution is needed.
 
-Sashiko has reviewed this patch and found no issues.
+Hi Bryam, Paolo,
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103163949.1554=
--1-yishaih@nvidia.com?part=3D23
+Yes, I agree this is a trade-off. But I think this was not introduced by
+this patch; rather, it is a pre-existing bug. And sadly, I don't have a
+good solution to solve it yet.
 
+So for now, I prefer to accept this as a stable fix.
+
+As for the long-term fix: the follow-up I have in mind is to remove the
+zero-copy mode for splice in SMC, which will simplify things a lot.
+Since splice doesn't map easily to a ring buffer like SMC's, and this is
+not a very common path as we have seen, falling back to copy is
+acceptable IMO.
+
+Happy to hear if anyone has better ideas.
+
+Best regards,
+Dust
