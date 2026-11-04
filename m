@@ -1,22 +1,23 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=148.163.143.35
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793809092;
-	b=WS5ym7B42jyjyiOm29oht+JR1Ky01M44P+JuM+XzreWyt2ye6Sq2RLkgZWpyygu4hlVY
-	 5qKBoAmi6+2muf2E3lVxYeQ95tUQq/biOKg9KmzCm9zQh3fA15qhx4+Kn1+ImkW6NZJuA
-	 1UwjGYckX+YEqSJplSwiZk60VtFFdbX7axfYJUseyfJ1nKSoEkjdA5IcJoWvCZ3UDYoGV
-	 Q47ahHBS+cbFf+HRvJwoyn3E2y9W2uyC2umJT3xiKee6Wixw1GgtPtw9rJDIBdb8cbB+1
-	 VOGCvOod3ilIa9wnuzTdv7oMkf+hV4jF9Lj+wmFQTSxiV1H61n/wtFouxjF7ym3HeWA==
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.remote-ip=198.175.65.15
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=fail;
+	t=1793809366;
+	b=tIGo9C7Mkr1CStylY01rwUhwzeMcDHGFC1BUJOXPWwa+vaZxUDPvSE0lLxX8PK0eIdAZ
+	 6kJ2qTMG3tOCi/oY0GQDQm+ZvyMHLbRFT1QZ6LKqNPQzCTUvdlBGXAzP4sfoTYPE8esPD
+	 3HRgXO2fhN+ZJsfJEnFG2RVCRL59W9hAhp/+qzAYLSdZU5N+/oO6XT2ZOEx00arTP4ZIH
+	 DzfQqaV4qTn9/MGq5urlDmUp9IAmQrWhdeDcYr0NoywobVbbAY1BPtDgMBS+K3eY+xDqT
+	 vmP1z9t61AdhlGt3T6x7bNP6//1wjkDIJwOLymfumVL0jT/GgkHP/YHlgG6zt5x2VTA==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793809092;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
-	 Received:Received:Received:Received:Message-ID:Date:User-Agent:
-	 Subject:To:CC:References:Content-Language:From:Organization:
-	 In-Reply-To:Content-Type:X-ClientProxiedBy:MIME-Version:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-LD-Processed:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
+	a=rsa-sha256; c=relaxed/relaxed; t=1793809366;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Received:
+	 Received:Received:Received:Date:From:To:CC:Subject:Message-ID:
+	 References:Content-Type:Content-Disposition:In-Reply-To:
+	 X-ClientProxiedBy:MIME-Version:X-MS-PublicTrafficType:
+	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
+	 X-LD-Processed:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
 	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
 	 X-MS-Exchange-AntiSpam-MessageData-0:X-Exchange-RoutingPolicyChecked:
 	 X-MS-Exchange-CrossTenant-Network-Message-Id:
@@ -25,110 +26,117 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
 	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
 	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-GUID:
-	 X-Proofpoint-Spam-Info:X-Proofpoint-ORIG-GUID:X-Authority-Analysis:
-	 X-HPE-SCL:X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
-	bh=u4s7R2iIr8k6deIydySEC3tNl/TRvyAh5ErNIRQTp0s=;
-	b=xBfqMiDFlFodKpg8pVOnYLjs+ro0gjFOcRYnJ+86SqmIzD9LLx9N7VZvVNVIti1iSf0l
-	 v9QcwOxLYBkhj6dtr/ovMQoyoPiK+GSq1AqZp02DyxItUC5vZO/MGmvgQAN+liC0ygPuB
-	 M0YxAar0CIP234Kpo192NzfD2i7hwTZPIM9uB5yXxum17dXr+T27yhYNb2YMRTwrX1Aji
-	 KtcqRq+enw/0+G3kF+OpsH9NKGpRboQR5V4VN7UBqs5NFwbI4vgp+MykPsBPjzPoKfPXc
-	 CvL44HWq9wkAKvCa2K6+gPkMeUG6Mvb3dlxRdmUE2TrzvnKMWfz8FsKdOizKVOKtACA==
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
+	bh=XXaup1ssF33yeRAHrLgyvKg0lC1Nyf4lKVuOzxOlW9U=;
+	b=xsu3oXiC9qH9/098F81z3yNmmmZTw1NpmIc2yHTY2nzY7CzdPL+O+sy2nbOfuqKoqfOF
+	 fjh1zNFnFyLA0tG8vce0XTYMe7vnyvsAjf/EwWLWRmT9LtkYbOqmKunAbgE6KO+ld1mPr
+	 OavSbjXI33Fb/KPc45KhV0ew2HO/0Un6u7YnkM0NN4tsi1sleLTEVjQ4D5iciQNjn1XHw
+	 s134IPwSVKfLXU6jjZqA/7UFswkDTyI2LpNyiDK4Lqo7dUwBoxVvjDZBd5MmcqL7B+zAv
+	 +0ZAYLGVmUk4NyR9hjYBDIVsHApNM9FyMnHZAtp5JEEzyQERcqAtCozJW5Rp3GLJu0g==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=hpe.com;
-	spf=pass smtp.mailfrom=hpe.com;
-	dkim=pass header.d=hpe.com header.i=@hpe.com header.a=rsa-sha256 header.s=pps0720 header.b=VqE+YQb6;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=148.163.143.35
-Received: from mx0b-002e3701.pphosted.com (mx0b-002e3701.pphosted.com [148.163.143.35])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=PSBsMsq6;
+	arc=fail smtp.remote-ip=198.175.65.15
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10EF8606EEB0;
-	Wed,  4 Nov 2026 16:18:11 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 10EF8606EEB0
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=hpe.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hpe.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 582F9606A336;
+	Wed,  4 Nov 2026 16:22:45 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 582F9606A336
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=hpe.com header.i=@hpe.com header.a=rsa-sha256 header.s=pps0720 header.b=VqE+YQb6
-Received: from pps.filterd (m0134425.ppops.net [127.0.0.1])
-	by mx0b-002e3701.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6A4FhkUi864855;
-	Wed, 4 Nov 2026 16:18:09 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hpe.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pps0720; bh=u4s7R2iIr8k6deIydySEC3tNl/
-	TRvyAh5ErNIRQTp0s=; b=VqE+YQb69qDprNB2/2pB4Ikm3HSfntvmVT0dIoqpYP
-	hXfxwVL49Mu1aujlZuItUvhID/F0CeiPq2JoKx8xZQYskX2Nj4qme0Cc6Qh1UaN2
-	05oDXYi22QKA/zYk42YE3pM0RAuKMPJkBt+Q91amXX8If4IddR4SQNhkBwyQLaLj
-	I6XpAblCMDaN8Dy8V9vB2kybFRSjRgSZXtr476CL/S4uCAggIWVQJYF5Kpvn4XeR
-	LiRNBqLyI302MvsHxgFCMmS9C6n1F177Z6G6M7hkNh2mlbTm8r423HADEo5Ro+l9
-	3e29Isw+iQPRBR3skwxKlFGJA1FVcxmG0yi8GXHwxWXQ==
-Received: from p1lg14881.it.hpe.com (p1lg14881.it.hpe.com [16.230.97.202])
-	by mx0b-002e3701.pphosted.com (PPS) with ESMTPS id 4hr798rw7u-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Wed, 04 Nov 2026 16:18:09 +0000 (GMT)
-Received: from p1wg14925.americas.hpqcorp.net (unknown [10.119.18.114])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by p1lg14881.it.hpe.com (Postfix) with ESMTPS id 8771C859145;
-	Wed,  4 Nov 2026 16:18:08 +0000 (UTC)
-Received: from p1wg14923.americas.hpqcorp.net (10.119.18.111) by
- p1wg14925.americas.hpqcorp.net (10.119.18.114) with Microsoft SMTP Server
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=PSBsMsq6
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1793809366; x=1825345366;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=XvfokJ45PHvhDtxkoWaSwERhlWDtoQJ1SQ5nRIbiJDE=;
+  b=PSBsMsq6r1YgPP4Ucn3P+iywL2wughYVpwxOfWWnbQy9mp5EYBj2gAsT
+   pXyh94sD9XxO7qobkaFFoZy9gxDRvC+dUBFd9icjJfwwrxED6NOGFJvJj
+   v0qROe64WPY8/DemczPmc5zFS3bUsJx13ATZTy78i204ySxyDu8stmkAi
+   1qvAgUz4f9NPLxXYoDhq46gJiAai2ByqJFq3RTa9asRTnr0NPlrjyHFxr
+   63y+qNFa7N0/HRnAcxfQftLqqmgDAFNTb3HHBUmxnvh/aUj/OWO5hNgF8
+   Vl2tCJnkEZYAg8mSsbJEtx3eHArUWEoefUigHgH4x41E+R95UAr+8Vym+
+   Q==;
+X-CSE-ConnectionGUID: cf8462+LTzej6Mu2y3UcbQ==
+X-CSE-MsgGUID: oysMHu5QRjicjrjLl65S3Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11956"; a="2573547"
+X-IronPort-AV: E=Sophos;i="6.27,195,1787036400"; 
+   d="scan'208";a="2573547"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2026 08:22:45 -0800
+X-CSE-ConnectionGUID: LRvBC6NXS7WVJ7AmC1olUg==
+X-CSE-MsgGUID: 0HrkXYUTS/iyrPVZB1XIdA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,195,1787036400"; 
+   d="scan'208";a="7080338"
+Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
+  by fmviesa008.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2026 08:22:44 -0800
+Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.43; Wed, 4 Nov 2026 04:17:31 -1200
-Received: from P1WG14918.americas.hpqcorp.net (16.230.19.121) by
- p1wg14923.americas.hpqcorp.net (10.119.18.111) with Microsoft SMTP Server
+ 15.2.2562.56; Wed, 4 Nov 2026 08:22:43 -0800
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.43 via Frontend Transport; Wed, 4 Nov 2026 04:17:31 -1200
-Received: from SN1PR07CU001.outbound.protection.outlook.com (192.58.206.35) by
- edge.it.hpe.com (16.230.19.121) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.43; Wed, 4 Nov
- 2026 16:17:30 +0000
+ 15.2.2562.56 via Frontend Transport; Wed, 4 Nov 2026 08:22:43 -0800
+Received: from PH8PR06CU001.outbound.protection.outlook.com (40.107.209.17) by
+ edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.56; Wed, 4 Nov 2026 08:22:43 -0800
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=GGQTR3IfOBDEyb1IxP1NBLjMJ71ZUv4lcvTK0IptMgx3dXa+M6V5AhEz++DPhu0rXw5K3dPRBiW/cii3qfDlipFvLysYkZoHVNh6W0lyDTD43Q+7Ym5o0hW4UA59PeBiFTwpbcNLmQNN7Px2NKVAQgBI7Jp/D4vjP0u8bIlR5cNt8jEGQqPwpy9uX3aq6eMNTsmfOu2ZZENdq2IrBjYd+SSKS/z5ww4zp7qUery/EEME2851ZSun91JtAu6VIw7lPv9ZKEVrhvLj2V8tnA9Gm+DoXDbqexukyxFY3+lOCyJkjxJvHPO8m9+v1puwcn0c/xpTmrruRKT1BmzcphV9fg==
+ b=ex1Be1ZBgF8N6pBQSjGOUJNgrO9nYV47JIdcSdQWL70pANrxGm22RcGEUQLx71M5S4F4rdl/GdAu8UQCaF7E4MUiWxTCAj5LuTUcEI+8bcYIHpIJhdKpufulPBXMuCSE/gniKPGQm5eL0fw3m0KBYDsc3EOG9tGOu22GsodufmJjmSm57A6px3gX5g0JQt4kyyDOgrHN2L/29eQnGHMFb/8uEa000moM0ShkaRPqMEIUSBvpGUsHSUpwTfDGM9X1hnKji/ZZxIJmNv8RRZTkgjAt/9XafL7QrCGJA7e2TZcgwCPrplHiviA/AjJlLbJfHX3Vj7QDK9MzQ9xZ7e2X7Q==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=u4s7R2iIr8k6deIydySEC3tNl/TRvyAh5ErNIRQTp0s=;
- b=fGDt6OshA3VtEMneIuPyWntGKzxNUwFkcv58T52wDM/pQKLRhO+PWFkP5mP3LpSORmQzjNmRCWDuAtMVcSqJrDC3KSYtF31XoeBE9YTmzsT4kbZ1uQP1RBAlz0Gb48BYNUrm0saB/DHFf/an4JTt2CPqjHyLzqOqrPW10ljybQ4rkq4+Anp3iRy3qaGyRo8Ul8d6tpHqqSgHnGCYY6NBmVreCQ6/VsbnRpCgohNFcF22SlLjqgAWPYW7j++fWSKqy6+CbdZKResHNChzU382evHXTC4fkp2jq9cxos6ZGVlWTsmiwMA8L+Fv1nqltt7ZiXifqAUnz6NrSV8DeWFwgg==
+ bh=XXaup1ssF33yeRAHrLgyvKg0lC1Nyf4lKVuOzxOlW9U=;
+ b=vDnsAF056Lfcnd/rQ6FA7PluRNE/G0UAmSaKzAhBmXcyq27kVm1SDf9LNNTginBBi7QrdzJmi+B75O3F3vnSnvHbwoKMplWw0i5Aecxa3WOBp/H93yt1ZPLkrH/h1+75igLAcSDq8ZIb3tX4jT4hibl3yS7Ae16N6MIqtpyJWoBgbhfG5AZNrcDpuKyzCy+JdqaOjNvh/2cPATgtsqHMxoxgu5cTPOrjVP3DWCy44JKy2GvQabU+b0bX3Xb02tMtPKmaBbbFFgoHpS/oCtpBR4M8z8ieyqyDUBDUGffL65Qp/66g5IRo0SoXWazRxo0tjKdLq/73iPMr5aGdBBTjIg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=hpe.com; dmarc=pass action=none header.from=hpe.com; dkim=pass
- header.d=hpe.com; arc=none
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
 Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=hpe.com;
-Received: from DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM (2603:10b6:8:225::20)
- by PH7PR84MB1655.NAMPRD84.PROD.OUTLOOK.COM (2603:10b6:510:152::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.10; Wed, 4 Nov
- 2026 16:17:26 +0000
-Received: from DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM
- ([fe80::d136:e75e:53c5:73d8]) by DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM
- ([fe80::d136:e75e:53c5:73d8%6]) with mapi id 15.21.0592.007; Wed, 4 Nov 2026
- 16:17:25 +0000
-Message-ID: <a14c59c0-d523-4399-96b2-72f84b883ef4@hpe.com>
-Date: Wed, 4 Nov 2026 08:17:22 -0800
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 00/11] Subject: [PATCH for-next 00/11] RDMA/cxi: add the
- HPE Cassini verbs driver
-To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>
-CC: Slingshot Open Source Team <slingshot-os-team@groups.ext.hpe.com>,
-        <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        Iraimani P
-	<iraimani.pavadai@hpe.com>,
-        Mamila Santosh <santosh-kumar.mamila@hpe.com>
-References: <20261030-cxi-for-next-v1-0-bc6e49e07037@hpe.com>
- <20261103142826.GJ264423@unreal> <20261103143004.GJ3889730@ziepe.ca>
- <20261104095424.GC478286@unreal>
-Content-Language: en-US
-From: Doug Ledford <doug.ledford@hpe.com>
-Organization: Hewlett Packard Enterprise
-In-Reply-To: <20261104095424.GC478286@unreal>
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="------------85ngTJZ6nDGGF0DAemINvGcg"
-X-ClientProxiedBy: SA0PR11CA0186.namprd11.prod.outlook.com
- (2603:10b6:806:1bc::11) To DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM
- (2603:10b6:8:225::20)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from LV2PR11MB868673.namprd11.prod.outlook.com
+ (2603:10b6:408:422::13) by CY8PR11MB7800.namprd11.prod.outlook.com
+ (2603:10b6:930:72::20) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.8; Wed, 4 Nov 2026
+ 16:22:41 +0000
+Received: from LV2PR11MB868673.namprd11.prod.outlook.com
+ ([fe80::5bfd:6afe:a9db:b7de]) by LV2PR11MB868673.namprd11.prod.outlook.com
+ ([fe80::5bfd:6afe:a9db:b7de%4]) with mapi id 15.21.0592.007; Wed, 4 Nov 2026
+ 16:22:40 +0000
+Date: Wed, 4 Nov 2026 17:22:24 +0100
+From: Maciej Fijalkowski <maciej.fijalkowski@intel.com>
+To: Orgad Shaneh <orgads@gmail.com>
+CC: Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
+	Dexuan Cui <decui@microsoft.com>, Andrew Lunn <andrew+netdev@lunn.ch>, "David
+ S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, "Jakub
+ Kicinski" <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	<netdev@vger.kernel.org>, <linux-hyperv@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, <bpf@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, Wei Hu <weh@microsoft.com>, "Konstantin
+ Taranov" <kotaranov@microsoft.com>, Simon Horman <horms@kernel.org>, "Alexei
+ Starovoitov" <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>,
+	"Jesper Dangaard Brouer" <hawk@kernel.org>, John Fastabend
+	<john.fastabend@gmail.com>, Stanislav Fomichev <sdf@fomichev.me>, Long Li
+	<longli@microsoft.com>, Dipayaan Roy <dipayanroy@linux.microsoft.com>, Hamza
+ Mahfooz <hamzamahfooz@linux.microsoft.com>, Aditya Garg
+	<gargaditya@linux.microsoft.com>, Erni Sri Satya Vennela
+	<ernis@linux.microsoft.com>, Muhammad Falak R Wani <falakreyaz@gmail.com>,
+	Jesse Brandeburg <jbrandeb@kernel.org>
+Subject: Re: [PATCH net] net: mana: fix XDP_REDIRECT of pre-allocated RX
+ buffers
+Message-ID: <autbwKmZPPWEj0Dq@boxer>
+References: <20261102064324.806414-1-orgads@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20261102064324.806414-1-orgads@gmail.com>
+X-ClientProxiedBy: TLZP290CA0008.ISRP290.PROD.OUTLOOK.COM
+ (2603:1096:950:9::20) To LV2PR11MB868673.namprd11.prod.outlook.com
+ (2603:10b6:408:422::13)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -139,206 +147,205 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM4PR84MB3970:EE_|PH7PR84MB1655:EE_
-X-MS-Office365-Filtering-Correlation-Id: b833a1e1-cb92-42ae-610c-08df3a8f1d2d
-X-LD-Processed: 105b2061-b669-4b31-92ac-24d304d195dc,ExtAddr
+X-MS-TrafficTypeDiagnostic: LV2PR11MB868673:EE_|CY8PR11MB7800:EE_
+X-MS-Office365-Filtering-Correlation-Id: f7b6fb23-e039-4e37-80f4-08df3a8fd8be
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|23010399003|366016|1800799024|4143699003|56012099006|261021121427099003|261021135927099003|261009223027099003|261028144727099003|261102130727099003|261022105027099003|261026121527099003|261026140227099003|261102123227099003|10067099003|22082099003|18002099003|6133799003;
-X-Microsoft-Antispam-Message-Info: Svhfpo6t50n3aADtC4x4do+PevucatLW1cMdp2HiHeeuRlUDsPIhXj3BG2SShTqU/9CYwh4VZ59nKvqxpOkl7W9nOFZ7376vrUbtRlHeoMcFlmE4CqvKOyARuvpVEtjJDrvw1M+nuCaoHueJg2BEkYoctbwdUECBmYCQTBQTaWHMAPQVEJ7mMKFFHS+DgFtLZ8ew9fs+hbghgTYe3pBVLFfMJ4RIwnEGuDmXZk3uc/hJl74FaZe7ZQwf5WnIXfcJ4EnwxJVJ0THm7rXkT/v/vprzqG1edT0X7mOw5mANFsSfeSsQBxtQrZf2NnIeasgEOoyAoid3ohfdBIA8L9T7698xvOuIhD7wnCoWBoNP5oRGnBwkjx5kvhHXqDdso9+ja0Ao/I1Yum10nmpdKcEXTdyyvqmqtUqY4iYUY70W6KMUMGYBvnIhhh2+ND/xqXfnktfdUgXr5KFL/Q+EiZD9UaMd98yGiLLI7ga5R3xDNEixFsi0DSFgWNBX+3cW680W1egVvYQ3765fpBn3lKVTeRydQ/N7im2QIdCY55g1jOvEcldwcLBZyA5shCllBG8olxlOKAVlB0m/y0fK+gGhqPRJ4atS2Yl21FhygXq36ww=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230040)(376014)(23010399003)(366016)(1800799024)(4143699003)(56012099006)(261021121427099003)(261021135927099003)(261009223027099003)(261028144727099003)(261102130727099003)(261022105027099003)(261026121527099003)(261026140227099003)(261102123227099003)(10067099003)(22082099003)(18002099003)(6133799003);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|7416014|23010399003|376014|366016|1800799024|10067099003|6133799003|18002099003|22082099003|5023799004|261102123227099003|11063799006|261021121427099003|56012099006|261026121527099003|261022105027099003|261022075727099003|261026140227099003|261028144727099003|261009223027099003|261021123027099003;
+X-Microsoft-Antispam-Message-Info: SOfkT9MklsximZxYqHOwwSSj9Pgv21t+DH76DsE6rQ3y7LbFO++JQfsj3u6lKy/zAVPLnmyYG3SIiGRptm5JStcgBHkHW2NcxDpCmsxTwOG9V/MXCy6LGDvJEb1QuB8wJkKwzC7NTKq7FBsGETaTtQghIQYE07CKbQYqHGQ8/OXZGE8pkoAfRKZbMOj/T3DVB0g0o8SmD7TJuIvbPtHDfnNBtjHGmrYk2L1tsP8SDtY5d68qYFL6gkhJH0IYb5x4WYZ0j5dWOkPP0SVgpN8N3EgNityEGMJVhN6AfSoFzLjKnXPkcqgo7qaIlgJBRTmvegwp67j5W2F/4+GKGD0wwpHAk0KaKq+KWbMV90tO/p6emo70SsuJ+fSqJA1Arz0E26DL7MSEkkEMeYa+yyefOBb95Ht2qyawT3zkmhLMP0S7muCCf5M30f2zxcbKGH1lKGnDImMjyUVzhs9sen0nzO1cPUC4hlvJW1c3CblqmFCufaVd9PRQSqBgbGr04P0h7r/WGU8CCALPSFZ7EsL7CMv4kPhYlxl68Nq44W+AnJLmwIQSHTQsJMuEdKt+0su0d5+j9VKsLv6fFe4MZVhflm+2MPE2AtZbUARyMBDVfilRkaiCALTJ/xdeqe4m2isjVRy1Zhx419QlJ31CSUp31KUzrX5wUdtAfIkldU8/arw=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV2PR11MB868673.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(23010399003)(376014)(366016)(1800799024)(10067099003)(6133799003)(18002099003)(22082099003)(5023799004)(261102123227099003)(11063799006)(261021121427099003)(56012099006)(261026121527099003)(261022105027099003)(261022075727099003)(261026140227099003)(261028144727099003)(261009223027099003)(261021123027099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?TVFCR29FZnMxcWtqeDdtTWdsaTZBZkdTSmF4K2k2ZHNSNkVnWFI1cWRBeUZL?=
- =?utf-8?B?VGFCUklRdFF2YWJweXlhbzdXQ2ZYdFMvemo1bmNTbERvT1c4aHR5d3VoeDFY?=
- =?utf-8?B?eFhnd3NteUtwb1M0bFlLcWkzcGxrNElaNUR5QXJtcHhoSXBmZVprVmFpSjFC?=
- =?utf-8?B?MjE3NnZ3N2owbjVVM3V1cjBabTA3aXlVK0wxcUh5MDFqdmtiVk5zSTNCU1lX?=
- =?utf-8?B?UHpta2N4T3VkYVZ3OXZKVlRMYk1wWm42K3JLVHd4SGpTbE1LVm1qUEVON1hv?=
- =?utf-8?B?SEJQZmhCU0R0aGFFUFQ4U0hXREtYZ0tEZXpqbDY1RWYyNkJXZ1JTNk5jdXhB?=
- =?utf-8?B?ei9OZ0xBS01YRitkaHVLMEJzWEZzaTZjUGR1UU5DRkxtcU43RzJYenREd0Z2?=
- =?utf-8?B?OXoyS25qSTRxa0Z0Mjl1VzVjTCtuVFNiT0p1YVlTMG5kcWJ4Y3dyYnEzSDRF?=
- =?utf-8?B?Y2pNcmFoNjJZNjhZK3Q0SmorQmNBcXoxb0hEdTNrYUFSWTZVN2VJR0s3eFdC?=
- =?utf-8?B?UTdmblFRWkxsdnhRMnBZR0dNaEJ2bXlFM25tVUhuUGlWaEdYS1diVWRLd0lF?=
- =?utf-8?B?bStRZjVoeGNtM3RIUWFkeElNQVBXSUpCZWVsRzVCWG43V2ZycjJocnpESFNG?=
- =?utf-8?B?Mm9VSEVaVVRFdUxxaEZjem1kcGo4b1J0RTBTL2NMTUJPUTU3bi9xc2NRaFpV?=
- =?utf-8?B?bkZjemU0OW52VGdlS0NNUEdvUWJob3pGdVFLSW02TFZJUVRQZVh0YzdiWnBW?=
- =?utf-8?B?Q2ZYdWRRc05YWW9tWU1sYWUzSk5EZVRxWWZSTkorYUN0dW9zMWRXR1pIVWdU?=
- =?utf-8?B?WXVzL3UyaWtvNVl6OXNIeXhYcjJjS0V5dElEcUoxNFJyVlA3T1QxN1FWOXor?=
- =?utf-8?B?M0RZbFhXRDI3WjhySzlJK3JReU01YitXVkZzcDdqdTRhNmQxK0pOYlRtbmJq?=
- =?utf-8?B?d2h4d08zc1NPZnY1Szh3cjI4VXFmeTlwQlQ3ci91UHI5b3poczVRUjV1Q3ZB?=
- =?utf-8?B?NVo3U3JQd1BnUXNoUmVzS0d4ZmFlUjJCaDdvMFBIN0oxVUl4c1ZpV2NCbm1h?=
- =?utf-8?B?Y0prRk9nUHhsYWVGSGRwbTM4NHQ2ZWt2S1JROTRtaS9EU3FqMHI4dS9oSG92?=
- =?utf-8?B?dkhobTl6WHZuM1BjSVQ4WEM5a0h2NXd2b0x1VFZiL0xjeXl5STNxVmtpOE1M?=
- =?utf-8?B?ZkxhZzVVdU1hd2s2UFYvTDJwQ2dkZnEwMVBIS1pCK1JSUlFVZHZBdEx1ZHJr?=
- =?utf-8?B?OWpJdG1sclFka3p2OUN5VGpLWS9vdTRyQmpsMEc4ZTdnVjZpYmJSUThaVHZM?=
- =?utf-8?B?VXkyVm9wTTArdmpkdU9FZktEWHVoZ3JOVWtBL2lHOFQwVEpQNWpRaDRBZ0Fz?=
- =?utf-8?B?YVFOTitZbUI0Z0NXcXFMZFZSWVZoSmNZT2NWMVVBN1ppTmJkazFwSmVJb0RR?=
- =?utf-8?B?MUVqQVJTTHc5TmF2aVdKeW1acHFkR0tINDl0WXlGNmFjZXhCc3BSdzJrbi9P?=
- =?utf-8?B?eHlsWGs3UVZJZjFXSlFsT2lXbFpnSXJrQlVrSHRGZnBSK2ZGTVJyYndCVXlq?=
- =?utf-8?B?TTZiQnhWbTJhWXBSVnpnOFZyQ3VET1dWemM0WGdBeTlxRE53QnR0UWtWSFhw?=
- =?utf-8?B?WkNsOTlEWFhoeVNPbFpqd0V3b1ovYUc5MTlwcStCSlRsSVN1WEt5SUdVMFdt?=
- =?utf-8?B?RURITHdRcTlLYkpYZzZBSGNKWm9NV2RFSTAzcDlXUGZoUFBrQnpvbmlnaGJo?=
- =?utf-8?B?MGNkdzRQYVpTKzdFVlVxWEpyR2c3clpnOTQ3QTJobHhIbDJDQkI1dER4YU1M?=
- =?utf-8?B?NnlqdkVmRTRFaTZvL2dPNU93ajZVa0JJSG1GS1VlZlJ4QjFVMlZQVVQzYkwx?=
- =?utf-8?B?bEZaMnRxRytpNi8rUXkyRmpETTlKZVZOYU9jSHphUU5BUk11N2Mrb2xxYWps?=
- =?utf-8?B?TVRmYkZ6N3ppMWk2V2lYVTFCc1ZOS1ZBOXI4WURmbFZBdzc5NTIzRVpuQjVk?=
- =?utf-8?B?aDRhY3Z1d0NkbXg1YUo2RlNFUFJKWXh4NjY5MkVrcWdlSE44ZVY0MjBzUzhk?=
- =?utf-8?B?TW5vdiszUGFJU3VSL3ZnTGJQU0ovY2JyZ1pINnNNNGh4b1dTYlpzeHVmaUZK?=
- =?utf-8?B?aUJsSWpKYklsM2xKQ09zYXg0MHJXYXdTaFFOUndBZkIzZGNYZ3VGMXZqVDRG?=
- =?utf-8?B?b0tjMkdDSStuZERzSkI2ZzdrYzZMYmd1cGZTbFEwVUpYaE53U1NnTWczRzd2?=
- =?utf-8?B?QUVjdWREWE9sTm0zTURVcTdqRVB6TjA3Z2JISnI2MzA4WW1Cekp6YWl3R3Ju?=
- =?utf-8?B?cVBWU3hxbklpdTdENXFYOWRHOGxGOTRFSVN1cEg2RXoza3JXRnB2Zz09?=
-X-Exchange-RoutingPolicyChecked: WNmhDw0eMbk895P0litFhEg9+ISP1WcR1nS47eTBvThlrs1Q3YKOE4xRVy4dtP5q0oM8M+ntg53Noj59yGJz/gfBSF5N63wmpA3WkFLpDdyLzbujZD0QcnouU+YY687nJf6kIYIIGFzCPLDPAk4gEVAMiX8D6zdYNaB5EK5vo9zpj1x9OAdSqeQlTo+1wxoFSLLYccd8WnJwqhMDQs2S9I9Cmb/tRq6dkei51ieKbgMqdBn+BJO0dpewu0G6wy5WaalFxo1M/PDvgDiaWBC2Byd3u66M6R+ExkEl6TVJEQxl/Csh7S4yjrLXx0gtlE+Y1U8Fu65vzyT46weIqHKQfg==
-X-MS-Exchange-CrossTenant-Network-Message-Id: b833a1e1-cb92-42ae-610c-08df3a8f1d2d
-X-MS-Exchange-CrossTenant-AuthSource: DM4PR84MB3970.NAMPRD84.PROD.OUTLOOK.COM
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?iNdFLdSOJdqfzVXhUnYc4GFBr0JmCht1x53ODPoOx6K37gaySIOfodjojgu8?=
+ =?us-ascii?Q?zcCEf8HOGeqUnfzrqjvcwjjTlZ193FAyTlPEI6R7m2hfTopVlg4vmSWzHpxd?=
+ =?us-ascii?Q?6H2lgXiFJnz8KaJHDhkqsBdc8LhQgEZTBe23aVCn24AL4pBPhjP3C/9iYSVC?=
+ =?us-ascii?Q?tMp+eYlrrjFLfyYkgPE504MWgN/Hgieivz4NIgP4AQZgGZol58ChVl9sZxIz?=
+ =?us-ascii?Q?N5+0s9igm0vQoKJTiGGWHVRonRWZcmMlvgsd6/6sE6sdHX70yATH5EPSWkOo?=
+ =?us-ascii?Q?5mLJ13YXmiiFdYqqC4/mbuN4jX+q8FFSH3xrMjtOw6GACTCzTBKx6QnQHhVX?=
+ =?us-ascii?Q?0g45CEcYsFPLlJkt+/sXBz17wkjWb2G5BqWC4UsVcYjfZ4T+Gyq8zhRN1c7x?=
+ =?us-ascii?Q?0cq2HN0TrJP7QzU1sr2uPx0zpnQzzqFsmjg4KUA9rGR/hAw6olcb8ydTDGE8?=
+ =?us-ascii?Q?OAk7+obVwd1rD8fkokFAYlNmhybpCmuGhwBztDG1JNU25swfcew1Cwfp3OOM?=
+ =?us-ascii?Q?MTU2rUCDZXowhbmLMWXWndwsJSgA+3DGS6L5Pnl7ZLiK+XLsFr5Gt49F3LUi?=
+ =?us-ascii?Q?mWSrhx88SFXNaId+ikwB9Ie5jUC6qBpUgc0Kde7xgLY42bVYmTKIxW2jNrVp?=
+ =?us-ascii?Q?rfnBj95CStwqepED21F6o6li+UuWOmpwghOKSV0IBphUZhFNe/KxhmVqikQp?=
+ =?us-ascii?Q?YIvU9XlaRqc5m8bMm2VbNN6AMKRLX0IGbU2efrrXHpq/yIkH9KGTGbPDtVp6?=
+ =?us-ascii?Q?oBBYSohejMAfiD+drI2sfJSrJp4tlRF0Yqw1tX2Q4CCiZLZlL3dAj9bdANWU?=
+ =?us-ascii?Q?iBUL5WBnx0Sf7sIWKth5QfVaVPzqxiHWgZLjL+PPgBckKaB5Sd/Qo+kUpKn3?=
+ =?us-ascii?Q?8I2OcRt5VO0+agkDtx0jiRRUUQ87Yh1iYM0Ba917gadY6eAV3XpCAOhYq8PY?=
+ =?us-ascii?Q?XhKKP/1D02jq2uZCM2vOa3VsxUzNuUTlUeAnk1YXgTYhwCoIw1D+arqs54/p?=
+ =?us-ascii?Q?YTsNIVTR0VSa3+BROrMq+sIiKnQla3hLIENCZ8sZqXJtuSHm1lcrg8mSu1s8?=
+ =?us-ascii?Q?NSlpQMrHT+Cm283ZzZamAzJE5EnZG3IniP7zJ6XuBKjkXKb4sKoTpq+kj39g?=
+ =?us-ascii?Q?41hwUzpaYBx/aTGx0z9stHiTKr330SQPrdVuBLgsTlixQHopDXLW8HgdyL4R?=
+ =?us-ascii?Q?Y0MrDga8lShXkNQhco7xjj/M5T7aweDbhtOVDmL+7GekqF59EIZSM7JFB3Z3?=
+ =?us-ascii?Q?n+h7xBYZVPOSA14hVCer7HHREsEdvN2qZRiP07CVRA8PBrDc1Y2zDi+ZLhWH?=
+ =?us-ascii?Q?UCxDVa2VyHn9US0T6x703gt1cG2SjFWjvN8QYB7GgkLqnuOLKEv9klFxO4mj?=
+ =?us-ascii?Q?KheBX0HnezaJ97dodUjrcm5QcjLFeqIwPub5u0xt8EO+Y2cIxzgBib3NOIF+?=
+ =?us-ascii?Q?EvfNDrTrKKKIkMnlYgcAhT4JseiY0Gqqj3psIbQJ7+ONyc3M+2iDN/FqD3mb?=
+ =?us-ascii?Q?pINOqW64/gFN3fpSacFJYMHPB7DFqzdw3CD56M+2vQ1NJGk5kn1t+dOgfYN1?=
+ =?us-ascii?Q?W75N6wUyemmh00IRIpyHTi/YJzu+SGeuTKmYX1ct9oOCsfgX1+50nyYgvQ2V?=
+ =?us-ascii?Q?aM7zw2dLf1m+O0RoK/4AJryoBuYM2hzSa+YrC9YBOEWDN/l8BkdlLsmwOfFX?=
+ =?us-ascii?Q?ti2YuWlZeSGSMPw3Qt+7kY2me3UOa8PZrz0tIC4WFdo505aSRte9bSNanA9s?=
+ =?us-ascii?Q?OKffXEXux5aK0dpg/kDIoqcMwBopxBI=3D?=
+X-Exchange-RoutingPolicyChecked: JrKKUbc0SQGzVEwoRws2bt0KB/5rzQMBc+OMzmvcdk2DqVncLZOeWOQxBqxE6ttC9uY0Beg6rAjFUwVqG3EPqBzR9UdcIZFqU0CiXeSJ/YQyYPfaOeLNUU1cLG9bRQzDPCMRpFRo//phU2Z689k83nM+th3/v6B62mbj0UnDkL9lJhBLlwEGONEBXdUvtVuMG5spX0o5az42MtCJODXgsTNoAu48rq1kVUeUlDL5MLhtiHIQmWbE136PiSMaYDhoV1c1otjSA1ro1gTFL5KjskbY219jA40zDkkwg+BmIGGIJnO92rx0b/znvkCNoooXIqpEgVPUqBJILXNoDPqBNg==
+X-MS-Exchange-CrossTenant-Network-Message-Id: f7b6fb23-e039-4e37-80f4-08df3a8fd8be
+X-MS-Exchange-CrossTenant-AuthSource: LV2PR11MB868673.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Nov 2026 16:17:25.5108
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Nov 2026 16:22:40.1882
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 105b2061-b669-4b31-92ac-24d304d195dc
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: AqnQdBpQ8PXmCL14GsqTBd0BK2POfcQR6GuGRFoXuuDHuGp2g2bRhHRWVFqdj+1jI8z2BwtzYB/kMwrPcPibXg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR84MB1655
-X-OriginatorOrg: hpe.com
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTA0MDA2NCBTYWx0ZWRfX3QG2cljNa9xP
- 4mdkDN5jTAQdAcUW6tN4bxeqeddTN+F7BcAeCvW7JxsoHUtQXsH9FAk+/cLJMjSRB93fAOaVZRC
- SynjSLhON+XhnVskA+5DgRrelf9DEeZrqet/cSxoVM5mBf1mvqPaqUiZ3XljB9Tfl8R0IxUiMHs
- gSN69NocfZnGg8VxseEPk8oKjZUhFlSptttHg8OMpmjtFAEujKd6fFthk0UJ3mO7G2G2Wn0HJvP
- RSbadAthch5jHjrYr3J9wi/xcBsPx55LqWZzRIXvtbvf+/Avqa1DzE1jgKl6DnzxFBjJOviK6A5
- EI9ogGzGFJ9Chf+VhMtOFUP24it2mvsLekuYh7fNCnp7nsA/7eNeY1/b3U8JZHoF6L1GqIzjdjZ
- ECnmeHftGHK1duR2YW3rdgtFU1eFgvow/CY+X9cCTDIAn8mD4yv9topJeF77sd4GPNJfOhQudeV
- cJHP5jNszc4TMSjF4vA==
-X-Proofpoint-GUID: UPxDIQsPx0RdkrJ2smgg32lwkzR5oFKA
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTA0MDA2NCBTYWx0ZWRfXx6LYGsu/OVV5
- ChexEdfJAi94qGb/AIgR9el4TSVfCkMNiIlq2tk1di9DmtDXImNqzb3tYg3ZusEW5IpTB5oWx3G
- +Ln8m7EpekP19Yyz/w7GZA9PUZ9sC2M=
-X-Proofpoint-ORIG-GUID: UPxDIQsPx0RdkrJ2smgg32lwkzR5oFKA
-X-Authority-Analysis: v=2.4 cv=VoC2kO2n c=1 sm=1 tr=0 ts=6aeb5ac1 cx=c_pps
- a=FAnPgvRYq/vnBSvlTDCQOQ==:117 a=FAnPgvRYq/vnBSvlTDCQOQ==:17
- a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=z/mQ4Ysz8XfWz/Q5cLBRGdckG28=:19
- a=lCpzRmAYbLLaTzLvsPZ7Mbvzbb8=:19 a=xqWC_Br6kY4A:10 a=zJRp6_cAMcgA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=gQcMVamqm3wCPoSYhaRC:22 a=ZSrvDirOKP4VPF05hnFf:22
- a=c92rfblmAAAA:8 a=MvuuwTCpAAAA:8 a=1bGtPqcbkTH8bB8VZU0A:9 a=QEXdDO2ut3YA:10
- a=USH9CIn2an7dnLufpBUA:9 a=FfaGCDsud1wA:10 a=GvGzcOZaWPEFPQC_NcjD:22
-X-HPE-SCL: -1
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-04_05,2026-11-04_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 adultscore=0 spamscore=0 malwarescore=0 suspectscore=0
- phishscore=0 lowpriorityscore=0 impostorscore=0 bulkscore=0 clxscore=1015
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2610300000 definitions=main-2611040064
+X-MS-Exchange-CrossTenant-UserPrincipalName: OHiVV5UoVjPMNOxXtgLLtmWQORQt/jgAPICMAY5c9jJsnia0XQfxr+zJRpYEVO9VC4TAVIAsDOxdEQD910ek17dnKfw7WWF/74CSNPVfpy0=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR11MB7800
+X-OriginatorOrg: intel.com
 
---------------85ngTJZ6nDGGF0DAemINvGcg
-Content-Type: multipart/mixed; boundary="------------K642xjH2taC5hBn5cbWYdFC2";
- protected-headers="v1"; hp="clear"
-Message-ID: <a14c59c0-d523-4399-96b2-72f84b883ef4@hpe.com>
-Date: Wed, 4 Nov 2026 08:17:22 -0800
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 00/11] Subject: [PATCH for-next 00/11] RDMA/cxi: add the
- HPE Cassini verbs driver
-To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Slingshot Open Source Team <slingshot-os-team@groups.ext.hpe.com>,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- Iraimani P <iraimani.pavadai@hpe.com>,
- Mamila Santosh <santosh-kumar.mamila@hpe.com>
-References: <20261030-cxi-for-next-v1-0-bc6e49e07037@hpe.com>
- <20261103142826.GJ264423@unreal> <20261103143004.GJ3889730@ziepe.ca>
- <20261104095424.GC478286@unreal>
-Content-Language: en-US
-From: Doug Ledford <doug.ledford@hpe.com>
-Organization: Hewlett Packard Enterprise
-In-Reply-To: <20261104095424.GC478286@unreal>
+On Mon, Nov 02, 2026 at 06:43:24AM +0000, Orgad Shaneh wrote:
+> mana_pre_alloc_rxbufs() fills the RX rings with plain pages from
+> dev_alloc_pages() (from_pool == false), but the rxq is registered with
+> MEM_TYPE_PAGE_POOL and mana_run_xdp() builds every xdp_buff with that
+> rxq info. mana_rx_skb() frees a !from_pool buffer correctly on
+> XDP_PASS, XDP_TX and XDP_DROP, but a redirected buffer is freed through
+> its memory model: __xdp_return() hands the plain page to
+> page_pool_put_full_netmem(). This triggers the WARN in
+> include/net/page_pool/helpers.h, breaks the page refcount, RX refills
+> fail and the queue stops receiving.
+> 
+> The pre-allocated buffers fill the whole ring of every rxq created by
+> an MTU change, by ethtool -L / -G and, since
+> commit 730ff06d3f5c ("net: mana: Use page pool fragments for RX buffers
+> instead of full pages to improve memory efficiency."), by every XDP
+> attach and detach. So on current kernels the first ring of redirected
+> packets after attaching an XDP program always hits this.
+> 
+> Reproduced on 7.2.11, and on 6.12.113 after ethtool -L, on an Azure
+> MANA VF: an XDP program that redirects UDP to an XSKMAP with an AF_XDP
+> socket in copy mode gives WARNINGs at __xdp_return+0x249 (stack
+> __xsk_map_redirect, xdp_do_redirect, mana_run_xdp, mana_poll), then
+> the queue stops.
+> 
+> Give each rxq a second xdp_rxq_info registered with
+> MEM_TYPE_PAGE_SHARED, the model these buffers had before the page pool
+> was added, and use it for buffers that are not from the pool. Those
+> buffers are already DMA-unmapped by mana_refill_rx_oob() before XDP
+> runs, and page_frag_free() frees them whatever their order. Allocating
+> the pre-allocated buffers from the page pool instead would need the
+> pools to exist before the rxqs and to outlive them, a much larger
+> change.
+> 
+> Found, fixed and tested with an AI coding assistant (Claude Code).
+> 
+> Fixes: b1d13f7a3b53 ("net: mana: Add page pool for RX buffers")
+> Signed-off-by: Orgad Shaneh <orgads@gmail.com>
+> ---
+> Tested on an Azure D2s_v6 MANA VF, net at cb284914e749 with and
+> without this patch (same config), XDP program redirecting UDP to an
+> AF_XDP socket in copy mode on queue 0, 25k pps offered right after
+> attach:
+> - without: 41 WARNINGs at __xdp_return+0x252, 0 packets relayed,
+>   hc_rx_discards_no_wqe 301470.
+> - with: no WARNING, 25k of 25k pps relayed, 0 loss; also over three
+>   more attach/detach cycles, two ethtool -L combined 1/2 cycles and an
+>   MTU 4000/1500 change before attach. MemAvailable unchanged.
+> W=1 build of the mana directories: no new warnings.
+> 
+>  drivers/net/ethernet/microsoft/mana/mana_bpf.c |  9 +++++++--
+>  drivers/net/ethernet/microsoft/mana/mana_en.c  | 11 ++++++++++-
+>  include/net/mana/mana.h                        |  5 ++++-
+>  3 files changed, 21 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/microsoft/mana/mana_bpf.c b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
+> index 7c55f8724441..494267b3069a 100644
+> --- a/drivers/net/ethernet/microsoft/mana/mana_bpf.c
+> +++ b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
+> @@ -78,7 +78,8 @@ int mana_xdp_xmit(struct net_device *ndev, int n, struct xdp_frame **frames,
+>  }
+>  
+>  u32 mana_run_xdp(struct net_device *ndev, struct mana_rxq *rxq,
+> -		 struct xdp_buff *xdp, void *buf_va, uint pkt_len)
+> +		 struct xdp_buff *xdp, void *buf_va, bool from_pool,
+> +		 uint pkt_len)
+>  {
+>  	struct mana_stats_rx *rx_stats;
+>  	struct bpf_prog *prog;
+> @@ -90,7 +91,11 @@ u32 mana_run_xdp(struct net_device *ndev, struct mana_rxq *rxq,
+>  	if (!prog)
+>  		goto out;
+>  
+> -	xdp_init_buff(xdp, PAGE_SIZE, &rxq->xdp_rxq);
+> +	/* A redirected buffer is freed by its memory model, so a buffer not
+> +	 * from the page pool must not claim MEM_TYPE_PAGE_POOL.
+> +	 */
+> +	xdp_init_buff(xdp, PAGE_SIZE,
+> +		      from_pool ? &rxq->xdp_rxq : &rxq->xdp_rxq_shared);
+>  	xdp_prepare_buff(xdp, buf_va, rxq->headroom, pkt_len, true);
+>  
+>  	act = bpf_prog_run_xdp(prog, xdp);
+> diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+> index 6b7c027e497e..7547aeb3235d 100644
+> --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
+> +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+> @@ -2157,7 +2157,7 @@ static void mana_rx_skb(void *buf_va, bool from_pool,
+>  		return;
+>  	}
+>  
+> -	act = mana_run_xdp(ndev, rxq, &xdp, buf_va, pkt_len);
+> +	act = mana_run_xdp(ndev, rxq, &xdp, buf_va, from_pool, pkt_len);
 
---------------K642xjH2taC5hBn5cbWYdFC2
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+I wonder if it wouldn't be better to work with rxoob objects which seem to
+carry the from_pool setting?
 
-On 11/4/26 1:54 AM, Leon Romanovsky wrote:
-> On Tue, Nov 03, 2026 at 10:30:04AM -0400, Jason Gunthorpe wrote:
->> On Tue, Nov 03, 2026 at 04:28:26PM +0200, Leon Romanovsky wrote:
->>> On Fri, Oct 30, 2026 at 09:35:28PM -0700, Doug Ledford wrote:
->>>> This series adds cxiverbs, an RDMA driver for the HPE Slingshot Cass=
-ini
->>>> NIC. It exposes the NIC through the verbs API using the UET reliable=
-
->>>> unconnected (RU) queue pair type from the UET RDMA core series.
->>>>
->>>> cxiverbs does not drive the hardware itself. It is an auxiliary bus
->>>> client of the cxi-ss1 Cassini core driver and does everything throug=
-h
->>>> that driver's exported CXI interface.
->>>
->>> <...>
->>>
->>>> Before posting, the series was reviewed with the Sashiko AI code
->>>> review tool and checkpatch. All valid findings are fixed, except the=
-
->>>> open items listed above.
->>>
->>> <...>
->>>
->>>> ---
->>>> base-commit: 306a2f8432f516069b2e673de7a07043132c034f
->>>
->>> Sashiko failed to apply this series as this base-commit doesn't exist=
-=2E
->>> =E2=9E=9C  kernel git:(wip/leon-for-rc) git show 306a2f8432f516069b2e=
-673de7a07043132c034f
->>> fatal: bad object 306a2f8432f516069b2e673de7a07043132c034f
->>>
->>> https://sashiko.dev/#/patchset/20261030-cxi-for-next-v1-0-bc6e49e0703=
-7@hpe.com
->>>
->>> Please make sure that upstream sashiko runs on it too.
->>
->> I don't think he can, it relies on the core code series. I Don't know
->> how to instruct sashiko how to find another series to stich it
->> together
->=20
-> This may be a radical, unheard-of suggestion, but how about merging ano=
-ther
-> series before sending follow-ups?
-
-Well, we're caught in the "no dead code" rule trap.  Can't merge the UET
-code because it has no consumer, and can't merge ours without it as a
-consumer, so I have to make my branch based on their branch, and their
-merge base went away.  They'll have to rebase and then I'll have to
-rebase on theirs again.  But I expected a v3 for their code anyway, so
-just whenever Eric gets around to fixing the Sashiko findings and
-posting v3, I can rebase on that, and then the sashiko prompts can be
-run.  But, FWIW, since the rdma portion of our submission was all brand
-new code, it passed checkpatch and sashiko on our end.  It's the
-existing code in the netdev tree that's where all the fun will be :-/.
-
---=20
-Doug Ledford <doug.ledford@hpe.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
-
---------------K642xjH2taC5hBn5cbWYdFC2--
-
---------------85ngTJZ6nDGGF0DAemINvGcg
-Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="OpenPGP_signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-wsF5BAABCAAjFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAmrrWpIFAwAAAAAACgkQuCajMw5XL93O
-8Q//Yf7qiD0+0hA0Ie4KpjySzmh+/DnLmSkm7vzKxLbuJPNGua81D1eyrK2LfgTRTH1vNC8c6GWx
-wZaSN5zTmcAmwGbDgyVfctrOBEfGxgVB42iPjZrtvaXWDbqEPjAxM44rOType5v9o0BaYyxwa18r
-nfsW/6+GkJFnAOUVozvI7LoeelrPIoluBsR9qHEP3evR/OOl5r/1V7HER25wP6tg9o7+jG6LuRL6
-9vbq72b6gX3H7se0Fag1pCR5tVOjp4vbEqwk4vrGPKWEuWXRj6+z/+8U+OZPsynh1ExjBbfUMscT
-rmPoVhP2+iuzhB43shYJUK/fMxiueXaM7ZVc1a8XJE6SgDeTm7dPjQtFDy+ybT5r08ED91zl4Oi4
-5kuuZyxUfH8Dj/CM6DiS4udiDVhUaeG280qlljZbe5MKFZinZUpyMljU+5tZGJzMbUUVBwBVhc0E
-eNEf73attOeTqmC9wZIIXXXuTwDc2d8KGv5o2pajZj9kMHaH6urgIVG0bp0fZ9vJ1NWDvyX53ytn
-gGCMD10kHrUzHfYZhY0tyHdXhb0YcLspoZ893dnuKXKUFftvujiK8CYeLJzEE5MLQ4+s5INhJS36
-eZxdXOmuAgjtVRrS8d668fJDucaoFET6JMOZLajm8vg4hILXxsl4yKQnPbq9bgZu32x0kH51QKeF
-wng=
-=UG/j
------END PGP SIGNATURE-----
-
---------------85ngTJZ6nDGGF0DAemINvGcg--
+>  
+>  	if (act == XDP_REDIRECT && !rxq->xdp_rc)
+>  		return;
+> @@ -2947,6 +2947,9 @@ static void mana_destroy_rxq(struct mana_port_context *apc,
+>  	if (xdp_rxq_info_is_reg(&rxq->xdp_rxq))
+>  		xdp_rxq_info_unreg(&rxq->xdp_rxq);
+>  
+> +	if (xdp_rxq_info_is_reg(&rxq->xdp_rxq_shared))
+> +		xdp_rxq_info_unreg(&rxq->xdp_rxq_shared);
+> +
+>  	if (rxq->rxobj != INVALID_MANA_HANDLE)
+>  		mana_destroy_wq_obj(apc, GDMA_RQ, rxq->rxobj);
+>  
+> @@ -3225,6 +3228,12 @@ static struct mana_rxq *mana_create_rxq(struct mana_port_context *apc,
+>  	WARN_ON(xdp_rxq_info_reg_mem_model(&rxq->xdp_rxq, MEM_TYPE_PAGE_POOL,
+>  					   rxq->page_pool));
+>  
+> +	/* The pre-allocated buffers (mana_pre_alloc_rxbufs) are plain pages */
+> +	WARN_ON(xdp_rxq_info_reg(&rxq->xdp_rxq_shared, ndev, rxq_idx,
+> +				 cq->napi.napi_id));
+> +	WARN_ON(xdp_rxq_info_reg_mem_model(&rxq->xdp_rxq_shared,
+> +					   MEM_TYPE_PAGE_SHARED, NULL));
+> +
+>  	/* Initialize the DIM work before enabling NAPI, so that a poll
+>  	 * cannot reach net_dim() with an uninitialized cq->dim.work.
+>  	 */
+> diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
+> index 71d726b1f784..11ceb5946ee0 100644
+> --- a/include/net/mana/mana.h
+> +++ b/include/net/mana/mana.h
+> @@ -420,6 +420,8 @@ struct mana_rxq {
+>  
+>  	struct bpf_prog __rcu *bpf_prog;
+>  	struct xdp_rxq_info xdp_rxq;
+> +	/* For buffers not from the page pool (from_pool == false) */
+> +	struct xdp_rxq_info xdp_rxq_shared;
+>  	void *xdp_save_va; /* for reusing */
+>  	bool xdp_flush;
+>  	int xdp_rc; /* XDP redirect return code */
+> @@ -695,7 +697,8 @@ void mana_xdp_tx(struct sk_buff *skb, struct net_device *ndev);
+>  int mana_xdp_xmit(struct net_device *ndev, int n, struct xdp_frame **frames,
+>  		  u32 flags);
+>  u32 mana_run_xdp(struct net_device *ndev, struct mana_rxq *rxq,
+> -		 struct xdp_buff *xdp, void *buf_va, uint pkt_len);
+> +		 struct xdp_buff *xdp, void *buf_va, bool from_pool,
+> +		 uint pkt_len);
+>  struct bpf_prog *mana_xdp_get(struct mana_port_context *apc);
+>  void mana_chn_setxdp(struct mana_port_context *apc, struct bpf_prog *prog);
+>  int mana_bpf(struct net_device *ndev, struct netdev_bpf *bpf);
+> 
+> base-commit: cb284914e749388eef402938bdb3115fe1f6d337
+> -- 
+> 2.52.0
+> 
+> 
