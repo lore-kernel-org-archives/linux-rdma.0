@@ -1,57 +1,58 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793815429;
-	b=Mctg8aSvd4t79vCf9Vj4MeCLjH+6oVgPAAMnQRjBkIKbp8p3de/Nz7JG6B05jBS/ldKT
-	 WNUenogg51M5A1+R+fbpR/TkeJvfwjzDb8IebzmG4rF4hgOOWQ5J8GLq5AFdoZQFDjJvJ
-	 +/KpZHW11WuQFWqEByrxEPRN7OLIgrgiqizq9rsWr3ekmK8T6J8eWncM6P+raHep4d2lI
-	 uPbAsS6c/VdN5RhvBNI4p+AVjCCEHhBvOkLlCj8Gzz5jv6I9TJyyM+ivkhI3CrwJjdXGl
-	 G+o4ldGdsFKbrUc96ZC8KBx9yZtp2dmILGoAtEw7vHtLe1J+3o2FW/ap6J8E5NSdWew==
+	t=1793815485;
+	b=XdwBvVceYXIDmfSMq0+44AtJv0eNpyGQm7qUfyHbMF0StvOVYqnYmYxDEx1j8g8nnwfM
+	 RB9OO+WPPW4Ss44t6lMGNYUcQcKRkQyNorEuvGtiDK1IxmBb2I/x2jdOcqBDrcPlRHqYM
+	 9MO+/dG+JLoOGYQVhQ0LGhZ0FbzWjO+YtMqn1ML6ePeWBStCM7FHaU7oB8rTHunQ447ud
+	 3SZVPehVNsqCat85jzk7uCNLY7lWiq8MjW8QgCFCvhaaMH0hdUTu4v1f7X0d2ejP/7ozU
+	 KRCmw/5fPhmLM6l6KXY0mIRfqeK1KYTqA3S35rXhEs3su9bcIxK7NN9u27pBL4uDWCQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793815429;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793815485;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=zwLHx4z82Q+FAVbtm20JGXD5mWr5G4Dr6ti79TuJ/iA=;
-	b=2ucmiBsV5DZEuLxA+8MhBRnJipIhtEB8KUTreMCZ7+x68g+ZnbVvAJHA4Ca5Gnv1phls
-	 jJRg70gSJ5lcZo7thurYgpk4g3ta9jvGqsti/1bsiPZ65UgIbnFyr/XbiqvgJi3faokzo
-	 17U8OuNM4PxZJZh6RPtCnN612v5K1NO3MS9nvNx+IHq1CtMvPTdW4SSNyZ6N310+ePQWW
-	 Lzm2Ai8eHL8tIEvYDti8NOAZHEG6Q47vpU0NKsCXEgfTNWyLB9kDvDTttpZ0S2bFecuvz
-	 e2515HJj3VGmAIFcBWgz8Q2+L7iGfx+3ToCajvhb96tn4Qv+2e9AKvhhkFDzHniiTCA==
+	bh=+G78NNvsB5X4SQ60JIyHDaYgJmIiCII+sR87UMBYx+M=;
+	b=vvxcPsNo1v5y1IOkeqjf/hOLBGK/v1m1tsuQ3RSsMSRaKgrbZgEEZTmMaZcXiy7m0lz7
+	 SZhpnfog2OyUby0ZHvb8yfiBtJPXYLnlkv8BbGV1tnj9CwAfF2sCPMFJ8419OdCr9y+y/
+	 hNcseZ2rkUs16KWrAWinUhzpzpIucqp2PgU7oZX3rRdi9Ntyv1NKj1OmYkw09x4gmPYeE
+	 KNnTuc2b9MqXRA767PvBv4HVldHUdxZDOMruWez2Zqy9EH+TiLe9xE3CUnoM8dzvOf+PA
+	 aJMYmJYAvqmiEsd5LRq38J58mFT/Rlt16cu07gAaF1eiFVrQYRH53/4xYhIj03szG6Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PznwU6vA;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VI2W8W2o;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D11C606A328
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 18:03:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A418606A68F
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 18:04:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PznwU6vA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C851A1F000C1;
-	Wed,  4 Nov 2026 18:03:48 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VI2W8W2o
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 958F21F0093A;
+	Wed,  4 Nov 2026 18:04:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793815428;
-	bh=zwLHx4z82Q+FAVbtm20JGXD5mWr5G4Dr6ti79TuJ/iA=;
+	s=k20260515; t=1793815484;
+	bh=+G78NNvsB5X4SQ60JIyHDaYgJmIiCII+sR87UMBYx+M=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=PznwU6vAW84L4WkBrjCns7HqvCbdCVo8gHyC/X7uGnja6bKZYWRvy4Ysxg6EcCgK9
-	 IhuCCZOkXnKUIcrkL3vGIfo+9LDIvZa98APJvoNekPdwRBZDZvwuAqZwmJRmNrwFZ1
-	 QTdujQg62vf7gmX6FQpUfTJ1lpD1Npw7cX1fmEArAEwyArrHsl1GtBIUNr3bQnZKaM
-	 Mq/njRFosXJO2e4V77Fids1hChbdNq1nluTRB6+dP7lqbpWXADVrxaWg8VJZWq03os
-	 yi4uemgbTvZsasSj4Vxa8F7PZsJY32dMhA/BDcXS6B5HFe6QOEsvd/6Cf/lgI1VyIg
-	 bmL8IxfxkIafg==
-Message-ID: <sashiko-outbox-197812@kernel.org>
+	b=VI2W8W2ovr/VF+npiBEfrVPEYMQFUg2ggQsOfL7pG9PIYoSzTysPVet5k5aSWGpkc
+	 X0LekeW6IPZr/bq87QLuoZYiXrI8VsTIDN1lYDCXmA9M1UpgUzBlYd7te70g3lyCLC
+	 q06eNckVWROY0mLXfePoxYThXsrxCSuSLR/HVkrnUJNYQhP++oVAAR15XbLhNFmMuQ
+	 CS63ZM3hOYwyMlCKifWSMRTZ/JLoHJOGKED6bUljFbWNWxl7NImcU/h3oR6x07RQS6
+	 AfpNIr+bSQ1ClbeUD8eW5hzmELt1tYMwkSTWgQrKRVPAdcyFzS+L2NJ1GygRaAapwE
+	 sZCfMqrcQx5QA==
+Message-ID: <sashiko-outbox-197813@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 2/5] svcrdma: drop the extra reference on the
+Subject: Re: [PATCH 3/5] svcrdma: Hold a module reference for the
  backchannel transport
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Chuck Lever" <cel@kernel.org>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261104-liange-v1-2-f097e10cea1b@kernel.org>
+Cc: linux-rdma@vger.kernel.org, "Jeff Layton" <jlayton@kernel.org>, "Anna
+ Schumaker" <anna@kernel.org>
+In-Reply-To: <20261104-liange-v1-3-f097e10cea1b@kernel.org>
 References: <20261104-liange-v1-0-f097e10cea1b@kernel.org>
- <20261104-liange-v1-2-f097e10cea1b@kernel.org>
+ <20261104-liange-v1-3-f097e10cea1b@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 04 Nov 2026 18:03:48 +0000
+Date: Wed, 04 Nov 2026 18:04:44 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,33 +62,56 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> From: Wentao Liang <vulab@iscas.ac.cn>
->=20
-> Beyond the reference xprt_alloc() returns to the caller,
-> xprt_setup_rdma_bc() takes two more on the new rpc_xprt: one for the
-> xpt_bc_xprt link, which svc_xprt_free() drops, and a second whose put
-> was in __svc_rdma_free(). Commit 729580ddc53e ("svcrdma: xpt_bc_xprt
-> is already clear in __svc_rdma_free()") removed that put as a
-> duplicate of the one in svc_xprt_free(), but left the matching
-> xprt_get() in place. The second reference is therefore never
-> released: the rpc_xprt outlives the callback client and the
-> connection, and the net namespace reference taken by xprt_alloc()
-> leaks along with the rpc_xprt.
->=20
-> Take only the reference that svc_xprt_free() releases, as
-> xs_setup_bc_tcp() does.
->=20
-> Fixes: 729580ddc53e ("svcrdma: xpt_bc_xprt is already clear in __svc_rdma=
-_free()")
-> Cc: stable@vger.kernel.org
-> Assisted-by: DeepSeek-V4.1-Flash and OpenAI Codex
-> Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
-> Link: https://patch.msgid.link/20261104022813.1484267-1-vulab@iscas.ac.cn
-> Signed-off-by: Chuck Lever <cel@kernel.org>
+Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+s) to consider:
+- [Low] svcrdma: inaccurate Fixes tag in commit message
+--
 
-Sashiko has reviewed this patch and found no issues.
+commit 5aa6827a1ec45b94a0a4813a38c3cc653c0334bf
+Author: Chuck Lever <cel@kernel.org>
+
+svcrdma: Hold a module reference for the backchannel transport
+
+This commit takes a module reference in xprt_setup_rdma_bc() and releases
+it in xprt_rdma_bc_put() so that the rpcrdma module stays pinned while the
+backchannel rpc_xprt exists and its deferred destruction work item runs.
+
+>     svcrdma: Hold a module reference for the backchannel transport
+>    =20
+>     The last put on an RDMA backchannel rpc_xprt runs xprt_destroy(),
+>     which queues xprt_destroy_cb() on a workqueue. That work item calls
+>     xprt_rdma_bc_put() through xprt->ops. Nothing pins the rpcrdma
+>     module while the rpc_xprt exists: xprt_create_transport() drops the
+>     class reference as soon as ->setup() returns, and svc_xprt_free()
+>     releases its own module reference right after the final put. An
+>     rmmod of rpcrdma can therefore race the pending work item and run
+>     freed module text. The TCP backchannel in xs_setup_bc_tcp() and the
+>     forward transport in xprt_setup_rdma() both hold a module reference
+>     for the life of the rpc_xprt.
+>    =20
+>     Take a module reference in xprt_setup_rdma_bc() and release it in
+>     xprt_rdma_bc_put(), as xprt_setup_rdma() and xprt_rdma_destroy() do.
+>    =20
+>     Fixes: 5d252f90a800 ("svcrdma: Add class for RDMA backwards direction=
+ transport")
+>     Cc: stable@vger.kernel.org
+>     Signed-off-by: Chuck Lever <cel@kernel.org>
+
+[Severity: Low]
+In net/sunrpc/xprtrdma/svc_rdma_backchannel.c, commit 5d252f90a800
+("svcrdma: Add class for RDMA backwards direction transport") originally
+included both try_module_get(THIS_MODULE) in xprt_setup_rdma_bc() and
+module_put(THIS_MODULE) in xprt_rdma_bc_put().
+
+Those calls were later removed by commit 07880fa4968b ("svcrdma: Remove
+try_module_get from backchannel") when svcrdma and xprtrdma were merged
+into a single module.
+
+Should the Fixes tag reference commit 07880fa4968b instead so stable
+backporting targets the commit that removed the module reference?
+
+  Fixes: 07880fa4968b ("svcrdma: Remove try_module_get from backchannel")
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261104-liange-v1-=
-0-f097e10cea1b@kernel.org?part=3D2
-
+0-f097e10cea1b@kernel.org?part=3D3
