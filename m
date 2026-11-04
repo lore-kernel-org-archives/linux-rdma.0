@@ -1,57 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=79.135.106.25
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793782251;
-	b=xmdTO9tt8i9hHq+Rn5g+7r89N1V4teQ2uAAasG1RXIy+Y8FmNlX2P0C2IkvzcMixAPqq
-	 rgkWE/JUnWZIhDCUrxfx/J1VOckG2vVluXH2HU3bSqLbrqpdph95zF7/GqxJW4+M5Gf2k
-	 fV85B5fZFXorCHjEvSLbXhG9K8eksYiIj8EP/XM6+xLax35yTujYxFt6LZn4hEYrG3N8i
-	 9UcBX30fGp6MgG3DIMmedFnJnAcmO/hAkZAZCKjZ5CCQkLFa/4er60Ff8phMXOJ0gulzZ
-	 FXCZ4d78y9dCCFmOzYlQ8w/EKu3SbwlnbCN+wnFTWvuVkRNgjt89uxil7gdxzV4dsWw==
+	t=1793782398;
+	b=rzLv0C5KWR3T3bkYjv6uQ0gywnKjcqgghxwxJr5AEA3oW/mqgknYcOIXMJEt0M0gWDqh
+	 3ulpipHQvzZKUBuDvsOaRcW53B1wU+dVu13FxNlEw5m9w8zTGe7FBhBmPfut7hI4wA5Un
+	 NBfgY1KParYCPNhInYMTXcs/DtYuQjwrxEs1dDEHXGC1AigSFCUB2YfAD2iUXrre/vUvD
+	 KwJUlsnzCUwUDUChLF1quoT4qQZ1xA3+Ht8uugrv8bMU6nC+Y8Y0SpTe2whmxGt1SCES9
+	 4xbY0UezI7haxYVRdB7dMguyL5KOOk0+6C1w8b/9b9mtpVkUjT+wkE99HMvoMh8LNVA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793782251;
-	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
-	 Feedback-ID:X-Pm-Message-ID:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=uCivgI0h3vh+RWF9zWybe8D2nHGtyr7jy67Tn3KDSIE=;
-	b=TOFxxZXT+nbFZa8heEIsnE2kd+cPO54CAmHcbcvu5LSpatrhaJ8W4hXqFmzKat0jy+07
-	 9j6GJa4Q+NxiYLZLJiQYa7xBgFNzrkkwde0zt4AssgPuqZaTaXdNwTUpsQVT5CWjngHfS
-	 w5J96J528MiKNO7NyGzc1w/86xOCqmgx03PZJrC4f5yRWslw8FApmtKUdnynhGVArCby7
-	 dbkSPA6wpRCcgSNPditeEq3thx9dgnqi4pmf2+iBa735dcUAuGiLgNjPAoKgp5XrPhh6o
-	 HP4YqbLGf9Gj+iMsGPRFx7+IH+QvvTyQ7WaE00IBnrzeoqLEmRybXeGueJiUdnJ6nKw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793782398;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=KvGsrUwxXtn0f5ShJ2oWjpR1ZQmufpPz+RLCJsUixPE=;
+	b=ZmQS4VSxtwsLvptCCDeWzaKspTQCRiyfkiXvVvTsuZ7te9csTOCyFf0Hb7MioALTfqkY
+	 1nvFImeU1ADqW+mx1qLitkkSe6b3ngG8gG/d+//kd1wsJp6o8miOISkh0Q5/aFkEoAcry
+	 VixIpXP8LIRGM92aIlYldYQQD05Ni2oAeO3jobYqCAjThdfn/+q/9IGPnRVtrGgeBeoEM
+	 qa4Ww3Qkmg8jxSezEhNT9XpAuhDOFS6442ArTb3GlWmoHRQyYjbJYVAgodfsIiT7qY0CB
+	 rJA+XiMSFSwdAPPgf9EEcPwIwQMRtNk5Xtm7t/rFWI3UlUePQCEI+DGH/1LMQvgExPQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=jaeyeong.cc;
-	spf=pass smtp.mailfrom=jaeyeong.cc;
-	dkim=pass header.d=jaeyeong.cc header.i=@jaeyeong.cc header.a=rsa-sha256 header.s=protonmail2 header.b=dNHUWXtz;
-	arc=none smtp.remote-ip=79.135.106.25
-Received: from mail-10625.protonmail.ch (mail-10625.protonmail.ch [79.135.106.25])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fgcLsmzo;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00203606EE98
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 08:50:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 00203606EE98
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jaeyeong.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=jaeyeong.cc
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD178606A31B
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 08:53:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=jaeyeong.cc header.i=@jaeyeong.cc header.a=rsa-sha256 header.s=protonmail2 header.b=dNHUWXtz
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=jaeyeong.cc;
-	s=protonmail2; t=1793782246; x=1794041446;
-	bh=uCivgI0h3vh+RWF9zWybe8D2nHGtyr7jy67Tn3KDSIE=;
-	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
-	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
-	b=dNHUWXtzmqm924h2HGx4qSnt52bhbBfd0wRi9GAscXbmZJ6FsfvC3Bm8jrZA2uRta
-	 mZ8+jS1nBTMtGSBLhQgtx7Rm5/QUuVd9MR+v5uT8dZ3fQdmJlEdxdPwo6M4z3hr7tt
-	 l8n6cLFaXz6X3JyuLIh7N1uM6OV6I86orElws5iBy0Tv244QROTM7rwNXy79nlmDq5
-	 MjiJ64GUQronRpAYXTuHkSaFnRZwxHIGRgDbx11qiidWAJL29yraOucR34ZxAWBq7M
-	 xHOz3Bf9sp+LO7HO4AGcLKzOFbViR2/n7ojro4A5WhkIXHGHfYArGas8JWxkk718/J
-	 yznI32wubhTBw==
-Date: Wed, 04 Nov 2026 08:50:40 +0000
-To: Bernard Metzler <bernard.metzler@linux.dev>
-From: Jaeyeong Lee <lee@jaeyeong.cc>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] RDMA/siw: Ignore peer close events on listening endpoints
-Message-ID: <179378222423.73361.5194383282780549988@jaeyeong.cc>
-Feedback-ID: 177356447:user:proton
-X-Pm-Message-ID: 004983994917d98c56b9e4d809bd14795bfd3cd2
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fgcLsmzo
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24BD31F000C1;
+	Wed,  4 Nov 2026 08:53:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793782397;
+	bh=KvGsrUwxXtn0f5ShJ2oWjpR1ZQmufpPz+RLCJsUixPE=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=fgcLsmzo8Yyygok8DV+TZ6Vlx+wDa9yLpjp3f8re0JM3Ago1D2Q3U2xpAYreZ3AuX
+	 ATlZyUOBRLGQnW7/DMDCxM+GZPhBIno79JQq9T0mybDvVDPUACCD91KOWcVZaspCLc
+	 g091IGZ3FydHzUIPTpBrQc/eCIrfVn9xu5otTCjXVSa9s/1Gx7miTujSQPPKzkN7y1
+	 ODlS5WULh6WtsxFqyiKPZrzr4hU1n8YnOfxp7kFH6h7MjnVFm54jtoxGn0i9Lodbrb
+	 HIphULjojhpyU66LMZeMErawsCuHcZIx9R5AsHsyxcwNuzoRtaYzlrbTfB5vIbzcuh
+	 1sr7MDPtDvjqA==
+Message-ID: <sashiko-outbox-196893@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] RDMA/rtrs: Register client event handler after
+ capability check
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Jaeyeong Lee" <lee@jaeyeong.cc>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <179378222423.73361.3247716499619173751@jaeyeong.cc>
+References: <179378222423.73361.3247716499619173751@jaeyeong.cc>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 04 Nov 2026 08:53:16 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,55 +59,37 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 
-A TCP child socket inherits the listener callbacks and sk_user_data before
-kernel_accept() associates it with a new connection endpoint. If the peer
-closes during this window, siw_cm_llp_state_change() queues a PEER_CLOSE
-work item against the listening endpoint.
+> rtrs_clt_ib_dev_init() registers dev->event_handler before checking
+> IB_DEVICE_MEM_MGT_EXTENSIONS. If the device does not provide that
+> capability, init returns -ENOTSUPP and rtrs_ib_dev_find_or_add() frees
+> dev through out_free_pd without calling the deinit callback. The embedded
+> event handler therefore remains on the IB device's list after its storage
+> has been freed.
+>=20
+> A later IB event walks the dangling list entry and accesses freed memory.
+> The issue was found by static analysis. A focused out-of-tree test module
+> on an x86_64 QEMU/KASAN kernel temporarily cleared only
+> IB_DEVICE_MEM_MGT_EXTENSIONS on a SIW device, exercised the real
+> rtrs_clt_ib_dev_init() callback through rtrs_ib_dev_find_or_add(), restor=
+ed
+> the capabilities, and dispatched IB_EVENT_DEVICE_FATAL. KASAN reported
+> an 8-byte slab-use-after-free read in ib_dispatch_event_clients(), with
+> both the allocation and free originating in rtrs_ib_dev_find_or_add().
+>=20
+> Move the capability check before event handler registration. The check is
+> a prerequisite for successful client initialization. Registration cannot
+> fail and init returns success immediately afterwards, so every installed
+> handler is now owned by a successfully initialized device and is removed
+> by the existing deinit callback.
+>=20
+> Fixes: 667db86bcbe8 ("RDMA/rtrs: Register ib event handler")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Jaeyeong Lee <lee@jaeyeong.cc>
 
-The worker releases that endpoint without removing it from the listener
-list. A later listener teardown then walks the dangling entry, causing a
-use-after-free in siw_destroy_listen().
+Sashiko has reviewed this patch and found no issues.
 
-With a listener backlog of at least two, an unauthenticated TCP peer can
-reach this path by resetting a new connection before the accept worker
-runs.
-
-Ignore close notifications while the endpoint is still listening. Once
-the child is accepted, its sk_user_data points to the new endpoint and
-close notifications continue through the normal path.
-
-Static analysis identified the issue. It reproduced twice on Linux
-7.4-rc1 with SIW over loopback in QEMU. KASAN reported the endpoint
-allocated by siw_create_listen(), freed by siw_cm_work_handler(), and
-reused by siw_destroy_listen(). The same reproducer completed without
-KASAN or lockdep reports after this change on one- and two-CPU guests.
-
-Fixes: 6c52fdc244b5 ("rdma/siw: connection management")
-Cc: stable@vger.kernel.org
-Signed-off-by: Jaeyeong Lee <lee@jaeyeong.cc>
----
- drivers/infiniband/sw/siw/siw_cm.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw=
-/siw_cm.c
-index ed49818793dde..518f09a2d37cf 100644
---- a/drivers/infiniband/sw/siw/siw_cm.c
-+++ b/drivers/infiniband/sw/siw/siw_cm.c
-@@ -1361,6 +1361,8 @@ static void siw_cm_llp_state_change(struct sock *sk)
-=20
- =09case TCP_CLOSE:
- =09case TCP_CLOSE_WAIT:
-+=09=09if (cep->state =3D=3D SIW_EPSTATE_LISTENING)
-+=09=09=09break;
- =09=09if (cep->qp)
- =09=09=09cep->qp->tx_ctx.tx_suspend =3D 1;
- =09=09siw_cm_queue_work(cep, SIW_CM_WORK_PEER_CLOSE);
 --=20
-2.43.0
-
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/179378222423.73361.=
+3247716499619173751@jaeyeong.cc?part=3D1
 
