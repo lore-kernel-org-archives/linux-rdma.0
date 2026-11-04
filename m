@@ -1,59 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.127.231.29
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793792828;
-	b=sY/BqSUoNHpI2+udGz6oYvEgZIligtf6SE67k/qqPXICkYsUtM90ZGI61Q7D6nr5V1pf
-	 1Hvzm8DifvC7+Gc5kkHbTDBvM1oAFb+qK/AsutMfgxT5tlHw3s3ctjNSxLvFFjFwqqM9t
-	 uKKGn1Yg9j8aCl5kZh3X7O95It9YOj4Ruh9pGxDPpwZUoKkwe9AJsZoIOnuLjwayVbDH4
-	 hhuHakRU2D9UjikYlUIHhFHAfDtDNnl4r2nV/bbggdZT8nPJXiV14J845vSbV0LeRu1K2
-	 PfVAb0/H+gq8IsssfttL2GjyEVQhp/5cI+7Hx6ZoVaT5vdb0ICyhL2xzMvLx4vtKUJA==
+	t=1793796014;
+	b=PedW0xDYleKOb/driltL4fHqh62b3VNfGdZ1dCnfHKL/p6AgQWzXpNfgRpGES9vf7AcU
+	 YVAL8lZa6cwuW54AivO31jWXIrGKbvhD+6cRTc/4PXrD0A7i/qbxS7j5x8n0ZX2ADePQR
+	 F+zlIfe3ESpxoVw01bB8sbrANrgR7XTNvtjQSpQURIfgJv5Sfh3OgTmUZUTR4U1xWYipa
+	 N4Iz7uxupKbuaTtv29ekCVYb7NFT0wDRu+tg2EBSbBGHotDSZWHRFVLnlMW3EX2LY4djg
+	 DKLt+DZWdTAeZu7NM4vRt95oqWwvNqffsWdbiSNnY1Dy9JTHzjs2nPZsxlApotU5sLw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793792828;
-	h=DMARC-Filter:DKIM-Signature:Message-Id:X-Lms-Return-Path:
-	 Content-Type:Date:Content-Transfer-Encoding:User-Agent:
-	 X-Original-From:References:In-Reply-To:Received:Mime-Version:To:Cc:
-	 From:Subject;
-	bh=Ff5JZSPNEuNIye63t7X6NTIFmNJCPxejiNHNKQKzrAM=;
-	b=1tq5KXXA2zRnMD43N1IQw3izZagiaM1zCOi5poyC6vXTtmrR4RKIVmHj11X6x8uLC+/f
-	 3oLYI1abIkyLO9+1CqpvzyMGlCglLgP6dmMfK1xGQJnKxCK4zVDE0X93e9yhA/qEaRNsG
-	 KgkQqyTIZUvzBnLvyplSnAiK+SZB0TbKrJBvEn6LVcciRcO1DyKGq7yFeW5mWRb3Ofpie
-	 KUOQD0hDGn0VJNzNG8SGeFsFweDJsLEG8Jhz3XuOIAgNX+QdNqVvdjyqzEuxfH6rLiHiD
-	 fmJA/dyjY9wLxMYCK1nDCUdz7TGB+9ddS0h7ohvthporYuE3hiL6TBn5K4PtvgZuxfw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793796014;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=HmwZRIDXWrBpj2sZSITHJ9b0qDFSIwzwrskGykW8+Vo=;
+	b=xX5w4n4Mt7v0DIofKyagWenkArYpeSpuvrLXkjFhTp6tKQ1g7K4DHlgM7Y8QJ/TAzphC
+	 lBD08mxPHzNTT5O/YEs+8cSbcHnMszx68J03k9mx50N3S5xblR/TXU+ykocQSJ+IkfpLk
+	 K61H6yE1tyQJggrEcE+MYC1JK0hJeTyZSreIDHVKVqfIKr1mRlAxFr8eMLSt2jQOF45/5
+	 8LxFoHGi9R5SIyDYrERiyaXHLcv/twVFY2duYbdxFnu1a0sF3v2AgZwaF6V+SUgcuyaPT
+	 pIsdlxDAhKoxGVIsg9SyQNfyZKul3cGWh0zowMr0pK5XTksD0yvnEq16sJGPI38MLOQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=yunsilicon.com;
-	spf=pass smtp.mailfrom=yunsilicon.com;
-	dkim=pass header.d=yunsilicon.com header.i=@yunsilicon.com header.a=rsa-sha256 header.s=feishu2403070942 header.b=j2sFxhnt;
-	arc=none smtp.remote-ip=209.127.231.29
-Received: from va-2-29.ptr.blmpb.com (va-2-29.ptr.blmpb.com [209.127.231.29])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gsST8B85;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18CB0606A32C
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 11:47:07 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 18CB0606A32C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yunsilicon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yunsilicon.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 037A2606A329;
+	Wed,  4 Nov 2026 12:40:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=yunsilicon.com header.i=@yunsilicon.com header.a=rsa-sha256 header.s=feishu2403070942 header.b=j2sFxhnt
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
- s=feishu2403070942; d=yunsilicon.com; t=1793792823; h=from:subject:
- mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
- mime-version:in-reply-to:message-id;
- bh=Ff5JZSPNEuNIye63t7X6NTIFmNJCPxejiNHNKQKzrAM=;
- b=j2sFxhntiruHhEgiDipIVdldJpUhis2cqWL/JXORDUy7UQcbLtmRcX06D0I7Jm4r6CSSmJ
- miLkgdGoqP31Dxf4YxF+yBgCyenTCgOr4rJ50teuYMLgKGu3czoO2AAJmNNdAruLmy/Lv1
- u5RTLDoVmf2BpdNhju1U6I8zHSZNmnzYOCc3vkuYuI48t6Hqqkt04zTKbcHJK4gZel4ra5
- 00687ZzRe0ixDkOXnufc7I1b0pmurPLGB2ZQN9HoE63hNX8ETWSlVh7GIG/d3o846T212W
- sivwnVCZd2rZsPDBLsqLjajK4E64z508eCSVe1jevIvH6GfbutZX3fZBrW1Z3A==
-Message-Id: <8f242876-3411-4d50-9e4e-548fa8e026f6@yunsilicon.com>
-X-Lms-Return-Path: <lba+26aeb1b36+52f227+vger.kernel.org+tianx@yunsilicon.com>
-Content-Type: text/plain; charset=UTF-8
-Date: Wed, 4 Nov 2026 19:47:00 +0800
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gsST8B85
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E5951F00919;
+	Wed,  4 Nov 2026 12:40:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793796013;
+	bh=HmwZRIDXWrBpj2sZSITHJ9b0qDFSIwzwrskGykW8+Vo=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=gsST8B85AowBQXTlkPG57duQGHyKfHVTdC5pwLZGucVgXGHYL4j74MOqMZcTtXoLM
+	 i33QLgFgy2kCh2xkI2vRSoCMF+62OYukyVKUshIhQKTinmNW/X6QZR5ec/6O4Hkdvl
+	 vrxmQlya35RBmjoJoNUfHiYbQ46sTXkXu0r7rny2auSeRr/kSRfVbvMbeiJrHQdpZD
+	 XaJ18Aozl7JP/BBflK/GQjV/oSDrn9qka2O1GinbDbIrbiYvqHIep0yVrZedsS094Y
+	 cvZrc4m1Wtw10+oXnC8TnPjTJfRTascVdpFXfBjmSI5iBddkHPsyLBNNTX1lkk2o82
+	 A4kAcPSnDv+/g==
+Message-ID: <sashiko-outbox-197280@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net] net/smc: fix handshake abort on a terminating link
+ group
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Mahanta Jambigi" <mjambigi@linux.ibm.com>
+Cc: linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, "Heiko Carstens" <hca@linux.ibm.com>, "Vasily
+ Gorbik" <gor@linux.ibm.com>, "Alexander Gordeev" <agordeev@linux.ibm.com>, "Christian
+ Borntraeger" <borntraeger@linux.ibm.com>
+In-Reply-To: <20261103123955.47454-1-mjambigi@linux.ibm.com>
+References: <20261103123955.47454-1-mjambigi@linux.ibm.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-User-Agent: Mozilla Thunderbird
-X-Original-From: Xin Tian <tianx@yunsilicon.com>
-References: <20261012114352.2471317-1-tianx@yunsilicon.com> <20261013143417.GQ219304@unreal>
-In-Reply-To: <20261013143417.GQ219304@unreal>
-Received: from [127.0.0.1] ([180.152.18.210]) by smtp.feishu.cn with ESMTPS; Wed, 04 Nov 2026 19:47:01 +0800
+Date: Wed, 04 Nov 2026 12:40:12 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -62,74 +61,206 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-To: "Leon Romanovsky" <leon@kernel.org>
-Cc: "Andrew Lunn" <andrew+netdev@lunn.ch>, 
-	"David S. Miller" <davem@davemloft.net>, 
-	"Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>, 
-	"Paolo Abeni" <pabeni@redhat.com>, "Jason Gunthorpe" <jgg@ziepe.ca>, 
-	<weihg@yunsilicon.com>, <linux-kernel@vger.kernel.org>, 
-	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>
-From: "Xin Tian" <tianx@yunsilicon.com>
-Subject: Re: [PATCH 00/15] Yunsilicon ethernet and RDMA drivers
 
-On 10/13/2026 10:34 PM, Leon Romanovsky wrote:
-> On Mon, Oct 12, 2026 at 07:44:32PM +0800, Xin Tian wrote:
->> Hi all,
->>
->> This is a new submission from Yunsilicon to upstream our converged
->> network adapter driver.  The hardware is a dual-function PCIe device
->> (PCI vendor 0x1f67) that supports both ethernet and RDMA operations.
->>
->> The series adds three drivers, which share the xsc prefix.  A shared PCI
->> core driver binds to the physical function, brings up the command queue,
->> the event queues and the interrupt handling, and publishes one auxiliary
->> device per function.  The ethernet and RDMA drivers bind to that
->> auxiliary device instead of driving the PCI function themselves, so the
->> two personalities share a single probe and resource set.
->>
->>    1. xsc_pci - the PCI core driver (CONFIG_YUNSILICON_XSC_PCI).
->>       Owns the PCI function, the command queue, the event queues, the
->>       interrupt vectors, the register access layer and the CQ/QP/SRQ
->>       resource pools.  Patches 01-05.
->>
->>    2. xsc_eth - the ethernet driver (CONFIG_YUNSILICON_XSC_ETH).
->>       Registers the netdev, implements the TX/RX packet paths with NAPI
->>       and page_pool, RSS, checksum offloads and statistics.  Patches
->>       06-08, on top of the core.
->>
->>    3. xsc_ib - the RDMA driver (CONFIG_INFINIBAND_XSC).
->>       Registers the ib_device and provides the PD/MR, CQ/SRQ/AH and QP
->>       verbs including the send/receive data paths, plus RDMA counters an=
-d
->>       sysfs attributes.  Patches 09-14, on top of the core and the
->>       ethernet driver (the netdev supplies port state and GID).
->>
->> Patch 15 adds the MAINTAINERS entry.
->>
->> The series is split so that every commit builds: the core patches
->> introduce the register access, the command queue, the event queues and
->> the resource pools incrementally, and the ethernet and RDMA patches only
->> start creating queues once their dependencies are in place.  Patch 05
->> (core CQ/QP pools) is deliberately shared by both upper drivers; that is
->> why it precedes the ethernet patches.
->>
->> The RDMA device is registered at patch 09, before all verbs exist, so
->> kverbs_provider stays false until the mandatory verbs appear in patches
->> 10-13.  This keeps each intermediate tree compilable.
->>
->> Please review.
-> Please run Sashiko locally first.
->
-> Before we begin an active review of a new driver, we expect it to have
-> only a small number of Sashiko findings.
->
-> Thanks
-Hi Leon,
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
+s) to consider:
+- [High] net/smc: rbtree corruption in smc_conn_kill() on device fallback r=
+etry
+- [High] net/smc: missing lgr->freeing check and set in smc_lgr_cleanup_ear=
+ly()
+--
 
-Understood. Sashiko was run locally twice and the findings were addressed.
-I'll post v1 shortly to see whether the Sashiko run on the list finds
-anything we missed=E2=80=94happy to fix whatever remains.
+commit e77e324c5a7154d6e8cb873cd42b560cca1a0bfa
+Author: Mahanta Jambigi <mjambigi@linux.ibm.com>
 
-Thanks,
-Xin Tian
+net/smc: fix handshake abort on a terminating link group
+
+This commit avoids calling __smc_lgr_terminate() in smc_lgr_cleanup_early()
+when lgr->list is already empty, and updates smc_conn_kill() to unregister
+and skip connections that already have conn->freed set.
+
+> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+> index 6021322253e93..4e10da5bd8142 100644
+> --- a/net/smc/smc_core.c
+> +++ b/net/smc/smc_core.c
+> @@ -688,9 +688,15 @@ void smc_lgr_cleanup_early(struct smc_link_group *lg=
+r)
+> =20
+>  	smc_lgr_list_head(lgr, &lgr_lock);
+>  	spin_lock_bh(lgr_lock);
+> +	if (list_empty(&lgr->list)) {
+> +		/* another context already removed the link group from the
+> +		 * list and will terminate it
+> +		 */
+> +		spin_unlock_bh(lgr_lock);
+> +		return;
+> +	}
+>  	/* do not use this link group for new connections */
+> -	if (!list_empty(&lgr->list))
+> -		list_del_init(&lgr->list);
+> +	list_del_init(&lgr->list);
+>  	spin_unlock_bh(lgr_lock);
+>  	__smc_lgr_terminate(lgr, true);
+>  }
+
+[Severity: High]
+Should smc_lgr_cleanup_early() also check lgr->freeing and lgr->terminating,
+and set lgr->freeing =3D 1 before dropping lgr_lock, similar to
+smc_lgr_terminate_sched()?
+
+In smc_smcd_terminate(), smc_smcd_terminate_all(), and
+smc_smcr_terminate_all(), link groups are moved onto a stack-local
+lgr_free_list and marked with lgr->freeing =3D 1 under lgr_lock before the
+lock is dropped:
+
+net/smc/smc_core.c:smc_smcd_terminate() {
+	...
+			list_move(&lgr->list, &lgr_free_list);
+			lgr->freeing =3D 1;
+		}
+	}
+	spin_unlock_bh(&dev->lgr_lock);
+
+	/* cancel the regular free workers and actually free lgrs */
+	list_for_each_entry_safe(lgr, l, &lgr_free_list, list) {
+		list_del_init(&lgr->list);
+		schedule_work(&lgr->terminate_work);
+	}
+}
+
+If smc_lgr_cleanup_early() runs after dev->lgr_lock is released but before
+the second loop runs list_del_init(&lgr->list), list_empty(&lgr->list) is
+still false because lgr->list is linked into the other thread's stack-local
+lgr_free_list. Wouldn't smc_lgr_cleanup_early() then corrupt lgr_free_list
+with an unsynchronized list_del_init(&lgr->list) and proceed into
+__smc_lgr_terminate() while holding the socket lock?
+
+Conversely, when smc_lgr_cleanup_early() wins lgr_lock and unlinks
+lgr->list without setting lgr->freeing =3D 1, __smc_lgr_terminate() only
+calls non-synchronous cancel_delayed_work(&lgr->free_work), relying on
+lgr->freeing to stop a concurrent smc_lgr_free_work():
+
+net/smc/smc_core.c:smc_lgr_free_work() {
+	...
+	smc_lgr_list_head(lgr, &lgr_lock);
+	spin_lock_bh(lgr_lock);
+	if (lgr->freeing) {
+		spin_unlock_bh(lgr_lock);
+		return;
+	}
+	...
+}
+
+If smc_lgr_free_work() is already running and waiting on lgr_lock, or is
+scheduled again before termination finishes, could it see lgr->freeing =3D=
+=3D 0
+and call smc_lgr_free(lgr) concurrently with __smc_lgr_terminate()?
+
+> @@ -1519,6 +1525,17 @@ static void smc_conn_kill(struct smc_connection *c=
+onn, bool soft)
+>  {
+>  	struct smc_sock *smc =3D container_of(conn, struct smc_sock, conn);
+> =20
+> +	if (conn->freed) {
+> +		/* connection was already freed, e.g. by an aborted
+> +		 * handshake, but kept its entry because smc_conn_free() skips
+> +		 * the unregister for a link group that is no longer on the lgr
+> +		 * list. Remove the stale entry, but do not kill a socket that
+> +		 * may be an established fallback connection.
+> +		 */
+> +		smc_lgr_unregister_conn(conn);
+> +		return;
+> +	}
+
+[Severity: High]
+Can deferring smc_lgr_unregister_conn(conn) until smc_conn_kill() corrupt
+lgr->conns_all or cause an infinite loop in __smc_lgr_terminate() when a
+server handshake retries another device or SMC version on the same
+new_smc->conn?
+
+During server handshake in smc_listen_work(), lock_sock(&new_smc->sk) is
+held across smc_listen_find_device(), which tries candidate ISM and RDMA
+devices and versions in sequence:
+
+  smc_listen_work()
+    lock_sock(&new_smc->sk)
+    smc_listen_find_device()
+      smc_find_ism_v2_device_serv()
+      smc_find_ism_v1_device_serv()
+      smc_find_rdma_v2_device_serv()
+      smc_find_rdma_v1_device_serv()
+
+In each candidate helper, if smc_conn_create() registers new_smc->conn in
+a link group (say lgr1) that is concurrently removed from lgr_list for
+termination, the subsequent buffer creation or RMB registration (such as
+smc_listen_rdma_reg() -> smcr_lgr_reg_rmbs() -> smc_llc_flow_initiate(),
+which fails with -ENOLINK when list_empty(&lgr1->list) is true) fails and
+calls smc_conn_abort(new_smc, ini->first_contact_local):
+
+net/smc/af_smc.c:smc_find_rdma_v2_device_serv() {
+	...
+	rc =3D smc_listen_rdma_init(new_smc, ini);
+	if (!rc) {
+		rc =3D smc_listen_rdma_reg(new_smc, ini->first_contact_local);
+		if (rc)
+			smc_conn_abort(new_smc, ini->first_contact_local);
+	}
+	...
+}
+
+Because list_empty(&lgr1->list) is true, smc_conn_free() skips
+smc_lgr_unregister_conn() and leaves new_smc->conn->alert_node in
+lgr1->conns_all with a non-zero conn->alert_token_local, while
+smc_lgr_cleanup_early() now returns immediately. Meanwhile,
+__smc_lgr_terminate(lgr1) cannot run smc_conn_kill() yet because
+smc_listen_work() still holds lock_sock(&new_smc->sk).
+
+When smc_listen_find_device() moves on to the next candidate device or
+version while still holding lock_sock(&new_smc->sk), it calls
+smc_conn_create() -> smc_lgr_register_conn() again on the same
+new_smc->conn:
+
+net/smc/smc_core.c:smc_lgr_register_conn() {
+	...
+	if (!conn->lgr->is_smcd) {
+		rc =3D smcr_lgr_conn_assign_link(conn, first);
+		if (rc) {
+			conn->lgr =3D NULL;
+			return rc;
+		}
+	}
+	/* find a new alert_token_local value not yet used by some connection
+	 * in this link group
+	 */
+	sock_hold(&smc->sk); /* sock_put in smc_lgr_unregister_conn() */
+	while (!conn->alert_token_local) {
+		conn->alert_token_local =3D atomic_inc_return(&nexttoken);
+		if (smc_lgr_find_conn(conn->alert_token_local, conn->lgr))
+			conn->alert_token_local =3D 0;
+	}
+	smc_lgr_add_alert_token(conn);
+}
+
+At that point:
+
+1. If the second smc_lgr_register_conn() succeeds on another link group
+   lgr2, it sets conn->lgr =3D lgr2, takes a second sock_hold(&smc->sk),
+   reuses the stale conn->alert_token_local, inserts conn->alert_node into
+   lgr2->conns_all while it is still linked in lgr1->conns_all, and clears
+   conn->freed =3D 0. When lock_sock(&new_smc->sk) is later released,
+   __smc_lgr_terminate(lgr1) wakes up and runs smc_conn_kill(), which sees
+   conn->freed =3D=3D 0, aborts the active connection on lgr2, and unregist=
+ers
+   conn from conn->lgr (lgr2) instead of lgr1.
+
+2. If the second smc_lgr_register_conn() fails in
+   smcr_lgr_conn_assign_link(), it sets conn->lgr =3D NULL. When
+   __smc_lgr_terminate(lgr1) later acquires lock_sock(&new_smc->sk) and
+   calls smc_conn_kill() -> smc_lgr_unregister_conn(conn),
+   smc_conn_lgr_valid(conn) is false because conn->lgr is NULL, so
+   conn->alert_node is never removed from rb_first(&lgr1->conns_all) and
+   __smc_lgr_terminate(lgr1) loops forever.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103123955.4745=
+4-1-mjambigi@linux.ibm.com?part=3D1
