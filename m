@@ -1,54 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793776254;
-	b=kburW82RxIQbhcRkYvSGxFUanzM1Eb3dJmeDCBXFdNPNPJnVSCXyYprx0Qm9Weamy+do
-	 Qsol1sLh+JhlJaAoo0DH8uiVW6GwG/ow8kwEEV5vdkc2tD4/5L5bBgN8wITDchkd/N4y/
-	 3C3lJZR3XjcO54y0Y1EC4riBem/YywJNQerV8NsUN8JrER+A7rq7b0b7GUuRniwXgl0Fx
-	 HnZG4M8mQNx+2NfW/CIPbjwM2UBfr3q+CCl42uIefZL12p9EGKLw7hOZIoxa28at9/BV7
-	 U0SaaiknwmTpEOajsj163zP34Za+VcY06SigzKND4QSd7vSB5G1fIw9nuDgas05ih8A==
+	t=1793776314;
+	b=5rtuMg4icCAn29O7OdENvt9ivrRxpFfQjdl3m3ncBJdzMivxEFI55LwiHLgD3t2dYKjI
+	 xMHferIzJce55iuXMSItxYoHwWIhrsfhE40uAGXQNzGcCu3EKHau0rHpofZUXY8gWDTcH
+	 CCRveVPHTQ6ge57FHL1WYu51rA7L6Fc0bYLgp2IOb8Qn5fAo1imKmdMsRL4UffjQADSDx
+	 fS2tOcdSg44jc/IjzS2dwEb8I2CEZ4yDjkjESpomNdQqksvFIG078CXAavuEZ3ew8Y0bZ
+	 RZvz+Dxa/56Qbs4fPkcAwLX4lai3cvzIxiyqHf/JBHKPLOzcafzcPyEUpCSgP7qUFqw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793776254;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793776314;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=z3q2IkefJaWfFlzMYoDigzLTDZNhXOuXydgsuUKwg8U=;
-	b=tbzqixgWSYvL+B502cxa7xx176GKAKOEZ0ybG52rymSaDJ395TNPC8XiTVuJEFSyfa1K
-	 Gs89M7+5Hg5CqqehK8ByrY7foodMgeJetdxsP22sS4/VkkN8NRstMAZX9KDKgfP7clPZY
-	 WnbBc9EW+pVAZlvaqTqpzV+kCOPa48nUvRvniaXap1i3/C8VKD4R3EHqpcS2IIcXGgGiE
-	 bucJRxG7L11/qIHqr5K1F/JJo8Ka0jWCuOOOHafQABAGirS6Y+VezOZbG7C5ov+1TgpOW
-	 /dc290sgsd9Gz57YPH+r3HPShtwaA7UcEQu4+8oaFcoApoDGTGCCxV6QP5x1MIJRjEA==
+	bh=b8As2EoG9x8Tl2CWTFOn4J47dWkvfEM0iQdBFybeGCQ=;
+	b=xwNp6BPTdHwpvSiur/0yE555U3z/tTcsYdLmxS5do02n/9UqcYpnsKUev13M/PMCYiqA
+	 yI6mZvvR3xtcrpIIwT1rPLpdR1KiTsyLsmk6XpVmnPxjElzN8Q4/JKk/EoA1c4a+4B4qN
+	 v17Rp/eKxesmLjeBBbvx2OJU9WsQXco9gUmEQAb44j9aBMqvY4lYJn5drAu9xqVAqd2hd
+	 u2s4MJeXiaThsofrd119/UDaIYpQge929lgnnfpAAx19hpbeHFszETX7CIfz80zguiWWU
+	 OxSs5FYSBFKm1AuyapcavrI4bMnTlxQJHXsrC1ahZ5yPEftaR+27YKnogw38XptaSIA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Aoxc9Mk0;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AYih+uwX;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3773F606A31B
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 07:10:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7844A606A31B;
+	Wed,  4 Nov 2026 07:11:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Aoxc9Mk0
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3F931F00919;
-	Wed,  4 Nov 2026 07:10:52 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AYih+uwX
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 094921F0093A;
+	Wed,  4 Nov 2026 07:11:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793776253;
-	bh=z3q2IkefJaWfFlzMYoDigzLTDZNhXOuXydgsuUKwg8U=;
+	s=k20260515; t=1793776314;
+	bh=b8As2EoG9x8Tl2CWTFOn4J47dWkvfEM0iQdBFybeGCQ=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Aoxc9Mk0/U6uHwzs6gbNZywGzQYQw04gNh8IjNx3L6UtWSBWZmq0IXkWYDBJXIJOZ
-	 /IMMxGWueOL3hZeDPNFB/8cN/2+Og8Glqhp1rkDsEiLfXW7f7mCuSxbh6cEnbz9Ke8
-	 EXKEcKHVzESZa3fQrfQq5DXkGIjshv3zFr2+1dBNhEid6Z8GAQMNdlqVreGmJ70qGv
-	 LCJJWz0t4oERFwFHnutYpbXYnojEoWcNjBXMT6GmJoE9+LH60jKr8zWWzH42ZQYG2y
-	 wPNGef/mUdfaop89D2UlZr5fy3/TLajkhuXhqGD88YA2njF7X99VfByNeFBGn4CVvZ
-	 gSfDTsfDjH6rA==
-Date: Wed, 4 Nov 2026 08:10:50 +0100
+	b=AYih+uwXmkzj09KGHDETie/kyqpTI2WQIjdZHIlpyfIiZyvDdbTf9XDp2eA5HIseo
+	 ltmVAoG9K1HXAcLT/Yib/DyOVdCi3U/eyoqHI/QvYJ+CiiH/heX6x5EQJeMr2XVn2U
+	 5A9+IHiti5y9QOqzK48dFAv0+7xuQ7hk8x3hb//v1i4k400eAJ342MwLAvyVGWKOh0
+	 XpizxtSN52iAP0xV6WFCo60UQrbfgm8n/Tzh/b56NKZYcpUrN6LhdLjHJpaBNkBO6a
+	 VkOTAXM8uUZ9L3JW4BY+5i2UXKMkg9yfEmTU0obgl2AJSfsb8jTjGZT15MOahsNKJJ
+	 BwYYdgLAP/gHw==
+Date: Wed, 4 Nov 2026 08:11:50 +0100
 From: Krzysztof Kozlowski <krzk@kernel.org>
 To: Wentao Liang <vulab@iscas.ac.cn>
-Cc: Tatyana Nikolova <tatyana.e.nikolova@intel.com>, 
-	linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, 
-	Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] RDMA/irdma: fix double free of close_entry in TIME_WAIT
- teardown
-Message-ID: <20261104-eager-innocent-elephant-23efad@quoll>
-References: <20261104025347.1527584-1-vulab@iscas.ac.cn>
+Cc: "David S. Miller" <davem@davemloft.net>, 
+	Simon Horman <horms@kernel.org>, Paolo Abeni <pabeni@redhat.com>, linux-rdma@vger.kernel.org, 
+	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org, 
+	Allison Henderson <achender@kernel.org>, rds-devel@oss.oracle.com
+Subject: Re: [PATCH] net/rds: drop the device reference for ODP memory regions
+Message-ID: <20261104-invincible-flying-agouti-fbecd2@quoll>
+References: <20261104022810.1484182-1-vulab@iscas.ac.cn>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,29 +60,30 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20261104025347.1527584-1-vulab@iscas.ac.cn>
+In-Reply-To: <20261104022810.1484182-1-vulab@iscas.ac.cn>
 
 
-On Wed, 04 Nov 2026 02:53:47 +0000, Wentao Liang wrote:
-> irdma_handle_close_entry() drops the cm_node reference held by the close
-> timer before releasing cm_node->close_entry.  If that put is the last
-> one, irdma_rem_ref_cm_node() runs irdma_destroy_connection(), which
-> still sees a non-NULL close_entry and calls
-> irdma_handle_close_entry(cm_node, 0).  That nested call frees the
-> close_entry and clears the pointer, and the outer call then frees the
-> same object once more.
+On Wed, 04 Nov 2026 02:28:10 +0000, Wentao Liang wrote:
+> rds_ib_get_mr() takes a reference on the rds_ib_device with
+> rds_ib_get_device().  The FRMR path stores it in ibmr->device and
+> rds_ib_free_mr() drops it when the MR is freed.
 > 
-> Free the close_entry and clear cm_node->close_entry before dropping the
-> reference, so that a release triggered from that put observes a clean
-> cm_node.
+> The ODP path allocates the ibmr with kzalloc_obj() and returns it
+> without recording the device.  rds_ib_odp_mr_worker() only deregisters
+> the MR and frees the ibmr, so the reference taken for every ODP MR is
+> never dropped and the rds_ib_device can no longer be released.
 > 
-> Fixes: 146b9756f14c ("RDMA/irdma: Add connection manager")
+> Store the reference in ibmr->device and drop it in the worker after
+> the MR has been deregistered, which also keeps the device and its PD
+> alive for as long as the MR exists.
+> 
+> Fixes: 2eafa1746f17 ("net/rds: Handle ODP mr registration/unregistration")
 > Cc: stable@vger.kernel.org
 > Assisted-by: DeepSeek-V4.1-Flash and OpenAI Codex
 > Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
 > ---
->  drivers/infiniband/hw/irdma/cm.c | 8 +++++---
->  1 file changed, 5 insertions(+), 3 deletions(-)
+>  net/rds/ib_rdma.c | 2 ++
+>  1 file changed, 2 insertions(+)
 > 
 
 Multiple things here:
