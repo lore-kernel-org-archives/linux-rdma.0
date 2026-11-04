@@ -1,56 +1,104 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.225
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793802048;
-	b=gJ7jZltGALsL/n4wY7x2PY6sO0mtCe/KUJ+PA7b/ePJDHi2HxlGeaVfYdIakIC/VzIld
-	 lIGUV7jDSh49SFMAFNCNGPdzakMnXc77nJtSekCHbE86tYshhXvxoKIu06avGRpGPORsk
-	 cxX91KZTcP+VSyU5ktyaiCe5iYsVbWRI4NStqdjaAjbX3KwfSn9A35s5N33JINMVeNBsX
-	 5kexvNZI751OkYvPk5uI4JW4fvw0IkUjnTWHAnKxqFiW8lU+Ees3q83cIXq+KMblBZxXX
-	 XmpvfRJbte+m9cRCkMr36QZCHQotWeCYtM06xSlGqq0YlLvtpta/5WZ+FBxByW3ROAA==
+	t=1793803333;
+	b=BhbxZbYd0mzE5RjVTBpuaCcFEIhlxlBT0tytt+LdqhfzI3j4XEGk1nBiwo7Y22H+Ziqf
+	 8taUaoCFnRgA0Y7aOcDtlb+XU3gJKnOTiOOWus48h7Bxt3akWj4iDu4anystoCCBHj56K
+	 YmKNMew6FNMZS7SkSdOCiWczgAfr+ezOvaNKkJ1PRdZBlFkKv3hX4ZqO075yJTl9Ipvlo
+	 451qLeTDHLSb0JYGrfkg0yA5fUSJVwE70cZKFNO4EFc1ckGCvFqT3/ff5RxubKp5l8qQE
+	 QiK0wfWkfN/HP1M2iT0wgTUMTUGCdWi8fjDjZlWqzqjHjdFvCxDmPwDOJilEl/RU2hA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793802048;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=yhC6V3tszaLh22vM9JwqJz5sDuowI1YkEC8+eZFC8nQ=;
-	b=wVZU/mEMf5QwZml6iuqYhgMf3X5Vc5c2VUT6QqKOXO4gmampX4opz6DRbBFWJRX7W7eN
-	 pQIqyO7yJXB3TDfHpB+EMH0BUjosv8UHodxP2atodOcotc7RsrnmB9JDkBb2iYlMwRtJ2
-	 UYRje4bODeRg1I+RhWU8LDxJTIK5l7y3Aja9/3XQ3Hfv4UY7y2MSMhoaYTF0Zs+ozNnym
-	 tMRLrCZ5lmHrErnN2WIoVx6npwbiqhYwLyaMe/tVBQQTCf58ZeME98KRu1FV4FFI6ku6t
-	 RiV7nPEpsCeZan+OgFyzda/7PJ/OmNXgvX+FMPwBVx3gPQLgOR/6JpNqqV/+wv38Ypw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793803333;
+	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Gm-Message-State:
+	 X-Gm-Gg:X-Received:Received:X-Relaying-Domain:X-CFilter-Loop:Received:
+	 DKIM-Signature:X-Received:X-Received:Received:From:To:Cc:Subject:Date:
+	 Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-DetectorID-Processed;
+	bh=K34Cwj8AS79jGdo99cPDdFkLRcE0lhSys0V8hNbTUNA=;
+	b=obryLJwei+aM4RLI7sIYLAkAxL3V38PeMxxB6/cq3XHh/LMpozpoREMzM0Cjc8yqbST2
+	 +1UvaLPVZ1m3eK/trSoNddIYok6tbgECDU8cPgg9emk+4tSuapplyUsAmvIyVPuGQmC/C
+	 YutWD8uDsFiaOs3tDGyt+blMJp2v4DtQrWBDlOVR42EIbRo0wsuoxTb6dDgsUjLd4R1x9
+	 sUnFkZsr8G9n8mFA701IP9GEIXrb2YHzp+nPCjpYjjgfKVt9WMz1r6qrHy3i2luFWaKMQ
+	 1d6jy+45earB8An5bFeYpeKjNX6NWcdlpBmaw4BAjLLfW1kxfiiHhiz181lZ84OgFVg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bGGMFKbc;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=broadcom.com;
+	spf=fail smtp.mailfrom=broadcom.com;
+	dkim=pass header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=XO+tm+VQ;
+	arc=none smtp.remote-ip=209.85.222.225
+Received: from mail-qk1-f225.google.com (mail-qk1-f225.google.com [209.85.222.225])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B8C0606A31B;
-	Wed,  4 Nov 2026 14:20:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE6AC606A338
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 14:42:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EE6AC606A338
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bGGMFKbc
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B8621F000C1;
-	Wed,  4 Nov 2026 14:20:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793802048;
-	bh=yhC6V3tszaLh22vM9JwqJz5sDuowI1YkEC8+eZFC8nQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=bGGMFKbcd01mmhOy16P9dm9fCm+23gmFPsbEZY+LkVlBaJcOi/Q9c/XvqsCYBNMf7
-	 LcGm5SDE+fpgODNe3/zKSuwFkZGy42cIzVKHKBjSoKGxsE+c9mKdtq/l2hAULh723M
-	 L22idRoHI9uigCANa0msLLCWlZr3OrCnVHrQbGk9EHmUWlOejKXdfvF0gKcbZ4+jFN
-	 m5vTID5zL6yWg9UlmKVQ/Yjb0ud7fCC83EFSIIYqclxWI0H/sxZc0QNd8IoDBJhRxH
-	 QU+c57GNh2jObOEdk2wD3n1+RcdD0gcq82R3lUkCaJmfoJh/uRehjWMGC3lUCCpl3j
-	 70Bx67q8yNqjQ==
-Date: Wed, 4 Nov 2026 16:20:43 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
-Cc: Sagi Grimberg <sagi@grimberg.me>, Max Gurtovoy <mgurtovoy@nvidia.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	"Martin K . Petersen" <martin.petersen@oracle.com>,
-	Mike Christie <michael.christie@oracle.com>,
-	linux-rdma@vger.kernel.org, target-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v8 0/6] IB/isert: fix the device removal use-after-free
-Message-ID: <20261104142043.GG478286@unreal>
-References: <20261104040318.1844865-1-yhlee@isslab.korea.ac.kr>
+	dkim=pass (1024-bit key, unprotected) header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=XO+tm+VQ
+Received: by mail-qk1-f225.google.com with SMTP id af79cd13be357-93f1ca4132bso75955085a.0
+        for <linux-rdma@vger.kernel.org>; Wed, 04 Nov 2026 06:42:12 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793803332; x=1794408132;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:dkim-signature:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=K34Cwj8AS79jGdo99cPDdFkLRcE0lhSys0V8hNbTUNA=;
+        b=J1X9GHo8JJKSFNkUDXNYJEMBri+v/lQLK4NV9LX3Xy6cCCP+P6EH2d29+/l3C2n8n6
+         57ngk/xDODvsSTeCgj3GXY3GYt0LoQxdyoJ0M95hcAvcDDsrCRCgWUGTmMJNfn6lBPrF
+         xz9acOCE27KCEUHinHJDehSH9LCVSabILyrx+OuXmue1iVL2Bm8QH8aQrjlidOVJYtVj
+         +B3Z5AETnvzTni2JOvSB4GiLksvIf6tJO9z/7lB+CBku9MZNf51Wv8qdcYTX7e0lrs6+
+         kyK28hW9l53kaL3lXKWEkz67AmZVqSS7QsXsN2PtQboWG5eB+vXOiJx4E1VtinSKR4Ax
+         2KLg==
+X-Gm-Message-State: APuU4Z+XSduYxS47ww3+GHljgZ/Kl9qEIzsIDm0bkwBjvn17Wi9948+F
+	VgfEtk7ywGsknyeRY9+dY819SiauOqZX/HBPHXQNXFa77qgw2nQXqb6v6Of4pDXJi8ui35qCwZK
+	xAoD2mfl3ReVNt8okFCEpAqBG02507FDrNbw4UYYnn/e1vgjxvTQFcXoPJ/BosDqlplub5KZzpJ
+	/Lab518JUwB7zMShR/bi0w0UQCoKmwaD3Czg0dggY3dfOvfVOaT/EaMN+mMy4IE/OaA7IR686Q0
+	IDPhSMRNbWBtjSDyg==
+X-Gm-Gg: AYBFou0+kn0eC0zh9lghovm3gYueB8o4Vw7XXzsb4zk40ErPTlW4yYK55MCd8knHRdf
+	82k3dQYlQKe90ynSCyQieVqZRN0zficiSqU/BEU100Ous9cTwAKzsxK5s+7TXEH2C1ZX7H+LFAr
+	uU5Ge7QQ7GIWNx0f/ysy6RRKoEuluGNvVANTFLx061uo+jVDC4dxljRHfbXGHS9Tykko+blp/gO
+	Yb1Wxwkp1D/D4Mt48Ov5RWl7NFcUoeDcUtwULxJaNE5xFTpBrzPJeIQkRHfYTt76ZE8Y8o1tww9
+	x3eThF8T/3hqOGIr66y5k13gdjmDURalWNJ8N4HE/lTBwboWveHGPqlVRxYv98nmsvObVxiQzGQ
+	PFxazq3H375BBcUnJeoihWIi6ZgqsZa76pKxmWx9w+IQ+AmFuByAeTJL0vRLTvrkQnyH2CCwv1i
+	mgSlHIlFXpiZiusbJchy0IOmhgTPQC9ZaLMn5s
+X-Received: by 2002:a05:620a:258f:b0:93f:3163:3e5c with SMTP id af79cd13be357-9442178e69fmr2616408385a.81.1793803331673;
+        Wed, 04 Nov 2026 06:42:11 -0800 (PST)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-13.dlp.protect.broadcom.com. [144.49.247.13])
+        by smtp-relay.gmail.com with ESMTPS id 6a1803df08f44-91e7e7b3733sm345886d6.23.2026.11.04.06.42.11
+        for <linux-rdma@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 04 Nov 2026 06:42:11 -0800 (PST)
+X-Relaying-Domain: broadcom.com
+X-CFilter-Loop: Reflected
+Received: by mail-dl1-f71.google.com with SMTP id a92af1059eb24-1aa0fb7f157so1339844c88.0
+        for <linux-rdma@vger.kernel.org>; Wed, 04 Nov 2026 06:42:11 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google; t=1793803330; x=1794408130; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=K34Cwj8AS79jGdo99cPDdFkLRcE0lhSys0V8hNbTUNA=;
+        b=XO+tm+VQcHqMKlvQmWUlD0DIhNB/2lRpdpyM+V/oIiqbJ4YmtAXSi9Koi92PDO+hyV
+         AcrWjjQ//TDOi407CehY2ADBfPHGlcLwoO5G5HCv8pUb9TvymXRTroadaZdNVgNL2Fkk
+         8WDNRghko3qsGzqjpJM3fYHoSaGA8Myl1fPCE=
+X-Received: by 2002:a05:701b:4248:20b0:191:3c:aae7 with SMTP id a92af1059eb24-1ac5c64cb0emr25533757c88.26.1793803330100;
+        Wed, 04 Nov 2026 06:42:10 -0800 (PST)
+X-Received: by 2002:a05:701b:4248:20b0:191:3c:aae7 with SMTP id a92af1059eb24-1ac5c64cb0emr25533721c88.26.1793803329355;
+        Wed, 04 Nov 2026 06:42:09 -0800 (PST)
+Received: from dhcp-10-123-156-114.dhcp.broadcom.net ([192.19.234.250])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36ca38d3754sm10753968eec.14.2026.11.04.06.42.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 04 Nov 2026 06:42:08 -0800 (PST)
+From: Selvin Xavier <selvin.xavier@broadcom.com>
+To: leon@kernel.org,
+	jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org,
+	andrew.gospodarek@broadcom.com,
+	kalesh-anakkur.purayil@broadcom.com,
+	Selvin Xavier <selvin.xavier@broadcom.com>
+Subject: [PATCH for-next] RDMA/uverbs: Zero the QP attrs in ib_uverbs_query_qp
+Date: Wed,  4 Nov 2026 12:02:44 -0800
+Message-Id: <20261104200244.52979-1-selvin.xavier@broadcom.com>
+X-Mailer: git-send-email 2.39.3
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,69 +108,37 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261104040318.1844865-1-yhlee@isslab.korea.ac.kr>
+Content-Transfer-Encoding: 8bit
+X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-On Wed, Nov 04, 2026 at 01:03:11PM +0900, Yehyeong Lee wrote:
-> The RDMA_CM_EVENT_DEVICE_REMOVAL callback in ib_isert waits for the
-> connection it was handed to reach ISER_CONN_DOWN and then frees it, a
-> use-after-free against isert_connect_release(), and the wait deadlocks
-> against the handler_mutex rdma_destroy_id() needs.  3/6 moves the teardown
-> into an ib_client callback, as nvmet-rdma did in f1d4ef7d8883, and gives
-> every connection one owner.  1/6 and 2/6 are older problems; 4/6, 5/6 and
-> 6/6 close three holes the walk makes visible.
-> 
-> v7 -> v8
-> 
-> v7: https://lore.kernel.org/r/20261104012219.1759523-1-yhlee@isslab.korea.ac.kr
-> 
-> v6: https://lore.kernel.org/r/20261103223802.1697607-1-yhlee@isslab.korea.ac.kr
-> 
-> v5: https://lore.kernel.org/r/20261103125955.1530355-1-yhlee@isslab.korea.ac.kr
-> 
-> v4: https://lore.kernel.org/r/20261103032924.1073138-1-yhlee@isslab.korea.ac.kr
-> 
-> Sashiko v7 3/6 High: isert_connect_error() clears cm_id after
-> ib_drain_qp() again, as before the series.  Before the drain the QP can
-> still take an event, and isert_qp_event_callback() dereferences cm_id.
-> 
-> Sashiko v7 5/6 High: isert_device_get() matches the ib_device pointer
-> instead of node_guid, the same key isert_remove_one() uses.  Two devices
-> can share a node_guid, and the PD and the DMA mappings belong to one of
-> them.
-> 
-> Measured over soft-RoCE with KASAN, 114 runs.  A test-only event delivered
-> to isert_qp_event_callback() before the drain oopsed in rdma_notify() nine
-> times over two runs of 3/6 as it was in v7 and not once in two runs of
-> this series.  A connect on a second device sharing a node_guid failed
-> rdma_create_qp() twice in both runs before 5/6 and not at all after it.
-> The cells v7 passed are unchanged: no KASAN, no Oops, no lockdep splat and
-> no refcount warning on either side, device_list empty after twenty link
-> removals and re-adds, and the login park finishing in eight seconds.  I
-> still could not measure the namespace move, for the reason given in v6.
-> 
-> Yehyeong Lee (6):
->   IB/isert: do not publish connections being released on a second list
->   IB/isert: drain the QP without holding isert_conn->mutex
->   IB/isert: tear connections down from an ib_client on device removal
->   IB/isert: drop the promotion reference when a connection errors out
->   IB/isert: do not build a new isert_device for a device being removed
->   IB/isert: only reinstate a connection that reached full feature phase
-> 
->  drivers/infiniband/ulp/isert/ib_isert.c | 395 +++++++++++++++++-------
->  drivers/infiniband/ulp/isert/ib_isert.h |   9 +-
->  2 files changed, 294 insertions(+), 110 deletions(-)
+ib_uverbs_query_qp() allocates qp_attr and qp_init_attr without zeroing
+and copies fields such as alt_ah_attr, path_mig_state and sq_draining
+to userspace. Drivers are not required to set every field in their
+query_qp() callback, so uninitialized kernel heap memory can leak.
 
-So what do you expect from us now? You didn't bother to invest time into it,
-by all these resubmissions, you clearly showed us that this is 100% AI work,
-not reviewed, not tested, but marked for the stable@.
+Allocate both structures zeroed.
 
-Thanks
+Fixes: 7ccc9a24e012 ("IB/uverbs: Support for query QP from userspace")
+Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+---
+ drivers/infiniband/core/uverbs_cmd.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> 
-> 
-> base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
-> -- 
-> 2.43.0
-> 
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index aca7c6ab55cd..54da98431f40 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1668,8 +1668,8 @@ static int ib_uverbs_query_qp(struct uverbs_attr_bundle *attrs)
+ 	if (ret)
+ 		return ret;
+ 
+-	attr = kmalloc_obj(*attr);
+-	init_attr = kmalloc_obj(*init_attr);
++	attr = kzalloc_obj(*attr);
++	init_attr = kzalloc_obj(*init_attr);
+ 	if (!attr || !init_attr) {
+ 		ret = -ENOMEM;
+ 		goto out;
+-- 
+2.39.3
+
