@@ -1,160 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.200.47
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793791217;
-	b=jmNnYT69n8q92dpgqs85RKppn2EYY9f5WDzbBHu3/duc+Ln378LkRqvqiK8yPfmFaQDR
-	 jmBzmTAJ/uhcwk6jHMQNH6BYKcpPbXy5iRjeg2LbFTLJVbZZZAxZovS5Z21VJftFdsnSH
-	 L0VVT0liujuUciEL8G70LLx/08rBmDpOVbQgnqnc4R2eKDHb8yXPqQx1NqRlnF1rR7JkI
-	 ad5OIJs4eKQrrhAaQO72anN2NAENPg83WKINEpY0HxC1JqW1hbnTY1CsGYyL4nZ4NYxAJ
-	 lyE4o0WMgZATZeCc8oRh0WFDo5Z4rkT6qmg75xmiYm8wGeaG3Ogm5v8dah+jqn+6gcA==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793791217;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:From:To:CC:Subject:
-	 Thread-Topic:Thread-Index:Date:Message-ID:References:In-Reply-To:
-	 Reply-To:Accept-Language:Content-Language:X-MS-Has-Attach:
-	 X-MS-TNEF-Correlator:x-ms-publictraffictype:
-	 x-ms-traffictypediagnostic:x-ms-office365-filtering-correlation-id:
-	 x-ms-exchange-senderadcheck:x-ms-exchange-antispam-relay:
-	 x-microsoft-antispam:x-microsoft-antispam-message-info:
-	 x-forefront-antispam-report:
-	 x-ms-exchange-antispam-messagedata-chunkcount:
-	 x-ms-exchange-antispam-messagedata-0:Content-Type:Content-ID:
-	 Content-Transfer-Encoding:MIME-Version:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-AuthAs:X-MS-Exchange-CrossTenant-AuthSource:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-originalarrivaltime:
-	 X-MS-Exchange-CrossTenant-fromentityheader:
-	 X-MS-Exchange-CrossTenant-id:X-MS-Exchange-CrossTenant-mailboxtype:
-	 X-MS-Exchange-CrossTenant-userprincipalname:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=PB0SYS1LG41csbnfRfm0a7jHH6DfMhTadDleE5RAS1M=;
-	b=EvQqUKdiA1sK01UT+vUuZ3ZbcFVVIOKJrQhGR7as2E6Fpeyhh5sK38NoSasmuW2lrdtc
-	 VCZGwhEOa8tUDWQpyq598wxAAvRQFWwCSldR8LbZmCvzG1ynmVDT//wcJp7aI91ykvkXz
-	 YLi5Y7ho59f21FWbu/tnxtU2SybECPG0HEq+xpFpoWpqckidrIs8pMMOmlSqQBJWlEEjk
-	 y0uo9YAvQOEulRNr8XhApr71Jnj1crWcF3oB+NbmVwlblD4NoVuZoEWjn3Q8QJyzB38YL
-	 qxZqJgF9+hOBtXxZiiNkuNtcVOhoDx27Sw9uatXBh65BJ6djNF5Ccgu3MFPTHjmfZhg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b="dk9uy8Z/";
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.200.47
-Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11012047.outbound.protection.outlook.com [40.107.200.47])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.127.231.38
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793792365;
+	b=ejhkwJdLwMz4wLeK+C/BLLUm7J70eYxGLo36b0G62M+Am1T5DGeC9oqZ0/kfSeBVxKCn
+	 w6jy/KTtkzBytrz/Cw4fbg9gCstexY3dbiTraauiN3wYq14D9IsjxnVX8X3y8UOv1btT9
+	 RE7b+lyYKDWWEmiJcjLcRTwbUhNYtNa0FzIVMUW4+TG4r/gC2oiXzGitAcenMWJHnHbc8
+	 5+leLq5AEtozRH5CjKjo78u/Lmr84UyqQOAgLuGhoYtQ9GFOlVPYJeLtyIM2qILlFijwp
+	 Un41cAvyBPMdcJp556Cwd9f7pe3tZDD6Jqyl95NSuOk6hUS6d9Fzq0zdLDs95N612Aw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793792365;
+	h=DMARC-Filter:DKIM-Signature:Cc:Date:Message-Id:Mime-Version:Received:
+	 In-Reply-To:X-Original-From:User-Agent:From:Content-Transfer-Encoding:
+	 References:X-Lms-Return-Path:Content-Type:To:Subject;
+	bh=8SRH22hkLlGe2H+tqK/rV7yAjjgHaHhYIT6zi/fmEEg=;
+	b=XwFClNA5HR4nloiPYcbI0/AXHgeyDsGHYO56PlSuM2SpNq2hl2n2LoIbhCx5kzSvIgso
+	 7mkEq7RRYtlUct3mVkwzN32yksB4QNZlAaQqd90BkJgDkKHnquAfKkDXl+F3p2JcpUPos
+	 +ioVmZcVxMmCKZuP2LgOUvpW6ecOBkqVu6C6nspydZpCf+iSZfZUVoEWVzsHg3rGRtERk
+	 xz7EMY0MOxoLRmBHSVgDhZmA/yEOrm7/SRlFXWzGCm1HfI6TcGtvpRs2kXniyeot5PJ/m
+	 qBrALeBpBmSu3zQyakLrPSPVr+v42OY6r7D8lWFNC0Ydn3/MTvH9Sl+mN+i2H66Y1jA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=none header.from=yunsilicon.com;
+	spf=pass smtp.mailfrom=yunsilicon.com;
+	dkim=pass header.d=yunsilicon.com header.i=@yunsilicon.com header.a=rsa-sha256 header.s=feishu2403070942 header.b=RAJJhd16;
+	arc=none smtp.remote-ip=209.127.231.38
+Received: from va-2-38.ptr.blmpb.com (va-2-38.ptr.blmpb.com [209.127.231.38])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59676606A31B;
-	Wed,  4 Nov 2026 11:20:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 59676606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FA00606D802
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 11:39:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1FA00606D802
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yunsilicon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yunsilicon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=dk9uy8Z/
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=ahYtuQF9r85NucjGCFrHHEP3YG0fluJBErsMyJUKV1NriYJU3KH8GMMkpvKWADlqlCA8T5prQYV925IuKS5FMZMl1sLvL8eVCTIvuRMvzkDYm2p6qetLJK+rtQQ4t/0KhYngFOyjGtU3fTS1lh71+8qhoBT1FaZIMdTR3L1xQJrMbFVGWU68bfh/5OqfbSBBtqmRqVvTj+g8tCNNKhlRafyj2w6GKmeTadybFwnZF1YQawAgzgcs8Ln4bhOw2tKycKvEILXrS5qXTEMDW2DzdV28dWtMdy4NxGnDW08b/QjW9qFp0it6pUUwMIkBJCw+ZG5YdT2GOo6+6g/GQohP/g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=PB0SYS1LG41csbnfRfm0a7jHH6DfMhTadDleE5RAS1M=;
- b=ywHX4zuP5PESnqyF+ne/irMjNkgvox/nL4ia45C4gQuhlUTi8R6tXCUnSuyLHM4IJggD8nsTjpqWN+hehN5IjYwmkJTwmdzY91bWNQWbhnsya5xPfjbbbGRnLiigJQHpNix2ccr5vbbzUQxIW6MtGbbMLdSqVmcoOkii5uiO7fnctDJLOctGnagtJUqqpF80W9S/GQG1GuZZig6w6PlyG4oM4nadXXeUaYA+nBg0Zl5NO5oN6TZRLM9MtvzCNDmd0YWBC4DxJI2P0ZZqg4Thb+kx0RBPJMSSr5KstQlIhvPbWDH0tOiRQwTW4WG7Mwvx9/u6y1BDT7fNFhl2Jkh3kA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=PB0SYS1LG41csbnfRfm0a7jHH6DfMhTadDleE5RAS1M=;
- b=dk9uy8Z/T6R9socGVfzNAv3Tru2ZUa3HEOXzS1qCRoxZvJZPlKr9WrgzscqxcEUI90XkRTyytzxmXL0WQi7YiLD9KWmutIHrAbZsddeDd8e/B74Zhx0vKDCrCzAAH38pfeWjVNnnM/2n+ZpomRFZr6lSF+sOQWZsrnC4K2TwFAYzc5ilqUPeqQaAxnWuZo1dITjj3SMxjtuGvvgDdLsPTMFgaCNG341/ntpfGrz9KaHhi0tmSAuGdyygKEgKQCeZR6pJ7YYjRSjFKfgM578zq3iFTpZY1YT+wccHHA8HokWA32iqNgWOqQ+1UQHN18MyDwnSrd5jtvNNUQ9qmu0+lw==
-Received: from DS5PPF266051432.namprd12.prod.outlook.com
- (2603:10b6:f:fc00::648) by IA1PR12MB7568.namprd12.prod.outlook.com
- (2603:10b6:208:42c::10) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.12; Wed, 4 Nov
- 2026 11:20:12 +0000
-Received: from DS5PPF266051432.namprd12.prod.outlook.com
- ([fe80::9cef:7e0f:2134:13fe]) by DS5PPF266051432.namprd12.prod.outlook.com
- ([fe80::9cef:7e0f:2134:13fe%3]) with mapi id 15.21.0592.007; Wed, 4 Nov 2026
- 11:20:11 +0000
-From: Cosmin Ratiu <cratiu@nvidia.com>
-To: Tariq Toukan <tariqt@nvidia.com>, "joasantonio108@gmail.com"
-	<joasantonio108@gmail.com>, Mark Bloch <mbloch@nvidia.com>, Saeed Mahameed
-	<saeedm@nvidia.com>, "leon@kernel.org" <leon@kernel.org>
-CC: "andrew+netdev@lunn.ch" <andrew+netdev@lunn.ch>, "edumazet@kernel.org"
-	<edumazet@kernel.org>, "davem@davemloft.net" <davem@davemloft.net>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-	"sd@queasysnail.net" <sd@queasysnail.net>, "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>, "pabeni@redhat.com" <pabeni@redhat.com>,
-	"horms@kernel.org" <horms@kernel.org>, "kuba@kernel.org" <kuba@kernel.org>,
-	Boris Pismenny <borisp@nvidia.com>, "netdev@vger.kernel.org"
-	<netdev@vger.kernel.org>
-Subject: Re: [PATCH net v2] net/mlx5: macsec: free struct mlx5_fs_id after an
- RCU grace period
-Thread-Topic: [PATCH net v2] net/mlx5: macsec: free struct mlx5_fs_id after an
- RCU grace period
-Thread-Index: AQHdZliUvYi59+u/PUORNVhruXmISbcd0CyA
-Date: Wed, 4 Nov 2026 11:20:11 +0000
-Message-ID: <e91e786d3bf20ed981ab2d214ae3358d137d597e.camel@nvidia.com>
-References: <179313582625.87630.11382992904624255106@gmail.com>
-In-Reply-To: <179313582625.87630.11382992904624255106@gmail.com>
-Reply-To: Cosmin Ratiu <cratiu@nvidia.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: DS5PPF266051432:EE_|IA1PR12MB7568:EE_
-x-ms-office365-filtering-correlation-id: 58bf22e2-5c31-4924-66f8-08df3a659787
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|7416014|376014|23010399003|1800799024|366016|261009223027099003|38070700021|261021123027099003|261021121427099003|5023799004|11063799006|56012099006|261028144727099003|261022105027099003|261022075727099003|261026121527099003|261026140227099003|10067099003|18002099003|261102123227099003|22082099003;
-x-microsoft-antispam-message-info:
- 4sYRywgLqiaXbKg6eo4ryDrWuxYYuNBXreIP/43AneJ8AwDACOI1Affy4XpPl/mT3N0sAdsKK7CjPUAVlChUM57iMs1RA1X/ki/qN313eAOpe01kAE6p3HAj0pMhgGODIbBmpSbVruDnFhMu0Mh6u5MEz5WLe1JEZpLdTu8s3AC5h3T5mfQctZHRbCnBeU+TOgsLeFXTF+Q/ysxyyLofEK/in2zeAKIJcYwEgzeJvonYzo6bomOotcrG9JJVqW5CUt9rOR23O3L4mL/BBinQzxemCYM0+ZWOStEE37DEeIbmr7QlNe7MIRUbGRBafezzX2BetAOmMcShMPaeWEN3bT1T/VuGpoVdqIXBffdwm/wdqiqYMuKwJUNivuIvyGXltnJKk1DEhhvJpsQvayMoGfzQGb8f8YQjlKHnHZlfI2UqQge2KnewmPs793PH+CFp6E9MYVLnjHvDv7HOqulnPooCwXAQMnVto4E6ey0Qi2ZSHL2uPWLZmriV7mZ3adofPH7z9uyaawRBGxxkW7xSuEQsVh1O+dKzEKaO5JF6LCMjzBP5CFFyjGRi0Tpvlrc/QOzxbJftZSEjcXn9pk7EPidTI0OhOcBl6V8YLDAD5hlA6CTmgcqK129xI++Qe6lxwMKuNnKga4Zwu78/IqAMnDj/81lWn2qSZ7iqYJGVSRXxeErCzYToYpQHP4HZg9duNZnDXvYMYhhGv+Y1iemf9WNmrN2CLLVAZtlfF3IGtcg=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS5PPF266051432.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(23010399003)(1800799024)(366016)(261009223027099003)(38070700021)(261021123027099003)(261021121427099003)(5023799004)(11063799006)(56012099006)(261028144727099003)(261022105027099003)(261022075727099003)(261026121527099003)(261026140227099003)(10067099003)(18002099003)(261102123227099003)(22082099003);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?cC9zODJESXgxM2RKa3VnaGN1OFBzQy9wWXUrbDZ4SEdHVDZBNFZBMm5Gbmg2?=
- =?utf-8?B?Q2VHZ0ZkTmJ5NUN1c3NSUEg3NllDdzUvbVd2T3RBajRwSWZHUTA3RjZYTXlC?=
- =?utf-8?B?V05VT2JQZGtTa3VDeDZtcytYbTRMTjl1VnViT1VCeHhsakNKUENJcU5ZMnhL?=
- =?utf-8?B?Zm93bENOc2JZSyswS0U4dmdHdXhyMDExazNjRlZ2dVN0OEkrMEt5ZDQ1MWlM?=
- =?utf-8?B?M09uSUZ3TFpEeXd1WUtuMWlJT2h6ckNhMjVjV0cxMlZJUUwzQ2VSbnNkTGJ4?=
- =?utf-8?B?V0lyeU1tVEdlc21HQ1g3elNad3RyTWcxSFZpeStYY0EwZDc4SnRkR3Fpdkxi?=
- =?utf-8?B?T2NCeUxsTVZYKysvRFNoMlZub0RNNEFESlZVNU81bm5jdTBCS3N2ZHVramZT?=
- =?utf-8?B?RGVQdzdHMmpoRDM0Sjd1RGFKUTErbGxDejZwVlRzMW95QWVSU1ZybkdRc3VZ?=
- =?utf-8?B?TWdVOXZKY3RIZ1ZzUW1JM0ZGQ2dEYXFJU3N4ZDk5SGJsZEE4aHMydGRiYTVs?=
- =?utf-8?B?dUpMdzhnbFMvN1dzV3NTZHl6VllKV3NFOHRNd2hDNG9zRElDL0VMQnFXajdI?=
- =?utf-8?B?Q2xjQlI4cURtRy9BNFV2aFNtVmQ3TnRWL1Jub3NuSWZXd0o2RVpKa0szU3h1?=
- =?utf-8?B?b291elB6Sm9XQnVjdFQrSzdhdExKcGRtaExsaUs4L1ZDc3BDTFQ1S1ZlV1Fw?=
- =?utf-8?B?Zmlka05Bc2Fad29VaEZyKzRQd3Z5UWFOWEtoQ0d2bUlSbTIxcjFpNEczVDJ0?=
- =?utf-8?B?RVExVCtFYk5IWldBd0pOcXo1RDhlSTFwdkZhdVNhbDB1azFPMnp5THZZTGtn?=
- =?utf-8?B?WWdGUE03ZEcxRldtWm9kYmsxRVJRNVdZSHRPaEZTRFRCWFJTMlgrbnJFYXZ0?=
- =?utf-8?B?eHZxcjFvZjV6dnc1MVh2QWtnV3lZblp6WmFqMkN0ZU4xYnozUEF2YXJqLzVO?=
- =?utf-8?B?QTREajAzYXBpVnRvV3ptZUU1VC9PMFExK3lBb1QveEtZVTgrbDFLOW43eWVy?=
- =?utf-8?B?MVA4Z0lULytUVDFOY0lrZDN2R1RvSFdNNktjd2dLeHVEQmpWZG1YNXBjcTQ5?=
- =?utf-8?B?RlNLTWFPeEo1bWFuTWY1MCsyRTNhcWZmdmlCVU5HTTFyY3BTbDNvNTVWRmtn?=
- =?utf-8?B?RVdOc0hkb3ZmRTBKT1lMNjZUa3lDL29TbkxWMFhrbGJYK3dqV2t6eVhvWU5H?=
- =?utf-8?B?WWF1TU45cXdvdkdINVVpSkNOc2pCMUdHVEFqSDBxdWs0VDJlb2pMOFdPK2xa?=
- =?utf-8?B?Q2NaQm9oMGlzdVdVS3Q2WnBTeWhQTEIyZXRtNVZUSzROenU0RlNIeTk3UEZy?=
- =?utf-8?B?bG1YaEwvUWdXazRNdE50cU4zazJXNmJDcW1aMytvanBRcDlmdGhmcjd4T3F1?=
- =?utf-8?B?MkRpK29ONk5XeW5PUEU2emdibGMxOW1yNmk1Qk5pbXNsVU1HUzA3cXoveEpQ?=
- =?utf-8?B?WjYxaE9VUkdpcHhwNG1PSzNBL1J0QStyRnNzK2tlRTRiYWtHMGtKSzVTb09Y?=
- =?utf-8?B?S2ZmQ2hnanJEQlprQlpVQ0RhQ2Y1dUx1aDVodFAzajRpVkFLb3paVkxQUlhO?=
- =?utf-8?B?eUNJMzFPQytSZmYyTCt5SkJpVUpHY2c2YXlGL0FqemtJQ1k1NmJNc0lzMFFQ?=
- =?utf-8?B?bjlPbkN4emRZMFYxWG91VFQyelZxUlRlUFEzMG1zeXdpaDFYWTZPUm5iK3BF?=
- =?utf-8?B?b2VDNCtaS20xTjRNcTlBN1JVNzBveEt2TEEzL095UWg3RTM4Nk5mTzJMWUxz?=
- =?utf-8?B?MnBKa1dmaS96SjVhMllTMFYveUswcSsvUGVibzhWTjdabUZtSm5iMDl1SERH?=
- =?utf-8?B?dnI3L0JnSFpDN3NJdHdKWFdwdmhjb1J4M0pwUDE1V3lPS1lxMWhndU95RmJw?=
- =?utf-8?B?ZjFLNE9qajFwLzU2dXh5aGdCYjlqMEFLVllmb0FVOXJQWlRzWGMzWC82Mng4?=
- =?utf-8?B?MklHNkd6M3RtczNjOFZYUERVbjZtbzg2aWo3WTh2blRNQU1qNnV5T0gwVGFD?=
- =?utf-8?B?NGVJT3U3Tyt5Y1I0YXBLVkZYeTF3aENUeTZUOEY4cTlyOFZ3YnpURlA3K01L?=
- =?utf-8?B?S2xUQXRYdEVaZlNuV0QzOENoamdZamQzU1FJLzZjNnl2UlZJL2FROHpVMXA1?=
- =?utf-8?B?UnJkb0ViYjlGU1dMU083aGx1cGlwbGJRMjhMcER3d3JTL2xtclpwb0hURmN3?=
- =?utf-8?B?NDVQN1lrTkRidk5jRlEvVWVWbDR4Sy9ULzJscHk3clJxTHZxdmlReitNU2Rm?=
- =?utf-8?B?bDAwR2h0L05QdHM4cDJlcUFkVllreVQ4LzFRb3F6SWZIMFZ2Z2VuZVpOY1Rn?=
- =?utf-8?B?b0FOWkVLaHZzRjFMREZGRzd0WjdFaVYrZWtBekZqdG1uSEVXLzExQT09?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <35D998EE1024CB47ABEEE305168A09EB@namprd12.prod.outlook.com>
-Content-Transfer-Encoding: base64
+	dkim=pass (2048-bit key, unprotected) header.d=yunsilicon.com header.i=@yunsilicon.com header.a=rsa-sha256 header.s=feishu2403070942 header.b=RAJJhd16
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+ s=feishu2403070942; d=yunsilicon.com; t=1793792352; h=from:subject:
+ mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
+ mime-version:in-reply-to:message-id;
+ bh=8SRH22hkLlGe2H+tqK/rV7yAjjgHaHhYIT6zi/fmEEg=;
+ b=RAJJhd16mXoD9UaPxX4+Pqi7MqdX6r9CY2RgTHB52T02i7GKNhVBJT2nBlRyyi+AobFfpQ
+ B3OUZbPaSGhvRA4VuVZX5mZmJ71mJZCRXTjwXahChZsGUE/1FZE4HnyE6Ynt4ZpxPHVrfB
+ hUd9f3W4ry8gEwzmNZCMNF0aLfw0L/nvkN0P2i41aCgUQ4b30e4dyHVKOOG1iIt/fwqR/p
+ vCe+HQIH/99OPowrtZqMYTPirP5vM8g974T+6/asdXvMY1eqK1JapLmwjvXU5+f3vzTGyG
+ LXcdKW3EcriTFJ/0XQufESlAycxww4HbjObSQEbbSn+wE8HdqUqtKW0Y62unFw==
+Cc: "Andrew Lunn" <andrew+netdev@lunn.ch>, 
+	"David S. Miller" <davem@davemloft.net>, 
+	"Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>, 
+	"Paolo Abeni" <pabeni@redhat.com>, "Jason Gunthorpe" <jgg@ziepe.ca>, 
+	"Leon Romanovsky" <leon@kernel.org>, <weihg@yunsilicon.com>, 
+	<linux-kernel@vger.kernel.org>, <netdev@vger.kernel.org>, 
+	<linux-rdma@vger.kernel.org>
+Date: Wed, 4 Nov 2026 19:39:09 +0800
+Message-Id: <fbea0512-f1d1-483b-b04f-eec0948db42a@yunsilicon.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -163,71 +60,113 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: DS5PPF266051432.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 58bf22e2-5c31-4924-66f8-08df3a659787
-X-MS-Exchange-CrossTenant-originalarrivaltime: 04 Nov 2026 11:20:11.7666
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: MSQG1DKRnQLJrg5/ay+IYWXc04qnOAb3ebzmph6hJ2t7HiGJ4ZzItEeT6wmea7s9GfpFh0e6z5RI0nneu7mCjw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB7568
+Mime-Version: 1.0
+Received: from [127.0.0.1] ([180.152.18.210]) by smtp.feishu.cn with ESMTPS; Wed, 04 Nov 2026 19:39:09 +0800
+In-Reply-To: <d9d02f67-558f-426f-b3a4-b13bd0a95c0e@lunn.ch>
+X-Original-From: Xin Tian <tianx@yunsilicon.com>
+User-Agent: Mozilla Thunderbird
+From: "Xin Tian" <tianx@yunsilicon.com>
+Content-Transfer-Encoding: 7bit
+References: <20261012114352.2471317-1-tianx@yunsilicon.com> <20261012114354.2471317-3-tianx@yunsilicon.com> <d9d02f67-558f-426f-b3a4-b13bd0a95c0e@lunn.ch>
+X-Lms-Return-Path: <lba+26aeb195e+09b9b4+vger.kernel.org+tianx@yunsilicon.com>
+Content-Type: text/plain; charset=UTF-8
+To: "Andrew Lunn" <andrew@lunn.ch>
+Subject: Re: [PATCH 02/15] yunsilicon: add the register HAL
 
-T24gVHVlLCAyMDI2LTEwLTI3IGF0IDE4OjE3IC0wMzAwLCBKb2FzIEFudG9uaW8gZG9zIFNhbnRv
-cyB3cm90ZToNCj4gbWFjc2VjX2ZzX2lkX2RlbCgpIHJlbW92ZXMgYSBzdHJ1Y3QgbWx4NV9mc19p
-ZCBmcm9tIGl0cyByaGFzaHRhYmxlDQo+IHdpdGgNCj4gcmhhc2h0YWJsZV9yZW1vdmVfZmFzdCgp
-IGFuZCB0aGVuIGZyZWVzIGl0IHdpdGgga2ZyZWUoKSByaWdodCBhd2F5Lg0KPiANCj4gVGhlIFRY
-IChTQ0kpIHRhYmxlIGlzIHJlYWQgbG9ja2xlc3NseSBmcm9tIHRoZSB0cmFuc21pdCBwYXRoOg0K
-PiBtbHg1ZV9tYWNzZWNfaGFuZGxlX3R4X3NrYigpIGFuZCBtbHg1ZV9tYWNzZWNfdHhfYnVpbGRf
-ZXNlZygpIGNhbGwNCj4gbWx4NV9tYWNzZWNfZnNfZ2V0X2ZzX2lkX2Zyb21faGFzaHRhYmxlKCks
-IHdoaWNoIGRvZXMNCj4gcmhhc2h0YWJsZV9sb29rdXAoKSB1bmRlciByY3VfcmVhZF9sb2NrKCkg
-YW5kIHRoZW4gcmVhZHMNCj4gbWx4NV9mc19pZC0+aWQuIEEgdHJhbnNtaXQgdGhhdCBsb29rZWQg
-dGhlIGVudHJ5IHVwIGp1c3QgYmVmb3JlIGl0DQo+IHdhcw0KPiByZW1vdmVkIHJlYWRzIGZyZWVk
-IG1lbW9yeS4NCj4gDQo+IEJlZm9yZSBjb21taXQgZDRlY2UwOGY0YjFkICgibmV0L21seDU6IE1h
-aW50YWluIGZzX2lkIHhhcnJheSBwZXINCj4gTUFDc2VjDQo+IGRldmljZSBpbnNpZGUgbWFjc2Vj
-IHN0ZWVyaW5nIikgdGhlIFNDSSB0YWJsZSBoZWxkIHN0cnVjdA0KPiBtbHg1ZV9tYWNzZWNfc2Eg
-ZGlyZWN0bHksIGFuZCBtbHg1ZV9tYWNzZWNfZGVsX3R4c2EoKSBmcmVlZCBpdCB3aXRoDQo+IGtm
-cmVlX3JjdV9taWdodHNsZWVwKCkuIFRoYXQgY29tbWl0IG1vdmVkIHRoZSB0YWJsZSBpbnRvIG1h
-Y3NlY19mcy5jDQo+IHdpdGggdGhlIG5ldyBzdHJ1Y3QgbWx4NV9mc19pZCwgYnV0IGZyZWVzIGl0
-IHdpdGggYSBwbGFpbiBrZnJlZSgpLg0KPiANCj4gQWRkIGFuIHJjdV9oZWFkIHRvIHN0cnVjdCBt
-bHg1X2ZzX2lkIGFuZCBmcmVlIGl0IHdpdGgga2ZyZWVfcmN1KCkuDQo+IA0KPiBUaGUgc2FtZSBp
-c3N1ZSB3YXMgZmxhZ2dlZCBieSB0aGUgU2FzaGlrbyBBSSByZXZpZXcgYXMgYSBwcmUtZXhpc3Rp
-bmcNCj4gcHJvYmxlbSB3aGlsZSByZXZpZXdpbmcgdGhlIEhXLUdSTyBmb3IgUFNQIHNlcmllcy4N
-Cj4gDQo+IEZpeGVzOiBkNGVjZTA4ZjRiMWQgKCJuZXQvbWx4NTogTWFpbnRhaW4gZnNfaWQgeGFy
-cmF5IHBlciBNQUNzZWMNCj4gZGV2aWNlIGluc2lkZSBtYWNzZWMgc3RlZXJpbmciKQ0KPiBMaW5r
-Og0KPiBodHRwczovL2xvcmUua2VybmVsLm9yZy9hbGwvMjAyNjA5MDkwNjU1NDIuNEI4MEQxRjAw
-QUNBQHNtdHAua2VybmVsLm9yZy8NCj4gU2lnbmVkLW9mZi1ieTogSm9hcyBBbnRvbmlvIGRvcyBT
-YW50b3MgPGpvYXNhbnRvbmlvMTA4QGdtYWlsLmNvbT4NCj4gQXNzaXN0ZWQtYnk6IFlhZ2EgQWdl
-bnQgSGFja2VyU2VjIENsYXVkZTpjbGF1ZGUtb3B1cy01LTUNCj4gLS0tDQo+IHYyOg0KPiAtIERy
-b3AgdGhlIG1hY3NlYy5jIGh1bms6IHRoZSBzY194YXJyYXlfZWxlbWVudCBmcmVlIHdhcyBhbHJl
-YWR5DQo+IGZpeGVkDQo+IMKgIGJ5IGFkMTdhZDUwYjhkYyAoIm5ldDogbWx4NWU6IEZpeCB1c2Ut
-YWZ0ZXItZnJlZSBvZiB0aGUgTUFDc2VjDQo+IHhhcnJheQ0KPiDCoCBlbnRyeSBvbiBSWCBTQyBk
-ZWxldGlvbiIpLiAoU2ltb24pDQo+IC0gRW1iZWQgYW4gcmN1X2hlYWQgYW5kIHVzZSBrZnJlZV9y
-Y3UoKSBpbnN0ZWFkIG9mDQo+IMKgIGt2ZnJlZV9yY3VfbWlnaHRzbGVlcCgpLiAoU2ltb24pDQo+
-IC0gRml4ZXM6IG5vdyBwb2ludHMgYXQgdGhlIGNvbW1pdCB0aGF0IGludHJvZHVjZWQgdGhlIGtm
-cmVlKCkuDQo+IC0gdjE6DQo+IGh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL2FsbC8xNzkyODU4ODg4
-MjkuOTAyNzUuMTczODYwOTcxMDU1MjUwNjgwMTZAZ21haWwuY29tLw0KPiANCj4gVGVzdGluZzog
-Y29tcGlsZS10ZXN0ZWQgb25seSAoYXJtNjQsIFc9MSwgQ09ORklHX01MWDVfTUFDU0VDPXksIG5v
-DQo+IG5ldw0KPiB3YXJuaW5ncykuIEkgZG8gbm90IGhhdmUNCj4gTUFDc2VjLWNhcGFibGUgQ29u
-bmVjdFggaGFyZHdhcmUsIHNvIHRoaXMgd2FzIG5vdCBydW4gb24gYSBkZXZpY2UuDQo+IA0KPiDC
-oGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9saWIvbWFjc2VjX2ZzLmMg
-fCAzICsrLQ0KPiDCoDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24o
-LSkNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1
-L2NvcmUvbGliL21hY3NlY19mcy5jDQo+IGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gv
-bWx4NS9jb3JlL2xpYi9tYWNzZWNfZnMuYw0KPiAtLS0gYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9t
-ZWxsYW5veC9tbHg1L2NvcmUvbGliL21hY3NlY19mcy5jDQo+ICsrKyBiL2RyaXZlcnMvbmV0L2V0
-aGVybmV0L21lbGxhbm94L21seDUvY29yZS9saWIvbWFjc2VjX2ZzLmMNCj4gQEAgLTk0LDYgKzk0
-LDcgQEAgc3RydWN0IG1seDVfZnNfaWQgew0KPiDCoAlyZWZjb3VudF90IHJlZmNudDsNCj4gwqAJ
-c2NpX3Qgc2NpOw0KPiDCoAlzdHJ1Y3Qgcmhhc2hfaGVhZCBoYXNoOw0KPiArCXN0cnVjdCByY3Vf
-aGVhZCByY3U7DQo+IMKgfTsNCj4gDQo+IMKgc3RydWN0IG1seDVfbWFjc2VjX2RldmljZSB7DQo+
-IEBAIC02ODQsNyArNjg1LDcgQEAgc3RhdGljIHZvaWQgbWFjc2VjX2ZzX2lkX2RlbChzdHJ1Y3Qg
-bGlzdF9oZWFkDQo+ICptYWNzZWNfZGV2aWNlc19saXN0LCB1MzIgZnNfaWQsDQo+IA0KPiDCoAl4
-YV9lcmFzZShmc19pZF94YSwgZnNfaWQpOw0KPiANCj4gLQlrZnJlZShmc19pZF9mb3VuZCk7DQo+
-ICsJa2ZyZWVfcmN1KGZzX2lkX2ZvdW5kLCByY3UpOw0KPiANCj4gwqAJaWYgKG1hY3NlY19mc19p
-c19tYWNzZWNfZGV2aWNlX2VtcHR5KG1hY3NlY19kZXZpY2UpKSB7DQo+IMKgCQlsaXN0X2RlbCgm
-bWFjc2VjX2RldmljZS0+bWFjc2VjX2RldmljZXNfbGlzdF9lbnRyeSk7DQo+IC0tDQo+IDIuMzku
-NQ0KDQpUaGFuayB5b3UgZm9yIHRoZSBmaXgsIGl0IGxvb2tzIGdvb2QuDQoNClJldmlld2VkLWJ5
-OiBDb3NtaW4gUmF0aXUgPGNyYXRpdUBudmlkaWEuY29tPg0K
+On 10/12/2026 11:21 PM, Andrew Lunn wrote:
+> On Mon, Oct 12, 2026 at 07:43:55PM +0800, Xin Tian wrote:
+>> Add the register access layer and the per-device register map: doorbell
+>> and interrupt registers, the command queue pointers and the device
+>> capability queries that the upper layers call.  The register map is
+>> described by xsc_hal.h and implemented for the Andes device.
+>>
+>> Signed-off-by: Xin Tian <tianx@yunsilicon.com>
+>> ---
+>>   .../net/ethernet/yunsilicon/xsc/pci/Makefile  |   2 +-
+>>   .../yunsilicon/xsc/pci/hal/andes_impl.c       | 708 ++++++++++++++++++
+>>   .../yunsilicon/xsc/pci/hal/andes_reg.h        |  43 ++
+>>   .../ethernet/yunsilicon/xsc/pci/hal/xsc_hal.h |  85 +++
+>>   .../net/ethernet/yunsilicon/xsc/pci/main.c    |   3 +
+>>   5 files changed, 840 insertions(+), 1 deletion(-)
+>>   create mode 100644 drivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_impl.c
+>>   create mode 100644 drivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_reg.h
+>>   create mode 100644 drivers/net/ethernet/yunsilicon/xsc/pci/hal/xsc_hal.h
+>>
+>> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile b/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile
+>> index c163aa950..81b65232e 100644
+>> --- a/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile
+>> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile
+>> @@ -6,4 +6,4 @@ ccflags-y += -I$(srctree)/drivers/net/ethernet/yunsilicon/xsc
+>>   
+>>   obj-$(CONFIG_YUNSILICON_XSC_PCI) += xsc_pci.o
+>>   
+>> -xsc_pci-y := main.o
+>> +xsc_pci-y := main.o hal/andes_impl.o
+>> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_impl.c b/drivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_impl.c
+>> new file mode 100644
+>> index 000000000..46fc045f9
+>> --- /dev/null
+>> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_impl.c
+>> @@ -0,0 +1,708 @@
+>> +// SPDX-License-Identifier: GPL-2.0
+>> +/* Copyright (C) 2024 - 2026, Shanghai Yunsilicon Technology Co., Ltd.
+>> + * All rights reserved.
+>> + */
+>> +
+>> +#include <linux/kernel.h>
+>> +#include <linux/pci.h>
+>> +#include "andes_reg.h"
+>> +#include "common/xsc_core.h"
+>> +#include "common/xsc_cmd.h"
+>> +#include "common/xsc_hsi.h"
+>> +#include "common/xsc_reg.h"
+>> +#include "xsc_hal.h"
+>> +
+>> +/* message opcode */
+>> +enum {
+>> +	XSC_MSG_OPCODE_SEND		= 0,
+>> +	XSC_MSG_OPCODE_RDMA_WRITE	= 1,
+>> +	XSC_MSG_OPCODE_RDMA_READ	= 2,
+>> +	XSC_MSG_OPCODE_MAD		= 3,
+>> +	XSC_MSG_OPCODE_RDMA_ACK		= 4,
+>> +	XSC_MSG_OPCODE_RDMA_ACK_READ	= 5,
+>> +	XSC_MSG_OPCODE_RDMA_CNP		= 6,
+>> +	XSC_MSG_OPCODE_RAW		= 7,
+>> +	XSC_MSG_OPCODE_VIRTIO_NET	= 8,
+>> +	XSC_MSG_OPCODE_VIRTIO_BLK	= 9,
+>> +	XSC_MSG_OPCODE_RAW_TPE		= 10,
+>> +	XSC_MSG_OPCODE_INIT_QP_REQ	= 11,
+>> +	XSC_MSG_OPCODE_INIT_QP_RSP	= 12,
+>> +	XSC_MSG_OPCODE_INIT_PATH_REQ	= 13,
+>> +	XSC_MSG_OPCODE_INIT_PATH_RSP	= 14,
+>> +
+>> +	XSC_MSG_OPCODE_UNSUPPORT	= -1,
+>> +};
+>> +
+>> +#define REG_ADDR(bp, offset)	((bp) + (offset))
+>> +
+>> +static void xsc_read32(void __iomem *bar, u32 off, void *data, int len)
+>> +{
+>> +	u32 val = readl(REG_ADDR(bar, off));
+>> +
+>> +	memcpy(data, &val, len);
+Hi Andrew,
+
+Both are fixed in v1, which I'll post shortly.
+> Why memcpy. Probably because the types are messed up.
+Fixed.
+>> +}
+>> +
+>> +static void xsc_write32(void __iomem *bar, u32 off, void *data)
+>> +{
+>> +	writel(*(u32 *)data, REG_ADDR(bar, off));
+>> +}
+> Please sort out your types. You should not be passing a void *. Pass
+> u32 *. Casts are a red flag, they are generally not needed and
+> normally indicate bad design.
+>
+> 	Andrew
+Fixed.
+
+Thanks,
+Xin Tian
