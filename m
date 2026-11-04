@@ -1,55 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793779250;
-	b=TMNNYG1Xw8NnR+u8f4gRLyjlYl4KLh5P6iPctM2NbXgWC2s8xCXU9LV4s23LrJGhF2TX
-	 lT2U941QuVEhhmOCa1XMjpJ4l2HtOjU+KXqfC4HTbIYy8icFSzZGaL31vkSa/oqxWAqSk
-	 /zbB4eP9BOZkA2E9QtND+7Pd01wc5+pM4Tse6Tkrlx25cUGkXqH+yXVQuFHjAOjYkyqcJ
-	 uNPzTPqtqV2YbA8YO1sofyCX7ilB2LHsxGIZtAvsbXfe2Fh3pk/GF4bTdCluZ8WesMoD5
-	 9aoEP6nMEaLpvbBGg3ZYDXwwyxn+kQVhFyb/N2bXmLpU321PP6hGuAJCFMhTA8uErJg==
+	t=1793779812;
+	b=UPK10mXgHf3uGjGA3CcbHYwrIP0K2HXIO60yw7sU5pCXrpqB1WQTmJ5wRntlxUiasdOp
+	 jUvvvM7qCBK7qrdQrTe+5oAmLo2kqjGoeHOQj1hj5bjhknJAnRK0jLSIyMb5EvQv3GJZ6
+	 KjQrdOUoC4wdgaNEuXz4huuNRHd/gvaMONDjtSNR0AmGTRvrJOLeu/snyCsRgCVQILsDG
+	 GiCrIDKqNbYaN/Cigmxa7601MIvdjf0v74rh2PNtfKVRNEHqxSpI0FLnr/ZCrNddbTf4E
+	 rdcexHM2HTeTaRpDX4RW0IZkDCxsPProRwtWDb8jXKZY9vGFlQwk0Lc3DmUi+92DnKg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793779250;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793779812;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=In4z4+Js6PJ5Im8vPPoRP4f2dKYPIb0IHpEUKBmDhbw=;
-	b=vUuRJ5BhBuRoNvp+Mh7jmlph0MIDNeRmKwfzR6Lx3CIHoxg7wGYqi4VQ+pysRIOCwUHq
-	 SD2jvW1LYx1loqlySDDi9B8WgdtleL6a2KqVoBCK80QuHTMyUfsvMfe6dR84USrjGhu8b
-	 /mCfm8MojXpczsrN5JdFT+3falZPQzOxl9NIkTgRc2Mos8S35UgJoT4SZKbrGl1JGzxds
-	 NpjITNf/o0aB9S9nKMNQtMOew3KfP+5ZZnyYG+fjRisp1JOTOPI2QyYAkamCCIpMV7ePs
-	 FqkxSRctROIgX/e4BF3ZBpagfVl8NeM+/FyKVjhYC/cQhyQY6rqQYCcQiiWg3cvQgAQ==
+	bh=0pN/UiSEiZTZEf/nEIpAfugAVv0D3hEkF/wqURLysQQ=;
+	b=bTvCyqFQYWIkwrvgl2vSsYOlsTC/G3BqCUwx9I4V/W7BrLTDm+RNl96DvkVlqU1OeqOL
+	 AHBE+4dJHSPSKBMwqeNZOoQVbBNS/Xi1a9Kau+MvREyFVzuiT4QaesLI91hVpQx4iKhDV
+	 A/+xui4Yjd6sx5tfvcgwMHwDGlEDuxQK/502oFOUfCYP5MzfGJ0ESOU3Tgk1LUf0tbywa
+	 3ayPc8StRW9944SXyGSCmowFC/Ae/siuonvmyoKp6SzOYRTRC0eSw1ra6DzBTl4n+Ho3l
+	 pkwv+CP8QIyFHTUmN3BYuaeI/oaCqN3465wYlC4q+SNLwKBZpGgnWeR9n8Qh54hDKRg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hg+lYTkE;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=l2S7cjny;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 714BF606A31B;
-	Wed,  4 Nov 2026 08:00:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76289606A326;
+	Wed,  4 Nov 2026 08:10:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hg+lYTkE
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7338B1F000C1;
-	Wed,  4 Nov 2026 08:00:49 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=l2S7cjny
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 370B11F0093A;
+	Wed,  4 Nov 2026 08:10:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793779250;
-	bh=In4z4+Js6PJ5Im8vPPoRP4f2dKYPIb0IHpEUKBmDhbw=;
+	s=k20260515; t=1793779811;
+	bh=0pN/UiSEiZTZEf/nEIpAfugAVv0D3hEkF/wqURLysQQ=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=hg+lYTkE8xQnp4pFtLYJUzu4krurZY5zInCALlUsL4ly8+wjkuMu5v7bcVfnlciiG
-	 H4eNUDWB7UvErAufuB1t/90KWD43/xnPsB3Wu/c21lxZzQD+kyORejMbRjwMCtKuuC
-	 eTRnA3MKhvkYngmFAm1SvZm1OkOmPK0ZiLeG6cskpyOxw0Fd0xMQ8PhDlbMsB7XtSY
-	 YezKrUxNyypGRKqPiJ3o+tguE45u7XtJjMICMfBQ1YPAB10Enu0dM00kZ+wBHNlj32
-	 /hie4tFhTyPbPTKbDRYrMNYbmIZ6Hnsl4i2HXPMrdQxhZkiKEgZgIGIzNG/CAPGZFv
-	 EML3rY7DTWvOQ==
-Date: Wed, 4 Nov 2026 10:00:45 +0200
+	b=l2S7cjnyBl8IM15zl9kvALPts2a7RAHC6v2h+FzHXKkh5TFEnU8ALnqhKH0OABcd4
+	 g1qW454YtYpayO038yBV/kT2yRveimPjALmITujrNuHJNkZlBf+k6lpJvO3Yax+ag2
+	 /2/MK23EEnVoRyRy4Gb1wMflcC/thgtclSYyGhj7OxiVW2ISmn7fAKq4X10yVeMw48
+	 qwAbAt5HbTETVs6gf4MeItb8/YErqVOqKvSx5I8zUU9FiVq3euS2gDQ+6Xovab3Kmm
+	 yNtd6YypXDn5BfBoj0a8U55caLkQPq8OSAPB34K/zZAnEJDNX3BZ1l6RpYwWTzMBai
+	 ClCQn1oHpuc/w==
+Date: Wed, 4 Nov 2026 10:10:08 +0200
 From: Leon Romanovsky <leon@kernel.org>
-To: Deepanshu Kartikey <kartikey406@gmail.com>
-Cc: jgg@ziepe.ca, metze@samba.org, stfrench@microsoft.com,
-	xiongweimin@kylinos.cn, yanjun.zhu@linux.dev, ammrat13@gmail.com,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-	syzbot+6699995b421c8ec7d2fe@syzkaller.appspotmail.com
-Subject: Re: [PATCH] RDMA/cma: Don't warn when device removal races with
- rdma_resolve_addr()
-Message-ID: <20261104080045.GM264423@unreal>
-References: <20261101105615.20253-1-kartikey406@gmail.com>
+To: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Wentao Liang <vulab@iscas.ac.cn>, linux-rdma@vger.kernel.org,
+	stable@vger.kernel.org, linux-kernel@vger.kernel.org,
+	dennis.dalessandro@cornelisnetworks.com, jgg@ziepe.ca
+Subject: Re: [PATCH] RDMA/hfi1: Free the trap send buffer when no address
+ handle is available
+Message-ID: <20261104081008.GN264423@unreal>
+References: <20261103081915.1147987-1-vulab@iscas.ac.cn>
+ <20261103-peach-mongoose-of-charisma-dee123@quoll>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,72 +61,59 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261101105615.20253-1-kartikey406@gmail.com>
+In-Reply-To: <20261103-peach-mongoose-of-charisma-dee123@quoll>
 
-On Sun, Nov 01, 2026 at 04:26:15PM +0530, Deepanshu Kartikey wrote:
-> rdma_resolve_addr() on an unbound ID (RDMA_CM_IDLE) first binds it with
-> cma_bind_addr() and then moves it from RDMA_CM_ADDR_BOUND to
-> RDMA_CM_ADDR_QUERY with a second cma_comp_exch(). These are two
-> separate steps. Once the ID is bound it is attached to the device, so
-> cma_send_device_removal_put() can find it and set RDMA_CM_DEVICE_REMOVAL
-> before the second step runs. The exchange then fails and hits the
-> WARN_ON() added by the commit below.
+On Tue, Nov 03, 2026 at 10:21:38AM +0100, Krzysztof Kozlowski wrote:
 > 
-> syzbot triggers this with RDS over rxe, where rds_connect_worker()
-> calls rdma_resolve_addr() while the rxe device is being deleted:
+> On Tue, 03 Nov 2026 08:19:15 +0000, Wentao Liang wrote:
+> > send_trap() allocates a MAD send buffer before checking the subnet
+> > manager address handle. If creating that handle fails, or if the subnet
+> > manager LID is permissive, it unlocks and returns without submitting or
+> > freeing the buffer. No send completion can release an unsubmitted MAD.
+> > 
+> > Free the send buffer after releasing the lock on both early returns,
+> > matching the other failures after ib_create_send_mad().
+> > 
+> > Fixes: bf90aadd630c ("IB/hfi1: Send MAD traps until repressed")
+> > Cc: stable@vger.kernel.org
+> > Assisted-by: DeepSeek-V4.1-Flash and OpenAI Codex
+> > Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
+> > ---
+> >  drivers/infiniband/hw/hfi1/mad.c | 2 ++
+> >  1 file changed, 2 insertions(+)
+> > 
 > 
->   WARNING: drivers/infiniband/core/cma.c:4120 at resolve_prepare_src
->   Call Trace:
->    rdma_resolve_addr
->    rds_ib_conn_path_connect
->    rds_connect_worker
-
-Please never trim kernel dump stack and add full splat.
-
 > 
-> This is a valid race and not a kernel bug. If removal wins before the
-> bind, cma_bind_addr() already fails and the error is returned to the
-> caller, and err_state in the same function already ignores a failed
-> state exchange. The caller gets -EINVAL, and RDS destroys the ID on any
-> error from rdma_resolve_addr(), so nothing is leaked.
-
-Why is this a valid race? The expectation is that when a device is removed,
-the ib_client is notified first and then deleted. RDS should stop all
-communication with the underlying device so it can be unregistered cleanly.
-
 > 
-> Drop the WARN_ON() and keep returning -EINVAL, and document in a comment
-> that the state may change because of device removal.
+> Multiple things here:
+> 1. Your team ignored completely previous feedback. Multiple times.
+> 
+> 2. You use multiple identities with this email address, thus I doubt that we
+>    speak with an actual person.
+> 
+> 3. Your bot does not even bother running checkpatch, right?
+> 
+> 4. Nothing of this was reproduced nor tested.
+> 
+> 5. Finally, the same feedback:
+> You sent multiple independent patches, to multiple independent
+> subsystems. The amount of these patches clearly suggest this was
+> AI generated and most likely not tested.
+> 
+> More importantly, you sent all this work without properly organizing
+> relevant patches into patchsets. This makes reviewing difficult
+> and might cause multiple reviewers to address the same issue.
+> Replying to the entire set is impossible and requires handling each
+> patch independently, instead of applying or discarding the set.
+> Maintainers also won't see the bigger picture of your work. Quite
+> worrying.
+> 
+> This is on the verge of hostile patch: bomb us with so many
+> contributions, we won't be able to handle them in efficient manner,
+> like responding ONCE to ask you to slow down.  Considering all this
+> is untested and LLM generated, I have even more doubts whether this
+> should be considered for review.
 
-I think that it is not correct and the issue is in RDS.
+Thanks, we will simply drop this patch. It is not worth to review it.
 
 Thanks
-
-> 
-> Reported-by: syzbot+6699995b421c8ec7d2fe@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=6699995b421c8ec7d2fe
-> Fixes: 732d41c545bb ("RDMA/cma: Make the locking for automatic state transition more clear")
-> Tested-by: syzbot+6699995b421c8ec7d2fe@syzkaller.appspotmail.com
-> Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
-> ---
->  drivers/infiniband/core/cma.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index 337a49d1acf7..46741c1fd34b 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -4117,8 +4117,8 @@ static int resolve_prepare_src(struct rdma_id_private *id_priv,
->  		ret = cma_bind_addr(&id_priv->id, src_addr, dst_addr);
->  		if (ret)
->  			return ret;
-> -		if (WARN_ON(!cma_comp_exch(id_priv, RDMA_CM_ADDR_BOUND,
-> -					   RDMA_CM_ADDR_QUERY)))
-> +		if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_BOUND,
-> +				   RDMA_CM_ADDR_QUERY))
->  			return -EINVAL;
->  
->  	} else {
-> -- 
-> 2.43.0
-> 
