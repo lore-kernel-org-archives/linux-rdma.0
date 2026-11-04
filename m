@@ -1,55 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793778659;
-	b=rUPwkln0ChTgib+0AEBL0Z9kgUPMvm8+tkz6/pE9UZRDGEA5c94f3Tszu1NXj438P+l5
-	 0drwwqT6bVMNL6noIUxzHt+//vRJHmCWi8LKsA2URqMX8UCnc1rGShvBpPLxxivvYarZh
-	 d7uRXa8j8vYDl3GS7HP+uH0vP5/oAjvbvtXEBExqQWSLTK+A5Fl8IhJMryEE9RSg78kEl
-	 OklLuXu42Lk+Yn5XV5EAny/9BaSHmxKl1TYMJ2GPnhFUv4Oowat4tNB7hAhYWkYI50NNN
-	 +hPeKf6zNSxodb6QK+Eh3OUtIEvzbWAFb2zQ4WCJqRknYxnIs9XBLFXEyJIp8RglRZQ==
+	t=1793778663;
+	b=Wjsmad+R6gaOR+vbSAN6TAZsM9YBflbj/Ow6fJHKYdn5u4qXK+Iyhz+DI1Bz/P30gRLf
+	 DY5AjYEfi1xk4vgCp5g7R/E9WXW3nxT7aina3s50P7oI12V/yvv0VThg6TsI+ntotDpSj
+	 1lwxc00xIws9TdqioxImF7ch7uMHXXTfHuZ1FlPB9h5MQRnSNf2pFxV1MJ+NLLB7pQfxz
+	 9rShetV19d8Fbc48pfqhg9qIn7YUUrwCFx+fmGkn+nr7Te9ORAWuVjnvmzWwdPq1F3gDz
+	 LMCUZoe2lyBD9wfO32iTMC9xuNyvQhx3FaSY/Z73F9xWU0NxXZ5QqJDDrVLlDrnj/qg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793778659;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=+x0caZ0pC+EFyWhDfl1gmIN09MGJqKHTRPG88Kl6DZ4=;
-	b=3rDhPEb6dg5CaxpUVz8D86TGq3KOZ21huNN9iOQjZjbPx4hwRfiLY5MKjeSVQ3C/yKpv
-	 lL9BEm6Nx3nqkCYgt2PMg818c41SiWtEjp376b3QB5v7yKT+lSTslydA6+YW1ih1Cqi9f
-	 aNbZxWmWWKFtWHcyw1WQGtPtdryUvPNxidshXBj+wbYwuZcpM2jY0EpdO4+tENpGPPrxL
-	 44NQ5kgbSzW5Nn4Rcl+aWYaqaaCl8DswMpTNqU/u+0maxCK3H/j+oYsZFs/gnBSZ8swP3
-	 +yR10DLW0PUzuK+kOR3tZ7YK0d4klXQtmc1R1W8vNT3nbKP3NC2bQBjzABF63WQuOpg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793778663;
+	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
+	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Mailer;
+	bh=ZnBMVlBZ9FA7vi+t9qEZyDr9qGdnO7eBQQiCUp2N+qs=;
+	b=XLsyl+uYO9bV60Q03hvrWh8Su6/EGe8321gs5J/Dfe5mWx8Y3sZMJ35NToCs7Fk9T/CT
+	 Z4iuzd7N5oho8/a4Ov4wQMqtdjpklC+yNKQT2TQ1VIQJH5KagLnUwgkyxv4ig5jzjFe+d
+	 8W4rb6nv4QNJ6Hjjyy3DR+UK7NmxgHprA6n6mNgyZGaAnc2mn8F5KOD1DiqveNs9CQuyu
+	 hvGleLCgBAX8Eq+OI3Z4FOFRWd+VM3+EqyGXqV97YHBGFWLOregL7aPa8Ol9pS5ru4Qzb
+	 GSlWp1sJ1b40ju26uFJ3IiuxylqrY9SL7WePGICWUiW/W3ggm2D7bCp59zvFHh7L9Lg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=me4p4b5G;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lfh2EDLR;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A079606A328;
-	Wed,  4 Nov 2026 07:50:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A344606A32E;
+	Wed,  4 Nov 2026 07:51:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=me4p4b5G
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3DBD1F00919;
-	Wed,  4 Nov 2026 07:50:58 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lfh2EDLR
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBE751F000C1;
+	Wed,  4 Nov 2026 07:51:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793778659;
-	bh=+x0caZ0pC+EFyWhDfl1gmIN09MGJqKHTRPG88Kl6DZ4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=me4p4b5GiB/BbaLFQXgar5GxXH6vWVN4hC6duaEOq4LD6uI5ioz0Tw31jQev5ByJK
-	 cMXVyvv5tnfWAcP4bp6XIy2rg4rHW2UCGpnG8pdzsFa0B2XXz7lHAI0xdEfXk9Kzc1
-	 kHzKcdOVeOvwbqr2S9wSTFITUn/8wJuu284URItSC6scrOgb2//2/Q4N9Yg+pHr2d8
-	 cte33u8ZdCddF9selZfGEHrE5Cw/IKdoGe1fFA46tpOdgUi6mHQlVvWyETygWKeRyd
-	 5WcbdTs5MiGCmkoZ+UjUQMAWM2FjoWTnGh4Lo7lwsQF8ezaApzh5zYX+lGLofpy+Aw
-	 gSqn/thmWw1lg==
-Date: Wed, 4 Nov 2026 09:50:55 +0200
+	s=k20260515; t=1793778663;
+	bh=ZnBMVlBZ9FA7vi+t9qEZyDr9qGdnO7eBQQiCUp2N+qs=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=lfh2EDLRAKl6CugKHqK4Nev4O1PxVPLC9pM581Xp9avVw13KEnVY7BFw8YQm/qKxD
+	 zazub/AMBbFr6vMDGXMsZY3e4qhNFpeelWjx7SZOK3AP28Mt0RAeqyEkJuo3ipidQp
+	 Oz/Yyvq13oCgiU3vmAbSlQfkRFAIz1/Xu+ortNqfrTdd9N4oeUnTipUkUPl4qN0k/t
+	 NHAMK+AI29+U27RtoJy06mr1eStKrrfeiQj4LQSw9TeNHKEKCR8MTQUyCDGDy2Lfxt
+	 zbNxg5aagJwgaQh1gtGZ2SbdPR0BKsyyAhVCyeulo6MFnHxvLYxL9DhQLEUWDJo4Ww
+	 09Bngcb+Ddo9Q==
 From: Leon Romanovsky <leon@kernel.org>
-To: David Hu <dhu@x6u.co>
-Cc: Mustafa Ismail <mustafa.ismail@intel.com>,
-	Shiraz Saleem <shiraz.saleem@intel.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, Jacob Moroni <jmoroni@google.com>,
-	intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, David Hu <xuehaohu@google.com>
-Subject: Re: [PATCH rdma-next v4 0/6] RDMA/irdma: Add support for ioctl
-Message-ID: <20261104075055.GL264423@unreal>
+To: Mustafa Ismail <mustafa.ismail@intel.com>, 
+ Shiraz Saleem <shiraz.saleem@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+ David Hu <dhu@x6u.co>
+Cc: Jacob Moroni <jmoroni@google.com>, intel-wired-lan@lists.osuosl.org, 
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ David Hu <xuehaohu@google.com>
+In-Reply-To: <20261030181512.2056056-1-dhu@x6u.co>
 References: <20261030181512.2056056-1-dhu@x6u.co>
+Subject: Re: [PATCH rdma-next v4 0/6] RDMA/irdma: Add support for ioctl
+Message-Id: <179377866057.1745081.14077156608414561671.b4-ty@kernel.org>
+Date: Wed, 04 Nov 2026 02:51:00 -0500
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,11 +61,12 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261030181512.2056056-1-dhu@x6u.co>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-On Fri, Oct 30, 2026 at 06:15:06PM +0000, David Hu wrote:
+
+On Fri, 30 Oct 2026 18:15:06 +0000, David Hu wrote:
 > From: David Hu <xuehaohu@google.com>
 > 
 > Hello,
@@ -75,36 +78,24 @@ On Fri, Oct 30, 2026 at 06:15:06PM +0000, David Hu wrote:
 > Confidential Computing (CoCo) guest environments where memory encryption
 > otherwise prevents standard host-VA-based queues from operating.
 > 
-> Historically, irdma relied on legacy write() commands for queue setup.
-> This series modernizes irdma's queue creation path by adopting the ioctl
-> infrastructure:
-> 
-> 1. Plumbs uverbs_attr_bundle into the irdma QP and SRQ creation routines.
-> 2. Registers irdma's UVERBS ioctl namespace definition for QP, CQ, and SRQ.
-> 3. Implements 1-step queue buffer creation for QP, CQ, and SRQ using
->    UVERBS_ATTR_CREATE_*_BUF_UMEM attributes and ib_umem_get_attr(),
->    configuring hardware Page Buffer Lists (PBLs) directly from pinned umems.
-> 4. Split CQ creation setup logic by umode and kmode into separate
->    routines to be consistent with other queue creation logic.
-> 5. Adds support for driver-specific shadow area UMEM attributes during CQ
->    creation with CQ resize capability.
-> 6. Preserves backward compatibility with legacy 2-step write() path
->    registrations when UMEM attributes are not provided.
-> 
-> User space rdma-core PR: https://github.com/linux-rdma/rdma-core/pull/1766
-> 
-> Testing:
-> Verified with rc_pingpong, srq_pingpong, and dmabuf_pingpong over irdma
-> devices in Confidential VM environments.
-> 
-> Changes in v4:
-> - Reject dma-buf queue creation in iWARP mode and enforce page-offset
->   alignment unconditionally in irdma_setup_q_pbl_from_umem() (Jacob)
-> - Bound attr->cqe in irdma_create_user_cq() to prevent cq_pages overflow (Sashiko)
-> - Fix to irdma_cq_free_rsrc() was sent separately (Sashiko)
-> - Link to v3: https://lore.kernel.org/all/20261016202909.1289496-1-dhu@x6u.co/
+> [...]
 
-I applied the series, but I have a concern: the commit messages are
-not useful.
+Applied, thanks!
 
-Thanks
+[1/6] RDMA/irdma: Plumb uverbs_attr_bundle for QP, SRQ
+      https://git.kernel.org/rdma/rdma/c/18dde0629b58a9
+[2/6] RDMA/irdma: Register irdma UVERBS ioctl namespace
+      https://git.kernel.org/rdma/rdma/c/7a69fd61897e60
+[3/6] RDMA/irdma: Support UMEM attribute for QP creation
+      https://git.kernel.org/rdma/rdma/c/3f68d3e1326882
+[4/6] RDMA/irdma: Split CQ setup to umode and kmode
+      https://git.kernel.org/rdma/rdma/c/d1d5209ec8d49e
+[5/6] RDMA/irdma: Support UMEM attribute for CQ creation
+      https://git.kernel.org/rdma/rdma/c/b6da1bd879f1e7
+[6/6] RDMA/irdma: Support UMEM attribute for SRQ creation
+      https://git.kernel.org/rdma/rdma/c/45ac42ec8a486a
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
+
