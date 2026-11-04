@@ -1,114 +1,119 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.43
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.49
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793822210;
-	b=GsaFbOJDfVWyuBbXFALSUTb8fd5Itsc8I6JHuvy0/yLM8izhrkrD+13Fz5fVip30wePL
-	 KJdmelCAou3vkyJ67aTPeIWrX7fSwqVWPo8XYgg49Swl4BgqLLUh6YrNNJz1HTJPBSORg
-	 razpCVo/FTE38OhPf/WbSCkZthun09hFZgJghVbVuMzgY0qYTJhrGDuZDjQTPDMnq5+pp
-	 ZvCLV1jn63p6JXomm7PFKzYTS3/6q+elcWdoqxcu/zUhY4OAJMS3dQ9t9dqCTokwx8nhg
-	 q4C9rhnWi5FRMNErQGmKLd+7pZ2j/9Gwh2mN7u0kOwQHfCWpEgmgxq3J33k/h70vnJQ==
+	t=1793823006;
+	b=eCW33GGTONzpVNyeG9OUCCVlPRhhlqRV1O6ol1tmkTMWfRlC8IUrAb3Xl+nFTgu1Nozd
+	 sYeQU4qAUIbdQD78ALeER2dR+CIkAj3kTHXo9CfirHHM4raVfpi58vwyY8dBL7XKLFCPU
+	 ycZnL3z46ZtKJqdg/D6r74+vaiPH10nNc1qQvDrMKksJAVDhBb5p3jGnyvMeF7msT6ZzV
+	 noeue+iJTQnxjJvVZgxSRS531rVIpB0ycupM+YHJvqUZpjbM3QlZrMZ7fapMR6fEYrHOS
+	 kV6gLLP6P/GDVvPbudewq0JQauqtY8Z+OOZH0F3t+/VVfHLqva9X/oX1bbtRGNildCg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793822210;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793823006;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=H4EFhcspofR4b1uKve6jkW0t06ZcJnK+4e01jxgUvKY=;
-	b=BgRRH6Jb4OajEURuS1OV73Jq0wUgsA10qcLOFwWqK08IcBk1DXUS46nVzv/DWivHyz37
-	 BPn36H9gVu7mbunyoCNuXBW/t1Z1uzHjN1WHI4KK3vPoJxc1niFN3MME9EDsRDnMK30Tm
-	 tRQAEe02jDFbNjY6yIeRrRbTkHIVkwMpYz3IGj8YTebVzH2yHi4AbGXANLPW9dVxdYiru
-	 dzRnL1eT/43xjuNLMzHZ//l55aiKpTkxXsG64Tn8tvQBmZEyqcfw0Sm7YDu7nNpRXuLqC
-	 NqPKUhzeCasYK5WekI4zrwAZth8gPzV8MaxBtxlIXHTICMBq14ADmvGDic5da3Cyirg==
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=pbB/h7OcDLTENZAMlqrgPHDqleGuLS+XSh/+4bmYjVo=;
+	b=bFSw+tLGr8XbFE+c/0YTQDflHhwwRW9cQE4+HWC2llOJa6PNtP7CZjkglU/4z91tiLW0
+	 6ondhZA8w7r2T8mAHdpV53MTF2NL313NiTbA7YExbY9s7F2DyO+J05JtGFAsWxVCAx6jB
+	 Z7d8xlf9OOONiff8WgEAemE8sdhuGgn5KnnVCWflX2SPfqzJ1uRhJS1Vhycwfxk+wXKp6
+	 JpjK08yO08ch7LQHK+NgR4mV0LpvFMo5PsPRNB56W4h416T9YDYd3mA9MSK3YlfqUedvs
+	 AaventAJhjPlTPy3ug48ZOcl61XhHkXA1AcsgrsT4UnehE0CGhnVa5LQJyI52ZE3PjA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=ziepe.ca;
-	spf=pass smtp.mailfrom=ziepe.ca;
-	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=NOYbjt4I;
-	arc=none smtp.remote-ip=209.85.219.43
-Received: from mail-qv1-f43.google.com (mail-qv1-f43.google.com [209.85.219.43])
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=pAmB6tB5;
+	arc=none smtp.remote-ip=209.85.128.49
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0A7A60E7517
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 19:56:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A0A7A60E7517
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52945607C0AA
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 20:10:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 52945607C0AA
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=NOYbjt4I
-Received: by mail-qv1-f43.google.com with SMTP id 6a1803df08f44-91c9cfd8b1bso13620196d6.1
-        for <linux-rdma@vger.kernel.org>; Wed, 04 Nov 2026 11:56:49 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=pAmB6tB5
+Received: by mail-wm1-f49.google.com with SMTP id 5b1f17b1804b1-4a1b07c3c5fso9989665e9.1
+        for <linux-rdma@vger.kernel.org>; Wed, 04 Nov 2026 12:10:06 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1793822208; x=1794427008; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=H4EFhcspofR4b1uKve6jkW0t06ZcJnK+4e01jxgUvKY=;
-        b=NOYbjt4Imc3+qorIumC+DRJZJAO0qhFz2+pHwAqi1zEfxbu5bWra1k03HlG+YF8OE0
-         WKjfE/pOBFyetohPjOlWRIhA3mHsvRg3GEzx+kZNd85Tcw9pNYivl5EYC1NXy62tmniP
-         gfHDnSvMNrT/1wmCWo8qKmeaA6avWngSwYmx+WOENThvjaf8vGgHAM8uDVShiGtqafNB
-         dZi4T7vTdEPrAERrYO9q6y9kwI0R3aYEicWhk+Jpjlz0jrkNcq8bxHaiqcO0GVGivwc/
-         nsafW92bbB7UgGLKxsQlYu14YFh/SmKKEmptiEwveqc9jy3+1WkRK+IFeCBabo6QyWsw
-         eAdg==
+        d=gmail.com; s=20260707; t=1793823005; x=1794427805; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=pbB/h7OcDLTENZAMlqrgPHDqleGuLS+XSh/+4bmYjVo=;
+        b=pAmB6tB5L5Q0sXbpgw5MAvTI4uEVXOApuJPbfWOIyoio0S+Pk3ev+Xx+LtSaVDmZTb
+         UtFs6xBq+HXY5ygUQ+qI7ayP+uN7rCJtM8Qo9UVtZesPJVPeKvFlcvws5jR2/iHFxv8Y
+         veQ4oIX5N8YmBuVrhiXgkHYskpbffM0MwfPIRXC7NJyGDG5PAu/N2qWJVRrIBA6aDEf6
+         liZndmGbC429jfE5e+Md/TpWVIyFUGja7Frb7Z1IKMKT4ruePVenI36Bw6OzDbXmKqlY
+         AfTex7dzu322hFIm/ozi7mn3h55E6OP8ewbasszG/05oRQBr6/fSrgczdbozEEt+dWBj
+         iLGQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793822208; x=1794427008;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=H4EFhcspofR4b1uKve6jkW0t06ZcJnK+4e01jxgUvKY=;
-        b=uRU/9HRWh+1OSzuuO4Sa7QnE3yOsb5u3P/NfsQXFi1FF0zzUkto3yiFKsma/A4EXBu
-         51hAWNHnkCVpDVMyvzFF3ZS/U43TN5/h+1D5qMsZ5+nEUjfIZHhqbdVL9/p3SdwuT+eO
-         VcqzTKDnLhYOInO4WGsGFnRPl2nVE1hKlkBV/UUHFx0euwSX0lmhkeB3kAyFUkidkvud
-         kC7qKj1t4/BTtw/Mk6Lvoi4XL2iNoRX1aSNibVSCJVg57pPrjPy/EeWWL3fOaqCJBsbb
-         wQmLINvqAueCsqeZkTJsXChJzLsatwoV0hGqEag3/7coNZrJantJxZjQAdmxM1nTEx7h
-         5ZEg==
-X-Forwarded-Encrypted: i=1; AKwUvBxrjIrWvmewqvqKPVQEXSL9imid08+IBWRG+9X8fgl4hdyGEEoS7DLEg9h9FqUFFY80zLuBkgCU0y+4@vger.kernel.org
-X-Gm-Message-State: APuU4Z/c+McmimWP/oOOKoL3A291BFdsNM+vjF8H/yUfzCcM59OdCX//
-	2Jq3BA7XtYcn1PLuz83zza8K+Zt2w0IIovQko5rBbXH//2um+V6vOxKoMZOjziJkNJs=
-X-Gm-Gg: AYBFou3WE0BWardAEra5uPv7u8VkQCJ6z2V3pCC2WGtl+uuJ7ZT82OQjTuxVYuqLK2i
-	RaREd+jY+dIhjEzksFA+MoMc+RVxI4RmRxLDzSaBlsjTtJE6uLRlohhCC1yR3noG+vlABqotFzo
-	wjENm1TBC/jos2kp8GeOzS5uQyeVlbWkvw3foe7VjNOD0jkJFhI6T5S0etVFFCO/qzedo0a4PCg
-	8GARXknZ4Uvudjq2G0yzDrifLWLVeF635EPVjIW9Q8mlwVG+EmWRe1I2o1yI+HYh4Q0si+HgZYG
-	IwwT+CpQLnGEIP+hEGi4cB4SnQ3fFATnXLE9c/BUHahVUtYvYdnt4WoHc+klDOuIRodxT0QnISr
-	OvBwCUa9aK2o+QX6K+CM1HbvXaiITdCZRLIt/LBJ02lAvJl92L7ivoMMwJOCv6GR0tgfXvfhkjN
-	bs70aXnSd6sjVWIBWEomaa7M4aWhMziutiUtzltVBU1NY1tpckQGAv34CRODFEPmOHwTPmnFNYi
-	KBj7z/NKZ41UTFH06K7UgTnBEEN4DoqYluzCFEjpSU2MSs/5ju1EYXzJ5XN37PBMUda15YnxVQn
-	5FhR9BeFS8UnuvC9k4af/3j5Z0d2Jo0OK+vvBAnJ/6r7NuNGFQBAGErU7Hq5ERXQipYLuoRlTcU
-	j94iVTVkrXQ==
-X-Received: by 2002:a05:6214:2dc2:b0:917:9cd8:f26f with SMTP id 6a1803df08f44-91ca4b1b1afmr281180966d6.25.1793822208495;
-        Wed, 04 Nov 2026 11:56:48 -0800 (PST)
-Received: from ziepe.ca (hlfxns010zw-159-2-239-150.pppoe-dynamic.high-speed.ns.bellaliant.net. [159.2.239.150])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91e7e7b1e92sm27199686d6.45.2026.11.04.11.56.47
+        d=1e100.net; s=20260707; t=1793823005; x=1794427805;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=pbB/h7OcDLTENZAMlqrgPHDqleGuLS+XSh/+4bmYjVo=;
+        b=G48Gjafp5p19n+blt84a3Qm+pu1VRbNhH9NtF4ze5VOmI7o8zPmWO7YQ3r0h/FqGXd
+         6Xpe3W1iyTOeUZl7/UdQsAzao0IzFwbn+e+A1BJU69RRfjfrbtTDev/Kf5iUVSYfNu1f
+         +d43ilIse+zd9o1HP0k09Y8qqtNriGU+cOvigB2/RsPxNt0tuzphhZncj5ByhNdCxr/F
+         sxUgadIdmkAmVRQBoWL3bnxJ1EUd2BL91hubqLsvKiOH7O7qNTAYfJNguNKYMWGbg4V5
+         RBEd/KtlENe59yIzqEnijdBejOjiBP6jzerGIeAl4rf2uxdzf4PSplIdjzgsWASyyEbz
+         +gaQ==
+X-Forwarded-Encrypted: i=1; AKwUvBz43oFgKAxabcLjUw2fPpAbo/2HtDqshI6+28EiZWXL1xsJK/btQlIdkI8ItBMszp2Q9VpwKJdwGRHU@vger.kernel.org
+X-Gm-Message-State: APuU4Z9JI+pvW4V1AMS9Cyu2F9L7W+eeTDjCWso2IltBjGDdW+b1ZMU2
+	bI3TbjqrqA8jVxbjU1HOfY4tP4SCYqmav+B9Vwct3c47QwXTjP6QGkvx
+X-Gm-Gg: AYBFou3GQAYDm3ofoFTjTTuhUkpjssOFZw2sMltpDrmTjOPDrbNqn1swaRjXqCbT0bh
+	sCMEpH/Jzb11/yMXINstmKOhe99wCdy60fMfQRLn9Hkf9qJfiDOFRPNd7sQoz8vlKMJ2gZywwu2
+	XCwLtV1h7T21pCoRRT1wUdv11jBM7UE4bdbzRlo3ArMM5wZWq9pBSedMtg7uU4M0AyMjx8rQYCI
+	/LyCSR4WOrsw2tNpQUXsXFjvpO8t50z6Av4lVPwGD6oQn7SdqL6P/5loeDL48hQLyXCHGfKgf6m
+	1rHNuF2jksGlvj3OCJgxOnExg0vEfA8M5Y5qCQvukSCIIBdW1dhbXz4vnqQqPAukHxgRty2+BKt
+	PtlJaa4g1me3Qg++WVZZy3kfev6PPTbTTRcrkp0AVMZUuJNqM5dBfLi6UQ6MOlkkJQajxBxU7ny
+	XqJv6E6DXbqCxmyIPREg8W5vtB7Bg7oIKsECWGhmbDlcxh20kXqU1pGenmCFsvXW+wIV36MFMZA
+	cFYjDwHRUO+Vuc0QaJIbmxBc/GYeXvL3U/xgAT9YlHCocg5NefzqocunfyDXNaidDA6Xts2yPBe
+	vK/+9pl124MQuBO+aFuaQbqW3l8EYthuLQrNZudfrXcoHkr9s5ZfE1z+0oC4aN2ECdGYKW0awTL
+	ws6F3f/ctIWxxzRx7o84HDlH6a+kW9r/cEVCVSR493dpGOZM=
+X-Received: by 2002:a05:600c:6216:b0:4a3:5aea:21e5 with SMTP id 5b1f17b1804b1-4ac1737c533mr377961885e9.9.1793823004484;
+        Wed, 04 Nov 2026 12:10:04 -0800 (PST)
+Received: from center.jhjvjihww5qejoy14qwv1cc4td.frax.internal.cloudapp.net ([131.189.143.225])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4b56eb4da1esm15954045e9.6.2026.11.04.12.10.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Nov 2026 11:56:47 -0800 (PST)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1xOh6F-0000000HJlF-1F1D;
-	Wed, 04 Nov 2026 15:56:47 -0400
-Date: Wed, 4 Nov 2026 15:56:47 -0400
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Leon Romanovsky <leon@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
-	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
-	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
-	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
-	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
-	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [PATCH v12 00/19] PCI/P2PDMA: Route peer-to-peer DMA by TLP class
-Message-ID: <20261104195647.GD3889730@ziepe.ca>
-References: <20261104084328.GP264423@unreal>
- <20261104171412.GA1247928@bhelgaas>
+        Wed, 04 Nov 2026 12:10:03 -0800 (PST)
+From: Orgad Shaneh <orgads@gmail.com>
+To: Maciej Fijalkowski <maciej.fijalkowski@intel.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>,
+	Dexuan Cui <decui@microsoft.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	netdev@vger.kernel.org,
+	linux-hyperv@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	bpf@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Wei Hu <weh@microsoft.com>,
+	Konstantin Taranov <kotaranov@microsoft.com>,
+	Simon Horman <horms@kernel.org>,
+	Alexei Starovoitov <ast@kernel.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Jesper Dangaard Brouer <hawk@kernel.org>,
+	John Fastabend <john.fastabend@gmail.com>,
+	Stanislav Fomichev <sdf@fomichev.me>,
+	Dipayaan Roy <dipayanroy@linux.microsoft.com>,
+	Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>,
+	Aditya Garg <gargaditya@linux.microsoft.com>,
+	Erni Sri Satya Vennela <ernis@linux.microsoft.com>,
+	Muhammad Falak R Wani <falakreyaz@gmail.com>,
+	Jesse Brandeburg <jbrandeb@kernel.org>
+Subject: Re: [PATCH net] net: mana: fix XDP_REDIRECT of pre-allocated RX buffers
+Date: Wed,  4 Nov 2026 20:10:02 +0000
+Message-ID: <20261104201002.2215474-1-orgads@gmail.com>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <autbwKmZPPWEj0Dq@boxer>
+References: <20261102064324.806414-1-orgads@gmail.com> <autbwKmZPPWEj0Dq@boxer>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -118,64 +123,47 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261104171412.GA1247928@bhelgaas>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Nov 04, 2026 at 11:14:12AM -0600, Bjorn Helgaas wrote:
-> On Wed, Nov 04, 2026 at 10:43:28AM +0200, Leon Romanovsky wrote:
-> > On Tue, Nov 03, 2026 at 05:37:42PM -0600, Bjorn Helgaas wrote:
-> > > On Tue, Nov 03, 2026 at 10:29:39AM +0200, Leon Romanovsky wrote:
-> > > > PCI P2PDMA applies Request and Completion Redirect throughout
-> > > > both paths.  This misclassifies asymmetric and nested switches,
-> > > > and reports one answer for every kind of TLP.
-> > > > 
-> > > > Three ACS controls act on TLP attributes the Requester chooses
-> > > > rather than on the topology: Translation Blocking and Direct
-> > > > Translated P2P act on a Request's Address Type, and Completion
-> > > > Redirect skips Completions carrying Relaxed Ordering.
-> > > > 
-> > > > Evaluate each direction at the path divergence, decide every
-> > > > class from the one walk, and treat a client with ATS enabled as
-> > > > translating unless its driver declares per-mapping ATS.
-> > > > 
-> > > > This completes the P2PDMA side; dma-buf and mlx5 follow
-> > > > separately.
-> > > 
-> > > Is there a one- or two-sentence explainer of why we want this?
-> > > I'm thinking in terms of what Linus will want in the merge
-> > > request: a fix for something that's broken or some new
-> > > functionality.  It sounds like this is solving a problem, but I
-> > > don't know enough to translate the nitty-gritty details to the
-> > > higher-level user-visible problem or feature.
-> > 
-> > Not AI; these are my own words with grammar fixes from AI:
-> > 
-> > "The existing implementation of PCI peer-to-peer assumed that all
-> > PCI TLPs were the same: ordered and carrying untranslated addresses.
-> > It did not account for the variety of traffic types defined by the
-> > PCI specification. As a result, only simple systems supported
-> > peer-to-peer transfers in the upstream kernel; real-world systems
-> > required out-of-tree patches and careful platform design.
-> 
-> Can we be any more specific?  E.g., what makes real-world systems
-> different from simple ones?  What does careful platform design mean?
-> Something about ordering beyond what PCIe requires?
-> 
-> ACS P2P Completion Redirect affects Relaxed Ordering (RO) Completions.
-> Translation Blocking and Direct Translated P2P affect Requests with
-> Translated addresses.
-> 
-> So I assume the existing P2P implementation breaks somehow when RO or
-> Translated addresses are used?  How does it break?
+On Wed, Nov 04, 2026 at 05:22:24PM +0100, Maciej Fijalkowski wrote:
+> On Mon, Nov 02, 2026 at 06:43:24AM +0000, Orgad Shaneh wrote:
+[...]
+> > -	act = mana_run_xdp(ndev, rxq, &xdp, buf_va, pkt_len);
+> > +	act = mana_run_xdp(ndev, rxq, &xdp, buf_va, from_pool, pkt_len);
+>
+> I wonder if it wouldn't be better to work with rxoob objects which seem to
+> carry the from_pool setting?
 
-Let me try, something short for Linus:
+Thanks for the review.
 
-"Enhance detecting if the PCI fabric can support a peer to peer path
-by evaluating the full bi-directional fabric path over each of the
-three traffic type ACS controls. Expand the number of fabric
-configurations where the P2P algorithm makes the correct determination
-of support to include non-uniform ACS and situations where translated
-takes different routes from untranslated."
+The rxoob no longer describes this buffer when XDP runs.
+mana_process_one_rx_pkt() calls mana_refill_rx_oob() before
+mana_rx_skb(), and the refill puts the new buffer into the same rxoob:
 
-Jason
+	*old_buf = rxoob->buf_va;
+	*old_fp = rxoob->from_pool;
+
+	rxoob->buf_va = va;
+	...
+	rxoob->from_pool = from_pool;
+
+So by the time mana_run_xdp() runs, rxoob->from_pool is the flag of the
+replacement buffer. The flag of the received buffer survives only as
+old_fp, which is what mana_rx_skb() already gets as its from_pool
+argument and uses to free the buffer on PASS/TX/DROP. The patch passes
+that same value one call further down, to mana_run_xdp().
+
+The two can differ. Refills come from the page pool (or from
+xdp_save_va, which only holds non-pool buffers), so on the first pass
+over a ring of pre-allocated buffers XDP gets a buffer with
+from_pool == false while its rxoob already says true. That first pass
+is exactly where the bug shows.
+
+Using the rxoob would mean moving the refill after XDP, which changes
+what happens when a refill fails: today the packet is dropped and its
+buffer stays in the ring. I preferred not to touch that in a fix.
+
+If you would rather mana_run_xdp() take something other than a bool,
+I can pass the xdp_rxq_info to use instead, chosen in mana_rx_skb().
+
+Orgad
