@@ -1,55 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793788140;
-	b=pB/dlboocT5V4nND2x1ZcUnpNqs1R7LJ+uvuwuTCwdAuzlIiVXD9AS5sTvAXZOhcxaeC
-	 7kzo7aDtblfBPq1nRQUVgIQZU3eElB6E8jMaRm+z11lJ//MG9sDSQ/aQ28KZxfUcASSrU
-	 qkXxwLo4gXT4h1Di+7OHhTfHkxJi9OxIDzk/iMTrFnKYpLAN9lI+fg/Kxiun9NFeyJJKO
-	 93Pui6V3Bpr+UDTxpquttzpluFkS0GpNJl3tddZ0xZTIZigc1RCSBD4jaLzLLw5UQ55LO
-	 sdJKdTiVUGu9BuQujKexWceo8IoCDmHMn9qzQoxPwMol+4ODH4vybO2LYXbtcqPzdgQ==
+	t=1793789093;
+	b=PsqdjhAGVL7EvASw8XC8UodMby7uN6kydGrDajybVkNsNgVMTUhctp/W/tWxlRM9k6E+
+	 tSfMTEZ22DxJE21ZcTc0jkySRXpb7QPgYzDT9nVwTe4whVlHl0waOlF8P0OMSn2TE9kRs
+	 AkgniLmIB3wOi08GIS9MJF5LO+FL4PZiSGPbrh/5cWKgGDiLaLZg5jHoXbJHjdgfndu/4
+	 n6Ht/4pswmNmwWvrKhH27AHhdlh6JBVv1hEJDHKZA1Qxz6PblCk6IIbhvyOI1YdCcon/z
+	 XSrql4KEN/5FkQf8k1SGLj9KlPtkrpB9TlVrfPtOiG05rtPdrz3LEwUsyPVfX7wFmvQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793788140;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793789093;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=a9McVEItNmDllAZglmkJRciER2TWiN7f6afJbgcEVjA=;
-	b=LO+1dRUp7oOui0MYeA5llT/5HfYIndKeDQhcqUe7pKMvl6ylxj6Oz6zbEWXBbtyXdTxD
-	 YSpcfiX6ZLY8/9V7AayjkGaAqZB0DRkIwZxoxkmls1zm+qwC6rvbjOYVtLydlYbjF3EoY
-	 6LbotBsSmwUFGD1CMdvsClxUhTA1xT2KVTzWd+zAQNRBZr58YkmSPyfZ67OWG117+CtWr
-	 dp/TlJzorUEXHZ7C3MJ8cFefR5JUk3kmMn1uwIqiRYR60i8ug80gXLVBMfRA6iHEsky7t
-	 GeSQ/83EXlYhUWdcrCcODSuytD10J8e2Mrv/bbQWudNdnxGBHkAquIkRytEgp5R9ceA==
+	bh=YTcUB0AWBog1PcKF6bk90f6K7HQvKLRkKOwP6nNCvi8=;
+	b=kBFElhbQKyM1FZuDXHbKZCTwmu2j63hv92ZxIGyomDRGuwwp73XUUkpCbFsWr7kLCsIR
+	 T64ZMWXZZ/+T9RSqjdMsdePrXlfXd8Z9OuFP/cZPMJi69lnCNzFRXyahGaG2lDYw1wmnp
+	 Zb9JXorwN9Y1WAs+Kfik2PpGZiAs4ksT1LDuYqhEo0bQNuRLSjupPrtSs3Rn6F1PuCc0A
+	 cEKln06aFdagoIMZtN2m/WdeNfQkL/LkxHnQPAuyVdxGNvN4MEsNUmqksyaz+eH0hNVyi
+	 805KWSyqKHjAUlMvWtZgtu7LJp2SLQ2q8pfpQtDjIDWakid6gFHZQx4DQ4YmuraMiOw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CiIHVwOi;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="O/pnIGdK";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81872606A31B
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 10:29:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19FC0606A32E
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 10:44:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CiIHVwOi
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA4BA1F000C1;
-	Wed,  4 Nov 2026 10:28:59 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=O/pnIGdK
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99E591F00A24;
+	Wed,  4 Nov 2026 10:44:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793788140;
-	bh=a9McVEItNmDllAZglmkJRciER2TWiN7f6afJbgcEVjA=;
+	s=k20260515; t=1793789092;
+	bh=YTcUB0AWBog1PcKF6bk90f6K7HQvKLRkKOwP6nNCvi8=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=CiIHVwOiOnbbSMEYaejFwK9JgjYzLmawr3PeNN25j7jL/Pc/Fmzm8m5HiUqpg2vi+
-	 jVXI+yuAHpyaOKil38D809uE69GxehlHpEpcIPCaa3vi0wgEKnZk4d89o+xdKmCDAV
-	 R5mp1WBaHrB9OpDezHSQZf3xEgy1sQcp3FHn8PWT0IlF2lkmcIoSRyvQEFXoNDOJiy
-	 eHQ3fgmT7bVFF04rU9hRQfAE1zg3WQmtiB6VOV6S0+BMh4gJf68wLUsd7fOvHmwbdJ
-	 sMZDPoMkcKdtujq86bpOQZrUgZcxGX8d/7HaI2UjHMw7sazvQhnDFM7Nj8qhTeOs1F
-	 QGMrWoezxBPXA==
-Message-ID: <sashiko-outbox-197094@kernel.org>
+	b=O/pnIGdKrgBLE3RquKHe3+PcBTL4KpR+KGoqx76YYN8QZhOs3qqEzvySId00xcMPu
+	 8elrs7QBF/5gnM9EIi+5v8kgbPw9ZzrJDL8VD5JGW9dg35Fqk6BepQbso027Mnp6v+
+	 BD5y822Vu0IAfXBkoN5BjNRCfsFRgaNoD8cADGz+zVH8G8s5u+ZoeIOxoIuGjCFcEt
+	 17A3SqEtcllpGznpNcX7ThNXo/M4CVi/xXTtoHj81i8DHnPxACQveDW4Xo8fMMcYez
+	 7kkWxz2K6oD82D6r8S/EwdzllzmPju3P3LDgxR7hy36P7UMJqjA0zk3Zvja0D/PqD6
+	 FCJZ4vNvg78Xw==
+Message-ID: <sashiko-outbox-197117@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] net/mlx5e: TC, release meter if rule offload fails
+Subject: Re: [PATCH v2] RDMA/siw: Fix early peer close handling on listeners
 Reply-To: sashiko-reviews@lists.linux.dev
-To: "Wentao Liang" <vulab@iscas.ac.cn>
+To: "Jaeyeong Lee" <lee@jaeyeong.cc>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261103102856.1340672-1-vulab@iscas.ac.cn>
-References: <20261103102856.1340672-1-vulab@iscas.ac.cn>
+In-Reply-To: <20261104100953.125140-1-lee@jaeyeong.cc>
+References: <20261104100953.125140-1-lee@jaeyeong.cc>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 04 Nov 2026 10:28:59 +0000
+Date: Wed, 04 Nov 2026 10:44:52 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,119 +61,126 @@ Precedence: list
 
 Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [High] net/mlx5e: TC, dangling meter pointers after mlx5e_tc_del_flow_met=
-er()
+- [High] RDMA/siw: siw_accept_newconn() drops connections in post-listen ID=
+LE window
 --
 
-commit b953a898af94c9215dfc36d4dbe7f5054db010fd
-Author: Wentao Liang <vulab@iscas.ac.cn>
+commit fd783e525f31231ba5b3c0e855c9ecc089f5379f
+Author: Jaeyeong Lee <lee@jaeyeong.cc>
 
-net/mlx5e: TC, release meter if rule offload fails
+RDMA/siw: Fix early peer close handling on listeners
 
-This commit cleans up the flow meter and post-meter state in
-mlx5e_tc_rule_offload() if mlx5_eswitch_add_offloaded_rule() fails after
-mlx5e_tc_add_flow_meter() has succeeded.
+This commit prevents a use-after-free in siw_destroy_listen() when a TCP
+child socket closes before kernel_accept() associates it with a new
+connection endpoint. It ignores close notifications on listening and
+unaccepted post-listen IDLE endpoints, and serializes the accepted-socket
+handoff in siw_accept_newconn() while rejecting child sockets that have
+already reached TCP_CLOSE or TCP_CLOSE_WAIT.
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/ne=
-t/ethernet/mellanox/mlx5/core/en_tc.c
-> index 708b7987ea4cd..17bd92529a44a 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> @@ -491,6 +491,8 @@ mlx5e_tc_rule_offload(struct mlx5e_priv *priv,
->  		      struct mlx5_flow_attr *attr)
->  {
->  	struct mlx5_eswitch *esw =3D priv->mdev->priv.eswitch;
-> +	struct mlx5_flow_handle *rule;
-> +	bool meter_added =3D false;
->  	int err;
+> diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/s=
+iw/siw_cm.c
+> index ed49818793dde..92fcbcabb5984 100644
+> --- a/drivers/infiniband/sw/siw/siw_cm.c
+> +++ b/drivers/infiniband/sw/siw/siw_cm.c
+> @@ -973,6 +973,7 @@ static void siw_accept_newconn(struct siw_cep *cep)
+>  	struct socket *s =3D cep->sock;
+>  	struct socket *new_s =3D NULL;
+>  	struct siw_cep *new_cep =3D NULL;
+> +	bool peer_closed;
+>  	int rv =3D 0; /* debug only. should disappear */
 > =20
->  	if (!is_mdev_switchdev_mode(priv->mdev))
-> @@ -503,9 +505,14 @@ mlx5e_tc_rule_offload(struct mlx5e_priv *priv,
->  		err =3D mlx5e_tc_add_flow_meter(priv, attr);
->  		if (err)
->  			return ERR_PTR(err);
-> +		meter_added =3D true;
+>  	if (cep->state !=3D SIW_EPSTATE_LISTENING)
+> @@ -1009,11 +1010,23 @@ static void siw_accept_newconn(struct siw_cep *ce=
+p)
 >  	}
+>  	new_cep->sock =3D new_s;
+>  	siw_cep_get(new_cep);
+> -	new_s->sk->sk_user_data =3D new_cep;
 > =20
-> -	return mlx5_eswitch_add_offloaded_rule(esw, spec, attr);
-> +	rule =3D mlx5_eswitch_add_offloaded_rule(esw, spec, attr);
-> +	if (IS_ERR(rule) && meter_added)
-> +		mlx5e_tc_del_flow_meter(esw, attr);
+>  	if (siw_tcp_nagle =3D=3D false)
+>  		tcp_sock_set_nodelay(new_s->sk);
+> +
+> +	lock_sock(new_s->sk);
+> +	write_lock_bh(&new_s->sk->sk_callback_lock);
+>  	new_cep->state =3D SIW_EPSTATE_AWAIT_MPAREQ;
+> +	new_s->sk->sk_user_data =3D new_cep;
+> +	peer_closed =3D new_s->sk->sk_state =3D=3D TCP_CLOSE ||
+> +		      new_s->sk->sk_state =3D=3D TCP_CLOSE_WAIT;
+> +	write_unlock_bh(&new_s->sk->sk_callback_lock);
+> +	release_sock(new_s->sk);
+> +
+> +	if (peer_closed) {
+> +		rv =3D -ECONNRESET;
+> +		goto error;
+> +	}
+> =20
+>  	rv =3D siw_cm_queue_work(new_cep, SIW_CM_WORK_MPATIMEOUT);
+>  	if (rv)
+> @@ -1361,6 +1374,10 @@ static void siw_cm_llp_state_change(struct sock *s=
+k)
+> =20
+>  	case TCP_CLOSE:
+>  	case TCP_CLOSE_WAIT:
+> +		if (cep->state =3D=3D SIW_EPSTATE_LISTENING ||
+> +		    (cep->state =3D=3D SIW_EPSTATE_IDLE &&
+> +		     !READ_ONCE(sk->sk_socket)))
+> +			break;
 
 [Severity: High]
-Does calling mlx5e_tc_del_flow_meter() here leave dangling pointers in
-attr->meter_attr.meter, attr->meter_attr.post_meter, and attr->dest_ft that
-can lead to a use-after-free or double-free when the flow is not immediately
-freed?
+When a connection arrives during the post-listen SIW_EPSTATE_IDLE window
+in siw_create_listen(), can the SIW_CM_WORK_ACCEPT work item run before
+cep->state transitions to SIW_EPSTATE_LISTENING and strand the child
+socket in the TCP accept queue?
 
-In drivers/net/ethernet/mellanox/mlx5/core/en_tc.c,
-mlx5e_tc_add_flow_meter() populates attr and mlx5e_tc_del_flow_meter()
-releases the resources without clearing those fields:
+In siw_create_listen(), s->ops->listen() is called while cep->state is
+still SIW_EPSTATE_IDLE and cep->in_use is not held:
 
-mlx5e_tc_add_flow_meter() {
+drivers/infiniband/sw/siw/siw_cm.c:siw_create_listen() {
 	...
-	attr->meter_attr.meter =3D meter;
-	attr->meter_attr.post_meter =3D post_meter;
-	attr->dest_ft =3D mlx5e_post_meter_get_ft(post_meter);
-	attr->action |=3D MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
-	return 0;
-}
-
-mlx5e_tc_del_flow_meter() {
-	mlx5e_post_meter_cleanup(esw, attr->meter_attr.post_meter);
-	mlx5e_tc_meter_put(attr->meter_attr.meter);
-}
-
-While mlx5e_tc_add_fdb_flow() frees the flow on error, other callers keep
-flow->attr alive when mlx5e_tc_offload_fdb_rules() ->
-mlx5e_tc_rule_offload() fails.
-
-For example, in drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun_encap.c,
-mlx5e_reoffload_encap() keeps the flow and still sets the OFFLOADED flag:
-
-mlx5e_reoffload_encap() {
+	rv =3D s->ops->listen(s, backlog);
+	if (rv) {
+		siw_dbg(id->device, "listen error %d\n", rv);
+		goto error;
+	}
+	cep->cm_id =3D id;
+	id->add_ref(id);
 	...
-			rule =3D mlx5e_tc_offload_fdb_rules(esw, flow, spec, flow->attr);
-			if (IS_ERR(rule)) {
-				mlx5e_tc_unoffload_flow_post_acts(flow);
-				err =3D PTR_ERR(rule);
-				mlx5_core_warn(priv->mdev, "Failed to update cached encapsulation flow,=
- %d\n",
-					       err);
-			} else {
-				flow->rule[0] =3D rule;
-			}
-		} else {
-			...
-		}
-		flow_flag_set(flow, OFFLOADED);
+	if (!id->provider_data) {
+		id->provider_data =3D
+			kmalloc_obj(struct list_head);
+		...
+	}
+	list_add_tail(&cep->listenq, (struct list_head *)id->provider_data);
+	cep->state =3D SIW_EPSTATE_LISTENING;
 }
 
-When that flow is later deleted or invalidated via
-mlx5e_tc_unoffload_fdb_rules() -> mlx5e_tc_rule_unoffload():
+If a peer completes a TCP handshake during this window,
+siw_cm_llp_state_change() queues SIW_CM_WORK_ACCEPT with delay 0, and if
+the peer also closes, the new check ignores TCP_CLOSE / TCP_CLOSE_WAIT
+because cep->state is SIW_EPSTATE_IDLE and sk->sk_socket is NULL.
 
-mlx5e_tc_rule_unoffload() {
+However, if siw_cm_work_handler() runs siw_accept_newconn(cep) before
+siw_create_listen() sets cep->state =3D SIW_EPSTATE_LISTENING,
+siw_accept_newconn() bails out without calling kernel_accept():
+
+drivers/infiniband/sw/siw/siw_cm.c:siw_accept_newconn() {
 	...
-	if (attr->meter_attr.meter)
-		mlx5e_tc_del_flow_meter(esw, attr);
+	if (cep->state !=3D SIW_EPSTATE_LISTENING)
+		goto error;
 }
 
-attr->meter_attr.meter is still non-NULL, so mlx5e_tc_del_flow_meter() is
-called a second time on the already-cleaned-up post_meter and meter.
+Because the SIW_CM_WORK_ACCEPT work item is consumed and never re-queued
+when cep->state becomes SIW_EPSTATE_LISTENING, the unaccepted child socket
+is left at the head of icsk_accept_queue. A live connection will hang
+unaccepted, or if the peer closed it during the IDLE window, the dead
+child socket will be dequeued by the next connection's SIW_CM_WORK_ACCEPT
+and trigger the new peer_closed abort, stranding the subsequent valid
+connection.
 
-Similarly, if mlx5e_tc_offload_fdb_rules() fails in
-mlx5e_tc_encap_flows_add(), the flow remains on the slow path with a
-dangling non-NULL flow->attr->dest_ft. When
-mlx5e_tc_unoffload_from_slow_path() later copies flow->attr into slow_attr
-and calls mlx5e_tc_unoffload_fdb_rules() -> mlx5e_tc_rule_unoffload() ->
-mlx5_eswitch_del_offloaded_rule() -> esw_cleanup_dests(), the non-NULL
-attr->dest_ft causes esw_cleanup_dests() to take the attr->dest_ft branch on
-a slow-path rule.
-
-Should mlx5e_tc_del_flow_meter() (or the error path in
-mlx5e_tc_rule_offload()) also clear attr->meter_attr.meter,
-attr->meter_attr.post_meter, and attr->dest_ft?
+Would holding siw_cep_set_inuse(cep) or setting cep->state =3D
+SIW_EPSTATE_LISTENING before calling s->ops->listen() in
+siw_create_listen() avoid this post-listen IDLE window altogether?
 
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103102856.1340=
-672-1-vulab@iscas.ac.cn?part=3D1
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261104100953.1251=
+40-1-lee@jaeyeong.cc?part=3D1
