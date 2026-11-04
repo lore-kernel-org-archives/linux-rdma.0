@@ -1,56 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793783604;
-	b=s0j5uMuqCtMdHdmRkTnJOy+JL0NuRlk/DvsWELacrelBrd7KWTw+vNwOK+vX9BWa3lzs
-	 hlm2uATEGqv9xrs8DZ7zmAPcc2QnXTiW/7Tc5JwsmvqugvODEp23A8tjFhVnAdWPBwW96
-	 3X3DX0B8K7TXBDn4/nHFjxCapinwRuXxBwtttj30WGVaXrtBKA1PbzSYCeOK0vDsvMVo0
-	 lKcg1h7bNVaLd4KiK1Jg01oFi6jnNRixqzQX2q7OrDlWTz6K9r92GZz641SxSNLPoMPKb
-	 XIBN4U0MeFrbyD7XH/xC5DXe8b3ucqtKTp+CgcpOUQJMD3W3WS1ja4dNKXYNB93eMag==
+	t=1793785274;
+	b=DV626SdpG6V94M2i/HLNigBXHYyE9CLL9G+dfGrgOndB63HNFY1swlnOfYOclpMoO2Nh
+	 y/KvhJxQxuvEm4x7/UhUrUGOS4I8jDUXpVJEh8PgfbsB9NDhbZhZb2SAud5hHQyIPo6tw
+	 WqVEpe02Tf/2U9uMVoD3DyR79/ND6ixyAATFk7eI/gt0HPv5zDUzzXIjd4J+vZTGxc2Jw
+	 9zyZMcTO02ynNwirsYeEEvbrcVmlxbkHLECjzpB9jRxb5NJ63ng5LYBES2eJEcHDaYaeM
+	 15Jb2A5h6IKpOE0SZeDfZSIAEZIdHV8HxDvw+LnKsj5qwLdUCZGFTYMtFlYgPy3lLnQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793783604;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=604ovO8F4OusDJhTNnwd7uj/IMILuERfkeuCWRtMf3c=;
-	b=XFXXB+7fKpxNmabY/nCOUgx2mBMqn8X2lWer+XIdwRiSR8BiXV+yRdWcGNclwkxKunjX
-	 rSpuCf8aUG6D/B3oFnJcl9oDH9QnycYe8Nn+GG4yn+hVhll4Wzv9a9idgrkXmXDCnO/QE
-	 UkxXE8YE9plqk+gUnAkqMYBy6xlWmz1m2LWL1UyTykvmc05awDonYggDyKvhnupjsqZmH
-	 ZiuP27kQY5ks7JuzLEjKANb2UwvFTk8ODCS++z05vkMCPNGEIeje8M9UZ21x4/cMyO7uK
-	 v+lC61JvmEhV3yLU3VAQWAfmfxqpOVZd/e0aASiYJAbb3MX2P40VasWhbaF5jcUmiSw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793785274;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:
+	 Content-Transfer-Encoding:In-Reply-To;
+	bh=+cJ4KNzcMaefS9I+1TQiXspSd3iTXdGT/XxcZpXEYXU=;
+	b=4iOoRHUOLh6Gesn5ofGBioPliCDavSc/fKWD67t4Whq6xUJJ0AZ/NJsDN7pmxyMA891S
+	 /TnXKAopaoVNFpt4nBK1Y1/j3nH/ta6dGw33i5zHvJSWYKP+lR1omfLW2oPenCVSbsYSM
+	 k3m+iVYWhELK9qlUbn52xC/xAaxmZbMP/tzmEqf2it9w1VyxJSQjFIQeDvfuOfXZcGPis
+	 F/mF+wegu+CDaWaS8grX8+t9dKNvxOUM/uFI2Hv2A0JgWViQwEKT7W12mdYNxdd5y1iEK
+	 2/X1kg8GFiweMkqEJpeJzxdLihtaC5pu3K9uVlMD8zmzL6t0VwclUw9wSZjhKyrrbMw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lYra6Lg+;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="I/qoaeEr";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01A6D606A31B
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 09:13:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA2DB606A326;
+	Wed,  4 Nov 2026 09:41:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lYra6Lg+
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E6EC1F00919;
-	Wed,  4 Nov 2026 09:13:23 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=I/qoaeEr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BEF21F000C1;
+	Wed,  4 Nov 2026 09:41:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793783603;
-	bh=604ovO8F4OusDJhTNnwd7uj/IMILuERfkeuCWRtMf3c=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=lYra6Lg+LUE+7CCjWIpn/FYnEH++SegyXFWkwE/BZJLwfhKTiQhMc+nzVnIDezcee
-	 //GUgJtxQibsEOCrY/w5F1XMxTXZ/W2QRxMJj/wIchnSeZOoSk2ZWRq4jgcYLRi3Sb
-	 xoEW3rXQUFQKunvySKfo0g3pUrdvH2aJ9UkhX/byAO65vWoTN5bg2tzZUl0t4isyXe
-	 6ys6alQ4n9CKb7MtNtT9xnNJRTp+hB2PonTZiFeavat5QEsO367bF3YE43WmlWJBhE
-	 NtTotcCieM57sWGHbrDIybiu5SEhIqkxdPqksKJ+EwPPG8ry3R8zYBBkniONEEB1/o
-	 kRndALVUcNGIg==
-Message-ID: <sashiko-outbox-196936@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] RDMA/siw: Ignore peer close events on listening
- endpoints
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Jaeyeong Lee" <lee@jaeyeong.cc>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <179378222423.73361.5194383282780549988@jaeyeong.cc>
-References: <179378222423.73361.5194383282780549988@jaeyeong.cc>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 04 Nov 2026 09:13:23 +0000
+	s=k20260515; t=1793785273;
+	bh=+cJ4KNzcMaefS9I+1TQiXspSd3iTXdGT/XxcZpXEYXU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=I/qoaeErUlBNL23HwnagcgQ64ZOEFcyFW3R2jGEzVehY3XShVlbUwCTpMQadGh4zF
+	 Y/2+KO0zOqBAp1ZNqgnesc2dlxH4/xN0Hm0oGfD151ZWo4wN9jNkUDSVHRANztXHEL
+	 yPTX8BJxFRv6akt78VhrgAyVwR7OE+6pM2UCYVyiTDCNmNmbgTeMMj5lSTumZQYwDq
+	 0yOrCfyRhX5LH+pm1i2kxx7+2zY6wceFgJZuAYWatBppmCYk5IndiQ0/3Tg84ZHRB2
+	 rOaUf2Ezqy8d6DP1vUioKBCFDHntHfO7ybMCNoy26v4CJTw4YeK0xP4reZwgUz3/Af
+	 +aFdL4Df+4G8Q==
+Date: Wed, 4 Nov 2026 11:41:08 +0200
+From: Leon Romanovsky <leon@kernel.org>
+To: sashiko-reviews@lists.linux.dev
+Cc: Konstantin Taranov <kotaranov@linux.microsoft.com>,
+	linux-rdma@vger.kernel.org
+Subject: Re: [PATCH rdma-next] RDMA/mana_ib: Enable RDMA devices on the CDX
+ bus
+Message-ID: <20261104094108.GA478286@unreal>
+References: <20261103115032.736554-1-kotaranov@linux.microsoft.com>
+ <sashiko-outbox-195213@kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,145 +58,74 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <sashiko-outbox-195213@kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 2 potential issue(=
-s) to consider:
-- [Critical] RDMA/siw: listen() before setting SIW_EPSTATE_LISTENING in siw=
-_create_listen()
-- [High] RDMA/siw: lost peer close when child socket closes before kernel_a=
-ccept()
---
+On Tue, Nov 03, 2026 at 12:05:41PM +0000, sashiko-bot@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 1 potential issue(s) to consider:
+> - [High] RDMA/mana_ib: NULL dma_parms in mana_ib_probe() on CDX devices
+> --
+> 
+> commit 4f88c8811c923b9c16d7e0dbf8674249f05b4f08
+> Author: Zhiyue Qiu <zhiyueqiu@microsoft.com>
+> 
+> RDMA/mana_ib: Enable RDMA devices on the CDX bus
+> 
+> This commit enables MANA RDMA on the CDX bus by depending on the shared GDMA
+> core, matching CDX auxiliary devices, mapping non-PCI userspace doorbells
+> with pgprot_device(), and reporting the Microsoft vendor ID directly.
+> 
+> > diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
+> > index 62c7803ca6c60..33e47490755f6 100644
+> > --- a/drivers/infiniband/hw/mana/device.c
+> > +++ b/drivers/infiniband/hw/mana/device.c
+> > @@ -257,6 +257,8 @@ static void mana_ib_remove(struct auxiliary_device *adev)
+> >  static const struct auxiliary_device_id mana_id_table[] = {
+> >  	{ .name = "mana.rdma", },
+> >  	{ .name = "mana.eth", },
+> > +	{ .name = "mana_cdx.rdma", },
+> > +	{ .name = "mana_cdx.eth", },
+> 
+> [Severity: High]
+> When mana_ib_probe() binds to mana_cdx.rdma or mana_cdx.eth, does passing
+> gc->dev to ib_register_device() trigger a warning and fall back to a 64 KiB
+> DMA segment size limit because gc->dev->dma_parms is NULL?
+> 
+> In drivers/infiniband/hw/mana/device.c, mana_ib_probe() registers the IB
+> device with gc->dev as the dma_device:
+> 
+> 	ret = ib_register_device(&dev->ib_dev, mana_ib_is_rnic(dev) ? "mana_%d" : "manae_%d",
+> 				 gc->dev);
+> 
+> And in drivers/infiniband/core/device.c, ib_register_device() checks:
+> 
+> 	WARN_ON(dma_device && !dma_device->dma_parms);
+> 	device->dma_device = dma_device;
+> 
+> Unlike struct pci_dev, struct cdx_device does not attach a dma_parms
+> structure, which is noted in mana_cdx_setup_hwc_irqs() in
+> drivers/net/ethernet/microsoft/mana/gdma_cdx.c:
+> 
+> 	/* The PCI path also calls dma_set_max_seg_size(), but that is
+> 	 * deliberately omitted here: the CDX core does not attach a
+> 	 * dma_parms to the device, so the helper would only WARN, and MANA
+> 	 * never builds scatter-gather lists, so the limit is never read.
+> 	 */
+> 
+> In addition to triggering the warning in ib_register_device() on probe,
+> mana_ib_create_queue() and mana_ib_reg_user_mr() build scatter-gather lists
+> via ib_umem_get_cq_buf_or_va() and ib_umem_get_va(), where
+> __ib_umem_get_va() calls ib_dma_max_seg_size() -> dma_get_max_seg_size() and
+> falls back to SZ_64K instead of UINT_MAX when dma_parms is NULL.
 
-commit 4ef3f34aa3f1c3ee451c3e1beb79ef0ea51f6cdf
-Author: Jaeyeong Lee <lee@jaeyeong.cc>
+The analysis looks correct to me. How was it tested?
 
-RDMA/siw: Ignore peer close events on listening endpoints
+Thanks
 
-This commit ignores TCP_CLOSE and TCP_CLOSE_WAIT state change notifications=
- in
-siw_cm_llp_state_change() when cep->state is SIW_EPSTATE_LISTENING to preve=
-nt
-a child socket closed before kernel_accept() from queueing a PEER_CLOSE work
-item against the listening endpoint.
-
-> diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/s=
-iw/siw_cm.c
-> index ed49818793dde..518f09a2d37cf 100644
-> --- a/drivers/infiniband/sw/siw/siw_cm.c
-> +++ b/drivers/infiniband/sw/siw/siw_cm.c
-> @@ -1361,6 +1361,8 @@ static void siw_cm_llp_state_change(struct sock *sk)
-> =20
->  	case TCP_CLOSE:
->  	case TCP_CLOSE_WAIT:
-> +		if (cep->state =3D=3D SIW_EPSTATE_LISTENING)
-> +			break;
-
-[Severity: Critical]
-Does this check leave a window during listener creation where the same
-use-after-free can still happen?
-
-In drivers/infiniband/sw/siw/siw_cm.c:siw_create_listen(), the socket is
-associated with cep and placed into TCP_LISTEN while cep->state is still
-SIW_EPSTATE_IDLE, before a sleepable kmalloc_obj() call and before cep->sta=
-te
-is set to SIW_EPSTATE_LISTENING:
-
-drivers/infiniband/sw/siw/siw_cm.c:siw_create_listen() {
-	...
-	cep =3D siw_cep_alloc(sdev);
-	if (!cep) {
-		rv =3D -ENOMEM;
-		goto error;
-	}
-	siw_cep_socket_assoc(cep, s);
-	...
-	rv =3D s->ops->listen(s, backlog);
-	if (rv) {
-		siw_dbg(id->device, "listen error %d\n", rv);
-		goto error;
-	}
-	cep->cm_id =3D id;
-	id->add_ref(id);
-	...
-	if (!id->provider_data) {
-		id->provider_data =3D
-			kmalloc_obj(struct list_head);
-		if (!id->provider_data) {
-			rv =3D -ENOMEM;
-			goto error;
-		}
-		INIT_LIST_HEAD((struct list_head *)id->provider_data);
-	}
-	list_add_tail(&cep->listenq, (struct list_head *)id->provider_data);
-	cep->state =3D SIW_EPSTATE_LISTENING;
-	...
-}
-
-If a remote peer completes a TCP handshake and sends RST or FIN after
-s->ops->listen() but before cep->state =3D SIW_EPSTATE_LISTENING,
-siw_cm_llp_state_change() runs on the child socket while cep->state is still
-SIW_EPSTATE_IDLE. Wouldn't that bypass the SIW_EPSTATE_LISTENING check and
-still queue SIW_CM_WORK_PEER_CLOSE against the listening cep, freeing it via
-siw_cm_work_handler() while it remains on id->provider_data?
-
-[Severity: High]
-Also, if the peer closes or resets the child socket before siw_accept_newco=
-nn()
-runs, won't the SIW_CM_WORK_PEER_CLOSE notification for the accepted connec=
-tion
-be lost completely?
-
-The commit message notes that once the child is accepted, its sk_user_data
-points to the new endpoint and close notifications continue through the nor=
-mal
-path. However, kernel_accept() succeeds and dequeues the child socket from
-icsk_accept_queue even when new_s->sk->sk_state is already TCP_CLOSE or
-TCP_CLOSE_WAIT:
-
-drivers/infiniband/sw/siw/siw_cm.c:siw_accept_newconn() {
-	...
-	rv =3D kernel_accept(s, &new_s, O_NONBLOCK);
-	if (rv !=3D 0) {
-		/*
-		 * Connection already aborted by peer..?
-		 */
-		siw_dbg_cep(cep, "kernel_accept() error: %d\n", rv);
-		goto error;
-	}
-	new_cep->sock =3D new_s;
-	siw_cep_get(new_cep);
-	new_s->sk->sk_user_data =3D new_cep;
-	...
-	if (atomic_read(&new_s->sk->sk_rmem_alloc)) {
-		/*
-		 * MPA REQ already queued
-		 */
-		...
-		rv =3D siw_proc_mpareq(new_cep);
-	...
-}
-
-Unlike the receive data path where siw_accept_newconn() checks sk_rmem_alloc
-after setting sk_user_data =3D new_cep, siw_accept_newconn() neither holds
-sk_callback_lock while updating sk_user_data nor checks new_s->sk->sk_state
-afterward.
-
-If the transition to TCP_CLOSE_WAIT or TCP_CLOSE already fired while
-sk_user_data pointed to the listening cep, no further sk_state_change callb=
-ack
-will fire for that transition. If the peer sent an MPA request with private
-data followed by FIN before kernel_accept(), siw_recv_mpa_rr() reads the MPA
-request without consuming the EOF, siw_proc_mpareq() delivers
-IW_CM_EVENT_CONNECT_REQUEST, and siw_accept() cancels mpa_timer and moves t=
-he
-QP to RTS on a half-closed TCP_CLOSE_WAIT socket that never receives
-SIW_CM_WORK_PEER_CLOSE. If the peer sent RST or FIN without a complete MPA
-request, new_cep still holds new_s and listen_cep until MPAREP_TIMEOUT
-expires.
-
-Should siw_accept_newconn() serialize the sk_user_data update with
-sk_callback_lock and inspect new_s->sk->sk_state after associating new_cep?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/179378222423.73361.=
-5194383282780549988@jaeyeong.cc?part=3D1
+> 
+> -- 
+> Sashiko AI review · https://sashiko.dev/#/patchset/20261103115032.736554-1-kotaranov@linux.microsoft.com?part=1
+> 
