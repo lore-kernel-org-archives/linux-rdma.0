@@ -1,88 +1,70 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.48
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793821743;
-	b=nyvEtcTyrv+wA8hPsrkfsNK2Sa5T94DopfR+Bxh/rN8912ka7sdJm3+aDjqXm1IlVkzM
-	 jRFk1a2ZsAT/HiMdddnpT8OMY7QVYStVWVjvgfgvPFUvDblL5NVu1j26lb47k1C0kyI4i
-	 kTocnuYkJ84+JwnIIN56DxpPWv24XGotoyz3lbFJTOiiNB0xSHXkIGcYXX5DAah4LYyBV
-	 kG3FUtSvTV6MbKgV72kMVQPaWWUlGozxAknsfajRADiIbNuZnWx6/MM57j0YK6WKGSqZm
-	 A5g91VbCjmHF7UjiaQ2DPHnEJdtjHthrW6aDVjhqIOiUTT/jOg9qOIK9EqQGCIbrj7Q==
+	t=1793821950;
+	b=b7KzeYl8Vq5xgPwDFCnUDHogrtnGHqIxNrv6nbSTr+48iBmwLeGCVghaJt9zgm5WhaIx
+	 wQ3iX9Dpd0dsSAOYymSy+ER/v7ijrkxwkNvZsrRiJEKMAfEXFVV01bVa+Ny8j3NQH4z3W
+	 2G/gfVOaSfgno/COe2GvkopP2/n9QcURmC2vaqIY+k5N8KwHdGyJvZ5LBmX2COHKnHxoD
+	 B/WJlf2pBrBGS5CtTAzygsp1/LkXhuENpZhSgTfVms2tMkQkO/eZcKF3weom0l5NHRJdW
+	 HYnFd3EGr5Kn02yo4FRzO9Rc20KZyZGf4Uk4G9oLyLTnFt3UY71+Dx0REFneBIyYFhQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793821743;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:Content-Type:
-	 Content-Transfer-Encoding:Mime-Version:Subject:Message-Id:Date:To:
-	 X-Mailer;
-	bh=paETJkmd7hVUIIU/NOksg+AfrOYTAPYVxcMd61GEsos=;
-	b=cq5pTVkQQl+7y5TSqb8S6lI7hF+XL1tBJWfJ6tq3gkdwEd31OlMIOreg89yMohXhR/d4
-	 0wnQuH5IZbhIztGldmw+D4HbuSSxcq/RqvqmVbDVvGW2TBHtmHDwpJys7aanuDo7jsQN9
-	 QFa4OarPgTlCPe9H2bUkTzRf9A4ifAqDVHBEJYerbZUrOs6SUV4SaEjOVJCqW9wy/zhC8
-	 jdaeOV8w1B0xLWKeXbzHsNvXuniT2X6Edz1CCicKiImSSGZjWGwkB2TTC50Mb/HRBmfCY
-	 b3/Gba8joBAuKGOZ0b8SsV+fe0+rW1i0d8ZnrONALuUlyKHzgawXjpZ9f5MaPl99CrQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793821950;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=L07m2wog8AXR293hC7wTAXwEB108EvydUujWlLJOS7k=;
+	b=AOYykXl4hEGw3/0XKaYth/8bEvRc0ZWXfDlNvCb/CjUcPZxx5isFefbhoYTeBrSHh8hb
+	 XjT6pJAKTnjLhUJshv/Q4KThswJle3zranTsaU1BZBlZoFc1o0PWo7K7lTGAh/GAcKGIV
+	 74aSzJ0SCg8tUBYiMuCU4YoHMNugJvNIrJ3Ya5IORYjeXUdkybfpxDuqW/muadLPDHnb3
+	 /Hwuz1oBUwaOV7ZJ7p9YqTuwfobOGdaq6nPL1xQvHzdAdC8/pmoFjadJcSA2/PnnFoTgH
+	 /TFrV3fqpGVpEyT4thGRgeCXJJiNNQyBLapgDed482D8T1zzvWdVfBw2PEzJ2K9+wOw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=k9OsnB7A;
-	arc=none smtp.remote-ip=209.85.128.48
-Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Tngz3kAr;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76A55607608F
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 19:49:03 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 76A55607608F
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18C2E60D8785;
+	Wed,  4 Nov 2026 19:52:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=k9OsnB7A
-Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-4a2d6cf958bso5378195e9.1
-        for <linux-rdma@vger.kernel.org>; Wed, 04 Nov 2026 11:49:03 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793821742; x=1794426542; darn=vger.kernel.org;
-        h=to:date:message-id:subject:mime-version:content-transfer-encoding
-         :content-type:from:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=paETJkmd7hVUIIU/NOksg+AfrOYTAPYVxcMd61GEsos=;
-        b=k9OsnB7A3XndcOfKeUs4S/h/WtiBLvQaLlbGPwLPWMUTfH3K1tjff4gbvDE/9odh6O
-         jB8VOsYPmUMa5yjEhU6AOxPl2PE1YzufadwDv+hymh7C2HOz+SXbZxuy7yYoaRLtAP7e
-         2iR0tpW6Nuz69LCEzSIx3oATEdmxre8rC4tEpveYX0cbazwxSvwdfD+mc9iVPYqgJaAA
-         oVp5ht8KjC+9j68otiLVzFnOKOb5uF+yoS0CsnsGqw/QueB3oJaIRrkdsdKeOT8oj6Km
-         hDl90/v1jjIDb0eu/lrXsPngRH0C3S1cabYpfegy+9IzapwH90Ji310XV7W/aESWU0C1
-         H/Dw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793821742; x=1794426542;
-        h=to:date:message-id:subject:mime-version:content-transfer-encoding
-         :content-type:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=paETJkmd7hVUIIU/NOksg+AfrOYTAPYVxcMd61GEsos=;
-        b=ExR3VxEtdoAU9WDW3PRag16gQLBOCZS4Iyklcma4CjKmuewdSjluSXvGpPseHFAIhj
-         EtbbAlU+nVevYHUQD0CkRVmVYXVOEWtE5KjE7BO7yxp9tQzfNo+AIihFBq4ROpiHaaw0
-         oif68IVVLoqToLuukmDWqjDxVpq9QcdO3V06mfnnO+jBvrpOUSJe1BK0JayJ7sLNdT7t
-         50KCnrFhopLYGt6WXInX/kdD/gRbFI8UNY7kuDO6h6LB8CFPtBuK8ABmV3tPt/2ykOeE
-         4rPXeTZnI/Cyv6hD2ZZeGsLztnq9P6xaGsJwDV7knl4jgPu+sK1R/KeYwtY1TKDouN9v
-         ohfg==
-X-Gm-Message-State: APuU4Z+u05RL9JuvhgDXUaiWmkI1d/RBNE0wuBKWOZ39gaHAidXifMU0
-	F/RkvgeToxu++WkTNMyetXy6y05j4MVgo50nonjt6rafh1Q+noU6QDBrwIUc4ZJX
-X-Gm-Gg: AYBFou3ja6qsa/R8opSuhnltdgULdtzyQcKEdwONsKJdlFlPoA0m7cV8nSvMS5nITtc
-	xgDx2E09DV5yrMBgP9383QvIZMVTV1gWYjRe1XRCKZikCS3WwVeNmxUahO3aHSYefM8NteChxkT
-	qMuGeqBZ8KvjsHEwM1clgP7gtlEhHhzFa4eTHeaej0IOTshcuforkl9zPoz+rmgDcNGVdnC0AOM
-	xBuge1t2W0sPw+YnTKFQx2ErhX919457dvCjNUO2ygx0Vt/ivabB55feRGTd6zLUcZjXzavYhVR
-	2Dq0F1dh1Kl2ftESpHRWKd5th84V2brZ+gZBBcAQO+75B4YxCLJ3L/lqO2R/mqDKz81vOFF+wjF
-	z1NzfcE27PL0Tbl8OPu5MCyVx2yQ9NFez+vhGwiDIhhKhLQi8AuuBJsQUvd8vebWADW1fEN6zcw
-	6St+fqxGt9oG3zgezalnIw6j74Ahc40zvXlb5wc/9HxTACfILa6/b1gUO0Fw5In5sKfpSRmZKAe
-	6xMXmQb1Wmr7WwBJFJpa9Ksk7v0YMD7ivIYkbjRLXJiGMUS05UN7jxCAdHHmu/lQGiOwIL2xw8U
-	R032okhJ1dLo8+xiqyQb5FntDXxUJzGbDcNMNibs4dO9wNG/roDnVRNJGtKxy8RUQyE8jrNV5GV
-	nnmhsGtcgSTF0JIgeqw9N3itlDRNT4HLQXsvPGBXqLVUJ9Q==
-X-Received: by 2002:a05:600c:c4b8:b0:4a0:1b14:e283 with SMTP id 5b1f17b1804b1-4ac150b38dbmr398866575e9.1.1793821741495;
-        Wed, 04 Nov 2026 11:49:01 -0800 (PST)
-Received: from smtpclient.apple (ipservice-092-209-235-033.092.209.pools.vodafone-ip.de. [92.209.235.33])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48fed08514fsm5424639f8f.31.2026.11.04.11.49.01
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 04 Nov 2026 11:49:01 -0800 (PST)
-From: Dezhen Lu <dinadegttyarenko6@gmail.com>
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Tngz3kAr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 153AC1F000C1;
+	Wed,  4 Nov 2026 19:52:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793821949;
+	bh=L07m2wog8AXR293hC7wTAXwEB108EvydUujWlLJOS7k=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Tngz3kArIJr/FCTQecjk4Shv6JJTM59ST2VF34ZadkpeYJ07PybUi07DSlO5i+Lcc
+	 BR3xuLP685IVZSVeTudkEydtaHvNT27bijsHdB/DfS5Op1gyYMOzm/YIwALKmnGEEd
+	 pnaWfctGLzgd/kpEHK1zF1zzbJO/XvUGti+HfhqM7r3HJeHonwfpn2a+Z+2CKBMObQ
+	 Pw82Y1W0REeHcm1tHA4k+WLMNBeS+eYtyl8WFgweX/UB5AfA6xoO2ECFibwrwsSAEY
+	 UNVm8tllZewsPCCMrK9apq0WrX7YsjkklLlsnx8gLtWN3piM8BYXfNireITBbtAyGY
+	 uClTjhZd5Mc7Q==
+Date: Wed, 4 Nov 2026 21:52:25 +0200
+From: Leon Romanovsky <leon@kernel.org>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+	Thomas =?iso-8859-1?Q?Hellstr=F6m?= <thomas.hellstrom@linux.intel.com>,
+	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: Re: [PATCH v12 00/19] PCI/P2PDMA: Route peer-to-peer DMA by TLP class
+Message-ID: <20261104195225.GI478286@unreal>
+References: <20261104084328.GP264423@unreal>
+ <20261104171412.GA1247928@bhelgaas>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -91,47 +73,80 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3864.700.51.1.1\))
-Subject: tests: explicit GID index zero is replaced by the configured index
-Message-Id: <AD62C4CB-E5ED-41C1-8CBD-110BFEBC87EA@gmail.com>
-Date: Wed, 4 Nov 2026 20:48:50 +0100
-To: linux-rdma@vger.kernel.org
-X-Mailer: Apple Mail (2.3864.700.51.1.1)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261104171412.GA1247928@bhelgaas>
 
-Hello,
+On Wed, Nov 04, 2026 at 11:14:12AM -0600, Bjorn Helgaas wrote:
+> On Wed, Nov 04, 2026 at 10:43:28AM +0200, Leon Romanovsky wrote:
+> > On Tue, Nov 03, 2026 at 05:37:42PM -0600, Bjorn Helgaas wrote:
+> > > On Tue, Nov 03, 2026 at 10:29:39AM +0200, Leon Romanovsky wrote:
+> > > > PCI P2PDMA applies Request and Completion Redirect throughout
+> > > > both paths.  This misclassifies asymmetric and nested switches,
+> > > > and reports one answer for every kind of TLP.
+> > > > 
+> > > > Three ACS controls act on TLP attributes the Requester chooses
+> > > > rather than on the topology: Translation Blocking and Direct
+> > > > Translated P2P act on a Request's Address Type, and Completion
+> > > > Redirect skips Completions carrying Relaxed Ordering.
+> > > > 
+> > > > Evaluate each direction at the path divergence, decide every
+> > > > class from the one walk, and treat a client with ATS enabled as
+> > > > translating unless its driver declares per-mapping ATS.
+> > > > 
+> > > > This completes the P2PDMA side; dma-buf and mlx5 follow
+> > > > separately.
+> > > 
+> > > Is there a one- or two-sentence explainer of why we want this?
+> > > I'm thinking in terms of what Linus will want in the merge
+> > > request: a fix for something that's broken or some new
+> > > functionality.  It sounds like this is solving a problem, but I
+> > > don't know enough to translate the nitty-gritty details to the
+> > > higher-level user-visible problem or feature.
+> > 
+> > Not AI; these are my own words with grammar fixes from AI:
+> > 
+> > "The existing implementation of PCI peer-to-peer assumed that all
+> > PCI TLPs were the same: ordered and carrying untranslated addresses.
+> > It did not account for the variety of traffic types defined by the
+> > PCI specification. As a result, only simple systems supported
+> > peer-to-peer transfers in the upstream kernel; real-world systems
+> > required out-of-tree patches and careful platform design.
+> 
+> Can we be any more specific?  E.g., what makes real-world systems
+> different from simple ones?  What does careful platform design mean?
+> Something about ordering beyond what PCIe requires?
 
-At rdma-core master a70151dfec390eb5f7fc5b266f51d601da2a7778,
-RDMATestCase.__init__ uses a truth-value check to choose between the
-gid_index argument and the configured GID. GID index 0 is valid, but an
-explicit argument of 0 is replaced by the configured value. The same
-constructor correctly treats a non-None gid_index as explicit when it
-sets gid_type, so the resulting index and selection mode can disagree.
+I needed this series for GB300. I never asked to see for out-of-tree patches
+to enable P2P on that system, but P2P did not work with the upstream kernel
+without this series. In complex systems, the routing path between two
+devices can include multiple PCI bridges with ACS settings. In simple
+case, ACS will be 0 and not used.
 
-This reproducer needs an in-place pyverbs build but does not access RDMA
-hardware. Run it from the repository root:
+Careful design ensures that P2P devices share common host bridge.
 
-```sh
-PYTHONPATH=3Dbuild/python:tests python3 - <<'PY'
-import sys
-from unittest.mock import patch
+> 
+> ACS P2P Completion Redirect affects Relaxed Ordering (RO) Completions.
+> Translation Blocking and Direct Translated P2P affect Requests with
+> Translated addresses.
+> 
+> So I assume the existing P2P implementation breaks somehow when RO or
+> Translated addresses are used?  How does it break?
 
-sys.path.append(sys.path.pop(0))  # Prefer the built pyverbs over the =
-source directory.
-from tests.base import RDMATestCase
+Jason tried to document it in the comment above mlx5_umem_needs_ats().
 
-config =3D {'dev': None, 'port': 1, 'gid': 7}
-with patch('tests.base.parser.get_config', return_value=3Dconfig):
-    case =3D RDMATestCase(gid_index=3D0, gid_type=3D2)
-print('gid_index:', case.gid_index, 'gid_type:', case.gid_type)
-PY
-```
+Thanks
 
-Observed: gid_index: 7 gid_type: None
-Expected: gid_index: 0 gid_type: None
-
-Checking `gid_index is not None` instead of its truth value preserves an
-explicit zero while retaining the existing fallback for None. Regression
-tests for zero, None, and a nonzero argument fail on the base only for
-zero and pass with that change. I reproduced this on Linux aarch64 with
-Python 3.12. No network or GPU traffic was run for this comparison.
-
+> 
+> > The new code will allow peer-to-peer transfers between any two
+> > devices, for all types of PCI traffic, as long as the PCI path
+> > between them supports peer-to-peer.
+> > 
+> > This paves the way for PCI peer-to-peer support in VMs, which the
+> > upstream kernel does not currently support."
+> > 
+> > BTW:
+> > 1. The patch "PCI/P2PDMA: Document the TLP attribute assumptions"
+> >    attempts to explain the current situation.
+> > 2. The change is too large to present as a fix.
