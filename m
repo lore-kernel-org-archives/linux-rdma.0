@@ -1,54 +1,66 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.127.231.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793807745;
-	b=g0PeD0hQst397843+p1WsrFmh0URhqX7juwRjWVaUTRy3JAdufXXyhbqzls+87D5ofjr
-	 E4W92pOjYLgrR+GwH0WowlMOeoqFdgXn31VpSKxV8Xy6vdrVPTyWtjjQoE19x/M93lad5
-	 qQsgC6j4Wyq4si59nGxrmEWPhJBQIkJLO0D+UNj3JOAIYHuPzD5UsHOg9ubmoMuy4K0sK
-	 s8C06KK738NgrK0WAd0w3ISPhl10N3qU5R4OHvp58/fhR7pg4M8FMt9aE+sX29aXTiV/s
-	 dXlRtWwzNKULsB28B9Cd37Xk/GbkTAUqemI1V2gO0DhuxJpXVFmoXy+bTG45YN57iig==
+	t=1793807822;
+	b=dFCrW6a8nUZMgxG2VPuo2w1iDsLET/YIHetPWaDuZOvHbnSQjv7hmQjHmFQwTAw4q+gG
+	 jZvA2BogXWw3kQ1D1CIMu85ErnbGNclWdJFxy98W1VC+Ku4QyMyAEbyuboXbGRuSo7umY
+	 yKtj8Be5/AcodGReqJYKm4CItaNJLPiOpMLHT8Agfq5q2ZbSuRQPnoeyhTRhbTO3qt+M/
+	 IBRKXGqXhE8t1wms31TEUaywE5BP8ORIswhd4lHiODZ+oCKeuB2jjXgXcncrzEnFjZVDZ
+	 rQUDoSZUEdNOmGJujKSqsIfDbApSL5KDmkPnVppw8dnvqrhRqu1kvisbFEnrDwHD8mg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793807745;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=C8UP5GTPbnzsIOmsgrUDLQ8og2CsI3hWCzSD4Kne3nI=;
-	b=POwn65yD6UnDJ4f38VW9n66JG6w1Hy/XErIZdlPyNvpWswXm5hQ8iHm+XZZbXgMbcho5
-	 m5iYJhTARFdq9c7qxql+SLJVQ8kbyO8dWyqx62U4oxjD1TpUk+o49MXvi4fGqdtpETyRF
-	 vf0mjku3FnVXEXznwmN0Qhs0KwXQRBCJGfXXanGpilW2U25xQP9w03Ya5TY1IrPrrznML
-	 ADOg70th75xjfrKMQMIp82HRDiFk15z4cAbLped0vESUaW24JWw5//Rse0NHVBC984m7H
-	 +XkZLbOZmonzJbdo2EiTVEBZiSf9zWRpB6LBnnpzNVsvWWxLuvhY38VCUjeNGkRykgQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793807822;
+	h=DMARC-Filter:DKIM-Signature:To:Subject:Content-Transfer-Encoding:Cc:
+	 In-Reply-To:Received:X-Mailer:References:Content-Type:From:Date:
+	 Message-Id:Mime-Version:X-Lms-Return-Path:X-Original-From;
+	bh=XYD0toCbOJl1spINj1H4KaSUBqfBdPhnuZcf4yKON+E=;
+	b=lvgdw6OarzpbjvcMbkSiSZX1zizhq/5/CwHflNdpC7PIwhjIaKHBa7TOK1ZYjzy6glq+
+	 NVkuTMKzUEbL7Vq/n09qxmtLtIUR8T2EKLL/5I7fp+P7jZetFLCMUdSNhIjFWDQpxI1xa
+	 kJeY2j2aPIMKSQHOmv1yE4HS3iy7HKRAxikJRb2atyRfxJN2qireoSnXh+bAiK3DyxPal
+	 itRroo9gb2q4lbB27/wQ+BI9CHkdwzovwsUKnxbM5/+Fd0HamBBjVFM5AjgokNNwN60ai
+	 x+uuveLxijzOHoh1GOAYUt12JcbFoIqnTtZrAIt8mlCzqkEbLf7UhcCrLSivQaunk+w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XIz8pC+Z;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=none header.from=yunsilicon.com;
+	spf=pass smtp.mailfrom=yunsilicon.com;
+	dkim=pass header.d=yunsilicon.com header.i=@yunsilicon.com header.a=rsa-sha256 header.s=feishu2403070942 header.b="fNqE/6+j";
+	arc=none smtp.remote-ip=209.127.231.30
+Received: from va-2-30.ptr.blmpb.com (va-2-30.ptr.blmpb.com [209.127.231.30])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B898606A339
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 15:55:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61CFF606A326
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 15:57:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 61CFF606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yunsilicon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yunsilicon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XIz8pC+Z
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D3B71F0093A;
-	Wed,  4 Nov 2026 15:55:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793807744;
-	bh=C8UP5GTPbnzsIOmsgrUDLQ8og2CsI3hWCzSD4Kne3nI=;
-	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=XIz8pC+ZKTnWuAey8GmxKFQL6xcuB2u9u6LgiwjlKDH4aQdzmO2uLzEvRjO8AglbN
-	 MOnGOZyKe1Fsuk5/szcdLPCO3jhL+eY1j2KULuZa6KPsxWO/hY9mj5AImQOEkpBHyi
-	 vJHlnKk7u0Wg5yqSiJojdb83ZCWOFj5OZd9bH8Xua9Q5MNEVtZsF6h7WXMNaNEvl3k
-	 UtZVqnlJaIPWKlMT0ZJwr8Z8pdmGVqTSvh7447QEFpWKQsVHVH6+J4IPyOE89f05qS
-	 93I5cEnFTeH1tZ+qkwi2QUkVejb+bEWHadEyihflY87DXGOK802g4UiZkxIQWT23zo
-	 VyihaBYq1h76A==
-Message-ID: <sashiko-outbox-197557@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] perftest: add a ROCm build to CI
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Stephen Bates" <sbates@raithlin.com>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261104155023.250706-1-sbates@raithlin.com>
-References: <20261104155023.250706-1-sbates@raithlin.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 04 Nov 2026 15:55:44 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=yunsilicon.com header.i=@yunsilicon.com header.a=rsa-sha256 header.s=feishu2403070942 header.b=fNqE/6+j
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+ s=feishu2403070942; d=yunsilicon.com; t=1793807815; h=from:subject:
+ mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
+ mime-version:in-reply-to:message-id;
+ bh=XYD0toCbOJl1spINj1H4KaSUBqfBdPhnuZcf4yKON+E=;
+ b=fNqE/6+j6Wz3shN9omF8YYlN1ULWxkD9PX70C7HNTDfYUMfl+FttNgSSnVUhVvRc3uNx7T
+ yiW+h0zJzTmZd6n4PcS9HJT0A+rpQythPvaXDRUOPusKL0Ry1EOde0ObqY0OYmcUOk/H+u
+ Z8HsFoo0GVbLxsbOG/DDxwDqzXUBIWnPb+tcaI0JL/6rjf4tawOQoNr5gkhm3MbhVodArz
+ gxk76Kpn/qtgpNrhn5qbpvk0goEzvxPy6AuxFptoTHJxQvu9dKMZMlddz+KnNXM7Nwe7D9
+ joXPlxjnZXZFqlXZ2zlq42HAD4wiQXF0AnqUdZJEEgAbh7RNW3Sim+yXlaxLjw==
+To: "Andrew Lunn" <andrew+netdev@lunn.ch>, 
+	"David S. Miller" <davem@davemloft.net>, 
+	"Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>, 
+	"Paolo Abeni" <pabeni@redhat.com>, "Jason Gunthorpe" <jgg@ziepe.ca>, 
+	"Leon Romanovsky" <leon@kernel.org>, 
+	"Junxian Huang" <huangjunxian6@hisilicon.com>
+Subject: [PATCH v1 01/15] MAINTAINERS: add the Yunsilicon XSC drivers
+Content-Transfer-Encoding: 7bit
+Cc: <weihg@yunsilicon.com>, <linux-kernel@vger.kernel.org>, 
+	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>
+In-Reply-To: <20261104155650.37053-1-tianx@yunsilicon.com>
+Received: from sw-dev-sha252.yunsilicon.com ([180.152.18.210]) by smtp.feishu.cn with ESMTPS; Wed, 04 Nov 2026 23:56:52 +0800
+X-Mailer: git-send-email 2.25.1
+References: <20261104155650.37053-1-tianx@yunsilicon.com>
+Content-Type: text/plain; charset=UTF-8
+From: "Xin Tian" <tianx@yunsilicon.com>
+Date: Wed, 04 Nov 2026 23:56:52 +0800
+Message-Id: <20261104155650.37053-2-tianx@yunsilicon.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -57,74 +69,42 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+Mime-Version: 1.0
+X-Lms-Return-Path: <lba+26aeb55c5+777cca+vger.kernel.org+tianx@yunsilicon.com>
+X-Original-From: Xin Tian <tianx@yunsilicon.com>
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [Medium] perftest: matrix.rocm_arch is never passed to configure or make =
-in CI workflow
---
+Add a MAINTAINERS entry for the Yunsilicon XSC drivers.  The hardware
+presents both an ethernet function and an RDMA function, so the entry
+covers two subtrees, drivers/net/ethernet/yunsilicon/xsc and
+drivers/infiniband/hw/xsc, and lists both netdev and linux-rdma as
+list addresses.  The file patterns are declared ahead of the code so
+that maintainership is established before the first driver patch
+lands.
 
-commit dee5fbc3aa52f87f3e4be6e0329a0a27dacd8a09
-Author: Stephen Bates <sbates@raithlin.com>
+Signed-off-by: Xin Tian <tianx@yunsilicon.com>
+---
+ MAINTAINERS | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-perftest: add a ROCm build to CI
-
-This commit adds a GitHub Actions workflow to build perftest with ROCm and
-ROCm dmabuf support enabled on Ubuntu 24.04 inside AMD's slim ROCm container
-image across a matrix of gfx950 and gfx1250 targets.
-
-Link: https://github.com/linux-rdma/perftest/pull/418
-
-> diff --git a/.github/workflows/ubuntu24_04_rocm7_2.yaml b/.github/workflo=
-ws/ubuntu24_04_rocm7_2.yaml
-> new file mode 100644
-> index 0000000000000..0a4c706ea5ca5
-> --- /dev/null
-> +++ b/.github/workflows/ubuntu24_04_rocm7_2.yaml
-> @@ -0,0 +1,66 @@
-
-[ ... ]
-
-> +    strategy:
-> +      fail-fast: false
-> +      matrix:
-> +        rocm_arch: [gfx950, gfx1250]
-> +
-> +    name: ROCm (${{ matrix.rocm_arch }})
-> +
-> +    steps:
-
-[ ... ]
-
-> +      - name: Set up ROCm environment
-> +        run: |
-> +          echo "ROCM_PATH=3D/opt/rocm" >> $GITHUB_ENV
-> +          echo "/opt/rocm/bin" >> $GITHUB_PATH
-> +
-> +      - name: Run autogen.sh
-> +        run: ./autogen.sh
-> +
-> +      - name: Configure the build
-> +        run: |
-> +          ./configure --enable-rocm --enable-rocm-dmabuf \
-> +                      --with-rocm=3D"$ROCM_PATH"
-> +
-> +      - name: Build perftest
-> +        run: make
-
-[Severity: Medium]
-In .github/workflows/ubuntu24_04_rocm7_2.yaml, jobs.build.strategy.matrix
-defines rocm_arch with gfx950 and gfx1250, and the commit message notes that
-this tests compilation across both Instinct generations.
-
-However, ${{ matrix.rocm_arch }} is only referenced in the job display name
-and is never exported to the environment or passed to ./configure or make in
-jobs.build.steps.
-
-Since GitHub Actions does not automatically export matrix variables into run
-steps, won't both legs of the matrix run identical builds without targeting
-either gfx950 or gfx1250?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261104155023.2507=
-06-1-sbates@raithlin.com?part=3D1
+diff --git a/MAINTAINERS b/MAINTAINERS
+index c24144478..34902a130 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -30069,6 +30069,15 @@ S:	Maintained
+ F:	Documentation/input/devices/yealink.rst
+ F:	drivers/input/misc/yealink.*
+ 
++YUNSILICON XSC DRIVERS
++M:	Honggang Wei <weihg@yunsilicon.com>
++M:	Xin Tian <tianx@yunsilicon.com>
++L:	netdev@vger.kernel.org
++L:	linux-rdma@vger.kernel.org
++S:	Maintained
++F:	drivers/infiniband/hw/xsc
++F:	drivers/net/ethernet/yunsilicon/xsc
++
+ ZD1211RW WIRELESS DRIVER
+ L:	linux-wireless@vger.kernel.org
+ S:	Orphan
+-- 
+2.18.4
