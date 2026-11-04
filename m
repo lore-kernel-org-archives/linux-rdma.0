@@ -1,67 +1,63 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.127.231.36
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.127.231.28
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793792427;
-	b=MZ1HeBXKpPfCRTRwdaU0bDCRvhS/RO+7DCEWsP0LFVqeR6+HgfI4r5OMMQVNSmK1JRpk
-	 sVYIWdGBpGv9lXSSB1sXG4mPwOZ822E4n/B2+wuYiRtX6+Gh/KHqFTa/oT7J/7FjWz39D
-	 ZXk9C50vxt9MmKL8NhOgQD6eaWsyXp7g5LjGlw6wwWS7xl4C5Jjd1GGx45jRT1vVu0Ly+
-	 ykh39UfdfRhSoZcz1cjWh2G0aHTfJtgUxZynAD6XsxtJayjREjpxMSQX94e5N0+3HkqPk
-	 r3Tqr6hhagQS7mralHbeIlyZH8ocGEvK2HaaiaHMS6jVHJE1pLLWHWz5IoxMIrOyhSw==
+	t=1793792631;
+	b=Rt2ONhgA0G88nNNNvcn4MyQ+EbxA20WE5ZI7ZBcIvVYHi7zSJKfTeyUqgmLKxT95w2Ro
+	 fpYXKjBkAxYrh4qWCVO9ynyCVUyx4vpBmLFBmXO4Gu9unuAUpzwXpVnGj45JFBrJhymfq
+	 UdkhvUi42eZCSY3+zWOzxD3PBblVHr+AuQ2Hxrd11+FQvqPDyH3bSaEKD26Y4ioJeReG4
+	 eJNWLrsf4lf7aJadws7kTrb2TsXjkLmA7rDnXqV1f2H9I8xZRwsgz8GtLLsRl6tqSz/+9
+	 qL/r8hrGFWaLG28z2McQSeTUUQHQTmOWuKGXlaRfjgssVlg1KadKm1iHY0VWJjiF4IQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793792427;
-	h=DMARC-Filter:DKIM-Signature:Message-Id:Received:References:
-	 X-Lms-Return-Path:From:Subject:Date:User-Agent:
-	 Content-Transfer-Encoding:In-Reply-To:Content-Type:X-Original-From:To:
-	 Cc:Mime-Version;
-	bh=pPsOd91eue55DvpTTpIkJaM1e+sIzdW80J0vYdNAO4k=;
-	b=u0SCqakagawiEH4M75jEEuhpn+7ZdKp+7B1MU5Z1+7kcFDE5oABPHCDAw2S2O6yqvck8
-	 sL97Bp3Fa0FlH1EBpez+P9IUQVHTtVfKvlvk+/RaYV0HXzVs6V2RtLxJb+PEzCFJEK412
-	 aYutpN8XGPJs5EXxInjTsoF7gXKaYHTBp+EpJUYpDLjxEU3O5JKXs07l43Pm7RlMKr0Li
-	 sWrn9E8PM4PL9nO502Io6SQ9tJFzHGT4ih36CjQlLXd21Cyyz9xmis3BH4/g9HnEDWOV2
-	 RAh41HZk81vLy+exdtKFAEG/nrrQAX7xeSRh1QdjJRJ+OGpNULdtaV6HDE4VljTMIag==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793792631;
+	h=DMARC-Filter:DKIM-Signature:Message-Id:To:Received:References:From:
+	 Date:Content-Type:In-Reply-To:Content-Transfer-Encoding:
+	 X-Original-From:Cc:Mime-Version:X-Lms-Return-Path:User-Agent:Subject;
+	bh=9nOS00/4oT0JM3BaBnrKdFTphpzGiSyZVFHCo5yrkhs=;
+	b=FnpsvlcntNmrTCFUIYrQCX/7CHL4BWA4vqyHocV51aGYEfs5OXfLahLR9aGbA1zhn/jQ
+	 pyebE7OndBHOdk/nRWnlarRazyiXnPhcNXCNwApNCZzB7JO27GzVhSr5qtRTIhYclf80S
+	 pkLWJdo2q2Ab5fkH5hrU3R2UZVYH6BnE4n8XnXxOfTsGHdv05q60yv6RIa50CND0TottL
+	 jPxyjNKhvxMg2fgf5XX95vAV8d42Lpkq71ymr9jb1IY8q2KDrH8nAkNvz1eRfOD0oFTA+
+	 NqlED0KX28UByzCqDi3x7z8N1NWzY2KspGEnC1fUmRAXaiIdDIEX1ErdGRhbbFg1idg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=yunsilicon.com;
 	spf=pass smtp.mailfrom=yunsilicon.com;
-	dkim=pass header.d=yunsilicon.com header.i=@yunsilicon.com header.a=rsa-sha256 header.s=feishu2403070942 header.b=HDzLbzH1;
-	arc=none smtp.remote-ip=209.127.231.36
-Received: from va-2-36.ptr.blmpb.com (va-2-36.ptr.blmpb.com [209.127.231.36])
+	dkim=pass header.d=yunsilicon.com header.i=@yunsilicon.com header.a=rsa-sha256 header.s=feishu2403070942 header.b="MtK/nnnj";
+	arc=none smtp.remote-ip=209.127.231.28
+Received: from va-2-28.ptr.blmpb.com (va-2-28.ptr.blmpb.com [209.127.231.28])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 657E8606A326
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 11:40:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 657E8606A326
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DF0C606A330
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 11:43:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3DF0C606A330
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yunsilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yunsilicon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=yunsilicon.com header.i=@yunsilicon.com header.a=rsa-sha256 header.s=feishu2403070942 header.b=HDzLbzH1
+	dkim=pass (2048-bit key, unprotected) header.d=yunsilicon.com header.i=@yunsilicon.com header.a=rsa-sha256 header.s=feishu2403070942 header.b=MtK/nnnj
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
- s=feishu2403070942; d=yunsilicon.com; t=1793792421; h=from:subject:
+ s=feishu2403070942; d=yunsilicon.com; t=1793792626; h=from:subject:
  mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
  mime-version:in-reply-to:message-id;
- bh=pPsOd91eue55DvpTTpIkJaM1e+sIzdW80J0vYdNAO4k=;
- b=HDzLbzH1CGbklSWoIPIQCsDnnq06UZAZKuSmKt3YDJH38gLB5kVOCf9QDEPl9IsiLA1F6K
- taPOduA/EpHBt35OgL0LEx9N3fBzvyFW0LWclogLaRRhceiXENVI3LEHrTvh57Tm5NIEP/
- vtZHR6eA1Vr42mn9sFBpDR93YZ6QwxuB9aRqpifxhY4GxmDRHtV1iM24fY0HgKiW2RLWIn
- C9FbcBdjmPJgYf40y3NzKiQ6aDWHqsUoGlz3zGrhgrxLcaKDSH+6A/oxg7nJmSvhkdACif
- uJeys8fao+axh+3rulPua3yDvkG9/dif6gmf2E4+8PeWre9rnjEF6tmxoVPuEw==
-Message-Id: <e3354620-abb4-4584-80d2-0251a0d49d10@yunsilicon.com>
-Received: from [127.0.0.1] ([180.152.18.210]) by smtp.feishu.cn with ESMTPS; Wed, 04 Nov 2026 19:40:18 +0800
-References: <20261012114352.2471317-1-tianx@yunsilicon.com> <20261012114356.2471317-4-tianx@yunsilicon.com> <47c82da8-99cd-ec81-f264-d270fef057ee@hisilicon.com>
-X-Lms-Return-Path: <lba+26aeb19a3+759116+vger.kernel.org+tianx@yunsilicon.com>
-From: "Xin Tian" <tianx@yunsilicon.com>
-Subject: Re: [PATCH 03/15] yunsilicon: add the command queue
-Date: Wed, 4 Nov 2026 19:40:17 +0800
-User-Agent: Mozilla Thunderbird
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <47c82da8-99cd-ec81-f264-d270fef057ee@hisilicon.com>
-Content-Type: text/plain; charset=UTF-8
-X-Original-From: Xin Tian <tianx@yunsilicon.com>
+ bh=9nOS00/4oT0JM3BaBnrKdFTphpzGiSyZVFHCo5yrkhs=;
+ b=MtK/nnnjbdaeOpcgGZO4J+1NB9HjOGugK+u/DR3v3usbabbH0Xxcn4c4bnBKwyWeGfgy8d
+ 3DaObYDhWS4Dnd5B+ysAaWCtSkOdS/dDNOH9JCL40JqwSbEZ3Ez5bcD2zSxXSWY6P8MnL3
+ LOv+ElHS2IpQWjhg+r9/gPtXukk4NCeeIAnQxi/wsSrVskM8KfaVlH5m2MBk3xWXOvS8Or
+ XkIE6/PacORfaalQadAmCunVLAsnPsV/NmZCINe4aH24vCCPe+zZesv8zrNvdMe0MELm+4
+ hgI9J/2N/UFSF+8kcon3UutnPRf1tlLDdJaqSND0+8yjJ80S7OKDZFk9WnzIEw==
+Message-Id: <e63df858-d9f6-4d1c-8802-9a8b83c9f904@yunsilicon.com>
 To: "Junxian Huang" <huangjunxian6@hisilicon.com>, 
 	"Andrew Lunn" <andrew+netdev@lunn.ch>, 
 	"David S. Miller" <davem@davemloft.net>, 
 	"Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>, 
 	"Paolo Abeni" <pabeni@redhat.com>, "Jason Gunthorpe" <jgg@ziepe.ca>, 
 	"Leon Romanovsky" <leon@kernel.org>
+Received: from [127.0.0.1] ([180.152.18.210]) by smtp.feishu.cn with ESMTPS; Wed, 04 Nov 2026 19:43:43 +0800
+References: <20261012114352.2471317-1-tianx@yunsilicon.com> <20261012114356.2471317-4-tianx@yunsilicon.com> <47c82da8-99cd-ec81-f264-d270fef057ee@hisilicon.com>
+From: "Xin Tian" <tianx@yunsilicon.com>
+Date: Wed, 4 Nov 2026 19:43:42 +0800
+Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <47c82da8-99cd-ec81-f264-d270fef057ee@hisilicon.com>
+Content-Transfer-Encoding: quoted-printable
+X-Original-From: Xin Tian <tianx@yunsilicon.com>
 Cc: <weihg@yunsilicon.com>, <linux-kernel@vger.kernel.org>, 
 	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -73,6 +69,9 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 Mime-Version: 1.0
+X-Lms-Return-Path: <lba+26aeb1a70+954ab2+vger.kernel.org+tianx@yunsilicon.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 03/15] yunsilicon: add the command queue
 
 On 10/13/2026 11:11 AM, Junxian Huang wrote:
 >
@@ -118,13 +117,14 @@ t/ethernet/yunsilicon/xsc/pci/cmdq.c
 >> + * Copyright (c) 2021-2026, Shanghai Yunsilicon Technology Co., Ltd.
 >> + * All rights reserved.
 >> + * Copyright (c) 2013-2016, Mellanox Technologies. All rights reserved.
+> Why Mellanox?
+
 Hi Junxian,
 
-All ten are fixed in v1, which I'll post shortly.
-> Why Mellanox?
 This is intentional=E2=80=94the code is derived from the Mellanox driver, a=
 s Leon
 noted. I'll keep it as is.
+
 >> + */
 >> +
 >> +#include <linux/module.h>
@@ -192,8 +192,12 @@ noted. I'll keep it as is.
 > One line function is unnecessary.
 >
 > Junxian
+
 Fixed in v1.
 
 Thanks,
 Xin Tian
+
+
+>
 >> +}
