@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793812432;
-	b=qupYV9dcTx6gh8T4KceQwGbmq+3XzkoviXkUMygAgfI7w/TnklgTkuvsnpB7IZuEAgnG
-	 PvCpRAZniFGygHk52yfpQHF+3cQe6Hr4/WBYi9cgnhHYBQDHgrzLH5IgmsBMvQhXMqo69
-	 lBI5K/RqqCZ1kOgi9wBCfgWZmr4KMdZRmVlY1nH1UcMbHCTH/GMcJA3X8raDzGPzuy8Es
-	 y8b/r3twetVvbSoFNzdWk2k8yyErQj9D67g5bMTDWrtdF00E5EUyPZtO3YVf2yMITdd8b
-	 irjeMES9maJuG/wE8fCS1b+TZwBoq13k3yaHZIb/izVEHJyLhabnS1mSdd5HhzNhG9A==
+	t=1793812433;
+	b=L4b4J5v3kg0hlDWa9BDRgZCI33RbvTqwgM6FUYA63sjzUh8jSqsYNF8EwfBguibQlBSy
+	 7Lp7F/BmNz1LGu2rzRuhXCRr65IdOtSDV+NwgNVmICWz2Ro8DxDUdm0yRHYrzyCD5kV7E
+	 A6c1B8uZGBC/b3QGkVgT7H3Dis+rMJ98VqFY5qhLsAHNfXDLbf9S5ZOkIoVfrL/EIq/sW
+	 Y3srRvjit7Fib1+BxVSAq0mHcOfducGdPEBXyyegkuf/Rm00s2gQOSbVMiUa6r0oQ/fJV
+	 ePZD5gb0TNdrxxiawb6BUWJZPVBy4Unwh7amLmZWTmXPyQr/vb2MRpSswKxhDkHeZZQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793812432;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793812433;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=w41RWmta+nC17ij7ogpDOrMMKRLEDscz1xet2H3UYdI=;
-	b=pH8xqmCzDK+DUY32A6093TCw90/xQqYzP6xbv0i9FnaMHS/TyLRNszOWQMxMQwL8YtRr
-	 bl1s+8s5CrQ6iMDXDTjjN9zZ2REBqQeW4PRSbNbMuDyjkoPh89rr9OSybnkoYgY1EUzic
-	 Tb19qC3Ea5tKkX27+eSsEkRyb77TDuwRlPgB2h1cvfn3Ez7ITo1owVdm7pc+JnlXP54ck
-	 Sykxr8NWJ3q+0PjjToWRq6fDWuikAux5qjWotyHDWu9s5PA2IQrz+brcGcfhWltXoQfMk
-	 /od31dxWXNUNUtuyJHV6Buqd+elOr+dk0/7TDGtHP7hWT+AUV88cQVLyLiyQzKgR4jQ==
+	bh=eaVcmsC6mBAwPwh/4ik5DZ3ikYihldyYHFOk8ce0uFQ=;
+	b=0qQQLZfAIvKEDWzarAWzNlVkuVcWkIilYYNFqupHXYSGg7GbuOitOrVwi02YsQJeSbzr
+	 7xtLryuuQy7J3g7wMCcHhuNVULEFdOLB9ufyMqvoJqL4GVNUrrq80ZQxVyom+7TVOacoE
+	 vpUKeBVvWqr+i+CDyGTkxHDnEMYomhjAbSm6sjTQsIw0f6h0ZIcs6SsPer8ZrFLtH8IfL
+	 DTHFGUVyffaLngHoAnXbHfz7SGn8YlgZliD3YTbjvcwhbWuY8ZIqWBxGFzqsmO7qTV93T
+	 7n4H8le1LIckpYcLH9lFH/ZPiCq1jbe43A4VlYUPKV6OsoJlVwaTWFiEXrZ5I9ott/A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VqReGfXC;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XEstyVbu;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51AF4606A33E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E91B5606A334
 	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 17:13:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VqReGfXC
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 093BA1F00A1A;
-	Wed,  4 Nov 2026 17:13:51 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XEstyVbu
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A174A1F000C1;
+	Wed,  4 Nov 2026 17:13:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1793812432;
-	bh=w41RWmta+nC17ij7ogpDOrMMKRLEDscz1xet2H3UYdI=;
+	bh=eaVcmsC6mBAwPwh/4ik5DZ3ikYihldyYHFOk8ce0uFQ=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=VqReGfXCDkVUJz06D1O5r0dBUdscaQhVBFXagk2IW4tNczBaYWNW89cxVVwq2fyq5
-	 eNFEPQk5N4ZSqJJJe6nMvBMpWEHDr0tGQ2j3Lhq2dd3kXxV+vZbbFTgIYcamPCjemQ
-	 qXsaDJZV9qdzwBBCfgOfK2A5XOblmxxoFPGHVwN4uVi5J9EZriyFRtZnB4eE634jyj
-	 Jj6mSJseV4BUSVckmGxGiz2fBqWrpX09UI2waNtSORrojjGI+L6jECc7MT0cHNXcrh
-	 aW5l/SPbVbTAMUyflyHpfZ07c4NF6aFaumLUlBafeG3zWMgBBmuc5Vsi3gXAOuc4/R
-	 soXtHHRY2tEqg==
-Message-ID: <sashiko-outbox-197741@kernel.org>
+	b=XEstyVbuhIZWZR2/i10WmO35XByVjHE/2KyMOMuP17RJvCXxlIRM0h0EsJjOke3FL
+	 yOp4MVQAgfUAfzrjtLQQ7UjKP6hzOem2sMA5Oynr4PzVfQi7N/6U5JPdePbbvpQQ/S
+	 e6N9g4qsmHgdjOrCPUP2rjCgRZO4zCETLaApUgfiy1FVifmvspHePzcw9eni13rmtG
+	 ZYkVVZO6EjKJRbkYAEsOBo4h7/DEnwb5L6YlQZIttY9VdwwYjVN7GcADl7TjlCvuWQ
+	 5vxyVgfxuOuJS3I6bgjRj9gKJmAMPyQlNMeBbkT0a+xZKUeBCfYE0LRkbsGemDyh53
+	 2O9U4PTSWDIcA==
+Message-ID: <sashiko-outbox-197742@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next 14/15] net/mlx5e: Register eswitch-manager
- VF/SF self-port with switch-id
+Subject: Re: [PATCH net-next 15/15] net/mlx5: LAG, enable LAG over functions
+ that do not represent a physical port
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261103171009.563034-15-tariqt@nvidia.com>
+In-Reply-To: <20261103171009.563034-16-tariqt@nvidia.com>
 References: <20261103171009.563034-1-tariqt@nvidia.com>
- <20261103171009.563034-15-tariqt@nvidia.com>
+ <20261103171009.563034-16-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 04 Nov 2026 17:13:51 +0000
+Date: Wed, 04 Nov 2026 17:13:52 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,57 +63,64 @@ Precedence: list
 
 Thank you for your contribution! Sashiko AI review found 1 potential issue(=
 s) to consider:
-- [Low] net/mlx5e: duplicated switch_id setup in mlx5e_devlink_port_registe=
-r()
+- [Medium] net/mlx5: LAG, empty debugfs member list in members_show() for v=
+irt_lag
 --
 
-commit 54a79d65d3221b87550e0050ec06b1b9389a1a13
+commit a1292895cfa07137f4fbbaafed6d7e85d7e486bc
 Author: Shay Drory <shayd@nvidia.com>
 
-net/mlx5e: Register eswitch-manager VF/SF self-port with switch-id
+net/mlx5: LAG, enable LAG over functions that do not represent a physical p=
+ort
 
-This commit populates attrs.switch_id from the system image GUID when
-registering a non-PF eswitch manager's self-port so that its uplink netdev
-exposes a phys_switch_id matching its managed representors.
+This commit enables LAG over virtual functions (VFs/SFs) sitting behind a
+multi_uplink_eswitch that do not represent a physical port. It skips setting
+MLX5_LAG_XA_MARK_PORT on these functions, avoids registering the netdev
+notifier or adding netdevs, and reports at least one port in
+mlx5_lag_get_num_ports().
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/devlink.c b/drive=
-rs/net/ethernet/mellanox/mlx5/core/en/devlink.c
-> index 8818f65d1fbc4..79adb1ecc4506 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/devlink.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/devlink.c
-> @@ -63,6 +63,11 @@ int mlx5e_devlink_port_register(struct mlx5e_dev *mlx5=
-e_dev,
->  		dl_port_index =3D mlx5_esw_vport_to_devlink_port_index(mdev,
->  								     MLX5_VPORT_UPLINK);
->  	} else {
-> +		if (MLX5_ESWITCH_MANAGER(mdev)) {
-> +			mlx5e_devlink_get_port_parent_id(mdev, &ppid);
-> +			memcpy(attrs.switch_id.id, ppid.id, ppid.id_len);
-> +			attrs.switch_id.id_len =3D ppid.id_len;
-> +		}
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/=
+net/ethernet/mellanox/mlx5/core/lag/lag.c
+> index 4e15e16ae6e84..5532b2505161c 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
 
-[Severity: Low]
-This isn't a bug, but in drivers/net/ethernet/mellanox/mlx5/core/en/devlink=
-.c,
-mlx5e_devlink_port_register() already has the exact same
-MLX5_ESWITCH_MANAGER(mdev) block in the mlx5_core_is_pf(mdev) branch:
+[ ... ]
 
-	if (mlx5_core_is_pf(mdev)) {
-		attrs.flavour =3D DEVLINK_PORT_FLAVOUR_PHYSICAL;
-		attrs.phys.port_number =3D mlx5_get_dev_index(mdev);
-		if (MLX5_ESWITCH_MANAGER(mdev)) {
-			mlx5e_devlink_get_port_parent_id(mdev, &ppid);
-			memcpy(attrs.switch_id.id, ppid.id, ppid.id_len);
-			attrs.switch_id.id_len =3D ppid.id_len;
-		}
-		dl_port_index =3D mlx5_esw_vport_to_devlink_port_index(mdev,
-								     MLX5_VPORT_UPLINK);
-	}
+> @@ -2399,7 +2402,7 @@ int mlx5_ldev_add_mdev(struct mlx5_lag *ldev,
+>  	fn->group_id =3D group_id;
+>  	dev->priv.lag =3D ldev;
+> =20
+> -	if (group_id)
+> +	if (group_id || ldev->virt_lag)
+>  		return 0;
+> =20
+>  	xa_set_mark(&ldev->fns, idx, MLX5_LAG_XA_MARK_PORT);
 
-Since attrs.switch_id is independent of the flavour-specific union in struct
-devlink_port_attrs, could the MLX5_ESWITCH_MANAGER(mdev) check be moved
-outside the if/else statement to avoid duplicating it in both branches?
+[Severity: Medium]
+When a virt_lag device is added in mlx5_lag_add_mdev(), it registers the lag
+debugfs entries via mlx5_ldev_add_debugfs(), including the members file bac=
+ked
+by members_show().
+
+Since mlx5_ldev_add_mdev() returns early when ldev->virt_lag is set before
+marking the xarray entry with MLX5_LAG_XA_MARK_PORT, no member in ldev->fns
+has the port mark. However, members_show() iterates with mlx5_ldev_for_each=
+(),
+which uses MLX5_LAG_FILTER_PORTS:
+
+drivers/net/ethernet/mellanox/mlx5/core/lag/debugfs.c:members_show() {
+	ldev =3D mlx5_lag_dev(dev);
+	mutex_lock(&ldev->lock);
+	mlx5_ldev_for_each(i, 0, ldev)
+		seq_printf(file, "%s\n",
+			   dev_name(mlx5_lag_fn(ldev, i)->dev->device));
+	mutex_unlock(&ldev->lock);
+}
+
+Won't reading the lag/members debugfs file on a virt_lag device always
+produce empty output?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261103171009.5630=
-34-1-tariqt@nvidia.com?part=3D14
+34-1-tariqt@nvidia.com?part=3D15
