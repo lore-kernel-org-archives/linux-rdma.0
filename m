@@ -1,57 +1,59 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793785879;
-	b=2QWFBzyVq8H+QqcTbaVnR9lMxWI87EVKwqnoJw/Qo5l+JsVInZAsKqwkjd81L+sn/jAc
-	 LpJ7Hxvr2Dd3K1hE4+l+BK9El9akLj+rZGD8f4JRO5o3u29sY2iLIautSAW/vm1TRHx6G
-	 DbAB707RKWt0DZ+KAd78aMXfHZBJqS8Hr2lZ+Nq0t8g1tu1UxRTf011uNoM+6aqkyYMhd
-	 gdOYuF/TB13MdgPtV6kKMxKJbluXZu8NNcLtaHCQ7fJ9iMzVXCHKsidfzDd61/tnbg1hz
-	 W35lf7US9L7onE6OckpgEo6UvFwFht4NbVwP6Vm7V5WR6aiQB+5EL/ln5DCFPaa8idQ==
+	t=1793786068;
+	b=zUmthn4QBZGWYl7vo8Rf5dn/VDLfuZbrtvzXQdp2clQd6YsgJY+mthjSvZePggafhyST
+	 f4vRBkWzdj3sRlAn9SWwbkIEPTPsY1j0HNkBcAYag7VTUaUNUekH+nb8e7ynpmv4j4PRn
+	 EGnHpjLyHDNWf606Pwnl0NAD4K7gSfKpFwQ3QmA8U4MKijCJh1UWABOvab1cIAsXbH+i0
+	 VmCjxHOx/KXwHgOUxKY8J2fBZ/c6554c/Jixn3aVWowAbPb+QVbrLnMtNxq5ZaIi7pKuS
+	 s+jdwKsFQgfJiuEV9ydBuqbydz5CY2v1iFRQTQbCeSvc6gqTPGJ3Y85ENPXbiU4wLAA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793785879;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793786068;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:
 	 Content-Transfer-Encoding:In-Reply-To;
-	bh=dIJPIwpES90xQ7z49M+pmvTQt1ecupVvISf5T2Czb5Y=;
-	b=sMtX64GqZrF0zBMLESmqNKHBURCFUzZWn8QsP42dF3gHHnjvVxRdXSEpLho7HIIP9zF6
-	 7+e7ctfgQk0omW4iw3x75pEtJBo0Qj+hr+MuEuUtlJGd+Tuwq22kYwAOCngXwRQ8KaZIm
-	 KxRaUmDThfJQSKwB3hxjIecrG68AZdbC+vMQ4ru5zQ5wRvnRgTHxXSRNonjsk2a2zW93R
-	 q9WQ2ruqBYb7qGCV53FZJUHNOMasbGfSjDiVkkZLI4axfQ/VhYgt5jeoA7381Yqfpdzm4
-	 v/84yhs+fySdaVQaYJf+YqF+GcevZJCMTGUUzRMmC6X5enFnY+xMKNidfuA+Zmz3DRw==
+	bh=UujO1dehyrQlC7jK+eEtk1MAPSYkYaYdKMh0bnJv77E=;
+	b=wuo2VoS/UVe5xOT/cgQWaPhP5ZX76AnKOsl4cZNaxgwN1vR+xK84+0ASOfLy4r49J+jQ
+	 PvLLpnMYfPVQrn7KTQ1DQDdLEqscdl2Sg6oB83ZDW+8XWslsJ66Qh7iyfzqcpZh9qcQf1
+	 ZHCtrRY1quUymUpWZT48JZch4yAi+IjA4WFpxTf8XsbvBR8xN/IRP6QeSRR4BXvTL4hF5
+	 lBHlp+om4cS5kM1Dkk8yZVS+8s7wX1BE1ax8kJzB/C+jy0ZU6LftNnMoVDPOCfJLMdyXS
+	 Tnl9+oaVB8/BGIk8YnHkaSsZVhK+MljTIOjWgh/y2DZ3kGusujASIGFYQKJVgzFBl/Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OV74+N7H;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=U73OeWfY;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3713A606A329;
-	Wed,  4 Nov 2026 09:51:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 244C8606A31B;
+	Wed,  4 Nov 2026 09:54:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OV74+N7H
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 030221F000C1;
-	Wed,  4 Nov 2026 09:51:17 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=U73OeWfY
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15FDA1F000C1;
+	Wed,  4 Nov 2026 09:54:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793785878;
-	bh=dIJPIwpES90xQ7z49M+pmvTQt1ecupVvISf5T2Czb5Y=;
+	s=k20260515; t=1793786067;
+	bh=UujO1dehyrQlC7jK+eEtk1MAPSYkYaYdKMh0bnJv77E=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=OV74+N7H0RV2l2wsoUAH0hCrWXUHCfKreWP48tvbQPx5krnWLkNRFmGq6HeXtLrZz
-	 yR3BzbghqIX4566t5bCxLuRxIg/uq7vMAD5cNyWjQmzOZS2yZhAiua7INoEo7oZloa
-	 tSBWnwa8z+ICXq1T2Nbe3RrgGOhZGd+Hq5syEZfmNhW3pmLe1iXXYJ6UJ9vW3XeHuo
-	 6+5gCVlnDltXroozfOIoT+jGmW1Hbc5jENTOn/yvEqmyG8bWPh5IOtVUnZndHKjNwS
-	 xwdRj39CtRts1OXiS4soxkVPvGAdHE7xMQiw5/ah03tn526gU92MunaLWKNRul3c3V
-	 +uzQGb96nABGQ==
-Date: Wed, 4 Nov 2026 11:51:14 +0200
+	b=U73OeWfY2Kz7OJYEknsAwqkM8Lylw1SMu3ly2K1TjmTkwkIzk9+b4o4iCF4yTsaIr
+	 Ld18JDKF/js9QMB6DV7fsk09G5YkTkoE3s7Ywee9EtH5VM4qtSqtv+U64vF2sAOWfo
+	 8DupwOnIV/8TX+58LWAB9oHWyrcAsZDAIf9+TfCCaCkccWHlxgrvv1ZwJTmeC5NAHW
+	 wzE5B+yu5TEmAJOEE32njxrAbnKOQUiSq6mrATes7+33iPNNctDQaciJw4jc57vbZe
+	 jHj2OPWjcru/Uyo7GEFdUsJhBSxJwl1m7DXm47Ozu8cCOdWlwvoIOvlMoicHpiq0VW
+	 GYtQG4ULk5PKQ==
+Date: Wed, 4 Nov 2026 11:54:24 +0200
 From: Leon Romanovsky <leon@kernel.org>
-To: Yuqiang Sun <izaiahsun@gmail.com>
-Cc: haris.iqbal@ionos.com, jinpu.wang@ionos.com, jgg@ziepe.ca,
-	guoqing.jiang@linux.dev, lgs201920130244@gmail.com,
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Doug Ledford <doug.ledford@hpe.com>,
+	Slingshot Open Source Team <slingshot-os-team@groups.ext.hpe.com>,
 	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH 1/3] RDMA/rtrs-srv: Do not free the path on path file
- creation failure
-Message-ID: <20261104095114.GB478286@unreal>
-References: <20261103122024.GG264423@unreal>
- <20261103134939.55513-1-izaiahsun@gmail.com>
+	Iraimani P <iraimani.pavadai@hpe.com>,
+	Mamila Santosh <santosh-kumar.mamila@hpe.com>
+Subject: Re: [PATCH 00/11] Subject: [PATCH for-next 00/11] RDMA/cxi: add the
+ HPE Cassini verbs driver
+Message-ID: <20261104095424.GC478286@unreal>
+References: <20261030-cxi-for-next-v1-0-bc6e49e07037@hpe.com>
+ <20261103142826.GJ264423@unreal>
+ <20261103143004.GJ3889730@ziepe.ca>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -64,71 +66,46 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20261103134939.55513-1-izaiahsun@gmail.com>
+In-Reply-To: <20261103143004.GJ3889730@ziepe.ca>
 
-On Tue, Nov 03, 2026 at 09:49:39PM +0800, Yuqiang Sun wrote:
-> On Tue, Nov 03, 2026 at 02:20:24PM +0200, Leon Romanovsky wrote:
-> > Interesting claim. How did you trigger the KASAN warning in the RDMA ULP?
+On Tue, Nov 03, 2026 at 10:30:04AM -0400, Jason Gunthorpe wrote:
+> On Tue, Nov 03, 2026 at 04:28:26PM +0200, Leon Romanovsky wrote:
+> > On Fri, Oct 30, 2026 at 09:35:28PM -0700, Doug Ledford wrote:
+> > > This series adds cxiverbs, an RDMA driver for the HPE Slingshot Cassini
+> > > NIC. It exposes the NIC through the verbs API using the UET reliable
+> > > unconnected (RU) queue pair type from the UET RDMA core series.
+> > > 
+> > > cxiverbs does not drive the hardware itself. It is an auxiliary bus
+> > > client of the cxi-ss1 Cassini core driver and does everything through
+> > > that driver's exported CXI interface.
+> > 
+> > <...>
+> > 
+> > > Before posting, the series was reviewed with the Sashiko AI code
+> > > review tool and checkpatch. All valid findings are fixed, except the
+> > > open items listed above.
+> > 
+> > <...>
+> > 
+> > > ---
+> > > base-commit: 306a2f8432f516069b2e673de7a07043132c034f
+> > 
+> > Sashiko failed to apply this series as this base-commit doesn't exist.
+> > ➜  kernel git:(wip/leon-for-rc) git show 306a2f8432f516069b2e673de7a07043132c034f
+> > fatal: bad object 306a2f8432f516069b2e673de7a07043132c034f
+> > 
+> > https://sashiko.dev/#/patchset/20261030-cxi-for-next-v1-0-bc6e49e07037@hpe.com
+> > 
+> > Please make sure that upstream sashiko runs on it too.
 > 
-> With soft-RoCE in a KVM guest, with both ends of rtrs in the same guest,
-> and failslab standing in for an allocation failure:
-> 
-> - Kernel: rdma for-next c3e8e9451e6f, x86_64, with KASAN, RDMA_RXE,
->   INFINIBAND_RTRS_CLIENT/SERVER, BLK_DEV_RNBD_CLIENT/SERVER, BLK_DEV_RAM,
->   FAILSLAB and FAULT_INJECTION_STACKTRACE_FILTER, all built in.
-> - In the guest: "rdma link add rxe0 type rxe netdev eth0", then failslab
->   is limited to call stacks through rtrs_srv_create_path_files()
->   (require-start/require-end set to its range from /proc/kallsyms,
->   stacktrace-depth 32, probability 100, times 1, interval N), and /dev/ram0
->   is mapped through the rnbd client:
->   echo "sessname=s1 path=ip:10.0.2.15 device_path=/dev/ram0" \
->        > /sys/class/rnbd-client/ctl/map_device
-> - The server handles the client's info request in its completion worker,
->   in rtrs_srv_info_req_done(). With N chosen so that the failing
->   allocation is the one in kobject_init_and_add() of srv_path->kobj,
->   rtrs_srv_create_path_files() fails, its kobject_put() frees srv_path
->   through rtrs_srv_release(), and process_info_req() and
->   rtrs_srv_info_req_done() go on using it: that is the KASAN report in
->   the changelog, followed by more in rtrs_srv_close_work() and a general
->   protection fault. Failing the stats kobject instead gives reports of
->   the same kind.
-> 
-> The steps in the guest, after boot:
-> 
->   ip link set eth0 up
->   ip addr add 10.0.2.15/24 dev eth0
->   rdma link add rxe0 type rxe netdev eth0
->   f=rtrs_srv_create_path_files
->   start=$(awk -v f=$f '$3 == f {print $1; exit}' /proc/kallsyms)
->   end=$(sort /proc/kallsyms |
->         awk -v s=$start 'found && $1 != s {print $1; exit} $1 == s {found=1}')
->   F=/sys/kernel/debug/failslab
->   echo 0x$start > $F/require-start
->   echo 0x$end > $F/require-end
->   echo 32 > $F/stacktrace-depth
->   echo N > $F/task-filter
->   echo N > $F/ignore-gfp-wait
->   echo $N > $F/interval
->   echo 1 > $F/times
->   echo 2 > $F/verbose
->   echo 100 > $F/probability
->   echo "sessname=s1 path=ip:10.0.2.15 device_path=/dev/ram0" \
->        > /sys/class/rnbd-client/ctl/map_device
-> 
-> With verbose=2 failslab prints the stack of the allocation it fails, so
-> N is found by trying N=1, 2, ... until it is the one in
-> kobject_init_and_add() for srv_path->kobj (21 in our build).
-> 
-> So it needs an allocation failure while a client connects; nothing else
-> is unusual. I can send the full KASAN log, the init script and the
-> kernel config if that helps. The client that triggers patch 2's
-> use-after-free from the network by sending an empty pathname (fixed by
-> patch 3) is not public; I can send it to you privately if you want it.
+> I don't think he can, it relies on the core code series. I Don't know
+> how to instruct sashiko how to find another series to stich it
+> together
 
-No, I don't need it. I was just curious what “no RDMA hardware” means.
+This may be a radical, unheard-of suggestion, but how about merging another
+series before sending follow-ups?
 
 Thanks
 
 > 
-> Thanks,
-> Yuqiang
+> Jason
