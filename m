@@ -1,99 +1,99 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.175
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.177
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793813923;
-	b=u7b3IpUyR/b9+QzDrdseeh+RDkyLQX4Ff65+fPFdzHP1nGSdxw2ONaHrazRI/tADFd/b
-	 F1JIYrfa2nzk7IKY9353A/gf450R7GHeQKXCZzaxDCxMxpZ1TON1cixENltHEud6c3YMw
-	 8Kc2D7k/o8/ifYLyvSfjp6JDUdNQ1FJfUb6in5j30qResbDvaGM6aMUYZLSVvHoZhd2vO
-	 OWqKxcBKkg0lCSaDDYRNITnedcZ0rR6MUDAh/dkRSDNK7WAM0pw9yBXyKBNE+p0AFUA9F
-	 wl6L2amzrR/jHhn2F5HZtbR/gzBPX2qi8bKFDz01TBFNvfp5n+OVcuQBUz2/IRlpHbA==
+	t=1793814043;
+	b=SR0V1F+zfS35YNlMZYq/rxb+5bruR5Kbrc4pqOO9svlW5NfY1+Q/IMY4tJHiecQpRfYU
+	 0ZFTnY+OtycZp1RVWpt9nIB2yTFwZCqccsvjpqwI+MKHEyMKFxPsa51eMb8zR8kkMUk5C
+	 cItDkC0iq9WjQGeH2c25EDl0A9hArA+dxFBJ25dNyovPkd7nv5d9vOtXqSDtu2SKbQmx5
+	 9yIQl8SVc5M02UJ2a5XmZLNoW/bM1RDxrN6JHoDQTOElHgIdo497QsAa8wa4kDiRT5GEk
+	 bduya+flL6h1RTvvfrvyTYL2ASRT7HGqWC9uLtp/kMmqiQ12kSdhZKmKuOzXSglwlZQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793813923;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793814043;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
 	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=yl3p6kivD+pbgaW7MJkK3w3sK9j5Q+Oatf9YNzkPHuQ=;
-	b=SeS2aqCT56Rnzh0cCNbPZJIzozXh/d4DrZDJir31L0sN/uZbpbYvFoTNp9eSOW1zwiij
-	 +z5Vh6RGQVzwEH1H8VrVx4jlj2/MoWWFlCRvw0vg6XwEAYWUqpEdKJS/ezSPUpJxUh8Af
-	 o5SQqxnkKyKYi4SGd4ohzhkoFetOIlDlqbQcR3/R0ucgvtBTuTFp+KmMaLSmKOrtUBvar
-	 Ywd3SWY5SqCEWTmfUaDrYxOEkkEjBmp7Pp4jls7F67HLwY4uiE6yRzskHoJYsqKy/iA8O
-	 BYJEmAK/Wb9cODfzCVqmyZlfB5IsNj84KmEVNH3L5bNqivktZZXeoRqsr5c5uYqCAjg==
+	bh=YhtsBhvAospz3gnGs+ngXfQiCOJCp4pP7kl7qhf9OF0=;
+	b=yJKWnT0ogeIOAJEJQRAu4pPx8x3rL/vOlFRO2ty03O7spJxgt/4C5rO1JNm48nKKD493
+	 wTXYGnTzOVBzsFsNgZJKPlAlEmXERpI5kSEqyLxa95CX6OsCHBMmMyIu3UIGk3SIPUFiS
+	 p7KYesEFSkmTiXsdDXwoVewLwvKQX/2ZAwTOFUrmk4bAyvP2K1jtDQkL+vzqojdurpvME
+	 NWPErwSl55BzChffXZOohG5Gagpj3kabfEKyMdiif05ML0LSI9l1duwmPxnmfcqTykVxh
+	 fcdhjQOdQdDVaHhO8otfdsb0K5RmUMIovmfUThjZZZwVVCw3h1JkgUGlQKtWP/1cyAQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=ziepe.ca;
 	spf=pass smtp.mailfrom=ziepe.ca;
-	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=mrY8ROdm;
-	arc=none smtp.remote-ip=209.85.222.175
-Received: from mail-qk1-f175.google.com (mail-qk1-f175.google.com [209.85.222.175])
+	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=hCETnKBj;
+	arc=none smtp.remote-ip=209.85.222.177
+Received: from mail-qk1-f177.google.com (mail-qk1-f177.google.com [209.85.222.177])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CAA7606A328
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 17:38:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2CAA7606A328
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07CF8606A331
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 17:40:42 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 07CF8606A331
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=mrY8ROdm
-Received: by mail-qk1-f175.google.com with SMTP id af79cd13be357-9441591aa5cso244869485a.1
-        for <linux-rdma@vger.kernel.org>; Wed, 04 Nov 2026 09:38:42 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=hCETnKBj
+Received: by mail-qk1-f177.google.com with SMTP id af79cd13be357-943e8d35f74so92469285a.0
+        for <linux-rdma@vger.kernel.org>; Wed, 04 Nov 2026 09:40:42 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1793813921; x=1794418721; darn=vger.kernel.org;
+        d=ziepe.ca; s=google; t=1793814042; x=1794418842; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=yl3p6kivD+pbgaW7MJkK3w3sK9j5Q+Oatf9YNzkPHuQ=;
-        b=mrY8ROdmQ1U8qG1WVkHwFlUc3uGFi+mfdwhSWPL3i9Jp9h8f89iHmTdDBHaGoSb9fV
-         Qf9rVp7RKUT19nXLbySXsX1HX9ejTq1RkMbi9uctb50nDdYeaJxGrg0TKGC3n5LuHDCN
-         s/MNCqdyz7OsSy5/Xj4hUz7Xx9K8J+nT+Rgtz/TEx7hQSBym/uHrT0083IL7OdGOVSoW
-         QWTluEuJP2tc6R56IYPlBHffsnVWwQA6M5o6QgL6HcwG3w2leCaMPqVjEYBQupV7hAqq
-         SD6IF6/nTL+K1g1CWe1MCWd4YJ9zVV8/dLg6SmJyJNXdrhSgMr1A+M+/81J0lXd5xQmn
-         obNw==
+        bh=YhtsBhvAospz3gnGs+ngXfQiCOJCp4pP7kl7qhf9OF0=;
+        b=hCETnKBjmqap4TuILlk1+y/t0ff88T9bZ+dOuwmLpwI6VzqQXi+7Ew1fUV0EIAA1Oe
+         F8n5/Bs8WbP5ggdzMFDDPirWaPqIAx1iA/mDgvVJL7nQofjclhAmGbrh6dLRfzskNhB7
+         ZczB48jwVorfxwOqKyEaj0deWOyd2jxm73M/SO+t68KSEg3LRDOS8txtRYEIGFQ/wO9F
+         AFPz8T7X6Dkf0onwwvqIXu+u89B6aWxxrnvyvHPOMy6hW4tHhDs42P/YG+wJPPJAP7z5
+         +htRw9gum7ooVb0W++2j2THOtF8fcc+b/xcGhtRsZffcGxHM6VTCl/yRyTyEigEerFK4
+         CWng==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793813921; x=1794418721;
+        d=1e100.net; s=20260707; t=1793814042; x=1794418842;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=yl3p6kivD+pbgaW7MJkK3w3sK9j5Q+Oatf9YNzkPHuQ=;
-        b=FRKN1du448lgKMqv7PQrLEtxpgth2ReUeTQPFk1jqLHcz80/xVEkv/VOKJB6cEwUd3
-         EfXukN5Z1NcADaxth1CmPI9ya+QoDBQfWhbjC0OPvpWsTC+OOhkBIZXOn2urvUHRGnw4
-         KjeOGxtH5cHpVa/OHS0GtWk6vieE5e1RwJLC76zK0PqgCx8z8tg2eDkAXioMylhlE5NI
-         8XI9B4RrA7sEYDrAo/sttsU18VHeIDgL6Hl9PRkF72kIeLqRLTF6IgFFdDbZtfcT04OR
-         RXEw6GJIv5+J1qH2Jmbw/uYvnFjpNux5veVZ3k3p6505UjzQ5TSsT5yC2DdpNgTkHzej
-         tAww==
-X-Forwarded-Encrypted: i=1; AKwUvBwDUg5ilgYtHHHKeybatHiDrXPm9SNojbhP4IAd2XzxI7lb/r4TfS19AiZpuuIVmCQjYwjqCOKn9mEt@vger.kernel.org
-X-Gm-Message-State: APuU4Z9gqC8stmhLZ+C7PfYMQL3aLtxCWOscM4IngK0BbJNZVB35Rz3p
-	EhErzb8I4OsAVA5QjA0Kwq+y6S/hgri48eSKT65KrsUYiGPKh7Iw7Sy90WW7ZTsw2tkKI3eWNMi
-	wsE63
-X-Gm-Gg: AYBFou1fh72EI0Cx6Jtk3mILt9QbCgC4pxITnuUVGp2BMSKZyGwvgMiv2dqxAcxqjgs
-	GQwBnn6euuqiTonXd0n20kbw7knT6ITwG1Bq575P/sotxipgk0CJoHEPjiePpyV4FXNS1kyyTxl
-	BV0WOESmm5/bEanrKQ6xFmyqhZDHXXnY43rd81Itnn3D+gQ2BCGjQ+UoWZCyCVRqsurTBBEhkZX
-	jvIU06iwWa9SVyztBxfOIfzWqUTXxPiqplWhyI/IE/Q58EchVUBYdQwXdUgWGxB4TsDJy0MXj8T
-	kZz11CLlxStSmMLwnn501ayI7/oOwQF7cEPi1biWeAlQqXlijEfZPX7T31PUf0K6mv8hDj4SWmq
-	K+bbMiEVorxStkNPPyRGh/tOoPnKVjgBA0LCwln49T0AopRuLBipGrc+Bf+imi2PnxoLPJFlFTt
-	t5wkDN6biqQPbkbIAPI/96zuQ7/jn/ya40dLDNAriuAC8lamd95U4t8xDYT1nruwBrWTF+Sb2BW
-	43qCOsO1xAeyly38zlBMpk0fJSthDNVIaR9VsNC/huZ9gDcOqWDXDAKetOD9gWXSzknbxi9tbwJ
-	vaGlxLx4+7n5g+y+/c6LIFqVLE9pExm7A4ThCgczal0t3mQlZPN9GOwA2VOgK6xbaJV/11V5EG7
-	pKS6MT/zSdg==
-X-Received: by 2002:a05:620a:258b:b0:93c:3863:ff7f with SMTP id af79cd13be357-945e1231638mr47030585a.0.1793813921165;
-        Wed, 04 Nov 2026 09:38:41 -0800 (PST)
+        bh=YhtsBhvAospz3gnGs+ngXfQiCOJCp4pP7kl7qhf9OF0=;
+        b=M0ot9iRU/bqVG6/QngSp0fCOCPpRRl7tjazuLpdTjKBBPe2OYP4mhxzyKXr2FoIyQ3
+         /YHpA0ujFYMsFw3mTLiDkFkBNMxzEctXhp3mPFaRprgSIf5t87iXhJlKrz3uZfqnDt02
+         Y+H5dOAfc38Fi/61M/4EABGuIaaoM0bPak0oQglCZ3VSfnih7h3IDXFt5CXDBAAmSvpJ
+         Weq1w+afQKvRd6e0FkXc2oxbMYrJy1tmo0V4TuQngauzlkQ1p0RQrO49BsfWzXLe2uCx
+         tNHyzmJS7L1RPRuvSZ4keBOuZx+ItGnG3ZH0nyG19aZRPC/1dQuTlytsBQx1L+89V7Y2
+         hBug==
+X-Forwarded-Encrypted: i=1; AKwUvByb3XG0ldxJ0/cp4xHmjXS3+5WMydF/M3aAttIZl6hlpKyrQ7gdb16rlxzQzxxjVAjM6TUWzswPITT4@vger.kernel.org
+X-Gm-Message-State: APuU4Z9cr+KcMWZDcOXFvGRznyNB8OV0ZuwJxV25aeLqCQ+TBanXw/KM
+	lBd5I6CvqLt/nq+Q3c7D2cx5IMv3OPP9Gqk/P6C5HMifW3TdjLBMNbEFUK641bDxDEo=
+X-Gm-Gg: AYBFou2339JUju/zj37XB46clWI9jilDuGkssB4RSGQyzg2kkPGEhdoJWIRq9jYLTSD
+	DhJHDO6lznxCqrvkk/2k925TYJ7ZFKPiRtPuu/repkvwxhZJxlIRmPmOgfNR8gjAyJPXTdexvon
+	ghzEo06HoJK7QfQpiiIpemFj9OPsYnW3ZbmjSNiLb28RbelBJLxXwLZrz40IYYO9gE3eOQZzfWb
+	Ja90QZKnWjSzpzCE+r5ekxnJozicGpnpbAnF16bup5kXEMGD1g9J9pnrajO4tHgXCwvhqrfibrX
+	wCgWYQvyJZ2DCdzqc3jqqSl8rIM7dNFIXqz+wQkH+B7f+RN5m4OqJQjqQGfK308PoboOeQfnQbT
+	6y0C/0FUCkZALlN+MIfBQAUN8EGJ0GyHBIV1F9AHaemaDsZ9BozZW4Nw6+QEIrifNYqsggEVHPw
+	K8+l20z5JlurGK0URlOX95VL3IwEZRy99HRPf3b/b2fv+yGIDiK9pAhMCUwEByY7t5kXtqx6SRy
+	8JeVQEwhDaZavnIpj3fOSAaKleyOM8FF724A5H83mrz3BCGsj2Tmh10R8pT/iur3RiMeDGBOJKf
+	yWqKoXVJjmGdNinT0Ce0luhxlcpHo14sdQOYWqgNPDIfzIiGf7ru09qyE8cmygtSHxJiz5/sjIF
+	1mD3+y26Wyw==
+X-Received: by 2002:a05:620a:f04:b0:93e:6f65:de63 with SMTP id af79cd13be357-944217bd696mr2734997985a.47.1793814042031;
+        Wed, 04 Nov 2026 09:40:42 -0800 (PST)
 Received: from ziepe.ca (hlfxns010zw-159-2-239-150.pppoe-dynamic.high-speed.ns.bellaliant.net. [159.2.239.150])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-945d479ddb7sm249464685a.9.2026.11.04.09.38.40
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91e7dfb3aadsm24214876d6.8.2026.11.04.09.40.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Nov 2026 09:38:40 -0800 (PST)
+        Wed, 04 Nov 2026 09:40:41 -0800 (PST)
 Received: from jgg by wakko with local (Exim 4.97)
 	(envelope-from <jgg@ziepe.ca>)
-	id 1xOewa-0000000Gz0A-0aRN;
-	Wed, 04 Nov 2026 13:38:40 -0400
-Date: Wed, 4 Nov 2026 13:38:40 -0400
+	id 1xOeyX-0000000GzI9-0S67;
+	Wed, 04 Nov 2026 13:40:41 -0400
+Date: Wed, 4 Nov 2026 13:40:41 -0400
 From: Jason Gunthorpe <jgg@ziepe.ca>
-To: 0z5a <dezhen.lu@student.uni-tuebingen.de>
-Cc: leon@kernel.org, linux-rdma@vger.kernel.org,
+To: Leon Romanovsky <leon@kernel.org>
+Cc: 0z5a <dezhen.lu@student.uni-tuebingen.de>, linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Subject: Re: [PATCH rdma-rc] RDMA/mlx5: Fix DevX umem page size truncation
  for pages >= 4G
-Message-ID: <20261104173840.GX3889730@ziepe.ca>
+Message-ID: <20261104174041.GY3889730@ziepe.ca>
 References: <20261103142804.67210-1-dezhen.lu@student.uni-tuebingen.de>
+ <20261104100747.GD478286@unreal>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -105,56 +105,26 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261103142804.67210-1-dezhen.lu@student.uni-tuebingen.de>
+In-Reply-To: <20261104100747.GD478286@unreal>
 
-On Tue, Nov 03, 2026 at 03:28:04PM +0100, 0z5a wrote:
-> From: Dezhen Lu <dezhen.lu@student.uni-tuebingen.de>
-> 
-> devx_umem_find_best_pgsize() computes the page size in an unsigned long
-> but returns it as unsigned int, and devx_umem_reg_cmd_alloc() stores it
-> in an unsigned int. When the DMA mapping of the umem is contiguous and
-> aligned to 4 GiB or more, and the umem length is a multiple of that
-> size, ib_umem_find_best_pgoff() selects a page size >= 2^32. Since the
-> value is a power of two, the truncation turns it into 0 and the
-> registration fails with -EINVAL.
-> 
-> The umem log_page_size field is 5 bits wide on top of
-> MLX5_ADAPTER_PAGE_SHIFT, so the command can encode these page sizes.
-> 
-> Seen on two GH200 nodes (ConnectX-7, firmware 32.38.3056 and
-> 32.43.1014) with a dma-buf exported from cudaMalloc memory: registering
-> 4 GiB or 8 GiB umems at 4 GiB-aligned offsets of the dma-buf fails with
-> EINVAL every time, while 2 GiB umems at the same offsets and
-> ibv_reg_dmabuf_mr() of the same ranges succeed. Restricting the user
-> pgsz_bitmap to <= 2 GiB makes all of them succeed.
-> 
-> Other large physically contiguous buffers, such as a 16 GiB hugetlb
-> page on an arm64 kernel with 64K base pages, should hit the same path.
-> 
-> Use unsigned long for the page size, as commit f0c2427412b4
-> ("RDMA/mlx5: Fix page_size variable overflow") already did for the MR
-> paths.
-> 
-> The bug was found by an AI coding assistant (Claude Opus 5.5, Anthropic)
-> during an audit of 32-bit truncations of page sizes and offsets in
-> drivers/infiniband/core and drivers/infiniband/hw/mlx5. The assistant
-> also wrote the reproducer and this patch. The reproducer was run on the
-> GH200 nodes described above.
-> 
-> Fixes: 7610ab57de56 ("RDMA/mlx5: Allow larger pages in DevX umem")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Dezhen Lu <dezhen.lu@student.uni-tuebingen.de>
-> ---
+On Wed, Nov 04, 2026 at 12:07:47PM +0200, Leon Romanovsky wrote:
 
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+> Isn't this fix enough?
+> https://patch.msgid.link/r/1-v1-88303e9e509f+f7-ib_umem_types_jgg@nvidia.com
+> 15fe76e23615 ("RDMA/umem: Fix truncation for block sizes >= 4G")
 
->     - So I have not verified that CREATE_UMEM accepts log_page_size values
->       for pages >= 4 GiB. If it does not, capping pgsz_bitmap at 2^31 in
->       devx_umem_find_best_pgsize() is the alternative fix.
+No, the long AI generated commit message buried what the bug here is:
 
-It is userspace's problem to provide a correct bitmap in
-MLX5_IB_ATTR_DEVX_UMEM_REG_PGSZ_BITMAP
-for whatever it is doing. FW can reject large sizes outside what it
-supports if userspace sends the incorrect bitmap.
+> > -static unsigned int devx_umem_find_best_pgsize(struct ib_umem *umem,
+> > -					       unsigned long pgsz_bitmap)
+> > +static unsigned long devx_umem_find_best_pgsize(struct ib_umem *umem,
+> > +						unsigned long pgsz_bitmap)
+> >  {
+
+That 'int' is an integer truncation if the page size is > 4G. The
+entire page size path from the core code has to be unsigned long if
+the pgsz_bitmap is unsigned long.
+
+Similar root cause of truncate, but different code.
 
 Jason
