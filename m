@@ -1,54 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793800872;
-	b=CygOJVcXe2nE6Kz+N1IwHBmfw3ttp/m8zw6JP7P8bKPR0E+DyisrFan+K6nQLnifi2M9
-	 28B1NtingK0D3lfnWY0NwD8TzAWt+0kdPmQ5zrYyRYTSbWMKMf9RZXYIzbeECFXBZG1kS
-	 8FHCAtXrrmNH1/b61nnh7OW7LCfjwe6Xxhlox6ysp1mlwUo403Jw/xNOBxckf4DaEJIPa
-	 BhYrzddSiyjXTNWoRWadz415qYIvPpY8ppRLRN7huRhEK0GVlP9G0Fk2bL2oIio49+X6M
-	 9m53fB8dc4KhVuahSo5tlzRJ2tmRSsACh//dhY8RxM83wwFCXzExMH5PDdNfez3L4kw==
+	t=1793801173;
+	b=nVCKVli43y4IBHZlpzattUBX06e34Kgyuik1aRbiNCsHdJJcquQugpDgF+OvFbSgB1fQ
+	 lOEOlNjxwpthU0+ReiRanDoy2lWXItCrru1eHEW02GrFPfrpO7DR8EIQoRH+it1KzbQaf
+	 vNyLr83UPbDzTO73o2lmIh2C8cfKmyIcOCjOzgqub3cfahtQsyxymQFqXjKAiiroRw2DK
+	 jn/bMuRCPmy07HDv7E+tCycTJ/7Rk/XTI80zvtFsdvBW/OxGnRwZiyz2iIeF9tr9P59xw
+	 s2VZKPb+sCJD0Uc3D2x+ugTzjvLjHlN/VJKsYLevZdVmFbqno/Fzp12XpDWkJ8KhnnA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793800872;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793801173;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=m3E0Pwq7JWXvZRHGYLuObf22Ods68fAIICUagaAPPyU=;
-	b=Dh9JW0sxXgHCnsN5muaSohxB2HaHyVKr0OAWWnA0S+uHeZLHqzpc8GkNospm/S4ox34P
-	 QPKKg7cbRTGHG69Ag2Qs/X5GH+zZIfeiOe3fJgb2xEAVQ84TxXyfSAxwDbhbhF8Xi/Vgn
-	 Vf3rNl6LkaCiiq2BRtQ3MsA6ZQ5GKbcbuk3f6MVJizr240Y4G+103CxGyH1yOtpgn95Gr
-	 h+1H0osWynn0M4J0/PqTs0C4VBontjjaSPZYUvxFbWIq0xAZNBObGvbquzgqhKEjFg8iq
-	 n8MDFF+ryCZelun7/11QLw89ZnpoLl/TWAdYhzymk+Ud8DtH5T4Y/IjB5fSz0PmNIig==
+	bh=uH/6JLhT16+uh3bW5gdjq+6yXQL9dmv7OYBFAVG5ong=;
+	b=dzDqSkqY3oCP9OrH6dgkgrpiBidRFPEKHv9i9+bsXrvGXDyYlNraoei5u8tFUp6ZX8JC
+	 TigcwsG+Ti9UOPH1RJFjPE2OFZVvv6ATNP/a16w9pfwDkE3yH6d8bmVrFoZZ3TmASnabP
+	 lfacWOtnap1A7Y2ulmmI8RAVo4baFnjYCZgW7crAG/MAX9pkIiPQrO/YdZGhGOJDXQzP3
+	 T17a2ZMWZuHayvSUJs0P60G32630c5F1xDz8rS5ShBBHvRNQCqOQGf9Y5gT4pAu2SJ006
+	 fnijdYhXPO/A5pSZB1y5ruMiXHQMxVarIcBYl8pbdZegqTJ18rnVValErF1+m5sTRXQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RCashxbx;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bwj21dMA;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D9FB606A31B;
-	Wed,  4 Nov 2026 14:01:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0478606A31B;
+	Wed,  4 Nov 2026 14:06:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RCashxbx
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28C6A1F000C1;
-	Wed,  4 Nov 2026 14:01:10 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bwj21dMA
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84D1E1F00A02;
+	Wed,  4 Nov 2026 14:06:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793800872;
-	bh=m3E0Pwq7JWXvZRHGYLuObf22Ods68fAIICUagaAPPyU=;
+	s=k20260515; t=1793801172;
+	bh=uH/6JLhT16+uh3bW5gdjq+6yXQL9dmv7OYBFAVG5ong=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=RCashxbx8zOqnyaz+df0rlo0kpjhHeav/Uu/mKwBiXXO87NRzPDHT4p+OB4KJKFWe
-	 YCSZG3WJbMZwlvJ8xbXZF7qmYamgaDRY6YhasUCGMsey+1oYq/09DIdNF4gAggyi7I
-	 prJP36QcgezQkLLsFsp14Dx/eqSIg3iemdB+03VZ12vlWOcJlFtP+sGtbYX+GSJkCp
-	 PHchFzyfcqxjoXGvZ91oNI2z5Q5lYyIyX4AJ1f3TjHLIRs7910JIVkVm/mumtPU+yY
-	 wiOY+tz11pbZ5RuJWfPIkYav+noe8kbFC28zWl1ogioWgyH2uior+IKxciqsala3GD
-	 SX6sQSHbqMuTQ==
-Date: Wed, 4 Nov 2026 16:01:06 +0200
+	b=bwj21dMA2bAt5X0SBhxl1ciJ2aZjBzaohvzuvHnnQ2tDGvIHJ/RF53Qp2h1CWpMig
+	 EZp6Ph6/MTKHktLMN8c/NiEEFc4LwvljmJJksKjPB/TsLhJ8XXjzNPheYTjO0Ps0Sz
+	 esTC2l4gORhcFk1Bby+JEQO7wrkmR5tinkTw9dTsYg/QSiIZRL9UIc7W/qKyB/IP+Q
+	 vPodoz+msQIcFomqeSur4lcBoR6t//kfIFcgPUqO6NXH/GGVF3YqhcCyT/ImIjB5Wd
+	 m+MkDQuBlrs47seDt7WpsUQjJxGzG7jmVOuEFqYD2/8O3a8qQKlso83Or4z1m0VzM6
+	 j5vC5Tl1yoTwg==
+Date: Wed, 4 Nov 2026 16:06:08 +0200
 From: Leon Romanovsky <leon@kernel.org>
-To: Edward Srouji <edwards@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>,
-	Haggai Eran <haggaie@mellanox.com>, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Maher Sanalla <msanalla@nvidia.com>
-Subject: Re: [PATCH rdma-next] RDMA/mlx5: Free software WCs left on wc_list
- at CQ destroy
-Message-ID: <20261104140106.GE478286@unreal>
-References: <20261103-free-sw-wcs-v1-1-3885ce449012@nvidia.com>
+To: Chengyu Liu <lui2012qwq@gmail.com>
+Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH] RDMA/ipoib: cancel the AH reaper work synchronously
+Message-ID: <20261104140608.GF478286@unreal>
+References: <20261103170703.1600310-1-lui2012qwq@gmail.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,83 +57,190 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261103-free-sw-wcs-v1-1-3885ce449012@nvidia.com>
+In-Reply-To: <20261103170703.1600310-1-lui2012qwq@gmail.com>
 
-On Tue, Nov 03, 2026 at 06:55:19PM +0200, Edward Srouji wrote:
-> Software WCs generated by mlx5_ib_generate_wc() are allocated one at a
-> time and linked onto cq->wc_list. The only thing that ever frees them is
-> poll_soft_wc(), i.e. a consumer actually reaping them. If the CQ is
-> destroyed while entries are still linked, those allocations are leaked.
+On Wed, Nov 04, 2026 at 01:07:03AM +0800, Chengyu Liu wrote:
+> ipoib_stop_ah_reaper() uses cancel_delayed_work(), which cannot stop a
+> callback that is already running.  ipoib_reap_ah() re-arms itself after
+> an unlocked test_bit(IPOIB_STOP_REAPER) check, so a callback that has
+> passed the check but has not re-armed yet still queues the delayed work
+> after the "stop":
+> 
+>   CPU0 (reaper)                     CPU1 (stop/teardown)
+>   test_bit(STOP_REAPER) == 0
+>                                     set_bit(STOP_REAPER)
+>                                     cancel_delayed_work()  (no-op)
+>                                     ... destroy_workqueue(priv->wq)
+>   queue_delayed_work(priv->wq, ...)  <- delayed work sits on the timer
+> 
+> destroy_workqueue() cannot see a delayed work that is pending on the
+> timer wheel, so the re-armed work fires after the workqueue is
+> destroyed and priv is freed: both the queueing onto the dead queue and
+> the callback's container_of() on freed memory are use-after-free.
+> 
+> Use cancel_delayed_work_sync(), which waits for a running callback and
+> prevents its re-arm from taking effect.
+> 
+> The comment above claims ipoib_reap_dead_ahs() "ensures the work is
+> really stopped", but it never touches the work item - it only walks the
+> dead_ahs list under priv->lock.  The stop guarantee comes from the
+> cancel; fix the comment along with it.
+> 
+> Found by static analysis.  The race was reproduced on a KASAN build
+> with a small module exercising this exact guard/cancel/free pattern
+> (no Infiniband hardware available); PoC and splat are below.
 
-Is this real issue? Just put WARN_ON(!list_empty(...)) instead.
+Please revisit this once you can reproduce the issue with real IPoIB code,
+not code that merely resembles it.
+
+Dropped for now.
 
 Thanks
 
 > 
-> Drain the list in destroy_cq_kernel(). Nothing can be walking wc_list by
-> then: the poll context is the only walker, notify_work the only thing
-> that can re-arm it, and both are stopped before post_destroy_cq() runs.
-> 
-> destroy_cq_kernel() is also the error unwind for mlx5_ib_create_cq(), so
-> move the INIT_LIST_HEAD() of wc_list up next to the other list
-> initialisations, ahead of anything that can jump to err_cqb.  The driver
-> object is zero-allocated, and list_for_each_entry_safe() evaluates the
-> next linkage before testing the loop condition, so draining a wc_list
-> that is still all zeroes would oops.
-> 
-> Fixes: 25361e02c448 ("IB/mlx5: Generate completions in software")
-> Reviewed-by: Maher Sanalla <msanalla@nvidia.com>
-> Signed-off-by: Edward Srouji <edwards@nvidia.com>
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Chengyu Liu <lui2012qwq@gmail.com>
 > ---
->  drivers/infiniband/hw/mlx5/cq.c | 13 ++++++++++++-
->  1 file changed, 12 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-> index 55ffd7d4de517e6ce3f04c98b4edcd94b12e43b3..2f7ac350c3d8f179ad1d4d8c1181b93f3151c7ce 100644
-> --- a/drivers/infiniband/hw/mlx5/cq.c
-> +++ b/drivers/infiniband/hw/mlx5/cq.c
-> @@ -933,8 +933,19 @@ static int create_cq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq,
->  	return err;
->  }
->  
-> +static void drain_soft_wc(struct mlx5_ib_cq *cq)
-> +{
-> +	struct mlx5_ib_wc *soft_wc, *next;
-> +
-> +	list_for_each_entry_safe(soft_wc, next, &cq->wc_list, list) {
-> +		list_del(&soft_wc->list);
-> +		kfree(soft_wc);
-> +	}
-> +}
-> +
->  static void destroy_cq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq)
+> Reproducer notes (PoC source below; a module parameter selects the
+> shape): mode=3 (cancel_delayed_work + lockless guard race, this bug's shape) produces
+> 
+>     [    2.05] BUG: KASAN: slab-use-after-free in queue_delayed_work_on+0x27/0x70
+>     [    2.05] Workqueue: events pm_td_cb [pm_flush_poc]
+> 
+> after the teardown frees the container; mode=1
+> (cancel_delayed_work_sync, i.e. this fix) stays clean.
+> 
+> ---------------------------- reproducer: pm_flush_poc.c ----------------------------
+> // SPDX-License-Identifier: GPL-2.0
+> /*
+>  * pm_teardown_poc - mechanism PoC for the drv-teardown-sync C/D variants
+>  * (F-026 ipoib / F-028 epf-ntb / F-029 habanalabs).
+>  *
+>  * Modes (module parameter):
+>  *   0  F-029 vuln shape:  flush_delayed_work + lockless guard
+>  *   1  control:           cancel_delayed_work_sync (>=6.9 swallows re-arm)
+>  *   2  F-028 vuln shape:  cancel_delayed_work (non-sync) + unconditional re-arm
+>  *   3  F-026 vuln shape:  cancel_delayed_work (non-sync) + guard check/queue
+>  *                         race window (test passes, teardown slips in before
+>  *                         the queue_delayed_work)
+>  *
+>  * Every vuln mode must produce KASAN slab-use-after-free when the orphaned
+>  * work fires after kfree; the control mode must stay clean.
+>  */
+> #include <linux/module.h>
+> #include <linux/workqueue.h>
+> #include <linux/slab.h>
+> #include <linux/delay.h>
+> 
+> static int mode;
+> module_param(mode, int, 0444);
+> MODULE_PARM_DESC(mode, "0=flush(F-029) 1=cancel_sync(ctrl) 2=cancel_nosync(F-028) 3=cancel_nosync+guard-race(F-026)");
+> 
+> struct pm_td_ctx {
+> 	bool			fini_pending;
+> 	struct delayed_work	work;
+> };
+> 
+> static struct pm_td_ctx *ctx;
+> 
+> static void pm_td_cb(struct work_struct *w)
+> {
+> 	struct pm_td_ctx *c = container_of(to_delayed_work(w),
+> 					   struct pm_td_ctx, work);
+> 
+> 	pr_info("PM-POC: cb running, fini_pending=%d\n", c->fini_pending);
+> 
+> 	switch (mode) {
+> 	case 0:		/* F-029: lockless guard then long body then re-arm */
+> 		if (c->fini_pending)
+> 			return;
+> 		msleep(300);
+> 		schedule_delayed_work(&c->work, HZ / 10);
+> 		pr_info("PM-POC: re-armed (flush shape)\n");
+> 		break;
+> 	case 2:		/* F-028: unconditional re-arm, cancel must catch running cb */
+> 		msleep(300);	/* long body so cancel lands mid-run */
+> 		schedule_delayed_work(&c->work, HZ / 10);
+> 		pr_info("PM-POC: re-armed (no guard)\n");
+> 		break;
+> 	case 3:		/* F-026: guard check passes, THEN teardown slips in */
+> 		if (c->fini_pending)
+> 			return;
+> 		/* widen the check->queue race window like ipoib's 724->725 */
+> 		msleep(300);
+> 		schedule_delayed_work(&c->work, HZ / 10);
+> 		pr_info("PM-POC: re-armed past guard (test-queue race)\n");
+> 		break;
+> 	default:
+> 		break;
+> 	}
+> }
+> 
+> static int __init pm_poc_init(void)
+> {
+> 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+> 	if (!ctx)
+> 		return -ENOMEM;
+> 	ctx->fini_pending = false;
+> 	INIT_DELAYED_WORK(&ctx->work, pm_td_cb);
+> 
+> 	pr_info("PM-POC: arming, mode=%d\n", mode);
+> 	schedule_delayed_work(&ctx->work, 0);
+> 
+> 	msleep(50);	/* callback is mid-run now */
+> 
+> 	/* teardown sequence for the selected variant */
+> 	ctx->fini_pending = true;
+> 	switch (mode) {
+> 	case 1:
+> 		cancel_delayed_work_sync(&ctx->work);
+> 		break;
+> 	case 0:
+> 		flush_delayed_work(&ctx->work);
+> 		break;
+> 	default:
+> 		cancel_delayed_work(&ctx->work);	/* non-sync: C variants */
+> 		break;
+> 	}
+> 
+> 	pr_info("PM-POC: teardown done, freeing ctx\n");
+> 	kfree(ctx);
+> 
+> 	msleep(600);
+> 	pr_info("PM-POC: SURVIVED (no KASAN splat)\n");
+> 	return 0;
+> }
+> 
+> static void __exit pm_poc_exit(void) { }
+> 
+> module_init(pm_poc_init);
+> module_exit(pm_poc_exit);
+> MODULE_LICENSE("GPL");
+> MODULE_DESCRIPTION("drv-teardown-sync C/D variant mechanism PoC (F-026/028/029)");
+> 
+>  drivers/infiniband/ulp/ipoib/ipoib_ib.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> index 81bbb3f7c1..5ed4f709cb 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> @@ -736,11 +736,11 @@ static void ipoib_start_ah_reaper(struct ipoib_dev_priv *priv)
+>  static void ipoib_stop_ah_reaper(struct ipoib_dev_priv *priv)
 >  {
-> +	drain_soft_wc(cq);
->  	free_cq_buf(dev, &cq->buf);
->  	mlx5_db_free(dev->mdev, &cq->db);
+>  	set_bit(IPOIB_STOP_REAPER, &priv->flags);
+> -	cancel_delayed_work(&priv->ah_reap_task);
+> +	cancel_delayed_work_sync(&priv->ah_reap_task);
+>  	/*
+>  	 * After ipoib_stop_ah_reaper() we always go through
+> -	 * ipoib_reap_dead_ahs() which ensures the work is really stopped and
+> -	 * does a final flush out of the dead_ah's list
+> +	 * ipoib_reap_dead_ahs() which does a final flush out of the
+> +	 * dead_ah's list
+>  	 */
 >  }
-> @@ -1067,6 +1078,7 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
->  	spin_lock_init(&cq->lock);
->  	INIT_LIST_HEAD(&cq->list_send_qp);
->  	INIT_LIST_HEAD(&cq->list_recv_qp);
-> +	INIT_LIST_HEAD(&cq->wc_list);
 >  
->  	cqe_size = cache_line_size() == 128 ? 128 : 64;
->  	err = create_cq_kernel(dev, cq, entries, cqe_size, &cqb, &index,
-> @@ -1102,7 +1114,6 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
->  	mlx5_ib_dbg(dev, "cqn 0x%x\n", cq->mcq.cqn);
->  	cq->mcq.event = mlx5_ib_cq_event;
->  
-> -	INIT_LIST_HEAD(&cq->wc_list);
->  	kvfree(cqb);
->  	return 0;
->  
-> 
-> ---
-> base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
-> change-id: 20261103-free-sw-wcs-8cf40aa66fd8
-> 
-> Best regards,
 > -- 
-> Edward Srouji <edwards@nvidia.com>
+> 2.25.1
 > 
