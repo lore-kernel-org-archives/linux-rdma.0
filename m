@@ -1,54 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793776314;
-	b=5rtuMg4icCAn29O7OdENvt9ivrRxpFfQjdl3m3ncBJdzMivxEFI55LwiHLgD3t2dYKjI
-	 xMHferIzJce55iuXMSItxYoHwWIhrsfhE40uAGXQNzGcCu3EKHau0rHpofZUXY8gWDTcH
-	 CCRveVPHTQ6ge57FHL1WYu51rA7L6Fc0bYLgp2IOb8Qn5fAo1imKmdMsRL4UffjQADSDx
-	 fS2tOcdSg44jc/IjzS2dwEb8I2CEZ4yDjkjESpomNdQqksvFIG078CXAavuEZ3ew8Y0bZ
-	 RZvz+Dxa/56Qbs4fPkcAwLX4lai3cvzIxiyqHf/JBHKPLOzcafzcPyEUpCSgP7qUFqw==
+	t=1793778659;
+	b=rUPwkln0ChTgib+0AEBL0Z9kgUPMvm8+tkz6/pE9UZRDGEA5c94f3Tszu1NXj438P+l5
+	 0drwwqT6bVMNL6noIUxzHt+//vRJHmCWi8LKsA2URqMX8UCnc1rGShvBpPLxxivvYarZh
+	 d7uRXa8j8vYDl3GS7HP+uH0vP5/oAjvbvtXEBExqQWSLTK+A5Fl8IhJMryEE9RSg78kEl
+	 OklLuXu42Lk+Yn5XV5EAny/9BaSHmxKl1TYMJ2GPnhFUv4Oowat4tNB7hAhYWkYI50NNN
+	 +hPeKf6zNSxodb6QK+Eh3OUtIEvzbWAFb2zQ4WCJqRknYxnIs9XBLFXEyJIp8RglRZQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793776314;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793778659;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=b8As2EoG9x8Tl2CWTFOn4J47dWkvfEM0iQdBFybeGCQ=;
-	b=xwNp6BPTdHwpvSiur/0yE555U3z/tTcsYdLmxS5do02n/9UqcYpnsKUev13M/PMCYiqA
-	 yI6mZvvR3xtcrpIIwT1rPLpdR1KiTsyLsmk6XpVmnPxjElzN8Q4/JKk/EoA1c4a+4B4qN
-	 v17Rp/eKxesmLjeBBbvx2OJU9WsQXco9gUmEQAb44j9aBMqvY4lYJn5drAu9xqVAqd2hd
-	 u2s4MJeXiaThsofrd119/UDaIYpQge929lgnnfpAAx19hpbeHFszETX7CIfz80zguiWWU
-	 OxSs5FYSBFKm1AuyapcavrI4bMnTlxQJHXsrC1ahZ5yPEftaR+27YKnogw38XptaSIA==
+	bh=+x0caZ0pC+EFyWhDfl1gmIN09MGJqKHTRPG88Kl6DZ4=;
+	b=3rDhPEb6dg5CaxpUVz8D86TGq3KOZ21huNN9iOQjZjbPx4hwRfiLY5MKjeSVQ3C/yKpv
+	 lL9BEm6Nx3nqkCYgt2PMg818c41SiWtEjp376b3QB5v7yKT+lSTslydA6+YW1ih1Cqi9f
+	 aNbZxWmWWKFtWHcyw1WQGtPtdryUvPNxidshXBj+wbYwuZcpM2jY0EpdO4+tENpGPPrxL
+	 44NQ5kgbSzW5Nn4Rcl+aWYaqaaCl8DswMpTNqU/u+0maxCK3H/j+oYsZFs/gnBSZ8swP3
+	 +yR10DLW0PUzuK+kOR3tZ7YK0d4klXQtmc1R1W8vNT3nbKP3NC2bQBjzABF63WQuOpg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AYih+uwX;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=me4p4b5G;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7844A606A31B;
-	Wed,  4 Nov 2026 07:11:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A079606A328;
+	Wed,  4 Nov 2026 07:50:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AYih+uwX
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 094921F0093A;
-	Wed,  4 Nov 2026 07:11:52 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=me4p4b5G
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3DBD1F00919;
+	Wed,  4 Nov 2026 07:50:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793776314;
-	bh=b8As2EoG9x8Tl2CWTFOn4J47dWkvfEM0iQdBFybeGCQ=;
+	s=k20260515; t=1793778659;
+	bh=+x0caZ0pC+EFyWhDfl1gmIN09MGJqKHTRPG88Kl6DZ4=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=AYih+uwXmkzj09KGHDETie/kyqpTI2WQIjdZHIlpyfIiZyvDdbTf9XDp2eA5HIseo
-	 ltmVAoG9K1HXAcLT/Yib/DyOVdCi3U/eyoqHI/QvYJ+CiiH/heX6x5EQJeMr2XVn2U
-	 5A9+IHiti5y9QOqzK48dFAv0+7xuQ7hk8x3hb//v1i4k400eAJ342MwLAvyVGWKOh0
-	 XpizxtSN52iAP0xV6WFCo60UQrbfgm8n/Tzh/b56NKZYcpUrN6LhdLjHJpaBNkBO6a
-	 VkOTAXM8uUZ9L3JW4BY+5i2UXKMkg9yfEmTU0obgl2AJSfsb8jTjGZT15MOahsNKJJ
-	 BwYYdgLAP/gHw==
-Date: Wed, 4 Nov 2026 08:11:50 +0100
-From: Krzysztof Kozlowski <krzk@kernel.org>
-To: Wentao Liang <vulab@iscas.ac.cn>
-Cc: "David S. Miller" <davem@davemloft.net>, 
-	Simon Horman <horms@kernel.org>, Paolo Abeni <pabeni@redhat.com>, linux-rdma@vger.kernel.org, 
-	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org, 
-	Allison Henderson <achender@kernel.org>, rds-devel@oss.oracle.com
-Subject: Re: [PATCH] net/rds: drop the device reference for ODP memory regions
-Message-ID: <20261104-invincible-flying-agouti-fbecd2@quoll>
-References: <20261104022810.1484182-1-vulab@iscas.ac.cn>
+	b=me4p4b5GiB/BbaLFQXgar5GxXH6vWVN4hC6duaEOq4LD6uI5ioz0Tw31jQev5ByJK
+	 cMXVyvv5tnfWAcP4bp6XIy2rg4rHW2UCGpnG8pdzsFa0B2XXz7lHAI0xdEfXk9Kzc1
+	 kHzKcdOVeOvwbqr2S9wSTFITUn/8wJuu284URItSC6scrOgb2//2/Q4N9Yg+pHr2d8
+	 cte33u8ZdCddF9selZfGEHrE5Cw/IKdoGe1fFA46tpOdgUi6mHQlVvWyETygWKeRyd
+	 5WcbdTs5MiGCmkoZ+UjUQMAWM2FjoWTnGh4Lo7lwsQF8ezaApzh5zYX+lGLofpy+Aw
+	 gSqn/thmWw1lg==
+Date: Wed, 4 Nov 2026 09:50:55 +0200
+From: Leon Romanovsky <leon@kernel.org>
+To: David Hu <dhu@x6u.co>
+Cc: Mustafa Ismail <mustafa.ismail@intel.com>,
+	Shiraz Saleem <shiraz.saleem@intel.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, Jacob Moroni <jmoroni@google.com>,
+	intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org, David Hu <xuehaohu@google.com>
+Subject: Re: [PATCH rdma-next v4 0/6] RDMA/irdma: Add support for ioctl
+Message-ID: <20261104075055.GL264423@unreal>
+References: <20261030181512.2056056-1-dhu@x6u.co>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,72 +59,52 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261104022810.1484182-1-vulab@iscas.ac.cn>
+In-Reply-To: <20261030181512.2056056-1-dhu@x6u.co>
 
-
-On Wed, 04 Nov 2026 02:28:10 +0000, Wentao Liang wrote:
-> rds_ib_get_mr() takes a reference on the rds_ib_device with
-> rds_ib_get_device().  The FRMR path stores it in ibmr->device and
-> rds_ib_free_mr() drops it when the MR is freed.
+On Fri, Oct 30, 2026 at 06:15:06PM +0000, David Hu wrote:
+> From: David Hu <xuehaohu@google.com>
 > 
-> The ODP path allocates the ibmr with kzalloc_obj() and returns it
-> without recording the device.  rds_ib_odp_mr_worker() only deregisters
-> the MR and frees the ibmr, so the reference taken for every ODP MR is
-> never dropped and the rds_ib_device can no longer be released.
+> Hello,
 > 
-> Store the reference in ibmr->device and drop it in the worker after
-> the MR has been deregistered, which also keeps the device and its PD
-> alive for as long as the MR exists.
+> This patch series introduces support for uverbs ioctl queue creation
+> (QP, CQ, and SRQ) in the irdma driver. This series makes progress towards
+> modernizing irdma. This enables 1-step queue creation from pinned UMEMs
+> and shared dma-buf heaps (system_cc_shared), providing RDMA support for
+> Confidential Computing (CoCo) guest environments where memory encryption
+> otherwise prevents standard host-VA-based queues from operating.
 > 
-> Fixes: 2eafa1746f17 ("net/rds: Handle ODP mr registration/unregistration")
-> Cc: stable@vger.kernel.org
-> Assisted-by: DeepSeek-V4.1-Flash and OpenAI Codex
-> Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
-> ---
->  net/rds/ib_rdma.c | 2 ++
->  1 file changed, 2 insertions(+)
+> Historically, irdma relied on legacy write() commands for queue setup.
+> This series modernizes irdma's queue creation path by adopting the ioctl
+> infrastructure:
 > 
+> 1. Plumbs uverbs_attr_bundle into the irdma QP and SRQ creation routines.
+> 2. Registers irdma's UVERBS ioctl namespace definition for QP, CQ, and SRQ.
+> 3. Implements 1-step queue buffer creation for QP, CQ, and SRQ using
+>    UVERBS_ATTR_CREATE_*_BUF_UMEM attributes and ib_umem_get_attr(),
+>    configuring hardware Page Buffer Lists (PBLs) directly from pinned umems.
+> 4. Split CQ creation setup logic by umode and kmode into separate
+>    routines to be consistent with other queue creation logic.
+> 5. Adds support for driver-specific shadow area UMEM attributes during CQ
+>    creation with CQ resize capability.
+> 6. Preserves backward compatibility with legacy 2-step write() path
+>    registrations when UMEM attributes are not provided.
+> 
+> User space rdma-core PR: https://github.com/linux-rdma/rdma-core/pull/1766
+> 
+> Testing:
+> Verified with rc_pingpong, srq_pingpong, and dmabuf_pingpong over irdma
+> devices in Confidential VM environments.
+> 
+> Changes in v4:
+> - Reject dma-buf queue creation in iWARP mode and enforce page-offset
+>   alignment unconditionally in irdma_setup_q_pbl_from_umem() (Jacob)
+> - Bound attr->cqe in irdma_create_user_cq() to prevent cq_pages overflow (Sashiko)
+> - Fix to irdma_cq_free_rsrc() was sent separately (Sashiko)
+> - Link to v3: https://lore.kernel.org/all/20261016202909.1289496-1-dhu@x6u.co/
 
-Multiple things here:
-1. Your team ignored completely previous feedback. Multiple times.
+I applied the series, but I have a concern: the commit messages are
+not useful.
 
-2. You use multiple identities with this email address, thus I doubt that we
-   speak with an actual person.
-
-3. Your bot does not even bother running checkpatch, right?
-
-4. Nothing of this was reproduced nor tested.
-
-5. Finally, the same feedback:
-You sent multiple independent patches, to multiple independent
-subsystems. The amount of these patches clearly suggest this was
-AI generated and most likely not tested.
-
-More importantly, you sent all this work without properly organizing
-relevant patches into patchsets. This makes reviewing difficult
-and might cause multiple reviewers to address the same issue.
-Replying to the entire set is impossible and requires handling each
-patch independently, instead of applying or discarding the set.
-Maintainers also won't see the bigger picture of your work. Quite
-worrying.
-
-This is on the verge of hostile patch: bomb us with so many
-contributions, we won't be able to handle them in efficient manner,
-like responding ONCE to ask you to slow down.  Considering all this
-is untested and LLM generated, I have even more doubts whether this
-should be considered for review.
-
-Please read kernel documentation BEFORE posting more work. It will
-explain you how to identify subsystems, how to organize your work per
-subsystem (so a patchset grouping multiple patches with a short cover
-letter), how to document the issue discovery method and what was
-or was not tested.
-
-Best regards,
-Krzysztof
-
-
-
-
+Thanks
