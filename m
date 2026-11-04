@@ -1,57 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793766831;
-	b=AFC54OEAjqVHAhXy37FKFGxRDsNFXZwndiqilzS98ElDYb/pEttI37WY81yqo/dWl63h
-	 oaSbxzc878PUFqpcjOU56Xa/n51XgJRNIWo/ess732xKUCnanu4fX8wEboS6yd4Svb/Nk
-	 HdlBpcccNM6zucGbXZrMBaQt3K+bdSIKx15ucKvCCVl4kTkPHLNSZd75i0ksaoMpO6aZL
-	 4sAgI2Y4cjg0i1DTgt3rsXQLs8NgvO2LZCAqSF/Z3927HdJNR5Uk/zBJb5RspXOE9wbou
-	 sTy70EI912mFS1zBIDk0c1U418t5FUcJtMhsQY2YHMqqxppW7p5zvSphz+eoJFtabbA==
+	t=1793776254;
+	b=kburW82RxIQbhcRkYvSGxFUanzM1Eb3dJmeDCBXFdNPNPJnVSCXyYprx0Qm9Weamy+do
+	 Qsol1sLh+JhlJaAoo0DH8uiVW6GwG/ow8kwEEV5vdkc2tD4/5L5bBgN8wITDchkd/N4y/
+	 3C3lJZR3XjcO54y0Y1EC4riBem/YywJNQerV8NsUN8JrER+A7rq7b0b7GUuRniwXgl0Fx
+	 HnZG4M8mQNx+2NfW/CIPbjwM2UBfr3q+CCl42uIefZL12p9EGKLw7hOZIoxa28at9/BV7
+	 U0SaaiknwmTpEOajsj163zP34Za+VcY06SigzKND4QSd7vSB5G1fIw9nuDgas05ih8A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793766831;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=8Awde3LB5lCW0DDcRW1lwUaSbFUnHNHFGDL2zIkeTzE=;
-	b=TU1U5GaAfEUUGR1ZunNn9I3FKWise8KBHwcYT/pUMTnOivcphQOTqaea5DDpPEt/i/Hi
-	 rXL2Y7UGHJERPnmH2WrB7VZfYWbi5kgRgSrN8s9UiEh0GjqepmG1N22rxQnQxs+lHyXMN
-	 7w2teWLKRmh3npceRaikcb15MwTtQOHLeRitPLRxR01O3H6pwoJlnK+WD6QsAHnhEcrqO
-	 5e+2qjuy/+9xR1iy/JpSeKTgUGJ8W5DNG38T90FlsANDf+Sr8i8CHCJzYc3Et1ow0eRLV
-	 6t7QMEDuxYGTaa6prTE5aqGL9x82SsNkYRutFbiTI3ATgg8A+/mCywIvrWNehPvVy/Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793776254;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=z3q2IkefJaWfFlzMYoDigzLTDZNhXOuXydgsuUKwg8U=;
+	b=tbzqixgWSYvL+B502cxa7xx176GKAKOEZ0ybG52rymSaDJ395TNPC8XiTVuJEFSyfa1K
+	 Gs89M7+5Hg5CqqehK8ByrY7foodMgeJetdxsP22sS4/VkkN8NRstMAZX9KDKgfP7clPZY
+	 WnbBc9EW+pVAZlvaqTqpzV+kCOPa48nUvRvniaXap1i3/C8VKD4R3EHqpcS2IIcXGgGiE
+	 bucJRxG7L11/qIHqr5K1F/JJo8Ka0jWCuOOOHafQABAGirS6Y+VezOZbG7C5ov+1TgpOW
+	 /dc290sgsd9Gz57YPH+r3HPShtwaA7UcEQu4+8oaFcoApoDGTGCCxV6QP5x1MIJRjEA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DP9Q6D3S;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Aoxc9Mk0;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6420606A31B
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 04:33:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3773F606A31B
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 07:10:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DP9Q6D3S
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 767C01F000C1;
-	Wed,  4 Nov 2026 04:33:50 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Aoxc9Mk0
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3F931F00919;
+	Wed,  4 Nov 2026 07:10:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793766830;
-	bh=8Awde3LB5lCW0DDcRW1lwUaSbFUnHNHFGDL2zIkeTzE=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=DP9Q6D3S6hoYjXw4ZL1o5/ZnGl0ArzjVAOVS/qzSD4KvzUz4wYvGLCae6EdyiC8Kd
-	 YZm3WX5om7AFoMClb+jaNSPIK6cl+8h00y7cjcg59qskyy8xXcK9HfTNPmE2wKOLmn
-	 M1krJpu258jyvdtSvHX406Qgj4hWvxbz5XyPjpHkAm+8aCAok4k6u0VTvj2swbvVGR
-	 ctKi1ZpDuaydpEZV91J/PiL0Yh23aDQvIA7CRvYWl0Fd53S19HDVHaTPrGaKJEWFKP
-	 X9G0bPcGjTGqD5kHqc0kn9qxr8y508e2rxRukSTrJxBoIy4bvG7PeShzdEE/pIoQs5
-	 KtFX/iX4Fe/IQ==
-Message-ID: <sashiko-outbox-196655@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v8 3/6] IB/isert: tear connections down from an
- ib_client on device removal
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Yehyeong Lee" <yhlee@isslab.korea.ac.kr>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261104040318.1844865-4-yhlee@isslab.korea.ac.kr>
-References: <20261104040318.1844865-1-yhlee@isslab.korea.ac.kr>
- <20261104040318.1844865-4-yhlee@isslab.korea.ac.kr>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 04 Nov 2026 04:33:50 +0000
+	s=k20260515; t=1793776253;
+	bh=z3q2IkefJaWfFlzMYoDigzLTDZNhXOuXydgsuUKwg8U=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Aoxc9Mk0/U6uHwzs6gbNZywGzQYQw04gNh8IjNx3L6UtWSBWZmq0IXkWYDBJXIJOZ
+	 /IMMxGWueOL3hZeDPNFB/8cN/2+Og8Glqhp1rkDsEiLfXW7f7mCuSxbh6cEnbz9Ke8
+	 EXKEcKHVzESZa3fQrfQq5DXkGIjshv3zFr2+1dBNhEid6Z8GAQMNdlqVreGmJ70qGv
+	 LCJJWz0t4oERFwFHnutYpbXYnojEoWcNjBXMT6GmJoE9+LH60jKr8zWWzH42ZQYG2y
+	 wPNGef/mUdfaop89D2UlZr5fy3/TLajkhuXhqGD88YA2njF7X99VfByNeFBGn4CVvZ
+	 gSfDTsfDjH6rA==
+Date: Wed, 4 Nov 2026 08:10:50 +0100
+From: Krzysztof Kozlowski <krzk@kernel.org>
+To: Wentao Liang <vulab@iscas.ac.cn>
+Cc: Tatyana Nikolova <tatyana.e.nikolova@intel.com>, 
+	linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] RDMA/irdma: fix double free of close_entry in TIME_WAIT
+ teardown
+Message-ID: <20261104-eager-innocent-elephant-23efad@quoll>
+References: <20261104025347.1527584-1-vulab@iscas.ac.cn>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,34 +57,72 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20261104025347.1527584-1-vulab@iscas.ac.cn>
 
-> The RDMA_CM_EVENT_DEVICE_REMOVAL callback waits for the connection it was
-> handed to reach ISER_CONN_DOWN and then frees it.  isert_release_work()
-> publishes that state before it drops its reference, so the handler can fr=
-ee
-> a connection that isert_connect_release() is still running on.  The wait
-> itself deadlocks against the handler_mutex rdma_destroy_id() needs.
->=20
-> Register an ib_client instead, as nvmet-rdma did in commit f1d4ef7d8883
-> ("nvmet-rdma: register ib_client to not deadlock in device removal"), and
-> tear the device's connections down from its remove callback.  It walks
-> isert_conn_list under isert_conn_mutex, takes a reference with
-> kref_get_unless_zero(), tears each one down after dropping the lock, and
-> asks iscsi to reinstate the session.  isert_device_put() completes
-> removal_comp once the CQs and the PD are gone.  Publishing now happens in
-> the same isert_conn_mutex section that tests isert_device->removing, and
-> isert_np is reference counted because a connection can outlive its portal.
-> [ ... ]
->    entry_SYSCALL_64_after_hwframe+0x77/0x7f
->=20
-> Fixes: 63b268d232b8 ("IB/isert: Properly release resources on DEVICE_REMO=
-VAL")
+
+On Wed, 04 Nov 2026 02:53:47 +0000, Wentao Liang wrote:
+> irdma_handle_close_entry() drops the cm_node reference held by the close
+> timer before releasing cm_node->close_entry.  If that put is the last
+> one, irdma_rem_ref_cm_node() runs irdma_destroy_connection(), which
+> still sees a non-NULL close_entry and calls
+> irdma_handle_close_entry(cm_node, 0).  That nested call frees the
+> close_entry and clears the pointer, and the outer call then frees the
+> same object once more.
+> 
+> Free the close_entry and clear cm_node->close_entry before dropping the
+> reference, so that a release triggered from that put observes a clean
+> cm_node.
+> 
+> Fixes: 146b9756f14c ("RDMA/irdma: Add connection manager")
 > Cc: stable@vger.kernel.org
-> Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+> Assisted-by: DeepSeek-V4.1-Flash and OpenAI Codex
+> Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
+> ---
+>  drivers/infiniband/hw/irdma/cm.c | 8 +++++---
+>  1 file changed, 5 insertions(+), 3 deletions(-)
+> 
 
-Sashiko has reviewed this patch and found no issues.
+Multiple things here:
+1. Your team ignored completely previous feedback. Multiple times.
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261104040318.1844=
-865-1-yhlee@isslab.korea.ac.kr?part=3D3
+2. You use multiple identities with this email address, thus I doubt that we
+   speak with an actual person.
+
+3. Your bot does not even bother running checkpatch, right?
+
+4. Nothing of this was reproduced nor tested.
+
+5. Finally, the same feedback:
+You sent multiple independent patches, to multiple independent
+subsystems. The amount of these patches clearly suggest this was
+AI generated and most likely not tested.
+
+More importantly, you sent all this work without properly organizing
+relevant patches into patchsets. This makes reviewing difficult
+and might cause multiple reviewers to address the same issue.
+Replying to the entire set is impossible and requires handling each
+patch independently, instead of applying or discarding the set.
+Maintainers also won't see the bigger picture of your work. Quite
+worrying.
+
+This is on the verge of hostile patch: bomb us with so many
+contributions, we won't be able to handle them in efficient manner,
+like responding ONCE to ask you to slow down.  Considering all this
+is untested and LLM generated, I have even more doubts whether this
+should be considered for review.
+
+Please read kernel documentation BEFORE posting more work. It will
+explain you how to identify subsystems, how to organize your work per
+subsystem (so a patchset grouping multiple patches with a short cover
+letter), how to document the issue discovery method and what was
+or was not tested.
+
+Best regards,
+Krzysztof
+
+
+
 
