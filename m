@@ -1,59 +1,68 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.127.231.38
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.127.231.35
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793807851;
-	b=FCxLG103iETzBCGKdTPIB223D4/pFA9ssfA0CcIYtlYL4XXuCGEtLjJLD3oOqOV/dMYQ
-	 QZpcRfSf7qeJB1pgcV5DB8wV1PoOEMdRNXAWznkws7PScm5XMmrZlE4jqDXtoNJl3sN87
-	 nwK6Xaq9323IkT5NZzA+U5TrrEHtgoYLQC0eus3uPG9aIw0DhWnsD+eOK4BgwkizhOxF+
-	 QFkPTAu4nnNC2xue/bsH4f9EVdJsNg40cEjHHx/iVf10jBO18LaegJNRC2TNcW3V5AX2I
-	 2WyPogKE8immB2JKFUvRaB9zxW0X4CaQh2qkawNnqsAVKtCNom1+D9wTigcRDB0Iw8w==
+	t=1793807853;
+	b=S86dB9XHObbsMnl5UxdvZ2Vgu81AGkdLVqKEX0HiJ4b0/H66HskqKgiNqenfSShoU+BG
+	 j04BnL1LGcgDvIVxPD97JCdq92P+o0HFwaBPeA5i31TMvfGBzRO+n7b+OOgBOppn+6KKv
+	 9rQoy3EbEBdOMfqm6IB4NX0tsoJc8emZ4GBaHw0PWrhIoSBVICxYawnbm0wOvVtHNDo8C
+	 xkBYzEJsDDsRhQONpaNWbJwTnO0Jv3j1u11iYxWBVckyfRjWt6zm8OpEW6OB5h2PxGRpQ
+	 Xmjlxq5RuZ0ToiRR2PaoskuBGEfeOwL6mMB1Xyw58oPiwyG9S9to+4rBPBzF1d5dRhQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793807851;
-	h=DMARC-Filter:DKIM-Signature:Received:X-Original-From:
-	 Content-Transfer-Encoding:From:Date:References:X-Mailer:In-Reply-To:
-	 Cc:Subject:Mime-Version:X-Lms-Return-Path:Message-Id:To:Content-Type;
-	bh=KwvE1Rtfvx8RtmOkLLUMIr1l0rwVHpeAIy8EjVg92uA=;
-	b=254/LplKfLjVTZ1jay86BnZHpY++JXwhKEA202evFQcIt/R8jEzS/AKpi8UduV0n5x8v
-	 UQ/8GSIdNk1Vblpqh8HdjsvcRNlp+IJfP6vUd+xsSKKIogCLZgpP362zIA9G1SityM+jX
-	 gg96deT2mTgJ7BeJDlX0pn5ELKb72tJsWvkNLDwec6l3fIWjzsQT5jPFhJyiNVornlOdg
-	 SDM+H84fCPS3y56MCoQWjXgTut00owkxsZ5q9i3Ptf/S7K7gxWKdyeuBqvpDgRMWMJABs
-	 Wgi+jsepPKm1eepKPD5c9N8yTlzZ0Zji33BuOWbyDOW5BSCo0SecoxoxuMK5KiYqqZA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793807853;
+	h=DMARC-Filter:DKIM-Signature:References:X-Mailer:In-Reply-To:
+	 X-Original-From:Cc:Date:Subject:X-Lms-Return-Path:Content-Type:
+	 Content-Transfer-Encoding:To:From:Received:Message-Id:Mime-Version;
+	bh=M7/pQbl/0dko8gyV7AbmFVVpg/enOO+QNlgqehiIRNg=;
+	b=kFqmFarI8AkYSjYBlSWTr/bE27LWuppFOMd9KY2AQQ4JhP6cp9XFfUXQy5x64s8Bsn8S
+	 DYdyds0EoqZOud8Ck9r3T0soAmLRVzgZYAUrIWkeDTqTP+r7ZkaX+kZJ4zI+WWFy8RuKG
+	 tjg3H+9YfHHdNh2PS7l/ZFrtuUiDS52/5I980oetGxXlFGVXtpZJ+pwBKrJ/rsnyI40dr
+	 5Er8EWY27GFmdsgYaz3UyZqinrpWbF6sm9L8td97cq8+uEwMMfv5F+66Sk8N3OWamzoBK
+	 M+69H/aUaJl+c7K+OPSRWF4h2o37kkbWbZhu7RnAmWB5V2kXbGI0m/BOOlPL5Fe/zfQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=yunsilicon.com;
 	spf=pass smtp.mailfrom=yunsilicon.com;
-	dkim=pass header.d=yunsilicon.com header.i=@yunsilicon.com header.a=rsa-sha256 header.s=feishu2403070942 header.b=Su5O73Dc;
-	arc=none smtp.remote-ip=209.127.231.38
-Received: from va-2-38.ptr.blmpb.com (va-2-38.ptr.blmpb.com [209.127.231.38])
+	dkim=pass header.d=yunsilicon.com header.i=@yunsilicon.com header.a=rsa-sha256 header.s=feishu2403070942 header.b=MpA0V3+B;
+	arc=none smtp.remote-ip=209.127.231.35
+Received: from va-2-35.ptr.blmpb.com (va-2-35.ptr.blmpb.com [209.127.231.35])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B4EB606A32D
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 15:57:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9B4EB606A32D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4825260A2622
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 15:57:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4825260A2622
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yunsilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yunsilicon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=yunsilicon.com header.i=@yunsilicon.com header.a=rsa-sha256 header.s=feishu2403070942 header.b=Su5O73Dc
+	dkim=pass (2048-bit key, unprotected) header.d=yunsilicon.com header.i=@yunsilicon.com header.a=rsa-sha256 header.s=feishu2403070942 header.b=MpA0V3+B
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
- s=feishu2403070942; d=yunsilicon.com; t=1793807839; h=from:subject:
+ s=feishu2403070942; d=yunsilicon.com; t=1793807847; h=from:subject:
  mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
  mime-version:in-reply-to:message-id;
- bh=KwvE1Rtfvx8RtmOkLLUMIr1l0rwVHpeAIy8EjVg92uA=;
- b=Su5O73DcxTG/n3p3crQBe+E7sBc1vCHS+y4r70IeAMj1j/S6ERujekIT6Q14d+cw4VNmrx
- 6+WRoRe+6JiFhT1uvDkzt08oQ46EGA5FWXB4N0WMkrmiSCHBykcjr8tlxVxghHmEAE7z1l
- sn6xxbeMtrCYVX/2RvoVPWznZHOBAPuplh2iROSG1FZnOCXFjrf69QWDrYQZ3OaiqxxsG9
- gGXbpKAdiM+JlqSmsnTuehrFuuOhh4SWnKGZpD6Wgdom8jGe3XiYu3RgaNGHEoZnnaSUqw
- l60qx5Pog65IqSs9gaamoQ8DaFB/Kc+lg6wcR0WwIWPoSQYjMKlC8uXKdyLWzg==
-Received: from sw-dev-sha252.yunsilicon.com ([180.152.18.210]) by smtp.feishu.cn with ESMTPS; Wed, 04 Nov 2026 23:57:16 +0800
-X-Original-From: Xin Tian <tianx@yunsilicon.com>
-Content-Transfer-Encoding: 7bit
-From: "Xin Tian" <tianx@yunsilicon.com>
-Date: Wed, 04 Nov 2026 23:57:17 +0800
+ bh=M7/pQbl/0dko8gyV7AbmFVVpg/enOO+QNlgqehiIRNg=;
+ b=MpA0V3+Bd0lZBY/4PwEOFB8v1L7QPaeVLCBjY74FPr68UNHTzaFJ5qSw2t1ZMcwWW9vcb7
+ 6IOzZHJwM0w4X6fuTvowWjUZut8BMFLArrM3gsWsjt2Ng1id3c6aNWUblkq6DmghU9Kyi9
+ Ykyb2KDr5LD4jded/l9SN5jut0NII1nctMyA/x+ddpg23qeHWy1y6LFfSMHwzldInlhTKL
+ zt+Lmqk3nwzwFYV+ZdOt+F+Ef1AZaVNKU4wCrhK388O05Qi3g2CuY3DNsWhCujjHfWPiKN
+ qqq7jhuIVkzdcMDj3s5paoXyPEvggrTKAXWKmjC8HHQ1ncaVRv7namrq8Pf5fQ==
 References: <20261104155650.37053-1-tianx@yunsilicon.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20261104155650.37053-1-tianx@yunsilicon.com>
+X-Original-From: Xin Tian <tianx@yunsilicon.com>
 Cc: <weihg@yunsilicon.com>, <linux-kernel@vger.kernel.org>, 
 	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>
-Subject: [PATCH v1 11/15] RDMA/xsc: add RDMA PD/MR
+Date: Wed, 04 Nov 2026 23:57:25 +0800
+Subject: [PATCH v1 14/15] RDMA/xsc: add the RDMA send path
+X-Lms-Return-Path: <lba+26aeb55e5+95f7d8+vger.kernel.org+tianx@yunsilicon.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+To: "Andrew Lunn" <andrew+netdev@lunn.ch>, 
+	"David S. Miller" <davem@davemloft.net>, 
+	"Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>, 
+	"Paolo Abeni" <pabeni@redhat.com>, "Jason Gunthorpe" <jgg@ziepe.ca>, 
+	"Leon Romanovsky" <leon@kernel.org>, 
+	"Junxian Huang" <huangjunxian6@hisilicon.com>
+From: "Xin Tian" <tianx@yunsilicon.com>
+Received: from sw-dev-sha252.yunsilicon.com ([180.152.18.210]) by smtp.feishu.cn with ESMTPS; Wed, 04 Nov 2026 23:57:25 +0800
+Message-Id: <20261104155723.37053-15-tianx@yunsilicon.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,1027 +72,1251 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 Mime-Version: 1.0
-X-Lms-Return-Path: <lba+26aeb55dd+51f9fa+vger.kernel.org+tianx@yunsilicon.com>
-Message-Id: <20261104155715.37053-12-tianx@yunsilicon.com>
-To: "Andrew Lunn" <andrew+netdev@lunn.ch>, 
-	"David S. Miller" <davem@davemloft.net>, 
-	"Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>, 
-	"Paolo Abeni" <pabeni@redhat.com>, "Jason Gunthorpe" <jgg@ziepe.ca>, 
-	"Leon Romanovsky" <leon@kernel.org>, 
-	"Junxian Huang" <huangjunxian6@hisilicon.com>
-Content-Type: text/plain; charset=UTF-8
 
-Implement the protection domain and memory region verbs.
+Implement the work request post and send path.
 
-alloc_pd allocates a PD through firmware and returns its number to
-userspace.  Before ib_register_device(), register the implicit local
-DMA MR with mkey 0xFF covering the whole device: the MAD agent posts
-QP1 traffic the moment registration returns and assumes lkey 0xFF is
-valid, so it must exist by then.
+post_send validates the opcode, work queue headroom, SGE count (RDMA
+reads are limited to a single SGE) and the drain gate, then writes
+the WQE under the send queue lock.  RC queues build send, immediate,
+write and remote-read WQEs and record the slot metadata the poll
+loop needs; unsupported opcodes such as local invalidate and the
+register-MR work requests are rejected.  Since the hardware rejects
+zero-length RDMA reads, such a request is issued as a write and the
+poll loop restores the read opcode on completion.
 
-User MRs are registered by building a firmware mailbox with the DMA
-address list from the umem.  The page size is selected with
-ib_umem_find_best_pgsz() among the 4K/64K/2M/1G sizes the device
-supports, the page list is bounded by the firmware MTT capacity, and
-the variable-length mailbox size is checked for overflow before
-allocation.  dmabuf-backed MRs use ib_umem_dmabuf_get_pinned() and
-share the same registration path.  get_dma_mr registers a whole-
-device implicitly mapped MR for kernel callers.  Deregistration
-releases the MPT/MTT and destroys the mkey.
+For QP1 and UD traffic the path packs a complete RoCEv2 header
+(ethernet, IPv4 or IPv6, UDP, BTH, DETH) into a per-QP DMA header
+slot, computes the ICRC over masked pseudo-headers and payload, and
+posts a single SGE referencing the header.  The MAD payload is
+copied into the header buffer through a DMA-to-CPU translation
+helper, which fails when the IOMMU state makes CPU access to DMA
+addresses impossible; the same helper failure makes QP1 receive
+handling report a local access error.
 
-On the core side, add the PD and MR firmware commands: mkey values
-are allocated under a lock as a key byte combined with a hardware
-index, and registration programs the MPT then writes the page
-address list in chunks bounded by the maximum command payload,
-rolling back the registration if a chunk fails.
+Add the drain helpers the core uses on destruction: move the QP to
+error, post tagged drain work requests and wait for their
+completions, polling directly for direct-poll CQs and using the
+completion callback otherwise.
+
+The shared BTH and DETH header structs are renamed from the rxe
+prefix to an xsc prefix to avoid colliding with the soft-RoCE module
+on the include path.
+
+The message-opcode map and the software CRC32 table are now built at
+probe time since the send path is their first user.
 
 Signed-off-by: Xin Tian <tianx@yunsilicon.com>
 ---
- drivers/infiniband/hw/xsc/Makefile            |   2 +-
- drivers/infiniband/hw/xsc/main.c              |  45 +++
- drivers/infiniband/hw/xsc/mem.c               | 160 +++++++++
- drivers/infiniband/hw/xsc/mr.c                | 335 ++++++++++++++++++
- drivers/infiniband/hw/xsc/xsc_ib.h            |   2 +-
- .../ethernet/yunsilicon/xsc/common/driver.h   |   1 +
- .../net/ethernet/yunsilicon/xsc/pci/Makefile  |   2 +-
- drivers/net/ethernet/yunsilicon/xsc/pci/cq.c  |   8 +-
- drivers/net/ethernet/yunsilicon/xsc/pci/mr.c  | 202 +++++++++++
- drivers/net/ethernet/yunsilicon/xsc/pci/mr.h  |  18 +
- drivers/net/ethernet/yunsilicon/xsc/pci/pd.c  |  49 +++
- drivers/net/ethernet/yunsilicon/xsc/pci/pd.h  |  14 +
- 12 files changed, 831 insertions(+), 7 deletions(-)
- create mode 100644 drivers/infiniband/hw/xsc/mem.c
- create mode 100644 drivers/infiniband/hw/xsc/mr.c
- create mode 100644 drivers/net/ethernet/yunsilicon/xsc/pci/mr.c
- create mode 100644 drivers/net/ethernet/yunsilicon/xsc/pci/mr.h
- create mode 100644 drivers/net/ethernet/yunsilicon/xsc/pci/pd.c
- create mode 100644 drivers/net/ethernet/yunsilicon/xsc/pci/pd.h
+ drivers/infiniband/hw/xsc/cq.c                |  36 +-
+ drivers/infiniband/hw/xsc/main.c              |  22 +-
+ drivers/infiniband/hw/xsc/qp.c                | 732 +++++++++++++++++-
+ drivers/infiniband/hw/xsc/xsc_ib.h            | 144 ++--
+ .../ethernet/yunsilicon/xsc/common/driver.h   |   4 +-
+ 5 files changed, 815 insertions(+), 123 deletions(-)
 
-diff --git a/drivers/infiniband/hw/xsc/Makefile b/drivers/infiniband/hw/xsc/Makefile
-index 6c4ec1ca0..b535a6653 100644
---- a/drivers/infiniband/hw/xsc/Makefile
-+++ b/drivers/infiniband/hw/xsc/Makefile
-@@ -6,4 +6,4 @@ ccflags-y := -I$(srctree)/drivers/net/ethernet/yunsilicon/xsc
- 
- obj-$(CONFIG_INFINIBAND_XSC) += xsc_ib.o
- 
--xsc_ib-y := main.o
-+xsc_ib-y := main.o mem.o mr.o
-diff --git a/drivers/infiniband/hw/xsc/main.c b/drivers/infiniband/hw/xsc/main.c
-index 322fad38b..a212a5888 100644
---- a/drivers/infiniband/hw/xsc/main.c
-+++ b/drivers/infiniband/hw/xsc/main.c
-@@ -391,6 +391,40 @@ static int xsc_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vma
- 				 NULL);
+diff --git a/drivers/infiniband/hw/xsc/cq.c b/drivers/infiniband/hw/xsc/cq.c
+index 36d122f8d..a5ab8d00d 100644
+--- a/drivers/infiniband/hw/xsc/cq.c
++++ b/drivers/infiniband/hw/xsc/cq.c
+@@ -143,11 +143,11 @@ static void *get_seg_wqe(void *first, int n)
+ 	return first + (n << XSC_BASE_WQE_SHIFT);
  }
  
-+int xsc_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
-+{
-+	struct ib_device *ibdev = ibpd->device;
-+	struct xsc_ib_alloc_pd_resp resp;
-+	struct xsc_ib_pd *pd;
-+	int err;
-+
-+	pd = to_xpd(ibpd);
-+
-+	err = xsc_core_alloc_pd(to_xdev(ibdev)->xdev, &pd->pdn);
-+	if (err)
-+		return err;
-+
-+	if (udata) {
-+		resp.pdn = pd->pdn;
-+		if (ib_copy_to_udata(udata, &resp, sizeof(resp))) {
-+			xsc_core_dealloc_pd(to_xdev(ibdev)->xdev, pd->pdn);
-+			return -EFAULT;
-+		}
-+	} else {
-+		pd->pa_lkey = 0;
+-static void xsc_handle_rdma_mad_resp_recv(struct xsc_ib_cq *cq,
+-					  struct xsc_ib_qp **cur_qp,
+-					  struct ib_wc *wc,
+-					  struct xsc_cqe *cqe,
+-					  u8 opcode)
++static int xsc_handle_rdma_mad_resp_recv(struct xsc_ib_cq *cq,
++					 struct xsc_ib_qp **cur_qp,
++					 struct ib_wc *wc,
++					 struct xsc_cqe *cqe,
++					 u8 opcode)
+ {
+ 	struct xsc_ib_dev *dev = to_xdev(cq->ibcq.device);
+ 	void *recv;
+@@ -159,8 +159,8 @@ static void xsc_handle_rdma_mad_resp_recv(struct xsc_ib_cq *cq,
+ 	struct ib_unpacked_vlan *vlan;
+ 	struct ib_grh *grh;
+ 	struct ib_mad *mad;
+-	struct rxe_bth *bth;
+-	struct rxe_deth *deth;
++	struct xsc_bth *bth;
++	struct xsc_deth *deth;
+ 	unsigned int pading_sz = 0;
+ 	struct xsc_ib_wq *wq;
+ 	int idx;
+@@ -173,7 +173,13 @@ static void xsc_handle_rdma_mad_resp_recv(struct xsc_ib_cq *cq,
+ 	handle_responder(wc, cqe, *cur_qp, opcode);
+ 
+ 	data_seg = get_seg_wqe(get_recv_wqe(*cur_qp, idx), 0);
+-	recv = xsc_ib_recv_mad_sg_virt_addr(&dev->ib_dev, wc, data_seg->va);
++	recv = xsc_ib_mad_sg_virt_addr(&dev->ib_dev, data_seg->va);
++	if (unlikely(!recv)) {
++		ibdev_err(&dev->ib_dev,
++			  "cannot map the MAD receive buffer to a virtual address\n");
++		wc->status = IB_WC_LOC_ACCESS_ERR;
++		return -EOPNOTSUPP;
 +	}
+ 
+ 	eth = (struct ib_unpacked_eth *)recv;
+ 	grh = (struct ib_grh *)recv;
+@@ -197,8 +203,8 @@ static void xsc_handle_rdma_mad_resp_recv(struct xsc_ib_cq *cq,
+ 		ip6h = (struct ipv6hdr *)l3_start;
+ 		udph = (struct udphdr *)(ip6h + 1);
+ 	}
+-	bth = (struct rxe_bth *)(udph + 1);
+-	deth = (struct rxe_deth *)(bth + 1);
++	bth = (struct xsc_bth *)(udph + 1);
++	deth = (struct xsc_deth *)(bth + 1);
+ 	mad = (struct ib_mad *)(deth + 1);
+ 
+ 	if (eth_type == ETH_P_IP) {
+@@ -216,6 +222,8 @@ static void xsc_handle_rdma_mad_resp_recv(struct xsc_ib_cq *cq,
+ 	ibdev_dbg(&dev->ib_dev, "qp[%d] recv MAD packet, msg_len=%d\n",
+ 		  (*cur_qp)->xqp.qpn, wc->byte_len);
+ 	wc->status = IB_WC_SUCCESS;
 +
 +	return 0;
-+}
-+
-+int xsc_ib_dealloc_pd(struct ib_pd *pd, struct ib_udata *udata)
+ }
+ 
+ static void xsc_generate_lost_cqe(struct xsc_ib_dev *dev, struct xsc_ib_wq *wq,
+@@ -303,6 +311,10 @@ static int xsc_poll_one(struct xsc_ib_cq *cq,
+ 			break;
+ 		}
+ 		wq->last_comp_ce_wqe = idx;
++		if (wq->zero_length_read[idx]) {
++			opcode = XSC_OPCODE_RDMA_REQ_READ;
++			wq->zero_length_read[idx] = 0;
++		}
+ 		handle_good_req(wc, cqe, opcode);
+ 		wc->wr_id = wq->wrid[idx];
+ 		wq->tail = wq->wqe_head[idx] + 1;
+@@ -331,7 +343,8 @@ static int xsc_poll_one(struct xsc_ib_cq *cq,
+ 
+ 	case XSC_OPCODE_RDMA_MAD_RSP_RECV:
+ 		ibdev_dbg(&dev->ib_dev, "recv MAD, qpn:%u\n", qpn);
+-		xsc_handle_rdma_mad_resp_recv(cq, cur_qp, wc, cqe, opcode);
++		if (xsc_handle_rdma_mad_resp_recv(cq, cur_qp, wc, cqe, opcode))
++			wc->status = IB_WC_LOC_ACCESS_ERR;
+ 		break;
+ 
+ 	case XSC_OPCODE_RDMA_REQ_ERROR:
+@@ -372,6 +385,7 @@ static int xsc_poll_one(struct xsc_ib_cq *cq,
+ 		if (wq->need_flush[idx])
+ 			atomic_dec(&wq->flush_wqe_cnt);
+ 		wq->need_flush[idx] = 0;
++		wq->zero_length_read[idx] = 0;
+ 		ibdev_err(&dev->ib_dev, "req error\n%08x %08x %08x %08x %08x %08x\n",
+ 			  p[0], p[1], p[2], p[3], p[5], p[6]);
+ 		wc->status = IB_WC_GENERAL_ERR;
+diff --git a/drivers/infiniband/hw/xsc/main.c b/drivers/infiniband/hw/xsc/main.c
+index 138ca1a80..057468798 100644
+--- a/drivers/infiniband/hw/xsc/main.c
++++ b/drivers/infiniband/hw/xsc/main.c
+@@ -474,6 +474,22 @@ static int init_node_data(struct xsc_ib_dev *dev)
+ 	return 0;
+ }
+ 
++static void crc_table_init(struct xsc_ib_dev *dev)
 +{
-+	struct xsc_ib_dev *dev = to_xdev(pd->device);
-+	struct xsc_ib_pd *xpd = to_xpd(pd);
++	u32 c, i, j;
 +
-+	return xsc_core_dealloc_pd(dev->xdev, xpd->pdn);
++	for (i = 0; i < 256; i++) {
++		c = i;
++		for (j = 0; j < 8; j++) {
++			if (c & 1)
++				c = 0xedb88320L ^ (c >> 1);
++			else
++				c = c >> 1;
++		}
++		dev->crc_32_table[i] = c;
++	}
 +}
 +
- static int xsc_port_immutable(struct ib_device *ibdev, u32 port_num,
- 			      struct ib_port_immutable *immutable)
+ static void xsc_ib_get_dev_fw_str(struct ib_device *ibdev, char *str)
  {
-@@ -475,15 +509,22 @@ static void xsc_ib_dev_setting(struct xsc_ib_dev *dev)
- 	dev->ib_dev.ops.dealloc_ucontext = xsc_ib_dealloc_ucontext;
- 	dev->ib_dev.ops.mmap		= xsc_ib_mmap;
- 
-+	dev->ib_dev.ops.alloc_pd		= xsc_ib_alloc_pd;
-+	dev->ib_dev.ops.dealloc_pd		= xsc_ib_dealloc_pd;
- 
- 	dev->ib_dev.ops.get_link_layer	= xsc_ib_port_link_layer;
- 
-+	dev->ib_dev.ops.get_dma_mr		= xsc_ib_get_dma_mr;
-+	dev->ib_dev.ops.reg_user_mr		= xsc_ib_reg_user_mr; /* optional */
-+	dev->ib_dev.ops.reg_user_mr_dmabuf	= xsc_ib_reg_user_mr_dmabuf;
-+	dev->ib_dev.ops.dereg_mr		= xsc_ib_dereg_mr;
+ 	struct xsc_core_device *dev = to_xdev(ibdev)->xdev;
+@@ -521,6 +537,7 @@ static void xsc_ib_dev_setting(struct xsc_ib_dev *dev)
+ 	dev->ib_dev.ops.modify_qp		= xsc_ib_modify_qp;
+ 	dev->ib_dev.ops.query_qp		= xsc_ib_query_qp;
+ 	dev->ib_dev.ops.destroy_qp		= xsc_ib_destroy_qp;
++	dev->ib_dev.ops.post_send		= xsc_ib_post_send;
+ 	dev->ib_dev.ops.post_recv		= xsc_ib_post_recv;
+ 	dev->ib_dev.ops.create_cq		= xsc_ib_create_cq;
+ 	dev->ib_dev.ops.destroy_cq		= xsc_ib_destroy_cq;
+@@ -533,6 +550,8 @@ static void xsc_ib_dev_setting(struct xsc_ib_dev *dev)
  
  	dev->ib_dev.ops.get_port_immutable		= xsc_port_immutable;
  
++	dev->ib_dev.ops.drain_sq		= xsc_ib_drain_sq;
++	dev->ib_dev.ops.drain_rq		= xsc_ib_drain_rq;
  	dev->ib_dev.ops.get_dev_fw_str	= xsc_ib_get_dev_fw_str;
- 
- 	dev->ib_dev.ops INIT_RDMA_OBJ_SIZE(ib_ucontext, xsc_ib_ucontext, ibucontext);
-+	dev->ib_dev.ops INIT_RDMA_OBJ_SIZE(ib_pd, xsc_ib_pd, ibpd);
- }
- 
- /*
-@@ -616,6 +657,10 @@ static int init_one(struct xsc_core_device *xdev,
+ 	dev->ib_dev.ops.create_srq		= xsc_ib_create_srq;
+ 	dev->ib_dev.ops.destroy_srq		= xsc_ib_destroy_srq;
+@@ -678,6 +697,8 @@ static int init_one(struct xsc_core_device *xdev,
  	if (err)
  		goto err_free;
  
-+	err = xsc_reg_local_dma_mr(xdev);
-+	if (err)
-+		goto err_free;
-+
- 	init_iommu_state(dev, xdev->device);
- 	err = ib_register_device(&dev->ib_dev, dev->ib_dev.name,
- 				 dev->xdev->device);
-diff --git a/drivers/infiniband/hw/xsc/mem.c b/drivers/infiniband/hw/xsc/mem.c
-new file mode 100644
-index 000000000..cb1376648
---- /dev/null
-+++ b/drivers/infiniband/hw/xsc/mem.c
-@@ -0,0 +1,160 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (C) 2021 - 2026, Shanghai Yunsilicon Technology Co., Ltd.
-+ * All rights reserved.
-+ */
-+
-+#include <linux/module.h>
-+#include <rdma/ib_umem.h>
-+#include "xsc_ib.h"
-+
-+/**
-+ * __xsc_ib_cont_pages - scan a umem for compound pages
-+ * @umem: umem object to scan
-+ * @addr: ib virtual address requested by the user
-+ * @max_page_shift: upper limit for the detected page shift, 0 for none
-+ * @count: number of PAGE_SIZE pages covered by umem
-+ * @shift: page shift for the compound pages found in the region
-+ * @ncont: number of compound pages
-+ */
-+static void __xsc_ib_cont_pages(struct ib_umem *umem, u64 addr,
-+				unsigned long max_page_shift,
-+				int *count, int *shift, int *ncont)
++	crc_table_init(dev);
++	build_opcode_map(dev);
+ 	err = xsc_reg_local_dma_mr(xdev);
+ 	if (err)
+ 		goto err_free;
+@@ -688,7 +709,6 @@ static int init_one(struct xsc_core_device *xdev,
+ 	if (err)
+ 		goto err_free;
+ 
+-	rdma_roce_rescan_device(&dev->ib_dev);
+ 	dev->ib_active = true;
+ 	*ibdev = dev;
+ 
+diff --git a/drivers/infiniband/hw/xsc/qp.c b/drivers/infiniband/hw/xsc/qp.c
+index 0dfb10294..46ca3dd95 100644
+--- a/drivers/infiniband/hw/xsc/qp.c
++++ b/drivers/infiniband/hw/xsc/qp.c
+@@ -11,13 +11,10 @@
+ #include <rdma/xsc-abi.h>
+ #include "common/xsc_hsi.h"
+ #include <linux/crc32.h>
++#include <linux/unaligned.h>
+ #include <linux/dma-direct.h>
+ #include <rdma/ib_addr.h>
+ 
+-#ifndef ETH_P_IBOE
+-#define ETH_P_IBOE	0x8915
+-#endif
+-
+ #define MAD_QUEUE_DEPTH        128
+ 
+ enum {
+@@ -29,6 +26,23 @@ enum {
+ #define UDP_SPORT_MASK			0xffff
+ #define UDP_SPORT_OFFSET		0
+ 
++void build_opcode_map(struct xsc_ib_dev *dev)
 +{
-+	unsigned long tmp;
-+	unsigned long m;
-+	u64 base = ~0, p = 0;
-+	u64 len, pfn;
-+	int i = 0;
-+	struct scatterlist *sg;
-+	int entry;
-+	/* TODO: need peer mem support */
-+	unsigned long page_shift = PAGE_SHIFT;
++	struct xsc_msg_opcode *xsc_ib_opcode = dev->xdev->board_info->msg_opcode;
 +
-+	addr = addr >> page_shift;
-+	tmp = (unsigned long)addr;
-+	m = find_first_bit(&tmp, BITS_PER_LONG);
-+	if (max_page_shift)
-+		m = min_t(unsigned long, max_page_shift - page_shift, m);
-+	for_each_sgtable_dma_sg(&umem->sgt_append.sgt, sg, entry) {
-+		len = sg_dma_len(sg) >> page_shift;
-+		pfn = sg_dma_address(sg) >> page_shift;
-+		if (base + p != pfn) {
-+			/* If either the offset or the new
-+			 * base are unaligned update m
-+			 */
-+			tmp = (unsigned long)(pfn | p);
-+			if (!IS_ALIGNED(tmp, 1UL << m))
-+				m = find_first_bit(&tmp, BITS_PER_LONG);
-+
-+			base = pfn;
-+			p = 0;
-+		}
-+
-+		p += len;
-+		i += len;
-+	}
-+
-+	if (i) {
-+		m = min_t(unsigned long, ilog2(roundup_pow_of_two(i)), m);
-+		*ncont = DIV_ROUND_UP(i, (1 << m));
-+	} else {
-+		m = 0;
-+		*ncont = 0;
-+	}
-+	*shift = page_shift + m;
-+	*count = i;
++	dev->opcode_map[IB_WR_SEND] = xsc_ib_opcode->send;
++	dev->opcode_map[IB_WR_SEND_WITH_IMM] = xsc_ib_opcode->send_with_imm;
++	dev->opcode_map[IB_WR_RDMA_WRITE] = xsc_ib_opcode->rdma_write;
++	dev->opcode_map[IB_WR_RDMA_WRITE_WITH_IMM] = xsc_ib_opcode->rdma_write_with_imm;
++	dev->opcode_map[IB_WR_RDMA_READ] = xsc_ib_opcode->rdma_read;
++	dev->opcode_map[IB_WR_ATOMIC_CMP_AND_SWP] = xsc_ib_opcode->atomic_cmp_and_swp;
++	dev->opcode_map[IB_WR_ATOMIC_FETCH_AND_ADD] = xsc_ib_opcode->atomic_fetch_and_add;
++	dev->opcode_map[IB_WR_MASKED_ATOMIC_CMP_AND_SWP] =
++		xsc_ib_opcode->masked_atomic_cmp_and_swp;
++	dev->opcode_map[IB_WR_MASKED_ATOMIC_FETCH_AND_ADD] =
++		xsc_ib_opcode->masked_atomic_fetch_and_add;
 +}
 +
-+void xsc_ib_cont_pages(struct ib_umem *umem, u64 addr,
-+		       int *count, int *shift, int *ncont)
+ static int is_qp0(enum ib_qp_type qp_type)
+ {
+ 	return qp_type == IB_QPT_SMI;
+@@ -59,6 +73,83 @@ static void *get_seg_wqe(void *first, int n)
+ 	return first + (n << XSC_BASE_WQE_SHIFT);
+ }
+ 
++void *xsc_get_send_wqe(struct xsc_ib_qp *qp, int n)
 +{
-+	/* no limit for page_shift */
-+	__xsc_ib_cont_pages(umem, addr, 0, count, shift, ncont);
++	return get_wqe(qp, qp->sq.offset + (n << qp->sq.wqe_shift));
 +}
 +
-+static void __xsc_ib_populate_pas(struct xsc_ib_dev *dev, struct ib_umem *umem,
-+				  int page_shift, size_t offset, size_t num_pages,
-+				  __be64 *pas, int access_flags, bool need_to_devide)
++static inline void set_remote_addr_seg(struct xsc_core_device *xdev,
++				       struct xsc_wqe_data_seg *remote_seg,
++				       u32 msg_len, u64 remote_addr, u32 rkey)
 +{
-+	unsigned long umem_page_shift = PAGE_SHIFT;
-+	int shift = page_shift - umem_page_shift;
-+	int mask = (1 << shift) - 1;
-+	int i = 0;
-+	int k, idx;
-+	u64 cur = 0;
-+	u64 base;
++	xsc_set_data_seg(xdev, remote_seg, remote_addr, rkey, msg_len);
++}
++
++static void set_local_data_seg(struct xsc_core_device *xdev,
++			       struct xsc_wqe_data_seg *data_seg, struct ib_sge *sg)
++{
++	xsc_set_data_seg(xdev, data_seg, sg->addr, sg->lkey, sg->length);
++}
++
++static int set_data_inl_seg(struct xsc_ib_qp *qp, const struct ib_send_wr *wr, void *ctrl,
++			    unsigned int seg_index, unsigned int *num_segs)
++{
++	unsigned int ds_len = sizeof(struct xsc_wqe_data_seg);
++	unsigned int segs_per_wqe;
++	unsigned int offset = 0;
++	size_t total_len = 0;
++	struct xsc_wqe_data_seg *data_seg;
++	void *addr;
 +	int len;
-+	struct scatterlist *sg;
-+	int entry;
++	int i;
 +
-+	for_each_sgtable_dma_sg(&umem->sgt_append.sgt, sg, entry) {
-+		if (need_to_devide)
-+			len = sg_dma_len(sg) >> XSC_PAGE_SHIFT_4K;
-+		else
-+			len = sg_dma_len(sg) >> umem_page_shift;
-+		base = sg_dma_address(sg);
++	segs_per_wqe = XSC_SEND_SEG_NUM << (qp->sq.wqe_shift - XSC_SEND_WQE_SHIFT);
 +
-+		/* Skip elements below offset */
-+		if (i + len < offset << shift) {
-+			i += len;
-+			continue;
-+		}
++	for (i = 0; i < wr->num_sge; ++i)
++		total_len += wr->sg_list[i].length;
 +
-+		/* Skip pages below offset */
-+		if (i < offset << shift) {
-+			k = (offset << shift) - i;
-+			i = offset << shift;
-+		} else {
-+			k = 0;
-+		}
++	/* max_inline_data is the byte budget of the whole WQE, not of a SGE */
++	if (total_len > qp->max_inline_data)
++		return -ENOMEM;
 +
-+		for (; k < len; k++) {
-+			if (!(i & mask)) {
-+				if (need_to_devide)
-+					cur = base + (k << XSC_PAGE_SHIFT_4K);
-+				else
-+					cur = base + (k << umem_page_shift);
-+				cur |= access_flags;
-+				idx = (i >> shift) - offset;
++	/* bound the payload segments by the WQE slot before any memcpy lands */
++	if (seg_index + DIV_ROUND_UP(total_len, ds_len) > segs_per_wqe)
++		return -ENOMEM;
 +
-+				pas[idx] = cpu_to_be64(cur);
-+				ibdev_dbg(&dev->ib_dev, "pas[%d] 0x%llx\n",
-+					  i >> shift, be64_to_cpu(pas[idx]));
++	for (i = 0; i < wr->num_sge; ++i) {
++		addr = (void *)(unsigned long)wr->sg_list[i].addr;
++		len  = wr->sg_list[i].length;
++
++		while (len) {
++			unsigned int copy_len;
++
++			if (!offset) {
++				data_seg = get_seg_wqe(ctrl, seg_index);
++				seg_index++;
 +			}
-+			i++;
-+
-+			/* Stop after num_pages reached */
-+			if (i >> shift >= offset + num_pages)
-+				return;
++			copy_len = min_t(unsigned int, len, ds_len - offset);
++			memcpy((char *)data_seg + offset, addr, copy_len);
++			offset = (offset + copy_len) % ds_len;
++			addr += copy_len;
++			len -= copy_len;
 +		}
++	}
++
++	*num_segs = seg_index;
++	return 0;
++}
++
++static __be32 send_ieth(const struct ib_send_wr *wr)
++{
++	switch (wr->opcode) {
++	case IB_WR_SEND_WITH_IMM:
++	case IB_WR_RDMA_WRITE_WITH_IMM:
++		return wr->ex.imm_data;
++	default:
++		return 0;
 +	}
 +}
 +
-+void xsc_ib_populate_pas(struct xsc_ib_dev *dev, struct ib_umem *umem,
-+			 int page_shift, __be64 *pas, int npages, bool need_to_devide)
+ static void xsc_ib_qp_event(struct xsc_core_qp *qp, int type)
+ {
+ 	struct ib_qp *ibqp = &core_to_xqp(qp)->ibqp;
+@@ -308,7 +399,6 @@ static int create_user_qp(struct xsc_ib_dev *dev, struct ib_pd *pd,
+ 	xsc_ib_cont_pages(qp->umem, ucmd->buf_addr, &npages, &page_shift,
+ 			  &ncont);
+ 	if (ncont != npages) {
+-		/* TODO: peer memory support failed */
+ 		page_shift = PAGE_SHIFT;
+ 		ncont = npages;
+ 	}
+@@ -419,12 +509,15 @@ static int create_kernel_qp(struct xsc_ib_dev *dev,
+ 	qp->sq.wqe_head = kcalloc(qp->sq.wqe_cnt, sizeof(*qp->sq.wqe_head), GFP_KERNEL);
+ 	qp->sq.wr_opcode = kcalloc(qp->sq.wqe_cnt, sizeof(*qp->sq.wr_opcode), GFP_KERNEL);
+ 	qp->sq.need_flush = kcalloc(qp->sq.wqe_cnt, sizeof(*qp->sq.need_flush), GFP_KERNEL);
++	qp->sq.zero_length_read = kcalloc(qp->sq.wqe_cnt,
++					  sizeof(*qp->sq.zero_length_read), GFP_KERNEL);
+ 	qp->sq.prev_ce_wqe = kcalloc(qp->sq.wqe_cnt, sizeof(*qp->sq.prev_ce_wqe), GFP_KERNEL);
+ 	qp->sq.last_comp_ce_wqe = -1;
+ 	qp->sq.last_post_ce_wqe = -1;
+ 
+ 	if (!qp->sq.wrid || !qp->sq.wr_data || !qp->rq.wrid || !qp->sq.prev_ce_wqe ||
+-	    !qp->sq.w_list || !qp->sq.wqe_head || !qp->sq.wr_opcode || !qp->sq.need_flush) {
++	    !qp->sq.w_list || !qp->sq.wqe_head || !qp->sq.wr_opcode || !qp->sq.need_flush ||
++	    !qp->sq.zero_length_read) {
+ 		err = -ENOMEM;
+ 		goto err_wrid;
+ 	}
+@@ -450,6 +543,7 @@ static int create_kernel_qp(struct xsc_ib_dev *dev,
+ err_wrid:
+ 	xsc_vfree(*in);
+ 	*in = NULL;
++	kfree(qp->sq.zero_length_read);
+ 	kfree(qp->sq.prev_ce_wqe);
+ 	kfree(qp->sq.need_flush);
+ 	kfree(qp->sq.wr_opcode);
+@@ -471,6 +565,7 @@ static void destroy_qp_kernel(struct xsc_ib_dev *dev, struct xsc_ib_qp *qp)
+ 				  qp->sq.hdr_buf, qp->sq.hdr_dma);
+ 	kfree(qp->sq.prev_ce_wqe);
+ 	kfree(qp->sq.need_flush);
++	kfree(qp->sq.zero_length_read);
+ 	kfree(qp->sq.wr_opcode);
+ 	kfree(qp->sq.wqe_head);
+ 	kfree(qp->sq.w_list);
+@@ -1437,13 +1532,538 @@ static int xsc_wq_overflow(struct xsc_ib_wq *wq, int nreq)
+ 	return cur + nreq >= wq->max_post;
+ }
+ 
++static inline void xsc_post_send_db(struct xsc_ib_qp *qp,
++				    struct xsc_core_device *xdev,
++				    int nreq)
 +{
-+	return __xsc_ib_populate_pas(dev, umem, page_shift, 0,
-+				     npages, pas, 0, need_to_devide);
++	u32 next_pid;
++
++	if (unlikely(!nreq))
++		return;
++
++	qp->sq.head += nreq;
++
++	next_pid = qp->sq.head << (qp->sq.wqe_shift - XSC_BASE_WQE_SHIFT);
++	xsc_update_tx_db(xdev, qp->doorbell_qpn, next_pid);
 +}
 +
-+int xsc_ib_get_buf_offset(u64 addr, int page_shift, u32 *offset)
++static inline u32 xsc_crc32(struct xsc_ib_dev *dev, u32 crc, u8 *buf, size_t len)
 +{
-+	u64 page_size;
-+	u64 page_mask;
-+	u64 off_size;
-+	u64 off_mask;
-+	u64 buf_off;
++	u32 i;
 +
-+	page_size = 1ULL << page_shift;
-+	page_mask = page_size - 1;
-+	buf_off = addr & page_mask;
-+	off_size = page_size >> 6;
-+	off_mask = off_size - 1;
++	for (i = 0; i < len; i++)
++		crc = dev->crc_32_table[(crc ^ buf[i]) & 0xff] ^ (crc >> 8);
 +
-+	if (buf_off & off_mask)
++	return crc;
++}
++
+ #define BTH_QPN_MASK		(0x00ffffff)
+ #define BTH_PSN_MASK		(0x00ffffff)
+ 
+ /* Compute a partial ICRC for all the IB transport headers. */
++static int xsc_icrc_hdr(struct xsc_ib_dev *dev, void *pkt, u32 size, u32 *icrc)
++{
++	struct iphdr *ip4h = NULL;
++	struct ipv6hdr *ip6h = NULL;
++	struct udphdr *udph;
++	struct ib_unpacked_eth *eth;
++	struct xsc_bth *bth;
++	struct ib_unpacked_deth *deth;
++	struct ib_unpacked_vlan *vlan;
++	int crc;
++	int crc_field_len;
++	__be16 l3_type;
++	u8 *l3_start;
++
++	int hdr_size;
++
++	/* pseudo header buffer size is calculate using ipv6 header size since
++	 * it is bigger than ipv4
++	 */
++	u8 pshdr[sizeof(struct udphdr) +
++		sizeof(struct ipv6hdr) +
++		sizeof(*bth) + sizeof(*deth)] __aligned(4);
++
++	eth = pkt;
++
++	if (eth->type == htons(ETH_P_8021Q)) {
++		vlan = (struct ib_unpacked_vlan *)(eth + 1);
++		l3_type = vlan->type;
++		l3_start = (u8 *)(vlan + 1);
++		size -= 4;
++	} else {
++		l3_type = eth->type;
++		l3_start = (u8 *)(eth + 1);
++	}
++
++	hdr_size = sizeof(struct udphdr) +
++		(l3_type == htons(ETH_P_IP) ?
++		sizeof(struct iphdr) : sizeof(struct ipv6hdr));
+ 
+-/* Routine for sending QP1 packets for RoCE V1 an V2 */
+-/* TODO: sq hdr buf should be created dynamically for mult entry */
++	crc_field_len = hdr_size + sizeof(*bth) + sizeof(*deth);
++
++	if (crc_field_len != size) {
++		ibdev_err(&dev->ib_dev, "Unmatched hdr: expect %d actual %d\n",
++			  crc_field_len, size);
 +		return -EINVAL;
-+
-+	*offset = buf_off >> ilog2(off_size);
-+	return 0;
-+}
-diff --git a/drivers/infiniband/hw/xsc/mr.c b/drivers/infiniband/hw/xsc/mr.c
-new file mode 100644
-index 000000000..b5dc088fc
---- /dev/null
-+++ b/drivers/infiniband/hw/xsc/mr.c
-@@ -0,0 +1,335 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (C) 2021 - 2026, Shanghai Yunsilicon Technology Co., Ltd.
-+ * All rights reserved.
-+ */
-+
-+#include <linux/kref.h>
-+#include <linux/random.h>
-+#include <linux/debugfs.h>
-+#include <linux/export.h>
-+#include <linux/dma-buf.h>
-+#include <linux/dma-resv.h>
-+#include <rdma/ib_umem.h>
-+#include <rdma/iter.h>
-+#include "common/xsc_cmd.h"
-+#include <linux/dma-direct.h>
-+#include "xsc_ib.h"
-+
-+enum {
-+	DEF_CACHE_SIZE	= 10,
-+};
-+
-+struct ib_mr *xsc_ib_get_dma_mr(struct ib_pd *pd, int acc)
-+{
-+	struct xsc_ib_dev *dev = to_xdev(pd->device);
-+	struct xsc_core_device *xdev = dev->xdev;
-+	struct xsc_register_mr_mbox_in *in;
-+	struct xsc_register_mr_request *req;
-+	struct xsc_ib_mr *mr;
-+	int err;
-+
-+	mr = kzalloc_obj(*mr, GFP_KERNEL);
-+	if (!mr)
-+		return ERR_PTR(-ENOMEM);
-+
-+	in = kzalloc_obj(*in, GFP_KERNEL);
-+	if (!in) {
-+		err = -ENOMEM;
-+		goto err_free;
 +	}
 +
-+	req = &in->req;
-+	req->pdn = cpu_to_be32(to_xpd(pd)->pdn);
-+	req->acc = convert_access(acc);
-+	req->va_base = 0;
-+	req->map_en = !(XSC_MPT_MAP_EN);
++	ip4h = (struct iphdr *)(l3_start);
++	ip6h = (struct ipv6hdr *)(l3_start);
++	udph = (struct udphdr *)(ip4h + 1);
++	bth = (struct xsc_bth *)(udph + 1);
 +
-+	err = xsc_core_create_mkey(xdev, &mr->xmr);
-+	if (err)
-+		goto err_in;
-+	req->mkey = cpu_to_be32(mr->xmr.key);
-+	err = xsc_core_register_mr(xdev, &mr->xmr, in, sizeof(*in));
-+	if (err)
-+		goto err_reg_mr;
-+	kfree(in);
-+	mr->ibmr.lkey = mr->xmr.key;
-+	mr->ibmr.rkey = mr->xmr.key;
-+	mr->umem = NULL;
++	memcpy(pshdr, l3_start, crc_field_len);
 +
-+	return &mr->ibmr;
-+err_reg_mr:
-+	xsc_core_destroy_mkey(xdev, &mr->xmr);
-+err_in:
-+	kfree(in);
++	/* This seed is the result of computing a CRC with a seed of
++	 * 0xfffffff and 8 bytes of 0xff representing a masked LRH.
++	 */
++	crc = 0xdebb20e3;
 +
-+err_free:
-+	kfree(mr);
++	if (l3_type == htons(ETH_P_IP)) { /* IPv4 */
++		memcpy(pshdr, ip4h, hdr_size);
++		ip4h = (struct iphdr *)pshdr;
++		udph = (struct udphdr *)(ip4h + 1);
 +
-+	return ERR_PTR(err);
-+}
++		ip4h->ttl = 0xff;
++		ip4h->check = CSUM_MANGLED_0;
++		ip4h->tos = 0xff;
++	} else {				/* IPv6 */
++		memcpy(pshdr, ip6h, hdr_size);
++		ip6h = (struct ipv6hdr *)pshdr;
++		udph = (struct udphdr *)(ip6h + 1);
 +
-+static struct xsc_ib_mr *reg_create(struct ib_pd *pd, u64 virt_addr,
-+				    u64 length, struct ib_umem *umem,
-+				    size_t npages, int page_shift,
-+				    int access_flags)
-+{
-+	struct xsc_ib_dev *dev = to_xdev(pd->device);
-+	struct xsc_register_mr_mbox_in *in;
-+	struct xsc_ib_mr *mr;
-+	struct ib_block_iter biter;
-+	__be64 *pas;
-+	size_t pas_size;
-+	size_t inlen;
-+	int err;
-+
-+	mr = kzalloc_obj(*mr, GFP_KERNEL);
-+	if (!mr) {
-+		err = -ENOMEM;
-+		goto err_0;
++		memset(ip6h->flow_lbl, 0xff, sizeof(ip6h->flow_lbl));
++		ip6h->priority = 0xf;
++		ip6h->hop_limit = 0xff;
 +	}
++	udph->check = CSUM_MANGLED_0;
 +
-+	if (npages > dev->xdev->caps.max_mtt) {
-+		ibdev_err(&dev->ib_dev, "npages(%zu) exceeded.\n", npages);
-+		err = -EINVAL;
-+		goto err_1;
-+	}
++	bth = (struct xsc_bth *)(udph + 1);
++	/* exclude bth.resv8a */
++	bth->qpn |= cpu_to_be32(~BTH_QPN_MASK);
 +
-+	if (check_mul_overflow(npages, sizeof(*in->req.pas), &pas_size) ||
-+	    check_add_overflow(pas_size, sizeof(*in), &inlen) ||
-+	    inlen > INT_MAX) {
-+		err = -EINVAL;
-+		goto err_1;
-+	}
-+	in = xsc_vzalloc(inlen);
-+	if (!in) {
-+		err = -ENOMEM;
-+		goto err_1;
-+	}
-+	err = xsc_core_create_mkey(dev->xdev, &mr->xmr);
-+	if (err) {
-+		ibdev_warn(&dev->ib_dev, "create mkey failed\n");
-+		goto err_2;
-+	}
-+
-+	pas = in->req.pas;
-+	rdma_umem_for_each_dma_block(umem, &biter, 1UL << page_shift) {
-+		*pas = cpu_to_be64(rdma_block_iter_dma_address(&biter));
-+		pas++;
-+	}
-+
-+	in->req.acc = convert_access(access_flags);
-+	in->req.pa_num = cpu_to_be32((u32)npages);
-+	in->req.pdn = cpu_to_be32(to_xpd(pd)->pdn);
-+	in->req.va_base = cpu_to_be64(virt_addr);
-+	in->req.map_en = XSC_MPT_MAP_EN;
-+	in->req.len = cpu_to_be64(length);
-+	in->req.page_mode = xsc_get_mr_page_mode(dev->xdev, page_shift);
-+	ibdev_dbg(&dev->ib_dev, "read_flush hwconfig %s\n",
-+		  dev->xdev->read_flush ? "enable" : "disable");
-+	in->req.is_gpu = 0;
-+	in->req.mkey = cpu_to_be32(mr->xmr.key);
-+	err = xsc_core_register_mr(dev->xdev, &mr->xmr, in, inlen);
-+	if (err) {
-+		ibdev_warn(&dev->ib_dev, "register mr failed, err = %d\n", err);
-+		goto err_reg_mr;
-+	}
-+	mr->umem = umem;
-+	xsc_vfree(in);
-+
-+	ibdev_dbg(&dev->ib_dev, "mkey = 0x%x\n", mr->xmr.key);
-+
-+	return mr;
-+err_reg_mr:
-+	xsc_core_destroy_mkey(dev->xdev, &mr->xmr);
-+err_2:
-+	xsc_vfree(in);
-+err_1:
-+	kfree(mr);
-+err_0:
-+	return ERR_PTR(err);
-+}
-+
-+struct ib_mr *xsc_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
-+				 u64 virt_addr, int access_flags,
-+				 struct ib_dmah *dmah,
-+				 struct ib_udata *udata)
-+{
-+	struct xsc_ib_dev *dev = to_xdev(pd->device);
-+	struct xsc_ib_mr *mr = NULL;
-+	struct ib_umem *umem;
-+	unsigned long pgsz;
-+	int page_shift;
-+	size_t npages;
-+	int err;
-+
-+	if (dmah)
-+		return ERR_PTR(-EOPNOTSUPP);
-+
-+	if (length > dev->xdev->caps.max_mr_size) {
-+		ibdev_err(&dev->ib_dev, "reg user mr length(%llu) exceeded.\n", length);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	ibdev_dbg(&dev->ib_dev, "start 0x%llx, virt_addr 0x%llx, length 0x%llx\n",
-+		  start, virt_addr, length);
-+
-+	umem = ib_umem_get_va(&dev->ib_dev, start, length, access_flags);
-+	if (IS_ERR(umem)) {
-+		ibdev_dbg(&dev->ib_dev, "umem get failed\n");
-+		return (void *)umem;
-+	}
-+
-+	pgsz = ib_umem_find_best_pgsz(umem, XSC_MR_PAGE_CAP_MASK, virt_addr);
-+	if (!pgsz) {
-+		ibdev_warn(&dev->ib_dev, "find best page size failed\n");
-+		err = -EINVAL;
-+		goto error;
-+	}
-+
-+	page_shift = order_base_2(pgsz);
-+	npages = ib_umem_num_dma_blocks(umem, pgsz);
-+
-+	ibdev_dbg(&dev->ib_dev, "npages %zu, page_shift %d\n", npages, page_shift);
-+
-+	mr = reg_create(pd, virt_addr, length, umem, npages, page_shift,
-+			access_flags);
-+	if (IS_ERR(mr)) {
-+		err = PTR_ERR(mr);
-+		goto error;
-+	}
-+
-+	ibdev_dbg(&dev->ib_dev, "mkey 0x%x\n", mr->xmr.key);
-+
-+	mr->umem = umem;
-+	mr->npages = npages;
-+	mr->ibmr.lkey = mr->xmr.key;
-+	mr->ibmr.rkey = mr->xmr.key;
-+	mr->ibmr.length = length;
-+	return &mr->ibmr;
-+
-+error:
-+	ib_umem_release(umem);
-+	return ERR_PTR(err);
-+}
-+
-+struct ib_mr *xsc_ib_reg_user_mr_dmabuf(struct ib_pd *pd, u64 offset,
-+					u64 length, u64 virt_addr,
-+					int fd, int access_flags,
-+					struct ib_dmah *dmah,
-+					struct uverbs_attr_bundle *attrs)
-+{
-+	struct xsc_ib_dev *dev = to_xdev(pd->device);
-+	struct ib_umem_dmabuf *umem_dmabuf;
-+	struct ib_umem *umem;
-+	struct xsc_ib_mr *mr;
-+	unsigned long pgsz;
-+	int page_shift;
-+	size_t npages;
-+	int err;
-+
-+	if (!IS_ENABLED(CONFIG_INFINIBAND_USER_MEM))
-+		return ERR_PTR(-EOPNOTSUPP);
-+
-+	if (dmah)
-+		return ERR_PTR(-EOPNOTSUPP);
-+
-+	if (length > dev->xdev->caps.max_mr_size) {
-+		ibdev_err(&dev->ib_dev, "reg user dmabuf mr length(%llu) exceeded.\n",
-+			  length);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	umem_dmabuf = ib_umem_dmabuf_get_pinned(&dev->ib_dev,
-+						offset, length,
-+						fd, access_flags);
-+	if (IS_ERR(umem_dmabuf)) {
-+		ibdev_dbg(&dev->ib_dev, "umem_dmabuf get failed (%ld)\n",
-+			  PTR_ERR(umem_dmabuf));
-+		return ERR_CAST(umem_dmabuf);
-+	}
-+	umem = &umem_dmabuf->umem;
-+
-+	pgsz = ib_umem_find_best_pgsz(umem, XSC_MR_PAGE_CAP_MASK, virt_addr);
-+	if (!pgsz) {
-+		ibdev_warn(&dev->ib_dev, "find best page size failed\n");
-+		err = -EINVAL;
-+		goto err_release;
-+	}
-+
-+	page_shift = order_base_2(pgsz);
-+	npages = ib_umem_num_dma_blocks(umem, pgsz);
-+
-+	mr = reg_create(pd, virt_addr, length, umem, npages, page_shift,
-+			access_flags);
-+	if (IS_ERR(mr)) {
-+		err = PTR_ERR(mr);
-+		goto err_release;
-+	}
-+
-+	mr->umem = umem;
-+	mr->npages = npages;
-+	mr->ibmr.lkey = mr->xmr.key;
-+	mr->ibmr.rkey = mr->xmr.key;
-+	mr->ibmr.length = length;
-+
-+	return &mr->ibmr;
-+err_release:
-+	ib_umem_release(umem);
-+	return ERR_PTR(err);
-+}
-+
-+int xsc_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
-+{
-+	struct xsc_ib_dev *dev = to_xdev(ibmr->device);
-+	struct xsc_ib_mr *mr = to_xmr(ibmr);
-+	struct ib_umem *umem = mr->umem;
-+	int err;
-+
-+	ibdev_dbg(&dev->ib_dev, "dereg mkey = 0x%x\n", mr->xmr.key);
-+
-+	if (mr->npages) {
-+		err = xsc_core_dereg_mr(dev->xdev, &mr->xmr);
-+		if (err) {
-+			ibdev_warn(&dev->ib_dev, "failed to dereg mr 0x%x (%d)\n",
-+				   mr->xmr.key, err);
-+			return err;
-+		}
-+	}
-+	err = xsc_core_destroy_mkey(dev->xdev, &mr->xmr);
-+	if (err) {
-+		ibdev_warn(&dev->ib_dev, "failed to destroy mkey 0x%x (%d)\n",
-+			   mr->xmr.key, err);
-+		return err;
-+	}
-+
-+	if (umem)
-+		ib_umem_release(umem);
-+
-+	kfree(mr);
++	*icrc = xsc_crc32(dev, crc, pshdr, crc_field_len);
 +
 +	return 0;
 +}
 +
-+int xsc_reg_local_dma_mr(struct xsc_core_device *dev)
++/* Routine for sending QP1 packets for RoCE V2 */
++static int build_qp1_send_v2(struct xsc_ib_dev *dev,
++			     struct xsc_ib_qp *qp,
++			     const struct ib_send_wr *wr,
++			     struct ib_sge *sge,
++			     int payload_size, u32 *crc)
 +{
-+	struct xsc_register_mr_mbox_in in;
++	struct xsc_ib_ah *ah = container_of(ud_wr((struct ib_send_wr *)wr)->ah, struct xsc_ib_ah,
++					    ibah);
++	const struct ib_gid_attr *sgid_attr = ah->ibah.sgid_attr;
++	u16 ether_type;
++	bool is_eth = false;
++	bool is_vlan = false;
++	u8 ip_version = 0;
++	u16 vlan_id = 0xFFFF;
++	int rc = 0;
++	int cm_pcp = 0;
++	void *hdr_buf;
++	struct net_device *ndev;
++
++	memset(&qp->qp1_hdr, 0, sizeof(qp->qp1_hdr));
++
++	if (!qp->sq.hdr_buf) {
++		ibdev_err(&dev->ib_dev, "QP1 buffer is empty!");
++		return -ENOMEM;
++	}
++	hdr_buf = (u8 *)qp->sq.hdr_buf + MAX_QP1_SQ_HDR_SIZE_V2 * qp->sq.mad_index;
++
++	if (!sgid_attr) {
++		ibdev_err(&dev->ib_dev, "sgid_addr is null\n");
++		return -ENXIO;
++	}
++
++	if (sgid_attr->gid_type != IB_GID_TYPE_ROCE_UDP_ENCAP) {
++		ibdev_err(&dev->ib_dev, "RoCEv1 GID type not supported\n");
++		return -EINVAL;
++	}
++
++	rc = rdma_read_gid_l2_fields(sgid_attr, &vlan_id, NULL);
++	if (rc)
++		return rc;
++
++	if (ipv6_addr_v4mapped((struct in6_addr *)&sgid_attr->gid)) {
++		ip_version = 4;
++		ether_type = ETH_P_IP;
++	} else {
++		ip_version = 6;
++		ether_type = ETH_P_IPV6;
++	}
++
++	is_eth = true;
++	is_vlan = (vlan_id && (vlan_id < 0x1000)) ? true : false;
++
++	ib_ud_header_init(payload_size, !is_eth, is_eth, is_vlan, false,
++			  ip_version, true, 0, &qp->qp1_hdr);
++
++	/* ETH */
++	ether_addr_copy(qp->qp1_hdr.eth.dmac_h, ah->av.rmac);
++	ndev = ib_device_get_netdev(&dev->ib_dev, qp->port);
++	if (!ndev) {
++		ibdev_err(&dev->ib_dev, "no netdev for port %u\n", qp->port);
++		return -ENODEV;
++	}
++	ether_addr_copy(qp->qp1_hdr.eth.smac_h, ndev->dev_addr);
++	dev_put(ndev);
++
++	/* For vlan, check the sgid for vlan existence */
++	if (!is_vlan) {
++		qp->qp1_hdr.eth.type = cpu_to_be16(ether_type);
++	} else {
++		if (dev->xdev->priv.cm_pcp != XSC_DSCP_PCP_UNSET)
++			cm_pcp = dev->xdev->priv.cm_pcp << 13;
++		else
++			cm_pcp = ((ah->av.stat_rate_sl >> 1) & 0x7) << 13;
++		qp->qp1_hdr.vlan.type = cpu_to_be16(ether_type);
++		qp->qp1_hdr.vlan.tag = cpu_to_be16(vlan_id | cm_pcp);
++	}
++
++#define ECN_CAPABLE_TRANSPORT 0x2
++	if (ip_version == 6) {
++		memcpy(qp->qp1_hdr.grh.source_gid.raw, sgid_attr->gid.raw,
++		       sizeof(sgid_attr->gid));
++		memcpy(qp->qp1_hdr.grh.destination_gid.raw, ah->av.rgid,
++		       sizeof(ah->av.rgid));
++		qp->qp1_hdr.grh.hop_limit     = ah->av.hop_limit;
++
++		if (dev->xdev->priv.cm_dscp != XSC_DSCP_PCP_UNSET)
++			qp->qp1_hdr.grh.traffic_class =
++				(dev->xdev->priv.cm_dscp << 2) | ECN_CAPABLE_TRANSPORT;
++		else
++			qp->qp1_hdr.grh.traffic_class = ECN_CAPABLE_TRANSPORT;
++	}
++
++	if (ip_version == 4) {
++		if (dev->xdev->priv.cm_dscp != XSC_DSCP_PCP_UNSET)
++			qp->qp1_hdr.ip4.tos =
++				(dev->xdev->priv.cm_dscp << 2) | ECN_CAPABLE_TRANSPORT;
++		else
++			qp->qp1_hdr.ip4.tos = ECN_CAPABLE_TRANSPORT;
++		qp->qp1_hdr.ip4.id = 0;
++		qp->qp1_hdr.ip4.frag_off = htons(IP_DF);
++		qp->qp1_hdr.ip4.ttl = ah->av.hop_limit;
++
++		memcpy(&qp->qp1_hdr.ip4.saddr, sgid_attr->gid.raw + 12, 4);
++		memcpy(&qp->qp1_hdr.ip4.daddr, ah->av.rgid + 12, 4);
++		qp->qp1_hdr.ip4.check = ib_ud_ip4_csum(&qp->qp1_hdr);
++	}
++
++	qp->qp1_hdr.udp.dport = htons(dev->xdev->cm_udp_dst_port);
++	qp->qp1_hdr.udp.sport = htons(ah->av.udp_sport);
++	qp->qp1_hdr.udp.csum = 0;
++	ibdev_dbg(&dev->ib_dev, "CM packet used udp_sport=%d\n", ah->av.udp_sport);
++
++	/* BTH */
++	if (wr->opcode == IB_WR_SEND_WITH_IMM) {
++		qp->qp1_hdr.bth.opcode = IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE;
++		qp->qp1_hdr.immediate_present = 1;
++	} else {
++		qp->qp1_hdr.bth.opcode = IB_OPCODE_UD_SEND_ONLY;
++	}
++	if (wr->send_flags & IB_SEND_SOLICITED)
++		qp->qp1_hdr.bth.solicited_event = 1;
++	/* pad_count */
++	qp->qp1_hdr.bth.pad_count = (4 - payload_size) & 3;
++
++	/* P_key for QP1 is for all members */
++	qp->qp1_hdr.bth.pkey = cpu_to_be16(0xFFFF);
++	qp->qp1_hdr.bth.destination_qpn = IB_QP1;
++	qp->qp1_hdr.bth.ack_req = 0;
++	qp->send_psn++;
++	qp->send_psn &= BTH_PSN_MASK;
++	qp->qp1_hdr.bth.psn = cpu_to_be32(qp->send_psn);
++	/* DETH */
++	/* Use the privileged Q_Key for QP1 */
++	qp->qp1_hdr.deth.qkey = cpu_to_be32(IB_QP1_QKEY);
++	qp->qp1_hdr.deth.source_qpn = IB_QP1;
++
++	/* Pack the QP1 to the transmit buffer */
++	sge->addr = (dma_addr_t)(qp->sq.hdr_dma + MAX_QP1_SQ_HDR_SIZE_V2 * qp->sq.mad_index);
++	sge->lkey = 0xFFFFFFFF;
++	sge->length = MAX_QP1_SQ_HDR_SIZE;
++
++	ib_ud_header_pack(&qp->qp1_hdr, hdr_buf);
++	/*
++	 * Max Header buf size for IPV6 RoCE V2 is 86,
++	 * which is same as the QP1 SQ header buffer.
++	 * Header buf size for IPV4 RoCE V2 can be 66.
++	 * ETH(14) + VLAN(4)+ IP(20) + UDP (8) + BTH(20).
++	 * Subtract 20 bytes from QP1 SQ header buf size
++	 */
++	if (ip_version == 4)
++		sge->length -= 20;
++
++	/* Subtract 4 bytes for non vlan packets */
++	if (!is_vlan)
++		sge->length -= 4;
++
++	rc = xsc_icrc_hdr(dev, hdr_buf, sge->length - sizeof(struct ib_unpacked_eth), crc);
++	if (rc) {
++		ibdev_err(&dev->ib_dev, "CRC error: hdr size %ld\n",
++			  sge->length - sizeof(struct ib_unpacked_eth));
++	}
++	return rc;
++}
++
++static void zero_send_ds(struct xsc_ib_qp *qp, int idx)
++{
++	void *seg;
++	int i;
++	int ds_num;
++	u64 *p;
++
++	ds_num = XSC_SEND_SEG_NUM << (qp->sq.wqe_shift - XSC_SEND_WQE_SHIFT);
++	seg = (void *)xsc_get_send_wqe(qp, idx);
++	for (i = 1; i < ds_num; i++) {
++		p = get_seg_wqe(seg, i);
++		p[0] = 0;
++		p[1] = 0;
++	}
++}
++
++int xsc_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
++		     const struct ib_send_wr **bad_wr)
++{
++	struct xsc_ib_qp *qp = to_xqp(ibqp);
++	struct xsc_ib_dev *dev = to_xdev(ibqp->device);
++	void *seg;
++	struct xsc_send_wqe_ctrl_seg *ctrl;
++	struct xsc_wqe_data_seg *data_seg;
++	u32 crc;
++	int nreq = 0;
 +	int err = 0;
++	int i;
++	unsigned int idx;
++	unsigned long irqflag = 0;
++	struct ib_sge sg;
++	u8 *cur_p = NULL;
++	u8 *mad_send_base = NULL;
++	void *vaddr;
++	struct xsc_msg_opcode *xsc_ib_opcode = dev->xdev->board_info->msg_opcode;
 +
-+	in.req.pdn = 0;
-+	in.req.pa_num = 0;
-+	in.req.len = 0;
-+	in.req.mkey = cpu_to_be32(0xFF);
-+	in.req.acc = XSC_PERM_LOCAL_WRITE | XSC_PERM_LOCAL_READ;
-+	in.req.page_mode = xsc_get_mr_page_mode(dev, XSC_PAGE_SHIFT_4K);
-+	in.req.is_gpu = 0;
-+	in.req.map_en = !(XSC_MPT_MAP_EN);
-+	in.req.va_base = 0;
++	spin_lock_irqsave(&qp->sq.lock, irqflag);
 +
-+	err = xsc_core_register_mr(dev, NULL, &in, sizeof(in));
-+	if (err)
-+		dev_err(&dev->pdev->dev,
-+			"failed to register the local dma mkey 0xFF (%d)\n", err);
++	for (nreq = 0; wr; ++nreq, wr = wr->next) {
++		unsigned int seg_index = 1;
++		unsigned int msg_len = 0;
++		u32 ds_data_num = 0;
++		u32 ctrl_val = 0;
++		bool ce;
++		struct ib_sge *sgl = &wr->sg_list[0];
++		int sg_n = wr->num_sge;
++
++		if (unlikely(wr->opcode == IB_WR_REG_MR ||
++			     wr->opcode == IB_WR_LOCAL_INV ||
++			     wr->opcode == IB_WR_SEND_WITH_INV)) {
++			ibdev_err(&dev->ib_dev, "opcode %d not supported\n",
++				  wr->opcode);
++			err = -EOPNOTSUPP;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		if (unlikely(wr->opcode < 0 || wr->opcode >= ARRAY_SIZE(dev->opcode_map))) {
++			ibdev_err(&dev->ib_dev, "bad opcode %d\n", wr->opcode);
++			err = -EINVAL;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		if (unlikely(xsc_wq_overflow(&qp->sq, nreq))) {
++			ibdev_err(&dev->ib_dev, "send work queue overflow\n");
++			err = -ENOMEM;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		if (unlikely(wr->num_sge > qp->sq.max_gs)) {
++			ibdev_err(&dev->ib_dev, "max gs exceeded %d (max = %d)\n",
++				  wr->num_sge, qp->sq.max_gs);
++			err = -ENOMEM;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		if (unlikely(wr->opcode == IB_WR_RDMA_READ && wr->num_sge > 1)) {
++			ibdev_err(&dev->ib_dev, "rdma read, max gs exceeded %d (max = 1)\n",
++				  wr->num_sge);
++			err = -ENOMEM;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		if (unlikely(qp->post_send_invalid)) {
++			ibdev_dbg(&dev->ib_dev, "qp %d has been draind, post send invalid...\n",
++				  qp->xqp.qpn);
++			err = -EIO;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		idx = qp->sq.cur_post & (qp->sq.wqe_cnt - 1);
++		zero_send_ds(qp, idx);
++		seg = xsc_get_send_wqe(qp, idx);
++		ctrl = seg;
++		xsc_set_wqe_id(dev->xdev, ctrl, qp->sq.cur_post <<
++			       (qp->sq.wqe_shift - XSC_BASE_WQE_SHIFT));
++		ctrl->data0 &= cpu_to_le32(XSC_WQE_CTRL_SEG_DATA0_WQE_ID_MASK);
++		ce = (wr->send_flags & IB_SEND_SIGNALED) ||
++		     (qp->sq_signal_bits & XSC_WQE_CTRL_CQ_UPDATE);
++		for (i = 0; i < wr->num_sge; ++i) {
++			if (likely(wr->sg_list[i].length))
++				msg_len += wr->sg_list[i].length;
++		}
++		ctrl->msg_len = msg_len;
++
++		switch (ibqp->qp_type) {
++		case IB_QPT_RC:
++			ds_data_num = wr->num_sge;
++			switch (wr->opcode) {
++			case IB_WR_SEND:
++				break;
++			case IB_WR_SEND_WITH_IMM:
++				ctrl_val |= XSC_WQE_CTRL_SEG_DATA0_WITH_IMM;
++				WR_LE_32(ctrl->data2, RD_BE_32(send_ieth(wr)));
++				break;
++			case IB_WR_RDMA_WRITE_WITH_IMM:
++				ctrl_val |= XSC_WQE_CTRL_SEG_DATA0_WITH_IMM;
++				WR_LE_32(ctrl->data2, RD_BE_32(send_ieth(wr)));
++				fallthrough;
++			case IB_WR_RDMA_READ:
++			case IB_WR_RDMA_WRITE:
++				if (msg_len == 0)
++					break;
++				ds_data_num++;
++				data_seg = get_seg_wqe(ctrl, seg_index);
++				set_remote_addr_seg(dev->xdev, data_seg,
++						    msg_len,
++						    rdma_wr(wr)->remote_addr,
++						    rdma_wr(wr)->rkey);
++				seg_index++;
++				break;
++			default:
++				ibdev_err(&dev->ib_dev, "unsupported send opcode %u\n",
++					  wr->opcode);
++				err = -EPERM;
++				*bad_wr = wr;
++				goto out;
++			}
++			if (unlikely(wr->opcode == IB_WR_RDMA_READ && msg_len == 0)) {
++				ibdev_dbg(&dev->ib_dev, "post zero-length read wr\n");
++				/* HW rejects zero-length reads; poll backfills the
++				 * READ opcode from qp->sq.zero_length_read[]
++				 */
++				ctrl_val |= FIELD_PREP(XSC_WQE_CTRL_SEG_DATA0_MSG_OPCODE_MASK,
++						       dev->opcode_map[IB_WR_RDMA_WRITE]);
++				qp->sq.zero_length_read[idx] = 1;
++			} else {
++				ctrl_val |= FIELD_PREP(XSC_WQE_CTRL_SEG_DATA0_MSG_OPCODE_MASK,
++						       dev->opcode_map[wr->opcode]);
++			}
++			break;
++		case IB_QPT_UD:
++		case IB_QPT_GSI:
++			ctrl_val |= FIELD_PREP(XSC_WQE_CTRL_SEG_DATA0_MSG_OPCODE_MASK,
++					       xsc_ib_opcode->mad);
++			ds_data_num++;
++			data_seg = get_seg_wqe(ctrl, seg_index);
++			mad_send_base = (u8 *)qp->sq.hdr_buf +
++				MAX_QP1_SQ_HDR_SIZE_V2 * qp->sq.mad_index;
++
++			err = build_qp1_send_v2(dev, qp, wr, &sg, msg_len, &crc);
++			if (err) {
++				*bad_wr = wr;
++				goto out;
++			}
++
++			cur_p = mad_send_base + sg.length;
++			for (i = 0; i < wr->num_sge; ++i) {
++				if (likely(wr->sg_list[i].length)) {
++					vaddr = xsc_ib_mad_sg_virt_addr(&dev->ib_dev,
++									wr->sg_list[i].addr);
++					if (unlikely(!vaddr)) {
++						ibdev_err(&dev->ib_dev,
++							  "cannot map MAD sg entry %d to a virtual address\n",
++							  i);
++						err = -EOPNOTSUPP;
++						*bad_wr = wr;
++						goto out;
++					}
++					memcpy(cur_p, vaddr, wr->sg_list[i].length);
++				}
++				cur_p += wr->sg_list[i].length;
++			}
++			crc = xsc_crc32(dev, crc, mad_send_base + sg.length, ctrl->msg_len);
++			ctrl->msg_len += sg.length;
++			seg_index++;
++
++			put_unaligned(~crc, (u32 *)&mad_send_base[ctrl->msg_len]);
++			ctrl->msg_len += sizeof(crc);
++			sg.length = ctrl->msg_len;
++			set_local_data_seg(dev->xdev, data_seg, &sg);
++			ibdev_dbg(&dev->ib_dev, "qp[%d] send MAD packet, msg_len:%d\n",
++				  qp->xqp.qpn, ctrl->msg_len);
++			qp->sq.mad_index = (qp->sq.mad_index + 1) % MAD_QUEUE_DEPTH;
++
++			sg_n = 0;
++			break;
++		default:
++			ibdev_err(&dev->ib_dev, "qp type:%u NOT supported\n", ibqp->qp_type);
++			err = -EPERM;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		ctrl_val |= FIELD_PREP(XSC_WQE_CTRL_SEG_DATA0_DS_DATA_NUM_MASK, ds_data_num);
++		ctrl->data0 |= cpu_to_le32(ctrl_val);
++		ctrl->data3 = cpu_to_le32((wr->send_flags & IB_SEND_SOLICITED ?
++					   XSC_WQE_CTRL_SEG_DATA3_SE : 0) |
++					  (ce ? XSC_WQE_CTRL_SEG_DATA3_CE : 0));
++
++		if (wr->send_flags & IB_SEND_INLINE && wr->num_sge) {
++			unsigned int segs_used;
++
++			err = set_data_inl_seg(qp, wr, ctrl, seg_index, &segs_used);
++			if (unlikely(err)) {
++				*bad_wr = wr;
++				ibdev_err(&dev->ib_dev, "inline layout failed, err %d\n", err);
++				goto out;
++			}
++			ds_data_num = segs_used - 1;
++		} else {
++			for (i = 0; i < sg_n; ++i, ++seg_index) {
++				if (likely(sgl[i].length)) {
++					data_seg = get_seg_wqe(ctrl, seg_index);
++					set_local_data_seg(dev->xdev, data_seg, &sgl[i]);
++				}
++			}
++		}
++		qp->sq.wrid[idx] = wr->wr_id;
++		qp->sq.wqe_head[idx] = qp->sq.head + nreq;
++		qp->sq.cur_post += 1;
++		if (ce) {
++			atomic_inc(&qp->sq.flush_wqe_cnt);
++			qp->sq.need_flush[idx] = 1;
++			qp->sq.prev_ce_wqe[idx] = qp->sq.last_post_ce_wqe;
++			qp->sq.last_post_ce_wqe = idx;
++		}
++		qp->sq.wr_opcode[idx] = wr->opcode;
++	}
++out:
++	ibdev_dbg(&dev->ib_dev, "nreq:%d\n", nreq);
++	xsc_post_send_db(qp, dev->xdev, nreq);
++	spin_unlock_irqrestore(&qp->sq.lock, irqflag);
 +
 +	return err;
 +}
-diff --git a/drivers/infiniband/hw/xsc/xsc_ib.h b/drivers/infiniband/hw/xsc/xsc_ib.h
-index b91d4aa37..eb4d9e630 100644
---- a/drivers/infiniband/hw/xsc/xsc_ib.h
-+++ b/drivers/infiniband/hw/xsc/xsc_ib.h
-@@ -207,7 +207,7 @@ struct xsc_ib_mr {
- 	struct ib_mr		ibmr;
- 	struct xsc_core_mr	xmr;
- 	struct ib_umem	       *umem;
--	int			npages;
-+	u32			npages;
+ 
+ int xsc_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
+ 		     const struct ib_recv_wr **bad_wr)
+@@ -1628,6 +2248,100 @@ int xsc_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr, int qp_attr_
+ struct xsc_ib_drain_cqe {
+ 	struct ib_cqe cqe;
+ 	struct completion done;
+-	int qpn;
  };
  
++static void xsc_ib_drain_rq_done(struct ib_cq *cq, struct ib_wc *wc)
++{
++	struct xsc_ib_drain_cqe *cqe = container_of(wc->wr_cqe,
++						     struct xsc_ib_drain_cqe, cqe);
++
++	complete(&cqe->done);
++}
++
++static void xsc_ib_drain_sq_done(struct ib_cq *cq, struct ib_wc *wc)
++{
++	struct xsc_ib_drain_cqe *cqe = container_of(wc->wr_cqe,
++						     struct xsc_ib_drain_cqe, cqe);
++
++	complete(&cqe->done);
++}
++
++void xsc_ib_drain_rq(struct ib_qp *qp)
++{
++	struct ib_cq *cq = qp->recv_cq;
++	struct xsc_ib_cq *xcq = to_xcq(cq);
++	struct xsc_ib_qp *xqp = to_xqp(qp);
++	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
++	struct xsc_ib_drain_cqe rdrain;
++	const struct ib_recv_wr rwr = {
++		.next = NULL,
++		{.wr_cqe = &rdrain.cqe,},
++	};
++	const struct ib_recv_wr *bad_rwr;
++	int ret;
++	struct xsc_ib_dev *dev = to_xdev(qp->device);
++
++	ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
++	if (ret) {
++		ibdev_err(&dev->ib_dev, "failed to drain recv queue: %d\n", ret);
++		return;
++	}
++
++	rdrain.cqe.done = xsc_ib_drain_rq_done;
++	init_completion(&rdrain.done);
++
++	ret = xsc_ib_post_recv(qp, &rwr, &bad_rwr);
++	if (ret) {
++		ibdev_err(&dev->ib_dev, "failed to drain recv queue: %d\n", ret);
++		return;
++	}
++	xqp->post_recv_invalid = true;
++
++	if (cq->poll_ctx == IB_POLL_DIRECT)
++		while (wait_for_completion_timeout(&rdrain.done, HZ / 10) <= 0)
++			ib_process_cq_direct(cq, -1);
++	else
++		xcq->xcq.comp(&xcq->xcq);
++	wait_for_completion(&rdrain.done);
++}
++
++void xsc_ib_drain_sq(struct ib_qp *qp)
++{
++	struct ib_cq *cq = qp->send_cq;
++	struct xsc_ib_cq *xcq = to_xcq(cq);
++	struct xsc_ib_qp *xqp = to_xqp(qp);
++	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
++	struct xsc_ib_drain_cqe sdrain;
++	const struct ib_send_wr *bad_swr;
++	const struct ib_send_wr swr = {
++		.next = NULL,
++		{ .wr_cqe	= &sdrain.cqe, },
++		.opcode	= IB_WR_RDMA_WRITE,
++		.send_flags = IB_SEND_SIGNALED,
++	};
++	int ret;
++	struct xsc_ib_dev *dev = to_xdev(qp->device);
++
++	ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
++	if (ret) {
++		ibdev_err(&dev->ib_dev, "failed to drain send queue: %d\n", ret);
++		return;
++	}
++
++	sdrain.cqe.done = xsc_ib_drain_sq_done;
++	init_completion(&sdrain.done);
++
++	ret = xsc_ib_post_send(qp, &swr, &bad_swr);
++	if (ret) {
++		ibdev_err(&dev->ib_dev, "failed to drain send queue: %d\n", ret);
++		return;
++	}
++	xqp->post_send_invalid = true;
++
++	if (cq->poll_ctx == IB_POLL_DIRECT)
++		while (wait_for_completion_timeout(&sdrain.done, HZ / 10) <= 0)
++			ib_process_cq_direct(cq, -1);
++	else
++		xcq->xcq.comp(&xcq->xcq);
++	wait_for_completion(&sdrain.done);
++}
+diff --git a/drivers/infiniband/hw/xsc/xsc_ib.h b/drivers/infiniband/hw/xsc/xsc_ib.h
+index 126fcf789..fe111b2c6 100644
+--- a/drivers/infiniband/hw/xsc/xsc_ib.h
++++ b/drivers/infiniband/hw/xsc/xsc_ib.h
+@@ -10,7 +10,6 @@
+ #include <linux/kernel.h>
+ #include <linux/sched.h>
+ #include <rdma/ib_verbs.h>
+-#include <rdma/ib_smi.h>
+ #include <rdma/ib_pack.h>
+ #include <rdma/ib_mad.h>
+ #include "common/xsc_core.h"
+@@ -22,7 +21,6 @@
+ #include <linux/iommu.h>
+ #include <linux/dma-direct.h>
+ #include <linux/dma-mapping.h>
+-#include <crypto/hash.h>
+ #include <rdma/uverbs_ioctl.h>
+ 
+ #define	XSC_PAGE_SHIFT_4K	12
+@@ -82,6 +80,7 @@ struct xsc_ib_wq {
+ 	u32			*wr_opcode;
+ 	u32			*need_flush;
+ 	atomic_t	flush_wqe_cnt;
++	u8			*zero_length_read;
+ 	int			*prev_ce_wqe;
+ 	int			last_comp_ce_wqe;
+ 	int			last_post_ce_wqe;
+@@ -211,13 +210,17 @@ struct xsc_ib_mr {
+ 	u32			npages;
+ };
+ 
++#define MAX_OPCODE	IB_WR_MASKED_ATOMIC_FETCH_AND_ADD
++
  struct xsc_ib_dev {
+ 	struct ib_device		ib_dev;
+ 	struct xsc_core_device *xdev;
+ 	int				num_ports;
+ 	int				num_comp_vectors;
+ 	u8				ib_active;
++	u32				crc_32_table[256];
+ 	int iommu_state;
++	u32				opcode_map[MAX_OPCODE + 1];
+ };
+ 
+ struct xsc_err_state_qp_node {
+@@ -289,6 +292,8 @@ static inline struct xsc_ib_srq *core_to_xsrq(struct xsc_core_srq *xsrq)
+ 	return container_of(xsrq, struct xsc_ib_srq, xsrq);
+ }
+ 
++void build_opcode_map(struct xsc_ib_dev *dev);
++
+ int xsc_ib_create_ah(struct ib_ah *ibah,
+ 		     struct rdma_ah_init_attr *init_attr,
+ 		     struct ib_udata *udata);
+@@ -402,6 +407,23 @@ static inline enum ib_mtu xsc_net_to_ib_mtu(unsigned int mtu)
+ 		return 0;
+ }
+ 
++/*
++ * MMIO doorbells and MAD payloads are accessed by the CPU, so the driver
++ * needs the kernel virtual address behind a DMA address.  There is no such
++ * conversion API, so the address space is classified once at probe time and
++ * the matching trick is used:
++ *
++ *   NORMAL  - an IOMMU DMA domain is attached; iova_to_phys() is available.
++ *   DISABLE - no IOMMU translation, DMA address == physical address.
++ *   UNKNOWN - address translation exists but is not owned by the IOMMU
++ *             layer (forced software bounce buffering, or a hypervisor that
++ *             translates DMA addresses), so neither trick works.
++ *
++ * UNKNOWN is not supported: MAD and doorbell traffic cannot be addressed by
++ * the CPU there, and QP1 (SMI/GSI) creation is refused as a result, which
++ * disables SA/CM on such a system.  Systems with an IOMMU or without any
++ * translation are unaffected.
++ */
+ #define XSC_IB_IOMMU_MAP_DISABLE 0
+ #define XSC_IB_IOMMU_MAP_UNKNOWN_DOMAIN 1
+ #define XSC_IB_IOMMU_MAP_NORMAL 2
+@@ -417,114 +439,36 @@ static inline void *xsc_ib_iova_to_virt(struct ib_device *ibdev, dma_addr_t iova
+ 	struct iommu_domain *domain;
+ 
+ 	domain = iommu_get_domain_for_dev(ibdev->dma_device);
+-	if (likely(domain)) {
+-		phyaddr = iommu_iova_to_phys(domain, iova);
+-		phyaddr |= iova & (PAGE_SIZE - 1);
+-	} else {
+-		phyaddr = dma_to_phys(ibdev->dma_device, iova);
+-	}
++	if (unlikely(!domain))
++		return NULL;
++
++	phyaddr = iommu_iova_to_phys(domain, iova);
++	if (unlikely(!phyaddr))
++		return NULL;
++	phyaddr |= iova & (PAGE_SIZE - 1);
+ 
+ 	return phys_to_virt(phyaddr);
+ }
+ 
+-struct ib_mad_list_head {
+-	struct list_head list;
+-	struct ib_cqe cqe;
+-	struct ib_mad_queue *mad_queue;
+-};
+-
+-#define IB_MAD_SEND_REQ_MAX_SG 2
+-struct ib_mad_send_wr_private {
+-	struct ib_mad_list_head mad_list;
+-	struct list_head agent_list;
+-	struct ib_mad_agent_private *mad_agent_priv;
+-	struct ib_mad_send_buf send_buf;
+-	u64 header_mapping;
+-	u64 payload_mapping;
+-	struct ib_ud_wr send_wr;
+-	struct ib_sge sg_list[IB_MAD_SEND_REQ_MAX_SG];
+-	__be64 tid;
+-	unsigned long timeout;
+-	int max_retries;
+-	int retries_left;
+-	int retry;
+-	int refcount;
+-	enum ib_wc_status status;
+-
+-	/* RMPP control */
+-	struct list_head rmpp_list;
+-	struct ib_rmpp_segment *last_ack_seg;
+-	struct ib_rmpp_segment *cur_seg;
+-	int last_ack;
+-	int seg_num;
+-	int newwin;
+-	int pad;
+-};
+-
+-struct ib_mad_private_header {
+-	struct ib_mad_list_head mad_list;
+-	struct ib_mad_recv_wc recv_wc;
+-	struct ib_wc wc;
+-	u64 mapping;
+-} __packed;
+-
+-struct ib_mad_private {
+-	struct ib_mad_private_header header;
+-	size_t mad_size;
+-	struct ib_grh grh;
+-	DECLARE_FLEX_ARRAY(u8, mad);
+-} __packed;
+-
+-static inline void *xsc_ib_send_mad_sg_virt_addr(struct ib_device *ibdev,
+-						 const struct ib_send_wr *wr,
+-						 int sg)
++/*
++ * Translate the DMA address of a MAD scatter/gather entry to a kernel
++ * virtual address so that the payload can be copied to or from the WQE.
++ * Returns NULL when the address cannot be translated, which happens only
++ * for XSC_IB_IOMMU_MAP_UNKNOWN_DOMAIN (see above) or when the IOMMU has no
++ * mapping for the address.
++ */
++static inline void *xsc_ib_mad_sg_virt_addr(struct ib_device *ibdev,
++					    dma_addr_t dma_addr)
+ {
+-	struct ib_mad_send_wr_private *mad_send_wr;
+-	struct ib_mad_list_head *mad_list;
+ 	int iommu_state = xsc_ib_iommu_dma_map(ibdev);
+ 
+-	/* direct dma mapping */
+-	if (!iommu_state)
+-		return phys_to_virt(dma_to_phys(ibdev->dma_device, wr->sg_list[sg].addr));
+-
+ 	if (iommu_state == XSC_IB_IOMMU_MAP_NORMAL)
+-		return xsc_ib_iova_to_virt(ibdev, wr->sg_list[sg].addr);
+-
+-	mad_list = container_of(wr->wr_cqe, struct ib_mad_list_head, cqe);
+-	mad_send_wr = container_of(mad_list, struct ib_mad_send_wr_private,
+-				   mad_list);
+-
+-	/* sg_list[0] */
+-	if (sg == 0)
+-		return mad_send_wr->send_buf.mad;
+-
+-	/* sg_list[1] */
+-	if (mad_send_wr->send_buf.seg_count)
+-		return ib_get_rmpp_segment(&mad_send_wr->send_buf,
+-					   mad_send_wr->seg_num);
+-	return mad_send_wr->send_buf.mad + mad_send_wr->send_buf.hdr_len;
+-}
++		return xsc_ib_iova_to_virt(ibdev, dma_addr);
+ 
+-static inline void *xsc_ib_recv_mad_sg_virt_addr(struct ib_device *ibdev,
+-						 struct ib_wc *wc,
+-						 u64 sg_addr)
+-{
+-	struct ib_mad_private_header *mad_priv_hdr;
+-	struct ib_mad_private *recv;
+-	struct ib_mad_list_head *mad_list;
+-	int iommu_state = xsc_ib_iommu_dma_map(ibdev);
+-
+-	/* direct dma mapping */
+-	if (!iommu_state)
+-		return phys_to_virt(dma_to_phys(ibdev->dma_device, sg_addr));
+-
+-	if (iommu_state == XSC_IB_IOMMU_MAP_NORMAL)
+-		return xsc_ib_iova_to_virt(ibdev, sg_addr);
++	if (iommu_state == XSC_IB_IOMMU_MAP_DISABLE)
++		return phys_to_virt(dma_to_phys(ibdev->dma_device, dma_addr));
+ 
+-	mad_list = container_of(wc->wr_cqe, struct ib_mad_list_head, cqe);
+-	mad_priv_hdr = container_of(mad_list, struct ib_mad_private_header, mad_list);
+-	recv = container_of(mad_priv_hdr, struct ib_mad_private, header);
+-	return &recv->grh;
++	return NULL;
+ }
+ 
+ struct xsc_ib_burst_info {
 diff --git a/drivers/net/ethernet/yunsilicon/xsc/common/driver.h b/drivers/net/ethernet/yunsilicon/xsc/common/driver.h
-index 362099a7c..0c91574d6 100644
+index 0c91574d6..d58d75fb3 100644
 --- a/drivers/net/ethernet/yunsilicon/xsc/common/driver.h
 +++ b/drivers/net/ethernet/yunsilicon/xsc/common/driver.h
-@@ -63,6 +63,7 @@ int xsc_core_destroy_mkey(struct xsc_core_device *xdev, struct xsc_core_mr *mr);
- int xsc_core_register_mr(struct xsc_core_device *xdev, struct xsc_core_mr *mr,
- 			 struct xsc_register_mr_mbox_in *in, int inlen);
- int xsc_core_dereg_mr(struct xsc_core_device *xdev, struct xsc_core_mr *mr);
-+int xsc_reg_local_dma_mr(struct xsc_core_device *xdev);
+@@ -22,7 +22,7 @@
+ #include "common/xsc_hsi.h"
+ #include "common/srq.h"
  
- int xsc_core_alloc_pd(struct xsc_core_device *xdev, u32 *pdn);
- int xsc_core_dealloc_pd(struct xsc_core_device *xdev, u32 pdn);
-diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile b/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile
-index 87481db3f..065d52ebf 100644
---- a/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile
-+++ b/drivers/net/ethernet/yunsilicon/xsc/pci/Makefile
-@@ -6,4 +6,4 @@ ccflags-y += -I$(srctree)/drivers/net/ethernet/yunsilicon/xsc
+-struct rxe_bth {
++struct xsc_bth {
+ 	u8			opcode;
+ 	u8			flags;
+ 	__be16			pkey;
+@@ -30,7 +30,7 @@ struct rxe_bth {
+ 	__be32			apsn;
+ };
  
- obj-$(CONFIG_YUNSILICON_XSC_PCI) += xsc_pci.o
- 
--xsc_pci-y := main.o cmdq.o hw.o qp.o cq.o link.o alloc.o eq.o pci_irq.o adev.o vport.o hal/andes_impl.o
-+xsc_pci-y := main.o cmdq.o hw.o qp.o cq.o pd.o mr.o link.o alloc.o eq.o pci_irq.o adev.o vport.o hal/andes_impl.o
-diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/cq.c b/drivers/net/ethernet/yunsilicon/xsc/pci/cq.c
-index e3e13ef53..a964236bd 100644
---- a/drivers/net/ethernet/yunsilicon/xsc/pci/cq.c
-+++ b/drivers/net/ethernet/yunsilicon/xsc/pci/cq.c
-@@ -143,9 +143,9 @@ static int xsc_set_cq_context(struct xsc_core_device *xdev,
- 
- 	memset(&out, 0, sizeof(out));
- 	err = xsc_cmd_exec(xdev, &in, sizeof(in), &out, sizeof(out));
--	if (err || out.hdr.status) {
-+	if (err) {
- 		pci_err(xdev->pdev, "failed to set cq context\n");
--		return -EIO;
-+		return err;
- 	}
- 
- 	*pa_list_base = be32_to_cpu(out.cq_pa_list_base);
-@@ -193,9 +193,9 @@ static int xsc_set_cq_buf_pa(struct xsc_core_device *xdev,
- 		err = xsc_cmd_exec(xdev, in, in_len, &out, sizeof(out));
- 		kvfree(in);
- 
--		if (err || out.hdr.status) {
-+		if (err) {
- 			pci_err(xdev->pdev, "failed to set cq buf pa, cqn=%d\n", cqn);
--			return -EINVAL;
-+			return err;
- 		}
- 	}
- 
-diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/mr.c b/drivers/net/ethernet/yunsilicon/xsc/pci/mr.c
-new file mode 100644
-index 000000000..b07e8743f
---- /dev/null
-+++ b/drivers/net/ethernet/yunsilicon/xsc/pci/mr.c
-@@ -0,0 +1,202 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Copyright (C) 2021-2026, Shanghai Yunsilicon Technology Co., Ltd.
-+ * All rights reserved.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+
-+#include "common/xsc_core.h"
-+#include "common/xsc_cmd_api.h"
-+#include "hal/xsc_hal.h"
-+#include "mr.h"
-+
-+int xsc_core_create_mkey(struct xsc_core_device *xdev, struct xsc_core_mr *mr)
-+{
-+	struct xsc_create_mkey_mbox_in in;
-+	struct xsc_create_mkey_mbox_out out;
-+	u8 key;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+
-+	spin_lock(&xdev->dev_res->mkey_lock);
-+	key = 0x80 + xdev->dev_res->mkey_key++;
-+	spin_unlock(&xdev->dev_res->mkey_lock);
-+
-+	in.hdr.opcode = cpu_to_be16(XSC_CMD_OP_CREATE_MKEY);
-+	err = xsc_cmd_exec(xdev, &in, sizeof(in), &out, sizeof(out));
-+	if (err) {
-+		pci_err(xdev->pdev, "failed to create mkey, err = %d\n", err);
-+		return err;
-+	}
-+
-+	mr->key = xsc_idx_to_mkey(xdev, be32_to_cpu(out.mkey) & 0xffffff) | key;
-+	pci_dbg(xdev->pdev, "out 0x%x, key 0x%x, mkey 0x%x\n",
-+		be32_to_cpu(out.mkey), key, mr->key);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(xsc_core_create_mkey);
-+
-+int xsc_core_destroy_mkey(struct xsc_core_device *xdev, struct xsc_core_mr *mr)
-+{
-+	struct xsc_destroy_mkey_mbox_in in;
-+	struct xsc_destroy_mkey_mbox_out out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+
-+	in.hdr.opcode = cpu_to_be16(XSC_CMD_OP_DESTROY_MKEY);
-+	in.mkey = cpu_to_be32(mr->key);
-+
-+	err = xsc_cmd_exec(xdev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(xsc_core_destroy_mkey);
-+
-+static int xsc_set_mpt_via_cmdq(struct xsc_core_device *xdev,
-+				struct xsc_register_mr_mbox_in *in_cmd,
-+				u32 *mtt_base)
-+{
-+	struct xsc_register_mr_request *req = &in_cmd->req;
-+	struct xsc_set_mpt_mbox_in *in;
-+	struct xsc_set_mpt_mbox_out out;
-+	u64 mem_size;
-+	int err;
-+
-+	in = kzalloc_obj(*in, GFP_KERNEL);
-+	if (!in)
-+		return -ENOMEM;
-+
-+	mem_size = be64_to_cpu(req->len);
-+	in->mpt_item.pdn = req->pdn;
-+	in->mpt_item.pa_num = req->pa_num;
-+	in->mpt_item.len = cpu_to_be32((u32)mem_size);
-+	in->mpt_item.len_h = cpu_to_be32((u32)(mem_size >> 32));
-+	in->mpt_item.mkey = req->mkey;
-+	in->mpt_item.is_gpu = req->is_gpu;
-+	in->mpt_item.acc = req->acc;
-+	in->mpt_item.page_mode = req->page_mode;
-+	in->mpt_item.map_en = req->map_en;
-+	in->mpt_item.va_base = req->va_base;
-+	in->hdr.opcode = cpu_to_be16(XSC_CMD_OP_SET_MPT);
-+
-+	memset(&out, 0, sizeof(out));
-+	err = xsc_cmd_exec(xdev, in, sizeof(*in), &out, sizeof(out));
-+	kfree(in);
-+	if (err) {
-+		pci_err(xdev->pdev, "failed to set mpt, err = %d\n", err);
-+		return err;
-+	}
-+
-+	*mtt_base = be32_to_cpu(out.mtt_base);
-+	return 0;
-+}
-+
-+#define PA_NUM_PER_CMD 1024
-+
-+static int xsc_set_mtt_via_cmdq(struct xsc_core_device *xdev,
-+				struct xsc_register_mr_mbox_in *in_cmd,
-+				u32 mtt_base)
-+{
-+	struct xsc_register_mr_request *req = &in_cmd->req;
-+	struct xsc_set_mtt_mbox_in *seg_in;
-+	struct xsc_set_mtt_mbox_out seg_out;
-+	int tot_pg_num = be32_to_cpu(req->pa_num);
-+	int tot_seg_num, seg_pa_num, seg_idx;
-+	int pa_idx_base = 0;
-+	int in_len, err, i;
-+
-+	tot_seg_num = (tot_pg_num & (PA_NUM_PER_CMD - 1)) ?
-+		      ((tot_pg_num >> 10) + 1) : (tot_pg_num >> 10);
-+
-+	for (seg_idx = 0; seg_idx < tot_seg_num; seg_idx++) {
-+		seg_pa_num = (seg_idx != tot_seg_num - 1) ? PA_NUM_PER_CMD :
-+			     (tot_pg_num - ((tot_seg_num - 1) << 10));
-+		in_len = (seg_pa_num << 3) + sizeof(*seg_in);
-+		seg_in = kzalloc(in_len, GFP_KERNEL);
-+		if (!seg_in)
-+			return -ENOMEM;
-+
-+		seg_in->mtt_setting.mtt_base = cpu_to_be32(mtt_base);
-+		seg_in->mtt_setting.pa_num = cpu_to_be32(seg_pa_num);
-+		for (i = 0; i < seg_pa_num; i++)
-+			seg_in->mtt_setting.pas[i] = req->pas[pa_idx_base + i];
-+		seg_in->hdr.opcode = cpu_to_be16(XSC_CMD_OP_SET_MTT);
-+
-+		memset(&seg_out, 0, sizeof(seg_out));
-+		pci_dbg(xdev->pdev,
-+			"set mtt seg %d, pa_num %d, pa_idx_base %d, tot_seg %d\n",
-+			seg_idx, seg_pa_num, pa_idx_base, tot_seg_num);
-+		err = xsc_cmd_exec(xdev, seg_in, in_len, &seg_out, sizeof(seg_out));
-+		kfree(seg_in);
-+		if (err) {
-+			pci_err(xdev->pdev, "failed to set mtt seg %d, err = %d\n",
-+				seg_idx, err);
-+			return err;
-+		}
-+
-+		pa_idx_base += seg_pa_num;
-+		mtt_base += seg_pa_num;
-+	}
-+
-+	return 0;
-+}
-+
-+static int xsc_dereg_mr_via_cmdq(struct xsc_core_device *xdev, u32 mkey)
-+{
-+	struct xsc_unregister_mr_mbox_in in;
-+	struct xsc_unregister_mr_mbox_out out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(XSC_CMD_OP_DEREG_MR);
-+	in.mkey = cpu_to_be32(xsc_mkey_to_idx(xdev, mkey));
-+
-+	err = xsc_cmd_exec(xdev, &in, sizeof(in), &out, sizeof(out));
-+	if (err) {
-+		pci_err(xdev->pdev, "failed to dereg mr, err = %d\n", err);
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+
-+int xsc_core_register_mr(struct xsc_core_device *xdev, struct xsc_core_mr *mr,
-+			 struct xsc_register_mr_mbox_in *in, int inlen)
-+{
-+	u32 mtt_base;
-+	int err;
-+
-+	in->hdr.opcode = cpu_to_be16(XSC_CMD_OP_REG_MR);
-+
-+	err = xsc_set_mpt_via_cmdq(xdev, in, &mtt_base);
-+	if (err) {
-+		pci_err(xdev->pdev, "failed to set mpt via cmdq\n");
-+		return err;
-+	}
-+
-+	err = xsc_set_mtt_via_cmdq(xdev, in, mtt_base);
-+	if (err) {
-+		pci_err(xdev->pdev, "failed to set mtt via cmdq\n");
-+		xsc_dereg_mr_via_cmdq(xdev, be32_to_cpu(in->req.mkey));
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(xsc_core_register_mr);
-+
-+int xsc_core_dereg_mr(struct xsc_core_device *xdev, struct xsc_core_mr *mr)
-+{
-+	return xsc_dereg_mr_via_cmdq(xdev, mr->key);
-+}
-+EXPORT_SYMBOL_GPL(xsc_core_dereg_mr);
-diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/mr.h b/drivers/net/ethernet/yunsilicon/xsc/pci/mr.h
-new file mode 100644
-index 000000000..edafecda6
---- /dev/null
-+++ b/drivers/net/ethernet/yunsilicon/xsc/pci/mr.h
-@@ -0,0 +1,18 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright (C) 2021-2026, Shanghai Yunsilicon Technology Co., Ltd.
-+ * All rights reserved.
-+ */
-+
-+#ifndef __XSC_MR_H
-+#define __XSC_MR_H
-+
-+#include "common/xsc_core.h"
-+#include "common/xsc_cmd.h"
-+
-+int xsc_core_create_mkey(struct xsc_core_device *xdev, struct xsc_core_mr *mr);
-+int xsc_core_destroy_mkey(struct xsc_core_device *xdev, struct xsc_core_mr *mr);
-+int xsc_core_register_mr(struct xsc_core_device *xdev, struct xsc_core_mr *mr,
-+			 struct xsc_register_mr_mbox_in *in, int inlen);
-+int xsc_core_dereg_mr(struct xsc_core_device *xdev, struct xsc_core_mr *mr);
-+
-+#endif /* __XSC_MR_H */
-diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/pd.c b/drivers/net/ethernet/yunsilicon/xsc/pci/pd.c
-new file mode 100644
-index 000000000..e8e55bc4c
---- /dev/null
-+++ b/drivers/net/ethernet/yunsilicon/xsc/pci/pd.c
-@@ -0,0 +1,49 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Copyright (C) 2021-2026, Shanghai Yunsilicon Technology Co., Ltd.
-+ * All rights reserved.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+
-+#include "common/xsc_core.h"
-+#include "common/xsc_cmd_api.h"
-+#include "pd.h"
-+
-+int xsc_core_alloc_pd(struct xsc_core_device *xdev, u32 *pdn)
-+{
-+	struct xsc_alloc_pd_mbox_in in;
-+	struct xsc_alloc_pd_mbox_out out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(XSC_CMD_OP_ALLOC_PD);
-+
-+	err = xsc_cmd_exec(xdev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	*pdn = be32_to_cpu(out.pdn) & 0xffffff;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(xsc_core_alloc_pd);
-+
-+int xsc_core_dealloc_pd(struct xsc_core_device *xdev, u32 pdn)
-+{
-+	struct xsc_dealloc_pd_mbox_in in;
-+	struct xsc_dealloc_pd_mbox_out out;
-+	int err;
-+
-+	memset(&in, 0, sizeof(in));
-+	memset(&out, 0, sizeof(out));
-+	in.hdr.opcode = cpu_to_be16(XSC_CMD_OP_DEALLOC_PD);
-+	in.pdn = cpu_to_be32(pdn);
-+
-+	err = xsc_cmd_exec(xdev, &in, sizeof(in), &out, sizeof(out));
-+	if (err)
-+		return err;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(xsc_core_dealloc_pd);
-diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/pd.h b/drivers/net/ethernet/yunsilicon/xsc/pci/pd.h
-new file mode 100644
-index 000000000..d9a99baea
---- /dev/null
-+++ b/drivers/net/ethernet/yunsilicon/xsc/pci/pd.h
-@@ -0,0 +1,14 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright (C) 2021-2026, Shanghai Yunsilicon Technology Co., Ltd.
-+ * All rights reserved.
-+ */
-+
-+#ifndef __XSC_PD_H
-+#define __XSC_PD_H
-+
-+#include "common/xsc_core.h"
-+
-+int xsc_core_alloc_pd(struct xsc_core_device *xdev, u32 *pdn);
-+int xsc_core_dealloc_pd(struct xsc_core_device *xdev, u32 pdn);
-+
-+#endif /* __XSC_PD_H */
+-struct rxe_deth {
++struct xsc_deth {
+ 	__be32			qkey;
+ 	__be32			src_qp;
+ };
 -- 
 2.18.4
