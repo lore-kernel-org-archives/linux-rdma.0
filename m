@@ -1,51 +1,108 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.129.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793801173;
-	b=nVCKVli43y4IBHZlpzattUBX06e34Kgyuik1aRbiNCsHdJJcquQugpDgF+OvFbSgB1fQ
-	 lOEOlNjxwpthU0+ReiRanDoy2lWXItCrru1eHEW02GrFPfrpO7DR8EIQoRH+it1KzbQaf
-	 vNyLr83UPbDzTO73o2lmIh2C8cfKmyIcOCjOzgqub3cfahtQsyxymQFqXjKAiiroRw2DK
-	 jn/bMuRCPmy07HDv7E+tCycTJ/7Rk/XTI80zvtFsdvBW/OxGnRwZiyz2iIeF9tr9P59xw
-	 s2VZKPb+sCJD0Uc3D2x+ugTzjvLjHlN/VJKsYLevZdVmFbqno/Fzp12XpDWkJ8KhnnA==
+	t=1793801622;
+	b=euJbZ3t+QYr6hgR8ncf3QrRSoWv6/us2G5GeDLls4xAxsU635fSse1fIW2CtOzgaEfel
+	 1OVoG0kBud9xUPhqGXLlD4j86AT+zz9/JRzI2D5zH6iqcP0T7s9ZFsZIXLvhCbUAWxJ/T
+	 hwJFJGAJrAtmyNpkfPNs06xefXqH+bjzOMYV7v14An0A/Se3yjqEAkDl/1CeXDEj9xyt4
+	 pd9B5nNE7Vrs3Ys2q7o+aSRLgtx2NUj0NC+FMps7csWsfPpj3ztL6q04EG4HobVwB5P2B
+	 3d0V/wXwguh5DBMeARot4+EOkOkmHS489MmzDPzWIVWQiHHOz/KV1Sn2ecXGU21/H9A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793801173;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=uH/6JLhT16+uh3bW5gdjq+6yXQL9dmv7OYBFAVG5ong=;
-	b=dzDqSkqY3oCP9OrH6dgkgrpiBidRFPEKHv9i9+bsXrvGXDyYlNraoei5u8tFUp6ZX8JC
-	 TigcwsG+Ti9UOPH1RJFjPE2OFZVvv6ATNP/a16w9pfwDkE3yH6d8bmVrFoZZ3TmASnabP
-	 lfacWOtnap1A7Y2ulmmI8RAVo4baFnjYCZgW7crAG/MAX9pkIiPQrO/YdZGhGOJDXQzP3
-	 T17a2ZMWZuHayvSUJs0P60G32630c5F1xDz8rS5ShBBHvRNQCqOQGf9Y5gT4pAu2SJ006
-	 fnijdYhXPO/A5pSZB1y5ruMiXHQMxVarIcBYl8pbdZegqTJ18rnVValErF1+m5sTRXQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793801622;
+	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
+	 X-Mimecast-MFC-AGG-ID:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 X-Received:Received:Message-ID:Date:MIME-Version:User-Agent:Subject:
+	 To:Cc:References:Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=C39tlu6xlshMWq2hwsMtOj8GLZZ3XOveWxHL0ZGLUl8=;
+	b=aO+gPk6A6N7UHnHGFWFRsWoY/Vhay34QJMsP1vXQtIT97yo9b/mrLvf7uymUjriQok0V
+	 jGT46l2sIPYfSrZ0aVckfBQgQIdPYQS9KIrbNdZmU97F7rZCtJDKXbShU3LxpVUaGNvU8
+	 SXPbEcmF+NzKtZlHYpgBE9HWCI4E742mcq33Qwnc+kaih1bNUDE3tJo/LW5FpGwUaiZvw
+	 x/DL2ciCqfRzm83g5gpUqLE9ay/eprDzUpHXFzpusZfHTIBzduqLTDdZYoJBevZPH4CwJ
+	 e6GrQwGHlQ2WdB5J6TbffyVymPEnJIECKZE5l5DFxxJvOl13JaEtrQHnQbydcLyY0KA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bwj21dMA;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=redhat.com;
+	spf=pass smtp.mailfrom=redhat.com;
+	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=PxNRKQfV;
+	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=mmqt+Q1j;
+	arc=none smtp.remote-ip=170.10.129.124
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0478606A31B;
-	Wed,  4 Nov 2026 14:06:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27A7A6082BE8
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 14:13:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 27A7A6082BE8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bwj21dMA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84D1E1F00A02;
-	Wed,  4 Nov 2026 14:06:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793801172;
-	bh=uH/6JLhT16+uh3bW5gdjq+6yXQL9dmv7OYBFAVG5ong=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=bwj21dMA2bAt5X0SBhxl1ciJ2aZjBzaohvzuvHnnQ2tDGvIHJ/RF53Qp2h1CWpMig
-	 EZp6Ph6/MTKHktLMN8c/NiEEFc4LwvljmJJksKjPB/TsLhJ8XXjzNPheYTjO0Ps0Sz
-	 esTC2l4gORhcFk1Bby+JEQO7wrkmR5tinkTw9dTsYg/QSiIZRL9UIc7W/qKyB/IP+Q
-	 vPodoz+msQIcFomqeSur4lcBoR6t//kfIFcgPUqO6NXH/GGVF3YqhcCyT/ImIjB5Wd
-	 m+MkDQuBlrs47seDt7WpsUQjJxGzG7jmVOuEFqYD2/8O3a8qQKlso83Or4z1m0VzM6
-	 j5vC5Tl1yoTwg==
-Date: Wed, 4 Nov 2026 16:06:08 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Chengyu Liu <lui2012qwq@gmail.com>
-Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH] RDMA/ipoib: cancel the AH reaper work synchronously
-Message-ID: <20261104140608.GF478286@unreal>
-References: <20261103170703.1600310-1-lui2012qwq@gmail.com>
+	dkim=pass (1024-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=PxNRKQfV;
+	dkim=pass (2048-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=mmqt+Q1j
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1793801621;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=C39tlu6xlshMWq2hwsMtOj8GLZZ3XOveWxHL0ZGLUl8=;
+	b=PxNRKQfV4OjX8TeeGFNfQUapcOITxfErTAIv8eK3cgVXVPJ2TaEiMUgLc3G18ohtZj7E9q
+	d0lUvy0fvVbI4VsYC8Ee479Yw0qxVxWGMDV/CxYOmncaRIec/Yg+nl8ENr7lGmzNsqWyLC
+	R3Fei/gXUJz49gYhWBRcFCzUhirQ5iE=
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
+ [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-99-B2CV7l0MN5SIftpMERPYQA-1; Wed, 04 Nov 2026 09:13:38 -0500
+X-MC-Unique: B2CV7l0MN5SIftpMERPYQA-1
+X-Mimecast-MFC-AGG-ID: B2CV7l0MN5SIftpMERPYQA_1793801617
+Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-48b027578a4so631869f8f.3
+        for <linux-rdma@vger.kernel.org>; Wed, 04 Nov 2026 06:13:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1793801617; x=1794406417; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=C39tlu6xlshMWq2hwsMtOj8GLZZ3XOveWxHL0ZGLUl8=;
+        b=mmqt+Q1jLBJ5qfdX9Trw0Nt9nJEV2+9qd3k9y4/cbx+4mJlCsizDVidStqFpBHHdmv
+         ZOhfM1LLFqA+wFzCyrlsE4MdyHYwBVVLrXrxbtOm28xzqn+oe/G3gytRxO6ql8cGL68m
+         lvKUBEHIyO8vhWQjF/cnG2ChO4jATV0cLpbF5Gu33rwi1Fo8B/O+RaNXru+YJm6fkgcm
+         WYqG0RGbNz4VoszIVQKkZA9RMejtfLHb8Y7EBEApw2eC5ZTuId8BO/JwKD8dy5NO+7OV
+         3QdMSwAb6ZEkxZd4+BNcg+llu4p+hVBSfT+V1xUJydBLPOblgixaVyyvCPbLKSUSE+8V
+         zesg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793801617; x=1794406417;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=C39tlu6xlshMWq2hwsMtOj8GLZZ3XOveWxHL0ZGLUl8=;
+        b=hSS4CyOm6yjE80n3Cj8FqeAfddAloBb0C+J9WGhHc/0l5bCSg2EUWHsarPVvjEx+fb
+         B2ACR1g9RFNuGMtDP6tXiB9FQJTg9qpkUcP2erOM0Nq4D6K7TaH2QX8H6jvQUC7AMCXY
+         mb9VIYYWXlBbWWUMA0770Gs2aANSyHwO6Cgi4+lZs4iX3cX/GOFpaR7UkU7tzbydI1eQ
+         8pI5HWq3EoDYoejSkrEE7jw2Ar+fIymlDrx+LsK+1QpHl8f7bx4CSAg0u7W3HiiBneRe
+         bbNy/PZLur1hsMubu+NK0991DIL3chPDJHfMA5CdT1wWnGuwfX8JInMctKQrzY0aW792
+         JF0Q==
+X-Forwarded-Encrypted: i=1; AKwUvBypnB7/EMPnWzUz95110VhqFaqKHf/65/vBZ8jlBxN57FP5VPAOYXeGV1v4ret715dqHWaqjYhkSJrI@vger.kernel.org
+X-Gm-Message-State: APuU4Z8e5b7Z13/R7yXWTDRcAhtPTVQqGaVQbe/PA2k0YR2LG4oZLSEg
+	1v2k5wuS7+eCISy4WLWkasQl4T9E+7em0iURNRAAbcQtwa1Es7ttaj7dK4qm1QsYBArjUneHMM9
+	Jgm1yH7Z4RDWmkcFvKy8fGDvivxFMAGXX+GNMe85+NwezutRikebMI9alLW5RaiI=
+X-Gm-Gg: AYBFou2olZJtNdayOsE5S9cOMaHVDMFn4YfCFJWbvb7otC8t0AoJsT4cHLa6l9ATZEX
+	m/vTTQH5THVqvazZCya0oNJ3BG5SSuSsdr3r6lJwik5NpjyQx6uya9q043VbPQjVZnNYoFxRu0o
+	Bj3ZjsOiqB1ZhfI2MuVH4X2K9WtJT5DfTabiMPFh6zw4dvQcVQ9iVSDXRlpQELnNTzICu2o4Y6n
+	49L2oEfzLZPqNYNow31JkiSE+n8q9XQkOD7UoPIYdn7FPEU//weGffmODMVcs+Uj9KC0L8ERatl
+	jWxhjeAs6Q62s734kW/3aM2NFkb8sTF95drsyaYtGvsI24LN167+/yL7mAzNE8BeVmrNPTqrW2m
+	ueCkeOB8pUrOmcdc59I4m1Pc+l1nxqPPu9ZLSHyWZyHW6x/k6VtrcEpZJMg4zojpfMdTyjZx78Y
+	muOTX5F8IOmsXKmvs85Hl47mCwqydiHtLeZS42A8suchI=
+X-Received: by 2002:a05:6000:2313:b0:488:7d08:edbc with SMTP id ffacd0b85a97d-48e6e30ba6fmr37096702f8f.24.1793801616628;
+        Wed, 04 Nov 2026 06:13:36 -0800 (PST)
+X-Received: by 2002:a05:6000:2313:b0:488:7d08:edbc with SMTP id ffacd0b85a97d-48e6e30ba6fmr37096644f8f.24.1793801616114;
+        Wed, 04 Nov 2026 06:13:36 -0800 (PST)
+Received: from [192.168.88.30] (ip231-128-192-82.pool-bba.aruba.it. [82.192.128.231])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48fe7189883sm4443181f8f.0.2026.11.04.06.13.34
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 04 Nov 2026 06:13:35 -0800 (PST)
+Message-ID: <b5187890-a0df-45c9-aeed-3b1fefba57ab@redhat.com>
+Date: Wed, 4 Nov 2026 15:13:33 +0100
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -55,192 +112,119 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261103170703.1600310-1-lui2012qwq@gmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net v2] net/mlx5: macsec: free struct mlx5_fs_id after an
+ RCU grace period
+To: Tariq Toukan <tariqt@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>,
+ "joasantonio108@gmail.com" <joasantonio108@gmail.com>,
+ Mark Bloch <mbloch@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>,
+ "leon@kernel.org" <leon@kernel.org>
+Cc: "andrew+netdev@lunn.ch" <andrew+netdev@lunn.ch>,
+ "edumazet@kernel.org" <edumazet@kernel.org>,
+ "davem@davemloft.net" <davem@davemloft.net>,
+ "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+ "sd@queasysnail.net" <sd@queasysnail.net>,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+ "horms@kernel.org" <horms@kernel.org>, "kuba@kernel.org" <kuba@kernel.org>,
+ Boris Pismenny <borisp@nvidia.com>,
+ "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+References: <179313582625.87630.11382992904624255106@gmail.com>
+ <e91e786d3bf20ed981ab2d214ae3358d137d597e.camel@nvidia.com>
+ <94dfe8e7-5eaf-45be-94f5-7d2e2b38fdb2@nvidia.com>
+Content-Language: en-US
+From: Paolo Abeni <pabeni@redhat.com>
+In-Reply-To: <94dfe8e7-5eaf-45be-94f5-7d2e2b38fdb2@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Wed, Nov 04, 2026 at 01:07:03AM +0800, Chengyu Liu wrote:
-> ipoib_stop_ah_reaper() uses cancel_delayed_work(), which cannot stop a
-> callback that is already running.  ipoib_reap_ah() re-arms itself after
-> an unlocked test_bit(IPOIB_STOP_REAPER) check, so a callback that has
-> passed the check but has not re-armed yet still queues the delayed work
-> after the "stop":
+On 11/4/26 13:49, Tariq Toukan wrote:
+> On 04/11/2026 13:20, Cosmin Ratiu wrote:
+>> On Tue, 2026-10-27 at 18:17 -0300, Joas Antonio dos Santos wrote:
+>>> macsec_fs_id_del() removes a struct mlx5_fs_id from its rhashtable
+>>> with
+>>> rhashtable_remove_fast() and then frees it with kfree() right away.
+>>>
+>>> The TX (SCI) table is read locklessly from the transmit path:
+>>> mlx5e_macsec_handle_tx_skb() and mlx5e_macsec_tx_build_eseg() call
+>>> mlx5_macsec_fs_get_fs_id_from_hashtable(), which does
+>>> rhashtable_lookup() under rcu_read_lock() and then reads
+>>> mlx5_fs_id->id. A transmit that looked the entry up just before it
+>>> was
+>>> removed reads freed memory.
+>>>
+>>> Before commit d4ece08f4b1d ("net/mlx5: Maintain fs_id xarray per
+>>> MACsec
+>>> device inside macsec steering") the SCI table held struct
+>>> mlx5e_macsec_sa directly, and mlx5e_macsec_del_txsa() freed it with
+>>> kfree_rcu_mightsleep(). That commit moved the table into macsec_fs.c
+>>> with the new struct mlx5_fs_id, but frees it with a plain kfree().
+>>>
+>>> Add an rcu_head to struct mlx5_fs_id and free it with kfree_rcu().
+>>>
+>>> The same issue was flagged by the Sashiko AI review as a pre-existing
+>>> problem while reviewing the HW-GRO for PSP series.
+>>>
+>>> Fixes: d4ece08f4b1d ("net/mlx5: Maintain fs_id xarray per MACsec
+>>> device inside macsec steering")
+>>> Link:
+>>> https://lore.kernel.org/all/20260909065542.4B80D1F00ACA@smtp.kernel.org/
+>>> Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
+>>> Assisted-by: Yaga Agent HackerSec Claude:claude-opus-5-5
+>>> ---
+>>> v2:
+>>> - Drop the macsec.c hunk: the sc_xarray_element free was already
+>>> fixed
+>>>    by ad17ad50b8dc ("net: mlx5e: Fix use-after-free of the MACsec
+>>> xarray
+>>>    entry on RX SC deletion"). (Simon)
+>>> - Embed an rcu_head and use kfree_rcu() instead of
+>>>    kvfree_rcu_mightsleep(). (Simon)
+>>> - Fixes: now points at the commit that introduced the kfree().
+>>> - v1:
+>>> https://lore.kernel.org/all/179285888829.90275.17386097105525068016@gmail.com/
+>>>
+>>> Testing: compile-tested only (arm64, W=1, CONFIG_MLX5_MACSEC=y, no
+>>> new
+>>> warnings). I do not have
+>>> MACsec-capable ConnectX hardware, so this was not run on a device.
+>>>
+>>>   drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c | 3 ++-
+>>>   1 file changed, 2 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
+>>> b/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
+>>> --- a/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
+>>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
+>>> @@ -94,6 +94,7 @@ struct mlx5_fs_id {
+>>>       refcount_t refcnt;
+>>>       sci_t sci;
+>>>       struct rhash_head hash;
+>>> +    struct rcu_head rcu;
+>>>   };
+>>>
+>>>   struct mlx5_macsec_device {
+>>> @@ -684,7 +685,7 @@ static void macsec_fs_id_del(struct list_head
+>>> *macsec_devices_list, u32 fs_id,
+>>>
+>>>       xa_erase(fs_id_xa, fs_id);
+>>>
+>>> -    kfree(fs_id_found);
+>>> +    kfree_rcu(fs_id_found, rcu);
+>>>
+>>>       if (macsec_fs_is_macsec_device_empty(macsec_device)) {
+>>>           list_del(&macsec_device->macsec_devices_list_entry);
+>>> -- 
+>>> 2.39.5
+>>
+>> Thank you for the fix, it looks good.
+>>
+>> Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
 > 
->   CPU0 (reaper)                     CPU1 (stop/teardown)
->   test_bit(STOP_REAPER) == 0
->                                     set_bit(STOP_REAPER)
->                                     cancel_delayed_work()  (no-op)
->                                     ... destroy_workqueue(priv->wq)
->   queue_delayed_work(priv->wq, ...)  <- delayed work sits on the timer
-> 
-> destroy_workqueue() cannot see a delayed work that is pending on the
-> timer wheel, so the re-armed work fires after the workqueue is
-> destroyed and priv is freed: both the queueing onto the dead queue and
-> the callback's container_of() on freed memory are use-after-free.
-> 
-> Use cancel_delayed_work_sync(), which waits for a running callback and
-> prevents its re-arm from taking effect.
-> 
-> The comment above claims ipoib_reap_dead_ahs() "ensures the work is
-> really stopped", but it never touches the work item - it only walks the
-> dead_ahs list under priv->lock.  The stop guarantee comes from the
-> cancel; fix the comment along with it.
-> 
-> Found by static analysis.  The race was reproduced on a KASAN build
-> with a small module exercising this exact guard/cancel/free pattern
-> (no Infiniband hardware available); PoC and splat are below.
+> Acked-by: Tariq Toukan <tariqt@nvidia.com>
 
-Please revisit this once you can reproduce the issue with real IPoIB code,
-not code that merely resembles it.
+While I have your attention, there is another mlx patch pending:
 
-Dropped for now.
+https://lore.kernel.org/all/20261028145805.54595-3-fourier.thomas@gmail.com/
 
-Thanks
+/P
 
-> 
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Chengyu Liu <lui2012qwq@gmail.com>
-> ---
-> 
-> Reproducer notes (PoC source below; a module parameter selects the
-> shape): mode=3 (cancel_delayed_work + lockless guard race, this bug's shape) produces
-> 
->     [    2.05] BUG: KASAN: slab-use-after-free in queue_delayed_work_on+0x27/0x70
->     [    2.05] Workqueue: events pm_td_cb [pm_flush_poc]
-> 
-> after the teardown frees the container; mode=1
-> (cancel_delayed_work_sync, i.e. this fix) stays clean.
-> 
-> ---------------------------- reproducer: pm_flush_poc.c ----------------------------
-> // SPDX-License-Identifier: GPL-2.0
-> /*
->  * pm_teardown_poc - mechanism PoC for the drv-teardown-sync C/D variants
->  * (F-026 ipoib / F-028 epf-ntb / F-029 habanalabs).
->  *
->  * Modes (module parameter):
->  *   0  F-029 vuln shape:  flush_delayed_work + lockless guard
->  *   1  control:           cancel_delayed_work_sync (>=6.9 swallows re-arm)
->  *   2  F-028 vuln shape:  cancel_delayed_work (non-sync) + unconditional re-arm
->  *   3  F-026 vuln shape:  cancel_delayed_work (non-sync) + guard check/queue
->  *                         race window (test passes, teardown slips in before
->  *                         the queue_delayed_work)
->  *
->  * Every vuln mode must produce KASAN slab-use-after-free when the orphaned
->  * work fires after kfree; the control mode must stay clean.
->  */
-> #include <linux/module.h>
-> #include <linux/workqueue.h>
-> #include <linux/slab.h>
-> #include <linux/delay.h>
-> 
-> static int mode;
-> module_param(mode, int, 0444);
-> MODULE_PARM_DESC(mode, "0=flush(F-029) 1=cancel_sync(ctrl) 2=cancel_nosync(F-028) 3=cancel_nosync+guard-race(F-026)");
-> 
-> struct pm_td_ctx {
-> 	bool			fini_pending;
-> 	struct delayed_work	work;
-> };
-> 
-> static struct pm_td_ctx *ctx;
-> 
-> static void pm_td_cb(struct work_struct *w)
-> {
-> 	struct pm_td_ctx *c = container_of(to_delayed_work(w),
-> 					   struct pm_td_ctx, work);
-> 
-> 	pr_info("PM-POC: cb running, fini_pending=%d\n", c->fini_pending);
-> 
-> 	switch (mode) {
-> 	case 0:		/* F-029: lockless guard then long body then re-arm */
-> 		if (c->fini_pending)
-> 			return;
-> 		msleep(300);
-> 		schedule_delayed_work(&c->work, HZ / 10);
-> 		pr_info("PM-POC: re-armed (flush shape)\n");
-> 		break;
-> 	case 2:		/* F-028: unconditional re-arm, cancel must catch running cb */
-> 		msleep(300);	/* long body so cancel lands mid-run */
-> 		schedule_delayed_work(&c->work, HZ / 10);
-> 		pr_info("PM-POC: re-armed (no guard)\n");
-> 		break;
-> 	case 3:		/* F-026: guard check passes, THEN teardown slips in */
-> 		if (c->fini_pending)
-> 			return;
-> 		/* widen the check->queue race window like ipoib's 724->725 */
-> 		msleep(300);
-> 		schedule_delayed_work(&c->work, HZ / 10);
-> 		pr_info("PM-POC: re-armed past guard (test-queue race)\n");
-> 		break;
-> 	default:
-> 		break;
-> 	}
-> }
-> 
-> static int __init pm_poc_init(void)
-> {
-> 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-> 	if (!ctx)
-> 		return -ENOMEM;
-> 	ctx->fini_pending = false;
-> 	INIT_DELAYED_WORK(&ctx->work, pm_td_cb);
-> 
-> 	pr_info("PM-POC: arming, mode=%d\n", mode);
-> 	schedule_delayed_work(&ctx->work, 0);
-> 
-> 	msleep(50);	/* callback is mid-run now */
-> 
-> 	/* teardown sequence for the selected variant */
-> 	ctx->fini_pending = true;
-> 	switch (mode) {
-> 	case 1:
-> 		cancel_delayed_work_sync(&ctx->work);
-> 		break;
-> 	case 0:
-> 		flush_delayed_work(&ctx->work);
-> 		break;
-> 	default:
-> 		cancel_delayed_work(&ctx->work);	/* non-sync: C variants */
-> 		break;
-> 	}
-> 
-> 	pr_info("PM-POC: teardown done, freeing ctx\n");
-> 	kfree(ctx);
-> 
-> 	msleep(600);
-> 	pr_info("PM-POC: SURVIVED (no KASAN splat)\n");
-> 	return 0;
-> }
-> 
-> static void __exit pm_poc_exit(void) { }
-> 
-> module_init(pm_poc_init);
-> module_exit(pm_poc_exit);
-> MODULE_LICENSE("GPL");
-> MODULE_DESCRIPTION("drv-teardown-sync C/D variant mechanism PoC (F-026/028/029)");
-> 
->  drivers/infiniband/ulp/ipoib/ipoib_ib.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-> index 81bbb3f7c1..5ed4f709cb 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-> @@ -736,11 +736,11 @@ static void ipoib_start_ah_reaper(struct ipoib_dev_priv *priv)
->  static void ipoib_stop_ah_reaper(struct ipoib_dev_priv *priv)
->  {
->  	set_bit(IPOIB_STOP_REAPER, &priv->flags);
-> -	cancel_delayed_work(&priv->ah_reap_task);
-> +	cancel_delayed_work_sync(&priv->ah_reap_task);
->  	/*
->  	 * After ipoib_stop_ah_reaper() we always go through
-> -	 * ipoib_reap_dead_ahs() which ensures the work is really stopped and
-> -	 * does a final flush out of the dead_ah's list
-> +	 * ipoib_reap_dead_ahs() which does a final flush out of the
-> +	 * dead_ah's list
->  	 */
->  }
->  
-> -- 
-> 2.25.1
-> 
