@@ -1,57 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793778663;
-	b=Wjsmad+R6gaOR+vbSAN6TAZsM9YBflbj/Ow6fJHKYdn5u4qXK+Iyhz+DI1Bz/P30gRLf
-	 DY5AjYEfi1xk4vgCp5g7R/E9WXW3nxT7aina3s50P7oI12V/yvv0VThg6TsI+ntotDpSj
-	 1lwxc00xIws9TdqioxImF7ch7uMHXXTfHuZ1FlPB9h5MQRnSNf2pFxV1MJ+NLLB7pQfxz
-	 9rShetV19d8Fbc48pfqhg9qIn7YUUrwCFx+fmGkn+nr7Te9ORAWuVjnvmzWwdPq1F3gDz
-	 LMCUZoe2lyBD9wfO32iTMC9xuNyvQhx3FaSY/Z73F9xWU0NxXZ5QqJDDrVLlDrnj/qg==
+	t=1793779250;
+	b=TMNNYG1Xw8NnR+u8f4gRLyjlYl4KLh5P6iPctM2NbXgWC2s8xCXU9LV4s23LrJGhF2TX
+	 lT2U941QuVEhhmOCa1XMjpJ4l2HtOjU+KXqfC4HTbIYy8icFSzZGaL31vkSa/oqxWAqSk
+	 /zbB4eP9BOZkA2E9QtND+7Pd01wc5+pM4Tse6Tkrlx25cUGkXqH+yXVQuFHjAOjYkyqcJ
+	 uNPzTPqtqV2YbA8YO1sofyCX7ilB2LHsxGIZtAvsbXfe2Fh3pk/GF4bTdCluZ8WesMoD5
+	 9aoEP6nMEaLpvbBGg3ZYDXwwyxn+kQVhFyb/N2bXmLpU321PP6hGuAJCFMhTA8uErJg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793778663;
-	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
-	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Mailer;
-	bh=ZnBMVlBZ9FA7vi+t9qEZyDr9qGdnO7eBQQiCUp2N+qs=;
-	b=XLsyl+uYO9bV60Q03hvrWh8Su6/EGe8321gs5J/Dfe5mWx8Y3sZMJ35NToCs7Fk9T/CT
-	 Z4iuzd7N5oho8/a4Ov4wQMqtdjpklC+yNKQT2TQ1VIQJH5KagLnUwgkyxv4ig5jzjFe+d
-	 8W4rb6nv4QNJ6Hjjyy3DR+UK7NmxgHprA6n6mNgyZGaAnc2mn8F5KOD1DiqveNs9CQuyu
-	 hvGleLCgBAX8Eq+OI3Z4FOFRWd+VM3+EqyGXqV97YHBGFWLOregL7aPa8Ol9pS5ru4Qzb
-	 GSlWp1sJ1b40ju26uFJ3IiuxylqrY9SL7WePGICWUiW/W3ggm2D7bCp59zvFHh7L9Lg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793779250;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=In4z4+Js6PJ5Im8vPPoRP4f2dKYPIb0IHpEUKBmDhbw=;
+	b=vUuRJ5BhBuRoNvp+Mh7jmlph0MIDNeRmKwfzR6Lx3CIHoxg7wGYqi4VQ+pysRIOCwUHq
+	 SD2jvW1LYx1loqlySDDi9B8WgdtleL6a2KqVoBCK80QuHTMyUfsvMfe6dR84USrjGhu8b
+	 /mCfm8MojXpczsrN5JdFT+3falZPQzOxl9NIkTgRc2Mos8S35UgJoT4SZKbrGl1JGzxds
+	 NpjITNf/o0aB9S9nKMNQtMOew3KfP+5ZZnyYG+fjRisp1JOTOPI2QyYAkamCCIpMV7ePs
+	 FqkxSRctROIgX/e4BF3ZBpagfVl8NeM+/FyKVjhYC/cQhyQY6rqQYCcQiiWg3cvQgAQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lfh2EDLR;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hg+lYTkE;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A344606A32E;
-	Wed,  4 Nov 2026 07:51:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 714BF606A31B;
+	Wed,  4 Nov 2026 08:00:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lfh2EDLR
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBE751F000C1;
-	Wed,  4 Nov 2026 07:51:02 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hg+lYTkE
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7338B1F000C1;
+	Wed,  4 Nov 2026 08:00:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793778663;
-	bh=ZnBMVlBZ9FA7vi+t9qEZyDr9qGdnO7eBQQiCUp2N+qs=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=lfh2EDLRAKl6CugKHqK4Nev4O1PxVPLC9pM581Xp9avVw13KEnVY7BFw8YQm/qKxD
-	 zazub/AMBbFr6vMDGXMsZY3e4qhNFpeelWjx7SZOK3AP28Mt0RAeqyEkJuo3ipidQp
-	 Oz/Yyvq13oCgiU3vmAbSlQfkRFAIz1/Xu+ortNqfrTdd9N4oeUnTipUkUPl4qN0k/t
-	 NHAMK+AI29+U27RtoJy06mr1eStKrrfeiQj4LQSw9TeNHKEKCR8MTQUyCDGDy2Lfxt
-	 zbNxg5aagJwgaQh1gtGZ2SbdPR0BKsyyAhVCyeulo6MFnHxvLYxL9DhQLEUWDJo4Ww
-	 09Bngcb+Ddo9Q==
+	s=k20260515; t=1793779250;
+	bh=In4z4+Js6PJ5Im8vPPoRP4f2dKYPIb0IHpEUKBmDhbw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=hg+lYTkE8xQnp4pFtLYJUzu4krurZY5zInCALlUsL4ly8+wjkuMu5v7bcVfnlciiG
+	 H4eNUDWB7UvErAufuB1t/90KWD43/xnPsB3Wu/c21lxZzQD+kyORejMbRjwMCtKuuC
+	 eTRnA3MKhvkYngmFAm1SvZm1OkOmPK0ZiLeG6cskpyOxw0Fd0xMQ8PhDlbMsB7XtSY
+	 YezKrUxNyypGRKqPiJ3o+tguE45u7XtJjMICMfBQ1YPAB10Enu0dM00kZ+wBHNlj32
+	 /hie4tFhTyPbPTKbDRYrMNYbmIZ6Hnsl4i2HXPMrdQxhZkiKEgZgIGIzNG/CAPGZFv
+	 EML3rY7DTWvOQ==
+Date: Wed, 4 Nov 2026 10:00:45 +0200
 From: Leon Romanovsky <leon@kernel.org>
-To: Mustafa Ismail <mustafa.ismail@intel.com>, 
- Shiraz Saleem <shiraz.saleem@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
- David Hu <dhu@x6u.co>
-Cc: Jacob Moroni <jmoroni@google.com>, intel-wired-lan@lists.osuosl.org, 
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
- David Hu <xuehaohu@google.com>
-In-Reply-To: <20261030181512.2056056-1-dhu@x6u.co>
-References: <20261030181512.2056056-1-dhu@x6u.co>
-Subject: Re: [PATCH rdma-next v4 0/6] RDMA/irdma: Add support for ioctl
-Message-Id: <179377866057.1745081.14077156608414561671.b4-ty@kernel.org>
-Date: Wed, 04 Nov 2026 02:51:00 -0500
+To: Deepanshu Kartikey <kartikey406@gmail.com>
+Cc: jgg@ziepe.ca, metze@samba.org, stfrench@microsoft.com,
+	xiongweimin@kylinos.cn, yanjun.zhu@linux.dev, ammrat13@gmail.com,
+	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+	syzbot+6699995b421c8ec7d2fe@syzkaller.appspotmail.com
+Subject: Re: [PATCH] RDMA/cma: Don't warn when device removal races with
+ rdma_resolve_addr()
+Message-ID: <20261104080045.GM264423@unreal>
+References: <20261101105615.20253-1-kartikey406@gmail.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,41 +59,74 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261101105615.20253-1-kartikey406@gmail.com>
 
-
-On Fri, 30 Oct 2026 18:15:06 +0000, David Hu wrote:
-> From: David Hu <xuehaohu@google.com>
+On Sun, Nov 01, 2026 at 04:26:15PM +0530, Deepanshu Kartikey wrote:
+> rdma_resolve_addr() on an unbound ID (RDMA_CM_IDLE) first binds it with
+> cma_bind_addr() and then moves it from RDMA_CM_ADDR_BOUND to
+> RDMA_CM_ADDR_QUERY with a second cma_comp_exch(). These are two
+> separate steps. Once the ID is bound it is attached to the device, so
+> cma_send_device_removal_put() can find it and set RDMA_CM_DEVICE_REMOVAL
+> before the second step runs. The exchange then fails and hits the
+> WARN_ON() added by the commit below.
 > 
-> Hello,
+> syzbot triggers this with RDS over rxe, where rds_connect_worker()
+> calls rdma_resolve_addr() while the rxe device is being deleted:
 > 
-> This patch series introduces support for uverbs ioctl queue creation
-> (QP, CQ, and SRQ) in the irdma driver. This series makes progress towards
-> modernizing irdma. This enables 1-step queue creation from pinned UMEMs
-> and shared dma-buf heaps (system_cc_shared), providing RDMA support for
-> Confidential Computing (CoCo) guest environments where memory encryption
-> otherwise prevents standard host-VA-based queues from operating.
+>   WARNING: drivers/infiniband/core/cma.c:4120 at resolve_prepare_src
+>   Call Trace:
+>    rdma_resolve_addr
+>    rds_ib_conn_path_connect
+>    rds_connect_worker
+
+Please never trim kernel dump stack and add full splat.
+
 > 
-> [...]
+> This is a valid race and not a kernel bug. If removal wins before the
+> bind, cma_bind_addr() already fails and the error is returned to the
+> caller, and err_state in the same function already ignores a failed
+> state exchange. The caller gets -EINVAL, and RDS destroys the ID on any
+> error from rdma_resolve_addr(), so nothing is leaked.
 
-Applied, thanks!
+Why is this a valid race? The expectation is that when a device is removed,
+the ib_client is notified first and then deleted. RDS should stop all
+communication with the underlying device so it can be unregistered cleanly.
 
-[1/6] RDMA/irdma: Plumb uverbs_attr_bundle for QP, SRQ
-      https://git.kernel.org/rdma/rdma/c/18dde0629b58a9
-[2/6] RDMA/irdma: Register irdma UVERBS ioctl namespace
-      https://git.kernel.org/rdma/rdma/c/7a69fd61897e60
-[3/6] RDMA/irdma: Support UMEM attribute for QP creation
-      https://git.kernel.org/rdma/rdma/c/3f68d3e1326882
-[4/6] RDMA/irdma: Split CQ setup to umode and kmode
-      https://git.kernel.org/rdma/rdma/c/d1d5209ec8d49e
-[5/6] RDMA/irdma: Support UMEM attribute for CQ creation
-      https://git.kernel.org/rdma/rdma/c/b6da1bd879f1e7
-[6/6] RDMA/irdma: Support UMEM attribute for SRQ creation
-      https://git.kernel.org/rdma/rdma/c/45ac42ec8a486a
+> 
+> Drop the WARN_ON() and keep returning -EINVAL, and document in a comment
+> that the state may change because of device removal.
 
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+I think that it is not correct and the issue is in RDS.
 
+Thanks
+
+> 
+> Reported-by: syzbot+6699995b421c8ec7d2fe@syzkaller.appspotmail.com
+> Closes: https://syzkaller.appspot.com/bug?extid=6699995b421c8ec7d2fe
+> Fixes: 732d41c545bb ("RDMA/cma: Make the locking for automatic state transition more clear")
+> Tested-by: syzbot+6699995b421c8ec7d2fe@syzkaller.appspotmail.com
+> Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
+> ---
+>  drivers/infiniband/core/cma.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index 337a49d1acf7..46741c1fd34b 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -4117,8 +4117,8 @@ static int resolve_prepare_src(struct rdma_id_private *id_priv,
+>  		ret = cma_bind_addr(&id_priv->id, src_addr, dst_addr);
+>  		if (ret)
+>  			return ret;
+> -		if (WARN_ON(!cma_comp_exch(id_priv, RDMA_CM_ADDR_BOUND,
+> -					   RDMA_CM_ADDR_QUERY)))
+> +		if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_BOUND,
+> +				   RDMA_CM_ADDR_QUERY))
+>  			return -EINVAL;
+>  
+>  	} else {
+> -- 
+> 2.43.0
+> 
