@@ -1,54 +1,63 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793824658;
-	b=ynClIB+UuT+m3b7TbSB2w5kBLBzkA5PKXAID3+rATOAxkUxN/iaOHAKzfurvmKIxJdw6
-	 Q9sfgznYa7kDttLSQ2QkHsXQpupf4jhPJzlslF0b0sSZxGV/ch8A8Vmsujq/pJhyF/MEP
-	 Za/RSxEhcrttpcVqySgy6S305UFHc2kwJSM8cT+ntijIi7q42kh9NzErUjFogmxQpX8kd
-	 BArelfUSdS/diaUHbN8id5QZJYEJPbSmFE8hVhuhcWP/TDQlIOStLutxR/5asYWvxWAbi
-	 aIk0LpaNaQPCjY6N8Y7JHYXLBxCVg29vujLtJIifeO0PuiygFgbkw0HJFdHZ2BWj9Hg==
+	t=1793826778;
+	b=oHkNJQuYaiZXbPV7YgxybtTKg0oQTxkmFRo11J1Nr9dXrJEBQuBHNNDwbDLgkrqYw2cY
+	 Jd938plQICr28ZdD9MgvDp1CyGUAFD0gYDT+kq93mh8UJVuPG9DorY1cpbabrTmhodJzU
+	 nRNczu9tzw0LwWlDMH+Pwp4mk1E1KLevXka/uk0qdniXihxPloiXegZj4B85S0YeBNTne
+	 Hwsyp5EGwoK/5KkgeqtTYpAC+D3JjGZPN5AdzY6UbWYb83EYaHiRJ4jeOyAT9sBHA1JuG
+	 L1+0nkxpAXMl162xX3+5yWHRJ79waVBOXlEcwRWv+olvkJe/1pgG5RQjIoeSxV9WGdg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793824658;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=EbjtyfKcCB7+MwHF5aLbDcoRB9nlcDDUdmQEnUIpIhE=;
-	b=zx3jB3A3Q3KXHRjN+8XhrZXRmGA84224NSoBh4VEYhFbBiAfrNGnbH+t4GrLRMPokabJ
-	 FXWwaNkLzZaz2tj2EienQyzfndPcm6Psif3nK2wh5XadrlCycn9Zs/3AoLEUSMYjYCTXd
-	 rrSC/7j/1y4EsjG6pR+7FPzusgBdn/y1YmfGGETKpbI3D7e8B8i264orUqxqdzqrlBGZH
-	 ZErdTbIX6qC4a8AePvTqGxn6R20F8gZG6YbVZwZ5B/HaWlEbLQaShjbWfajpL1UXSYeTC
-	 wZIc98WnFxEgVvQtJnKL3qdUnR1th4Kc3spCUYBwOQuoQbYbuKhQf58puSuMz/XxtHA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793826778;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 In-Reply-To:References:User-Agent:X-stable:X-Patchwork-Hint:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=Js3H5w5P7g1bfalxuJQng6+wcgfsNELPLVPcB1aF3Qg=;
+	b=FKyUoQxTeGnwN8CeL67qVt/DhP9SNLnlzBtRiUo0K6yRKOIEDcy9Zz5r2KKAkpbJspjz
+	 8eFxR+8dbvOSaig2Mvx0EwxoDot3veWQoHnGkZYtGDVFp5ECSR29kez0q+Uq14F0GizTs
+	 ZWC/mIT8j1PkvJhlRX5+jHgkoCmOJ2NdSwVVtjslrZu3BScEP6URNM2LuST1fsq5TARlg
+	 mDqSqQWyvO2Rl4nmxc9xFnX82TagQqIbzvEXZ3bqP1Atg58bB3udoNELMyT/rU9lgeARm
+	 0xOUcjVe/t95uS5vG/5U2a4ggvQGnyFuoSOewAY3QNu+ow6mKRn2HcQyBNh9SJWgSbA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Rv891jLV;
+	dkim=pass header.d=linuxfoundation.org header.i=@linuxfoundation.org header.a=rsa-sha256 header.s=korg header.b="dU1sE/L9";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C637606B2C7
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Nov 2026 20:37:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EF5B6071A05;
+	Wed,  4 Nov 2026 21:12:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Rv891jLV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDCD11F000C1;
-	Wed,  4 Nov 2026 20:37:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793824658;
-	bh=EbjtyfKcCB7+MwHF5aLbDcoRB9nlcDDUdmQEnUIpIhE=;
-	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=Rv891jLVrTt5eMHYTMlYjFrqELvXTKwMH1bXbzlJlHgBSMXMvOvHUeSzpgyvXd6FA
-	 UzLKBlevAiTRePbm/xu0y+GPAYajwfjCBwXPW7hfZsQ8EPwg/7EmbGIA4rTzTAkpJT
-	 AsOdvar2NofVQWRh+TarZCzqNhPIvJVzvH6MANjdv38lvkSDCDy0bI5ordexNhazCq
-	 nL8fIsX/vPpyFuFlyMKX1WvKHkOAucW0IfjPY953CVsbzrJVitYJ0dk/OooC+oCKeg
-	 Kb9BG1DNthT5NxQeLyJMPdYnEwhARecyoyjLoWbR/fYAxoKo3lkmYjPRlSfXx9O17l
-	 58YgwCRII8iyw==
-Message-ID: <sashiko-outbox-198023@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2] perftest: add a ROCm build to CI
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Stephen Bates" <sbates@raithlin.com>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261104203301.1677350-1-sbates@raithlin.com>
-References: <20261104203301.1677350-1-sbates@raithlin.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 04 Nov 2026 20:37:37 +0000
+	dkim=pass (1024-bit key, unprotected) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.a=rsa-sha256 header.s=korg header.b=dU1sE/L9
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2F7B1F00A16;
+	Wed,  4 Nov 2026 21:12:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
+	s=korg; t=1793826778;
+	bh=Js3H5w5P7g1bfalxuJQng6+wcgfsNELPLVPcB1aF3Qg=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=dU1sE/L9VHjS831NIo9QQqmWBPK5UMM8Y4snY/gmPYHsEgwuOzJvl850CKyqbajS1
+	 uuC0eikU4eP2h46K/dnPZKrAUQsxlNDcW6j11YrAXYsmeZhwQgBaerPc8UI9VF4hBM
+	 bPcPAni3Q4y0FOz+jpIp0Gxa8DRsRjeNnnn36iJA=
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: stable@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	patches@lists.linux.dev,
+	Namjae Jeon <linkinjeon@kernel.org>,
+	Paulo Alcantara <pc@manguebit.org>,
+	Tom Talpey <tom@talpey.com>,
+	linux-cifs@vger.kernel.org,
+	samba-technical@lists.samba.org,
+	linux-rdma@vger.kernel.org,
+	Stefan Metzmacher <metze@samba.org>,
+	Sasha Levin <sashal@kernel.org>
+Subject: [PATCH 7.3 003/547] smb: smbdirect: dont wait for RDMA_CM_EVENT_DISCONNECTED in smbdirect_socket_destroy_sync()
+Date: Wed,  4 Nov 2026 16:03:07 -0500
+Message-ID: <20261104211038.498675154@linuxfoundation.org>
+X-Mailer: git-send-email 2.56.0
+In-Reply-To: <20261104211038.406938024@linuxfoundation.org>
+References: <20261104211038.406938024@linuxfoundation.org>
+User-Agent: quilt/0.69
+X-stable: review
+X-Patchwork-Hint: ignore
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -57,157 +66,171 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [Medium] perftest: unused matrix.rocm_arch in CI workflow and commit mess=
-age mismatch
---
+7.3-stable review patch.  If anyone has any objections, please let me know.
 
-commit f80ce07d3d5d2a3f4581f598c3afcf67e5214052
-Author: Stephen Bates <sbates@raithlin.com>
+------------------
 
-perftest: add a ROCm build to CI
+From: Stefan Metzmacher <metze@samba.org>
 
-This commit adds a GitHub Actions workflow on Ubuntu 24.04 to build and
-install perftest with ROCm and ROCm DMA-BUF support enabled inside AMD's
-slim ROCm container image.
+[ Upstream commit 4ca76b89917ad5b317e07ae4f0edc16f7c2a1248 ]
 
-Link: https://github.com/linux-rdma/perftest/pull/418
+smbdirect_socket_destroy_sync() waited for RDMA_CM_EVENT_DISCONNECTED
+after smbdirect_socket_cleanup_work() called rdma_disconnect(). That
+can take very long, e.g. if the peer just disappeared, until the
+rdma cm gives up, or forever if the event already happened, but the
+status was overwritten afterwards.
 
->     perftest: add a ROCm build to CI
->    =20
->     CI builds only the CUDA configuration. The two existing workflows pas=
-s no
->     --enable-rocm, so src/rocm_memory.c and everything behind HAVE_ROCM a=
-nd
->     HAVE_ROCM_DMABUF is never compiled on a pull request, and a change th=
-at
->     breaks the ROCm backend goes green.
->    =20
->     Add an Ubuntu 24.04 job building --enable-rocm --enable-rocm-dmabuf,
->     alongside the two CUDA jobs and triggered the same way, as a matrix o=
-ver
->     gfx950 (Instinct MI355X, CDNA4) and gfx1250 (Instinct MI455X, CDNA5).=
- Those
->     two were picked to cover consecutive Instinct generations: HIP source=
-s that
->     compile correctly for one generation may have microarchitecture-speci=
-fic issues
->     on the next, and testing both catches that. fail-fast is off: a failu=
-re is far
->     more likely to be specific to one generation than common to both, and=
- cancelling
->     the other leg hides exactly the comparison that would say so.
->    =20
->     It runs in AMD's slim ROCm image rather than installing ROCm on the r=
-unner.
->     The -full and -complete tags, and an apt install of the amdrocm-core
->     metapackages, all pull the whole ML stack: Composable Kernel alone is=
- over
->     2 GB, before rocSHMEM, MIOpen and the BLAS and FFT libraries. A compi=
-le check
->     touches none of it. rocm/dev-ubuntu-24.04:7.2.4 is about 1.1 GB again=
-st 8.3 GB
->     for the smallest 10.1 image, and still ships hipcc, the HIP and HSA h=
-eaders,
->     and device support for both matrix targets -- llc -mcpu=3Dhelp lists =
-gfx950 and
->     gfx1250, and both compile.
->    =20
->     7.2.4 rather than 10.1 because AMD publishes slim tags only through 7=
-.2.x;
->     every 10.x tag is -full. What this job needs is a toolchain that comp=
-iles the
->     sources for the targets in the matrix, which that image provides. Mov=
-ing to a
->     newer ROCm is a one-line change to the container tag if a slim 10.x i=
-mage
->     appears, or if something here starts depending on a newer HIP API.
->    =20
->     Like the CUDA jobs this builds and installs only. There is no RDMA de=
-vice in
->     a runner, and the project has no test suite.
->    =20
->     Verified by running this workflow in a fork of the repository across =
-both
->     matrix architectures. Both legs passed: configure accepts every optio=
-n, and
->     make and make install succeed warning-free.
->    =20
->     Link: https://github.com/linux-rdma/perftest/pull/418
->     Signed-off-by: Stephen Bates <sbates@raithlin.com>
->
-> diff --git a/.github/workflows/ubuntu24_04_rocm7_2.yaml b/.github/workflo=
-ws/ubuntu24_04_rocm7_2.yaml
-> new file mode 100644
-> index 0000000000000..70790377d85a0
-> --- /dev/null
-> +++ b/.github/workflows/ubuntu24_04_rocm7_2.yaml
-> @@ -0,0 +1,70 @@
+This is not needed: smbdirect_socket_destroy() drains the qp under
+rdma_lock_handler(), destroys it and calls rdma_destroy_id(), which
+only waits for a currently running event handler and makes sure no
+further events are delivered. The rest of the disconnect protocol
+(DREQ/DREP and timewait for IB, abrupt close for iWarp) is handled
+by the rdma core asynchronously. drivers/nvme/host/rdma.c also just
+calls rdma_disconnect() and ib_drain_qp() before rdma_destroy_id().
 
-[ ... ]
+So smbdirect_socket_destroy() now also accepts
+SMBDIRECT_SOCKET_DISCONNECTING and changes the status to
+SMBDIRECT_SOCKET_DISCONNECTED itself under rdma_lock_handler().
 
-> +    strategy:
-> +      fail-fast: false
-> +      matrix:
-> +        # rocm_arch is not yet passed to configure: --with-rocm-arch only
-> +        # exists once HIP kernel sources are added. Both legs build iden=
-tically
-> +        # until then; the matrix is in place so the workflow does not ne=
-ed
-> +        # amending when device code arrives.
-> +        rocm_arch: [gfx950, gfx1250]
-> +
-> +    name: ROCm (${{ matrix.rocm_arch }})
+We could still get RDMA_CM_EVENT_DISCONNECTED in the small
+windows between rdma_unlock_handler() and rdma_destroy_id(),
+but in that case smbdirect_connection_rdma_event_handler()
+is basically a no-op.
 
-[ ... ]
+Fixes: 422a2436697d ("smb: smbdirect: introduce smbdirect_socket_destroy[_sync]()")
+Cc: Namjae Jeon <linkinjeon@kernel.org>
+Cc: Paulo Alcantara <pc@manguebit.org>
+Cc: Tom Talpey <tom@talpey.com>
+Cc: linux-cifs@vger.kernel.org
+Cc: samba-technical@lists.samba.org
+Cc: linux-rdma@vger.kernel.org
+Assisted-by: Claude:claude-opus-5-5
+Signed-off-by: Stefan Metzmacher <metze@samba.org>
+Signed-off-by: Namjae Jeon <linkinjeon@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ fs/smb/smbdirect/connection.c | 12 ++++----
+ fs/smb/smbdirect/socket.c     | 56 ++++++++++++++++++++++++++++-------
+ 2 files changed, 52 insertions(+), 16 deletions(-)
 
-> +      - name: Configure the build
-> +        run: |
-> +          ./configure --enable-rocm --enable-rocm-dmabuf \
-> +                      --with-rocm=3D"$ROCM_PATH"
+diff --git a/fs/smb/smbdirect/connection.c b/fs/smb/smbdirect/connection.c
+index afd31fa12a368..f48c857bda5a4 100644
+--- a/fs/smb/smbdirect/connection.c
++++ b/fs/smb/smbdirect/connection.c
+@@ -83,9 +83,9 @@ static int smbdirect_connection_rdma_event_handler(struct rdma_cm_id *id,
+ 		 * smbdirect_socket_schedule_cleanup[_status]() =>
+ 		 * smbdirect_socket_cleanup_work().
+ 		 *
+-		 * As otherwise we'd set SMBDIRECT_SOCKET_DISCONNECTING,
+-		 * but never ever get RDMA_CM_EVENT_DISCONNECTED and
+-		 * never reach SMBDIRECT_SOCKET_DISCONNECTED.
++		 * As otherwise we'd set SMBDIRECT_SOCKET_DISCONNECTING
++		 * and call rdma_disconnect(), but never ever get
++		 * RDMA_CM_EVENT_DISCONNECTED.
+ 		 */
+ 		if (event->event == RDMA_CM_EVENT_DEVICE_REMOVAL)
+ 			smbdirect_socket_schedule_cleanup_status(sc,
+@@ -113,9 +113,9 @@ static int smbdirect_connection_rdma_event_handler(struct rdma_cm_id *id,
+ 		 * smbdirect_socket_schedule_cleanup_status() =>
+ 		 * smbdirect_socket_cleanup_work().
+ 		 *
+-		 * As otherwise we'd set SMBDIRECT_SOCKET_DISCONNECTING,
+-		 * but never ever get RDMA_CM_EVENT_DISCONNECTED and
+-		 * never reach SMBDIRECT_SOCKET_DISCONNECTED.
++		 * As otherwise we'd set SMBDIRECT_SOCKET_DISCONNECTING
++		 * and call rdma_disconnect(), but never ever get
++		 * RDMA_CM_EVENT_DISCONNECTED.
+ 		 *
+ 		 * This is also a normal disconnect so
+ 		 * SMBDIRECT_LOG_INFO should be good enough
+diff --git a/fs/smb/smbdirect/socket.c b/fs/smb/smbdirect/socket.c
+index bb02df6158b97..c36cb7cc0088b 100644
+--- a/fs/smb/smbdirect/socket.c
++++ b/fs/smb/smbdirect/socket.c
+@@ -511,7 +511,13 @@ static void smbdirect_socket_destroy(struct smbdirect_socket *sc)
+ 	if (sc->status == SMBDIRECT_SOCKET_DESTROYED)
+ 		return;
+ 
+-	WARN_ONCE(sc->status != SMBDIRECT_SOCKET_DISCONNECTED,
++	/*
++	 * smbdirect_socket_destroy_sync() doesn't wait
++	 * for RDMA_CM_EVENT_DISCONNECTED, so we may still
++	 * be in SMBDIRECT_SOCKET_DISCONNECTING
++	 * (or already reached SMBDIRECT_SOCKET_DISCONNECTED)
++	 */
++	WARN_ONCE(sc->status < SMBDIRECT_SOCKET_DISCONNECTING,
+ 		  "status=%s first_error=%1pe",
+ 		  smbdirect_socket_status_string(sc->status),
+ 		  SMBDIRECT_DEBUG_ERR_PTR(sc->first_error));
+@@ -542,6 +548,32 @@ static void smbdirect_socket_destroy(struct smbdirect_socket *sc)
+ 	if (sc->rdma.cm_id)
+ 		rdma_lock_handler(sc->rdma.cm_id);
+ 
++	/*
++	 * We hold the handler lock, so the rdma event
++	 * handlers can't change the status anymore.
++	 *
++	 * If RDMA_CM_EVENT_DISCONNECTED didn't arrive yet,
++	 * we just stop waiting for it here.
++	 *
++	 * We already disabled disconnect_work above
++	 * and before we call rdma_unlock_handler below
++	 * we call smbdirect_connection_destroy_qp which
++	 * sets sc->ib.qp = NULL.
++	 *
++	 * Between rdma_unlock_handler() and
++	 * rdma_destroy_id() below there's a small
++	 * windows where RDMA_CM_EVENT_DISCONNECTED
++	 * could still arrive.
++	 *
++	 * But smbdirect_connection_rdma_event_handler
++	 * will be a noop when calling smbdirect_socket_schedule_cleanup*
++	 * ib_drain_qp() also won't be called.
++	 */
++	if (sc->status < SMBDIRECT_SOCKET_DISCONNECTED) {
++		sc->status = SMBDIRECT_SOCKET_DISCONNECTED;
++		smbdirect_socket_wake_up_all(sc);
++	}
++
+ 	if (sc->ib.qp) {
+ 		smbdirect_log_rdma_event(sc, SMBDIRECT_LOG_INFO,
+ 			"drain qp\n");
+@@ -679,17 +711,21 @@ void smbdirect_socket_destroy_sync(struct smbdirect_socket *sc)
+ 		"destroying rdma session\n");
+ 	if (sc->status < SMBDIRECT_SOCKET_DISCONNECTING)
+ 		smbdirect_socket_cleanup_work(&sc->disconnect_work);
+-	if (sc->status < SMBDIRECT_SOCKET_DISCONNECTED) {
+-		smbdirect_log_rdma_event(sc, SMBDIRECT_LOG_INFO,
+-			"wait for transport being disconnected\n");
+-		wait_event(sc->status_wait, sc->status == SMBDIRECT_SOCKET_DISCONNECTED);
+-		smbdirect_log_rdma_event(sc, SMBDIRECT_LOG_INFO,
+-			"waited for transport being disconnected\n");
+-	}
+ 
+ 	/*
+-	 * Once we reached SMBDIRECT_SOCKET_DISCONNECTED,
+-	 * we should call smbdirect_socket_destroy()
++	 * We don't wait for RDMA_CM_EVENT_DISCONNECTED,
++	 * rdma_disconnect() was already called by
++	 * smbdirect_socket_cleanup_work() if needed
++	 * and smbdirect_socket_destroy() drains the qp,
++	 * destroys it and calls rdma_destroy_id(), which
++	 * only waits for a currently running event handler
++	 * and makes sure no further events are delivered.
++	 * The rest of the disconnect protocol is handled
++	 * by the rdma core asynchronously.
++	 *
++	 * Waiting for RDMA_CM_EVENT_DISCONNECTED could
++	 * take very long or forever, e.g. if the peer
++	 * just disappeared.
+ 	 */
+ 	smbdirect_socket_destroy(sc);
+ 	smbdirect_log_rdma_event(sc, SMBDIRECT_LOG_INFO,
+-- 
+2.53.0
 
-[Severity: Medium]
-As reported by Sashiko on v1 [1], in .github/workflows/ubuntu24_04_rocm7_2.=
-yaml,
-jobs.build.strategy.matrix defines rocm_arch: [gfx950, gfx1250], but
-matrix.rocm_arch is only interpolated into the job display name and is never
-passed to the environment, ./configure, or make in jobs.build.steps.
 
-The new comment in jobs.build.strategy.matrix notes:
 
-        # rocm_arch is not yet passed to configure: --with-rocm-arch only
-        # exists once HIP kernel sources are added. Both legs build identic=
-ally
-        # until then; the matrix is in place so the workflow does not need
-        # amending when device code arrives.
-
-However, because the "Configure the build" step in jobs.build.steps invokes:
-
-          ./configure --enable-rocm --enable-rocm-dmabuf \
-                      --with-rocm=3D"$ROCM_PATH"
-
-without passing matrix.rocm_arch, won't this workflow file still need to be
-amended anyway when --with-rocm-arch and device code arrive? In the meantim=
-e,
-every push and pull request against master pulls the container image twice,
-installs all packages twice, and runs two identical host-only builds.
-
-In addition, does the commit message still match what this workflow actually
-does? The commit message states that the job builds a matrix over gfx950 and
-gfx1250 to catch microarchitecture-specific HIP compilation issues across
-consecutive Instinct generations, that fail-fast is off because a failure is
-likely specific to one generation, and that both targets compile in this jo=
-b,
-whereas the workflow currently compiles neither target architecture.
-
-Could the workflow run a single build job until HIP kernel sources and
---with-rocm-arch support are introduced, and could the commit message be
-updated to match?
-
-[1] https://lore.kernel.org/r/20261104155023.250706-1-sbates@raithlin.com
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261104203301.1677=
-350-1-sbates@raithlin.com?part=3D1
