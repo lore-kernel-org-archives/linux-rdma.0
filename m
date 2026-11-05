@@ -1,55 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793846778;
-	b=sNKJRm6U2srD0u9xjI+Uiewgcbt9VDQ4G0VFOLPAnuHFxxXLuhTavUtGNNmNzHtQ46Yj
-	 MevgdBCJVT4LKtG+1MTDCt9n0o53aZVT34ADF4TbV44r/Lk97EyMt1jXd8LzSgurSuRHb
-	 cmP4Xox4sFJ/GRPSiIgUYxbq5hoAdTAAziaRtVw2n7lHAd5QW7EIei4qhC/T6h8hQAYrU
-	 elZEvzgdEDSaWCurOroFTqyHxWUwfJ60M69/wjoe/wwGlvQzfJ3VXJ15tUG/HZzbeAr/w
-	 mp+QOZ3UX7jFgNukY5EIOt5XRVBaQKQ+0c85YpMrclkiNXL3WbnfmWpi+fz1kEt957Q==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793846778;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=pQuGx9CIA8sr0AeiKlq1u77VMmNA7SIF/2yGjh6OerI=;
-	b=e8vzdzSFYu3NTss8DOhyNFStCsj/N4dsTfaEhq7xQSjSNObTGGSeVGviVZLe391Q+bVy
-	 Mh1sV1OqQMuWbsb5VBvosOAgJSeNura1V1C90ajXTvw8iSkqpWKl005544xOclyl+th0O
-	 PC6aj1zZL8WkdabyE/kQXA3s/guagaJQ8LXDpxKOH2YEGMwzeqEfwXX8DpxQCGTXHU+g4
-	 wfw/lyt7gCTorvXT5KaGJT/9qmF/Hiuqn0lFoxh1RIGkTkQH58oTAuHsAxdkds/4vOSgz
-	 axzxrNv3Xrzt6bMreyPVnPvWqZBqD829aMCbVTMhHzUXFfDEWp+kuj07At2LoZgsLmA==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OoAitbtH;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.216.46
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793851540;
+	b=0DSvvrwWXdAI4oJpt6bIvEUQ9eTedjybrL4zf3CfDodieB54T4rA/YmKPufXGmzoJaK8
+	 AUVBjyhmPjAdV7IfNtQHzwsFrNwpsY9SwX/+R+VDLMFg6oX/8s26Hh9SY3qeB5/NA6Brn
+	 MMxyN4D0QSwt8NBQyYrfGIxhqAlOvgbZkctWBeXDFqsuJ1tI2Pe9/pkbTQnMWpaK6vGej
+	 dnE+6TozGX8ohY8An8UH0BFI3Hsl/fjWQgwMppdpKtPaSUZ4crz81Z5kUff3nKIRkI+lE
+	 FboKURwO4y2NGegVFYxyu6ZbJaw+nDkDCX4q6nu9FRj//WFGCZ0o1Q2hv6QVhH9qvsQ==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793851540;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:MIME-Version:References:
+	 In-Reply-To:From:Date:X-Gm-Features:Message-ID:Subject:To:Cc:
+	 Content-Type;
+	bh=fGRZAFWMKVrIznwSD73OSOgAUilAW1lJLlhpS4NkI0o=;
+	b=wshHDEDm6Nq5Ij0GqqIqIA1kp3Z3z1ufOMtT5VDCmFdIg3CV53h+XJ2ZXLuZavn5yzzX
+	 HY2Z+mHXkXN+iZqCzs+gywSwmh4C08RnigQ5HCefTSO/Tx+xqgY6D5VcXAUQqSu8iJVJS
+	 suBMDpnIjtjMmNa0ldRKd1sqrdpR5uLYqwOIbf3mquiCPZ0FUND+9Nwn/zrogk3uGyQc7
+	 j2qmQbmpEFvuARvApjmaJEndYPmi7vMI5vFY0U8WZi6j/wwSuqdBf7k/0nXgUpISSkbAF
+	 gHRH9H1sadUh4I6HzzUdwsRO6KIW9I2Bj4Uu81Yqz62MMjg2O/UKREVUouuIuu/AVbg==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="LBaS/Heq";
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.216.46
+Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8975D606A31B
-	for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2026 02:46:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3FE0606A326
+	for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2026 04:05:39 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C3FE0606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OoAitbtH
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EF771F000C1;
-	Thu,  5 Nov 2026 02:46:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793846778;
-	bh=pQuGx9CIA8sr0AeiKlq1u77VMmNA7SIF/2yGjh6OerI=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=OoAitbtHmYYVIfPQn1iiz/6HlkvrNKbbH/rh9Dj9VvgmXdi4QK+SJrTl5s8rXa26k
-	 vt9wc7/Ilyr5HB3FzTDdarubjG+7faapmPitTQ6xJct22Bz64+kvaqRIhsZauIqZIO
-	 qix9EXuCfUA/fMJpCiPOT9WHoFLEjW4BVfC5zxKBCFZ7W5vxf6yZ8Mdk8qSc5UYztp
-	 aH4lodNLOwrcKG6yzZCJoO5AydxgIYNs2yvCWpblLI7DNPd/RzXuK6fEoFmV+1/wh5
-	 VvY80VzkuOdYcN6E1UZgxePejitApCXqlL5Bk3VLu2nGd1gQTV+Q3PcGGl0eXCPxcJ
-	 8RaOE1XgkcepA==
-Message-ID: <sashiko-outbox-198482@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v3] RDMA/siw: Fix early peer close handling on listeners
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Jaeyeong Lee" <lee@jaeyeong.cc>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261105022253.368316-1-lee@jaeyeong.cc>
-References: <20261105022253.368316-1-lee@jaeyeong.cc>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 05 Nov 2026 02:46:17 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=LBaS/Heq
+Received: by mail-pj1-f46.google.com with SMTP id 98e67ed59e1d1-3b0b6cae44aso21160a91.1
+        for <linux-rdma@vger.kernel.org>; Wed, 04 Nov 2026 20:05:39 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1793851539; cv=none;
+        d=google.com; s=arc-20260327;
+        b=qgh/zTlx+dGo0leHwTqYQBOGZpphkBfU+QxOm59TNt6czaBzn4opwoVWC15mzA96Tl
+         HcgaSnc9On0yuASyJ1SXmvkSpiUjgyjq2idbtgsxYmTVbd5bzRoCOh0txFRynIR2t+VR
+         qu88I5JbILRkoZRfujR4dRRwAXIl5tA1WiINVShMnOEVCHNGGzkPQ96lap8Fcp1d9KUW
+         BPInVWzrAjTO14LHhe6uwJBgqBNZuXrE6OPLTYY7dpiX2LGCWHYh1aFRi/sA9tUJTT51
+         k+32V8AMdFfqZ+bGuVWwv6GzYnjb611HNSWPSmuOe5eaIBB6kbh5zsnklZlpm4jyH/n2
+         p0wg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:dkim-signature;
+        bh=fGRZAFWMKVrIznwSD73OSOgAUilAW1lJLlhpS4NkI0o=;
+        fh=Je+XfjZZELYMeUFG782y9M4oZFPTVtwBgMoamcbwTg0=;
+        b=Z914NMKC6Ia26D6aAhrV3sPHsQcVy8M4VT5jUVcWinATmBmP+K/jiItRVVdu07drZf
+         fmDPsW2L8nsO23oze5GvX4S2fSVD36y0G0BdUEPxlWTFsFyQfLnwFswnAPad7zQahq0v
+         cGDGh1WFvvFrsF9NoM8XFGa/F28DUrDk8AYoS0d79pv8+W1rPSq/Jb+Uo3LWWU7g9G6a
+         1od8RXs7d5MbxO3GZOq9cy1IyJJ4/S1AJDAT/AJRMnIrhkcELmKgnS9x9Rqk8hpljnwc
+         WyUCzpVZTMafkfkHuGHU1Y1kGiDaLCydApzeUmqQRLID3GifF1qqOpRcu+/DGO4e7F9w
+         pOuA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793851539; x=1794456339; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=fGRZAFWMKVrIznwSD73OSOgAUilAW1lJLlhpS4NkI0o=;
+        b=LBaS/HeqKjpCbh5It4KOqF1GOVsi0UM5XxJaEgr8u453UOjEcSBhz7l5LQ28hDdXHB
+         rSB8xBUPcIT+Fa8F2vlX4nwGmJZeMdhNRDOiDaLcVLiCKoO84i9PNEo/DIELxhGxpZCq
+         NBdFjdvk/GLP8nhwwChnf/45cBT6hmSuMPpt6D6NuFeTI95g1NOsH2ITyTKTS8YrgX64
+         kh/cGAf/814XEFEbBtSZPKFy0bcfD+FemEVxaWGyG93hJ3piYYQoa5kc1/iqcMnja+rn
+         0YkCLShFVTXXdeTmRUrON7omtYDGiXnI1RvgkOIA3hRmzmG0AGXs18J0jBrJXHQgWLHF
+         HF7g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793851539; x=1794456339;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=fGRZAFWMKVrIznwSD73OSOgAUilAW1lJLlhpS4NkI0o=;
+        b=m2ofsYvHg8SdZcX+Trsxg35LwBpGtoAUa+eOiiJLG8oWdc+8GmlLS3b6FvDE6LERJ9
+         Nwny7tz8aQqKjv3n09VoF8+2X753UPROt5cMFiSaRhUEGqZRB9M3du0FzeM7QDqnCI7F
+         NQZLl8h+2WhE1NfEADw/UWyfz299T3iWR9fQdhyhoCJvybCRfAB8F/n2D5ety9Y8xY/T
+         gHNnOmBnom44W//sICdGSEODVYz/dkCiuuvXF/yLlZO8eLVQ4q/KMCayvUHlbvYGx2zY
+         kcW/uld+XKknq6igr2UZqeSkFAHFYn+qrA5SegjKRYy/Mf+au4/1vAtZ3PJ/xrF1ylYC
+         A5yg==
+X-Gm-Message-State: APuU4Z+dRbqPZVnqUpyyF3IX+AMwO/NN36jcqxD3v6AVO704oa5Ok96n
+	42ah3R3SsL1ZXUSFChmk4riNrpgAMIzyPz1PcdbWlpBisou8RxoiroX4fUysa4qYDOISW1d64CH
+	moVPzOuUWxa2zuSSRAh4duNz/GG+WpCI=
+X-Gm-Gg: AYBFou3edVSdFD0HsmykyyO4HiS/wXlH3BoKm2vxgoLrfHKV/kp4mAETpD5BP+7uHNm
+	9M6dr2RBWdGZob2qcjk2mi1Bk4ZCcRO60MwLPl7s0YsDK1uoQf55hJfHIeTEJKps7hB7VRPbeNH
+	UCVEn7YMXOB2JebEmNQg+eNgJ8LXzfaP6yXQoNAMil9t880sHNS+vVRsyLXql0iph/XoBpMz+8p
+	mhvo6E8t3Vlo0yMvCKBXfUtVzVkC4ABCyWrESv1HRC2tZGm2nDNfyUBvI1uwbmhibPlCZ5c6woW
+	p8PHnAgdMz4L9OG9IM/JBqXZgTl+nX86pJnLnYxGWJKi7+KATotanLv/qFRlzPJyCToHV5Ak9M0
+	ubvkPzAhbUOafVBWf+u5dB+9Ai5594W0ryaHSBq0nwAy/4sr5Nl05Ufosq5M=
+X-Received: by 2002:a17:90b:1dc9:b0:3ac:9e76:aa96 with SMTP id
+ 98e67ed59e1d1-3ae897c3585mr25695647a91.3.1793851539122; Wed, 04 Nov 2026
+ 20:05:39 -0800 (PST)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,153 +101,33 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+References: <20261104181753.1245369-1-lui2012qwq@gmail.com> <sashiko-outbox-197839@kernel.org>
+In-Reply-To: <sashiko-outbox-197839@kernel.org>
+From: Chengyu Liu <lui2012qwq@gmail.com>
+Date: Thu, 5 Nov 2026 12:05:23 +0800
+X-Gm-Features: AclHuK9jTbGmY6RMla1XLvLZjatA55u_1AU1gi1NP4ZRIt_yZ2BwifYBqZ6Oswk
+Message-ID: <CAE=Q7=4WboBbXH_GAHTm29sUo9zSNs=caSZ4semRfrBRHucamw@mail.gmail.com>
+Subject: Re: [PATCH v2] RDMA/ipoib: disable the AH reaper work for good on teardown
+To: sashiko-reviews@lists.linux.dev
+Cc: linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [High] RDMA/siw: premature listener CEP release before sock_release() on =
-error
---
+On Wed, Nov 05, 2026, sashiko-bot@kernel.org wrote:
+> [High] RDMA/ipoib: disable_delayed_work_sync() permanently kills
+> ah_reap_task on stop
 
-commit 9e6e7c6fb2387746734048153461994802a461df
-Author: Jaeyeong Lee <lee@jaeyeong.cc>
+Correct, and I verified it in the source before respinning:
+ipoib_stop_ah_reaper() also runs on ndo_stop and on the stop/open cycle
+of a heavy flush (__ipoib_ib_dev_flush), so a disabled ah_reap_task
+makes ipoib_start_ah_reaper()'s queue_delayed_work() silently fail on
+reopen and dead_ahs is never reaped again.
 
-RDMA/siw: Fix early peer close handling on listeners
+v3 goes back to cancel_delayed_work_sync(): it swallows a racing re-arm
+while the stop is in flight (the disable window inside
+__cancel_work_sync()), then re-enables the work on the way out.  The
+original race stays fixed, and restarts keep working.
 
-This commit fixes a use-after-free in siw_destroy_listen() and a race during
-listener creation by ignoring early peer close events on listening sockets,
-serializing accepted child socket handoff with socket state changes, and
-holding the listener endpoint in use until setup is complete.
+pw-bot: cr
 
-Link: https://lore.kernel.org/r/33abff2233b36a51e468d691cb4327d0294d2734.16=
-20343860.git.metze@samba.org
-
-> diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/s=
-iw/siw_cm.c
-> index ed49818793dde..90adb9543d9d0 100644
-> --- a/drivers/infiniband/sw/siw/siw_cm.c
-> +++ b/drivers/infiniband/sw/siw/siw_cm.c
-
-[ ... ]
-
-> @@ -1361,6 +1374,10 @@ static void siw_cm_llp_state_change(struct sock *s=
-k)
-> =20
->  	case TCP_CLOSE:
->  	case TCP_CLOSE_WAIT:
-> +		if (cep->state =3D=3D SIW_EPSTATE_LISTENING ||
-> +		    (cep->state =3D=3D SIW_EPSTATE_IDLE &&
-> +		     !READ_ONCE(sk->sk_socket)))
-> +			break;
->  		if (cep->qp)
->  			cep->qp->tx_ctx.tx_suspend =3D 1;
->  		siw_cm_queue_work(cep, SIW_CM_WORK_PEER_CLOSE);
-> @@ -1880,6 +1897,7 @@ int siw_create_listen(struct iw_cm_id *id, int back=
-log)
->  		rv =3D -ENOMEM;
->  		goto error;
->  	}
-> +	siw_cep_set_inuse(cep);
->  	siw_cep_socket_assoc(cep, s);
-> =20
->  	rv =3D siw_cm_alloc_work(cep, backlog);
-> @@ -1932,14 +1950,13 @@ int siw_create_listen(struct iw_cm_id *id, int ba=
-cklog)
-> =20
->  	siw_dbg(id->device, "Listen at laddr %pISp\n", &id->local_addr);
-> =20
-> +	siw_cep_set_free(cep);
->  	return 0;
-> =20
->  error:
->  	siw_dbg(id->device, "failed: %d\n", rv);
-> =20
->  	if (cep) {
-> -		siw_cep_set_inuse(cep);
-> -
->  		siw_free_cm_id(cep);
->  		siw_socket_disassoc(s);
->  		cep->state =3D SIW_EPSTATE_CLOSED;
-
-[Severity: High]
-Can the error cleanup path in siw_create_listen() trigger a use-after-free =
-on
-cep if id->provider_data allocation fails after s->ops->listen() has starte=
-d?
-
-In siw_create_listen(), s->ops->listen(s, backlog) places s->sk into
-TCP_LISTEN before id->provider_data is allocated:
-
-	rv =3D s->ops->listen(s, backlog);
-	if (rv) {
-		siw_dbg(id->device, "listen error %d\n", rv);
-		goto error;
-	}
-	cep->cm_id =3D id;
-	id->add_ref(id);
-	...
-	if (!id->provider_data) {
-		id->provider_data =3D
-			kmalloc_obj(struct list_head);
-		if (!id->provider_data) {
-			rv =3D -ENOMEM;
-			goto error;
-		}
-
-During this window, an incoming connection can complete the TCP handshake in
-softirq context, creating a child socket in the accept queue that inherits
-sk_user_data =3D cep and the siw_cm_llp_* callbacks, and queueing
-SIW_CM_WORK_ACCEPT on cep.
-
-If kmalloc_obj() then fails and jumps to error, siw_socket_disassoc(s) only
-clears sk_user_data and restores callbacks on the parent listening socket
-s->sk, leaving the unaccepted child socket with sk_user_data =3D cep:
-
-error:
-	if (cep) {
-		siw_free_cm_id(cep);
-		siw_socket_disassoc(s);
-		cep->state =3D SIW_EPSTATE_CLOSED;
-
-		siw_cep_set_free_and_put(cep);
-	}
-	sock_release(s);
-
-Because cep->state =3D SIW_EPSTATE_CLOSED and siw_cep_set_free_and_put(cep)=
- run
-before sock_release(s) (unlike in siw_drop_listeners(), where sock_release(=
-s)
-is called while cep->in_use is held and before cep->state is set to
-SIW_EPSTATE_CLOSED), two problems can occur before sock_release(s) finishes
-tearing down the unaccepted child socket:
-
-1. Once siw_cep_set_free_and_put(cep) releases cep->in_use and drops the
-listener reference, the pending SIW_CM_WORK_ACCEPT work item on siw_cm_wq
-wakes up, sees cep->state !=3D SIW_EPSTATE_LISTENING in siw_accept_newconn(=
-),
-and drops the last reference on cep, freeing it. When sock_release(s) then
-runs:
-
-  sock_release(s)
-    -> inet_release()
-      -> tcp_close()
-        -> inet_csk_listen_stop()
-          -> inet_child_forget()
-            -> tcp_disconnect()
-              -> siw_cm_llp_error_report(child)
-
-siw_cm_llp_error_report() dereferences the freed cep via sk_to_cep(child).
-
-2. If the peer closes or resets the unaccepted child after cep->state is set
-to SIW_EPSTATE_CLOSED, siw_cm_llp_state_change(child) only ignores
-SIW_EPSTATE_LISTENING and SIW_EPSTATE_IDLE, so it will proceed to queue
-SIW_CM_WORK_PEER_CLOSE on cep (or on already-freed memory).
-
-Should siw_create_listen() call sock_release(s) before setting cep->state =
-=3D
-SIW_EPSTATE_CLOSED and calling siw_cep_set_free_and_put(cep) (matching
-siw_drop_listeners()), or allocate id->provider_data before calling
-s->ops->listen()?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261105022253.3683=
-16-1-lee@jaeyeong.cc?part=3D1
+Chengyu
