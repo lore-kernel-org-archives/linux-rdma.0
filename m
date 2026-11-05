@@ -1,56 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793873876;
-	b=VUQUqnwDguhXvzE837PV14P+GcG04Jv0dAQOu2JukLQpjTzDQlaGAHCkPaxPCocJi0/z
-	 pBT7rB1ziPR9MlBJXUxm+SwqDbHS8h+FLQ3GDprc8n4XLMJAk+++A1FQpZsS5JHCxGb96
-	 uTQM//flAw1moiw1nXzkzY9CR78JAL4ZlWlJ3FPeA2LUwKvIPq0+I+bUaWxJxBP4JJXii
-	 ApRRnL5THY9JFo5je0J+YR6gkshRC4qyQXx/nDYRODsxkYJqbmol2SgqE0JbAS4nmket9
-	 ejdVuywQPJH5Ib3ZxpLGz88dy7G37tUAey7AzDff9TGRUyifo7yb5ClC8ljljd5RpxA==
+	t=1793873891;
+	b=ZLbY7l2wyR+pswEJTuI68Vnls3zRDCWs0yKTnncHS3Otb1uvCWirtxuW7GfhRwEZYqYE
+	 RunfnuFVOTHP62O8j+lvtabMcIINvh3/RCwm8Hdfd48FkLPJo+9fRHwh45BVjc4ucPULr
+	 F8atsyr9yDP5a8AhJV10dBPL0xbKT2aAnfw3q7XSC6QTONvRAMKkLYPZVMMTd5OyCr3TX
+	 zWKhSq3GehuXHqsgqWhid35ShRRfa9CUcH/Xadw+wwiTNxc9gG8ZUiCT9tws4lcSOdWQY
+	 u5C42SA1pPhj9B3Giawfy/fh/FuKubQ5FEEylN80BDB8vfNsIoyZdKxPPBW1VJJHnOA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793873876;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793873891;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=CKlQQcu/bsNmWjxulbgTG1iIeFjRU6Z75waIx0GlYIA=;
-	b=FAxqSlVpH9zvJJR2w+4xJsu5/gnHegIPbQnPfLPYdygpGve5B8dThp8lM1ow4yZX6lzc
-	 D7C9OkmtRGyD80e2FVEC+Pr1RB17G9wk8OzOtFiArGC33wGBsn+UJl1+U9gwZfeeJ9FUr
-	 BBswB56sRLC1CToBjXVG2z09IJqYDs1hITzkTrBf23I3VO791RylpnvgmVdgD8lv7Nr+9
-	 j9GjU43i6p54+SPVoBfjvdTTUqdeydgEoWZMNacLFCA2WEYmm1zosJ0Oc1ILR0uUQqZOD
-	 ENyQX29nc0jMEZJj5R6B1XM0XdgUdBg8Pzl6Aq/xX9Lw2EoJOtzM45Y2leP0VeIgBDA==
+	bh=fNoQZtidaZo6zhv3wiVhqd0/wWG08cP0lxi0A62ZmmA=;
+	b=ywzmq2a7SzpOqVH1svPrr7HxKhne3y+cpiaGb3r5XpZHgZkyu2zpKEdzzGyUg48P0+K4
+	 qyswTw22gI+ah2CKQ5ytVnwNXCdNG1tNZLc/0T9pbJmdnwNIhvtWUf3OnbJcgU8gBS9Eg
+	 D967AcQiWgt5GXEuhSR+hQtAPqwZgT0efplsXIowok435dCyhbDoWcf3ElrKLg74Wnfwk
+	 LsN4Q39Uv2xmqrqEGs0B55q0R5GjEy/SaQ0pGA7QGFnBjZvTR7LBSFbOHigBYJeWRq5sG
+	 RTm8kszP3xyJ8SgS0dt1qby7mpqhX0Mj52mhKVl+tpvVOzz/f33OypTZlxl0Ax3twZA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GN5nWIDF;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Xbwt4e/s";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C40C2606A329;
-	Thu,  5 Nov 2026 10:17:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DE14606A326;
+	Thu,  5 Nov 2026 10:18:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GN5nWIDF
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B2591F00A02;
-	Thu,  5 Nov 2026 10:17:55 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Xbwt4e/s
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAC5E1F00919;
+	Thu,  5 Nov 2026 10:18:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793873875;
-	bh=CKlQQcu/bsNmWjxulbgTG1iIeFjRU6Z75waIx0GlYIA=;
+	s=k20260515; t=1793873891;
+	bh=fNoQZtidaZo6zhv3wiVhqd0/wWG08cP0lxi0A62ZmmA=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=GN5nWIDFBg9H+7J4LRhZkgfTStoUxzmiqa6/dleOvJ1rgsTuyyKHsNWLkcuwG3vla
-	 sA9ox5uF0S0/mdqy+tEM9PbLX3iIFV+7wZHv8+MEErQV0MWtHwd3SYDV66nd8WSgm9
-	 P/bFKVUM4UHakVqHORIZeU+eQrJ/M6Xpj8tRoYjAglhjfLiP9KZt3ipk9qcmrIhZCN
-	 sQY6wpjDuPEdzFLhLULhAE5bWKw66sn3BV6/CmxRXMdZ8pCj7d6B7qPy/O4z6Q1VgX
-	 wt991pO6jW5od171qrF4msCavolZhFhMDkHUiHmlPPFZ84aWWXD5IWqXgQRQqy4imx
-	 EBL544wqb8P+Q==
-Message-ID: <sashiko-outbox-198835@kernel.org>
+	b=Xbwt4e/sk5wfAFG8RufsuD9M1LhHyvHlI1OVKW8Qh7d72n6e6PaHvxsbQe67YNkTW
+	 /6d6GQ8guetSlgE4/DVGE2IklVICBiPlAbJh/TTEbjLL6vxMYGHwrRVX16SaExGsuC
+	 u8k71xaXtSsnb3FGjhVYdiXGvGXf6bKTBlwXmfCjPb6MhADh0lu5Hvn7V52SDrzAFr
+	 ZI5KWDE25e77XFJsv06cHDbxJglYmatHyi7/vJSZsqmHbdGoU4nRMNV4jjr3avjP2a
+	 ecwM5nAC700SxGdgsytr00VnhZugYDJFZazKqcPZm7sACF3hgGS4d0j1AFd+Dce4Zt
+	 r7Vu89gYLBZfg==
+Message-ID: <sashiko-outbox-198836@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v13 14/19] PCI/P2PDMA: Test the ACS P2P routing walk
+Subject: Re: [PATCH v13 10/19] PCI/P2PDMA: Reject Translated Requests
+ blocked by Translation Blocking
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Leon Romanovsky" <leon@kernel.org>
 Cc: linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org
-In-Reply-To: <20261105-fix-p2p-acs-v4-0-v13-14-3dd065907c3b@nvidia.com>
+In-Reply-To: <20261105-fix-p2p-acs-v4-0-v13-10-3dd065907c3b@nvidia.com>
 References: <20261105-fix-p2p-acs-v4-0-v13-0-3dd065907c3b@nvidia.com>
- <20261105-fix-p2p-acs-v4-0-v13-14-3dd065907c3b@nvidia.com>
+ <20261105-fix-p2p-acs-v4-0-v13-10-3dd065907c3b@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 05 Nov 2026 10:17:54 +0000
+Date: Thu, 05 Nov 2026 10:18:10 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -62,19 +63,18 @@ Precedence: list
 
 > From: Leon Romanovsky <leonro@nvidia.com>
 >=20
-> Routing depends on which ports share each path, not just individual ACS
-> registers. Sibling functions without internal peer routes must use the ho=
-st
-> bridge even when redirect controls read as zero.
+> ACS Translation Blocking rejects upstream Memory Requests with a Translat=
+ed
+> address before peer-routing controls apply. Ignoring it can report routes
+> that reject the Requester's address type. Intel SPT PCH Root Ports store
+> ACS Control at a nonstandard dword offset, so a standard word read also
+> misses Translation Blocking.
 >=20
-> Drive the walk over fabricated switch and multifunction topologies with
-> fake configuration space. Cover directional controls, nested ports, TLP
-> attributes, hardwired isolation, ARI, PF/VF paths, forwarding failures
-> above shared links and switches, Intel PCH register layouts, translation
-> blocking, host allowlisting and packed cache values. Keep direct classes
-> usable when forwarding is unavailable, and keep external peers and self-D=
-MA
-> independent of sibling routing restrictions.
+> Scan every port traversed by each route and reject blocked Translated
+> classes without host-bridge fallback. Read the Intel control dword through
+> a device-specific accessor, preserving rejection of unreadable controls.
+> Direct routes remain usable when only ports above the divergence block
+> Translated Requests.
 >=20
 > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 
@@ -82,5 +82,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261105-fix-p2p-ac=
-s-v4-0-v13-0-3dd065907c3b@nvidia.com?part=3D14
+s-v4-0-v13-0-3dd065907c3b@nvidia.com?part=3D10
 
