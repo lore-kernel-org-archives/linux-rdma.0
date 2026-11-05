@@ -1,58 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.224
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.173
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793841079;
-	b=iYy4m0vb1cGNYfRZY0KQ7/vaL4+yQk2IF0rZUTkaCYMHUZpT5etdx98raUAe1yziCxsT
-	 MHatmsb3vIBrM7ijUXUZyB3nLuK3CSazah/YwNJz/8vZQj++DTB9Mh9nNS3m10k67t/u2
-	 1+O6CKezBrv7TtsrMhCILr/qfNovw0n13Rbt1LOAaRpyOKtIgwXMF7oL7o+Sc+LSsC6tN
-	 GWeJ4VgXu4kZlc7eLOKZHUWJ3MnCK8C52E5FtUxbVwZ6WREshTvV/I8nLeK0++9pSL7n1
-	 htfzk+nWTAiWaTT81Jn1z5w378XUjhErOnisH0WMSs4rnDlOMWkuPA/CrXYKT2jgV3Q==
+	t=1793845283;
+	b=XHtqL077I2+OjJpUCm1AUlr5MaMsa/4XzZjCMADeOrPL9TFNdeLeh2U1kX8bZOx/TYzF
+	 5tNq+SbH/FXKGIEwvlmvScxnwIy2C0EYB+v2J7VuvHnARurm5LF1SvmZOMQMe0s5mNsa7
+	 ljl5Y1sHYPHj+3cW4LYox+Jhu5W2f8pmKu33li1fVmk1/KFEl7HsUEGFR516fjMyOQLNP
+	 C5NoClBIgcXUydR+vIjCi46BypWKlhP0N5wLEx/Ifvg2xxG1RGm9H+pG1R8UbbJTj5776
+	 nQrjE4/hw2urhoS15xr9dUySxWD2GiZ5jf34yhhCgs55eiVNjZMyMo9MxrqaSAwpnpA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793841079;
-	h=DMARC-Filter:dkim-signature:Received:Received:Received:Message-ID:
-	 Date:MIME-Version:User-Agent:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type:Content-Transfer-Encoding:X-Originating-IP:
-	 X-ClientProxiedBy;
-	bh=2UlnfVNGDD6KvMEc2fU81K3LEQe/mZwN7o76G/XWM5s=;
-	b=bKrIXNXM9tGJosy4SbRYUaTzYwTtihtCifJkkpDuSjDj3qUZYCYW6965XppFMMjaDq69
-	 Ki9oHy5zSlr0wPB5QLL40qCzK8huvEGmDNt4ECO0Riu8Ukg/6o6DsY3DLi4FniaJl38os
-	 y+kZev7PHYOrJ/Kb/JOgOuAAzDU5OWhTSIXf6fQKfGnIhSZwF4tV122tg5NT/hiujYfos
-	 Dcpgin8loeokx8uvKIxw3tmc7gjJbVAqX87Jbiq3ktYGZUxjx0fs6WfrpDushmgxQ04jD
-	 sKUJrb/cv7y5MpPHm0afOsBEoZUw58J6OVFe7FWkilp/If3vvfAxnBxIK6JKTmVS2qQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793845283;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To;
+	bh=CPWvCpHCYoWPM5p3/a4KEe4RRG4SBGN/TGqMoA1qGPw=;
+	b=AyqJqThm6VlLChKF7kYxwFyjDzE6db44IQdSXXmI8eY5EFeWEqkxh/icEXWyT2v/c4QS
+	 Wg6t8BIixbAB9Z+bK7bGMdFQ6yg0BuxXnMMObhaZZwMau+flkfUPjT5EqwWye2iQqbdGv
+	 K6PCKgglV2//eykQBaDgzUKtCNl74I562Xsq98qLYFRfHk1iS0Yh+kkoVgSGCjYbnIpEa
+	 5U2NMrmgjxW1NixCEFQ1aQ7bDjz7THV7Baxn0L5IOC7h/WSsEAxp7CXoC9k6MzKM+Fq7t
+	 c9eBazNjpoK96WazZQioiQapXK2vvB+IcNZ+ifumvUesYKiJis+8Q6jKz+EJfDqUMAw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=huawei.com;
-	spf=pass smtp.mailfrom=huawei.com;
-	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=AtzlCBaZ;
-	arc=none smtp.remote-ip=113.46.200.224
-Received: from canpmsgout09.his.huawei.com (canpmsgout09.his.huawei.com [113.46.200.224])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=upYHlsIT;
+	arc=none smtp.remote-ip=74.125.82.173
+Received: from mail-dy1-f173.google.com (mail-dy1-f173.google.com [74.125.82.173])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 598F4606A326;
-	Thu,  5 Nov 2026 01:11:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 598F4606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF8BA606A32D
+	for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2026 02:21:22 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DF8BA606A32D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=AtzlCBaZ
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=2UlnfVNGDD6KvMEc2fU81K3LEQe/mZwN7o76G/XWM5s=;
-	b=AtzlCBaZdAAK7PW/2RxxZuF3O5U9kqNqHOqZr3+usZ3hWsD75vD1DHHAjBDLN69K87t/D+JoN
-	BLAkcNDuIvi3vz32A536gDqVrdVlJFA/ASAmDtEzqVDYL7FlbIehpreFazipnoFBeh8nK82X2fi
-	8D3SPhRPG/pvIoAJNgn6jqs=
-Received: from mail.maildlp.com (unknown [172.19.163.214])
-	by canpmsgout09.his.huawei.com (SkyGuard) with ESMTPS id 4jKklT1zbDz1cySG;
-	Thu,  5 Nov 2026 09:11:01 +0800 (CST)
-Received: from whupemk300014.china.huawei.com (unknown [7.152.185.8])
-	by mail.maildlp.com (Postfix) with ESMTPS id C6F0C4056C;
-	Thu,  5 Nov 2026 09:11:12 +0800 (CST)
-Received: from [10.174.177.221] (10.174.177.221) by
- whupemk300014.china.huawei.com (7.152.185.8) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Thu, 5 Nov 2026 09:11:11 +0800
-Message-ID: <5dcebf01-f1f5-48b0-b5ac-69e7d1c33d24@huawei.com>
-Date: Thu, 5 Nov 2026 09:11:00 +0800
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=upYHlsIT
+Received: by mail-dy1-f173.google.com with SMTP id 5a478bee46e88-3550c917fd3so2062562eec.0
+        for <linux-rdma@vger.kernel.org>; Wed, 04 Nov 2026 18:21:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793845282; x=1794450082; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=CPWvCpHCYoWPM5p3/a4KEe4RRG4SBGN/TGqMoA1qGPw=;
+        b=upYHlsITZy9Egx9YYgwt7G5l8ujPMJ2sprITqpQJ8YYIF0KpweIe0Y2XL8zE9ilu1i
+         xs6ZGv/606sHvwgPSm0UCFDE6d2pAwyyxqzFkBRIITXNTMfbgZlbro5Kacp0ggGLCnDS
+         77GIfh8EkEwq6VzYFJleOyqMPviwuHP8aHndDfCs2NtRl6xWHqJst+FFAZJR+bTFkUt4
+         MNWK5iYz6b7T/q7rwNg0zLbbh8xRucO3mrtYT7bJv40h1kyRmQ3R8H3qg3s7Wxjeik3w
+         4nvrJHb1DQdzPLxeqCDKUNIr6B2PETw3tQZku/Tzw1AuqnKQpvSPVkUHb8zIZWNaZX7o
+         Pe8w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793845282; x=1794450082;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=CPWvCpHCYoWPM5p3/a4KEe4RRG4SBGN/TGqMoA1qGPw=;
+        b=Ev5H4+bprhdqYYFKnUBCskvLIl7RbLzHjD6p9MtZ5NIPm+abhs0lgaqm6FMCV68gWI
+         IEvP8mA1V+D/VJwkDI9bfs6bF01gxK5mrmRpN4UpjkZIZsNZZlYce70tEfHUg159wXJ2
+         kU8E76XKELuRe90MhTAEDtMmEAWMrdofN6HwdKH2434MUjkw4FsqAl37Q+HPI92xYEdU
+         UDMpIcbmcwY9HnPjVcgyKX/DOttHrA750Do4+u2/08APGGJ5Fkd34yFk3gvdOTgDeQ6e
+         GjzpRPlILGROmpFc1fgBH9uASE28dbA7oWfMt8UmFgAQ1V3PPXQCCPSXBFfAN/WD7psa
+         b0cA==
+X-Forwarded-Encrypted: i=1; AKwUvBy0TWdkTcYgDcWXJnyHomUVne+iNWHV+u1J1PeBnUnwQ1utLyVN7quEQjHRgtlHft/SuPFfH0T1aJl4@vger.kernel.org
+X-Gm-Message-State: APuU4Z/JfMxO1FLXrEe8r+5XUYOg8oNVr+Inm5aJdRDTwFd2Bmlcl1u3
+	rI5Fj+GBdXwLz22pXimnMycimaXMH6ukw9ayDQJZ180wdrylq5487a0h
+X-Gm-Gg: AYBFou1tcmr1yws0eXB4QroIrIgzjfTGR4uhWyPiLDh+kew2GvLpnu+aA6RP+DNb1Ni
+	r9misc4+WfG4sJ+k5JLJKtm0owOswOlDDtpnZzUxFDEPyStYxrkJICnDwwWKZEgoa9hAq5uKenG
+	faC3EDgb4ky/tpTj7n1bKXEwBE+Y7gbkiE4UPDzRU1jCQLKv+tkWe6uvVlj8aePFBKsixvKUgZF
+	PlANPRlTLLHIp1RShk/GgBhbt/6yBiIKigPSvdZO7JdH4ovzh+e0umSrGECNwjKi6xnapdzU4u4
+	dJuDolhJkwElN3VxrUnr9uIVbP8ZtZXMBL61uoNS3oDDpuc1+fuLjwy7uJY0XTM4XTpjTkoM6wh
+	x1JKGZhwYJizrGKs2vHGVXK4ZS/+06YPOU4T5AxjHvdKlcBV/NkHjlBMOydNO+hgtuwdecKa3TF
+	LRErKTQhxo5g5RsA3PswOhJcUEF6OavqcsLyb1CgYXVowVW20NP/iVjg9LvbE18nDhZm+lnTLx7
+	ZilWme2zr7NAczeKXgusr5C59ewxENVH0PFnsitIBbEAPvFAuh+CyjOtrjlQ+BUQ9+34wz2LYeV
+	xBd0EIlz9VYA+6xObuD55kJLD5AM
+X-Received: by 2002:a05:701b:4186:10b0:137:5b9d:cf87 with SMTP id a92af1059eb24-1ac4f91ee96mr27294468c88.0.1793845281828;
+        Wed, 04 Nov 2026 18:21:21 -0800 (PST)
+Received: from gmail.com ([2a03:2880:9ff:71::])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1b245c1c272sm11719698c88.8.2026.11.04.18.21.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 04 Nov 2026 18:21:21 -0800 (PST)
+Date: Wed, 4 Nov 2026 18:20:49 -0800
+From: Narcisa Vasile <narcisav.kernel@gmail.com>
+To: Peter Morrow <pdmorrow@gmail.com>
+Cc: Tariq Toukan <tariqt@nvidia.com>, Simon Horman <horms@kernel.org>,
+	Leon Romanovsky <leon@kernel.org>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net-next] net/mlx4: drop the unused is_supported callback
+Message-ID: <auvoAYT/rwFrzoSH@gmail.com>
+References: <20261103122109.1798144-1-pdmorrow@gmail.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -62,71 +102,26 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 1/3] rpcrdma: Serialize notification registration with
- device removal
-To: Chuck Lever <cel@kernel.org>
-CC: Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Olga
- Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey
-	<tom@talpey.com>, Trond Myklebust <trondmy@kernel.org>, Anna Schumaker
-	<anna@kernel.org>, "linux-nfs@vger.kernel.org" <linux-nfs@vger.kernel.org>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-	"stable@vger.kernel.org" <stable@vger.kernel.org>, yuehaibing
-	<yuehaibing@huawei.com>, zhangchangzhong <zhangchangzhong@huawei.com>,
-	"weiyongjun (A)" <weiyongjun1@huawei.com>
-References: <20261103032758.1302493-1-lixiasong1@huawei.com>
- <20261103032758.1302493-2-lixiasong1@huawei.com>
- <03cf178a-bbcf-448e-88bb-84e4dd994baf@slotpi15m67>
-From: Li Xiasong <lixiasong1@huawei.com>
-In-Reply-To: 03cf178a-bbcf-448e-88bb-84e4dd994baf@slotpi15m67
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems200002.china.huawei.com (7.221.188.68) To
- whupemk300014.china.huawei.com (7.152.185.8)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261103122109.1798144-1-pdmorrow@gmail.com>
 
-On 11/4/2026 6:06 AM, Chuck Lever wrote:
-> On Tue, 03 Nov 2026 11:27:56 +0800, Li Xiasong wrote:
+On Tue, Nov 03, 2026 at 12:21:08PM +0000, Peter Morrow wrote:
+> Since commit 557d80138618 ("net/mlx4: always create the eth and ib
+> auxiliary devices"), both is_supported callbacks return true, so the
+> checks in add_drivers() and delete_drivers() no longer decide
+> anything. Drop the callbacks and keep the aux device table as an array
+> of suffixes.
 > 
->> +	mutex_lock(&rpcrdma_device_mutex);
->> +	rd = rpcrdma_get_client_data(device);
->>  	if (!rd || test_bit(RPCRDMA_RD_F_REMOVING, &rd->rd_flags))
->> -		return -ENETUNREACH;
->> +		goto out_unlock;
->>
->>  	/*
->>  	 * Arm rn_done before xa_alloc() publishes @rn: once @rn is
->> @@ -78,11 +89,15 @@ int rpcrdma_rn_register(struct ib_device *device,
->>  	rn->rn_done = done;
->>  	if (xa_alloc(&rd->rd_xa, &rn->rn_index, rn, xa_limit_32b, GFP_KERNEL) < 0) {
+> Tested with this change applied to 6.12.113 on an Azure VM with two
+> ConnectX-3 VFs: both auxiliary devices are created at boot, and
+> removing mlx4_ib, mlx4_en and mlx4_core deletes them cleanly.
 > 
-> This xa_alloc() now runs with rpcrdma_device_mutex held, and the
-> mutex is module-wide. Every xprtrdma connect, every svcrdma accept,
-> and rpcrdma_remove_one() take it. GFP_KERNEL here can enter direct
-> reclaim with the mutex held.
-> 
-> Before this patch, a connect worker that blocked in that wait
-> could wait only on its own transport, and every other
-> transport reconnected independently. With the mutex held across
-> the allocation, a connect worker for transport A that is waiting in
-> reclaim on an RPC over disconnected transport B blocks transport
-> B's reconnect in rpcrdma_rn_register(). The same holds for an nfsd
-> thread in svc_rdma_accept() on a host that also runs an NFS client.
-> Device removal queues behind the same mutex.
-> 
-> The mutex does not need to cover the allocation. xa_reserve() or
-> xa_insert() with a slot reserved before mutex_lock(), or
-> memalloc_noio_save() around the critical section, keeps the
-> serialization this patch needs without holding the lock across
-> reclaim.
+> Suggested-by: Simon Horman <horms@kernel.org>
+> Signed-off-by: Peter Morrow <pdmorrow@gmail.com>
+> ---
+>  drivers/net/ethernet/mellanox/mlx4/intf.c | 44 ++++-------------------
+>  1 file changed, 6 insertions(+), 38 deletions(-)
 > 
 
-Thanks for pointing this out. I missed the reclaim dependency while
-holding the module-wide mutex.
-
-I'll revisit the allocation path and make sure registration remains
-serialized with device removal without introducing this dependency.
-
-Thanks,
-Li Xiasong
-
-
+Reviewed-by: Narcisa Vasile <narcisav.kernel@gmail.com>
