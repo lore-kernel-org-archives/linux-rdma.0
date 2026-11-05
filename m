@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793894972;
-	b=0rSDqenH3E9Wh1ssSMh00k4l6pd12DTfaW5a7TVsKqgtgF5lB0fYbtvM8e24Bnxfk6/q
-	 oqlZCBJb+WdCFLqpV+LeWwuRuCIYIi4H+mzvd6YnwYXl037eiiujvZiquP/FhWlo4YxWy
-	 YpwxItjiGvPkHbgzqxt/NgsVClH9OmNwlZkblFhZsHCXnnZlqyEse+L8ycIg+OrYwoO1X
-	 CZCIAN7ENRkITSX6CyVSU2mj1L+l15bVeF8gEFZQsmKx8KSmkef4UxIxffdxbSVg2QQ4c
-	 AtqbGGObB6tVgQQNlYCLbsv3/NrhQRvrJTxoGZ+ChF4536iPgQY3cC/TcKP/TKhvNxA==
+	t=1793894973;
+	b=MBi4/oWBrtux7qtXLpj82tSUEO8o1UWgNKtp5Ngi30Q6VLPdy0A2h8c6U5jCfUuioBMp
+	 /lvLVhByCCLgJcHUvkDJ8GCpCkb0Mcizra90278pgMVzMQHM4F5VuYnTPeov5DhV60Qyx
+	 K3lot8GL3uKfpt/wuFE4ZD8qNJGgauDgZdxFH5hiWizZq5BEG7B23p8qiipsHoj6/U4Tc
+	 JOrV3Wkalp4u0bBvhmn7H9TKYh7eZFTxxU7nB04tdM74we1DiYQ4bFiJHXDy+NjoFk+DI
+	 sxrOd3QV39x/b/MKSj91bo3hbvDiYchF1U3lzp35FYeF2xI7TfaMgA1mewuKcus43ow==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793894972;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793894973;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=F0O/mB7LUTINU8mpEE84jH6X2UtymK/XqADkZjftN5o=;
-	b=NWugVdViebT2nofIcNkP3lOri8U1ieDIh2SH3T4PemFVSTE12FW49GfTjkTkJFs3DKKH
-	 G7Du4MM0Or0bQm1vTWj4yzjD3wdPdPz7we5uTeClhw2cHPumKlGIsB6XaNPd09HN9tyyD
-	 MVzOUPn9gkwkeMS0XHW1JjK6SZhPz/kVtMBl6fjONz16h4vGvEB9iXFnP180Ico0hLu9v
-	 Anz5Fp7VpqGOCVYyLYvkxqC/JEQmkOPkKeYwjWPBY1Yt7w4Pt1Vhdt9K7nKhEOQiXmBsj
-	 F65u42sDEvpSeTOaS30TnPqU1hhsk4oQQTGBDSX17nuDNPa05L5tXjONdIhZ22qHYzg==
+	bh=Zg0rwNXZ9yvHWFqFwZyXjHNmEmfkVvFk8FcpQdnKUdE=;
+	b=wvUjRn28EEybq86yAsEgHwH7SArGgIxWIoZSC9PexFw29YH8zScDs/VEvuB0EbxnoUy/
+	 bg2/7g+13vL3NQLn0u0SXrnT7xTpQQg5kjabFsCIF+qUeIFiw8dXA3kD6RfFXCM6WxgQu
+	 eq2Rr9ITp659sQwh+F0Rqipm3GgWFiAzYGIXPkdwUibOQgFdm48jOzBcVxfebcbu6A2fr
+	 eGJntUJqCSgAhHXRXYoZ6ax50Dv38Cq8YFBMDHWl3Nx4vDwz6Tu8QGCzdX+D3SW+WmKmx
+	 NxEj3hr8ODPKMjda3Z7aRHkxJ2HmT/un5FwwN5NXWOfU0bMLJvirMgL3QFYlVpCVEkQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aZN8bmEq;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fCCpE9Pq;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7819C606A33A
-	for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2026 16:09:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BA88606BE84
+	for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2026 16:09:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aZN8bmEq
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C22DD1F000C1;
-	Thu,  5 Nov 2026 16:09:31 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fCCpE9Pq
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D1141F000C1;
+	Thu,  5 Nov 2026 16:09:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793894972;
-	bh=F0O/mB7LUTINU8mpEE84jH6X2UtymK/XqADkZjftN5o=;
+	s=k20260515; t=1793894973;
+	bh=Zg0rwNXZ9yvHWFqFwZyXjHNmEmfkVvFk8FcpQdnKUdE=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=aZN8bmEqZll30lQjsMfqljZEnsW6/D+4TaSXNB3ielz9WZebC5iYJD2LWTHQ/OtHS
-	 UIfeZ9pg2LyG8kvCDhdbWCHSnhP4zmT4G6IvS8vil513Kh8ZHEoKJ3nWTQhw4OjF21
-	 8kNn8qeGH29IDB/Bz74K0pzwbvG0TH8Os5cYcacoYZoXZkj8YVNe/3OyKuSWDt1A47
-	 pPrvFkb0Ot+hTtp0HVEhNxpCEqHO8wIMxGN71dFqMR0bgcue+DRBECz1SOCgBABG82
-	 riZDPc0He81xCYJKGe03Zx7C2w+ip0f85XGunbG+bEjIp4wj02Uw14wyB9CyDK4hIh
-	 Rnqm90EZu3t9w==
-Message-ID: <sashiko-outbox-199425@kernel.org>
+	b=fCCpE9PqjU0AYAvIW5l9XpqGG57l20MeIf/Q2pzS+67H7B03kN8EP1YxXfoS5uJZD
+	 /5DeTPmrLDg8Py8Ipt2VYRNts+/bK5EYUKmYnP6yMtIheWLDUE6CPzmdumfC8STsBu
+	 HNQBiWKSfr4JosrLx6ZPMZdAoQlpZZs0sy8C63x9SSsYO0NBJ5ZqsjqOPFTihN7RJ4
+	 MAZn0U4N5tjvt9NsPpmf9dTXUExWb9vk7ovBlgjWy5CAYD5xrhINxvs11TvBkX/42c
+	 mrRnjBf1FregN+I/dJAbyFxlHL8aks6vQYCpgBhCuytmKowjrxn+d1smRHMP1CHbIg
+	 PERRxj1fQs/DQ==
+Message-ID: <sashiko-outbox-199427@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v1 03/15] net/xsc: add the register HAL
+Subject: Re: [PATCH v1 05/15] net/xsc: add event queues, interrupts and the
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Xin Tian" <tianx@yunsilicon.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261104155655.37053-4-tianx@yunsilicon.com>
+In-Reply-To: <20261104155701.37053-6-tianx@yunsilicon.com>
 References: <20261104155650.37053-1-tianx@yunsilicon.com>
- <20261104155655.37053-4-tianx@yunsilicon.com>
+ <20261104155701.37053-6-tianx@yunsilicon.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 05 Nov 2026 16:09:31 +0000
+Date: Thu, 05 Nov 2026 16:09:32 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,164 +60,132 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
+Thank you for your contribution! Sashiko AI review found 2 potential issue(=
 s) to consider:
-- [Low] net/xsc: duplicate declarations, dead definitions, and missing type=
-s.h in HAL
+- [High] net/xsc: deadlock in xsc_cmd_use_polling() if xsc_cmd_enable_msix(=
+) times out
+- [Low] net/xsc: missing select AUXILIARY_BUS in Kconfig for xsc_adev_add()
 --
 
-commit 2bedc4243c5f325b253b8d3867197c1b8085594e
+commit bbb498d789473438951b00cc57ce44b8544a92ad
 Author: Xin Tian <tianx@yunsilicon.com>
 
-net/xsc: add the register HAL
+net/xsc: add event queues, interrupts and the
 
-This commit adds the hardware abstraction layer for translating logical
-register accesses into BAR-relative MMIO for the Andes chip generation. It
-implements doorbell encodings, command-queue register accessors, and WQE/CQE
-and MR helper functions.
+This commit adds event queue support, MSI-X interrupt allocation and event
+dispatch, DMA buffer allocation helpers, and auxiliary bus device registrat=
+ion
+for the ethernet and RDMA function drivers.
 
-> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_impl.c b/d=
-rivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_impl.c
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/adev.c b/drivers/net=
+/ethernet/yunsilicon/xsc/pci/adev.c
 > new file mode 100644
-> index 0000000000000..69f0daae5abe6
+> index 0000000000000..c8e8f1a9ff5e3
 > --- /dev/null
-> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_impl.c
-> @@ -0,0 +1,629 @@
-
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/adev.c
+> @@ -0,0 +1,142 @@
 [ ... ]
-
-> +static void andes_ring_tx_doorbell(struct xsc_core_device *xdev,
-> +				   struct xsc_hw_reg *regs,
-> +				   void __iomem *bar, u32 sqn, u32 next_pid,
-> +				   bool mdb)
+> +int xsc_adev_add(struct xsc_core_device *xdev, int idx)
 > +{
-> +	u32 db =3D FIELD_PREP(XSC_ANDES_TX_DB_DATA0_NEXT_PID_MASK, next_pid) |
-> +		 FIELD_PREP(XSC_ANDES_TX_DB_DATA0_QP_ID_MASK, sqn);
-> +	u32 db_reg =3D mdb ? QPM_TX_MDB_BASE_REG_ADDR + (sqn & (XSC_MDB_NUM - 1=
-)) * sizeof(u32) :
-> +		regs->tx_db;
-> +
-> +	/* Make sure that descriptors are written before
-> +	 * updating doorbell record and ringing the doorbell
-> +	 */
-> +	wmb();
-> +
-> +	writel(db, REG_ADDR(bar, db_reg));
-> +}
-
 [ ... ]
-
-> +static u8 andes_get_mr_page_mode(u8 page_shift)
-> +{
-> +enum {
-> +	PAGE_SHIFT_4K	=3D 12,
-> +	XSC_PAGE_SHIFT_64K	=3D 16,
-> +	XSC_PAGE_SHIFT_2M	=3D 21,
-> +	XSC_PAGE_SHIFT_1G	=3D 30,
-> +};
+> +	ret =3D auxiliary_device_init(adev);
+> +	if (ret) {
+> +		kfree(xsc_adev);
+> +		return ret;
+> +	}
 > +
-> +enum {
-> +	XSC_PAGE_MODE_4K	=3D 0,
-> +	XSC_PAGE_MODE_64K	=3D 1,
-> +	XSC_PAGE_MODE_2M	=3D 2,
-> +	XSC_PAGE_MODE_1G	=3D 3,
-> +};
-> +
-> +	return (page_shift =3D=3D XSC_PAGE_SHIFT_4K ? XSC_PAGE_MODE_4K :
-> +		(page_shift =3D=3D XSC_PAGE_SHIFT_64K ? XSC_PAGE_MODE_64K :
-> +		(page_shift =3D=3D XSC_PAGE_SHIFT_2M ? XSC_PAGE_MODE_2M : XSC_PAGE_MOD=
-E_1G)));
-> +}
-
-[ ... ]
-
-> +struct andes_send_wqe_ctrl_seg {
-> +	__le32		data0;
-> +	__le32		msg_len;
-> +	__le32		data2;
-> +	__le32		data3;
-> +};
-> +
-> +static void andes_set_wqe_id(void *cseg, u32 wqe_id)
-> +{
-> +	struct xsc_send_wqe_ctrl_seg *seg =3D cseg;
-> +	u32 val =3D le32_to_cpu(seg->data0);
-> +
-> +	seg->data0 =3D cpu_to_le32((val & ~XSC_WQE_CTRL_SEG_DATA0_WQE_ID_MASK) |
-> +				 FIELD_PREP(XSC_WQE_CTRL_SEG_DATA0_WQE_ID_MASK,
-> +					    (u16)wqe_id));
-> +}
-
-[ ... ]
-
-> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/hal/xsc_hal.h b/driv=
-ers/net/ethernet/yunsilicon/xsc/pci/hal/xsc_hal.h
-> new file mode 100644
-> index 0000000000000..f6292a91ba2fb
-> --- /dev/null
-> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/hal/xsc_hal.h
-> @@ -0,0 +1,60 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +/* Copyright (C) 2024 - 2026, Shanghai Yunsilicon Technology Co., Ltd.
-> + * All rights reserved.
-> + */
-> +
-> +#ifndef XSC_HAL_H
-> +#define XSC_HAL_H
-> +
-> +struct xsc_core_device;
-> +
-> +/* HAL entry points exported to the PCI/RDMA/ETH layers */
-> +void xsc_init_hal(struct xsc_core_device *xdev);
-> +void xsc_set_mtt_info(struct xsc_core_device *xdev);
-> +void xsc_set_pf_db_addr(struct xsc_core_device *xdev,
-> +			u64 tx_db, u64 rx_db, u64 cq_db, u64 cq_reg, u64 eq_db);
-> +void xsc_get_db_addr(struct xsc_core_device *xdev,
-> +		     u64 *tx_db, u64 *rx_db, u64 *cq_db, u64 *cq_reg, u64 *eq_db);
-> +
-> +void xsc_update_tx_db(struct xsc_core_device *xdev, u32 sqn, u32 next_pi=
-d);
-> +void xsc_update_rx_db(struct xsc_core_device *xdev, u32 rqn, u32 next_pi=
-d);
-> +void xsc_arm_cq(struct xsc_core_device *xdev, u32 cqn, u32 next_cid, u8 =
-solicited);
-> +void xsc_update_cq_ci(struct xsc_core_device *xdev, u32 cqn, u32 next_ci=
-d);
+> +	ret =3D auxiliary_device_add(adev);
 
 [Severity: Low]
-This isn't a bug, but there are a few unused definitions and duplicated
-declarations across the new HAL files:
+In drivers/net/ethernet/yunsilicon/xsc/pci/Makefile, adev.o is unconditiona=
+lly
+linked into xsc_pci.o when CONFIG_YUNSILICON_XSC_PCI is enabled, and
+xsc_adev_add() calls auxiliary_device_init() and auxiliary_device_add().
 
-In drivers/net/ethernet/yunsilicon/xsc/pci/hal/xsc_hal.h, the prototypes use
-u64, u32, u16, u8, and bool without including linux/types.h, and 19 of the
-function declarations (such as xsc_init_hal(), xsc_set_mtt_info(),
-xsc_set_pf_db_addr(), xsc_get_db_addr(), and the doorbell and WQE/CQE
-helpers) duplicate prototypes that are already declared in
-drivers/net/ethernet/yunsilicon/xsc/common/xsc_core.h:
+In drivers/net/ethernet/yunsilicon/xsc/pci/Kconfig, YUNSILICON_XSC_PCI only
+specifies:
 
-drivers/net/ethernet/yunsilicon/xsc/common/xsc_core.h:
-    void xsc_init_hal(struct xsc_core_device *xdev);
+config YUNSILICON_XSC_PCI
+	tristate "Yunsilicon XSC PCI driver"
+	depends on PCI
 
-    u8 xsc_get_mr_page_mode(struct xsc_core_device *xdev, u8 page_shift);
-    u64 xsc_get_max_mr_size(struct xsc_core_device *xdev);
-    ...
+Since AUXILIARY_BUS is a hidden symbol without fallback stubs when disabled,
+will building with CONFIG_YUNSILICON_XSC_PCI enabled and CONFIG_AUXILIARY_B=
+US
+unselected fail at link time with undefined references to
+auxiliary_device_init() and __auxiliary_device_add()? Should
+YUNSILICON_XSC_PCI select AUXILIARY_BUS in Kconfig?
 
-In drivers/net/ethernet/yunsilicon/xsc/pci/hal/andes_impl.c:
-- In andes_ring_tx_doorbell(), the xdev parameter is unused.
-- In andes_get_mr_page_mode(), the local unindented enum defines
-  PAGE_SHIFT_4K and XSC_PAGE_SHIFT_1G, neither of which is used because the
-  return expression compares against XSC_PAGE_SHIFT_4K from
-  common/xsc_core.h and defaults to XSC_PAGE_MODE_1G.
-- struct andes_send_wqe_ctrl_seg is defined right above andes_set_wqe_id()
-  but is never referenced because andes_set_wqe_id() casts cseg to
-  struct xsc_send_wqe_ctrl_seg from common/xsc_core.h; similarly,
-  struct andes_cqe and struct andes_data_seg duplicate struct xsc_cqe and
-  struct xsc_wqe_data_seg in common/xsc_core.h.
+[ ... ]
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/pci_irq.c b/drivers/=
+net/ethernet/yunsilicon/xsc/pci/pci_irq.c
+> new file mode 100644
+> index 0000000000000..d83f13f38e9b8
+> --- /dev/null
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/pci_irq.c
+> @@ -0,0 +1,494 @@
+[ ... ]
+> +int xsc_irq_eq_create(struct xsc_core_device *xdev)
+> +{
+[ ... ]
+> +	xsc_cmd_use_events(xdev);
+> +	err =3D xsc_cmd_enable_msix(xdev);
+> +	if (err) {
+> +		pci_err(xdev->pdev, "xsc_cmd_enable_msix failed %d.\n", err);
+> +		xsc_cmd_use_polling(xdev);
+> +		goto err_clear_hints;
+> +	}
 
-Could these unused definitions be dropped and the header declarations
-consolidated with common/xsc_core.h (and linux/types.h included in
-xsc_hal.h)?
+[Severity: High]
+Can this sequence deadlock in xsc_cmd_use_polling() if xsc_cmd_enable_msix()
+times out?
+
+In xsc_irq_eq_create(), xsc_cmd_use_events() stops the command CQ polling
+kthread (cmd->cq_task) and switches cmd->mode to XSC_CMD_MODE_EVENTS before
+xsc_cmd_enable_msix() issues XSC_CMD_OP_ENABLE_MSIX to the firmware.
+
+When xsc_cmd_enable_msix() calls xsc_cmd_exec() -> _xsc_cmd_exec() ->
+xsc_cmd_invoke(), cmd_work_handler() acquires one permit of cmd->sem via
+down(&cmd->sem). Because polling is already stopped and MSI-X is not yet
+enabled in firmware (or if MSI-X delivery fails), no completion interrupt m=
+ay
+arrive on cmd->irqn. When xsc_wait_func() times out, xsc_cmd_invoke() leaves
+the cmd->sem permit held for the completion handler:
+
+drivers/net/ethernet/yunsilicon/xsc/pci/cmdq.c:xsc_cmd_invoke() {
+	...
+	err =3D xsc_wait_func(xdev, ent);
+	if (err =3D=3D -ETIMEDOUT)
+		/* leave the entry for the completion handler; the driver
+		 * is marked timed out and rejects all further commands
+		 */
+		return err;
+	...
+}
+
+The error path in xsc_irq_eq_create() then calls xsc_cmd_use_polling(), whi=
+ch
+disables cmd->irqn and waits to acquire all cmd->max_reg_cmds permits of
+cmd->sem before recreating cmd->cq_task:
+
+drivers/net/ethernet/yunsilicon/xsc/pci/cmdq.c:xsc_cmd_use_polling() {
+	...
+	flush_workqueue(cmd->wq);
+
+	disable_irq(cmd->irqn);
+
+	for (i =3D 0; i < cmd->max_reg_cmds; i++)
+		down(&cmd->sem);
+	...
+}
+
+With one permit still held by the timed-out command and both the IRQ disabl=
+ed
+and the polling kthread stopped, wouldn't down(&cmd->sem) block forever? Sh=
+ould
+xsc_cmd_enable_msix() be called while the command interface is still in
+polling mode before switching to events with xsc_cmd_use_events()?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261104155650.3705=
-3-1-tianx@yunsilicon.com?part=3D3
+3-1-tianx@yunsilicon.com?part=3D5
