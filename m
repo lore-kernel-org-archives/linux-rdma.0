@@ -1,93 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.51
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793900436;
-	b=GA2rAm7JfF2WwsztoS4T2OI/0jvaN4i+fCrlvQjCHPRYT72t6I0p1z6PVu4beQv3lmvS
-	 9D4whpqJwxY8DSSZpwJZKleQmh8qNc1z7w7QbuDnwMgb9xtlczsF71WF0asCTU7is3QRp
-	 yL6stbKA+AdhnfSMBxcM8Ge87Zfqas3Yhlfe2bN7VjTnt0W8mVVeR/g1xff7xezMvQD5b
-	 LTQSBEkRHaqW3FALgNboJiCd28AhU+QCcaypauSArVd4s0MAVqqTAsiznRO9Xh1I/TTsv
-	 tIpZc/hzLFI9isW0iyoa/gHYatReWIzA0llNzKsRyWbH0+4UlUamukCUXFhxySRgIuA==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793900436;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=kE8q2GjYAflbf+apwEjCC7YUimz7X6qnN6p3qOSXMbY=;
-	b=rjw6qQOuxnXPVZK3vAfi9c40sx3QqSym30/RHN5MY62moSHAMWmeePc/rglLhy/4b53L
-	 SUT+OUIuBvOSyx/gJREkHbgw8d6EvsO9qL05JsFrq+lBpnRbT+nprFzJfjBziYIMqCOOx
-	 KDNPV0Lwcb4C6xE7xCUnDwCSuEq/QbYiCQ7U3KUlK+u+s/OAjXB4QufkHOcK/gJm4HNVk
-	 +t0pfBDJq3izb9udyvm3NMfu00xDaFRCkYsHaxtfdDMQqRQ9ltd1xlT6GnTwCZwXnGQgE
-	 r+NRL/IVvowSrAxRorld58T/rViuEhDI6aE3Kgq6tDtA29lMShxujZU4isqBXe7L0FA==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=DsUgOzZR;
-	arc=none smtp.remote-ip=209.85.219.51
-Received: from mail-qv1-f51.google.com (mail-qv1-f51.google.com [209.85.219.51])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.61.63
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793901009;
+	b=ybj6DXKpAuwfsw2oXOQ9eR63ZnkJ9Q9q663J/poYUYq8oT2qEqnp6DTnQ0RriVjoOym5
+	 H2bTOH4Nl8uYBm9DMN2GarK1WjBD9ht1+YYlngt6luqNt0Z0ChY0xzJFNWIpSd2yONif1
+	 mGAcF/s7S/dce3sHHYHkV5CI3631PrGJlSkqFH74VIDXshx/EmEyDxLsojMOR5BjaqLyA
+	 VBG9FnH4fjrrYk9lhKU2I5hmSUS+Q6XLgNXuSUv8XrFmANpnJK+HCAHLVmTYlBxTv4+kd
+	 dzvOW0aoCQhep2BCPIqoa2TkS2TSI1JwLe9aNQesQSaCMEAEG122eNEN8azC1wDeimA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793901009;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
+	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=eZnWirRlMHSgoXB/QOID12hIWlHPwcyU7qgwfHS5iWg=;
+	b=5Yx7MO8re9Anmh3z3crCHAg1yFSGblkkDoVVV/T06gsVLE1ln8YzufgaPOZQ3gI4DrkK
+	 dhaRNl26CV/4yX0BGr86VO0TpZ1KN+2N46/oY0svCkUGJrQGG7ohC6mRCgRiDP++zDDg0
+	 y30jrbwjRz3vqRiI2kYrW5X4Ol+KJo01Ezg6BrJxLMb1wVIz6RU5ZBc3ZSM7bQn8ypNuc
+	 YjKocCHo2M/IV1z7yayy91a8ajjtYJCNyvoFUvou27/OUdL791mHD6D1WS7r7T3N9HOxe
+	 07xknQipIllfjov6uC6J9U5DNovuJNNcP60Lx5SOpIZMZLo4UoKqF94p9sTGSf6OhtQ==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=AA3Vki6s;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.61.63
+Received: from DM1PR04CU001.outbound.protection.outlook.com (mail-centralusazon11010063.outbound.protection.outlook.com [52.101.61.63])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A0FE606A326
-	for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2026 17:40:36 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6A0FE606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC915606A330;
+	Thu,  5 Nov 2026 17:50:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CC915606A330
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=DsUgOzZR
-Received: by mail-qv1-f51.google.com with SMTP id 6a1803df08f44-91b52ba422cso27124866d6.2
-        for <linux-rdma@vger.kernel.org>; Thu, 05 Nov 2026 09:40:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793900435; x=1794505235; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=kE8q2GjYAflbf+apwEjCC7YUimz7X6qnN6p3qOSXMbY=;
-        b=DsUgOzZRr0firaOo6rHyTJvzJxeQeOgTkPLefGpoaGLbuW0110ADbhH9l8UUlzfdhW
-         OZQxx31b4IIudwjlAd9NiUJkvOZjhNmZ+iuL/Qkov0jmG/KImIZouq/PxsCpKogcpKn0
-         FuQi+pV/n41xepVG9SBE1THkJQBaDR730/UcRUB9AG5++KT+HJQ1Lh94ZZgkw+TU4bTZ
-         jLPz9STprBOw4A5LG7GqnThH0iGwUPG+U0ltbpOsAJDyyhZlUrlxIu6WQlceXwx5Ghy5
-         +SKi41moLre5nj4soemM13Sim2JSv5sS57z4Z7i3QhJpApGuLqHHeVrnBcKQvgckpzr3
-         UnkQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793900435; x=1794505235;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=kE8q2GjYAflbf+apwEjCC7YUimz7X6qnN6p3qOSXMbY=;
-        b=t0ijM6WymE7zJK9iWMDAA8X8NcfSSLzd/VkU/Nwe3DThVSi6JQ+Lo4TT0C1hPqsq2R
-         M/uLouNZNus0IFOWctM0Q0YHeeM0uOHlLEf+Abwzuwm9pmf/oGvBRMKv5G9hnEqlzk1k
-         pNgpNnBP7k0z/I+rkwSGStbzRj/ZtRFe+DOBGoJfUxB/JBJbdxmOZR640zONRecUfnFH
-         PIdfVLI9Anqr+B/71c/zXb1UsTnYMScIi0fi83qW6BzSI4HFeL7ECqhWS58zQa6aqOVO
-         uOOR4Ee3FxzmxJsZZT4alyjREX/Idb1wx67dEsEutKkXelKwkyGgtuRVhqQTOrsu3Tp/
-         hQRg==
-X-Forwarded-Encrypted: i=1; AKwUvBw1iltXrEmj7i17SgdqeEH6k980XTgXI1ktBuMr6h9qLGQuJWPKyPN3hkNa5XBn0XkrPxHWkqXUf0tA@vger.kernel.org
-X-Gm-Message-State: APuU4Z8EPIl6f7WqBkCArvWVEOeYRI2dACLyNOYIQO4Yw10iXGwO7jOG
-	VqgPS41X9D7sVaZhA9L2xc5KByG8M+xaU/9rQ96QvgElcYnRJskH9gyf
-X-Gm-Gg: AYBFou2Y/O7Yobl36NUVLtcsLeqCKljruZ711lijC86Gl0l1KkLYktrbso+7fxdky6p
-	jFqHF0feWQDRob4ahXOejRHyJMLc0vHlj2o4dnmMYMfs1IyeUOqTuVNz+S79Dnu5ysQ1GtdsQfe
-	Yc2BfqfBgRfkE+haSnoduqL2QL0sMjPTBmEdzMndRoToETuyWq6vn2zmOETJUGDum/y3BCBhWvd
-	YpQ2StPzH7zDklWJBxc66/vEuqoIydMGfYNpz3tkg3aPZo02tC5k/ZjIDhamq49zCiWpoh595H+
-	UrMDdqixoQ4NF0whFwmJ+2ViH8F4HP2MggYqn4eNzRv/z2LRIpHuuO26uBQ34ZttJkDUB7gkqey
-	o7KJ2rIMIbC0/7MKs6oG2O6Ol6k+lxP2Ra+D8MnwmsEJSJ56tooR8x8aiQo158BcRT2D8VFAqpK
-	tcBCkonPPmBwmX6ugkoWZnw5EnzKtdSvnxMCUYZl+JHvW0ev37KgEQ4OlrbBg374lAWBPR9XNVV
-	cVWD01n8N/gTTFAjeoBqQV6ZBo9P134E5mRJi17vx73FLunNPHWMBWdXcaUuCjuvs4gHkeXimK7
-	iLMRMwSyuNbeYE40gPXHGSIeGGO5772r2dHwvFpFy+k17jYdWXNnICERdUU5
-X-Received: by 2002:ad4:5d41:0:b0:91e:91d3:82f3 with SMTP id 6a1803df08f44-91e91d3888bmr65059416d6.19.1793900435225;
-        Thu, 05 Nov 2026 09:40:35 -0800 (PST)
-Received: from i4-l-hqh5357-03.ad.psu.edu ([130.203.139.71])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91ea6ac8d02sm673786d6.42.2026.11.05.09.40.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 05 Nov 2026 09:40:33 -0800 (PST)
-From: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
-To: Bernard Metzler <bernard.metzler@linux.dev>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>
-Cc: Shuangpeng Bai <shuangpeng.kernel@gmail.com>,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [BUG] RDMA/siw: slab-use-after-free in siw_cep_set_free
-Date: Thu,  5 Nov 2026 12:37:47 -0500
-Message-ID: <20261105173754.660897-1-shuangpeng.kernel@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=AA3Vki6s
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=UQljh2JRAZyyBBJjd3R0gEuwy2bQdxd6SzWoAgVVdOsr1nVPZBCWebq9zvY8LY52JcYVSH6B6ciGju8dDwau4/91W76qNqsNis+PC2j3eIjkk59228VOYdFE5kEjEC6dvTZR45emYNUeoy42VDy002r4R/+iaczCTe4LfEMx83LdoacK8U3o5Aa7030ybfj76HMlti4tOxTEr9zRUvKIGf6NU/8m3DfoJvxZJKB1peL0otr0xWpbXrnBRdJ6mGiZusBDbFSS6BOl9s6uN1U5dfqvKCeN+JFNi7FK10D1eEOrp6ZA9wXW1BEqra+fGfqWU/R3eslJH2v5FbF3YrmWJg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=eZnWirRlMHSgoXB/QOID12hIWlHPwcyU7qgwfHS5iWg=;
+ b=XnuKDJS9XaXzHGwiYf/Yqf2mcIwmij0PijVO8MC+nWdk1Te0iHyPdpR838BTsMMOZlBMYqyAZQWmWEglOtNv7J9EriOrXffSnJNIJcKwuvs9z/jcwsCSMseJkZORQFWbSCZGSZzDgp353cknVxrmsN5bmZvT1IkFXQxKsDh8IZYi13Y9kM5v60TFdI746+4Fe3aBeOtbZMfwuOB3Vo4bzhSFoStcpgQrMtQPpdPoGoskRaOKXj/XiQCN7LNTQT2o6Olac52vkH31lzNwF4E8toAsusRqdE+yLKgsNHehaymxrFZ//7ZvcYFwFF950tjNxgT9nUXG2z5NoLX+Zg/dDg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=eZnWirRlMHSgoXB/QOID12hIWlHPwcyU7qgwfHS5iWg=;
+ b=AA3Vki6s7mifgwcM0qDpICWIFhSzLErsbm9ANrGXG53zKYzMxXGshP1Ejp/YnPvsZI/2BXHqsdoVUfsvkI5uzmwrXwzQYigheN+Jos+RW2Dbu5aLqaz7fTMFPwfisgC2iQZ68wlzZRAlzdLFdyP5LXCHYaJ+ClZTD5bMOHUz9EZEs4AmKPVN/Dv0F1nX/4dzVBcsmRaqpH+xpQAyl/Zg/xNpXye5kdoP6YzIt676kRajeuF88cOn6NXMEUDNJHV0CSN6K8uBlSsazB5uCa6eEMDMONqAqhRe6UW58ujm44wdEcc0BpNZZC4xv9nLbgbTRFV6sZoFC/A9ObIInd+/YQ==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from IA4PR12MB932075.namprd12.prod.outlook.com
+ (2603:10b6:207:12d::15) by IA1PR12MB8520.namprd12.prod.outlook.com
+ (2603:10b6:208:44d::5) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.10; Thu, 5 Nov
+ 2026 17:49:38 +0000
+Received: from IA4PR12MB932075.namprd12.prod.outlook.com
+ ([fe80::5a6f:1f74:6ccb:cf2f]) by IA4PR12MB932075.namprd12.prod.outlook.com
+ ([fe80::5a6f:1f74:6ccb:cf2f%5]) with mapi id 15.21.0592.009; Thu, 5 Nov 2026
+ 17:49:37 +0000
+Message-ID: <c27e8ceb-c0d6-4801-a53b-837545dc51f6@nvidia.com>
+Date: Thu, 5 Nov 2026 19:49:32 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net v1] net/mlx5e: kTLS, Fix missing error unwind when
+ enabling RX offload
+To: Tariq Toukan <tariqt@nvidia.com>, Simon Horman <horms@kernel.org>,
+ Xuanqiang Luo <xuanqiang.luo@linux.dev>
+Cc: netdev@vger.kernel.org, saeedm@nvidia.com, leon@kernel.org,
+ mbloch@nvidia.com, borisp@nvidia.com, witu@nvidia.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, pabeni@redhat.com, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org, Xuanqiang Luo <luoxuanqiang@kylinos.cn>
+References: <20261026095346.1212609-1-xuanqiang.luo@linux.dev>
+ <20261029134019.GG257209@horms.kernel.org>
+ <53ba3677-af71-4d8e-b445-39e08eea8b2d@nvidia.com>
+Content-Language: en-US
+From: Tariq Toukan <tariqt@nvidia.com>
+In-Reply-To: <53ba3677-af71-4d8e-b445-39e08eea8b2d@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: TLZP290CA0014.ISRP290.PROD.OUTLOOK.COM
+ (2603:1096:950:9::13) To IA4PR12MB932075.namprd12.prod.outlook.com
+ (2603:10b6:207:12d::15)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -97,115 +104,179 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: IA4PR12MB932075:EE_|IA1PR12MB8520:EE_
+X-MS-Office365-Filtering-Correlation-Id: 1d1610b7-ae2c-406f-dee7-08df3b652924
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|366016|1800799024|23010399003|376014|7416014|18002099003|22082099003|6133799003|10067099003|4143699003|261026140227099003|11063799006|261026121527099003|261102123227099003|261028144727099003|261021123027099003|261021135927099003|56012099006|261022105027099003|261022075727099003|261009223027099003|261021121427099003;
+X-Microsoft-Antispam-Message-Info:
+	oifzpk3JiaJWWRYeN0+zkX6UpQ1sQ+BgxQAG0jCuZB+AHZG1f6yg4WVgbLfPCmaACUD5UTn7RUGk/MbGDbS4ZEYDuLbPz7FzDuoEp2sjOpycr4uGKgHe9ILFcWygyD8UfqZ1bT7YUaCkWbTfWfmm6McMMEGjG9ABJCn7ls9a1Uj0x+URQyHziB/P9iIggPJ+KS2OMWRk9Nfy5KjqKX1Bp/2kQW5ie4ZfH9Ap9dOS6SQqBLTejct+wrtEKe4hchUnxY4v2LYyQM2j9CzwRz08tHWBbUkTOqKFrXjryhQCxpCY8SynO/TIOI0dDCVGw1aZjSspeUrbFqneur8aJ3mXalHzkcJm4VXqaD5CgTB8KdKLf4NuPqFqePzArsHOiCcE1/Xwu7BCqbkCDTZ9oOSj94bhVU0p+iH312c/7RDWv/LCnvvSujKNfIHSfbonVF1Hn412uLrA1DshSZWUzjXhYHJ8nsj3xr85buVLU3nCBBWZJ6YMgY0+sE6X2B0Kgo5uG58B+PEZ1Zue/vSMNnduz3+M3H03zXrjLyQDw1GqCiS9LGepU/wtmUVw5i2NRzbKKjg9Wq6kSeknltZMaWhGuUp3U8UdEPWFYOgBajKGURkh9nlAyW2C8K4rLkU5gsBCFxvcYquVYpdmCqc2VoaeFDvpOL1l9FFldED2Dwv7NHA=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA4PR12MB932075.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(23010399003)(376014)(7416014)(18002099003)(22082099003)(6133799003)(10067099003)(4143699003)(261026140227099003)(11063799006)(261026121527099003)(261102123227099003)(261028144727099003)(261021123027099003)(261021135927099003)(56012099006)(261022105027099003)(261022075727099003)(261009223027099003)(261021121427099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?aEdtZ3BiYUZ3T3BuTzlCblhMWGxWQldZZ1dnOG5NOVRWNklnYmU3TWRPY04y?=
+ =?utf-8?B?bWlSRllIcllSaU1sUDloamJsZ0tTVnp5VktIRDRHWlgxeW16MUh6WVRkM1hX?=
+ =?utf-8?B?NlJEd1V0eU1JMHNTeGJnWndsSXptVkQ0UDg0MFk4eWVCVStHam11VHd5Q1ZL?=
+ =?utf-8?B?c2tkWmVHY3BjZEhOKy9UMkhNc3h3eHlUWGNZU0dlcXNmN2RIaWpMS2h0SkFx?=
+ =?utf-8?B?SWxEMEpNVXcxc2w5WGdCSHhVK2hSYmY4TFFOOGNQbkE0N3JsYjNBeG1Id3ln?=
+ =?utf-8?B?TnZTVU5rTFFEZXJQTXZZWjBtUlZwczRxdS9vTmpwMUhQUVVtd2VSQ1lGd29k?=
+ =?utf-8?B?RytHRVZUYzVVQi9CYlZCMkRnSHo3Sk04NnJPVjRXQnkrMU16UlVYOTBJZVVu?=
+ =?utf-8?B?aHpFcXpSNFpOYVc1RE1qcGVycXBSVkxqZUNxZUJxMnpsN2NBREZxa05NazdB?=
+ =?utf-8?B?YmNkWEsrUDZicm0vNHJlVzdFWmVEWWxkZDRQWmY2QllSRDQvUEJXRjVDSHRw?=
+ =?utf-8?B?OGlVOWRoMWV5aW5mbVVqdVNXSUZwYlBnMVV3SjRUQXpRVmVnaFdXU2dZYXdi?=
+ =?utf-8?B?djBieTJUczZDdDl2NjZKYmF6R2RtR2tNRi9YTDdkNFFtais0b01BL2dhRkth?=
+ =?utf-8?B?aHZIWkd3cEZUTFhabHNTeFVzdVA4Y3ZsVVFCNGplMWVnTmZQN0Z3aU45eXl2?=
+ =?utf-8?B?a1lmaXN3akg2OWlPcVlCRmlUeXJUTStzWWxpSGpETEhKN0x3YUxUT2xpcW0x?=
+ =?utf-8?B?Slh3Q1NKSWZhQU9MeGRjVzkxK094b0NRNyt2QU5uVE5qREdCOExZN2kzTEpx?=
+ =?utf-8?B?UU1XTkx0UFA3dkRxVWpBSGxESGdpdndtWHdDU0I4WDRucHBNSVhIeGQxdXd3?=
+ =?utf-8?B?Z2dMZm9YYlBJN0NFVU5EVVlGNDE5REFVMlhlay9nOEFuMHVPSldURkk0d0Zi?=
+ =?utf-8?B?TnUxS3Ywb25nSjQxZTlBMlRsYUZ4bVZranZLZmJ0Ni9tUEdOSVJJcVZWeEtZ?=
+ =?utf-8?B?Nnl6aGcva0d3SjEzSHdSKzk2MU1rdFc5dEFJNkN1MEJEOUFXZTZ3Z3VyS1JW?=
+ =?utf-8?B?NUoxSGE0SkZjRC92QU5hZ3c2YkJxbmFVT0ErcGdjaE00aCtiRG14V0haWTBk?=
+ =?utf-8?B?bmJ5ZjVLRDJPMUJjOTlxOTJvRDErdHZPWkhrVzNmbDArSnlkSng3bFcrdEhN?=
+ =?utf-8?B?L08rTDE5YUtWckQ1NTlvRHJ2R3R2WVUycHo3ZzRpNkFCbHVCZzVXbk5XQy9O?=
+ =?utf-8?B?TEt1MFV4VXlqMXV4N0FtYmRLK3NqVU1WUVlydUdvSkppa2F4d2IwVHFLRDQ5?=
+ =?utf-8?B?Ums0L1k0UXh6L2xJQVg1TXowM0twR3M0WE5jWlkrM2tTQUZla1ppcFh6ZjB0?=
+ =?utf-8?B?L296elhQeThKK0lJbGtCRjh4c0pIM2lUS1I1UDZNL2xTUXB5bVlCeFIramFN?=
+ =?utf-8?B?R0xUb3dxZEJsSHd0RFg2azJRRjBmVjM2aHV3OCtXUExnbjJLS3R5NGJoRWtG?=
+ =?utf-8?B?TTUzTHZGUktnWTRQMC9MSGxqOVhPNkRKLytwTlYyTjJRNUhDb1lwaUJvNEtP?=
+ =?utf-8?B?ZTdkOXlCeDdrdVdWQS82STVmbEE5WFVvcnZFaERWSTBJQ0ZCZm9tV3k4dDdh?=
+ =?utf-8?B?UGJYOWw5S3pML1YxWDZ2a0VEKzNVejdzcWNKN2lzdno5bk4ySkNlR3p1bHpM?=
+ =?utf-8?B?eGZYb1kxdEJoZDlmaldJQVRXQ1NXTjAyN1pSUTRmdUVJQm5qd1h2ZzBMVTJI?=
+ =?utf-8?B?OWk1SDVTUUFpeGdOSjI5U0M1dzVVekZvcFpuMU10dG5IWFdQOXNsYnlZZTdO?=
+ =?utf-8?B?RnEwV0h3MVJPYnZSRFhtZmF2KzRucXZvVGpMeGVmSVlSTERPK2hsNUVNbys0?=
+ =?utf-8?B?dVZqMkhTd0pzeDFqb2QzWEt3TzlTVW03WE9BQnQyQmVrTWRMYUJ2YUpNbUE4?=
+ =?utf-8?B?WEtTZE5XTTZtUTZadklQYmhuaTF0bmY4aGhzemN1TkpXK2oyblVBUE9ZSTNU?=
+ =?utf-8?B?VkRXNkJhNG0wNUxyL0ZUbDJKdG5nSUMxdHh5UTkrQStyaDZXU09Xd2ROL3Fo?=
+ =?utf-8?B?bWRtdkU2Q3lyRk5pemtzVjl4VEl1TTN6UHZrMjJudkZ4YzRFc0NtQlg5Sngy?=
+ =?utf-8?B?T2pPN0x3MGg2TUlTS2g4SW9PV1RpME5RUU1mWDNDNjM2bHhWajF3U1dMSHJZ?=
+ =?utf-8?B?UC9KSTRPamlJKzIyNlo4REN4OWhLUCtlU25RaHdUa2lhVmRXNk00bFhMckpX?=
+ =?utf-8?B?bk81b2VMNEJxUytKc2ZHRkxjUE5OZ0h2cjJBY3Z2cXZmajRWTDFqYURMaGdy?=
+ =?utf-8?B?Q0xrbmR1azVlRGlQUjhlVS8zcG1GVlpHTi9QYmp2L1B6SWR4Vm0yQT09?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1d1610b7-ae2c-406f-dee7-08df3b652924
+X-MS-Exchange-CrossTenant-AuthSource: IA4PR12MB932075.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Nov 2026 17:49:37.8814
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: kTtL21gBF3vw6PEscn7oxS2v0P/PXHwUfYCuFqXRH6ljR40lwyVO+jwhX8rYsRUBNtlQ68Y22gvmNOUtbZOzow==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB8520
 
-Hi Kernel Maintainers,
 
-I hit the following report while testing current upstream kernel:
 
-KASAN: slab-use-after-free in _raw_spin_lock_irqsave
+On 01/11/2026 12:41, Tariq Toukan wrote:
+> 
+> 
+> On 29/10/2026 15:40, Simon Horman wrote:
+>> On Mon, Oct 26, 2026 at 06:53:46PM +0900, Xuanqiang Luo wrote:
+>>> From: Xuanqiang Luo <luoxuanqiang@kylinos.cn>
+>>>
+>>> Since commit abed42f9cd80 ("net/mlx5e: Conditionally create async
+>>> ICOSQ"), the async ICOSQ is only created when an XDP program is attached
+>>> or priv->ktls_rx_was_enabled is set. When TLS RX offload is enabled for
+>>> the first time, mlx5e_ktls_set_feature_rx() sets the flag and reopens
+>>> the channels so that they get the queue, but it ignores the return value
+>>> of mlx5e_safe_reopen_channels().
+>>>
+>>> If the reopen fails, mlx5e_safe_switch_params() keeps the old channels,
+>>> which have no async ICOSQ, while NETIF_F_HW_TLS_RX is still reported as
+>>> enabled. The next offloaded RX connection then dereferences the NULL
+>>> c->async_icosq in post_rx_param_wqes(). Enabling the feature again does
+>>> not help, as the flag is already set and the reopen is skipped.
+>>>
+>>> Propagate the error, clear the flag and destroy the accel TCP flow
+>>> tables again, so that the feature stays disabled and the next attempt
+>>> retries the reopen.
+>>>
+>>> Fixes: abed42f9cd80 ("net/mlx5e: Conditionally create async ICOSQ")
+>>> Signed-off-by: Xuanqiang Luo <luoxuanqiang@kylinos.cn>
+>>> ---
+>>> Found by code inspection while backporting commit abed42f9cd80 to a
+>>> downstream kernel. I do not have a crypto-enabled ConnectX NIC, so the
+>>> failure has not been reproduced and the fix is only compile-tested.
+>>>
+>>> The crash itself is the one described in the changelog of abed42f9cd80
+>>> ("async ICOSQ allocation is not triggered, causing a NULL pointer
+>>> crash"). This patch only covers the case where the reopen that should
+>>> create the queue fails. ktls.c is also the only caller that ignores the
+>>> return value of mlx5e_safe_reopen_channels(); the callers in health.c
+>>> and reporter_tx.c check it.
+>>>
+>>>   drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c | 6 +++++-
+>>>   1 file changed, 5 insertions(+), 1 deletion(-)
+>>
+>> I agree that a minimal approach to addressing this problem is appropriate
+>> for net.
+>>
+> 
+> Reviewed-by: Tariq Toukan <tariqt@nvidia.com>
+> 
+> 
+>> Reviewed-by: Simon Horman <horms@kernel.org>
+>>
+>> However, I do think the logic of this function is becoming somewhat
+>> convoluted and would benefit from:
+>>
+>> 1. Handling error paths in conditionals while leaving
+>>     the main thread of execution unconditional.
+>>
+>> 2. Use goto for unwind.
+>>
+>> This is approach is complicated by the function needing to
+>> handle the enable condition. But at any rate, maybe a follow-up patch 
+>> do do
+>> something like this would be worthwhile?
+>>
+> 
+> Agree.
+> 
+>> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c 
+>> b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c
+>> index 3cc1213c2f68..0f5dcd1b822e 100644
+>> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c
+>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c
+>> @@ -137,19 +137,22 @@ int mlx5e_ktls_set_feature_rx(struct net_device 
+>> *netdev, bool enable)
+>>       mutex_lock(&priv->state_lock);
+>>       if (enable) {
+>>           err = mlx5e_accel_fs_tcp_create(priv->fs);
+>> -        if (!err && !priv->ktls_rx_was_enabled) {
+>> -            priv->ktls_rx_was_enabled = true;
+>> -            err = mlx5e_safe_reopen_channels(priv);
+>> -            if (err) {
+>> -                priv->ktls_rx_was_enabled = false;
+>> -                mlx5e_accel_fs_tcp_destroy(priv->fs);
+>> -            }
+>> +        if (err || priv->ktls_rx_was_enabled)
+>> +            goto out_unlock;
+>> +
+>> +        priv->ktls_rx_was_enabled = true;
+>> +        err = mlx5e_safe_reopen_channels(priv);
+>> +        if (err) {
+>> +            priv->ktls_rx_was_enabled = false;
+>> +            enable = false;
+>>           }
+>> -    } else {
+>> -        mlx5e_accel_fs_tcp_destroy(priv->fs);
+>>       }
+>> -    mutex_unlock(&priv->state_lock);
+>> +    if (!enable)
+>> +        mlx5e_accel_fs_tcp_destroy(priv->fs);
+>> +
+>> +out_unlock:
+>> +    mutex_unlock(&priv->state_lock);
+>>       return err;
+>>   }
+>>
+>> ...
+> 
+> Makes sense.
 
-This is a SIW CEP lifetime bug reached from `siw_cep_set_free()`'s
-`wake_up(&cep->waitq)`.
-
-on commit: 05441d697f7f9a927264f4058cbbc6a03dfcac9d (7.4.0-rc1)
-
-To help trigger the bug more reliably, I applied a minimal diagnostic patch
-that only adds delays and print statements.
-
-A related CEP lifetime concern was raised in:
-Link: https://lore.kernel.org/linux-rdma/05b91f98-e3a3-793a-9197-f09d84acfaf7@linux.dev/
-
-This report provides a reproducible TX-worker race in
-`siw_qp_cm_drop()` around the `siw_cep_set_free()` unlock-to-
-`wake_up()` window.
-
-The reproducer and .config files are here.
-https://gist.github.com/shuangpengbai/0ef6a31bdb90f4f245b5f86b76775bc5
-
-I am happy to test debug patches or provide additional information.
-
-Reported-by: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
-
-==================================================================
-BUG: KASAN: slab-use-after-free in _raw_spin_lock_irqsave (include/linux/instrumented.h:112 include/linux/atomic/atomic-instrumented.h:1300 include/asm-generic/qspinlock.h:112 include/linux/spinlock.h:188 include/linux/spinlock_api_smp.h:156 kernel/locking/spinlock.c:181)
-Write of size 4 at addr ffff88810d742230 by task siw_tx/1/78
-
-Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-Call Trace:
-<TASK>
-dump_stack_lvl (lib/dump_stack.c:94 lib/dump_stack.c:120)
-print_report (mm/kasan/report.c:378 mm/kasan/report.c:482)
-kasan_report (mm/kasan/report.c:595)
-kasan_check_range (mm/kasan/generic.c:200)
-_raw_spin_lock_irqsave (include/linux/instrumented.h:112 include/linux/atomic/atomic-instrumented.h:1300 include/asm-generic/qspinlock.h:112 include/linux/spinlock.h:188 include/linux/spinlock_api_smp.h:156 kernel/locking/spinlock.c:181)
-__wake_up (kernel/sched/wait.c:124 kernel/sched/wait.c:146)
-siw_qp_cm_drop (drivers/infiniband/sw/siw/siw_cm.c:517)
-siw_sq_resume (drivers/infiniband/sw/siw/siw_qp_tx.c:1190)
-siw_run_sq (drivers/infiniband/sw/siw/siw_qp_tx.c:1278)
-kthread (kernel/kthread.c:436)
-ret_from_fork (arch/x86/kernel/process.c:158)
-ret_from_fork_asm (arch/x86/entry/entry_64.S:245)
-</TASK>
-
-Allocated by task 340 on cpu 1 at 18.058572s:
-kasan_save_track (mm/kasan/common.c:57 mm/kasan/common.c:78)
-__kasan_kmalloc (mm/kasan/common.c:409 mm/kasan/common.c:426)
-siw_cep_alloc (include/linux/slab.h:991 include/linux/slab.h:1312 drivers/infiniband/sw/siw/siw_cm.c:210)
-siw_connect (drivers/infiniband/sw/siw/siw_cm.c:1487)
-iw_cm_connect (drivers/infiniband/core/iwcm.c:730)
-rdma_connect_locked (drivers/infiniband/core/cma.c:4490 drivers/infiniband/core/cma.c:4530)
-rdma_connect_ece (drivers/infiniband/core/cma.c:4562 drivers/infiniband/core/cma.c:4585)
-ucma_connect (drivers/infiniband/core/ucma.c:1148)
-ucma_write (drivers/infiniband/core/ucma.c:1869)
-vfs_write (fs/read_write.c:685)
-ksys_write (fs/read_write.c:739)
-do_syscall_64 (arch/x86/entry/syscall_64.c:61 arch/x86/entry/syscall_64.c:84)
-entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
-
-Freed by task 340 on cpu 1 at 18.111920s:
-kasan_save_track (mm/kasan/common.c:57 mm/kasan/common.c:78)
-kasan_save_free_info (mm/kasan/generic.c:584)
-__kasan_slab_free (mm/kasan/common.c:264 mm/kasan/common.c:296)
-kfree (include/linux/kasan.h:235 mm/slub.c:2780 mm/slub.c:6630 mm/slub.c:6923)
-siw_destroy_qp (drivers/infiniband/sw/siw/siw_verbs.c:635)
-ib_destroy_qp_user (drivers/infiniband/core/verbs.c:2182)
-uverbs_free_qp (drivers/infiniband/core/uverbs_std_types_qp.c:34)
-destroy_hw_idr_uobject (drivers/infiniband/core/rdma_core.c:579)
-uverbs_destroy_uobject (drivers/infiniband/core/rdma_core.c:172)
-uobj_destroy (drivers/infiniband/core/rdma_core.c:240)
-ib_uverbs_cmd_verbs (drivers/infiniband/core/uverbs_ioctl.c:379 drivers/infiniband/core/uverbs_ioctl.c:526)
-ib_uverbs_ioctl (drivers/infiniband/core/uverbs_ioctl.c:555)
-__se_sys_ioctl (fs/ioctl.c:51 fs/ioctl.c:597 fs/ioctl.c:583)
-do_syscall_64 (arch/x86/entry/syscall_64.c:61 arch/x86/entry/syscall_64.c:84)
-entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:121)
-
-The buggy address belongs to the object at ffff88810d742200
-which belongs to the cache kmalloc-256 of size 256
-The buggy address is located 48 bytes inside of
-freed 256-byte region [ffff88810d742200, ffff88810d742300)
-
-The buggy address belongs to the physical page:
-page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x10d742
-head: order:1 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
-flags: 0x200000000000040(head|node=0|zone=2)
-page_type: f5(slab)
-raw: 0200000000000040 ffff888100041b40 dead000000000100 dead000000000122
-raw: 0000000000000000 0000000000100010 00000000f5000000 0000000000000000
-head: 0200000000000040 ffff888100041b40 dead000000000100 dead000000000122
-head: 0000000000000000 0000000000100010 00000000f5000000 0000000000000000
-head: 0200000000000001 ffffffffffffff81 00000000ffffffff 00000000ffffffff
-head: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
-page dumped because: kasan: bad access detected
-
-Memory state around the buggy address:
-ffff88810d742100: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-ffff88810d742180: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
->ffff88810d742200: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-^
-ffff88810d742280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-ffff88810d742300: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-==================================================================
-
-Best,
-Shuangpeng
+Seems that we need a resend here.
+Let me know if you want me to do that.
