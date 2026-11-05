@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793901586;
-	b=Z5JwhqVVgFQphFd1k+/ZZiGMFu3VRI/UcEie/nWeQA21LpUFBJz+ek/rnohu4HiGObBb
-	 F2YQaoapN/3UwZXQ3FehmGRy/oipoIyiTeta/2Kc3X4a8FRUYwGE4pk6EjHdRUuI6aM4c
-	 5LhPuDj8Zj+F2NErD8nzvTL5juba8+1lgCNdgdKlontNZx1/QIhpEmHcCiLdiZUbFy5N3
-	 Gdf6ztDsJ6dlsbPZjsj/45Ndd/xkuLuhnts/w/JRPkDcvT4qCYN8cyap9VMACCu+aMTzz
-	 lsIe8VnQRJJit7ZCk4bjg+aCkuRUotBPNFg7chRH5+vnBO9Gg3VtK12SmY2S0VcLi4A==
+	t=1793901585;
+	b=1GEwZvGxF10yUWKyBvprFSty4fPvUC/U0CZ3iMlK4ak1wECxYqpEQDvuZ2Yak2dtLO4b
+	 1NvjnMUvhBTj0OWqpjH4QCE6lZuHO3dxg0J+KVsMhrEaGlqBB3xWkyjxlGm0Uvt+/DvXl
+	 b+B8XwZ98hKIG+jCKruEcPN0R8/pksDfQO+aE5r5FtA4/NxRKtt325sUUf0+9kR+h3u76
+	 MNcf4IAPXSqaJb9tszsLMjIjpUnHxrZtPoojpMcNclfdH6Da/bkHtfHhe8JTkXS2usGCt
+	 cVql4kJl7hUTm8kAHWCiY6+ELAlA4FYmfSoF3BI+SqgqLbVfyz+ziWShgkIqq+m3NUA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793901586;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793901585;
 	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=2x+ggkHDHR3/rpfP5OTdJFXkEWOb466QDAsrlLVX4sA=;
-	b=aVYZqywW5oCLtQT4+zFHtWU4lNl4IoxSJkM2clov5pMXcWCqMtdChIMACAiLu7FRGu9Y
-	 obTEhCEtvhucKZfiMoQxTG3bc5kWnSrRL3dRr8pcWgMgt8AA3Bq1VFLQN96VtwZdx37Fe
-	 Ap2NoozALZT1T7V9n2StCHjRj0kE99vA/Wa1g/xQLh0JmWfZrdTx+uGrkcVjZN6Fl9DuG
-	 3wfKj/wCqoo8QgveXvNtYtmqlO/tfc2N1ArkkIwVQjzBxAHGBSYQozgxPm3hCYJ4UQZQk
-	 g1aFF0fTb/zXe2y1MVEJ0NUm0/adyj9F9R4RpO6OoyGQE0sYTixxAW6SBV5mqF709Uw==
+	bh=rtAWr8aLJJGbLMkAW/QfAjNkIGwj00v3ffiqGlnvDJI=;
+	b=BDRtdG17I0y2ifn4OIS+xS6s/Er3G2m5yrwFrKfVTyYNrr7Z1fGmy3La+qXEHYZKicYW
+	 m3+1rwyI0dcHh34iaI7YGg4t6yUppEujKN37/TXpX75LtlkfDpBHELEzijrT/jGjQzSE8
+	 XgG9Z5Sr9kPwqBHEVN4ZJL0V2PZvheiJzWOJdUVsVgYlaKlHCTbZ5pHRWRHgTPLGRuVCX
+	 /pUgpbuGFO3NV+c9U6r9Ulp4OroxLExYC0vQ1Sas4mhKNQyhOQs/FJmSS3CpkudXtDNat
+	 fgHtUhxt5gq8+BblUYmGwUHAAQTSitjz1XnfHMm3cROeb4vcuuLcc4J/DGOSJ/2PgOA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.microsoft.com;
 	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=l2N5FCi3;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=gc6sR0dY;
 	arc=none smtp.remote-ip=13.77.154.182
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9B6AF606A33C;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1BE54606A335;
 	Thu,  5 Nov 2026 17:59:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9B6AF606A33C
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1BE54606A335
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=l2N5FCi3
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=gc6sR0dY
 Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id C8A8C20B716D; Thu,  5 Nov 2026 09:59:28 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C8A8C20B716D
+	id AF01A20B716B; Thu,  5 Nov 2026 09:59:28 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com AF01A20B716B
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1793901568;
-	bh=2x+ggkHDHR3/rpfP5OTdJFXkEWOb466QDAsrlLVX4sA=;
+	bh=rtAWr8aLJJGbLMkAW/QfAjNkIGwj00v3ffiqGlnvDJI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=l2N5FCi3xK4Y/+HvqfikCUwhVVxJNhD5wnPd0q7JkWN8aABYaapV+U/bIjnHPKMrJ
-	 RI5SWDR6xIeFtJzI4i9NrxUO2cOZQs7VGV69hIcTogiG3yfJsyiJY13VW6zvTeORCL
-	 uu/6SULNPSyUm0EXOMyUrNw0LpXsC6U+A1vbwCIc=
+	b=gc6sR0dYIUOxK0AcmyhUsatr9N/dSN/xWHgZnofenCn89dSRoddwL0J9yPewmH483
+	 slWN1TN6rsboLtrPf5PyopPZxbKhnh+b1zHEoVoVNZ/yc5x9lkpfGXEODsbd8xmDJD
+	 bzKLKvjtyRPNc76jXdRMuU9K4CbFekzkxZ+U7Noc=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	snsanghvi@microsoft.com,
@@ -48,9 +48,9 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v9 7/9] RDMA/mana_ib: Poll RC completions using PSN and FSN progress
-Date: Thu,  5 Nov 2026 09:59:26 -0800
-Message-ID: <20261105175928.1326682-8-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next v9 5/9] RDMA/mana_ib: Post receive WRs on kernel RC QPs
+Date: Thu,  5 Nov 2026 09:59:24 -0800
+Message-ID: <20261105175928.1326682-6-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20261105175928.1326682-1-kotaranov@linux.microsoft.com>
 References: <20261105175928.1326682-1-kotaranov@linux.microsoft.com>
@@ -67,398 +67,70 @@ Content-Transfer-Encoding: 8bit
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Decode RC receive completions, armed-PSN notifications, and MMQ
-completions. Retire requester and MMQ shadow entries using their
-sequence numbers, honor cross-queue fence dependencies, and suppress
-successful WCs for unsignaled work requests.
-
-On an ARMED completion, rearm the next signal PSN to generate the next
-send CQE.
-
-Retire acknowledged successful unsignaled WQEs even when the WC
-array is full, so they do not unnecessarily defer PSN rearming.
+Implement receive request posting for RC QPs. When posting a batch of
+WRs, ring the doorbell periodically to prevent the u8 counter from
+overflowing.
 
 Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 ---
-v9:
-- Retire acknowledged unsignaled WQEs and fence dependencies
-  even when the WC array is full.
-v4:
-- Assign wqe_size in shadow wqes for RC SEND/WRITE wrs
-- Report a missed-event hint for a cached CQE for arming CQ
-v3:
-- Mask arm_psn to 24 bits before ringing the requester doorbell.
+ drivers/infiniband/hw/mana/wr.c | 37 +++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
- drivers/infiniband/hw/mana/cq.c           | 158 ++++++++++++++++++++--
- drivers/infiniband/hw/mana/mana_ib.h      |  31 +++++
- drivers/infiniband/hw/mana/shadow_queue.h |  22 +++
- drivers/infiniband/hw/mana/wr.c           |   3 +
- 4 files changed, 203 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana/cq.c
-index 3b8044b7dc8f..408dee5ad458 100644
---- a/drivers/infiniband/hw/mana/cq.c
-+++ b/drivers/infiniband/hw/mana/cq.c
-@@ -5,6 +5,12 @@
- 
- #include "mana_ib.h"
- 
-+#define PSN_SIGN_BIT 0x800000
-+#define PSN_GE(PSN1, PSN2) ((((PSN1) - (PSN2)) & PSN_SIGN_BIT) == 0)
-+#define PSN_GT(PSN1, PSN2) PSN_GE(PSN1, (PSN2) + 1)
-+#define PSN_LE(PSN1, PSN2) PSN_GE(PSN2, PSN1)
-+#define PSN_LT(PSN1, PSN2) PSN_GT(PSN2, PSN1)
-+
- static enum ib_wc_status vendor_error_to_wc_error(uint32_t vendor_error)
- {
- 	switch (vendor_error) {
-@@ -277,15 +283,18 @@ int mana_ib_arm_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags)
- 	struct mana_ib_cq *cq = container_of(ibcq, struct mana_ib_cq, ibcq);
- 	struct gdma_queue *gdma_cq = cq->queue.kmem;
- 	unsigned long irq_flags;
-+	bool missed = false;
- 
- 	if (!gdma_cq)
- 		return -EINVAL;
- 
- 	spin_lock_irqsave(&cq->cq_lock, irq_flags);
- 	mana_ib_cq_doorbell(cq, SET_ARM_BIT);
-+	if (flags & IB_CQ_REPORT_MISSED_EVENTS)
-+		missed = cq->has_pending_cqe;
- 	spin_unlock_irqrestore(&cq->cq_lock, irq_flags);
- 
--	return 0;
-+	return missed;
- }
- 
- struct mana_cq_poll {
-@@ -311,10 +320,10 @@ static struct ib_wc *mana_fill_wc(struct mana_ib_qp *qp,
- 	return wc;
- }
- 
--static void mana_complete_send(struct mana_ib_qp *qp,
-+static void mana_complete_send(struct mana_ib_qp *qp, bool mmq,
- 			       struct mana_cq_poll *poll, u32 vendor_error)
- {
--	struct shadow_queue *shadow = &qp->shadow_sq;
-+	struct shadow_queue *shadow = mmq ? &qp->shadow_mmq : &qp->shadow_sq;
- 	struct shadow_wqe_header *wqe = shadow_queue_get_next_to_consume(shadow);
- 	struct gdma_queue *queue;
- 
-@@ -324,8 +333,19 @@ static void mana_complete_send(struct mana_ib_qp *qp,
- 	if (vendor_error || !(wqe->flags & MANA_WQ_NO_SIGNAL_WC))
- 		mana_fill_wc(qp, poll, wqe, wqe->send_opcode, vendor_error);
- 
--	queue = mana_qp_get_sq(qp)->kmem;
--	queue->tail += wqe->wqe_size_in_bu;
-+	if (mmq) {
-+		queue = qp->rc_qp.queues[MANA_RC_SEND_QUEUE_MMQ].kmem;
-+		queue->tail += wqe->wqe_size_in_bu;
-+	} else {
-+		queue = mana_qp_get_sq(qp)->kmem;
-+		if (wqe->send_opcode == IB_WC_RDMA_READ) {
-+			qp->rc_qp.queues[MANA_RC_RECV_QUEUE_REQUESTER].kmem->tail +=
-+				wqe->wqe_size_in_bu;
-+			queue->tail += qp->rc_qp.wqe_size_in_bu;
-+		} else {
-+			queue->tail += wqe->wqe_size_in_bu;
-+		}
-+	}
- 	shadow_queue_advance_consumer(shadow);
- }
- 
-@@ -354,7 +374,7 @@ static void handle_ud_sq_cqe(struct mana_ib_qp *qp, struct mana_rdma_cqe *rdma_c
- 		return;
- 
- 	for (; to_complete; to_complete--)
--		mana_complete_send(qp, poll, VENDOR_ERR_OK);
-+		mana_complete_send(qp, false, poll, VENDOR_ERR_OK);
- }
- 
- static void handle_rq_cqe(struct mana_ib_qp *qp, struct gdma_comp *cqe,
-@@ -382,6 +402,21 @@ static void handle_rq_cqe(struct mana_ib_qp *qp, struct gdma_comp *cqe,
- 		wc->src_qp = rdma_cqe->ud_recv.src_qpn;
- 		wc->wc_flags |= IB_WC_GRH;
- 		break;
-+	case CQE_TYPE_RC_WRITE_IMM:
-+		wc->opcode = IB_WC_RECV_RDMA_WITH_IMM;
-+		fallthrough;
-+	case CQE_TYPE_RC_SEND_IMM:
-+		wc->wc_flags |= IB_WC_WITH_IMM;
-+		wc->ex.imm_data = cpu_to_be32(rdma_cqe->rc_recv.imm_data);
-+		fallthrough;
-+	case CQE_TYPE_RC_SEND:
-+		wc->byte_len = rdma_cqe->rc_recv.msg_len;
-+		break;
-+	case CQE_TYPE_RC_SEND_INV:
-+		wc->wc_flags |= IB_WC_WITH_INVALIDATE;
-+		wc->byte_len = rdma_cqe->rc_recv.msg_len;
-+		wc->ex.invalidate_rkey = rdma_cqe->rc_recv.imm_data;
-+		break;
- 	default:
- 		break;
- 	}
-@@ -390,17 +425,108 @@ static void handle_rq_cqe(struct mana_ib_qp *qp, struct gdma_comp *cqe,
- 	shadow_queue_advance_consumer(&qp->shadow_rq);
- }
- 
-+/*
-+ * A fenced WQE can acknowledge the other send queue. Retire those dependencies
-+ * first, without losing the fence when the caller's WC array fills up.
-+ */
-+static bool mana_advance_send(struct mana_ib_qp *qp, bool mmq, u32 seq,
-+			      struct mana_cq_poll *poll)
-+{
-+	struct shadow_queue *shadow = mmq ? &qp->shadow_mmq : &qp->shadow_sq;
-+	struct shadow_queue *other = mmq ? &qp->shadow_sq : &qp->shadow_mmq;
-+	struct shadow_wqe_header *shadow_wqe;
-+
-+	while ((shadow_wqe = shadow_queue_get_next_to_consume(shadow))) {
-+		if (PSN_LT(seq, mmq ? shadow_wqe->fsn : shadow_wqe->wqe_offset_or_psn))
-+			break;
-+		if (shadow_wqe->flags & MANA_WQ_FENCE_WC) {
-+			u32 dependency = mmq ? shadow_wqe->wqe_offset_or_psn : shadow_wqe->fsn;
-+			struct shadow_wqe_header *other_wqe;
-+
-+			while ((other_wqe = shadow_queue_get_next_to_consume(other))) {
-+				if (PSN_LT(dependency, mmq ? other_wqe->wqe_offset_or_psn :
-+							     other_wqe->fsn))
-+					break;
-+				if (poll->produced == poll->budget &&
-+				    !(other_wqe->flags & MANA_WQ_NO_SIGNAL_WC))
-+					return false;
-+				mana_complete_send(qp, !mmq, poll, VENDOR_ERR_OK);
-+			}
-+		}
-+
-+		if (poll->produced == poll->budget &&
-+		    !(shadow_wqe->flags & MANA_WQ_NO_SIGNAL_WC))
-+			return false;
-+
-+		mana_complete_send(qp, mmq, poll, VENDOR_ERR_OK);
-+	}
-+
-+	return true;
-+}
-+
-+static bool handle_mmq_cqe(struct mana_ib_qp *qp, u32 fsn,
-+			   struct mana_cq_poll *poll)
-+{
-+	return mana_advance_send(qp, true, fsn, poll);
-+}
-+
-+static bool handle_psn_cqe(struct mana_ib_qp *qp, u32 psn,
-+			   struct mana_cq_poll *poll)
-+{
-+	struct mana_ib_dev *mdev = container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
-+	struct shadow_wqe_header *shadow_wqe;
-+	struct gdma_queue *recv_q;
-+	bool consumed;
-+	u32 arm_psn;
-+
-+	if (qp->ibqp.qp_type != IB_QPT_RC)
-+		return true;
-+
-+	recv_q = qp->rc_qp.queues[MANA_RC_RECV_QUEUE_REQUESTER].kmem;
-+
-+	consumed = mana_advance_send(qp, false, psn, poll);
-+	if (consumed) {
-+		shadow_wqe = shadow_queue_get_next_to_signal(&qp->shadow_sq);
-+		arm_psn = shadow_wqe ? shadow_wqe->wqe_offset_or_psn : psn + 1;
-+		arm_psn &= MANA_WQE_OFFSET_MASK;
-+		mana_gd_wq_ring_doorbell_ext(mdev_to_gc(mdev), recv_q, arm_psn,
-+					     SET_ARM_BIT, MANA_PSN_CLIENT_OFFSET);
-+	}
-+
-+	return consumed;
-+}
-+
-+static bool next_shadow_wqe_is_sq(struct shadow_wqe_header *shadow_wqe_sq,
-+				  struct shadow_wqe_header *shadow_wqe_mq)
-+{
-+	if (!shadow_wqe_mq)
-+		return true;
-+
-+	if (!shadow_wqe_sq)
-+		return false;
-+
-+	return (PSN_LE(shadow_wqe_sq->wqe_offset_or_psn, shadow_wqe_mq->wqe_offset_or_psn) &&
-+		PSN_LE(shadow_wqe_sq->fsn, shadow_wqe_mq->fsn));
-+}
-+
- static bool mana_handle_cqe(struct mana_ib_cq *cq, struct mana_ib_dev *mdev,
- 			    struct mana_cq_poll *poll)
- {
- 	struct gdma_comp *cqe = &cq->pending_cqe;
- 	struct mana_rdma_cqe *rdma_cqe = (struct mana_rdma_cqe *)cqe->cqe_data;
- 	struct mana_ib_qp *qp = mana_get_qp_ref(mdev, cqe->wq_num, cqe->is_sq);
-+	bool consumed = true;
- 
- 	if (!qp)
- 		return true;
- 
- 	switch (rdma_cqe->cqe_type) {
-+	case CQE_TYPE_ARMED_CMPL:
-+		consumed = handle_psn_cqe(qp, rdma_cqe->rc_armed_completion.psn, poll);
-+		break;
-+	case CQE_TYPE_LWR:
-+		consumed = handle_mmq_cqe(qp, rdma_cqe->rc_mm.fsn, poll);
-+		break;
- 	case CQE_TYPE_UD_SEND:
- 		if (cqe->is_sq) {
- 			handle_ud_sq_cqe(qp, rdma_cqe, poll);
-@@ -408,6 +534,10 @@ static bool mana_handle_cqe(struct mana_ib_cq *cq, struct mana_ib_dev *mdev,
- 		}
- 		fallthrough;
- 	case CQE_TYPE_UD_SEND_IMM:
-+	case CQE_TYPE_RC_SEND:
-+	case CQE_TYPE_RC_SEND_IMM:
-+	case CQE_TYPE_RC_SEND_INV:
-+	case CQE_TYPE_RC_WRITE_IMM:
- 		handle_rq_cqe(qp, cqe, poll);
- 		break;
- 	default:
-@@ -416,21 +546,27 @@ static bool mana_handle_cqe(struct mana_ib_cq *cq, struct mana_ib_dev *mdev,
- 		break;
- 	}
- 	mana_put_qp_ref(qp);
--	return true;
-+	return consumed;
- }
- 
- static void mana_flush_completions(struct mana_ib_cq *cq, struct mana_cq_poll *poll)
- {
--	struct shadow_wqe_header *wqe;
-+	struct shadow_wqe_header *sq_wqe, *mmq_wqe, *wqe;
- 	struct mana_ib_qp *qp;
-+	bool next_is_sq;
- 
- 	if (poll->produced >= poll->budget)
- 		return;
- 
- 	list_for_each_entry(qp, &cq->send_err_qp_list, send_err_node) {
--		while (poll->produced < poll->budget &&
--		       shadow_queue_get_next_to_consume(&qp->shadow_sq))
--			mana_complete_send(qp, poll, VENDOR_ERR_SW_FLUSHED);
-+		while (poll->produced < poll->budget) {
-+			sq_wqe = shadow_queue_get_next_to_consume(&qp->shadow_sq);
-+			mmq_wqe = shadow_queue_get_next_to_consume(&qp->shadow_mmq);
-+			if (!sq_wqe && !mmq_wqe)
-+				break;
-+			next_is_sq = next_shadow_wqe_is_sq(sq_wqe, mmq_wqe);
-+			mana_complete_send(qp, !next_is_sq, poll, VENDOR_ERR_SW_FLUSHED);
-+		}
- 		if (poll->produced == poll->budget)
- 			return;
- 	}
-diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index 6f8feab9b90f..ef20ec0ec77b 100644
---- a/drivers/infiniband/hw/mana/mana_ib.h
-+++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -689,6 +689,12 @@ enum mana_ib_error_code {
- enum mana_ib_cqe_type {
- 	CQE_TYPE_UD_SEND = 1,
- 	CQE_TYPE_UD_SEND_IMM = 2,
-+	CQE_TYPE_RC_SEND = 3,
-+	CQE_TYPE_RC_SEND_IMM = 4,
-+	CQE_TYPE_RC_SEND_INV = 5,
-+	CQE_TYPE_RC_WRITE_IMM = 6,
-+	CQE_TYPE_ARMED_CMPL = 7,
-+	CQE_TYPE_LWR = 8,
- }; /* HW DATA */
- 
- struct mana_rdma_cqe {
-@@ -712,6 +718,31 @@ struct mana_rdma_cqe {
- 			u32 imm_data;
- 			u32 rx_wqe_offset;
- 		} ud_recv;
-+		struct {
-+			u32 cqe_type		: 8;
-+			u32 reserved1		: 24;
-+			u32 msg_len;
-+			u32 psn			: 24;
-+			u32 reserved2		: 8;
-+			u32 imm_data;
-+			u32 rx_wqe_offset;
-+		} rc_recv;
-+		struct {
-+			u32 cqe_type		: 8;
-+			u32 reserved1		: 24;
-+			u32 msn			: 24;
-+			u32 syndrome		: 8;
-+			u32 psn			: 24;
-+			u32 reserved2		: 8;
-+		} rc_armed_completion;
-+		struct {
-+			u32 cqe_type		: 8;
-+			u32 reserved1		: 24;
-+			u32 psn			: 24;
-+			u32 reserved2		: 8;
-+			u32 fsn			: 24;
-+			u32 reserved3		: 8;
-+		} rc_mm;
- 	};
- }; /* HW DATA */
- 
-diff --git a/drivers/infiniband/hw/mana/shadow_queue.h b/drivers/infiniband/hw/mana/shadow_queue.h
-index b5d6bb28bd45..9abf390cf3a3 100644
---- a/drivers/infiniband/hw/mana/shadow_queue.h
-+++ b/drivers/infiniband/hw/mana/shadow_queue.h
-@@ -26,6 +26,8 @@ struct shadow_queue {
- 	u64 prod_idx;
- 	/* Unmasked consumer index, Incremented on cq polling */
- 	u64 cons_idx;
-+	/* Unmasked index of next-to-signal shadow WQE */
-+	u64 next_to_signal_idx;
- 	/* queue size in wqes */
- 	u32 length;
- 	/* distance between elements in bytes */
-@@ -50,6 +52,7 @@ static inline void reset_shadow_queue(struct shadow_queue *queue)
- {
- 	queue->prod_idx = 0;
- 	queue->cons_idx = 0;
-+	queue->next_to_signal_idx = 0;
- }
- 
- static inline void destroy_shadow_queue(struct shadow_queue *queue)
-@@ -105,4 +108,23 @@ static inline void shadow_queue_advance_consumer(struct shadow_queue *queue)
- 	smp_store_release(&queue->cons_idx, queue->cons_idx + 1);
- }
- 
-+static inline struct shadow_wqe_header *
-+shadow_queue_get_next_to_signal(struct shadow_queue *queue)
-+{
-+	struct shadow_wqe_header *wqe = NULL;
-+	/* Inspect only entries that have been fully published by posting. */
-+	u64 prod_idx = smp_load_acquire(&queue->prod_idx);
-+
-+	queue->next_to_signal_idx = max(queue->next_to_signal_idx,
-+					queue->cons_idx);
-+	while (queue->next_to_signal_idx < prod_idx) {
-+		wqe = shadow_queue_get_element(queue, queue->next_to_signal_idx);
-+		queue->next_to_signal_idx++;
-+		if (!(wqe->flags & MANA_WQ_NO_SIGNAL_WC))
-+			return wqe;
-+	}
-+
-+	return NULL;
-+}
-+
- #endif
 diff --git a/drivers/infiniband/hw/mana/wr.c b/drivers/infiniband/hw/mana/wr.c
-index d5dec02aa70a..8cec2e621fa7 100644
+index 250d673f58f2..5d42af91fce4 100644
 --- a/drivers/infiniband/hw/mana/wr.c
 +++ b/drivers/infiniband/hw/mana/wr.c
-@@ -415,6 +415,9 @@ static int mana_ib_post_sq(struct mana_ib_qp *qp, const struct ib_send_wr *wr)
- 	if (err)
- 		return err;
+@@ -70,6 +70,41 @@ static int mana_ib_post_recv_ud(struct mana_ib_qp *qp, const struct ib_recv_wr *
+ 	return err;
+ }
  
-+	if (wr->opcode != IB_WR_RDMA_READ)
-+		shadow_wqe->wqe_size_in_bu = wqe_info.wqe_size_in_bu;
++static int mana_ib_post_recv_rc(struct mana_ib_qp *qp, const struct ib_recv_wr *wr,
++				const struct ib_recv_wr **bad_wr)
++{
++	struct mana_ib_dev *mdev = container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
++	struct mana_ib_queue *ib_rq = mana_qp_get_rq(qp);
++	unsigned long flags;
++	u8 wqe_cnt = 0;
++	int err = 0;
 +
- 	shadow_wqe->wr_id = wr->wr_id;
- 	shadow_wqe->send_opcode = convert_wr_to_wc(wr->opcode);
- 	if (!signaled)
++	spin_lock_irqsave(&qp->rq_lock, flags);
++
++	for (; wr; wr = wr->next) {
++		err = mana_ib_post_rq(qp, wr);
++		if (unlikely(err)) {
++			*bad_wr = wr;
++			break;
++		}
++		wqe_cnt++;
++		if (wqe_cnt == 0xFF) {
++			mana_gd_wq_ring_doorbell_ext(mdev_to_gc(mdev), ib_rq->kmem,
++						     ib_rq->kmem->head * GDMA_WQE_BU_SIZE,
++						     wqe_cnt, 0);
++			wqe_cnt = 0;
++		}
++	}
++
++	if (wqe_cnt)
++		mana_gd_wq_ring_doorbell_ext(mdev_to_gc(mdev), ib_rq->kmem,
++					     ib_rq->kmem->head * GDMA_WQE_BU_SIZE,
++					     wqe_cnt, 0);
++
++	spin_unlock_irqrestore(&qp->rq_lock, flags);
++	return err;
++}
++
+ int mana_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
+ 		      const struct ib_recv_wr **bad_wr)
+ {
+@@ -79,6 +114,8 @@ int mana_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
+ 	case IB_QPT_UD:
+ 	case IB_QPT_GSI:
+ 		return mana_ib_post_recv_ud(qp, wr, bad_wr);
++	case IB_QPT_RC:
++		return mana_ib_post_recv_rc(qp, wr, bad_wr);
+ 	default:
+ 		/* Unsupported QP type */
+ 		*bad_wr = wr;
 -- 
 2.43.0
 
