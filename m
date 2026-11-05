@@ -1,108 +1,82 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.163.156.1
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793870338;
-	b=xXZ40dEscYcGCVzLuKQgAsHMl/Gqp0dt34FRljiWoqm68YbyZtFU0iu3JlGaIZA3HBrk
-	 C32t/+2Mzs7EbmTG8DGoyDumjQYTUwIY7MBwY1crFg3QjsMWnGypIvBrkjr9ixsNeK1De
-	 uLpzm1Xt0c3A3AlS/GAt2TBQvbwUtdHhUg22aPtlWmJY264RKUR3AuM9g+bpVmiCl+L0y
-	 C57ervQBQ1pHB21QWCXf7cKCP192y9NKVL5OaPiaVGpTqhd1s1HPGFI2t6E70eydPbuRF
-	 rvhr9JlJ+0jPRfYxYa0EXvs+ow9gxli7VKS8TXKKkQQFfl185uoEJkJ453lsXyCXOUw==
+	t=1793872225;
+	b=AImUQAGBpheUkZuiBjmIOzIo4bbHwqLEWRnGxSMPXK1G8JHgrBpweJLK0UUR3G4EMW5T
+	 0nB1gH76QiOeh0Wl7ydAT++OZspcBNUadFwlpVr/VeeTD8kA1NjzcpV4QWnEQrb5wJFDT
+	 LJZPMofUH0f1sejRRKMUBeViovhL3Q/3eSKAQTC+NVr2TZ7/6ANQ3cFiY5/Qx8yUaRxbo
+	 rHslhHSa/L7XVci4BkRMp1c65e+ulZaP29dJ17tmYPS1yWLDGCOi15QX8VXfYKeNSIcWE
+	 eLz8sPGaf1Gx6X9xExlxkuftXl+0YI03C3QCVM67mCquPS2swbDX6e9KDFH+6KXYDwQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793870338;
-	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
-	 X-Mimecast-MFC-AGG-ID:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 X-Received:Received:Message-ID:Date:MIME-Version:User-Agent:Subject:
-	 To:Cc:References:Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=srnkzjaOG7BDN2bpeLlegl6CQK8Ql2ZPBafTe9mh37E=;
-	b=XHa6YZq01SBpAs8FwiQiOyrY+wI2eWCPw4edRVsk83HZKZxIwDkvCFVzPM5CXrnhAazo
-	 bsgNA1EyHmoiTeReOpNzsFsncv3i875S7s+it6dq4ECqPPylkDQ/T33EKX2Qj1nkUBQHq
-	 ZRVEVVv4ybMreBa1yKjd1vS/msM7wEMNfSSYOORtYVNHebUF1mUR0MIT8lW1z4LuejQzm
-	 s/VW187pAq/21rmMy7czhpem/CqIzhC5JL9r9w/PyQc9SIYxHmc0xRXbreqVELh/9L9Jn
-	 bCpnEVBxJMwmYauVRqYNzCWI1gd9q9O9fhgVH+RfPzkFTeAaWun29+pCJ9LWo7nWuLQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793872225;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
+	 Received:Received:Received:Received:Message-ID:Date:MIME-Version:
+	 User-Agent:Subject:To:References:Content-Language:Cc:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-TM-AS-GCONF:
+	 X-Proofpoint-Reinject:X-Authority-Analysis:X-Proofpoint-ORIG-GUID:
+	 X-Proofpoint-GUID:X-Proofpoint-Spam-Details-Enc:
+	 X-Proofpoint-Spam-Info:X-Proofpoint-Virus-Version:
+	 X-Proofpoint-Spam-Details;
+	bh=RXxdcpf1mi+lXR6AHit85Uc8DdIXrFeiJ/EvXtI9+wA=;
+	b=etwVTdasZQSk7OqwewH8c/ekkUrR4L0l/5UCdUQlya0pLhdqnIqmcvUQBnUCvi2ktotv
+	 D3kqED2LEZvYVWSdWccSh0VuAsb0bu202X8SNuJF8P9FmqXE+OSr68QI/7Y6Ejny4DyT4
+	 bj2lEnrPK1IkiOc6k1woV4JnXJnn/24KT4MWySGl1JVNCAgAoG4q3CagybGw9/Y/0obIF
+	 qlfxPimxIx3nbHvXEe62GD6rm+QdauDqXiSdCNMWdoFH0rR2WAq85TOCePbFaOdQKtmVS
+	 hCuNqixjSaaUkX85q87MXo/e7YV6wwxJop6mD0ykg7JefdHeN8cumTYR0rEcRb4Pp2Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=redhat.com;
-	spf=pass smtp.mailfrom=redhat.com;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=BzJo6rGM;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=qfaIZpA+;
-	arc=none smtp.remote-ip=170.10.133.124
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	dmarc=pass header.from=linux.ibm.com;
+	spf=pass smtp.mailfrom=linux.ibm.com;
+	dkim=pass header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b=K+3VdS09;
+	arc=none smtp.remote-ip=148.163.156.1
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA62D606A326
-	for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2026 09:18:57 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AA62D606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E06D606A33B;
+	Thu,  5 Nov 2026 09:50:24 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8E06D606A33B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=BzJo6rGM;
-	dkim=pass (2048-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=qfaIZpA+
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1793870336;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=srnkzjaOG7BDN2bpeLlegl6CQK8Ql2ZPBafTe9mh37E=;
-	b=BzJo6rGMIPyByDDkxPuYk4ik9mnbT2Fi0SbPNb53VlmlVGR4o+LMk9e7aKqFkrCMJAxKCv
-	LC6Rno1V9d7yTkCYY2uSSvvQtMc7QXwb+WDrKemW65Gx2l1nlzq8IjWPNj0xhgUcXj8PLR
-	90VXsebeXZsCwmWzF8pnPz8OjNVsa3I=
-Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
- [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-180-4Mt7xY3LMHiV5xVq9N08ug-1; Thu, 05 Nov 2026 04:18:55 -0500
-X-MC-Unique: 4Mt7xY3LMHiV5xVq9N08ug-1
-X-Mimecast-MFC-AGG-ID: 4Mt7xY3LMHiV5xVq9N08ug_1793870334
-Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-49205554e17so51449f8f.1
-        for <linux-rdma@vger.kernel.org>; Thu, 05 Nov 2026 01:18:55 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1793870334; x=1794475134; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=srnkzjaOG7BDN2bpeLlegl6CQK8Ql2ZPBafTe9mh37E=;
-        b=qfaIZpA+7xLqCsQxWZ5qFqIpLat51mVHlpsSoIu1/8YdTOXVzCw9LkgJSm2Bop4wIs
-         5EYpPAm2moMyqlfNypDPKR1GpJlFkP9gb45622Sui5Z+yUQsbCEZ/FFdkIJqMLoNLBlr
-         jDAfaZam5XmtdnGRVnrDJKweTmTAuIxGIB15cRU8lnoxwJkHcAtEzN9Zaupy/phsoWz6
-         d+KgHwSXXhvTiqDwBnm1ikelKx15V/bsA2kjgUMvMYhClcX4JnpHQ1N9vvu/p12PV8qL
-         eljcWU8JmC0ZbcryXTczuyYKkaLeUvBFXau505mTc4HoKpxvyT+pkvEvz+5lnFK6I5sW
-         6tFQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793870334; x=1794475134;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=srnkzjaOG7BDN2bpeLlegl6CQK8Ql2ZPBafTe9mh37E=;
-        b=fLtCKn73ay3Nwe/kkz3uBFKXVdeOJeBt+HcO7GnxAitRYrTV3DeMdRScDO+44AgrTo
-         JtdSQZNEOVI5tVXu+zizTekoDWE1GJoBynqPv6ltCwUtdxn6Xvzblz1XBMmQCIJn29mF
-         o4HePE7URFmZWJn+0F3Ndgwi0RSMP5uxTGERA2eCv1H3c5VSBnKMwEbblpzBQznsy0Ha
-         fQybRPnOwvmOsAes28/d1cddQDRH7eUL9Fcw/fgsaMNOQl+K5dfXIJqC8daUgsqB5na9
-         KyNsThiTowmXfbcfiMvqhztmnEQd2WlKe73qp8vJw6H3Pmgzuabu6o4VJzW7Qp4eYlNu
-         s2Cg==
-X-Forwarded-Encrypted: i=1; AKwUvBxnwjqhs1p1nBg4DfnIXKUyrJ7xwyB7W5YBCQvL8vacrVIT/Fth6cYwrlee/tc5hXEEMwtQrvXnYLX7@vger.kernel.org
-X-Gm-Message-State: APuU4Z/je0kg4AtAHA4D4DDtffN0kgsUZfz2mPVwUyYGggYM+f8zhFUH
-	4jrMaZ162i0JlomyH9AVMxchZiHatTLjbg+XNERvDOVtjtqVppvrEbGaZ1hsdFAAjrkM2xmuBHh
-	H9SwMU7LnEt5rYrMfHGUgCBIqwfsCfns9OH30Rnc+QhCQa8XH3yDyeZ3m1BuTIcc=
-X-Gm-Gg: AYBFou1/N7+C20rKl1W2c3XXsrSBhY1BeZbeSFoizedOlQZe6/wkTCM9dzSImAHwN6P
-	1LArUwrhGtdc+1rhQY6BRR6u3mgK18RjteLD+5/0QYZ24FGF8flzAaLeG+KZjus2dnMD97XJ1pO
-	zCgCrUyiq1IJu7Utx6BZJn/HyQqBdE41hnbbVYXgoq0OMKKyJbihEsm+2nbHxh+ppfctLZA7Ik0
-	TDpLSNC93pLqNNqO4GTtRpmer+/1eTCLFoSMlaoeaXum2if3tB3jLjroIaRs6rQboW4jwH+BELE
-	YmULC5cxa7Q1d4HAIYR5J2SJmN8US2N4+JfaEad/qxLj1vY0BXR6wCoG//nvcuemdayKEEWm2JX
-	iztghj26jkREJ1L+D0ob88JBzPOkZw4Hl2EHZREh8qIM0wGeTEYSDt4EmjX7Y7w5rpMHphIx5zU
-	zMwXC+Bb1qsLzZJo7mdK9Nf6a6pMPeOSGrnU9f6moA0nY=
-X-Received: by 2002:a05:6000:2904:b0:48d:b75d:30f6 with SMTP id ffacd0b85a97d-48e6e308d92mr41690808f8f.35.1793870334127;
-        Thu, 05 Nov 2026 01:18:54 -0800 (PST)
-X-Received: by 2002:a05:6000:2904:b0:48d:b75d:30f6 with SMTP id ffacd0b85a97d-48e6e308d92mr41690741f8f.35.1793870333456;
-        Thu, 05 Nov 2026 01:18:53 -0800 (PST)
-Received: from [192.168.88.30] (ip231-128-192-82.pool-bba.aruba.it. [82.192.128.231])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48fea18104bsm9317500f8f.6.2026.11.05.01.18.52
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 05 Nov 2026 01:18:52 -0800 (PST)
-Message-ID: <deb337e3-f7aa-447b-8227-fca872b8cbd7@redhat.com>
-Date: Thu, 5 Nov 2026 10:18:51 +0100
+	dkim=pass (2048-bit key, unprotected) header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b=K+3VdS09
+Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6A56i55R3019705;
+	Thu, 5 Nov 2026 09:50:18 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=RXxdcp
+	f1mi+lXR6AHit85Uc8DdIXrFeiJ/EvXtI9+wA=; b=K+3VdS09/qvpRfbTh9TCyG
+	zD/hcJi0UJa4P2QlG6lbehNK4fGl0r/CSPMrcOTF7sE5cqRE+A7Ka7kdLjzLM2j9
+	YQIEzALUozhg91LRh0smbFcvaAgAd5VHEoSS8ysEAGbXE5+XsGmwzxSXkHKO12Cm
+	UnsESCvGhWY1Qo9xwvxFYoR+fWfixYxf5aAc1EoJ6V/BvG14bxxcqfy4Tts5nSbr
+	M6CCvAZTGC12SLbLtuvQ9TM9SJNdXBUFwHZ4vBFg93XEuPwFcaFoVMAbrSLe2Y8d
+	YVubOvnIA2FApoQnmxz+w5Izh0w3a+TDUVeTgTo6W9yuF3nXmWKAp8GWeyOZUenw
+	==
+Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4hn7u3set5-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Thu, 05 Nov 2026 09:50:17 +0000 (GMT)
+Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma13.dal12v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 6A56YwhT025909;
+	Thu, 5 Nov 2026 09:50:16 GMT
+Received: from smtprelay04.dal12v.mail.ibm.com ([172.16.1.6])
+	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 4hqsf5fr8v-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 05 Nov 2026 09:50:16 +0000 (GMT)
+Received: from smtpav01.wdc07v.mail.ibm.com (smtpav01.wdc07v.mail.ibm.com [10.39.53.228])
+	by smtprelay04.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 6A59oGpL11665990
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 5 Nov 2026 09:50:16 GMT
+Received: from smtpav01.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 2D3CA58055;
+	Thu,  5 Nov 2026 09:50:16 +0000 (GMT)
+Received: from smtpav01.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 7418A5804B;
+	Thu,  5 Nov 2026 09:50:11 +0000 (GMT)
+Received: from [9.123.14.188] (unknown [9.123.14.188])
+	by smtpav01.wdc07v.mail.ibm.com (Postfix) with ESMTP;
+	Thu,  5 Nov 2026 09:50:11 +0000 (GMT)
+Message-ID: <78beaf8e-6357-4856-8464-717bb47d74a4@linux.ibm.com>
+Date: Thu, 5 Nov 2026 15:20:09 +0530
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -113,41 +87,97 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net] net/mlx5e: TC, Fix double free of branch in failure
-To: Thomas Fourier <fourier.thomas@gmail.com>
-Cc: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
- Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
- Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
- Jakub Kicinski <kuba@kernel.org>, Oz Shlomo <ozsh@nvidia.com>,
- Roi Dayan <roid@nvidia.com>,
- "open list:MELLANOX ETHERNET DRIVER (mlx5e)" <netdev@vger.kernel.org>,
- "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>,
- open list <linux-kernel@vger.kernel.org>
-References: <20261028145805.54595-3-fourier.thomas@gmail.com>
+Subject: Re: [PATCH] net/smc: deregister the MR when SG mapping fails
+To: Wentao Liang <vulab@iscas.ac.cn>, "D. Wythe" <alibuda@linux.alibaba.com>,
+        Dust Li <dust.li@linux.alibaba.com>,
+        Sidraya Jayagond
+ <sidraya@linux.ibm.com>,
+        Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>
+References: <20261104022812.1484233-1-vulab@iscas.ac.cn>
 Content-Language: en-US
-From: Paolo Abeni <pabeni@redhat.com>
-In-Reply-To: <20261028145805.54595-3-fourier.thomas@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Cc: linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
+        netdev@vger.kernel.org
+From: Mahanta Jambigi <mjambigi@linux.ibm.com>
+In-Reply-To: <20261104022812.1484233-1-vulab@iscas.ac.cn>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Authority-Analysis: v=2.4 cv=Zsp4uN7G c=1 sm=1 tr=0 ts=6aec515a cx=c_pps
+ a=AfN7/Ok6k8XGzOShvHwTGQ==:117 a=AfN7/Ok6k8XGzOShvHwTGQ==:17
+ a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=iQ6ETzBq9ecOQQE5vZCe:22 a=VwQbUJbxAAAA:8
+ a=VnNF1IyMAAAA:8 a=Ruwe0kKRUAsyMHfTDyMA:9 a=QEXdDO2ut3YA:10
+X-Proofpoint-ORIG-GUID: llxEXSJ92mwsL0YGbs24MbVE2Tb2cnFU
+X-Proofpoint-GUID: QBXzzbW26_VqFZhZxFxkn4K-9NLxyoG8
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTA1MDAzOCBTYWx0ZWRfX/F+/mquu0ObP
+ pKNJT3e5LACx4XtI7jMvXajAhTEx4ySfAo+jtLcZr5iwP8TRL1DJhp0fztiOog0S1SxsgnH69kC
+ X2d0L9eBscWYfB2bsjaarZEB31NZCQ3NqBdlOLeVEp7GTlvbdzQrVKP4IcvrFiLYRLsQi6AAJ21
+ WfzRawXtHxFgJxTuPW7ylY5RS2gwqOKNeOSnMutjpbPFZ63P2Btam/mtHZ3jkKhP1he0/NphzHO
+ xzu/qTsqKi0f+8Afz5i6e1/CKQTsnmswUNDUDt73I/12+MEVqjvSDULULPoIbJ+eUO/Vybm4mV1
+ uvhvajow0fq8zxM2AAW5AW+LrOMXBR3+Y9AwwEaz2yBfx+jYkC4ZbXHzRJ4eHn6u8UD903hsLqW
+ FOY2DpggWBXa+GIpiW4XhR0Mbu1qj6dZnq3AYQxO0pajR0vZGNbXRtX605Mkoh6cDwWKgHAZ0JU
+ trX85tXuS5VxK0N4crw==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTA1MDAzOCBTYWx0ZWRfX7+W4sB5iOJlQ
+ ShhOO2/FPzSAzw4FmKs/kLtWwYZ/LacEHuJNFwhZB3yN+dBZCW8U08YvPpjE045x8GLooD+1sK+
+ 5+6lS5fecKpJ3Ip/LBJJ/yEj+0Tj7pg=
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-11-05_02,2026-11-04_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ lowpriorityscore=0 adultscore=0 priorityscore=1501 bulkscore=0 clxscore=1011
+ impostorscore=0 spamscore=0 malwarescore=0 suspectscore=0 phishscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2610300000 definitions=main-2611050038
 
-On 10/28/26 15:57, Thomas Fourier wrote:
-> When allocating the false branch fails in parse_branch_ctrl(), the
-> already allocated true branch is freed but attr->branch_true is left
-> pointing to it. The caller parse_tc_actions() fails the flow, and
-> free_flow_post_acts(), mlx5_free_flow_attr_actions() which calls again
-> free_branch_attr() on attr->branch_true.
-> 
-> Clear the pointer after freeing it.
-> 
-> This bug is theoretical and was compile tested only.
-> 
-> Fixes: f86488cb4685 ("net/mlx5e: TC, initialize branch flow attributes")
-> Signed-off-by: Thomas Fourier <fourier.thomas@gmail.com>
-Given the lack of H/W testing I would appreciate an explicit ack
-from the mlx crew.
+Going forward Subject should mentioned PATCH net.
 
-Thanks,
+On 04/11/26 7:58 am, Wentao Liang wrote:
+> When smc_ib_map_mr_sg() maps fewer entries than the SG table holds,
+> smc_ib_get_memory_region() returns -EINVAL with the memory region
+> still allocated and its pointer left in buf_slot->mr[link_idx].
+> The caller only undoes the DMA mapping and frees the SG table, and
+> because buf_desc->is_map_ib[] is set only after this function
+> succeeds, smcr_buf_unmap_link() later skips the buffer.  Both the
+> MR and the pd->usecnt reference taken by ib_alloc_mr() are lost.
+> 
+> The stale pointer is also harmful: a retry takes the "already done"
+> shortcut and treats a memory region that was never mapped as valid.
+> 
+> Deregister the memory region and clear the slot before returning.
+> 
+> Fixes: 897e1c245773 ("net/smc: use separate memory regions for RMBs")
+> Cc: stable@vger.kernel.org
+> Assisted-by: DeepSeek-V4.1-Flash and OpenAI Codex
 
-Paolo
+This is not required.
+
+> Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
+
+Reviewed-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
+
+> ---
+>  net/smc/smc_ib.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
+> index daaa8a72da90..fa21d269196e 100644
+> --- a/net/smc/smc_ib.c
+> +++ b/net/smc/smc_ib.c
+> @@ -735,8 +735,11 @@ int smc_ib_get_memory_region(struct ib_pd *pd, int access_flags,
+>  	}
+>  
+>  	if (smc_ib_map_mr_sg(buf_slot, link_idx) !=
+> -			     buf_slot->sgt[link_idx].orig_nents)
+> +			     buf_slot->sgt[link_idx].orig_nents) {
+> +		smc_ib_put_memory_region(buf_slot->mr[link_idx]);
+> +		buf_slot->mr[link_idx] = NULL;
+>  		return -EINVAL;
+> +	}
+>  
+>  	return 0;
+>  }
 
