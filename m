@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793873690;
-	b=yzjYeOZTWQt5zHlBez4L3uZIDvf9zkRztQkB8H1H3JwGjIwCDhtIbHl+bM/N3kVhIH/7
-	 T4X2hCvu0fnWKoj+5DdgM1mTxeqBe/GaeD0lbEdJzx7w4GlGM9sd3gXFGyIWJxHqYjlzm
-	 mG/M8O3k/tqmWAoDkJ1aY4x72lxjDJpEtnN7O8PfjeIvRLUuWWhfmgT/vWov8qj31dMsv
-	 I9SfTN5zEN66EG4aol0D+QWk6at1r6U1D7WTI5CMx9iy7Z/8TgzNuG2jseD0mvxqg3cEG
-	 gL/3Ha0qZPNrLkMxcR1nsjWYaQeuu0lVh7eqk55vKlvV4H7U7CLgt/00rqOJQ5O7yew==
+	t=1793873721;
+	b=CceR3SpCMeLCvQ0IvfCPC7EU7Sy5/nh8k2ywuxvTPvHjtnwzfEbSmObUvIkBDrwaPxiq
+	 c8EmKoiGf86Dh78y5Qteg1Jfd9o2yLujYqGphSAVnoIdP9i/Oukl5FWvPRzQxbiQoYpfD
+	 GbKceE0JPKdkSUMaZDkPNykOG9Cxv7waZyJAwpFRuIhyj+kurAf42xhQZL1px92ozehb7
+	 TCmD/BUA9DEUWZxvY0p1doSHEyOIb4DjR9qyuUt/x82gnR2N6fXCHnD7nNsRDXgxEHMr5
+	 JN07gd5xhMunYTvtPwn3UgOkN+rBDBGIfvzAnwJRQ0tg5FL9vYAZNRLSffMQUSve0Cg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793873690;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793873721;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=CYYFIwuIDggklTvJ5pkhzsoy3a1GnhIAHhHZ0/5ECyc=;
-	b=L9V/c15XEuszgTWUwOg/+W8k5SMQGChBR61bRgIfaibhz3WqL8mWFkZ3CwR7BCVidByu
-	 izdOibh2E0DiIGeQG1zyNr8Ce2Apm4ZYEsWfZkKxK03W04Mt2fAQZ1+E/k0t9J3phLa3z
-	 5TkL66qQMSN92cbZTEWLAlrjcUg10MO//GfFwh+ZHpRDfXG856A2NJaKTICrauGVtFlvK
-	 2umxisBg+stmTaFG3rvh8P5WmwMyTdjlrYMNZzrCp2TE/DFlDq4ajQrFbLxHTpvT3Up3a
-	 yWBqCBYji4yKGbLPAQ9mc2WkgBb8qWQD8d0byMz6VpBIJB+4fHYlMYvsZNXKsO/4vBQ==
+	bh=R657cRqa3j7WuKNmLK/s+7XgK/pfH4UcMsfbDhKrQJQ=;
+	b=Cqu8IiSEu7Oyk8qSs0R/XEA40I0mImOq4D63o4dx1u59bqh3RZTG0//0w4Zzhj/p3ZIZ
+	 TXYv3We4dBT8u7E9mgDYvcnxX3Pz/iqi+IYto44X35WqWvTdwzzfOGUjDUA2Fm9P3t8l8
+	 ApHFlEy0EuDSt37D2Pn+9Rl8gxttyiDNa7F7OP9aX45S0k2NdKcwIe2Y5zksC+l1QcRBc
+	 Z/kzAdbAw8DtEqKlzznvdESQwa8bhdWNHViTDvT8ggfKWp+QbUAaz1dMtkDP0i8V2rfqY
+	 5in7BbndDMGCmZACQrNhIZNe2WFxjrgFSTauSGa8olBDdhPSCjiqPjkS1vO9AGjRl9Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mqODm4q8;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PVHJseRs;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08129606A33B;
-	Thu,  5 Nov 2026 10:14:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF290606A329;
+	Thu,  5 Nov 2026 10:15:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mqODm4q8
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 724891F000C1;
-	Thu,  5 Nov 2026 10:14:49 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PVHJseRs
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39EE51F000C1;
+	Thu,  5 Nov 2026 10:15:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793873689;
-	bh=CYYFIwuIDggklTvJ5pkhzsoy3a1GnhIAHhHZ0/5ECyc=;
+	s=k20260515; t=1793873720;
+	bh=R657cRqa3j7WuKNmLK/s+7XgK/pfH4UcMsfbDhKrQJQ=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=mqODm4q8HN1d1UzIe1PRjV+mMNsgDaLtXAGt0CiybA9428vphIDS7LMWSa1Zpv5eX
-	 bybx5KZCc83UOIJIU5+rpL+s338FIXGvzINp/LwjEOGTbLglwPWPIKG1ubrJyWqUAu
-	 ZoxTTW4rlygmPbN//ZaxlH75m3UIH2kwoODBu1w1wOA0ERqMUs1OTEAslm7vcOIeOw
-	 sVvzna7DyQ2eJJaCMLwlbfxnEiCExxCPzM3TY2dT7Mk1/7xp359Lh5l0cVTdqgCN14
-	 9xtWZUqInDy+NizG6L32u9Gkqjalc0HBJEqMh7KvSwI7FA176S95n5ebGCLmFGQ+zC
-	 8jdj2lrTjT4qA==
-Message-ID: <sashiko-outbox-198826@kernel.org>
+	b=PVHJseRsp4CRRJnQlS9bIHhQcZDkPEWzATzaUq5mrUxTqor/JCM5TvghEe9+pd7WA
+	 5QhFTitPMrPLX7lerl+QMpxpVaCixt/3rYIz9HjrbQGYIXqgjRQF5NhOx2twf8qkIW
+	 Lj+YFF4kmOydHDGsERAtTjIPuSuEPIHorB0REf8DPm1OSv0MfqwtasJWTYEORUwWYP
+	 fZDQsDDbyCC69WNFjqC2bZ5u77UX8NiRxAFzhcyoapEBoUZKax/w7RNT+4ZADUXq7S
+	 dX8AYAF+R7lH3Hn8F+TpkAeqHH6LBIYBNkM+j31zaPNucnwAtJLFq3tHJ1BKye3jWY
+	 PXFbLp1Gk8N1Q==
+Message-ID: <sashiko-outbox-198827@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v13 11/19] PCI/P2PDMA: Route Translated Requests under
- Direct Translated P2P
+Subject: Re: [PATCH v13 07/19] PCI/P2PDMA: Collect the path's ACS controls
+ before deciding
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Leon Romanovsky" <leon@kernel.org>
 Cc: linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org
-In-Reply-To: <20261105-fix-p2p-acs-v4-0-v13-11-3dd065907c3b@nvidia.com>
+In-Reply-To: <20261105-fix-p2p-acs-v4-0-v13-7-3dd065907c3b@nvidia.com>
 References: <20261105-fix-p2p-acs-v4-0-v13-0-3dd065907c3b@nvidia.com>
- <20261105-fix-p2p-acs-v4-0-v13-11-3dd065907c3b@nvidia.com>
+ <20261105-fix-p2p-acs-v4-0-v13-7-3dd065907c3b@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 05 Nov 2026 10:14:49 +0000
+Date: Thu, 05 Nov 2026 10:15:19 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,23 +63,21 @@ Precedence: list
 
 > From: Leon Romanovsky <leonro@nvidia.com>
 >=20
-> A Downstream Port with ACS Direct Translated P2P enabled routes a Request
-> whose Address Type is Translated "to the peer Egress Port without
-> redirection, regardless of ACS P2P Request Redirect and ACS P2P Egress
-> Control", per PCIe r7.0 sec 6.12.3. P2PDMA assumes every Request carries =
-an
-> Untranslated address, so it sends an ATS client through the host bridge
-> even where the fabric would route it straight to the peer.
+> calc_map_type_and_dist() combines ACS reads, routing decisions and
+> diagnostics. Adding decisions for different TLP attributes would duplicate
+> the walk or thread each attribute through its counters.
 >=20
-> Consult Direct Translated P2P for the PCI_P2PDMA_TLP_TRANSLATED classes.
+> Collect the divergence controls, internal-route restrictions and upstream
+> forwarding state in struct pci_p2pdma_acs_path, then decide each direction
+> from it. Check shared forwarding ports only when a host route is needed,
+> and keep forwarding read failures separate so they do not suppress
+> redirect advice.
 >=20
-> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-> Tested-by: Tushar Dave <tdave@nvidia.com>
 > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261105-fix-p2p-ac=
-s-v4-0-v13-0-3dd065907c3b@nvidia.com?part=3D11
+s-v4-0-v13-0-3dd065907c3b@nvidia.com?part=3D7
 
