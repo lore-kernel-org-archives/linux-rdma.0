@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793902187;
-	b=KEU3JbmQECdusr6oPw6O8NaZysN1SEYscQ4pJGQXsO7T2LLO+wxzIPDfWn29Pt0oVFde
-	 w9WoM9Tiwq/r7xFeV/fHiGPqfk+NKZMmSc8UfzTx3SO16aU6oUqZJ9ZfDCxb02nQZNHFz
-	 fShHMgVXl9TjCigD8Ft2+zd5Q5KNYKwzh9FL/UgRbBbAaM76Xj6BtqlrxwSftHJvITpGQ
-	 IEubolD9p3lLkXY7gnAXy4UGqqvjuhJX9XELKLrv5/FCRNkJYym4zgnzNpgumhjbAYF7m
-	 Ic0aAuoDltQGtbNqCGytUuaDUqshDXFk/c+XwzNwZviXrWbk8pDAMnp+jlvQt0SBIhQ==
+	t=1793902344;
+	b=PWa7WLdmgUgBQdm1Mr08eXTco570MLKJcmao9xSFPJL5g2Gi9FUq0RUDSITRc59fLv2D
+	 97WBUKxFuP38MacIzurt9U75LGVG9a8h7xCHpnBwK1K/Rk2w2aLNcnn1vQjihw3zgYqbU
+	 oItjrEmsxc/g3Zw2OOz0O9n+swq9RifS9bSVfGFD21mTq92ECtV65vOrY4tXQa3qt5Xac
+	 OvDRznPHYqjqu00xoHvebVM9kaeeQRkCuPfLZv5+xJlzdclGQFVO9dFps2wxMta4L+303
+	 Ss8oCU7zi4lt1ttlWy51MqQdtkXtpZ0/9ALOi2n3pUu74/bMMTSkyDUSHZGCmA58xeg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793902187;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793902344;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=gXkEqn8xq6wexbDZGfAq0XrvqICSMsa+eeDHqXpJoRc=;
-	b=USQCI9EowMpomjMagJKhfksB9Lr/aMegFq6xHbicoOf4xKr0LmTjCP/S3AFBWW7/MR9N
-	 Vdbpa2tHsyCDu805reds1RdVcbz6RrLKWjYo0Fg1wdymggBlue13J5vq+L8nStFrwahzD
-	 NWHX2tXjniikqPNwJevBM9x8lyKQZ0oumQHT/wy2wpfBlrjs2fuK3X3rrgrQoN4vug4Lx
-	 VdTuML0VulWT2rsTLsZITeshNvgl+QG+Ojd/81NoVTWEmymivK1mKDcWDhRaZfT320xJs
-	 U1DcqLaLLnUDKd9W0keo9s3EMFgZPCZjOJeDiSmipOjPgYXIDBFUDQ5fbSb0Dy+3fiw==
+	bh=pk2hzdOTt3gZGP0SLZgVCgj4QDdtrCNuoYQplQK3d6c=;
+	b=pIst2eZOrfJa/HnZT1u0XXd9E/2m9u+3ij2AK962H3En1wAFImNJqgTUOYaU0CEGY7U/
+	 kq6xts+RJ5WCwr7hOKuFKz866o3YXCrNtL2W8fx5VYWQModP09lRsvvq+GswM36WgMiFI
+	 KH9Uzm6YpJ52u2r680s5I0xY1DmqhkWR+4707yzDJOV5cHMSPAOj+NF3BQbHf/KaqXw8x
+	 3dXZmgl4B2ZHsMA4iphENmYBc4Y+GE5jOKb96VPi2BzrfRwNGzqoADNpnmdEjWqGiBwO3
+	 U8oYrYchDIS5NkWUcMN+pTxmGn31qQJLpuOlFFqXNDha4QnVxh7e+BicuDp1jyyD8Ww==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GWXRUEbh;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ooypNmYF;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7415606D80E
-	for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2026 18:09:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EC57606A329
+	for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2026 18:12:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GWXRUEbh
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 587921F01802;
-	Thu,  5 Nov 2026 18:09:46 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ooypNmYF
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D0E41F000C1;
+	Thu,  5 Nov 2026 18:12:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793902186;
-	bh=gXkEqn8xq6wexbDZGfAq0XrvqICSMsa+eeDHqXpJoRc=;
+	s=k20260515; t=1793902343;
+	bh=pk2hzdOTt3gZGP0SLZgVCgj4QDdtrCNuoYQplQK3d6c=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=GWXRUEbhvVGybmNjeCMY1aKu0ui3h37pLtzZBBwNomevOkTAu/A/0bHid7Eoocug2
-	 bj+hu9J1T3/Q+UvdsI+g/+7ueCDVBqqg2ykaM+MtKg+Y4TeuVmGz+cHMM/SDYPx7Aj
-	 lr+Wv1cwe79FBEUXYUu2hgw5dA5FRYqMbloKNIEzMMKNv8qbq4f57nf+pTZsahbgOP
-	 THfET7DgSSsFeDfsoCc2+0HTKEhcVuPk6BQ3MJ8DRosb+lfzeUDHh2wwX4K2aVdA4c
-	 ztRxElH7qC7L4+deRxVz4INH2T0XsaIAcvQFnMWt7pnrUHzpGbU3WPhZiNmMGURfAz
-	 VLfAGp/TK2KCw==
-Message-ID: <sashiko-outbox-199698@kernel.org>
+	b=ooypNmYFgZZRnuKMCccPJ9/RYm19xLLfiHxcdlessoRFuniDov0HQxfG2PzflsdvU
+	 DifRqL+ZDjRDwQ4FlzKCs8AusJ2vVd8dVQb88jzgXvwhvocLB46zGWXXj6qvDY2bOc
+	 pIXvU27h5LwpkjRcK1XlQM++a7gQQqIF5YP+WCoMlrGSKMJg+JB9ziXE+VMwLrs3t8
+	 5z4CsIpRF1ylSJO4qIidtmmx9+PnmcFPNVvD/k/Lid1LVwZZj/6t6bVFSY+6jnPiS9
+	 UbDd0t8NGajoz9KOztZcBNAFVLs5IIVIkuZDw6CZlhqm6mNHOuD7zeANLfAZPnax21
+	 8ztXI4Qj4Iz2w==
+Message-ID: <sashiko-outbox-199702@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v9 4/9] RDMA/mana_ib: Maintain kernel RC QP
- state
+Subject: Re: [PATCH rdma-next v9 6/9] RDMA/mana_ib: Post send and
+ memory-management WRs on RC QPs
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261105175928.1326682-5-kotaranov@linux.microsoft.com>
+In-Reply-To: <20261105175928.1326682-7-kotaranov@linux.microsoft.com>
 References: <20261105175928.1326682-1-kotaranov@linux.microsoft.com>
- <20261105175928.1326682-5-kotaranov@linux.microsoft.com>
+ <20261105175928.1326682-7-kotaranov@linux.microsoft.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 05 Nov 2026 18:09:45 +0000
+Date: Thu, 05 Nov 2026 18:12:23 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,12 +63,14 @@ Precedence: list
 
 > From: Konstantin Taranov <kotaranov@microsoft.com>
 >=20
-> Update mana_ib_modify_qp_state() to support RC QPs. Initialize the
-> packet, message, and frame counters for use by work requests.
+> Implement send work request posting for RC QPs. Post communication WRs
+> to the send queue and memory WRs to the memory management queue.
 >=20
-> Arm the requester receive queue at the initial PSN so that a CQE is
-> generated when the specified PSN is acknowledged, indicating send
-> completions.
+> Advertise the memory management extensions on adapters that support
+> extended WQEs.
+>=20
+> Annotate the immediate-data OOB fields as little-endian to match
+> the encoded values and avoid Sparse endianness warnings.
 >=20
 > Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 
@@ -76,5 +78,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261105175928.1326=
-682-1-kotaranov@linux.microsoft.com?part=3D4
+682-1-kotaranov@linux.microsoft.com?part=3D6
 
