@@ -1,13 +1,13 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.209.35
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793913497;
-	b=QsCji+WsOGFVp+Ve1KwYjjYZopCe13Mk/ZtTkCUNwm6Thn3WlUhkJgmR3ke0++FsSoOu
-	 DMPyJUqpvqQddbFi3hu5qU0aY0VQEgPWUC81VziIty8cMzjnO96ipV6uqJZyZoQ+HX/r2
-	 phneEuuoJAeTVEjdPed7h5EDWqiVAJCDqufMaCZmX1KCqw7sxct3G9yQMhjJPN4KUmKX3
-	 kIQdOqHvx2751q0+8fXebnJrBrQnr+9RAQgKEDIK1Lj9qfJacbfcKwKqXwwHaNQubidvq
-	 tgENpZaxMgJHS+AD5s5SZ91ZuqeRYLE/VZmrozPCWhp+WktchUiTvqjZ/t7UWW5tz+w==
+	t=1793913496;
+	b=LPypB8VbsAWqUNY/SMj4k0VwYakU9akmvz7hSsqmjSx6OYVZIooc2js2xEu15w5pHrE4
+	 NLl6wKqj7698YeHnXUqMv6Tq2ko8Ou3WyH8r3Vdn17dE3JbZCR9NAv5jP5394Vi5Rut+n
+	 R/g6XM61J4bJkjvuKRHrnxX9Aj3uLQ3NRX1g8khKtYvy2cCNU6LVPIFdpG2IhNwyDCox6
+	 GCwDGNhq8oVyeyfX/XhqTCgk//a+Xn49BNL5+Uz8nxt0y9fTEvpTu8+Am8mYTQL/bCpga
+	 mHcLvmPIBcbzM5BaNCkp+aClt8TJo8y+cD+B/LgDkIqeI4hnAhrk8a8ABNDHuqGkvNA==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793913497;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793913496;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:
 	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
 	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
@@ -26,35 +26,35 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=Md/xjq0nl/4pWP7ZHFOILaXaSpm3v8PmvpxjXI0/q5s=;
-	b=NE5ajx4BdsctAL5rlFpvVQc/JZxik153xFscPvgsEgznpP6195bOURFg5hAmCfi7f9Uc
-	 pOZ1YA+wiI8cgUuobN2OarAwD6OEHIs1zQ5zpcUleiufQ4reFQz+SLAyVXnJDEpXIsAE/
-	 DWoq+XnWgXDEEovhmZxgL2IvkMbSljdes8Ym8B4q8zvuhaMMmftS0M3GzebyaMn4DlDP0
-	 Gppy+Vhe8BPihAJM5Z+T42ftC99SE8b3637b5WGko2fPN+0OhZckRZShGN4Z2QwR2D12L
-	 qa4iSCeP4FgNwz6T/jTYC3IpHwtSmxPIS83lYisUr+Qmq3wL9/VeJA5xmBDon/WChFg==
+	bh=jIpGm/nS8cRQBtZtKDPJiUMCAFUV7dm5xdemjgVm4cA=;
+	b=bIFuP0qHTiyjmpNUV2j2Fmroi2Te9UQHmb6fW+g1VcTG/rhgTnLBs8eL0Y9CAviPDOws
+	 sOpMJOGz2G7hl2NRLPvGGV2mbEzR965Lyi0SIvF3Jp9mIiQq0Ugh3CxESVfE3BC7iJY03
+	 P70TIuc2+5L3r7tK6+WY0mOfApmtGwOL2oJn2v0sXK5XW27JRjVQZeSoImWLz/lFu8TVR
+	 OCZmqA7zQJNXZFClcWb5ZjJhZeSfhqDUqUoup2XjrLwKJAtbwe9Zna2rM3ZHKoUC+jxPh
+	 PqMjLuMCM5xLx4yDqRX+r6fY8yDHfQuDzW5AH8aThd/xtCxlMQBL89pjbyB5QUYfilw==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=f4DmEEF2;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b="iZ/4/Cyo";
 	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.209.35
 Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012035.outbound.protection.outlook.com [40.107.209.35])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E75F9606A32F;
-	Thu,  5 Nov 2026 21:18:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E75F9606A32F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B26D5606A330;
+	Thu,  5 Nov 2026 21:18:15 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B26D5606A330
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=f4DmEEF2
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=iZ/4/Cyo
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=kQTHQRMbcGfzToC5+VRX/iLahLUHXR3oZI1pyP91xiAEdYBfInEoE4bkUVn+Lhjo2L0pOHOsfarP77GcskYry7jgjPwP0+dkc0k0DltmxU0e/vcUXPYs+fqhcMbUbVSv0CJ7RIPqppZmtc65I0nkhJT01vxx9tyrLhDbGC3AP31r/GPFgtbvq4yB54NRHohTr3OK61Pq7ZjXKhDOC6QN0kuY2pYDjGvVeYPGTZxie/jDbFfi2cBL3jlit5aFAuHIQH3bctBDFMwF2J140kpTfzSqh5Thlkd+671PiWixTMDuPiZZiqNqrTNuLMZtbxyIgGQzH7oB4kEgNkB1XOZhkg==
+ b=nZStlcPf1NQI+8aM5QB0PVDyZv1RgMx07yIi7uHLzuRz2nQO3ioLJL4wbmTO3wp0HamAJ/ib4YRcJuCGmqBp7G3AalikrPVNdK0RW7cqm2AHkETAXaWviW046Y+Jr8E46/mWg1IiJjOMbg4Po2EEVQWzIRqoWCymy7kzwHeedoVe9cfkjpOkqETVsyQa78iJ4iqabD1WfDNA3jbPmoz/nJ2wlY/uKQ1p/hMzZ8lQ9zR0D7rp138etTvZABNzR0c1PbB44h0Z7pzVwNejLB4VvZj34wnYeXMykpRVEI7hTMvGVWJ1sEoTJc6iku6miQNtbMhRN9y19m9cM0hy73QmhQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Md/xjq0nl/4pWP7ZHFOILaXaSpm3v8PmvpxjXI0/q5s=;
- b=EVf+Wu+x6MTLWV0GQuHazg3G46wkOWTU9trmX1emdQLRx/vYsvHNPOoiFeQU/fVKP2dzoxnA68ugfMG6ljib9fSCTrNTnZotgfxwTlmVTtjndeU8ZTNstLeSG+UKCotWbh9mkT6VyZjWnfCPZmoIxrqdkR2gS6D5VHMGWoXgUqYXZS+s0if8M1YEQA8t/202HSDyjQJjugO/d/jCgp/RNBww20vDVNIX8gMkSPmHMaS2zTRjpl9nHFNPm7X0vdy6W3Zo0m1mVHyrdaytW1iUXQec0R69gj5CYKW67GT0tiRBKPc91zrv7cZKY7lO8xpwWNydjxAV9sPxooG4QbJIww==
+ bh=jIpGm/nS8cRQBtZtKDPJiUMCAFUV7dm5xdemjgVm4cA=;
+ b=NwuPGQVAwqUmz4xrX9lM+pkw0J30yS0FGnHUiFNX8EY7X6RRqxVCvpnZlpJ8a8Q954/eIkOePuSfHxXGmjaM6z3OP4NqPakOpMMFWjz8RJ2O0HqguLPYTUOWG8iwDvHgPWFh2mvVBsyZAXdaJ5H1cgUw9+LmQ+85KEmYgbKJJnqhI70ol+bBH8rzFl+UbPJPFOkpghgbKIerBqI3ndaohy4b8XOl9/zE7k6BrqFjguWYE7w188kNC5E3ldFznZV0kAo/1ihwf0dSdyDmfn4YWuc/gpo7zPS+p7L2Bj6fLypbLrp1Ei7ecjajGpcFtwTmkjxAJ56jjYCKpF4IvhCXkA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.118.233) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -62,18 +62,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Md/xjq0nl/4pWP7ZHFOILaXaSpm3v8PmvpxjXI0/q5s=;
- b=f4DmEEF2tL4TfxqK0ZUoGvnbEa9gdZMYB2GBAqCWvWH9OwuMpSrRlxGfEh7t5kAojlVN5ls4E0SPzi2q0Jy/ZB2O2xK7a4HfjkTKzm5IUxPTyRT6Boy0I6ahw3gEw0sOteDaZONDJ7UtryssVWulN6E+TlgGyvTVeBKYTWkkJguJrI2JpHgT7n/qx8tl63wXG3QM/EWueHQzFr/V0AV0YmTbIcMqu4Dz+U8Wrvm4rzcoK9PVIgs2/ULibZecOY/YG7LmNtd6VCQk83kEu77K9cFeuYK+dxB3SNl28rPkyl4VFDEw/AmEzBJ40tQ+E+Eq/Uaxo1LawSSt5pAFnu3D5g==
-Received: from CH2PR12CA0021.namprd12.prod.outlook.com (2603:10b6:610:57::31)
- by DM6PR12MB4433.namprd12.prod.outlook.com (2603:10b6:5:2a1::20) with
+ bh=jIpGm/nS8cRQBtZtKDPJiUMCAFUV7dm5xdemjgVm4cA=;
+ b=iZ/4/Cyo2GQ1nr7lxuSD4MKSXbc4P8qSDZzbQgrgroPY4vlMar64fy8dn1/sRWDE6m7DVoGk5oJiGMeYOtSI7Kn2iQ3CaF1Np+2uMMOtD4bDmGdwGxlr01Bl6UMCsdAUYvlLUPSDdd4U0Qw3arqNJI+Y6zk2DufbgOHMsJeQwODslVa8I1hyERbgMVwcx3ZqEtHXi4qLFMOIyrkEGauWfrciaLUegAjO41mohniFtqryRMsYXBVuc52evGQj8RrL/lYc/mdbnVxc3Dk+cPSSvQMyvZoi91ximVg2FI+DqOswB7X7Qlhc4B+lh7MZm5Ldp0D+7xJ4ZRC5nwVxten8wg==
+Received: from CH0PR04CA0094.namprd04.prod.outlook.com (2603:10b6:610:75::9)
+ by SN7PR12MB8002.namprd12.prod.outlook.com (2603:10b6:806:34b::10) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.10; Thu, 5 Nov
- 2026 21:18:11 +0000
-Received: from CH2PEPF000166BD.namprd04.prod.outlook.com
- (2603:10b6:610:57:cafe::60) by CH2PR12CA0021.outlook.office365.com
- (2603:10b6:610:57::31) with Microsoft SMTP Server (version=TLS1_3,
+ 2026 21:18:06 +0000
+Received: from CH2PEPF000166BE.namprd04.prod.outlook.com
+ (2603:10b6:610:75:cafe::4) by CH0PR04CA0094.outlook.office365.com
+ (2603:10b6:610:75::9) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.21.592.10 via Frontend Transport; Thu, 5
- Nov 2026 21:18:11 +0000
+ Nov 2026 21:18:05 +0000
 X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
  is 216.228.118.233) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -81,20 +81,20 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.118.233 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.118.233) by
- CH2PEPF000166BD.mail.protection.outlook.com (10.167.252.7) with Microsoft
+ CH2PEPF000166BE.mail.protection.outlook.com (10.167.252.8) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Thu, 5 Nov 2026 21:18:10 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
+ 15.21.615.4 via Frontend Transport; Thu, 5 Nov 2026 21:18:04 +0000
+Received: from drhqmail203.nvidia.com (10.126.190.182) by mail.nvidia.com
  (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Thu, 5 Nov
- 2026 13:17:49 -0800
+ 2026 13:17:42 -0800
 Received: from drhqmail203.nvidia.com (10.126.190.182) by
- drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
+ drhqmail203.nvidia.com (10.126.190.182) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.56; Thu, 5 Nov 2026 13:17:48 -0800
+ 15.2.2562.56; Thu, 5 Nov 2026 13:17:41 -0800
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
  (10.126.190.182) with Microsoft SMTP Server id 15.2.2562.56 via Frontend
- Transport; Thu, 5 Nov 2026 13:17:42 -0800
+ Transport; Thu, 5 Nov 2026 13:17:35 -0800
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
 	<davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
@@ -110,9 +110,9 @@ CC: Andrea Parri <parri.andrea@gmail.com>, Boris Pismenny <borisp@nvidia.com>,
 	<roid@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Shay Drory
 	<shayd@nvidia.com>, Simon Horman <horms@kernel.org>, Steffen Klassert
 	<steffen.klassert@secunet.com>, Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH net V3 7/8] net/mlx5e: Block E-Switch mode changes during IPsec state creation
-Date: Thu, 5 Nov 2026 23:16:35 +0200
-Message-ID: <20261105211637.1083978-8-tariqt@nvidia.com>
+Subject: [PATCH net V3 6/8] net/mlx5e: Block E-Switch mode changes during IPsec policy creation
+Date: Thu, 5 Nov 2026 23:16:34 +0200
+Message-ID: <20261105211637.1083978-7-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20261105211637.1083978-1-tariqt@nvidia.com>
 References: <20261105211637.1083978-1-tariqt@nvidia.com>
@@ -130,157 +130,212 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH2PEPF000166BD:EE_|DM6PR12MB4433:EE_
-X-MS-Office365-Filtering-Correlation-Id: 95f85082-4bac-4260-b91f-08df3b824baa
+X-MS-TrafficTypeDiagnostic: CH2PEPF000166BE:EE_|SN7PR12MB8002:EE_
+X-MS-Office365-Filtering-Correlation-Id: 53970cc7-8e59-4dd9-fe95-08df3b82481a
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|36860700016|23010399003|1800799024|7416014|376014|22082099003|6133799003|10067099003|18002099003|56012099006|261026140227099003|11063799006|261026121527099003|261028144727099003|261021123027099003|261022105027099003|261022075727099003|261102123227099003|261021121427099003|261009223027099003;
+	BCL:0;ARA:13230040|36860700016|82310400026|376014|7416014|23010399003|1800799024|22082099003|18002099003|6133799003|10067099003|261026121527099003|11063799006|261028144727099003|56012099006|261021123027099003|261022105027099003|261009223027099003|261102123227099003|261022075727099003|261021121427099003|261026140227099003;
 X-Microsoft-Antispam-Message-Info:
-	TQPT+Aj5xGeh7dhmBqVXzSCd5thAefi9KgshsU9MLliIg5PsT2PQM7lSoeMFOIuzHC4THMN4gm4YWeCKBZrE0miyN31WKBDyls7OLG34ZMaJ7Riqem2MqlEyJwrB05zqRp2MYR2SSLdVF+GK/QJqthLDZEIgFaeYfFnfaXyFOzJBWxKGP4UGI8FGFuHx5ZJGfar22Q3D+MEbATiQjCQuqt/F2xTOxjuZFOQQtOCl2im0mEC3ahrbf8IeLm87SUKbm++Ow3zVO0IPAWy7HvRi6foigGFHQhMevX7VOww7Xqfa6y2XRq79hV0CXMrHkeDTN7CFt6ndw/4gn0F2olv1il6HDGKKkrP1dPEWwth9Airpy3yMwTb1qEqsj95rIYrQ4pXUZQB+NZvN1s7qW0tWH/DsKS/8aDCDZ44W28h7A7lxERt/yvEnb1+I4jFeBMsZSZ1KygCGZDChibwjbn6DtBPq7F8V9HoZf1xuV1DaAEOfaT0PV3tnfaN60pdXjNmJhu6u27xTF7LBzC0VVKfcrzfD7HCSlerd/0dhsXXU5Eg2kr+JiN/GO/RRWIgWZtJ06S6Shzo0Gcakk6BuyA1fZWrpixheK7mYq/lcjr2HluCpQHy2OQktAhQjAYwPXPR8J+rSNcG0yZippR0LckO7q9RZUfNCgisQ/0DeuxcMG0HBnakQq6kMDeq5/XTRBzFTxHt3L5+tyILlgKJzEVFG5w==
+	jM5AondCTESUGHNpFn8uxexiDN4nZkWG+8qxa1ZezKDmNw8h5zQjPM6lorjc0A2idyCs8wi7dPhL+TQXNIQx6Vdck55ER0k4Xew28+qdgnZpYSeoWrhjHPqf7BWYUZrSNyaAN038i13zLJRLC01POowfzMVAPT3d4Tsg2Tsjgw4t8p6C0/p1gTeMgvhtTAbjADeveWiTa94qDBB7HZjuNvIBC1vKoMd4SAIa669TKGuFV+9Ncp8rI4k/7SRQdRKIHKzSnqx7ZRZDuYguLlm0ZqGRLakzwv7JPlDKAmTGg2A1IgbBHayaoPWb00bN5A+Jr8rrjRUZqc8XvtngJPKyXUJKFqcjzg5YmPu/vm0rF2fxtGbR0xAKu/jQvegsGvGjx0XGq0AbXzSsYIx+uRFRWP/XS15f8GtZZejeE/9tdKOvmiBsniIOBfElkKQtNUKOMPKs70eDJnBz7T3RvfksSc7HLTPd1HmzbFV1GtuFij5pdZlwiiOfyNSculXtEOCJqc/JKKRuVN1GVu1FAhYjjGau33O3v+p1gkr5ZmO4uHJkRV0Bem8mH0z4tcOr9WF1IwDosSri6KNiU8cL3bIo9Mr8C7WqUjRuLznGGEtiF6ydmWBKGFAY84a6LTi+f5CRjo8t25E1Sd4tEB99EbrylOwDaYkg2RWnJyOJSmwe0LT4E5ZFrsJqYSF9781dWUq/qkCuQ62fz4jfRMLsWQwNuA==
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(36860700016)(23010399003)(1800799024)(7416014)(376014)(22082099003)(6133799003)(10067099003)(18002099003)(56012099006)(261026140227099003)(11063799006)(261026121527099003)(261028144727099003)(261021123027099003)(261022105027099003)(261022075727099003)(261102123227099003)(261021121427099003)(261009223027099003);DIR:OUT;SFP:1101;
+	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(82310400026)(376014)(7416014)(23010399003)(1800799024)(22082099003)(18002099003)(6133799003)(10067099003)(261026121527099003)(11063799006)(261028144727099003)(56012099006)(261021123027099003)(261022105027099003)(261009223027099003)(261102123227099003)(261022075727099003)(261021121427099003)(261026140227099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	LBBuK3g8vvLNU4o8sDCQvQJ6mMjkCHvn2hosPscCDwwWGrLPqOEF218i0IzG/m6iStdqB447TZhSvTY2YwHF+gDT481ksejcO6TCU37sqIxYZZ8nQqx/miUhJY6UCzczdIjHnrxmyI0N9nMXglA6CbQXGzmeOfjkB3Fe/83jFus7Lcpoy/yOdCAzsSyXdUvW5xsbql6c665BBuou6e9mIfhn8e0si3wFIyAlJGfybqmRTMLllq3Icsrn4SYoWeh+cbNHhLQZQgpIJ4wIFOgjWb1oqzDKfi+A1DSBqQ3lgJ4hsBJIO8Xz3RflWBWh7Yd2YULLBV3A6O7nZElTggJiP0Bg9ZuOgIg1PXXDP08JLaEmsx77JVT9ajt2gdFfX5vP/g7Zx8y1vbQNZ9gnqS3XuPwhdBAPqBFXmzAS9yeugOT+GQOxHeKcPIgb/nra9jiV
+	JenGsElWdxiybviLHlu6pRDDQMau3kxfaaQP7Nhr70vd3fnPyVFTjUfB51pZxH9uChJB9vYViMC2+OwD9zCxAxEk57/clVdkITetdCI+os+YXIobo0V7y6L0G2HZB5MgMEnNnhp3qgo+XwIo/UXWyt2H5nwNseLBG0+Q7HJkKlhzSRNw2gMqrqXWLWEAJgKWQSraE6Ven+mN2aG0DyTYjgdOTgXA/jeMhaH1G4OsZ2WJOHgOEMU6VtO4VwSZkZfJakjTXWbJDpyEuye0vnC4gCa8YG3eGCXzxmcAsTcs0Blk5hmoIWEr8hxbkbv3Tm61y8J6rvuVeyaz1fJkpgGK2tWjfyrcHmrPFGcMtboeNvYMBA7pEmnq+VukmisucNWY6RVcBvxC8rgzMm7lu071f7h9iqQKnGnxSMBeFgFEOft66aoCA+96DN/Ej0wivgaV
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Nov 2026 21:18:10.9644
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Nov 2026 21:18:04.9858
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 95f85082-4bac-4260-b91f-08df3b824baa
+X-MS-Exchange-CrossTenant-Network-Message-Id: 53970cc7-8e59-4dd9-fe95-08df3b82481a
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CH2PEPF000166BD.namprd04.prod.outlook.com
+	CH2PEPF000166BE.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4433
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB8002
 
 From: Cosmin Ratiu <cratiu@nvidia.com>
 
-mlx5e_xfrm_add_state() reads priv->ipsec before blocking eswitch mode
-changes. A concurrent profile change can free the saved IPsec context
-and cause use-after-free.
+Eswitch mode changes can tear down the IPsec context while policy
+creation is accessing it. The mode-blocking reference acquired when
+creating a flow table comes too late: the table lookup already accesses
+the IPsec context before taking that reference.
 
-The temporary mode reservation was added in commit 22239eb258bc
-("net/mlx5e: Prevent tunnel reformat when tunnel mode not allowed")
-after saving priv->ipsec but the race was actually enabled by the
-"Fixes" commit.
-Extend the reservation to cover obtaining the context as well.
+Take a temporary mode-blocking reference before checking the IPsec
+context and validating the policy. This gets dropped after successful
+setup, when the flow table holds its own reference.
 
-Use mlx5_eswitch_block_mode(mdev, false) for the temporary reservation,
-as policy creation does, to check operation ownership under mode_lock
-without rejecting existing eswitch users. This allows reusing existing
-IPsec tables while TC rules exist on VF representors.
+The temporary reservation must allow reuse of existing IPsec tables.
+For example:
+1. An offloaded inbound IPsec policy is added on the uplink.
+2. A TC flower rule is added on a VF representor.
+3. Another uplink policy is added using the same RX tables.
 
-Check the context only after taking the mode reservation, so a
-concurrent mode change consistently returns -EBUSY and a missing context
-returns -EOPNOTSUPP, preserving software fallback for crypto offload.
-Keep the atomic acquire-placeholder path exempt, since it creates no
-hardware state and cannot take sleeping locks.
+The third policy reuses the first policy's tables, so it must not be
+rejected merely because esw->user_count is nonzero. Add a check_users
+argument to mlx5_eswitch_block_mode(). Pass false for temporary policy
+reservations and true when creating the first table (rx_get()/tx_get()).
+
+Temporary reservations take mode_lock and check operation ownership
+without requiring eswitch user_count to be zero.
+
+mlx5e_xfrm_add_state() needs the same early mode reservation and is
+handled in the next patch.
 
 This was found by Sashiko, during review of the last patch in the
 series. No reproduction attempted, as it seems quite a tricky race to
 successfully trigger.
 
-Fixes: 7a9fb35e8c3a ("net/mlx5e: Do not reload ethernet ports when changing eswitch mode")
+Fixes: a5b8ca9471d3 ("net/mlx5e: Add XFRM policy offload logic")
 Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
-Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
 Reviewed-by: Jianbo Liu <jianbol@nvidia.com>
+Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- .../mellanox/mlx5/core/en_accel/ipsec.c       | 37 ++++++++++++-------
- 1 file changed, 23 insertions(+), 14 deletions(-)
+ .../mellanox/mlx5/core/en_accel/ipsec.c       | 23 +++++++++++++++----
+ .../mellanox/mlx5/core/en_accel/ipsec_fs.c    |  4 ++--
+ .../net/ethernet/mellanox/mlx5/core/eswitch.h |  8 +++++--
+ .../mellanox/mlx5/core/eswitch_offloads.c     |  9 +++++---
+ 4 files changed, 32 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
-index 3cd0b36a02e7..fa6cb51fdb93 100644
+index 33a7434a7bb9..3cd0b36a02e7 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
-@@ -771,6 +771,7 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
- 				struct xfrm_state *x,
- 				struct netlink_ext_ack *extack)
- {
-+	bool is_acq = x->xso.flags & XFRM_DEV_OFFLOAD_FLAG_ACQ;
- 	struct mlx5e_ipsec_sa_entry *sa_entry = NULL;
- 	bool allow_tunnel_mode = false;
- 	struct mlx5_core_dev *mdev;
-@@ -787,20 +788,31 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
- 		NL_SET_ERR_MSG_MOD(extack, "Eswitch busy, can't add state");
+@@ -814,7 +814,7 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
+ 		goto err_xfrm;
+ 	}
+ 
+-	err = mlx5_eswitch_block_mode(mdev);
++	err = mlx5_eswitch_block_mode(mdev, true);
+ 	if (err)
+ 		goto unblock_ipsec;
+ 
+@@ -1288,18 +1288,28 @@ static int mlx5e_xfrm_add_policy(struct xfrm_policy *x,
  		return -EBUSY;
  	}
--	if (!priv->ipsec)
--		return -EOPNOTSUPP;
-+
-+	if (!is_acq) {
-+		err = mlx5_eswitch_block_mode(mdev, false);
-+		if (err)
-+			return err;
-+	}
  
- 	ipsec = priv->ipsec;
--	gfp = (x->xso.flags & XFRM_DEV_OFFLOAD_FLAG_ACQ) ? GFP_ATOMIC : GFP_KERNEL;
-+	if (!ipsec) {
++	/* Block esw mode changes until the policy holds its own block. */
++	err = mlx5_eswitch_block_mode(mdev, false);
++	if (err) {
++		NL_SET_ERR_MSG_MOD(extack, "Eswitch busy, can't add policy");
++		return err;
++	}
++
+ 	if (!priv->ipsec) {
+ 		NL_SET_ERR_MSG_MOD(extack, "Device doesn't support IPsec packet offload");
+-		return -EOPNOTSUPP;
 +		err = -EOPNOTSUPP;
 +		goto unblock_mode;
-+	}
-+
-+	gfp = is_acq ? GFP_ATOMIC : GFP_KERNEL;
- 	sa_entry = kzalloc_obj(*sa_entry, gfp);
--	if (!sa_entry)
+ 	}
+ 
+ 	err = mlx5e_xfrm_validate_policy(mdev, x, extack);
+ 	if (err)
+-		return err;
++		goto unblock_mode;
+ 
+ 	pol_entry = kzalloc_obj(*pol_entry);
+-	if (!pol_entry)
 -		return -ENOMEM;
-+	if (!sa_entry) {
++	if (!pol_entry) {
 +		err = -ENOMEM;
 +		goto unblock_mode;
 +	}
  
- 	sa_entry->x = x;
- 	sa_entry->dev = dev;
- 	sa_entry->ipsec = ipsec;
- 	/* Check if this SA is originated from acquire flow temporary SA */
--	if (x->xso.flags & XFRM_DEV_OFFLOAD_FLAG_ACQ) {
-+	if (is_acq) {
- 		x->xso.offload_handle = (unsigned long)sa_entry;
- 		return 0;
- 	}
-@@ -814,21 +826,17 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
- 		goto err_xfrm;
- 	}
+ 	pol_entry->x = x;
+ 	pol_entry->ipsec = priv->ipsec;
+@@ -1315,6 +1325,7 @@ static int mlx5e_xfrm_add_policy(struct xfrm_policy *x,
+ 		goto err_fs;
  
--	err = mlx5_eswitch_block_mode(mdev, true);
--	if (err)
--		goto unblock_ipsec;
--
- 	if (x->props.mode == XFRM_MODE_TUNNEL &&
- 	    x->xso.type == XFRM_DEV_OFFLOAD_PACKET) {
- 		err = mlx5e_ipsec_fs_tunnel_allowed(sa_entry);
- 		if (err < 0)
--			goto unblock_mode;
-+			goto unblock_ipsec;
- 		allow_tunnel_mode = err;
- 		if (!allow_tunnel_mode) {
- 			NL_SET_ERR_MSG_MOD(extack,
- 					   "Packet offload tunnel mode is disabled due to encap settings");
- 			err = -EINVAL;
--			goto unblock_mode;
-+			goto unblock_ipsec;
- 		}
- 	}
+ 	x->xdo.offload_handle = (unsigned long)pol_entry;
++	mlx5_eswitch_unblock_mode(mdev);
+ 	return 0;
  
-@@ -904,13 +912,14 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
- unblock_encap:
- 	if (allow_tunnel_mode)
- 		mlx5_eswitch_unblock_encap(mdev);
--unblock_mode:
--	mlx5_eswitch_unblock_mode(mdev);
- unblock_ipsec:
- 	mlx5_eswitch_unblock_ipsec(mdev);
- err_xfrm:
- 	kfree(sa_entry);
- 	NL_SET_ERR_MSG_WEAK_MOD(extack, "Device failed to offload this state");
+ err_fs:
+@@ -1322,6 +1333,8 @@ static int mlx5e_xfrm_add_policy(struct xfrm_policy *x,
+ ipsec_busy:
+ 	kfree(pol_entry);
+ 	NL_SET_ERR_MSG_MOD(extack, "Device failed to offload this policy");
 +unblock_mode:
-+	if (!is_acq)
-+		mlx5_eswitch_unblock_mode(mdev);
++	mlx5_eswitch_unblock_mode(mdev);
  	return err;
  }
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
+index 1529d4730323..dbe5547d7a49 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
+@@ -1134,7 +1134,7 @@ static int rx_get(struct mlx5_core_dev *mdev, struct mlx5e_ipsec *ipsec,
+ 	if (rx->ft.refcnt)
+ 		goto skip;
+ 
+-	err = mlx5_eswitch_block_mode(mdev);
++	err = mlx5_eswitch_block_mode(mdev, true);
+ 	if (err)
+ 		return err;
+ 
+@@ -1427,7 +1427,7 @@ static int tx_get(struct mlx5_core_dev *mdev, struct mlx5e_ipsec *ipsec,
+ 	if (tx->ft.refcnt)
+ 		goto skip;
+ 
+-	err = mlx5_eswitch_block_mode(mdev);
++	err = mlx5_eswitch_block_mode(mdev, true);
+ 	if (err)
+ 		return err;
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+index 1fb67fc6d49a..48eb6acc1e87 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+@@ -971,7 +971,7 @@ bool mlx5_eswitch_is_peer(struct mlx5_eswitch *esw,
+ int mlx5_eswitch_block_encap(struct mlx5_core_dev *dev, bool from_fdb);
+ void mlx5_eswitch_unblock_encap(struct mlx5_core_dev *dev);
+ 
+-int mlx5_eswitch_block_mode(struct mlx5_core_dev *dev);
++int mlx5_eswitch_block_mode(struct mlx5_core_dev *dev, bool check_users);
+ void mlx5_eswitch_unblock_mode(struct mlx5_core_dev *dev);
+ 
+ static inline int mlx5_eswitch_num_vfs(struct mlx5_eswitch *esw)
+@@ -1082,7 +1082,11 @@ static inline void mlx5_eswitch_unblock_encap(struct mlx5_core_dev *dev)
+ {
+ }
+ 
+-static inline int mlx5_eswitch_block_mode(struct mlx5_core_dev *dev) { return 0; }
++static inline int mlx5_eswitch_block_mode(struct mlx5_core_dev *dev,
++					  bool check_users)
++{
++	return 0;
++}
+ static inline void mlx5_eswitch_unblock_mode(struct mlx5_core_dev *dev) {}
+ static inline bool mlx5_eswitch_block_ipsec(struct mlx5_core_dev *dev)
+ {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index 4da89fcf215b..474784131091 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -4365,7 +4365,7 @@ static int esw_inline_mode_to_devlink(u8 mlx5_mode, u8 *mode)
+ 	return 0;
+ }
+ 
+-int mlx5_eswitch_block_mode(struct mlx5_core_dev *dev)
++int mlx5_eswitch_block_mode(struct mlx5_core_dev *dev, bool check_users)
+ {
+ 	struct mlx5_eswitch *esw = dev->priv.eswitch;
+ 	int err;
+@@ -4373,8 +4373,11 @@ int mlx5_eswitch_block_mode(struct mlx5_core_dev *dev)
+ 	if (!mlx5_esw_allowed(esw))
+ 		return 0;
+ 
+-	/* Take TC into account */
+-	err = mlx5_esw_try_lock(esw);
++	/* Temporary reservations may reuse tables while TC users exist. */
++	if (check_users)
++		err = mlx5_esw_try_lock(esw);
++	else
++		err = mlx5_esw_lock(esw);
+ 	if (err < 0)
+ 		return err;
  
 -- 
 2.44.0
