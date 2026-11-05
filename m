@@ -1,54 +1,69 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.167.198
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.226
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793877044;
-	b=rxvb++mqr39pKUknrz1PkR6ksWRcXxgc3WbgNIwDqYKu8HvjE+UX0wSC1djeuTbeBpSi
-	 Br/V2AWSZc2BE+bbiJw7q2CzIFb0Nq2cOhfZJVoePwVeRE6+fyA4IQ7LX28MHJPvBVN56
-	 GEQsBI+L1aTu3pcSp+5kdDLFTInkARCmrF2Vrrys/FjYPXNlPrKSGAHZWne3oEqNfvnqb
-	 UHr+5TNKe4CzUFRsPC8VvJYUh5y3nmuC8Egipo5aYrpMcNQJQuyD3Zcz6c6C/zUZLzJjC
-	 NyWT6XPpu0mzFaUu9WZtnaQNKS43/j0LjjkHphxEkWHpHFMUU5fR3vTzB5OyECokwQQ==
+	t=1793880995;
+	b=P/f3EKUlV+rGnX91MoaeS0cHexjblzzU+q3sjWL3L67qr7frK+TIY4LDPefp3iHzt28l
+	 306ygaGqe3DuA0Nk5SLQPAqvDzTW8FdtWzm/2Jbqe6k40BqAeli6mZSchAdX+uxg8lfG6
+	 Aa2WdzbSKUzJviZyLHPE46scLF+rsUyvUXZz3MgpzhNAoqTcdOCP7fgY99CeoGWF/5LrR
+	 vWkfPnrfCaDeOLQhYoDX+zlekOJEDnOJDEoyLS4kHE7t8ygNM8xGqBjOh3DkbyxdqYfqO
+	 +XY0uPwKAeiMnGwJC8rCCQSbbAHpMBBTqtJC5T8iHXAszkWG4tRqLPS0UFwVDGAY3Tw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793877044;
-	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:MIME-Version:X-Received:Date:
-	 X-Google-Appengine-App-Id:X-Google-Appengine-App-Id-Alias:Message-ID:
-	 Subject:From:To:Content-Type;
-	bh=QOIwjIRpeVDqlXAgbw2FLrO0KLt63dq5HpsWbh7v4l4=;
-	b=YbAZ8oiopKV/elSh00xjyZlcqCRHu6F5x+JpyjpOXLrZxuCja/AjwEV5HLwaFgfiNRYi
-	 UO+lceRHU6GbiEtes3NWdtkdIJGLTrq5nGWOK0/PQYxenvCJLnqtVNWmyYFMtSv2+sQ/4
-	 8DItLuVEXxQYQlaSlGTNc+jxiFwCaS8GKCXRQWzNXQxbjiPUlX/Wua5EUTDuZDkDzSbat
-	 PsC6IF6Bt+McD3A++JmJ1ZKutzPKhDXrFFULNDg/YTPGt5p5SRxCUdh8NjhjERJ8rAF77
-	 NWHfdHT3Gg+2sQVAqV+tv73OENOS7g06hYJD5dPQ/5Hh50ba5In/il3Jwtj79R6Kj3Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793880995;
+	h=DMARC-Filter:dkim-signature:Received:Received:Received:From:To:CC:
+	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding:Content-Type:X-Originating-IP:
+	 X-ClientProxiedBy;
+	bh=FR0CVYf3ZhKJVeeFARswIucyAg2Az0MxrmGaHgkKG9A=;
+	b=3AKY5iDJieOGhwfYwqyQAkvlZHMDLPlJ9AFpIFKz+kDE6zCIwMMwHMhuJDJhlWq5OlS3
+	 AzUEec6aSu8SP0aukP1jk/wA7EFkDQZdcp7ZrEnKZhLGYlHLFEMHRLmTz/SRE/MWINPCP
+	 qvXrTWdnQgFWTD4PSwZXcUgDspNzjwZvzBTid9ZIvSs10xy+bL97BwO+k5wlLI0I36ZhX
+	 mvqHkg4Y7nsKWHBO3f9Y/yv7lhiR9n82aLEpdmP6gAEQi9+gEMCKL1Xmp+tpEVzV7eUPp
+	 9yDS99R4SyjsTk8uVZPKoLQCRIbwEtuZKFebnZQ8Z96NDWBo1azxiUo0NPHBiSE1jtA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=fail header.from=syzkaller.appspotmail.com;
-	spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com;
-	arc=none smtp.remote-ip=209.85.167.198
-Received: from mail-oi1-f198.google.com (mail-oi1-f198.google.com [209.85.167.198])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=pass header.from=huawei.com;
+	spf=pass smtp.mailfrom=huawei.com;
+	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=utH8JaMi;
+	arc=none smtp.remote-ip=113.46.200.226
+Received: from canpmsgout11.his.huawei.com (canpmsgout11.his.huawei.com [113.46.200.226])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5006C606A329
-	for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2026 11:10:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5006C606A329
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oi1-f198.google.com with SMTP id 5614622812f47-5641cd2cc13so1868299b6e.0
-        for <linux-rdma@vger.kernel.org>; Thu, 05 Nov 2026 03:10:44 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793877043; x=1794481843;
-        h=content-type:to:from:subject:message-id:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=QOIwjIRpeVDqlXAgbw2FLrO0KLt63dq5HpsWbh7v4l4=;
-        b=xw9mNaNzT6OevcGFvJShOj+zj+gou9I2/mHePX7nX4p4u3+nMGJGOD/y0qZMvONlYh
-         RWRuLoT2mgba7jZX0Gn+nymL+1FALAN5/fasnRRvnOKY/aLQPFazMomE0f6uV2wHTc47
-         is9u8lnowoX6ejxaoq1j28GMwcfbfiDSWfEGKYxWl/HHtpRxgyngPZ/GuHMPD2GwebBs
-         rpfmqw9Lm6oUAK2si8eD0zJFrqm50ZG2gRFIi/LqCIo11bAShu/hfaQgYBPDpKqkD9OT
-         +bfvLl6vi6KhU7PPRPg8Ep3sbrBIwtcIg4o0Vuyzwy4fc3P3cBek52Yq3Di5Buai3Bfj
-         eL6g==
-X-Forwarded-Encrypted: i=1; AKwUvBz4Oikh+1V4cy2kin2yifgG9CfZ3IJ+Uj7o9GyFweQtnMOz6Oui+7JvHmk2kxlPYXGIoaPT2JxL83tY@vger.kernel.org
-X-Gm-Message-State: APuU4Z8cVTr4xqQTN6wCyz+6jXt/tic7vYYts0hbfXodxhV7dEnSkZjE
-	KZQmW4XeaT2cv+IwgrssMQ6tHKpZccIKC1stf3Y/tSKFuErdVrnxYeDx2T9YF7zNerOGdiMFAUG
-	2DbfTqUfL3i8+7Pm1t4Um9039MxAfi86iDKx4a8Gey0ZWATzyO8twSCMfdpE=
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5EB6606A333;
+	Thu,  5 Nov 2026 12:16:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E5EB6606A333
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key, unprotected) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=utH8JaMi
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=FR0CVYf3ZhKJVeeFARswIucyAg2Az0MxrmGaHgkKG9A=;
+	b=utH8JaMiyhTZVRegagDy91k3MFeZKma0NdXqPJsP7ADZk80bU/drUK0NzsODGxKUwqnkMzob2
+	pPCvHVAGoCmO7NPCp6N+ypjj/2TxqerkP31Up2gfK1Q5ATg+UxR9PMrfmsEPv7KKeOTzEKk8kXe
+	vjZsdefqW5TWz+A5vg8uzDk=
+Received: from mail.maildlp.com (unknown [172.19.162.92])
+	by canpmsgout11.his.huawei.com (SkyGuard) with ESMTPS id 4jL1W46MTrzKm6Y;
+	Thu,  5 Nov 2026 20:16:16 +0800 (CST)
+Received: from whupemk300014.china.huawei.com (unknown [7.152.185.8])
+	by mail.maildlp.com (Postfix) with ESMTPS id 38FC040565;
+	Thu,  5 Nov 2026 20:16:23 +0800 (CST)
+Received: from huawei.com (10.50.85.128) by whupemk300014.china.huawei.com
+ (7.152.185.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Thu, 5 Nov
+ 2026 20:16:21 +0800
+From: Li Xiasong <lixiasong1@huawei.com>
+To: <stable@vger.kernel.org>, Chuck Lever <cel@kernel.org>, Anna Schumaker
+	<anna@kernel.org>
+CC: Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Olga
+ Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey
+	<tom@talpey.com>, Trond Myklebust <trondmy@kernel.org>, Chris Mason
+	<clm@meta.com>, <linux-nfs@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+	<yuehaibing@huawei.com>, <zhangchangzhong@huawei.com>,
+	<weiyongjun1@huawei.com>
+Subject: [RFC PATCH 6.6.y] xprtrdma: Fix endpoint leak after address change and device removal
+Date: Thu, 5 Nov 2026 20:42:24 +0800
+Message-ID: <20261105124224.4051975-1-lixiasong1@huawei.com>
+X-Mailer: git-send-email 2.34.1
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,152 +73,132 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-Received: by 2002:a05:6808:1783:b0:4fb:ac9b:b06a with SMTP id
- 5614622812f47-5640de0fc9emr14499827b6e.48.1793877043501; Thu, 05 Nov 2026
- 03:10:43 -0800 (PST)
-Date: Thu, 05 Nov 2026 03:10:43 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6aec6433.0ce67c00.35143.0002.GAE@google.com>
-Subject: [syzbot] [rdma?] [f2fs?] memory leak in radix_tree_insert (3)
-From: syzbot <syzbot+d60be66dd00b4490fa96@syzkaller.appspotmail.com>
-To: chao@kernel.org, jaegeuk@kernel.org, jgg@ziepe.ca, leon@kernel.org, 
-	linux-f2fs-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
+ whupemk300014.china.huawei.com (7.152.185.8)
 
-Hello,
+Commit a562485c359d ("xprtrdma: Fix ep kref imbalance on ADDR_CHANGE")
+is the linux-6.6.y backport of af9b65b29af34. It leaves the ESTABLISHED
+reference outstanding after ADDR_CHANGE and relies on a subsequent
+DISCONNECTED event to release it.
 
-syzbot found the following issue on:
+However, linux-6.6.y still handles DEVICE_REMOVAL in the CM event
+handler. Consider the following sequence on an established connection:
 
-HEAD commit:    6628e7d4c6b2 Linux 7.4-rc1
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=149fc6b1580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=441b6cc593d83cc4
-dashboard link: https://syzkaller.appspot.com/bug?extid=d60be66dd00b4490fa96
-compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1613be2d580000
+  ESTABLISHED:    acquire the connection reference, status = 1
+  ADDR_CHANGE:    set status = -ENODEV and request asynchronous close
+  DEVICE_REMOVAL: observe status = -ENODEV, skip the disconnected path
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/bd1857dac9bc/disk-6628e7d4.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/0750834263ca/vmlinux-6628e7d4.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/ef4090776a72/bzImage-6628e7d4.xz
-mounted in repro: https://storage.googleapis.com/syzbot-assets/b8af1c9e7f1c/mount_0.gz
-  fsck result: failed (log: https://syzkaller.appspot.com/x/fsck.log?x=16e69cdd580000)
+Before invoking the DEVICE_REMOVAL callback, the CMA sets the CM ID state
+to RDMA_CM_DEVICE_REMOVAL. cma_ib_handler() then filters subsequent
+IB CM disconnect events. The DEVICE_REMOVAL handler has skipped the
+put, and no DISCONNECTED notification is delivered to RPC/RDMA to
+release the ESTABLISHED reference.
 
-AI-generated root cause summary:
-In lib/radix-tree.c:__radix_tree_create(), intermediate radix_tree_node
-(xa_node) structures are allocated and linked into parent slots as the function
-descends through tree levels (shift -= RADIX_TREE_MAP_SHIFT). If a subsequent
-node allocation fails with -ENOMEM before reaching the leaf slot,
-__radix_tree_create() returns the error immediately without unwinding or
-deleting the newly allocated empty intermediate nodes. Consequently, slot-based
-iterators such as radix_tree_for_each_slot() used during cleanup (e.g. in
-uverbs_destroy_api() -> uapi_remove_range()) never encounter the empty nodes
-(which have count == 0), causing those radix_tree_node objects to leak when the
-containing object is destroyed.
+The drain and owner puts leave one endpoint reference outstanding.
+rpcrdma_xprt_disconnect() clears rx_ep without destroying the endpoint
+or its CM ID, leaking the endpoint and its remaining RDMA resources.
+This can also prevent device removal from completing.
 
-full analysis:  https://syzkaller.appspot.com/x/ai_root_cause?x=d60be66dd00b4490fa96
+This is a linux-6.6.y-specific backport regression: this branch
+combines the updated ADDR_CHANGE handling with the older CM-based
+device removal path. Earlier stable branches have not received this
+ADDR_CHANGE change, while upstream and stable branches based on
+v6.11 or later handle device removal outside the CM event handler.
+There is therefore no corresponding upstream commit for this fix.
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+d60be66dd00b4490fa96@syzkaller.appspotmail.com
+Track the outstanding ESTABLISHED reference independently of the
+connection status. On DEVICE_REMOVAL or DISCONNECTED, clear the
+flag before dropping the reference so that it is released at most
+once, even if earlier events have changed the connection status.
+The flag is initially clear in the zero-initialized endpoint, and
+all accesses are serialized by the CM ID's handler mutex.
 
-BUG: memory leak
-unreferenced object 0xffff88810d78f488 (size 576):
-  comm "syz.1.32", pid 7505, jiffies 4294948085
-  hex dump (first 32 bytes):
-    0c 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    40 e5 f3 11 81 88 ff ff a0 f4 78 0d 81 88 ff ff  @.........x.....
-  backtrace (crc d8883653):
-    kmemleak_alloc_recursive include/linux/kmemleak.h:44 [inline]
-    slab_post_alloc_hook mm/slub.c:4733 [inline]
-    slab_alloc_node mm/slub.c:5033 [inline]
-    kmem_cache_alloc_noprof+0x35b/0x3e0 mm/slub.c:5047
-    radix_tree_node_alloc.constprop.0+0x81/0x1a0 lib/radix-tree.c:276
-    __radix_tree_create lib/radix-tree.c:624 [inline]
-    radix_tree_insert+0x140/0x390 lib/radix-tree.c:712
-    uapi_add_elm drivers/infiniband/core/uverbs_uapi.c:27 [inline]
-    uapi_add_elm drivers/infiniband/core/uverbs_uapi.c:16 [inline]
-    uapi_add_get_elm+0x61/0x140 drivers/infiniband/core/uverbs_uapi.c:41
-    uapi_merge_obj_tree drivers/infiniband/core/uverbs_uapi.c:178 [inline]
-    uapi_merge_def+0x4c4/0xb60 drivers/infiniband/core/uverbs_uapi.c:297
-    uapi_merge_def+0xf0/0xb60 drivers/infiniband/core/uverbs_uapi.c:286
-    uverbs_alloc_api+0x85/0xc50 drivers/infiniband/core/uverbs_uapi.c:659
-    ib_uverbs_create_uapi drivers/infiniband/core/uverbs_main.c:1140 [inline]
-    ib_uverbs_add_one+0x1b1/0x350 drivers/infiniband/core/uverbs_main.c:1196
-    add_client_context+0x290/0x480 drivers/infiniband/core/device.c:755
-    enable_device_and_get+0x106/0x250 drivers/infiniband/core/device.c:1375
-    ib_register_device drivers/infiniband/core/device.c:1503 [inline]
-    ib_register_device+0x4fe/0x7f0 drivers/infiniband/core/device.c:1441
-    siw_device_register drivers/infiniband/sw/siw/siw_main.c:71 [inline]
-    siw_newlink drivers/infiniband/sw/siw/siw_main.c:433 [inline]
-    siw_newlink+0x36a/0x3f0 drivers/infiniband/sw/siw/siw_main.c:415
-    nldev_newlink+0x26f/0x3e0 drivers/infiniband/core/nldev.c:1859
-    rdma_nl_rcv_msg+0x1ad/0x2d0 drivers/infiniband/core/netlink.c:195
-    rdma_nl_rcv_skb.constprop.0.isra.0+0x175/0x1f0 drivers/infiniband/core/netlink.c:239
-    netlink_unicast_kernel net/netlink/af_netlink.c:1335 [inline]
-    netlink_unicast+0x3e0/0x530 net/netlink/af_netlink.c:1361
-
-BUG: memory leak
-unreferenced object 0xffff88810d792920 (size 576):
-  comm "syz.1.32", pid 7505, jiffies 4294948085
-  hex dump (first 32 bytes):
-    06 09 00 00 00 00 00 00 88 f4 78 0d 81 88 ff ff  ..........x.....
-    40 e5 f3 11 81 88 ff ff 38 29 79 0d 81 88 ff ff  @.......8)y.....
-  backtrace (crc 415aa5b6):
-    kmemleak_alloc_recursive include/linux/kmemleak.h:44 [inline]
-    slab_post_alloc_hook mm/slub.c:4733 [inline]
-    slab_alloc_node mm/slub.c:5033 [inline]
-    kmem_cache_alloc_noprof+0x35b/0x3e0 mm/slub.c:5047
-    radix_tree_node_alloc.constprop.0+0x81/0x1a0 lib/radix-tree.c:276
-    __radix_tree_create lib/radix-tree.c:624 [inline]
-    radix_tree_insert+0x140/0x390 lib/radix-tree.c:712
-    uapi_add_elm drivers/infiniband/core/uverbs_uapi.c:27 [inline]
-    uapi_add_elm drivers/infiniband/core/uverbs_uapi.c:16 [inline]
-    uapi_add_get_elm+0x61/0x140 drivers/infiniband/core/uverbs_uapi.c:41
-    uapi_merge_obj_tree drivers/infiniband/core/uverbs_uapi.c:178 [inline]
-    uapi_merge_def+0x4c4/0xb60 drivers/infiniband/core/uverbs_uapi.c:297
-    uapi_merge_def+0xf0/0xb60 drivers/infiniband/core/uverbs_uapi.c:286
-    uverbs_alloc_api+0x85/0xc50 drivers/infiniband/core/uverbs_uapi.c:659
-    ib_uverbs_create_uapi drivers/infiniband/core/uverbs_main.c:1140 [inline]
-    ib_uverbs_add_one+0x1b1/0x350 drivers/infiniband/core/uverbs_main.c:1196
-    add_client_context+0x290/0x480 drivers/infiniband/core/device.c:755
-    enable_device_and_get+0x106/0x250 drivers/infiniband/core/device.c:1375
-    ib_register_device drivers/infiniband/core/device.c:1503 [inline]
-    ib_register_device+0x4fe/0x7f0 drivers/infiniband/core/device.c:1441
-    siw_device_register drivers/infiniband/sw/siw/siw_main.c:71 [inline]
-    siw_newlink drivers/infiniband/sw/siw/siw_main.c:433 [inline]
-    siw_newlink+0x36a/0x3f0 drivers/infiniband/sw/siw/siw_main.c:415
-    nldev_newlink+0x26f/0x3e0 drivers/infiniband/core/nldev.c:1859
-    rdma_nl_rcv_msg+0x1ad/0x2d0 drivers/infiniband/core/netlink.c:195
-    rdma_nl_rcv_skb.constprop.0.isra.0+0x175/0x1f0 drivers/infiniband/core/netlink.c:239
-    netlink_unicast_kernel net/netlink/af_netlink.c:1335 [inline]
-    netlink_unicast+0x3e0/0x530 net/netlink/af_netlink.c:1361
-
-connection error: failed to recv *flatrpc.ExecutorMessageRawT: EOF
-
-
+Fixes: a562485c359d ("xprtrdma: Fix ep kref imbalance on ADDR_CHANGE")
+Signed-off-by: Li Xiasong <lixiasong1@huawei.com>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+This RFC is based on linux-6.6.y at v6.6.161.
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
+The upstream device removal mechanism was introduced by:
 
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
+  7e86845a0346 ("rpcrdma: Implement generic device removal")
+  3f4eb9ff9234 ("xprtrdma: Handle device removal outside of the CM event handler")
 
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
+I have kept this RFC limited to reference accounting in the existing
+linux-6.6.y teardown paths. Backporting the generic mechanism would
+also change per-device registration, module initialization and
+teardown synchronization, and would require reviewing its dependencies
+and follow-up fixes. Keeping the fix local avoids introducing those
+additional lifecycle changes into the stable branch.
 
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
+Would this localized fix be appropriate for linux-6.6.y? I'd appreciate
+your feedback on the reference accounting, or any suggestions for a
+simpler way to address the regression.
 
-If you want to undo deduplication, reply with:
-#syz undup
+ net/sunrpc/xprtrdma/verbs.c     | 15 ++++++++++-----
+ net/sunrpc/xprtrdma/xprt_rdma.h |  2 ++
+ 2 files changed, 12 insertions(+), 5 deletions(-)
+
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 4990e37bcdc0..5b5179aa2adf 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -250,17 +250,18 @@ rpcrdma_cm_event_handler(struct rdma_cm_id *id, struct rdma_cm_event *event)
+ 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
+ 		pr_info("rpcrdma: removing device %s for %pISpc\n",
+ 			ep->re_id->device->name, sap);
+-		switch (xchg(&ep->re_connect_status, -ENODEV)) {
+-		case 0: goto wake_connect_worker;
+-		case 1: goto disconnected;
+-		}
++		if (xchg(&ep->re_connect_status, -ENODEV) == 0)
++			goto wake_connect_worker;
++		/* CMA suppresses subsequent DISCONNECTED events after removal. */
++		if (ep->re_connect_ref)
++			goto disconnected;
+ 		return 0;
+ 	case RDMA_CM_EVENT_ADDR_CHANGE:
+ 		switch (xchg(&ep->re_connect_status, -ENODEV)) {
+ 		case 0:
+ 			goto wake_connect_worker;
+ 		case 1:
+-			/* The later DISCONNECTED event balances the
++			/* DISCONNECTED or DEVICE_REMOVAL balances the
+ 			 * ESTABLISHED get; do not put here.
+ 			 */
+ 			rpcrdma_force_disconnect(ep);
+@@ -269,6 +270,7 @@ rpcrdma_cm_event_handler(struct rdma_cm_id *id, struct rdma_cm_event *event)
+ 		return 0;
+ 	case RDMA_CM_EVENT_ESTABLISHED:
+ 		rpcrdma_ep_get(ep);
++		ep->re_connect_ref = true;
+ 		ep->re_connect_status = 1;
+ 		rpcrdma_update_cm_private(ep, &event->param.conn);
+ 		trace_xprtrdma_inline_thresh(ep);
+@@ -291,6 +293,9 @@ rpcrdma_cm_event_handler(struct rdma_cm_id *id, struct rdma_cm_event *event)
+ 		ep->re_connect_status = -ECONNABORTED;
+ disconnected:
+ 		rpcrdma_force_disconnect(ep);
++		if (!ep->re_connect_ref)
++			return 0;
++		ep->re_connect_ref = false;
+ 		return rpcrdma_ep_put(ep);
+ 	default:
+ 		break;
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index c78734e93c71..4a3ce78bb90c 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -84,6 +84,8 @@ struct rpcrdma_ep {
+ 	unsigned int		re_max_inline_recv;
+ 	int			re_async_rc;
+ 	int			re_connect_status;
++	/* Outstanding ESTABLISHED reference; protected by CM handler mutex */
++	bool			re_connect_ref;
+ 	atomic_t		re_receiving;
+ 	atomic_t		re_force_disconnect;
+ 	struct ib_qp_init_attr	re_attr;
+-- 
+2.53.0
