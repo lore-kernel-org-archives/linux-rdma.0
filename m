@@ -1,93 +1,120 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.43.25
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793916097;
-	b=cIt+tIO1rM8PcMHp/H9C7XkC8lBEyzTsnxQ089gDmnteHykNKjb8Fj48CikDPQkjn9RU
-	 H5OpYYPd1/R3+TAGsR0zBG3r5s8duMiNu+G0eVp4yLE3a5T5TZUBBgRSH6S5L/PRozijf
-	 Xzn36l2EMabVVmmDxtk5aSUcCB/uNUXF5nw8dKyYW3LKO60qxnrQav26iJ1IAHxHTt+sn
-	 SEOrBYznC+FfIfJ72Uy9rxlBykn+Zp7fBONvDH7gjbLzF4EA46XCOm3uZkDft85Z6yioz
-	 ziAQlJrX/M4/dtDj5UThCW31EJ7njGVzn0ePs2gpNrb2pRda4azsEiSVvUR3KlJ0+og==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793916097;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=BjSJj+zJDnnRI8+lGdW2YiDc0SmxvvggWXYIgTmnztY=;
-	b=1DzxVwsYUTEnlh934Zj7liJubDR4pcJiZ/OTWE4P9aVr4T44mIVvYqlN/mq4GM8ziEfK
-	 CtxFX/Px8GbYwOJDaI+0yFWOMdXGv141YJN+3XIb/ujxy71i64gokWEwQi7QRpa4XaWbS
-	 XiPlbygLkPBSlxFw4bgumbx2LgMG3OYIuqr4mZBYQUCZTihPtQFWcQP1pQtO5fq75SDKk
-	 wbGfxyZa/IgltkBGzuYDqjEKvGr7o6OM/my81TCQ121OnEiGi7GpV4V/9WfC3rRfwNIzN
-	 Vz6cH2xKcBzKKZFbJwklpQ5p1pZ4rim1g07s4/8s+VAlNwBXjrYawkb++bOiCeJadLw==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=amd.com;
-	spf=fail smtp.mailfrom=amd.com;
-	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=LCeIAbhu;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.43.25
-Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012025.outbound.protection.outlook.com [52.101.43.25])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.229.133
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793917261;
+	b=Jl0Up+vnD5KFyiJHdDNwgHCF43850/BzPP2uSnSVAXu4yglgF/ERQuwemw7N78GrFMpS
+	 KucJpqCtleVE8b7bQ4GslPpeUByVogoIRL6zJrQu8ol3zlPtKtiFopwj0kYSVlgUz7UsE
+	 YhwDe9qSbvGAjkS0prCKRYZU2BB+3yoP5VVmcLu76o/GNj6Jpm+jbLUT+d2VDVmAbFYeg
+	 r9h162UfIF8Af9zyAgLfoo+JLtwQushEzOkLQ4orXwwNWJmO6deJoZn8ni0TIAE5gA8Re
+	 IbIxrisAn/tzyh7f5RPd3T/gAGIYwVO+SKRaQGnPvcdCIFeQ6Hi5lcpVg2sBYBkxbFw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793917261;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:X-Google-Original-From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=kZvRQk8qYOltAbKUxNkYwyZeXDB5dZ+BBtBT4hJ905c=;
+	b=Kzk7AAFRHp+O7kakuROJYWP1HSokSfqq8Q4KHIqrQRRO+wax6E1ZvIKSoy0MBe5McuWx
+	 X8c72zYk8gE1s8a1Azd7KAtym+ZHrb1e3DfT1hlaDvTyUkVEpZa1COSvIgy+Qywp4sA70
+	 6dtTTSQQJNf50uXm8+8tPLvne4lDfiLGbD5rojvBEDSvO7oS6gTyI/tn01WIIPvx+7E5n
+	 tiCzQrxQYdG3wNmuCb3tU4/YakDc/HDfTAqeTbGEZfbd9pP+tTfOwbf9JVxK4zfludpzf
+	 8dNOH+cFdWZO0MgqIHwYmKbe72eEl1UFUDUQluQ9zbZB9y1yK2gdaSFSHZJ/q1aGIrA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=obvqlox2;
+	arc=none smtp.remote-ip=74.125.229.133
+Received: from mail-dl2-f5.google.com (mail-dl2-f5.google.com [74.125.229.133])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E7B9606A330
-	for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2026 22:01:36 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8E7B9606A330
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3927606A32F
+	for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2026 22:21:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E3927606A32F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=LCeIAbhu
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=d73xcUdG157+yuPXayUbqK8xxo99vdJSV7htYT7jg0dhEGqeyjpvwhJHYHsIACB+kcJJ4t8BPg7Eu//16OUc/VddCu0XBzsIARH5qMSeLsqTCwIjDWiEMLUVfEXtm8AQFEYLGz9T35wDJb/xm6Gllr9Ti664p/zYv/tASSuA0feIl16KtqO+qNDQLps8Y8k7p865ItBghf0u1pGHpODlr4Ix1vB1dFv99ZuFTkWN6zReqb4A82JN2BM6MZUPvFc7taLRM3sxZKtGDXZMZEQG1JmnutH9RpTufQXEixupMuu35ypMztKDvTb3UBJY2Zf/YfnxOzkfXmLh9qL4rZDt+A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=BjSJj+zJDnnRI8+lGdW2YiDc0SmxvvggWXYIgTmnztY=;
- b=qWqoiVJkO7kJxoBLd2D4tvmswaibhHbTspUF/jHZcEcrWtZiELyfUaFlwHxPBhc521zOn2nAA077rtX7ic4uzFcbTLajHvG2wQC76zW0DEEhnDJGvLdeShMUcxkp+qNGuHih11dW2IFq85ezsE1MBZaoz/JQ8sjwEJuEae47pGX8dNZejF9OKzrsMeEUOomEmfYe2oi+GHfduYw5J0/J0RiklqoVb729tPupUZB29dWB6KZtlKzK6q/9fRugu4nm9A+16f8TfW4i2o1MIrtDrSQdxGUSxr9oxCPOSlww3Oue9dVV2AlsYXGFr+9bpnr2chcVR7pJMZ7fzpCfsg5QPQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=BjSJj+zJDnnRI8+lGdW2YiDc0SmxvvggWXYIgTmnztY=;
- b=LCeIAbhuBN2GfFwpYiLR1bKgAs1aDp7OXAZKo5SspoHG/UmzT2CiBdatCczDSYBwdwJIrTTIPV7aA2BxHpXbYpTdqDFAmozxvT6lge2hKIOtE4g/Z0+Dt5d74ZZNQTZaC9aBzU/gokTIrvpOifdJ4XsG+/IWmgwA6wViPBz2UUE=
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from MN2PR12MB3485.namprd12.prod.outlook.com (2603:10b6:208:c9::22)
- by BN7PPF62A0C9A68.namprd12.prod.outlook.com (2603:10b6:40f:fc02::6d2) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.12; Thu, 5 Nov
- 2026 22:01:31 +0000
-Received: from MN2PR12MB3485.namprd12.prod.outlook.com
- ([fe80::7ac:5acc:f8b7:65c9]) by MN2PR12MB3485.namprd12.prod.outlook.com
- ([fe80::7ac:5acc:f8b7:65c9%7]) with mapi id 15.21.0569.011; Thu, 5 Nov 2026
- 22:01:31 +0000
-Message-ID: <396e7329-587f-4610-b492-a6bd28049ae3@amd.com>
-Date: Thu, 5 Nov 2026 14:01:29 -0800
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next 3/3] ionic: add devlink param for command timeout
-To: sashiko-reviews@lists.linux.dev
-Cc: linux-rdma@vger.kernel.org, "Nikhil P. Rao" <nikhil.rao@amd.com>
-References: <20261102-b4-ionic-cmd-timeout-v1-0-2f75c2d0a0c7@amd.com>
- <20261102-b4-ionic-cmd-timeout-v1-3-2f75c2d0a0c7@amd.com>
- <sashiko-outbox-196113@kernel.org>
-Content-Language: en-US
-From: "Rao, Nikhil" <nikhirao@amd.com>
-In-Reply-To: <sashiko-outbox-196113@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: SJ0PR05CA0133.namprd05.prod.outlook.com
- (2603:10b6:a03:33d::18) To MN2PR12MB3485.namprd12.prod.outlook.com
- (2603:10b6:208:c9::22)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=obvqlox2
+Received: by mail-dl2-f5.google.com with SMTP id a92af1059eb24-1ac216daf7dso58546c88.1
+        for <linux-rdma@vger.kernel.org>; Thu, 05 Nov 2026 14:21:00 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793917260; x=1794522060; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=kZvRQk8qYOltAbKUxNkYwyZeXDB5dZ+BBtBT4hJ905c=;
+        b=obvqlox2baCnA3JMUIrvbt0d7DdsKdabHK7z6YwvqrDPqNNZGm6+LEmE29FLBrXUSN
+         xfWpLTfkrYg+qFBP3rvKTBRIx/amuIUtOxV3DtWxkosqeIo81ByIqbEmwdFCmeusXv8G
+         x6nyGWLEU4qkom+beG0+3G8BmFBqjhvVbDMZdoMm4k1/+K7aDIdQFrNZh4Ek6qC2NNCk
+         8Hm3o52rP4oPPBIwniUZs6fynaDYP5wRwUBBd4Qtv4S4EIFvH9cx6oiN0I2ZF9dxAknx
+         G4p2cm//p0z1ftCZZeR9jR+IXuUc539iGLsY48DWW19vAtuyIvzFrhZf6rBVIO/ReNDP
+         83Ew==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793917260; x=1794522060;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=kZvRQk8qYOltAbKUxNkYwyZeXDB5dZ+BBtBT4hJ905c=;
+        b=BYjmKXka8NmWgQCvstJZlVN78c3eZVm8Gef6+Zlfks84o9Gpxgb351sFcJVlE8H4VI
+         PZRn8rK/vU460+7tp7V94zrKrKKN9Kc/4TNa3EgZfwWrzF/sX6D86rZKeFtqf2mQuUHy
+         LMXZPxFsj71qKgPee4JphLPXG53jBAnaQnK6K6KV+DFOhCqGy8HQkL52fKV9er2FlXQV
+         EI02p8srkDyc6fsG7ecrjxYnGt8Z4MjwMu5Pk8/eg2ke6WpQjEr0UZMxdOXc6cgKDvk4
+         6xY8KXSLzKQEpLHfFbmZObP49LSznS+eO3VCQDPw91yQcj50uzW8stfDO27aDiYqlef+
+         P4gQ==
+X-Forwarded-Encrypted: i=1; AKwUvBzvKTnozga1IkLIn7wZw7Cm8e2/C1qL7zAu7HSIX1RUnqIK7ATLBpt2S0qhlfe/qLCLmNBX+fbytesv@vger.kernel.org
+X-Gm-Message-State: APuU4Z+Pfp4gGXN9st9/Ecc+0IV+SFuaaM19LfSBCGoM8JMH2/7ZhOSY
+	UnLwKVzayBC5e2/mamSRZh1wC6ZcIlx6M273+gSkVUVdQND8PjQCU+Fi
+X-Gm-Gg: AYBFou1QiDfMGkEZSrgOISDgQPB5Ojs9myLOXDXh5G/VAR7n+O8Yu9inNLWf3su5V3L
+	zLnQGaGLGObSi4pzjJzpAKndY66hBg10OdCekThBY7N0fAHwDX563NLPWNT+2dWMBHgQ2lrJ3c2
+	46RwGnS8dDqpHoSAoFPIZCVe1NLfa1Qp4DeZ+bB1gPqgw77ZedF7oh0WnfnWbNG3uZ0uLSSnz2H
+	4sL316wtXNeFxk5y0BQ8m8Drjvu5aMGTKTiVaQiQe1uvdAx2LDhWRrSYlpFIU0WTVT/XOgtYdm5
+	wClgaCjnXLZWub/AkLBhQUuCaeF9k/cet5Td4Dk5WhkAh02gWEpF8ydju9037Th31v3U+6njRX/
+	I1r1X+9Z1r9/ZklK6e2aJylSCyyaas+iE2Y1WPResCopflsTSnZlmyntjA/3jmsepUuEOPctraE
+	TlYtq0qOOCzEUsdfiLCJnexJkAU3OWUHic7p0cHPeozSYQqtZxqgZou2GSSXRyuKar9GppyRULm
+	7vpss2Ihebt7kLLNagagfmOQsJlqMqyXUOchIypxBqwArJZOv+wCKIXaSJaI6pO4fc44Vp8hAlx
+	5Fryn2xwJMiLvshHs8hJe30=
+X-Received: by 2002:a05:693c:6096:b0:368:d0b6:b231 with SMTP id 5a478bee46e88-36f752511a5mr890910eec.10.1793917259665;
+        Thu, 05 Nov 2026 14:20:59 -0800 (PST)
+Received: from localhost ([2a03:2880:9ff:74::])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36fa651eccdsm117955eec.1.2026.11.05.14.20.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 05 Nov 2026 14:20:59 -0800 (PST)
+From: Stanislav Fomichev <sdf.kernel@gmail.com>
+X-Google-Original-From: Stanislav Fomichev <sdf@fomichev.me>
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	andrew+netdev@lunn.ch,
+	edumazet@kernel.org,
+	horms@kernel.org,
+	corbet@lwn.net,
+	skhan@linuxfoundation.org,
+	rdunlap@infradead.org,
+	michael.chan@broadcom.com,
+	pavan.chebbi@broadcom.com,
+	saeedm@nvidia.com,
+	tariqt@nvidia.com,
+	mbloch@nvidia.com,
+	alexanderduyck@fb.com,
+	kernel-team@meta.com,
+	sdf@fomichev.me,
+	dimitri.daskalakis1@gmail.com,
+	almasrymina@google.com,
+	dtatulea@nvidia.com,
+	bobbyeshleman@meta.com,
+	asml.silence@gmail.com,
+	daniel@iogearbox.net,
+	razor@blackwall.org,
+	leitao@debian.org,
+	linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-kselftest@vger.kernel.org,
+	leon@kernel.org
+Subject: [PATCH net-next v3 0/9] net: devmem: size TX net_iovs from the dmabuf layout
+Date: Thu,  5 Nov 2026 14:20:49 -0800
+Message-ID: <20261105222058.944293-1-sdf@fomichev.me>
+X-Mailer: git-send-email 2.53.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -97,190 +124,113 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MN2PR12MB3485:EE_|BN7PPF62A0C9A68:EE_
-X-MS-Office365-Filtering-Correlation-Id: b0f8859c-d2a9-447d-b23e-08df3b88594f
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|1800799024|23010399003|376014|261021135927099003|261021123027099003|11063799006|4143699003|261022075727099003|261026140227099003|261028144727099003|261009223027099003|261021121427099003|56012099006|5023799004|261022105027099003|261026121527099003|10067099003|18002099003|261102123227099003|22082099003|6133799003|3023799007;
-X-Microsoft-Antispam-Message-Info:
-	H0+7aknPShRqR9Uf2BwLOOrgbAkoHiztWaJzKksUncDxAOitsg1mHBTeWDCG51hyW2EUCOUwyOELEFKvDnQTrTuSsmUr0JdIJxM5Jj0yNgC/m9tfm0A0egHZbmssyZEcchKw6qEyEK3skwrnG5t+QXwh9CXZvXTsyMka3aYuWfIqXz+3R9osHghANxUcSni0rslNzKlqBnzfUqT/GwQJNzlX99d0+rTxGaRxXd8Dn99lfnMbJU1O21np/F7pAw35l8P8CNE1S5f4Jh5GZ2iin/ZdGyPv/Sh+h2YFaiAD0IsxSM36Fj/B9OXwprdQHY+upD8hwbbFpoT4WALQ+ceaS7egTyths3jQHeWN5WBt4emMldeyBb0zt2i/JLxcBxK/DodF8H/2tlGuvXdUpz98YW6wRZxNeqz0nalYmCf6sWtIM7MSkIgI2CUOXW57+Vy5PcxIJv8OHCNEOxQwVZKhiFInIl3GAIcm5Weehv7izbnofNpWIvhz5cCvQIuy2hraZqryRmCnfyBUitWQ0XPdU0tgm1dOIVTUV6C5Nq1UNDSlIM1Vpv4pdjIoT2ibD+0OFEjxGiXpVGi4+Z9OdY6cEqGCokWMcbZ0Dt5pX/HZxSNDkSNykE0hKgFbUOygnXDm5cRnFjtDyUKMoU3h/uKWkSTjXxLDZECm1W/MkTQfAFA=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB3485.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(23010399003)(376014)(261021135927099003)(261021123027099003)(11063799006)(4143699003)(261022075727099003)(261026140227099003)(261028144727099003)(261009223027099003)(261021121427099003)(56012099006)(5023799004)(261022105027099003)(261026121527099003)(10067099003)(18002099003)(261102123227099003)(22082099003)(6133799003)(3023799007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?RkRlZldtZjhHY21zZjR1R0NBMVUyMEJ6eXpabVBHUXg2TU5pT2YwdGlscnhZ?=
- =?utf-8?B?bUhTbnRmdDAzNTYvWnk3dThDNmczR1BwTUdBR1F4eTF4b1d4RU5iYVA3amIx?=
- =?utf-8?B?dndscHhNQlVhUHZqenF2bDVjRlUvVDlNSm1NR2xGQjlsNVF3SlFUOGJUNlNq?=
- =?utf-8?B?L3Q5WVJISzdZS1F4alM1OVlHOGFNQ1lVelIvRUpiNjFQRXN5dDVDTGZ3L3lt?=
- =?utf-8?B?S2EzQ3YzdVNpMHROcWxwK0xiSVVBWVhMMHBPTFQzOG1jNHlDVzZGRTZPM3Nq?=
- =?utf-8?B?STE2TjJRUXFub3RGaUEwZ09XL253cEZDZHZrT21CTmFhenBsUWgweDFQdDE1?=
- =?utf-8?B?RU1UUXJ4d2ZmQmhrZGpJZzRNNjVDeG5tbE92azZ2Yk0xcHI0TS9ScCtSUjFk?=
- =?utf-8?B?MHY2Z0xYd2ZvNCsvVjYxRXJ3NmRBclJOeTVISC9CRS92ZExUU1h1WThpbkNI?=
- =?utf-8?B?QklsSHA3ekNoQkJ0a2o5SWRPU21qd3lvcXA2ZC9pQmR6bVh1WGowNWZXdWNG?=
- =?utf-8?B?ODYwc3lzNWFZTXdoTzNXOXh5b1dZNzJiSmxmR09HcGdzWTIwWTA4cUZ5dmdC?=
- =?utf-8?B?QVdjeUkrcHhuN1FGaVVXaTREUFpyakRnckZKM3lleVpYazFCQ1VoY3o1SjNm?=
- =?utf-8?B?cDlTYTl4ZGNhRWJPQ2p6NnVTUnpGenJ2L1lCdzBNQ2hPaGhYc3NzZG5HM2Vu?=
- =?utf-8?B?SVdzN3RWQVRiNUFRU1lVc01laWhyUGs2YWR2SEtMQi8vb2dRRmwzOEdycEQv?=
- =?utf-8?B?ajc3SzFGTjR5K3FHdWRBOERlaEhkOU9JVllWckplTmhiYm4wSVRLNVYxbFla?=
- =?utf-8?B?VGdzZGtxaEhTOXdKdGJsNVN0ZThTOFB0MmxzMkpaUTIwSFhXc1IvelZ2cUpw?=
- =?utf-8?B?ODk0ZENwOE9VUWk2cjZYQjhLelZ3T3VYSnVCVGZnUzkzY2lOU2tiV21JaGFl?=
- =?utf-8?B?RW1mM3FDZ1VRZzVhU3JMMjJJVXJnVTVMdk1nQnpNTWdVS3hqVGRyUEthbnh2?=
- =?utf-8?B?cUhlRVhQdlR3eThRUGxOVjlVZVMydWFKRkN2UzRrTlpzaXRzelhqS2QwaWM5?=
- =?utf-8?B?YnUzcW5jVFVnVTRQL0xITTFUWVdqUjR6c0lTKzExYWNvR0FwcHRkUEFnWUVq?=
- =?utf-8?B?SklqZlJ1TzVROFR0d2pNZjJTQ3RwUnVBMmgvT29CMG56OUhjRmp4eUsrQ001?=
- =?utf-8?B?WTlvbmhYeUsyeEV4SGN6SFRNVmp1cVNvQ2tUQ0Y1eEx2YmIyQlZPa2dieGFx?=
- =?utf-8?B?MVlxSDZFMVY3eHdWcFBNaEVGK1RLdGJCeUUxTUNtNFMvUG9IZ1ZaVkFXU0tl?=
- =?utf-8?B?d3BVeE40N0RXYlFaUzJRTUtjSS9TM1hQRWN6UDJBcmN3V0ZCKytYZ2FDNFZm?=
- =?utf-8?B?K2dXeDRqQ3ZUdEk1cm5ISUIrcS9MNG8xNVN1T2d1M2ZmQkNwYjZxMWtTejhs?=
- =?utf-8?B?NXJMQ1NROGF1MG11Wm43ZExmbHcvRTluQ3JFS1JVSUNROHI3YlRzWFgra2RV?=
- =?utf-8?B?bTZtOVduaUZkY1pQRkFmYXlVRUlHOE9nU2xrZlkyOUtZdVJQNXZUR1B6RFVL?=
- =?utf-8?B?K3FKRzJlUG83a01RM0J0K0JxeUVtU0ZpQVpsNW5QUE9QQnFZd3UvMTB2NVlN?=
- =?utf-8?B?clFiT3UyM3IxL2U2NFVKUEdJSmcrVEpESGNXb1F5MHRTaUY4cGxWaGk3ODR0?=
- =?utf-8?B?NGs0KzRsV09FdXZxcU90VjlOSlFFYWRnSDhORTZvWi9CdlhlaVZLa3NVNkxU?=
- =?utf-8?B?ZHliU1FsK2laSnp0Y1VYU3FLMEZZVEhGN2g3d0tzL010NGJObU42ZWRnSnVB?=
- =?utf-8?B?ZUdDVUtlRGNKeEd3Z1M4Y0xKQUVzMmlIZzM2YWZRZVBTTGlWNW9JU3Y5bnhC?=
- =?utf-8?B?Uml6MjQ3SVpGN1g2UitQTnd2VC9YeURZMmNQUDJYRmZlRHlWdnBGNndKcFlT?=
- =?utf-8?B?WGRoeW5iZ2U2dlFOR0toWVJ2clVRUDJBNzAvdHlYaEVRaktYMkkzczVEZTNn?=
- =?utf-8?B?S3VHRVZuQlMxUmkvNWhncWFiNmNsODJiL0JBSjlSdWNCcGFBUnJ1V0syQWNO?=
- =?utf-8?B?STlLT0NzS2pLL244YTRwTjhRbkxLNFBzRm90bVVEVEpGTzNRZzQ5WlZRTzFr?=
- =?utf-8?B?S01uV29ITmllQnJpcjZiM1U1Y1Nicm9LQy9OZzlkKzRDaitjL0xlTlQ0dmdq?=
- =?utf-8?B?RUFsU3E2R05vWVpCbDZhRnBvelpsbHBZaHhEZk9zSlJmUS9aODFFUWFqZnBB?=
- =?utf-8?B?MjdOZU1adlhTZWM4NzZQZDRUMlhPUVRtdFFzMWkxanBQNkZDdWsvVFhjUTBK?=
- =?utf-8?B?TjRiWUtwRm9LM25jb0x2ak83VkxvYmQ0bVNJb1RWSTFucTFGSzJEZz09?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: b0f8859c-d2a9-447d-b23e-08df3b88594f
-X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB3485.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Nov 2026 22:01:31.1855
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: HZGRNlBtqTpLZjTXC1tMvlP2YbdHhRvLzxA7Tc6DpSoBK9210Vh91mJdTtZq3hPYxkYigkkI0yjlbuSaxoMwoQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN7PPF62A0C9A68
+Content-Transfer-Encoding: 8bit
 
-On 11/3/2026 2:28 PM, sashiko-bot@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 2 potential issue(s) to consider:
->> +static int ionic_dl_cmd_timeout_get(struct devlink *dl, u32 id,
->> +                                 struct devlink_param_gset_ctx *ctx,
->> +                                 struct netlink_ext_ack *extack)
->> +{
->> +     struct ionic *ionic = devlink_priv(dl);
->> +
->> +     return ionic_dev_getattr_cmd_timeout(ionic, &ctx->val.vu8);
->> +}
->> +
->> +static int ionic_dl_cmd_timeout_set(struct devlink *dl, u32 id,
->> +                                 struct devlink_param_gset_ctx *ctx,
->> +                                 struct netlink_ext_ack *extack)
->> +{
->> +     struct ionic *ionic = devlink_priv(dl);
->> +
->> +     if (test_bit(IONIC_LIF_F_FW_RESET, ionic->lif->state))
->> +             return -EBUSY;
->> +
->> +     return ionic_dev_setattr_cmd_timeout(ionic, ctx->val.vu8);
->> +}
-> 
-> [Severity: Medium]
-> Unlike ionic_dl_cmd_timeout_set(), ionic_dl_cmd_timeout_get() does not check
-> IONIC_LIF_F_FW_RESET (or IONIC_LIF_F_FW_STOPPING) before calling
-> ionic_dev_getattr_cmd_timeout().
-> 
-> During firmware down or PCI reset preparation in ionic_lif_handle_fw_down()
-> and ionic_reset_prepare() (including when ionic_pci_error_detected() is
-> called with pci_channel_io_frozen), IONIC_LIF_F_FW_RESET is set and then
-> ionic_devlink_params_unregister() is called while the devlink instance is
-> still registered:
-> 
-> ionic_lif_handle_fw_down() / ionic_reset_prepare()
->    ionic_devlink_params_unregister()
->      devl_params_unregister()
->        devlink_param_unregister()
->          devlink_param_notify(..., DEVLINK_CMD_PARAM_DEL)
->            devlink_nl_param_fill()
->              ionic_dl_cmd_timeout_get()
->                ionic_dev_getattr_cmd_timeout()
-> 
-> Similarly, ionic_devlink_unregister() calls devlink_unregister() before
-> ionic_devlink_params_unregister(), which also invokes devlink_nl_param_fill()
-> via devlink_params_notify_unregister().
+TX bindings use PAGE_SIZE net_iovs, so a frag covers at most a page.
+A 64KB skb needs 16 frags, and MAX_SKB_FRAGS caps devmem skbs at about
+68KB, which makes BIG TCP ineffective for devmem TX.
 
-On remove, get runs from devlink_unregister() with the firmware running
-and completes, or fails immediately if the firmware is already down.
+This series picks the TX net_iov size from the dmabuf sg table instead:
+the largest power of 2, up to 2MB, which aligns every DMA segment. With
+a 2MB hugepage-backed udmabuf a BIG TCP skb takes a few frags. There's
+no UAPI change since TX addresses are dmabuf offsets.
 
-> 
-> If a userspace netlink listener is monitoring devlink events, or if a user
-> queries devlink parameters during the window before the parameter is
-> unregistered, won't ionic_dl_cmd_timeout_get() issue a synchronous MMIO
-> IONIC_CMD_GETATTR command while the firmware is down, the device is in
-> reset, or the PCI channel is frozen, potentially stalling reset recovery for
-> up to cmd_timeout (255) seconds under devl_lock and dev_cmd_lock?
-> 
+TCP still bounds skbs by size_goal, so frags get larger, skbs don't.
+Devmem TX frags are capped by a new per-device limit, PAGE_SIZE by
+default, so drivers opt in to larger frags:
+- mlx5: no limit, 32-bit length per data segment
+- bnxt, fbnic: 32KB, 16-bit TX descriptor length
+- gve keeps PAGE_SIZE frags
 
-__ionic_dev_cmd_wait() returns -ENXIO as soon as fw_status shows the
-firmware is not running, which is the case after firmware down (running
-bit clear) and with a frozen channel (reads return all-ones). For a PCI
-reset, get is only called from reset_prepare, before the reset starts
-and while the firmware is running, and the parameter stays unregistered
-until reset_done.
+Tested on two mlx5 400Gb/s hosts with kperf (udmabuf, 32KB RX
+net_iovs, 2MB hugepage-backed TX buffer), series backported to a 7.1
+kernel on the sender only. 1 flow, MTU 4200, receiver tcp_rmem capped
+at 16MB so it doesn't drop, median of 5 x 60s runs:
 
-get has no FW_RESET check on purpose: devlink calls it from
-reset_prepare, while the firmware is still running, to fill the
-PARAM_DEL notification, and the check would make it fail there and drop
-that notification.
+                              before    after
+  frags per skb (sender)       16-17      1-2
+  throughput (Gb/s)            208.6    211.2
+  sender sendmsg CPU (sys)     40.8%    19.5%   (-52%)
 
-I'll send a v2 with a comment in get explaining why it has no FW_RESET
-check.
+The receiver's CPU is the bottleneck, so the gain is CPU, not
+throughput. More of the transmit runs from the ACK path, so the
+sender's softirq grows (52% -> 59%), but sys + sirq still drops by 16%.
 
->> @@ -3495,6 +3497,7 @@ static void ionic_lif_handle_fw_up(struct ionic_lif *lif)
->>        err = ionic_identify(ionic);
->>        if (err)
->>                goto err_out;
->> +     ionic_update_cmd_timeout(ionic);
->>        err = ionic_port_identify(ionic);
->>        if (err)
->>                goto err_out;
-> 
-> [Severity: Medium]
-> The commit message notes that idev->last_hb_time is back-dated by the
-> largest possible interval so that a larger cmd_timeout value does not delay
-> the first heartbeat sample after probe or reset.
-> 
-> However, ionic_watchdog_init() is only called from ionic_dev_setup() during
-> initial probe and PCI function reset, and is not called when recovering from
-> a firmware reset in ionic_lif_handle_fw_up().
-> 
-> When firmware comes back up in ionic_lif_handle_fw_up() and
-> ionic_update_cmd_timeout() applies a large timeout, idev->last_hb_time still
-> holds the timestamp from before the firmware reset. In
-> ionic_heartbeat_check():
-> 
->          last_check_time = idev->last_hb_time;
->          if (time_before(check_time,
->                          last_check_time +
->                          READ_ONCE(ionic->cmd_timeout) * 2 * HZ))
->                  return 0;
-> 
-> Could this cause ionic_heartbeat_check() to skip sampling fw_heartbeat for
-> up to 2 * cmd_timeout (510 seconds) after a firmware reset unless
-> idev->last_hb_time is also back-dated in ionic_lif_handle_fw_up()?
-> 
+kperf output (sender side) of runs near the median, before:
 
-The next sample can be up to 2 * cmd_timeout away after firmware up, but
-that is the normal sampling interval.
+  client: == Source <sender>
+  client:   Tx213.826 Gbps (1603901849600 bytes in 60007723 usec)
+  client:   Rx  0.000 Gbps (0 bytes in 60007723 usec)
+  client:   TCP retrans reord rtt rttvar d_ce snd_wnd cwnd
+  client:             0     0 633      2    0 15556608 7657
+  client:   net CPU 49: usr: 0.01% sys: 0.10% idle:44.13% iow: 0.00% irq: 3.21% sirq:52.53%
+  client:   app CPU 50: usr: 0.05% sys:41.55% idle:53.88% iow: 0.00% irq: 1.40% sirq: 3.10%
 
-The back-dating at probe and PCI reset exists because the first sample
-there only records a baseline (last_fw_hb is 0), so without it a stall
-would take 4 * cmd_timeout to detect.
+after:
 
-After firmware up, last_fw_hb already holds a real reading, so the first
-sample can detect a stall and detection takes 2 * cmd_timeout, as in
-steady state.
+  client: == Source <sender>
+  client:   Tx211.242 Gbps (1584440279040 bytes in 60004741 usec)
+  client:   Rx  0.000 Gbps (0 bytes in 60004741 usec)
+  client:   TCP retrans reord rtt rttvar d_ce snd_wnd cwnd
+  client:             0     0 556      3    0 15499264 7650
+  client:   net CPU 13: usr: 0.01% sys: 0.08% idle:37.75% iow: 0.00% irq: 3.87% sirq:58.26%
+  client:   app CPU 14: usr: 0.06% sys:19.48% idle:77.23% iow: 0.00% irq: 1.19% sirq: 2.02%
 
-v2 also changes the changelog's "after probe or reset" to "after probe
-or PCI reset".
+The bnxt patches (1 and 5) were tested on two 50Gb/s bnxt hosts with
+CONFIG_MAX_SKB_FRAGS=45 (with 17 the check in patch 1 compiles out).
+kperf devmem TX from a 2MB hugepage-backed udmabuf runs at line rate
+(46.4Gb/s, payload validated) with 2-3 frags per skb, none above 32KB.
+ncdevmem sending 1KB chunks builds skbs with up to 45 frags, the stack
+segments them and the data arrives intact. The fbnic patch is
+build-tested only.
 
-Nikhil
+Patches:
+- 1: bnxt: segment GSO skbs with too many frags in the stack
+- 2-3: devmem TX prep (truesize, niov_shift in the TX lookup)
+- 4-7: per-device netmem TX frag size limit, PAGE_SIZE by default,
+  opt-ins for bnxt, fbnic and mlx5
+- 8: pick the TX net_iov size from the sg table
+- 9: selftest for TX from a hugepage-backed dmabuf
+
+v3:
+- default the netmem TX frag size limit to PAGE_SIZE, opt in bnxt,
+  fbnic and mlx5 (Mina)
+
+v2: https://lore.kernel.org/netdev/20261103235152.1904727-1-sdf@fomichev.me/
+- reword the TX truesize commit message (Mina)
+- explain why the TX net_iov size ignores the device limit (Mina)
+- use 1 flow results in the cover letter (Mina)
+
+v1: https://lore.kernel.org/netdev/20261102191438.1059771-1-sdf@fomichev.me/
+
+Stanislav Fomichev (9):
+  bnxt_en: let the stack segment GSO skbs with too many frags
+  net: devmem: charge the frag length to TX skb truesize
+  net: devmem: use niov_shift in net_devmem_get_niov_at()
+  net: devmem: add a per-device netmem TX frag size limit
+  bnxt_en: set the netmem TX frag size limit to 32KB
+  eth: fbnic: set the netmem TX frag size limit to 32KB
+  net/mlx5e: lift the netmem TX frag size limit
+  net: devmem: size TX net_iovs from the dmabuf sg table
+  selftests: drv-net: devmem: TX from a hugepage-backed dmabuf
+
+ .../networking/net_cachelines/net_device.rst  |  1 +
+ Documentation/networking/netmem.rst           |  7 +++
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c     |  6 +++
+ .../net/ethernet/mellanox/mlx5/core/en_main.c |  1 +
+ .../net/ethernet/meta/fbnic/fbnic_netdev.c    |  1 +
+ include/linux/netdevice.h                     |  2 +
+ net/core/datagram.c                           |  3 +-
+ net/core/dev.c                                |  1 +
+ net/core/devmem.c                             | 37 +++++++++++++---
+ net/core/devmem.h                             |  1 +
+ net/core/netdev-genl.c                        |  2 +-
+ .../selftests/drivers/net/hw/devmem.py        | 10 ++++-
+ .../selftests/drivers/net/hw/devmem_lib.py    | 43 +++++++++++++++++--
+ .../selftests/drivers/net/hw/ncdevmem.c       |  8 +++-
+ .../selftests/drivers/net/hw/nk_devmem.py     | 11 ++++-
+ 15 files changed, 118 insertions(+), 16 deletions(-)
+
+-- 
+2.53.0-Meta
+
