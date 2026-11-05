@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793873972;
-	b=R5mtkb9lNx39HEmMCUH0v6BlPmp+KxkXfNoGGnh/SB4hkvsaj7JOGA0giDLQqhhjXt91
-	 /2Ng7E4bO8tai0FI/ClUyW4YtUNdRANUDYkzsG3mRQzkcLQfFQHhK8p5lxN7RQfhiT6ER
-	 +4GwW59w+U9s/WCOf4cb6RJD9OKqiao/Wugkbm0nJFFfSOzr2cu+s7tIvCY6avhsrxy2P
-	 MF3MoiVp6sY6RFQhTd9XnCOHhgGEqg3l0tt2sXndzYYRzMCVV9ydzrEZIp/0T/ZXulUa2
-	 TBxYWBeQImIzIfesrPuGOPIxszRpGFhLT3zXkW3IqEbZsUE9+7r8cvBx91B72eLxsRA==
+	t=1793874058;
+	b=RkpEbtT1Cnh3LEvPG8GsDT45SiIaXGw0i49wQP3Ux9k+3szebAEC0We1RS/R2ef4kffw
+	 wQoEDSKXsTtleNPzkIP/K0B6pY/Ahapn6ySdal3of2f5ASGz6KM0k+G5WokhBUyBnfURV
+	 l4LuONOAo89hamG3KziGjrDwARSD2teLu6DDMLPLlJnwMC/Wl+qxPHeYadXbRXkPjXm+u
+	 orGUme81nUcrAp6hTHTdVdQY3ThF3pP7om9wrqqvBCpS6X3E1ufaaoH8CZzqR+ROsvHyL
+	 dVCSqS+OsgeJ/eH5z/vTaTOW3b+Cf1SKgeS43DWAln7TqcbRqlV60NMG5OOwDDHA3gQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793873972;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793874058;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=piXRLwwlQ2YwnJkQvK6sFGLDTgkz41fUnz6cSk/EtMo=;
-	b=JnB3qlbCW4vb3cdT7b/kY6DSmCQGW73r13RYLldNdoEGW6zh+BMwWuBsvcbzFKSj/fpn
-	 XlZWCVGd5FJ+0vHt3WyfVb7iRDtiHU4CFVINjWwPJk30S+mAFSV693NBB6e3NPMheyjM5
-	 fbkejLS7/IJ/3/VbmI7iBEviBiEptBmgqt32tMxtFANhrD9vEXQu13Fg5coQOYqlvv4LJ
-	 MOGmIuuMn+aqb6WNsYAuv9clUEdscn9R9tfqB9Bg/6qEsDC9kRCbb1Hyi3Scr6VYm+0P1
-	 jzw7bWEUPPDziGx3deLqJ6mXiytJba6RAq6t+MZVkf3deXdtbNd0Wnfm8peg09mQ5+w==
+	bh=YkVvu6jzHleIPKd2R8xexkUCXS3crCz63cuoBe36KSk=;
+	b=sRCmxJ+ITP9wqDtuO7ByWrXuQxPBHERLsdGE8otg1YdhuhEub7xktYx61ZyJQ6PoMVh3
+	 CLfWnkWJmljpNRPxU1Gs+b/u3M4yI3eZTSoukBYmB77CDtyELxj9oGsOm+1ZEpjKZ8aTk
+	 ttNTFmFAzH2Cpr2JPxZgzZ1QGVYQlFJyVWusooQGNF+6sNnXfYD3jrvItLuRI0VN+oyhR
+	 XjWkXD8U/cljORIJ/A/6jDN3GCah12FWWx2LbwjQHtjXwmeNmhpxkN2yZKzlmvWw+bQKt
+	 kD6bfIbNGcB9xTrVLoO7vvjgaqGYXxvj1fylbzQ2mlPYdTImA1+2MR6gRdXFF5fhHkQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RnG++yvO;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mtspw2iy;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C37A606A32E;
-	Thu,  5 Nov 2026 10:19:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60D3B606EE9B;
+	Thu,  5 Nov 2026 10:20:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RnG++yvO
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 180591F00A16;
-	Thu,  5 Nov 2026 10:19:32 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mtspw2iy
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA3451F00A02;
+	Thu,  5 Nov 2026 10:20:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793873972;
-	bh=piXRLwwlQ2YwnJkQvK6sFGLDTgkz41fUnz6cSk/EtMo=;
+	s=k20260515; t=1793874058;
+	bh=YkVvu6jzHleIPKd2R8xexkUCXS3crCz63cuoBe36KSk=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=RnG++yvOtAs+Sjvq9m/Cfzs0+dKJ+h0/sw0z09afy/h520NrUNUJkvsQ1KtZAnirA
-	 kpWpmU5quQfmFeFEiT5OtM/RcNtdq6APeIb4JCPx5fKPkE5uM+EfAXsR5ss93sNGBp
-	 E69JIeWDPJctcZ1WTrFWZnF/mH+YGguQJoKATvLbgKPKHJ1wbBFJFFtgwrBD2cySJs
-	 qHMj1fGmQrGOjuRvqgoA64LT8ym4S+gWNNORgNnxp3l0xAS4jhs9W2ENA++0Ay5iBb
-	 Pp+jXBAh53PIrLcRmJe5F4RgrPdusXiOdjyBwSVJ8F7YIILFqAkClvMTEH3rNvz4+n
-	 I+/xtJqyYgQyw==
-Message-ID: <sashiko-outbox-198838@kernel.org>
+	b=mtspw2iye3EyY24gCn2kFRodqlgQS3RXKqxeAqUITEfdcvrIZDFx1ZMj4VGzNlEKv
+	 vjJqhB10OEmtQKF6lMl/P37BLMm4KIalGed6yBsU0uPB7gwaN4rydWprwcuutAnBvS
+	 juu7aY3YYjTbHw+GygNhp0CzePbjG3S1M/8BH3XZuRX5kmpupHtbt3TC7LiSjSDIug
+	 ceYD3n70kIaZspKmvxhAsbtTD3drqANSxLbPVcw6KS43khszk0JezZ2grWXZo13nLR
+	 YM48LEhpZIB2jUqXwIZJuN4pZNCDanA0fjKHl1vJvBZWMiq85tQYmlH5GF87+7jZiC
+	 wCxJrkT1tOr+Q==
+Message-ID: <sashiko-outbox-198841@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v13 12/19] PCI/P2PDMA: Log detailed ACS routing
- diagnostics
+Subject: Re: [PATCH v13 19/19] PCI/P2PDMA: Test the routing of clients with
+ ATS enabled
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Leon Romanovsky" <leon@kernel.org>
 Cc: linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org
-In-Reply-To: <20261105-fix-p2p-acs-v4-0-v13-12-3dd065907c3b@nvidia.com>
+In-Reply-To: <20261105-fix-p2p-acs-v4-0-v13-19-3dd065907c3b@nvidia.com>
 References: <20261105-fix-p2p-acs-v4-0-v13-0-3dd065907c3b@nvidia.com>
- <20261105-fix-p2p-acs-v4-0-v13-12-3dd065907c3b@nvidia.com>
+ <20261105-fix-p2p-acs-v4-0-v13-19-3dd065907c3b@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 05 Nov 2026 10:19:31 +0000
+Date: Thu, 05 Nov 2026 10:20:57 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,22 +63,20 @@ Precedence: list
 
 > From: Leon Romanovsky <leonro@nvidia.com>
 >=20
-> When P2PDMA rejects a mapping, existing warnings identify only the final
-> ACS or host-bridge result. They omit topology, live controls, divergence
-> ports, cache state, and intermediate routing decisions.
+> A client that enables ATS for the whole device must never be handed a
+> bus address, and Translation Blocking must reject its peer-to-peer
+> traffic even when the caller asks for the default class. That has to
+> hold for answers taken from the cache as well.
 >=20
-> Emit debug-level messages for verbose calculations and cache lookups.
-> Report both paths, decoded ACS controls, directional decisions, host
-> fallback, and the final mapping. The messages stay silent until enabled,
-> and the existing warnings are unchanged.
+> Cover those on the fabricated fabric, together with a client that
+> declared per-mapping ATS keeping the per-class answers and a client
+> without ATS answering for the Untranslated Requests it will issue.
 >=20
-> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-> Tested-by: Tushar Dave <tdave@nvidia.com>
 > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261105-fix-p2p-ac=
-s-v4-0-v13-0-3dd065907c3b@nvidia.com?part=3D12
+s-v4-0-v13-0-3dd065907c3b@nvidia.com?part=3D19
 
