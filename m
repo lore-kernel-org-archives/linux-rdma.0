@@ -1,121 +1,93 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.52.50
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.43.25
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793913513;
-	b=YllbaRqsFM+s0kevAIOrwNT/7e++L0OhMtjPj/e3DOUJV6UEcHf1oQ3oVPtrCLrYVcew
-	 qdp0EFX7GpbAjWm4U/zJ8wZVWyFE1H+4pfVRQRcdqfK+Qpngid4Bdar/c9LiR7UhS860b
-	 gVJb8KAo8pHV6jcYgRX71BNvIQJdVI7XTCRUhIl188okp7g0dZ93x45DXVFBoIodbUFD+
-	 oqCX80FwzemmrQjvsLHgDiiPSpMokJ+1kotT8KUEN1EF9Iv/WST5TvHnY7cfiGMaGEDOc
-	 JMNR7+f7Uq6Jl+xD/2gsmRNV/nCAwoZP2teN6hRh4saeY1PZeKKD9wzh8sKRG2Rv31w==
+	t=1793916097;
+	b=cIt+tIO1rM8PcMHp/H9C7XkC8lBEyzTsnxQ089gDmnteHykNKjb8Fj48CikDPQkjn9RU
+	 H5OpYYPd1/R3+TAGsR0zBG3r5s8duMiNu+G0eVp4yLE3a5T5TZUBBgRSH6S5L/PRozijf
+	 Xzn36l2EMabVVmmDxtk5aSUcCB/uNUXF5nw8dKyYW3LKO60qxnrQav26iJ1IAHxHTt+sn
+	 SEOrBYznC+FfIfJ72Uy9rxlBykn+Zp7fBONvDH7gjbLzF4EA46XCOm3uZkDft85Z6yioz
+	 ziAQlJrX/M4/dtDj5UThCW31EJ7njGVzn0ePs2gpNrb2pRda4azsEiSVvUR3KlJ0+og==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793913513;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:
-	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
-	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:
-	 Content-Type:X-NV-OnPremToCloud:X-EOPAttributedMessage:
+	a=rsa-sha256; c=relaxed/relaxed; t=1793916097;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
 	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
 	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
 	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
 	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
 	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
 	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
 	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-Id:
-	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=idhKrh8uUVc5yxt+j09UwoBoyIDMx5hoaetLDVaRBeU=;
-	b=cle9ohlX4TtvFcKHSFg4VSCQyj/3gvsPP3VQvbgbUeKqklSfUWf+vEdnB+EeciQRL3gF
-	 HbG7vwslOVXAAn/FPvcAK74veaeSW5yYWscNkN0ZlCowy7z+6YB8WzdatiJ1CwSomrrog
-	 x2QYau/aa7Dg2sn7QE2WRNoNbufO33cGILOrj6Q0/jYAQgIOCXTSlBoNu/PSQuaJG9VgX
-	 QlvrGgoP9dG5mcch6QNMj5W5DimBmALBdBph0QZJRKLtWBlOK57RGYDRoW0cjoxYtfBvJ
-	 E4o4kwrtPVnwgZZchXJNqjI3GeXI4hsEKEfNSMS1gX9QR2J62M34JnxuG7W5MZvtELA==
+	bh=BjSJj+zJDnnRI8+lGdW2YiDc0SmxvvggWXYIgTmnztY=;
+	b=1DzxVwsYUTEnlh934Zj7liJubDR4pcJiZ/OTWE4P9aVr4T44mIVvYqlN/mq4GM8ziEfK
+	 CtxFX/Px8GbYwOJDaI+0yFWOMdXGv141YJN+3XIb/ujxy71i64gokWEwQi7QRpa4XaWbS
+	 XiPlbygLkPBSlxFw4bgumbx2LgMG3OYIuqr4mZBYQUCZTihPtQFWcQP1pQtO5fq75SDKk
+	 wbGfxyZa/IgltkBGzuYDqjEKvGr7o6OM/my81TCQ121OnEiGi7GpV4V/9WfC3rRfwNIzN
+	 Vz6cH2xKcBzKKZFbJwklpQ5p1pZ4rim1g07s4/8s+VAlNwBXjrYawkb++bOiCeJadLw==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=VEXv6wgd;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.52.50
-Received: from BL2PR02CU003.outbound.protection.outlook.com (mail-eastusazon11011050.outbound.protection.outlook.com [52.101.52.50])
+	dmarc=pass header.from=amd.com;
+	spf=fail smtp.mailfrom=amd.com;
+	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=LCeIAbhu;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.43.25
+Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012025.outbound.protection.outlook.com [52.101.43.25])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A09A0606D802;
-	Thu,  5 Nov 2026 21:18:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A09A0606D802
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E7B9606A330
+	for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2026 22:01:36 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8E7B9606A330
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=VEXv6wgd
+	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=LCeIAbhu
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=n1TpEYWzevc/T6umSNC3srCDVP+KD3d6JFqNqaHr4+BQaSEE4KDz98joqts46jCun+mYWHcQTAceudQjaZJyM2x9TtCpbUErVXkA7aEmm16WVhq8w0zA/VS+0itbW51HgWImIL/XFHvbn5pt21EfE1AJ9Cru0N1Dls792xXtCBGae1btKYGlvt8ZmQAFUXml5H/a0SJBs1vb7ni6cBK0nQmiZzQ3ciSpp5StzijLMLTSkVfetjcKKSzI/eb26vbSwLVFdjfEknhSUOvnCrN1UWGooBp6ygEK60qHGVYKUGUlSDooo7ybLwvFNYuxsJpa4a061S6hbcKwB3vY+CC6dA==
+ b=d73xcUdG157+yuPXayUbqK8xxo99vdJSV7htYT7jg0dhEGqeyjpvwhJHYHsIACB+kcJJ4t8BPg7Eu//16OUc/VddCu0XBzsIARH5qMSeLsqTCwIjDWiEMLUVfEXtm8AQFEYLGz9T35wDJb/xm6Gllr9Ti664p/zYv/tASSuA0feIl16KtqO+qNDQLps8Y8k7p865ItBghf0u1pGHpODlr4Ix1vB1dFv99ZuFTkWN6zReqb4A82JN2BM6MZUPvFc7taLRM3sxZKtGDXZMZEQG1JmnutH9RpTufQXEixupMuu35ypMztKDvTb3UBJY2Zf/YfnxOzkfXmLh9qL4rZDt+A==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=idhKrh8uUVc5yxt+j09UwoBoyIDMx5hoaetLDVaRBeU=;
- b=XVNvpT9l2Zt+0qAPq//HwrD27pJFsTlwKvARqNQm4w4nVHBipl1TBskD82vpMWj91h3a1Qe/pD6fe79t8m3uB4y/xSeoj1TFBvgD7eZXzfN4pgGiyhLXS+c2RwCO17XWC1BaQkKqr4Zw1L+XQGe4rY16wOCacqUy/tspMat1UAzzevEbT/onmwP8hgH2MHrhR4PSIjAn49i3ijfS+k0h05wliwWSwongPTa3XdZ0ddimOTMV3nx9A6rt476YP9f7K9ltw8dHO5rpZptidh8WUrMgj4jWgEp5Jcib5/Pvt1RBWKQZXEW/8BfxxpZYNOvqrTCdv9doTAEcguJxY233qQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.232) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
+ bh=BjSJj+zJDnnRI8+lGdW2YiDc0SmxvvggWXYIgTmnztY=;
+ b=qWqoiVJkO7kJxoBLd2D4tvmswaibhHbTspUF/jHZcEcrWtZiELyfUaFlwHxPBhc521zOn2nAA077rtX7ic4uzFcbTLajHvG2wQC76zW0DEEhnDJGvLdeShMUcxkp+qNGuHih11dW2IFq85ezsE1MBZaoz/JQ8sjwEJuEae47pGX8dNZejF9OKzrsMeEUOomEmfYe2oi+GHfduYw5J0/J0RiklqoVb729tPupUZB29dWB6KZtlKzK6q/9fRugu4nm9A+16f8TfW4i2o1MIrtDrSQdxGUSxr9oxCPOSlww3Oue9dVV2AlsYXGFr+9bpnr2chcVR7pJMZ7fzpCfsg5QPQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=idhKrh8uUVc5yxt+j09UwoBoyIDMx5hoaetLDVaRBeU=;
- b=VEXv6wgdoOU4RESkgR+cWZ4U1aEhlmFsMAMfSroC1NlAi2Lij1ZgNLk+1XGaS+BtixZH5XZwxRpFuDKYlgl3wpt+2490MmNXUmf6kGkchjJZlAo6P4qcBIiIPzH6WYY5zOyxAl8SjVE6kgDBSPGUXRlNlLW+dVfa57TPVf/9GGs+eSWuDTCSF2u+tU93yBPwNu9bIYmB0zVDzwWanbdIShWMqrTukaBHKolkcPkV46DV69aBvkQBIs9FWl4gHT5NT04TpdbgAvBfRC68eYDfVUXWqT+dqxeD1lbDBhjHHHDkDp/Kxc1gSC80AYaEfDKgzlJvrO8K2kh+s+cBucOlOw==
-Received: from BN9PR03CA0798.namprd03.prod.outlook.com (2603:10b6:408:13f::23)
- by DS0PR12MB8813.namprd12.prod.outlook.com (2603:10b6:8:14e::11) with
+ bh=BjSJj+zJDnnRI8+lGdW2YiDc0SmxvvggWXYIgTmnztY=;
+ b=LCeIAbhuBN2GfFwpYiLR1bKgAs1aDp7OXAZKo5SspoHG/UmzT2CiBdatCczDSYBwdwJIrTTIPV7aA2BxHpXbYpTdqDFAmozxvT6lge2hKIOtE4g/Z0+Dt5d74ZZNQTZaC9aBzU/gokTIrvpOifdJ4XsG+/IWmgwA6wViPBz2UUE=
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from MN2PR12MB3485.namprd12.prod.outlook.com (2603:10b6:208:c9::22)
+ by BN7PPF62A0C9A68.namprd12.prod.outlook.com (2603:10b6:40f:fc02::6d2) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.10; Thu, 5 Nov
- 2026 21:18:25 +0000
-Received: from BN3PEPF00022BD8.namprd03.prod.outlook.com
- (2603:10b6:408:13f:cafe::7) by BN9PR03CA0798.outlook.office365.com
- (2603:10b6:408:13f::23) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.569.12 via Frontend Transport; Thu, 5
- Nov 2026 21:18:25 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 216.228.118.232) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.232) by
- BN3PEPF00022BD8.mail.protection.outlook.com (10.167.248.104) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Thu, 5 Nov 2026 21:18:25 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
- (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Thu, 5 Nov
- 2026 13:17:55 -0800
-Received: from drhqmail203.nvidia.com (10.126.190.182) by
- drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.56; Thu, 5 Nov 2026 13:17:55 -0800
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
- (10.126.190.182) with Microsoft SMTP Server id 15.2.2562.56 via Frontend
- Transport; Thu, 5 Nov 2026 13:17:49 -0800
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
-	<davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
-	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
-CC: Andrea Parri <parri.andrea@gmail.com>, Boris Pismenny <borisp@nvidia.com>,
-	Cosmin Ratiu <cratiu@nvidia.com>, Dragos Tatulea <dtatulea@nvidia.com>, "Gal
- Pressman" <gal@nvidia.com>, Jeroen Massar <jmassar@nvidia.com>, Jianbo Liu
-	<jianbol@nvidia.com>, Kuniyuki Iwashima <kuniyu@google.com>, Leon Romanovsky
-	<leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, "Patrisious
- Haddad" <phaddad@nvidia.com>, Prathamesh Deshpande
-	<prathameshdeshpande7@gmail.com>, Raed Salem <raeds@nvidia.com>, Roi Dayan
-	<roid@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Shay Drory
-	<shayd@nvidia.com>, Simon Horman <horms@kernel.org>, Steffen Klassert
-	<steffen.klassert@secunet.com>, Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH net V3 8/8] net/mlx5e: Serialize TC and IPsec offload exclusion counters
-Date: Thu, 5 Nov 2026 23:16:36 +0200
-Message-ID: <20261105211637.1083978-9-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <20261105211637.1083978-1-tariqt@nvidia.com>
-References: <20261105211637.1083978-1-tariqt@nvidia.com>
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.12; Thu, 5 Nov
+ 2026 22:01:31 +0000
+Received: from MN2PR12MB3485.namprd12.prod.outlook.com
+ ([fe80::7ac:5acc:f8b7:65c9]) by MN2PR12MB3485.namprd12.prod.outlook.com
+ ([fe80::7ac:5acc:f8b7:65c9%7]) with mapi id 15.21.0569.011; Thu, 5 Nov 2026
+ 22:01:31 +0000
+Message-ID: <396e7329-587f-4610-b492-a6bd28049ae3@amd.com>
+Date: Thu, 5 Nov 2026 14:01:29 -0800
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next 3/3] ionic: add devlink param for command timeout
+To: sashiko-reviews@lists.linux.dev
+Cc: linux-rdma@vger.kernel.org, "Nikhil P. Rao" <nikhil.rao@amd.com>
+References: <20261102-b4-ionic-cmd-timeout-v1-0-2f75c2d0a0c7@amd.com>
+ <20261102-b4-ionic-cmd-timeout-v1-3-2f75c2d0a0c7@amd.com>
+ <sashiko-outbox-196113@kernel.org>
+Content-Language: en-US
+From: "Rao, Nikhil" <nikhirao@amd.com>
+In-Reply-To: <sashiko-outbox-196113@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: SJ0PR05CA0133.namprd05.prod.outlook.com
+ (2603:10b6:a03:33d::18) To MN2PR12MB3485.namprd12.prod.outlook.com
+ (2603:10b6:208:c9::22)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -125,208 +97,190 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN3PEPF00022BD8:EE_|DS0PR12MB8813:EE_
-X-MS-Office365-Filtering-Correlation-Id: c0f32a77-3f73-487c-8e03-08df3b825423
+X-MS-TrafficTypeDiagnostic: MN2PR12MB3485:EE_|BN7PPF62A0C9A68:EE_
+X-MS-Office365-Filtering-Correlation-Id: b0f8859c-d2a9-447d-b23e-08df3b88594f
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|23010399003|7416014|36860700016|1800799024|82310400026|10067099003|11063799006|56012099006|261009223027099003|261022075727099003|261021123027099003|261022105027099003|261021121427099003|261102123227099003|261026140227099003|261028144727099003|22082099003|18002099003|6133799003|13003099007;
+	BCL:0;ARA:13230040|366016|1800799024|23010399003|376014|261021135927099003|261021123027099003|11063799006|4143699003|261022075727099003|261026140227099003|261028144727099003|261009223027099003|261021121427099003|56012099006|5023799004|261022105027099003|261026121527099003|10067099003|18002099003|261102123227099003|22082099003|6133799003|3023799007;
 X-Microsoft-Antispam-Message-Info:
-	0JMLc4s5MH70jEDELfG2FRyn21JAt5uBgTV4zQdxkWp7REgTMVe7r+Cgg0KASe6sKSJX8FpzzV5hpYEuKrU0hfTSDqSzkX4zj4id4vg+KPVoYJp4B2VQ8VbMPCWBrqgFLpjtR0t30kNN8eCdtwTC2RFt2xF5Dr4prHqAh2OnfkANSz2lVWj55+7KBXIH5jn8aIL5EXslSUnqB9VzLLVVd7SiawG+OtN+1TegXmVyzCBdomEImNSvl460lH31NuiJ4CAZ4rRC99P1EYLRHgTmE33ZHA2S6qRPJTkoVIFYLROsGBlZI5F3vPCg1YRWKikv4e6HEWhkiLdYVrDHE2qULAakaLTKCIvPl7V/rjoIbf9n26z1YMoObEoQ/0egoIeTXfvMMHEFB5VtP0+6xPdyOBrrCMt/GEYeT86hcp4VpvwafS9vlLIR7aTv5SBL9pEmIx66zOgyE/CH0SH4zU1re++6gY6YOjMHymm/9MmxidDsDcGuYpEB/GW55fCGd4p4O7ImekzD1dR4L/fuwlg7VVUCwuOZNwsJV/pvjlNVAzGKVVwVjwRcWzi4TWePJwBbbdiszRGp7FOd6cl2h/+2bJRRitYhI4B7oB3mN/AA5me8pYdMs4cF4YwWj9yHThdg3WezKljH2dgMqAa+JMeg0wa2LQj0e1UlIbI0lxWngYDIUgjVTwjXskHC8PqmmhISkII6Gp9FJUkGs2FN0H6Q1w==
+	H0+7aknPShRqR9Uf2BwLOOrgbAkoHiztWaJzKksUncDxAOitsg1mHBTeWDCG51hyW2EUCOUwyOELEFKvDnQTrTuSsmUr0JdIJxM5Jj0yNgC/m9tfm0A0egHZbmssyZEcchKw6qEyEK3skwrnG5t+QXwh9CXZvXTsyMka3aYuWfIqXz+3R9osHghANxUcSni0rslNzKlqBnzfUqT/GwQJNzlX99d0+rTxGaRxXd8Dn99lfnMbJU1O21np/F7pAw35l8P8CNE1S5f4Jh5GZ2iin/ZdGyPv/Sh+h2YFaiAD0IsxSM36Fj/B9OXwprdQHY+upD8hwbbFpoT4WALQ+ceaS7egTyths3jQHeWN5WBt4emMldeyBb0zt2i/JLxcBxK/DodF8H/2tlGuvXdUpz98YW6wRZxNeqz0nalYmCf6sWtIM7MSkIgI2CUOXW57+Vy5PcxIJv8OHCNEOxQwVZKhiFInIl3GAIcm5Weehv7izbnofNpWIvhz5cCvQIuy2hraZqryRmCnfyBUitWQ0XPdU0tgm1dOIVTUV6C5Nq1UNDSlIM1Vpv4pdjIoT2ibD+0OFEjxGiXpVGi4+Z9OdY6cEqGCokWMcbZ0Dt5pX/HZxSNDkSNykE0hKgFbUOygnXDm5cRnFjtDyUKMoU3h/uKWkSTjXxLDZECm1W/MkTQfAFA=
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(23010399003)(7416014)(36860700016)(1800799024)(82310400026)(10067099003)(11063799006)(56012099006)(261009223027099003)(261022075727099003)(261021123027099003)(261022105027099003)(261021121427099003)(261102123227099003)(261026140227099003)(261028144727099003)(22082099003)(18002099003)(6133799003)(13003099007);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB3485.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(23010399003)(376014)(261021135927099003)(261021123027099003)(11063799006)(4143699003)(261022075727099003)(261026140227099003)(261028144727099003)(261009223027099003)(261021121427099003)(56012099006)(5023799004)(261022105027099003)(261026121527099003)(10067099003)(18002099003)(261102123227099003)(22082099003)(6133799003)(3023799007);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	+hFIAKF1e9GuM8hPDKKAdjFZmnJL2SaqA929kK5LcmuY6SXf+kWI0sodpkbsavrYcpjxPhBTGgGphZqtTAnkAJU2Hh7Nh2Mz6uU8Phzeao2Us3M37UyJJ6MKYGndh+PI4/QJHUa5rwfl77O0Jf/JKImBkel2y6vej84T/BR67pI1+rDqFDYBYHB1GATVVdVDBjyw4ckJmUpQvNv1n73fyg1RQu7QE2WLFjyqp3ycOPieR5CfIzwgdYIzU6FK02zwzIgAG6tAu8KnaaXI2XOMhIkYJtsFpeNPUXX82F+1la8bAoE4ExEnELT6l1+oaWvyL6oDyhoW0rBzsEDlwOKPAS4yIUMdD1DIhipFgXKoGvBOKBalH07It+Jz5LQe1FUldXTiiL0WHis49OCcRW9pAk4KxqwaR/mZ2WQXC6ODkqymWaCxKWKZNoVlMNA/AVXq
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Nov 2026 21:18:25.1536
+	=?utf-8?B?RkRlZldtZjhHY21zZjR1R0NBMVUyMEJ6eXpabVBHUXg2TU5pT2YwdGlscnhZ?=
+ =?utf-8?B?bUhTbnRmdDAzNTYvWnk3dThDNmczR1BwTUdBR1F4eTF4b1d4RU5iYVA3amIx?=
+ =?utf-8?B?dndscHhNQlVhUHZqenF2bDVjRlUvVDlNSm1NR2xGQjlsNVF3SlFUOGJUNlNq?=
+ =?utf-8?B?L3Q5WVJISzdZS1F4alM1OVlHOGFNQ1lVelIvRUpiNjFQRXN5dDVDTGZ3L3lt?=
+ =?utf-8?B?S2EzQ3YzdVNpMHROcWxwK0xiSVVBWVhMMHBPTFQzOG1jNHlDVzZGRTZPM3Nq?=
+ =?utf-8?B?STE2TjJRUXFub3RGaUEwZ09XL253cEZDZHZrT21CTmFhenBsUWgweDFQdDE1?=
+ =?utf-8?B?RU1UUXJ4d2ZmQmhrZGpJZzRNNjVDeG5tbE92azZ2Yk0xcHI0TS9ScCtSUjFk?=
+ =?utf-8?B?MHY2Z0xYd2ZvNCsvVjYxRXJ3NmRBclJOeTVISC9CRS92ZExUU1h1WThpbkNI?=
+ =?utf-8?B?QklsSHA3ekNoQkJ0a2o5SWRPU21qd3lvcXA2ZC9pQmR6bVh1WGowNWZXdWNG?=
+ =?utf-8?B?ODYwc3lzNWFZTXdoTzNXOXh5b1dZNzJiSmxmR09HcGdzWTIwWTA4cUZ5dmdC?=
+ =?utf-8?B?QVdjeUkrcHhuN1FGaVVXaTREUFpyakRnckZKM3lleVpYazFCQ1VoY3o1SjNm?=
+ =?utf-8?B?cDlTYTl4ZGNhRWJPQ2p6NnVTUnpGenJ2L1lCdzBNQ2hPaGhYc3NzZG5HM2Vu?=
+ =?utf-8?B?SVdzN3RWQVRiNUFRU1lVc01laWhyUGs2YWR2SEtMQi8vb2dRRmwzOEdycEQv?=
+ =?utf-8?B?ajc3SzFGTjR5K3FHdWRBOERlaEhkOU9JVllWckplTmhiYm4wSVRLNVYxbFla?=
+ =?utf-8?B?VGdzZGtxaEhTOXdKdGJsNVN0ZThTOFB0MmxzMkpaUTIwSFhXc1IvelZ2cUpw?=
+ =?utf-8?B?ODk0ZENwOE9VUWk2cjZYQjhLelZ3T3VYSnVCVGZnUzkzY2lOU2tiV21JaGFl?=
+ =?utf-8?B?RW1mM3FDZ1VRZzVhU3JMMjJJVXJnVTVMdk1nQnpNTWdVS3hqVGRyUEthbnh2?=
+ =?utf-8?B?cUhlRVhQdlR3eThRUGxOVjlVZVMydWFKRkN2UzRrTlpzaXRzelhqS2QwaWM5?=
+ =?utf-8?B?YnUzcW5jVFVnVTRQL0xITTFUWVdqUjR6c0lTKzExYWNvR0FwcHRkUEFnWUVq?=
+ =?utf-8?B?SklqZlJ1TzVROFR0d2pNZjJTQ3RwUnVBMmgvT29CMG56OUhjRmp4eUsrQ001?=
+ =?utf-8?B?WTlvbmhYeUsyeEV4SGN6SFRNVmp1cVNvQ2tUQ0Y1eEx2YmIyQlZPa2dieGFx?=
+ =?utf-8?B?MVlxSDZFMVY3eHdWcFBNaEVGK1RLdGJCeUUxTUNtNFMvUG9IZ1ZaVkFXU0tl?=
+ =?utf-8?B?d3BVeE40N0RXYlFaUzJRTUtjSS9TM1hQRWN6UDJBcmN3V0ZCKytYZ2FDNFZm?=
+ =?utf-8?B?K2dXeDRqQ3ZUdEk1cm5ISUIrcS9MNG8xNVN1T2d1M2ZmQkNwYjZxMWtTejhs?=
+ =?utf-8?B?NXJMQ1NROGF1MG11Wm43ZExmbHcvRTluQ3JFS1JVSUNROHI3YlRzWFgra2RV?=
+ =?utf-8?B?bTZtOVduaUZkY1pQRkFmYXlVRUlHOE9nU2xrZlkyOUtZdVJQNXZUR1B6RFVL?=
+ =?utf-8?B?K3FKRzJlUG83a01RM0J0K0JxeUVtU0ZpQVpsNW5QUE9QQnFZd3UvMTB2NVlN?=
+ =?utf-8?B?clFiT3UyM3IxL2U2NFVKUEdJSmcrVEpESGNXb1F5MHRTaUY4cGxWaGk3ODR0?=
+ =?utf-8?B?NGs0KzRsV09FdXZxcU90VjlOSlFFYWRnSDhORTZvWi9CdlhlaVZLa3NVNkxU?=
+ =?utf-8?B?ZHliU1FsK2laSnp0Y1VYU3FLMEZZVEhGN2g3d0tzL010NGJObU42ZWRnSnVB?=
+ =?utf-8?B?ZUdDVUtlRGNKeEd3Z1M4Y0xKQUVzMmlIZzM2YWZRZVBTTGlWNW9JU3Y5bnhC?=
+ =?utf-8?B?Uml6MjQ3SVpGN1g2UitQTnd2VC9YeURZMmNQUDJYRmZlRHlWdnBGNndKcFlT?=
+ =?utf-8?B?WGRoeW5iZ2U2dlFOR0toWVJ2clVRUDJBNzAvdHlYaEVRaktYMkkzczVEZTNn?=
+ =?utf-8?B?S3VHRVZuQlMxUmkvNWhncWFiNmNsODJiL0JBSjlSdWNCcGFBUnJ1V0syQWNO?=
+ =?utf-8?B?STlLT0NzS2pLL244YTRwTjhRbkxLNFBzRm90bVVEVEpGTzNRZzQ5WlZRTzFr?=
+ =?utf-8?B?S01uV29ITmllQnJpcjZiM1U1Y1Nicm9LQy9OZzlkKzRDaitjL0xlTlQ0dmdq?=
+ =?utf-8?B?RUFsU3E2R05vWVpCbDZhRnBvelpsbHBZaHhEZk9zSlJmUS9aODFFUWFqZnBB?=
+ =?utf-8?B?MjdOZU1adlhTZWM4NzZQZDRUMlhPUVRtdFFzMWkxanBQNkZDdWsvVFhjUTBK?=
+ =?utf-8?B?TjRiWUtwRm9LM25jb0x2ak83VkxvYmQ0bVNJb1RWSTFucTFGSzJEZz09?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: b0f8859c-d2a9-447d-b23e-08df3b88594f
+X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB3485.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Nov 2026 22:01:31.1855
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: c0f32a77-3f73-487c-8e03-08df3b825423
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BN3PEPF00022BD8.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB8813
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: HZGRNlBtqTpLZjTXC1tMvlP2YbdHhRvLzxA7Tc6DpSoBK9210Vh91mJdTtZq3hPYxkYigkkI0yjlbuSaxoMwoQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN7PPF62A0C9A68
 
-From: Cosmin Ratiu <cratiu@nvidia.com>
+On 11/3/2026 2:28 PM, sashiko-bot@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 2 potential issue(s) to consider:
+>> +static int ionic_dl_cmd_timeout_get(struct devlink *dl, u32 id,
+>> +                                 struct devlink_param_gset_ctx *ctx,
+>> +                                 struct netlink_ext_ack *extack)
+>> +{
+>> +     struct ionic *ionic = devlink_priv(dl);
+>> +
+>> +     return ionic_dev_getattr_cmd_timeout(ionic, &ctx->val.vu8);
+>> +}
+>> +
+>> +static int ionic_dl_cmd_timeout_set(struct devlink *dl, u32 id,
+>> +                                 struct devlink_param_gset_ctx *ctx,
+>> +                                 struct netlink_ext_ack *extack)
+>> +{
+>> +     struct ionic *ionic = devlink_priv(dl);
+>> +
+>> +     if (test_bit(IONIC_LIF_F_FW_RESET, ionic->lif->state))
+>> +             return -EBUSY;
+>> +
+>> +     return ionic_dev_setattr_cmd_timeout(ionic, ctx->val.vu8);
+>> +}
+> 
+> [Severity: Medium]
+> Unlike ionic_dl_cmd_timeout_set(), ionic_dl_cmd_timeout_get() does not check
+> IONIC_LIF_F_FW_RESET (or IONIC_LIF_F_FW_STOPPING) before calling
+> ionic_dev_getattr_cmd_timeout().
+> 
+> During firmware down or PCI reset preparation in ionic_lif_handle_fw_down()
+> and ionic_reset_prepare() (including when ionic_pci_error_detected() is
+> called with pci_channel_io_frozen), IONIC_LIF_F_FW_RESET is set and then
+> ionic_devlink_params_unregister() is called while the devlink instance is
+> still registered:
+> 
+> ionic_lif_handle_fw_down() / ionic_reset_prepare()
+>    ionic_devlink_params_unregister()
+>      devl_params_unregister()
+>        devlink_param_unregister()
+>          devlink_param_notify(..., DEVLINK_CMD_PARAM_DEL)
+>            devlink_nl_param_fill()
+>              ionic_dl_cmd_timeout_get()
+>                ionic_dev_getattr_cmd_timeout()
+> 
+> Similarly, ionic_devlink_unregister() calls devlink_unregister() before
+> ionic_devlink_params_unregister(), which also invokes devlink_nl_param_fill()
+> via devlink_params_notify_unregister().
 
-The counters enforcing TC and IPsec packet offload mutual exclusion are
-not consistently serialized. IPsec admission conditionally takes
-mode_lock for writing, while TC admission holds it only for read.
-Neither release path takes the lock, and devices without an eswitch
-cannot rely on it at all.
+On remove, get runs from devlink_unregister() with the firmware running
+and completes, or fails immediately if the firmware is already down.
 
-These are per-core-device counters, separate from the eswitch mode and
-encapsulation reservations protected by mode_lock. Move them into
-mdev->offload_block and protect their checks, increments and decrements
-with a dedicated spinlock that is available even without an eswitch.
-A spinlock is used because some of these functions are called from
-atomic context and is a good fit because the critical sections are and
-will stay really short.
+> 
+> If a userspace netlink listener is monitoring devlink events, or if a user
+> queries devlink parameters during the window before the parameter is
+> unregistered, won't ionic_dl_cmd_timeout_get() issue a synchronous MMIO
+> IONIC_CMD_GETATTR command while the firmware is down, the device is in
+> reset, or the PCI channel is frozen, potentially stalling reset recovery for
+> up to cmd_timeout (255) seconds under devl_lock and dev_cmd_lock?
+> 
 
-IPsec admission then no longer needs mode_lock to update these counters.
-Add warnings for unbalanced releases. Keep mlx5_esw_lock() for eswitch
-operation admission and temporary mode/encapsulation reservations.
+__ionic_dev_cmd_wait() returns -ENXIO as soon as fw_status shows the
+firmware is not running, which is the case after firmware down (running
+bit clear) and with a frozen channel (reads return all-ones). For a PCI
+reset, get is only called from reset_prepare, before the reset starts
+and while the firmware is running, and the parameter stays unregistered
+until reset_done.
 
-This was found by upstream Sashiko during review of [1], and spun-off
-into a fix from the larger patch.
+get has no FW_RESET check on purpose: devlink calls it from
+reset_prepare, while the firmware is still running, to fill the
+PARAM_DEL notification, and the check would make it fail there and drop
+that notification.
 
-[1]
-https://lore.kernel.org/netdev/178907726586.219967.4695695146458742597@kernel.org/
+I'll send a v2 with a comment in get explaining why it has no FW_RESET
+check.
 
-Fixes: c8e350e62fc5 ("net/mlx5e: Make TC and IPsec offloads mutually exclusive on a netdev")
-Signed-off-by: Cosmin Ratiu <cratiu@nvidia.com>
-Reviewed-by: Jianbo Liu <jianbol@nvidia.com>
-Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
----
- .../mellanox/mlx5/core/en_accel/ipsec_fs.c    | 43 ++++++-------------
- .../net/ethernet/mellanox/mlx5/core/en_tc.c   | 18 +++++---
- .../net/ethernet/mellanox/mlx5/core/main.c    |  1 +
- include/linux/mlx5/driver.h                   |  8 +++-
- 4 files changed, 31 insertions(+), 39 deletions(-)
+>> @@ -3495,6 +3497,7 @@ static void ionic_lif_handle_fw_up(struct ionic_lif *lif)
+>>        err = ionic_identify(ionic);
+>>        if (err)
+>>                goto err_out;
+>> +     ionic_update_cmd_timeout(ionic);
+>>        err = ionic_port_identify(ionic);
+>>        if (err)
+>>                goto err_out;
+> 
+> [Severity: Medium]
+> The commit message notes that idev->last_hb_time is back-dated by the
+> largest possible interval so that a larger cmd_timeout value does not delay
+> the first heartbeat sample after probe or reset.
+> 
+> However, ionic_watchdog_init() is only called from ionic_dev_setup() during
+> initial probe and PCI function reset, and is not called when recovering from
+> a firmware reset in ionic_lif_handle_fw_up().
+> 
+> When firmware comes back up in ionic_lif_handle_fw_up() and
+> ionic_update_cmd_timeout() applies a large timeout, idev->last_hb_time still
+> holds the timestamp from before the firmware reset. In
+> ionic_heartbeat_check():
+> 
+>          last_check_time = idev->last_hb_time;
+>          if (time_before(check_time,
+>                          last_check_time +
+>                          READ_ONCE(ionic->cmd_timeout) * 2 * HZ))
+>                  return 0;
+> 
+> Could this cause ionic_heartbeat_check() to skip sampling fw_heartbeat for
+> up to 2 * cmd_timeout (510 seconds) after a firmware reset unless
+> idev->last_hb_time is also back-dated in ionic_lif_handle_fw_up()?
+> 
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
-index dbe5547d7a49..55de9abbd72b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
-@@ -2585,45 +2585,26 @@ void mlx5e_accel_ipsec_fs_read_stats(struct mlx5e_priv *priv, void *ipsec_stats)
- 	}
- }
- 
--#ifdef CONFIG_MLX5_ESWITCH
- static int mlx5e_ipsec_block_tc_offload(struct mlx5_core_dev *mdev)
- {
--	struct mlx5_eswitch *esw = mdev->priv.eswitch;
--	int err = 0;
--
--	if (esw) {
--		err = mlx5_esw_lock(esw);
--		if (err)
--			return err;
--	}
--
--	if (mdev->num_block_ipsec) {
--		err = -EBUSY;
--		goto unlock;
--	}
-+	int ret = 0;
- 
--	mdev->num_block_tc++;
--
--unlock:
--	if (esw)
--		mlx5_esw_unlock(esw);
--
--	return err;
--}
--#else
--static int mlx5e_ipsec_block_tc_offload(struct mlx5_core_dev *mdev)
--{
--	if (mdev->num_block_ipsec)
--		return -EBUSY;
-+	spin_lock_bh(&mdev->offload_block.lock);
-+	if (mdev->offload_block.num_block_ipsec)
-+		ret = -EBUSY;
-+	else
-+		mdev->offload_block.num_block_tc++;
-+	spin_unlock_bh(&mdev->offload_block.lock);
- 
--	mdev->num_block_tc++;
--	return 0;
-+	return ret;
- }
--#endif
- 
- static void mlx5e_ipsec_unblock_tc_offload(struct mlx5_core_dev *mdev)
- {
--	mdev->num_block_tc--;
-+	spin_lock_bh(&mdev->offload_block.lock);
-+	if (!WARN_ON_ONCE(!mdev->offload_block.num_block_tc))
-+		mdev->offload_block.num_block_tc--;
-+	spin_unlock_bh(&mdev->offload_block.lock);
- }
- 
- int mlx5e_accel_ipsec_fs_add_rule(struct mlx5e_ipsec_sa_entry *sa_entry)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-index 708b7987ea4c..9f97c9d680bb 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-@@ -4836,16 +4836,19 @@ static bool is_tc_ipsec_order_check_needed(struct net_device *filter, struct mlx
- static int mlx5e_tc_block_ipsec_offload(struct net_device *filter, struct mlx5e_priv *priv)
- {
- 	struct mlx5_core_dev *mdev = priv->mdev;
-+	int ret = 0;
- 
- 	if (!is_tc_ipsec_order_check_needed(filter, priv))
- 		return 0;
- 
--	if (mdev->num_block_tc)
--		return -EBUSY;
--
--	mdev->num_block_ipsec++;
-+	spin_lock_bh(&mdev->offload_block.lock);
-+	if (mdev->offload_block.num_block_tc)
-+		ret = -EBUSY;
-+	else
-+		mdev->offload_block.num_block_ipsec++;
-+	spin_unlock_bh(&mdev->offload_block.lock);
- 
--	return 0;
-+	return ret;
- }
- 
- static void mlx5e_tc_unblock_ipsec_offload(struct net_device *filter, struct mlx5e_priv *priv)
-@@ -4853,7 +4856,10 @@ static void mlx5e_tc_unblock_ipsec_offload(struct net_device *filter, struct mlx
- 	if (!is_tc_ipsec_order_check_needed(filter, priv))
- 		return;
- 
--	priv->mdev->num_block_ipsec--;
-+	spin_lock_bh(&priv->mdev->offload_block.lock);
-+	if (!WARN_ON_ONCE(!priv->mdev->offload_block.num_block_ipsec))
-+		priv->mdev->offload_block.num_block_ipsec--;
-+	spin_unlock_bh(&priv->mdev->offload_block.lock);
- }
- 
- int mlx5e_configure_flower(struct net_device *dev, struct mlx5e_priv *priv,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 1a45474ce03d..0439fcfb9ce5 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -1814,6 +1814,7 @@ int mlx5_mdev_init(struct mlx5_core_dev *dev, int profile_idx)
- 	lockdep_register_key(&dev->lock_key);
- 	mutex_init(&dev->intf_state_mutex);
- 	lockdep_set_class(&dev->intf_state_mutex, &dev->lock_key);
-+	spin_lock_init(&dev->offload_block.lock);
- 	mutex_init(&dev->mlx5e_res.uplink_netdev_lock);
- 	mutex_init(&dev->wc_state_lock);
- 
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index abb99371ff13..84e9f6bdb7c1 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -789,8 +789,12 @@ struct mlx5_core_dev {
- 	u32                      vsc_addr;
- 	struct mlx5_hv_vhca	*hv_vhca;
- 	struct mlx5_hwmon	*hwmon;
--	u64			num_block_tc;
--	u64			num_block_ipsec;
-+	struct {
-+		/* Protects the fields below. */
-+		spinlock_t lock;
-+		u64 num_block_tc;
-+		u64 num_block_ipsec;
-+	} offload_block;
- #ifdef CONFIG_MLX5_MACSEC
- 	struct mlx5_macsec_fs *macsec_fs;
- 	/* MACsec notifier chain to sync MACsec core and IB database */
--- 
-2.44.0
+The next sample can be up to 2 * cmd_timeout away after firmware up, but
+that is the normal sampling interval.
 
+The back-dating at probe and PCI reset exists because the first sample
+there only records a baseline (last_fw_hb is 0), so without it a stall
+would take 4 * cmd_timeout to detect.
+
+After firmware up, last_fw_hb already holds a real reading, so the first
+sample can detect a stall and detection takes 2 * cmd_timeout, as in
+steady state.
+
+v2 also changes the changelog's "after probe or reset" to "after probe
+or PCI reset".
+
+Nikhil
