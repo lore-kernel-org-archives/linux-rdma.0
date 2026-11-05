@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793894975;
-	b=5qZP/sTffch9vjZzyAYoU/AKoygyjujLsBeG32KearL5ZRoPZDNdc5nvhxnr+WiUO9oP
-	 EgOVEqh1/8Fis7FbSQaIw235MuOKbKuh6QLlSXdTNuq9GgRHSSGCWGasigaDHmJBL81ht
-	 SdaQay9oWIAXseFGlDMoQz1Ta5KUvC+qaoLTxiHMKDJ/sJJiLP3IVzss0V8Xa7P7ddMAk
-	 ZhpXUCaeiON4Zh35JGjItVLKnruM9WPehSn8OwnzFijfiQjRaR6mFzjzwhsTBdXlYZS0j
-	 0+HXQINhvQe4N4BZJqqhbrRkGHYT2JXRJSRobYEJhfTlPIo5+jFX5wayZohWSB/GRQw==
+	t=1793894976;
+	b=us9F/mXbK419xpT8pQIWSDTIsjyoZX+HCMqKiwzI//woccHwhmtiikR7Hy4jKVc+8z2C
+	 OXY1Ic1Z571ygzb6XrJPMnyL2beV8N+xswPcqqUSeyBtJY1ZpFuQHdrhZqRMalE1I7mjr
+	 ejFQG98Ic7anVh4KyarztJmpJzA+cmrM4km6LstjTW4ThBxcQ8x4wQdn73rI4mzegYXsZ
+	 5XfRuxPqP0mhJ4FZGoPHzk7NNV0GfWUQyL3aZf7qxisWrhk4Q2fuXjGQFTGsNPLCWJoxF
+	 t2Vq7bfcE28FV9ww9XNJEhxKQkWS8WGKvex9a66I3XzFRs42B7u68vCryuNWNSIpusA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793894975;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793894976;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=qSHBgUDsg6gXKgNyX1Nx6yW1rS1/nkl7g1JLJPekEFw=;
-	b=Ww1a9erghNCA1SQm2Z//F2ccEVZYEqzwj4hoJN1KDS+ZPpSZpbin3gzTgV7awwGCsOo4
-	 rrM4VQqbsiVxeSnKUsYmC3zQ43BtWK6A3N5kXSgxQpBqqictEgPSN1tffpoYkP19B9/rK
-	 wFsMSu03Romwn17B7fjPHTvIP+q1bbEYDQUZqdYb0lheGtkTZ/UiMGx7yh8A1d9GzmwU7
-	 N7c0ZeTJ7VF4mBf8TQE/YZ5m1Vh4ZRYio2gdBC7Ntsm+1dtI3oIfrnIJhJGMNh0JHfTwC
-	 nciYFlqHlwo5uFsAZwaWu14NC2Ub89DR7Lrua9wzoRDBrerl5KzMDjFNOuGTsA8P66Q==
+	bh=jp9sRKMeWWBO1g4tWiuTWlgJ9ZByyGl8FMgspweS1c0=;
+	b=Vc7rsTnuthKxEv45cxt2tA4AuMLqj2QOo4lGWPwNiyFJ2iIgJwMuxk2TUzlLRNwb5EVe
+	 GYN7yZQ+pXvBVTeMlUarZ40d1TGkW8coysuuRS5+nAoDugqW5to46R0XRxVXGtAXxVxii
+	 nh1hDbo0JB/PHFoX4vyaBUNaztrTcbLmIurFIiZnSIUZFKiWOSihnaXO/KfCnzFwDofzI
+	 5F/1JpwB5T3SaOjyNaeDzzZEIyUZlafgLfJOkNaw/9XZUY1/+vBpxFdXdjlDBUVft48Nz
+	 d/PRxOZZsBoOR8LutTBXdHNq6ILubsdSHytxtvNu4OJ6ahbuW3LHpSxG1LXz9ePpFCA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EQ9ckz5p;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EdcNWibJ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E115606BE93
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16E6D606BE98
 	for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2026 16:09:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EQ9ckz5p
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D30E11F00919;
-	Thu,  5 Nov 2026 16:09:34 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EdcNWibJ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 811751F000C1;
+	Thu,  5 Nov 2026 16:09:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1793894975;
-	bh=qSHBgUDsg6gXKgNyX1Nx6yW1rS1/nkl7g1JLJPekEFw=;
+	bh=jp9sRKMeWWBO1g4tWiuTWlgJ9ZByyGl8FMgspweS1c0=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=EQ9ckz5pE6RslMcwBg9inxV1vCTionvW9MDQfNLJLX+3Ol31lrRAVGTuDRYNFpLea
-	 YYQqH2d9u2gwcB8YqUH6WhuA6qR/IcTLijVGvxXoLYKKetnxeuNTAhr9hWMMTM/Vzs
-	 91F37/hYC3wvbit/C/SNHgoSaK9ebWr8RhRR2ls0fGVAbTARrzXFZYQ4MkZGpFvLNl
-	 0bTPoRpkxt25oHxd9DSsftTPt7gRM8Un/OcwYtGlWyGQmQlthsnVk0IFRtqnZHP2CX
-	 ZGhBsw0Eg3kc0ZHo/yXh1gRxHqIsE10e//6WFewNy4rzyG2Hxd7r93phXttKGw3p5i
-	 n27976dIhmoUQ==
-Message-ID: <sashiko-outbox-199430@kernel.org>
+	b=EdcNWibJM9arKn+FYQkvf5mKuSMZeqE5xwrB47xaRlK0iMrURLSv0KfIJMeVhOlCU
+	 vfmUjw9az+n9esbcbiO/QUMz9uVA7tjLxiJRN7BbTITDalkAtqNpTNITdl8nNSUYNE
+	 7yZjEiB5KqeNBsR20LRtDBWVmKkGO7HtEwAKEIrrfcHRKiSBNJm/E+Xu3nM2DE89mj
+	 obiKTTXfhG1TEWMTrTTy74QI04Ru+8ui1CJImq7+N0F4McH7tz14dn4aXM1vZo6VRr
+	 L5GudEIqDLdQw9dYlTzRbbFORyyfg7bTfj3OykG5VbmKQ7VRuDkqU9V6/6FNTJeZFh
+	 6cyVZ/yLoYNYQ==
+Message-ID: <sashiko-outbox-199431@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v1 08/15] net/xsc: add ethernet TX path
+Subject: Re: [PATCH v1 09/15] net/xsc: add ethernet RX path and statistics
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Xin Tian" <tianx@yunsilicon.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261104155708.37053-9-tianx@yunsilicon.com>
+In-Reply-To: <20261104155710.37053-10-tianx@yunsilicon.com>
 References: <20261104155650.37053-1-tianx@yunsilicon.com>
- <20261104155708.37053-9-tianx@yunsilicon.com>
+ <20261104155710.37053-10-tianx@yunsilicon.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 05 Nov 2026 16:09:34 +0000
+Date: Thu, 05 Nov 2026 16:09:35 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,491 +60,408 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 7 potential issue(=
+Thank you for your contribution! Sashiko AI review found 6 potential issue(=
 s) to consider:
-- [High] net/xsc: NETDEV_TX_BUSY on active queues in xsc_eth_xmit_start()
-- [High] net/xsc: race waking stopped TX queues in xsc_eth_deactivate_priv_=
-channels()
-- [High] net/xsc: CQs armed before NAPI and queue state init in xsc_eth_ope=
-n_channels()
-- [Medium] net/xsc: missed error CQE checks in xsc_poll_tx_cq() poll loop
-- [Medium] net/xsc: missing TX doorbell on err_drop path in xsc_eth_xmit_fr=
-ame()
-- [Medium] net/xsc: fix CQE error check, sqcc update, and budget in xsc_pol=
-l_tx_cq()
-- [Low] net/xsc: chls->num_chl zeroed before error log in xsc_eth_open_chan=
-nels()
+- [High] net/xsc: missing RQ state check in xsc_eth_post_rx_wqes() and NAPI=
+ order bug
+- [Medium] net/xsc: unchecked initial RQ refill and doorbell write on alloc=
+ failure
+- [Medium] net/xsc: xsc_skb_set_hash() classifies all IPv4/IPv6 packets as =
+L4 hash
+- [Medium] net/xsc: missing drop stats and dead clamp in xsc_eth_handle_rx_=
+cqe()
+- [Medium] net/xsc: host-endian u16 read in XSC_GET_EPP2SOC_PPH_EXT_TUNNEL_=
+TYPE()
+- [Low] net/xsc: xsc_eth_open_channels() zeroes chls->num_chl before loggin=
+g it
 --
 
-commit 251dc7b87bb643704bb618df57c60cfb11aec1a1
+commit 1ef80bdcef5b1d9741776856d8624e7ce0755662
 Author: Xin Tian <tianx@yunsilicon.com>
 
-net/xsc: add ethernet TX path
+net/xsc: add ethernet RX path and statistics
 
-This commit implements the Ethernet transmit path for the xsc driver,
-including per-channel CQ and raw-TSO SQ setup, NAPI completion polling,
-WQE construction with DMA mapping and BQL tracking, and offload feature
-advertisement.
+This commit implements the ethernet receive path using page pools, linear a=
+nd
+non-linear SKB construction, CQE checksum and RSS hash handling, and RSS RQ
+creation. It also wires up ndo_get_stats64 and advertises RX checksum and RX
+hash offloads.
 
 > diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/main.c b/drivers/net=
 /ethernet/yunsilicon/xsc/net/main.c
-> index 21a50085fa879..a02f95145d018 100644
+> index a02f95145d018..e56e0eec30515 100644
 > --- a/drivers/net/ethernet/yunsilicon/xsc/net/main.c
 > +++ b/drivers/net/ethernet/yunsilicon/xsc/net/main.c
-> @@ -95,22 +95,825 @@ static int xsc_eth_netdev_init(struct xsc_adapter *a=
-dapter)
-
-[ ... ]
-
-> +static void xsc_eth_completion_event(struct xsc_core_cq *xcq)
-> +{
-> +	struct xsc_cq *cq =3D container_of(xcq, struct xsc_cq, xcq);
-> +	struct xsc_core_device *xdev =3D cq->xdev;
-> +	struct xsc_rq *rq =3D NULL;
-> +
-> +	if (unlikely(!cq->channel)) {
-> +		netdev_err(xsc_dev_to_netdev(xdev), "cq%d->channel is null\n",
-> +			   xcq->cqn);
-> +		return;
-> +	}
-> +
-> +	rq =3D &cq->channel->qp.rq;
-> +
-> +	if (!test_bit(XSC_ETH_RQ_STATE_ENABLED, &rq->state))
-> +		netdev_err(xsc_dev_to_netdev(xdev),
-> +			   "ch%d_cq%d, napi_flag=3D0x%lx\n",
-> +			   cq->channel->chl_idx, xcq->cqn,
-> +			   cq->napi->state);
-> +
-> +	napi_schedule(cq->napi);
-> +	cq->event_ctr++;
-> +}
-
-[ ... ]
-
-> +static int xsc_eth_open_cq(struct xsc_channel *c,
-> +			   struct xsc_cq *pcq,
-> +			   struct xsc_cq_param *pcq_param)
-> +{
+> @@ -686,6 +686,14 @@ static int xsc_eth_open_channel(struct xsc_adapter *=
+adapter,
+>  static int xsc_eth_modify_qps_channel(struct xsc_adapter *adapter,
+>  				      struct xsc_channel *c)
+>  {
 > +	int ret;
 > +
-> +	ret =3D xsc_eth_alloc_cq(c, pcq, pcq_param);
+> +	c->qp.rq.post_wqes(&c->qp.rq);
+> +	ret =3D xsc_core_eth_modify_qp_status(adapter->xdev, c->qp.rq.rqn,
+> +					    XSC_CMD_OP_RTR2RTS_QP);
 > +	if (ret)
 > +		return ret;
 > +
-> +	ret =3D xsc_eth_set_cq(c, pcq, pcq_param);
-> +	if (ret)
-> +		goto err_free_cq;
-> +
-> +	xsc_cq_notify_hw_rearm(pcq);
-> +
-> +	pcq->napi =3D &c->napi;
-> +	pcq->channel =3D c;
-> +
-> +	return 0;
-> +
-> +err_free_cq:
-> +	xsc_eth_free_cq(pcq);
-> +	return ret;
-> +}
+>  	return xsc_core_eth_modify_qp_status(adapter->xdev, c->qp.sq.sqn,
+>  					     XSC_CMD_OP_RTR2RTS_QP);
+>  }
 
 [ ... ]
 
-> +static int xsc_eth_open_channel(struct xsc_adapter *adapter,
-> +				int idx,
-> +				struct xsc_channel *c,
-> +				struct xsc_channel_param *chl_param)
-> +{
-> +	struct xsc_core_device *xdev =3D adapter->xdev;
-> +	struct net_device *netdev =3D adapter->netdev;
-> +	const struct cpumask *aff;
-> +	unsigned int irqn;
-> +	u32 eqn;
-> +	int ret;
-> +
-> +	c->adapter =3D adapter;
-> +	c->netdev =3D adapter->netdev;
-> +	c->chl_idx =3D idx;
-> +
-> +	ret =3D xsc_core_vector2eqn(xdev, c->chl_idx, &eqn, &irqn);
+> @@ -745,6 +1075,14 @@ static int xsc_eth_open_channels(struct xsc_adapter=
+ *adapter)
+>  			goto err_close_channel;
+>  	}
+> =20
+> +	ret =3D xsc_eth_open_rss_qp_rqs(adapter,
+> +				      &chl_param->rq_param,
+> +				      chls,
+> +				      chls->num_chl);
 > +	if (ret)
-> +		goto err_out;
-> +	aff =3D irq_get_affinity_mask(irqn);
-> +	c->aff_mask =3D aff;
-> +	c->cpu =3D cpumask_first(aff);
+> +		goto err_close_channel;
+> +	free_rq =3D true;
 > +
-> +	ret =3D xsc_eth_open_cq(c, &c->qp.rq.cq, &chl_param->rqcq_param);
-> +	if (ret)
-> +		goto err_out;
-> +
-> +	ret =3D xsc_eth_open_cq(c, &c->qp.sq.cq, &chl_param->sqcq_param);
-> +	if (ret)
-> +		goto err_close_rq_cq;
-> +
-> +	ret =3D xsc_eth_open_qp_sq(c, &c->qp.sq, &chl_param->sq_param);
-> +	if (ret)
-> +		goto err_close_sq_cq;
-> +
-> +	netif_napi_add(netdev, &c->napi, xsc_eth_napi_poll);
-
-[Severity: High]
-Could this ordering between CQ creation, NAPI initialization, and queue
-state enablement cause a NULL pointer dereference or unratelimited log
-spam from hardirq context?
-
-In xsc_eth_open_cq(), xsc_eth_set_cq() calls xsc_core_eth_create_cq(),
-which inserts &pcq->xcq into xdev->dev_res->cq_table.tree while MSI-X EQs
-are active, and then calls xsc_cq_notify_hw_rearm(pcq) before setting
-pcq->napi and pcq->channel.
-
-Furthermore, in xsc_eth_open_channel(), both CQs (rq.cq and sq.cq) are
-opened and armed before netif_napi_add(netdev, &c->napi, xsc_eth_napi_poll)
-initializes c->napi. Because c is zero-allocated with kcalloc_node(),
-c->napi.state has NAPIF_STATE_SCHED cleared and c->napi.poll is NULL prior
-to netif_napi_add(). If xsc_eq_int() dispatches XSC_EVENT_TYPE_COMP or
-XSC_EVENT_TYPE_INTERNAL_ERROR for the CQ after pcq->channel is assigned
-and before netif_napi_add() runs, xsc_eth_completion_event() will call
-napi_schedule(cq->napi) on an uninitialized napi_struct.
-
-In addition, xsc_eth_completion_event() checks
-!test_bit(XSC_ETH_RQ_STATE_ENABLED, &rq->state) and logs an unratelimited
-netdev_err() from hardirq context. In this commit XSC_ETH_RQ_STATE_ENABLED
-is never set anywhere, so every TX completion interrupt triggers
-netdev_err(). Even once RX sets XSC_ETH_RQ_STATE_ENABLED in
-xsc_eth_activate_priv_channels(), xsc_eth_open_channels() transitions QPs
-to RTS before xsc_eth_activate_priv_channels() sets the enabled state bits
-(and xsc_eth_deactivate_channels() clears them before tearing down the QPs
-and CQs), during which time xsc_poll_tx_cq() returns early when
-XSC_ETH_SQ_STATE_ENABLED is clear while xsc_eth_napi_poll() re-arms the CQ
-without draining it.
-
-Should netif_napi_add() and pcq->napi / pcq->channel initialization happen
-before registering and arming the CQs, and should the queue state bits be
-set before arming CQs and transitioning QPs to RTS?
-
-> +
-> +	netdev_dbg(adapter->netdev, "open channel%d ok\n", idx);
-> +	return 0;
-
-[ ... ]
-
-> +err_close_channel:
-> +	for (--i; i >=3D 0; i--)
-> +		xsc_eth_close_channel(&chls->c[i], false);
-> +
-> +	kvfree(chl_param);
-> +err_free_ch:
-> +	kfree(chls->c);
-> +err_out:
-> +	chls->num_chl =3D 0;
-> +	netdev_err(adapter->netdev, "failed to open %d channels, err=3D%d\n",
-> +		   chls->num_chl, ret);
-> +	return ret;
-> +}
+>  	for (i =3D 0; i < chls->num_chl; i++)
+>  		napi_enable(&chls->c[i].napi);
+> =20
+> @@ -763,7 +1101,7 @@ static int xsc_eth_open_channels(struct xsc_adapter =
+*adapter)
+> =20
+>  err_close_channel:
+>  	for (--i; i >=3D 0; i--)
+> -		xsc_eth_close_channel(&chls->c[i], false);
+> +		xsc_eth_close_channel(&chls->c[i], free_rq);
+> =20
+>  	kvfree(chl_param);
+>  err_free_ch:
 
 [Severity: Low]
-In xsc_eth_open_channels(), chls->num_chl is set to 0 right before the
-netdev_err() call at err_out. Won't this always log "failed to open 0
-channels" on failure instead of the number of channels that failed to
-open?
+When xsc_eth_open_channels() fails (for example if xsc_eth_open_rss_qp_rqs()
+or xsc_eth_modify_qps() returns an error), it jumps through err_close_chann=
+el
+to err_out:
+
+err_out:
+	chls->num_chl =3D 0;
+	netdev_err(adapter->netdev, "failed to open %d channels, err=3D%d\n",
+		   chls->num_chl, ret);
+
+Since chls->num_chl is cleared to 0 right before netdev_err(), won't this
+always log "failed to open 0 channels" instead of the number of channels th=
+at
+failed to open?
 
 [ ... ]
 
-> +static void xsc_eth_deactivate_channels(struct xsc_eth_channels *chs)
-> +{
-> +	int i;
-> +
-> +	for (i =3D 0; i < chs->num_chl; i++)
-> +		xsc_eth_deactivate_channel(&chs->c[i]);
-> +
-> +	/* Sync with all NAPIs to wait until they stop using queues. */
-> +	synchronize_net();
-> +
-> +	for (i =3D 0; i < chs->num_chl; i++)
-> +		/* last doorbell out */
-> +		napi_disable(&chs->c[i].napi);
-> +}
-> +
-> +static void xsc_eth_activate_priv_channels(struct xsc_adapter *adapter)
-> +{
-> +	struct net_device *netdev =3D adapter->netdev;
-> +
-> +	netif_set_real_num_tx_queues(netdev, adapter->channels.num_chl);
-> +	netif_set_real_num_rx_queues(netdev, adapter->channels.num_chl);
-> +
-> +	xsc_eth_build_tx2sq_maps(adapter);
-> +	xsc_eth_activate_channels(&adapter->channels);
-> +	netif_tx_start_all_queues(adapter->netdev);
-> +}
-> +
-> +static void xsc_eth_deactivate_priv_channels(struct xsc_adapter *adapter)
-> +{
-> +	netif_tx_disable(adapter->netdev);
-> +	xsc_eth_deactivate_channels(&adapter->channels);
-> +}
-
-[Severity: High]
-Can a concurrent NAPI poll re-wake a TX queue during teardown in
-xsc_eth_deactivate_priv_channels()?
-
-xsc_eth_deactivate_priv_channels() calls netif_tx_disable(adapter->netdev)
-before xsc_eth_deactivate_channels() clears XSC_ETH_SQ_STATE_ENABLED and
-disables NAPI. If xsc_poll_tx_cq() is running concurrently on another CPU,
-it can still see XSC_ETH_SQ_STATE_ENABLED set, observe
-netif_tx_queue_stopped(sq->txq) is true (just set by netif_tx_disable()),
-and call netif_tx_wake_queue(sq->txq):
-
-drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c:xsc_poll_tx_cq() {
-    ...
-	if (netif_tx_queue_stopped(sq->txq) &&
-	    xsc_wqc_has_room_for(&sq->wq, sq->cc, sq->pc, sq->stop_room)) {
-		netif_tx_wake_queue(sq->txq);
-	}
-}
-
-Wouldn't that clear __QUEUE_STATE_DRV_XOFF and leave the TX queue awake
-while xsc_eth_sw_deinit() proceeds to free TX WQEs and close the channels?
-Should xsc_eth_deactivate_channels() run before netif_tx_disable()?
-
-[ ... ]
-
-> @@ -172,14 +1053,26 @@ static int xsc_set_port_admin_status(struct xsc_ad=
-apter *adapter,
->  static int xsc_eth_open(struct net_device *netdev)
->  {
->  	struct xsc_adapter *adapter =3D netdev_priv(netdev);
-> +	bool link_up;
->  	int ret;
-> =20
->  	if (adapter->opened) {
->  		netdev_err(adapter->netdev, "ndo_open on an already opened device\n");
->  		return 0;
->  	}
-> +	ret =3D xsc_eth_sw_init(adapter);
-> +	if (ret)
-> +		return ret;
-> =20
-> -	if (xsc_eth_get_link_status(adapter))	{
-> +	ret =3D xsc_eth_enable_nic_hca(adapter);
-> +	if (ret)
-> +		goto err_sw_deinit;
-> +
-> +	ret =3D xsc_eth_get_link_status(adapter, &link_up);
-> +	if (ret)
-> +		netdev_warn(netdev, "failed to query link status, err=3D%d\n", ret);
-> +
-> +	if (!ret && link_up) {
->  		netdev_info(netdev, "Link up\n");
->  		netif_carrier_on(adapter->netdev);
->  	} else {
-> @@ -196,6 +1089,10 @@ static int xsc_eth_open(struct net_device *netdev)
->  			   ret);
-> =20
->  	return 0;
-> +
-> +err_sw_deinit:
-> +	xsc_eth_sw_deinit(adapter);
-> +	return ret;
->  }
-> =20
->  static int xsc_eth_close(struct net_device *netdev)
-> @@ -209,6 +1106,13 @@ static int xsc_eth_close(struct net_device *netdev)
-> =20
->  	netif_carrier_off(adapter->netdev);
-> =20
-> +	xsc_eth_sw_deinit(adapter);
-
-[Severity: High]
-Can xsc_eth_xmit_start() return NETDEV_TX_BUSY on an active, unstopped TX
-queue during xsc_eth_open() and xsc_eth_close()?
-
-In xsc_eth_open(), xsc_eth_sw_init() calls xsc_eth_activate_priv_channels(),
-which calls netif_set_real_num_tx_queues() and
-netif_set_real_num_rx_queues() (without checking their return values) and
-starts all TX queues via netif_tx_start_queue() and
-netif_tx_start_all_queues() while adapter->opened is still false.
-xsc_eth_open() then sleeps in xsc_eth_enable_nic_hca() and
-xsc_eth_get_link_status() and calls netif_carrier_on() before setting
-adapter->opened =3D true (and xsc_eth_link_event_handler() can also turn the
-carrier on asynchronously).
-
-Similarly, in xsc_eth_close(), adapter->opened =3D false is set before
-netif_carrier_off() and before xsc_eth_sw_deinit() calls
-netif_tx_disable().
-
-During both windows, TX queues are active and unstopped while
-adapter->opened is false. Any packet reaching xsc_eth_xmit_start() will
-hit:
-
-drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_tx.c:xsc_eth_xmit_start() {
-	if (!adapter->opened)
-		return NETDEV_TX_BUSY;
-}
-
-without stopping the TX queue, causing sch_direct_xmit() to requeue the skb
-and reschedule NET_TX_SOFTIRQ in a tight retry loop (and leaving any
-earlier skbs in a netdev_xmit_more() batch without a doorbell ring).
-
-Should adapter->opened be set before starting the TX queues (or TX queues
-started only after HCA enablement and adapter->opened =3D true), and in
-xsc_eth_close() should the TX queues be disabled before clearing
-adapter->opened?
-
-> diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_tx.c b/drive=
-rs/net/ethernet/yunsilicon/xsc/net/xsc_eth_tx.c
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_rx.c b/drive=
+rs/net/ethernet/yunsilicon/xsc/net/xsc_eth_rx.c
 > new file mode 100644
-> index 0000000000000..376b2cd0d8f29
+> index 0000000000000..00ac7eacc0e99
 > --- /dev/null
-> +++ b/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_tx.c
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_rx.c
+> @@ -0,0 +1,556 @@
 
 [ ... ]
 
-> +static void xsc_txwqe_complete(struct xsc_sq *sq, struct sk_buff *skb,
-> +			       u8 opcode, u16 ds_cnt,
-> +			       u8 num_wqebbs, u32 num_bytes, u8 num_dma,
-> +			       struct xsc_tx_wqe_info *wi)
+> +static void xsc_skb_set_hash(struct xsc_adapter *adapter,
+> +			     struct xsc_cqe *cqe,
+> +			     struct sk_buff *skb)
 > +{
-> +	struct xsc_wq_cyc *wq =3D &sq->wq;
+> +	struct xsc_rss_params *rss =3D &adapter->rss_param;
+> +	bool l3_hash =3D false;
+> +	bool l4_hash =3D false;
+> +	u32 hash_field;
+> +	int ht =3D 0;
 > +
-> +	wi->num_bytes =3D num_bytes;
-> +	wi->num_dma =3D num_dma;
-> +	wi->num_wqebbs =3D num_wqebbs;
-> +	wi->skb =3D skb;
+> +	if (adapter->netdev->features & NETIF_F_RXHASH) {
+> +		if (skb->protocol =3D=3D htons(ETH_P_IP)) {
+> +			hash_field =3D rss->rx_hash_fields[XSC_TT_IPV4_TCP];
+> +			if (hash_field & XSC_HASH_FIELD_SEL_SRC_IP ||
+> +			    hash_field & XSC_HASH_FIELD_SEL_DST_IP)
+> +				l3_hash =3D true;
 > +
-> +	netdev_tx_sent_queue(sq->txq, num_bytes);
+> +			if (hash_field & XSC_HASH_FIELD_SEL_SPORT ||
+> +			    hash_field & XSC_HASH_FIELD_SEL_DPORT)
+> +				l4_hash =3D true;
+> +		} else if (skb->protocol =3D=3D htons(ETH_P_IPV6)) {
+> +			hash_field =3D rss->rx_hash_fields[XSC_TT_IPV6_TCP];
+> +			if (hash_field & XSC_HASH_FIELD_SEL_SRC_IPV6 ||
+> +			    hash_field & XSC_HASH_FIELD_SEL_DST_IPV6)
+> +				l3_hash =3D true;
 > +
-> +	sq->pc +=3D wi->num_wqebbs;
+> +			if (hash_field & XSC_HASH_FIELD_SEL_SPORT_V6 ||
+> +			    hash_field & XSC_HASH_FIELD_SEL_DPORT_V6)
+> +				l4_hash =3D true;
+> +		}
 > +
-> +	if (unlikely(!xsc_wqc_has_room_for(wq, sq->cc, sq->pc, sq->stop_room)))
-> +		netif_tx_stop_queue(sq->txq);
-> +
-> +	if (!netdev_xmit_more() || netif_xmit_stopped(sq->txq))
-> +		xsc_sq_notify_hw(wq, sq->pc, sq);
-> +}
-> +
-> +static uint32_t xsc_eth_xmit_frame(struct sk_buff *skb,
-> +				   struct xsc_sq *sq,
-> +				   struct xsc_tx_wqe *wqe,
-> +				   u16 pi)
-> +{
-
-[ ... ]
-
-> +	xsc_txwqe_complete(sq, skb, opcode, ds_cnt, num_wqebbs, num_bytes,
-> +			   num_dma, wi);
-> +	stats->bytes     +=3D num_bytes;
-> +	stats->packets   +=3D num_pkts;
-> +
-> +	return NETDEV_TX_OK;
-> +
-> +err_drop:
-> +	stats->dropped++;
-> +	dev_kfree_skb_any(skb);
-> +
-> +	return NETDEV_TX_OK;
+> +		if (l3_hash && l4_hash)
+> +			ht =3D PKT_HASH_TYPE_L4;
+> +		else if (l3_hash)
+> +			ht =3D PKT_HASH_TYPE_L3;
+> +		if (ht)
+> +			skb_set_hash(skb, le32_to_cpu(cqe->vni), ht);
+> +	}
 > +}
 
 [Severity: Medium]
-What happens to previously queued WQEs in a netdev_xmit_more() batch if a
-subsequent packet in that batch takes the err_drop path in
-xsc_eth_xmit_frame()?
+In xsc_skb_set_hash(), any packet with skb->protocol equal to htons(ETH_P_I=
+P)
+looks up rss->rx_hash_fields[XSC_TT_IPV4_TCP], and any packet with
+htons(ETH_P_IPV6) looks up rss->rx_hash_fields[XSC_TT_IPV6_TCP].
 
-When earlier packets in a batch are queued with netdev_xmit_more() true and
-the queue is not stopped, xsc_txwqe_complete() advances sq->pc and skips
-xsc_sq_notify_hw(). If a later packet (such as the final packet in the
-batch where netdev_xmit_more() is false) jumps to err_drop (for example on
-skb->len > sq->hw_mtu, skb_linearize() failure, skb->len =3D=3D 0, or DMA
-mapping failure in xsc_txwqe_build_dsegs()), err_drop frees the skb and
-returns without ringing the doorbell for the earlier WQEs. Should err_drop
-call xsc_sq_notify_hw() when !netdev_xmit_more() or when uncommitted WQEs
-are pending?
+In xsc_build_rss_param(), those two entries are initialized to
+XSC_HASH_IP_PORTS and XSC_HASH_IP6_PORTS, which always have both the L3 IP
+address bits and L4 port bits set.
+
+Because the actual L4 protocol and fragmentation status of the received pac=
+ket
+are not checked here, won't every IPv4 and IPv6 packet (including ICMP, oth=
+er
+non-TCP/UDP protocols, and fragmented IP packets) be unconditionally report=
+ed
+to the network stack with PKT_HASH_TYPE_L4?
+
+> +
+> +static void xsc_handle_csum(struct xsc_cqe *cqe, struct xsc_rq *rq,
+> +			    struct sk_buff *skb, struct xsc_wqe_frag_info *wi)
+> +{
+> +	struct xsc_dma_info *dma_info;
+> +	struct net_device *netdev;
+> +	void *hw_pph;
+> +	struct xsc_channel *c;
+> +	int offset_from;
+> +
+> +	c =3D rq->cq.channel;
+> +	netdev =3D c->adapter->netdev;
+> +	dma_info =3D wi->di;
+> +	offset_from =3D wi->offset;
+> +	hw_pph =3D page_address(dma_info->page) + offset_from;
+> +
+> +	if (unlikely((netdev->features & NETIF_F_RXCSUM) =3D=3D 0))
+> +		goto csum_none;
+> +
+> +	if (!(le32_to_cpu(cqe->data0) & XSC_CQE_DATA0_HAS_PPH))
+> +		goto csum_none;
+> +
+> +	dma_sync_single_for_cpu(rq->cq.xdev->device,
+> +				dma_info->addr + offset_from,
+> +				XSC_PPH_HEAD_LEN, DMA_FROM_DEVICE);
+> +
+> +	if (unlikely(XSC_GET_EPP2SOC_PPH_ERROR_BITMAP(hw_pph) & PACKET_UNKNOWN))
+> +		goto csum_none;
+> +
+> +	if (XSC_GET_EPP2SOC_PPH_EXT_TUNNEL_TYPE(hw_pph) &&
+> +	    (!(FIELD_GET(XSC_CQE_DATA0_CSUM_ERR_MASK, le32_to_cpu(cqe->data0)) &
+> +	       OUTER_AND_INNER))) {
+
+[Severity: Medium]
+In xsc_handle_csum(), XSC_GET_EPP2SOC_PPH_EXT_TUNNEL_TYPE(hw_pph) is used to
+check tunnel encapsulation on the DMA-synced packet parse header. Looking at
+drivers/net/ethernet/yunsilicon/xsc/net/xsc_pph.h:
+
+#define XSC_GET_EPP2SOC_PPH_EXT_TUNNEL_TYPE(PPH_BASE_ADDR)	\
+	((*(u16 *)((u8 *)(PPH_BASE_ADDR) +	\
+	EPP2SOC_PPH_EXT_TUNNEL_TYPE_OFFSET) &	\
+	EPP2SOC_PPH_EXT_TUNNEL_TYPE_BIT_MASK) >>	\
+	EPP2SOC_PPH_EXT_TUNNEL_TYPE_BIT_OFFSET)
+
+Since this dereferences a u16 from the DMA buffer in host byte order without
+endianness conversion and masks with 0x0f00 >> 8, won't it read the wrong
+byte of hw_pph on big-endian architectures and misclassify tunnel checksums?
+
+[ ... ]
+
+> +void xsc_eth_handle_rx_cqe(struct xsc_cqwq *cqwq,
+> +			   struct xsc_rq *rq, struct xsc_cqe *cqe)
+> +{
+> +	struct xsc_wq_cyc *wq =3D &rq->wqe.wq;
+> +	u8 cqe_opcode =3D get_cqe_opcode(cqe);
+> +	struct xsc_wqe_frag_info *wi;
+> +	struct sk_buff *skb;
+> +	u32 cqe_bcnt;
+> +	u16 ci;
+> +
+> +	ci =3D xsc_wq_cyc_ctr2ix(wq, cqwq->cc);
+> +	wi =3D get_frag(rq, ci);
+> +	if (unlikely(cqe_opcode & BIT(7))) {
+> +		xsc_dump_error_rqcqe(rq, cqe);
+> +		goto free_wqe;
+> +	}
+> +
+> +	cqe_bcnt =3D le32_to_cpu(cqe->msg_len);
+> +	if ((le32_to_cpu(cqe->data0) & XSC_CQE_DATA0_HAS_PPH) &&
+> +	    cqe_bcnt <=3D XSC_PPH_HEAD_LEN)
+> +		goto free_wqe;
+> +
+> +	if (unlikely(cqe_bcnt < ETH_HLEN + ((le32_to_cpu(cqe->data0) &
+> +					    XSC_CQE_DATA0_HAS_PPH) ?
+> +					    XSC_PPH_HEAD_LEN : 0))) {
+> +		rq->stats->dropped++;
+> +		goto free_wqe;
+> +	}
+> +
+> +	if (unlikely(cqe_bcnt > rq->frags_sz))
+> +		goto free_wqe;
+> +
+> +	cqe_bcnt =3D min_t(u32, cqe_bcnt, rq->frags_sz);
+
+[Severity: Medium]
+In xsc_eth_handle_rx_cqe(), when XSC_CQE_DATA0_HAS_PPH is set and cqe_bcnt =
+is
+less than or equal to XSC_PPH_HEAD_LEN, or when cqe_bcnt > rq->frags_sz, the
+frame jumps to free_wqe without incrementing rq->stats->dropped (which
+xsc_eth_fold_sw_stats64() folds into rx_length_errors).
+
+In addition, the second check (cqe_bcnt < ETH_HLEN + XSC_PPH_HEAD_LEN) alre=
+ady
+covers cqe_bcnt <=3D XSC_PPH_HEAD_LEN when XSC_CQE_DATA0_HAS_PPH is set, an=
+d the
+min_t(u32, cqe_bcnt, rq->frags_sz) clamp right after the cqe_bcnt > rq->fra=
+gs_sz
+branch is unreachable.
+
+Should the first check and the redundant min_t() be removed, and should the
+cqe_bcnt > rq->frags_sz path also increment rq->stats->dropped?
+
+[ ... ]
+
+> +bool xsc_eth_post_rx_wqes(struct xsc_rq *rq)
+> +{
+> +	struct xsc_wq_cyc *wq =3D &rq->wqe.wq;
+> +	u8 wqe_bulk, wqe_bulk_min;
+> +	int err =3D 0;
+> +	int alloc;
+> +	u16 head;
+> +
+> +	wqe_bulk =3D rq->wqe.info.wqe_bulk;
+> +	wqe_bulk_min =3D rq->wqe.info.wqe_bulk_min;
+> +	if (xsc_wq_cyc_missing(wq) < wqe_bulk)
+> +		return false;
+> +
+> +	do {
+> +		head =3D xsc_wq_cyc_get_head(wq);
+> +
+> +		alloc =3D min_t(int, wqe_bulk, xsc_wq_cyc_missing(wq));
+> +		if (alloc < wqe_bulk && alloc >=3D wqe_bulk_min)
+> +			alloc =3D alloc & 0xfffffffe;
+> +
+> +		if (alloc > 0) {
+> +			err =3D xsc_alloc_rx_wqes(rq, head, alloc);
+> +			if (unlikely(err))
+> +				break;
+> +
+> +			xsc_wq_cyc_push_n(wq, alloc);
+> +		}
+> +	} while (xsc_wq_cyc_missing(wq) >=3D wqe_bulk_min);
+> +
+> +	dma_wmb();
+> +
+> +	/* ensure wqes are visible to device before updating doorbell record */
+> +	xsc_rq_notify_hw(rq);
+> +
+> +	return !!err;
+> +}
+
+[Severity: Medium]
+If xsc_alloc_rx_wqes() fails on the first iteration of the loop in
+xsc_eth_post_rx_wqes(), no WQEs are pushed to wq, but execution still falls
+through to xsc_rq_notify_hw(rq) and writes the unchanged wq->wqe_ctr to the
+hardware RX doorbell.
+
+In addition, during ndo_open, xsc_eth_modify_qps_channel() calls
+c->qp.rq.post_wqes(&c->qp.rq) without checking its return value or whether =
+the
+RQ ring is still empty before transitioning the RQ to RTS. If initial page
+allocation fails, won't the RQ enter RTS with zero posted WQEs and never
+receive completions to trigger a refill?
+
+[ ... ]
 
 > diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c b/dri=
 vers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c
-> new file mode 100644
-> index 0000000000000..262421740e974
-> --- /dev/null
+> index 262421740e974..42e6305478913 100644
+> --- a/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c
 > +++ b/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c
+> @@ -118,7 +118,9 @@ int xsc_eth_napi_poll(struct napi_struct *napi, int b=
+udget)
+>  {
+>  	struct xsc_channel *c =3D container_of(napi, struct xsc_channel, napi);
+>  	struct xsc_eth_params *params =3D &c->adapter->nic_param;
+> +	struct xsc_rq *rq =3D &c->qp.rq;
+>  	bool busy =3D false;
+> +	int work_done =3D 0;
+>  	int tx_budget;
+> =20
+>  	rcu_read_lock();
+> @@ -126,18 +128,29 @@ int xsc_eth_napi_poll(struct napi_struct *napi, int=
+ budget)
+>  	tx_budget =3D params->sq_size >> 2;
+>  	busy |=3D xsc_poll_tx_cq(&c->qp.sq.cq, tx_budget);
+> =20
+> +	/* budget=3D0 means: don't poll rx rings */
+> +	if (likely(budget)) {
+> +		work_done =3D xsc_poll_rx_cq(&rq->cq, budget);
+> +		busy |=3D work_done =3D=3D budget;
+> +	}
+> +
+> +	busy |=3D rq->post_wqes(rq);
 
-[ ... ]
+[Severity: High]
+Can xsc_eth_post_rx_wqes() race with NAPI or run while the RQ is disabled?
 
-> +static bool xsc_poll_tx_cq(struct xsc_cq *cq, int napi_budget)
-> +{
-> +	struct xsc_adapter *adapter;
-> +	struct xsc_cqe *cqe;
-> +	struct device *dev;
-> +	struct xsc_sq *sq;
-> +	u32 dma_fifo_cc;
-> +	u32 nbytes =3D 0;
-> +	u16 npkts =3D 0;
-> +	int i =3D 0;
-> +	u16 sqcc;
-> +
-> +	sq =3D container_of(cq, struct xsc_sq, cq);
-> +	if (!test_bit(XSC_ETH_SQ_STATE_ENABLED, &sq->state))
-> +		return false;
-> +
-> +	adapter =3D sq->channel->adapter;
-> +	dev =3D adapter->dev;
-> +
-> +	cqe =3D xsc_cqwq_get_cqe(&cq->wq);
-> +	if (!cqe)
-> +		goto out;
-> +
-> +	if (unlikely(get_cqe_opcode(cqe) & BIT(7)))
-> +		xsc_dump_error_sqcqe(sq, cqe);
-> +
-> +	sqcc =3D sq->cc;
-> +
-> +	/* avoid dirtying sq cache line every cqe */
-> +	dma_fifo_cc =3D sq->dma_fifo_cc;
-> +	i =3D 0;
-> +	do {
-> +		struct xsc_tx_wqe_info *wi;
-> +		struct sk_buff *skb;
-> +		int j;
-> +		u16 ci;
-> +
-> +		xsc_cqwq_pop(&cq->wq);
-> +
-> +		ci =3D xsc_wq_cyc_ctr2ix(&sq->wq, sqcc);
-> +		wi =3D &sq->db.wqe_info[ci];
-> +		skb =3D wi->skb;
-> +
-> +		if (unlikely(!skb))
-> +			continue;
-> +
-> +		for (j =3D 0; j < wi->num_dma; j++) {
-> +			struct xsc_sq_dma *dma =3D xsc_dma_get(sq, dma_fifo_cc++);
-> +
-> +			xsc_tx_dma_unmap(dev, dma);
-> +		}
-> +
-> +		npkts++;
-> +		nbytes +=3D wi->num_bytes;
-> +		sqcc +=3D wi->num_wqebbs;
-> +		napi_consume_skb(skb, 0);
-> +
-> +	} while ((++i < napi_budget) && (cqe =3D xsc_cqwq_get_cqe(&cq->wq)));
+Looking at the channel open sequence in xsc_eth_sw_init():
 
-[Severity: Medium]
-There are a few issues in the xsc_poll_tx_cq() loop:
+xsc_eth_open_channels()
+    for (i =3D 0; i < chls->num_chl; i++)
+        napi_enable(&chls->c[i].napi);
+    smp_wmb();
+    xsc_eth_modify_qps()
+        xsc_eth_modify_qps_channel()
+            c->qp.rq.post_wqes(&c->qp.rq);
+            xsc_core_eth_modify_qp_status(..., XSC_CMD_OP_RTR2RTS_QP);
+xsc_eth_activate_priv_channels()
+    xsc_eth_activate_channel()
+        xsc_activate_rq() -> set_bit(XSC_ETH_RQ_STATE_ENABLED, &c->qp.rq.st=
+ate)
 
-1. get_cqe_opcode(cqe) & BIT(7) is only checked once before the do-while
-loop rather than inside the loop before xsc_cqwq_pop(&cq->wq). Won't any
-error CQEs fetched after the first CQE in a NAPI poll batch be silently
-ignored instead of logged via xsc_dump_error_sqcqe()?
+Unlike xsc_poll_rx_cq(), xsc_eth_post_rx_wqes() does not check
+test_bit(XSC_ETH_RQ_STATE_ENABLED, &rq->state), and xsc_eth_napi_poll() cal=
+ls
+rq->post_wqes(rq) unconditionally (even when budget =3D=3D 0 or when
+XSC_ETH_RQ_STATE_ENABLED is not set).
 
-2. If unlikely(!skb) is taken after xsc_cqwq_pop(&cq->wq), the loop
-executes continue without advancing sqcc (unlike xsc_free_tx_wqe(), which
-increments sq->cc++), and wi->skb is never cleared when a WQE completes.
-Could that desynchronize sqcc from the CQ if a nop WQE is encountered?
+This appears to allow several issues:
 
-3. napi_consume_skb(skb, 0) is called with a hardcoded budget of 0, which
-causes napi_consume_skb() to always take the !budget non-NAPI fallback
-(dev_consume_skb_any()) instead of using the NAPI per-CPU skb cache. Should
-the NAPI poll budget be passed through to napi_consume_skb() here?
+1. Because napi_enable() is called before xsc_eth_modify_qps_channel() calls
+   c->qp.rq.post_wqes(&c->qp.rq) in process context without BH disabled, a
+   concurrent NAPI poll (via busy-poll, netpoll, or a CQ interrupt) can run
+   rq->post_wqes(rq) at the same time on the same RQ, corrupting wq->wqe_ct=
+r,
+   wq->cur_sz, frag->di->page, and the non-thread-safe page_pool alloc cach=
+e.
+
+2. While xsc_eth_modify_qps() is iterating over channels across sleeping
+   firmware commands, earlier channels have already transitioned to RTS whi=
+le
+   XSC_ETH_RQ_STATE_ENABLED is still 0, so incoming packets can trigger
+   xsc_eth_completion_event() while xsc_poll_rx_cq() refuses to drain the C=
+Q.
+
+3. During teardown in xsc_eth_deactivate_channels(), xsc_deactivate_rq()
+   clears XSC_ETH_RQ_STATE_ENABLED before napi_disable(), but in-flight NAPI
+   polls will still call rq->post_wqes(rq), allocating pages and ringing the
+   RX doorbell on the deactivated RQ (and if page allocation fails, returni=
+ng
+   busy =3D true so xsc_eth_napi_poll() never completes NAPI).
+
+Should xsc_eth_post_rx_wqes() check test_bit(XSC_ETH_RQ_STATE_ENABLED,
+&rq->state), and should XSC_ETH_RQ_STATE_ENABLED and initial WQE posting ha=
+ppen
+before napi_enable() and the RTR2RTS transition?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261104155650.3705=
-3-1-tianx@yunsilicon.com?part=3D8
+3-1-tianx@yunsilicon.com?part=3D9
