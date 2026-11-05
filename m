@@ -1,61 +1,104 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.175
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793830549;
-	b=ihe9ra1Um2YrtJT2wG2neN2Ev2mRz2xtm2Us5e5ZBuBwRHgVKlVQGjItBPOqe6G1uHDY
-	 VN5gNnYMSXYc52RO429Vpv1PgvY10fU1dD4kzV71wD8qogjNS+HGqEO5gKveWQ9y4yvab
-	 ptFOQCYPZcV3aBHqVY2+CAkfz3pZPI58gnZwN6akM39l13iqFKU6vnJshs454Dc3j9J2b
-	 iJN99Kx5ZOwdX+bEQUo2++9QbELUHfwxEbUcxkm+yKufdtLfKvUXl+0dz3cU/lLEIoIO/
-	 HC9RUts2C9Z3w0iJhLw0WC91LoHXjKJNhyaVSKKKH25biDQKDqOilg5BekLxP4URJMQ==
+	t=1793838867;
+	b=l4vKp9V0WvbbaKK0yu+9jPqtJc1bdK5nKdnxkROYEs7rgL3YQUEr+jqikiCIVh+Q9yN5
+	 QIm70r6PsbWmPRWl6hDMN+WVpPxJKyAYfPi+t4GHJW3JHSvGD2Ki0+N3W1P11ZnOQlv1E
+	 Hfi4XVE+PBc2WvBr3EqzvHgZhlSyq17rmH3s/xLe+6rMjRsPpJRfKUxVB5QFyozWD0cvp
+	 /mC8aKJdkr/rBR8xcpKqNE9MztoIJNAkFvygz2APa9UbMKMHfX8F5u4aZpT8g0VDQE7QT
+	 /9Lh2KL6I+hU78NyZ1IT2fXCpPL8r2S4UqMR6vecl8ncaBWqcsUwPAfvxLqj+JH7zZA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793830549;
-	h=Received:DKIM-Signature:Message-ID:Subject:From:To:Cc:Date:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:
-	 User-Agent:MIME-Version;
-	bh=3F2m60G+gxvBW4y7hHQfye8ccenVYUgHpUwX5iBXsZ8=;
-	b=G9FngmTgHzFR7j365zDAAiBsEs/Fiqgq+T4FQPx57uyYjrZriLZh6/9t7FmfJJ4qE3Jj
-	 bHgiM9f3jBzNQzQArrxOW709YcMxCzwRpvhkt76ogIwveKkZmH7WxzLDmyEiVUlfH87+8
-	 MPOWAO8kzsQwHXI3VCee0FtEgEaubzHI//gKOx1wn4sZxQHfloRoXX1wiBdTMv47GLFA8
-	 v48MSVq3wf5BzBrfiR2/CTFO+ebqSNoZcPuvs9jGnS7kkUHrUhzKxlOhxkGwvNExdoShj
-	 XXp9VE99RbmpD/ymStPgBSkytcjH4tT5vbUXl/sfHtANbRKrks7p937eH7WoGHkZG9A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793838867;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=/wakDxlRkI5CUD/1gSahs8ohVfwl2XLfxDWVsBSy3II=;
+	b=qZjhZfSeMuozqJBwuUICRugXywMaO6DPgcD9875XDS/s3enKy6h4ARKNvrLCNN2KWa7e
+	 WBgVdEIqRnkrDMV4bFXNFiiM+rDKln337M2CgzqWC79cIf1FihK/Xifx0/QzcPna9v6N9
+	 Fy+Mdzj2pywwEbo+ZB9fun9BLSoSXOWW3YU0kjU7EBpVmV4UmoZCK0GeLOk5S+mXUsppF
+	 nZED66iO1ccKpsB1fBnGRTsYC68ZAkhYWbHoo2CwcNG9pujdFkMEMZ3g01aUrLLChDtCW
+	 GaAIAMzuIHqtx4LLxSGrl5qQQkmAYULaOvZ2ci2mNOrqZxMa/1Uhon2yVLdXob/pyqA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dJOZs+AM;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=m9ZhdQb7;
+	arc=none smtp.remote-ip=209.85.160.175
+Received: from mail-qt1-f175.google.com (mail-qt1-f175.google.com [209.85.160.175])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9A61606A333;
-	Wed,  4 Nov 2026 22:15:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68A68606A328
+	for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2026 00:34:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 68A68606A328
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dJOZs+AM
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B53661F000C1;
-	Wed,  4 Nov 2026 22:15:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793830548;
-	bh=3F2m60G+gxvBW4y7hHQfye8ccenVYUgHpUwX5iBXsZ8=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=dJOZs+AM4zB+jYeDBNu+8sm5YhR0e3ZjPOxteGNYsvz1a/yShGJxsSdMMuKOAg8W6
-	 JDB21X3tYBniVSMV95Q9/3YKfVHwgLQ7+LZt0oCeckS2VF6c2hVQC5DiutJa2C7PYS
-	 bYuVdfaB1zXEpyjMH+eoaONQyhn6aXKO67wxl/hdlLwrCcXTAYC4lMmh2Ft2w6DVjR
-	 J7metHeoA8E7rvU7K1jY7pGDLl+oqrsorvh4ryOdCmQ6SY6T4H1qhal/6zHf5OSS4S
-	 7OmCEDUeRY0eSWjjMVNs2Iyzu3C3d6yGGOYBvV1MmyJb+Bs3yvIQG581tN52S7w9Nr
-	 GTNRMljkU+YaA==
-Message-ID: <b9b97bf371302d42319ce21fbd4532d39ee97a28.camel@kernel.org>
-Subject: Re: [PATCH] net/rds: drop the device reference for ODP memory
- regions
-From: Allison Henderson <achender@kernel.org>
-To: Wentao Liang <vulab@iscas.ac.cn>, "David S. Miller"
- <davem@davemloft.net>,  Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
- <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,  Simon Horman
- <horms@kernel.org>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	rds-devel@oss.oracle.com
-Date: Wed, 04 Nov 2026 15:15:46 -0700
-In-Reply-To: <20261104022810.1484182-1-vulab@iscas.ac.cn>
-References: <20261104022810.1484182-1-vulab@iscas.ac.cn>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=m9ZhdQb7
+Received: by mail-qt1-f175.google.com with SMTP id d75a77b69052e-5365d26ccbdso14737711cf.0
+        for <linux-rdma@vger.kernel.org>; Wed, 04 Nov 2026 16:34:25 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793838864; x=1794443664; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=/wakDxlRkI5CUD/1gSahs8ohVfwl2XLfxDWVsBSy3II=;
+        b=m9ZhdQb7b1fOKNjTuwpUYSC7rj+8bAYP/YpXKlURZgeZZRXeuHHlSQGJSRtW3j7imG
+         QpX6kYHpjMZTW0uvhKVbbhcZF6eUFF9KULMFMHH1lmzs0K67RJZ/IVgdKTroAomQgl8V
+         F2X8io7mRqUjlfo2KriPKqd+cESwTD1+VlPKAkY7oq0RaxJ3XisDxTlxl3nWNMdzonE2
+         8DK19/1ES3zhSH9E1NnDc+KX8k1chf21cWDEOq4OKDFmritgzAPVZ1OXVTdYvBaVnwzk
+         iqMjDQx1K42r3w0sFykFNT+rF0NxHP+06dkDTBHGHFL7kxB/o+N6LflvHUUaDveG9qpf
+         rsIQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793838864; x=1794443664;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=/wakDxlRkI5CUD/1gSahs8ohVfwl2XLfxDWVsBSy3II=;
+        b=N79dQy2uLCX4nIcfNG4odBK1ARaHNO6gMSxSE+0WOfEOy7iiUNFGluwaEF524bjPgo
+         PiOaR8YEk8c+UrRwGvBj3ZyVqzMPg88ar/7WcnAZZI3CqILLl1FwK2W0/g+7ahrwYEQy
+         BS5uIRyAdZ2ElOk9B7aFLUQHH57pXl3ufThNV6vdjy1vs4VjTkPhC3yw4pMIpVQOPkDx
+         93ugJDDpPydLe8HRKIVIqvhD6UvznEaGrGJNmStOEVwxbuemRGeK670E/QX59+P6G7AS
+         yXr1gki1yXr6ch30n0LiyXbuLNAa8Dhq/vtgR6of0tK3NTZJYgT4NKjGMKYKAN3HAR9U
+         Iz4w==
+X-Forwarded-Encrypted: i=1; AKwUvBzh47474SDwfCZMXWKbqe2K65b+APkscHi296P4iJRxim/i1a6q/c13oqK0oyoX+cQmSSzV01POYwJ8@vger.kernel.org
+X-Gm-Message-State: APuU4Z/52oeQYULtawjppxPQjJfdUKcXA31QJn3p0nSiWfsx191j0GSV
+	RBpcQA/eumQdL7O3FJQNgRSZHBh7pHPXLDsCncetdaefw2oLBnLvk7Wa
+X-Gm-Gg: AYBFou0vFM+csvn/BQQQC70C8EBenQCBxGisUawqHeUeg2XKa5XqyCel5CqgPSZFQSY
+	P3dGmjVttBjtXafmJmlhEXWFovi7FEFkjkXM+REnfVLtK2ULvLBijVa+rzERvcTILdf1LU6RfAb
+	f1naDkH7iNXKO8jbcsTuPcMtY+jnxzTJJ9Vx9IBbw/YrsZ/RNg5qsEvYMZXYnjXizyd0qNAFf3G
+	uZ8/tipvewr89svqnWTjjhoMmUeUuxMQEjJ29B9Nlzz0GSOo0d94xioAPrpq/04ChLKHxyhWGlJ
+	R+Lit1b0YOJBJs+ltWUvccX9mwXX1BDsWQSpCCsggVFAIhvcSqot8z0quhCCwCYdAgrfZGP+VQj
+	XBCs/LTBuXk30ndzC8KAyM+P1VUlC53JlJz0JXLS6XhbfDWZyO9ifqFTNGRIkpc5YwvfJ9SzDeO
+	XXgzQwlup2tbhEjTv+TURNODIgY+l9EaKl0cx/zQ1dYC78Fu7WT8s9sK6ux0MBWpQ42CxASApPj
+	kXLvNDoD90IqrTGj5xTbHqkKOpiMbtgRP2HLxe1AFgdF3v8gOKpH81Vf5SDORP+beQDAokq7Cbc
+	vxwFKKFiBQmrzdL5+Q==
+X-Received: by 2002:a05:622a:2510:b0:536:72b4:b835 with SMTP id d75a77b69052e-542b7141e17mr309174441cf.46.1793838864178;
+        Wed, 04 Nov 2026 16:34:24 -0800 (PST)
+Received: from linux.. ([8.34.174.240])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-54b0d0758e7sm37705821cf.3.2026.11.04.16.34.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 04 Nov 2026 16:34:23 -0800 (PST)
+From: Changyul Lee <lcy8047@gmail.com>
+To: Saeed Mahameed <saeedm@nvidia.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Tariq Toukan <tariqt@nvidia.com>,
+	Mark Bloch <mbloch@nvidia.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>
+Cc: Sabrina Dubroca <sd@queasysnail.net>,
+	Simon Horman <horms@kernel.org>,
+	Joas Antonio dos Santos <joasantonio108@gmail.com>,
+	Patrisious Haddad <phaddad@nvidia.com>,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Changyul Lee <lcy8047@gmail.com>
+Subject: [PATCH net] net/mlx5: macsec: Don't remove fs_id when adding a rule fails
+Date: Wed,  4 Nov 2026 19:34:19 -0500
+Message-ID: <20261105003419.4016283-1-lcy8047@gmail.com>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -65,69 +108,124 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Wed, 2026-11-04 at 02:28 +0000, Wentao Liang wrote:
-> rds_ib_get_mr() takes a reference on the rds_ib_device with
-> rds_ib_get_device().  The FRMR path stores it in ibmr->device and
-> rds_ib_free_mr() drops it when the MR is freed.
->=20
-> The ODP path allocates the ibmr with kzalloc_obj() and returns it
-> without recording the device.  rds_ib_odp_mr_worker() only deregisters
-> the MR and frees the ibmr, so the reference taken for every ODP MR is
-> never dropped and the rds_ib_device can no longer be released.
->=20
-> Store the reference in ibmr->device and drop it in the worker after
-> the MR has been deregistered, which also keeps the device and its PD
-> alive for as long as the MR exists.
->=20
-> Fixes: 2eafa1746f17 ("net/rds: Handle ODP mr registration/unregistration"=
-)
-> Cc: stable@vger.kernel.org
-> Assisted-by: DeepSeek-V4.1-Flash and OpenAI Codex
-> Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
+macsec_fs_tx_add_rule() and macsec_fs_rx_add_rule() clean up a failed
+rule with macsec_fs_{tx,rx}_del_rule(), which also calls
+macsec_fs_id_del(). The fs_id is never in the xarray at that point:
+macsec_fs_id_add() is the last step of adding a rule and removes its
+own entry when it fails.
 
-Hi Wentao,
+macsec_fs_id_del() then dereferences NULL, through macsec_device for
+the first SA of a MACsec netdev and through fs_id_found otherwise. On
+RX, the SAs of one SC share an fs_id, so a failure while adding another
+SA drops the reference that an existing SA holds.
 
-Thanks for the patch.  The fix itself looks reasonable, but few things to u=
-pdate: since
-this is a bug fix, it should should target net with [PATCH net v2]. The com=
-mit message
-should mention how this was found, and whether it was tested. Reproducing t=
-his needs an
-ODP-capable device, so if it was only build-tested, please say so. It looks=
- like there's
-a few check patch nits to work through as well:
-https://patchwork.kernel.org/project/netdevbpf/patch/20261104022810.1484182=
--1-vulab@iscas.ac.cn/
+Split the rule teardown from the fs_id removal and do only the teardown
+on the error paths.
 
-Other than that it looks straight forward to me.
+Fixes: d4ece08f4b1d ("net/mlx5: Maintain fs_id xarray per MACsec device inside macsec steering")
+Signed-off-by: Changyul Lee <lcy8047@gmail.com>
+---
+Found with a static analysis tool we are developing.
 
-Thanks,
-Allison
+Compile-tested only (x86_64, W=1, CONFIG_MLX5_MACSEC=y). I do not have
+MACsec-capable ConnectX hardware and QEMU does not emulate it, so the
+failure was not reproduced.
 
-> ---
->  net/rds/ib_rdma.c | 2 ++
->  1 file changed, 2 insertions(+)
->=20
-> diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
-> index db7e92e7bd29..8cd8295f66a3 100644
-> --- a/net/rds/ib_rdma.c
-> +++ b/net/rds/ib_rdma.c
-> @@ -591,6 +591,7 @@ void *rds_ib_get_mr(struct scatterlist *sg, unsigned =
-long nents,
->  		}
->  		ibmr->u.mr =3D ib_mr;
->  		ibmr->odp =3D 1;
-> +		ibmr->device =3D rds_ibdev;
-> =20
->  		sge.addr =3D virt_addr;
->  		sge.length =3D length;
-> @@ -697,5 +698,6 @@ static void rds_ib_odp_mr_worker(struct work_struct  =
-*work)
-> =20
->  	ibmr =3D container_of(work, struct rds_ib_mr, work.work);
->  	ib_dereg_mr(ibmr->u.mr);
-> +	rds_ib_dev_put(ibmr->device);
->  	kfree(ibmr);
->  }
+ .../mellanox/mlx5/core/lib/macsec_fs.c        | 38 ++++++++++++-------
+ 1 file changed, 24 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
+index 7d785c937d43..4892175ca577 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
+@@ -764,13 +764,9 @@ static int macsec_fs_id_add(struct list_head *macsec_devices_list, u32 fs_id,
+ 	return err;
+ }
+ 
+-static void macsec_fs_tx_del_rule(struct mlx5_macsec_fs *macsec_fs,
+-				  struct mlx5_macsec_tx_rule *tx_rule,
+-				  void *macdev)
++static void macsec_fs_tx_free_rule(struct mlx5_macsec_fs *macsec_fs,
++				   struct mlx5_macsec_tx_rule *tx_rule)
+ {
+-	macsec_fs_id_del(&macsec_fs->macsec_devices_list, tx_rule->fs_id, macdev,
+-			 &macsec_fs->sci_hash, true);
+-
+ 	if (tx_rule->rule) {
+ 		mlx5_del_flow_rules(tx_rule->rule);
+ 		tx_rule->rule = NULL;
+@@ -791,6 +787,15 @@ static void macsec_fs_tx_del_rule(struct mlx5_macsec_fs *macsec_fs,
+ 	macsec_fs_tx_ft_put(macsec_fs);
+ }
+ 
++static void macsec_fs_tx_del_rule(struct mlx5_macsec_fs *macsec_fs,
++				  struct mlx5_macsec_tx_rule *tx_rule,
++				  void *macdev)
++{
++	macsec_fs_id_del(&macsec_fs->macsec_devices_list, tx_rule->fs_id, macdev,
++			 &macsec_fs->sci_hash, true);
++	macsec_fs_tx_free_rule(macsec_fs, tx_rule);
++}
++
+ #define MLX5_REFORMAT_PARAM_ADD_MACSEC_OFFSET_4_BYTES 1
+ 
+ static union mlx5_macsec_rule *
+@@ -883,7 +888,7 @@ macsec_fs_tx_add_rule(struct mlx5_macsec_fs *macsec_fs,
+ 	goto out_spec;
+ 
+ err:
+-	macsec_fs_tx_del_rule(macsec_fs, tx_rule, macsec_ctx->secy->netdev);
++	macsec_fs_tx_free_rule(macsec_fs, tx_rule);
+ 	macsec_rule = NULL;
+ out_spec:
+ 	kvfree(spec);
+@@ -1648,15 +1653,11 @@ static void macsec_fs_rx_ft_put(struct mlx5_macsec_fs *macsec_fs)
+ 	macsec_fs_rx_destroy(macsec_fs);
+ }
+ 
+-static void macsec_fs_rx_del_rule(struct mlx5_macsec_fs *macsec_fs,
+-				  struct mlx5_macsec_rx_rule *rx_rule,
+-				  void *macdev, u32 fs_id)
++static void macsec_fs_rx_free_rule(struct mlx5_macsec_fs *macsec_fs,
++				   struct mlx5_macsec_rx_rule *rx_rule)
+ {
+ 	int i;
+ 
+-	macsec_fs_id_del(&macsec_fs->macsec_devices_list, fs_id, macdev,
+-			 &macsec_fs->fs_id_hash, false);
+-
+ 	for (i = 0; i < RX_NUM_OF_RULES_PER_SA; ++i) {
+ 		if (rx_rule->rule[i]) {
+ 			mlx5_del_flow_rules(rx_rule->rule[i]);
+@@ -1674,6 +1675,15 @@ static void macsec_fs_rx_del_rule(struct mlx5_macsec_fs *macsec_fs,
+ 	macsec_fs_rx_ft_put(macsec_fs);
+ }
+ 
++static void macsec_fs_rx_del_rule(struct mlx5_macsec_fs *macsec_fs,
++				  struct mlx5_macsec_rx_rule *rx_rule,
++				  void *macdev, u32 fs_id)
++{
++	macsec_fs_id_del(&macsec_fs->macsec_devices_list, fs_id, macdev,
++			 &macsec_fs->fs_id_hash, false);
++	macsec_fs_rx_free_rule(macsec_fs, rx_rule);
++}
++
+ static void macsec_fs_rx_setup_fte(struct mlx5_flow_spec *spec,
+ 				   struct mlx5_flow_act *flow_act,
+ 				   struct mlx5_macsec_rule_attrs *attrs,
+@@ -1833,7 +1843,7 @@ macsec_fs_rx_add_rule(struct mlx5_macsec_fs *macsec_fs,
+ 	return macsec_rule;
+ 
+ err:
+-	macsec_fs_rx_del_rule(macsec_fs, rx_rule, macsec_ctx->secy->netdev, fs_id);
++	macsec_fs_rx_free_rule(macsec_fs, rx_rule);
+ 	macsec_rule = NULL;
+ out_spec:
+ 	kvfree(spec);
+
+base-commit: 6baae996ecf6a3f57b08ea6f6786e29af9260f51
+-- 
+2.43.0
 
