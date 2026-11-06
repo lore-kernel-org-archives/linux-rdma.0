@@ -1,44 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793934982;
-	b=5QtduAusrRWyaC8AHLoaZZJrLSZ0x1JLS6vgtXH4rDfXPYo/5vFo6ZUtc7o4NjgwMHQz
-	 Y1EXiymjX9XjeKIo1ZhioLkaOG+JpmHU1jqeziWg8y2nm/Yj5PnAZFOcf6+yKu6Hz/qEl
-	 HUS88hmG/ehz3Oo99LuS+gndBeduyHB8h+lQhC/wzXHPsmYoqSMQ4KJdkr+HDAW0tw3J/
-	 u2az3K+tDgoRBGp6eKP+O3BB0M+kxJnQyHc/M5NYk6Vl4lcKYNBJkT2PZXf+cpmX8gGoa
-	 ClWe4Y355ZROSCXribF3PHsIxeJxZFSF9t/hF+YCbua0yNyiXuDpv9Gf5xNikLB9ASg==
+	t=1793934977;
+	b=tzfqt9nczLU/A1R3ZDV3FxoGLwmOBOLBOVqR41iIiMvaP3TuHzFTEhGnylQzcBv3h3Z6
+	 HwOgF8Oq/rY/JkR1Adv8bwHnlt3yIxoz/bgSv5CylsJoUtF2S5Bw2xKi9qbmztrsx83Sw
+	 Amy33+xIU8EC+sUrBo6gnA6fMb2hiQ98TGVcRuWboqnBXwlgn3tmR5sR3hd4no3ZSEO39
+	 Totv2IHYkSX0S5lJl73I241A4ivoD6ZBkAkSCWekB4lLsbdKPULkeSN9e6W8HvjomOZFq
+	 xAbMzI26YHnccMdhkb53QU/gMElDa+CwE+UO7eBzugOEyCK38JdMvtch12hkxdHfhjw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793934982;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793934977;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=6xaoxifvY23UPd5Pl5k1g4wGQeX4X9m3tRKXdO7g+0k=;
-	b=s/YTq5/iLZUUDke2XOV3cMj5Qvg3F9aGBeY81w7SGZVjxSZNe5LZFd4BVGmrL8a5z307
-	 zJZQzWHJOkrMtexnxusZ4JIIrGbee1AjpSDZopvFCCe9zpWum5CPEVC3fZGch2Y+DjVMo
-	 LCmRiNS6tsd9BBIqV15X8wK2QhhvM//m3QhmVm9MQuUnqfI+gH6852ouQNiO9UUwNfhrT
-	 PICqaRpr9Av+28MGZml1zzWY5DyvcIPk9rygOAogmrsdscXdSfBugSjW9PavFkNPm7UdH
-	 rk2zBON7zj0epeRhYMI6kaGyoiRwIloYVcZRkyQjC0UnVXvXaeYk2c+nX7dtkLJKYTg==
+	bh=rS9yH2pHSUpZGvEI4bVkQ6rj4vMCLHWI7UEuhf1xYFU=;
+	b=virWn0ZA/ZIpGnbfDZattTnlG6FC/3kUK7N08b/Fo1Ftc8SDsuc4DAtT597bBIRgu60B
+	 3c/M8xf5sC/qNY/+J7hSMJ348B5cPm/u6w7kgy/w4pzoXa6pdkF95LfRfqOiKUwvq5b3i
+	 VqVAga0lfGuKQpU5N8OhD5veh7g6QWk0mFD7J0NVrdmZUx9uaep/dkFVtRy7XBXxxDtMj
+	 D4G+wFT8azM0hz876OSar8DkPadmV5lEk1oLx+uo5qastUGVYmW6Nn2AqVFvZeVnACgaV
+	 x1yPbZce8FyyM1KbFVAVPqJ6UOcCWp7wsUMHrJAx3IsX2EYkx3BF54HVwzVHdhM4HHw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FBII8gVg;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LdKkYj3q;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8504B606A33E;
-	Fri,  6 Nov 2026 03:16:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D2F3606A328;
+	Fri,  6 Nov 2026 03:16:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FBII8gVg
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E68991F008A3;
-	Fri,  6 Nov 2026 03:16:21 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LdKkYj3q
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9160E1F008A3;
+	Fri,  6 Nov 2026 03:16:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793934982;
-	bh=6xaoxifvY23UPd5Pl5k1g4wGQeX4X9m3tRKXdO7g+0k=;
+	s=k20260515; t=1793934977;
+	bh=rS9yH2pHSUpZGvEI4bVkQ6rj4vMCLHWI7UEuhf1xYFU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=FBII8gVgonMJ2NucVYjj5cuge6rxeyIm+N5cAvKjIuSi21Sr8Hbp2Txu9/ToKqKXu
-	 Dxv76UF5sMvYtdQspBkWjBhTZGEFe/CB3okIB1Yu7zkTdMH6znz9DNxu/pa7ZRxf31
-	 ReD3OtoFATFJTjRdjytFqC5HiMM9qoytTeL9HuKJWEYC3xDtmdhufkBbzDpSg24VXO
-	 LDUD+mo2c1VqeSDe7H84EyFxG/lwIqaB7Mc+vL3N4O6Y0J2LR1M2v0oW9/AtovXAFS
-	 wqorKZgRaWp3cdnqzxuOZkZwgQEDVAnAPoashIE/EcK1sZ55eOh12uR47KN/tGupHA
-	 60sXDsUDiBgnw==
+	b=LdKkYj3qhQ6u3C61mXA87n+Lye0p4WKM4+/YJoa7mbmx5h4FiI4Mw9M1TO1rvQADz
+	 lheEjZMFuSThT6fumUtHOt4B0FDkILvPrwEsU50y4YRX5h40WMTAs3eG0HVDVVaIqA
+	 tjALL1NQlWmOCzAJR2PZrmvQYxPwZe35TIqiBNIHJ9ddsiJu3eXJ7weXQE8uFTDagQ
+	 AL/0g43MAyWyR5jGm4o3DKcvxf+B6Vy9KIdQdLStglWWp2yhZCxoGJsS9pfxxpoU/Y
+	 yYarI+sH6IF1zk+F8MVIbUrcIgduGGkFUAsWR8AIwDa97pDGmOnEKwJFcTplD99JpH
+	 +e2j7XD4/AKmw==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -47,9 +47,9 @@ To: netdev@vger.kernel.org,
 	kuba@kernel.org,
 	horms@kernel.org
 Cc: achender@kernel.org
-Subject: [PATCH net-next v11 09/12] net/rds: take cp_lock to purge cp_send_queue in the quiesce
-Date: Thu,  5 Nov 2026 20:16:12 -0700
-Message-ID: <20261106031615.1047052-10-achender@kernel.org>
+Subject: [PATCH net-next v11 01/12] net/rds: undo conn_alloc() the same way on every __rds_conn_create() exit
+Date: Thu,  5 Nov 2026 20:16:04 -0700
+Message-ID: <20261106031615.1047052-2-achender@kernel.org>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20261106031615.1047052-1-achender@kernel.org>
 References: <20261106031615.1047052-1-achender@kernel.org>
@@ -64,94 +64,83 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-rds_conn_path_quiesce() empties cp_send_queue by walking it with no
-lock held, while every path that adds to that queue -
-rds_send_queue_rm(), rds_send_probe(), the retransmit requeue in
-rds_send_path_reset() - does so under cp_lock.  The unlocked walk was
-justified by the destroy running with nothing else alive: at every
-destroy trigger there is - netns teardown and module unload - no
-socket can still be sending on the connection, since a bound socket
-pins its transport module and a namespace closes its sockets before
-its RDS connections are torn down.
+trans->conn_alloc() may allocate transport data for every path of a
+multipath connection - rds_tcp_conn_alloc() does - which is why the
+lost-creation-race exit of __rds_conn_create() loops over all npaths
+when it frees the connection it just built.  The passive-connection
+exit right above it frees only path 0.
 
-That argument still holds, but it is an argument about the callers,
-not a property of the code.  Splice the queue away under cp_lock and
-drop the message references outside it, so that the one walker of the
-list follows the same lock discipline as its adders.  This does not
-by itself make a sender that is still running safe - nothing here
-tells such a sender that the queue is closed - and it does not need
-to, since no such sender exists at any destroy trigger.
-
-While at it, make the purge coherent with rds_send_drop_to(), the
-other path that removes messages from a connection queue.  drop_to
-decides whether it owns the queue's reference by test_and_clear on
-RDS_MSG_ON_CONN, and unlinks m_conn_item from whatever list the
-message is on.  The purge used to BUG_ON() a message that a socket
-still had queued, and that assertion is also what kept a drop_to
-racing it from putting the queue's reference a second time or
-unlinking from the purge list; the lock above is what closes the
-stale-next hazard of the old walk, not the assertion.  Clear the bit
-under cp_lock as part of the splice, so that drop_to leaves a purged
-message alone, and turn the BUG_ON() into a WARN_ON_ONCE(): a socket
-with messages queued at destroy is still a condition worth reporting -
-no sender or closer can be running at any destroy trigger today - but
-not one worth a panic, since the socket side keeps its own reference
-and retires the message on close.
+That is not a leak today: a passive twin is only created for an IB
+loopback connection (an incoming TCP connect to a local address is
+refused with -EOPNOTSUPP before it gets here), and the IB transport is
+not multipath, so npaths is 1 on that exit.  But the two exits express
+the same "undo conn_alloc()" step in two different ways, and the
+following patches add another exit of the same kind.  Move the loop
+into a helper and use it everywhere, so that the step cannot silently
+diverge if a multipath transport ever grows a passive twin.
 
 Assisted-by: Claude-Code:claude-fable-5
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- net/rds/connection.c | 29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+ net/rds/connection.c | 31 ++++++++++++++++++-------------
+ 1 file changed, 18 insertions(+), 13 deletions(-)
 
 diff --git a/net/rds/connection.c b/net/rds/connection.c
-index c7655e9339ca..9c8c4b28d2b2 100644
+index c752a8623cfc..95ff50f31d1e 100644
 --- a/net/rds/connection.c
 +++ b/net/rds/connection.c
-@@ -540,6 +540,8 @@ void rds_conn_shutdown(struct rds_conn_path *cp)
- static void rds_conn_path_quiesce(struct rds_conn_path *cp)
- {
- 	struct rds_message *rm, *rtmp;
-+	unsigned long flags;
-+	LIST_HEAD(purge);
+@@ -161,6 +161,22 @@ static void __rds_conn_path_init(struct rds_connection *conn,
+ 	cp->cp_flags = 0;
+ }
  
- 	if (!cp->cp_transport_data)
- 		return;
-@@ -551,12 +553,29 @@ static void rds_conn_path_quiesce(struct rds_conn_path *cp)
- 	rds_conn_path_drop(cp, true);
- 	flush_work(&cp->cp_down_w);
- 
--	/* tear down queued messages */
--	list_for_each_entry_safe(rm, rtmp,
--				 &cp->cp_send_queue,
--				 m_conn_item) {
-+	/* Tear down queued messages.  Every path that adds to
-+	 * cp_send_queue does so under cp_lock; take it here too.  No
-+	 * sender can still be running at any destroy trigger, so this is
-+	 * lock discipline rather than a race fix: nothing here tells a
-+	 * sender that the queue is closed.
-+	 */
-+	spin_lock_irqsave(&cp->cp_lock, flags);
-+	list_splice_init(&cp->cp_send_queue, &purge);
-+	/* Give up the queue's claim on each message while still under
-+	 * the lock, so that rds_send_drop_to(), which decides ownership
-+	 * of the connection-queue reference by this bit, neither drops
-+	 * it a second time nor unlinks the message from our list.
-+	 */
-+	list_for_each_entry(rm, &purge, m_conn_item)
-+		clear_bit(RDS_MSG_ON_CONN, &rm->m_flags);
-+	spin_unlock_irqrestore(&cp->cp_lock, flags);
-+	list_for_each_entry_safe(rm, rtmp, &purge, m_conn_item) {
-+		/* No socket can still have messages queued on a connection
-+		 * at any destroy trigger; say so if one does, since the
-+		 * socket side then retires the message on its own.
-+		 */
-+		WARN_ON_ONCE(!list_empty(&rm->m_sock_item));
- 		list_del_init(&rm->m_conn_item);
--		BUG_ON(!list_empty(&rm->m_sock_item));
- 		rds_message_put(rm);
- 	}
- 	if (cp->cp_xmit_rm)
++/* Undo trans->conn_alloc(): it may have allocated transport data for
++ * every path of a multipath connection, not just for path 0.
++ */
++static void rds_conn_free_transport_data(struct rds_connection *conn,
++					 int npaths)
++{
++	struct rds_conn_path *cp;
++	int i;
++
++	for (i = 0; i < npaths; i++) {
++		cp = &conn->c_path[i];
++		if (cp->cp_transport_data)
++			conn->c_trans->conn_free(cp->cp_transport_data);
++	}
++}
++
+ /*
+  * There is only every one 'conn' for a given pair of addresses in the
+  * system at a time.  They contain messages to be retransmitted and so
+@@ -322,7 +338,7 @@ static struct rds_connection *__rds_conn_create(struct net *net,
+ 	if (parent) {
+ 		/* Creating passive conn */
+ 		if (parent->c_passive) {
+-			trans->conn_free(conn->c_path[0].cp_transport_data);
++			rds_conn_free_transport_data(conn, npaths);
+ 			free_cp = conn->c_path;
+ 			kmem_cache_free(rds_conn_slab, conn);
+ 			conn = parent->c_passive;
+@@ -338,18 +354,7 @@ static struct rds_connection *__rds_conn_create(struct net *net,
+ 		found = rds_conn_lookup(net, head, laddr, faddr, trans,
+ 					tos, dev_if);
+ 		if (found) {
+-			struct rds_conn_path *cp;
+-			int i;
+-
+-			for (i = 0; i < npaths; i++) {
+-				cp = &conn->c_path[i];
+-				/* The ->conn_alloc invocation may have
+-				 * allocated resource for all paths, so all
+-				 * of them may have to be freed here.
+-				 */
+-				if (cp->cp_transport_data)
+-					trans->conn_free(cp->cp_transport_data);
+-			}
++			rds_conn_free_transport_data(conn, npaths);
+ 			free_cp = conn->c_path;
+ 			kmem_cache_free(rds_conn_slab, conn);
+ 			conn = found;
 -- 
 2.50.1
 
