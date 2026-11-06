@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793947437;
-	b=GfUUSv/EIEPPkEejfnlwxk7zTpdIRj938W/7XK9Q4y88gTDAO/L1yBUEtC/GnAGqNrxr
-	 bDO2Lzf5+foriY3oBv9O5WIx7z6u4LP+8+8bwiKDvcF9bUOIGld4bAP16i+a4bLlw8bvy
-	 vpsLM0mmXi6kTNAN5T8oRlTH2MWXG4+fIZYgtCnpr2lfF+kXJWvGDml1xBpEbpch1NYpX
-	 oHJVaI63W8y9hbDiPhKRae0O7CQh6Pa/hI2R4XKzoSnp4f+vXHT/VGp/XmWB132YgoCxV
-	 4BTZov5yz8BIPOlkTmZP/1gLMeHDCKnElmzohWt6ziNd8/jGYe+fGnVQNSBTnvwPOUQ==
+	t=1793947438;
+	b=4D+/FwJ04AF1eMegvJidY5hvfF61hrRWvpUbAPDjk9sjilxguh6fScCStbfhRtmhRpiv
+	 p32gDfTJv3PaGJcvbVZYyxqehz7k3doKUslSg2bcQ629r4t8jRJKDXyA85/F+1deFagdA
+	 guMpmvwRA1u0Ae2agDAqpdon8JCk4raQihl0cvhdoVMizjfJJEZG/lL24OvriiC/Mm1BQ
+	 oY5e68FuG3DfTuZHeuTZC/fxtPaXkzx1xdx0Br4fIeQbVJBqce5nH+5w5ZPD24Usg9f2o
+	 eGwIyYXg0Qo+xtoUjVS779hNspYP6sPXrkEHijrRusrylWps4GqhNDAL4OhNBwMNJAA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793947437;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
+	a=rsa-sha256; c=relaxed/relaxed; t=1793947438;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=OeIR4ME3EceuakWwQXdxjOmsrXfvIBtFYF/I9WSEsDs=;
-	b=mSIlFFKBYmKFnVh8fGluupiPYytLW3Sq49utqatEQ8AEOw9NXFB+wkTPG3AQ1AxAiz9u
-	 KpNYV08x36NqVEl9hQGfJG0KVVSSbWHz7YRxkwZ78P8gPetQrogNgmrGuVOXNoReWrYKj
-	 JuB/7kn/PYC8JJaUb96QgFgJZttXfxQOBcyGRlznjqkGV8ICrYhwMnmROlkGPlBKbBbVb
-	 HOT+Cv9Pf8Lp4Nb44EaxNWMoHoiSeCfz8AWa+nA8XD0pB2yL8CJdLv+13UuyQzu3jHRWw
-	 J2KsQXi6NgR9UBf48NLkL+xzsw2QJnE3TGt4+ySgr2I04Ulx1Ob+MWKDL8qs0LDylBg==
+	bh=8JY5aYoae4gvBbGk4R/fq3xUEJBzbKgMtlay4eixobA=;
+	b=rg7dVSkaTX8oi1aNjKpSgrZ5U2+zMynymsF/JmU4tVPmMpH8C1Knh2xB0VxFgYoFf/Dq
+	 ie4M6GdBVllDOx/bpfBvJuyBLpNaRdxCXj5qCIRHKcIdQLLudsoVwhVN+3aZJvOjdOqk4
+	 LBFeVJCID2daw9TEh23uD2Lf2HTVrr1V3yzFhBkYh3dkrbHVK3UJGXlV49bbsGMOukaQr
+	 SFevDNcF2wjYl92U/Z+EtSUN234ziCPlXBVg9CizT7B233X/8PLeBDWnCYy9Kdme3IvvL
+	 d3mtSh45kxEhjrUuy7oQ3/ET5rnwNf+UJkflTNb6CxAEknY3TpunRJRPFUpvElRfWDA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Wvd5tqma;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QbDQrMrk;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FD7C606A328
-	for <linux-rdma@vger.kernel.org>; Fri,  6 Nov 2026 06:43:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 009CF606A332
+	for <linux-rdma@vger.kernel.org>; Fri,  6 Nov 2026 06:43:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Wvd5tqma
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCF5E1F008A2;
-	Fri,  6 Nov 2026 06:43:56 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QbDQrMrk
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 821611F008A1;
+	Fri,  6 Nov 2026 06:43:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1793947437;
-	bh=OeIR4ME3EceuakWwQXdxjOmsrXfvIBtFYF/I9WSEsDs=;
-	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=Wvd5tqmaZrPlED09qcdkiPjuHveBpucYK4e8ecyhLQRkYbcoowdKCFSXNgDVJJJrL
-	 xAyHK3mOzrtzXi0JCAKjZmZxd1/1A+XseuSBtmQLVSButsy4qrYLUuH2vUMes3R3nn
-	 FduB4JcCKbsFAL4OhG6wTVtgP5aJlrPhca3NosimIGMcwJAKj0GNOtxsy8lXImOh6l
-	 R0zad88QvcoP5YxsxrAATwFo5M/yLInBaRE2cxRB4hc049MvxVeLz044D21q9mPL6p
-	 cwIq2+1xTnNAHRof8b9SJKYdX5cKhi/tfw9fGwxMYVH9Wr2q8OLnHvsgkBcPJoUy9L
-	 Mr1lUSPrEqLlg==
-Message-ID: <sashiko-outbox-200932@kernel.org>
+	bh=8JY5aYoae4gvBbGk4R/fq3xUEJBzbKgMtlay4eixobA=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=QbDQrMrkPXpwdJ515CqCnJKHunE0bw/QVPFTeeFwSipUdFcS1rxJvGwGXHVt0Vl5N
+	 Nq11O6ftPpVVX6JkkuzwhfYzRXOqUBxq/a5CIhFG5v17CSqsBXKb6dGbB0iY1F+ENG
+	 ZTO4tdBdYb5boCwYCI5q4QxVCm30PW42W1WzewE/sGxdWNLZ5Tn7o204dME3M7qW0R
+	 EVMqUicXUUYBZIclN+4PXkaI93AqT+zK0mSx9aCSH501OQYQevmasMNten7MsMQH5q
+	 +2PAv/pV/1xRtVhQjjhxpY+dcQTEQYLvhnu6X8CzC6pBGU5uZrEhlrrIIo98MG8NMG
+	 JXgtCczkedcyw==
+Message-ID: <sashiko-outbox-200933@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2 16/23] vfio/pci: Change the DMA-buf exporter to use
- mapping_type
+Subject: Re: [PATCH v2 17/23] RDMA/uverbs: Use the SGT_P2P mapping type
 Reply-To: sashiko-reviews@lists.linux.dev
-To: "Alistair Popple" <apopple@nvidia.com>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261105-dma_mapping_type_v4-v2-16-78b8dc9ae80a@nvidia.com>
+To: "Alistair Popple" <apopple@nvidia.com>, dri-devel@lists.freedesktop.org, intel-xe@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org
+Cc: media-ci@linuxtv.org
+In-Reply-To: <20261105-dma_mapping_type_v4-v2-17-78b8dc9ae80a@nvidia.com>
 References: <20261105-dma_mapping_type_v4-v2-0-78b8dc9ae80a@nvidia.com>
- <20261105-dma_mapping_type_v4-v2-16-78b8dc9ae80a@nvidia.com>
+ <20261105-dma_mapping_type_v4-v2-17-78b8dc9ae80a@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 06 Nov 2026 06:43:56 +0000
+Date: Fri, 06 Nov 2026 06:43:57 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,21 +60,90 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> From: Jason Gunthorpe <jgg@nvidia.com>
->=20
-> Simple conversion to add a match_mapping() callback that offers an
-> exporter SGT mapping type. Later patches will add a physical address
-> exporter so go straight to adding the match_mapping() function.
->=20
-> The check for attachment->peer2peer is replaced with setting
-> exporter_requires_p2p=3Dtrue. VFIO always uses MMIO memory.
->=20
-> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-> Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue to consider:
+- [Medium] RDMA/uverbs: commit message contradicts
+  uverbs_dmabuf_match_mapping()
+--
 
-Sashiko has reviewed this patch and found no issues.
+commit f919774da72af458231453cd6f22c8076d245156
+Author: Jason Gunthorpe <jgg@ziepe.ca>
+
+RDMA/uverbs: Use the SGT_P2P mapping type
+
+This commit converts uverbs dmabuf from an attach callback checking
+attachment->peer2peer to a match_mapping callback using
+DMA_BUF_EMAPPING_SGT_REQUIRES_P2P().
+
+>     RDMA/uverbs: Use the SGT_P2P mapping type
+>    =20
+>     Very similar to habana, except the rejection of unsupported
+>     pci_p2p_dma_distance() is done inside map not attach via
+>     dma_buf_phys_vec_to_sgt().
+>    =20
+>     Convert this directly to a SGT_P2P match which will prevent matching =
+if
+>     dma_buf_phys_vec_to_sgt() would fail.
+>    =20
+>     Remove the now empty attach function.
+>    =20
+>     Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+>     Signed-off-by: Alistair Popple <apopple@nvidia.com>
+>=20
+> diff --git a/drivers/infiniband/core/uverbs_std_types_dmabuf.c b/drivers/=
+infiniband/core/uverbs_std_types_dmabuf.c
+> index 8d8c997a48834..0bae578c3d78e 100644
+> --- a/drivers/infiniband/core/uverbs_std_types_dmabuf.c
+> +++ b/drivers/infiniband/core/uverbs_std_types_dmabuf.c
+
+[ ... ]
+
+> @@ -95,13 +86,30 @@ static void uverbs_dmabuf_release(struct dma_buf *dma=
+buf)
+>  	uverbs_uobject_put(&priv->uobj);
+>  }
+> =20
+> -static const struct dma_buf_ops uverbs_dmabuf_ops =3D {
+> -	.attach =3D uverbs_dmabuf_attach,
+> +static const struct dma_buf_mapping_sgt_exp_ops uverbs_dma_buf_sgt_ops =
+=3D {
+>  	.map_dma_buf =3D uverbs_dmabuf_map,
+>  	.unmap_dma_buf =3D uverbs_dmabuf_unmap,
+> +};
+> +
+> +static int uverbs_dmabuf_match_mapping(struct dma_buf_match_args *args)
+> +{
+> +	struct dma_buf_mapping_match sgt_match[1];
+> +
+> +	/*
+> +	 * MMIO, so the importer must accept P2P. The provider is only valid
+> +	 * under the dma_resv lock while not revoked, so the distance check is
+> +	 * left to dma_buf_phys_vec_to_sgt() at map time, as before.
+> +	 */
+> +	sgt_match[0] =3D DMA_BUF_EMAPPING_SGT_REQUIRES_P2P(&uverbs_dma_buf_sgt_=
+ops);
+
+[Severity: Medium]
+Does the commit message match the implementation in
+uverbs_dmabuf_match_mapping()?
+
+The commit title and changelog state that this converts uverbs to a SGT_P2P
+match which prevents matching if dma_buf_phys_vec_to_sgt() would fail due to
+an unsupported pci_p2p_dma_distance().
+
+However, uverbs_dmabuf_match_mapping() uses
+DMA_BUF_EMAPPING_SGT_REQUIRES_P2P() rather than DMA_BUF_EMAPPING_SGT_P2P().
+As noted in the code comment, DMA_BUF_EMAPPING_SGT_REQUIRES_P2P() only chec=
+ks
+that the importer accepts P2P (replacing the !attachment->peer2peer check in
+uverbs_dmabuf_attach()) and leaves the P2P distance check to
+dma_buf_phys_vec_to_sgt() at map time because priv->provider is only valid
+under the dma_resv lock while not revoked.
+
+Should the commit title and message be updated to reflect that
+DMA_BUF_EMAPPING_SGT_REQUIRES_P2P() is used instead of SGT_P2P, and that the
+distance check remains at map time?
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261105-dma_mappin=
-g_type_v4-v2-0-78b8dc9ae80a@nvidia.com?part=3D16
-
+g_type_v4-v2-0-78b8dc9ae80a@nvidia.com?part=3D17
