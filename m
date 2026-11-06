@@ -1,72 +1,72 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.69
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.198
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794003142;
-	b=4bSKToEBisbZXGmak+SMmLJPPMUvKbghSFjzuGHedKjYXIIkzkL7NOuF74fFm7x9gbhO
-	 xZ/u4GcrP855KSNC2iO0WCC2LyLiKpi8reEqJAKkBrLnX5zVtdr38FwtbDecsBDZ5xcAH
-	 6m7SfZK7786kKLJh2u8IPZZ6XaY2QlVFLkgZfWrxTqKP0UmejPu2MSR4rJsHb8fGNTsyZ
-	 yBA7qfeMUb5x2U2vJaemk5raIT2JB3QJELocLJVdHU9im341AJToJnNKxTFVYBpIpiXtp
-	 +4UY7nEgNIdeY87QPd1/covYfs+qwbV/N90OtxK5+lSWO63UOe4hcW2Vt1hJ4FsQJIQ==
+	t=1794003147;
+	b=VtjNl4qILWQkMx/hqmk62NPo3rvgGfaME2u5s7QbhSxAsCMaXmiwhUVwBk0vCDrC+WqI
+	 ouy3x1VLHz887rTtGXAxgaBS1tjM0DGvL/VBC6m7hp9Wg6lUICqnJiPGZVFiA1vd+26BS
+	 rSdP1t6NmAEMIfIEnnrSElotGZz9PIS7s2E2E8fTeoh/pZQWcOVupAIiU0tWOfOPIKDZ/
+	 pSVK0tl5rEGsVVUyQV18dSwxvYpRHh0ISK8m54pbt3pH7YsBGSMHLd65aezcfXp5lVhsc
+	 i0Ms7OqHiJJk9iGuoc10gTAmUtzDkUUYEiDyMj0TsizeAiM/bHrTdmm0+EVWrg0JD/Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794003142;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794003147;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Gm-Message-State:X-Received:Date:In-Reply-To:Mime-Version:
 	 References:X-Mailer:Message-ID:Subject:From:To:Cc:Content-Type;
-	bh=IaQJzXgBKFlVU2sdaWtAVs7ky9i6gU7I/tU3LHdDGHQ=;
-	b=ZzB69M9HYr+mVZUgnGR3LBKcUHb2bhRqM0D1owf63SlSOgd0AMZ4GbVCEVojRzmHdwux
-	 cJX6Rz5nm+XU9xgEEQeUIvppHday0cJKV+JxJYInUGjMa6xviPzbIoiiD1+AUeG5qfaDW
-	 ATGqeBoYqnQrZkI2Wl62uAF+p/0Q7rpgNB7DluJE9hmk82iZI5gw9BE9Vk5eXybUrvaDI
-	 5w46A3l++WfeK7psqxInT+pUnUh2Ml5akiXMM9Ag45YF3elRKk/Jf9heLaIy27a8IXMxL
-	 ml7O2z3N+n2HifDDmJBRPqpV8hugbOIkdqQLyE10uddyNOTefrsc0iHJk2vbINtL0zQ==
+	bh=4Nzt8fHJDrg9z/hmNIwZXVyYswS/2ActSVeIRhPRncw=;
+	b=eCNoNFGtWRa5Z9kPcTtOX5/tY4sxoMh7fzJLYNAVAC0r4W+O80+ywrlaAwilPGC624ht
+	 02Zyv+9ohagHB1J2ZEcDrlZkE3e9HsWM6ZqeI94uCzgjfs6aktsSBaizwSOpQz95wQ/Iu
+	 GiOvGQvAAxd7cokNiaGnkaFwwIAbqT8MAH8SDx6/ZCArigm9ZrJzVvpqPMFSnXtyDWVkT
+	 6BFZUzOLz/A1BorfGhQE/qIIgH7uCPwlr3ZV/uHcWf8D7T6oGevCNGdRWjpHrPO+0X3ar
+	 SmNZkLP1tuKfNxK5Q2eXrNXg1MHIjcHdx6ImJFq0XIqAWFCoOKwRTDtWrLdkfWe2/xw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=google.com;
 	spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com;
-	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=PD6jsiXi;
-	arc=none smtp.remote-ip=209.85.219.69
-Received: from mail-qv1-f69.google.com (mail-qv1-f69.google.com [209.85.219.69])
+	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=jeo+5D+N;
+	arc=none smtp.remote-ip=209.85.222.198
+Received: from mail-qk1-f198.google.com (mail-qk1-f198.google.com [209.85.222.198])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E68F3606A32E
-	for <linux-rdma@vger.kernel.org>; Fri,  6 Nov 2026 22:12:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E68F3606A32E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B89A4606A326
+	for <linux-rdma@vger.kernel.org>; Fri,  6 Nov 2026 22:12:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B89A4606A326
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=PD6jsiXi
-Received: by mail-qv1-f69.google.com with SMTP id 6a1803df08f44-91eb3a63064so2775036d6.0
-        for <linux-rdma@vger.kernel.org>; Fri, 06 Nov 2026 14:12:21 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=jeo+5D+N
+Received: by mail-qk1-f198.google.com with SMTP id af79cd13be357-93f2373e9b4so140262785a.1
+        for <linux-rdma@vger.kernel.org>; Fri, 06 Nov 2026 14:12:26 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20260707; t=1794003141; x=1794607941; darn=vger.kernel.org;
+        d=google.com; s=20260707; t=1794003146; x=1794607946; darn=vger.kernel.org;
         h=content-type:cc:to:from:subject:message-id:references:mime-version
          :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=IaQJzXgBKFlVU2sdaWtAVs7ky9i6gU7I/tU3LHdDGHQ=;
-        b=PD6jsiXimEzSEStJ9y+jbWGFLNaQiD48k5V0z+Tb2a2JZR1TUFtgazeWGAWlRy3jO+
-         n2OlA0UKNbfP90hQNbMJZU2YdYP+SpRETrBt0sO+uZDASZ+CgNfpdHry9K+THYsfCDQr
-         SU6um5Ez6uLA/7TKakl0GRVpXydhVCjAzmc7GPC6da9cDTmCV1GFuCdsTJxc+rvzJaH4
-         BTEEmY7/o/prRxnVqHjhAieojhHlilDzOPjOfjr063QjQe46TMvhtMKs9Ss80tb/AeuA
-         xoCEWViL8DO/d39r1a4gFc7xr4H/mT9nsyLa1l7Nif1hnageTPynSSihGf6vVh1OYlWL
-         hWTA==
+        bh=4Nzt8fHJDrg9z/hmNIwZXVyYswS/2ActSVeIRhPRncw=;
+        b=jeo+5D+NgqiMiNHzXQhM8K6ZQM68/M9DNQ/xN/Vw7CXhNjbo3dRC57466KuDakuWRc
+         UKTtg/yt85uMz4XZRQS4zSGoWtKgOCWcDeQIXn+sEiHh2j9dEgCL5XvigaMUTzlfsIz6
+         iEfTv8/goVgg3EJfGVaWMXBWaXhWJmRsqqALgX4B+gJTKnbgLJ1Aq9QWDftW50x0cXEV
+         J8+si/k1HRF8wmii+/22Gy9PGw9dm5l9wHBsWotwTBrqbvPjAhDEbgMsDgoA/lnZcnAn
+         smBFFGq7ApvRXITFhp+oP7gho7NYe3O3dnImatYwQNoLHQrjgOUt3nn7xZ5HS0BtT1QP
+         waDQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794003141; x=1794607941;
+        d=1e100.net; s=20260707; t=1794003146; x=1794607946;
         h=content-type:cc:to:from:subject:message-id:references:mime-version
          :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=IaQJzXgBKFlVU2sdaWtAVs7ky9i6gU7I/tU3LHdDGHQ=;
-        b=NeAf1aMoEGSpll0IwOSC0FbzxKMzWRolTM/GklEck1LhaCIlCgDhm5h6vCvZDQJ93x
-         Z098kSWzGwFhSlGUhCR5ohe/s13+vPxSyYcKfB0/3PnbLeuxhdYmHzclCXwrdafH/K34
-         K+AqcdKKe16H5Yub0EW8T8QlqZVjQrODRqH/2Z4vlyL2s/EQLpT8KZZLI65IQwNP6ULb
-         VtjUJNd8pNLNDzvO6Supud9/VVf4plEh8q6KMeltrtjZQFoiIEu308p0xJVRTqB0g/2y
-         mac3OyCWgS3FdSwNTpk1D1wohWBunAoIsKFrOBRvbdmmio4lG81m4dI7ujEuF8h6nphG
-         PaXg==
-X-Gm-Message-State: APuU4Z9X5ypJpvGB5THKA+W2n5cRpK/Lnse4NbH7Xu/ZOQcjSNUwbXHT
-	jHmUFenJQl1SD2/Dk8KnQrOm2H4wcQWVwiU+M1gPbKHYLAgPoBZp8QdsYModq1O5IBe8frxCV1n
-	Qu/Xc/iqJ5g==
-X-Received: from qvqu5.prod.google.com ([2002:a0c:ed25:0:b0:91c:9379:7e3f])
- (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a0c:f095:0:b0:91e:7a12:64b
- with SMTP id 6a1803df08f44-91ebd1db2d5mr5431856d6.14.1794003140754; Fri, 06
- Nov 2026 14:12:20 -0800 (PST)
-Date: Fri,  6 Nov 2026 22:11:59 +0000
+        bh=4Nzt8fHJDrg9z/hmNIwZXVyYswS/2ActSVeIRhPRncw=;
+        b=t6ep5Vavn+Rfma1B7s81PsteHyk/vA7b4u4Wqk8cmh2cA663hVXXo5/Pl/rrKm0kKb
+         zCV4HV/qUz2ihY5TGL1iIsH33aJiOe/7m8Ydt+9abpEEYc4qovakFt1praSqziq4Agbu
+         9W+yOcXvvsgXk5Yy7j77blTNzUD10lJ6aVnqjfEMZaPRCQTz35tBcHq8VtMEOTaaIDuf
+         JGVICb+p4mcdFs2OAmqDoRcZwdxEoiOkMBoIM8qtIqmSnHIHk+8y66jOFainvluD+mp1
+         Z1dpPeZryHjhzF4YnIAiIQVjRTsC+Zzok1GoIKqo613YWgIZxZBGHCD0PU3ORagiA2Qi
+         VQPQ==
+X-Gm-Message-State: APuU4Z8Cjcl4DzOk5XOpCkfCs1sX0eQeS96B9RFbnTgDaFhf56foRI4w
+	l090Ex16/cV6NzgSx/Wb7obimhfBYkOVJ0f5bFzt1OIUnUE9UzMpnZmJJqFk/DhNApJfdQ4enSl
+	RfM8Tx0LhyA==
+X-Received: from qkau11-n1.prod.google.com ([2002:a05:620a:a1cb:10b0:93c:320e:f493])
+ (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:620a:4002:b0:939:3fcd:4c3a
+ with SMTP id af79cd13be357-945f34af2b8mr568211985a.17.1794003145192; Fri, 06
+ Nov 2026 14:12:25 -0800 (PST)
+Date: Fri,  6 Nov 2026 22:12:00 +0000
 In-Reply-To: <20261106221201.2266301-1-jmoroni@google.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -79,78 +79,106 @@ Precedence: list
 Mime-Version: 1.0
 References: <20261106221201.2266301-1-jmoroni@google.com>
 X-Mailer: git-send-email 2.56.0.455.g6c5a503b38-goog
-Message-ID: <20261106221201.2266301-4-jmoroni@google.com>
-Subject: [PATCH rdma-next 3/4] RDMA/irdma: Fix CQ scrub for SRQ associated QPs
+Message-ID: <20261106221201.2266301-5-jmoroni@google.com>
+Subject: [PATCH rdma-next 4/4] RDMA/irdma: Release SRQ slots during CQ scrub
 From: Jacob Moroni <jmoroni@google.com>
 To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, leon@kernel.org
 Cc: linux-rdma@vger.kernel.org, Jacob Moroni <jmoroni@google.com>
 Content-Type: text/plain; charset="UTF-8"
 
-When a QP is destroyed, any pending completions for it are
-scrubbed by setting the QP handle to NULL so that the CQE
-is skipped during poll. However, completions for SRQ WQEs
-use a different offset (40 rather than 8) for the QP handle
-but the driver did not account for this.
+When the CQ is scrubbed during QP destroy, any unpolled SRQ
+completions are invalidated, which causes those SRQ slots to
+be leaked because the SRQ tail only advances when completions
+are polled.
 
-Fix this by checking whether the CQE being scrubbed is for
-an SRQ WQE and if so, clearing the correct offset.
+Fix this by releasing the SRQ slots whenever an SRQ CQE is scrubbed
+during QP destroy as well as during the small window prior to CQ
+scrub where the QP is marked as "destroy_pending".
+
+In practice, the leak only matters if a consumer posts new buffers
+to replace the ones tied to the discarded completions, but releasing
+the slots keeps the driver's SRQ accounting correct.
 
 Fixes: 563e1feb5f6e ("RDMA/irdma: Add SRQ support")
 Signed-off-by: Jacob Moroni <jmoroni@google.com>
 ---
- drivers/infiniband/hw/irdma/uk.c   | 16 +++++++++++-----
- drivers/infiniband/hw/irdma/user.h |  2 +-
- 2 files changed, 12 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/irdma/uk.c | 33 +++++++++++++++++++++++++-------
+ 1 file changed, 26 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/infiniband/hw/irdma/uk.c b/drivers/infiniband/hw/irdma/uk.c
-index 800b51003e18..05f512b01525 100644
+index 05f512b01525..afd1f5ba0c28 100644
 --- a/drivers/infiniband/hw/irdma/uk.c
 +++ b/drivers/infiniband/hw/irdma/uk.c
-@@ -1764,10 +1764,10 @@ void irdma_uk_cq_init(struct irdma_cq_uk *cq,
+@@ -1130,6 +1130,19 @@ bool irdma_uk_cq_empty(struct irdma_cq_uk *cq)
+ 	return polarity != cq->polarity;
+ }
  
++/**
++ * irdma_srq_release_wqe() - Release an SRQ WQE.
++ * @srq: SRQ
++ */
++static void irdma_srq_release_wqe(struct irdma_srq_uk *srq)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(srq->lock, flags);
++	IRDMA_RING_MOVE_TAIL(srq->srq_ring);
++	spin_unlock_irqrestore(srq->lock, flags);
++}
++
  /**
-  * irdma_uk_clean_cq - clean cq entries
-- * @q: completion context
-+ * @qp: QP
-  * @cq: cq to clean
-  */
--void irdma_uk_clean_cq(void *q, struct irdma_cq_uk *cq)
-+void irdma_uk_clean_cq(struct irdma_qp_uk *qp, struct irdma_cq_uk *cq)
- {
- 	__le64 *cqe;
- 	u64 qword3, comp_ctx;
-@@ -1790,9 +1790,15 @@ void irdma_uk_clean_cq(void *q, struct irdma_cq_uk *cq)
- 		/* Ensure CQE contents are read after valid bit is checked */
- 		dma_rmb();
+  * irdma_uk_cq_poll_cmpl - get cq completion info
+  * @cq: hw cq
+@@ -1226,6 +1239,12 @@ int irdma_uk_cq_poll_cmpl(struct irdma_cq_uk *cq,
+ 		get_64bit_val(cqe, 8, &comp_ctx);
+ 	qp = (struct irdma_qp_uk *)(unsigned long)comp_ctx;
+ 	if (!qp || qp->destroy_pending) {
++		/* destroy_pending is set prior to locking and scrubbing the CQ
++		 * so this can potentially be reached.
++		 */
++		if (qp && is_srq && info->q_type == IRDMA_CQE_QTYPE_RQ &&
++		    qp->srq_uk)
++			irdma_srq_release_wqe(qp->srq_uk);
+ 		ret_code = -EFAULT;
+ 		goto exit;
+ 	}
+@@ -1278,8 +1297,6 @@ int irdma_uk_cq_poll_cmpl(struct irdma_cq_uk *cq,
+ 	info->op_type = (u8)FIELD_GET(IRDMACQ_OP, qword3);
  
--		get_64bit_val(cqe, 8, &comp_ctx);
--		if ((void *)(unsigned long)comp_ctx == q)
--			set_64bit_val(cqe, 8, 0);
-+		if (cq->avoid_mem_cflct && FIELD_GET(IRDMA_CQ_SRQ, qword3)) {
-+			get_64bit_val(cqe, 40, &comp_ctx);
-+			if ((struct irdma_qp_uk *)(unsigned long)comp_ctx == qp)
-+				set_64bit_val(cqe, 40, 0);
-+		} else {
-+			get_64bit_val(cqe, 8, &comp_ctx);
-+			if ((struct irdma_qp_uk *)(unsigned long)comp_ctx == qp)
-+				set_64bit_val(cqe, 8, 0);
-+		}
+ 	if (info->q_type == IRDMA_CQE_QTYPE_RQ && is_srq) {
+-		unsigned long flags;
+-
+ 		srq = qp->srq_uk;
  
- 		cq_head = (cq_head + 1) % cq->cq_ring.size;
- 		if (!cq_head)
-diff --git a/drivers/infiniband/hw/irdma/user.h b/drivers/infiniband/hw/irdma/user.h
-index 4dd3776a4cdd..c7f115b28498 100644
---- a/drivers/infiniband/hw/irdma/user.h
-+++ b/drivers/infiniband/hw/irdma/user.h
-@@ -581,7 +581,7 @@ __le64 *irdma_qp_get_next_send_wqe(struct irdma_qp_uk *qp, u32 *wqe_idx,
- 				   struct irdma_post_sq_info *info);
- __le64 *irdma_srq_get_next_recv_wqe(struct irdma_srq_uk *srq, u32 *wqe_idx);
- __le64 *irdma_qp_get_next_recv_wqe(struct irdma_qp_uk *qp, u32 *wqe_idx);
--void irdma_uk_clean_cq(void *q, struct irdma_cq_uk *cq);
-+void irdma_uk_clean_cq(struct irdma_qp_uk *qp, struct irdma_cq_uk *cq);
- int irdma_nop(struct irdma_qp_uk *qp, u64 wr_id, bool signaled, bool post_sq);
- int irdma_fragcnt_to_quanta_sq(u32 frag_cnt, u16 *quanta);
- int irdma_fragcnt_to_wqesize_rq(u32 frag_cnt, u16 *wqe_size);
+ 		get_64bit_val(cqe, 8, &info->wr_id);
+@@ -1292,11 +1309,9 @@ int irdma_uk_cq_poll_cmpl(struct irdma_cq_uk *cq,
+ 		} else {
+ 			info->stag_invalid_set = false;
+ 		}
+-		spin_lock_irqsave(srq->lock, flags);
+-		IRDMA_RING_MOVE_TAIL(srq->srq_ring);
+-		spin_unlock_irqrestore(srq->lock, flags);
+-		pring = &srq->srq_ring;
+ 
++		irdma_srq_release_wqe(srq);
++		pring = &srq->srq_ring;
+ 	} else if (info->q_type == IRDMA_CQE_QTYPE_RQ && !is_srq) {
+ 		u32 array_idx;
+ 
+@@ -1792,8 +1807,12 @@ void irdma_uk_clean_cq(struct irdma_qp_uk *qp, struct irdma_cq_uk *cq)
+ 
+ 		if (cq->avoid_mem_cflct && FIELD_GET(IRDMA_CQ_SRQ, qword3)) {
+ 			get_64bit_val(cqe, 40, &comp_ctx);
+-			if ((struct irdma_qp_uk *)(unsigned long)comp_ctx == qp)
++			if ((struct irdma_qp_uk *)(unsigned long)comp_ctx == qp) {
++				if (qp->srq_uk &&
++				    FIELD_GET(IRDMA_CQ_SQ, qword3) == IRDMA_CQE_QTYPE_RQ)
++					irdma_srq_release_wqe(qp->srq_uk);
+ 				set_64bit_val(cqe, 40, 0);
++			}
+ 		} else {
+ 			get_64bit_val(cqe, 8, &comp_ctx);
+ 			if ((struct irdma_qp_uk *)(unsigned long)comp_ctx == qp)
 -- 
 2.56.0.455.g6c5a503b38-goog
 
