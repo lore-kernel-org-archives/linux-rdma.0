@@ -1,55 +1,58 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793929760;
-	b=raonA4e9UOuf24EBoUxSWuDmntbnGZorvfFBHOp5SmpdrP9a7Sg3YDIEaQBGQ/fQj5ix
-	 f4UTDho5nevSV+k9RhZI1bENd11dPeZCYaGHQGSeQBaYWqg7c88ouFrZF/Xss7qwosI/o
-	 8l/djN6295ZuUnwSWy5UaCZ/CbtRVihat4+reuOl5Kgj0ll6VmPONfvsob9MgMOuRCt7N
-	 pFBvFxWUCSjmWGYrNLFthC12MNZcmJERhmgF6HDmes6ICrtTkZp3ZUa1gWQ8rrFxA1DqT
-	 tVcfNKGTXgwS2SFxU2j96yV4mYVcGQYkbcKLrrJdBb1+FaOz0JeDMHDS66LMVXPqERA==
+	t=1793934978;
+	b=gXZDDoltLb15pUChZjVWLJJq85ZBPg+8KCq+oBes7obvJp5+mA1aEN1epAYhKeH6CkCU
+	 U2bRPA7eFFpgTW7da4B95quGax80ow5RN2Ob88MB+vCkNwbQ9pW3rg/KNrsmju6DTmcTM
+	 XnWVmyqajQUuY8InoGqmIzmdbEuoon3Tf8hJ8+Iz58IIoWEbdj35Yx0/xW9Z69W8esd31
+	 NQKJ7wK4/prLKPU6ca5o4AIaKyVIgK0VnBIPDm/x4+Z4xOOYcjPtUtn1k/J8Zty9FUz1S
+	 IMTBLJzAN70RzQVjZ2kWrSIOsob5dlW6xCA3Y1VZtXqzNvoIcCZ9IBhJK6Mg5cs5miQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793929760;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=tEM8tnuE/5gJ8QhMp3tDq0gzoSSwOhcBjwKtUw/VYJg=;
-	b=kiXO6kYGwL27Svl1gxhUrt8q8Rv3M0EssyiyEAWavWc4E2qmruxRz1FdRelI/XNMAyOA
-	 7f/7HGRudxcAqAyDm9So2F55MEPUqZX2L3/g4YCUuEsyPrhTma4O9uq/2iYI8NHEZuBZT
-	 7dvqAZ1Y2v3aBhc/wmEZ1lKT17Kuambp3s3kdJqAcJGhmhkYH2lu0DD40vd7C2gRpL0Qp
-	 ycAMCFM+qVmEVGjJeY1Fv+ejGv1E5bk5xWQbpNsPSgBLel802h0Yx10L4Xm6FuPe27+aD
-	 mrnwjN1xe0AbNJQxk0AhZUM7qZV2U/7rXbq9CldoVXQgtrJK92oQ5GYwmd1PYs+Nnkg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793934978;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
+	bh=2WRPv8ZWR4UjzVKuptVlhpMu4wmeyxGJ5gIUxLfFfLY=;
+	b=41qKjblaW9tcYpk02GoZt1ZNOsFGZQLHJrGg7VtDU2jzCLEqKfKW3ojjoiCqShj8z8Ol
+	 TDNPPSg6dAnpSTBkf+oTYDaD+XC6gx9DYMLNIxf3P20PHJNgoZd95byNCzVr5dK6BoRMa
+	 Vd+zeSiZUYg1GGg5VOoz3sEBfftlFD/cCEI1kmxVFWdm8ErqflXsJxrEG15O6P5+s1d1z
+	 BDRQj0DgWUEX6ravpnCjHh/Jjh3oCy/dVmSAlDRS4dLz6Gj6mvxwbqNJX3y/iSL4Po9Er
+	 yBS1ON6iED99oQf82S04zLC4l31JveY0lF2CHMzTbjibh9BeceQ1ofTAnaZn+KncsSg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=doqrfQgS;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SXjnTmGF;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAF4D606A31B
-	for <linux-rdma@vger.kernel.org>; Fri,  6 Nov 2026 01:49:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83D7D606A338;
+	Fri,  6 Nov 2026 03:16:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=doqrfQgS
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 525141F0089F;
-	Fri,  6 Nov 2026 01:49:19 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SXjnTmGF
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E36251F008A6;
+	Fri,  6 Nov 2026 03:16:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793929759;
-	bh=tEM8tnuE/5gJ8QhMp3tDq0gzoSSwOhcBjwKtUw/VYJg=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=doqrfQgSwi3B+/S/uQ8yh1TLRE5c+ZOChcclmQJtEmMEE22jvand+qlSSp30dLIBj
-	 cIehsu0nXenD8qVC9HhU4/XsP9SJq0Mr6UH7W7ruzIG25A5WpDnT1QVYIHeWhHdd+C
-	 SXAnu/fze2QQ9y+qmMYE95S5Bo5hWRMlAi//YSJqNDht9o690+AD0QoXBvPJFhjxl5
-	 ehxD+Xz5u8+ARyStuU8CvX9TS/3b0weJoxAS84NKm1TSvYyckrRMj8KBujOC9VgDYY
-	 PGtUnPs2KLlAm7msJ2bNTAPylVXIn6gN8fX38FcAQ4aT8NKkz0vvtavmIBQoO/zdgq
-	 7Zf3ZAdKZvD7w==
-Message-ID: <sashiko-outbox-200539@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] RDMA/uverbs: Fix radix tree node leak in uapi_add_elm()
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Deepanshu Kartikey" <kartikey406@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261106013908.21789-1-kartikey406@gmail.com>
-References: <20261106013908.21789-1-kartikey406@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Fri, 06 Nov 2026 01:49:18 +0000
+	s=k20260515; t=1793934978;
+	bh=2WRPv8ZWR4UjzVKuptVlhpMu4wmeyxGJ5gIUxLfFfLY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=SXjnTmGFX44fMQ/5pMlM/BeMg9PSBRjR9FzVQ63ECC/1DMe/3kX9XDLjRL8D/ka75
+	 WC8DvQQi8bxihTeYyHVMZgvLLAgmqU+Hor27aISgx/IlK5xzxgUCRVIBbA/Y8EWuX4
+	 uJmQkv+xsaAUhEnBlG2/Z1enx3sHl6sQevShYWjqTlFDrVYB4r53UndQIP0/EUAX6W
+	 8eh2sVpdtZYICMQaQQoCqypYt07iAaDobLACCvQPuS5xnPGTMXkFoZgClhI0vLGvHN
+	 VfcCDtqyw1w2yCBGLnSaZ6xHxvBSNAklv7xLhaYO72eUMg2e5Our6rVEP3T/1IBM+0
+	 xSMjaLjM12vfg==
+From: Allison Henderson <achender@kernel.org>
+To: netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	kuba@kernel.org,
+	horms@kernel.org
+Cc: achender@kernel.org
+Subject: [PATCH net-next v11 03/12] net/rds: guard every work-requeueing site with rds_destroy_pending()
+Date: Thu,  5 Nov 2026 20:16:06 -0700
+Message-ID: <20261106031615.1047052-4-achender@kernel.org>
+X-Mailer: git-send-email 2.50.1
+In-Reply-To: <20261106031615.1047052-1-achender@kernel.org>
+References: <20261106031615.1047052-1-achender@kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,101 +61,160 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 1 potential issue(=
-s) to consider:
-- [Medium] RDMA/uverbs: incomplete radix_tree_node leak fix in uapi_add_elm=
-()
---
+rds_conn_destroy() cancels the path works and then destroys the
+per-path workqueue.  The sites that can re-arm those works are
+supposed to test rds_destroy_pending() under rcu_read_lock() first,
+paired with the synchronize_rcu() in the destroy path, so that no new
+work can be queued once the cancellation has begun.
 
-commit 2393d302cac044b0b4ac5a4d059afc74697b1fb2
-Author: Deepanshu Kartikey <kartikey406@gmail.com>
+Five arming sites never got that guard:
 
-RDMA/uverbs: Fix radix tree node leak in uapi_add_elm()
+  - rds_ib_send_cqe_handler() and rds_ib_send_add_credits() re-arm
+    cp_send_w when a send completion or a credit update clears
+    RDS_LL_SEND_FULL,
+  - rds_ib_recv_refill() re-arms cp_recv_w when the recv ring runs
+    low,
+  - rds_tcp_accept_one() kicks cp_recv_w on the freshly accepted
+    socket, and
+  - rds_sendmsg() arms cp_conn_w for a multipath connection whose
+    path 0 is not up yet.
 
-This commit attempts to fix a memory leak of intermediate radix_tree_node
-objects when radix_tree_insert() fails with -ENOMEM in uapi_add_elm() by
-inserting a dummy entry at the same key and immediately deleting it.
+A completion landing in the window between the cancel and
+destroy_workqueue() in rds_conn_path_destroy() would re-arm a work on
+a workqueue that is about to be destroyed: with delay 0 the work is
+queued directly on the freed workqueue, and with delay 1 the timer
+survives destroy_workqueue() unseen and fires afterwards, queueing
+from a timer_list that lives in the freed c_path array.  Today's
+destroy triggers keep these sites out of that window - an IB
+connection reaches rds_conn_destroy() only from the nodev list, with
+its QP and CQs already gone, the TCP accept work is flushed before
+any connection is destroyed, and a sending socket pins its netns and
+its transport module - so this is preparation: the following patch
+gives the predicate a per-connection term, and these are the sites
+that would otherwise miss it.
 
-> diff --git a/drivers/infiniband/core/uverbs_uapi.c b/drivers/infiniband/c=
-ore/uverbs_uapi.c
-> index b67db3790f03c..91350d3479a80 100644
-> --- a/drivers/infiniband/core/uverbs_uapi.c
-> +++ b/drivers/infiniband/core/uverbs_uapi.c
-> @@ -15,6 +15,7 @@ static int ib_uverbs_notsupp(struct uverbs_attr_bundle =
-*attrs)
-> =20
->  static void *uapi_add_elm(struct uverbs_api *uapi, u32 key, size_t alloc=
-_size)
->  {
-> +	static void *dummy;
->  	void *elm;
->  	int rc;
-> =20
-> @@ -27,6 +28,16 @@ static void *uapi_add_elm(struct uverbs_api *uapi, u32=
- key, size_t alloc_size)
->  	rc =3D radix_tree_insert(&uapi->radix, key, elm);
->  	if (rc) {
->  		kfree(elm);
-> +
-> +		/*
-> +		 * A failed radix_tree_insert() can leave empty intermediate
-> +		 * nodes linked in the tree. They are only freed when an entry
-> +		 * under them is deleted, so populate and delete the slot to
-> +		 * reclaim them.
-> +		 */
-> +		if (rc =3D=3D -ENOMEM &&
-> +		    !radix_tree_insert(&uapi->radix, key, &dummy))
-> +		    radix_tree_delete(&uapi->radix, key);
+Wrap all five sites in the same rcu_read_lock() +
+rds_destroy_pending() pattern the other arming sites already use.
 
-[Severity: Medium]
-Does this recovery path still leak radix_tree_node objects when the second
-radix_tree_insert() in uapi_add_elm() also fails with -ENOMEM?
+The four self-requeues in rds_send_worker() and rds_recv_worker() are
+left alone on purpose: they run from inside the work item itself, and
+cancel_delayed_work_sync() disables the work for the duration of the
+cancel, so a requeue issued by the still-running callback is dropped
+and none can follow once the cancel has returned.
 
-In lib/radix-tree.c, radix_tree_insert() -> __radix_tree_create() links
-intermediate nodes at each level as it descends down to shift =3D=3D 0:
+With the predicate as it stands the guards cover the netns teardown and
+module unload cases; the following patch extends it to the destroy of a
+single connection.
 
-lib/radix-tree.c:__radix_tree_create() {
-	...
-	while (shift > 0) {
-		shift -=3D RADIX_TREE_MAP_SHIFT;
-		if (child =3D=3D NULL) {
-			/* Have to add a child node.  */
-			child =3D radix_tree_node_alloc(gfp, node, root, shift,
-							offset, 0, 0);
-			if (!child)
-				return -ENOMEM;
-			rcu_assign_pointer(*slot, node_to_entry(child));
-			if (node)
-				node->count++;
-		} else if (!radix_tree_is_internal_node(child))
-			break;
-	...
-}
+Assisted-by: Claude-Code:claude-fable-5
+Signed-off-by: Allison Henderson <achender@kernel.org>
+---
+ net/rds/ib_recv.c    |  6 +++++-
+ net/rds/ib_send.c    | 18 ++++++++++++++----
+ net/rds/send.c       | 11 ++++++++---
+ net/rds/tcp_listen.c | 10 +++++++---
+ 4 files changed, 34 insertions(+), 11 deletions(-)
 
-When the initial radix_tree_insert(&uapi->radix, key, elm) returns -ENOMEM
-after linking an upper-level node, the lower-level child node(s) down to
-shift =3D=3D 0 were not allocated. Freeing elm via kfree(elm) only releases=
- a
-small kmalloc object rather than a 576-byte node from
-radix_tree_node_cachep.
+diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
+index aa50b85b0f99..bec2b91a2467 100644
+--- a/net/rds/ib_recv.c
++++ b/net/rds/ib_recv.c
+@@ -458,7 +458,11 @@ void rds_ib_recv_refill(struct rds_connection *conn, int prefill, gfp_t gfp)
+ 	    (must_wake ||
+ 	    (can_wait && rds_ib_ring_low(&ic->i_recv_ring)) ||
+ 	    rds_ib_ring_empty(&ic->i_recv_ring))) {
+-		queue_delayed_work(conn->c_path->cp_wq, &conn->c_recv_w, 1);
++		rcu_read_lock();
++		if (!rds_destroy_pending(conn))
++			queue_delayed_work(conn->c_path->cp_wq,
++					   &conn->c_recv_w, 1);
++		rcu_read_unlock();
+ 	}
+ 	if (can_wait)
+ 		cond_resched();
+diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
+index d6be95542119..bc411e96ad12 100644
+--- a/net/rds/ib_send.c
++++ b/net/rds/ib_send.c
+@@ -298,8 +298,13 @@ void rds_ib_send_cqe_handler(struct rds_ib_connection *ic, struct ib_wc *wc)
+ 	rds_ib_sub_signaled(ic, nr_sig);
+ 
+ 	if (test_and_clear_bit(RDS_LL_SEND_FULL, &conn->c_flags) ||
+-	    test_bit(0, &conn->c_map_queued))
+-		queue_delayed_work(conn->c_path->cp_wq, &conn->c_send_w, 0);
++	    test_bit(0, &conn->c_map_queued)) {
++		rcu_read_lock();
++		if (!rds_destroy_pending(conn))
++			queue_delayed_work(conn->c_path->cp_wq,
++					   &conn->c_send_w, 0);
++		rcu_read_unlock();
++	}
+ 
+ 	/* We expect errors as the qp is drained during shutdown */
+ 	if (wc->status != IB_WC_SUCCESS && rds_conn_up(conn)) {
+@@ -420,8 +425,13 @@ void rds_ib_send_add_credits(struct rds_connection *conn, unsigned int credits)
+ 			test_bit(RDS_LL_SEND_FULL, &conn->c_flags) ? ", ll_send_full" : "");
+ 
+ 	atomic_add(IB_SET_SEND_CREDITS(credits), &ic->i_credits);
+-	if (test_and_clear_bit(RDS_LL_SEND_FULL, &conn->c_flags))
+-		queue_delayed_work(conn->c_path->cp_wq, &conn->c_send_w, 0);
++	if (test_and_clear_bit(RDS_LL_SEND_FULL, &conn->c_flags)) {
++		rcu_read_lock();
++		if (!rds_destroy_pending(conn))
++			queue_delayed_work(conn->c_path->cp_wq,
++					   &conn->c_send_w, 0);
++		rcu_read_unlock();
++	}
+ 
+ 	WARN_ON(IB_GET_SEND_CREDITS(credits) >= 16384);
+ 
+diff --git a/net/rds/send.c b/net/rds/send.c
+index f38967f65af1..9c3890c124a0 100644
+--- a/net/rds/send.c
++++ b/net/rds/send.c
+@@ -1383,9 +1383,14 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
+ 		 * outstanding.
+ 		 */
+ 		if (!test_and_set_bit(RDS_RECONNECT_PENDING,
+-				      &conn->c_path[0].cp_flags))
+-			queue_delayed_work(conn->c_path[0].cp_wq,
+-					   &conn->c_path[0].cp_conn_w, 0);
++				      &conn->c_path[0].cp_flags)) {
++			rcu_read_lock();
++			if (!rds_destroy_pending(conn))
++				queue_delayed_work(conn->c_path[0].cp_wq,
++						   &conn->c_path[0].cp_conn_w,
++						   0);
++			rcu_read_unlock();
++		}
+ 		rds_send_ping(conn, 0);
+ 	}
+ 
+diff --git a/net/rds/tcp_listen.c b/net/rds/tcp_listen.c
+index 13fa60c1985b..8a0c54aced5e 100644
+--- a/net/rds/tcp_listen.c
++++ b/net/rds/tcp_listen.c
+@@ -316,10 +316,14 @@ int rds_tcp_accept_one(struct rds_tcp_net *rtn)
+ 	 */
+ 	if (READ_ONCE(sk->sk_state) == TCP_CLOSE_WAIT ||
+ 	    READ_ONCE(sk->sk_state) == TCP_LAST_ACK ||
+-	    READ_ONCE(sk->sk_state) == TCP_CLOSE)
++	    READ_ONCE(sk->sk_state) == TCP_CLOSE) {
+ 		rds_conn_path_drop(cp, 0);
+-	else
+-		queue_delayed_work(cp->cp_wq, &cp->cp_recv_w, 0);
++	} else {
++		rcu_read_lock();
++		if (!rds_destroy_pending(cp->cp_conn))
++			queue_delayed_work(cp->cp_wq, &cp->cp_recv_w, 0);
++		rcu_read_unlock();
++	}
+ 
+ 	sock_put(sk);
+ 
+-- 
+2.50.1
 
-Calling radix_tree_insert(&uapi->radix, key, &dummy) immediately afterward
-must still call radix_tree_node_alloc() in __radix_tree_create() to allocate
-those missing lower-level node(s) before &dummy can be inserted. Under
-continued memory pressure, memcg limits, or multi-allocation fault injectio=
-n,
-that retry allocation can also fail with -ENOMEM (potentially after
-allocating and linking another intermediate level in a 3-level tree). When
-that happens, radix_tree_delete() is skipped and uverbs_destroy_api() ->
-uapi_remove_range() still leaks the empty intermediate radix_tree_node
-objects.
-
-Would calling xa_destroy(&uapi->radix) in uverbs_destroy_api() after
-uapi_remove_range(), or unwinding newly allocated empty nodes directly
-on failure, avoid depending on a new radix_tree_node allocation to succeed
-during -ENOMEM cleanup?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261106013908.2178=
-9-1-kartikey406@gmail.com?part=3D1
