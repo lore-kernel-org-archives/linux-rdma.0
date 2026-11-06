@@ -1,52 +1,49 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=159.226.251.81
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793957676;
-	b=ahYGO8t4Iz27hGTV7KGApcmZfmVb5WwdwSL/FVjVwZA2iKaDjFmPewUPoxmx8KV+9tL2
-	 nxzcfDIGa/AxGjYQk53GOolkeJiVNPmTUlJhFGhXpwP3ahKItC2O0CgpGY0M7qLI/Qgph
-	 8yzXRoS5TSLuMwQ3Z6zPU8cxKiHS+Bq9uzlvSsVcPQtWAhNMsEgc+ay3waCV05wGS9beF
-	 HLUWHltuMHeWsZ4qOPwDUcBulW4205/KfmaPVedDbiyiQp9Ttk7AtLYXwJrRGXG/IHPxs
-	 TgLZpK48fjREspYleZALFYnQ8brRlan3U9ojXA7IC6yG0iuzOMzEMH2Y2RepBtflXeA==
+	t=1793959207;
+	b=jaAQKr2OKGutwog3s9WOriZl+tPdv7a3LtDO3bv1yYH0lrau81Xi/nAf9Ivx1jt6dm64
+	 oUS545QBvvvoQawNpv5aiQ/4H4ifOVb3qklVvDxxmCt3myqF7LQdUggG9OnGuZJm5DvS5
+	 Ug9qGg0dcS3LOdykFHzPBbAH6HUcSzWUeAfAamUZx9FTn/P4wUxexFARxS4hGNSnRFMUt
+	 DkBbBeNrru8CUpQGQJuYIwgcsPX/RTO6oOKUOvYygSPIVPvBgZbdw6lizJb7EeAEQlCmm
+	 SDsXOY/+SP+ugxUVBu1RM8dhTfMiSsj6le+a9tg2VS7VvJixEePF/d/dDQIeVkiWZYg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793957676;
-	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-Id:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:
-	 X-CM-TRANSID:X-Coremail-Antispam:X-Originating-IP:X-CM-SenderInfo;
-	bh=5DpkpCFdql2S/x8Err04oU2KI9wV3J7R3Kv596mw4Ww=;
-	b=m0rWA12CqwJypwWXeWoyRvejqLkiNUtQMgfbzzgUvUI6ofEOZzEWjMdXSDBn358EyARU
-	 ZKW/kk1cRlD/fNUOBkDAGqfmVmtCk9J7obmmm9O49QMNtMa+1lw71TybHj1IjWWibij4g
-	 VB0rd6QSlMqqdX6Z/28zz9ag4GSKpwOpqG2u+5SrkECWkTvVHzrarHD1NP7pCViLm85JJ
-	 gAB7tdzLOHAa0W71l1uHtvQ02UQhRE7Po3vfaHEH+2afkxkxKvBKeqzRx2su6/gQfaQp9
-	 Olo1Qm/hB7Xgv+M4m+l0WOjWJqh8kwbDIDgIxamLLDTTSO71FJVBfybwOqKkwOgm2MA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793959207;
+	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
+	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc;
+	bh=vow2vG/QGUSa3sk+BL7ipbjd78B1wl5dopE1viaxuxk=;
+	b=C29qQ15iuGuCtC3wGrg5tPjnPrxFcpvac6CtnuvgUv7Yg7P0KnyhIZJU842hezVkORq1
+	 FUuumEAQhRAC8k6pNqeYBt6SYcxhCcWap0it6IKtJluhwJD9gmpwXjzAtH6g5aHpEJP4F
+	 5Z8MmBhGK4i1F2Y9Sz32dUC2e5lIHHSDhMV+/ZD77WXm0ut0lJuRdmee4RL3i37V9nVO/
+	 5M+P1WBcSLh0FUv9RwnWGW75zI9UdMCl68ME79kGQxtQYVdsNTF4386mutaknsytU8W+p
+	 4kjObGzOqdHsZX+mJp6tOV/5uTmpW5LdOwzS2twTc7wFDNGJ7b3kfXf5S7SU681WeKw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=iscas.ac.cn;
-	spf=pass smtp.mailfrom=iscas.ac.cn;
-	arc=none smtp.remote-ip=159.226.251.81
-Received: from cstnet.cn (smtp81.cstnet.cn [159.226.251.81])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=C3y6yKXt;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0E81606A32D;
-	Fri,  6 Nov 2026 09:34:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E0E81606A32D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from fc87d0ffb700.home.arpa (unknown [36.110.52.2])
-	by APP-03 (Coremail) with SMTP id rQCowAC3v5Akn+1qE3ZrAA--.5072S2;
-	Fri, 06 Nov 2026 17:34:29 +0800 (CST)
-From: Wentao Liang <vulab@iscas.ac.cn>
-To: leon@kernel.org
-Cc: jgg@ziepe.ca,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	rolandd@cisco.com,
-	vulab@iscas.ac.cn,
-	stable@vger.kernel.org
-Subject: Re: [PATCH] RDMA/core: Fix member use-after-free in process_group_error()
-Date: Fri,  6 Nov 2026 17:34:38 +0800
-Message-Id: <20261106093438.366229-1-vulab@iscas.ac.cn>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20260923084752.GN563127@unreal>
-References: <20260916184555.2093238-1-vulab@iscas.ac.cn> <20260923084752.GN563127@unreal>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D274606A330;
+	Fri,  6 Nov 2026 10:00:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=C3y6yKXt
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABFE51F008A6;
+	Fri,  6 Nov 2026 10:00:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793959206;
+	bh=vow2vG/QGUSa3sk+BL7ipbjd78B1wl5dopE1viaxuxk=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=C3y6yKXttY1eJt3ps23frI/HFf3gHrtxrjSADU30An6bqmW2kBdWbvHFyo03zOCyu
+	 +JyjjxVTEJgEQHAKjWexdHMzVkNMp47xBYyd0/BwtjGnFFlp2NsojgQTeyYxvf3jeW
+	 xMbGXhlr9XduU0ZzQzfdGIKkBoeLiZURk+o3p2nAoJ24LGW+ngHh6B/Z442ENATnJX
+	 9N7BPWMBO47v/Wbn1dw6S1DrLc9T/Hn4vdr+35IMp4+IGXj8lCkzOJABePO7c4CZve
+	 xqDyq/I3MSh13A++3HUFinSW/H8zxnaCN8aeaONd1ph0abENDiAT1e6FxUFt7x0heB
+	 0UNy3jXIanX2w==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 9B088392447D;
+	Fri,  6 Nov 2026 10:00:06 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -57,29 +54,43 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:rQCowAC3v5Akn+1qE3ZrAA--.5072S2
-X-Coremail-Antispam: 1UD129KBjDUn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7v73
-	VFW2AGmfu7bjvjm3AaLaJ3UjIYCTnIWjp_UUUYq7CY07I20VC2zVCF04k26cxKx2IYs7xG
-	6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
-	A2z4x0Y4vE2Ix0cI8IcVAFwI0_Ar0_tr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Gr1j
-	6F4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oV
-	Cq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0
-	I7IYx2IY67AKxVWUtVWrXwAv7VC2z280aVAFwI0_Cr1j6rxdMcvjeVCFs4IE7xkEbVWUJV
-	W8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1l42xK82IYc2Ij64vI
-	r41l42xK82IY6x8ErcxFaVAv8VW8GFyrJr1UJwCF54CYxVCY1x0262kKe7AKxVWUAVWUtw
-	CFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE
-	14v26r106r1rMI8E67AF67kF1VAFwI0_JF0_Jw1lIxkGc2Ij64vIr41lIxAIcVC0I7IYx2
-	IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcVCF04k26cxK
-	x2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r4j6F4UMIIF0xvEx4A2jsIEc7CjxVAFwI
-	0_Gr1j6F4UJbIYCTnIWIevJa73UjIFyTuYvjfU75l1DUUUU
-X-CM-SenderInfo: pyxotu46lvutnvoduhdfq/1tbiCRIDA2rtky8q+gABsx
+Subject: Re: [PATCH net] net/mlx5e: TC, Fix double free of branch in failure
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <179395920518.502049.12133598827190916497.git-patchwork-notify@kernel.org>
+Date: Fri, 06 Nov 2026 10:00:05 +0000
+References: <20261028145805.54595-3-fourier.thomas@gmail.com>
+In-Reply-To: <20261028145805.54595-3-fourier.thomas@gmail.com>
+To: Thomas Fourier <fourier.thomas@gmail.com>
+Cc: saeedm@nvidia.com, tariqt@nvidia.com, mbloch@nvidia.com, leon@kernel.org,
+ andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, pabeni@redhat.com, ozsh@nvidia.com, roid@nvidia.com,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org
 
-Hi Leon,
+Hello:
 
-You are right, I looked at it again and can't prove it. Please drop the patch.
+This patch was applied to netdev/net.git (main)
+by Dave Miller <davem@davem-thinkpadp1gen8.ibmlond.csb>:
 
-Sorry for the noise.
+On Wed, 28 Oct 2026 15:57:02 +0100 you wrote:
+> When allocating the false branch fails in parse_branch_ctrl(), the
+> already allocated true branch is freed but attr->branch_true is left
+> pointing to it. The caller parse_tc_actions() fails the flow, and
+> free_flow_post_acts(), mlx5_free_flow_attr_actions() which calls again
+> free_branch_attr() on attr->branch_true.
+> 
+> Clear the pointer after freeing it.
+> 
+> [...]
 
-Thanks,
-Wentao
+Here is the summary with links:
+  - [net] net/mlx5e: TC, Fix double free of branch in failure
+    https://git.kernel.org/netdev/net/c/31f9b43a3bb3
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
