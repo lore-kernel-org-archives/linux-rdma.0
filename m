@@ -1,49 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794003607;
-	b=IeTaGqKb9lE4ccMioj3ArrLCWsJAcn3IliE22+QYcY5aoNBJ0H8UP2sBRGKHvC0DKQy4
-	 cE+aazQpnFhM5HK9GlobrP1+yRN0mtDiyRupGIFB8II0nNI8oaDoyQ2ryr6UD0hMT6gYq
-	 6AlQjxn3gMiBqkomI3uTMldDvcld6t87smbb1yTOf2B62hGeq2o4JE6VVOIr2LtQY4F0o
-	 4hmexQ6KWMugKfYq8h8pPG72tj/gbUVXT7mIZxpgQef9bp3SpUm4+jjhgZ9MsNE12K15v
-	 O+H0mCNzokVxUgCc8dLwDh9rOjQq8UgAlgfgCiM3utH94Xyim7vaMYnEjzQ9OVOiHHw==
+	t=1794003708;
+	b=BTQxe8XJSJPl4JpPt7Pdf6E3krVROKkCQS7op2GyWLlMTQ37XhEwk6GKkIr1+hPTY15H
+	 yXUVIJZoYhgCu3Htc/H7MxWtk8BuN26K9t/X4YQlBZcBZWAXFjT/cZZ4fpQG6VF0g4UzE
+	 XXCrTSHHDVm0/SBdRK9BPH+bH8Gi1bLz5+/3wZs4GAy2pRBdJVwN2aH27s/A0+I4dLy5n
+	 wAcpo/LwQ0m8xj48dMRG4eNWdayV2PjrAnLe5Axle/W8dR2+/jCiYcPSNyJATX16rrA45
+	 ztoON7MRLN7jCC51BWS06XkvMwBoXKsgna30Az49vX3Zp/SSMcO9G1T3MpuPuOQvJJw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794003607;
-	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
-	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc;
-	bh=XF+1Knmn0XuRqRSB8aofDteqe8NFHgivVbWmlItkZ7Y=;
-	b=jjamebL8RIamoHON/B6CnvE14HDlCdn3mLIJbBtgF/N9eGKxYKvEKTWv4gMSarDJGtgX
-	 NEkeqLFUH1DeypM5edf2yuTyni8iIrUsJzBJkb1Z/UDgRdbskSvhrl1sJH/kirwjOCnzd
-	 cLF8BQjSeTAp0ejOtOlG0oRYgeG93WRUXXAyNnENeN9nVSfLLAmhfyX74xyMK/4NuaHgV
-	 LiotnIbxQU1BaBwb5zGKSOcLrIXmKZY6Nq48yMxCy5SX/FoXY0jxDJeUHTexoO0xMLb7C
-	 NvfM+AHSye21DsXNS9aVmhwZLptoB1i742yGi1YbjlpbUK6KSMgSECAO198FlVAhtmg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794003708;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=h2I/2nnLN84F8Q1iw3QbtaOGqr4+Bt/hvRnZt+wh35c=;
+	b=2EJ08jn+EoS+5KgTzcOdb6x2cdEp8HW5qu3jws91y4kbmlbA1hfYG2OJqnPu8R1GlcUL
+	 TSDEJuHFd9EWqAxA59BKGVvhy8qPrpSzUrRuL6TJIMGCJX6qW+ndlS3VzTJ6cRPbMnPSw
+	 7ZTE+nor8n3U+oTrHwm1Deo8AjlZOBIgESVWChVWQRIeaRWA7XaBkDqHVfCC0Wscvh/gE
+	 l0zG3kMKcH6GylsxpOQ017oue83R0takx/I/CmApoTxrbivr7BB3EnKhMo0ZfguR7SRpU
+	 2S9QBGdrNtxm5aAki7VwkFfivyp5Acfd3EOn3xWcyMd7mBoc/QtcqJ8D6Zzh2GHlw+Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jXX0lI3i;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EiDScCMs;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DAC5606A326;
-	Fri,  6 Nov 2026 22:20:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA20B606A326
+	for <linux-rdma@vger.kernel.org>; Fri,  6 Nov 2026 22:21:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jXX0lI3i
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A89351F0089F;
-	Fri,  6 Nov 2026 22:20:06 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EiDScCMs
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6553F1F0089F;
+	Fri,  6 Nov 2026 22:21:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794003606;
-	bh=XF+1Knmn0XuRqRSB8aofDteqe8NFHgivVbWmlItkZ7Y=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=jXX0lI3igzd2P8zM8oiOqB6YZFPmdUtNMbKjPyBdyIA0w9ofOIbIcsI0nmKZSKCTE
-	 Gj7xOC/k2m6lQxjGUw2Ei4tmYsF7do+wt/f+bH8CNaEyy45yMazDPmGJAupFyMcors
-	 PAhYZR8aDLXfErfcNIjtRTMp4ziLYhHKCpMEMc4hkd5Cz3aH+Jh7M10t1SKSQRW8Xi
-	 uee4NBU6DyhtwPY/2jbKLkmIxBKKR04A8uMb5UCB8mmGalWxzR3M7xf6QtCmsvDjte
-	 nfN9cYmJFyfDhw1EJOoiMM/zaSnH9f19Ydz4lCzXy3s0usMpzgiNr5TtuFh3JhCGjQ
-	 Z4LV/ZIXhB9vg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 9B1E33A54A01;
-	Fri,  6 Nov 2026 22:20:06 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20260515; t=1794003707;
+	bh=h2I/2nnLN84F8Q1iw3QbtaOGqr4+Bt/hvRnZt+wh35c=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=EiDScCMsVjg1tMUPUzKJNDfCoimfvY0Rz4xVb3b8kefMbLNtsyQjmue8dPQ9OWLn+
+	 rHT9YT0rNTG3yfBcl42vXeyY6R8lje3zdzohADT2iH9wlp21fIGZxUSzffQocCTT08
+	 9UWy/iSHAPOOvW8sO/BD7dBw9KsK3QDuBJ8RWfqmdrbxy2f309V/X5wz8DBPWaH46r
+	 oujT36eWVzpt2OV3lIIMlBWGtvrQ6mmP0W3qrg2VB6a13SpM9RkMtYGOwLoBSEBrXR
+	 4hz6xL5x0hboUHvPL0fHS1C2SYn8Q3VkQz6yI1yVbnqQa0t6w5ysz31HcCUu9pUusN
+	 7jKW1osbULtNw==
+Message-ID: <sashiko-outbox-202326@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH rdma-next 1/4] RDMA/irdma: Fix QP handle assignment for
+ SRQ completions
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Jacob Moroni" <jmoroni@google.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261106221201.2266301-2-jmoroni@google.com>
+References: <20261106221201.2266301-1-jmoroni@google.com>
+ <20261106221201.2266301-2-jmoroni@google.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Fri, 06 Nov 2026 22:21:47 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -52,46 +60,29 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next] net/mlx4: drop the unused is_supported callback
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <179400360543.903397.1123811450749688598.git-patchwork-notify@kernel.org>
-Date: Fri, 06 Nov 2026 22:20:05 +0000
-References: <20261103122109.1798144-1-pdmorrow@gmail.com>
-In-Reply-To: <20261103122109.1798144-1-pdmorrow@gmail.com>
-To: Peter Morrow <pdmorrow@gmail.com>
-Cc: tariqt@nvidia.com, horms@kernel.org, leon@kernel.org,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hello:
+> The QP handle comes from a different location in the CQE depending
+> on whether it's an SRQ or normal completion. For normal SQ/RQ CQEs,
+> it comes from offset 8, but for SRQs, it comes from offset 40.
+>=20
+> This was correctly handled when the QP handle was initially loaded
+> in irdma_uk_cq_poll_cmpl(), but there was a leftover re-load of
+> the QP handle later on in that function which unconditionally
+> loaded it from offset 8. This would result in a bogus QP handle
+> being used when processing SRQ completions.
+>=20
+> Fix this by removing the extra QP handle load.
+>=20
+> While at it, load the QP handle into the u64 comp_ctx and cast
+> it rather than loading directly into the QP pointer since this
+> could overflow on 32 bit systems.
+>=20
+> Fixes: 563e1feb5f6e ("RDMA/irdma: Add SRQ support")
+> Signed-off-by: Jacob Moroni <jmoroni@google.com>
 
-This patch was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+Sashiko has reviewed this patch and found no issues.
 
-On Tue,  3 Nov 2026 12:21:08 +0000 you wrote:
-> Since commit 557d80138618 ("net/mlx4: always create the eth and ib
-> auxiliary devices"), both is_supported callbacks return true, so the
-> checks in add_drivers() and delete_drivers() no longer decide
-> anything. Drop the callbacks and keep the aux device table as an array
-> of suffixes.
-> 
-> Tested with this change applied to 6.12.113 on an Azure VM with two
-> ConnectX-3 VFs: both auxiliary devices are created at boot, and
-> removing mlx4_ib, mlx4_en and mlx4_core deletes them cleanly.
-> 
-> [...]
-
-Here is the summary with links:
-  - [net-next] net/mlx4: drop the unused is_supported callback
-    https://git.kernel.org/netdev/net-next/c/6ee8e8d9227c
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261106221201.2266=
+301-1-jmoroni@google.com?part=3D1
 
