@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793947438;
-	b=gp55CpQwH3xoyHX1dMyDWXQxhcnRTe0e9UWNs7crujXRX9FWK49vwrfE9Q8Hy8c2Iksl
-	 mavIdixKs9BTF90ENzrVEfCyDfi8Y8iO5WVKy0yNCLkZnHzz1WfSkFvr/BSfL0Tiioc03
-	 eWiGTHhGdfGDbejeTqTSVJ/+gshZiIbgV0BRfvTmMQ/BpKkuKIB2JuyCFosI44S/vfxzJ
-	 4wx/QyxfIk5X55qwzrDDjf/fZwulgC9jPk0FZQBaIfK5qSPYx8nOYa4Ufk/eyQ+rvSReS
-	 xml3Jm8upIJz/cf0mt082cBM0MjbfgbkXuHnGD2ohwc4qHUhBoeOpJVuaxto8db/mpw==
+	t=1793947439;
+	b=rkgroqI6a+zaalK5IUTin5oWwct9O4lOH4yqKd/hYxWlWn+Fq6vvY14ZJgk5xRoPnZkO
+	 3rjf3tVdjcNqRyXADGPeYCkKa/re8W0moqtyfFeC5vEcUstpMoCVd2c7L9m7Av9tqTeC8
+	 nkGquTLACqAqiEpv6n/D+qFRXrAphqnevWa4FPakrG66YluyRno3Z4I6biHEgvQL09A6L
+	 h8nv1NG3otzfzNhNW7+W66BGsqF/E8ztlYRdlLm8l6rYkbspx3rjQdTkUHG/snbuLSSjP
+	 2SLkbrQ8zFaJmg06xufOkL50irZkOH6t/q5S39LB8PttUFCTS9OffzMN4D4R6QQQ9ag==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793947438;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793947439;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=a5vxMfp45ZKx8vu9IoJ/aE2rVPDdeaklq/UuOQVIkew=;
-	b=QFCgS7ZCX051VMTDjU6WgVNuclFu3f5/VUHMQbbwm5Vo/iK+pFVa/5kqTrZ0QSB/G2s5
-	 prVGPgFebHD56zjmm7+osYxwNHqOEEjQLQ+lfk40s+GrU6AkJpGoNi3ZDeyknZdSYj0Dr
-	 qizaVrXHmgCAbXHux+Jqo3m2cjsPtzX2kM8U5m1ZuLnb71qcxc/YYgtBawoAhZZQeFhzF
-	 TLLeAdcWGlf4RaHu97Necw2qNQIgj/GBZOJ+eFpblkUzuP2otZOnmVLqVpcXn5kGxRvsM
-	 rxpkZBdJ+aHL7JPo3uMjpmf4eWZVDJwDzrRG7Poh+PqO4FF0c9Uut4zDse29xs0G26Q==
+	bh=D4ugQEKnF12QYh52zkVDXbfgfN9kngeY/NfLuP+ajVg=;
+	b=Mm/uPXh3nOYKDoWArL0Fd2kXePPCEsO4ZVxhMH4ZLOJfXbPruCuNKAvnK6weNKj0BCi2
+	 J5zOG9rxauxuuNYaAnzqRLnvpe1yUh4QiCTxquHqwhpDPvlg79BSvn8gRuT32T8/Ori4z
+	 EKcmnRIccX9Uw5sX9dYbdde9Tw5OFuUEnWuG05ufQpmKhMuuBUobPhwuvKEb6YXsyfnzx
+	 4HXCLbZjehYAvoBltPbYTrS206z39RVmKh7/JPZzmc/ufb71BbbNbAx1ueEuy5Whj4iAk
+	 nYVZZjT3qhZ16pSy9/k2fXWtd27yyuPXwnIU5dR6hk3W5fbZf7Y4JF6HZe19kjNAJqQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RUHrX3sp;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ek2rJz04;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9835C606A32C
-	for <linux-rdma@vger.kernel.org>; Fri,  6 Nov 2026 06:43:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 377B2606A328
+	for <linux-rdma@vger.kernel.org>; Fri,  6 Nov 2026 06:43:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RUHrX3sp
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5069B1F008A2;
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ek2rJz04
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E53A71F0089F;
 	Fri,  6 Nov 2026 06:43:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793947438;
-	bh=a5vxMfp45ZKx8vu9IoJ/aE2rVPDdeaklq/UuOQVIkew=;
+	s=k20260515; t=1793947439;
+	bh=D4ugQEKnF12QYh52zkVDXbfgfN9kngeY/NfLuP+ajVg=;
 	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=RUHrX3spVPPixYweR9FP0lGBGoieWOa6UTBk8hAFu6dth1qva/ut9CoCDM5A776Tr
-	 Np7rgWUtdHel2dckbpO+ge0L8ZexFY7RST6Dxd1tvm/9N8CX1+JOGT2TzdPYE0HNBg
-	 AaumF/6A6+mjXM30lBpdNZzji8O5rQgg7v0qdv7KIbuJUJHcAf3B9UauUhyL4sZP+i
-	 rhzR32APB2dTyhDj6x/2gMaRdacLn+tbkqJW2NlIa4MnWEmUC8jL7SGlrTJtZLl/qI
-	 LEF4o6OoxeKMR/USpIgruRe98uNab31+iv9/AYwi66c4CxyMwYP+EibjeOCwhfW0gd
-	 VvCsZZUMKFgyg==
-Message-ID: <sashiko-outbox-200934@kernel.org>
+	b=Ek2rJz0422dRG8TLjSZUOk53adxKmTUPYrXBosULDiNS2T/S3cidS9ZItwfoDpPup
+	 CdUHAZjyttw3eRWwtbOCRVgtzB9djS29hAcmJ3MYSGIR1RoiEu/L/oZVHfmYhaxFEQ
+	 Y/DHyu9UKDax+IAUY7i2J3fD8QIzbmz06YLCBrjvr/vYYTBa6wDFIhYMz4Pd+8uVDQ
+	 Aqq7vavqndTbMGA87GBRTxO1K/KGCKvxRo6brhM783o1hBjA+CqXN32RDy8LYZqm1P
+	 eNM7ELsMua3J8u+Ei1Fcw4ANpKw/e2FB9Lq0/Z3qo7VXxPpIwAny3fOu8mlK7pMf9l
+	 /ZKGNZFvj3gEQ==
+Message-ID: <sashiko-outbox-200935@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2 18/23] dma-buf: Update dma_buf_phys_vec_to_sgt() to
- use the SGT mapping type
+Subject: Re: [PATCH v2 19/23] iio: buffer: convert to use the SGT mapping
+ type
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Alistair Popple" <apopple@nvidia.com>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261105-dma_mapping_type_v4-v2-18-78b8dc9ae80a@nvidia.com>
+In-Reply-To: <20261105-dma_mapping_type_v4-v2-19-78b8dc9ae80a@nvidia.com>
 References: <20261105-dma_mapping_type_v4-v2-0-78b8dc9ae80a@nvidia.com>
- <20261105-dma_mapping_type_v4-v2-18-78b8dc9ae80a@nvidia.com>
+ <20261105-dma_mapping_type_v4-v2-19-78b8dc9ae80a@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 06 Nov 2026 06:43:57 +0000
+Date: Fri, 06 Nov 2026 06:43:58 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -62,8 +62,8 @@ Precedence: list
 
 > From: Jason Gunthorpe <jgg@nvidia.com>
 >=20
-> These helpers only work when matched to a SGT mapping type, call
-> dma_buf_sgt_dma_device() to get the DMA device.
+> These importer helper functions should call dma_buf_sgt_dma_device() as
+> they are always working with SGTs.
 >=20
 > Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 > Signed-off-by: Alistair Popple <apopple@nvidia.com>
@@ -72,5 +72,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261105-dma_mappin=
-g_type_v4-v2-0-78b8dc9ae80a@nvidia.com?part=3D18
+g_type_v4-v2-0-78b8dc9ae80a@nvidia.com?part=3D19
 
