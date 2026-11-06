@@ -1,73 +1,81 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=37.230.196.243
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793974910;
-	b=FF/FXzgvIkRyW6FKkckooyW08mYolpqoTCftueA3QqyTLKPZtsjVp8eoDCGZUUid69/f
-	 8w8YJh+nXmK3R9t5cY7zbK4jX+afGtAeR7cd1nomo8czhWCnnsUKO8NpSnt0WiM0MRfOG
-	 sQbFMCIKli3RDtplwxuQjQQACEyewCJNvKA4N/7p8/ZErRJdWcwnwac19vPY1oympkVhS
-	 JgMaL9L07ZSNF+Y86l20+9r+ojWMynxqdb5kw3sbsQvQ3gNSv3KRFnJtJ0gV6vFK97hey
-	 tF8Y780t9gPK9UqZZeKd9ghMNLI1Q9BzRhgbaUD9AW+dXjNmnZxtX9+wAHVqOMSw9wg==
+	t=1793975632;
+	b=Ry7k+qJm0o3yNb0FYgv84Yep8Wa2Dza9HhkdY5Qs9L3xj0kqyjliptCUJH0Lnw7vcOco
+	 Eyf+OIvrZmG99X6sJXPLrkJZ/Eo14vsnwGwj27UCdsmUDChJJmIR6DSS3718Ps0AGpPt5
+	 dg5bsVqjIP7wdBmpzmSelfA2e5iHZU4K97aJylLlHj3WVJDOONdWnvvtkH1TLXBmaaR6W
+	 hOOs+K6D/SHDHa33/HXQvItC/QM2vAYge74YEL4bpaARqD0hasM7eyFtaXKcP8Az77Egc
+	 QM3043U02/wll85NI1vUcv9dWvNLLrIg8HsX3z8QPDskCnVk5nItYbnvF4R67m3HBqw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793974910;
-	h=Received:DKIM-Signature:Received:Received:X-ME-Sender:
-	 X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:Received:X-Mailer:
-	 MIME-Version:X-ThreadId:Date:From:To:Cc:Message-Id:In-Reply-To:
-	 References:Subject:Content-Type:Content-Transfer-Encoding;
-	bh=Qxmf++OdXmvNQjqneVICiQMhLuKJZ5A4y7qik8rj9LM=;
-	b=orD6AM0sF1pyLs2e+exWCMtmemOCxV86/V9ULhm4AepdMbE1fLHurouw18NB21HAQu8n
-	 9qYMI98K9s86oPd67zfxqLbJy748NBJ4VceTO9S/qwINQbLjhpXwGaHkIISWeGSmK7Zlg
-	 wf0uQMOgphxRyba56+Me4GTgQ3LgTP6PaNf05jxpHHrP05IkQ2fPF2f/7so+Bd6ljYe8Y
-	 70Phy/ujgK1TLSZmgbzJOdmlElwCks0hvdF2T7U4WHyLVzJ5nSf7hQ5T+Q5qrr06mkFtz
-	 C//CNiZHCKm1mVH0Jvfuxo178pyqg9Nes6WB75toxNibFoyVKqWK3fgpIgYG1Wbj/3Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793975632;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Received:From:To:Cc:
+	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding:X-KSMG-AntiPhishing:X-KSMG-AntiSpam-Auth:
+	 X-KSMG-AntiSpam-Envelope-From:X-KSMG-AntiSpam-Info:
+	 X-KSMG-AntiSpam-Interceptor-Info:X-KSMG-AntiSpam-Lua-Profiles:
+	 X-KSMG-AntiSpam-Method:X-KSMG-AntiSpam-Rate:X-KSMG-AntiSpam-Status:
+	 X-KSMG-AntiSpam-Version:X-KSMG-AntiVirus:X-KSMG-AntiVirus-Status:
+	 X-KSMG-LinksScanning:X-KSMG-Message-Action:X-KSMG-Rule-ID;
+	bh=/1+8e3Hg2HFZU7LiS9ocY4f7VYXwvsrnE+JnKJYAl20=;
+	b=flrLzzejat6sQfNGae5bQXPId+u5bA0Mb9zZt7KX7H2sgL7o6zH2avzgMb2q7u9+GbLd
+	 tNsMTqVJv0711d+pIwHo4Rf3AC609EV2H9/apCb1qRko0WxSfmzxOfnqhdamdWtXl+Dl1
+	 mZ0dws4EnxCbKvTFNiqZ+7ueWWhlAu9fGjoE7mefED7qonMmhn/XyY2dizyBEsvDuYhPs
+	 zahxbWGxtAnS4k0hPC6cGgbZkZCjiAIy9gMiIQSuWseHnwkT0N9DDBux+/y5PqkXokL88
+	 fctwmCbXCtuITW2aWof3ZFD8OPrHltg1b22YLC1gkiBJf1hxMvGQ48FczVR119NbYPQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YqGHO8SW;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=astralinux.ru;
+	spf=pass smtp.mailfrom=astralinux.ru;
+	dkim=pass header.d=astralinux.ru header.i=@astralinux.ru header.a=rsa-sha256 header.s=mail header.b="HjDsYe/l";
+	arc=none smtp.remote-ip=37.230.196.243
+Received: from mail-gw01.astralinux.ru (mail-gw01.astralinux.ru [37.230.196.243])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2472A606A326
-	for <linux-rdma@vger.kernel.org>; Fri,  6 Nov 2026 14:21:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12A83606A329;
+	Fri,  6 Nov 2026 14:33:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 12A83606A329
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=astralinux.ru
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=astralinux.ru
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YqGHO8SW
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EDE11F008A1;
-	Fri,  6 Nov 2026 14:21:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793974909;
-	bh=Qxmf++OdXmvNQjqneVICiQMhLuKJZ5A4y7qik8rj9LM=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject;
-	b=YqGHO8SWu091Ub4+rgIBUOs8cWBchcrwC5QfMN857vJ9NFt5+MGk2vdTY6aCkoQ5T
-	 YygPEj2B6ZP8IkpQIj/jdECMyzDjWsCaGFies0Cf6KVBzFM17ZfE5H7ntoHHZyKFzd
-	 2XLiv7aM8QeFddMy4FbZxnZupjX7HCFgOLE9xwl2P/8762T3TqG2mlIdxn2eUc4+k2
-	 ngOq6a4dAk1roN57dQy3c7yj7EuerMbeiivm3LrXiXcWBzEicC4u7E/t8LYswZshkI
-	 ykFuwpohKsprIfGGCw3wWmh/+yBhFM0AJexbIpaB6E5LRoK3zYAMLUDu9hSVNYw4Rq
-	 sdT823/Rn2uug==
-Received: from phl-compute-10.internal (phl-compute-10.internal [10.202.2.50])
-	by mailfauth.phl.internal (Postfix) with ESMTP id C0F75F40066;
-	Fri,  6 Nov 2026 09:21:48 -0500 (EST)
-Received: from phl-imap-15 ([10.202.2.104])
-  by phl-compute-10.internal (MEProxy); Fri, 06 Nov 2026 09:21:48 -0500
-X-ME-Sender: <xms:fOLtatsKfokU5KJkkWd-39gRGRb7k52IKscKDPfPT-xuParxfB_Dsg>
-    <xme:fOLtahQ13o993YBky7UwnDkzM2hCK0qylt1lWGQmIOdCHKrxM7fvIuopSzuACF2xz
-    f43lmUWRHz-F1fWKLrMn1PNMidHYAD0Ijcu8PcOkhMxx54FAkH7lJU>
-X-ME-Proxy-Cause: dmFkZTGb/nsXTrLbFf6NLkl4yzWUKasKf1vr/SxNKlfICOIyS4FfdI/SZtcFuJ1njZvNR/
-    8XZxNGP8KhZASLsh1/+E4MZHUdelII678Nfg15/ktIau/mrQTXJ4XxcnaA6DuSvihEoxAF
-    hijPsrJ/YpmaBTjVIGDx5jGYg3F+0l1dcFXDtMc/+9IQ6QB/WDtzl4egxbv/f0kDbhisxD
-    B9glY/Ffo8D6K/DcpKd+gn7q/jdTq/PLM0Kfk+tNd2FcUW4pFXsZrPQqUaGWd0RnUY4Nwt
-    FmCFAVZcMnuTTKmBJafbeV5LtE/5CIvBPYhXGkSQ1x/zvoCvsERJEWhgRWt4sGScRqpHfc
-    W5LUWGBCMDPVD/5D2NpvFQrVWEFbWvHIhv4L9H1C7+SR2O7a/G+KaZh0gC/MGkWLcQr5Co
-    l9ZU3OoJTqYvdV3MAoPo+ht2tTyTgh3nqYbJwvXX294K6YUKcGSItC7f5gC3HfqkpZzD1u
-    k5VWi2ZcwpbVkcwuWPHZE6xcgMDXRsgjsI3S5ryO3vYTeLZ5S/Be+eZVYCdJW7BiIKcppz
-    rvkxfLiF38/3RkZxR30CShy7KqHB/WxqTpG3+YlPgx1Dpf+wtq6WkI9ZqjHZlK/lK4pi5m
-    qMvIftuxWLBwT+MjM+y0zHzklH4+Ze7WhH4XbICqhEimC7Wp7AISGti/AQoQ
-X-ME-Proxy: <xmx:fOLtakEIDkvTAdGscgsNKfCWtqFUVxTZb0jXK7sGSqFgjrcLRQKE4A>
-    <xmx:fOLtale7TrUD-y4BERRtaHBkawKSrLmvydKXYkIghnAI9RIrDaoUQA>
-    <xmx:fOLtatr7ot5VWOKFR05-t8UaNEv6_SMvH9WOQqTxDJG82Dq9QSqs4w>
-    <xmx:fOLtamCWDcUgGoOuyHLLKkFo5HHz37amnFGY5WQGGl_0obXF6RANTg>
-    <xmx:fOLtamdoU3k4Q8rdOMh8vg7bgKsyL66HIQWJrvKY6TbdFmNlNBkJJpWY>
-Feedback-ID: ifa6e4810:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 9F057782738; Fri,  6 Nov 2026 09:21:48 -0500 (EST)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key, unprotected) header.d=astralinux.ru header.i=@astralinux.ru header.a=rsa-sha256 header.s=mail header.b=HjDsYe/l
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=astralinux.ru;
+	s=mail; t=1793975616;
+	bh=LuNdlr7/2G4byaAbA1MPs/7s62mjQQWWG7PWDKZH23k=;
+	h=From:To:Cc:Subject:Date:From;
+	b=HjDsYe/l+D0+xAaVeB0PFHXMgKDGG6+Twb3O2h4rozdT2RcxetKL3VURn2dP/o9BF
+	 g3dTRB9geivJnmtpWR5PWdii01GV7FmnbmVjdh7bxfzzmz2BUd25N6pFU9JtUqd0Af
+	 k4FmGZl4Bi+D93ef7L8vg/AjPga/NlP++RrheE+mlAtPVaYBLVjqAtgZyrVAooABRn
+	 g0tcgX4nfP7sPyfUiNzmBcktqhR86/U0IF3w/L21uV/Oo2Gb4Y8X8pJIHYQiCnXOPx
+	 DFNcU/JZ9jfLfwDxEdUrZKxsG/q85o95RrcjTpsLIU5Jcwb/8489e0dmHYTqPpib3i
+	 ytWV6kHzwnzOw==
+Received: from gca-sc-a-srv-ksmg01.astralinux.ru (localhost [127.0.0.1])
+	by mail-gw01.astralinux.ru (Postfix) with ESMTP id 608F724FCA;
+	Fri,  6 Nov 2026 17:33:36 +0300 (MSK)
+Received: from new-mail.astralinux.ru (unknown [10.205.207.6])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (P-256) server-digest SHA256)
+	(No client certificate requested)
+	by mail-gw01.astralinux.ru (Postfix) with ESMTPS;
+	Fri,  6 Nov 2026 17:33:35 +0300 (MSK)
+Received: from DESKTOP-D46TNHI (unknown [10.198.54.9])
+	by new-mail.astralinux.ru (Postfix) with ESMTPA id 4jLhW267jrz2SC3;
+	Fri, 06 Nov 2026 17:33:34 +0300 (MSK)
+From: Mikhail Dmitrichenko <mdmitrichenko@astralinux.ru>
+To: stable@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mikhail Dmitrichenko <mdmitrichenko@astralinux.ru>,
+	Zhu Yanjun <zyjzyj2000@gmail.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	Liu Yi <asatsuyu.liu@gmail.com>,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	lvc-project@linuxtesting.org,
+	Zhu Yanjun <yanjun.zhu@linux.dev>
+Subject: [PATCH 5.10/5.15] RDMA/rxe: Fix null deref on srq->rq.queue after resize failure
+Date: Fri,  6 Nov 2026 17:32:53 +0300
+Message-ID: <20261106143254.1997-1-mdmitrichenko@astralinux.ru>
+X-Mailer: git-send-email 2.54.0.windows.1
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -77,41 +85,110 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-ThreadId: AqskSCTaNkUk
-Date: Fri, 06 Nov 2026 09:21:28 -0500
-From: "Chuck Lever" <cel@kernel.org>
-To: "J Louis Kaplan" <Louis.Kaplan@arm.com>
-Cc: dai.ngo@oracle.com, jlayton@kernel.org, neil@brown.name,
- okorniev@redhat.com, tom@talpey.com, anna@kernel.org, jgg@ziepe.ca,
- leon@kernel.org, linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org,
- trondmy@kernel.org
-Message-Id: <7e3bbd89-b01f-43b8-9ce7-b549e949b0f4@slotpi15m67>
-In-Reply-To: <20261008225450.664642-1-Louis.Kaplan@arm.com>
-References: <59261d53-53fc-4195-a7f4-d9f117bb0150@app.fastmail.com>
- <20261008225450.664642-1-Louis.Kaplan@arm.com>
-Subject: Re: [RFC PATCH 3/6] svcrdma: Coalesce contiguous pages when mapping replies
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-KSMG-AntiPhishing: NotDetected, bases: 2026/11/06 13:09:00
+X-KSMG-AntiSpam-Auth: dkim=none
+X-KSMG-AntiSpam-Envelope-From: mdmitrichenko@astralinux.ru
+X-KSMG-AntiSpam-Info: LuaCore: 133 0.3.133 d508d579b02cdb6df47808421a9b9e12fc9fb75b, {date_rfc_vio_soft_silent}, {Tracking_one_susp_tld}, {Tracking_uf_ne_domains}, {Tracking_from_domain_doesnt_match_to}, astralinux.ru:7.1.1;d41d8cd98f00b204e9800998ecf8427e.com:7.1.1;127.0.0.199:7.1.2;new-mail.astralinux.ru:7.1.1;patch.msgid.link:7.1.1, FromAlignment: s
+X-KSMG-AntiSpam-Interceptor-Info: scan successful
+X-KSMG-AntiSpam-Lua-Profiles: 207325 [Nov 06 2026]
+X-KSMG-AntiSpam-Method: none
+X-KSMG-AntiSpam-Rate: 0
+X-KSMG-AntiSpam-Status: not_detected
+X-KSMG-AntiSpam-Version: 6.1.1.27
+X-KSMG-AntiVirus: Kaspersky Secure Mail Gateway, version 2.1.0.7854, bases: 2026/11/06 11:41:00 #28808023
+X-KSMG-AntiVirus-Status: NotDetected, skipped
+X-KSMG-LinksScanning: NotDetected, bases: 2026/11/06 13:09:00
+X-KSMG-Message-Action: skipped
+X-KSMG-Rule-ID: 1
 
-On Thu, Oct 8, 2026, at 6:54 PM, J Louis Kaplan wrote:
-> Glad to hear that. I'm happy to split out smaller parts of work from
-> this patch series if helpful.
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-I have a soon-to-be posted series that converts svcrdma to send and
-receive through the bio_vec array in rqstp->rq_bvec, and it rewrites
-the code your patches touch. A companion series does the same
-conversion for svcsock and has to be posted first, because the two
-series share helpers in net/sunrpc.
+commit 503a5e4690ae14c18570141bc0dcf7501a8419b0 upstream.
 
-As I alluded to before, our long-term goal for the transport code is
-to replace the use of the xdr_buf.pages array with an array of
-pointers to biovecs. The goal is to replace struct page pointers
-as the common coin in the NFS stack from filesystem to network layer.
-The refactor will continue to represent only one page with a biovec.
+A NULL pointer dereference can occur in rxe_srq_chk_attr() when
+ibv_modify_srq() is invoked twice in succession under certain error
+conditions. The first call may fail in rxe_queue_resize(), which leads
+rxe_srq_from_attr() to set srq->rq.queue = NULL. The second call then
+triggers a crash (null deref) when accessing
+srq->rq.queue->buf->index_mask.
 
-I think you should be able to continue your focused improvements to
-svcrdma on top of this work.
+Call Trace:
+<TASK>
+rxe_modify_srq+0x170/0x480 [rdma_rxe]
+? __pfx_rxe_modify_srq+0x10/0x10 [rdma_rxe]
+? uverbs_try_lock_object+0x4f/0xa0 [ib_uverbs]
+? rdma_lookup_get_uobject+0x1f0/0x380 [ib_uverbs]
+ib_uverbs_modify_srq+0x204/0x290 [ib_uverbs]
+? __pfx_ib_uverbs_modify_srq+0x10/0x10 [ib_uverbs]
+? tryinc_node_nr_active+0xe6/0x150
+? uverbs_fill_udata+0xed/0x4f0 [ib_uverbs]
+ib_uverbs_handler_UVERBS_METHOD_INVOKE_WRITE+0x2c0/0x470 [ib_uverbs]
+? __pfx_ib_uverbs_handler_UVERBS_METHOD_INVOKE_WRITE+0x10/0x10 [ib_uverbs]
+? uverbs_fill_udata+0xed/0x4f0 [ib_uverbs]
+ib_uverbs_run_method+0x55a/0x6e0 [ib_uverbs]
+? __pfx_ib_uverbs_handler_UVERBS_METHOD_INVOKE_WRITE+0x10/0x10 [ib_uverbs]
+ib_uverbs_cmd_verbs+0x54d/0x800 [ib_uverbs]
+? __pfx_ib_uverbs_cmd_verbs+0x10/0x10 [ib_uverbs]
+? __pfx___raw_spin_lock_irqsave+0x10/0x10
+? __pfx_do_vfs_ioctl+0x10/0x10
+? ioctl_has_perm.constprop.0.isra.0+0x2c7/0x4c0
+? __pfx_ioctl_has_perm.constprop.0.isra.0+0x10/0x10
+ib_uverbs_ioctl+0x13e/0x220 [ib_uverbs]
+? __pfx_ib_uverbs_ioctl+0x10/0x10 [ib_uverbs]
+__x64_sys_ioctl+0x138/0x1c0
+do_syscall_64+0x82/0x250
+? fdget_pos+0x58/0x4c0
+? ksys_write+0xf3/0x1c0
+? __pfx_ksys_write+0x10/0x10
+? do_syscall_64+0xc8/0x250
+? __pfx_vm_mmap_pgoff+0x10/0x10
+? fget+0x173/0x230
+? fput+0x2a/0x80
+? ksys_mmap_pgoff+0x224/0x4c0
+? do_syscall_64+0xc8/0x250
+? do_user_addr_fault+0x37b/0xfe0
+? clear_bhb_loop+0x50/0xa0
+? clear_bhb_loop+0x50/0xa0
+? clear_bhb_loop+0x50/0xa0
+entry_SYSCALL_64_after_hwframe+0x76/0x7e
 
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Tested-by: Liu Yi <asatsuyu.liu@gmail.com>
+Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+Link: https://patch.msgid.link/20251027215203.1321-1-yanjun.zhu@linux.dev
+Signed-off-by: Leon Romanovsky <leon@kernel.org>
+[mdmitrichenko: The cleanup block removed here is labelled err2
+ instead of err_free.]
+Signed-off-by: Mikhail Dmitrichenko <mdmitrichenko@astralinux.ru>
+---
+Backport fix for CVE-2025-68379.
 
+ drivers/infiniband/sw/rxe/rxe_srq.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_srq.c b/drivers/infiniband/sw/rxe/rxe_srq.c
+index 4e523d91e7dc..523791dbe69a 100644
+--- a/drivers/infiniband/sw/rxe/rxe_srq.c
++++ b/drivers/infiniband/sw/rxe/rxe_srq.c
+@@ -139,16 +139,11 @@ int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
+ 				       &srq->rq.producer_lock,
+ 				       &srq->rq.consumer_lock);
+ 		if (err)
+-			goto err2;
++			return err;
+ 	}
+ 
+ 	if (mask & IB_SRQ_LIMIT)
+ 		srq->limit = attr->srq_limit;
+ 
+ 	return 0;
+-
+-err2:
+-	rxe_queue_cleanup(q);
+-	srq->rq.queue = NULL;
+-	return err;
+ }
 -- 
-Chuck Lever (Come to NFS bake-a-thon! https://nfsv4bat.org)
+2.43.0
+
