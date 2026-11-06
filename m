@@ -1,100 +1,100 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.42
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793987600;
-	b=qI7c2t7XytGhJCvhqAkeqdpN8wC+Ytw7auzoepvFMDo7s6HK1olVvR2IscJU03lRMSGk
-	 83h67fvHcyzaYCoJEIKMoNRoPIsXsE0UWou/6dtZs9Q8WCxx1v54Wvt16/I2ZnQ33zzs1
-	 6hprTOZzKwxqV9NfqQASXiwTYwdPWpEwYF6x2fxgsK0/oL2dpQ20mEfNbN1uZlI0AvgEF
-	 eunpUkBrdPC3EAJg+wZJE0PwAc4uRLXtm0/uIa6l+h3ZN5T8qQxuj3Kx5GlRoZpMHxaVY
-	 TLAYSbi6kDyRtamgDl7sFT+FAUa1GmP0r4mxCCLuFMY2dA3wEJFARzXZMBdkl6vMi9g==
+	t=1793993831;
+	b=T+K+cXrrjxKzJw2gMnFe0WsW6lZSNMfl7b5SirVxU6AXrkqAQAObL3H8Q8gH5O7iOzMM
+	 ikdlU6lMHHfJ0vb8fVeHz8FOSTMeKFZs4vNL80A6AdX/XxT0/yPMrwmipqRrPRDXJWKc8
+	 LMUi3xxsSxmWGZIBkY8EqLmIwVvi+fa4P1/Qy9aRlEJlsC6JwLABDyly2BzjZUGQ5o3uf
+	 fpJ8Bq8+Q5/ypKMVEwzZbulMri16L81WoZdDgvNo7LhSB7VGIbwIyvTllMBhS7qO9JfcU
+	 ucULB+PfToK9owH69VzYp2jhrGoLaAk5htNweE57X/6GBa3DpqeMFYEOBtA4xgxOJ6Q==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793987600;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793993831;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
 	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
 	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=5pDupBwR2/7t1JImpr59IJwI8nCk2i1PzTMP7JDf060=;
-	b=46V1tnW5gITWdNjE2y43EzjQGOw4PvBgZlgkWFd5RExqn2vHowac8MoHLHIJg/nHBN2N
-	 1BqeWYwyZoPxXDYMEOyVIQ/CwdUxaHJli5CYzQlmscFraWgLqv1CLfNHnBmZ1NoT5cKjN
-	 gs/lo+O+NEi6NRIoCn/a9odub+U4UyZ4k9i0fezeSahsXtIPKDSDK8i3MREuLGnPsABGz
-	 Nf3LunFd5z2fO+uSwUAVOtaXTC4qaOAN8KVefp98Vctx7/kaqSkkFCalasHImVUkUN+TE
-	 OQ5ArfFzrnjK6tAbDtKYaNXx7BsiAGs+WxAVSA2jzGG8k1LfGusVDvgZpEeHdn8KyWQ==
+	bh=v077dxPdbR6B229Sx3h6EgyHNBd+S9MvYu+3WDhncOM=;
+	b=TaDbMJdQ50IP27wFdX1nYQsgLA8Lq67ReDYv9/CiJonogwrrT1H12o6gtwiBn/T5zk2C
+	 H7YidunDdaXffQiSiMaQc+uyyAJQVXXrd2xBAhDvfKTylHo/SYa/g5408EwbNUep0bE5q
+	 m62VEoTXe8eQXewPr1d/cZZtTuPYDuyNkbTbl/ov0ONyi8a3zd+LLXUd13Y3Mwizx5ddo
+	 1ggFSyajUQbXafs64NUa8TERQvGg7zLjrn3RfVJTluf4U9uWKG0Oai8IimkyvIVtZGyCw
+	 85mk6X9elnIOYXzfHIrNVjx0HRAsXLhwhPaUbP90szZ12chxlFjsQKKn4rlSYve1Kmg==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=google.com;
 	spf=pass smtp.mailfrom=google.com;
-	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=jlcDAy1q;
+	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=dNYKX741;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.42
 Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5956B606A329
-	for <linux-rdma@vger.kernel.org>; Fri,  6 Nov 2026 17:53:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5956B606A329
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A975E606A333
+	for <linux-rdma@vger.kernel.org>; Fri,  6 Nov 2026 19:37:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A975E606A333
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=jlcDAy1q
-Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-6b571a45a2aso4008a12.0
-        for <linux-rdma@vger.kernel.org>; Fri, 06 Nov 2026 09:53:20 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1793987599; cv=none;
+	dkim=pass (2048-bit key, unprotected) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=dNYKX741
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-6b571a45a2aso351a12.0
+        for <linux-rdma@vger.kernel.org>; Fri, 06 Nov 2026 11:37:10 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1793993829; cv=none;
         d=google.com; s=arc-20260327;
-        b=JKnOLt/mBr5SoHaUqPLf98eSEHD4Cv9xU1Yk0inWaNEpSgX6L/XgUnAUA8bzLyyp4f
-         clMUR42rSmolUttzQ+k0ln0exHArIWnCzZrCjXbABEKZeT3bkFKji7GiSNNFDhLN8O2T
-         mFZoERT3lOZcqsumhj4lHy/ujdO5lHHDamhpeofAEQV5XQFqZoENaMrhSGJ7VJRndV3s
-         yhUDOe0ustputWK1NSonGoMzmKZa5Uf4JpyNoJ3XWUJQQgcCbP/N7EZ08sQtcC6zak11
-         xjewOveciruDMkGYSOd7FRPxFCel3tMKVOlCNo0ueBLb3MQmhrAB6fBWjS3Jy83UiMsO
-         d+Ig==
+        b=WcNEPGXserh/poWCHw2lGMyEhsosyfY0ieG1WT0/qZO0uVqbD5RW/aAXQmCIjz4vSx
+         rxfKrzqI5O/HU9N2gjiwVTaZ8BrN2DKhaNYAAAQOWCbDYY79mlHf37IUZ4dqN7g3uQTG
+         6auX1SuZlh0Fuua5THBcOgtt6P3A43lIFzw59ckbmrqH4Pkz/tBGgpr0eSieYiWvDJOI
+         R3oXRvU1uU49X6myqTBODa9jE6XmOkpWIlzZHt+grKTmyYBKtXw31RVNPTy7k4t0hmVv
+         FwHWlVgHV7TQ2fWfs6h9ZmFLEQ73/EA+IGQ7G1EQEqfAzL/YYAAQzHKXN7FkyngCb/QQ
+         gwuw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=5pDupBwR2/7t1JImpr59IJwI8nCk2i1PzTMP7JDf060=;
-        fh=s9ZD4sBL/DmCa9D0vvk684TKzkWXDNn/wYZg8HYFwLI=;
-        b=l7zRemvJmB3JFMhD/FrA04G7nIZGtQ/xfuqPPo/TbKsj0zBCup0NVT8svn4m63V8cG
-         q9M0i0WnCvygBAhHSNFzxzjjhXLSRL8te7cIbAlrJ7em9srW/qbcFxK+NeD1lMHvWTm9
-         gg47IKQHR9a+ZyIo/jTF4CYvAToJKmJ8KNIl0qvbJgn1Q03Y0V2cBMgkfeFf1hgLrl6Q
-         d3OVY5Q7xOwFxytyRyhuxfL5AaQ2BrVHfE7dQNbY4QEz2Ag1RBN5QKld/BNgKZTgWsRY
-         k4hzcjwoo4fv2f5l9KXZD89gnqpEYwh2UhMLSKxPGMSPCJ24niLY7x5yJdlJU9f/EQTk
-         pAHQ==;
+        bh=v077dxPdbR6B229Sx3h6EgyHNBd+S9MvYu+3WDhncOM=;
+        fh=YOJ+9j8M7hvx1a+qjNXUGorO2TMbKkw5sK02HJytoXQ=;
+        b=ZGhv9o7s+/z8+L4YQKNXESUMnTWd+zLPpCpoHYym8VeSh2D65oWuL2K9TInuPiPwB/
+         6la3HJaaHzVPtHd4M1QLRJ9BTb9EsIGbRud5nRWBSCp+9esnIWzRBPXA6wIJyitnqrie
+         PBQbAch6zel97lJbHdi89FLHQd71H7R7F9I8wr1aOt9oVSoFfVciJpwyh26glMALHVEh
+         d3tMrBqffm8X0hbXL/rc+GuYOilnIZ3GCsS6l3TR80MWMe6rQGLETmTscloSxhrbTlx0
+         qcN5Ti2//vx1MHLOzU/zn/p30ZB7K5Nk7I+Z6bRrWNroQDBZgnEnmNDfKGi6IBQj6bXr
+         oRug==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20260707; t=1793987599; x=1794592399; darn=vger.kernel.org;
+        d=google.com; s=20260707; t=1793993829; x=1794598629; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=5pDupBwR2/7t1JImpr59IJwI8nCk2i1PzTMP7JDf060=;
-        b=jlcDAy1qwlP8CV/J8ziGOhM7zgiwe1Yqasgt18zZ9BLFfbdjvFbOPJHelnnlWn7/NF
-         Iv0y6BvcfswTFEAK+vaTKFWw4pm1SC9i7SkbSqJgyIWek4Oq+yCZaP0CXyGrm6BTXeAy
-         PMZhXc8r+FCA+Uan8Tn54ozp3MQPEOEFZdVxBH5ggJzVX08faCYPNZDo3xsJ3VF8tmEg
-         pX3urwYaX0msYCvMLpruaNTx6NxqPVTVZ/iC58DSiI1w9TNgPQSmlsdvsWkpbFzggva5
-         DeXnKd9qGJxbmFLWSsqwsQR8pJQE3NG/l6oFkjRU8+PfaF5R3/yJ38vi2guHN24z+b5U
-         +fdg==
+        bh=v077dxPdbR6B229Sx3h6EgyHNBd+S9MvYu+3WDhncOM=;
+        b=dNYKX741s1YqNe1FvA8HrV/YpGpoTnGJGFShNhnSitPQzFMAUPpOwNIQMFI2wQuupp
+         Y3hUs2tFnqdC/VdRW0zFndWiN5AEQOPGp+56b9YRlp3KsWlNMpTSS8KsWRrwE1ANF2pq
+         rqBZJYUR8FH+KjD7/HLOiENIbIrs3HrrM8TJb1M/BuyUNDbGddOYw2008Rdk4q5N0Uxl
+         3EieS5hw2UL/IalHpELqKu13m9jSN1raX/4Zjd6KaK+E++zf5w71v7XhAlDRuezX6Udl
+         f7kTAVTND9XsibslSTDmGJ+yIq9kviDckaPxMp7hBXFHpqA1f7fpqoKOW8Fvv9kEJQlq
+         mUKQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793987599; x=1794592399;
+        d=1e100.net; s=20260707; t=1793993829; x=1794598629;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=5pDupBwR2/7t1JImpr59IJwI8nCk2i1PzTMP7JDf060=;
-        b=xsJd0hqW3PH+fwMezDtuKWSq3TzQ870cvQIAwFtTnz8axWE7BHfBZEQyWJE5B57YBE
-         Kcyl9k4Y5D6FJAH00wdGBBTMkhks/gaDH4/CriNvZdtl1z3gk34JTo+z5oikn4uZqXqN
-         NbVjAtwmWNg+JQKTkCzrvCmCX4fwZWP/cmfJZnYiACy0Eayco9ObrT9wYD5gbqWrqsvQ
-         h/1a50wDbBCnSBtWgw/dt1aG/YBHEt+2X/WWJ5FQRUGm5G1JC/9t1Cmzgz5LJRnqNLdj
-         Ws80QPS/1O75e+fHE9T7q5Gk8iAuRXd7P4bWzMVhhfv8mqxPAmivjbena+UxJugCaN63
-         yfow==
-X-Forwarded-Encrypted: i=1; AL+hErHXYPMtYlcWQH15j50t6FihhN2bnoIZZRmMjnB0CMkUDWlAMrdG/HEUZlvKD8x3HemLGznABPz/2CbM@vger.kernel.org
-X-Gm-Message-State: APuU4Z+W184VYSjBAld6utdnR8AtbpenF8PV9eu4E4QEwpaFUv0c2/fQ
-	o4liXQgyz1d9vAe5g68mnNaTJ+VGw2vYAR3Qm60ESGXIZs6YqGpSGJi4gL6pLWwTFC3MYCM1H/W
-	GbuxWe45Kn7gA9ikHbeWjdEdWSce4FR9SMenF9PDY
-X-Gm-Gg: AYBFou3m2oorUdwy6DkgpQSu8T0jVmCO4K489L6pmXvh14wGz2IkvJDiXCx9yAIm9OR
-	9iuH7IHUZdEPfSozTZJyc5zoowG25/uCmwqeV62yvBDNPpSVuF62eh2OnRQawoWklAtIOx7OTld
-	gsMGheZCP0sbf0LegxWbyS665nEe2bV9d0SfKRNn9Vs8KTx2perb8qXDsl0v3bR+gqV2Yz6+d/1
-	C8SvePxn8nP+G5CnVEXniCi99H64TBuqqHvE+Oi3pXrsdastYWorelGZbFPf8xWqop0ZoDOaiq1
-	k8rUrcSySMVn1e6eruQqiash8EV+vvTv9A+ZFP5pS4O8lj+VqCpeWTTtjItPCsnieXz6TW36uWa
-	PhyJy0v7YMShinFHz13jIGOdbS8uy46q/iiKMVCsxR0vvuBNagULYDu308WD0+vs5rSU=
-X-Received: by 2002:a05:6402:20d2:10b0:6af:97c0:ce51 with SMTP id
- 4fb4d7f45d1cf-6b6f84514ccmr6722a12.13.1793987598073; Fri, 06 Nov 2026
- 09:53:18 -0800 (PST)
+        bh=v077dxPdbR6B229Sx3h6EgyHNBd+S9MvYu+3WDhncOM=;
+        b=m3uGja239+lOoiRGfGdE9j4N3ZXZ0JA+X01TkwJAmgFKxIhEERisCzsyzvM+p0AGsT
+         UC6G+7hOQny94/h7DvyfvMCCw9RHrgKEYgJTUlyE0cK5flMSUVq7RP1FCdqjdOTSXX6l
+         4onN5NQxkSDPxDsygH6Cr/TUy1EdhX9/IB8hp4lGVtVMxsIbjoHahnd7oppTAX9zttjx
+         gwd6DwsHK+WEaaOSS2pGmiGKfXtbLWNdBu7DPb0THIrFXa0iNIH4xttFrpSMNY5V/yla
+         VuXLJneuljsm66bwPnBfT4ZRKIhVsiqYg5lrElMIDfNxer9e28a+6/jfEft7wsy+bLz0
+         Iw0w==
+X-Forwarded-Encrypted: i=1; AL+hErEAJz8YKmB9yWl+a4QE50hUqBE9zFI2eOncWs5szn9OpOn6yfbaBE7erOn32KTTY7GOEKN5N6RwxNuh@vger.kernel.org
+X-Gm-Message-State: APuU4Z+ETxluxceSNAJBHoPdKeW6ucByDF/OFmvsKtDldaCqu7++lFWI
+	tf38CxO9lJstPxnYDrPG+1Gg4qqdV+9uPcgTZVFYQOSRF5LfLKDzCB627MJr3P6A/37fOtJsMYl
+	Ll7v+5sBIQvim7MjOg0EEOGBj79mje21Uue3DHz3y
+X-Gm-Gg: AYBFou3mUARD96Ns6/9vJuAeFw0NygUHY40ARTTP3a4y5AWx72++hlB4a/AJaCsngQn
+	P1nNUOuB20LXgSpXHkD33TlFJYhukt/QxBAm/18OuQTvw1mruAk/f6+7TL3pQjEkNw9du/QujRq
+	Lh5l5WtmEKnqnYFUeIY01GyS+q2DagCgciFhk6qyWl5KVdAVZeWrbpvGMYn6mE3XHUEFVzAWbeH
+	pSqSZacY++wT6ZcujgVe0ycPLZD1HTBhk5BCljowl8xL303rLt/0YhQw5rG0FJXweUYVVxSR7lj
+	L8Z5ImteSwt7TDmNSEC43jUFqfI8IcYXYj9aExcHDaWqsTekAZINceOAQWwkX0NAg19IxcE9HhN
+	MJJLoyX9rZBt+behIAgfNa8aBk/yc+Vz7KC2oGuM+9MSxOamVIQJHzGX/6AHEIzG36Aw=
+X-Received: by 2002:a05:6402:23d0:b0:6a6:7dff:61ab with SMTP id
+ 4fb4d7f45d1cf-6b6f845ff3cmr14348a12.15.1793993828178; Fri, 06 Nov 2026
+ 11:37:08 -0800 (PST)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -104,20 +104,19 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261103211424.127627-1-almasrymina@google.com> <cf2e3292-d591-42a4-bf6e-76f4567604c6@kernel.org>
-In-Reply-To: <cf2e3292-d591-42a4-bf6e-76f4567604c6@kernel.org>
+References: <20261103211424.127627-1-almasrymina@google.com>
+ <20261103211424.127627-5-almasrymina@google.com> <sashiko-outbox-198073@kernel.org>
+In-Reply-To: <sashiko-outbox-198073@kernel.org>
 From: Mina Almasry <almasrymina@google.com>
-Date: Fri, 6 Nov 2026 09:53:06 -0800
-X-Gm-Features: AclHuK9NbTvBEPfZwCm6iqd7sXh-jqNYXp8FMPv7QJO9bGGBVmf4WllHJrUhzyo
-Message-ID: <CAHS8izO7QmD1qp=QfUsCq-R+p7OuOVUtqPJZh1k+u7H1J3KnoQ@mail.gmail.com>
-Subject: Re: [PATCH net-next v1 0/5] net: deprecate skb->pp_recycle and skb_mark_for_recycle()
-To: Jesper Dangaard Brouer <hawk@kernel.org>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	virtualization@lists.linux.dev, linux-mm@kvack.org, bpf@vger.kernel.org, 
-	linux-wireless@vger.kernel.org, linux-doc@vger.kernel.org, 
+Date: Fri, 6 Nov 2026 11:36:56 -0800
+X-Gm-Features: AclHuK-XzQbdvaiv61WJyi_8ZqhwGRBCNFscgmlOjr77cMwMQUJZYeAEPiQPfDQ
+Message-ID: <CAHS8izMDj5a0xyX4HAoAt=djt7As-Ko=LyEUfq9iJnPoCegXsA@mail.gmail.com>
+Subject: Re: [PATCH net-next v1 4/5] net: remove skb->pp_recycle and
+ consolidate netmem refcounting
+To: sashiko-reviews@lists.linux.dev
+Cc: virtualization@lists.linux.dev, linux-mm@kvack.org, bpf@vger.kernel.org, 
 	bcm-kernel-feedback-list@broadcom.com, imx@lists.linux.dev, 
 	linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org, 
-	linux-renesas-soc@vger.kernel.org, linux-omap@vger.kernel.org, 
 	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, 
 	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
 	Steffen Klassert <steffen.klassert@secunet.com>, Herbert Xu <herbert@gondor.apana.org.au>, 
@@ -129,17 +128,18 @@ Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
 	David Hildenbrand <david@kernel.org>, Lorenzo Stoakes <ljs@kernel.org>, 
 	"Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
 	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, 
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>, Alexei Starovoitov <ast@kernel.org>, 
-	Daniel Borkmann <daniel@iogearbox.net>, John Fastabend <john.fastabend@gmail.com>, 
-	Sabrina Dubroca <sd@queasysnail.net>, Johannes Berg <johannes@sipsolutions.net>, 
-	Byungchul Park <byungchul@sk.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Shuah Khan <skhan@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, 
-	Lorenzo Bianconi <lorenzo@kernel.org>, Wen Gu <guwen@linux.alibaba.com>, 
-	Philo Lu <lulie@linux.alibaba.com>, Justin Chen <justin.chen@broadcom.com>, 
-	Florian Fainelli <florian.fainelli@broadcom.com>, Vikas Gupta <vikas.gupta@broadcom.com>, 
-	Michael Chan <michael.chan@broadcom.com>, Pavan Chebbi <pavan.chebbi@broadcom.com>, 
-	Doug Berger <opendmb@gmail.com>, Nicolai Buchwitz <nb@tipi-net.de>, Satish Kharat <satishkh@cisco.com>, 
-	Wei Fang <wei.fang@nxp.com>, Frank Li <frank.li@nxp.com>, Shenwei Wang <shenwei.wang@nxp.com>, 
+	Jesper Dangaard Brouer <hawk@kernel.org>, Ilias Apalodimas <ilias.apalodimas@linaro.org>, 
+	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+	John Fastabend <john.fastabend@gmail.com>, Sabrina Dubroca <sd@queasysnail.net>, 
+	Johannes Berg <johannes@sipsolutions.net>, Byungchul Park <byungchul@sk.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
+	Randy Dunlap <rdunlap@infradead.org>, Lorenzo Bianconi <lorenzo@kernel.org>, 
+	Wen Gu <guwen@linux.alibaba.com>, Philo Lu <lulie@linux.alibaba.com>, 
+	Justin Chen <justin.chen@broadcom.com>, Florian Fainelli <florian.fainelli@broadcom.com>, 
+	Vikas Gupta <vikas.gupta@broadcom.com>, Michael Chan <michael.chan@broadcom.com>, 
+	Pavan Chebbi <pavan.chebbi@broadcom.com>, Doug Berger <opendmb@gmail.com>, 
+	Nicolai Buchwitz <nb@tipi-net.de>, Satish Kharat <satishkh@cisco.com>, Wei Fang <wei.fang@nxp.com>, 
+	Frank Li <frank.li@nxp.com>, Shenwei Wang <shenwei.wang@nxp.com>, 
 	Joshua Washington <joshwash@google.com>, Harshitha Ramamurthy <hramamurthy@google.com>, 
 	Jijie Shao <shaojijie@huawei.com>, Jian Shen <shenjian15@huawei.com>, 
 	Fan Gong <gongfan1@huawei.com>, Tony Nguyen <anthony.l.nguyen@intel.com>, 
@@ -175,48 +175,24 @@ Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
 	Alexander Sverdlin <alex@sverdlin.org>, Kevin Hao <haokexin@gmail.com>, 
 	Karl Mehltretter <kmehltretter@gmail.com>, 
 	Aleksandr Loktionov <aleksandr.loktionov@intel.com>, Meghana Malladi <m-malladi@ti.com>, 
-	Jacob Keller <jacob.e.keller@intel.com>, StanleyYP Wang <StanleyYP.Wang@mediatek.com>
+	Jacob Keller <jacob.e.keller@intel.com>, StanleyYP Wang <StanleyYP.Wang@mediatek.com>, 
+	Frank.Li@kernel.org, wsa+renesas@sang-engineering.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 5, 2026 at 8:36=E2=80=AFAM Jesper Dangaard Brouer <hawk@kernel.=
-org> wrote:
+On Wed, Nov 4, 2026 at 1:15=E2=80=AFPM <sashiko-bot@kernel.org> wrote:
 >
->
->
-> On 11/3/26 22:14, Mina Almasry wrote:
-> > Remove the per-SKB skb->pp_recycle bitfield and skb_mark_for_recycle()
-> > helper, and reference-count netmems directly by their underlying type
-> > via netmem_is_pp() inside netmem_inc_ref() and netmem_dec_ref().
-> >
-> > This series simplifies SKB and netmem reference counting:
-> > - Reclaims 1 bit from struct sk_buff (skb->pp_recycle).
-> > - Unifies reference counting of SKB fragment netmems and regular netmem=
-s
-> >    under netmem_inc_ref() and netmem_dec_ref(), eliminating the separat=
-e
-> >    skb_netmem_ref(), skb_netmem_unref(), and skb_mark_for_recycle() API=
-s.
->
-> Part of the performance gain from page_pool was to completely avoid the
-> atomic refcnt operation, when we can see that page refcnt=3D=3D1.
-> Are you removing this?
->
+> Thank you for your contribution! Sashiko AI review found 2 potential issu=
+e(s) to consider:
+> - [Critical] page_pool: TOCTOU race in page_pool_unref_netmem() non-RMW f=
+ast path
+> - [High] tls: page leak between netmem kTLS records and mlx5 tx_sync_info=
+_get()
+> --
 
-I am not, and this is a very sharp observation, because retaining that
-optimization was one of the things I struggled with my LLM to come up
-with a way to retain that optimization without pp_recycle. Patch 4
-includes verification from pp-bench that the fast path remains just as
-fast:
+Real issues.
 
-   - no-softirq-page_pool01 (fast path): 37 cycles (18.7 ns) baseline
-vs      36-37 cycles (18.5 ns) patched.
-   - no-softirq-page_pool02 (ptr_ring): 77-78 cycles (38.9 ns)
-baseline vs      76-77 cycles (38.4 ns) patched.
-
-But the sashiko comments indicates there is at least 1 race related to
-this we missed. It looks like a smp_rmb() after checking the page is
-exclusively owned may fix it. Let me see if that works.
+pw-bot: cr
 
 --=20
 Thanks,
