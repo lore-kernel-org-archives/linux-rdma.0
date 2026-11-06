@@ -1,54 +1,77 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.215
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.17
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793965241;
-	b=dGY72HBe2rsdMECExtNA+Z6sPJcDZGk7+cl2kARDF0pWCY3EMth9dDNUxHWFNix2WMVg
-	 jIpb68WP+rmCXf9JyhDmO7rwOAbOyp/eyzFiNaccWBGqMm/dbzoa9eSci3HDYz+UjqUPK
-	 9FSQmM4fEzRUxaMcbiJEapgxY7vyHU+Np1+yzCFjf+XNlyJcO9mQhDUqiVRzLEiFFMRp/
-	 FZSZQNVxRrRgmnBxDbDVM6js2dWrrF7jigC+0X4p5UnQs4pxUsEWhMTvTah2Iv3kuQCDa
-	 M79SYW3mROFeMdCc+Ihuca1tKPGEDC2m6tdn8XvPyGl7yucFT1DJVJ5xl22O5gFnpkQ==
+	t=1793968233;
+	b=v19QSvWMSnXS2kENKt6RRrW+U1OXHog1CZvXXFF805y4rbsUeucaqfc/xLPSPTJ1Y1qm
+	 uLhyAhCYi9zMSGhayXnoNsiOy/ZHbpWdr6ACD05BCnMKtHeYx1Mzdef0vsD1z15tJIMSF
+	 DIR8FaPmTYEq4CdBNd/F9ON1mstP7NsD+62UfqyQZ7ocuM2c1464tV2riWjSroetcnfbs
+	 7AcXkvriXCDsCEIJ+da8U9L8Sbv3WyZBr1Pc+cjvvqrvwnUETQXS0gHRi2T+XH2OTNqj3
+	 KJE0ONq0pSVBZ9hEJFqJv2UXofYr3nVyc6/A3hnCuTC8NywWS8HCfmnrYCA7NzncaXQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793965241;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=B+rXA+LG0Nr4Rov1TlcYamFjy6WxxoNhz5HuSoYobUY=;
-	b=3+kO/heHPatbsctc73NSGkgH+U2n63BE0u6gwM4OqdqDhUeh2GEAqhPbO+DJ0tPDbn5L
-	 Z51szpWyVeVhCTiOnFDHsCoXXwPQhOzPu81Noife1JUJfPUckuCZlCs3/id8xSft3YmP/
-	 +R2inEeZ7LIZz7jTeEMAxc2Qija2VpZa29PGqAfDIaq9j0kUukHfDNJFbla2dZtTwiS2D
-	 6m4gouqlp1Op+gu69t9YLqYudu+Y8N4LzAUJ/l3uccTML3HXWAjgDhnkeVUA7z5JsvkN6
-	 dLjSrJjDm1n//mIgdJ5qc1pWuyWb3fXnRgUDRRY02ME8d8v7AwOE8JbpUaYR8sVMIdw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793968233;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:User-Agent;
+	bh=9ehVNJq2bYYkX4JOaBdOuLDhQfZWWUXsvfiFwUx9H9Y=;
+	b=Fh3/GmTOU91TOEjmwfgx/oYiOB3fjMiconFKG4PFj9jjQNGOnJOZlR4cdi+VMElJstb5
+	 X5CtSuyWHuN+7XSFWMZy/zI+xt2nhae0sNLC/z1HAYJynrjcB6FLpvL3sjCxUWL6YaRA6
+	 k+kzCAmA+1dKKwjAWAXhhO4ettHPmEpgujGTNK5wIgWqL5tQzX2eWE7mr9IKqlO/J4Hu/
+	 v61pBom1vAjOdH5omcUiymKhW01NrbWKvfyrfd3pczAzA5FT+d4yP72K6Rb32+alTybrk
+	 2xbfatNGnNjq3DkRMdidnko/HAgBLZsQm+N6GKbQtQbONuYiZpMzeub6KEpn1ZyTwhA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=UxqFOB8J;
-	arc=none smtp.remote-ip=91.218.175.215
-Received: from mta0.migadu.com (out-215.mta0.migadu.com [91.218.175.215])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=YmTBZC0h;
+	arc=none smtp.remote-ip=192.198.163.17
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0567A606BD4E
-	for <linux-rdma@vger.kernel.org>; Fri,  6 Nov 2026 11:40:40 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0567A606BD4E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E576606A32C
+	for <linux-rdma@vger.kernel.org>; Fri,  6 Nov 2026 12:30:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8E576606A32C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=UxqFOB8J
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=n/VbboCzefOB4w9vQ5BrdPfsWaF38INAGCXHBm5L/o0=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1793965239; v=1; x=1794570039;
- b=UxqFOB8JQGG7F49kF92x+CGnLLUWLwCAW1AQJ3CnNa6nn3JUGvoblA58nO/XU0PD3u+y4n3o
- JC1jp3hQzWrqFLEoFnm7SDeaECcb7fe2qNlwGB40dDep0GAe8pBOUAGjAY5v5qbsCL91T4Gg8rp
- ClyfyxL3aZncrU0qWlUuTytU=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id a9641b311cb11270;
-	Fri, 06 Nov 2026 11:40:18 +0000
-X-Mizu-Trace-ID: a9641b311cb11270
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <2a6c5985-6767-4eb4-88a6-3d53196ec5bd@linux.dev>
-Date: Fri, 6 Nov 2026 12:40:12 +0100
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=YmTBZC0h
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1793968232; x=1825504232;
+  h=date:from:to:cc:subject:message-id;
+  bh=jZp05MVdTjapBKnx8tP8BCq2ysHH2dB8wEo8gowr/MI=;
+  b=YmTBZC0hUNG1UxeomxoiOonv176ARbh7CGNbXr/AEaLZDsT9L4ZUgiDb
+   i/HUyFgwnmy4AWwsJOViUN51S0QcpC6uMA7jvapYCq7mY5CgoRRIlJwkj
+   W5ZNRMRRP1OYiNxbyBP7KfZ8XALM1u9WtHYvaCk7NiDv5uKhOxF229YfK
+   kQSXIxP5wCCu1DCSvuV3Zz4tX7CTFvbV26zFupPw2WV0Eh9IkcvRM4xZV
+   q2JWp2CbPT0u7vE12Q1DbQun8oLG9ikHEAnjsdchGEteVYNHS9GGegmfD
+   pL4OfXi8eNMnQAmmHt1sKs/2ZAJG426+ZwExbgNNJQf2fcDR+OIDTm5vS
+   w==;
+X-CSE-ConnectionGUID: uVyBUswgT86slvuIogavvA==
+X-CSE-MsgGUID: HAasANQ/TC++r+kg7Hh1hg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11957"; a="2783508"
+X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
+   d="scan'208";a="2783508"
+Received: from fmviesa013.fm.intel.com ([10.60.135.153])
+  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2026 04:30:32 -0800
+X-CSE-ConnectionGUID: rl649b38TT6fQpQy6TMQEQ==
+X-CSE-MsgGUID: aNXPeormQXS7xVd7zkewfw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
+   d="scan'208";a="9136108"
+Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
+  by fmviesa013.fm.intel.com with ESMTP; 06 Nov 2026 04:30:30 -0800
+Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xPJ5P-00000000pFz-3bkb;
+	Fri, 06 Nov 2026 12:30:27 +0000
+Date: Fri, 06 Nov 2026 20:30:23 +0800
+From: kernel test robot <lkp@intel.com>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>,
+ Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org
+Subject: [rdma:for-rc] BUILD SUCCESS
+ 997ca6555b9fc38a4048fcc477e5f3a26cbe4415
+Message-ID: <20261106203023.dgQZ7zZ8-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -57,260 +80,246 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3] RDMA/siw: Fix early peer close handling on listeners
-To: Jaeyeong Lee <lee@jaeyeong.cc>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20261105022253.368316-1-lee@jaeyeong.cc>
-From: Bernard Metzler <bernard.metzler@linux.dev>
-In-Reply-To: <20261105022253.368316-1-lee@jaeyeong.cc>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 
-On 05.11.2026 03:22, Jaeyeong Lee wrote:
-> A TCP child socket inherits the listener callbacks and sk_user_data before
-> kernel_accept() associates it with a new connection endpoint. If the peer
-> closes during this window, siw_cm_llp_state_change() queues a PEER_CLOSE
-> work item against the listening endpoint.
-> 
-> The worker releases that endpoint without removing it from the listener
-> list. A later listener teardown then walks the dangling entry, causing a
-> use-after-free in siw_destroy_listen(). KASAN reports:
-> 
->    ==================================================================
->    BUG: KASAN: slab-use-after-free in __list_del_entry_valid_or_report+0x32/0x1a0
->    Read of size 8 at addr ffff888008f502c8 by task rping/59
-> 
->    CPU: 0 UID: 0 PID: 59 Comm: rping Tainted: G    B               7.4.0-rc1-g6628e7d4c6b2 #1 PREEMPT(lazy)
->    Tainted: [B]=BAD_PAGE
->    Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
->    Call Trace:
->     <TASK>
->     dump_stack_lvl+0x54/0x70
->     print_address_description+0x73/0x1f0
->     ? __list_del_entry_valid_or_report+0x32/0x1a0
->     print_report+0x58/0x70
->     kasan_report+0x117/0x150
->     ? add_taint+0x43/0x90
->     ? __list_del_entry_valid_or_report+0x32/0x1a0
->     __list_del_entry_valid_or_report+0x32/0x1a0
->     siw_destroy_listen+0xe1/0x630
->     destroy_cm_id+0x25c/0x480
->     ? srso_return_thunk+0x5/0x5f
->     ? srso_return_thunk+0x5/0x5f
->     ? lock_acquire+0xf7/0x220
->     ? _destroy_id+0x2d1/0xe30
->     iw_destroy_cm_id+0xf/0x80
->     _destroy_id+0x6cc/0xe30
->     _cma_cancel_listens+0x2ee/0x360
->     _destroy_id+0x2ad/0xe30
->     ucma_destroy_private_ctx+0xb7/0x9d0
->     ? srso_return_thunk+0x5/0x5f
->     ? do_raw_spin_unlock+0x4d/0x230
->     ucma_close+0xd5/0x130
->     __fput+0x31a/0x720
->     fput_close_sync+0x91/0x110
->     filp_close_sync+0x18/0x30
->     put_files_struct+0x25a/0x280
->     do_exit+0x70e/0x1d00
->     ? lock_acquire+0xf7/0x220
->     ? get_signal+0x21c/0xf60
->     do_group_exit+0x19e/0x250
->     get_signal+0xf20/0xf60
->     ? futex_wait+0x99/0x230
->     arch_do_signal_or_restart+0x46/0x420
->     exit_to_user_mode_loop+0xbd/0x510
->     do_syscall_64+0x2ed/0x3b0
->     ? entry_SYSCALL_64_after_hwframe+0x76/0x7e
->     ? srso_return_thunk+0x5/0x5f
->     ? trace_hardirqs_off+0x65/0x90
->     entry_SYSCALL_64_after_hwframe+0x76/0x7e
->    RIP: 0033:0x7f92984c6e51
->    Code: Unable to access opcode bytes at 0x7f92984c6e27.
->    RSP: 002b:00007ffeae782d10 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
->    RAX: fffffffffffffe00 RBX: 000055fb4e9819b8 RCX: 00007f92984c6e51
->    RDX: 0000000000000000 RSI: 0000000000000189 RDI: 000055fb4e9819b8
->    RBP: 00007ffeae782d50 R08: 0000000000000000 R09: 00000000ffffffff
->    R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
->    R13: 0000000000000000 R14: 000055fb4e9819b8 R15: 000055fb4e97da25
->     </TASK>
-> 
->    Allocated by task 59:
->     kasan_save_track+0x3e/0x80
->     __kasan_kmalloc+0x72/0x90
->     __kmalloc_cache_noprof+0x245/0x3c0
->     siw_cep_alloc+0x4f/0x390
->     siw_create_listen+0x39e/0xd60
->     iw_cm_listen+0xfc/0x1d0
->     rdma_listen+0x749/0xa90
->     cma_listen_on_dev+0x404/0x760
->     rdma_listen+0x3dc/0xa90
->     ucma_listen+0xe2/0x180
->     ucma_write+0x1bd/0x1e0
->     vfs_write+0x1a9/0x8e0
->     ksys_write+0xba/0x180
->     do_syscall_64+0xee/0x3b0
->     entry_SYSCALL_64_after_hwframe+0x76/0x7e
-> 
->    Freed by task 30:
->     kasan_save_track+0x3e/0x80
->     kasan_save_free_info+0x40/0x50
->     __kasan_slab_free+0x3a/0x60
->     kfree+0x155/0x470
->     siw_cm_work_handler+0x7af/0x2d40
->     process_scheduled_works+0x970/0x12d0
->     worker_thread+0x894/0xd20
->     kthread+0x2db/0x3b0
->     ret_from_fork+0x266/0x570
->     ret_from_fork_asm+0x1a/0x30
-> 
->    The buggy address belongs to the object at ffff888008f50200
->     which belongs to the cache kmalloc-512 of size 512
->    The buggy address is located 200 bytes inside of
->     freed 512-byte region [ffff888008f50200, ffff888008f50400)
-> 
->    The buggy address belongs to the physical page:
->    page: refcount:0 mapcount:0 mapping:0000000000000000
->    index:0xffff888008f51400 pfn:0x8f50
->    head: order:2 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
->    flags: 0x4000000000000240(workingset|head|zone=1)
->    page_type: f5(slab)
->    raw: 4000000000000240 ffff888005842040 ffff888005840d08 ffff888005840d08
->    raw: ffff888008f51400 00000000000a0003 00000000f5000000 0000000000000000
->    head: 4000000000000240 ffff888005842040 ffff888005840d08 ffff888005840d08
->    head: ffff888008f51400 00000000000a0003 00000000f5000000 0000000000000000
->    head: 4000000000000002 ffffea000023d401 00000000ffffffff 00000000ffffffff
->    head: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
->    page dumped because: kasan: bad access detected
-> 
->    Memory state around the buggy address:
->     ffff888008f50180: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
->     ffff888008f50200: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->    >ffff888008f50280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->                                                  ^
->     ffff888008f50300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->     ffff888008f50380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->    ==================================================================
-> 
-> There is a second race while creating a listener. listen() starts
-> accepting connections before the endpoint is linked to the CM ID and
-> changed from IDLE to LISTENING. ACCEPT work queued in this interval can
-> run immediately, see the IDLE state, and return without accepting the
-> first child.
-> 
-> Keep the listener endpoint in use from allocation until its CM ID, listener
-> list entry, and LISTENING state have all been published. This makes early
-> ACCEPT work wait for listener setup to complete.
-> 
-> During accept, serialize the endpoint handoff with socket state changes and
-> reject a child that has already reached TCP_CLOSE or TCP_CLOSE_WAIT. Ignore
-> close notifications inherited from the listener before that handoff. Live
-> accepted sockets continue through the normal close path.
-> 
-> The issue was found by static analysis.
-> 
-> The unpatched kernel reproduced the KASAN report above in an x86_64 QEMU
-> guest. With a temporary 500 ms delay after listen(), the previous version
-> lost the first child and timed out waiting for an MPA response; this
-> version accepted the same child and returned an MPA response.
-> RST-before-accept and MPA-request-followed-by-FIN tests also completed
-> without KASAN or lockdep reports. The final SIW object was built with
-> LLVM 22.1.8 and W=1.
-> 
-> Fixes: 6c52fdc244b5 ("rdma/siw: connection management")
-> Suggested-by: Stefan Metzmacher <metze@samba.org>
-> Link: https://lore.kernel.org/r/33abff2233b36a51e468d691cb4327d0294d2734.1620343860.git.metze@samba.org
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Jaeyeong Lee <lee@jaeyeong.cc>
-> ---
-> Changes in v3:
-> - Serialize listener setup so early ACCEPT work cannot be consumed in IDLE.
-> - Include the complete KASAN report requested by Leon.
-> 
-> Changes in v2:
-> - Cover the IDLE interval between listen() and the LISTENING transition.
-> - Serialize accepted-socket handoff and reject an already closed child.
-> 
->   drivers/infiniband/sw/siw/siw_cm.c | 23 ++++++++++++++++++++---
->   1 file changed, 20 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
-> index ed49818793dde..90adb9543d9d0 100644
-> --- a/drivers/infiniband/sw/siw/siw_cm.c
-> +++ b/drivers/infiniband/sw/siw/siw_cm.c
-> @@ -973,6 +973,7 @@ static void siw_accept_newconn(struct siw_cep *cep)
->   	struct socket *s = cep->sock;
->   	struct socket *new_s = NULL;
->   	struct siw_cep *new_cep = NULL;
-> +	bool peer_closed;
->   	int rv = 0; /* debug only. should disappear */
->   
->   	if (cep->state != SIW_EPSTATE_LISTENING)
-> @@ -1009,11 +1010,23 @@ static void siw_accept_newconn(struct siw_cep *cep)
->   	}
->   	new_cep->sock = new_s;
->   	siw_cep_get(new_cep);
-> -	new_s->sk->sk_user_data = new_cep;
->   
->   	if (siw_tcp_nagle == false)
->   		tcp_sock_set_nodelay(new_s->sk);
-> +
-> +	lock_sock(new_s->sk);
-> +	write_lock_bh(&new_s->sk->sk_callback_lock);
->   	new_cep->state = SIW_EPSTATE_AWAIT_MPAREQ;
-> +	new_s->sk->sk_user_data = new_cep;
-> +	peer_closed = new_s->sk->sk_state == TCP_CLOSE ||
-> +		      new_s->sk->sk_state == TCP_CLOSE_WAIT;
-> +	write_unlock_bh(&new_s->sk->sk_callback_lock);
-> +	release_sock(new_s->sk);
-> +
-> +	if (peer_closed) {
-> +		rv = -ECONNRESET;
-> +		goto error;
-> +	}
->   
->   	rv = siw_cm_queue_work(new_cep, SIW_CM_WORK_MPATIMEOUT);
->   	if (rv)
-> @@ -1361,6 +1374,10 @@ static void siw_cm_llp_state_change(struct sock *sk)
->   
->   	case TCP_CLOSE:
->   	case TCP_CLOSE_WAIT:
-> +		if (cep->state == SIW_EPSTATE_LISTENING ||
-> +		    (cep->state == SIW_EPSTATE_IDLE &&
-> +		     !READ_ONCE(sk->sk_socket)))
-> +			break;
->   		if (cep->qp)
->   			cep->qp->tx_ctx.tx_suspend = 1;
->   		siw_cm_queue_work(cep, SIW_CM_WORK_PEER_CLOSE);
-> @@ -1880,6 +1897,7 @@ int siw_create_listen(struct iw_cm_id *id, int backlog)
->   		rv = -ENOMEM;
->   		goto error;
->   	}
-> +	siw_cep_set_inuse(cep);
->   	siw_cep_socket_assoc(cep, s);
->   
->   	rv = siw_cm_alloc_work(cep, backlog);
-> @@ -1932,14 +1950,13 @@ int siw_create_listen(struct iw_cm_id *id, int backlog)
->   
->   	siw_dbg(id->device, "Listen at laddr %pISp\n", &id->local_addr);
->   
-> +	siw_cep_set_free(cep);
->   	return 0;
->   
->   error:
->   	siw_dbg(id->device, "failed: %d\n", rv);
->   
->   	if (cep) {
-> -		siw_cep_set_inuse(cep);
-> -
->   		siw_free_cm_id(cep);
->   		siw_socket_disassoc(s);
->   		cep->state = SIW_EPSTATE_CLOSED;
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-rc
+branch HEAD: 997ca6555b9fc38a4048fcc477e5f3a26cbe4415  RDMA/uverbs: Zero the QP attrs in ib_uverbs_query_qp
 
-Thank you Jaeyeong. While it seems sound, I have to look
-closer. I'll reply soon.
+elapsed time: 1387m
 
-Thanks,
-Bernard.
+configs tested: 226
+configs skipped: 7
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+tested configs:
+alpha                              allnoconfig    gcc-16.2.0
+alpha                             allyesconfig    gcc-16.2.0
+alpha                                defconfig    gcc-16.2.0
+arc                               allmodconfig    clang-24
+arc                               allmodconfig    gcc-16.2.0
+arc                                allnoconfig    gcc-16.2.0
+arc                               allyesconfig    clang-19
+arc                               allyesconfig    clang-24
+arc                           axs103_defconfig    clang-19
+arc                                  defconfig    gcc-16.2.0
+arc                         nsim_700_defconfig    gcc-16.2.0
+arc                   randconfig-1000-20261106    gcc-8.5.0
+arc                   randconfig-1001-20261106    gcc-8.5.0
+arc                         vdk_hs38_defconfig    clang-17
+arm                                allnoconfig    gcc-16.2.0
+arm                               allyesconfig    clang-24
+arm                         clps711x_defconfig    clang-24
+arm                                  defconfig    gcc-16.2.0
+arm                       integrator_defconfig    gcc-16.2.0
+arm                          lpc32xx_defconfig    clang-17
+arm                             mps2_defconfig    clang-24
+arm                   randconfig-1000-20261106    gcc-8.5.0
+arm                   randconfig-1001-20261106    gcc-8.5.0
+arm                   randconfig-1002-20261106    gcc-8.5.0
+arm                   randconfig-1003-20261106    gcc-8.5.0
+arm                              rpc_defconfig    gcc-16.2.0
+arm                          s3c6400_defconfig    gcc-16.2.0
+arm                            sunxi_defconfig    clang-17
+arm                            sunxi_defconfig    gcc-16.2.0
+arm64                             allmodconfig    clang-24
+arm64                              allnoconfig    gcc-16.2.0
+arm64                                defconfig    gcc-16.2.0
+arm64                 randconfig-1000-20261106    clang-17
+arm64                 randconfig-1001-20261106    clang-17
+arm64                 randconfig-1002-20261106    clang-17
+arm64                 randconfig-1003-20261106    clang-17
+csky                              allmodconfig    gcc-16.2.0
+csky                               allnoconfig    gcc-16.2.0
+csky                                 defconfig    gcc-16.2.0
+csky                  randconfig-1000-20261106    clang-17
+csky                  randconfig-1001-20261106    clang-17
+hexagon                           alldefconfig    clang-24
+hexagon                           allmodconfig    gcc-16.2.0
+hexagon                            allnoconfig    gcc-16.2.0
+hexagon                              defconfig    gcc-16.2.0
+hexagon               randconfig-1000-20261106    gcc-14.4.0
+hexagon               randconfig-1001-20261106    gcc-14.4.0
+i386                              allmodconfig    clang-22
+i386                               allnoconfig    gcc-16.2.0
+i386                              allyesconfig    clang-22
+i386        buildonly-randconfig-1000-20261106    clang-22
+i386        buildonly-randconfig-1001-20261106    clang-22
+i386        buildonly-randconfig-1002-20261106    clang-22
+i386        buildonly-randconfig-1003-20261106    clang-22
+i386        buildonly-randconfig-1004-20261106    clang-22
+i386        buildonly-randconfig-1005-20261106    clang-22
+i386                                 defconfig    gcc-16.2.0
+i386                  randconfig-1000-20261106    gcc-14
+i386                  randconfig-1001-20261106    gcc-14
+i386                  randconfig-1002-20261106    gcc-14
+i386                  randconfig-1003-20261106    gcc-14
+i386                  randconfig-1004-20261106    gcc-14
+i386                  randconfig-1005-20261106    gcc-14
+i386                  randconfig-1006-20261106    gcc-14
+i386                  randconfig-1007-20261106    gcc-14
+i386                  randconfig-1008-20261106    gcc-14
+i386                  randconfig-1009-20261106    gcc-14
+i386                  randconfig-1010-20261106    gcc-14
+i386                  randconfig-1011-20261106    gcc-14
+i386                  randconfig-1012-20261106    gcc-14
+i386                  randconfig-1013-20261106    gcc-14
+loongarch                         allmodconfig    clang-19
+loongarch                         allmodconfig    clang-24
+loongarch                          allnoconfig    gcc-16.2.0
+loongarch                            defconfig    clang-24
+loongarch             randconfig-1000-20261106    gcc-14.4.0
+loongarch             randconfig-1001-20261106    gcc-14.4.0
+m68k                              allmodconfig    gcc-16.2.0
+m68k                               allnoconfig    gcc-16.2.0
+m68k                              allyesconfig    clang-24
+m68k                              allyesconfig    gcc-16.2.0
+m68k                           atari_defconfig    clang-17
+m68k                                 defconfig    clang-24
+m68k                        m5329evb_defconfig    clang-24
+m68k                       m54418evb_defconfig    clang-19
+m68k                          nettel_defconfig    gcc-16.2.0
+microblaze                         allnoconfig    gcc-16.2.0
+microblaze                        allyesconfig    gcc-16.2.0
+microblaze                           defconfig    clang-24
+mips                              allmodconfig    gcc-16.2.0
+mips                               allnoconfig    gcc-16.2.0
+mips                              allyesconfig    gcc-16.2.0
+mips                   cavium_octeon_defconfig    gcc-16.2.0
+mips                          db1xxx_defconfig    gcc-16.2.0
+mips                           eyeq5_defconfig    clang-17
+mips                            ip28_defconfig    gcc-16.2.0
+mips                       loongson3_defconfig    gcc-16.2.0
+mips                 malta_qemu_32r6_defconfig    clang-17
+mips                     maltaup_xpa_defconfig    clang-19
+nios2                             allmodconfig    clang-20
+nios2                              allnoconfig    clang-24
+nios2                                defconfig    clang-24
+nios2                 randconfig-1000-20261106    gcc-14.4.0
+nios2                 randconfig-1001-20261106    gcc-14.4.0
+openrisc                          allmodconfig    clang-20
+openrisc                           allnoconfig    clang-24
+openrisc                    de0_nano_defconfig    clang-19
+openrisc                             defconfig    gcc-16.2.0
+openrisc                   or1klitex_defconfig    clang-24
+openrisc                   or1klitex_defconfig    gcc-16.2.0
+openrisc                  simple_smp_defconfig    gcc-16.2.0
+parisc                            allmodconfig    gcc-16.2.0
+parisc                             allnoconfig    clang-24
+parisc                            allyesconfig    clang-17
+parisc                               defconfig    gcc-16.2.0
+parisc                randconfig-1000-20261106    clang-19
+parisc                randconfig-1001-20261106    clang-19
+parisc64                             defconfig    clang-24
+powerpc                           allmodconfig    gcc-16.2.0
+powerpc                            allnoconfig    clang-24
+powerpc                      ep8248e_defconfig    clang-17
+powerpc                      ep8248e_defconfig    clang-24
+powerpc                       ep88xc_defconfig    clang-17
+powerpc                     gamecube_defconfig    clang-19
+powerpc                      kmeter1_defconfig    gcc-16.2.0
+powerpc                       mgcoge_defconfig    clang-17
+powerpc                      mpc512x_defconfig    gcc-16.2.0
+powerpc                   mpc866_ads_defconfig    clang-17
+powerpc                   mpc885_ads_defconfig    clang-19
+powerpc                       pcm030_defconfig    gcc-16.2.0
+powerpc               randconfig-1000-20261106    clang-19
+powerpc               randconfig-1001-20261106    clang-19
+powerpc                      redwood_defconfig    gcc-16.2.0
+powerpc                     sam440ep_defconfig    gcc-16.2.0
+powerpc                      tqm8555_defconfig    clang-19
+powerpc                  xes_mpc85xx_defconfig    clang-17
+powerpc64             randconfig-1000-20261106    clang-19
+powerpc64             randconfig-1001-20261106    clang-19
+riscv                             allmodconfig    clang-24
+riscv                              allnoconfig    clang-24
+riscv                             allyesconfig    clang-24
+riscv                                defconfig    gcc-16.2.0
+riscv              nommu_k210_sdcard_defconfig    gcc-16.2.0
+riscv                 randconfig-1000-20261106    gcc-14.4.0
+riscv                 randconfig-1001-20261106    gcc-14.4.0
+s390                              alldefconfig    clang-17
+s390                              allmodconfig    clang-17
+s390                               allnoconfig    clang-24
+s390                              allyesconfig    gcc-16.2.0
+s390                                 defconfig    gcc-16.2.0
+s390                  randconfig-1000-20261106    gcc-14.4.0
+s390                  randconfig-1001-20261106    gcc-14.4.0
+sh                                allmodconfig    gcc-16.2.0
+sh                                 allnoconfig    clang-24
+sh                                allyesconfig    clang-17
+sh                                   defconfig    gcc-14
+sh                              espt_defconfig    gcc-16.2.0
+sh                  kfr2r09-romimage_defconfig    clang-17
+sh                             migor_defconfig    clang-24
+sh                           polaris_defconfig    gcc-16.2.0
+sh                    randconfig-1000-20261106    gcc-14.4.0
+sh                    randconfig-1001-20261106    gcc-14.4.0
+sh                           rsk7201_defconfig    clang-17
+sh                         sh7757lcr_defconfig    gcc-16.2.0
+sh                              shx3_defconfig    clang-17
+sh                              shx3_defconfig    gcc-16.2.0
+sparc                              allnoconfig    clang-24
+sparc                                defconfig    gcc-16.2.0
+sparc                 randconfig-1000-20261106    gcc-15.3.0
+sparc                 randconfig-1001-20261106    gcc-15.3.0
+sparc64                           allmodconfig    clang-20
+sparc64                              defconfig    gcc-14
+sparc64               randconfig-1000-20261106    gcc-15.3.0
+sparc64               randconfig-1001-20261106    gcc-15.3.0
+um                                alldefconfig    gcc-16.2.0
+um                                allmodconfig    clang-17
+um                                 allnoconfig    clang-24
+um                                allyesconfig    gcc-16.2.0
+um                                   defconfig    gcc-14
+um                              i386_defconfig    gcc-14
+um                    randconfig-1000-20261106    gcc-15.3.0
+um                    randconfig-1001-20261106    gcc-15.3.0
+um                            x86_64_defconfig    gcc-14
+x86_64                            alldefconfig    clang-19
+x86_64                            allmodconfig    clang-22
+x86_64                             allnoconfig    clang-24
+x86_64                            allyesconfig    clang-22
+x86_64      buildonly-randconfig-1000-20261106    gcc-13
+x86_64      buildonly-randconfig-1001-20261106    gcc-13
+x86_64      buildonly-randconfig-1002-20261106    gcc-13
+x86_64      buildonly-randconfig-1003-20261106    gcc-13
+x86_64      buildonly-randconfig-1004-20261106    gcc-13
+x86_64      buildonly-randconfig-1005-20261106    gcc-13
+x86_64                               defconfig    gcc-14
+x86_64                                   kexec    clang-22
+x86_64                randconfig-1000-20261106    clang-22
+x86_64                randconfig-1001-20261106    clang-22
+x86_64                randconfig-1002-20261106    clang-22
+x86_64                randconfig-1003-20261106    clang-22
+x86_64                randconfig-1004-20261106    clang-22
+x86_64                randconfig-1005-20261106    clang-22
+x86_64                randconfig-1006-20261106    clang-22
+x86_64                randconfig-1007-20261106    clang-22
+x86_64                randconfig-1008-20261106    clang-22
+x86_64                randconfig-1009-20261106    clang-22
+x86_64                randconfig-1010-20261106    clang-22
+x86_64                randconfig-1011-20261106    clang-22
+x86_64                randconfig-1012-20261106    gcc-14
+x86_64                randconfig-1013-20261106    gcc-14
+x86_64                randconfig-1014-20261106    gcc-14
+x86_64                randconfig-1015-20261106    gcc-14
+x86_64                randconfig-1016-20261106    gcc-14
+x86_64                randconfig-1017-20261106    gcc-14
+x86_64                                rhel-9.4    clang-22
+x86_64                            rhel-9.4-bpf    gcc-14
+x86_64                           rhel-9.4-func    clang-22
+x86_64                     rhel-9.4-kselftests    clang-22
+x86_64                          rhel-9.4-kunit    gcc-14
+x86_64                            rhel-9.4-ltp    gcc-14
+x86_64                           rhel-9.4-rust    clang-22
+xtensa                             allnoconfig    clang-24
+xtensa                            allyesconfig    clang-20
+xtensa                   nommu_kc705_defconfig    clang-24
+xtensa                randconfig-1000-20261106    gcc-15.3.0
+xtensa                randconfig-1001-20261106    gcc-15.3.0
+xtensa                     xip_kc705_defconfig    clang-17
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
