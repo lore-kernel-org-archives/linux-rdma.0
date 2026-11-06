@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793947432;
-	b=BUIZKgMbdioa1jsyB0rxOsb9Rur366vN0RDZ0wF0M57T48lJynPhtqagT5ndbJpXC+8L
-	 u1IXljbCA9RJtpf2s49cTuPsb4KLUWnytkitlNKs3fa2b0EP7MraozssJHNvTHYpgqH6C
-	 QiNcehsn4KP5naCNYleKwIpVy0fWQGqzxXvqljnI//pRbQ8p+krLO0NRPa29UXUb7a+iv
-	 WLry/XMsloGS5pbE4vXRPpSnQwYhVq/WCXXsJwkfgtS/stJAmWltEoCIqhGx7FJOUa80R
-	 OoXOUTzK5ky4Y05R7kZKllBbvY8QdT2jmW0NPUe62ggyKagytGrJVFYdaHrss3pcuKw==
+	t=1793947433;
+	b=DC2oguA1XGPsQWqR4NYgNPz5ib+H1Un3sXoAjd1bS870z5miY1qkCfyhfzX3N2kyvk4/
+	 VTW++TpKUYmfwDYz9Qp7R1AFpoSj5/H3eknvW6sSwP5VcBqyed6yWCvorf9X//8s5CHDt
+	 RnAaYcAl5TYgyPxgG6LQedbI+MBvf+VGD+ObrWqEYS4eNE4SDEFuRZfwjtYfE0968RYPa
+	 JcyrbgZYU+5MhAaVD0amYzu0+RMvLeEn0lsZpkF6Nq1DhghxG9flC1ERM0xrJY5SLBqoc
+	 3jZnn5Jcni9llpyAG2CkRBlttfsBHlgZZC1rCbxIObfNesvvkN6N3Rm9liY/UtNa7eA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793947432;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793947433;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=JFOzyqeUkLPctxhWBoLyA8TYJY+ws3GNhlsC1HQMQQw=;
-	b=LsGiKBXX/u+Ns7bNRhSDlNI2THIGWSTS0I0OQpzhNgRSPfSWPro+vcJYctboePWeKwQo
-	 anAZoXUpaNFJvZMywksi/hGDop+6JdRVXFGl/7q2qkbe1W62xqMM28naUdFgZHftU4dfN
-	 R8ld3Am2Em7Eske8Jt2Fmtvj+MZyu6IhuvD7e3+Jod7RhClys6CUKuMBYWpwV8uMFiomU
-	 ijPNK1f7gkmE9TmqVRYOZ9USrKO2Zhi8+r6E3ReVXbDyGtiJEeFF8U0zSs3KOfp75MClY
-	 Ov0Sd7nRK3IW29yS317STpWaS2rAyl1nT5gzzQymkUGqVVK88AiOCV6GRifu6QDs2hw==
+	bh=DV8j2ie07XbU7T3SXcvmLkAhjAJx24yQLy9B0XYZbL0=;
+	b=tv/Hx7J/l6PQmIdWuFPLT0bbWVTduMQNVr3cmlDRCarUts6NDgajCgb0YFIwSIloeohd
+	 ro0uYOl+pGDRKCi2ZLtzO/vWGVC7lKare3E7gUZtUtukBeUBWyryUdk8/qzEvSwy/EfDL
+	 7Kb65ZTslCCN908JS4LInDbx1QApQFj7GPs0J2NghRPQ9yZCefsRpE+A1cAhXVvTpjQFF
+	 IErTLn14Ue7ZNT2u4C2Ttdt+Ka4wJqDoyzhZ4ojPYbCcUsVx6MByH8Mn0ljtPEgBY8cbr
+	 1LetcskLONgNbU1XrbShdODF9Vj/BHsr5kyW3SGnBEnn7zsgnYV0hgxZicRruGrx9bw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f5LCnmD7;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=o3OqaSpo;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 391D1606A328
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D56E2606A32E
 	for <linux-rdma@vger.kernel.org>; Fri,  6 Nov 2026 06:43:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f5LCnmD7
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEF211F0089F;
-	Fri,  6 Nov 2026 06:43:51 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=o3OqaSpo
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98F241F008A1;
+	Fri,  6 Nov 2026 06:43:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1793947432;
-	bh=JFOzyqeUkLPctxhWBoLyA8TYJY+ws3GNhlsC1HQMQQw=;
+	bh=DV8j2ie07XbU7T3SXcvmLkAhjAJx24yQLy9B0XYZbL0=;
 	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=f5LCnmD7/Xf2ORT6nr0eECUELdxg+2xxXJBlN8Dxk+yrUTFvxqYsPFJUd4t/LIG61
-	 kYRcUvwJVUAM73B9pPfjg6T2cLmlpDUYWatTj6OCS4krLn6qk4DsLuLWIP2ZrAQ53S
-	 +lZvlzIygKooem1rZR2Z66S78wuMgcFdvUXstutZ0sJ/pQwV5RzCQtdr7n/6c7dYlL
-	 Ewfmhf6BBer9ruaISuRWYJCQYhf9MQapvAZ6Ep7ohOySXrn87KOyTch1PFD/aDEo4h
-	 4N5HhTzClwfAl3/Arek2vjLfNaMlX+/NZlRDJg8MMwTmRTE+CCTmIDj9ykVXNojEBN
-	 3vebirY+/nfSA==
-Message-ID: <sashiko-outbox-200924@kernel.org>
+	b=o3OqaSpoC2erMcIe37069yRcSEogFF7dxsd7zdl28G1TSkvskbRSmLykwUz96n2tM
+	 GqYsnGEMUETt5jutheFU2Sgu43hCu9oCkAztSNuSIfOTcTftdbAajUI5auFlCze/6Z
+	 inxBgs5iC90j9z1WimJEs4CGD9J0niAqOwNxvfaXzZ2HagOav8i8vo5gn+EWYsvncm
+	 f7W1ZcyBUHdw4q10Z5I7hnXKqFin2wSLwmOUuNX+JS1j82CwsSomHx9iMoIwb2LAhT
+	 f9s95PiIfmUv3Lo/QNRiKbiDOYGAQ4z66GJqUH4wOJOf76L5F9SQofwRGi5Cb1vt4p
+	 HPGiFv2T52lPA==
+Message-ID: <sashiko-outbox-200925@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2 08/23] dma-buf: Add dma_buf_mapping_map() returning a
- type-tagged mapping
+Subject: Re: [PATCH v2 09/23] dma-buf: Allow single exporter drivers to
+ avoid the match_mapping function
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Alistair Popple" <apopple@nvidia.com>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261105-dma_mapping_type_v4-v2-8-78b8dc9ae80a@nvidia.com>
+In-Reply-To: <20261105-dma_mapping_type_v4-v2-9-78b8dc9ae80a@nvidia.com>
 References: <20261105-dma_mapping_type_v4-v2-0-78b8dc9ae80a@nvidia.com>
- <20261105-dma_mapping_type_v4-v2-8-78b8dc9ae80a@nvidia.com>
+ <20261105-dma_mapping_type_v4-v2-9-78b8dc9ae80a@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 06 Nov 2026 06:43:51 +0000
+Date: Fri, 06 Nov 2026 06:43:52 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,28 +60,23 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> An importer that lists more than one mapping type cannot know which
-> type-specific map function to call, because the exporter selects the
-> type at map time. Create a generic entry point to determine the correct
-> type.
+> From: Jason Gunthorpe <jgg@nvidia.com>
 >=20
-> dma_buf_mapping_map() selects via dma_buf_mapping_select() and dispatches
-> to a map op on struct dma_buf_mapping_type. That returns a struct
-> dma_buf_mapping carrying the type, embedded in the type's own
-> result struct. dma_buf_mapping_unmap() hands it back through the type's
-> unmap op.
+> Introduce single_exporter_match into the dma_buf_ops so that single
+> exporter drivers can simply set it using a static initializer to use the
+> mapping type APIs. Provide a helper macro DMA_BUF_SIMPLE_SGT_EXP_MATCH()
+> that generates the initializer for simple drivers that don't use P2P.
 >=20
-> To support existing SGT importers the SGT type implements both. Its
-> result is struct dma_buf_sgt_mapping with the sg_table reachable through
-> dma_buf_sgt_mapping_table(). The sgt map body is shared with the SGT
-> type's map function which remains the entry point for importers listing
-> only SGT.
+> More complex exporters, especially those with P2P, need to implement the
+> match_mapping call back to extract things like their DMA struct device
+> from the dma_buf in order to do the P2P calculations.
 >=20
+> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 > Signed-off-by: Alistair Popple <apopple@nvidia.com>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261105-dma_mappin=
-g_type_v4-v2-0-78b8dc9ae80a@nvidia.com?part=3D8
+g_type_v4-v2-0-78b8dc9ae80a@nvidia.com?part=3D9
 
