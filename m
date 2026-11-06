@@ -1,100 +1,49 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.42
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793993831;
-	b=T+K+cXrrjxKzJw2gMnFe0WsW6lZSNMfl7b5SirVxU6AXrkqAQAObL3H8Q8gH5O7iOzMM
-	 ikdlU6lMHHfJ0vb8fVeHz8FOSTMeKFZs4vNL80A6AdX/XxT0/yPMrwmipqRrPRDXJWKc8
-	 LMUi3xxsSxmWGZIBkY8EqLmIwVvi+fa4P1/Qy9aRlEJlsC6JwLABDyly2BzjZUGQ5o3uf
-	 fpJ8Bq8+Q5/ypKMVEwzZbulMri16L81WoZdDgvNo7LhSB7VGIbwIyvTllMBhS7qO9JfcU
-	 ucULB+PfToK9owH69VzYp2jhrGoLaAk5htNweE57X/6GBa3DpqeMFYEOBtA4xgxOJ6Q==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793993831;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=v077dxPdbR6B229Sx3h6EgyHNBd+S9MvYu+3WDhncOM=;
-	b=TaDbMJdQ50IP27wFdX1nYQsgLA8Lq67ReDYv9/CiJonogwrrT1H12o6gtwiBn/T5zk2C
-	 H7YidunDdaXffQiSiMaQc+uyyAJQVXXrd2xBAhDvfKTylHo/SYa/g5408EwbNUep0bE5q
-	 m62VEoTXe8eQXewPr1d/cZZtTuPYDuyNkbTbl/ov0ONyi8a3zd+LLXUd13Y3Mwizx5ddo
-	 1ggFSyajUQbXafs64NUa8TERQvGg7zLjrn3RfVJTluf4U9uWKG0Oai8IimkyvIVtZGyCw
-	 85mk6X9elnIOYXzfHIrNVjx0HRAsXLhwhPaUbP90szZ12chxlFjsQKKn4rlSYve1Kmg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=google.com;
-	spf=pass smtp.mailfrom=google.com;
-	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=dNYKX741;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.42
-Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793997619;
+	b=yrln11jG+3NfdudLLeaeU9IzzJOMhOYiFjMzxt5+s6HCwhEIWD2bN2BSK5xknR07frOM
+	 Stpi5ioPc/dZ5OrYqe2R6kJs36GjKB+R3ijC0Ckevo0VZkFnrlIs6rD3O8BX8GcrSg7L3
+	 3pWzQaHFSED+E130nsdw3NXK3DkjF0NcgK/tYtlXsztRgEJ/2BtsRCWmC4cRDBTSIg80H
+	 jq5boRPL4MckcHBs1VX6/zMLM/CcELwYFtZCMZVZ21Q3VobnsU9E/vxrmGbyxB7D53ToO
+	 hOfsksor941emokf1Nj1gtWK9FzeqKGW/7VrbyHtsuULv5VqvBq/Mr8vbe4VarXMphw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793997619;
+	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
+	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc;
+	bh=9JGXQWOdZTpjpg7isLPEgUXEisp9QAVDWGiK0jmFxb8=;
+	b=EnRMWXR4hRLR6S5A6j0r81pIO6QIlhDD6xXRxGSALIiOqRnrSe3MiGD3p4abxJfdNhdY
+	 8H0EuoBZFZwi59DMQLn9iH5adzxzW/51Mgtbt/foX5ALV4xpDM2Xvz8zH29tJjO4HBiiv
+	 Qfk6J/KAk/EX+cexJi9yfvzjDLu+KCZqbSs9o0FLeaITJsKRHeHELadiW0c8fi7wfQlMd
+	 W8fklIByGJZQe9viHzAEFIjaFdRXvErAGmuAg8thmjsiQWTfM2oXz2vkvl6pF9HfJ6WMx
+	 uglyoLsWRYwc0COwXzrZ+RJ3DampH7sPC2FOncaZc8z2DwizGQr6IIvZjYA+jFzstMQ==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="HMsxMf/7";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A975E606A333
-	for <linux-rdma@vger.kernel.org>; Fri,  6 Nov 2026 19:37:10 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A975E606A333
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CE7F606A332;
+	Fri,  6 Nov 2026 20:40:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=dNYKX741
-Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-6b571a45a2aso351a12.0
-        for <linux-rdma@vger.kernel.org>; Fri, 06 Nov 2026 11:37:10 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1793993829; cv=none;
-        d=google.com; s=arc-20260327;
-        b=WcNEPGXserh/poWCHw2lGMyEhsosyfY0ieG1WT0/qZO0uVqbD5RW/aAXQmCIjz4vSx
-         rxfKrzqI5O/HU9N2gjiwVTaZ8BrN2DKhaNYAAAQOWCbDYY79mlHf37IUZ4dqN7g3uQTG
-         6auX1SuZlh0Fuua5THBcOgtt6P3A43lIFzw59ckbmrqH4Pkz/tBGgpr0eSieYiWvDJOI
-         R3oXRvU1uU49X6myqTBODa9jE6XmOkpWIlzZHt+grKTmyYBKtXw31RVNPTy7k4t0hmVv
-         FwHWlVgHV7TQ2fWfs6h9ZmFLEQ73/EA+IGQ7G1EQEqfAzL/YYAAQzHKXN7FkyngCb/QQ
-         gwuw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=v077dxPdbR6B229Sx3h6EgyHNBd+S9MvYu+3WDhncOM=;
-        fh=YOJ+9j8M7hvx1a+qjNXUGorO2TMbKkw5sK02HJytoXQ=;
-        b=ZGhv9o7s+/z8+L4YQKNXESUMnTWd+zLPpCpoHYym8VeSh2D65oWuL2K9TInuPiPwB/
-         6la3HJaaHzVPtHd4M1QLRJ9BTb9EsIGbRud5nRWBSCp+9esnIWzRBPXA6wIJyitnqrie
-         PBQbAch6zel97lJbHdi89FLHQd71H7R7F9I8wr1aOt9oVSoFfVciJpwyh26glMALHVEh
-         d3tMrBqffm8X0hbXL/rc+GuYOilnIZ3GCsS6l3TR80MWMe6rQGLETmTscloSxhrbTlx0
-         qcN5Ti2//vx1MHLOzU/zn/p30ZB7K5Nk7I+Z6bRrWNroQDBZgnEnmNDfKGi6IBQj6bXr
-         oRug==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20260707; t=1793993829; x=1794598629; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=v077dxPdbR6B229Sx3h6EgyHNBd+S9MvYu+3WDhncOM=;
-        b=dNYKX741s1YqNe1FvA8HrV/YpGpoTnGJGFShNhnSitPQzFMAUPpOwNIQMFI2wQuupp
-         Y3hUs2tFnqdC/VdRW0zFndWiN5AEQOPGp+56b9YRlp3KsWlNMpTSS8KsWRrwE1ANF2pq
-         rqBZJYUR8FH+KjD7/HLOiENIbIrs3HrrM8TJb1M/BuyUNDbGddOYw2008Rdk4q5N0Uxl
-         3EieS5hw2UL/IalHpELqKu13m9jSN1raX/4Zjd6KaK+E++zf5w71v7XhAlDRuezX6Udl
-         f7kTAVTND9XsibslSTDmGJ+yIq9kviDckaPxMp7hBXFHpqA1f7fpqoKOW8Fvv9kEJQlq
-         mUKQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793993829; x=1794598629;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=v077dxPdbR6B229Sx3h6EgyHNBd+S9MvYu+3WDhncOM=;
-        b=m3uGja239+lOoiRGfGdE9j4N3ZXZ0JA+X01TkwJAmgFKxIhEERisCzsyzvM+p0AGsT
-         UC6G+7hOQny94/h7DvyfvMCCw9RHrgKEYgJTUlyE0cK5flMSUVq7RP1FCdqjdOTSXX6l
-         4onN5NQxkSDPxDsygH6Cr/TUy1EdhX9/IB8hp4lGVtVMxsIbjoHahnd7oppTAX9zttjx
-         gwd6DwsHK+WEaaOSS2pGmiGKfXtbLWNdBu7DPb0THIrFXa0iNIH4xttFrpSMNY5V/yla
-         VuXLJneuljsm66bwPnBfT4ZRKIhVsiqYg5lrElMIDfNxer9e28a+6/jfEft7wsy+bLz0
-         Iw0w==
-X-Forwarded-Encrypted: i=1; AL+hErEAJz8YKmB9yWl+a4QE50hUqBE9zFI2eOncWs5szn9OpOn6yfbaBE7erOn32KTTY7GOEKN5N6RwxNuh@vger.kernel.org
-X-Gm-Message-State: APuU4Z+ETxluxceSNAJBHoPdKeW6ucByDF/OFmvsKtDldaCqu7++lFWI
-	tf38CxO9lJstPxnYDrPG+1Gg4qqdV+9uPcgTZVFYQOSRF5LfLKDzCB627MJr3P6A/37fOtJsMYl
-	Ll7v+5sBIQvim7MjOg0EEOGBj79mje21Uue3DHz3y
-X-Gm-Gg: AYBFou3mUARD96Ns6/9vJuAeFw0NygUHY40ARTTP3a4y5AWx72++hlB4a/AJaCsngQn
-	P1nNUOuB20LXgSpXHkD33TlFJYhukt/QxBAm/18OuQTvw1mruAk/f6+7TL3pQjEkNw9du/QujRq
-	Lh5l5WtmEKnqnYFUeIY01GyS+q2DagCgciFhk6qyWl5KVdAVZeWrbpvGMYn6mE3XHUEFVzAWbeH
-	pSqSZacY++wT6ZcujgVe0ycPLZD1HTBhk5BCljowl8xL303rLt/0YhQw5rG0FJXweUYVVxSR7lj
-	L8Z5ImteSwt7TDmNSEC43jUFqfI8IcYXYj9aExcHDaWqsTekAZINceOAQWwkX0NAg19IxcE9HhN
-	MJJLoyX9rZBt+behIAgfNa8aBk/yc+Vz7KC2oGuM+9MSxOamVIQJHzGX/6AHEIzG36Aw=
-X-Received: by 2002:a05:6402:23d0:b0:6a6:7dff:61ab with SMTP id
- 4fb4d7f45d1cf-6b6f845ff3cmr14348a12.15.1793993828178; Fri, 06 Nov 2026
- 11:37:08 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HMsxMf/7
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 452041F0089F;
+	Fri,  6 Nov 2026 20:40:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793997619;
+	bh=9JGXQWOdZTpjpg7isLPEgUXEisp9QAVDWGiK0jmFxb8=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=HMsxMf/76WqOIXbIKkpw4MKq1u6/NLXV9UG7hplvuaGPln0LOEtXG/RwqrjuaAWB2
+	 YeNz6ihGPM5KIHmcb84htYfmM14Go0JgcVG2xGxsiMxTNPaqB55jyrPFfVGGxABGYK
+	 y7nYOMoLQEdIwFfCbxvrJLaUcrUlaAjmAvtWMJjO13l+LOh0a/SzNIavDqNWIHlJry
+	 basZXQXv0lhTdAjZzR5kWDHfLBHMhVKY+KbLxGjUNm5aBQcjKlXrF4cSglfFXYCCvp
+	 qt597okWuRwvV0jabii/1XCwb/XQ4aHvwYTffcO8/bsMRWWmSpIGiimr9AOw2RZej1
+	 qW9Xj1ZFbKlig==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3BDFC3A5499A;
+	Fri,  6 Nov 2026 20:40:19 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -104,96 +53,44 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261103211424.127627-1-almasrymina@google.com>
- <20261103211424.127627-5-almasrymina@google.com> <sashiko-outbox-198073@kernel.org>
-In-Reply-To: <sashiko-outbox-198073@kernel.org>
-From: Mina Almasry <almasrymina@google.com>
-Date: Fri, 6 Nov 2026 11:36:56 -0800
-X-Gm-Features: AclHuK-XzQbdvaiv61WJyi_8ZqhwGRBCNFscgmlOjr77cMwMQUJZYeAEPiQPfDQ
-Message-ID: <CAHS8izMDj5a0xyX4HAoAt=djt7As-Ko=LyEUfq9iJnPoCegXsA@mail.gmail.com>
-Subject: Re: [PATCH net-next v1 4/5] net: remove skb->pp_recycle and
- consolidate netmem refcounting
-To: sashiko-reviews@lists.linux.dev
-Cc: virtualization@lists.linux.dev, linux-mm@kvack.org, bpf@vger.kernel.org, 
-	bcm-kernel-feedback-list@broadcom.com, imx@lists.linux.dev, 
-	linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	Steffen Klassert <steffen.klassert@secunet.com>, Herbert Xu <herbert@gondor.apana.org.au>, 
-	Willem de Bruijn <willemb@google.com>, Stanislav Fomichev <sdf@fomichev.me>, 
-	Pavel Begunkov <asml.silence@gmail.com>, Bobby Eshleman <bobbyeshleman@meta.com>, 
-	Andrew Lunn <andrew+netdev@lunn.ch>, "Michael S. Tsirkin" <mst@redhat.com>, 
-	Jason Wang <jasowangio@gmail.com>, =?UTF-8?Q?Eugenio_P=C3=A9rez?= <eperezma@redhat.com>, 
-	Xuan Zhuo <xuanzhuo@linux.alibaba.com>, Andrew Morton <akpm@linux-foundation.org>, 
-	David Hildenbrand <david@kernel.org>, Lorenzo Stoakes <ljs@kernel.org>, 
-	"Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, Mike Rapoport <rppt@kernel.org>, 
-	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, 
-	Jesper Dangaard Brouer <hawk@kernel.org>, Ilias Apalodimas <ilias.apalodimas@linaro.org>, 
-	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
-	John Fastabend <john.fastabend@gmail.com>, Sabrina Dubroca <sd@queasysnail.net>, 
-	Johannes Berg <johannes@sipsolutions.net>, Byungchul Park <byungchul@sk.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
-	Randy Dunlap <rdunlap@infradead.org>, Lorenzo Bianconi <lorenzo@kernel.org>, 
-	Wen Gu <guwen@linux.alibaba.com>, Philo Lu <lulie@linux.alibaba.com>, 
-	Justin Chen <justin.chen@broadcom.com>, Florian Fainelli <florian.fainelli@broadcom.com>, 
-	Vikas Gupta <vikas.gupta@broadcom.com>, Michael Chan <michael.chan@broadcom.com>, 
-	Pavan Chebbi <pavan.chebbi@broadcom.com>, Doug Berger <opendmb@gmail.com>, 
-	Nicolai Buchwitz <nb@tipi-net.de>, Satish Kharat <satishkh@cisco.com>, Wei Fang <wei.fang@nxp.com>, 
-	Frank Li <frank.li@nxp.com>, Shenwei Wang <shenwei.wang@nxp.com>, 
-	Joshua Washington <joshwash@google.com>, Harshitha Ramamurthy <hramamurthy@google.com>, 
-	Jijie Shao <shaojijie@huawei.com>, Jian Shen <shenjian15@huawei.com>, 
-	Fan Gong <gongfan1@huawei.com>, Tony Nguyen <anthony.l.nguyen@intel.com>, 
-	Przemek Kitszel <przemyslaw.kitszel@intel.com>, Marcin Wojtas <marcin.s.wojtas@gmail.com>, 
-	Russell King <linux@armlinux.org.uk>, Sunil Goutham <sgoutham@marvell.com>, 
-	Geetha sowjanya <gakula@marvell.com>, Ratheesh Kannoth <rkannoth@marvell.com>, 
-	Subbaraya Sundeep <sbhatta@marvell.com>, Bharat Bhushan <bbhushan2@marvell.com>, 
-	Felix Fietkau <nbd@nbd.name>, Matthias Brugger <matthias.bgg@gmail.com>, 
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, Tariq Toukan <tariqt@nvidia.com>, 
-	Saeed Mahameed <saeedm@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
-	Ido Schimmel <idosch@nvidia.com>, Petr Machata <petrm@nvidia.com>, 
-	Horatiu Vultur <horatiu.vultur@microchip.com>, UNGLinuxDriver@microchip.com, 
-	Daniel Machon <daniel.machon@microchip.com>, Steen Hegelund <Steen.Hegelund@microchip.com>, 
-	Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>, 
-	Dexuan Cui <decui@microsoft.com>, Yibo Dong <dong100@mucse.com>, 
-	Brett Creeley <brett.creeley@amd.com>, Justin Lai <justinlai0215@realtek.com>, 
-	Larry Chiu <larry.chiu@realtek.com>, 
-	=?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>, 
-	Paul Barker <paul@pbarker.dev>, Masahisa Kojima <kojima.masahisa@socionext.com>, 
-	Maxime Chevallier <maxime.chevallier@bootlin.com>, Maxime Coquelin <mcoquelin.stm32@gmail.com>, 
-	Alexandre Torgue <alexandre.torgue@foss.st.com>, FUJITA Tomonori <fujita.tomonori@gmail.com>, 
-	Siddharth Vadapalli <s-vadapalli@ti.com>, Roger Quadros <rogerq@kernel.org>, 
-	MD Danish Anwar <danishanwar@ti.com>, Jiawen Wu <jiawenwu@trustnetic.com>, 
-	Mengyuan Lou <mengyuanlou@net-swift.com>, Ronak Doshi <ronak.doshi@broadcom.com>, 
-	Ryder Lee <ryder.lee@mediatek.com>, Shayne Chen <shayne.chen@mediatek.com>, 
-	Sean Wang <sean.wang@mediatek.com>, Juergen Gross <jgross@suse.com>, 
-	Stefano Stabellini <sstabellini@kernel.org>, 
-	Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>, Jordan Rhee <jordanrhee@google.com>, 
-	Ankit Garg <nktgrg@google.com>, Tim Hostetler <thostet@google.com>, 
-	Erni Sri Satya Vennela <ernis@linux.microsoft.com>, Eric Joyner <eric.joyner@amd.com>, 
-	Mohammad Heib <mheib@redhat.com>, Prabu Thayalan <prabu.ponrajthayalan@amd.com>, 
-	Chintan Vankar <c-vankar@ti.com>, Nora Schiffer <nora.schiffer@ew.tq-group.com>, 
-	Alexander Sverdlin <alex@sverdlin.org>, Kevin Hao <haokexin@gmail.com>, 
-	Karl Mehltretter <kmehltretter@gmail.com>, 
-	Aleksandr Loktionov <aleksandr.loktionov@intel.com>, Meghana Malladi <m-malladi@ti.com>, 
-	Jacob Keller <jacob.e.keller@intel.com>, StanleyYP Wang <StanleyYP.Wang@mediatek.com>, 
-	Frank.Li@kernel.org, wsa+renesas@sang-engineering.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net v2] net/mlx5e: IPOIB, Fix QPN lookup race
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <179399761792.859444.16113939657791512927.git-patchwork-notify@kernel.org>
+Date: Fri, 06 Nov 2026 20:40:17 +0000
+References: <20261031225749.14214-1-prathameshdeshpande7@gmail.com>
+In-Reply-To: <20261031225749.14214-1-prathameshdeshpande7@gmail.com>
+To: Prathamesh Deshpande <prathameshdeshpande7@gmail.com>
+Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, pabeni@redhat.com, dtatulea@nvidia.com, cjubran@nvidia.com,
+ cratiu@nvidia.com, erezsh@mellanox.com, valex@mellanox.com,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org
 
-On Wed, Nov 4, 2026 at 1:15=E2=80=AFPM <sashiko-bot@kernel.org> wrote:
->
-> Thank you for your contribution! Sashiko AI review found 2 potential issu=
-e(s) to consider:
-> - [Critical] page_pool: TOCTOU race in page_pool_unref_netmem() non-RMW f=
-ast path
-> - [High] tls: page leak between netmem kTLS records and mlx5 tx_sync_info=
-_get()
-> --
+Hello:
 
-Real issues.
+This patch was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-pw-bot: cr
+On Sat, 31 Oct 2026 22:57:13 +0000 you wrote:
+> The parent RX completion path can load a QPN hash entry before
+> mlx5i_pkey_del_qpn() unlinks and frees it, then dereference freed memory.
+> 
+> Use RCU hlist operations and defer freeing with kfree_rcu(). The existing
+> RCU read-side section in mlx5e_napi_poll() covers the lookup. Keep ht_lock
+> for writers and acquire it before looking up the entry to delete.
+> 
+> [...]
 
---=20
-Thanks,
-Mina
+Here is the summary with links:
+  - [net,v2] net/mlx5e: IPOIB, Fix QPN lookup race
+    https://git.kernel.org/netdev/net/c/29066b0fc046
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
