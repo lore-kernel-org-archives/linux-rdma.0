@@ -1,69 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=114.111.35.241
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794044035;
-	b=q/NMI65QjpkHtR98z1Zt33e4cFOm06NO39c0epIWCdCucrwPeDDX8PfIQ1v5ERK5I9ZB
-	 h5g56sHM2vU0DuFwhEt8qXe07ZPF/zeA1hLWanS7NV2RENs608XwDR4z4VxefvSaTPgmh
-	 lHg+Skaea0uDH+9YlH7VLcaWB2lDBYYy1IrbXsHdU/HtmTwhe2l+AfrFZbUxtvIAJMamT
-	 AmpKwTlMzJTKkrS1GCy1A7L4VH5k0Ll8lfM4FGVgIlTrNmuRUej8u97RlCpUc75KpkfBK
-	 kL+VcCtMrzNNcNjGavQ2SFAdJZhE4OZwkvnbSXR58yQToo9PMd4da7SmUSSpOxvxT4g==
+	t=1794044713;
+	b=02/JXZnbiTfv70h13DFZreG8XiUdoXnEf1WtLHWpQ6e0H1bDEXVV99pIDHa1NSsxxE1p
+	 iPHOTOkEvTr2pApjkty0kxQlQBCKCRnLOx6v1KbdgvjxJB+ks6PV1xSn8OqiMfBGnqNSi
+	 q+LW4ffxxSOsURaRWuQ/Th00pfo/44LVYkR67wgTuWz6z3y6/UvZBwIaprcirOulkLZvP
+	 wz8EVeBQaCfbJFYp670p+zZ8jEH5DPxAKwyzXxt227YlIUQICHGNgZjnG0CKe3tW+ixJd
+	 D3+/YHRP2VfkijRjWzVpuYd1IL6lSehoBCWCbrhuiysO4pIkrwK6UjJPDb8dnXnt/SQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794044035;
-	h=DMARC-Filter:X-Originating-IP:Received:DKIM-Signature:X-Session-ID:
-	 X-Originating-IP:X-Works-Send-Opt:X-Works-Smtp-Source:Received:From:
-	 To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=q/hSD6kpvWyJ8ZE/GhfkG18vM384HWYsfLoUPdHyOSU=;
-	b=Az8AsYu30FSkCLKn+CfoqdUthDn34aM7EvQVDvMxJv4qb33oUqM3F1QYn/DA6g68X0Gh
-	 wPEYeUmcGPY+uVyBNsgOmXM0mqt39vnW172KeNW8/P30z9tyzutaEH2/b6luz5LnZSfgf
-	 54tBLFa7AZCh2R8Zw0KcwKFfmQHj5cbyhpna2afmgUjs0mD4dN0yzNgF/k2E3FxTwBpBX
-	 pI5zr3pEeaypvr15iDCKPBjlBUIfNYaheAJSn/0FBT+8+KJmpiKIhirsTgqI2fUI1qvfs
-	 hKmtGun4/WMRLM4LDPVpb0muPfoucsycUfb5qc1al8t5aneOsOIYNP4XD6sUmZDfYaA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794044713;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=+VQweLQM8EjLqBzSRh5Rpw8qrCYCPsjPyZy4gz9Ey/8=;
+	b=dCRNGViq1V/U75Wv0KXmZTuYanvMkiozni5vPHl6CvQBrh61wSskItmiu/+PcGf2dEUE
+	 yGEK53mUKF9VRLDqn47OD8zwQZrvkypV0D2cwFMfXMvgaCEciH7A4ulBgbiEvWehVf7yM
+	 6id+SXIBDyFM+tmCl/5HOONLEENOhXhvduMzrHpUIv0NU75X0dK6duZrWREcRuE0tDgD1
+	 EYJo/UfWlxbYdY42fojP3OaSWyRts2toQOrD7cPMD8NfKrJPMEETi3VhohZLpjzH9l3A6
+	 mrt1O6ZfW2FdsKS+MHyIk/o48JIFPcfMjkW6JkMV3pdGm8q88nHVroMl6RdpBi6YJ+A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=naver.com;
-	spf=pass smtp.mailfrom=naver.com;
-	dkim=pass header.d=naver.com header.i=@naver.com header.a=rsa-sha256 header.s=s20171208 header.b=gCMVVh4Z;
-	arc=none smtp.remote-ip=114.111.35.241
-Received: from cvsmtppost32.nm.naver.com (cvsmtppost32.nm.naver.com [114.111.35.241])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VJfwcV6I;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4DA3606A326
-	for <linux-rdma@vger.kernel.org>; Sat,  7 Nov 2026 09:33:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B4DA3606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=naver.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=naver.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EBA2606A32E
+	for <linux-rdma@vger.kernel.org>; Sat,  7 Nov 2026 09:45:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=naver.com header.i=@naver.com header.a=rsa-sha256 header.s=s20171208 header.b=gCMVVh4Z
-Received: from nv1m-hmac-real-33 ([10.174.201.121])
-  by cvsmtppost32.nm.naver.com with ESMTP id iTk7alABTXmOMMw7kV7EAA
-  for <linux-rdma@vger.kernel.org>;
-  Sat, 07 Nov 2026 09:33:46 -0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=naver.com; s=s20171208;
-	t=1794044026; bh=NjE90ula/xBWummYGYpT9JaUR8EqcRxgiMLz7xGCSa4=;
-	h=From:To:Subject:Date:Message-ID:From:Subject:Feedback-ID:
-	 X-Works-Security;
-	b=gCMVVh4ZcHHtdatLjYJqQWJUUN9FKJc6YWwbFcHsypbjVxNJTRDqmrxbXWGuJpsFU
-	 RAzO/yelRBeAo+2m665Tw47c+jNMciNKga5zeKGSU18cEtGNbeJwBbmilN+jGS7a2h
-	 Ch6eQGUPsR9bPiEoFQS9OyH/r+xmQ6O1K20nnuNvPUk5IakEQplwNaF+mZ915HdxhZ
-	 63jnJF77jLc8R5iQ/heQhfGxnOi1LqQgDTrocXv2uR9TdbBqynd4o3/whKLvbDb5yd
-	 UiNi8YSai9wiHqAAS1TwNk2Mf5cgWXz3uo94tuRuJGZhAw64rsf0zUFBOV+5STPwUT
-	 Z6io0sNFqHbig==
-X-Session-ID: L22dwugbQQyoXiM0o518-Q
-X-Works-Send-Opt: OlewpzGdjHmdKHFOMr39Ko3YKHmqjAudFqM9KqMqFxIYkEljxBmwjAg=
-X-Works-Smtp-Source: rZYwKAtlFqJZ+HmrKoMw+6E=
-Received: from localhost.localdomain ([115.136.205.4])
-  by cvnsmtp009.nm.naver.com with ESMTP id L22dwugbQQyoXiM0o518-Q
-  for <multiple recipients>
-  (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384);
-  Sat, 07 Nov 2026 09:33:46 -0000
-From: Sung Byeongchan <tjdqudcks0424@naver.com>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>,
-	linux-rdma@vger.kernel.org
-Subject: [PATCH] RDMA/iwcm: restrict MAPINFO to administrators
-Date: Sat,  7 Nov 2026 18:33:38 +0900
-Message-ID: <20261107093338.618394-1-tjdqudcks0424@naver.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VJfwcV6I
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 145AC1F0089F;
+	Sat,  7 Nov 2026 09:45:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794044713;
+	bh=+VQweLQM8EjLqBzSRh5Rpw8qrCYCPsjPyZy4gz9Ey/8=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=VJfwcV6IFA11MtApE9qgntzqpD/b7tusEtac6sCsxVKFsZ+CgoL/p25YXE3no4YPB
+	 rtk6PFzlzCmHOWlswFESz6ysZTIMVB8N1QI3YWoz7mjGsKb08AGj6CAv5ms5KudDU3
+	 +TVxA20vV2jY/BzfVUUKLtmHhoFMy9ttKresSbjsjw6MbsKRklenprjr9GL2BUIwYE
+	 3ICVO/mBEy7je5Aq87vKN0zR6q7vOA9idmjz3zxLxlkomOScavAQiTrq6D2bff3jOm
+	 i2S77ylMQA8+e7Q4f1OZ8W0EtAnsB+6s1j8ZBmYVglVrBY2KhNRZ1Jzf+Oi/kthxl0
+	 +FYsuTAmvQEcg==
+Message-ID: <sashiko-outbox-202782@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] RDMA/iwcm: restrict MAPINFO to administrators
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Sung Byeongchan" <tjdqudcks0424@naver.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261107093338.618394-1-tjdqudcks0424@naver.com>
+References: <20261107093338.618394-1-tjdqudcks0424@naver.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Sat, 07 Nov 2026 09:45:12 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -72,58 +58,72 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue to consider:
+- [High] RDMA/iwcm: missing RDMA_NL_ADMIN_PERM on remaining
+  iwcm_nl_cb_table ops
+--
 
-RDMA_NL_IWPM_MAPINFO announces the userspace iWARP port mapper and asks
-the kernel to send its live mapping table. Its callback registration does
-not request an administrative permission check, so an ordinary local
-NETLINK_RDMA sender can use the public mapper name and ABI version to
-replace the global daemon portid.
+commit 0d21801da4ca7ad844070c844f5a41cee7373664f5
+Author: Sung Byeongchan <tjdqudcks0424@naver.com>
 
-With a production SIW mapping present, an unprivileged claimant received
-the complete local and mapped sockaddr records in three of three fresh
-KASAN boots. A second independent unprivileged socket could repeat the
-claim. Wrong-name and old-version controls were rejected.
+RDMA/iwcm: restrict MAPINFO to administrators
 
-Set RDMA_NL_ADMIN_PERM on only the MAPINFO callback. The common RDMA
-netlink receiver then requires CAP_NET_ADMIN before the callback changes
-the daemon identity or serializes the mapping table.
+This commit sets RDMA_NL_ADMIN_PERM on the RDMA_NL_IWPM_MAPINFO callback
+in iwcm_nl_cb_table so that CAP_NET_ADMIN is required before handling port
+mapper MAPINFO requests.
 
-The fixed kernel rejected the valid unprivileged request with -EPERM and
-zero records in three of three matched boots. Legitimate root mapper
-registration, live SIW mapping, daemon recovery, mapping removal and
-post-remove cleanup all passed their baseline and fixed controls.
+> diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwc=
+m.c
+> index 4b05867dad895..8a3b5aa2dc5f7 100644
+> --- a/drivers/infiniband/core/iwcm.c
+> +++ b/drivers/infiniband/core/iwcm.c
+> @@ -86,7 +86,10 @@ static struct rdma_nl_cbs iwcm_nl_cb_table[RDMA_NL_IWP=
+M_NUM_OPS] =3D {
+>  	[RDMA_NL_IWPM_QUERY_MAPPING] =3D {.dump =3D iwpm_add_and_query_mapping_=
+cb},
+>  	[RDMA_NL_IWPM_REMOTE_INFO] =3D {.dump =3D iwpm_remote_info_cb},
+>  	[RDMA_NL_IWPM_HANDLE_ERR] =3D {.dump =3D iwpm_mapping_error_cb},
+> -	[RDMA_NL_IWPM_MAPINFO] =3D {.dump =3D iwpm_mapping_info_cb},
+> +	[RDMA_NL_IWPM_MAPINFO] =3D {
+> +		.dump =3D iwpm_mapping_info_cb,
+> +		.flags =3D RDMA_NL_ADMIN_PERM,
+> +	},
+>  	[RDMA_NL_IWPM_MAPINFO_NUM] =3D {.dump =3D iwpm_ack_mapping_info_cb},
+>  	[RDMA_NL_IWPM_HELLO] =3D {.dump =3D iwpm_hello_cb}
+>  };
 
-The demonstrated impact is disclosure of local iWARP endpoint metadata
-and displacement of the trusted mapper identity. Uninitialized memory,
-controlled read or write, RCE and LPE were not demonstrated.
+[Severity: High]
+Should the remaining callbacks in iwcm_nl_cb_table also set
+RDMA_NL_ADMIN_PERM?
 
-Fixes: b493d91d333e ("iwcm: common code for port mapper")
-Assisted-by: OpenAI Codex
+Leaving RDMA_NL_IWPM_HELLO without RDMA_NL_ADMIN_PERM still lets an
+unprivileged NETLINK_RDMA sender invoke iwpm_hello_cb() to overwrite
+iwpm_user_pid, reset client registration to IWPM_REG_INCOMPL, and
+downgrade iwpm_ulib_version:
 
-Signed-off-by: Sung Byeongchan <tjdqudcks0424@naver.com>
----
- drivers/infiniband/core/iwcm.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
-index 4b05867dad895..8a3b5aa2dc5f7 100644
---- a/drivers/infiniband/core/iwcm.c
-+++ b/drivers/infiniband/core/iwcm.c
-@@ -86,7 +86,10 @@ static struct rdma_nl_cbs iwcm_nl_cb_table[RDMA_NL_IWPM_NUM_OPS] = {
- 	[RDMA_NL_IWPM_QUERY_MAPPING] = {.dump = iwpm_add_and_query_mapping_cb},
- 	[RDMA_NL_IWPM_REMOTE_INFO] = {.dump = iwpm_remote_info_cb},
- 	[RDMA_NL_IWPM_HANDLE_ERR] = {.dump = iwpm_mapping_error_cb},
--	[RDMA_NL_IWPM_MAPINFO] = {.dump = iwpm_mapping_info_cb},
-+	[RDMA_NL_IWPM_MAPINFO] = {
-+		.dump = iwpm_mapping_info_cb,
-+		.flags = RDMA_NL_ADMIN_PERM,
-+	},
- 	[RDMA_NL_IWPM_MAPINFO_NUM] = {.dump = iwpm_ack_mapping_info_cb},
- 	[RDMA_NL_IWPM_HELLO] = {.dump = iwpm_hello_cb}
- };
+drivers/infiniband/core/iwpm_msg.c:iwpm_hello_cb() {
+	...
+	iwpm_set_registration(nl_client, IWPM_REG_INCOMPL);
+	atomic_set(&echo_nlmsg_seq, cb->nlh->nlmsg_seq);
+	iwpm_ulib_version =3D min_t(u16, IWPM_UABI_VERSION, abi_version);
+	pr_debug("Using ABI version %u\n", iwpm_ulib_version);
+	iwpm_user_pid =3D cb->nlh->nlmsg_pid;
+	ret =3D iwpm_send_hello(nl_client, iwpm_user_pid, iwpm_ulib_version);
+	...
+}
 
-base-commit: d48723711bae9b8cdc56719c448ba42fef28cbee
--- 
-2.43.0
+Because rdma_nl_net_init() creates the netlink socket with
+NL_CFG_F_NONROOT_RECV, an unprivileged process can also subscribe to
+RDMA_NL_GROUP_IWPM and answer the kernel's RDMA_NL_IWPM_REG_PID multicast
+query via iwpm_register_pid_cb() to claim iwpm_user_pid and set
+IWPM_REG_VALID, redirecting subsequent mapping unicasts to itself.
+In addition, iwpm_remote_info_cb() accepts unauthenticated
+RDMA_NL_IWPM_REMOTE_INFO messages and inserts GFP_ATOMIC iwpm_remote_info
+records into iwpm_reminfo_bucket, and the remaining callbacks in
+iwcm_nl_cb_table are likewise privileged iwpmd daemon operations.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261107093338.6183=
+94-1-tjdqudcks0424@naver.com?part=3D1
