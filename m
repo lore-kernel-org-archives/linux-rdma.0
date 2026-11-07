@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794083097;
-	b=ERBr0p4LGRGtxIXR8JrYX5M21YbKoEvfiT0p7wcTNrenWSVADuWHRwAf0Dx+WUbeZr2c
-	 wQs7Wi/fFRq4GyHvwazK+CPTsTG7eLSPivgCdWHjbJ1hMEAH5IlogIF5RprQdh2tJdyiV
-	 QKEtxcwUH0Pp2t3cpcrOfE5PAAB98B7U8ctp36MeV0dLKfeO1jB19yojahG1uHPffXn7J
-	 soeoiYtRt2aQCvFiEmRQ9UEdSzk/DN1JUscqhzmgeMozkuWUuHtZcSnXbgYYhZHP5km7g
-	 VP8tfMSZTcXyrVXUxBCRELtdORa9norl+x8FqTmxn9W38mDKqZSCaH5PrRITKrknMYw==
+	t=1794083103;
+	b=dVLAdJbNAMYDEcIsaFDIzeA16qIGNzfbtP5S0RrQpwAb34MFZm1537sXZRzkfmwcr3s+
+	 Afw13XnTIlvWUktIDbzA0M/F0iEFV220QHMocIeMWjJgJ/A57O2o6lS2Ixy9rleUgVg8c
+	 Qtf+5pG86CSxhCkZTmg0HRIsodQAKEcxpMNuLIEkNifj0N06pBxozkEFp8rqp5j9evdcc
+	 xll7nVF8LR3Emdo48yuw6XnSA4T7t6elxEiVK7lrgOcFKQ8jqNGoawBnH/1g6pe0p9xIe
+	 rcn9yhKqgHsNaSoENFUyJk4MFFLsAQuiCTeQbwqkpcj1iAxTckm4eF8wRnI7zU4YEGQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794083097;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794083103;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=6Dw1YRkgcLO/oD8ddIOC1gEFJ7z5lNWsBJO3xTMRSCU=;
-	b=Wl/JiCE46Aqj3/GFtdVE8GNR4/h38JPjtXIuFnCeA1z0Zi2dnd+GGT0O+D+U4oAHq9Yn
-	 yzbeDgSyYCB/RtXZEUhm4rgR7ZaHUCDeuK+VZsWdYR+z01ZSfRdXYk/4AM6NnsbUsieda
-	 aqqdgCweHVNekz1bKyMeLBq0iVarK89+SHhEHpK7loi0VopR4SKeHdXRVToNMZegMnVFs
-	 ECJ1gsS0eWnbYMsZUiPpsa0FjateRbia/mk45XX9AewjwwMrCY2EfX3J+jLGmpK+ZNI0h
-	 0crUXPBPUCILJfQ6b0wChBG+hjg2axv7WWOWak9fPeBrlJtIVhrmiU8Zl7PgZ+GxFRQ==
+	bh=oowdS+RUaXqQYhqTl8K+JWCk7L9i4EL13SAkeszSlFo=;
+	b=uvbknP8C42UisOYq6Yvxshlqbwb4uBF1lwHyQNfOmkVSOIsSk0Zy704I/LVAJQkDzLnb
+	 kQdda8q/rsMGY/e8O2iqgHmLyTU2VrY9uzKg/NnexwpD2Ets3ygl6+q8vf8/KV2WkV5ws
+	 MBg8QcvIctT+6yHMWODq+uHQncjrKR8KomfRMrV5L1kBx1g0dXPbYQsWJRWCbDfmJeJOm
+	 ktGEBa/Gt28UiPIeMxaHstyR77b5DoIZvVAPUfIiqBuzRtpzgZQMIFqNKSGSWI6VpS2dd
+	 LCbc69RJOev/ik+IOmRFKbfegrhEAL+F1lZO59KgoeCXzGLYpWgEQv5TOQku170iJOw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kcI3upDF;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Dq2zs6qI;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98120606A332;
-	Sat,  7 Nov 2026 20:24:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32F44606D82C;
+	Sat,  7 Nov 2026 20:25:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kcI3upDF
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66B551F0089F;
-	Sat,  7 Nov 2026 20:24:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Dq2zs6qI
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28C9A1F008A4;
+	Sat,  7 Nov 2026 20:25:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794083097;
-	bh=6Dw1YRkgcLO/oD8ddIOC1gEFJ7z5lNWsBJO3xTMRSCU=;
+	s=k20260515; t=1794083103;
+	bh=oowdS+RUaXqQYhqTl8K+JWCk7L9i4EL13SAkeszSlFo=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=kcI3upDFiTr1hd97C6h5ILfXfTvO/rnn57aYX1Ojhse8SnXm6jR83yceUjjDrcovQ
-	 IKahu+NdfsSKa/0cqXJ60OpuAMKDgNzcIr/JqTbXNPKIcAanNqBvRMwOoKuvQ4moe7
-	 rvOaf14WltPAyw+wR6eI3+erOwbCsj7i3YgIzlSkYGf5Jv7hHEzNqGF1Xf+NoqulDP
-	 nRtGT9RkGpYbXm6jTn/dwee1nZ2EOE/BZnQRHmHexDrXksrU9lIRsSRX1WEd0+HM98
-	 BZo1T/PEq03d+1lNq7m3Rt9y01Yujq++esiDrisUElOLK+sf6RbJD/4sS9AysT72wH
-	 eiCVgxgynL61g==
-Subject: Re: [PATCH rdma-next 13/23] RDMA/mlx5: Keep the UMR QP failed once a
- forged CQE is detected
+	b=Dq2zs6qI/0KvCnEtdM6veb857H8abtyWdUvxYQIl/M/oYaQ0d1R1zzqpiZQHEIJXM
+	 8dmbv/0rUlJ3O9En6Za6pdpSlsgsesLA2BvdYa2ezMCXTYcsWpS5p/i31sBzX6W/y9
+	 w987a1vYQn7amMHCo5g1Ch45JoQButEiRO0cbVBPU7gilncvJzovOU1g/qAJbhSIiH
+	 IIbtaCKJWqVRH1Kdh0paOMBwKv9JCChfuO6lvQjdpGDw3eVeGSr/q+0TbxEiFAeTtW
+	 VFsum4NorbjUiPWTp8bfaY3ozKA+EzjNekeqjl+fLYDgeDNEnAaFD+gXZ9TWwkHff0
+	 JNe2GHioppMAw==
+Subject: Re: [PATCH rdma-next 17/23] RDMA/mlx5: Validate EQE port and GSI port
+ before indexing devr.ports[]
 From: netdev-bot+sashiko@kernel.org
 To: yishaih@nvidia.com
 Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
@@ -49,11 +49,11 @@ Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
  mbloch@nvidia.com, kuba@kernel.org, pabeni@redhat.com, edumazet@kernel.org,
  davem@davemloft.net, andrew+netdev@lunn.ch, dtatulea@nvidia.com,
  moshe@nvidia.com, maorg@nvidia.com
-Date: Sat, 07 Nov 2026 20:24:56 +0000
-Message-ID: <179408309600.994134.14553230868146108147@kernel.org>
-In-Reply-To: <20261103163949.1554-14-yishaih@nvidia.com>
-References: <20261103163949.1554-14-yishaih@nvidia.com>
-X-sashiko-severity: Medium
+Date: Sat, 07 Nov 2026 20:25:01 +0000
+Message-ID: <179408310169.994134.18411917783042594669@kernel.org>
+In-Reply-To: <20261103163949.1554-18-yishaih@nvidia.com>
+References: <20261103163949.1554-18-yishaih@nvidia.com>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -66,154 +66,85 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 0 · Medium: 2 · Low: 0
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] In adversarial mode, mlx5r_umr_recover()
-  (drivers/infiniband/hw/mlx5/umr.c) checks for MLX5_UMR_STATE_ERR at…
-- [Medium] The new comment on mlx5r_umr_move_state() (umr.c:338-343) and
-  the commit message both say that in adversarial mode ERR is a final…
+- [Low] This patch makes the existing invalid-port check and warning in
+  mlx5_ib_handle_event() (drivers/infiniband/hw/mlx5/main.c)…
 
 --
 
-RDMA/mlx5: Keep the UMR QP failed once a forged CQE is detected
+RDMA/mlx5: Validate EQE port and GSI port before indexing devr.ports[]
 
-In adversarial mode, this commit changes mlx5r_umr_recover() to move the
-UMR state with cmpxchg(): ACTIVE to RECOVER on entry and RECOVER to
-ACTIVE at the end. The goal is to stop recovery from overwriting an
-MLX5_UMR_STATE_ERR that the CQ poller sets on a forged CQE. Outside
-adversarial mode the transitions are unchanged.
+This commit adds port validation to handle_port_change() and
+mlx5_ib_create_gsi(). The port number from the NIC is checked with
+rdma_is_port_valid() and limited to ARRAY_SIZE(devr.ports) before it is
+used to index devr.ports[].
 
-> diff --git a/drivers/infiniband/hw/mlx5/umr.c b/drivers/infiniband/hw/mlx5/umr.c
-> index b0f00d4bc93ca..086b397b830c6 100644
-> --- a/drivers/infiniband/hw/mlx5/umr.c
-> +++ b/drivers/infiniband/hw/mlx5/umr.c
-> @@ -335,6 +335,23 @@ static int mlx5r_umr_post_send(struct ib_qp *ibqp, u32 mkey,
->  	return err;
->  }
+> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+> index f4f2ad80e76c4..c29102260989f 100644
+> --- a/drivers/infiniband/hw/mlx5/main.c
+> +++ b/drivers/infiniband/hw/mlx5/main.c
+> @@ -3063,6 +3063,10 @@ static int handle_port_change(struct mlx5_ib_dev *ibdev, struct mlx5_eqe *eqe,
+>  {
+>  	u32 port = (eqe->data.port.port >> 4) & 0xf;
 >  
-> +/*
-> + * Move the UMR state from @from to @to. In adversarial_mode ERR is a final
-> + * state: it can be set concurrently by the CQ poller, so the move is atomic
-> + * and does not replace it. Returns false if ERR was found, and true
-> + * otherwise. Outside adversarial_mode this is the plain store it always was.
-> + */
+> +	if (!rdma_is_port_valid(&ibdev->ib_dev, port) ||
+> +	    port > ARRAY_SIZE(ibdev->devr.ports))
+> +		return -EINVAL;
+> +
 
-[Severity: Medium]
-Is ERR really final here? Only the transitions in mlx5r_umr_recover()
-were converted to cmpxchg(). mlx5_ib_poll_one_umr() in cq.c still does a
-plain store for every validated non-flush error CQE:
+[Severity: Low]
+Does this early return make the port check and warning in
+mlx5_ib_handle_event() unreachable?
 
-drivers/infiniband/hw/mlx5/cq.c:mlx5_ib_poll_one_umr() {
+mlx5_ib_handle_event() treats any non-zero return from
+handle_port_change() as a reason to skip the event:
+
+drivers/infiniband/hw/mlx5/main.c:mlx5_ib_handle_event() {
     ...
-		if (wc->status != IB_WC_WR_FLUSH_ERR)
-			umrc->state = MLX5_UMR_STATE_RECOVER;
+	case MLX5_EVENT_TYPE_PORT_CHANGE:
+		if (handle_port_change(ibdev, work->param, &ibev))
+			goto out;
+		break;
+	case MLX5_EVENT_TYPE_GENERAL_EVENT:
+		handle_general_event(ibdev, work->param, &ibev);
+		fallthrough;
+	default:
+		goto out;
+	}
+
+	ibev.device = &ibdev->ib_dev;
+
+	if (!rdma_is_port_valid(&ibdev->ib_dev, ibev.element.port_num)) {
+		mlx5_ib_warn(ibdev, "warning: event on port %d\n",  ibev.element.port_num);
+		goto out;
+	}
     ...
 }
 
-That store can overwrite the ERR written by the err: label in
-mlx5r_umr_recover(), and that label does not stop the poller:
+The only way to reach the rdma_is_port_valid() check is a successful
+handle_port_change(). After this patch, a successful return always means
+the port is valid.
 
-err:
-	umrc->state = MLX5_UMR_STATE_ERR;
-	return err;
+Before the patch, a port change EQE with port 0 or a port above
+phys_port_cnt went through handle_port_change() and returned 0 if its
+sub_type was not PKEY (LID, GUID, CLIENT_REREG, or ACTIVE/DOWN on IB).
+The caller's check then printed the "warning: event on port %d" message.
 
-Could a hostile NIC reopen the UMR path with a sequence like this?
+After the patch, the same event is dropped with no log message.
 
-1. Waiters A and B each post a UMR while the state is ACTIVE.
+Could the warning be moved into the new early-return path in
+handle_port_change()? Or, if the silent drop is intended, could the
+caller's check be removed, since it is now dead code?
 
-2. The NIC returns validated non-flush error CQEs for both. A and B enter
-   mlx5r_umr_recover(), find the state already RECOVER, skip the entry
-   cmpxchg, and post barriers WQE3 and WQE4.
-
-3. The NIC completes WQE3. A moves the QP to RESET, the NIC fails
-   RST2INIT, and A's err: label stores ERR.
-
-4. The NIC returns a non-flush error CQE for WQE4. It passes the opcode,
-   QPN, sop, wqe_ctr (FIFO head) and wqe_head checks, so the poller
-   stores RECOVER over ERR.
-
-5. B's RESET and RST2RTS succeed, and B's cmpxchg(RECOVER->ACTIVE) also
-   succeeds, so the UMR path is ACTIVE again.
-
-The generic store of RECOVER in mlx5_poll_one() has the same problem at
-this commit. The later commit "RDMA/mlx5: Block generic CQ poll path in
-adversarial mode" closes that path by making mlx5_poll_one() return
--EOPNOTSUPP in adversarial mode before the store is reached.
-
-Would a cmpxchg(ACTIVE->RECOVER) in mlx5_ib_poll_one_umr() fix this? If
-not, should the comment say that only an ERR set on a forged CQE is
-final?
-
-[ ... ]
-
-> @@ -353,7 +370,11 @@ static int mlx5r_umr_recover(struct mlx5_ib_dev *dev, u32 mkey,
->  	if (umrc->state != MLX5_UMR_STATE_RECOVER) {
->  		mlx5_ib_warn(dev, "UMR recovery encountered an unexpected state=%d\n",
->  			     umrc->state);
-> -		umrc->state = MLX5_UMR_STATE_RECOVER;
-> +		if (!mlx5r_umr_move_state(umrc, MLX5_UMR_STATE_ACTIVE,
-> +					  MLX5_UMR_STATE_RECOVER)) {
-> +			mutex_unlock(&umrc->lock);
-> +			return -EFAULT;
-> +		}
->  	}
->  	mutex_unlock(&umrc->lock);
-
-[Severity: Medium]
-What happens if the poller detects a forged CQE after this
-mutex_unlock()?
-
-mlx5_ib_poll_one_umr() never takes umrc->lock. It sets ERR under cq->lock
-and only queues the forced health work:
-
-	umrc->state = MLX5_UMR_STATE_ERR;
-	cq->poll_one = mlx5_ib_poll_one_stopped;
-	mlx5_trigger_health_work_force(dev->mdev);
-
-After the unlock, mlx5r_umr_recover() does not look at umrc->state again
-until the final cmpxchg, so recovery continues:
-
-mlx5r_umr_recover()
-  mlx5r_umr_post_send()
-    only checks mdev->state, writes the barrier WQE and rings the doorbell
-  wait_for_completion()
-  ib_modify_qp(umrc->qp, &attr, IB_QP_STATE)  /* RESET */
-    __mlx5_ib_modify_qp()->mlx5_ib_cq_clean() sweeps the stopped UMR CQ
-  mlx5r_umr_qp_rst2rts()
-    RST2INIT/INIT2RTR/RTR2RTS put the hardware UMR QP back in RTS
-  mlx5r_umr_move_state(umrc, MLX5_UMR_STATE_RECOVER, MLX5_UMR_STATE_ACTIVE)
-    first point where ERR is seen
-
-The NIC controls CQE timing. It can complete the barrier with a valid CQE
-and then forge one while recovery is in the RESET/RTS steps. All of this
-can happen before the forced health work moves the device to
-MLX5_DEVICE_STATE_INTERNAL_ERROR.
-
-umrc->state stays ERR, so mlx5r_umr_post_send_wait() still refuses new
-UMRs. Even so, in this window the subject line "Keep the UMR QP failed",
-the existing comment "don't revive the QP" in mlx5r_umr_recover(), and
-this part of the commit message don't seem fully met:
-
-  This keeps new UMRs away from the NIC until the forced health recovery
-  moves the device to MLX5_DEVICE_STATE_INTERNAL_ERROR
-
-In adversarial mode, should ERR be checked again at these points?
-
-- before the barrier post, perhaps inside mlx5r_umr_post_send() under
-  qp->sq.lock
-- after wait_for_completion()
-- before each ib_modify_qp() step
-
-[ ... ]
+> +
+>  	ibev->element.port_num = port;
+>  
+>  	switch (eqe->sub_type) {
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261103163949.1554-1-yishaih%40nvidia.com
