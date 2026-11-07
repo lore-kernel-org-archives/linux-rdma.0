@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794083092;
-	b=PqkFT2tU8DLuHGlWCbi8kRaGoLalB4vc3/y9cs7Q9tmzz8j5LKL7G2E5HIUtmpHHkAAR
-	 gQyr0jJmbJwOQjFet+IsRVKRE5M+gzohVezXgVfSvWVeqcMqO5jw3KOFUZ17v8G0JYUZI
-	 duiUlyZkMAv2k6PXMSSILXFCOKTS1wrL5TXyPtEtqGoIA23806CddNRpX5oDghh9okDz+
-	 vNZaoXNFc92qaEALfORikQzU1xvl4CZ6DKKkOh7OoLX0YDeUptgmxcWknyHdKlOC4hCgb
-	 3mwY85/NAND0TP0lQZ2HWS5OasPYGEeT6Wz6vRzdaumtFCPsBQfdqQdd7vsASuLltLQ==
+	t=1794083102;
+	b=X5X75YWxrJI7iN+bFsBwJzMgOAoY3wZbky7irpzzmHScyyC3OaozLYnCCm/oI700S2os
+	 GrCi/nM/pZvuA9fQ1ZBWcyFf/Lljn28S+Al1NoMpamgxAmoxeVvTCJsvWcLwqr+34jZ7i
+	 OEDIxPiLY353DqyhLTDfKAw3stsW4KhX/CRDZDBUI8p9hkHq9Z7tI2L3flgxh2cA/DrYb
+	 +/l+2GHssg/yQllydCdnpmmZXFFO7UOoKhATa1NV+wiYYZFS2juiyLBjsgV8+F8yqZ0XS
+	 Zm+euDVon/xPicxPEEayWn6UmvArWs4V63nFKBaYgy2RkzcX7By6BFa4ARPOqNlm++A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794083092;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794083102;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=WOhM+w1STmQwo8qIdMG+8r+QMqyOxbMdRrQAWnI8mck=;
-	b=lpyTe15ZZcCtygFxatGBvsC0BrjbBwKL/snjjFB2JPpyIZxxiFNYZAw+pM8wZuNGFdTU
-	 HjAbVCGm4j+PYZJHHUNvoATBRcYsoy/PX67Y7inzyXYS1nNmNk7cSLBWIRrk3YbJwDivm
-	 R/rMqPP7zn+m7ZRLGQ7wc8dL3Nu7/Z3vy1odKPr1ku378cs/1jGZua+M8WbhbQjt2EcQp
-	 vH16CdpnVgj+dTX5njgVal+bSOCm2wol41lClP7kpQsa3sVjOY9GC0kBKMs3za2TBKMdq
-	 6n4jt+81QE1mmJkBCnx3ZX4g/DE9gaExEe3EKZguYBAtKeZFLO/FF9ZHvLWIMBokGNg==
+	bh=hAxrrIcR8kFy2gsceeU205RpPHqOi1H7v/dWyGTpYxY=;
+	b=ih3TDKoZcrB4y1Pipd9kec0OGpijzYrJsNvxEi0KcnHGbKJwkV2LTfbRVUqXQkt4OoYD
+	 QreO00PlKzTudlsxf9nHj2iYoYhjJGu+DdJIW4NOqesMB2OS/OYQC92zbRiCB3gW9gjEV
+	 w5BNN+RRZKk4Buk5U7j/P+vy05sZT35D8V/EwAYIsONBDdS8IkFBdbHBGxy3brrn1Whug
+	 N8dj6objzj+Hg3132KthKDM48JcH5eZnNFTcg05fQ5lQguALWU5uUi/Xqu1MPxv9m+oem
+	 Ki13RXwfupiAbIsrBp3pyY5jNjKo3oGGhB6Uh0DVfTHVd+719EJlPrRbJqjaLIbT34w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nxpYVk1B;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NuVbsSZn;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD6D0606A33A;
-	Sat,  7 Nov 2026 20:24:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98BB9606A32F;
+	Sat,  7 Nov 2026 20:25:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nxpYVk1B
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9035A1F0089F;
-	Sat,  7 Nov 2026 20:24:50 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NuVbsSZn
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F7BC1F008A1;
+	Sat,  7 Nov 2026 20:25:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794083091;
-	bh=WOhM+w1STmQwo8qIdMG+8r+QMqyOxbMdRrQAWnI8mck=;
+	s=k20260515; t=1794083101;
+	bh=hAxrrIcR8kFy2gsceeU205RpPHqOi1H7v/dWyGTpYxY=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=nxpYVk1BsaTpOlhOv2fTrqx/L9Za5IGmTgS2eGO/tEk/6+kgXzGY3s+STHMgTbwyy
-	 ZRJfQS1Tj37oWtSeXRL75nRZYZzRriPIyz1Cd7Mn5dwHSeoBUOuMTFw6nYLE6QGs6Y
-	 S1SzbAH9y7/j1rMAO0u5baFHgMbx2fRLynORZc1bm/0lxoyxkuhrdoA4h6ehF3RDnJ
-	 M3Vo78Y3xZOG9ZstSgd65cOFUYIf6g3QpkkjQVPTvkVyPcCDv2pHyPBkEHJLzGkBEp
-	 zt4619J2OCqtXZ5aQFdy9SnScXM63FwVY0XmYeovlWWP1uupt3/9+ozQTmAk4xE0RA
-	 7hNPC/b8U3VdQ==
-Subject: Re: [PATCH rdma-next 08/23] RDMA/core: Suppress kverbs_provider for
- adversarial_mode devices
+	b=NuVbsSZneZIFgRql+d1Rn2GBYJawSe+9wASghXgzUEqq7jPAyAZaG4SbUlOU2AJ4z
+	 9AccY7j4qTFLOzpALyYR8bOd18+TOvM1LDAI56tWEn4bdHauWnPPofnO1o+HNNm+2v
+	 uZ/RJXf+qXaKHIEE1VsmB50LZhJD9shrYSo8kEVmZxlt6Dy7uKA2dooQMNK5onchst
+	 sGgj5ZLX2o5rIVuAmq86RtNBM6DotzEkgAoIif6M47JOu3H54OoQNiRrv56CI1No68
+	 HtCPDD9t/wPtfW77wXu1cGfOMvJ3QNvG7xYYa9S+KZSTWjGdbNp0Lgrte1Rqg9niaU
+	 Dd4zf8SiS1biQ==
+Subject: Re: [PATCH rdma-next 16/23] RDMA/mlx5: Ignore completion events for a
+ CQ without a handler
 From: netdev-bot+sashiko@kernel.org
 To: yishaih@nvidia.com
 Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
@@ -49,11 +49,11 @@ Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
  mbloch@nvidia.com, kuba@kernel.org, pabeni@redhat.com, edumazet@kernel.org,
  davem@davemloft.net, andrew+netdev@lunn.ch, dtatulea@nvidia.com,
  moshe@nvidia.com, maorg@nvidia.com
-Date: Sat, 07 Nov 2026 20:24:50 +0000
-Message-ID: <179408309017.994134.8647675751240863438@kernel.org>
-In-Reply-To: <20261103163949.1554-9-yishaih@nvidia.com>
-References: <20261103163949.1554-9-yishaih@nvidia.com>
-X-sashiko-severity: Low
+Date: Sat, 07 Nov 2026 20:25:00 +0000
+Message-ID: <179408310019.994134.8139150984682840933@kernel.org>
+In-Reply-To: <20261103163949.1554-17-yishaih@nvidia.com>
+References: <20261103163949.1554-17-yishaih@nvidia.com>
+X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -66,96 +66,117 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 1 · Medium: 0 · Low: 0
 
-- [Low] At this commit, nothing in the tree writes the new struct
-  ib_device::adversarial_mode field.
-- [Low] Clearing kverbs_provider in ib_device_check_mandatory() for
-  adversarial_mode devices does more than keep in-kernel ULPs off the…
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [High] The fix leaves a memory-ordering race on comp_handler.
 
 --
 
-RDMA/core: Suppress kverbs_provider for adversarial_mode devices
+RDMA/mlx5: Ignore completion events for a CQ without a handler
 
-This commit adds an adversarial_mode field to struct ib_device. When the
-field is set, ib_device_check_mandatory() clears kverbs_provider. After
-that, add_client_context() only lets clients with no_kverbs_req (uverbs)
-bind to the device, which keeps kernel ULPs off an untrusted NIC.
+This patch makes mlx5_ib_cq_comp() skip the comp_handler call when no
+handler is set. The case it targets is devr->c0, which is never armed, but
+a hostile NIC in adversarial mode can still raise a completion event for
+it.
 
-> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-> index 29af9fe860e27..eb6aa567d3652 100644
-> --- a/drivers/infiniband/core/device.c
-> +++ b/drivers/infiniband/core/device.c
-> @@ -312,6 +312,14 @@ static void ib_device_check_mandatory(struct ib_device *device)
->  			break;
->  		}
->  	}
-> +
+> diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+> index 5cc86c3f93f3e..f955eb762051d 100644
+> --- a/drivers/infiniband/hw/mlx5/cq.c
+> +++ b/drivers/infiniband/hw/mlx5/cq.c
+> @@ -46,7 +46,12 @@ static void mlx5_ib_cq_comp(struct mlx5_core_cq *cq, struct mlx5_eqe *eqe)
+>  {
+>  	struct ib_cq *ibcq = &to_mibcq(cq)->ibcq;
+>  
+> -	ibcq->comp_handler(ibcq, ibcq->cq_context);
 > +	/*
-> +	 * Kernel ULPs must not bind to an adversarial_mode device. Its kverbs
-> +	 * ops are still present, as uverbs uses them, so clear kverbs_provider
-> +	 * explicitly. uverbs sets no_kverbs_req, so it still binds.
+> +	 * A CQ created without a handler (devr->c0) is never armed, but a
+> +	 * hostile NIC can still raise a completion event for it.
 > +	 */
-> +	if (device->adversarial_mode)
-> +		device->kverbs_provider = false;
+> +	if (ibcq->comp_handler)
+> +		ibcq->comp_handler(ibcq, ibcq->cq_context);
 
-[Severity: Low]
-At this commit, does anything set ib_device->adversarial_mode?
+[Severity: High]
+For devr->c0 this check is enough, because comp_handler stays NULL for
+that CQ. Is it also enough for the CQs set up by __ib_alloc_cq()?
 
-mlx5 has its own module-global flag, set in mlx5_ib_init(), but this
-commit does not copy it into the ib_device:
+The companion commit "RDMA/core: Set the CQ comp_handler after its poll
+context is set up" relies on this NULL check as a "poll context ready"
+gate. Neither side of that gate has any ordering, though.
 
-drivers/infiniband/hw/mlx5/main.c:
-bool mlx5_ib_adversarial_mode;
-...
-	mlx5_ib_adversarial_mode = mlx5_is_adversarial();
+On the writer side, the CQ can be reached from the EQ interrupt once
+create_cq() puts it in eq->cq_table.tree. The handler is published later
+with a plain store:
 
-So the field stays zero, this check never fires, and add_client_context()
-still binds every kernel client. The commit message says "the kernel ULPs
-never bind to the device", which is not true for this commit on its own.
+drivers/infiniband/core/cq.c:__ib_alloc_cq() {
+    ...
+	ret = dev->ops.create_cq(cq, &cq_attr, NULL);
+    ...
+	case IB_POLL_SOFTIRQ:
+		comp_handler = ib_cq_completion_softirq;
+		irq_poll_init(&cq->iop, IB_POLL_BUDGET_IRQ, ib_poll_handler);
+		break;
+	case IB_POLL_WORKQUEUE:
+	case IB_POLL_UNBOUND_WORKQUEUE:
+		comp_handler = ib_cq_completion_workqueue;
+		INIT_WORK(&cq->work, ib_cq_poll_work);
+		cq->comp_wq = ...
+    ...
+	cq->comp_handler = comp_handler;
+    ...
+}
 
-The last patch in the series, "RDMA/mlx5: Advertise adversarial mode via
-ib_device::adversarial_mode", adds this line to mlx5_ib_stage_caps_init():
+On the reader side, mlx5_eq_comp_int() gets the CQ with mlx5_eq_cq_get(),
+which is an RCU radix_tree_lookup() plus a refcount increment. That orders
+against the tree insertion, but not against the stores made after it.
+mlx5_ib_cq_comp() then loads comp_handler twice with plain loads.
 
-	dev->ib_dev.adversarial_mode = mlx5_ib_adversarial_mode;
+Adversarial mode is enabled when cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT)
+is true. That includes arm64 Realm and pKVM guests, and those CPUs are
+weakly ordered. Take the UMR CQ, which mlx5r_umr_resource_init() allocates
+with IB_POLL_SOFTIRQ.
 
-MLX5_IB_STAGE_CAPS runs before MLX5_IB_STAGE_IB_REG in all mlx5 profiles,
-so the gate works once the whole series is applied.
+Could another CPU see comp_handler == ib_cq_completion_softirq before the
+memset(), INIT_LIST_HEAD(), weight and poll stores from irq_poll_init()
+are visible? If so, irq_poll_sched() would link iop onto the per-CPU list.
+The delayed irq_poll_init() stores could then overwrite iop->state and
+iop->list while iop is still on that list.
 
-The remaining problem is bisectability. Between "RDMA/mlx5: Block generic
-CQ poll path in adversarial mode" and that final patch, kernel ULPs can
-still bind in a CoCo guest while mlx5_poll_one() returns -EOPNOTSUPP. In
-that window mlx5_ib_poll_cq() reports zero completions to every ULP CQ.
+Possible results are per-CPU list corruption, irq_poll_softirq() spinning
+on a stale entry, or a NULL iop->poll call. For the workqueue cases, the
+compiler is also free to move the plain comp_handler store ahead of the
+INIT_WORK() and cq->comp_wq stores. That could lead to queue_work() with a
+NULL workqueue or an uninitialized work item.
 
-Could the patch that sets ib_dev.adversarial_mode be moved before the one
-that blocks the CQ poll path?
+The wmb() in the later ib_req_notify_cq() only helps if the device waits
+for the arm doorbell, and a hostile device does not wait.
 
-[Severity: Low]
-This also keeps umad and cma from binding, not just the in-kernel ULPs.
-Only uverbs sets no_kverbs_req:
+Would it make sense to publish the handler with:
 
-drivers/infiniband/core/uverbs_main.c:
-	.no_kverbs_req = true,
+	smp_store_release(&cq->comp_handler, comp_handler);
 
-so add_client_context() returns early for every other client:
+in __ib_alloc_cq(), and read it once in mlx5_ib_cq_comp() with:
 
-	if (!device->kverbs_provider && !client->no_kverbs_req)
-		return 0;
+	ib_comp_handler h = smp_load_acquire(&ibcq->comp_handler);
 
-Without umad, no /dev/infiniband/umadN nodes are created for the device.
+	if (h)
+		h(ibcq, ibcq->cq_context);
 
-Without cma, the device never joins cma's device list, so ucma and
-librdmacm cannot bind or resolve on it.
+That also removes the double fetch. KCSAN would likely report the current
+plain check against the plain store as a data race. Later patches in the
+series do not change this code.
 
-This looks intended, since the kernel MAD and CM layers interpret
-device-supplied data. Should the commit message say that userspace MAD
-and rdma_cm are not available on an adversarial_mode device?
-
-[ ... ]
+>  }
+>  
+>  static void mlx5_ib_cq_event(struct mlx5_core_cq *mcq, enum mlx5_event type)
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261103163949.1554-1-yishaih%40nvidia.com
