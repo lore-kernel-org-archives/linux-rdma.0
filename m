@@ -1,60 +1,105 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794056720;
-	b=cAzsIugb0StJYgue37QnXAvr+MQYgMK8dSPkBaB3LnrfGl+BpQcTdjfzM6HQk3YDeAGA
-	 ZB1ABY0qVwRSJCt/SbdJ3sTLdyf2lOaNvCGlIu9r1X/dole8A8sYtmfHOAwCbjDdTyrot
-	 aNKCcCFRfSTiOWlXl/Dd5XksXmD6qdaawnGItYYuMbvmNHoEV8gHyX3IWwfWtK01dEnc6
-	 VJdcCXrL48R30X6+4xLFMl9VMa8zpFrUlvi+wsvyXoihNYefy+qDF3Z7SkyYqkg6R8ye9
-	 I7cmvmrLAnz/+8NmRWWrh7rH3tmDv7RLd7zZ7JuC404WCHiUSYJX9UFIIUl883LzbGA==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794056720;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=bY5y/UpFh5i7nT5MZ0PdGQ5Q5A6XBRtLcJX0AZBBR4U=;
-	b=fY264O1aPx9fmRO383fpAAg1d2oHaT2R8b4Bqihlon6NmV8l3qFoWlMAAlbz2g/Fb+C8
-	 YK5EpIp7w7MrLMBawyQAxe0CnD1vnbJFJ8HMYaJd39nooWfirB5zJtc/mrK3Qk5B6UxV6
-	 ZGv9SOtrWGPPwkR7Gd1Bv4m+TiV8n0bTFi4voEs9LttdKFGBvv03QJbm6xiX2H/ekEa2z
-	 d3cSitWRYmg66ptg/DhiNpvq43ZpzLag8Aj88ASlv+wHjp33KrgVKbZ2IHcOtZP6d5OTc
-	 xWMlHUD9UTsXMbMX0FoDi96ZlCgq7upC7LRO58S9PWl36rPWve5UVvxFbMF180h00Bw==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PU04oNnE;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.46.45
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1794063835;
+	b=C++cHSXfJPH/ClvCfDo7Q+fKriq9kVSkOI4m/I5OptvDW9Csn5aPvrNPNNYh3HgJqKyK
+	 48H3PaXaLjwJ0b1y2eNNEe72ZacbvEtT2C5k4nK8FoOXBFFpH0NnqlJIyqLSwxjem0sUn
+	 64KvMlDuNGwTg55kp/K6fS3RjCWneZNb/5LHSQiCFnonr0dJzr4TkErLaqMxT2f6DSc1N
+	 I72PTIcYg19yd7H/XVB92masfndWbc/6adrbwnquzbBcSpkgq3OMUxcXECZ18d2iuClGS
+	 TcnHS1YjZqOxfr4IGIPxC9Uf9MyEhWjv+v/YqplKItm4pKSUPvD1PJNCZyJZuIsAo2g==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794063835;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:
+	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
+	 Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding:Content-Type:X-EOPAttributedMessage:
+	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-Id:
+	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=x1kh08r2uui2Ftlhw63uWg19gjv8kG3d1EDC3HTcyJ8=;
+	b=JiFK00Cexz8yccFRXw++ApKZlkGrTqeK7kKUxrW8pCfYpIeR3XZEeGWyjbcaWMLyl4Ci
+	 lLI7sodY7RZ624c65ewUlDNSI7VIAiHNnkCRHCDXsweo5hAwFCc1k+8UBvKIj/vKQUXHB
+	 SFXUMGrVBjWMaA7AgF9gV7tAm+FFBD3lgCt9nC0zq66YzU+UZ4GqgB9OcA0jyUEigTQvU
+	 7x/2NQJ9UFiFshetiEbCcwkm36jt7950ZVF5WGSfvk03QKEO+f7g//EVKEGdjbdQfHrJS
+	 TLkEaxGb+0llKqR9hQosrkWh3JkcTg3rnhdZeiwjUWeXVIHpSbYpCIaudurbMYVHn+w==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=amd.com;
+	spf=fail smtp.mailfrom=amd.com;
+	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b="pdx0s/7V";
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.46.45
+Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010045.outbound.protection.outlook.com [52.101.46.45])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6154E606A326;
-	Sat,  7 Nov 2026 13:05:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 683B860A5BCC;
+	Sat,  7 Nov 2026 15:03:54 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 683B860A5BCC
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PU04oNnE
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7561C1F0089F;
-	Sat,  7 Nov 2026 13:05:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794056720;
-	bh=bY5y/UpFh5i7nT5MZ0PdGQ5Q5A6XBRtLcJX0AZBBR4U=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=PU04oNnEZ2a79nE9+6dLinYdrWVrs3mu9neB8uYlLChA6jT5+HmBurhUeEWgL84hn
-	 Jjb+2BDPkH8vKa/DEZsUKCo/gY0rZw+kC00a+QE/rDpBKfb0AUfFdm7zXacNSvDATh
-	 f+m2ikejvLmjbgiM7Bfb24OqBLGJQk2+jkSrDhehHYUnoGTgDyLntOc3iPFmKGnS6+
-	 /lxbF4gLKdo/2ZJI2WWiXqIzBBvBgM5oUZ1A8O8V1V6Vy4F2pXzTs2mfuStxLZnudM
-	 erdgfHk2r9h7GSx0NLMw0mo9h8oixyT/EZhdgIMa1Cxujf+HMCZyVWwNy4dDSojWKq
-	 JMSVQVKlF7qRw==
-Subject: Re: [PATCH] net/mlx5e: TC, release meter if rule offload fails
-From: netdev-bot+sashiko@kernel.org
-To: vulab@iscas.ac.cn
-Cc: saeedm@nvidia.com, tariqt@nvidia.com, mbloch@nvidia.com, leon@kernel.org,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- stable@vger.kernel.org
-Date: Sat, 07 Nov 2026 13:05:18 +0000
-Message-ID: <179405671897.994134.13525993179862980932@kernel.org>
-In-Reply-To: <20261103102856.1340672-1-vulab@iscas.ac.cn>
-References: <20261103102856.1340672-1-vulab@iscas.ac.cn>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=pdx0s/7V
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=f/I5uYNSTWebE1cPEVoBFCGU1F2Anv5mZ5quI1MU75/m88+Qsxf3wscW2/4pjTdtJAslmWuQX6WLinNnpMmKXsAY3A2Y3vjjy6x9dQgU8q16IqGSFAsk3W+MpfQae+/+RGwBpHVaDrL4ZFmQqmjaLW4bFcRQJ7Tnnn5v1I4uU4VasVF0bIgSaitl4103JQJoiAwYoGqlMt1BxXD6k5XbZyGfkLsg8/t/YCnYPB9yqatNCsSDS9SRPt+iApeKmLjAcCFzqONGNo3f0XTKhGdHE6cXicNVAkqoRvOnivga31ZL7/jeiyupElBn8bpjKHV/oe5zYr5/z2qWYC/p2p6eRQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=x1kh08r2uui2Ftlhw63uWg19gjv8kG3d1EDC3HTcyJ8=;
+ b=Hk8af4NcGNIJM9wRFcyPi1ueqXKDGOH1nvHrKnayKlmLQSPmaRsNHC+jDnsO2jz2XfCj9gkRFRA+A1gJow4aIA14FAI3LlkFNA2fgN0CqhqMOUbHxfAzIw84FTe3FHE6BFvrJDEh0Ap86LsNXs6qskNr+dqokqE6igU2UqR8ZZ7Mmj7XChj7t78D8ugsWsdJp9RuTVabL1xM5pzoRylPTpD27knqqJ//gfVDSuxzBq3a71q5Mid1bR36Hc7DLpRIJSY8ICnvH0L4xQ7OuHthEDZ92s+XxxyK8P8DMrwrsqyEcIbF2ghNzjaLhNLNBtiWMSkvrsFObMrILsFaR2d24Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=ziepe.ca smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=x1kh08r2uui2Ftlhw63uWg19gjv8kG3d1EDC3HTcyJ8=;
+ b=pdx0s/7VaXBOQX22vO9XsL5L2aHywcgrNWvk8j9DGjQE5+F9uLxOCbu5KBX+9eDjDZqUJdJel/TXCAQZliJB1uEeak2nK5auGfqXx/o4JW2+XaFqItJCMCK0LgoL/whqGUybk9EetQOBzQKRBJB1XU97wCP8PJC+VfO5HeWAqaw=
+Received: from CY8PR12CA0034.namprd12.prod.outlook.com (2603:10b6:930:49::22)
+ by LV3PR12MB9440.namprd12.prod.outlook.com (2603:10b6:408:215::5) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.11; Sat, 7 Nov
+ 2026 15:03:50 +0000
+Received: from CY5PEPF00000E81.namprd05.prod.outlook.com
+ (2603:10b6:930:49:cafe::6d) by CY8PR12CA0034.outlook.office365.com
+ (2603:10b6:930:49::22) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.592.11 via Frontend Transport; Sat, 7
+ Nov 2026 15:03:50 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 165.204.84.17) smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
+Received: from satlexmb07.amd.com (165.204.84.17) by
+ CY5PEPF00000E81.mail.protection.outlook.com (10.167.247.180) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.615.4 via Frontend Transport; Sat, 7 Nov 2026 15:03:49 +0000
+Received: from satlexmb08.amd.com (10.181.42.217) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.53; Sat, 7 Nov
+ 2026 09:03:49 -0600
+Received: from xhdipdslab46.xilinx.com (10.180.168.240) by satlexmb08.amd.com
+ (10.181.42.217) with Microsoft SMTP Server id 15.2.2562.53 via Frontend
+ Transport; Sat, 7 Nov 2026 09:03:45 -0600
+From: Abhijit Gangurde <abhijit.gangurde@amd.com>
+To: <jgg@ziepe.ca>, <leon@kernel.org>, <brett.creeley@amd.com>,
+	<andrew+netdev@lunn.ch>, <davem@davemloft.net>, <edumazet@google.com>,
+	<kuba@kernel.org>, <pabeni@redhat.com>
+CC: <allen.hubbe@amd.com>, <eric.joyner@amd.com>, <nikhil.agarwal@amd.com>,
+	<linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, Abhijit Gangurde <abhijit.gangurde@amd.com>
+Subject: [for-next 0/4] RDMA/ionic: add DMA MR and v2 atomic WQE
+Date: Sat, 7 Nov 2026 20:32:45 +0530
+Message-ID: <20261107150249.1576835-1-abhijit.gangurde@amd.com>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -64,134 +109,70 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CY5PEPF00000E81:EE_|LV3PR12MB9440:EE_
+X-MS-Office365-Filtering-Correlation-Id: 3e6cb494-6dd9-48ca-301e-08df3ce0549b
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|82310400026|36860700016|7416014|376014|23010399003|1800799024|18002099003|10067099003|261026140227099003|11063799006|261026121527099003|261028144727099003|261021121427099003|56012099006|261021135927099003|261022105027099003|261021123027099003|261009223027099003|261102123227099003;
+X-Microsoft-Antispam-Message-Info:
+	dWkgs9lbGlJG4Nl7whxeQXNIrLi3xV6ShHe71zEgMaOOkGH/GalYoSxG0oa1wTEKrdt0MZk8Lje5HFXh91OZDMrCyR1JyUxxOVEr6uKHddLUg+134Eg+hZPT4bW9aRfTPME896QNNxVJJvk1IuBBDVT+aSb4PJcKKSNtmQQXsHg58Nu3To+hk99EUvL0SoFvTb5YPJ5g2GgOziDMC3ZKKvOlKTGxV2qfTAnEZQtaaF6SefCxccbTHP4N0C5hAetJ08Bsb7JEXVMTaQBFNE7oosZSMvVA9ehQ4C7h31lYoXiL83zsCf9jAND3INTJLp46WawYpcLfF48lGBoZNj92HXjdFTACfbxjdolUKi4C7cCryFg4I9oHBK+xmDy1ZlipSlcWUx8YQa/JA9f0vVh11cJgnaFGxizSb1WGsBpwctHawFlo0DZ/WNOcflpc4hdburmaT7/4NFT1XLENzg0DISxDmzsA+BWA5CmWp3oblHnTbnLDcfC30REBDQLhOzlzCse7xg8XCrmCXWGuTelKSw4rPxEbTHGJttQNxA4XY37DAy/vuQa63e+GsqAVxobc/I9KgS+du/vkQJ+T+6G5kjCNmEebjmSEAh3+lT/7SCnw2V8lH+wjzwqj76/De62I4QbjZGLhIYVfsHJ2T/6nK+rL0CKzutjKjl3lX74aloWz798aXA6Lmc4067w9nA2m3vVq8HdJ+psaqUM8yjyKNQ==
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(36860700016)(7416014)(376014)(23010399003)(1800799024)(18002099003)(10067099003)(261026140227099003)(11063799006)(261026121527099003)(261028144727099003)(261021121427099003)(56012099006)(261021135927099003)(261022105027099003)(261021123027099003)(261009223027099003)(261102123227099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	f7CMrJ/odn6+ofrgDLA66mXyryUGz14v4YTbr9ZXaieGNmGJiBR14KT9FgD/8HBArbTwdr8lz6tAwJzPqpg5bvwB7UuwUaG0qY2JDOVc2dwZwaVAlgel2gPDjTeIYB4peKbrnpgqfYWGT2yFt4nNW40+ZqV52g76t9I5Dlxc/qjYfKp7/GoNpoBzLx4eu91ISKb/a1HSwcqewE9tyoI8R2G0JCSGozY1iOoIOs1ok2k6mPj6WwHrGtAh6lFychpVX257Hb2ag3sFEAZ+1fj6Ujvr563mIRE2EjczWPWMI3e/Yi2FVhWXzU0BSXT0RDrN3Tpl28BbAT12liqojoPneFqAJa2z3jlnxFyd+yRGl/PvIk16p/UbsNhM/Lnn3imLgO2pTpGGoST27OBycNvn6ILbER77KV48k4P3UjbOtGsPbqH/mwQ859bZMHyFr2dq
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Nov 2026 15:03:49.8807
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3e6cb494-6dd9-48ca-301e-08df3ce0549b
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CY5PEPF00000E81.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV3PR12MB9440
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
+Add a generic RDMA capability word to the LIF identity and use it
+to allocate a PD-scoped DMA memory region. Use the v2 atomic send
+WQE on RDMA version 2. Also fix the v1 atomic WQE so the operands
+are not overwritten by the common payload.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 0
+Net changes pull request:
+The following changes since commit 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+  Linux 7.4-rc1 (2026-11-01 13:26:31 -0800)
 
-- [Medium] The new failure path in mlx5e_tc_rule_offload()
-  (drivers/net/ethernet/mellanox/mlx5/core/en_tc.c) calls…
+are available in the Git repository at:
 
---
+  https://github.com/abhijitG-xlnx/linux.git ionic-shared
 
-net/mlx5e: TC, release meter if rule offload fails
+for you to fetch changes up to e64b2ae81599ce9e17fab5e635b8fe22df09739b:
 
-When mlx5_eswitch_add_offloaded_rule() fails, this patch makes
-mlx5e_tc_rule_offload() release the flow meter and the post meter state
-that mlx5e_tc_add_flow_meter() set up. Before the patch, that meter
-reference leaked when mlx5e_tc_add_fdb_flow() failed.
+  net: ionic: add an RDMA capability word to the LIF identity (2026-11-05 09:18:39 +0530)
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> index 708b7987ea4cd..17bd92529a44a 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+Abhijit Gangurde (2):
+  net: ionic: add an RDMA capability word to the LIF identity
+  RDMA/ionic: preserve atomic operands in the send WQE
 
-[ ... ]
+Gregor Dick (2):
+  RDMA/ionic: allocate a PD-scoped DMA MR
+  RDMA/ionic: use the v2 atomic send WQE layout
 
-> @@ -503,9 +505,14 @@ mlx5e_tc_rule_offload(struct mlx5e_priv *priv,
->  		err = mlx5e_tc_add_flow_meter(priv, attr);
->  		if (err)
->  			return ERR_PTR(err);
-> +		meter_added = true;
->  	}
->  
-> -	return mlx5_eswitch_add_offloaded_rule(esw, spec, attr);
-> +	rule = mlx5_eswitch_add_offloaded_rule(esw, spec, attr);
-> +	if (IS_ERR(rule) && meter_added)
-> +		mlx5e_tc_del_flow_meter(esw, attr);
-
-[Severity: Medium]
-Can this lead to a double free of the post meter and an extra meter put?
-
-mlx5e_tc_del_flow_meter() kfree()s attr->meter_attr.post_meter and drops
-the attr->meter_attr.meter reference, but it does not clear either
-pointer:
-
-mlx5e_tc_del_flow_meter() {
-	mlx5e_post_meter_cleanup(esw, attr->meter_attr.post_meter);
-	mlx5e_tc_meter_put(attr->meter_attr.meter);
-}
-
-attr->dest_ft and the FWD_DEST action bit set by
-mlx5e_tc_add_flow_meter() also stay in place.
-
-mlx5e_tc_rule_unoffload() treats a non-NULL meter pointer as a live
-reference:
-
-	if (attr->meter_attr.meter)
-		mlx5e_tc_del_flow_meter(esw, attr);
-
-So any later unoffload of the same attr releases the meter again.
-
-That later unoffload looks reachable through mlx5e_reoffload_encap() in
-en/tc_tun_encap.c. Consider a fast path FDB flow with a police or MTU
-meter that redirects to an encap device:
-
-mlx5e_invalidate_encap()
-  mlx5e_tc_unoffload_fdb_rules(esw, flow, flow->attr)
-    releases meter ref #1 and post_meter P1
-
-mlx5e_reoffload_encap()
-  mlx5e_tc_offload_fdb_rules()
-    mlx5e_tc_rule_offload()
-      mlx5e_tc_add_flow_meter()          takes ref #2 and P2
-      mlx5_eswitch_add_offloaded_rule()  fails
-      mlx5e_tc_del_flow_meter()          frees P2, puts ref #2,
-                                         attr->meter_attr still set
-
-mlx5e_reoffload_encap() then marks the flow as offloaded even when this
-step fails:
-
-		rule = mlx5e_tc_offload_fdb_rules(esw, flow, spec, flow->attr);
-		if (IS_ERR(rule)) {
-			mlx5e_tc_unoffload_flow_post_acts(flow);
-			...
-		}
-		...
-		flow_flag_set(flow, OFFLOADED);
-
-The flow is now OFFLOADED and not SLOW. The next flow delete
-(mlx5e_tc_del_fdb_flow()) or route event (mlx5e_invalidate_encap()) goes
-through:
-
-mlx5e_tc_unoffload_fdb_rules()
-  mlx5e_tc_rule_unoffload()
-    mlx5e_tc_del_flow_meter()
-      mlx5e_post_meter_cleanup()  reads freed P2->type, destroys its HW
-                                  objects again, kfree()s P2 again
-      mlx5e_tc_meter_put()        drops a reference that is no longer
-                                  held
-
-The extra mlx5e_tc_meter_put() could also destroy a meter that other
-flows using the same police index still rely on.
-
-Before this patch, P2 and ref #2 leaked at the failure point and were
-released exactly once by the later unoffload. With this patch they are
-released twice.
-
-The same mlx5e_tc_rule_unoffload() call also passes the stale
-flow->rule[0] to mlx5_eswitch_del_offloaded_rule() on this path. That
-problem already existed and comes from the unconditional OFFLOADED in
-mlx5e_reoffload_encap(). The split_count failure branch in
-mlx5e_tc_offload_fdb_rules() already left similar stale meter state
-before this patch. The main path this commit targets, where
-mlx5e_tc_add_fdb_flow() fails, does look correct.
-
-Would it help to set attr->meter_attr.meter and
-attr->meter_attr.post_meter to NULL, and undo the attr->dest_ft change,
-after mlx5e_tc_del_flow_meter() in this failure path? A later unoffload
-would then skip the meter release.
-
-> +
-> +	return rule;
->  }
+ .../infiniband/hw/ionic/ionic_controlpath.c   | 38 +++++++++++++++++--
+ drivers/infiniband/hw/ionic/ionic_datapath.c  | 17 +++++++--
+ drivers/infiniband/hw/ionic/ionic_fw.h        | 31 +++++++++++++++
+ drivers/infiniband/hw/ionic/ionic_ibdev.h     |  1 -
+ drivers/infiniband/hw/ionic/ionic_lif_cfg.c   |  1 +
+ drivers/infiniband/hw/ionic/ionic_lif_cfg.h   |  1 +
+ .../net/ethernet/pensando/ionic/ionic_if.h    |  4 +-
+ 7 files changed, 83 insertions(+), 10 deletions(-)
 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261103102856.1340672-1-vulab%40iscas.ac.cn
+2.43.0
+
