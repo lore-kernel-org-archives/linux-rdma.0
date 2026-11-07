@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794083109;
-	b=E3Y9bCvx/CK+Xc9AyK4XDGQnsR+90hf94WIIJZgzLtiz24hqoPTU2vXfGhCqUuIY1x4q
-	 CPioJMva+Vtf9YeFpiRCiWEeXuThISLQd424BWKDN+I7482G2nMsVkjJCqaZE7Pxbhva7
-	 Rds5+lr6Yf7drcvpuWXAHy3cL8S5cBhldqdZQ0aEsxjz/zm8Re2WiYdHHkaDWUmcEDOA6
-	 I50l+4r3Q4eN+0zpikZ4gq3j3JRvv5j9C0BpbapjIair3SAqOvgLUkM3hCdiXC7cldgsa
-	 mHr4gzO+8gT4eqg6xyk+lF8QL36ikHFehrztfVpHidZUo6UVoFqUI5+aR0PtAimQVUg==
+	t=1794083110;
+	b=AYKkZ1AWxS29pZCMfYa836SOq7DY+1BZ05bdfgNGvMoqagXqp7rKKql3+Y+ehk7OyCsp
+	 a/ikLKOicR/bRHTdXdG8J0OJvin/OdXJ+dBV1Ex+TQrcHLynGHcSRNbRGXL980jm4rWPx
+	 g48QDNWjBG+En5s8xvCpPNaLFZ+/xhEwHAzEwAqLYgIQ6yH4N5PrHyfxIjWc7xR7DEktD
+	 /ztVXH5BMBNV8WUQOLmAcWCIAxGX6OwkcIJzIlBzJMD1eex+bzT5zlS0BCk7FCCkjpRqa
+	 B8NnmEarjxO548BTo80DcSAtWi24ybb1GEizqj0chIa1CG95QBwbJWnxU9Xxf8Yhvgg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794083109;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794083110;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=UOtCBSOn5V/eKHQPasnj6GmvDtV9GtzD6cyzFQmsMc0=;
-	b=LPfMh1lhh55zqGVXe0FpeYqTQjyMAycakPArHz/UmtxwdRFgU8ysYQWLbv2KExWhOzHY
-	 nim9985qaj2Md9Q+CLXn6CLuGHoBO7gZyGBwgtqcfcH2Ril3hz+4wAmbfbqEku3pfL2eH
-	 7RHJN2yDzVm+SOUZcHvEyGMqfXTG20kAvq5HM7ll49ROF664+QLeLPzOKzsaSfH2gFdYN
-	 2oBRlmdHhvcjWQuIoZbPiCqmcyQ9rJIuTklRNByf6VXt3j5Yj2J8A//U5KzZFa7Uc+Qss
-	 35S0txRjKP/aKN9tnKcumTRC35lMJxx3Oxbvvk8vYK0LWx3WPXvTePwnfAsGTlnRUQg==
+	bh=QrM0wRuxSi6AkZLyXsOroSJYFNWLYb5pdHSFzXTWJt4=;
+	b=wD359lA1Rf6OYp3hafZsCe6IRyiS3AQHVr93FkTelsi9D9hcxSkRaImBfc0MAuJNRfP7
+	 jb/PDZJpWDT9GP2n/LGhy5dh5I+9ncB0C651KPAdwpnxNE+Abtiv9pxcIr+s2ag81hAwB
+	 4N/wH/5AOhzn6FIJ7frSdmBQbRRmEpK2nX6MO+Gz8SOWjPu4DJKBMc+AjzxBvKYsrfoFe
+	 KeA3aoLCip7x5vDY5qgIAqMJj4qiktyHxADxMyEFS0RlVoFLY9CpjsIMoD5T94WkF7cXr
+	 70QgFQQPWT52BCUjFcAj33BdKvVBMSWFycjBa+6WRA4QsDQ6r0+h6jF6cquMJat0NIA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aaDlFMos;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bE6to7pg;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CB7B606EEA3;
-	Sat,  7 Nov 2026 20:25:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4022C606EEA8;
+	Sat,  7 Nov 2026 20:25:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aaDlFMos
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5C741F008A2;
-	Sat,  7 Nov 2026 20:25:07 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bE6to7pg
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 522451F008AB;
+	Sat,  7 Nov 2026 20:25:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794083108;
-	bh=UOtCBSOn5V/eKHQPasnj6GmvDtV9GtzD6cyzFQmsMc0=;
+	s=k20260515; t=1794083110;
+	bh=QrM0wRuxSi6AkZLyXsOroSJYFNWLYb5pdHSFzXTWJt4=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=aaDlFMos8NGprK1dc67qWLXWsbtACSDr+UDRch2SccFrngCDgaSvMWHfeV49sQFyx
-	 P2VrXRCnuXVhXuFT8V0xAb8k9GJFp2LyJLZLcZS0YE2T01bVPM2RIPXSa7n4qsfbYo
-	 sKEHvpaX9bE7f8auaWgrkk1mT2P7Px1K0xVibQu2CPF41EdDAAiUZQdgsLoEtu99IF
-	 y1t13ExDw5Z9ELuc1vDzs++HnI5DKn2lbvKaoMLct61niIvrmiS/83NHfH8EbZzBjQ
-	 vVsvrizz5FLqw5tPCmFDJsNwkJIjBbwsHqjvXxKnALRhvALAQVvymMgBn1EFqYQEew
-	 4C1QxZ5gB9biQ==
-Subject: Re: [PATCH rdma-next 21/23] RDMA/mlx5: Clamp log_max_* shifts in
- query_device and ucontext paths
+	b=bE6to7pgL3r+A1eEEGASfb3u4fs1J1os4O8Sto7Keg7cxUtLpkYRb0sKIgkM9j4Dq
+	 ApBf+sH7S4usCjMi/pX86Cj1Z3YDzeNybVsti4xfybK7SwVYRdq1RJCKy5oaiUwSf1
+	 Hte+YQaxJ1cSSjgvLcmScEcHblpAJvIq3zXMJi7vSkHuVTVKSYTEHlBVSsSPcvDak6
+	 JEB5MQLVnHcnrJKLdTnGvqY0uG6jiD3pQjocFnbgNwk84QJ1oDKyEeuMXwV5uIX4p/
+	 RCzOX3yD7p7rbmwGmzKPEUGGauo47v91xAAedILjH4eUEk15nUSp382n8R+NtaDwGE
+	 aA3W+PgcbEU1Q==
+Subject: Re: [PATCH rdma-next 23/23] RDMA/mlx5: Advertise adversarial mode via
+ ib_device::adversarial_mode
 From: netdev-bot+sashiko@kernel.org
 To: yishaih@nvidia.com
 Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
@@ -49,10 +49,10 @@ Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
  mbloch@nvidia.com, kuba@kernel.org, pabeni@redhat.com, edumazet@kernel.org,
  davem@davemloft.net, andrew+netdev@lunn.ch, dtatulea@nvidia.com,
  moshe@nvidia.com, maorg@nvidia.com
-Date: Sat, 07 Nov 2026 20:25:07 +0000
-Message-ID: <179408310732.994134.11296743978617194234@kernel.org>
-In-Reply-To: <20261103163949.1554-22-yishaih@nvidia.com>
-References: <20261103163949.1554-22-yishaih@nvidia.com>
+Date: Sat, 07 Nov 2026 20:25:08 +0000
+Message-ID: <179408310891.994134.2389971836310893033@kernel.org>
+In-Reply-To: <20261103163949.1554-24-yishaih@nvidia.com>
+References: <20261103163949.1554-24-yishaih@nvidia.com>
 X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -66,10 +66,10 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 3 potential
+Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 2
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -77,147 +77,118 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [Medium] mlx5_ib_create_srq() (drivers/infiniband/hw/mlx5/srq.c) now
-  takes its SRQ size limit from MLX5_CAP_GEN_LOGSZ_U32(log_max_srq_sz).
-- [Low] The commit message does not fully match the diff.
-- [Low] When FW reports log_max_cq_sz >= 31, mlx5_ib_query_device() now
-  advertises props->max_cqe = MLX5_CAP_GEN_LOGSZ_U32(log_max_cq_sz) - 1…
+- [Medium] The series is not bisectable on confidential-computing (CoCo)
+  guests.
+- [Low] The commit message understates what this one line does.
 
 --
 
-RDMA/mlx5: Clamp log_max_* shifts in query_device and ucontext paths
+RDMA/mlx5: Advertise adversarial mode via ib_device::adversarial_mode
 
-This commit replaces the open-coded 1 << cap computations of FW log_max_*
-capabilities with MLX5_CAP_GEN_LOGSZ_U32() and MLX5_CAP_GEN_LOGSZ_U64().
-This covers the query_device, query_port, ucontext and SRQ create paths.
-It also computes max_qp_wr in 64 bits and saturates the max_res_rd_atom
-and max_total_mcast_qp_attach products at U32_MAX.
-
-> The device, port and ucontext attributes and the SRQ size limit are
-> computed as 1 << cap from 8-bit log_max_* FW capabilities. An untrusted
-> NIC can report 31 or more, which makes the shift undefined. The same
-> applies to 1ull << log_pg_sz with a value of 64 or more.
-
-[Severity: Low]
-This isn't a bug, but is the "8-bit log_max_*" description accurate? In
-mlx5_ifc.h several of the converted fields are narrower, for example:
-
-	u8         log_max_msg[0x5];
-
-log_tag_matching_list_sz is also 5 bits wide. log_max_klm_list_size and
-log_max_ra_req_qp are 6 bits.
-
-The diff also changes the tso_caps computation in mlx5_ib_query_device():
-
-	resp.tso_caps.max_tso = BIT(max_tso);
-
-Here max_tso comes from the 5-bit Ethernet cap MLX5_CAP_ETH(max_lso_cap),
-not from a log_max_* general cap, and the commit message doesn't mention
-this change. The BIT() conversion itself looks correct.
-
-Could the message be updated to cover this change and to fix the field
-width?
+This commit sets ib_device::adversarial_mode from the
+mlx5_ib_adversarial_mode global in mlx5_ib_stage_caps_init(). The uverbs
+core can then report adversarial mode to rdma-core and only let
+adversarial-mode-aware userspace open a context on the device.
 
 > diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> index c29102260989f..ace4cdc95c9da 100644
+> index ace4cdc95c9da..f8af90941b53d 100644
 > --- a/drivers/infiniband/hw/mlx5/main.c
 > +++ b/drivers/infiniband/hw/mlx5/main.c
-
-[ ... ]
-
-> @@ -1111,29 +1112,31 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
->  	props->max_send_sge = max_sq_sg;
->  	props->max_recv_sge = max_rq_sg;
->  	props->max_sge_rd	   = MLX5_MAX_SGE_RD;
-> -	props->max_cq		   = 1 << MLX5_CAP_GEN(mdev, log_max_cq);
-> -	props->max_cqe = (1 << MLX5_CAP_GEN(mdev, log_max_cq_sz)) - 1;
-> +	props->max_cq		   = MLX5_CAP_GEN_LOGSZ_U32(mdev, log_max_cq);
-> +	props->max_cqe = MLX5_CAP_GEN_LOGSZ_U32(mdev, log_max_cq_sz) - 1;
-
-[Severity: Low]
-If FW reports log_max_cq_sz >= 31, this advertises max_cqe as 2^31 - 1.
-Can the CQ create path actually honour that value?
-
-mlx5_ib_create_user_cq() in cq.c rounds the requested size up and then
-checks it against INT_MAX:
-
-	if (entries > max_cq_entries || entries > INT_MAX)
-		return -EINVAL;
-
-cq_roundup_entries() is 1ULL << fls64(cqe), so any cqe in
-[2^30, 2^31 - 1] rounds up to 2^31 and gets -EINVAL. That makes the real
-maximum 2^30 - 1.
-
-Would a consumer that sizes its CQ from attrs.max_cqe then fail to create
-the CQ? For log_max_cq_sz <= 30 the two values agree.
-
-[ ... ]
-
-> diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-> index 6a4a937d97ce9..3fbb0eaf12558 100644
-> --- a/drivers/infiniband/hw/mlx5/srq.c
-> +++ b/drivers/infiniband/hw/mlx5/srq.c
-> @@ -198,7 +198,7 @@ int mlx5_ib_create_srq(struct ib_srq *ib_srq,
->  	size_t buf_size;
->  	int err;
->  	struct mlx5_srq_attr in = {};
-> -	__u32 max_srq_wqes = 1 << MLX5_CAP_GEN(dev->mdev, log_max_srq_sz);
-> +	__u32 max_srq_wqes = MLX5_CAP_GEN_LOGSZ_U32(dev->mdev, log_max_srq_sz);
+> @@ -4778,6 +4778,7 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
+>  	}
+>  
+>  	dev->ib_dev.use_cq_dim = true;
+> +	dev->ib_dev.adversarial_mode = mlx5_ib_adversarial_mode;
 
 [Severity: Medium]
-With log_max_srq_sz >= 31 this limit now saturates at 2^31. Can the rest
-of mlx5_ib_create_srq() handle queue sizes that large?
+Can the series still be bisected on CoCo guests when this assignment
+comes last?
 
-In adversarial mode the caps filter passes log_max_srq_sz through
-unchanged (MLX5_HCA_CAP_ALLOW in caps_filter.c). A uverbs user could then
-request max_wr = 0x7fffffff, which passes the
-init_attr->attr.max_wr >= max_srq_wqes check. After that:
+An earlier patch, "RDMA/mlx5: Derive mlx5_ib_adversarial_mode global from
+mlx5_core adversarial API", sets the global in mlx5_ib_init():
 
-	srq->msrq.max    = roundup_pow_of_two(init_attr->attr.max_wr + 1);
+    mlx5_ib_adversarial_mode = mlx5_is_adversarial();
 
-This stores 2^31 into the int max field of struct mlx5_core_srq, which
-becomes INT_MIN.
+This comes from cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT), so it is true
+on any SEV-SNP/TDX guest.
 
-	buf_size = srq->msrq.max * desc_size;
-	if (buf_size < desc_size)
-		return -EINVAL;
+Next, "RDMA/mlx5: Block generic CQ poll path in adversarial mode" adds
+this to mlx5_poll_one():
 
-When msrq.max >= 2^26, this size_t product is a power of two >= 2^31. It
-passes the wrap check. However, create_srq_user() and create_srq_kernel()
-take int buf_size, so the value is truncated to 0 or INT_MIN.
+    if (unlikely(mlx5_ib_adversarial_mode))
+        return -EOPNOTSUPP;
 
-On the user path the truncated value becomes the min_size passed to
-ib_umem_get_desc_check(), so a dmabuf descriptor of any size is accepted.
+That patch says this is safe because kernel ULPs don't bind to the device.
 
-in.log_size = ilog2(srq->msrq.max) still describes the full queue to FW.
-mlx5_cmd_create_srq()->create_srq_cmd()->__set_srq_page_size() then calls
-get_pas_size(), which computes:
+However, kernel ULPs only stop binding once ib_device_check_mandatory()
+sees the core flag:
 
-	u32 rq_sz	  = 1 << (log_srq_size + 4 + log_rq_stride);
+    if (device->adversarial_mode)
+        device->kverbs_provider = false;
 
-Here the shift count is 32 to 36. That is the same kind of undefined shift
-this commit removes.
+mlx5 doesn't set ib_dev.adversarial_mode until this commit.
 
-The garbage result feeds the WARN_ON() that compares against
-ib_umem_num_dma_blocks() in __set_srq_page_size(). A local user could
-make that WARN fire, or create an SRQ whose FW-declared size doesn't match
-the pinned buffer.
+That leaves a window from the CQ poll blocking patch up to "RDMA/core:
+Report and enforce adversarial mode via GET_CONTEXT". In that window,
+kverbs_provider stays true for mlx5 on a CoCo guest.
 
-Finally, init_attr->attr.max_wr = srq->msrq.max - 1 is a signed overflow
-when msrq.max is INT_MIN.
+add_client_context() then binds MAD, CM, rdma_cm, IPoIB, SRP, iSER,
+NVMe-oF and the other clients. Their CQs use mlx5_poll_one():
 
-The downstream overflow could already be reached with log_max_srq_sz
-values of 26 to 30. However, the commit message notes "the limits can now
-reach 2^31" and fixes other consumers of 2^31 values.
+mlx5_ib_poll_cq()
+  cq->poll_one() == mlx5_poll_one()
+    returns -EOPNOTSUPP
 
-Should the SRQ path get a tighter bound as well? For example, it could
-reject msrq.max > INT_MAX / desc_size, or keep
-log_size + 4 + wqe_shift below 32. The sibling patch "RDMA/mlx5: Clamp
-log_max_cq_sz shift in CQ size checks" adds a similar INT_MAX bound for
-CQs.
+mlx5_ib_poll_cq() stops at the first non-zero return, so it always reports
+0 completions. Wouldn't MAD sends time out, the IPoIB TX ring fill up, and
+NVMe-oF/SRP I/O hang in those intermediate commits?
 
->  	__u32 max_sge_sz =  MLX5_CAP_GEN(dev->mdev, max_wqe_sz_rq) /
->  			    sizeof(struct mlx5_wqe_data_seg);
+In the same window, legacy rdma-core would still get contexts, and uverbs
+POLL_CQ would always come back empty.
+
+Could this assignment move into the patch that enables the driver-side
+mode? Another option is to place it right after "RDMA/core: Suppress
+kverbs_provider for adversarial_mode devices", before any hardening patch
+that changes behaviour. Either way, every commit in the series would keep
+working.
+
+[Severity: Low]
+This isn't a bug, but the commit message only says:
+
+    Set ib_device::adversarial_mode during capability init so that the
+    uverbs core layer can report adversarial mode to rdma-core and enforce
+    that only adversarial-mode-aware userspace opens a context on this
+    device.
+
+In practice, this line turns on the full adversarial policy for every
+mlx5 ib_device on a CC_ATTR_GUEST_MEM_ENCRYPT guest. The pf, raw_eth/rep
+and plane profiles all run MLX5_IB_STAGE_CAPS.
+
+With the flag set, ib_device_check_mandatory() clears kverbs_provider.
+add_client_context() then skips every client that lacks no_kverbs_req:
+
+    if (!device->kverbs_provider && !client->no_kverbs_req)
+        return 0;
+
+Only uverbs has no_kverbs_req. As a result, MAD, ib_umad, IB CM, SA,
+rdma_cm, IPoIB, SRP, iSER, NVMe-oF, NFS/RDMA, RDS and SMC-R no longer
+bind.
+
+Because cma and SA never bind, librdmacm users going through ucma can't
+use the device either, even if they are adversarial-aware.
+
+Unmodified rdma-core also gets -EPERM, both from GET_CONTEXT and from the
+legacy write() path.
+
+There is no opt-out, since the decision comes only from
+cc_platform_has(). Other patches in the series say this is intended, but
+this commit is where it takes effect for mlx5.
+
+Could the commit message say that, once this is applied, kernel ULPs and
+rdma_cm-based userspace stop working on mlx5 in CoCo guests?
+
+>  
+>  	return 0;
 >
 
 -- 
