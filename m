@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794083083;
-	b=o1raAIT+E6wGOa6pxDgd89UY43SXPtBED/VmngCkZ8P2+MT3RqHgG1xkDafLQQPG9PoM
-	 yduhSytOvWTsJ8Cx6Nkw8Dst0MpDxPO9eDfPPabhHStXkt9OhYruV7TJ61YMs8p2kBMRN
-	 TxP5xcsOkZWecBnIsDrT4MK3NpVdO/vdbtcDUmQ9smeud8cdigOLy9UeJ271/tKE7J9gm
-	 lgcf4f3L75NZqVbY7VTEP1DK6zXRFF5MyuR1zIbXeqiKviTAnXhZcitmw8BaUXRGShfTU
-	 zH+VrTxINpwtY8eNPFKszglZqYOa7R4mNJZenIonyHcy1y+Nxv0vPthjlveLIwOLXLA==
+	t=1794083089;
+	b=fHmq8Gt4A68VO6HnzAz5y5Zm6xKGfGOrr3IEVN8cnVtEpT+JOv5CP9WWeZs7S9sxOlEf
+	 ezQEvZaZNzc3946WGtxg+yVV5+A8PnDkYb4xT4dgLr1+fVXEWeDMNwTtnzuZRsY5KY8CT
+	 42uY4ikzaKZItIXPfv3dFxNSdzkDUjoruDec7QU8z/xofFOIH4IOpNvtdUHDLKsB2qx9A
+	 FYXPSBzdXoOnHCetc4KeROGO8mukCw8k1gwbXX6sDhgKXcczdan7xqneseqw0yfpxxHyo
+	 A1NRipT6M8N9pF8fxb3ALIdQTKgivWQVTwfpfLz7BHp1VFeBfc/Ktlrz7YLCRkmW+Vg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794083083;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794083089;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=fHBfhv5Os1UERuh0WwXS8t9EiYrGbuhZFIIikND+GOk=;
-	b=SPSJcD7E/VFlvPbUF0TNg2B1zSwAQR8EDkGs0iyih/BZHyEwqmH5rijITLTHLXQr7IjE
-	 K7U7f3SbfGFjO4PGAGduIapvleQ7FgNgT8atcqzKdPuJcN+4G3Oc8Gxq07zvhbi+9SGIB
-	 Kst8Sq2bn11iaDJQh58BDOnjHeZCFGaQV/vDvv0I5NFlBsKrJnYOp10iTArSqAHC8VPhk
-	 R8sRuDQ67trXvspsXxY58q3tRQEVbuZsv/H49OPXJFdDNHUgvQrZIRkXEtJilYYTsyr3/
-	 ibp1/xg5Ks4S3nstvrCfwCCv42qjB/vzV8zIL5LRx0DAFJcoFU+DQ93Kze1bvWKNjbg==
+	bh=Unnn47eIJH+VWHbuiao6Wl8xY049BGGS8bKARiEkrUk=;
+	b=pT+ytLNJtsDqnRAfQSgQRzR/lUMp/lFa/M42hzivUx+H3pZ6KpqZRVtD/7C06M0mF4kK
+	 xrQqw7Wh45j9xrgNZWVeKvffOZzJAf6igbF4i5spm4CUaRCAZZ4B1G3eSqP5F/T+yINeg
+	 6WpkPok/xWp5E0xp5fmIltGRaXIsL2kR01pYgUZxYes6y/rQYbeOp5Q/UnHLSDpNl2uiC
+	 /BBbgAIuNnnab6UFnXneRPE7J6JdudS5GgWN73O2gPzxuf5s+JVxpqrhVBg5RJgJqc1bJ
+	 wV9XWeAwmzJ++MTnabDq0Z4UXwxu6nWZd8/0qPh8RBSRP8l6jYrhTo39rxuxZsqmqDg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jsqePyln;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=W0gpbalT;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 772DE606D807;
-	Sat,  7 Nov 2026 20:24:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFC10606A326;
+	Sat,  7 Nov 2026 20:24:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jsqePyln
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 420521F008A1;
-	Sat,  7 Nov 2026 20:24:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=W0gpbalT
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D24321F0089F;
+	Sat,  7 Nov 2026 20:24:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794083083;
-	bh=fHBfhv5Os1UERuh0WwXS8t9EiYrGbuhZFIIikND+GOk=;
+	s=k20260515; t=1794083088;
+	bh=Unnn47eIJH+VWHbuiao6Wl8xY049BGGS8bKARiEkrUk=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=jsqePylnZzrLJn3BHHzddesh0LiLeTPKYZjdV9Q0ubuSMWB0jMTGT+OLZGG2PNZne
-	 QNPI2t40o/OozbyE1V+Z8BqYpeWaldOkczQQJ98qhodgr74dITGRpb7onHiRd3Xl+T
-	 HMZTpH1rDtM92zhpu8yultB0xEaIVSvB3rqxgF+8i41lzOKBUyZxN+u8EX8E//pMPf
-	 VwchixEWAcejgzEe6Bsga/+I4Wq44mk2pasKfQ2TnxW9N4INhZMU57Lb3Se2NhxNRi
-	 JCUwUp2g3zMYKlebv5M0ya9VipDPjqgVQKaQkFBLaL8C940Zt3AROIQ3AsrSUjzt94
-	 Cu8wAU14nIuYQ==
-Subject: Re: [PATCH rdma-next 02/23] net/mlx5: Derive adversarial mode from CC
- guest memory encryption
+	b=W0gpbalT/l2tMx3qCy1scnm6UeLUU4v24bTnFhvTV/zYbp1lfSj09YOHe61A0jiVp
+	 /WV7TMGigrAhkNjCLz+DBbVwMLUaIU5QnG4U1IKBKtYTe5t3lcyfsigCJW/FntZ7JJ
+	 MgWkaSLmia5L0dJGAgmf3ZDIgEHtyhNXeP/XiCe7tgCu//g8i2SmgK2kvwz8RAEBCU
+	 nqP8rphQG8sjk9bj1+9PtnF2+tJvMZPwrcYTaZ5LDqit6U084DiA7lSJN1KYPKF/jV
+	 iDGweRpBWUbLFTReM+lnqJt3B8NWdbTL3UZ1sMP/I2EXPj5PQy6RpjVe1M44DNsYll
+	 jBMWi4ZziBoJw==
+Subject: Re: [PATCH rdma-next 06/23] RDMA/mlx5: Require IB_QPT_DRIVER for the
+ DC vendor QP types
 From: netdev-bot+sashiko@kernel.org
 To: yishaih@nvidia.com
 Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
@@ -49,11 +49,11 @@ Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
  mbloch@nvidia.com, kuba@kernel.org, pabeni@redhat.com, edumazet@kernel.org,
  davem@davemloft.net, andrew+netdev@lunn.ch, dtatulea@nvidia.com,
  moshe@nvidia.com, maorg@nvidia.com
-Date: Sat, 07 Nov 2026 20:24:41 +0000
-Message-ID: <179408308185.994134.9934571250726048143@kernel.org>
-In-Reply-To: <20261103163949.1554-3-yishaih@nvidia.com>
-References: <20261103163949.1554-3-yishaih@nvidia.com>
-X-sashiko-severity: Low
+Date: Sat, 07 Nov 2026 20:24:47 +0000
+Message-ID: <179408308744.994134.2975103686531354002@kernel.org>
+In-Reply-To: <20261103163949.1554-7-yishaih@nvidia.com>
+References: <20261103163949.1554-7-yishaih@nvidia.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -66,89 +66,77 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 · Low: 0
 
-- [Low] mlx5_is_adversarial() in
-  drivers/net/ethernet/mellanox/mlx5/core/main.c is exported…
-- [Low] mlx5_is_adversarial(void) takes no device argument and returns
-  cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT), so the decision applies to…
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] The commit "RDMA/mlx5: Require IB_QPT_DRIVER for the DC vendor
+  QP types" fixes a regression that userspace can trigger, but its…
 
 --
 
-net/mlx5: Derive adversarial mode from CC guest memory encryption
+RDMA/mlx5: Require IB_QPT_DRIVER for the DC vendor QP types
 
-This patch adds mlx5_is_adversarial(), exported from mlx5_core. It
-reports whether the driver should treat the NIC as untrusted. The result
-comes from cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT), so it is true in
-any confidential computing guest.
+This patch changes process_vendor_flags() in drivers/infiniband/hw/mlx5/qp.c
+so that it rejects MLX5_QP_FLAG_TYPE_DCI and MLX5_QP_FLAG_TYPE_DCT unless
+the QP was requested as IB_QPT_DRIVER. Without this check, an RC/UC/UD QP
+that carries a DC flag becomes a DC QP and skips the dct capability check
+in check_qp_type().
 
-> Add mlx5_is_adversarial() to report whether the driver treats the NIC
-> as untrusted. In a confidential computing guest, the hypervisor and any
-> passthrough device are outside the guest's trust boundary, so the mode
-> is derived from cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT).
+> Accept the DC type flags only on IB_QPT_DRIVER, the type userspace
+> uses to create DC QPs.
 >
-> This turns adversarial mode on automatically in such guests, without
-> any administrator configuration.
+> Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
 
-[Severity: Low]
-This isn't a bug, but is the last sentence accurate for this patch on its
-own? Nothing calls mlx5_is_adversarial() at this commit, so this patch by
-itself does not change behaviour in a CC guest.
+[Severity: Medium]
+Should this patch carry a Fixes: tag and Cc: stable? Userspace can reach
+the behavior it fixes, and nothing in the message tells stable maintainers
+to pick it up.
 
-The callers arrive later in the series:
+The problem seems to come from commit 37518fa49f76 ("RDMA/mlx5: Process
+all vendor flags in one place"). That commit changed the guard around the
+process_vendor_flags() call in the create path from:
 
-  "net/mlx5: Add capability filtering in adversarial mode" (caps_filter.c)
+    if (init_attr->qp_type == IB_QPT_DRIVER)
 
-  "RDMA/mlx5: Derive mlx5_ib_adversarial_mode global from mlx5_core
-  adversarial API" (drivers/infiniband/hw/mlx5/main.c)
+to:
 
-Could the changelog say that the users come in follow-up patches?
+    if (udata)
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-> index 1a45474ce03db..f9e10464a71b5 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+After that, the DCI/DCT type flags were processed for every user QP type.
 
-[ ... ]
+Commit 7aede1a25f4b ("RDMA/mlx5: Store QP type in the vendor QP
+structure") then made the switch in process_vendor_flags() write
+qp->type = MLX5_IB_QPT_DCI or MLX5_IB_QPT_DCT directly. It still did not
+check which type was requested.
 
-> @@ -484,6 +485,12 @@ bool mlx5_is_roce_on(struct mlx5_core_dev *dev)
->  }
->  EXPORT_SYMBOL(mlx5_is_roce_on);
->  
-> +bool mlx5_is_adversarial(void)
-> +{
-> +	return cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT);
+>From then on, an unprivileged verbs user can create an IB_QPT_RC QP with
+MLX5_QP_FLAG_TYPE_DCT set in the ucmd flags and get this path:
 
-[Severity: Low]
-This isn't a bug, but this check treats every device in a CC guest as
-adversarial, and the helper takes no device argument. That matches the
-current tree, which has no guest-side way to detect a trusted (T=1)
-device.
+mlx5_ib_create_qp()
+  check_qp_type()          <- dct cap only checked for IB_QPT_DRIVER
+  qp->type = IB_QPT_RC;
+  process_vendor_flags()
+    qp->type = MLX5_IB_QPT_DCT;
+  check_qp_attr()
+  create_qp()
 
-ib_register_device() in drivers/infiniband/core/device.c uses the same
-check and documents the assumption:
+check_qp_attr(), create_qp() and the modify/query/destroy paths then
+dispatch on the mlx5 qp->type. Meanwhile ibqp->qp_type still says
+IB_QPT_RC.
 
-	/*
-	 * In a CoCo guest every device is currently assumed to be untrusted
-	 * (T=0) and therefore subject to DMA bouncing. Once trusted (T=1)
-	 * device detection is wired up, narrow this check to exclude such
-	 * devices.
-	 */
-	if (dma_device && cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT))
-		device->cc_dma_bounce = 1;
+Since this goes back to the 2020 refactor (v5.8), would something like
+the following be appropriate?
 
-Would a similar comment here, or a note in the changelog, be worth
-adding? Once T=1 detection exists, narrowing this check would also mean
-giving mlx5_is_adversarial() a device argument.
-
-> +}
-> +EXPORT_SYMBOL_GPL(mlx5_is_adversarial);
-
-[ ... ]
+Fixes: 37518fa49f76 ("RDMA/mlx5: Process all vendor flags in one place")
+Cc: stable@vger.kernel.org
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261103163949.1554-1-yishaih%40nvidia.com
