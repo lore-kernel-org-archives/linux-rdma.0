@@ -1,61 +1,64 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=156.67.10.101
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794083099;
-	b=aCqQOwp70g9Db4ZsEynm/Q2lKpjyw7jwttc03qpBJNNVgcNIwEDgQxgYUVo0QqMT7WYL
-	 uMzW7OWj03M7rQFtOuZxUgIzSMdDlEZ9y3P2KrxwtCEa0WgG1hBGssg6XmWFgSTMXu0kF
-	 riQxNud48MKEeD4XMat5CaxJfdETET9B8vdzTND9OCoBrqPwIBzVu7/85j6mxKCxUSgDR
-	 ILu6T97d2TjLHeg/yve9T2A8nKqqcuT2eSXWzxsjRE1Oc/uRISU2TzJsMt1zG+RmNJ0LJ
-	 5p6no+v4NQoSgpwZUJSFqYXCYeS79C7083Nux5lkD50Ws/aEYPF4EEF6O18RfMFw6wg==
+	t=1794085405;
+	b=1octOSD9P1Tp2OZ7NIZiVowQYqsCUosVY0mqyBM3VrV6f4hZC4Xj5mJWk3OiqBJOygwE
+	 CA6riCvUaH5bBzV7GCc+fjR27hjTA3+sDnWSy0GFUvHAv2bIX11OUEk/htQzOkl14QJns
+	 WMGjgO2tstmusneUp0r1VIvpa3Zxp4GwBOgiezks8frmNBr3o2ufPUlgpE+mRSUGpzMmr
+	 ik9VC8caikUv2v9XNJRTXon+vSOzmcqy5A62TbGnnSAEz1mFqOZD5xD0UwSigG1EHem5P
+	 nTlV6zben4vgq1b75aBdRc3jqYlfkSsvBeOj815jVh6U0iFIwwYWa+esA9CMG8iWiSQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794083099;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=4fCGgazJKFdZDmvhViTFIBsaBbB0idRarQju6kAmmNU=;
-	b=dbut+bNA3I6lqdtPD25feOY8iXNzq2K+d9M/JBsu+yCLTPScp3s5Cm7lkP8c153OaDjL
-	 /CuQkRwWdpGzj+Elo2MVawp9Z04ABye1bf0/mBpIeNFqcIwmoHgAOT7zHoVJaNQH+nKMc
-	 97jH9AdzzGfIou3b5pU6WT9g8lgNBLMW0eomZTp0835DD9t3dg43Oosx3ZdULdT8a37Qr
-	 t3TMlqozVGBvPLkUVPxqbjWA5/gg8q4dMrtPNGCYKG3jXUnU+hOmnaKApuQhXndRFRhc/
-	 /uobQFyrzig3E3tbMXS7jTnXsppgvibGRx9R84cqX/0qayb8f5J5KpxXNKB1YtFbu0w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794085405;
+	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To;
+	bh=5sO1lU80ZjfwUdMSovSpngbH5Rby3bvgBLbLRv/3gAA=;
+	b=MdqfK/d8LEa9benuK4c/hRXSGO5BYG49kRQR4Wwml5iCcVtckez/iezX2Q1urFMm7fw3
+	 jdSK2NiRuWVkQHkZi7zFEt2Nvd7BzTFec/0mOmQ98OVcduz/HCZ/E359Tk5QDANK0JwQc
+	 aQHHaaRYskREZSzKVQdBCRno1OAkTQ3+k0YOE9rNkkM+NFWYRj8LSFBZUSuo7yD7GQgZB
+	 Kuiv88T1wLciGPoGDyd7V507k6OKWoYk0/rT5/sf7IdK7h3PPUeFwOxglMUV5ZnPQA682
+	 tOtjhvQq3YEYSs4om02Penem/zKCKNvmw6TiTifipNhJzuguuO+fswU4KmBGPtX5S3w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Aa/S9TSY";
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=lunn.ch;
+	spf=pass smtp.mailfrom=lunn.ch;
+	dkim=pass header.d=lunn.ch header.i=@lunn.ch header.a=rsa-sha256 header.s=20171124 header.b=SYKUJMHL;
+	arc=none smtp.remote-ip=156.67.10.101
+Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CA75606D809;
-	Sat,  7 Nov 2026 20:24:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C6D9606A326;
+	Sat,  7 Nov 2026 21:03:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3C6D9606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lunn.ch
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Aa/S9TSY
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C978A1F008A1;
-	Sat,  7 Nov 2026 20:24:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794083098;
-	bh=4fCGgazJKFdZDmvhViTFIBsaBbB0idRarQju6kAmmNU=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=Aa/S9TSYwDd1iVH3wltz6Mkfo0oW8Bw2MX3UMP8c8xJIQmmDNO5c9VRmfSNoI1ZTH
-	 73iVGNG3HbHIWMXswydxCeby5yCQrQiry7AcMLfGxVrWonucmxg6A2qxfk0nU6mtHa
-	 v0ztWmvK/Iyeh/LVJE3TaKy12WrcxY125GnmMQze4EXOhNk7HVeX8XYqPZOwoRn8aN
-	 VZzB5o+oKgK7LCed37gGkZplEtdbuxCoE+Ifjq3WlCLWGGvz/mJ9wOoQkvd2+YTjhj
-	 MWLiR11nnGDbWcus+VYeZbP40GgQ5IIg1EKCuq/N2iFqk7+IcqhB9EIiMrgOP+ivu2
-	 Bi9Ar4+9Cmkxg==
-Subject: Re: [PATCH rdma-next 14/23] RDMA/mlx5: Block generic CQ poll path in
- adversarial mode
-From: netdev-bot+sashiko@kernel.org
-To: yishaih@nvidia.com
-Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
- netdev@vger.kernel.org, saeedm@nvidia.com, tariqt@nvidia.com,
- mbloch@nvidia.com, kuba@kernel.org, pabeni@redhat.com, edumazet@kernel.org,
- davem@davemloft.net, andrew+netdev@lunn.ch, dtatulea@nvidia.com,
- moshe@nvidia.com, maorg@nvidia.com
-Date: Sat, 07 Nov 2026 20:24:57 +0000
-Message-ID: <179408309736.994134.11736251866287600894@kernel.org>
-In-Reply-To: <20261103163949.1554-15-yishaih@nvidia.com>
-References: <20261103163949.1554-15-yishaih@nvidia.com>
-X-sashiko-severity: Low
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.a=rsa-sha256 header.s=20171124 header.b=SYKUJMHL
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
+	s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
+	Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
+	bh=5sO1lU80ZjfwUdMSovSpngbH5Rby3bvgBLbLRv/3gAA=; b=SYKUJMHLwSJPTJe73wnodG2khs
+	9fKnuVmlmOEP8MTRsWeWUOAi6Ae+AnYD1Vsp7zxxcTaPXOSPQ5SSEq5mmiuH7gYBpMUz1gNrLAtdq
+	WRh2M7SvMzOuh4hH/P7cXahahjCMt6Pe3TqvX2egw42jAVieBG266UPrQT9rL6pfvobs=;
+Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
+	(envelope-from <andrew@lunn.ch>)
+	id 1xPnYz-00F0OA-Cu; Sat, 07 Nov 2026 22:03:01 +0100
+Date: Sat, 7 Nov 2026 22:03:01 +0100
+From: Andrew Lunn <andrew@lunn.ch>
+To: Xin Tian <tianx@yunsilicon.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+	Junxian Huang <huangjunxian6@hisilicon.com>, weihg@yunsilicon.com,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org
+Subject: Re: [PATCH v1 07/15] net/xsc: add ethernet netdev registration
+Message-ID: <7bf0875f-f5c5-4894-8e26-433aa40c2e04@lunn.ch>
+References: <20261104155650.37053-1-tianx@yunsilicon.com>
+ <20261104155705.37053-8-tianx@yunsilicon.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -65,95 +68,203 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261104155705.37053-8-tianx@yunsilicon.com>
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+> @@ -1,7 +1,6 @@
+>  # SPDX-License-Identifier: GPL-2.0
+>  # Copyright (C) 2021-2026, Shanghai Yunsilicon Technology Co., Ltd.
+>  # All rights reserved.
+> -#
+>  # Yunsilicon driver configuration
+>  #
 
-Low priority / nit picks for your consideration:
+Please don't include hunks like this. Was this added be a previous
+patch in this patchset? Then fix it back then. If this is already in
+mainline, add a patch making these 'whitespace' changed.
 
-- [Low] The commit message and the new comment in mlx5_poll_one()
-  (drivers/infiniband/hw/mlx5/cq.c) give the wrong example of the…
-
---
-
-RDMA/mlx5: Block generic CQ poll path in adversarial mode
-
-This commit makes mlx5_poll_one() return -EOPNOTSUPP when
-mlx5_ib_adversarial_mode is set. The generic CQ poller trusts CQE
-content, so with this change it never interprets a CQE from an untrusted
-NIC. The UMR CQ is expected to use its own validating poll_one instead.
-
-> diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-> index 1a98263ec3111..5cc86c3f93f3e 100644
-> --- a/drivers/infiniband/hw/mlx5/cq.c
-> +++ b/drivers/infiniband/hw/mlx5/cq.c
-> @@ -464,6 +464,15 @@ static int mlx5_poll_one(struct mlx5_ib_cq *cq,
->  	void *cqe;
->  	int idx;
->  
-> +	/*
-> +	 * This path trusts the CQE, so refuse it in adversarial_mode. Only an
-> +	 * unexpected caller gets here, e.g. the uverbs POLL_CQ command or an
-> +	 * event on the UMR CQ before its own poll_one is installed. Nothing is
-> +	 * consumed, so such a CQE is left for that poll_one.
-> +	 */
-
-[Severity: Low]
-Can the uverbs POLL_CQ command actually reach mlx5_poll_one() on mlx5?
-The commit message uses the same example:
-
-  "Refuse it there, so an unexpected caller, such as the uverbs POLL_CQ
-  command, finds the CQ empty and no CQE is interpreted."
-
-_ib_alloc_device() builds the default uverbs_cmd_mask without
-IB_USER_VERBS_CMD_POLL_CQ. mlx5 never adds that bit; only bnxt_re and
-rdmavt set it. As a result, uapi_create_write() disables the write
-method:
-
-drivers/infiniband/core/uverbs_uapi.c:uapi_create_write() {
-    ...
-	method_elm->disabled = !(ibdev->uverbs_cmd_mask &
-				 BIT_ULL(def->write.command_num));
-    ...
-}
-
-uapi_finalize_disable() then removes the method from the uapi tree. So
-POLL_CQ doesn't appear to be reachable on mlx5.
-
-The case that can be reached seems to be the UMR CQ during setup.
-mlx5r_umr_resource_init() arms the CQ here:
-
-	cq = ib_alloc_cq(&dev->ib_dev, NULL, 128, 0, IB_POLL_SOFTIRQ);
-
-mlx5_ib_create_cq() sets cq->poll_one = mlx5_poll_one.
-mlx5_ib_poll_one_umr is only installed later, after ib_create_qp() and
-mlx5r_umr_qp_rst2rts().
-
-If a completion event with a forged CQE arrives in that window, the
-softirq poller calls mlx5_poll_one(). The earlier "Verify UMR CQ polling
-against a hostile NIC" patch leaves this window open, and it looks like
-the case this patch really closes.
-
-The code comment mentions this window, but the commit message doesn't.
-Could the commit message describe the UMR setup window as the case being
-fixed? Could both the commit message and the comment drop the POLL_CQ
-example?
-
-The commit message also says:
-
-  "kernel ULPs don't bind to the device"
-
-ib_device::adversarial_mode is only set by the later "RDMA/mlx5:
-Advertise adversarial mode via ib_device::adversarial_mode" patch. Is
-that statement accurate at this commit?
-
-> +	if (unlikely(mlx5_ib_adversarial_mode))
-> +		return -EOPNOTSUPP;
+> +static int xsc_eth_open(struct net_device *netdev)
+> +{
+> +	struct xsc_adapter *adapter = netdev_priv(netdev);
+> +	int ret;
 > +
->  repoll:
->  	cqe = next_cqe_sw(cq);
->  	if (!cqe)
+> +	if (adapter->opened) {
+> +		netdev_err(adapter->netdev, "ndo_open on an already opened device\n");
+> +		return 0;
+> +	}
+> +
 
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261103163949.1554-1-yishaih%40nvidia.com
+How does this happen?
+
+And returning 0 seems odd. Something bad has happened, so at least
+EBUSY.
+
+> +
+> +	xsc_set_default_xps_cpumasks(adapter);
+> +
+> +	ret = xsc_set_port_admin_status(adapter, XSC_PORT_UP);
+> +	if (ret)
+> +		netdev_err(netdev, "failed to set port admin status up, err=%d\n",
+> +			   ret);
+> +
+> +	return 0;
+
+return err?
+
+
+> +}
+> +
+> +static int xsc_eth_close(struct net_device *netdev)
+> +{
+> +	struct xsc_adapter *adapter = netdev_priv(netdev);
+> +	int ret;
+> +
+> +	if (!adapter->opened)
+> +		return 0;
+
+How does this happen?
+
+Is there an error code ENOTBUSY? 
+
+> +static void xsc_eth_build_nic_netdev(struct xsc_adapter *adapter)
+> +{
+> +	struct net_device *netdev = adapter->netdev;
+> +
+> +	/* Set up network device as normal. */
+> +	netdev->netdev_ops = &xsc_netdev_ops;
+> +
+> +	netdev->min_mtu = SW_DEFAULT_MTU;
+> +	netdev->max_mtu = SW_DEFAULT_MTU;
+> +	/*mtu - macheaderlen - ipheaderlen should be aligned in 8B*/
+> +	netdev->mtu = SW_DEFAULT_MTU;
+
+What has MTU got to do with alignment?
+
+> +static int xsc_eth_get_mac(struct xsc_core_device *xdev, char *mac)
+> +{
+> +	struct xsc_query_eth_mac_mbox_out *out;
+> +	struct xsc_query_eth_mac_mbox_in in;
+> +	int err;
+> +
+> +	out = kzalloc_obj(*out, GFP_KERNEL);
+> +	if (!out)
+> +		return -ENOMEM;
+> +
+> +	memset(&in, 0, sizeof(in));
+> +	in.hdr.opcode = cpu_to_be16(XSC_CMD_OP_QUERY_ETH_MAC);
+> +
+> +	err = xsc_cmd_exec(xdev, &in, sizeof(in), out, sizeof(*out));
+> +	if (err || out->hdr.status) {
+> +		netdev_warn(xsc_dev_to_netdev(xdev),
+> +			    "get mac failed! err=%d, out.status=%u\n",
+> +			    err, out->hdr.status);
+> +		err = -ENOEXEC;
+> +		goto exit;
+> +	}
+> +
+> +	memcpy(mac, out->mac, ETH_ALEN);
+
+There are helpers for copying MAC addresses around.
+
+> +static int xsc_eth_probe(struct auxiliary_device *adev,
+> +			 const struct auxiliary_device_id *adev_id)
+> +{
+
+...
+
+> +	err = register_netdev(netdev);
+> +	if (err) {
+> +		netdev_err(netdev, "register_netdev failed, err=%d\n", err);
+> +		goto err_free_stats;
+> +	}
+
+The stack can up the interface and start sending packets before this
+function call returns. NFS root often does that.
+
+> +
+> +	xdev->netdev = netdev;
+
+
+Does anything bad happens in open and packet Rx and Tx if xdev->netdev
+== NULL because this assignment has not happened yet.
+
+> +
+> +	xsc_irq_event_register(xdev, xsc_eth_link_event_handler);
+
+And does anything bad happen if the event handler is not registered?
+
+> +static void xsc_eth_remove(struct auxiliary_device *adev)
+> +{
+> +	struct xsc_adev *xsc_adev = container_of(adev, struct xsc_adev, adev);
+> +	struct xsc_core_device *xdev = xsc_adev->xdev;
+> +	struct xsc_adapter *adapter;
+> +
+> +	if (!xdev)
+> +		return;
+
+How does that happen?
+
+> +
+> +	adapter = xdev->eth_priv;
+> +	if (!adapter)
+> +		return;
+
+How does that happen?
+
+> +
+> +	/* Stop link events reaching this adapter and wait out one already in
+> +	 * flight, which would otherwise touch the memory freed below.
+> +	 */
+> +	xsc_irq_event_unregister(xdev);
+> +
+> +	/* Runs ndo_stop(), so the queues and the HCA are shut down first. */
+> +	unregister_netdev(adapter->netdev);
+> +
+> +	/* Must precede free_netdev(): the adapter lives in the netdev priv. */
+> +	xsc_eth_nic_cleanup(adapter);
+> +	kvfree(adapter->stats);
+> +	free_netdev(adapter->netdev);
+> +
+> +	xdev->netdev = NULL;
+> +	xdev->eth_priv = NULL;
+
+> +static inline void xsc_tx_dma_unmap(struct device *dev, struct xsc_sq_dma *dma)
+> +{
+> +	switch (dma->type) {
+> +	case XSC_DMA_MAP_SINGLE:
+> +		dma_unmap_single(dev, dma->addr, dma->size, DMA_TO_DEVICE);
+> +		break;
+> +	case XSC_DMA_MAP_PAGE:
+> +		dma_unmap_page(dev, dma->addr, dma->size, DMA_TO_DEVICE);
+> +		break;
+> +	default:
+> +		break;
+> +	}
+
+This should probably not be hiding away somewhere in a header file.
+
+> +static inline struct xsc_cqe *xsc_cqwq_get_cqe(struct xsc_cqwq *wq)
+> +{
+> +	u32 ci = xsc_cqwq_get_ci(wq);
+> +	u8 cqe_ownership_bit;
+> +	struct xsc_cqe *cqe;
+> +	u8 sw_ownership_val;
+> +
+> +	cqe = xsc_cqwq_get_cqe_buff(wq, ci);
+> +
+> +	cqe_ownership_bit = !!(le32_to_cpu(cqe->data1) & XSC_CQE_DATA1_OWNER);
+> +	sw_ownership_val = xsc_cqwq_get_wrap_cnt(wq) & 1;
+> +
+> +	if (cqe_ownership_bit != sw_ownership_val)
+> +		return NULL;
+> +
+> +	/* ensure cqe content is read after cqe ownership bit */
+> +	dma_rmb();
+> +
+> +	return cqe;
+
+This is also a bit big for an include file inline. Plus that dma_rmb()
+should not be hiding, it should be in plain sight.
+
+	Andrew
