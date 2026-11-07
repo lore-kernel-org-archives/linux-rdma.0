@@ -1,64 +1,65 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=156.67.10.101
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=134.2.5.213
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794085405;
-	b=1octOSD9P1Tp2OZ7NIZiVowQYqsCUosVY0mqyBM3VrV6f4hZC4Xj5mJWk3OiqBJOygwE
-	 CA6riCvUaH5bBzV7GCc+fjR27hjTA3+sDnWSy0GFUvHAv2bIX11OUEk/htQzOkl14QJns
-	 WMGjgO2tstmusneUp0r1VIvpa3Zxp4GwBOgiezks8frmNBr3o2ufPUlgpE+mRSUGpzMmr
-	 ik9VC8caikUv2v9XNJRTXon+vSOzmcqy5A62TbGnnSAEz1mFqOZD5xD0UwSigG1EHem5P
-	 nTlV6zben4vgq1b75aBdRc3jqYlfkSsvBeOj815jVh6U0iFIwwYWa+esA9CMG8iWiSQ==
+	t=1794089473;
+	b=iOh28THE3JlXN9wYrjoL5c6IU557UMVN5bxXrMfbexPill6gwyrfbdbTDlQlR5oPxn8g
+	 8K2c03MI4RilgLVWvg5wXw/VZrTgc7ymn3sRDmkITqwxPdKRcgfT3oldmUuVFEo5OKCEZ
+	 KX4kWAeN9BtblQq1g7D4PJ9HyouWls5Z1a4jGJLd0HJ7A1ynRyqi79ZeqMpDImZhdBIHK
+	 jF4mbO6EgHzAcYKrOHKO1cDPr09Hn6O7KpW0Jcbs/6I38uFSesHd2il4DKS/3HJF0jK8v
+	 AY2P4CQBQ5d0kwalV4Z+ZNvmrCqmz4IIUAKAww33x4EIKiiB99eqaOPunnaV78Fxf+w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794085405;
-	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To;
-	bh=5sO1lU80ZjfwUdMSovSpngbH5Rby3bvgBLbLRv/3gAA=;
-	b=MdqfK/d8LEa9benuK4c/hRXSGO5BYG49kRQR4Wwml5iCcVtckez/iezX2Q1urFMm7fw3
-	 jdSK2NiRuWVkQHkZi7zFEt2Nvd7BzTFec/0mOmQ98OVcduz/HCZ/E359Tk5QDANK0JwQc
-	 aQHHaaRYskREZSzKVQdBCRno1OAkTQ3+k0YOE9rNkkM+NFWYRj8LSFBZUSuo7yD7GQgZB
-	 Kuiv88T1wLciGPoGDyd7V507k6OKWoYk0/rT5/sf7IdK7h3PPUeFwOxglMUV5ZnPQA682
-	 tOtjhvQq3YEYSs4om02Penem/zKCKNvmw6TiTifipNhJzuguuO+fswU4KmBGPtX5S3w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794089473;
+	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:Received:Received:
+	 Date:Message-ID:From:To:Cc:Subject:User-Agent:Content-Type:
+	 MIME-Version:Content-Disposition;
+	bh=1y2KEO9H0fAP3VEF9szmBFs6F6Xc0bbtVRC5J3NwA3I=;
+	b=V2i1cKp+2E7RjYTe1xwQV+G5wefg/yWW2BF2hFUascrcrQ7yEptMaIHfwKFP09uOTEUe
+	 VQnWyCdWyHuUjCC+0JhTKdvZjY5ieOYjrmbaKBCqCoXcKJ+ymHpnmtXbzA7TLoc9S3izR
+	 9W70r2fZOxDRY4saoJA0xmVV7hBRSlpiZJRxJxGUrHrHilbk1w6YhXD2LQVTxJHKOAt33
+	 tdEv2fY1Im9CwSSDYKR1afvUMiRfdB7e4OilLmo3YXZPJPQjKFXeGPyizwpDxJZMNqgeK
+	 Lm5g9d76/9xx4jhWF2cmYHtsslDpNsEMTWoj34PMRWMkZ+vuV7qqfx9WVsV2dlslJRg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=lunn.ch;
-	spf=pass smtp.mailfrom=lunn.ch;
-	dkim=pass header.d=lunn.ch header.i=@lunn.ch header.a=rsa-sha256 header.s=20171124 header.b=SYKUJMHL;
-	arc=none smtp.remote-ip=156.67.10.101
-Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
+	dmarc=pass header.from=student.uni-tuebingen.de;
+	spf=pass smtp.mailfrom=student.uni-tuebingen.de;
+	arc=none smtp.remote-ip=134.2.5.213
+Received: from mx03.uni-tuebingen.de (mx03.uni-tuebingen.de [134.2.5.213])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C6D9606A326;
-	Sat,  7 Nov 2026 21:03:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3C6D9606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lunn.ch
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.a=rsa-sha256 header.s=20171124 header.b=SYKUJMHL
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
-	s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
-	Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
-	bh=5sO1lU80ZjfwUdMSovSpngbH5Rby3bvgBLbLRv/3gAA=; b=SYKUJMHLwSJPTJe73wnodG2khs
-	9fKnuVmlmOEP8MTRsWeWUOAi6Ae+AnYD1Vsp7zxxcTaPXOSPQ5SSEq5mmiuH7gYBpMUz1gNrLAtdq
-	WRh2M7SvMzOuh4hH/P7cXahahjCMt6Pe3TqvX2egw42jAVieBG266UPrQT9rL6pfvobs=;
-Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
-	(envelope-from <andrew@lunn.ch>)
-	id 1xPnYz-00F0OA-Cu; Sat, 07 Nov 2026 22:03:01 +0100
-Date: Sat, 7 Nov 2026 22:03:01 +0100
-From: Andrew Lunn <andrew@lunn.ch>
-To: Xin Tian <tianx@yunsilicon.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
-	Junxian Huang <huangjunxian6@hisilicon.com>, weihg@yunsilicon.com,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org
-Subject: Re: [PATCH v1 07/15] net/xsc: add ethernet netdev registration
-Message-ID: <7bf0875f-f5c5-4894-8e26-433aa40c2e04@lunn.ch>
-References: <20261104155650.37053-1-tianx@yunsilicon.com>
- <20261104155705.37053-8-tianx@yunsilicon.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A304F606A33D
+	for <linux-rdma@vger.kernel.org>; Sat,  7 Nov 2026 22:11:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A304F606A33D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=student.uni-tuebingen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=student.uni-tuebingen.de
+Received: from webmail1.uni-tuebingen.de (webmail1.uni-tuebingen.de [IPv6:2001:7c0:300c:3105::8602:5c2])
+	by mx03.uni-tuebingen.de (Postfix) with ESMTPS id 879F720C6EA5;
+	Sat,  7 Nov 2026 23:11:02 +0100 (CET)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mx03.uni-tuebingen.de 879F720C6EA5
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uni-tuebingen.de;
+	s=20211202prod; t=1794089462;
+	bh=1y2KEO9H0fAP3VEF9szmBFs6F6Xc0bbtVRC5J3NwA3I=;
+	h=Date:From:To:Cc:Subject:From;
+	b=rUZEVD5cZYudj8WdYZREgc844rsl0MiZtwG/e/snXz6iC2z0Vw0p+Ah76+K2Kj6oB
+	 ue4icUTOKKGvknJh17evGVAi16wK0OwlmuqW/GB/C66sRYuLwxWybPhebk5AFVoAqx
+	 tNeMKvjpBdGnmCYtSi89KY8NnRusUmssAbryOXRsHik5jPguwZvMxdF2Z+ZMiSnINo
+	 o78uAcKMQFED7n7Tmt4snqjdCJMN4iTEkFClvVoBN6h26yN1Mho7EFfXiLmo3ZPdg1
+	 klZT0Xu91SuWDHrES2FckSJwBWPm/UEFbETF5h0sDfnoIZr/4Qhd7PS5HzqAHFcx6m
+	 SKMDagcFee7PQ==
+Received: from webmail1.uni-tuebingen.de (localhost [127.0.0.1])
+	by webmail1.uni-tuebingen.de (Postfix) with ESMTPSA id 4822560AE18E;
+	Sat,  7 Nov 2026 23:11:02 +0100 (CET)
+Received: from ipservice-092-209-235-033.092.209.pools.vodafone-ip.de
+ (ipservice-092-209-235-033.092.209.pools.vodafone-ip.de [92.209.235.33]) by
+ webmail.uni-tuebingen.de (Horde Framework) with HTTPS; Sat, 07 Nov 2026
+ 23:11:02 +0100
+Date: Sat, 07 Nov 2026 23:11:02 +0100
+Message-ID: <20261107231102.Horde.VTLAyGut_WGch71PWzwoxG_@webmail.uni-tuebingen.de>
+From: Dezhen Lu <dezhen.lu@student.uni-tuebingen.de>
+To: linux-rdma@vger.kernel.org
+Cc: huangjunxian6@hisilicon.com, tangchengchang@huawei.com
+Subject: rdma-core: aarch64 mmio_memcpy_x64() ignores constant lengths, and
+ libhns relies on it
+User-Agent: Horde Application Framework 5
+Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -68,203 +69,61 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261104155705.37053-8-tianx@yunsilicon.com>
 
-> @@ -1,7 +1,6 @@
->  # SPDX-License-Identifier: GPL-2.0
->  # Copyright (C) 2021-2026, Shanghai Yunsilicon Technology Co., Ltd.
->  # All rights reserved.
-> -#
->  # Yunsilicon driver configuration
->  #
+Hello,
 
-Please don't include hunks like this. Was this added be a previous
-patch in this patchset? Then fix it back then. If this is already in
-mainline, add a patch making these 'whitespace' changed.
+At rdma-core master a70151dfec390eb5f7fc5b266f51d601da2a7778, the
+aarch64 mmio_memcpy_x64() in util/mmio.h tests
+__builtin_constant_p((bytecount) == 64). That is true whenever the
+comparison has a known result, so a constant length other than 64 also
+takes the 64-byte path and only 64 bytes are written. Both the macro and
+its libhns caller came in with 159933c37450 ("libhns: Add support for
+direct wqe").
 
-> +static int xsc_eth_open(struct net_device *netdev)
-> +{
-> +	struct xsc_adapter *adapter = netdev_priv(netdev);
-> +	int ret;
-> +
-> +	if (adapter->opened) {
-> +		netdev_err(adapter->netdev, "ndo_open on an already opened device\n");
-> +		return 0;
-> +	}
-> +
+Run from the repository root after ./build.sh, on aarch64:
 
-How does this happen?
+```sh
+cat > t.c <<'C'
+#include <stdio.h>
+#include <util/mmio.h>
 
-And returning 0 seems odd. Something bad has happened, so at least
-EBUSY.
+int main(void)
+{
+	static __attribute__((aligned(64))) unsigned char src[128], dst[128];
+	int n = 0;
 
-> +
-> +	xsc_set_default_xps_cpumasks(adapter);
-> +
-> +	ret = xsc_set_port_admin_status(adapter, XSC_PORT_UP);
-> +	if (ret)
-> +		netdev_err(netdev, "failed to set port admin status up, err=%d\n",
-> +			   ret);
-> +
-> +	return 0;
+	for (int i = 0; i < 128; i++)
+		src[i] = i + 1;
+	mmio_memcpy_x64(dst, src, 128);
+	while (n < 128 && dst[n])
+		n++;
+	printf("copied %d of 128 bytes\n", n);
+	return 0;
+}
+C
+gcc -O2 -I. -Ibuild/include t.c -o t && ./t
+```
 
-return err?
+Observed: copied 64 of 128 bytes
+Expected: copied 128 of 128 bytes
 
+libhns depends on this. hns_roce_write512() passes
+sizeof(struct hns_roce_rc_sq_wqe), which is 32, and gets the 64-byte
+direct WQE write it needs. Fixing only the macro would pass 32 to
+_mmio_memcpy_x64(), whose size_t counter then wraps, so the copy never
+stops. I would fix it in two patches: libhns passes 64 (taken from the
+function name and HNS_ROCE_SQWQE_SHIFT), then the macro checks
+__builtin_constant_p(bytecount) && (bytecount) == 64.
 
-> +}
-> +
-> +static int xsc_eth_close(struct net_device *netdev)
-> +{
-> +	struct xsc_adapter *adapter = netdev_priv(netdev);
-> +	int ret;
-> +
-> +	if (!adapter->opened)
-> +		return 0;
+I ran the reproducer with Apple clang 21 on arm64 against the tree's
+util/mmio.h (stub Linux headers): 64 bytes before the patches, 128
+after, at -O0 to -O2. gcc 13.3 on Linux aarch64 truncates the same way
+in a copy of the macro. With gcc 13.3 the patches add no build warnings,
+leave .text unchanged in libhns, libmlx4 and libmlx5, and change code
+only in libefa and libionic. I have no hns hardware, so nothing ran
+against a device.
 
-How does this happen?
-
-Is there an error code ENOTBUSY? 
-
-> +static void xsc_eth_build_nic_netdev(struct xsc_adapter *adapter)
-> +{
-> +	struct net_device *netdev = adapter->netdev;
-> +
-> +	/* Set up network device as normal. */
-> +	netdev->netdev_ops = &xsc_netdev_ops;
-> +
-> +	netdev->min_mtu = SW_DEFAULT_MTU;
-> +	netdev->max_mtu = SW_DEFAULT_MTU;
-> +	/*mtu - macheaderlen - ipheaderlen should be aligned in 8B*/
-> +	netdev->mtu = SW_DEFAULT_MTU;
-
-What has MTU got to do with alignment?
-
-> +static int xsc_eth_get_mac(struct xsc_core_device *xdev, char *mac)
-> +{
-> +	struct xsc_query_eth_mac_mbox_out *out;
-> +	struct xsc_query_eth_mac_mbox_in in;
-> +	int err;
-> +
-> +	out = kzalloc_obj(*out, GFP_KERNEL);
-> +	if (!out)
-> +		return -ENOMEM;
-> +
-> +	memset(&in, 0, sizeof(in));
-> +	in.hdr.opcode = cpu_to_be16(XSC_CMD_OP_QUERY_ETH_MAC);
-> +
-> +	err = xsc_cmd_exec(xdev, &in, sizeof(in), out, sizeof(*out));
-> +	if (err || out->hdr.status) {
-> +		netdev_warn(xsc_dev_to_netdev(xdev),
-> +			    "get mac failed! err=%d, out.status=%u\n",
-> +			    err, out->hdr.status);
-> +		err = -ENOEXEC;
-> +		goto exit;
-> +	}
-> +
-> +	memcpy(mac, out->mac, ETH_ALEN);
-
-There are helpers for copying MAC addresses around.
-
-> +static int xsc_eth_probe(struct auxiliary_device *adev,
-> +			 const struct auxiliary_device_id *adev_id)
-> +{
-
-...
-
-> +	err = register_netdev(netdev);
-> +	if (err) {
-> +		netdev_err(netdev, "register_netdev failed, err=%d\n", err);
-> +		goto err_free_stats;
-> +	}
-
-The stack can up the interface and start sending packets before this
-function call returns. NFS root often does that.
-
-> +
-> +	xdev->netdev = netdev;
+I used Claude, an AI coding assistant, for this report and the patches.
 
 
-Does anything bad happens in open and packet Rx and Tx if xdev->netdev
-== NULL because this assignment has not happened yet.
-
-> +
-> +	xsc_irq_event_register(xdev, xsc_eth_link_event_handler);
-
-And does anything bad happen if the event handler is not registered?
-
-> +static void xsc_eth_remove(struct auxiliary_device *adev)
-> +{
-> +	struct xsc_adev *xsc_adev = container_of(adev, struct xsc_adev, adev);
-> +	struct xsc_core_device *xdev = xsc_adev->xdev;
-> +	struct xsc_adapter *adapter;
-> +
-> +	if (!xdev)
-> +		return;
-
-How does that happen?
-
-> +
-> +	adapter = xdev->eth_priv;
-> +	if (!adapter)
-> +		return;
-
-How does that happen?
-
-> +
-> +	/* Stop link events reaching this adapter and wait out one already in
-> +	 * flight, which would otherwise touch the memory freed below.
-> +	 */
-> +	xsc_irq_event_unregister(xdev);
-> +
-> +	/* Runs ndo_stop(), so the queues and the HCA are shut down first. */
-> +	unregister_netdev(adapter->netdev);
-> +
-> +	/* Must precede free_netdev(): the adapter lives in the netdev priv. */
-> +	xsc_eth_nic_cleanup(adapter);
-> +	kvfree(adapter->stats);
-> +	free_netdev(adapter->netdev);
-> +
-> +	xdev->netdev = NULL;
-> +	xdev->eth_priv = NULL;
-
-> +static inline void xsc_tx_dma_unmap(struct device *dev, struct xsc_sq_dma *dma)
-> +{
-> +	switch (dma->type) {
-> +	case XSC_DMA_MAP_SINGLE:
-> +		dma_unmap_single(dev, dma->addr, dma->size, DMA_TO_DEVICE);
-> +		break;
-> +	case XSC_DMA_MAP_PAGE:
-> +		dma_unmap_page(dev, dma->addr, dma->size, DMA_TO_DEVICE);
-> +		break;
-> +	default:
-> +		break;
-> +	}
-
-This should probably not be hiding away somewhere in a header file.
-
-> +static inline struct xsc_cqe *xsc_cqwq_get_cqe(struct xsc_cqwq *wq)
-> +{
-> +	u32 ci = xsc_cqwq_get_ci(wq);
-> +	u8 cqe_ownership_bit;
-> +	struct xsc_cqe *cqe;
-> +	u8 sw_ownership_val;
-> +
-> +	cqe = xsc_cqwq_get_cqe_buff(wq, ci);
-> +
-> +	cqe_ownership_bit = !!(le32_to_cpu(cqe->data1) & XSC_CQE_DATA1_OWNER);
-> +	sw_ownership_val = xsc_cqwq_get_wrap_cnt(wq) & 1;
-> +
-> +	if (cqe_ownership_bit != sw_ownership_val)
-> +		return NULL;
-> +
-> +	/* ensure cqe content is read after cqe ownership bit */
-> +	dma_rmb();
-> +
-> +	return cqe;
-
-This is also a bit big for an include file inline. Plus that dma_rmb()
-should not be hiding, it should be in plain sight.
-
-	Andrew
