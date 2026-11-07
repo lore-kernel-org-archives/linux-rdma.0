@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794083086;
-	b=CXHTppegYTYM6Mfxo7KQ4XwlBUgyUxq+FRpywk1DH0zW0v4ByKyykZPLMd3SKgTQrQ/b
-	 CvMIa+9XW80MXD2hrunyCnszwSpSnxPGvaVZzkkTgrxfN6akpn43Fj33E8objmSNolQrm
-	 sVspq2Z9mj7k7EnulizGPUQT540r5k+Sm46FvTtH9zlVPi+1gRMRHQUryppletdOnc4dY
-	 +A9yrGGRfdUaBHSW4ZDMl8shVkkOsecPD8WXorxTWCFiQ+WFgttVfDVI5410tMvwQ8Qbf
-	 vMw2koJZ50NvniJ0DAoaQuophyeJYWxayHnF4McNYpjfG1NGu8EiLkWHKKhYBCUvXMA==
+	t=1794083100;
+	b=p6n8+mt1EBjgtSWrURk2yRrfK6t7Ivr+h3qEY8Zpw6B/lTk82wJygQiZxhPs2ZFoIIOe
+	 RBNNHpQQE0rHIRuhk/5+xfjd1vpTcOyPeoeBlIiW+mrDT+yk2WwkLCY8uKJBi+JwEXkwG
+	 i1miea97NuWov8ScYtgiOwGrhB6lDNnTiGSa3jPRJjeCei8jP2wWhXBTJN/lqq+1v8Nvg
+	 bv7FQeVND0xYE7S/a24bOYshqQKPrEHLNqp3eMLsTAQyN/D3Ddg50H2zaCdRKzpzzujH7
+	 0MoVmLeE/94JvqaWooZNGv4Ilnf9VrfJZWG9+RLgLTnNme+HP5rWifRNDDJTLIb0tNg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794083086;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794083100;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=ie2u8JN+L70ROsnYxsyM45Ac6lHUETJNMiYrIxdveY0=;
-	b=ffI1Zs5wt0L/P0JE3G9AHGiBrG7U+f2kkAI236oJ4q7OiFquh/c/9vukVFOy9ljNGj7o
-	 +5Fj/rlJjv9y1Vlwf8aSAM7X4KdJMAaXBHarBizRxnM0j8B0e4ldQPEj65Jt1uMjFHNXh
-	 Ht8L1NCrB2XpmFZ/iYcpxplcJ8J+VHFV6J7tMuo/x7zwFWKBmkj2lWznF/Tsls7E0W0gq
-	 2HhTI/Oh5/rm7VFNeaxpLXZ46eeiPg4S49Je9a0lEe7UlF2a+VO6aYSJsX0SnRHqXOpWA
-	 F4wRJEkSV4Qdh3W5jioQ91Ys/xObXRRfLAw4OG8DkdDol9VR+iTe3SegbGkLahcL45Q==
+	bh=+sYQxBcP7NU+0E9pOU+OKA6LcFbrC8mLyMrCGr9ieqk=;
+	b=RvhyWyfjKqOkSiKupO/KQHVWUpSjhXJDGPfWrbx+M+TITyAQAyoB4hYt/J7wKyg8XJPn
+	 i/2iGm5TM++Hpht4MvIY8F+BYllOI9ulrRD+DezrRiB/kXANMd41gw9Gis4qdb2DnjHNj
+	 CiU3DcRboHxR1oxLInUW1HahRCQvq+toL34s/OByyQQavPHA6w/9MZw2TBbT955oHP40R
+	 EpU7c3t5ItgoZdQTM3NVLXoRn1Hk6bDAnSYU9K3ZvZOFks18jgN7fSu9Q7Xr6h5mmJw0B
+	 lmNF0ymeK62aWKY/5hfVrDqGMdWUhNSOU+TEp0aXmZu36tk/+/eaFX8GQFfzd1F3ggQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=at073aq9;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VFX03h8o;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A005606A336;
-	Sat,  7 Nov 2026 20:24:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 204A9606A33D;
+	Sat,  7 Nov 2026 20:25:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=at073aq9
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24E9B1F008A4;
-	Sat,  7 Nov 2026 20:24:45 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VFX03h8o
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FD1D1F008A2;
+	Sat,  7 Nov 2026 20:24:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794083085;
-	bh=ie2u8JN+L70ROsnYxsyM45Ac6lHUETJNMiYrIxdveY0=;
+	s=k20260515; t=1794083100;
+	bh=+sYQxBcP7NU+0E9pOU+OKA6LcFbrC8mLyMrCGr9ieqk=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=at073aq9q6GB6Cvc7s9pCP3Cpm4fCkGjfNh9CxTyDGamoRg7c7tJPWMEAyRwVglQr
-	 uChLQH+bIYajcg9oRkTKApMaq/yaWF6fzyD1mkIc87n0Rxqj9jcN96oqojA4veltSH
-	 ZBDWQWRp3qSpK+bpNAUzC7b/fah3Ec+wryUGBzRYu5b24X4Z83+Bdohr8n/LtdRXya
-	 EYAo4AflwWdJOb1LPAVLXBg2MUrVehL9al1XaqZktY0GIWKlxM/xpitjl1MahyFavG
-	 D7P9RhG6rh6CqnyY+s4dGfM616Z79iFDXtVH74ikllCHxeHfAmQktY+d2FC1gVzNs1
-	 OTFKkX4f8VORw==
-Subject:
- Re: [PATCH rdma-next 04/23] net/mlx5: Add macros for reading log-based caps
+	b=VFX03h8o7bT+5Mveui5Muo6i4nlLdvi+b83+WVobPLnPR+kJYbbC4MXI9ZQUK9yhq
+	 WZs3p/Dx/GzDAI2vpfd06EgENTfZ4SIDEzyMsgFMSrHI9S+6oRBjVO2Mkn2B2AX+wY
+	 wukSNALw7qOyDqmCpIc/4I9/Fjg2qYopod8RTjzhStaZmk91QHW+Wu0+FzLwiOB8jZ
+	 8RvmLsK5vSVbeFWXPuJ0DHUcjuT4N8RpYJUEQ94uoYiSViupcmvFuC7R/8/rCL/XcK
+	 KXYaJOWKFhTrxf7ttm6xh4H4wwrlC9GBO0GH95QBFjnZZd57jNTo9XzMdyCBVwPUeu
+	 fTcgOx/F9+ewA==
+Subject: Re: [PATCH rdma-next 15/23] RDMA/core: Set the CQ comp_handler after
+ its poll context is set up
 From: netdev-bot+sashiko@kernel.org
 To: yishaih@nvidia.com
 Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
@@ -49,11 +49,11 @@ Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
  mbloch@nvidia.com, kuba@kernel.org, pabeni@redhat.com, edumazet@kernel.org,
  davem@davemloft.net, andrew+netdev@lunn.ch, dtatulea@nvidia.com,
  moshe@nvidia.com, maorg@nvidia.com
-Date: Sat, 07 Nov 2026 20:24:44 +0000
-Message-ID: <179408308473.994134.1350427296218795820@kernel.org>
-In-Reply-To: <20261103163949.1554-5-yishaih@nvidia.com>
-References: <20261103163949.1554-5-yishaih@nvidia.com>
-X-sashiko-severity: Low
+Date: Sat, 07 Nov 2026 20:24:58 +0000
+Message-ID: <179408309884.994134.17628521837326789530@kernel.org>
+In-Reply-To: <20261103163949.1554-16-yishaih@nvidia.com>
+References: <20261103163949.1554-16-yishaih@nvidia.com>
+X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -66,100 +66,154 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 1 · Medium: 1 · Low: 0
 
-- [Low] The concern says MLX5_GET_LOGSZ_CLAMP(), MLX5_CAP_GEN_LOGSZ_U32()
-  and MLX5_CAP_GEN_LOGSZ_U64() in include/linux/mlx5/device.h are added…
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [High] The patch relies on program order alone to publish the poll
+  context before the handler, and that ordering does not hold for…
+- [Medium] __ib_alloc_cq() (drivers/infiniband/core/cq.c) still stores
+  cq->comp_handler after dev->ops.create_cq() has returned (create_cq at…
 
 --
 
-net/mlx5: Add macros for reading log-based caps
+RDMA/core: Set the CQ comp_handler after its poll context is set up
 
-This commit adds MLX5_GET_LOGSZ_CLAMP() and the MLX5_CAP_GEN_LOGSZ_U32()
-and MLX5_CAP_GEN_LOGSZ_U64() accessors to include/linux/mlx5/device.h.
-They compute 2^cap for log2-encoded capability fields, with the shift
-clamped to the largest shift that is defined for the result type.
+This commit reorders __ib_alloc_cq(). The irq_poll or work context and
+comp_wq are now initialized before cq->comp_handler is stored, and the CQ
+is armed only after the handler is set. The goal is that a completion
+event raised right after ops.create_cq() returns no longer finds an
+uninitialized poll context.
 
-> diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-> index 37727b5ab78f2..f45454f65d5c0 100644
-> --- a/include/linux/mlx5/device.h
-> +++ b/include/linux/mlx5/device.h
-
-[ ... ]
-
-> @@ -47,6 +48,16 @@
->  #error Host endianness not defined
->  #endif
->  
-> +/* Largest shift count that is defined behaviour for a value of type @T. */
-> +#define __mlx5_max_shift(T) (BITS_PER_TYPE(T) - 1 - is_signed_type(T))
-> +
-> +/* Calculate 2^@fld from a log2 cap field. Exponents that don't fit in @T
-> + * saturate to the largest representable power of two (not to the type
-> + * maximum), avoiding undefined shifts.
-> + */
-> +#define MLX5_GET_LOGSZ_CLAMP(typ, p, fld, T) \
-> +	((T)((T)1 << min_t(u32, MLX5_GET(typ, p, fld), __mlx5_max_shift(T))))
-> +
+> diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
+> index 12304c9a9403e..42e4d272f5ade 100644
+> --- a/drivers/infiniband/core/cq.c
+> +++ b/drivers/infiniband/core/cq.c
 
 [ ... ]
 
-> @@ -1096,6 +1107,15 @@ enum mlx5_qcam_feature_groups {
->  #define MLX5_CAP_GEN_MAX(mdev, cap) \
->  	MLX5_GET(cmd_hca_cap, mdev->caps.hca[MLX5_CAP_GENERAL]->max, cap)
+> @@ -269,6 +267,15 @@ struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private, int nr_cqe,
+>  		goto out_destroy_cq;
+>  	}
 >  
-> +/* 2^cap for log2-encoded general caps */
-> +#define MLX5_CAP_GEN_LOGSZ_U32(mdev, cap) \
-> +	MLX5_GET_LOGSZ_CLAMP(cmd_hca_cap, \
-> +			     mdev->caps.hca[MLX5_CAP_GENERAL]->cur, cap, u32)
-> +
-> +#define MLX5_CAP_GEN_LOGSZ_U64(mdev, cap) \
-> +	MLX5_GET_LOGSZ_CLAMP(cmd_hca_cap, \
-> +			     mdev->caps.hca[MLX5_CAP_GENERAL]->cur, cap, u64)
-> +
+> +	/*
+> +	 * The CQ is reachable from the completion interrupt once created. Set
+> +	 * the handler only after the poll context it schedules is set up, and
+> +	 * arm the CQ only after that.
+> +	 */
+> +	cq->comp_handler = comp_handler;
 
-[Severity: Low]
-This isn't a bug, but MLX5_GET_LOGSZ_CLAMP(), MLX5_CAP_GEN_LOGSZ_U32() and
-MLX5_CAP_GEN_LOGSZ_U64() have no callers in this commit.
+[Severity: Medium]
+This store still runs after dev->ops.create_cq() has returned. By then, can
+the driver's EQ dispatch already reach the CQ while comp_handler is still
+NULL from rdma_zalloc_drv_obj()?
 
-Their users show up later in the series, in "RDMA/mlx5: Clamp log_max_cq_sz
-shift in CQ size checks", "RDMA/mlx5: Clamp log_max_* shifts in QP and WQ
-limit checks" and "RDMA/mlx5: Clamp log_max_* shifts in query_device and
-ucontext paths". Those patches convert call sites in cq.c, qp.c, main.c,
-mad.c and srq.c under drivers/infiniband/hw/mlx5/. For example, in
-mlx5_ib_query_device():
+The driver publishes the CQN during create_cq. For example,
+mlx5_core_create_cq()->mlx5_eq_add_cq() inserts it into the radix tree,
+efa stores it in dev->cqs_xa, and mthca adds it to cq_table.
 
-    props->max_mr = MLX5_CAP_GEN_LOGSZ_U32(mdev, log_max_mkey);
+Several drivers then call the handler without a NULL check. For example,
+in drivers/infiniband/hw/mlx4/cq.c:
 
-Could the commit message mention these follow-up users and the reason for
-the clamping?
+static void mlx4_ib_cq_comp(struct mlx4_cq *cq)
+{
+	struct ib_cq *ibcq = &to_mibcq(cq)->ibcq;
+	ibcq->comp_handler(ibcq, ibcq->cq_context);
+}
 
-The macro itself looks correct. min_t() limits the shift to 31 for u32 and
-to 63 for u64.
+efa_process_comp_eqe() and mthca_cq_completion() do the same, and so does
+mlx5_ib_cq_comp() at this commit.
 
-The next point is a pre-existing issue that this patch did not introduce.
-At the end of the series, net/mlx5 core still open-codes some of these
-shifts. One is in get_init_bulk_query_len() and get_max_bulk_query_len()
-in fs_counters.c:
+So an early event from a non-conforming device would now be a NULL
+function pointer call in irq or tasklet context, instead of scheduling an
+uninitialized irq_poll or work. The patch also moves the store later than
+before, past rdma_dim_init() (which can do a GFP_KERNEL allocation) and the
+whole poll context switch, so the window gets a bit longer.
 
-    return min_t(int, MLX5_INIT_COUNTERS_BULK,
-                 (1 << MLX5_CAP_GEN(dev, log_max_flow_counter_bulk)));
+The commit message says:
 
-Another is mlx5e_mpwrq_max_num_entries() in en/params.c:
+    A conforming device raises no event for a new,
+    empty CQ, but nothing in the core relies on that.
 
-    u32 klm_limit = min(MLX5E_MAX_RQ_NUM_KSMS,
-                        1 << MLX5_CAP_GEN(mdev, log_max_klm_list_size));
+Doesn't the core now rely on every driver NULL-checking comp_handler?
 
-These shifts are exposed to untrusted firmware values by the earlier patch
-"net/mlx5: Add capability filtering in adversarial mode". There,
-mlx5_adversarial_filter_general() lets both caps through
-MLX5_HCA_CAP_ALLOW without checking their range.
+The later commit "RDMA/mlx5: Ignore completion events for a CQ without a
+handler" adds that check to mlx5_ib_cq_comp(), which closes the window for
+mlx5. mlx4, efa and mthca still call the handler unconditionally at the end
+of the series.
 
-Would it make sense to convert these sites to the new helpers too?
+__ib_create_cq() in verbs.c, and the uverbs paths, set the handler before
+calling into the driver:
+
+	cq->device = device;
+	cq->comp_handler = comp_handler;
+	...
+	ret = device->ops.create_cq(cq, cq_attr, NULL);
+
+Could __ib_alloc_cq() do the same? That would mean running irq_poll_init(),
+INIT_WORK(), the comp_wq store and the comp_handler store before
+ops.create_cq(), and keeping only ib_req_notify_cq() for afterwards. The
+driver's own publication of the CQ would then provide the ordering.
+
+[Severity: High]
+Is program order enough to make the poll context visible before the
+handler? The irq_poll_init() stores (memset, INIT_LIST_HEAD, weight, poll),
+INIT_WORK() and the cq->comp_wq store are all plain stores. This
+comp_handler store is plain too, with no smp_store_release() or smp_wmb().
+
+The reader side has no acquire ordering either:
+
+mlx5 EQ irq
+  mlx5_cq_tasklet_cb()
+    mlx5_ib_cq_comp()
+      ibcq->comp_handler()          <- plain load, indirect call
+        ib_cq_completion_softirq()
+          irq_poll_sched(&cq->iop)
+      or
+        ib_cq_completion_workqueue()
+          queue_work(cq->comp_wq, &cq->work)
+
+An event that arrives before the CQ is armed gets no ordering from the
+doorbell write in ib_req_notify_cq().
+
+On weakly ordered CPUs such as arm64 and POWER, can another CPU see the new
+comp_handler before the iop, work or comp_wq stores? In the workqueue
+cases, the compiler is also free to reorder the adjacent plain stores to
+comp_wq and comp_handler.
+
+If that happens, three things could go wrong:
+
+- The reader schedules an iop whose memset and INIT_LIST_HEAD land after
+  its own test_and_set_bit() and list_add_tail(). That corrupts the per-cpu
+  irq_poll list.
+- irq_poll_softirq() calls a stale NULL iop->poll.
+- queue_work() is called with a NULL workqueue.
+
+These are the failures the commit message describes.
+
+Adversarial mode is enabled through cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT).
+That is true for arm64 realm/pKVM guests and pseries secure guests. The mlx5
+UMR CQ allocated in mlx5r_umr_resource_init() with IB_POLL_SOFTIRQ goes
+through this path. The plain NULL check that the later commit adds to
+mlx5_ib_cq_comp() does not provide acquire ordering.
+
+Would this need smp_store_release() on comp_handler, paired with an acquire
+load in the drivers? The other option is to do all of this setup before
+ops.create_cq(). Then the driver's publication, such as radix_tree_insert()
+under table->lock in mlx5_eq_add_cq(), would order the stores for readers
+that look up the CQ.
+
+> +	if (cq->poll_ctx != IB_POLL_DIRECT)
+> +		ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
+
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261103163949.1554-1-yishaih%40nvidia.com
