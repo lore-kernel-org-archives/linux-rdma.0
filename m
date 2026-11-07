@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794083087;
-	b=IeSirVW5+RlvS1MwsIgFv63ZaQDgl6j0DBsh5OSTvYlMTr1lunOZE7ne1M47MaY1sdD3
-	 jHRLMS/PIYaLoarCv730JFsan2xDr9FQwT01QZ6k6J2REf2SgM7XehhrJU0tmAx/YQcW5
-	 6clhbySpbZNX4R4aTuuVYBFUqQ32RON8JTSbIdO6KxYMoHQtu8izPjQeRo+v1AdRYweuv
-	 mcTxnCfqnTtOpW+Y0o82rI2u766NlPd8PvJmX/Z3xqNursp07RU5Mia/BTgXgNPhswPoe
-	 E3NoNKPCfLo/kHToHP1Epf1I70dMTnnLTizyIef5SSMkmyWZeVnZxGSCIBhh2YauDTA==
+	t=1794083083;
+	b=o1raAIT+E6wGOa6pxDgd89UY43SXPtBED/VmngCkZ8P2+MT3RqHgG1xkDafLQQPG9PoM
+	 yduhSytOvWTsJ8Cx6Nkw8Dst0MpDxPO9eDfPPabhHStXkt9OhYruV7TJ61YMs8p2kBMRN
+	 TxP5xcsOkZWecBnIsDrT4MK3NpVdO/vdbtcDUmQ9smeud8cdigOLy9UeJ271/tKE7J9gm
+	 lgcf4f3L75NZqVbY7VTEP1DK6zXRFF5MyuR1zIbXeqiKviTAnXhZcitmw8BaUXRGShfTU
+	 zH+VrTxINpwtY8eNPFKszglZqYOa7R4mNJZenIonyHcy1y+Nxv0vPthjlveLIwOLXLA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794083087;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794083083;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=5I5j3lcfn95BPYhvqhWqzDUccJWCWDr5bp0HOI0uXjs=;
-	b=Ii9joYPZ+7QH1KjfhVr00EbIc8pNBaOqgKFktO5a7IdngXEoYA9IeJgnJqcQF0rDfqVf
-	 t7mjKabIjbkjB52kuTRsoLlwzhqZmhJFKzdElL+LgEWhYF3Ku7lODflMyxqO0gxnYgOj/
-	 WzHv9fBVMETkOP/I9xY0t51NsH79PpACVt1WirY8HCl9Q73jYQP9WL6tFQv04HqU85z8v
-	 9VyKSU1koRFUlfqxzd2GeHAiwyM3tn10sik5CnpCIF3rr08V3I8pehzbG+VS4Mo29EjDc
-	 cMXQETfdJU9E9YCCIwDhVQ8JRsZ1BvWhs0LWrgZlvZt688mR3FEOfGeQkz7TNZugfmA==
+	bh=fHBfhv5Os1UERuh0WwXS8t9EiYrGbuhZFIIikND+GOk=;
+	b=SPSJcD7E/VFlvPbUF0TNg2B1zSwAQR8EDkGs0iyih/BZHyEwqmH5rijITLTHLXQr7IjE
+	 K7U7f3SbfGFjO4PGAGduIapvleQ7FgNgT8atcqzKdPuJcN+4G3Oc8Gxq07zvhbi+9SGIB
+	 Kst8Sq2bn11iaDJQh58BDOnjHeZCFGaQV/vDvv0I5NFlBsKrJnYOp10iTArSqAHC8VPhk
+	 R8sRuDQ67trXvspsXxY58q3tRQEVbuZsv/H49OPXJFdDNHUgvQrZIRkXEtJilYYTsyr3/
+	 ibp1/xg5Ks4S3nstvrCfwCCv42qjB/vzV8zIL5LRx0DAFJcoFU+DQ93Kze1bvWKNjbg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=W2fbVZd7;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jsqePyln;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 672FF606A32C;
-	Sat,  7 Nov 2026 20:24:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 772DE606D807;
+	Sat,  7 Nov 2026 20:24:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=W2fbVZd7
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C83A1F008A1;
-	Sat,  7 Nov 2026 20:24:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jsqePyln
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 420521F008A1;
+	Sat,  7 Nov 2026 20:24:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794083087;
-	bh=5I5j3lcfn95BPYhvqhWqzDUccJWCWDr5bp0HOI0uXjs=;
+	s=k20260515; t=1794083083;
+	bh=fHBfhv5Os1UERuh0WwXS8t9EiYrGbuhZFIIikND+GOk=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=W2fbVZd7OWYdWRZknc8NX3xTE1F1qjNzhYm4UfixWL4hb7QdHDkqvYgo8xKanH7b/
-	 40H2U7Mt4kAEIpS0mk7rxDRJ0z3SzV3kd3HJwkt4gaA6/uy4+KvXpP0Ycg9SXxoyQ3
-	 13cee8t1Oe5ziOAjqsD/SSWBe6gilyzGDHP49fFcvhMH6zDxP7RCS8YQj8y7Bh56KN
-	 rfw1QfIJKN10IZXFTYlwJjTAhB8cuq1SSjku9nhuXP5ATs1mNGkuBpQFhIoRPeMZYe
-	 FQ/0ZlClddhOmq32X83QNdjb3Wi38BQdK7/aKu4QcMRxCMM/FncOR12oT7xBeuBjvS
-	 vjhhi06SvKt6w==
-Subject: Re: [PATCH rdma-next 05/23] RDMA/mlx5: Reject QP transport types not
- enabled by FW capability
+	b=jsqePylnZzrLJn3BHHzddesh0LiLeTPKYZjdV9Q0ubuSMWB0jMTGT+OLZGG2PNZne
+	 QNPI2t40o/OozbyE1V+Z8BqYpeWaldOkczQQJ98qhodgr74dITGRpb7onHiRd3Xl+T
+	 HMZTpH1rDtM92zhpu8yultB0xEaIVSvB3rqxgF+8i41lzOKBUyZxN+u8EX8E//pMPf
+	 VwchixEWAcejgzEe6Bsga/+I4Wq44mk2pasKfQ2TnxW9N4INhZMU57Lb3Se2NhxNRi
+	 JCUwUp2g3zMYKlebv5M0ya9VipDPjqgVQKaQkFBLaL8C940Zt3AROIQ3AsrSUjzt94
+	 Cu8wAU14nIuYQ==
+Subject: Re: [PATCH rdma-next 02/23] net/mlx5: Derive adversarial mode from CC
+ guest memory encryption
 From: netdev-bot+sashiko@kernel.org
 To: yishaih@nvidia.com
 Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
@@ -49,10 +49,10 @@ Cc: jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
  mbloch@nvidia.com, kuba@kernel.org, pabeni@redhat.com, edumazet@kernel.org,
  davem@davemloft.net, andrew+netdev@lunn.ch, dtatulea@nvidia.com,
  moshe@nvidia.com, maorg@nvidia.com
-Date: Sat, 07 Nov 2026 20:24:46 +0000
-Message-ID: <179408308609.994134.6909095699902527577@kernel.org>
-In-Reply-To: <20261103163949.1554-6-yishaih@nvidia.com>
-References: <20261103163949.1554-6-yishaih@nvidia.com>
+Date: Sat, 07 Nov 2026 20:24:41 +0000
+Message-ID: <179408308185.994134.9934571250726048143@kernel.org>
+In-Reply-To: <20261103163949.1554-3-yishaih@nvidia.com>
+References: <20261103163949.1554-3-yishaih@nvidia.com>
 X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -72,60 +72,83 @@ you want to address the nit picks below when you respin.
 
 Low priority / nit picks for your consideration:
 
-- [Low] The commit message says the new rc/uc/ud checks in
-  check_qp_type() (drivers/infiniband/hw/mlx5/qp.c) refuse 'a transport…
+- [Low] mlx5_is_adversarial() in
+  drivers/net/ethernet/mellanox/mlx5/core/main.c is exported…
+- [Low] mlx5_is_adversarial(void) takes no device argument and returns
+  cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT), so the decision applies to…
 
 --
 
-RDMA/mlx5: Reject QP transport types not enabled by FW capability
+net/mlx5: Derive adversarial mode from CC guest memory encryption
 
-This commit makes check_qp_type() in drivers/infiniband/hw/mlx5/qp.c also
-check the rc, uc and ud general capability bits. QP creation for RC, UC
-and UD now returns -EOPNOTSUPP when the matching bit is clear. Before
-this change, only XRC and DC were gated on capabilities.
+This patch adds mlx5_is_adversarial(), exported from mlx5_core. It
+reports whether the driver should treat the NIC as untrusted. The result
+comes from cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT), so it is true in
+any confidential computing guest.
 
-> Check the rc, uc and ud capabilities as well, so that QP creation is
-> refused for a transport the FW does not support.
+> Add mlx5_is_adversarial() to report whether the driver treats the NIC
+> as untrusted. In a confidential computing guest, the hypervisor and any
+> passthrough device are outside the guest's trust boundary, so the mode
+> is derived from cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT).
+>
+> This turns adversarial mode on automatically in such guests, without
+> any administrator configuration.
 
 [Severity: Low]
-Could the commit message explain why this is needed and what userspace
-will see after it?
+This isn't a bug, but is the last sentence accurate for this patch on its
+own? Nothing calls mlx5_is_adversarial() at this commit, so this patch by
+itself does not change behaviour in a CC guest.
 
-As far as I can tell, the new lines in check_qp_type() are the first
-readers of the rc, uc and ud bits anywhere in the tree. With trusted FW,
-the change seems to only move a CREATE_QP failure from the FW into the
-driver.
+The callers arrive later in the series:
 
-The visible effect seems to come from the earlier patch "net/mlx5: Add
-capability filtering in adversarial mode". In caps_filter.c,
-mlx5_adversarial_filter_general() clears cmd_hca_cap and then restores
-only an allow-list of fields:
+  "net/mlx5: Add capability filtering in adversarial mode" (caps_filter.c)
 
-mlx5_adversarial_filter_general() {
-    ...
-    memset(dst, 0, MLX5_UN_SZ_BYTES(hca_cap_union));
-    ...
-    MLX5_HCA_CAP_ALLOW(cmd_hca_cap, rc);
-    ...
-}
+  "RDMA/mlx5: Derive mlx5_ib_adversarial_mode global from mlx5_core
+  adversarial API" (drivers/infiniband/hw/mlx5/main.c)
 
-rc is on that list, but ud, uc and xrc are not. In confidential computing
-guests running in adversarial mode, every UD and UC QP request would now
-fail in check_qp_type():
+Could the changelog say that the users come in follow-up patches?
 
-    case IB_QPT_UD:
-        if (!MLX5_CAP_GEN(dev->mdev, ud))
-            goto out;
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+> index 1a45474ce03db..f9e10464a71b5 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
 
-Only RC, RAW_PACKET and the internal special QP types could still be
-created. This affects userspace. It also affects kernel ULPs such as
-IPoIB until the later patch "RDMA/core: Suppress kverbs_provider for
-adversarial_mode devices".
+[ ... ]
 
-The driver itself clears these bits by policy, so would it be clearer to
-describe that as the purpose of this patch? Could the message also say
-whether this is a bug fix (with a Fixes: tag) or hardening, so stable
-backporters can decide?
+> @@ -484,6 +485,12 @@ bool mlx5_is_roce_on(struct mlx5_core_dev *dev)
+>  }
+>  EXPORT_SYMBOL(mlx5_is_roce_on);
+>  
+> +bool mlx5_is_adversarial(void)
+> +{
+> +	return cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT);
+
+[Severity: Low]
+This isn't a bug, but this check treats every device in a CC guest as
+adversarial, and the helper takes no device argument. That matches the
+current tree, which has no guest-side way to detect a trusted (T=1)
+device.
+
+ib_register_device() in drivers/infiniband/core/device.c uses the same
+check and documents the assumption:
+
+	/*
+	 * In a CoCo guest every device is currently assumed to be untrusted
+	 * (T=0) and therefore subject to DMA bouncing. Once trusted (T=1)
+	 * device detection is wired up, narrow this check to exclude such
+	 * devices.
+	 */
+	if (dma_device && cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT))
+		device->cc_dma_bounce = 1;
+
+Would a similar comment here, or a note in the changelog, be worth
+adding? Once T=1 detection exists, narrowing this check would also mean
+giving mlx5_is_adversarial() a device argument.
+
+> +}
+> +EXPORT_SYMBOL_GPL(mlx5_is_adversarial);
+
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261103163949.1554-1-yishaih%40nvidia.com
