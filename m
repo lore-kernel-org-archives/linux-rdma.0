@@ -1,65 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=134.2.5.213
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794089473;
-	b=iOh28THE3JlXN9wYrjoL5c6IU557UMVN5bxXrMfbexPill6gwyrfbdbTDlQlR5oPxn8g
-	 8K2c03MI4RilgLVWvg5wXw/VZrTgc7ymn3sRDmkITqwxPdKRcgfT3oldmUuVFEo5OKCEZ
-	 KX4kWAeN9BtblQq1g7D4PJ9HyouWls5Z1a4jGJLd0HJ7A1ynRyqi79ZeqMpDImZhdBIHK
-	 jF4mbO6EgHzAcYKrOHKO1cDPr09Hn6O7KpW0Jcbs/6I38uFSesHd2il4DKS/3HJF0jK8v
-	 AY2P4CQBQ5d0kwalV4Z+ZNvmrCqmz4IIUAKAww33x4EIKiiB99eqaOPunnaV78Fxf+w==
+	t=1794107079;
+	b=tJy3TICpBMmj/JTIxLta5mWFvZuJFCHjrWypvqtrbGH63atdFBuiYcRm2K9WnDPV7qCQ
+	 8TRAqgyzuCG0h4n6mzxxBjH3hwnGA+0JD9kDojPhnvH93FqepJhVyu5x0G7C9ESzssWxy
+	 SSR88cPNBCO5pQT/G57HcNbBJFuN5bDRKmdpuu88Pz1Vf0C07r6pQy1H2jhFQRXe2UWPt
+	 66jV7vXVuglEPIG93H9cfb0pu6mMpFzScpJ9D38XU5KG7mBXb+zhyxnigntA2EswT/qYz
+	 nzws8z5hHsmXVlklPE0i4EUf0ZH0FQ83Pu6CmrqLaJnV/JBra+B+gop2atHRYGpAqVw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794089473;
-	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:Received:Received:
-	 Date:Message-ID:From:To:Cc:Subject:User-Agent:Content-Type:
-	 MIME-Version:Content-Disposition;
-	bh=1y2KEO9H0fAP3VEF9szmBFs6F6Xc0bbtVRC5J3NwA3I=;
-	b=V2i1cKp+2E7RjYTe1xwQV+G5wefg/yWW2BF2hFUascrcrQ7yEptMaIHfwKFP09uOTEUe
-	 VQnWyCdWyHuUjCC+0JhTKdvZjY5ieOYjrmbaKBCqCoXcKJ+ymHpnmtXbzA7TLoc9S3izR
-	 9W70r2fZOxDRY4saoJA0xmVV7hBRSlpiZJRxJxGUrHrHilbk1w6YhXD2LQVTxJHKOAt33
-	 tdEv2fY1Im9CwSSDYKR1afvUMiRfdB7e4OilLmo3YXZPJPQjKFXeGPyizwpDxJZMNqgeK
-	 Lm5g9d76/9xx4jhWF2cmYHtsslDpNsEMTWoj34PMRWMkZ+vuV7qqfx9WVsV2dlslJRg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794107079;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=+4EPkDP6gNRwpvO49CMEXoJExK2bHkA8cFdH027EbT4=;
+	b=I6YyaISAonwtREHvm9hYXxx+gr/lksOyRh6M7xgAcoI32mua7JmsB4mJSmEa850VBtoo
+	 fWvdw5z7RFme8mSR1LBp7aH2DSiggDZOdrlxqqWsjwDecYkzV6ZAxeOcH48i+LXNvfILm
+	 juXdrNFB73SEqCRfp4P4/g3u166NubnBfO1Vh7C3RDqbcPnMyiRQuEj28AVK/H61XGwp2
+	 ylnPyaIGumU0WgVsay7wpW2c/09OAVcpOP3uxHNdjks+Gq2367lgGoOuoXYm1jHp+kCbc
+	 HUnNi2Wc9r1YBrs160gyAproaq0S3fRytHex4R2BhwdVCjzMXTuLiexJw1YTAo576Og==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=student.uni-tuebingen.de;
-	spf=pass smtp.mailfrom=student.uni-tuebingen.de;
-	arc=none smtp.remote-ip=134.2.5.213
-Received: from mx03.uni-tuebingen.de (mx03.uni-tuebingen.de [134.2.5.213])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HdbpGNsl;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A304F606A33D
-	for <linux-rdma@vger.kernel.org>; Sat,  7 Nov 2026 22:11:10 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A304F606A33D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=student.uni-tuebingen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=student.uni-tuebingen.de
-Received: from webmail1.uni-tuebingen.de (webmail1.uni-tuebingen.de [IPv6:2001:7c0:300c:3105::8602:5c2])
-	by mx03.uni-tuebingen.de (Postfix) with ESMTPS id 879F720C6EA5;
-	Sat,  7 Nov 2026 23:11:02 +0100 (CET)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mx03.uni-tuebingen.de 879F720C6EA5
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uni-tuebingen.de;
-	s=20211202prod; t=1794089462;
-	bh=1y2KEO9H0fAP3VEF9szmBFs6F6Xc0bbtVRC5J3NwA3I=;
-	h=Date:From:To:Cc:Subject:From;
-	b=rUZEVD5cZYudj8WdYZREgc844rsl0MiZtwG/e/snXz6iC2z0Vw0p+Ah76+K2Kj6oB
-	 ue4icUTOKKGvknJh17evGVAi16wK0OwlmuqW/GB/C66sRYuLwxWybPhebk5AFVoAqx
-	 tNeMKvjpBdGnmCYtSi89KY8NnRusUmssAbryOXRsHik5jPguwZvMxdF2Z+ZMiSnINo
-	 o78uAcKMQFED7n7Tmt4snqjdCJMN4iTEkFClvVoBN6h26yN1Mho7EFfXiLmo3ZPdg1
-	 klZT0Xu91SuWDHrES2FckSJwBWPm/UEFbETF5h0sDfnoIZr/4Qhd7PS5HzqAHFcx6m
-	 SKMDagcFee7PQ==
-Received: from webmail1.uni-tuebingen.de (localhost [127.0.0.1])
-	by webmail1.uni-tuebingen.de (Postfix) with ESMTPSA id 4822560AE18E;
-	Sat,  7 Nov 2026 23:11:02 +0100 (CET)
-Received: from ipservice-092-209-235-033.092.209.pools.vodafone-ip.de
- (ipservice-092-209-235-033.092.209.pools.vodafone-ip.de [92.209.235.33]) by
- webmail.uni-tuebingen.de (Horde Framework) with HTTPS; Sat, 07 Nov 2026
- 23:11:02 +0100
-Date: Sat, 07 Nov 2026 23:11:02 +0100
-Message-ID: <20261107231102.Horde.VTLAyGut_WGch71PWzwoxG_@webmail.uni-tuebingen.de>
-From: Dezhen Lu <dezhen.lu@student.uni-tuebingen.de>
-To: linux-rdma@vger.kernel.org
-Cc: huangjunxian6@hisilicon.com, tangchengchang@huawei.com
-Subject: rdma-core: aarch64 mmio_memcpy_x64() ignores constant lengths, and
- libhns relies on it
-User-Agent: Horde Application Framework 5
-Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB1B4606A31A;
+	Sun,  8 Nov 2026 03:04:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HdbpGNsl
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D43AB1F0089F;
+	Sun,  8 Nov 2026 03:04:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794107078;
+	bh=+4EPkDP6gNRwpvO49CMEXoJExK2bHkA8cFdH027EbT4=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=HdbpGNsl/BqlM/dC78GY58/tIXdic7Jmc8IFgBqDXxLdP4gWqUYROuaXUlwhX+EWt
+	 G/u9VmwjMooDQebhaffRoa2Wa4vDR+lE7WaBurnNRc+2K6YwDJol5ZWPU6fWMzFG1a
+	 8HdQo27Dc3hODMOqfatFpQArQf2xivBQfLzy7Amk/5BMPf0xQ3f+Sljw6Jdrn45EYm
+	 V8x029tG9x67XWCiWXRNgg+ZsZi4hz5dlamY0oA5vJusKcOjBZO1tB+X38SSBL++4g
+	 TXycuqVDu6bYdm2NUeyHDvhgDGzzqXiUqPNKNxIb/hAqkv++c0Xb3OYq0sc80gczS5
+	 jIobktatOZTTQ==
+Subject: Re: [PATCH] net/rds: drop the device reference for ODP memory regions
+From: netdev-bot+sashiko@kernel.org
+To: vulab@iscas.ac.cn
+Cc: achender@kernel.org, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Date: Sun, 08 Nov 2026 03:04:37 +0000
+Message-ID: <179410707739.994134.10076645291252563935@kernel.org>
+In-Reply-To: <20261104022810.1484182-1-vulab@iscas.ac.cn>
+References: <20261104022810.1484182-1-vulab@iscas.ac.cn>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -69,61 +62,106 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Disposition: inline
 
-Hello,
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-At rdma-core master a70151dfec390eb5f7fc5b266f51d601da2a7778, the
-aarch64 mmio_memcpy_x64() in util/mmio.h tests
-__builtin_constant_p((bytecount) == 64). That is true whenever the
-comparison has a known result, so a constant length other than 64 also
-takes the 64-byte path and only 64 bytes are written. Both the macro and
-its libhns caller came in with 159933c37450 ("libhns: Add support for
-direct wqe").
+Critical: 0 · High: 1 · Medium: 0 · Low: 0
 
-Run from the repository root after ./build.sh, on aarch64:
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-```sh
-cat > t.c <<'C'
-#include <stdio.h>
-#include <util/mmio.h>
+- [High] The patch adds rds_ib_dev_put(ibmr->device) to
+  rds_ib_odp_mr_worker() (net/rds/ib_rdma.c:701).
 
-int main(void)
-{
-	static __attribute__((aligned(64))) unsigned char src[128], dst[128];
-	int n = 0;
+--
 
-	for (int i = 0; i < 128; i++)
-		src[i] = i + 1;
-	mmio_memcpy_x64(dst, src, 128);
-	while (n < 128 && dst[n])
-		n++;
-	printf("copied %d of 128 bytes\n", n);
-	return 0;
+net/rds: drop the device reference for ODP memory regions
+
+The ODP path in rds_ib_get_mr() takes a reference on the rds_ib_device
+but never stores or drops it, so the reference leaks. This patch stores
+the device in ibmr->device. It drops the reference in
+rds_ib_odp_mr_worker() after the MR has been deregistered.
+
+> diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
+> index db7e92e7bd29f..8cd8295f66a39 100644
+> --- a/net/rds/ib_rdma.c
+> +++ b/net/rds/ib_rdma.c
+
+[ ... ]
+
+> @@ -697,5 +698,6 @@ static void rds_ib_odp_mr_worker(struct work_struct  *work)
+>  
+>  	ibmr = container_of(work, struct rds_ib_mr, work.work);
+>  	ib_dereg_mr(ibmr->u.mr);
+> +	rds_ib_dev_put(ibmr->device);
+
+[Severity: High]
+
+Can this put now race with unloading the rds_rdma module?
+
+After this change, the ODP worker on rds_ib_mr_wq can drop the last
+rds_ib_device reference. The final put queues module code on rds_wq,
+and rds_wq belongs to rds core:
+
+net/rds/ib.c:rds_ib_dev_put() {
+	...
+	if (refcount_dec_and_test(&rds_ibdev->refcount))
+		queue_work(rds_wq, &rds_ibdev->free_work);
 }
-C
-gcc -O2 -I. -Ibuild/include t.c -o t && ./t
-```
 
-Observed: copied 64 of 128 bytes
-Expected: copied 128 of 128 bytes
+The exit path flushes rds_wq only once, in rds_ib_unregister_client().
+That happens before rds_ib_mr_wq is drained:
 
-libhns depends on this. hns_roce_write512() passes
-sizeof(struct hns_roce_rc_sq_wqe), which is 32, and gets the 64-byte
-direct WQE write it needs. Fixing only the macro would pass 32 to
-_mmio_memcpy_x64(), whose size_t counter then wraps, so the copy never
-stops. I would fix it in two patches: libhns passes 64 (taken from the
-function name and HNS_ROCE_SQWQE_SHIFT), then the macro checks
-__builtin_constant_p(bytecount) && (bytecount) == 64.
+rds_ib_exit()
+    rds_ib_unregister_client()
+        ib_unregister_client(&rds_ib_client);
+        /* wait for rds_ib_dev_free() to complete */
+        flush_workqueue(rds_wq);
+    rds_ib_destroy_nodev_conns();
+    ...
+    rds_ib_mr_exit()
+        destroy_workqueue(rds_ib_mr_wq);
 
-I ran the reproducer with Apple clang 21 on arm64 against the tree's
-util/mmio.h (stub Linux headers): 64 bytes before the patches, 128
-after, at -O0 to -O2. gcc 13.3 on Linux aarch64 truncates the same way
-in a copy of the macro. With gcc 13.3 the patches add no build warnings,
-leave .text unchanged in libhns, libmlx4 and libmlx5, and change code
-only in libefa and libionic. I have no hns hardware, so nothing ran
-against a device.
+An ODP worker can still be pending when that flush runs. For example,
+closing an RDS socket that owns an ODP MR goes through:
 
-I used Claude, an AI coding assistant, for this report and the patches.
+rds_release()
+    rds_rdma_drop_keys()
+        __rds_put_mr_final()
+            rds_destroy_mr()
+                rds_ib_free_mr()
+                    queue_delayed_work(rds_ib_mr_wq, &ibmr->work, 0);
+    ...
+    rds_trans_put(rs->rs_transport);
 
+Once rds_trans_put() drops the module reference, rmmod rds_rdma can go
+ahead while that worker is still queued.
 
+ODP workers can also be queued after the rds_wq flush. Messages on
+nodev connections that carry op_odp_mr go through
+rds_ib_destroy_nodev_conns() -> rds_conn_destroy() -> rds_rdma_free_op().
+
+The worker might run on its own, or be drained by destroy_workqueue() in
+rds_ib_mr_exit(). Either way, if it drops the final reference,
+rds_ib_dev_free() is queued on rds_wq and nothing waits for it.
+
+Could that work then run after the rds_rdma module text has been freed,
+and touch the pools and PD after the module is gone?
+
+Before this patch the ODP reference was leaked, so this ordering could
+not happen. The comment above rds_ib_mr_exit() says the pool flushing
+work queue should be idle by then, and that no longer seems to hold.
+
+Would it make sense to flush rds_ib_mr_wq before the
+flush_workqueue(rds_wq) in rds_ib_unregister_client()? Another option
+would be to flush rds_wq again after rds_ib_mr_exit().
+
+>  	kfree(ibmr);
+>  }
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261104022810.1484182-1-vulab%40iscas.ac.cn
