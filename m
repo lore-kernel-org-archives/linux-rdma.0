@@ -1,100 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.198.58
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794146003;
-	b=XKhTzFTgbZlZT+B5N/Y8pTQYDwWEEJlztmx9FEoRWQ+UPsQQHE7IHpOv2/23I+mnxhfq
-	 4LndL0dEdo+/xDzg3A+Aq/WeJU1bjX2M3XkgdzA+UuH2iVdiW4GI964JhqJaY7rh8fF6J
-	 K9LC6CzMYHdVfFt84IJSwiNAcTMcxb5xXFzNKW8VfpHbWwZkjnEPx3P8XJmRzaeFmvkAP
-	 Hs77tprZGkCbtQbQdfTAQgQHxhDQfVpxR7jjuxrW+zvBfJFJ183EZ2KIngdU/GdbbpjDh
-	 iOtT6h+iOQHnOxkCPmBozlHiUxAvpjoRx5winkQTtNC6pP7UK3KPB+XYnOD2xzX8PWw==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794146003;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:
-	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
-	 Received:Message-ID:Date:MIME-Version:User-Agent:Subject:To:CC:
-	 References:Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy:
-	 X-EOPAttributedMessage:X-MS-PublicTrafficType:
-	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-Id:
-	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=IT0LsEBGJsz7Max2udcCJ0n3pnpA0TPZ0NmC91iMZ00=;
-	b=gkdS7LKY3i68GaiReCGEO3N+sRjGpbRovAM3/EZPZE8Z2LF04gU7MA2wRVIIfeFOZrFz
-	 3gPbPRjOrxfdA4DbLs9FPgItQetQTLXKoQnD3/9czam6nq73MRvJwqvvRELbCFS7Se1mv
-	 nQOh/Ih1xjO5AzsAgjMWXyzxBBVpMTroSbL5L/a7ghuMoUJwpUQSrcg5rwlPo6/4B+y2b
-	 1F5Jidrlpy3BFbDrZkN67kcviPL8n/8ytGqNLrWACJFwibCN89cF3UlPa4pFeX46pnHGe
-	 6ASM5mOx4u7cM68M0e99HnK7wB0n8uWP/D4HXN4n6110tmrPECtsusMfqt9cp+3EREg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=GR0RnZqu;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.198.58
-Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010058.outbound.protection.outlook.com [40.93.198.58])
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.227.15.3
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1794146456;
+	b=4HNC1jL5AusVjrj60edFRCrLQoDBmvtu/zVAUoZMOXIOTCDne288OLF1fjrNsf5NFCAJ
+	 pVx1OGdm/pGbGXjRQWz3esQUANQMYVsxtkWhinGEM0X7F+qwzsQHDjvW3OCVIwH9+5Xq+
+	 DlxSr3zNTlKfF5qWIPU0nLSlhI+OxAXeyKfUoxXG9WSFrAsKs5YvByHCjHG6C4CaWMRyP
+	 e90FUNHw5yuOFRc9T4t8tUlaMPylmH6gvemr0iWzUIPH6qDxt+zlC7GwWXEUo8psogB16
+	 Nh8mVDVpUBKYPe0R7OtetUmPFrqU7sZYQoessRosJU3MEILdizBq4WQvWEk78CII5hw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794146456;
+	h=DMARC-Filter:DKIM-Signature:X-UI-Sender-Class:Received:Message-ID:
+	 Date:MIME-Version:User-Agent:To:Cc:References:Subject:
+	 Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding:X-Provags-ID:X-Spam-Flag:UI-OutboundReport;
+	bh=kXk+gUbs8YL1AEpHZQuaMkYpmitFgawjbvaFKvsibII=;
+	b=Ip+iPdz2SfS7JD6VLQnQ9nV+qAnnFRwiS/y6mSlcM7gSyXjgv4CBczyZGac76SBbn+la
+	 HSB+q3PuUdgpWZtrME0KiQGRqVYoRDrq9cLwx6/lMVMc2b4t4Z3DgOqRvCOnBVRGhtWMT
+	 ZtYu6bgzaEgIlMKN2Az5yqjSREB0o0GdTvXOb7pawRnbQIynne6Xm+hOX2J0hFs2fXviY
+	 z+puLkq5DQab1fHcAWi7IIqJyeQfYHFsM0Fo+lBkd5CV/iiL9q9wciMkRE/2VweBcjAHw
+	 U1uSdraoqIVEUHTzlg9AG7AZj6akPmJb4+z2msEoMvabtzDl+1Pq6w0/aLB5ePsrHBw==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=web.de;
+	spf=pass smtp.mailfrom=web.de;
+	dkim=pass header.d=web.de header.i=markus.elfring@web.de header.a=rsa-sha256 header.s=s29768273 header.b=IOZJ8xP5;
+	arc=none smtp.remote-ip=212.227.15.3
+Received: from mout.web.de (mout.web.de [212.227.15.3])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB7F1606A31C
-	for <linux-rdma@vger.kernel.org>; Sun,  8 Nov 2026 13:53:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AB7F1606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F966606A31C;
+	Sun,  8 Nov 2026 14:00:54 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0F966606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=GR0RnZqu
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=CNhE8BIV/NnGWlGfLuMOJ0OK+utVXUPBmRI1q19uMi/N6SQpv/xmSrEK89jJQ3PjAwpCTTDDo+HcQP5pAQsNvq3ogcgHdCoWH596F+kG/YL4T3sBItmA3GDGy4Fl57zhSoFn+6jQ6EI1Qp869FtZAexZZ/tnSNE6wl9pJmj4K4kesE/a/7i2DK7ofBNKMgiLKbkcWMTDVlZcqzTXg7k3Eig9zCTNkp5i4A3P7x0YWoYPUeVyQD4k64w2WTCgolSiwhkKcmilO7X5vYeS2bekSNSLQh1qJu4LR1vP5LGhNC7jAl4HP3VppaGnUuh7cfaa2JSKNzmCmzf7v7nSp8jlYA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=IT0LsEBGJsz7Max2udcCJ0n3pnpA0TPZ0NmC91iMZ00=;
- b=WVBx4lB5k/zJ1MTSAFgoInHNFvWXfM9sJBgSzpLbOEIRcfrRMVpUrPk2/oaxiRz9zgwqbEWkrZwJ9vHcrVnNUCdWsS/GOlgKuLXagR6/tCbRSMz0LBC/jVSl8XfraHAkGZlEjWlEfsywRfB2wJUVIGyaCIBzq8gXZuEjJWaC1oG+hVZttTyCesAVF8KEh42VFV7gnJmEiTE7+tMyC6K57e3xfLeTDO1wXBeBzip2xbGbBOWmuqWm9CN9hxeeNF10WAj8hCTu3tvQLFvVUjSXk1mBXoDFEj0nJAG/jVeo1feJgTu3kKv/y2UXpnl5Ht0yABnM7IGxOFrM6aCRBhv8Rw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=lists.linux.dev smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=IT0LsEBGJsz7Max2udcCJ0n3pnpA0TPZ0NmC91iMZ00=;
- b=GR0RnZquVAV+mvAfx/Ou7KaDh80jRHNEzNkTtj0H8k+KtGGf2kXCqHyKwCPuecqkIU/XVJ8lGkqwX/fx8ozRF6zSzS5161DzrrwO6+ZkmVatdgV8oL8T1gUdC6dPq0hms3p5glwSUV+KGbWuiQSH9xdg4ouhvgA4dhjsk1mab/dp0V98SmdWWqMEWQIlpaYmJQEfYtKfYULN4hW+do+tOxPx6H6N/Ui1sWrXbpBFHJ8XWi6E/wuKn/D7Nno++FfBKvV+pWKOCUioSUPj+nX731Uh3lmE8WdyfD8FK5eL5Sc20f+ddxusw+7DMT+ZhbtEFvD5gRcChauCfdMknVIaaw==
-Received: from DS1P220CA0018.NAMP220.PROD.OUTLOOK.COM (2603:10b6:8:44c::8) by
- CH3PR12MB7715.namprd12.prod.outlook.com (2603:10b6:610:151::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.12; Sun, 8 Nov
- 2026 13:53:18 +0000
-Received: from DM3PEPF000265C3.namprd03.prod.outlook.com
- (2603:10b6:8:44c:cafe::21) by DS1P220CA0018.outlook.office365.com
- (2603:10b6:8:44c::8) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.592.12 via Frontend Transport; Sun, 8
- Nov 2026 13:53:18 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- DM3PEPF000265C3.mail.protection.outlook.com (10.167.23.184) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Sun, 8 Nov 2026 13:53:18 +0000
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Sun, 8 Nov
- 2026 05:53:04 -0800
-Received: from [10.125.206.9] (10.126.231.37) by rnnvmail201.nvidia.com
- (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Sun, 8 Nov
- 2026 05:53:03 -0800
-Message-ID: <201fed6a-e042-4a3a-a4b0-8d8b87183d4d@nvidia.com>
-Date: Sun, 8 Nov 2026 15:52:50 +0200
+	dkim=pass (2048-bit key, unprotected) header.d=web.de header.i=markus.elfring@web.de header.a=rsa-sha256 header.s=s29768273 header.b=IOZJ8xP5
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=web.de;
+	s=s29768273; t=1794146446; x=1794751246; i=markus.elfring@web.de;
+	bh=kXk+gUbs8YL1AEpHZQuaMkYpmitFgawjbvaFKvsibII=;
+	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:To:Cc:References:
+	 Subject:From:In-Reply-To:Content-Type:Content-Transfer-Encoding:
+	 cc:content-transfer-encoding:content-type:date:from:message-id:
+	 mime-version:reply-to:subject:to;
+	b=IOZJ8xP5TE9Tys9krpKXdk31WnH/r/eIUQk3e9ii+oQACQ1itVeLBRV6dkG6DVm2
+	 /bfCSsrp1g+CIigghqL/eT/siDoUE2llFKcs2JtyvccW5P/8hijpaB6DtxB4uLMYU
+	 QCDOfMoSiPBspzMOESwYk2hdkWM+i/O2QFD0oRVnUSF7lBFcp9u0q06ZzlzxaHdJ9
+	 S4G2kyWE4TYh+CjrbazAGh596iF/xxSuF6pEsB68UtdVwXm/YlzPJh+2TuTSRBc9A
+	 To1A5LGM0goUbXB13nkK/oDGaJ+zR/dfWJUaB1oYCvidT7jklUY8RHIpgVwmvWgpj
+	 ZFbSde4AzWWbYptOrQ==
+X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
+Received: from client.hidden.invalid by smtp.web.de (mrweb006
+ [213.165.67.108]) with ESMTPSA (Nemesis) id 1MOUxu-1x80Uy0B0o-00PpXH; Sun, 08
+ Nov 2026 15:00:46 +0100
+Message-ID: <ae14012f-a516-4a3e-84ab-d5f3ddbffa1f@web.de>
+Date: Sun, 8 Nov 2026 15:00:31 +0100
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -105,220 +63,131 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH rdma-next 19/23] RDMA/mlx5: Clamp log_max_cq_sz shift in
- CQ size checks
-To: <sashiko-reviews@lists.linux.dev>
-CC: <linux-rdma@vger.kernel.org>
-References: <20261103163949.1554-1-yishaih@nvidia.com>
- <20261103163949.1554-20-yishaih@nvidia.com>
- <sashiko-outbox-197672@kernel.org>
-Content-Language: en-US
-From: Yishai Hadas <yishaih@nvidia.com>
-In-Reply-To: <sashiko-outbox-197672@kernel.org>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: rnnvmail202.nvidia.com (10.129.68.7) To
- rnnvmail201.nvidia.com (10.129.68.8)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM3PEPF000265C3:EE_|CH3PR12MB7715:EE_
-X-MS-Office365-Filtering-Correlation-Id: 3b322c9b-cb8f-42a1-5d95-08df3d9fa4b8
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|1800799024|36860700016|23010399003|376014|22082099003|18002099003|10067099003|4143699003|11063799006|261028144727099003|261026121527099003|261022075727099003|261022105027099003|56012099006|261021135927099003|261026140227099003|261009223027099003;
-X-Microsoft-Antispam-Message-Info:
-	6VPG5z+cWYoOtNFTNuRCIWi3rGuNnSf/Kbz3hf1S6x6M3AYZk8ffXBuM7R3C85tFvjLtKlYKFb17II0NVHrasprOWDPLF4XSs2lnBE8m4oz8Sy3mlCdxWDLLlHKm5PZ2o2wGffU3oai2/WP8ZQOw/POWDOZHw+pFf3lcb7Q+n/X80WRhq6FYnGO//gdSqPtJ5X4nAfoj/gEIDx4j3VIW4hrrTqPesl/ZEmHnVWDaJBWhV7KGU7tuW9VJ/6sT9IVXi2CZPfa0VXt4qIlxHrGDibRipjm5o0j0I4kUdIDC8C/64aTdWJGwnb4fTPtD2XEDYWA0RspQ6jb3ZJj+maIErZ2mBo28GDhkUHzcikl6GA9p09G2Eiz9QZ52Q2CQn2lz2cckTGZBQQwlKUZBpHoH7yA1ZjC0EbXquz2LmE/9R/YYJM8wpxOZ06YJ8f/gKg7ijvfPpkng8K5q4Fapnek+L9YpQEWEc288mVXi3WbL9aLFVGTV030xctXnHF9/YR6WxCZv2P+MXk4jLFOmqFZHpoMS5t4pHygsebRxJSUf15NCRdBfbl+IqpXSzkVEx+uuCRDMvmMMavKhPfwTmQxpWhw0ezva6/zAF8OJKTfXQ19LQF8wGi8ED8vVclQzxMDf1WMplaQQs3KfELMEcZdeEsZ45Vwz7Ggnf5i8YRauOWA9Z48saJ9SJoizTbVLTFDb5v8PjR2I+H5BOlHd1ZcnHw==
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(36860700016)(23010399003)(376014)(22082099003)(18002099003)(10067099003)(4143699003)(11063799006)(261028144727099003)(261026121527099003)(261022075727099003)(261022105027099003)(56012099006)(261021135927099003)(261026140227099003)(261009223027099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	Mjg09pACecHl1P5xs99F2FlVb33cB5jstRRFQY4NfNYD8OvQKrCkePWk8PdpWgPAuHBTktEEKCLHbKg9ijmz6T9dWZe/RNqwP2crkUPlYw30ymhxO5U6IKNclhuaXCNFijL/RLVNte+jIOs5/yeOxuauI0Py5lm13A1AxmmaYF1jUJmhHsKmmnf3Q80fUvjQ8vBgkapSs9JKWIdLNM+wSvLySxuQOmHdjbN8/C9Ia12mgSR1AiPPPo+dOHplxh/VV5KxvTGUHDEESRFeHSa20cL7DJua4InIfN1sqz7onHd8jPef+a6YNcthmkVFmmQX+bpG+wNyZNWEhwmBvHlHJAXGyR98yBsSdi2dwZOKsQsUQBUt2Q6rWaXenDGd9d3v1jzNP1PgMvNl2WJ3t74kpulfFuODzBTW1oXY+vzPX8mD8ppwAiAQqMFgRMfvJ5BC
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Nov 2026 13:53:18.1132
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3b322c9b-cb8f-42a1-5d95-08df3d9fa4b8
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	DM3PEPF000265C3.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB7715
+To: vulab@iscas.ac.cn, netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
+ Jakub Kicinski <kuba@kernel.org>, Leon Romanovsky <leon@kernel.org>,
+ Mark Bloch <mbloch@nvidia.com>, Paolo Abeni <pabeni@redhat.com>,
+ Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>
+Cc: LKML <linux-kernel@vger.kernel.org>
+References: <20261108132100.315011-1-vulab@iscas.ac.cn>
+Subject: Re: [PATCH v2] net/mlx5e: TC, fix internal port leak when a flow is
+ reoffloaded
+Content-Language: en-GB, de-DE
+From: Markus Elfring <Markus.Elfring@web.de>
+In-Reply-To: <20261108132100.315011-1-vulab@iscas.ac.cn>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:M75IMMv+g5VvPCyoBzAJ5kckcBhtCPkxVnLvG5bcY5jpUGK/LmC
+ mx8ot6neEka0sYq7GjX8EFip+Nb8j/BXcNBE5x7vAiCzjWLqpORNmYpQC8kZe0kzSOkgDRS
+ NXCQl/0oJUjmFoC9RCcxzc4MUC83V+utt+NOa1uLVaYQ6ZoLNZ+oHWDTur1OZdJ63/vsE14
+ zeV8CpmObLX38g8hNfCCQ==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:R+RzXk2RbTA=;MX6ZepcF5yunRKwCQod7IlyQNc4
+ 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
+ F3wlT
 
-On 04/11/2026 18:43, sashiko-bot@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 1 potential issue(s) to consider:
-> - [High] RDMA/mlx5: 32-bit entries * cqe_size overflow in CQ create and resize
-> --
-> 
-> commit 23d4d478ec288a1c091e2edf580c64eccf4e7c49
-> Author: Yishai Hadas <yishaih@nvidia.com>
-> 
-> RDMA/mlx5: Clamp log_max_cq_sz shift in CQ size checks
-> 
-> This commit replaces the 32-bit shift of log_max_cq_sz with
-> MLX5_CAP_GEN_LOGSZ_U64(), rounds up the requested CQ entry count using 64-bit
-> arithmetic, and rejects rounded-up entry counts above INT_MAX in the CQ create
-> and resize paths.
-> 
->> diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
->> index f955eb762051d..25344dfba1c12 100644
->> --- a/drivers/infiniband/hw/mlx5/cq.c
->> +++ b/drivers/infiniband/hw/mlx5/cq.c
->> @@ -1117,6 +1117,15 @@ static void notify_soft_wc_handler(struct work_struct *work)
->>   	cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
->>   }
->>   
->> +/*
->> + * Next power of 2 above entries. It can be 2^32, which doesn't fit the
->> + * unsigned long of roundup_pow_of_two() on 32-bit archs.
->> + */
->> +static u64 cq_roundup_entries(u64 entries)
->> +{
->> +	return 1ULL << fls64(entries);
->> +}
->> +
->>   int mlx5_ib_create_user_cq(struct ib_cq *ibcq,
->>   			   const struct ib_cq_init_attr *attr,
->>   			   struct uverbs_attr_bundle *attrs)
->> @@ -1124,7 +1133,7 @@ int mlx5_ib_create_user_cq(struct ib_cq *ibcq,
->>   	struct ib_udata *udata = &attrs->driver_udata;
->>   	struct ib_device *ibdev = ibcq->device;
->>   	struct mlx5_ib_create_cq_resp uresp = {};
->> -	int entries = attr->cqe;
->> +	u64 entries = attr->cqe;
->>   	int vector = attr->comp_vector;
->>   	struct mlx5_ib_dev *dev = to_mdev(ibdev);
->>   	struct mlx5_ib_cq *cq = to_mcq(ibcq);
->> @@ -1136,15 +1145,17 @@ int mlx5_ib_create_user_cq(struct ib_cq *ibcq,
->>   	int cqe_size;
->>   	int eqn;
->>   	int err;
->> +	u64 max_cq_entries = MLX5_CAP_GEN_LOGSZ_U64(dev->mdev, log_max_cq_sz);
->>   
->> -	if (attr->cqe > (1 << MLX5_CAP_GEN(dev->mdev, log_max_cq_sz)))
->> +	if (attr->cqe > max_cq_entries)
->>   		return -EINVAL;
->>   
->>   	if (check_cq_create_flags(attr->flags))
->>   		return -EOPNOTSUPP;
->>   
->> -	entries = roundup_pow_of_two(entries + 1);
->> -	if (entries > (1 << MLX5_CAP_GEN(dev->mdev, log_max_cq_sz)))
->> +	entries = cq_roundup_entries(entries);
->> +	/* cq->ibcq.cqe and create_cq_user() take an int */
->> +	if (entries > max_cq_entries || entries > INT_MAX)
->>   		return -EINVAL;
->>   
->>   	cq->ibcq.cqe = entries - 1;
->> @@ -1214,7 +1225,7 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
->>   		      struct uverbs_attr_bundle *attrs)
->>   {
->>   	struct ib_device *ibdev = ibcq->device;
->> -	int entries = attr->cqe;
->> +	u64 entries = attr->cqe;
->>   	int vector = attr->comp_vector;
->>   	struct mlx5_ib_dev *dev = to_mdev(ibdev);
->>   	struct mlx5_ib_cq *cq = to_mcq(ibcq);
->> @@ -1226,12 +1237,14 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
->>   	int cqe_size;
->>   	int eqn;
->>   	int err;
->> +	u64 max_cq_entries = MLX5_CAP_GEN_LOGSZ_U64(dev->mdev, log_max_cq_sz);
->>   
->> -	if (attr->cqe > (1 << MLX5_CAP_GEN(dev->mdev, log_max_cq_sz)))
->> +	if (attr->cqe > max_cq_entries)
->>   		return -EINVAL;
->>   
->> -	entries = roundup_pow_of_two(entries + 1);
->> -	if (entries > (1 << MLX5_CAP_GEN(dev->mdev, log_max_cq_sz)))
->> +	entries = cq_roundup_entries(entries);
->> +	/* cq->ibcq.cqe and create_cq_kernel() take an int */
->> +	if (entries > max_cq_entries || entries > INT_MAX)
->>   		return -EINVAL;
->>   
->>   	cq->ibcq.cqe = entries - 1;
->> @@ -1532,18 +1545,22 @@ int mlx5_ib_resize_cq(struct ib_cq *ibcq, unsigned int entries,
->>   	int inlen;
->>   	int cqe_size;
->>   	unsigned long flags;
->> +	u64 entries64 = entries;
->> +	u64 max_cq_entries = MLX5_CAP_GEN_LOGSZ_U64(dev->mdev, log_max_cq_sz);
->>   
->>   	if (!MLX5_CAP_GEN(dev->mdev, cq_resize)) {
->>   		pr_info("Firmware does not support resize CQ\n");
->>   		return -ENOSYS;
->>   	}
->>   
->> -	if (entries > (1 << MLX5_CAP_GEN(dev->mdev, log_max_cq_sz)))
->> +	if (entries64 > max_cq_entries)
->>   		return -EINVAL;
->>   
->> -	entries = roundup_pow_of_two(entries + 1);
->> -	if (entries > (1 << MLX5_CAP_GEN(dev->mdev, log_max_cq_sz)) + 1)
->> +	entries64 = cq_roundup_entries(entries64);
->> +	/* resize_user() and resize_kernel() take an int */
->> +	if (entries64 > max_cq_entries + 1 || entries64 > INT_MAX)
->>   		return -EINVAL;
->> +	entries = entries64;
-> 
-> [Severity: High]
-> When an untrusted NIC reports log_max_cq_sz >= 24, bounding the rounded-up
-> entry count only by INT_MAX allows power-of-two values of entries from 2^24
-> up to 2^30 to reach the downstream buffer size calculations. Can those 32-bit
-> multiplications by cqe_size still overflow?
-> 
-> In mlx5_ib_create_user_cq() -> create_cq_user(), entries (int) is multiplied
-> by ucmd.cqe_size (__u32, validated as 64 or 128) in 32-bit unsigned
-> arithmetic before widening to size_t:
-> 
-> drivers/infiniband/hw/mlx5/cq.c:create_cq_user() {
-> 	...
-> 	cq->buf.umem = ib_umem_get_cq_buf_or_va(&dev->ib_dev, attrs,
-> 						ucmd.buf_addr,
-> 						entries * ucmd.cqe_size,
-> 						IB_ACCESS_LOCAL_WRITE);
-> 	...
-> }
-> 
-> For entries in 2^25..2^30 with ucmd.cqe_size == 128 (or 2^26..2^30 with
-> ucmd.cqe_size == 64), entries * ucmd.cqe_size wraps to 0, which lets a
-> 1-page user buffer pass the min_size check in ib_umem_get_desc_check() while
-> programming log_cq_size = 25..30 in the CQ context.
-> 
-> Similarly, in mlx5_ib_create_cq() -> create_cq_kernel() ->
-> alloc_cq_frag_buf() and mlx5_ib_resize_cq() -> resize_kernel() ->
-> alloc_cq_frag_buf(), nent * cqe_size is evaluated as a signed 32-bit int and
-> passed as int size to mlx5_frag_buf_alloc_node():
-> 
-> drivers/infiniband/hw/mlx5/cq.c:alloc_cq_frag_buf() {
-> 	...
-> 	err = mlx5_frag_buf_alloc_node(dev->mdev,
-> 				       nent * cqe_size,
-> 				       frag_buf,
-> 				       dev->mdev->priv.numa_node);
-> 	...
-> }
-> 
-> For nent == 2^24 (with cqe_size == 128) or nent == 2^25 (with cqe_size == 64),
-> nent * cqe_size overflows to INT_MIN, and for nent >= 2^25 (cqe_size == 128)
-> or nent >= 2^26 (cqe_size == 64), it wraps to 0. When size is 0,
-> mlx5_frag_buf_alloc_node() sets frag_buf->frags = ZERO_SIZE_PTR and returns 0,
-> and init_cq_frag_buf() then dereferences ZERO_SIZE_PTR when iterating over
-> buf->nent:
-> 
-> drivers/infiniband/hw/mlx5/cq.c:init_cq_frag_buf() {
-> 	for (i = 0; i < buf->nent; i++) {
-> 		cqe = mlx5_frag_buf_get_wqe(&buf->fbc, i);
-> 		cqe64 = buf->cqe_size == 64 ? cqe : cqe + 64;
-> 		cqe64->op_own = MLX5_CQE_INVALID << 4;
-> 	}
-> }
-> 
-> Would it make sense to cap entries so that entries * cqe_size cannot overflow
-> int (or use check_mul_overflow() in create_cq_user() and alloc_cq_frag_buf())?
-> 
+=E2=80=A6
+> Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
 
-Yes, v1 will use check_mul_overflow() in both, with the real CQE size.
+Is there a need to reconsider also the mail address identifier once more?
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Do=
+cumentation/process/submitting-patches.rst?h=3Dv7.4-rc1#n396
 
-Yishai
+Regards,
+Markus
