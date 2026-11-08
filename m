@@ -1,87 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=216.71.153.144
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794139323;
-	b=Eh27+H56cTLGAE3eoVNk8h0PK/69TRrZvc2TuYkd4Ct3yxKnjA2hd4SM6C1W8wEoyWDD
-	 EmeV+5uqBcuYUDFh2zS4IVyV+6L0xT/6ed5yppJWfRrJec5rvt8j7frhlirnFMJAiUwM3
-	 qS5JFZwdbLqPizueZNZzcZmf7sJX4uWWB2RIX6CH9a2pQyH3Emo3fHdqN5ukJ+QEqtUXe
-	 z5OoDijRizb5pOW/J6FzUMvx+YdwUsKDI9PlC4gctI8kbmfG6kZ08ySfG52eGW38Can4Q
-	 VNjqG9K9wlUwxH/CbK8itF2VwcQswcmsh0gyhQlIqhwPm4Du2VHlNIv997pGGYdblIQ==
+	t=1794140168;
+	b=X79dM+i6pVslaDdzKyzGQJVEX7RqzcVtRls0jAYBxBwhKZ1jgRu43C9OHBl2cHt8lAEM
+	 tKVEE80c5ECiFoKzGpGji5zWuL/7jzlSdDW1JQtNiSWJQ4eTd91JCkLvNjLfF6VTUwC0k
+	 Ud61FQjponAB6Af4AauWCfX92OwkCXDt16KKAmLU/ZgClN9oNQGUZH2xtlvXgG9QjxnvW
+	 8wonszpqnKW/y8Dh7u7KhopNUIHfpjKqgnqTrhIDffOmvQnUVY3ax/+WJkpzoWX/VKLU8
+	 5U+PyYUEjS/oMAUrVOUFFI4Wcc+k/OD4ABxnVgI1X7qBRzoz1zrA1qsSmljOkNITKug==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794139323;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:Received:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 IronPort-SDR:Received:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 WDCIronportException:Received:From:To:Cc:Subject:Date:Message-ID:
-	 X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=SrtOqLPHEQesKMXWnC2VfE0FsZF53cDo8UzjqjuS/RE=;
-	b=dY0tPQTueR0WnY56vh90VZql7d1OHKpMVQhDxdBx+9Lm7CUz0cAjvtbveAaVXa4trxGz
-	 r4EdNzvRryvsU7+UVLEudf7jBOV3jQdypwkmETWYklcMtpf802iUUbXvhaqfUSi2u8B15
-	 Y8j65TJdgbPPHq5roQUgizEKMEFCYu0A0am2jXLVDHiVv4Xsb2DlYziN2+s9CkGBQnev8
-	 YTNG4BbKNfHhx+xShgwR6KzP4Ik4UHmvyKe+1Tjq1k+piHrFJGzQjl4ozG2EiAy89fzei
-	 RwF8/neaYHe2olJIxNgQOID0v1quvf1NahNfChSZRjuxzrYZOQy0SkyAKQ3tnTReYiA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794140168;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=YvT/MMxYWrdIylhdUN2GQRbcVI7kCYlhH+C3Z+QTodY=;
+	b=IqQppxWn2x8obNpfEKtS2BUUWQUs1uJvVSAv7nzR3LjuoduZuMRDt5q+0HpDy8D8nibN
+	 2V4Ea1eWTdlhyc7ONeKyECTPudHb6BRULSjHUCalSrYDYHsaFBg/62xgpVs+lLshLCeQK
+	 akF6YMppKlfx2bqqq0PDJ9vcqHnl/ZEARFEwg6JYhu2PE+I7Rqbvyy4bqIqxl3xM0dyCV
+	 pmo9i+nAWEHvvq9TxVovpiFX/4VL1vuzjAPxmABJCbV8yzjC4YIMvxYb7rTbdXWiFyYBq
+	 WYC8LJQR9nJOeXkdnjr+VEPsjti4VucyBBOuEytJS+qmwalEsbCeaLOTUJOQfMU6yOQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=wdc.com;
-	spf=pass smtp.mailfrom=wdc.com;
-	dkim=pass header.d=wdc.com header.i=@wdc.com header.a=rsa-sha256 header.s=dkim.wdc.com header.b=LzLPBFPs;
-	arc=none smtp.remote-ip=216.71.153.144
-Received: from esa5.hgst.iphmx.com (esa5.hgst.iphmx.com [216.71.153.144])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lDn719lG;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E713606A326
-	for <linux-rdma@vger.kernel.org>; Sun,  8 Nov 2026 12:02:03 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5E713606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wdc.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wdc.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85C80606A31C
+	for <linux-rdma@vger.kernel.org>; Sun,  8 Nov 2026 12:16:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=wdc.com header.i=@wdc.com header.a=rsa-sha256 header.s=dkim.wdc.com header.b=LzLPBFPs
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=wdc.com; i=@wdc.com; q=dns/txt; s=dkim.wdc.com;
-  t=1794139330; x=1825675330;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=edMmME5am0w8M0ppsUjClJjEUbA7Gkdq3winU2NcTKE=;
-  b=LzLPBFPsIPnsXSi6MCJmAdpeu4IROPVlYWFJEKxk1AWjBRDU5UW+lx6T
-   NlkSePDeGJhQ+V89Jn8AXfnNZVrmrtCywGbWZlb/4oKbl6FHxO4hzPIqi
-   Ks/Pg3HLbVyd+FNk2vqzWI9u7JN7jGWCJV8GBZwgvDUuexshSxiiIzzq8
-   n5X5ZwGWX3ZspyXYl0oas+dS9a/XKrr3negpcd0AHLQJg3I3WkaGcVVLr
-   qh3JoTB3rJcAWSktBKirtGZDq9Jg0ozM9po21G94OzDAwnLbH6mwq1SKa
-   Q9nls2MUqyG8XOt8H49IehMnTwXU9aK9A4jBpVwg3mD/wCZkBMmZQKd2M
-   g==;
-X-CSE-ConnectionGUID: 6yDgdEzgTDmqhntcPzGrlw==
-X-CSE-MsgGUID: zjTMMFQQQQiQ1moniYxtxQ==
-X-IronPort-AV: E=Sophos;i="6.27,202,1786982400"; 
-   d="scan'208";a="159266836"
-Received: from uls-op-cesaip02.wdc.com (HELO uls-op-esad3-o.wdc.com) ([199.255.45.15])
-  by ob1.hgst.iphmx.com with ESMTP; 08 Nov 2026 20:02:07 +0800
-X-CSE-ConnectionGUID: NGWTio0gSIySLWXT5jKwvg==
-X-CSE-MsgGUID: 0YEm1qg3QFC05+O2YrAWnA==
-IronPort-SDR: 6af064b8_Qn31bRD9UJPgZzFLfnHNhkB8f5gIQIEi0j8OyYSwTmglgdR
- 3L1JOxomH1uyaNh01B/Kmd5Vgm5WkoiaEMz6fQw==
-Received: from uls-op-esai1-o.wdc.com ([10.248.3.45])
-  by uls-op-esad3-o.wdc.com with ESMTP/TLS/ECDHE-RSA-AES128-GCM-SHA256; 08 Nov 2026 04:02:00 -0800
-X-CSE-ConnectionGUID: xkdL1M3HQaiFe5e0KrB2cA==
-X-CSE-MsgGUID: VI+I45xdSyC7ABpjRQ766g==
-WDCIronportException: Internal
-Received: from unknown (HELO shindev.ssa.fujisawa.hgst.com) ([10.149.67.30])
-  by uls-op-esai1-o.wdc.com with ESMTP; 08 Nov 2026 04:01:58 -0800
-From: Shin'ichiro Kawasaki <shinichiro.kawasaki@wdc.com>
-To: linux-rdma@vger.kernel.org,
-	linux-nvme@lists.infradead.org
-Cc: Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Christoph Hellwig <hch@infradead.org>,
-	Sagi Grimberg <sagi@grimberg.me>,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Keith Busch <kbusch@kernel.org>,
-	Surabhi Gogte <sgogte@purestorage.com>,
-	Shin'ichiro Kawasaki <shinichiro.kawasaki@wdc.com>
-Subject: [PATCH RFC 2/2] nvmet-rdma: use a separate lockdep class for the listening cm_id
-Date: Sun,  8 Nov 2026 21:01:54 +0900
-Message-ID: <20261108120154.148824-3-shinichiro.kawasaki@wdc.com>
-X-Mailer: git-send-email 2.56.0
-In-Reply-To: <20261108120154.148824-1-shinichiro.kawasaki@wdc.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lDn719lG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DE8C1F0089F;
+	Sun,  8 Nov 2026 12:16:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794140168;
+	bh=YvT/MMxYWrdIylhdUN2GQRbcVI7kCYlhH+C3Z+QTodY=;
+	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
+	b=lDn719lGBHmuW1IQws7MdmxzfVLnlMasSEze3RpJyVuPN6skJ30TeXQ+jSNHGg9+7
+	 jxa6ozqkwd5qv4U+qYievVjw0VQyA+gfPH13HbN2yCwusn5AEVVb6c7+8iIGGRuOj8
+	 rrAe2bwMKuCKG7uS7NXVQq04x/vjRHCVlzdCUoXcP5n7Dd9qy50mXRwoszd87s6BIu
+	 IWxte2xdWY9YOUZ9l+7TqO8hIdk+5BjKLgNkA9LP2IUmG5LcGUb4FqioqOZSrQNFhP
+	 71TuC9KF/r+UkGEgD60M1Bq+uDHf38rkukY5AHnv5tmS15PkOjTW9EySImSmN61ICL
+	 KSF4LcJCdoKng==
+Message-ID: <sashiko-outbox-203706@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH RFC 1/2] RDMA/cma: Add rdma_reclassify_id_for_listen()
+Reply-To: sashiko-reviews@lists.linux.dev
+To: =?utf-8?b?U2hpbidpY2hpcm8gS2F3YXNha2k=?= <shinichiro.kawasaki@wdc.com>, linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org
+In-Reply-To: <20261108120154.148824-2-shinichiro.kawasaki@wdc.com>
 References: <20261108120154.148824-1-shinichiro.kawasaki@wdc.com>
+ <20261108120154.148824-2-shinichiro.kawasaki@wdc.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Sun, 08 Nov 2026 12:16:07 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -90,62 +58,98 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-Since the commit 2a8513091d2f ("nvme-rdma: parallelize I/O queue
-allocation and startup"), the host sends commands on an I/O queue before
-the target has seen RDMA_CM_EVENT_ESTABLISHED for that queue. nvmet-rdma
-keeps such commands on queue->rsp_wait_list and executes them from
-nvmet_rdma_cm_handler() when the ESTABLISHED event arrives, that is,
-with the handler_mutex of the queue's cm_id held. Executing a connect
-command takes nvmet_config_sem, which creates a handler_mutex ->
-nvmet_config_sem dependency. This is the reverse of the order in
-nvmet_port_subsys_drop_link(), which holds nvmet_config_sem and calls
-rdma_destroy_id() on the port's listening cm_id via nvmet_disable_port().
-Lockdep then reports a possible circular locking dependency:
+Thank you for your contribution! Sashiko AI review found 2 potential
+issues to consider:
+- [Medium] RDMA/cma: missing handler_mutex lockdep reclassification in
+  cma_listen_on_dev()
+- [Low] RDMA/cma: missing kernel-doc for rdma_reclassify_id_for_listen()
+  ordering rules
+--
 
-     Possible unsafe locking scenario:
+commit 1c34d3d5b4de4179de0a92ec2b97020a760e60b6
+Author: Shin'ichiro Kawasaki <shinichiro.kawasaki@wdc.com>
 
-           CPU0                    CPU1
-           ----                    ----
-      lock(nvmet_config_sem);
-                                   lock(&id_priv->handler_mutex);
-                                   lock(nvmet_config_sem);
-      lock(&id_priv->handler_mutex);
+RDMA/cma: Add rdma_reclassify_id_for_listen()
 
-The warning is a false positive. The handler_mutex on CPU1 belongs to a
-connected queue's cm_id, while the one on CPU0 belongs to the listening
-cm_id, and nvmet-rdma does not take nvmet_config_sem while handling
-events of the listening cm_id.
+This commit adds rdma_reclassify_id_for_listen() to assign a separate lockd=
+ep
+class to the handler_mutex of listening rdma_cm_id instances.
 
-To silence the warning, call rdma_reclassify_id_for_listen() on the
-listening cm_id right after it is created in nvmet_rdma_enable_port(),
-so that its handler_mutex gets a lockdep class of its own.
-
-This depends on the previous patch, which adds
-rdma_reclassify_id_for_listen() to the RDMA CM.
-
-Fixes: 2a8513091d2f ("nvme-rdma: parallelize I/O queue allocation and startup")
 Link: https://lore.kernel.org/linux-nvme/at36um4zrsfOr3kh@shinmob/
-Signed-off-by: Shin'ichiro Kawasaki <shinichiro.kawasaki@wdc.com>
----
- drivers/nvme/target/rdma.c | 2 ++
- 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index b9e39d1657d2..94f6d8edb517 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -1914,6 +1914,8 @@ static int nvmet_rdma_enable_port(struct nvmet_rdma_port *port)
- 		return PTR_ERR(cm_id);
- 	}
- 
-+	rdma_reclassify_id_for_listen(cm_id);
-+
- 	/*
- 	 * Allow both IPv4 and IPv6 sockets to bind a single port
- 	 * at the same time.
--- 
-2.56.0
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index 337a49d1acf72..436e2467a36ff 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -1064,6 +1064,19 @@ __rdma_create_kernel_id(struct net *net, rdma_cm_e=
+vent_handler event_handler,
+>  }
+>  EXPORT_SYMBOL(__rdma_create_kernel_id);
+> =20
+> +#ifdef CONFIG_DEBUG_LOCK_ALLOC
+> +static struct lock_class_key cma_listen_handler_mutex_key;
+> +void rdma_reclassify_id_for_listen(struct rdma_cm_id *id)
+> +{
+> +	struct rdma_id_private *id_priv;
+> +
+> +	id_priv =3D container_of(id, struct rdma_id_private, id);
+> +	lockdep_set_class(&id_priv->handler_mutex,
+> +			  &cma_listen_handler_mutex_key);
+> +}
+> +EXPORT_SYMBOL(rdma_reclassify_id_for_listen);
+> +#endif
 
+[Severity: Medium]
+Does cma_listen_on_dev() also need to reclassify dev_id_priv->handler_mutex
+for wildcard listeners?
+
+When a caller binds a listening cm_id to a wildcard address (such as 0.0.0.0
+or ::), rdma_listen() -> cma_listen_on_all() -> cma_listen_on_dev() allocat=
+es
+an internal per-device child listening ID (dev_id_priv) for each RDMA devic=
+e:
+
+drivers/infiniband/core/cma.c:cma_listen_on_dev() {
+	...
+	dev_id_priv =3D
+		__rdma_create_id(net, cma_listen_handler, id_priv,
+				 id_priv->id.ps, id_priv->id.qp_type, id_priv);
+	...
+}
+
+Because dev_id_priv->handler_mutex keeps the default handler_mutex lockdep
+class, destroying the wildcard listening cm_id under nvmet_config_sem still
+triggers the same lockdep circular locking dependency warning when
+rdma_destroy_id() -> _destroy_id() -> cma_cancel_operation() ->
+cma_cancel_listens() -> _cma_cancel_listens() calls
+rdma_destroy_id(&dev_id_priv->id).
+
+> diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
+> index d639ff889e649..59dda4b0173e7 100644
+> --- a/include/rdma/rdma_cm.h
+> +++ b/include/rdma/rdma_cm.h
+> @@ -158,6 +158,12 @@ struct rdma_cm_id *rdma_create_user_id(rdma_cm_event=
+_handler event_handler,
+>  	__rdma_create_kernel_id(net, event_handler, context, ps, qp_type,      \
+>  				KBUILD_MODNAME)
+> =20
+> +#ifdef CONFIG_DEBUG_LOCK_ALLOC
+> +void rdma_reclassify_id_for_listen(struct rdma_cm_id *id);
+> +#else
+> +static inline void rdma_reclassify_id_for_listen(struct rdma_cm_id *id) =
+{}
+> +#endif
+
+[Severity: Low]
+Could rdma_reclassify_id_for_listen() have a kernel-doc comment like the
+neighboring declarations in include/rdma/rdma_cm.h?  Since it calls
+lockdep_set_class() on handler_mutex, documenting that it must be called on=
+ a
+newly created rdma_cm_id before rdma_bind_addr() or rdma_listen() can acqui=
+re
+handler_mutex would make the ordering requirement clear to callers.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261108120154.1488=
+24-1-shinichiro.kawasaki@wdc.com?part=3D1
