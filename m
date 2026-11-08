@@ -1,78 +1,63 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=51.159.188.251
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794148033;
-	b=sgM2IrLxyxDgQcbN3TMkpMGtFqTD6ifbeT2tWGUDFNWBu8ZqzIVhL3aJBvls64SVqcDb
-	 /To2dhoc7qmLHVAJEjJ2cab6XLRisC7N7KGLEcfPPYuLTMy2ATx0HfyWJOhYLH89Ft6/0
-	 G9CaU+FjKkZl0ZSRs45z+/fTLh54iothP6wOuNmAdlwzWZvydexeT6oGiy9d1BQCtTeFw
-	 5skpUEi/iyiCZZViMKXh+ovNAjrSTD19kqxTXXmRhJ04A1l2tr8/kWGZxorz+2GfW1dum
-	 tqrOsdyD3NO/wRIgkWonbIl0g2wgIDRl54C30fugR8vXrusZwUY1vqml914VFcicurg==
+	t=1794148354;
+	b=QmxjCbwSVTpWmzxdM0QTCPexTHqMUJ3pJJgZlxLCKUhprU0FRxs3fHHMUHIfTqRNXn9h
+	 cJw3uGc0p/JwJLsbTKeCV1x4aFDIEhpUmUZySvhVQGpmVFaHY/p9PgrTGW46xom+8hDIk
+	 29sptL6onvyzB0Q0ZRrjN3zzFZH8Mrip6uWPaL5Kb3GMd4XVviZeek3B149Udv2CIQZSQ
+	 /L69k/uo8OtsY4HtxjMIW8b2ZV3LXLRkFYtCZ8TsdqHIwFdDPMejRkg3H2lsr9ygzpQpd
+	 q0CSXDS+QIrrSUjShJYnlFNoPdSOPBkRUfbpya0MuLINDYfbE1gTvbiEnwJ26FvXtXw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794148033;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:X-AntiAbuse:X-AntiAbuse:X-AntiAbuse:
-	 X-AntiAbuse:X-AntiAbuse:X-Get-Message-Sender-Via:
-	 X-Authenticated-Sender:X-Source:X-Source-Args:X-Source-Dir;
-	bh=rkYS/CEtmuPr5G4354NxU68uWYFEiDlmwZzOtfMp6Z4=;
-	b=ZBtfHFPDzLT2exbE7L7zmPQMx+kqEP0y3LgOlWyYVe1GuW+BYoAhDzDQaJ3+KUKX0DM4
-	 Rt53G0mToSNQ3iZoCvRSTqX1QZl3k/Li0JpmHaJx87Y02N0AZ8qIaGDvdtUpp/Qspgu0q
-	 iLyldLyQ+rWSBWjUEv8NR0FwRBs2pbD0ghmsXKEJsuycHgVzCu+aA0scbjt+JAyeEArN3
-	 QeJ/HzCdVM/SvsO/JYlQycMksy4Phuj7WDAUAJhiGxp7cvavYTvBW+YONfRX5wtMHTZjh
-	 l1mQLA8y7fBUUC/3b0FE8VqmqnrYLaMkAffxsPGkYj/GRAmx671MkfG7IsNaEJo7EEA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794148354;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
+	 In-Reply-To:References:Auto-Submitted:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=URC7r36kokGjXCV5G6Ei8oKV54JoMbconYpCKkPt2AY=;
+	b=nvGC0z4fP87Q3DNdC7jZAtQrTk9sOxwklIjxWNv7DB+FsIENx33CLDNTU2NNbUW6Xsee
+	 T/qF4iticnRkgmtWvgZHgYVi6+0aeFhvXnetHi3Fus5PHzAfV7MaV+u6rr5Cjaq4XFcw7
+	 P+durMGsL5HajgJoRvLbsIk53JnUdRQszQFcDlzAOgoy3bmIT36AwEcsQ7lwphViz9liG
+	 mHfkn18LDuZy1Dzo7o0GtXW6qIE+qpZATR6T9z4E5dgPRLuHORkYvDqCXZaDsMjSkBbkF
+	 x16f2KODdVDB4k4SR9zsH+4VfWjW2d6L36GsfMch61OORoxtreloPSagRwM/nBen0LA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oss.cyber.gouv.fr;
-	spf=pass smtp.mailfrom=oss.cyber.gouv.fr;
-	dkim=pass header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.a=rsa-sha256 header.s=default header.b=MwWpvquV;
-	arc=none smtp.remote-ip=51.159.188.251
-Received: from oss.cyber.gouv.fr (oss.cyber.gouv.fr [51.159.188.251])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LP9W2yxO;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69A66606D832;
-	Sun,  8 Nov 2026 14:27:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 69A66606D832
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.cyber.gouv.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.cyber.gouv.fr
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B755B606A31C;
+	Sun,  8 Nov 2026 14:32:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oss.cyber.gouv.fr header.i=@oss.cyber.gouv.fr header.a=rsa-sha256 header.s=default header.b=MwWpvquV
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=oss.cyber.gouv.fr; s=default; h=Content-Transfer-Encoding:Content-Type:
-	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:
-	Reply-To:Sender:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=rkYS/CEtmuPr5G4354NxU68uWYFEiDlmwZzOtfMp6Z4=; b=MwWpvquV6KKbx8ACObdGBsJZ/I
-	+vu/W6RO7//F3daN+lYbq3q6uJE6DsjBsqYq/+6F75u3Avuogrvx1SNDdU7obCvV/Yqidr0V5Hexe
-	0yUeYIEsWuqllIBFxSLaB0MmKZ/DI9K14m8/nb6WVZnkaCReXqP4ysE/zJR0zDVL1QN+llP2Yk483
-	0eAnTVxkNkmRfwbKuG6W0UjIwAtJIqa1Ix8NBWRu/k3lnaGlsvQNL6Fz4sXgcKi8LV7OFTtWAi6qy
-	7ElmxWgCtrIjMrBF2xtK/V98fmvfLVpvZU1If9ywXveJGTyuWs4ygOdtyxU5AMXUPr99Yg3EqmFIF
-	CyHHtTnw==;
-Received: from [151.115.150.205] (port=49652 helo=gepetto..)
-	by pf-012.whm.fr-par.scw.cloud with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.100.1)
-	(envelope-from <Jeremy.Jean@oss.cyber.gouv.fr>)
-	id 1xQ3rI-00000008IcJ-37Ao;
-	Sun, 08 Nov 2026 15:27:00 +0100
-From: =?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>
-To: Steffen Klassert <steffen.klassert@secunet.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Sabrina Dubroca <sd@queasysnail.net>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Boris Pismenny <borisp@nvidia.com>,
-	Saeed Mahameed <saeedm@nvidia.com>,
-	Leon Romanovsky <leonro@nvidia.com>,
-	Tariq Toukan <tariqt@nvidia.com>,
-	Mark Bloch <mbloch@nvidia.com>,
-	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	=?UTF-8?q?J=C3=A9r=C3=A9my=20Jean?= <Jeremy.Jean@oss.cyber.gouv.fr>,
-	stable@vger.kernel.org
-Subject: [PATCH ipsec v2 6/7] xfrm: segment untrusted GSO packets before sequence allocation
-Date: Sun,  8 Nov 2026 14:26:51 +0000
-Message-ID: <20261108142652.1330952-7-Jeremy.Jean@oss.cyber.gouv.fr>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LP9W2yxO
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A26A01F0089F;
+	Sun,  8 Nov 2026 14:32:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794148353;
+	bh=URC7r36kokGjXCV5G6Ei8oKV54JoMbconYpCKkPt2AY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=LP9W2yxOa6pPb9hHHkWjSbMzRpX7dUppXa0DgOK73S3SS3UcwIwIqnzhslVmbEZOd
+	 b01uyadKpH/rztQ5bNueyzPvOtAUtBYKFOXtSnSh6aZ4SpSgR7XBnp5votWcE82ZSE
+	 nX7VWrn0omDdcb+qUliVb5NaZogqate61DI4FeeJUN0r/6IFECUVN/jA5wqF5Y3jsM
+	 GjdOyxTJ/fBVqu/F3Lod1kdxT6tIkCxvZccSBfECxk3aXBa6c6ddlOdeXK+mEEbzXC
+	 cGT1tfttyEsVKelMV7lqCfYOt05a2lAV92NCNtr5+VK4uTj/jGRkRqP7EabF6Eby3j
+	 gFi1zpXh9xzLw==
+From: netdev-bot+sinfo@kernel.org
+To: =?utf-8?q?J=C3=A9r=C3=A9my?= Jean <Jeremy.Jean@oss.cyber.gouv.fr>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>,
+ Herbert Xu <herbert@gondor.apana.org.au>,
+ Sabrina Dubroca <sd@queasysnail.net>, "David S. Miller" <davem@davemloft.net>,
+ Boris Pismenny <borisp@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>,
+ Leon Romanovsky <leonro@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
+ Mark Bloch <mbloch@nvidia.com>, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: 
+ Re: [PATCH ipsec v2 0/7] xfrm: fix ESP IV generation and ESN authentication
+Date: Sun, 08 Nov 2026 14:32:32 +0000
+Message-ID: <179414835216.488859.15220784201816281188@kernel.org>
 In-Reply-To: <20261108142652.1330952-1-Jeremy.Jean@oss.cyber.gouv.fr>
 References: <20261108142652.1330952-1-Jeremy.Jean@oss.cyber.gouv.fr>
+Auto-Submitted: auto-generated
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -82,68 +67,29 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - pf-012.whm.fr-par.scw.cloud
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - oss.cyber.gouv.fr
-X-Get-Message-Sender-Via: pf-012.whm.fr-par.scw.cloud: authenticated_id: jeremy.jean@oss.cyber.gouv.fr
-X-Authenticated-Sender: pf-012.whm.fr-par.scw.cloud: jeremy.jean@oss.cyber.gouv.fr
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
 
-Packets received through TUN or virtio-net can have gso_segs == 0,
-with SKB_GSO_DODGY set until the segmentation metadata is checked.
-When ESP defers segmentation, gso_segs is still zero, so the SA
-sequence counter is not advanced. The segments receive sequence
-numbers starting at oseq + 1, which subsequent packets can reuse,
-causing AES-GCM nonce reuse.
+Hi!
 
-This affects IPv4 and IPv6, with or without ESN, when the ESP offload
-type is registered. Hardware encryption is not required.
+This is an automated message. This series looks like a fix, but its
+commit messages seem to be missing some information:
 
-Segment SKB_GSO_DODGY packets in xfrm_output() before allocating
-sequence numbers, so each segment gets its own number. Set the ESP
-encapsulation flag in xfrm_output_one(), after early segmentation, so
-UFO fragment offsets and flags are filled in correctly.
+ - How the issue was discovered, e.g. hit in production, hit during
+   development, syzbot report, manual code inspection, LLM or static
+   analysis tool scan.
 
-Fixes: d7dbefc45cf5 ("xfrm: Add xfrm_replay_overflow functions for offloading")
-Cc: stable@vger.kernel.org
-Signed-off-by: Jérémy Jean <Jeremy.Jean@oss.cyber.gouv.fr>
----
- net/xfrm/xfrm_output.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ - Whether the issue was actually triggered, or is only theoretical
+   (e.g. found by code inspection). If it was triggered please include
+   the symptoms, like the stack trace or error messages.
 
-diff --git a/net/xfrm/xfrm_output.c b/net/xfrm/xfrm_output.c
-index 99d1b33db52a6..a1fb60971c6bc 100644
---- a/net/xfrm/xfrm_output.c
-+++ b/net/xfrm/xfrm_output.c
-@@ -505,6 +505,9 @@ static int xfrm_output_one(struct sk_buff *skb, int err)
- 	if (err <= 0 || x->xso.type == XFRM_DEV_OFFLOAD_PACKET)
- 		goto resume;
- 
-+	if (xfrm_offload(skb))
-+		skb->encapsulation = 1;
-+
- 	do {
- 		err = xfrm_skb_check_space(skb);
- 		if (err) {
-@@ -814,10 +817,10 @@ int xfrm_output(struct sock *sk, struct sk_buff *skb)
- 		xfrm_state_hold(x);
- 
- 		xfrm_get_inner_ipproto(skb, x);
--		skb->encapsulation = 1;
- 
- 		if (skb_is_gso(skb)) {
--			if (skb->inner_protocol && x->props.mode == XFRM_MODE_TUNNEL)
-+			if ((skb_shinfo(skb)->gso_type & SKB_GSO_DODGY) ||
-+			    (skb->inner_protocol && x->props.mode == XFRM_MODE_TUNNEL))
- 				return xfrm_output_gso(net, sk, skb);
- 
- 			skb_shinfo(skb)->gso_type |= SKB_GSO_ESP;
--- 
-2.47.3
+ - What hardware the change was tested on. For driver fixes please
+   mention the device (and if relevant firmware version) used for
+   testing, or say that the change was not tested on real hardware.
 
+Please do not repost the series just to address the above. Instead,
+reply to this email with the missing information, so that reviewers
+can take it into account. If the series needs another revision for
+other reasons, please include the information in the commit messages
+then.
+
+The evaluation is done by an LLM so it may be wrong, if you think
+that is the case please reply and explain.
