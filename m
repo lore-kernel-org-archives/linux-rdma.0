@@ -1,54 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.202
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794195203;
-	b=wVyO0lWyq59tQU0rVIPwtM7toqMnFMv/Dlw5Hf1UQF2ePbivsBdiOy2/SGHy6qetXU+i
-	 SSeb1CwgPXVWwfiAF3GQc/+0BVikHJb5JWkD8W7PwFtKxzpj2d8rzpVTiaS6BcBXTRVQR
-	 F1/yyM8GgpNewsl8q8pAGYVva3afeTdAjy/4nJ0V8dB8qW9TME7ac1KV2Ylpv547FuySh
-	 zAt02i1ERBFPDz4Whz4F2DnYzOFVDXw2p3S3wkvkphyd8iXKuFtCuGg81u5CCvUD91qTa
-	 EurzhAwNsj23yIySqdnS96EVYWqlVFGjk9qmOQGMSQgy7JEG5Cwwhj8lChOXwJUcQaQ==
+	t=1794204044;
+	b=tLvlf2KTO+kyK45tfigk/e78lNGYDpFPi97eszrvcy/6XJS0WxyMGd+Ds2gB0fvrWlmU
+	 pibpabRCVDTrP837aRl+vk5TheH7LAfDzHkT5mhWd+44AIwcI5xcuz7cqYl3H+lbcrd0r
+	 03gFevkb1j3qrvepFJ2d93jrjhY0MCwZUn5QsDr0o5hBDkqabuASl074adB83bd/+6ic1
+	 uzYz1PbDww2gfIkX3Nqzf3zkO0NcHNG7S/rOkq80jl/2pFIaVZuuejKngczeHEmAsTsye
+	 MMKCbuvxOTr5sQe2MFhuzu4lO1549ncOJLLooodpFdibrRBqcXG5TtjbilbP+2zGIHw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794195203;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=fSXkQFvYokTP7/zdJJbPcVi6eQ2VnCwRvk+/9wXmlm4=;
-	b=A462Aa/aEqUdla0yPDJTRpf4GXHpA2WwsqkOKtooGm2vWImdPglRRQNkSR8wRiuRWcFO
-	 4kqCorTft8vaekURZK5clv0rN5PYJs16xBz6/U6YwY7U1L67XJ0C0G8fod4+evGewYIOk
-	 Lvl1udhK/gbKWKQe+qmEQ1NsA+PPRhx2xlqHKPHW+7Ae7EPKLTIvhhYSNbNaRPu8ZxiGZ
-	 hW8vr6nnMspbY9UM/IrkBsOCU1VTqz7HwpwsswKwbJr3klLRJprVUiyaC/4eYusEAmY8S
-	 0B5iLq8YEf3G0JPwe4ST+BgX93qC+zirKDxrfMVn6pEVGFSSGP/YHf1Nhe2s02LcJcA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794204044;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=JnH38Qke0dcLvNp518+5EvLVu7o3/Crn1Hzc8hwSUa0=;
+	b=j7TtnBaZ+WWvL0tyMsfCKywP5sSlMe7dPQmdouRekSnoyeTECQ2MjPd+su2LkZQggetK
+	 7EGoiuHrp9v5qUQL38G9mAo5vVSXaTzxCYV1KHGvVsFdlTLm6NvaKtJxO63LbpXovjWRB
+	 2nR64HRVaC++FmAnAIwG+soxWcQn4VB3RgK8PZJFD1QomBAbndGmgCqhtwlTq1B+fDS3t
+	 CfawQ/fxoJ01Y+hQtbg2k2apazulU2PMgomXvUHSPOfiL4SPj+CCvrrkr5VNdTC8w+bi7
+	 W93bV+habor9j7s3xkUGYGCAPg/FfJHmzQNpL8T0/+I0Z5vKT7e+3giO9q1rj81IijA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=n2Ut93IM;
-	arc=none smtp.remote-ip=95.215.58.202
-Received: from mta1.migadu.com (out-202.mta1.migadu.com [95.215.58.202])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cdq0qFzX;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1AB1606A333
-	for <linux-rdma@vger.kernel.org>; Mon,  9 Nov 2026 03:33:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C1AB1606A333
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F03FE606A33E;
+	Mon,  9 Nov 2026 06:00:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=n2Ut93IM
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=fSXkQFvYokTP7/zdJJbPcVi6eQ2VnCwRvk+/9wXmlm4=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1794195201; v=1; x=1794800001;
- b=n2Ut93IMk5wbYHQpCRpxNmGWhRns/ZPjp9DMBNrDWYFmhQP74+eMYgCdXzahxev+pTxZnazP
- xnQhboH/v4FuZZ8QVZCP0Z094K/Chq9zfsEgguqN+oS44UU12wB7FjiBxK6GQNAj0vk9FEdsAEB
- BoNJz6MIpRHleeX8plCJBxCU=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 1b12e287425c2338;
-	Mon, 09 Nov 2026 03:33:19 +0000
-X-Mizu-Trace-ID: 1b12e287425c2338
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <dbdb9385-89cd-4e4f-bfb8-b72510e8801b@linux.dev>
-Date: Mon, 9 Nov 2026 11:33:09 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cdq0qFzX
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DF521F008A1;
+	Mon,  9 Nov 2026 06:00:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794204043;
+	bh=JnH38Qke0dcLvNp518+5EvLVu7o3/Crn1Hzc8hwSUa0=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=cdq0qFzXk4dqMksfIJAuRMy2GOLknaocI4lKWmENE3cWdDaGfRwnQc7zrOeNDLjtQ
+	 IUmvho3j0V5HwKLVVbqWKyjGhWAo/3SwKUn5RKM6bMUT2FQAnhEGpCMK30mSZo8eQX
+	 gg7b+fZ/l5IM76rHzckXOnqvzdfRyvv6/arWfp678d8DIpT9odRZ2/fHRv7VL1iFC6
+	 5RoyRJROQGeRChv5tYwEO88HFcw1feVkJ+RW5uVmWClouHfRPlVkWzTqhwjScM+oqr
+	 w0uvI4SrS1VaDvgOTpepHLp8cW2U/P/hAfqS84OYJUL1dbff2sNgv6+C28VJjrFzkM
+	 XRusHe/GFntFA==
+Message-ID: <sashiko-outbox-204473@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net-next v2 4/5] net: remove skb->pp_recycle and
+ consolidate netmem refcounting
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Mina Almasry" <almasrymina@google.com>
+Cc: virtualization@lists.linux.dev, linux-rdma@vger.kernel.org, "Michael S.
+ Tsirkin" <mst@redhat.com>, "Eugenio Perez" <eperezma@redhat.com>
+In-Reply-To: <20261108060016.2131509-5-almasrymina@google.com>
+References: <20261108060016.2131509-1-almasrymina@google.com>
+ <20261108060016.2131509-5-almasrymina@google.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 09 Nov 2026 06:00:42 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -57,81 +61,32 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next 00/14] net: annotate data-races around sysctl
- knobs
-To: Jason Xing <kerneljasonxing@gmail.com>
-Cc: netdev@vger.kernel.org, David Ahern <dsahern@kernel.org>,
- Ido Schimmel <idosch@nvidia.com>, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
- Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
- Phil Sutter <phil@nwl.cc>, Nikolay Aleksandrov <razor@blackwall.org>,
- Paul Moore <paul@paul-moore.com>, Matthieu Baerts <matttbe@kernel.org>,
- Mat Martineau <martineau@kernel.org>, Geliang Tang <geliang@kernel.org>,
- Julian Anastasov <ja@ssi.bg>, Allison Henderson <achender@kernel.org>,
- Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
- Xin Long <lucien.xin@gmail.com>, "D. Wythe" <alibuda@linux.alibaba.com>,
- Dust Li <dust.li@linux.alibaba.com>, Sidraya Jayagond
- <sidraya@linux.ibm.com>, Mahanta Jambigi <mjambigi@linux.ibm.com>,
- Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>,
- linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, bridge@lists.linux.dev,
- linux-security-module@vger.kernel.org, mptcp@lists.linux.dev,
- lvs-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
- rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org,
- linux-s390@vger.kernel.org
-References: <20261109025425.328445-1-jiayuan.chen@linux.dev>
- <CAL+tcoDvFNAZubOjw9+Z1eyaVeiBzt_Xg3KMNucY879bg-ZLow@mail.gmail.com>
-From: Jiayuan Chen <jiayuan.chen@linux.dev>
-In-Reply-To: <CAL+tcoDvFNAZubOjw9+Z1eyaVeiBzt_Xg3KMNucY879bg-ZLow@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 
+> skb->pp_recycle was introduced in commit 6a5bcd84e886 ("page_pool: Allow
+> drivers to hint on SKB recycling") when drivers had to explicitly opt in
+> to page_pool SKB recycling and to avoid touching struct page on the free
+> path. Today every page_pool-backed netmem carries its own identity via
+> netmem_is_pp(), making the per-SKB skb->pp_recycle bitfield redundant
+> and error-prone when SKBs are cloned, split, segmented, shifted, or
+> coalesced across page_pool and non-page_pool buffers. For non-page_pool
+> pages, get_page(), put_page(), and skb_free_frag() immediately load the
+> same first struct page cache line (compound_head, which shares the cache
+> line with pp_magic), so checking netmem_is_pp() does not add an extra
+> cache-line load.
+>=20
+> Remove skb->pp_recycle and check netmem_is_pp() directly via
+> napi_pp_get_page() and napi_pp_put_page() inside netmem_inc_ref(),
+> netmem_dec_ref(), and skb_pp_recycle(), dropping the now-redundant
+> [ ... ]
+>   skb_irq_freeable() does not exclude SKBs holding page_pool memory
+>   before calling __kfree_skb() with hardirqs disabled; TX SKBs carrying
+>   spliced page_pool fragments are subject to the same path.
+>=20
+> Signed-off-by: Mina Almasry <almasrymina@google.com>
 
-On 11/9/26 11:11 AM, Jason Xing wrote:
-> On Mon, Nov 9, 2026 at 10:55 AM Jiayuan Chen <jiayuan.chen@linux.dev> wrote:
->> While testing the recent sysctl range fixes I noticed that a lot of our
->> sysctl knobs are read with plain loads while the handlers update them
->> with WRITE_ONCE() and no lock, so KCSAN reports them as data races. I
->> then used an LLM to go through every ctl_table under net/ and list the
->> readers that were left behind. This series annotates them with
->> READ_ONCE(), and adds WRITE_ONCE() to a few custom handlers and netlink
->> paths that store to the same fields with plain writes. Most of it is a
->> plain READ_ONCE() at each read; where a function reads the same knob
->> twice to make one decision, it now reads it once into a local, so the
->> comparison and the value it acts on cannot come from two different
->> writes.
->>
->> There are no Fixes tags. Done one knob per patch this would be well over
->> a hundred commits, so I grouped them by subsystem and feature instead to
->> keep the review manageable. If maintainers prefer, I can split it up
->> further with a Fixes tag on each one, as several smaller series.
-> Over the last year, I've been thinking about the annotation stuff
-> especially around sysctls, which, I suppose, shouldn't actually affect
-> the real workload but does affect the outcome of the syzbot.
->
-> Out of sheer curiosity, my question would be what is the point of
-> trying to change all of them? Or what kind of benefits can we get from
-> the big series?
+Sashiko has reviewed this patch and found no issues.
 
-
-Three things:
-
-1. A plain load may be emitted twice by the compiler. ip_error() compares
-peer->rate_tokens against ip_rt_error_cost and then subtracts it again;
-if the sysctl changes in between, the u32 wraps. A few readers have that
-shape and now read the knob once into a local.
-
-2. Tearing is not involved here, all the fields are at most word sized.
-
-3. The rest is the memory model: a lockless read of a field written with
-WRITE_ONCE() is a data race unless it is marked
-(tools/memory-model/Documentation/access-marking.txt). That is what KCSAN
-reports, and why most of the series is plain READ_ONCE().
-
-
-I think the benefit is doing it in one pass.
-
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261108060016.2131=
+509-1-almasrymina@google.com?part=3D4
 
