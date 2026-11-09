@@ -1,57 +1,61 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794235923;
-	b=TenABA3MtYFmWIUsJn2U8m1z3a8ApCcpjPPVA/a5T9QLK0+gZKvLaLzVSREO00yu9vwI
-	 zU7AzBUNYx6WxXo2GWA0oHipllktmwTZf9XEktGodMyC0cKYP54n/1fuULIl0ckg8h4M+
-	 aOZJO7TwiPOXbsPpS/G6ww3ILaU5tIBo0P57gVvzQWH04WQ4rqwsjFWntUoHrz+vFuGQm
-	 F/+cwtCrMEsP0tkapgF4gXdJlF1GceiCB5z+BojKSuMVuJX62Xua7ogNvv7cvut9OmyoM
-	 z69PYcGYNT9lvertP7OIVfK+pOhfC6eev5OKi6P51O54QJWP41ZSNmbRZbwMIGXgDDQ==
+	t=1794236904;
+	b=m+qBfmXO5FOV4b7YXUwDT3j/TLgw7omBeoAnjkQ8TpTzB+7mEtP36vWk/tJoiwMe230b
+	 7uf116KavwVjIfWE9/U9MEZZnL5KzinqFRd4auO1OYX+fCvNwV6lrlc3xTxRDM9q7jlW+
+	 zDH1on8masdVwo+JRqoTqClKRBR+H/CqFarCzxYQ7rScrNLsmP8hArJN/oNfhf3Yod9cV
+	 CNGlFqdpjBHZ5pWEQErpaKSwpCeagPDlz1rGX9X/fpWSae7ilzzBjHnzx32sySmP/SZFt
+	 Yug/dqzZg1lhg6QMCihWAz2WEsNc41c4IJNZdoCXmmSBCL1bK6UMoX9pmrNdLMv3qNg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794235923;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=H1ycjNp1FpVD83aupsGyF2+nao+v2if0Nu2MqxeK9cU=;
-	b=N2Z9Hvq+nUogvJJk9+mmXQLmNNeTsyxZQ1rzOzQgHOuldEpU+Ub1Q+QW+kmhAQg+zjjb
-	 qHq8jejnu3VJNgWwa8qlnGxGrqSvPU8QjHdQuN91Uik1FtOTL3SRnTMp130e4esT2U67H
-	 dnwRxYpP2k+ZqBPF/chdoXlXgC/kuiymJBQRIuPmn2HLR9L18JrlXWFTruRlHzHyr+ZD1
-	 GDx4i3+OTV5EH5a+Ly1+qyDnY8sEHHeBoa1DFXGaMpG5jlIVIKbvfHI6nziiC8QQiq5Yy
-	 zom9gUDsHaksiFzFvYQnHbBZPnN7w/sl/fUT7aFrV/kw0lnF6RRuYW9pUW5YJ9Rf4EA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794236904;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=WqBC88Kf5Gg8WaTqVGB4FecTUmwVU6riL8WD0AYlF2E=;
+	b=yJzcbCupxxqr5MQTZy9keNanmduKGnaE2r2+pRNErAlVNdAb9FdeRbUuU80ntv78kZX+
+	 aQRclvaiMSq5Q0nbaa4+GjyXJbh9vo8JfpA1cn9HgxvILNL50+1/ByH72WHaWhswWsVrV
+	 bw07Z0DVbYu8LwULxqERnuu6B325T7giFj7OXNjKqa00b3aq0HM6hlFdFw+0oLaSYKLFv
+	 Zm0Ts/pK08+S8DfWDnYF9zX9hWsoogagB8VCWdzNIuHnQbS9UONJcrEsA9/JoHrlArmES
+	 byjlT2wJIyXsQgEv9fGnP8NCG/7pen7R9SFTKVptT4rarDYvgF7YZBsIuVQ+/ve+LqQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fhRKzOOh;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=S364pSCo;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C160B606A31C
-	for <linux-rdma@vger.kernel.org>; Mon,  9 Nov 2026 14:52:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13D59606A321;
+	Mon,  9 Nov 2026 15:08:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fhRKzOOh
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7530F1F0089F;
-	Mon,  9 Nov 2026 14:52:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=S364pSCo
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE7B71F0089F;
+	Mon,  9 Nov 2026 15:08:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794235922;
-	bh=H1ycjNp1FpVD83aupsGyF2+nao+v2if0Nu2MqxeK9cU=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=fhRKzOOhn8YZm77eICHJYVQ/0mikRmhDrCyGZUNEXZ2puyCH+RvtAh/QLjTuL+abN
-	 J3C7/JBa0MREElFrhtpwAfJnL+OpZ44wz64wujT/w023KcIU/k80wZN1dBMA2Ckgpz
-	 88+KUk1hLjbt5JA5Ljs8nhHhn1QfvFwIbnNJslA9iDjp8cSbOMK4Kpx5UJJKZ1hr98
-	 2hNLAH80zkX/NwJH+AaPXDigR74x/YKSNRcAnd37YnzRr58kt2UCXirilPsEzACW/7
-	 gRpJSJ9q6dwpc/0qS4FlPKrci46f9cuH7kv5T0a1npQvqbraSfp8rr3qQyODc899nR
-	 h0QFtxSS/6xEg==
-Message-ID: <sashiko-outbox-205134@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next 1/2] RDMA/mlx5: Fix DEVX UMEM mailbox size
- truncation
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Edward Srouji" <edwards@nvidia.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261109-devx-umem-mailbox-overflow-v1-1-4a63baab25dc@nvidia.com>
-References: <20261109-devx-umem-mailbox-overflow-v1-0-4a63baab25dc@nvidia.com>
- <20261109-devx-umem-mailbox-overflow-v1-1-4a63baab25dc@nvidia.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Mon, 09 Nov 2026 14:52:02 +0000
+	s=k20260515; t=1794236903;
+	bh=WqBC88Kf5Gg8WaTqVGB4FecTUmwVU6riL8WD0AYlF2E=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=S364pSCoafvS1W+mfiQ+caIdfPCKwzKnPyYgqJpbO627TcwLe5sUi1HugBdZxzdE3
+	 7pRQXudq2Cc9folIttQUjLuborkPEmrK78Mswy1LrX8ZmvIXMweXT0gJrrvWRgBPV8
+	 JgHYgBXrzyjrpZUioibcbvChUUfLeOE8lNHBnq9dMRgOHwA+BADMP5Sve9YMAGAh0f
+	 FOT2YHauulMdQk3RaS1U9Okwa5tvZ4bp6AgHeRbZ+vyNYhDORdGAjIYWKp9qnBs2i1
+	 UzhYP2iK6qL0LMLPIBpdZ1DFZQObqKxPl6bxHFMYSMxj/Ul/ebK3KR4O2EoONky8/s
+	 sta/HiaCuVVnw==
+Subject: Re: [PATCH ipsec v2 3/7] xfrm: esp: use the current sequence number
+ for AAD and offload
+From: netdev-bot+sashiko@kernel.org
+To: Jeremy.Jean@oss.cyber.gouv.fr
+Cc: steffen.klassert@secunet.com, herbert@gondor.apana.org.au,
+ sd@queasysnail.net, davem@davemloft.net, borisp@nvidia.com, saeedm@nvidia.com,
+ leonro@nvidia.com, tariqt@nvidia.com, mbloch@nvidia.com,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org, stable@vger.kernel.org, kuba@kernel.org
+Date: Mon, 09 Nov 2026 15:08:22 +0000
+Message-ID: <179423690220.994134.7379565121466002244@kernel.org>
+In-Reply-To: <20261108142652.1330952-4-Jeremy.Jean@oss.cyber.gouv.fr>
+References: <20261108142652.1330952-4-Jeremy.Jean@oss.cyber.gouv.fr>
+X-sashiko-severity: Medium
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,73 +64,115 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found no new issues
-in this patch, but noticed 1 related pre-existing issue it does not
-introduce:
-- [Medium] RDMA/mlx5: devx_umem_find_best_pgsize() ignores pgsz_bitmap
-  after halving page_size [1]
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
+
+Critical: 0 · High: 0 · Medium: 1 · Low: 0
+
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] The commit message says the bug is a wrong ESN high word at
+  the 2^32 boundary: (H, 0xffffffff) gets authenticated with H+1.
+
 --
 
-commit bd5b83068caa4612b47dcf836a1a42f89cbb5cc5
-Author: Uri Dar <udar@nvidia.com>
+xfrm: esp: use the current sequence number for AAD and offload
 
-RDMA/mlx5: Fix DEVX UMEM mailbox size truncation
+This commit passes esp->seqno into esp_output_set_extra() and
+esp_output_set_esn(), so the software ESN AAD takes its high bits from the
+segment's own sequence number instead of the already advanced xo->seq.hi.
 
-This commit changes cmd->inlen in struct devx_umem_reg_cmd to int and adds
-overflow checks when computing the CREATE_UMEM mailbox size in
-devx_umem_reg_cmd_alloc().
+For hardware offload, esp_xmit() and esp6_xmit() now write the current
+sequence number into both xo->seq.low and xo->seq.hi of the private
+secpath copy after skb_ext_add().
 
-> diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/ml=
-x5/devx.c
-> index fc6f793dcc658..1da6c0e440d6e 100644
-> --- a/drivers/infiniband/hw/mlx5/devx.c
-> +++ b/drivers/infiniband/hw/mlx5/devx.c
+> diff --git a/net/ipv4/esp4_offload.c b/net/ipv4/esp4_offload.c
+> index 3a0aafe991f47..6f6ce9ea5c491 100644
+> --- a/net/ipv4/esp4_offload.c
+> +++ b/net/ipv4/esp4_offload.c
+> @@ -358,6 +358,10 @@ static int esp_xmit(struct xfrm_state *x, struct sk_buff *skb,  netdev_features_
+>  		if (!xo)
+>  			return -EINVAL;
+>  
+> +		/* Keep the current sequence number in the private copy. */
+> +		xo->seq.low = seq;
+                ^^^^
+
+[Severity: Medium]
+Does the commit message cover everything this line fixes?
+
+The message talks about the ESN high word being wrong at the 2^32
+boundary. Restoring xo->seq.low here also changes the low half for every
+GSO segment that is split in software and then encrypted in hardware. No
+ESN wrap is needed for that.
+
+Before this patch, esp_xmit() saved seq, advanced the shared counter and
+only then called skb_ext_add():
+
+    seq = xo->seq.low;
+    ...
+    if (xo->flags & XFRM_GSO_SEGMENT) {
+        esph->seq_no = htonl(seq);
+
+        if (!skb_is_gso(skb))
+            xo->seq.low++;
+    ...
+    if (!skb_ext_add(skb, SKB_EXT_SEC_PATH))
+
+skb_ext_add()->skb_ext_maybe_cow() memcpy()s the already advanced
+xfrm_offload into the private copy, so each segment carried seq + 1. The
+last segment keeps the shared copy, and that one has been advanced too.
+
+mlx5e_ipsec_set_iv() then builds the on-wire IV from that value:
+
+    seqno = cpu_to_be64(xo->seq.low + ((u64)xo->seq.hi << 32));
+    iv_offset = skb_transport_offset(skb) + sizeof(struct ip_esp_hdr);
+    skb_store_bits(skb, iv_offset, &seqno, 8);
+
+As a result, segment L+i went out with IV L+i+1, and the last segment
+(L+n-1) used IV L+n. The next non-GSO packet gets sequence L+n from
+xfrm_replay_overflow_offload_esn(), so its IV is also L+n.
+
+Isn't that AES-GCM nonce reuse under the same key and salt?
+
+This path is reachable when a device has NETIF_F_HW_ESP set but not
+NETIF_F_GSO_ESP. One example is mlx5 without swp_lso, where
+mlx5e_ipsec_build_netdev() returns before it enables GSO_ESP. Another is
+running ethtool -K tx-esp-segmentation off.
+
+The only related text in the commit message is:
+
+  "Restore both halves because drivers can also use xo->seq to generate
+  the IV."
+
+That sentence does not say that the low half was off by one for every
+segment, or that IVs were being reused.
+
+The low-half off-by-one appears to come from c7dbf4c08868 ("xfrm: Provide
+private skb extensions for segmented and hw offloaded ESP packets"), which
+added the skb_ext_add() call after the increment. That commit is not in
+the Fixes: tags.
+
+The code change itself looks correct. Could the commit message describe
+the per-segment IV reuse and add a Fixes: tag for c7dbf4c08868, so stable
+and security triage can tell what is being fixed?
+
+The same applies to the identical hunk in esp6_xmit() in
+net/ipv6/esp6_offload.c.
+
+> +		xo->seq.hi = upper_32_bits(be64_to_cpu(esp.seqno));
+> +
+>  		xo->flags |= XFRM_XMIT;
+>  		return 0;
+>  	}
 
 [ ... ]
 
-> @@ -2361,9 +2362,12 @@ static int devx_umem_reg_cmd_alloc(struct mlx5_ib_=
-dev *dev,
->  	if (!page_size)
->  		return -EINVAL;
-> =20
-> -	cmd->inlen =3D MLX5_ST_SZ_BYTES(create_umem_in) +
-> -		     (MLX5_ST_SZ_BYTES(mtt) *
-> -		      ib_umem_num_dma_blocks(obj->umem, page_size));
-> +	num_mtt =3D ib_umem_num_dma_blocks(obj->umem, page_size);
-> +	if (check_add_overflow(MLX5_ST_SZ_BYTES(create_umem_in),
-> +			       size_mul(MLX5_ST_SZ_BYTES(mtt), num_mtt),
-> +			       &cmd->inlen))
-> +		return -EINVAL;
-
-[Severity: Medium]
-This problem wasn't introduced by this patch, but can
-devx_umem_find_best_pgsize() return a page_size that is not set in
-pgsz_bitmap [1]?
-
-drivers/infiniband/hw/mlx5/devx.c:devx_umem_find_best_pgsize() {
-	...
-	page_size =3D ib_umem_find_best_pgoff(umem, pgsz_bitmap, U64_MAX);
-	if (!page_size)
-		return 0;
-	...
-	while ((ib_umem_dma_offset(umem, page_size) !=3D 0 ||
-		(umem->length % page_size) !=3D 0) &&
-		page_size > PAGE_SIZE)
-		page_size /=3D 2;
-
-	return page_size;
-}
-
-When a physically contiguous umem is registered with a restricted
-MLX5_IB_ATTR_DEVX_UMEM_REG_PGSZ_BITMAP, ib_umem_find_best_pgoff() selects
-the largest matching bit regardless of DMA offset or total length, and the
-loop then halves page_size without checking that the reduced size is still
-present in pgsz_bitmap.  devx_umem_reg_cmd_alloc() then registers the umem
-with a page size that userspace excluded instead of returning -EINVAL.
-
-[1] https://sashiko.dev/#/bug/linux-6cd20db6-58c6-4b3d-8dd9-c9ee893d4041
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261109-devx-umem-=
-mailbox-overflow-v1-0-4a63baab25dc@nvidia.com?part=3D1
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261108142652.1330952-1-Jeremy.Jean%40oss.cyber.gouv.fr
