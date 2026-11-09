@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794234431;
-	b=dnl+pjCySQnnPFJYsrPSuwtWujVW4suYIbte+TvEjYuCwiINZFPzTDpy7hWzW87e98sl
-	 KbNM+hM2xFdQ/vr+nhN1fAiC9nw9sJPS1XP32TSAiPObI4GoanGvnCqSRTmpE99u/LZqB
-	 qZpeP60KRIMwPUuPofO1W3oybRGkDiH7iG8ekgu84RrpBl62mwdbtyu44vN45SCvL3RZ4
-	 9j2BoTxzlkII77qu8nDi+LnuaxpNsBAYXWvQnUGNzYkHCkJ8GhOF6Bj8QIk8uVT9n3vlj
-	 FlQ0K1wJD40GGKEkZqdd+vGVpBCUnObOAhzPE4DytMq/DcLzk/o6E1chr7CHvzFse9w==
+	t=1794234432;
+	b=yEaoYfmi/aTUC0CMpJm718GdPeCnEYLSsOJadEQEVGXAv771o8SS0fSo6GVWQshnO/Zm
+	 AiJDVn3+zFRKzthiSowQKTOAec4WfsJ4kwMRd+Ou++XWkuk3kMsglKSFEzwdz8UO6xaQF
+	 t9UY/xG3IlUQyF45gn5IMIHPy+TZuxE37/Ph8pR18cSaYZbPU0Vp3rB1kTDDeR2Zq9jzm
+	 WTDJrU++bhlDZ0wX3BJrDRn37Igq4M7dNYXJ0jyVWOOt00tHsTkau/u3Rlljf9oNGU1+1
+	 DyEGN47/Wg3N3RiTrWasLmD4xVaychlydvG0hA+vwUigVtVoUpoiir2OejREB2CK8zA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794234431;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794234432;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=mXW4ZWEsFfZ6j/hjWhGBG5qi8fVFOp8p90IJ9q+u9Gw=;
-	b=iPD7WIHvgcxUW9KVZt5gyWC4yctxuOmzhAOZOOgsqsmEY3+8KFRgN4vg7WOl09H1I2eP
-	 FF804A0sdGse7jISL8EDGw1QGxVoSDlRi6sTYzJf0pv2ItzLKHh53446Ox0MCjoC3Xci6
-	 5vm0S0oob2AIrZVlVoYiIXOGn4OEoMMxp9NIzLPTBQObtFpva/3Ecn80ulWH7Yaw07VnQ
-	 p518bah4s7Rd2c8j2ZdPO2t3fgbCTAEjR+f4zKuGS5LO5oEmzMOjapze1kE0ZSeBclpoJ
-	 LUWFZy/Lvx6APhREyWA847QKDB0h8D9FmIGMgCc5lfjxJftIc9VFgMYuTqRDUCpH6tQ==
+	bh=9P6LPlIyeSlbOABbVEor2Q+FFbF2lhjgw82jctC7RAQ=;
+	b=V8qRyrBcZYbz/EeQnCixqKNn5FInLUwwOZcd3vb8eLWIzt6J/7yYpa1ExIADXjFW4x6R
+	 a3adfmmd4R1+mGaUt9QYSrmk3KuPksaAUd5+95YunGxp5HFDVG8bzBaqxYYmUIxLFbeGy
+	 ndAuTylblGZyEy9luxdL45ClJV69opu2r4ArIk0LENFgZ3C2eWQFeIpEEp85bVdPS0E0A
+	 OHYs1NvZLM/KfMY43s3yAlgpLZRHiAGEmM9apWUaWP83+3mCHQu62T62w/NRiPJPi0JP+
+	 GfOjnRsKajTEJ6s4djOP1YAk4joyW5N1Tt5Fy88fp88uJCKKjj41Nh6y61LS6V7XpTg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=a1Vi1NcC;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Ep3jpS/n";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67E9C606A323
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7D10606A331
 	for <linux-rdma@vger.kernel.org>; Mon,  9 Nov 2026 14:27:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=a1Vi1NcC
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01AEC1F008A2;
-	Mon,  9 Nov 2026 14:27:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ep3jpS/n
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 975DC1F008A3;
+	Mon,  9 Nov 2026 14:27:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1794234431;
-	bh=mXW4ZWEsFfZ6j/hjWhGBG5qi8fVFOp8p90IJ9q+u9Gw=;
+	bh=9P6LPlIyeSlbOABbVEor2Q+FFbF2lhjgw82jctC7RAQ=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=a1Vi1NcCG1x/SF9gOd1RbSpbfvdf0w8DCht+NFwjsWYQfWdGPAoR/ll2fB+hDVj3z
-	 RhvWdTlAkb2UyOhLw2MhdOP9k2e8c3PfGdWaj67z/JjOkfV2Sp1Qxpkc/S00i65Vs3
-	 /ADT0oykKbJzYbTSlCQ4quvakQm3w4TmecvhDWOQIu41M2yTQwmIH+h1diIMV1EU8c
-	 C3G4boLnkmsaVtzQQBj4whe9RMRsinQDJPoB8CU99f2OlhECYmHxCxOdI1QO7m7xEf
-	 k16vHhgjgLX2OTjjVPk8TV2Z71U4gROEKkDROGmQvEV2quF3dw+dsZBD0kknWVwLtW
-	 /aPyDYagqjN/A==
-Message-ID: <sashiko-outbox-205095@kernel.org>
+	b=Ep3jpS/nk18srktSzdeI97hVy/rdnb///itnA8vDWn4zkavc4LV/0+uINDY77OL2a
+	 vBhNw9DlXmiAKZgLr2tItAAwBEm50lduU0/+KZdPUOKjaHeLedR0wVkEFDuxVzV15b
+	 4I+nUCXFVupEk/IVE9Gc7xDZ4FNvAHCH65kSwgYNH45dMTcn4eWHoirgh3P+7odmk1
+	 tZzF+BhGTQfyVfeiODhvgnteIsq5R2z+NhLydt238GIbB6EMWAW612CpChg6IBSlqU
+	 WGM5WYUSDB+LmZyQxjDry50UDZ0015yEP+LN2cuK86DaXoBB1qVplePP89e+R4ONWc
+	 qAMPNf91az3bA==
+Message-ID: <sashiko-outbox-205096@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH ipsec v2 2/7] xfrm: esp4: use the current sequence
- number for the IV
+Subject: Re: [PATCH ipsec v2 3/7] xfrm: esp: use the current sequence number
+ for AAD and offload
 Reply-To: sashiko-reviews@lists.linux.dev
 To: =?utf-8?b?SsOpcsOpbXkgSmVhbg==?= <Jeremy.Jean@oss.cyber.gouv.fr>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261108142652.1330952-3-Jeremy.Jean@oss.cyber.gouv.fr>
+In-Reply-To: <20261108142652.1330952-4-Jeremy.Jean@oss.cyber.gouv.fr>
 References: <20261108142652.1330952-1-Jeremy.Jean@oss.cyber.gouv.fr>
- <20261108142652.1330952-3-Jeremy.Jean@oss.cyber.gouv.fr>
+ <20261108142652.1330952-4-Jeremy.Jean@oss.cyber.gouv.fr>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 09 Nov 2026 14:27:10 +0000
+Date: Mon, 09 Nov 2026 14:27:11 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,26 +61,28 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> When a GSO packet is split in software for IPv4 ESP,
-> validate_xmit_xfrm() calls esp_xmit() for each segment. These
-> segments have XFRM_GSO_SEGMENT set, but after the split, skb_is_gso()
-> returns false for each skb, so each call increments xo->seq.low by one
-> after writing the ESP sequence number.
+> When a GSO packet is split in software, esp_xmit() and esp6_xmit()
+> advance xo->seq before software encryption or the handoff to the NIC.
+> If the 64-bit sequence number of the segment is (H, 0xffffffff), the
+> counter becomes (H+1, 0). Both the software ESN helpers and drivers
+> such as Chelsio then use H+1 instead of H as part of the associated
+> data that is authenticated.
 >=20
-> The low bits are saved in seq before the increment, but esp.seqno is
-> set afterwards, using the saved low bits and the high bits from
-> xo->seq.hi.
+> However, the ESN 32 high bits are not present in the ESP header: the
+> receiver reconstructs the 64-bit value from the received 32 low bits
+> and its own replay state, and uses it to check cryptographic
+> integrity. It uses H for this packet at the boundary, so the GCM tag
+> computed by the sender with H+1 fails verification, as it is different
+> from the one obtained by the receiver using H.
 >=20
-> When encryption is done in software with ESN enabled, the segment at
-> (H, 0xffffffff) uses (H+1, 0xffffffff) to generate the AES-GCM IV
-> because xo->seq.hi has already been incremented when the low bits
-> wrapped. One full 32-bit cycle later, if the packet at
-> (H+1, 0xffffffff) on the same SA is non-GSO, it generates the same IV.
+> Use the high bits saved in esp->seqno for the software AAD. For
+> hardware encryption, restore the current sequence after skb_ext_add()
+> makes the secpath private, leaving the shared counter advanced for
+> the remaining segments. Restore both halves because drivers can also
+> use xo->seq to generate the IV.
 >=20
-> Move the assignment to esp.seqno before xo->seq is advanced. This
-> saves H before the wrap increments xo->seq.hi to H+1, so the segment
-> at (H, 0xffffffff) generates its IV from (H, 0xffffffff).
->=20
+> Fixes: 3dca3f38cfb8 ("xfrm: Separate ESP handling from segmentation for G=
+RO packets.")
 > Fixes: 4b549ccce941 ("xfrm: replay: Fix ESN wrap around for GSO")
 > Cc: stable@vger.kernel.org
 > Signed-off-by: J=C3=A9r=C3=A9my Jean <Jeremy.Jean@oss.cyber.gouv.fr>
@@ -89,5 +91,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261108142652.1330=
-952-1-Jeremy.Jean@oss.cyber.gouv.fr?part=3D2
+952-1-Jeremy.Jean@oss.cyber.gouv.fr?part=3D3
 
