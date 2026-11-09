@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794239122;
-	b=NUKOMq5mkjYneY9j1XERnqYyfyg6lNXCLOSchaek3kJGkkvWEb8vQ3rwSsos1oiQiPIj
-	 9iqntK6p/RODT0ibw8jgBxHs51vgl/5zZMVx4Bdw37jXz+GOmwHhKqDEp8Hy8rF58iUIk
-	 u/WNkvRUqq/gSk4kwhV7lhIZYsDcYlYLHCyDq7/e6LybWLbY+Yer4uFHz7sjICqjgLP19
-	 Tv2/6OmfzyLMynSDMLusnMQu/6uup5VJ40F9oqbiidRstRCoEdNHHgD4m7vsvLU56i/Uq
-	 zDXQK2+77iZGIxCtMZ4uQh4lHhR5sUFM3yXgcfV7wIuQ61+BINoGD88Wa5f4OCz33Xw==
+	t=1794239129;
+	b=GvZkLLCsb4T0jJpFNdK6Mg66tgj+XEElgzQI9OU0aILmzrDcCQrzCMY5hGxPcXHbqCqC
+	 7RqMPJxOelhYx5DSO5I7iEHV19rVNknXrRxzUujs79pfrf7WBjwf2Oj+gu22OEC//VkPS
+	 z8cMRLhuzDwhFC7LhjtMlXTw/brsAVMbeejoE4MbXSwdOxKHsJiOmISGRrEJ612Rq3KTq
+	 aS3sjvB/NDdiD9TWPawSbT3k+3+9NNMNfHWvcGHAfHwatpzx3JWU4xjVlxK57vKG1/W5t
+	 QGGfEY/BDUI+NHVl66Vxc4DjfmRdtiWE47tIBgeAXWt4nhz7JDLk/YHn72fIrOinv4w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794239122;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794239129;
 	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=C/NRECpWx21AWv0++FpPO1FemlFebDpFDqyNhKBQ6G4=;
-	b=o9FvWhA6wDtkG+gZxugYn7SBCg/owmene8aD0n2C8j0SM2BJ+U9xmQ5B9LyZL6LcfSTb
-	 mx4obZ8kRhvZazs1a76JWS94qyCb9Q+QN82lxfTRv0bIGwZOQERU7fgAapHBCIkkttedD
-	 ZxWGX5lvsDsht8NGmSLs7Kno9a7mrWhQBvBne7CZ2sBd9AQplBuVPBFuAJpP2pi8pRYsU
-	 FFm+cFq78xmkYeR2Mo/pEaIMbS21rHr5FWd8NcSCfsxrvJ23BOavkybWbzVbmugx5JotW
-	 /qlZMT2onxuWxGXxMm8FTKh2hlRegqf+BkkvY8/h06X5T6gSYsUqmezezZX/XgPLdpQ==
+	bh=twqYYoODD5l98xEnGyVFduYlgvb/aLAFeDCuJ/5wERU=;
+	b=hif4jCEShzsgIGOz+0Fv0rwb7j0UJOQVr23xYv5kZCsCpXQlXJA3TC81Gj2ZGdgRWFDU
+	 blAfB45NEjHN2IfqUsdrIB4XvawPEcYWAt/IVC3dS+NpxqKapslBx3FsUQNttR4Y815C4
+	 qJBoGlF/qlTCl7J0rHR6rQZNwMVX2clVR5tW2j8RLHuEa7Ipp9vuuC5HEhgdg3raSm6fM
+	 tRr96wcJf9OPQ3EAfr3LFRqhjiPxPcRj7Ff4DVTA29e3+EdKZ05ioKVIeMs35zwP1SwaA
+	 AJEIC3tr95eDDeVji6NbLIy4fFugdoO0MjR0zFWLIk0pvbR0E/3Nyeb+vwPzKMGLQSw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.microsoft.com;
 	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=CsZtCTR3;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=sR4R7ay5;
 	arc=none smtp.remote-ip=13.77.154.182
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 360FD6082BEB;
-	Mon,  9 Nov 2026 15:45:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 360FD6082BEB
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 21ED3608362D;
+	Mon,  9 Nov 2026 15:45:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 21ED3608362D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=CsZtCTR3
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=sR4R7ay5
 Received: from weh-cvm-dev-vm.y50bckvjo0hefgfnzfztsfttff.phxx.internal.cloudapp.net (unknown [20.169.55.37])
-	by linux.microsoft.com (Postfix) with ESMTPSA id DE03D20B716A;
-	Mon,  9 Nov 2026 07:45:17 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com DE03D20B716A
+	by linux.microsoft.com (Postfix) with ESMTPSA id C839920B7169;
+	Mon,  9 Nov 2026 07:45:24 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C839920B7169
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1794239118;
-	bh=C/NRECpWx21AWv0++FpPO1FemlFebDpFDqyNhKBQ6G4=;
+	s=default; t=1794239125;
+	bh=twqYYoODD5l98xEnGyVFduYlgvb/aLAFeDCuJ/5wERU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=CsZtCTR3Y5hgshxebBRr5+eo2er5ylgCTBDgb8HThUGA+kZ8Exj3g/hhDsi3s6aH6
-	 BmYQGwIu4FSd000SZCWaE4J8PR7KPltOuNqQciEdBm7mSPWZQzTEiBZe3NH2NpNF+w
-	 BA3cCLwXmyH6NCbhm7xvPls4FFSvoBXjFTyiiQuA=
+	b=sR4R7ay59ztu4ykzTwYyaU7O+QjOBjjT0/b8X83akH4fcz8PMjEgEA3YyUPanHoo4
+	 BeF0UiG5l7FCLfLtnND4kQN3zxzRc2TLyiVRMxq3W070nSFO7wVp8VA0GmYsdHJL/W
+	 9yAT51oR0gK9HqeM0XKZdEG9uECOiiO+1en/imqc=
 From: Wei Hu <weh@linux.microsoft.com>
 To: longli@kernel.org,
 	kotaranov@microsoft.com,
@@ -68,9 +68,9 @@ Cc: netdev@vger.kernel.org,
 	mawasthi@linux.microsoft.com,
 	weh@microsoft.com,
 	edumazet@kernel.org
-Subject: [PATCH net-next v10 1/4] net: mana: prepare HWC ownership for safe reinitialization
-Date: Mon,  9 Nov 2026 15:45:00 +0000
-Message-ID: <df083dc6ad8a8958398e04afe66ca2c5f4bfb040.1794208055.git.weh@linux.microsoft.com>
+Subject: [PATCH net-next v10 4/4] net: mana: add dynamic HWC queue depth with reinit path
+Date: Mon,  9 Nov 2026 15:45:03 +0000
+Message-ID: <aa4e08e8bc9a7139778b11875e41921d2d813712.1794208055.git.weh@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <cover.1794208055.git.weh@linux.microsoft.com>
 References: <cover.1794208055.git.weh@linux.microsoft.com>
@@ -87,699 +87,692 @@ Content-Transfer-Encoding: 8bit
 
 From: Long Li <longli@microsoft.com>
 
-Dynamic HWC queue sizing tears down the bootstrap queues and establishes a
-second channel before publishing it. Prepare the existing HWC ownership and
-teardown paths so that sequence cannot free or reuse state still reachable
-by either the PF or an EQ handler.
+The HWC starts with depth-one bootstrap queues. Treat the PF-reported depth
+as a maximum and rebuild the channel exactly for reports from 2 through
+128. Keep the untouched bootstrap queues for depth one and reports above
+128, and require a rebuilt channel to repeat the selected depth.
 
-The shared-memory aperture carries one request at a time. Serialize the
-complete ESTABLISH_HWC and DESTROY_HWC transactions, including possession
-polling and response validation. Record setup_active immediately before the
-MMIO submission and clear it only after DESTROY_HWC is acknowledged.
+Treat the reported request and response sizes as directional maxima.
+Rebuild only when both reports equal the 4096-byte bootstrap allocation.
+Keep allocation strides separate from these limits, and share the effective
+host-to-PF request budget with the GDMA and RDMA request builders. Bound
+RDMA CREATE and ADD_PAGES batches by that budget, checking that the headers
+and at least one page address fit before subtracting their sizes.
 
-Treat an unacknowledged destroy as retained PF ownership. Fence the HWC EQ
-and withdraw its CQ from dispatch, but keep all queue memory and wrappers
-for a later teardown retry. A new channel creation retries that retained
-context before assigning fresh queues to the PF.
+Reject oversized messages before acquiring a slot or publishing caller
+storage. A retained, stopped channel still returns -ENODEV rather than
+reporting a size error against uninitialized negotiated limits.
 
-When a PCI or CDX transport permanently discards its gdma_context, no such
-retry is possible. After IRQ and service-work teardown, release the
-software-only HWC state through a common final-disposal helper. Leave the
-coherent DMA allocations unreclaimed rather than exposing freed memory to
-a PF whose teardown was not acknowledged.
+Keep each candidate private through queue creation, establishment and the
+direct EQ test. Publish only the final tested channel. If a rebuild fails,
+including its functional test, tear it down and restore fresh, tested
+bootstrap queues. Stop if teardown is not acknowledged; never reuse
+PF-owned mappings. Restore the previous live timeout budget before the
+fallback so a failed test's fail-fast reduction does not poison the retry,
+without reviving terminal cancellation.
 
-Snapshot the bootstrap CQ count and CQ ID after INIT_DONE. Publish the
-fixed bound with the allocated table so later init events cannot grow the
-bound past the allocation. Use a single acquire-loaded table snapshot in
-both normal and throttled EQE dispatch, with annotated CQ-slot reads.
+Invalidate the previous HWC doorbell before every ESTABLISH_HWC. Validate
+the BAR0 page geometry and reported index before accepting a new doorbell,
+and suppress MMIO while it is invalid. This also hardens initial setup,
+which previously accepted an unchecked device-supplied index. A malformed
+doorbell completes initialization with -EPROTO without relying on later
+INIT_DONE events that might require re-arming through that doorbell.
 
-On acknowledged teardown, withdraw the CQ table and wait for all existing
-IRQ-side RCU readers before freeing the HWC queue bundle. This also covers
-a completion dispatched through a different EQ, without a per-event
-reference. Fence the dedicated EQ's remaining callbacks before releasing
-the CQ, completion buffer and work queues. Keep the parent EQ allocated
-until CQ destruction has detached its throttled-EQE child entry. Preserve
-the existing generic CQ detach and RCU handling.
+Use the initial PF report to select the queue geometry. Driver-version
+advertisement occurs after HWC establishment and cannot negotiate behavior
+needed while the channel is being created.
 
-Link: https://lore.kernel.org/r/20260908035201.402424-2-longli@microsoft.com
 Link: https://lore.kernel.org/r/20260908035201.402424-5-longli@microsoft.com
-Link: https://lore.kernel.org/r/178910960115.219967.13830871915506436112@kernel.org
-Link: https://lore.kernel.org/r/179196575238.434549.10775387794024020898@kernel.org
-Link: https://lore.kernel.org/r/sashiko-outbox-170992@kernel.org
+Link: https://lore.kernel.org/r/179196575846.434549.7933818740976196422@kernel.org
 Signed-off-by: Long Li <longli@microsoft.com>
 Signed-off-by: Wei Hu <weh@microsoft.com>
 Copilot-Session: 8c2361e6-c0f4-4b0c-bf01-b5e4cdacec50
 ---
- .../net/ethernet/microsoft/mana/gdma_cdx.c    |   4 +-
- .../net/ethernet/microsoft/mana/gdma_main.c   |  41 +++-
- .../net/ethernet/microsoft/mana/gdma_pci.c    |   4 +-
- .../net/ethernet/microsoft/mana/hw_channel.c  | 187 +++++++++++++++---
- .../net/ethernet/microsoft/mana/shm_channel.c |  58 +++++-
- include/net/mana/gdma.h                       |   4 +
- include/net/mana/hw_channel.h                 |   5 +
- include/net/mana/shm_channel.h                |  10 +-
- 8 files changed, 275 insertions(+), 38 deletions(-)
+ drivers/infiniband/hw/mana/main.c             |  19 +-
+ .../net/ethernet/microsoft/mana/gdma_main.c   |  26 +-
+ .../net/ethernet/microsoft/mana/hw_channel.c  | 316 +++++++++++++++---
+ include/net/mana/gdma.h                       |   2 +
+ include/net/mana/hw_channel.h                 |  19 +-
+ 5 files changed, 317 insertions(+), 65 deletions(-)
 
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_cdx.c b/drivers/net/ethernet/microsoft/mana/gdma_cdx.c
-index 0d01e3d2f0d9..2e0dcb902d7e 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_cdx.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_cdx.c
-@@ -279,7 +279,7 @@ static int mana_cdx_gd_probe(struct cdx_device *cdx_dev)
- 	iounmap(bar0_va);
- free_gc:
- 	dev_set_drvdata(&cdx_dev->dev, NULL);
--	vfree(gc);
-+	mana_gd_free_context(gc);
- clear_master:
- 	cdx_clear_master(cdx_dev);
- 	return err;
-@@ -298,7 +298,7 @@ static int mana_cdx_gd_remove(struct cdx_device *cdx_dev)
- 	iounmap(gc->bar0_va);
+diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
+index 858bbc325eb2..e2ddbcb1f646 100644
+--- a/drivers/infiniband/hw/mana/main.c
++++ b/drivers/infiniband/hw/mana/main.c
+@@ -414,28 +414,38 @@ static int mana_ib_gd_create_dma_region(struct mana_ib_dev *dev, struct ib_umem
+ 	unsigned int create_req_msg_size;
+ 	struct hw_channel_context *hwc;
+ 	struct ib_block_iter biter;
+-	size_t max_pgs_add_cmd = 0;
++	size_t max_pgs_add_cmd;
+ 	size_t max_pgs_create_cmd;
+ 	struct gdma_context *gc;
+ 	size_t num_pages_total;
+ 	unsigned int tail = 0;
++	u32 req_limit;
+ 	u64 *page_addr_list;
+ 	void *request_buf;
+ 	int err = 0;
  
- 	dev_set_drvdata(&cdx_dev->dev, NULL);
--	vfree(gc);
-+	mana_gd_free_context(gc);
+ 	gc = mdev_to_gc(dev);
+ 	hwc = gc->hwc.driver_data;
++	req_limit = mana_hwc_get_max_req_size(hwc);
++	if (req_limit < struct_size(create_req, page_addr_list, 1) ||
++	    req_limit < struct_size(add_req, page_addr_list, 1)) {
++		ibdev_dbg(&dev->ib_dev,
++			  "HWC request budget %u is too small for DMA region commands\n",
++			  req_limit);
++		return -EMSGSIZE;
++	}
+ 
+ 	num_pages_total = ib_umem_num_dma_blocks(umem, page_sz);
+ 
+ 	max_pgs_create_cmd =
+-		(hwc->max_req_msg_size - sizeof(*create_req)) / sizeof(u64);
++		(req_limit - sizeof(*create_req)) / sizeof(u64);
++	max_pgs_add_cmd = (req_limit - sizeof(*add_req)) / sizeof(u64);
+ 	num_pages_to_handle =
+ 		min_t(size_t, num_pages_total, max_pgs_create_cmd);
+ 	create_req_msg_size =
+ 		struct_size(create_req, page_addr_list, num_pages_to_handle);
+ 
+-	request_buf = kzalloc(hwc->max_req_msg_size, GFP_KERNEL);
++	request_buf = kzalloc(req_limit, GFP_KERNEL);
+ 	if (!request_buf)
+ 		return -ENOMEM;
+ 
+@@ -478,9 +488,6 @@ static int mana_ib_gd_create_dma_region(struct mana_ib_dev *dev, struct ib_umem
+ 			if (err)
+ 				goto out;
+ 
+-			max_pgs_add_cmd = (hwc->max_req_msg_size -
+-				sizeof(*add_req)) / sizeof(u64);
+-
+ 			add_req = request_buf;
+ 			add_req->dma_region_handle = *gdma_region;
+ 			add_req->reserved3 = 0;
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index bb4a963c2cf5..dace16eaeaa5 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -589,12 +589,26 @@ static int mana_gd_disable_queue(struct gdma_queue *queue)
+ #define DOORBELL_OFFSET_EQ	0xFF8
+ #define DOORBELL_OFFSET_DIM	0x820
+ 
++bool mana_gd_is_valid_doorbell(struct gdma_context *gc, u32 db_id)
++{
++	if (!gc->db_page_size || gc->db_page_off >= gc->bar0_size)
++		return false;
++
++	return gc->db_page_off +
++	       gc->db_page_size * ((u64)db_id + 1) <= gc->bar0_size;
++}
++
+ static void mana_gd_ring_doorbell(struct gdma_context *gc, u32 db_index,
+ 				  enum gdma_queue_type q_type, u32 qid,
+ 				  u32 tail_ptr, u8 num_req, u8 client_offset)
+ {
+-	void __iomem *addr = gc->db_page_base + gc->db_page_size * db_index;
+ 	union gdma_doorbell_entry e = {};
++	void __iomem *addr;
++
++	if (unlikely(db_index == INVALID_DOORBELL))
++		return;
++
++	addr = gc->db_page_base + gc->db_page_size * db_index;
+ 
+ 	addr += client_offset;
+ 
+@@ -1342,7 +1356,7 @@ static int mana_gd_create_dma_region(struct gdma_dev *gd,
+ 	/* The caller must keep the HWC alive throughout queue creation. */
+ 	hwc = gc->hwc.driver_data;
+ 	req_msg_size = struct_size(req, page_addr_list, num_page);
+-	if (req_msg_size > hwc->max_req_msg_size)
++	if (req_msg_size > mana_hwc_get_max_req_size(hwc))
+ 		return -EINVAL;
+ 
+ 	req = kzalloc(req_msg_size, GFP_KERNEL);
+@@ -1622,13 +1636,7 @@ int mana_gd_register_device(struct gdma_dev *gd)
+ 		return err ? err : -EPROTO;
+ 	}
+ 
+-	/* Validate that doorbell page for db_id is within the BAR0 region.
+-	 * In mana_gd_ring_doorbell(), the address is calculated as:
+-	 *   addr = db_page_base + db_page_size * db_id
+-	 *        = (bar0_va + db_page_off) + (db_page_size * db_id)
+-	 * So we need: db_page_off + db_page_size * (db_id + 1) <= bar0_size
+-	 */
+-	if (gc->db_page_off + gc->db_page_size * ((u64)resp.db_id + 1) > gc->bar0_size) {
++	if (!mana_gd_is_valid_doorbell(gc, resp.db_id)) {
+ 		dev_err(gc->dev, "Doorbell ID %u out of range\n", resp.db_id);
+ 		return -EPROTO;
+ 	}
+diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+index 8bc00001d20e..867f8dd3ea54 100644
+--- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
++++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+@@ -95,12 +95,30 @@ static int mana_hwc_try_get_msg_index(struct hw_channel_context *hwc,
  	return 0;
  }
  
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-index ab942d5bfe05..8df130386da3 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-@@ -11,6 +11,7 @@
- #include <linux/irqdomain.h>
- #include <linux/export.h>
- #include <linux/uaccess.h>
-+#include <linux/vmalloc.h>
- 
- #include <net/mana/mana.h>
- #include <net/mana/hw_channel.h>
-@@ -760,9 +761,15 @@ void mana_gd_free_service_wq(struct gdma_context *gc)
- static void mana_gd_schedule_eq_cqs(struct gdma_queue *eq)
+-static int mana_hwc_get_msg_index(struct hw_channel_context *hwc, void *resp,
+-				  u32 resp_len,
++static int mana_hwc_get_msg_index(struct hw_channel_context *hwc, u32 req_len,
++				  void *resp, u32 resp_len,
+ 				  struct hwc_caller_ctx **caller_ctx)
  {
- 	struct gdma_context *gc = eq->gdma_dev->gdma_context;
-+	struct gdma_queue **cq_table;
- 	struct gdma_queue *cq;
- 	u8 i;
++	struct gdma_resource *r = &hwc->inflight_msg_res;
++	unsigned long flags;
++	u32 req_limit;
++	u32 resp_limit;
+ 	int err;
  
-+	/* The IRQ's RCU read-side section protects this table snapshot. */
-+	cq_table = smp_load_acquire(&gc->cq_table);
-+	if (!cq_table)
-+		return;
++	req_limit = mana_hwc_get_max_req_size(hwc);
++	resp_limit = min(hwc->rx_msg_size_limit, hwc->max_req_msg_size);
++	if (req_len > req_limit || resp_len > resp_limit) {
++		spin_lock_irqsave(&r->lock, flags);
++		err = hwc->channel_up ? -EMSGSIZE : -ENODEV;
++		spin_unlock_irqrestore(&r->lock, flags);
 +
- 	for (i = 0; i < GDMA_EQ_MAX_CHILD_CQ; i++) {
- 		cq = rcu_dereference(eq->eq.child_cq[i]);
++		if (err == -EMSGSIZE)
++			dev_err(hwc->dev,
++				"HWC: message sizes req=%u/%u resp=%u/%u exceed channel maxima\n",
++				req_len, req_limit, resp_len, resp_limit);
++		return err;
++	}
++
+ 	/* Healthy contention must not skip a destructive control request. */
+ 	wait_event(hwc->admission_waitq,
+ 		   (err = mana_hwc_try_get_msg_index(hwc, resp, resp_len,
+@@ -246,8 +264,18 @@ static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
+ 	switch (event->type) {
+ 	case GDMA_EQE_HWC_INIT_EQ_ID_DB:
+ 		eq_db.as_uint32 = event->details[0];
++		if (!mana_gd_is_valid_doorbell(gd->gdma_context,
++					       eq_db.doorbell)) {
++			dev_err(hwc->dev, "HWC: invalid doorbell %u\n",
++				eq_db.doorbell);
++			WRITE_ONCE(hwc->hwc_init_error, -EPROTO);
++			complete(&hwc->hwc_init_eqe_comp);
++			break;
++		}
++
+ 		hwc->cq->gdma_eq->id = eq_db.eq_id;
+ 		gd->doorbell = eq_db.doorbell;
++		hwc->hwc_init_doorbell = true;
+ 		break;
  
-@@ -770,7 +777,7 @@ static void mana_gd_schedule_eq_cqs(struct gdma_queue *eq)
- 			continue;
- 
- 		if (cq->id >= READ_ONCE(gc->max_num_cqs) ||
--		    !gc->cq_table || gc->cq_table[cq->id] != cq)
-+		    READ_ONCE(cq_table[cq->id]) != cq)
- 			continue;
- 
- 		if (cq->cq.callback)
-@@ -785,6 +792,7 @@ static void mana_gd_process_eqe(struct gdma_queue *eq)
- 	union gdma_eqe_info eqe_info;
- 	enum gdma_eqe_type type;
- 	struct gdma_event event;
-+	struct gdma_queue **cq_table;
- 	struct gdma_queue *cq;
- 	struct gdma_eqe *eqe;
- 	u32 cq_id;
-@@ -796,11 +804,16 @@ static void mana_gd_process_eqe(struct gdma_queue *eq)
- 	switch (type) {
- 	case GDMA_EQE_COMPLETION:
- 		cq_id = eqe->details[0] & 0xFFFFFF;
--		if (WARN_ON_ONCE(cq_id >= gc->max_num_cqs))
-+		/* The IRQ handler's RCU read-side section protects the table
-+		 * until HWC teardown has fenced its EQ and waited for readers.
-+		 */
-+		cq_table = smp_load_acquire(&gc->cq_table);
-+		if (!cq_table || cq_id >= READ_ONCE(gc->max_num_cqs))
+ 	case GDMA_EQE_HWC_INIT_DATA:
+@@ -269,7 +297,8 @@ static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
  			break;
  
--		cq = gc->cq_table[cq_id];
--		if (WARN_ON_ONCE(!cq || cq->type != GDMA_CQ || cq->id != cq_id))
-+		cq = READ_ONCE(cq_table[cq_id]);
-+		if (!cq || WARN_ON_ONCE(cq->type != GDMA_CQ ||
-+					cq->id != cq_id))
+ 		case HWC_INIT_DATA_QUEUE_DEPTH:
+-			hwc->hwc_init_q_depth_max = (u16)val;
++			/* Preserve the full 24-bit report for validation. */
++			hwc->hwc_init_q_depth_max = val;
  			break;
  
- 		if (cq->cq.callback)
-@@ -1032,23 +1045,32 @@ int mana_gd_test_eq(struct gdma_context *gc, struct gdma_queue *eq)
+ 		case HWC_INIT_DATA_MAX_REQUEST:
+@@ -638,7 +667,8 @@ static int mana_hwc_alloc_dma_buf(struct hw_channel_context *hwc, u16 q_depth,
+ 
+ 	dma_buf->num_reqs = q_depth;
+ 
+-	buf_size = MANA_PAGE_ALIGN(q_depth * max_msg_size);
++	/* mana_gd_alloc_memory() requires a power-of-two length. */
++	buf_size = roundup_pow_of_two(MANA_PAGE_ALIGN(q_depth * max_msg_size));
+ 
+ 	gmi = &dma_buf->mem_info;
+ 	err = mana_gd_alloc_memory(gc, buf_size, gmi, false);
+@@ -844,10 +874,15 @@ static int mana_hwc_test_channel(struct hw_channel_context *hwc)
  	return err;
  }
  
--static void mana_gd_destroy_eq(struct gdma_context *gc, bool flush_evenets,
-+static void mana_gd_destroy_eq(struct gdma_context *gc, bool flush_events,
- 			       struct gdma_queue *queue)
+-static int mana_hwc_establish_channel(struct hw_channel_context *hwc,
+-				      u16 *q_depth,
+-				      u32 *max_req_msg_size,
+-				      u32 *max_resp_msg_size)
++struct mana_hwc_init_report {
++	u32 queue_depth;
++	u32 max_req_msg_size;
++	u32 max_resp_msg_size;
++};
++
++static int
++mana_hwc_establish_channel(struct hw_channel_context *hwc,
++			   struct mana_hwc_init_report *report)
+ {
+ 	struct gdma_context *gc = hwc->gdma_dev->gdma_context;
+ 	struct gdma_queue *rq = hwc->rxq->gdma_wq;
+@@ -859,6 +894,19 @@ static int mana_hwc_establish_channel(struct hw_channel_context *hwc,
+ 	u32 cq_id;
+ 	int err;
+ 
++	hwc->hwc_init_q_depth_max = 0;
++	hwc->hwc_init_max_req_msg_size = 0;
++	hwc->hwc_init_max_resp_msg_size = 0;
++	hwc->hwc_init_max_num_cqs = 0;
++	hwc->hwc_init_cq_id = 0;
++	hwc->hwc_init_doorbell = false;
++	WRITE_ONCE(hwc->hwc_init_error, 0);
++	gc->hwc.pdid = INVALID_PDID;
++	/* Do not rearm through the previous channel's doorbell. */
++	gc->hwc.doorbell = INVALID_DOORBELL;
++	hwc->dest_vrq_id = 0;
++	hwc->dest_vrcq_id = 0;
++
+ 	init_completion(&hwc->hwc_init_eqe_comp);
+ 
+ 	err = mana_smc_setup_hwc(&gc->shm_channel, false,
+@@ -873,9 +921,18 @@ static int mana_hwc_establish_channel(struct hw_channel_context *hwc,
+ 	if (!wait_for_completion_timeout(&hwc->hwc_init_eqe_comp, 60 * HZ))
+ 		return -ETIMEDOUT;
+ 
+-	*q_depth = hwc->hwc_init_q_depth_max;
+-	*max_req_msg_size = hwc->hwc_init_max_req_msg_size;
+-	*max_resp_msg_size = hwc->hwc_init_max_resp_msg_size;
++	err = READ_ONCE(hwc->hwc_init_error);
++	if (err)
++		return err;
++
++	if (!hwc->hwc_init_doorbell) {
++		dev_err(hwc->dev, "HWC: missing valid doorbell in init data\n");
++		return -EPROTO;
++	}
++
++	report->queue_depth = hwc->hwc_init_q_depth_max;
++	report->max_req_msg_size = hwc->hwc_init_max_req_msg_size;
++	report->max_resp_msg_size = hwc->hwc_init_max_resp_msg_size;
+ 
+ 	/* Snapshot the device-reported count and id once, so the same value
+ 	 * sizes, bounds and indexes cq_table even across the sleeping
+@@ -925,6 +982,9 @@ static int mana_hwc_init_queues(struct hw_channel_context *hwc, u16 q_depth,
  {
  	int err;
  
--	if (flush_evenets) {
-+	if (queue->eq.msix_index == INVALID_PCI_MSIX_INDEX)
-+		return;
-+
-+	if (flush_events) {
- 		err = mana_gd_test_eq(gc, queue);
- 		if (err && mana_need_log(gc, err))
- 			dev_warn(gc->dev, "Failed to flush EQ: %d\n", err);
- 	}
- 
- 	mana_gd_deregister_irq(queue);
-+	queue->eq.msix_index = INVALID_PCI_MSIX_INDEX;
- 
- 	if (queue->eq.disable_needed)
- 		mana_gd_disable_queue(queue);
- }
- 
-+void mana_gd_fence_eq(struct gdma_context *gc, struct gdma_queue *queue)
-+{
-+	mana_gd_destroy_eq(gc, false, queue);
-+}
-+
- static int mana_gd_create_eq(struct gdma_dev *gd,
- 			     const struct gdma_queue_spec *spec,
- 			     bool create_hwq, struct gdma_queue *queue)
-@@ -2113,6 +2135,13 @@ void mana_gd_cleanup(struct gdma_context *gc)
- }
- EXPORT_SYMBOL_NS(mana_gd_cleanup, "NET_MANA");
- 
-+void mana_gd_free_context(struct gdma_context *gc)
-+{
-+	mana_hwc_free_retained_channel(gc);
-+	vfree(gc);
-+}
-+EXPORT_SYMBOL_NS(mana_gd_free_context, "NET_MANA");
-+
- static int __init gdma_core_init(void)
- {
- 	mana_debugfs_root = debugfs_create_dir("mana", NULL);
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_pci.c b/drivers/net/ethernet/microsoft/mana/gdma_pci.c
-index ed8925296c8a..7935cb274e36 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_pci.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_pci.c
-@@ -725,7 +725,7 @@ static int mana_gd_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	pci_iounmap(pdev, bar0_va);
- free_gc:
- 	pci_set_drvdata(pdev, NULL);
--	vfree(gc);
-+	mana_gd_free_context(gc);
- release_region:
- 	pci_release_regions(pdev);
- disable_dev:
-@@ -778,7 +778,7 @@ static void mana_gd_remove(struct pci_dev *pdev)
- 
- 	pci_iounmap(pdev, gc->bar0_va);
- 
--	vfree(gc);
-+	mana_gd_free_context(gc);
- 
- 	pci_release_regions(pdev);
- 	pci_disable_device(pdev);
-diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-index fb9f38f65911..9e0964072af9 100644
---- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
-+++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-@@ -134,7 +134,7 @@ static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
- 
- 		switch (type) {
- 		case HWC_INIT_DATA_CQID:
--			hwc->cq->gdma_cq->id = val;
-+			WRITE_ONCE(hwc->hwc_init_cq_id, val);
- 			break;
- 
- 		case HWC_INIT_DATA_RQID:
-@@ -158,7 +158,11 @@ static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
- 			break;
- 
- 		case HWC_INIT_DATA_MAX_NUM_CQS:
--			gd->gdma_context->max_num_cqs = val;
-+			/* Store only; establish_channel() commits it to
-+			 * max_num_cqs once, so a later event cannot grow the
-+			 * bound past the allocation; pairs with READ_ONCE().
-+			 */
-+			WRITE_ONCE(hwc->hwc_init_max_num_cqs, val);
- 			break;
- 
- 		case HWC_INIT_DATA_PDID:
-@@ -382,9 +386,43 @@ static void mana_hwc_comp_event(void *ctx, struct gdma_queue *q_self)
- 	mana_gd_ring_cq(q_self, SET_ARM_BIT);
- }
- 
-+static int mana_hwc_publish_cq(struct gdma_context *gc,
-+			       struct gdma_queue *cq)
-+{
-+	struct gdma_queue **cq_table = READ_ONCE(gc->cq_table);
-+	u32 id = READ_ONCE(cq->id);
-+
-+	if (!cq_table || id >= READ_ONCE(gc->max_num_cqs) ||
-+	    READ_ONCE(cq_table[id]))
++	if (q_depth > U16_MAX / 2)
 +		return -EINVAL;
 +
-+	WRITE_ONCE(cq_table[id], cq);
+ 	err = mana_hwc_init_inflight_msg(hwc, q_depth);
+ 	if (err)
+ 		return err;
+@@ -957,10 +1017,11 @@ static int mana_hwc_init_queues(struct hw_channel_context *hwc, u16 q_depth,
+ 
+ 	hwc->num_inflight_msg = q_depth;
+ 	hwc->max_req_msg_size = max_req_msg_size;
++	hwc->max_resp_msg_size = max_resp_msg_size;
+ 
+ 	return 0;
+ out:
+-	/* mana_hwc_create_channel() will do the cleanup.*/
++	/* The setup path tears down any partially initialized queues. */
+ 	return err;
+ }
+ 
+@@ -976,6 +1037,33 @@ static void mana_hwc_clear_cq_table(struct gdma_context *gc)
+ 	vfree(cq_table);
+ }
+ 
++/* Setup is private; runtime teardown has unpublished and drained senders. */
++static void mana_hwc_destroy_queues(struct hw_channel_context *hwc)
++{
++	struct gdma_context *gc = hwc->gdma_dev->gdma_context;
++
++	mana_hwc_clear_cq_table(gc);
++
++	if (hwc->cq) {
++		mana_hwc_destroy_cq(gc, hwc->cq);
++		hwc->cq = NULL;
++	}
++
++	if (hwc->txq) {
++		mana_hwc_destroy_wq(hwc, hwc->txq);
++		hwc->txq = NULL;
++	}
++	if (hwc->rxq) {
++		mana_hwc_destroy_wq(hwc, hwc->rxq);
++		hwc->rxq = NULL;
++	}
++
++	kfree(hwc->caller_ctx);
++	hwc->caller_ctx = NULL;
++	mana_gd_free_res_map(&hwc->inflight_msg_res);
++	hwc->num_inflight_msg = 0;
++}
++
+ static int mana_hwc_publish_channel(struct hw_channel_context *hwc)
+ {
+ 	struct gdma_context *gc = hwc->gdma_dev->gdma_context;
+@@ -1088,16 +1176,11 @@ static void mana_hwc_fence_channel(struct gdma_context *gc,
+ 		mana_hwc_unpublish_cq(gc, hwc->cq->gdma_cq);
+ }
+ 
+-static bool mana_hwc_release_channel(struct hw_channel_context *hwc)
++static int mana_hwc_teardown_queues(struct hw_channel_context *hwc)
+ {
+ 	struct gdma_context *gc = hwc->gdma_dev->gdma_context;
+ 	int err;
+ 
+-	mana_hwc_stop_channel(hwc);
+-
+-	/* An unacknowledged destroy leaves the PF's mappings live.  Fence
+-	 * software dispatch, but retain every PF-visible allocation.
+-	 */
+ 	err = mana_smc_teardown_hwc(&gc->shm_channel, false,
+ 				    &hwc->setup_active);
+ 	if (err) {
+@@ -1105,28 +1188,26 @@ static bool mana_hwc_release_channel(struct hw_channel_context *hwc)
+ 			"HWC teardown failed: %d, retaining PF-visible resources\n",
+ 			err);
+ 		mana_hwc_fence_channel(gc, hwc);
+-		mana_hwc_retain_channel(hwc);
+-		return false;
++		return err;
+ 	}
+ 
+-	mana_hwc_clear_cq_table(gc);
+-
+-	/* Fence the EQ before releasing the remaining HWC state. */
+-	if (hwc->cq)
+-		mana_hwc_destroy_cq(hwc->gdma_dev->gdma_context, hwc->cq);
+-
+-	if (hwc->txq)
+-		mana_hwc_destroy_wq(hwc, hwc->txq);
++	mana_hwc_destroy_queues(hwc);
+ 
+-	if (hwc->rxq)
+-		mana_hwc_destroy_wq(hwc, hwc->rxq);
++	return 0;
++}
+ 
+-	kfree(hwc->caller_ctx);
+-	hwc->caller_ctx = NULL;
++static bool mana_hwc_release_channel(struct hw_channel_context *hwc)
++{
++	struct gdma_context *gc = hwc->gdma_dev->gdma_context;
++	int err;
+ 
+-	mana_gd_free_res_map(&hwc->inflight_msg_res);
++	mana_hwc_stop_channel(hwc);
+ 
+-	hwc->num_inflight_msg = 0;
++	err = mana_hwc_teardown_queues(hwc);
++	if (err) {
++		mana_hwc_retain_channel(hwc);
++		return false;
++	}
+ 
+ 	hwc->gdma_dev->doorbell = INVALID_DOORBELL;
+ 	hwc->gdma_dev->pdid = INVALID_PDID;
+@@ -1175,32 +1256,169 @@ void mana_hwc_free_retained_channel(struct gdma_context *gc)
+ 	gc->hwc.gdma_context = NULL;
+ }
+ 
+-static int mana_hwc_create_bootstrap_channel(struct hw_channel_context *hwc)
++static int
++mana_hwc_validate_report(struct hw_channel_context *hwc,
++			 const struct mana_hwc_init_report *report,
++			 u32 expected_depth, bool check_depth,
++			 bool require_exact_msg_sizes)
++{
++	if (!report->queue_depth || !report->max_req_msg_size ||
++	    !report->max_resp_msg_size) {
++		dev_err(hwc->dev,
++			"HWC: invalid maxima depth=%u req=%u resp=%u\n",
++			report->queue_depth, report->max_req_msg_size,
++			report->max_resp_msg_size);
++		return -EPROTO;
++	}
++
++	if (require_exact_msg_sizes &&
++	    (report->max_req_msg_size != HW_CHANNEL_MAX_REQUEST_SIZE ||
++	     report->max_resp_msg_size != HW_CHANNEL_MAX_RESPONSE_SIZE)) {
++		dev_err(hwc->dev,
++			"HWC: rebuilt message maxima req=%u resp=%u, expected %u/%u\n",
++			report->max_req_msg_size, report->max_resp_msg_size,
++			HW_CHANNEL_MAX_REQUEST_SIZE,
++			HW_CHANNEL_MAX_RESPONSE_SIZE);
++		return -EPROTO;
++	}
++
++	if (check_depth && report->queue_depth != expected_depth) {
++		dev_err(hwc->dev, "HWC: rebuilt depth %u, expected %u\n",
++			report->queue_depth, expected_depth);
++		return -EPROTO;
++	}
 +
 +	return 0;
 +}
 +
-+static void mana_hwc_unpublish_cq(struct gdma_context *gc,
-+				  struct gdma_queue *cq)
++static int mana_hwc_finish_channel(struct hw_channel_context *hwc,
++				   const struct mana_hwc_init_report *report)
 +{
-+	struct gdma_queue **cq_table = READ_ONCE(gc->cq_table);
-+	u32 id;
++	int err;
 +
-+	if (!cq_table || !cq)
-+		return;
++	/* MAX_REQUEST sizes the RQ; MAX_RESPONSE sizes the SQ. */
++	hwc->rx_msg_size_limit = report->max_req_msg_size;
++	hwc->tx_msg_size_limit = report->max_resp_msg_size;
 +
-+	id = READ_ONCE(cq->id);
-+	if (id < READ_ONCE(gc->max_num_cqs) &&
-+	    READ_ONCE(cq_table[id]) == cq)
-+		WRITE_ONCE(cq_table[id], NULL);
++	err = mana_hwc_test_channel(hwc);
++	if (err)
++		dev_err(hwc->dev, "Failed to test HWC: %d\n", err);
++
++	return err;
 +}
 +
- static void mana_hwc_destroy_cq(struct gdma_context *gc, struct hwc_cq *hwc_cq)
++static int mana_hwc_build_channel(struct hw_channel_context *hwc, u16 q_depth,
++				  struct mana_hwc_init_report *report)
  {
--	kfree(hwc_cq->comp_buf);
-+	/* Fence callbacks first, but keep the parent EQ alive until CQ
-+	 * destruction has detached its child entry.
-+	 */
-+	if (hwc_cq->gdma_eq)
-+		mana_gd_fence_eq(gc, hwc_cq->gdma_eq);
- 
- 	if (hwc_cq->gdma_cq)
- 		mana_gd_destroy_queue(gc, hwc_cq->gdma_cq);
-@@ -392,6 +430,7 @@ static void mana_hwc_destroy_cq(struct gdma_context *gc, struct hwc_cq *hwc_cq)
- 	if (hwc_cq->gdma_eq)
- 		mana_gd_destroy_queue(gc, hwc_cq->gdma_eq);
- 
-+	kfree(hwc_cq->comp_buf);
- 	kfree(hwc_cq);
- }
- 
-@@ -674,6 +713,9 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
- 	struct gdma_queue *sq = hwc->txq->gdma_wq;
- 	struct gdma_queue *eq = hwc->cq->gdma_eq;
- 	struct gdma_queue *cq = hwc->cq->gdma_cq;
-+	struct gdma_queue **cq_table;
-+	u32 num_cqs;
-+	u32 cq_id;
+-	u32 max_req_msg_size, max_resp_msg_size;
+-	u16 q_depth_max;
  	int err;
  
- 	init_completion(&hwc->hwc_init_eqe_comp);
-@@ -683,7 +725,7 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
- 				 cq->mem_info.dma_handle,
- 				 rq->mem_info.dma_handle,
- 				 sq->mem_info.dma_handle,
--				 eq->eq.msix_index);
-+				 eq->eq.msix_index, &hwc->setup_active);
+-	err = mana_hwc_init_queues(hwc, HW_CHANNEL_VF_BOOTSTRAP_QUEUE_DEPTH,
++	err = mana_hwc_init_queues(hwc, q_depth,
+ 				   HW_CHANNEL_MAX_REQUEST_SIZE,
+ 				   HW_CHANNEL_MAX_RESPONSE_SIZE);
+ 	if (err) {
+-		dev_err(hwc->dev, "Failed to initialize HWC: %d\n", err);
++		dev_err(hwc->dev, "Failed to initialize HWC depth %u: %d\n",
++			q_depth, err);
+ 		return err;
+ 	}
+ 
+-	err = mana_hwc_establish_channel(hwc, &q_depth_max, &max_req_msg_size,
+-					 &max_resp_msg_size);
+-	if (err) {
+-		dev_err(hwc->dev, "Failed to establish HWC: %d\n", err);
++	err = mana_hwc_establish_channel(hwc, report);
++	if (err)
++		dev_err(hwc->dev, "Failed to establish HWC depth %u: %d\n",
++			q_depth, err);
++
++	return err;
++}
++
++static int
++mana_hwc_restore_bootstrap(struct hw_channel_context *hwc,
++			   struct mana_hwc_init_report *report)
++{
++	int err;
++
++	err = mana_hwc_build_channel(hwc,
++				     HW_CHANNEL_VF_BOOTSTRAP_QUEUE_DEPTH,
++				     report);
++	if (err)
+ 		return err;
+-	}
+ 
+-	err = mana_hwc_test_channel(hwc);
++	err = mana_hwc_validate_report(hwc, report, 0, false, false);
+ 	if (err)
+-		dev_err(hwc->dev, "Failed to test HWC: %d\n", err);
++		return err;
+ 
+-	return err;
++	return mana_hwc_finish_channel(hwc, report);
++}
++
++static int mana_hwc_rebuild_channel(struct hw_channel_context *hwc,
++				    u16 q_depth,
++				    struct mana_hwc_init_report *report)
++{
++	u32 timeout_ms = mana_hwc_timeout_read(hwc);
++	int cleanup_err;
++	int err;
++
++	err = mana_hwc_teardown_queues(hwc);
++	if (err)
++		return err;
++
++	err = mana_hwc_build_channel(hwc, q_depth, report);
++	if (!err)
++		err = mana_hwc_validate_report(hwc, report, q_depth,
++					       true, true);
++	if (!err)
++		err = mana_hwc_finish_channel(hwc, report);
++	if (!err)
++		return 0;
++
++	dev_warn(hwc->dev,
++		 "HWC depth %u rebuild failed, restoring bootstrap: %d\n",
++		 q_depth, err);
++
++	cleanup_err = mana_hwc_teardown_queues(hwc);
++	if (cleanup_err)
++		return cleanup_err;
++
++	/* Do not carry the failed test's reduced wait into the retry. */
++	mana_hwc_timeout_update(hwc, timeout_ms);
++
++	return mana_hwc_restore_bootstrap(hwc, report);
++}
++
++static int mana_hwc_prepare_channel(struct hw_channel_context *hwc)
++{
++	struct mana_hwc_init_report report;
++	u16 rebuild_depth;
++	int err;
++
++	err = mana_hwc_build_channel(hwc,
++				     HW_CHANNEL_VF_BOOTSTRAP_QUEUE_DEPTH,
++				     &report);
++	if (err)
++		return err;
++
++	err = mana_hwc_validate_report(hwc, &report, 0, false, false);
++	if (err)
++		return err;
++
++	if (report.queue_depth > HW_CHANNEL_MAX_QUEUE_DEPTH) {
++		dev_warn(hwc->dev,
++			 "HWC depth %u exceeds limit %u, keeping bootstrap\n",
++			 report.queue_depth, HW_CHANNEL_MAX_QUEUE_DEPTH);
++	} else if (report.queue_depth >
++		   HW_CHANNEL_VF_BOOTSTRAP_QUEUE_DEPTH &&
++		   (report.max_req_msg_size != HW_CHANNEL_MAX_REQUEST_SIZE ||
++		    report.max_resp_msg_size != HW_CHANNEL_MAX_RESPONSE_SIZE)) {
++		dev_warn(hwc->dev,
++			 "HWC maxima req=%u resp=%u differ from rebuild policy %u/%u, keeping bootstrap\n",
++			 report.max_req_msg_size, report.max_resp_msg_size,
++			 HW_CHANNEL_MAX_REQUEST_SIZE,
++			 HW_CHANNEL_MAX_RESPONSE_SIZE);
++	} else if (report.queue_depth >
++		   HW_CHANNEL_VF_BOOTSTRAP_QUEUE_DEPTH) {
++		rebuild_depth = report.queue_depth;
++		return mana_hwc_rebuild_channel(hwc, rebuild_depth, &report);
++	}
++
++	return mana_hwc_finish_channel(hwc, &report);
+ }
+ 
+ int mana_hwc_create_channel(struct gdma_context *gc)
+@@ -1234,7 +1452,7 @@ int mana_hwc_create_channel(struct gdma_context *gc)
+ 	gd->pdid = INVALID_PDID;
+ 	gd->doorbell = INVALID_DOORBELL;
+ 
+-	err = mana_hwc_create_bootstrap_channel(hwc);
++	err = mana_hwc_prepare_channel(hwc);
+ 	if (err) {
+ 		mana_hwc_release_channel(hwc);
+ 		return err;
+@@ -1390,7 +1608,7 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
+ 	u32 command;
+ 	int err;
+ 
+-	err = mana_hwc_get_msg_index(hwc, resp, resp_len, &ctx);
++	err = mana_hwc_get_msg_index(hwc, req_len, resp, resp_len, &ctx);
  	if (err)
  		return err;
  
-@@ -694,15 +736,45 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
- 	*max_req_msg_size = hwc->hwc_init_max_req_msg_size;
- 	*max_resp_msg_size = hwc->hwc_init_max_resp_msg_size;
- 
--	/* Both were set in mana_hwc_init_event_handler(). */
--	if (WARN_ON(cq->id >= gc->max_num_cqs))
-+	/* Snapshot the device-reported count and id once, so the same value
-+	 * sizes, bounds and indexes cq_table even across the sleeping
-+	 * vcalloc() and a concurrent init event.
-+	 */
-+	num_cqs = READ_ONCE(hwc->hwc_init_max_num_cqs);
-+	cq_id = READ_ONCE(hwc->hwc_init_cq_id);
-+
-+	/* Both operands come from untrusted HWC bootstrap events; a missing
-+	 * MAX_NUM_CQS leaves num_cqs at 0.  Reject rather than WARN_ON() so a
-+	 * malformed device response cannot panic a panic_on_warn guest.
-+	 */
-+	if (cq_id >= num_cqs) {
-+		dev_err_ratelimited(hwc->dev,
-+				    "HWC: bad CQ id %u >= max %u\n",
-+				    cq_id, num_cqs);
- 		return -EPROTO;
-+	}
-+
-+	/* Init events remain enabled, so commit the validated CQ ID once. */
-+	WRITE_ONCE(cq->id, cq_id);
- 
--	gc->cq_table = vcalloc(gc->max_num_cqs, sizeof(struct gdma_queue *));
--	if (!gc->cq_table)
-+	cq_table = vcalloc(num_cqs, sizeof(*cq_table));
-+	if (!cq_table)
- 		return -ENOMEM;
- 
--	gc->cq_table[cq->id] = cq;
-+	/* Publish the bound and the initialised table together; the release
-+	 * pairs with smp_load_acquire() in mana_gd_process_eqe().
-+	 */
-+	WRITE_ONCE(gc->max_num_cqs, num_cqs);
-+	/* Pairs with smp_load_acquire() in mana_gd_process_eqe(). */
-+	smp_store_release(&gc->cq_table, cq_table);
-+
-+	err = mana_hwc_publish_cq(gc, cq);
-+	if (err) {
-+		dev_err_ratelimited(hwc->dev,
-+				    "HWC: failed to publish CQ %u: %d\n",
-+				    cq_id, err);
-+		return err;
-+	}
- 
- 	return 0;
- }
-@@ -751,6 +823,18 @@ static int mana_hwc_init_queues(struct hw_channel_context *hwc, u16 q_depth,
- 	return err;
- }
- 
-+static void mana_hwc_clear_cq_table(struct gdma_context *gc)
-+{
-+	struct gdma_queue **cq_table;
-+
-+	cq_table = READ_ONCE(gc->cq_table);
-+	WRITE_ONCE(gc->max_num_cqs, 0);
-+	/* Stop new table readers before waiting for prior RCU readers. */
-+	smp_store_release(&gc->cq_table, NULL);
-+	synchronize_rcu();
-+	vfree(cq_table);
-+}
-+
- int mana_hwc_create_channel(struct gdma_context *gc)
- {
- 	u32 max_req_msg_size, max_resp_msg_size;
-@@ -759,6 +843,13 @@ int mana_hwc_create_channel(struct gdma_context *gc)
- 	u16 q_depth_max;
- 	int err;
- 
-+	/* Retry a retained context before assigning queues to the PF again. */
-+	if (gd->driver_data) {
-+		mana_hwc_destroy_channel(gc);
-+		if (gd->driver_data)
-+			return -ETIMEDOUT;
-+	}
-+
- 	hwc = kzalloc_obj(*hwc);
- 	if (!hwc)
- 		return -ENOMEM;
-@@ -808,25 +899,45 @@ int mana_hwc_create_channel(struct gdma_context *gc)
- 	return err;
- }
- 
-+static void mana_hwc_fence_channel(struct gdma_context *gc,
-+				   struct hw_channel_context *hwc)
-+{
-+	if (!hwc->cq)
-+		return;
-+
-+	if (hwc->cq->gdma_eq)
-+		mana_gd_fence_eq(gc, hwc->cq->gdma_eq);
-+
-+	if (hwc->cq->gdma_cq)
-+		mana_hwc_unpublish_cq(gc, hwc->cq->gdma_cq);
-+}
-+
- void mana_hwc_destroy_channel(struct gdma_context *gc)
- {
- 	struct hw_channel_context *hwc = gc->hwc.driver_data;
-+	int err;
- 
- 	if (!hwc)
- 		return;
- 
--	/* gc->max_num_cqs is set in mana_hwc_init_event_handler(). If it's
--	 * non-zero, the HWC worked and we should tear down the HWC here.
-+	/* An unacknowledged destroy leaves the PF's mappings live.  Fence
-+	 * software dispatch, but retain every PF-visible allocation.
- 	 */
--	if (gc->max_num_cqs > 0) {
--		mana_smc_teardown_hwc(&gc->shm_channel, false);
--		WRITE_ONCE(gc->max_num_cqs, 0);
-+	err = mana_smc_teardown_hwc(&gc->shm_channel, false,
-+				    &hwc->setup_active);
-+	if (err) {
-+		dev_err(hwc->dev,
-+			"HWC teardown failed: %d, retaining PF-visible resources\n",
-+			err);
-+		mana_hwc_fence_channel(gc, hwc);
-+		return;
- 	}
- 
--	if (hwc->cq)
--		mana_gd_detach_cq(gc, hwc->cq->gdma_cq);
-+	mana_hwc_clear_cq_table(gc);
- 
--	synchronize_rcu();
-+	/* Fence the EQ before releasing the remaining HWC state. */
-+	if (hwc->cq)
-+		mana_hwc_destroy_cq(hwc->gdma_dev->gdma_context, hwc->cq);
- 
- 	if (hwc->txq)
- 		mana_hwc_destroy_wq(hwc, hwc->txq);
-@@ -834,9 +945,6 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
- 	if (hwc->rxq)
- 		mana_hwc_destroy_wq(hwc, hwc->rxq);
- 
--	if (hwc->cq)
--		mana_hwc_destroy_cq(hwc->gdma_dev->gdma_context, hwc->cq);
--
- 	kfree(hwc->caller_ctx);
- 	hwc->caller_ctx = NULL;
- 
-@@ -852,9 +960,44 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
- 	kfree(hwc);
- 	gc->hwc.driver_data = NULL;
- 	gc->hwc.gdma_context = NULL;
-+}
- 
--	vfree(gc->cq_table);
--	gc->cq_table = NULL;
-+static void mana_hwc_free_retained_wq(struct hwc_wq *wq)
-+{
-+	if (!wq)
-+		return;
-+
-+	kfree(wq->msg_buf);
-+	kfree(wq->gdma_wq);
-+	kfree(wq);
-+}
-+
-+/* Final disposal after IRQ and service-work teardown, not a retry path.
-+ * Free only software state: unacknowledged HWC DMA allocations stay live.
-+ */
-+void mana_hwc_free_retained_channel(struct gdma_context *gc)
-+{
-+	struct hw_channel_context *hwc = gc->hwc.driver_data;
-+
-+	if (!hwc)
-+		return;
-+
-+	gc->hwc.driver_data = NULL;
-+	mana_hwc_clear_cq_table(gc);
-+
-+	if (hwc->cq) {
-+		kfree(hwc->cq->gdma_eq);
-+		kfree(hwc->cq->gdma_cq);
-+		kfree(hwc->cq->comp_buf);
-+		kfree(hwc->cq);
-+	}
-+
-+	mana_hwc_free_retained_wq(hwc->txq);
-+	mana_hwc_free_retained_wq(hwc->rxq);
-+	kfree(hwc->caller_ctx);
-+	mana_gd_free_res_map(&hwc->inflight_msg_res);
-+	kfree(hwc);
-+	gc->hwc.gdma_context = NULL;
- }
- 
- int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
-diff --git a/drivers/net/ethernet/microsoft/mana/shm_channel.c b/drivers/net/ethernet/microsoft/mana/shm_channel.c
-index d21b5db06e50..df9d05062dd5 100644
---- a/drivers/net/ethernet/microsoft/mana/shm_channel.c
-+++ b/drivers/net/ethernet/microsoft/mana/shm_channel.c
-@@ -125,13 +125,24 @@ static int mana_smc_read_response(struct shm_channel *sc, u32 msg_type,
- void mana_smc_init(struct shm_channel *sc, struct device *dev,
- 		   void __iomem *base)
- {
-+	/* The first call precedes channel publication. Later calls refresh the
-+	 * BAR mapping after reset or resume without reinitializing a live lock.
-+	 */
-+	if (!sc->transaction_lock_initialized) {
-+		mutex_init(&sc->transaction_lock);
-+		sc->transaction_lock_initialized = true;
-+	}
-+
-+	mutex_lock(&sc->transaction_lock);
- 	sc->dev = dev;
- 	sc->base = base;
-+	mutex_unlock(&sc->transaction_lock);
- }
- 
--int mana_smc_setup_hwc(struct shm_channel *sc, bool reset_vf, u64 eq_addr,
--		       u64 cq_addr, u64 rq_addr, u64 sq_addr,
--		       u32 eq_msix_index)
-+static int mana_smc_setup_hwc_locked(struct shm_channel *sc, bool reset_vf,
-+				     u64 eq_addr, u64 cq_addr, u64 rq_addr,
-+				     u64 sq_addr, u32 eq_msix_index,
-+				     bool *submitted)
- {
- 	union smc_proto_hdr *hdr;
- 	u16 all_addr_h4bits = 0;
-@@ -144,6 +155,9 @@ int mana_smc_setup_hwc(struct shm_channel *sc, bool reset_vf, u64 eq_addr,
- 	int err;
- 	int i;
- 
-+	lockdep_assert_held(&sc->transaction_lock);
-+	*submitted = false;
-+
- 	/* Ensure VF already has possession of shared memory */
- 	err = mana_smc_poll_register(sc->base, false);
- 	if (err) {
-@@ -229,6 +243,7 @@ int mana_smc_setup_hwc(struct shm_channel *sc, bool reset_vf, u64 eq_addr,
- 	/* Write 256-message buffer to shared memory (final 32-bit write
- 	 * triggers HW to set possession bit to PF).
- 	 */
-+	*submitted = true;
- 	dword = (u32 *)shm_buf;
- 	for (i = 0; i < SMC_APERTURE_DWORDS; i++)
- 		writel(*dword++, sc->base + i * SMC_BASIC_UNIT);
-@@ -248,11 +263,32 @@ int mana_smc_setup_hwc(struct shm_channel *sc, bool reset_vf, u64 eq_addr,
- 	return 0;
- }
- 
--int mana_smc_teardown_hwc(struct shm_channel *sc, bool reset_vf)
-+int mana_smc_setup_hwc(struct shm_channel *sc, bool reset_vf, u64 eq_addr,
-+		       u64 cq_addr, u64 rq_addr, u64 sq_addr,
-+		       u32 eq_msix_index, bool *submitted)
-+{
-+	int err;
-+
-+	mutex_lock(&sc->transaction_lock);
-+	err = mana_smc_setup_hwc_locked(sc, reset_vf, eq_addr, cq_addr,
-+					rq_addr, sq_addr, eq_msix_index,
-+					submitted);
-+	mutex_unlock(&sc->transaction_lock);
-+
-+	return err;
-+}
-+
-+static int mana_smc_teardown_hwc_locked(struct shm_channel *sc, bool reset_vf,
-+					bool *setup_active)
- {
- 	union smc_proto_hdr hdr = {};
- 	int err;
- 
-+	lockdep_assert_held(&sc->transaction_lock);
-+
-+	if (!*setup_active)
-+		return 0;
-+
- 	/* Ensure already has possession of shared memory */
- 	err = mana_smc_poll_register(sc->base, false);
- 	if (err) {
-@@ -283,5 +319,19 @@ int mana_smc_teardown_hwc(struct shm_channel *sc, bool reset_vf)
- 		return err;
- 	}
- 
-+	*setup_active = false;
-+
- 	return 0;
- }
-+
-+int mana_smc_teardown_hwc(struct shm_channel *sc, bool reset_vf,
-+			  bool *setup_active)
-+{
-+	int err;
-+
-+	mutex_lock(&sc->transaction_lock);
-+	err = mana_smc_teardown_hwc_locked(sc, reset_vf, setup_active);
-+	mutex_unlock(&sc->transaction_lock);
-+
-+	return err;
-+}
 diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-index 29d152e18596..af62cd6d771e 100644
+index 47255e662fc3..21fdb0cbcb5a 100644
 --- a/include/net/mana/gdma.h
 +++ b/include/net/mana/gdma.h
-@@ -596,6 +596,9 @@ int mana_gd_create_mana_wq_cq(struct gdma_dev *gd,
+@@ -610,6 +610,8 @@ void mana_gd_fence_eq(struct gdma_context *gc, struct gdma_queue *queue);
  
- void mana_gd_destroy_queue(struct gdma_context *gc, struct gdma_queue *queue);
- 
-+/* Remove an EQ from interrupt dispatch without freeing its queue memory. */
-+void mana_gd_fence_eq(struct gdma_context *gc, struct gdma_queue *queue);
-+
  int mana_gd_poll_cq(struct gdma_queue *cq, struct gdma_comp *comp, int num_cqe);
  
++bool mana_gd_is_valid_doorbell(struct gdma_context *gc, u32 db_id);
++
  void mana_gd_ring_cq(struct gdma_queue *cq, u8 arm_bit);
-@@ -1146,6 +1149,7 @@ int mana_gd_verify_vf_version(struct gdma_context *gc);
- int mana_gd_query_max_resources(struct gdma_context *gc);
- int mana_gd_setup(struct gdma_context *gc);
- void mana_gd_cleanup(struct gdma_context *gc);
-+void mana_gd_free_context(struct gdma_context *gc);
- int mana_gd_detect_devices(struct gdma_context *gc);
- int mana_gd_init_registers(struct gdma_context *gc);
- irqreturn_t mana_gd_intr(int irq, void *arg);
+ 
+ ssize_t mana_gd_read_ring(struct gdma_queue *q, char __user *buf,
 diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
-index 1ab2d66c891e..1320bdfa9d2a 100644
+index 8f2ac3d37770..fd6d04e1e5cb 100644
 --- a/include/net/mana/hw_channel.h
 +++ b/include/net/mana/hw_channel.h
-@@ -185,6 +185,8 @@ struct hw_channel_context {
- 	u16 hwc_init_q_depth_max;
+@@ -5,6 +5,7 @@
+ #define _HW_CHANNEL_H
+ 
+ #include <linux/atomic.h>
++#include <linux/minmax.h>
+ 
+ #define DEFAULT_LOG2_THROTTLING_FOR_ERROR_EQ  4
+ 
+@@ -13,6 +14,9 @@
+ 
+ #define HW_CHANNEL_VF_BOOTSTRAP_QUEUE_DEPTH 1
+ 
++/* Largest supported rebuild depth; larger reports retain bootstrap queues. */
++#define HW_CHANNEL_MAX_QUEUE_DEPTH 128
++
+ #define HWC_INIT_DATA_CQID		1
+ #define HWC_INIT_DATA_RQID		2
+ #define HWC_INIT_DATA_SQID		3
+@@ -200,12 +204,18 @@ struct hw_channel_context {
+ 
+ 	u16 num_inflight_msg;
+ 	u32 max_req_msg_size;
++	u32 max_resp_msg_size;
++	/* Immutable reported maxima for the final RQ and SQ directions. */
++	u32 rx_msg_size_limit;
++	u32 tx_msg_size_limit;
+ 
+-	u16 hwc_init_q_depth_max;
++	u32 hwc_init_q_depth_max;
  	u32 hwc_init_max_req_msg_size;
  	u32 hwc_init_max_resp_msg_size;
-+	u32 hwc_init_max_num_cqs;
-+	u32 hwc_init_cq_id;
+ 	u32 hwc_init_max_num_cqs;
+ 	u32 hwc_init_cq_id;
++	bool hwc_init_doorbell;
++	int hwc_init_error;
  
  	struct completion hwc_init_eqe_comp;
  
-@@ -199,11 +201,14 @@ struct hw_channel_context {
- 	u32 dest_vrcq_id;
- 	u32 hwc_timeout;
- 
-+	/* The PF may own the HWC queues while this is true. */
-+	bool setup_active;
+@@ -240,6 +250,13 @@ struct hw_channel_context {
  	struct hwc_caller_ctx *caller_ctx;
  };
  
++/* Host-to-PF requests are bounded by the negotiated TX limit and SQ stride. */
++static inline u32
++mana_hwc_get_max_req_size(const struct hw_channel_context *hwc)
++{
++	return min(hwc->tx_msg_size_limit, hwc->max_resp_msg_size);
++}
++
  int mana_hwc_create_channel(struct gdma_context *gc);
  void mana_hwc_destroy_channel(struct gdma_context *gc);
-+void mana_hwc_free_retained_channel(struct gdma_context *gc);
- 
- int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
- 			  const void *req, u32 resp_len, void *resp);
-diff --git a/include/net/mana/shm_channel.h b/include/net/mana/shm_channel.h
-index dbabcfb95daf..c8daa61fa759 100644
---- a/include/net/mana/shm_channel.h
-+++ b/include/net/mana/shm_channel.h
-@@ -4,6 +4,8 @@
- #ifndef _SHM_CHANNEL_H
- #define _SHM_CHANNEL_H
- 
-+#include <linux/mutex.h>
-+
- #define SMC_APERTURE_BITS 256
- #define SMC_BASIC_UNIT (sizeof(u32))
- #define SMC_APERTURE_DWORDS (SMC_APERTURE_BITS / (SMC_BASIC_UNIT * 8))
-@@ -13,6 +15,9 @@
- struct shm_channel {
- 	struct device *dev;
- 	void __iomem *base;
-+	/* Protects base and complete aperture request/response transactions. */
-+	struct mutex transaction_lock;
-+	bool transaction_lock_initialized;
- };
- 
- void mana_smc_init(struct shm_channel *sc, struct device *dev,
-@@ -20,8 +25,9 @@ void mana_smc_init(struct shm_channel *sc, struct device *dev,
- 
- int mana_smc_setup_hwc(struct shm_channel *sc, bool reset_vf, u64 eq_addr,
- 		       u64 cq_addr, u64 rq_addr, u64 sq_addr,
--		       u32 eq_msix_index);
-+		       u32 eq_msix_index, bool *submitted);
- 
--int mana_smc_teardown_hwc(struct shm_channel *sc, bool reset_vf);
-+int mana_smc_teardown_hwc(struct shm_channel *sc, bool reset_vf,
-+			  bool *setup_active);
- 
- #endif /* _SHM_CHANNEL_H */
+ void mana_hwc_free_retained_channel(struct gdma_context *gc);
 -- 
 2.43.0
 
