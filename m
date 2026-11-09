@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794236904;
-	b=m+qBfmXO5FOV4b7YXUwDT3j/TLgw7omBeoAnjkQ8TpTzB+7mEtP36vWk/tJoiwMe230b
-	 7uf116KavwVjIfWE9/U9MEZZnL5KzinqFRd4auO1OYX+fCvNwV6lrlc3xTxRDM9q7jlW+
-	 zDH1on8masdVwo+JRqoTqClKRBR+H/CqFarCzxYQ7rScrNLsmP8hArJN/oNfhf3Yod9cV
-	 CNGlFqdpjBHZ5pWEQErpaKSwpCeagPDlz1rGX9X/fpWSae7ilzzBjHnzx32sySmP/SZFt
-	 Yug/dqzZg1lhg6QMCihWAz2WEsNc41c4IJNZdoCXmmSBCL1bK6UMoX9pmrNdLMv3qNg==
+	t=1794236905;
+	b=RL5N8lOG2XP+dz5EsP3LMx1gasCAbLIg7nRmc8iVKXCUWact6MuzMGcggDBFJM7Io1VL
+	 sl3NgAaulIkq7p9A5YvQVTjNe7hAYMQZmff4XvTHvZ3gQFIR/IoP9xqtCD967hXpLhWU4
+	 kkvH3GbmaExFdv1Wo/ekAedIXYPbGSD6Dvkjb4eu20wqdKqphQd4dQVi1l5mrjTP4ue9b
+	 0/CqukhHrpwa0di1w0kz5b4M2j6GnlyzScHaSFpuD8Ldt9g9o/eRewVhULoskKe3IWP5m
+	 Q7uM/aKRIFMgfubBYyKTOGR2wX1RV1CyIaKvu8C/4vJVZIwGKMgc5ZboGQASjLj/0dA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794236904;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794236905;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=WqBC88Kf5Gg8WaTqVGB4FecTUmwVU6riL8WD0AYlF2E=;
-	b=yJzcbCupxxqr5MQTZy9keNanmduKGnaE2r2+pRNErAlVNdAb9FdeRbUuU80ntv78kZX+
-	 aQRclvaiMSq5Q0nbaa4+GjyXJbh9vo8JfpA1cn9HgxvILNL50+1/ByH72WHaWhswWsVrV
-	 bw07Z0DVbYu8LwULxqERnuu6B325T7giFj7OXNjKqa00b3aq0HM6hlFdFw+0oLaSYKLFv
-	 Zm0Ts/pK08+S8DfWDnYF9zX9hWsoogagB8VCWdzNIuHnQbS9UONJcrEsA9/JoHrlArmES
-	 byjlT2wJIyXsQgEv9fGnP8NCG/7pen7R9SFTKVptT4rarDYvgF7YZBsIuVQ+/ve+LqQ==
+	bh=NcQSsbzqyco4Iw3u+HR1WbdmTXLgzsyGZKY4I0nDx4g=;
+	b=z2G7WOK0OaZmrR6ZyoNKTLt9psOGGRWHPqLPPn0EzjpUHPrit7o2RRwZhpOvM5F/19AX
+	 RsGMQBVgAOLyw3nUZBaf0+hvHUJcMCzBSA83aL/l1al4VLDmp4MzlWQJ+06t7Dx4dq/Bw
+	 vQg5vWU/ipoJRx9DOr9z6xHd1P1xiXLCi5+phqBwFcscLZOeadNKbl2fmKUP0qb3PzpRt
+	 Wcfm+6cWvC0HWpVU6QwDMXYqHmmq3siAO9kyZI+8xVKmO8DAszh/BZJfQ62RT5mWqx4JB
+	 iDFzGf5SBiKmSRq9I3Z/rDEwIYn73Yr7sUyJZXtfKOubTbyTDnn0STSFihyyqOaX12w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=S364pSCo;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hjE1vUbw;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13D59606A321;
-	Mon,  9 Nov 2026 15:08:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19808606A333;
+	Mon,  9 Nov 2026 15:08:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=S364pSCo
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE7B71F0089F;
-	Mon,  9 Nov 2026 15:08:22 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hjE1vUbw
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 269DC1F008A1;
+	Mon,  9 Nov 2026 15:08:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794236903;
-	bh=WqBC88Kf5Gg8WaTqVGB4FecTUmwVU6riL8WD0AYlF2E=;
+	s=k20260515; t=1794236905;
+	bh=NcQSsbzqyco4Iw3u+HR1WbdmTXLgzsyGZKY4I0nDx4g=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=S364pSCoafvS1W+mfiQ+caIdfPCKwzKnPyYgqJpbO627TcwLe5sUi1HugBdZxzdE3
-	 7pRQXudq2Cc9folIttQUjLuborkPEmrK78Mswy1LrX8ZmvIXMweXT0gJrrvWRgBPV8
-	 JgHYgBXrzyjrpZUioibcbvChUUfLeOE8lNHBnq9dMRgOHwA+BADMP5Sve9YMAGAh0f
-	 FOT2YHauulMdQk3RaS1U9Okwa5tvZ4bp6AgHeRbZ+vyNYhDORdGAjIYWKp9qnBs2i1
-	 UzhYP2iK6qL0LMLPIBpdZ1DFZQObqKxPl6bxHFMYSMxj/Ul/ebK3KR4O2EoONky8/s
-	 sta/HiaCuVVnw==
-Subject: Re: [PATCH ipsec v2 3/7] xfrm: esp: use the current sequence number
- for AAD and offload
+	b=hjE1vUbw/MMz5L3/c3e7VTt/XVkSOGHsTV3pWhlWM1HM5RWYYLmwYwfOCcIzbu3mp
+	 UhO/J3C0hANhRN9HAY/oUSsuFqWA8Yd4qtX4XFftPVHk6Kx1R1JlvubmHfhg9grooV
+	 tNx8QH6wA1auUk1qvoWjOtTLjscnhQSS1o5YUWE2BO/v+vMP53MB/uwo9SDheschzf
+	 UpcV0NXyHznsKwhredcD2RPPg5JhZLh5rBxh8LvbeRET7a2XR9hILPVd2ecuMaoFEz
+	 UhbZBo9z/KnEknIAztvDSDUN1p6sQ5zXvkGfX/XMMICJ17Pzx4acbvM7RrIuXmBP6i
+	 ecvjMADGumsVQ==
+Subject:
+ Re: [PATCH ipsec v2 4/7] xfrm: prevent AES-GCM nonce reuse after early GSO
 From: netdev-bot+sashiko@kernel.org
 To: Jeremy.Jean@oss.cyber.gouv.fr
 Cc: steffen.klassert@secunet.com, herbert@gondor.apana.org.au,
@@ -49,10 +49,10 @@ Cc: steffen.klassert@secunet.com, herbert@gondor.apana.org.au,
  leonro@nvidia.com, tariqt@nvidia.com, mbloch@nvidia.com,
  netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
  linux-kernel@vger.kernel.org, stable@vger.kernel.org, kuba@kernel.org
-Date: Mon, 09 Nov 2026 15:08:22 +0000
-Message-ID: <179423690220.994134.7379565121466002244@kernel.org>
-In-Reply-To: <20261108142652.1330952-4-Jeremy.Jean@oss.cyber.gouv.fr>
-References: <20261108142652.1330952-4-Jeremy.Jean@oss.cyber.gouv.fr>
+Date: Mon, 09 Nov 2026 15:08:23 +0000
+Message-ID: <179423690370.994134.2277361511117933962@kernel.org>
+In-Reply-To: <20261108142652.1330952-5-Jeremy.Jean@oss.cyber.gouv.fr>
+References: <20261108142652.1330952-5-Jeremy.Jean@oss.cyber.gouv.fr>
 X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -77,102 +77,97 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [Medium] The commit message says the bug is a wrong ESN high word at
-  the 2^32 boundary: (H, 0xffffffff) gets authenticated with H+1.
+- [Medium] The code change is correct, but the commit message for "xfrm:
+  prevent AES-GCM nonce reuse after early GSO" describes a narrower…
 
 --
 
-xfrm: esp: use the current sequence number for AAD and offload
+xfrm: prevent AES-GCM nonce reuse after early GSO
 
-This commit passes esp->seqno into esp_output_set_extra() and
-esp_output_set_esn(), so the software ESN AAD takes its high bits from the
-segment's own sequence number instead of the already advanced xo->seq.hi.
+This commit calls secpath_set() on each segment in xfrm_output_gso() when
+xfrm_offload() is set. As a result, segments produced by skb_gso_segment()
+no longer share a single xo->seq. Each segment's IV is then built from its
+own sequence number.
 
-For hardware offload, esp_xmit() and esp6_xmit() now write the current
-sequence number into both xo->seq.low and xo->seq.hi of the private
-secpath copy after skb_ext_add().
-
-> diff --git a/net/ipv4/esp4_offload.c b/net/ipv4/esp4_offload.c
-> index 3a0aafe991f47..6f6ce9ea5c491 100644
-> --- a/net/ipv4/esp4_offload.c
-> +++ b/net/ipv4/esp4_offload.c
-> @@ -358,6 +358,10 @@ static int esp_xmit(struct xfrm_state *x, struct sk_buff *skb,  netdev_features_
->  		if (!xo)
->  			return -EINVAL;
->  
-> +		/* Keep the current sequence number in the private copy. */
-> +		xo->seq.low = seq;
-                ^^^^
-
-[Severity: Medium]
-Does the commit message cover everything this line fixes?
-
-The message talks about the ESN high word being wrong at the 2^32
-boundary. Restoring xo->seq.low here also changes the low half for every
-GSO segment that is split in software and then encrypted in hardware. No
-ESN wrap is needed for that.
-
-Before this patch, esp_xmit() saved seq, advanced the shared counter and
-only then called skb_ext_add():
-
-    seq = xo->seq.low;
-    ...
-    if (xo->flags & XFRM_GSO_SEGMENT) {
-        esph->seq_no = htonl(seq);
-
-        if (!skb_is_gso(skb))
-            xo->seq.low++;
-    ...
-    if (!skb_ext_add(skb, SKB_EXT_SEC_PATH))
-
-skb_ext_add()->skb_ext_maybe_cow() memcpy()s the already advanced
-xfrm_offload into the private copy, so each segment carried seq + 1. The
-last segment keeps the shared copy, and that one has been advanced too.
-
-mlx5e_ipsec_set_iv() then builds the on-wire IV from that value:
-
-    seqno = cpu_to_be64(xo->seq.low + ((u64)xo->seq.hi << 32));
-    iv_offset = skb_transport_offset(skb) + sizeof(struct ip_esp_hdr);
-    skb_store_bits(skb, iv_offset, &seqno, 8);
-
-As a result, segment L+i went out with IV L+i+1, and the last segment
-(L+n-1) used IV L+n. The next non-GSO packet gets sequence L+n from
-xfrm_replay_overflow_offload_esn(), so its IV is also L+n.
-
-Isn't that AES-GCM nonce reuse under the same key and salt?
-
-This path is reachable when a device has NETIF_F_HW_ESP set but not
-NETIF_F_GSO_ESP. One example is mlx5 without swp_lso, where
-mlx5e_ipsec_build_netdev() returns before it enables GSO_ESP. Another is
-running ethtool -K tx-esp-segmentation off.
-
-The only related text in the commit message is:
-
-  "Restore both halves because drivers can also use xo->seq to generate
-  the IV."
-
-That sentence does not say that the low half was off by one for every
-segment, or that IVs were being reused.
-
-The low-half off-by-one appears to come from c7dbf4c08868 ("xfrm: Provide
-private skb extensions for segmented and hw offloaded ESP packets"), which
-added the skb_ext_add() call after the increment. That commit is not in
-the Fixes: tags.
-
-The code change itself looks correct. Could the commit message describe
-the per-segment IV reuse and add a Fixes: tag for c7dbf4c08868, so stable
-and security triage can tell what is being fixed?
-
-The same applies to the identical hunk in esp6_xmit() in
-net/ipv6/esp6_offload.c.
-
-> +		xo->seq.hi = upper_32_bits(be64_to_cpu(esp.seqno));
-> +
->  		xo->flags |= XFRM_XMIT;
->  		return 0;
->  	}
+> xfrm: prevent AES-GCM nonce reuse after early GSO
+>
+> With software ESP offload, xfrm_output() attaches a secpath before
+> calling xfrm_output_gso() for an encapsulated GSO packet, but
+> skb_gso_segment() leaves the splitted skbs sharing the same secpath,
+> including xo->seq.
 
 [ ... ]
+
+> segments. When validate_xmit_xfrm() calls esp*_xmit() for each
+> segment, the IV is constructed from the same value N+t-1, causing
+> nonce reuse in AES-GCM. Yet, each ESP header correctly keeps using
+> value N+i from its private XFRM_SKB_CB.
+
+[Severity: Medium]
+The code change looks correct. Is the commit message narrower than the bug
+it fixes, though?
+
+Is the problem limited to software ESP offload? In xfrm_output(), the early
+GSO path runs for any state where xfrm_dev_offload_ok() is true. That
+includes XFRM_DEV_OFFLOAD_CRYPTO states bound to a NIC:
+
+net/xfrm/xfrm_output.c:xfrm_output() {
+    ...
+	if (xfrm_dev_offload_ok(skb, x)) {
+		...
+		if (skb_is_gso(skb)) {
+			if (skb->inner_protocol && x->props.mode == XFRM_MODE_TUNNEL)
+				return xfrm_output_gso(net, sk, skb);
+    ...
+}
+
+In that case, xfrm_replay_overflow_offload() writes N+i into the shared xo
+for each segment. If the segments are queued before validate_xmit_xfrm()
+runs, esp_xmit() reads the shared value N+t-1. On the hw_offload branch it
+then copies that value into the private xo:
+
+net/ipv4/esp4_offload.c:esp_xmit() {
+    ...
+	seq = xo->seq.low;
+    ...
+	if (hw_offload && encap_type == UDP_ENCAP_ESPINUDP) {
+		...
+		esph->seq_no = htonl(seq);
+	}
+    ...
+	if (hw_offload) {
+		if (!skb_ext_add(skb, SKB_EXT_SEC_PATH))
+			return -ENOMEM;
+		...
+		xo->seq.low = seq;
+    ...
+}
+
+Drivers build the IV from this xo->seq. For example, mlx5e_ipsec_set_iv()
+does:
+
+	seqno = cpu_to_be64(xo->seq.low + ((u64)xo->seq.hi << 32));
+
+and nfp copies xo->seq.low and xo->seq.hi into offload_info. Wouldn't
+hardware crypto offload users hit the same nonce reuse?
+
+Is the statement "each ESP header correctly keeps using value N+i"
+accurate? For hardware offload with UDP_ENCAP_ESPINUDP, the
+esph->seq_no = htonl(seq) assignment above overwrites the header with the
+shared value. Every segment would then carry the same sequence number on
+the wire, and the peer's anti-replay check would drop t-1 of the t
+segments.
+
+Is the problem specific to AES-GCM? In the software fallback, esp.seqno
+feeds the seqiv-based IV for any counter-nonce AEAD the SA uses. That
+includes rfc4106(gcm), rfc4309(ccm), rfc4543(gmac) and
+rfc7539esp(chacha20,poly1305).
+
+The new secpath_set() call in xfrm_output_gso() is guarded only by
+xfrm_offload(segs), so the fix appears to cover all of these cases. Could
+the subject and commit message be updated to mention hardware crypto
+offload, the UDP encapsulation ESP header sequence number, and the non-GCM
+AEAD modes?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261108142652.1330952-1-Jeremy.Jean%40oss.cyber.gouv.fr
