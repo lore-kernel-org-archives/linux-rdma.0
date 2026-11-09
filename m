@@ -1,13 +1,13 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.195.11
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.57.67
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794219536;
-	b=2UKH2Xign8HNFlFWZ8n4HvZv9EnknoqOeVvJxXzDv5CSMK12Bm22fBCaYqN7EkLsGSnb
-	 Dc5IXOokH2sSkEq3R7ncj2pUavyMMW8Efxjla0bdz/SHQ/rkk8r/OcN4vP8X13Pl8k3nc
-	 oGSBrVj9J58/RvrLHOEQsZsvnPGKjjUTcJaK4piS2DgDwQ4RfmAdpXm1CajL36fkwtg0g
-	 5hn+bOAOKLmsZZk2FP/moXet3OTcKUBbBI1f23BHXgMEoQB31bIjldRGUm0bxyzGjkx/l
-	 4ZVxMzwPVVV7TRdE2feMn2P5nfxR+kpK/49KTVT9tshyqq2wd4Eh3Vmge7IANwnzjyQ==
+	t=1794219885;
+	b=GCeFLFTleRsGrm8PxpXIJxpDNx96FiM3uWK87kqYit5F/0rRs3sL6dHG2VDgyYc2YkmA
+	 MhVpOYUqupB+rLE3fZ6kVI4+dOa7h/EbhP0xh3EWxi9cYsAE8jTtfX0JWfglQIjoyyQzd
+	 dcr42B8kEvWV9pIPQIe2Q5g0PFtzfmwakJCTYmEy8ksNDrcQCbdezdXOUxb6Q1ixkaX3L
+	 Ptaw421r46lSgzrn4HDoJwc1Sx6pl77pDqtcINaXng8CpQwkBxd2SqAXbowWUTrCWwUXF
+	 zqvqr/R8WPPsA76dCKGQ+Gw9l5gLFb81c5UFusBMrCMqLpBO/2mRpcKtYYGgNVkTF1Q==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794219536;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794219885;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:
 	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
 	 Received:Message-ID:Date:MIME-Version:User-Agent:Subject:To:CC:
@@ -27,35 +27,35 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=yC4ZY2/7vEwLzfgaEz0T8mpI5jn7vInVn/zdIhJeSp8=;
-	b=hbAWplV5bHGE9E0EqnnILBjccWrswJnJ9To/s4t9u1Q/GFgPIb6ET8at/UPGD1Y1+Bb1
-	 WwV7DLbviJtR2fvITEjMLUuScp6gti23MOa2IhfEMrh0Y6ZtbTkAci5jMbkYoLDmbZzdR
-	 knir9JnvmUTY2R7xvTeU7cboLweZ8ONfWt8f1efIbu536fY8ng2djBXNFori4THGukdKb
-	 nkOfr4gE48weUkBjFRovi0qSj/ihNZyEPAkgKGKljJ2V2kblr5OALTgGOB/k/cEn0zobh
-	 S1DGvEU+Ar4pGrfnBPEIbehvw5mqUXUxtXus79Gkwrj+X9IBhYRBng6FzIzdcfX2/qw==
+	bh=bryMfTQwPNgIqNUrE9md6TzVVOMrqYqwdtw2wzFWoAw=;
+	b=T/ZRlom4LusdgpFzRSDau+ct7+lVUUOfJtGVuvHM74p9F/4dMPuriddu8pH1mp4SRgjx
+	 rdYv3bwTQMX4K8JMIa9T5Pa4Ud7E8VIpgB5BjfhVpzEb/WzCzoxIKBT7tWrv/s0GzEP49
+	 UOJlTmMdnsP+xPKUDiBrGb3BaaUIwultPqKTBTuAvKD0oC3Z4IEAF0kyXaI291IOSluyB
+	 YNQydQT8l4u4LecL917+OuF8Je9gJS4Q3+Xq2XrpxTuwwy3OJ7GFUzbhy6IrCKsCjbKlO
+	 FQsAsNdFswfWhnZadMl0BL1dvVqW9/RGfw0JyKhaSNneT3MeG0l/oYflv+U5tFSP1iQ==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=Z9Rr4MJn;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.195.11
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012011.outbound.protection.outlook.com [40.93.195.11])
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=rtcK2Y5S;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.57.67
+Received: from BN8PR05CU002.outbound.protection.outlook.com (mail-eastus2azon11011067.outbound.protection.outlook.com [52.101.57.67])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4EB2606A31C;
-	Mon,  9 Nov 2026 10:18:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C4EB2606A31C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74142606A321;
+	Mon,  9 Nov 2026 10:24:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 74142606A321
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=Z9Rr4MJn
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=rtcK2Y5S
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=otUjx8H5XIoRz+EkmHQh1YP1/MoVUYdUj8anJDAHM2LTInkPl6nfpeKUXOeEkxWupMX6y23b9hgU2gTrGfk2d//4Mi/rpST5myTILkNfQpxRkYO54Dt0bHh9BcgfM2bj76CJ1auz0oIP5g2kFADJ/+9WnryizZQspxAUnoqc6SnpzjQ0KWBdTPgn6LQGCEapNspehw/lRDQ4h/t0t1z4LCQzmyL2Wii9HJihM2KVyMiwPCDKERuZtcMIrxP1m2aMiI0gCJh76BKV8Z5ny/8JW8A4tvMT55PriNbdhWtwmX453E5ZE6B7vVx5KSEmecUfOSkTi1bC+u8N9octqsOcuw==
+ b=OTUdCUfWjrwPaTcZwzCtdZVdtpq0p/YHOnh6szH27abooMv9axfXnMq3f1GdLK52I6JwLsh3W7cjJ0N9axwp+3DEa5KoYJX5GW+B4kkhuOXkLGEezUO8tcDekk0U0SXks6ELzYe0npH5xKk4yTrqTfyUJUzDs/A00pCNTiOwKjsIzQmDgATjypby1rHw8tbaWiqlnSRf3/ctbBB5YtoCYp8B/RluOPt32gwJUca6Qc7qWip/auTyFtdrdw7NXN9M12LLXkmb1kiXHbRi1tPhyybJnhZzg1riNlnrHXyBH8MPz/DVxOumlO7uuGYpp0Ct/4Lg1X9WrgNoYLt5WCKSgw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=yC4ZY2/7vEwLzfgaEz0T8mpI5jn7vInVn/zdIhJeSp8=;
- b=k/8PnWJzs3EpH0LOxIlZchKdXt+ZFWj7l1syXkHUzxa1K9nbAdXHgZZOcNe0eFFOpHyyGXIrgKHrkEVC1BB+cjaFB/ng17Yh2KVYJQEfUM6aTZbcDyA/5IJjOSKVY3R5GsNTS8S76+jFtdEO6Hz2Kp86MVJZ2lwYHLpRabYdpqVrvzyJ4LGPNwT91522VTEQNWi6uDJP3TIFHnihRlTp+2j8kRNLBQyenToNF8hffFWkJYY+6TTviVM4CQgP23OKjhiRxE35ax8swzYChhxlwvK/s8th8sBc9EdQpBqPg9tt+Xsf3khrzTCtagGP0pvT0mec/NObBMv80kfRBrvpXQ==
+ bh=bryMfTQwPNgIqNUrE9md6TzVVOMrqYqwdtw2wzFWoAw=;
+ b=G6IoMON2ZX4y7GBcGIz7sAbeC6qoq6JurwbVHONGWm6mWKbA44VfsPMrhsrgZkhOuJc3VH9DXatIwry7uz1p8U8MtqGgh4tWsrZEbr7qcL7j+uudM82OyWQgPSW5J9wEY2QccDHMlwOujIhie+r2TjowbtMVFbCjMvvrW0cEb7bSWk8DqhtFswcVuhfnpv4uFZe0aBiEIDFqyARQ+5wGL7Jh9PKFQYmazbq4F1GpYdyhdtMFjy8jEYb+8mAC7fkQDRaLwovC6gXs/3cUPYWG68oMyCs67Vz6xpeu9P74APPX3bWQCrCD2zKo4YCKYJbTZUVDE/Snh4IAn/ElZy/tmg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.160) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -63,18 +63,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=yC4ZY2/7vEwLzfgaEz0T8mpI5jn7vInVn/zdIhJeSp8=;
- b=Z9Rr4MJn37a4ef5gcp1qxnsKIPmCEKVQR7oFNxJIK5TtwI60Haj1E4nfMPCDKjvFZzrKlhXVFjH1ZRJ6SMzv4Aoa62re72gWqlh09P3f8s1ybYsd1APYhv/R8pIb2wDySptn8iWOAWRdXZoEqj1Ur4+yHpd9KSDMaj4Mx5+FszVj5z0D+tjSqHAupGvsCPKgT8Yy83CujRac/7ExoIjrM2cS//Wv4BE0zx8B6phxMa4QyukmU2trOPNcgPIIgPsmAX35rqys6Wd5TXW8JjKnjVbFb4ksW0u37YF5CGAau/NZhI2YacMlg3V4lxtjusM04cLtm8AkQb/S/gkOCwnVvA==
-Received: from CH0P221CA0027.NAMP221.PROD.OUTLOOK.COM (2603:10b6:610:11d::8)
- by DM4PR12MB6637.namprd12.prod.outlook.com (2603:10b6:8:bb::14) with
+ bh=bryMfTQwPNgIqNUrE9md6TzVVOMrqYqwdtw2wzFWoAw=;
+ b=rtcK2Y5SQRSIWW97OvgiR0psCUDnh0eR2XT41rpXA0UXQZL/THZtcJKMqp7XS4UYYJMScTH8oXAH3qfLE7qG1UfjP6glUaBCGW3zHLZ/iTaghKpJ/Z682N744QLCBHa6S8O4VWnm5CqQ4UFZZLlvPFyiHk5tB3ChKR5NItpSZvPO0FiXLXZybSIJ6ElObJI9lqyNOq3Uo1k/0j1NAtVgJnsP7jJz2xx6BTSEhNgIHH5YeYJXSDil4CoaYiWnjYJUldLnR1rpOJaZdgtMPN+VJQ0K08yBKFuLxolICpkmk6ycsoEOrHrSppaClc9yEOclSFUL3PQOaAdOxiG/SyduaQ==
+Received: from PH7PR17CA0055.namprd17.prod.outlook.com (2603:10b6:510:325::16)
+ by SAEPR12MB231369.namprd12.prod.outlook.com (2603:10b6:802:204::9) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.12; Mon, 9 Nov
- 2026 10:18:49 +0000
-Received: from CH2PEPF00000145.namprd02.prod.outlook.com
- (2603:10b6:610:11d:cafe::18) by CH0P221CA0027.outlook.office365.com
- (2603:10b6:610:11d::8) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.13; Mon, 9 Nov
+ 2026 10:24:39 +0000
+Received: from SJ5PEPF000001C8.namprd05.prod.outlook.com
+ (2603:10b6:510:325:cafe::5) by PH7PR17CA0055.outlook.office365.com
+ (2603:10b6:510:325::16) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.21.592.13 via Frontend Transport; Mon, 9
- Nov 2026 10:18:49 +0000
+ Nov 2026 10:24:39 +0000
 X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
  is 216.228.117.160) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -82,19 +82,19 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.117.160 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.117.160) by
- CH2PEPF00000145.mail.protection.outlook.com (10.167.244.102) with Microsoft
+ SJ5PEPF000001C8.mail.protection.outlook.com (10.167.242.36) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Mon, 9 Nov 2026 10:18:48 +0000
+ 15.21.615.4 via Frontend Transport; Mon, 9 Nov 2026 10:24:39 +0000
 Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
  (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Mon, 9 Nov
- 2026 02:18:34 -0800
-Received: from [10.125.206.9] (10.126.230.37) by rnnvmail201.nvidia.com
+ 2026 02:24:26 -0800
+Received: from [10.125.206.9] (10.126.231.37) by rnnvmail201.nvidia.com
  (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Mon, 9 Nov
- 2026 02:18:29 -0800
-Message-ID: <746b7acf-ebbf-41dc-a80c-317080e13e94@nvidia.com>
-Date: Mon, 9 Nov 2026 12:18:26 +0200
+ 2026 02:24:21 -0800
+Message-ID: <a1abb4d5-022b-4ba7-b4f6-56ea4e7fdce2@nvidia.com>
+Date: Mon, 9 Nov 2026 12:24:17 +0200
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -105,133 +105,149 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH rdma-next 17/23] RDMA/mlx5: Validate EQE port and GSI port
- before indexing devr.ports[]
+Subject: Re: [PATCH rdma-next 18/23] RDMA/mlx5: Validate firmware RQ/SQ state
+ before sqrq_trans[] lookup
 To: <netdev-bot+sashiko@kernel.org>
 CC: <jgg@ziepe.ca>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
 	<netdev@vger.kernel.org>, <saeedm@nvidia.com>, <tariqt@nvidia.com>,
 	<mbloch@nvidia.com>, <kuba@kernel.org>, <pabeni@redhat.com>,
 	<edumazet@kernel.org>, <davem@davemloft.net>, <andrew+netdev@lunn.ch>,
 	<dtatulea@nvidia.com>, <moshe@nvidia.com>, <maorg@nvidia.com>
-References: <20261103163949.1554-18-yishaih@nvidia.com>
- <179408310169.994134.18411917783042594669@kernel.org>
+References: <20261103163949.1554-19-yishaih@nvidia.com>
+ <179408310322.994134.9461475387371859568@kernel.org>
 Content-Language: en-US
 From: Yishai Hadas <yishaih@nvidia.com>
-In-Reply-To: <179408310169.994134.18411917783042594669@kernel.org>
+In-Reply-To: <179408310322.994134.9461475387371859568@kernel.org>
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
 X-ClientProxiedBy: rnnvmail202.nvidia.com (10.129.68.7) To
  rnnvmail201.nvidia.com (10.129.68.8)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH2PEPF00000145:EE_|DM4PR12MB6637:EE_
-X-MS-Office365-Filtering-Correlation-Id: ab642db2-21ab-4ad6-2a0c-08df3e4ad87a
+X-MS-TrafficTypeDiagnostic: SJ5PEPF000001C8:EE_|SAEPR12MB231369:EE_
+X-MS-Office365-Filtering-Correlation-Id: 8fc1777d-f429-4f3a-2d24-08df3e4ba967
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|36860700016|376014|7416014|23010399003|1800799024|18002099003|22082099003|10067099003|4143699003|11063799006|261028144727099003|261102123227099003|261022113327099003|261022075727099003|261022105027099003|261021135927099003|56012099006|261021121427099003|261026140227099003|261026121527099003|261009223027099003;
+	BCL:0;ARA:13230040|82310400026|1800799024|36860700016|7416014|23010399003|376014|22082099003|18002099003|6133799003|10067099003|4143699003|11063799006|261028144727099003|261026121527099003|261102123227099003|261022105027099003|56012099006|261021135927099003|261021121427099003|261026140227099003|261009223027099003;
 X-Microsoft-Antispam-Message-Info:
-	/ZyEuVuFY+q8IFtb9kjqHUffsVRCpof49jJjP5c/QeoAII8mKqnuNdfZlI+pYT+AWjEcdXBEjhDyvP+QRP5jcDf9yj7bUIoffZ1zU2nU4TGtGC35qj/UlRP/CthdkMCCTh2+krnj1rYipuaHqYEME+WhreF7KZ77vbkmZu3iI13h4kpIvEP5h3Sk1TuguthXxVdAQfQEfURhIfKOQPddBG6MvwQuiFn5A8UGV2TR6Y4jM0VwEq0jjsTwZaSBPhTCGDSy81tC9jdSpVytP3D+y8PPbthvhhn3segTSGH3PvkbG3D6GItritemKNEqHoinpreC38Ym/wjlQw6HJkKWBKjJMZwTej/xRARa9f5QeFNtlJmWO/V+Miokny+XJpdhWLxwv0uiDWpJdJV5Nplbt3neQ5M9Psf666OQGXziOTe4U+nWQ3dR++FNVeO6QwEf/znuHvrxyLmJyPLCz9zn3SP2fqS8iuJ5Rmy7hZqGkE0SYqnT0w3EQsvc1KzOftsI1/q/+DdXoDRNyMUDpJs1f74B3yMkXIUr6BfJ13N93qoxE4bT+ZY/xumzaVLXoozeMRQ0TehBuvRWGQuYn1frfDMSCm8LnkRy9n8J8/hE242ZeVJc4hfTEN1EAwQTS2V3wLrBsFu5eLwm00pugweq7QkjADhrztOp/gh7Mt2vtowvaEiOnyHRCDRp8czPSWPjXlRhNCxYS91Ivdd5koVeZA==
+	r8UycCjHaoyQ2GjJYPLgpDegS1AO0Hjwquv59LPXJp/RtcnziZa0u2CM3s+ywQSISpGjMP6uLnEZ0VnGK4XPavqXUUaW7+K1j50CWfmVeGLytJ4N45inB3A94JUE+gLifSVo07SfOxx+PNHCbOzDZ9AWG9Rq9hKk8wdDnYOZCbLdRL8harWb2fTeOxBfmX5NT4i1z+nq5fK0LryRN4GleuTR3xXYFmKhxbfe71e5fsJUMhbvpbSZtG4dYduFPBwz9wxpsxYexW04S4N8RJENARCaRSaZk5z6e9F07TKPke0zFf5G8OecgacN8cUhqdsy+g8EwzU4ogRXg7Py6HbmMQeDOqvtJqkhrXrqEJOk8EG8PZZiRzM5foejRR/aWVck6ha9GxIx7BaURBoUGpTbuYtInR4ojGlHPNEf7kq17Rh5I9Q6FXiQN+I5t96tizVEtOEg03L8OZInsF+AjLETt2+WhWiQ2/UtV3aopdS7cOZ7gTeMQ5W4wT9hqTD0spu22hUKts6n6kZY5uilS2PIKxHXjUuAKDMG7sT74d2+NxJKPMXbKkk9jH/N9IRRc6HmiJSN98vqQsTpwUHw/OcDDmY4uiccAlb8xcfaeEqB6vXhmyDaqHS7B+XMhWrdGxOtRgm6yZhy4HOQ32+Ov6V67V5/QPGBz1j9TYCvIe2HhVKVRyAPAFAra+QhXOyzt/gEU3U/bZCLEHwu69jx6kExBw==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(36860700016)(376014)(7416014)(23010399003)(1800799024)(18002099003)(22082099003)(10067099003)(4143699003)(11063799006)(261028144727099003)(261102123227099003)(261022113327099003)(261022075727099003)(261022105027099003)(261021135927099003)(56012099006)(261021121427099003)(261026140227099003)(261026121527099003)(261009223027099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(36860700016)(7416014)(23010399003)(376014)(22082099003)(18002099003)(6133799003)(10067099003)(4143699003)(11063799006)(261028144727099003)(261026121527099003)(261102123227099003)(261022105027099003)(56012099006)(261021135927099003)(261021121427099003)(261026140227099003)(261009223027099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	XDAvGkxN1ec6z60cvzvn/2vMumGimQlxolYXBHueKv2iCUsDV6Lvfx9NLp+WELYfpqIpWZRSsqw62Aiikart+pO6khWkPn5mS0fULFSZ3Lhl3/G3h+WF1LdlXKn2bHIJu6V2O7LmsiFlhXKsdO2JzUs9PqbdZ4cn/0kZcn0nIHBczsVbeBaE8IjGepZtACGMXVe3BPAiTeXGwSpLObLQhTKZFFk61bIWmFT4CSJzsTvxrECXWugyE56pRh7y9eJ7SDZ7eP0alCQvydr+n/gOWBPqdc1tJ2cQp2Frz+/7XqIfXCv4NiM5IYOtewi5D37AgoafRqU0cPTuRxFYroLhfvjsqzcWum1BM9uNwurmGvcwgSLQI343iOQ8z3V1Egsk0oUtGcIs2dM7u3dnCVKgqFX9srlM7lr9JQi6m+oE+p2lJIJf5kDPsyoLYBvbdzf+
+	L+YA0KqdyPkHVswuFdJA0Nr0+cblR9sW4k/n+jnxBC/xKfMkBkpOO/jTijKVJZAp3I/b/dn6u78nBKyoLusD4Y0eqHR6y9o6ZY4iIOlXgcJSJCtQlzSMxfdtHso6nqZ6HYUMCXQQybdql0bnloIL8AGYLQpTMk+bfy1lhh3HABrGY4T9jAAzoI7hSgspl8ZWeIVjwFwGp+3YA1AqDg77hUnWtb2dzd5SlRY/TQx9LOkOTNhtAhPlXQzX9A32cb/KnRCeWdIDURk5xDEbljtsBSTTtF4Jxm+xJwCTU1xeWIZCmgi/Wy8Rdw18+WLzoow8zobLhtGo2r4seRlCb67aL7h2HcTE9aXYOmpc+zhCvuC1pn1zNUpJTz/JMfHI0u+MtbdTeYInOnklcfgs+9OKFmWdsH4hD+Vos1LhO2DolBYdgRrn+qxNJRIm+Ahvl8gs
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Nov 2026 10:18:48.8842
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Nov 2026 10:24:39.5352
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: ab642db2-21ab-4ad6-2a0c-08df3e4ad87a
+X-MS-Exchange-CrossTenant-Network-Message-Id: 8fc1777d-f429-4f3a-2d24-08df3e4ba967
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CH2PEPF00000145.namprd02.prod.outlook.com
+	SJ5PEPF000001C8.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB6637
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SAEPR12MB231369
 
 On 07/11/2026 22:25, netdev-bot+sashiko@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found more severe
-> issue(s) in other patches of this series. This mail is only an FYI, in case
-> you want to address the nit picks below when you respin.
+> Thank you for your contribution! Sashiko AI review found 1 potential
+> issue(s) to consider.
 > 
-> Low priority / nit picks for your consideration:
+> Critical: 0 · High: 0 · Medium: 1 · Low: 0
 > 
-> - [Low] This patch makes the existing invalid-port check and warning in
->    mlx5_ib_handle_event() (drivers/infiniband/hw/mlx5/main.c)…
+> If you believe none of the issues are legitimate, please reply to each
+> issue of Medium severity or higher and explain why the AI is wrong.
+> If any of them are legitimate and you plan to respin, please let patchwork
+> know by including "pw-bot: cr" as a separate line at the end of your reply
+> (one such reply per series is enough).
+> 
+> - [Medium] The new check in sqrq_state_to_qp_state()
+>    (drivers/infiniband/hw/mlx5/qp.c:5084) bounds the firmware SQ/RQ state…
 > 
 > --
 > 
-> RDMA/mlx5: Validate EQE port and GSI port before indexing devr.ports[]
+> RDMA/mlx5: Validate firmware RQ/SQ state before sqrq_trans[] lookup
 > 
-> This commit adds port validation to handle_port_change() and
-> mlx5_ib_create_gsi(). The port number from the NIC is checked with
-> rdma_is_port_valid() and limited to ARRAY_SIZE(devr.ports) before it is
-> used to index devr.ports[].
+> This commit adds a bounds check to sqrq_state_to_qp_state() in
+> drivers/infiniband/hw/mlx5/qp.c. Any SQ or RQ state returned by QUERY_SQ
+> or QUERY_RQ that is at or above the sqrq_trans[] table dimension is now
+> rejected with -EIO, which prevents an out-of-bounds read of the 5x5
+> table.
 > 
->> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
->> index f4f2ad80e76c4..c29102260989f 100644
->> --- a/drivers/infiniband/hw/mlx5/main.c
->> +++ b/drivers/infiniband/hw/mlx5/main.c
->> @@ -3063,6 +3063,10 @@ static int handle_port_change(struct mlx5_ib_dev *ibdev, struct mlx5_eqe *eqe,
->>   {
->>   	u32 port = (eqe->data.port.port >> 4) & 0xf;
+>> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+>> index 19cbf6b2b979d..05e8e75d734fb 100644
+>> --- a/drivers/infiniband/hw/mlx5/qp.c
+>> +++ b/drivers/infiniband/hw/mlx5/qp.c
+>> @@ -5081,6 +5081,9 @@ static int sqrq_state_to_qp_state(u8 sq_state, u8 rq_state,
+>>   		},
+>>   	};
 >>   
->> +	if (!rdma_is_port_valid(&ibdev->ib_dev, port) ||
->> +	    port > ARRAY_SIZE(ibdev->devr.ports))
->> +		return -EINVAL;
+>> +	if (sq_state >= MLX5_SQ_NUM_STATE || rq_state >= MLX5_RQ_NUM_STATE)
+>> +		return -EIO;
 >> +
+>>   	*qp_state = sqrq_trans[rq_state][sq_state];
 > 
-> [Severity: Low]
-> Does this early return make the port check and warning in
-> mlx5_ib_handle_event() unreachable?
+> [Severity: Medium]
+> Should this check compare against the hardware state encodings instead of
+> the table size?
 > 
-> mlx5_ib_handle_event() treats any non-zero return from
-> handle_port_change() as a reason to skip the event:
+> The hardware only defines three values in include/linux/mlx5/mlx5_ifc.h.
+> The RQC values are the same:
 > 
-> drivers/infiniband/hw/mlx5/main.c:mlx5_ib_handle_event() {
+>      MLX5_SQC_STATE_RST  = 0x0,
+>      MLX5_SQC_STATE_RDY  = 0x1,
+>      MLX5_SQC_STATE_ERR  = 0x3,
+> 
+> The table dimension comes from a driver-only sentinel in
+> include/linux/mlx5/qp.h:
+> 
+>      MLX5_SQ_STATE_NA	= MLX5_SQC_STATE_ERR + 1,
+>      MLX5_SQ_NUM_STATE	= MLX5_SQ_STATE_NA + 1,
+> 
+> That means firmware values 2 and 4 still get past the new check.
+> 
+> query_raw_packet_qp_rq_state() passes the raw 4-bit field through
+> unchanged, and mlx5_core_query_sq_state() does the same for the SQ:
+> 
+>      *rq_state = MLX5_GET(rqc, rqc, state);
+> 
+> query_raw_packet_qp_state() sets the NA sentinel by default and only
+> overwrites it for queues that exist:
+> 
+>      u8 sq_state = MLX5_SQ_STATE_NA;
+>      u8 rq_state = MLX5_RQ_STATE_NA;
+> 
+>      if (qp->sq.wqe_cnt) {
+>          err = query_raw_packet_qp_sq_state(dev, sq, &sq_state);
 >      ...
-> 	case MLX5_EVENT_TYPE_PORT_CHANGE:
-> 		if (handle_port_change(ibdev, work->param, &ibev))
-> 			goto out;
-> 		break;
-> 	case MLX5_EVENT_TYPE_GENERAL_EVENT:
-> 		handle_general_event(ibdev, work->param, &ibev);
-> 		fallthrough;
-> 	default:
-> 		goto out;
-> 	}
 > 
-> 	ibev.device = &ibdev->ib_dev;
+> Take an SQ-only raw packet QP where firmware returns SQ state 4. Doesn't
+> that value alias MLX5_SQ_STATE_NA and land on sqrq_trans[NA][NA]?
 > 
-> 	if (!rdma_is_port_valid(&ibdev->ib_dev, ibev.element.port_num)) {
-> 		mlx5_ib_warn(ibdev, "warning: event on port %d\n",  ibev.element.port_num);
-> 		goto out;
-> 	}
->      ...
-> }
+>      [MLX5_SQ_STATE_NA]	= MLX5_QP_STATE_BAD,
 > 
-> The only way to reach the rdma_is_port_valid() check is a successful
-> handle_port_change(). After this patch, a successful return always means
-> the port is valid.
+> That entry reaches WARN(1, "Buggy Raw Packet QP state, ...") through
+> ib_query_qp()->mlx5_ib_query_qp()->query_raw_packet_qp_state(). A legal
+> SQ value on that QP always maps to MLX5_QP_STATE. The RQ-only case with
+> RQ state 4 behaves the same way.
 > 
-> Before the patch, a port change EQE with port 0 or a port above
-> phys_port_cnt went through handle_port_change() and returned 0 if its
-> sub_type was not PKEY (LID, GUID, CLIENT_REREG, or ACTIVE/DOWN on IB).
-> The caller's check then printed the "warning: event on port %d" message.
+> Value 2 indexes a row or column that is never initialized, so it reads
+> as 0, which is IB_QPS_RESET. Would ib_query_qp() then report RESET with
+> no error and no WARN? On an SQ-only QP, any legal value would have
+> returned qp->state.
 > 
-> After the patch, the same event is dropped with no log message.
+> On a panic_on_warn system, a device-triggered WARN here becomes a panic.
 > 
-> Could the warning be moved into the new early-return path in
-> handle_port_change()? Or, if the silent drop is intended, could the
-> caller's check be removed, since it is now dead code?
+> Would it close this gap to accept only the RST, RDY and ERR encodings,
+> and only for the queues that were actually queried?
 > 
->> +
->>   	ibev->element.port_num = port;
 >>   
->>   	switch (eqe->sub_type) {
+>>   	if (*qp_state == MLX5_QP_STATE_BAD) {
 > 
 
-Right, V1 will move the warning into handle_port_change() and drop the 
-caller's check.
+No. This patch prevents the out of bounds read. The values left inside
+the table can only give a wrong QP state or the existing WARN, which the 
+NIC can also reach with legal encodings, e.g. an RQ in RST with an SQ in 
+RDY.
 
 Yishai
