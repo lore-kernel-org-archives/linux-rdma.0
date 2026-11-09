@@ -1,81 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=34.218.115.239
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794212044;
-	b=QKgm/Qe4mHfPjakjuiKWWl1boYhGfdGt6Igkvd9AYrDy+5lV0hq1n2tX8/yYb6qdD3xx
-	 Ypo6qazan4WjshWLU5CT2NPzzDSKmtDzXSJ+nk5jumWZgGrZG9h80TeJAAfA0iTzs6MPm
-	 bG825UaFk0Kup9vDaXChiDHBx6av2PzaobPZ8a6lEmiDy68Y92uxBJ6OrdZGBWEsdRTRP
-	 XzRR/Nw8A/TfR/b5WJjbh4mSpAd7i0q1VKPGwD4fJqGQdeutZDbOPPUMedPW/R8qc3IOc
-	 3Kp+H0RTO6NOMnZ75LrmWWXLLiZfqPGul1UOFqu/9iytHJaUQMkYWUgCjLbWs56FfZQ==
+	t=1794212254;
+	b=Jvy/YE0kn1PEjxpMkKGozFht/qfKkmiqHBLr39q9vmRrUWvwrpq2G6t41yc5EIV8tI8B
+	 1iEsbC8Fp6t6TJ79tZhAuc/YnZ5z5rycK4yH7HJdsmVFiX6PwTbME5wB517k8Xp231Z8f
+	 oPUFQf6Q8CbFkQ+C2AhqBEU1Dkl2bL9gpZvuBAm/E9/7s/0101H1vpQFr8F8sO3B3Iisk
+	 b2ptTtfXmfSA1wgAHLKdea68nTAfuF82tkCpOx9dkbI+GcCHpH/+qPzyAMR7MLphH1EM7
+	 A1tmruvC2gyaaW0EU3rZc5FCpJILCJB3RP8Y2Lc/0Bxii3urE9Bb+H/IIP8iPfK3PXw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794212044;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:Received:Received:X-Farcaster-Flow-ID:Received:Received:
-	 From:To:CC:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
-	 MIME-Version:Content-Transfer-Encoding:Content-Type:X-Originating-IP:
-	 X-ClientProxiedBy;
-	bh=ZZ1q7cLs+ShsRj0dtKjXSwODZ3L7V2yMDW+mmlZugYs=;
-	b=NIzQBbCUfDkGgdp6s29R+3NFgJ2nVAL6ksn3VgWL9/ydUFKrOmzDvJeG2gH325ajERCK
-	 s3/mdY64XhpCqaDwc8k4sAzp2iJ2SGnGgLWRmIWCpQ0xh3jUMSsQ5DBw/0/NBAfii6stS
-	 Fn5/qP/OmloudJKd8QGXjpJjYpjW4HZwtSWwBzK/8OYjsU0GvwzZ/QjcElyrJ7I4/RgBE
-	 bjFrsBN2mOUS3XCUfsq2djyEmh8/xp0zpXsBXflp1q1Zg+FUUgDCLO8qJ3p1+vm24YUbz
-	 GWm4kbdYF9c+sy5Yv7cp1prwOOPp59yQ5gA8nnul9gpn13SG/ez3C8byEcZUStSFzvQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794212254;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=H++bxWxaOTdrJ0Mp7NFq/7NO4bmuih/gMxYPCkSm39c=;
+	b=2Y8Fzgdaf7rAIM3LfHgpba6N6c9iWPD0eFYVQleylSqFeGThfCQQHwtBI7Cb9XZaFl9D
+	 RQfo024IYeH2TN6k7EtUL7Y8siir/L1lUZEPoGbcN7h/DUu7GGstH23wLMZ5CPpTKNDM5
+	 9yNaoK3ms/jd9Zb/xUim0gXEo/fwqurPTzDnhRs7VvKdDGcpO7y3ioxeQUkqQvIjXJ9+L
+	 /HlZCHzbvBsN/Qyhgg0hrLOJ1ztJ3kN+71iWG1K71MxImwSHFNOlL9nZTGZnjY5NvFemi
+	 GAsmdSPRf5I9Jr5jXqE4VH13cGWLL5T1iuSbxQ/x8F1sa4saC6SVmZDCUXgHpRjdYNg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=amazon.com;
-	spf=pass smtp.mailfrom=amazon.com;
-	dkim=pass header.d=amazon.com header.i=@amazon.com header.a=rsa-sha256 header.s=amazoncorp2 header.b="N/HBdNhN";
-	arc=none smtp.remote-ip=34.218.115.239
-Received: from pdx-out-013.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-013.esa.us-west-2.outbound.mail-perimeter.amazon.com [34.218.115.239])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dhFUYaEb;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44EB0606A330
-	for <linux-rdma@vger.kernel.org>; Mon,  9 Nov 2026 08:14:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 44EB0606A330
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09503606A31C
+	for <linux-rdma@vger.kernel.org>; Mon,  9 Nov 2026 08:17:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.a=rsa-sha256 header.s=amazoncorp2 header.b=N/HBdNhN
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1794212044; x=1825748044;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=ZZ1q7cLs+ShsRj0dtKjXSwODZ3L7V2yMDW+mmlZugYs=;
-  b=N/HBdNhNBUJocecRC5zJOwr5w6Raqe8m9PyDn83cjngqIsNrfACFwLx/
-   10Uk6xNBVZCE5M5M9VQhAjTqj8R+4DFU5x8JLh8fofeDFOuOlxlUVi9LE
-   tiYwPlLyjdGuP2k6oJikzjfWdfW4qI5P9WEJJpk+8VJ17WrrQU85vQsTN
-   /AGjNqSMCjoJobImfKas5qKaY+tvgtnYy1WtAuP9BkjzD+N2ha+VKq2Ee
-   n3RdExEFUohdV4+gwbqcDNiTWKdCZj4t37NT36g7g6mUWVLm0AfFgLBNS
-   rZfopWZ51+QLluffxWlamImxvbm+p2imjMtKQtmHLrLdZAAQbutxCTyZS
-   Q==;
-X-CSE-ConnectionGUID: 7Vgij9BWSMOO9mvs8HIWEA==
-X-CSE-MsgGUID: kaKr5d2USp+cuvG+XqtDpw==
-X-IronPort-AV: E=Sophos;i="6.27,203,1787011200"; 
-   d="scan'208";a="33274802"
-Received: from ip-10-5-0-115.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.0.115])
-  by internal-pdx-out-013.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Nov 2026 08:14:01 +0000
-Received: from EX19MTAUWA002.ant.amazon.com [205.251.233.178:11183]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.16.231:2525] with esmtp (Farcaster)
- id c329f4a7-23e7-4fc0-b0ae-ce141d74dc71; Mon, 9 Nov 2026 08:14:01 +0000 (UTC)
-X-Farcaster-Flow-ID: c329f4a7-23e7-4fc0-b0ae-ce141d74dc71
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWA002.ant.amazon.com (10.250.64.202) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.56;
- Mon, 9 Nov 2026 08:14:01 +0000
-Received: from dev-dsk-ikolomin-1a-673563de.eu-west-1.amazon.com
- (172.19.125.167) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.56; Mon, 9 Nov 2026
- 08:13:59 +0000
-From: Ilia Kolominsky <ikolomin@amazon.com>
-To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
-CC: <sleybo@amazon.com>, <matua@amazon.com>, <gal.pressman@linux.dev>,
-	"Michael Margolin" <mrgolin@amazon.com>, Yonatan Nachum <ynachum@amazon.com>
-Subject: [PATCH for-next 2/3] RDMA/efa: Report the admin RESOURCE_BUSY status as EBUSY
-Date: Mon, 9 Nov 2026 08:13:48 +0000
-Message-ID: <20261109081349.27316-3-ikolomin@amazon.com>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20261109081349.27316-1-ikolomin@amazon.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dhFUYaEb
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A54701F0089F;
+	Mon,  9 Nov 2026 08:17:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794212253;
+	bh=H++bxWxaOTdrJ0Mp7NFq/7NO4bmuih/gMxYPCkSm39c=;
+	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
+	b=dhFUYaEbTxbcM5jkup+RwCbQtY5sWoHWjgcjgQbrVygErvPX8wfbzjia8kADz+6Dk
+	 WICFw0BRVOVlvvCC7Pn2vS+1ejKxQwh8RTSr+Mf+YCCFORAh15uGeLT3f6imnqS3b6
+	 sA/SQ5y0f9ORKfgpkQBv4rN2iPCFSUWotT0hQpORIz+pnoT3IomLQeO7z6PGvFIZwz
+	 jLODkRWWuyMim48jLbpkt8kZEQkpto8FVJLeswwjva3i7EU/yjDsv0Y1EbL2cb25MH
+	 7X0PIsUpdvj0KGJhacOOOTywy54COPATAFvgkM/ELSysIqArR/VqH8BipPbwENKrmb
+	 DvVQ4e/bQb/XQ==
+Message-ID: <sashiko-outbox-204580@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH for-next 1/3] RDMA/efa: Update device interface
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Ilia Kolominsky" <ikolomin@amazon.com>, linux-rdma@vger.kernel.org
+In-Reply-To: <20261109081349.27316-2-ikolomin@amazon.com>
 References: <20261109081349.27316-1-ikolomin@amazon.com>
+ <20261109081349.27316-2-ikolomin@amazon.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 09 Nov 2026 08:17:33 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -84,37 +58,16 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: EX19D031UWC004.ant.amazon.com (10.13.139.246) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-The device completes a command with RESOURCE_BUSY when the object it
-targets is still in use, for example a destroy of an object that other
-objects still reference. Map that status to EBUSY instead of the generic
-EINVAL so that callers can tell the two apart.
+> Align device interface definitions.
+>=20
+> Reviewed-by: Michael Margolin <mrgolin@amazon.com>
+> Reviewed-by: Yonatan Nachum <ynachum@amazon.com>
+> Signed-off-by: Ilia Kolominsky <ikolomin@amazon.com>
 
-Reviewed-by: Michael Margolin <mrgolin@amazon.com>
-Reviewed-by: Yonatan Nachum <ynachum@amazon.com>
-Signed-off-by: Ilia Kolominsky <ikolomin@amazon.com>
----
- drivers/infiniband/hw/efa/efa_com.c | 2 ++
- 1 file changed, 2 insertions(+)
+Sashiko has reviewed this patch and found no issues.
 
-diff --git a/drivers/infiniband/hw/efa/efa_com.c b/drivers/infiniband/hw/efa/efa_com.c
-index 9c59d127e..e8045b43f 100644
---- a/drivers/infiniband/hw/efa/efa_com.c
-+++ b/drivers/infiniband/hw/efa/efa_com.c
-@@ -584,6 +584,8 @@ static int efa_com_comp_status_to_errno(u8 comp_status)
- 	case EFA_ADMIN_ILLEGAL_PARAMETER:
- 	case EFA_ADMIN_UNKNOWN_ERROR:
- 		return -EINVAL;
-+	case EFA_ADMIN_RESOURCE_BUSY:
-+		return -EBUSY;
- 	default:
- 		return -EINVAL;
- 	}
--- 
-2.47.3
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261109081349.2731=
+6-1-ikolomin@amazon.com?part=3D1
 
