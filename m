@@ -1,95 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.225.130
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794255217;
-	b=M23iiyGsaeztdCtqGA1ghKRu4lOdAoJbLqmyyvwWJJmBwTdR7mSDkOnmlHb0DBCqG2z6
-	 fLt7H7d++oBwRS25SYcuafTqpLuORdEgs7bCOxUUiYZXE8WmQOPEbUMjXk5/fmJzUsTEy
-	 uwYrv3eE7hmMkRYO25yn1gx29Oqkr66Mn344W9hn2CMr3dDeCOg49klEx0V++yMf67QX/
-	 yw1CBfLW7fcs1FNx7WYgTULER3PHMMHr/lPQUe0S6D59X+CAmlvW/q+aHEdoBXcfXTKAq
-	 D6F2IajudG5IExchhZOZlXNPkL7diRYdsMWrCvqo4SN5Y5MrV2up/m+ZK+G5WHvIxqQ==
+	t=1794255318;
+	b=1aRAzoPOfvhBgqmSETmM0KF3gzzFeY/UA3myG/CMYFZzBDIh31RN4yCeyU85m3KJVROl
+	 Vc1m0Ibc7Tuq9dTT0imogl5iCDpKBs66OSNKAOATydF/5nTN05doio1/+JY5F3f1L7nwu
+	 G8qG695Ix2imBpLFpoEdvVNMJM1K3S+ghWpRghDHu/PoxJppX9HuBtzTmj+YZI/ar0Ld1
+	 UE6I26p/vFhok/UBWUCFNL5Qa83GuZpF+KaJ7dJU18TWc31HwO/CTzYl/l1wXhnNDOb1/
+	 4YgQEfWABCUABZ02BTVPX5CFnvG8pQuEOv1wQQKzmKnRBa9JVxpAQjeFEEgiUYkMFDw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794255217;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=uEUhc0o+zUeX7PEeAhsV85l+vCP5t8Vwwg/hq9Oboac=;
-	b=4lcfv2bve8kZHJykKMFpRhncjlJcCe6gmH/GYMhm5S29rVWXixeDoWZoybzbazFR35+Q
-	 Mb2+t0+EFA4pOmSEwCDL5bUyAwjC7I1MPkfKkHsoEyiv5I/06caO2jHMDWnkDWfa9U/pR
-	 L23IHqvbzzSfucVoSYuXBr758JZW2IF2AInaf8JmTmp3chxVRjPoCAmouJAJOdKhQUezh
-	 ZW3K1LwTIfQHNsdqXN//ybrPRdvbcsMfrD12cYewdgds+hDz3fq7f8nUC1wiRKaKOt8Tm
-	 Q8VpIKm8bo/sunXbwsxbmWi/RddiS2/viu1/NECEiBqHnIuoigygdkP6AGhqFK/WGGA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794255318;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=MGVt9qK6WX+3Czz+pWZZy1mBcReGCVkl6mVaj91Bj9M=;
+	b=3KfuUiNqvc7yvb1NvQfWpBSV3HBjZ9tHYbhScVQLqt5SlKCsH+itazGofmrDG0Q/iZUX
+	 PbY6exE2qxXlP77UknqzxtvHZyfRGOutwDGsXjwuxoji2Y2mk+uzqv75scK5FGrsI9GFQ
+	 OpTU1EyCfEEKW3efyGsG903pDhpu5Y54SxEhbOxiIgjBhRJLGEpfBHf2KZ6E539VDf/TG
+	 opWIIr6Te/WWxQvEuNKzz0a0w1TyCK4Bm0rgwbx1mn6tHZ+WG73FxO7+41IB/8KS3uxMe
+	 ws2caqMJbEo8ImpPvSVmkPfL+dx5ENCKlaVRshruTXlOUvaapJFk0TAl1dgt3GEPY1w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="Eg/ug+vY";
-	arc=none smtp.remote-ip=74.125.225.130
-Received: from mail-wm2-f2.google.com (mail-wm2-f2.google.com [74.125.225.130])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OUAisPbP;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA2FE606A31C
-	for <linux-rdma@vger.kernel.org>; Mon,  9 Nov 2026 20:13:36 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CA2FE606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A38A1606A325
+	for <linux-rdma@vger.kernel.org>; Mon,  9 Nov 2026 20:15:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Eg/ug+vY
-Received: by mail-wm2-f2.google.com with SMTP id 5b1f17b1804b1-4a21339d376so662675e9.1
-        for <linux-rdma@vger.kernel.org>; Mon, 09 Nov 2026 12:13:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794255215; x=1794860015; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=uEUhc0o+zUeX7PEeAhsV85l+vCP5t8Vwwg/hq9Oboac=;
-        b=Eg/ug+vYD0D0AgnIWS1dNzLSRWyESktrtjplWdOPjXBJgMBMUIubipYZmoDoauUwvz
-         /dZGsc6EkttNs5bk+GFenZxxOQN+H7M6Wl5RBI1b9qEIRIFKL+rgwqOlDbgERFKahL/9
-         G5dez3qdZ3nGiGMgrM4QY8QQkB9mWgS8nvPMEQSHZj9MsIpqX7roNjOe5JtIyM5ZzRi5
-         k6oCSCEo2RxEony4RPbRrLfThs+geglFdhqQA+8d/tTr0USjaaGBoQfVwcI2I/PR4pY9
-         AnrBnsqAYUJmk9xcQAiH3zwEPQEZA8ardfjSoJhiO8tSLEiTCIoBC5h8C9aIeRpP0hbF
-         mYoA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794255215; x=1794860015;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=uEUhc0o+zUeX7PEeAhsV85l+vCP5t8Vwwg/hq9Oboac=;
-        b=GGf1lcNgKzj75FH5qS5SpnUoKdIlmVXetQJgqxw1j4pRNabuAh73pv4R4onrNLjh4E
-         +RoC/fN4RR+6LGN46TAlZ6TxeFNvOcyxIadmL7SFqXwKcM8tggy9VvMoGZv84z5Kq0u6
-         +0NTnWRxepkt5TeuOYq1tDv7EJkERoX2gCZldfzq99aUbYdOxoHEDIKG8I8K5Hx6UUkO
-         MQg/4n9O3umAu64/FVSlECDnrj1X6BlVU8HxCRYqROZgcMNMK4BbcuWW69WbAMP0p+q8
-         3R9GZ5048pT5s1MrECOxgK2N0ySHcA/OTEdIXZQc/LkMoViTmToq8qaSTjolm9NmtWWC
-         AgOA==
-X-Forwarded-Encrypted: i=1; AL+hErGhQNhdAatEiftXxQBpxoksqDBLjhuipsrq3oCviXyMDQWvph315YnCU6/mUH1VEx7K4ZVB3svL9Ka2@vger.kernel.org
-X-Gm-Message-State: APuU4Z/5l2zp6xAD//zBBwV7BXNOdhUd14ZxS/SFpuyFSBz7aiy/Ct+Z
-	qYS1Lydb6Y2s6LQBM66tX3vEPTIixLD5wdud+MY7huHHoGTtPp3UVVBr
-X-Gm-Gg: AYBFou1MrHAJtR4rqZ5g3YsHYlwziC/cnVCUC1G8em7v4xIqPQdnHDNoBx5pzAnuGBL
-	RUfVbWsoLQbuXvhfSqrcM3pX//tChNZu3P4cTPijWTsdaqk9jdKU20FJ0wwV3zU6m7bvoweadDH
-	BHoC/EfELttSPFsWKGUNcccuusrQawC5iRhlSbDOB3ZnxZH/gxzLLEU7xAba8wsGuOB8hIqbap3
-	ADtV6jyGTzqWA25Ow9HeP7t1mPxPFjT8pybq3kXkeZJSmPszD4tadiMwYL0Jp+CiTyUb49bEl9S
-	vDtdAVCCjDlXUHk7E0R0ephSxK/cvwpCWxWbHK8ZiPd4fvYWG4QcNSXn+x1enL10cI7B4f9UcxR
-	kWYb+aXIPI5FsERdmAGcNuFFVNfX6S3WUsqQBYHUipHfcXwkTxv4Z11LpQ7uM25DYGH7vK/NxOU
-	Ta4U69PJyWLzLYM8OcojHYbNJihgIIxSL80QAC3iNLrJV5po4EcevvFVY60yJo5HVxtYLqmBrLl
-	X9sXSb9EKC4iLoOLjqO22ECDfEDoz/mEb+X+iazaHKQP/bRt+WEPrtIJh93qGQ2fcsdq9Lz5WKD
-	kMC3V9nnBDl0nWNduG/oqSByPmT7kcDek3xO42V9ZaL3xA==
-X-Received: by 2002:a05:600c:8b2a:b0:4a0:20b4:ba93 with SMTP id 5b1f17b1804b1-4ba02351468mr5057055e9.16.1794255214985;
-        Mon, 09 Nov 2026 12:13:34 -0800 (PST)
-Received: from serhat-ubuntu.home ([212.253.195.228])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4ba01fe63e6sm18441715e9.7.2026.11.09.12.13.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Nov 2026 12:13:34 -0800 (PST)
-From: Serhat Kumral <serhatkumral1@gmail.com>
-To: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Ira Weiny <iweiny@kernel.org>,
-	Doug Ledford <dledford@redhat.com>,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Serhat Kumral <serhatkumral1@gmail.com>
-Subject: [PATCH] IB/rdmavt: Call check_modify_qp after validating QP attributes
-Date: Mon,  9 Nov 2026 23:13:02 +0300
-Message-ID: <20261109201302.14531-1-serhatkumral1@gmail.com>
-X-Mailer: git-send-email 2.53.0
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OUAisPbP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2983C1F008A7;
+	Mon,  9 Nov 2026 20:15:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794255318;
+	bh=MGVt9qK6WX+3Czz+pWZZy1mBcReGCVkl6mVaj91Bj9M=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=OUAisPbPCtehdK8Gmz7qJvZrkmfiMOGCa1jW0Ng0XNCK4ZeV3P6z2vqwZQE6dF7Hy
+	 iGkzFULsQ1sZL+LXxztL1paF10J/4UEuVKG9cQZtY+rHpmhj/WbV8Hfhw+H7469klk
+	 p5oALjwCTGsHSoImjIBQsNvzfjdLq6xXBM4oZzwjqguzbfgHHlZErEx8ZPwZVXHcdF
+	 lyTdhEN1Aa2YY6R9qTe1EG1EzEAK8NnDkaHj2mDwRV49XvzrL4p9dqgb9OEvHv3buk
+	 gMxYXaPcmQ3QkrFC1Z1JvyXDBuPi8P0JxQwnrGDA3Z7E5kzZQtyYDYDHoOTXfWwFIa
+	 GUKAIIkossdig==
+Message-ID: <sashiko-outbox-205560@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] RDMA/iwpm: fix memory leak in iwpm_add_remote_info()
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Junyoung Jang" <graypanda.inzag@gmail.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261109200330.2361828-1-graypanda.inzag@gmail.com>
+References: <20261109200330.2361828-1-graypanda.inzag@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 09 Nov 2026 20:15:17 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -98,55 +58,41 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-rvt_modify_qp() calls the driver's check_modify_qp() hook before it
-validates the address handle attributes with rvt_check_ah().
+> NETLINK_RDMA accepts requests addressed to kernel port ID 0 from a local
+> unprivileged socket. The IWCM RDMA_NL_IWPM_REMOTE_INFO callback has no
+> RDMA_NL_ADMIN_PERM flag, and RDMA netlink routes this IWCM opcode to its
+> dump callback even without NLM_F_DUMP.
+>=20
+> iwpm_remote_info_cb() parses the six required attributes and only checks
+> that the local and mapped-local sockaddr_storage families match and that
+> the remote and mapped-remote families match. Four family-255 addresses
+> pass those checks. The callback allocates an iwpm_remote_info object
+> with GFP_ATOMIC and passes it to iwpm_add_remote_info(). There,
+> get_reminfo_hash_bucket() accepts only AF_INET and AF_INET6, so the
+> family-255 lookup returns NULL. The object is neither linked into
+> iwpm_reminfo_bucket nor freed, and the callback returns -EINVAL after
+> this allocation side effect.
+>=20
+> iwpm_exit() only walks and frees linked hash entries, so closing the
+> netlink socket does not recover these orphaned objects. As a result, an
+> unprivileged local user in the initial network namespace can repeatedly
+> send this request without CAP_NET_ADMIN to permanently leak unreclaimable
+> kernel slab memory (kmalloc-512), leading to memory exhaustion and a
+> denial of service (DoS).
+>=20
+> Initialize hash_bucket_head to NULL and, after the spinlock is released,
+> free rem_info if no bucket accepted it. Freeing after unlock also covers
+> the absent-table case without changing the protected list operation and
+> follows the existing null-bucket cleanup pattern in iwpm_add_mapinfo().
+>=20
+> Fixes: 6eec17746175 ("RDMA/core: Enable the iWarp Port Mapper to provide =
+the actual address of the connecting peer to its clients")
+> Signed-off-by: Junyoung Jang <graypanda.inzag@gmail.com>
 
-hfi1_check_modify_qp() uses the user-supplied SL in ah_to_sc() to index
-ibp->sl_to_sc[32]. The SL is a u8 that is bounds-checked only in
-hfi1_check_ah(), which runs later so an SL >= 32 causes an possible
-out-of-bounds read.
+Sashiko has reviewed this patch and found no issues.
 
-Move the check_modify_qp() call after all generic attribute checks.
-
-Fixes: e85ec33d820e ("IB/rdmavt: add modify queue pair driver helpers")
-Signed-off-by: Serhat Kumral <serhatkumral1@gmail.com>
----
-found by smatch:
-- drivers/infiniband/hw/hfi1/verbs.c:1474 ah_to_sc() error: buffer overflow 'ibp->sl_to_sc' 32 <= 255 user_rl='0-255'
---This fix relies on the SL bounds check added by commit 0dbfaa9f2813
-
- drivers/infiniband/sw/rdmavt/qp.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index 3602b9ff2196..abd33f42c888 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -1422,10 +1422,6 @@ int rvt_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 				attr_mask))
- 		goto inval;
- 
--	if (rdi->driver_f.check_modify_qp &&
--	    rdi->driver_f.check_modify_qp(qp, attr, attr_mask, udata))
--		goto inval;
--
- 	if (attr_mask & IB_QP_AV) {
- 		if (opa_ah) {
- 			if (rdma_ah_get_dlid(&attr->ah_attr) >=
-@@ -1521,6 +1517,10 @@ int rvt_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		if (attr->max_dest_rd_atomic > rdi->dparms.max_rdma_atomic)
- 			goto inval;
- 
-+	if (rdi->driver_f.check_modify_qp &&
-+	    rdi->driver_f.check_modify_qp(qp, attr, attr_mask, udata))
-+		goto inval;
-+
- 	switch (new_state) {
- 	case IB_QPS_RESET:
- 		if (qp->state != IB_QPS_RESET)
--- 
-2.53.0
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261109200330.2361=
+828-1-graypanda.inzag@gmail.com?part=3D1
 
