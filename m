@@ -1,101 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794235712;
-	b=LGIx74otAIMoOulbL8cQYtU5O5Df+fdJinMqxYOpep42h88TPNmbmDeGhwww0IoGNf4s
-	 xfIY6zBl8Zi63QW+q6PPs1cw5WPvfrjtGEQb0MVZNbDjgxH9CXx7+898dTlEilymJAelb
-	 gBrF3jXjZEXu6QtVttC05HcEF1hLrXrKJszm45zXNYusUaGdRbYpF5RtcSIORF/rTQmLI
-	 HTmcfP4/cW/n+FEwi/rt/Ba9vBGUauzqKjw3zm3wT+iFlS9FnHqbSEtqdPeQcSnqzgWAv
-	 sJy3ZttWWroVV14AUiwbwnpn39vNOBOKCtavYjjyvsGVkwVkt3nK2fp5PiXABNdY2CA==
+	t=1794235923;
+	b=TenABA3MtYFmWIUsJn2U8m1z3a8ApCcpjPPVA/a5T9QLK0+gZKvLaLzVSREO00yu9vwI
+	 zU7AzBUNYx6WxXo2GWA0oHipllktmwTZf9XEktGodMyC0cKYP54n/1fuULIl0ckg8h4M+
+	 aOZJO7TwiPOXbsPpS/G6ww3ILaU5tIBo0P57gVvzQWH04WQ4rqwsjFWntUoHrz+vFuGQm
+	 F/+cwtCrMEsP0tkapgF4gXdJlF1GceiCB5z+BojKSuMVuJX62Xua7ogNvv7cvut9OmyoM
+	 z69PYcGYNT9lvertP7OIVfK+pOhfC6eev5OKi6P51O54QJWP41ZSNmbRZbwMIGXgDDQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794235712;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=M7mjVSswzFiYPoD6QT1qC2YywjNa1eCvKgF70U0xhrg=;
-	b=eylVitqcEF5efoD40liZu6xaUjWusLibQFzvAiR/Y69+P4XxN9kOyTS6hhN0e+FpxFFn
-	 SyBfaUCyDvNS2wER66LwSiVrAs33C7rNYTjtosQ3No5qRMHp7tFPQfo5Q5UWynnse0UW5
-	 0PLGOpxSztowkGoxEaXCtJnFpuW7iKF+ZaQNUqxq+4NK8wDG8eW4/Rws4TXRQXvmmDaY1
-	 fIfp4hXpSG5mRuMcu4y+08XNSMQNfQa7o9nJAaeIaY3j0JPGfl+v1qvYX0FF8gEV5C5w/
-	 XqkXOGQM+Xyu2t6xYR63b/m1XyXzeCU8+JjLbavj7b3FYCT6CtZxbndPCHkOAa/Jdnw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794235923;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=H1ycjNp1FpVD83aupsGyF2+nao+v2if0Nu2MqxeK9cU=;
+	b=N2Z9Hvq+nUogvJJk9+mmXQLmNNeTsyxZQ1rzOzQgHOuldEpU+Ub1Q+QW+kmhAQg+zjjb
+	 qHq8jejnu3VJNgWwa8qlnGxGrqSvPU8QjHdQuN91Uik1FtOTL3SRnTMp130e4esT2U67H
+	 dnwRxYpP2k+ZqBPF/chdoXlXgC/kuiymJBQRIuPmn2HLR9L18JrlXWFTruRlHzHyr+ZD1
+	 GDx4i3+OTV5EH5a+Ly1+qyDnY8sEHHeBoa1DFXGaMpG5jlIVIKbvfHI6nziiC8QQiq5Yy
+	 zom9gUDsHaksiFzFvYQnHbBZPnN7w/sl/fUT7aFrV/kw0lnF6RRuYW9pUW5YJ9Rf4EA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=ziepe.ca;
-	spf=pass smtp.mailfrom=ziepe.ca;
-	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=oNUecxHC;
-	arc=none smtp.remote-ip=209.85.222.172
-Received: from mail-qk1-f172.google.com (mail-qk1-f172.google.com [209.85.222.172])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fhRKzOOh;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88003606A323
-	for <linux-rdma@vger.kernel.org>; Mon,  9 Nov 2026 14:48:31 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 88003606A323
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C160B606A31C
+	for <linux-rdma@vger.kernel.org>; Mon,  9 Nov 2026 14:52:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=oNUecxHC
-Received: by mail-qk1-f172.google.com with SMTP id af79cd13be357-93e515769d3so94686585a.3
-        for <linux-rdma@vger.kernel.org>; Mon, 09 Nov 2026 06:48:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1794235710; x=1794840510; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=M7mjVSswzFiYPoD6QT1qC2YywjNa1eCvKgF70U0xhrg=;
-        b=oNUecxHC4848KNAA26lHQ2G+BYpWGFvGSyUdQl59xdkTLL68nrj101K5yWsvlahxtJ
-         NjIy7n4cPKvogrm33G94/yLTrcNabAnbH9oaO9/fqlPdqMhETQ2ody+fek6SSMiHM7lK
-         1DB/dDCxqHNrel53IXnnPdTTAasHGJTssEOZ+Ca0HANmvndcE7KPej/d1lzOUgobuQGh
-         U3BAlPeubxLio1DWsA623BiUEwqpep+ErKLxc2x4bBU8vHIhgqvUYPLdowJ7w6+mEe2z
-         HPHXw8Gvah2ZH/r1bnklT6b2NoK+Vi3kDWqd3gtj/SvPFzgaYABt+HWB3Wqw26RfkEqh
-         rcAA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794235710; x=1794840510;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=M7mjVSswzFiYPoD6QT1qC2YywjNa1eCvKgF70U0xhrg=;
-        b=sZMqPhwsHavG7t0aTA1aZTFeU0vIeDGMM3dl5PNJEu6PKXypOHzm9VaOJ6MlT2xefH
-         EQ990CTGCEZkUX6qVT9l2MnjW6uvrh3+u9/PwGGD0uHCf7KTcLKBgeI+PmF8tAqJBq7P
-         tdXO8V3DjRobQHr3sjZSyP0devNxkMzK4jf/lwywVIMCJg1R6SZ20AEKmqMNhClFIdk8
-         fDSVG0iCX/gVN0CRBgZRpUGFnxrLNVMjZdN47fnFT0eIG6b507Ujydim6bJq+W1AfH6e
-         E7IJkLWAczCztkEpyfpukN+U0DCsHy0nq0mlY9n154F0S8wog4W1+V68Ol4dYgbpQXId
-         UNFQ==
-X-Forwarded-Encrypted: i=1; AL+hErHVkeSJC9ep5KBmqFBKsCaXGA2ir6dqWbXNIMrB33PdV2sT+sZkgUxdI3NC3W42uJEXywDApwGtNT7V@vger.kernel.org
-X-Gm-Message-State: APuU4Z+z+HFZUzso1N2PjqbmiJLxdhqtSqQTqzcbgkik01LyQRv5x9V8
-	lQZSk2JrGWjJEcniOoY+eAs5bo8Hwb6/cVLmMReF01gCCaSqCHuGyWD4mqabFZxp6S0=
-X-Gm-Gg: AYBFou3BhQFJFnCiOCIlWYZfR7JD4ljR+hZzFH5KxeSVeFVX4adXA3DtwfOLlqdAZh2
-	veNsMNIx3k98Km8LUbFWhVVaGd7Vv4IYMnJwosZHliJb6AWZz6ah3rcW/5c8QVkwRUEK0PvE7uL
-	8IbRQZvmc/mtMeDMp7yGPDOXEjQ2pkv8uaakFA6X/MbiAoqELxtMaAzYSY8Wmu28extqrO/sGq6
-	HF1blXV2fS304pfmnexPncoYG8IuWEOqXr/dTK/JNLSeC4NXrc/Dvr/VqtCyMY2mT9Zjn6HtBZ9
-	OAbIdBOngLubLh77MYNzHMYF+WOHb/SLpEbaYulOM66RSFhwpBXHif+9llM9Y6GJMZO3OMfB6Aq
-	XPFn0JtKf+C4kGWjo3Jd6BOjAdhUwM/mDWc8kzITKWfebuv59MJ75rU8CiqtBikCShy3+Sct62V
-	sKDXCaOs2XsQcnVy2hrfZe3XRwc17SstDby1OI30AaeItalbBqhWE3eRAJwhBj38j0jYMCadVd+
-	ndhnLqlvWXuFQS66kPXUKzRdes4moKw9f3R4/ymEN4BJBlO/mK5EiGNmYJZbxydNCjoi/MX3csX
-	WUr8QZ93awHkSMfAPBYmQkckhhidYou3RK1Xzrfzkl7LBoRBewaEYsT+7PTAelhzB0hmV6MQbRf
-	M3SSVVxBxnA==
-X-Received: by 2002:a05:620a:28d6:b0:947:1d0a:c89c with SMTP id af79cd13be357-947848d1cfamr570972285a.56.1794235710297;
-        Mon, 09 Nov 2026 06:48:30 -0800 (PST)
-Received: from ziepe.ca (hlfxns010zw-159-2-239-150.pppoe-dynamic.high-speed.ns.bellaliant.net. [159.2.239.150])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91eceea05a2sm43886796d6.39.2026.11.09.06.48.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Nov 2026 06:48:29 -0800 (PST)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1xQQfd-00000001QiU-0CrP;
-	Mon, 09 Nov 2026 10:48:29 -0400
-Date: Mon, 9 Nov 2026 10:48:29 -0400
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Edward Srouji <edwards@nvidia.com>
-Cc: Leon Romanovsky <leon@kernel.org>, Yishai Hadas <yishaih@nvidia.com>,
-	Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Uri Dar <udar@nvidia.com>,
-	stable@vger.kernel.org, Michael Gur <michaelgur@nvidia.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fhRKzOOh
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7530F1F0089F;
+	Mon,  9 Nov 2026 14:52:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794235922;
+	bh=H1ycjNp1FpVD83aupsGyF2+nao+v2if0Nu2MqxeK9cU=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=fhRKzOOhn8YZm77eICHJYVQ/0mikRmhDrCyGZUNEXZ2puyCH+RvtAh/QLjTuL+abN
+	 J3C7/JBa0MREElFrhtpwAfJnL+OpZ44wz64wujT/w023KcIU/k80wZN1dBMA2Ckgpz
+	 88+KUk1hLjbt5JA5Ljs8nhHhn1QfvFwIbnNJslA9iDjp8cSbOMK4Kpx5UJJKZ1hr98
+	 2hNLAH80zkX/NwJH+AaPXDigR74x/YKSNRcAnd37YnzRr58kt2UCXirilPsEzACW/7
+	 gRpJSJ9q6dwpc/0qS4FlPKrci46f9cuH7kv5T0a1npQvqbraSfp8rr3qQyODc899nR
+	 h0QFtxSS/6xEg==
+Message-ID: <sashiko-outbox-205134@kernel.org>
+From: sashiko-bot@kernel.org
 Subject: Re: [PATCH rdma-next 1/2] RDMA/mlx5: Fix DEVX UMEM mailbox size
  truncation
-Message-ID: <20261109144829.GM663069@ziepe.ca>
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Edward Srouji" <edwards@nvidia.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261109-devx-umem-mailbox-overflow-v1-1-4a63baab25dc@nvidia.com>
 References: <20261109-devx-umem-mailbox-overflow-v1-0-4a63baab25dc@nvidia.com>
  <20261109-devx-umem-mailbox-overflow-v1-1-4a63baab25dc@nvidia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 09 Nov 2026 14:52:02 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -104,48 +60,73 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261109-devx-umem-mailbox-overflow-v1-1-4a63baab25dc@nvidia.com>
 
-On Mon, Nov 09, 2026 at 04:42:32PM +0200, Edward Srouji wrote:
-> From: Uri Dar <udar@nvidia.com>
-> 
-> devx_umem_reg_cmd_alloc() stores the CREATE_UMEM mailbox size, a header
-> plus 8 bytes per MTT, in the u32 cmd->inlen. The number of MTTs is
-> derived from the user-supplied length and pgsz_bitmap, so a UMEM of about
-> 2TB registered with 4KB pages wraps the size, the mailbox is
-> under-allocated and mlx5_ib_populate_pas() writes past its end.
-> 
-> Store the size in an int, the in_size type of mlx5_cmd_exec(), where a
-> larger value would turn negative, and compute it with overflow checks so
-> a UMEM whose mailbox does not fit is rejected.
-> 
-> Mailbox sizes within 512 bytes of INT_MAX still overflow the block count
-> in mlx5_calc_cmd_blocks(), but the command then fails with -ENOMEM
-> before reaching firmware. This predates the change.
-> 
-> Fixes: aeae94579caf ("IB/mlx5: Add DEVX support for memory registration")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Uri Dar <udar@nvidia.com>
-> Reviewed-by: Michael Gur <michaelgur@nvidia.com>
-> Signed-off-by: Edward Srouji <edwards@nvidia.com>
-> ---
->  drivers/infiniband/hw/mlx5/devx.c | 15 +++++++++------
->  1 file changed, 9 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-> index fc6f793dcc6584e6a22b40c57e2df8f24579eb14..1da6c0e440d6e19d8791b012a148f479cfdddad7 100644
+Thank you for your contribution! Sashiko AI review found no new issues
+in this patch, but noticed 1 related pre-existing issue it does not
+introduce:
+- [Medium] RDMA/mlx5: devx_umem_find_best_pgsize() ignores pgsz_bitmap
+  after halving page_size [1]
+--
+
+commit bd5b83068caa4612b47dcf836a1a42f89cbb5cc5
+Author: Uri Dar <udar@nvidia.com>
+
+RDMA/mlx5: Fix DEVX UMEM mailbox size truncation
+
+This commit changes cmd->inlen in struct devx_umem_reg_cmd to int and adds
+overflow checks when computing the CREATE_UMEM mailbox size in
+devx_umem_reg_cmd_alloc().
+
+> diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/ml=
+x5/devx.c
+> index fc6f793dcc658..1da6c0e440d6e 100644
 > --- a/drivers/infiniband/hw/mlx5/devx.c
 > +++ b/drivers/infiniband/hw/mlx5/devx.c
-> @@ -113,7 +113,7 @@ struct devx_umem {
->  
->  struct devx_umem_reg_cmd {
->  	void				*in;
-> -	u32				inlen;
-> +	int				inlen;
 
-Do not change things which must be unsigned into signed values.
+[ ... ]
 
-Jason
+> @@ -2361,9 +2362,12 @@ static int devx_umem_reg_cmd_alloc(struct mlx5_ib_=
+dev *dev,
+>  	if (!page_size)
+>  		return -EINVAL;
+> =20
+> -	cmd->inlen =3D MLX5_ST_SZ_BYTES(create_umem_in) +
+> -		     (MLX5_ST_SZ_BYTES(mtt) *
+> -		      ib_umem_num_dma_blocks(obj->umem, page_size));
+> +	num_mtt =3D ib_umem_num_dma_blocks(obj->umem, page_size);
+> +	if (check_add_overflow(MLX5_ST_SZ_BYTES(create_umem_in),
+> +			       size_mul(MLX5_ST_SZ_BYTES(mtt), num_mtt),
+> +			       &cmd->inlen))
+> +		return -EINVAL;
+
+[Severity: Medium]
+This problem wasn't introduced by this patch, but can
+devx_umem_find_best_pgsize() return a page_size that is not set in
+pgsz_bitmap [1]?
+
+drivers/infiniband/hw/mlx5/devx.c:devx_umem_find_best_pgsize() {
+	...
+	page_size =3D ib_umem_find_best_pgoff(umem, pgsz_bitmap, U64_MAX);
+	if (!page_size)
+		return 0;
+	...
+	while ((ib_umem_dma_offset(umem, page_size) !=3D 0 ||
+		(umem->length % page_size) !=3D 0) &&
+		page_size > PAGE_SIZE)
+		page_size /=3D 2;
+
+	return page_size;
+}
+
+When a physically contiguous umem is registered with a restricted
+MLX5_IB_ATTR_DEVX_UMEM_REG_PGSZ_BITMAP, ib_umem_find_best_pgoff() selects
+the largest matching bit regardless of DMA offset or total length, and the
+loop then halves page_size without checking that the reduced size is still
+present in pgsz_bitmap.  devx_umem_reg_cmd_alloc() then registers the umem
+with a page size that userspace excluded instead of returning -EINVAL.
+
+[1] https://sashiko.dev/#/bug/linux-6cd20db6-58c6-4b3d-8dd9-c9ee893d4041
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261109-devx-umem-=
+mailbox-overflow-v1-0-4a63baab25dc@nvidia.com?part=3D1
