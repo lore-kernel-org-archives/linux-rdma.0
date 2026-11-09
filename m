@@ -1,13 +1,13 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.85.52
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.57.20
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794244976;
-	b=4cB5kIKV/LlLmbS338i5aPGRx1SxOf6NPsiEHZbb/W77tP2sOGuu1KOdExJ3vmlPOJcF
-	 ePAPkKBTi1PXdRHNb9icrT2dLTgpdY7cQU/3siLr3vDfDUDPDSECSdYM4n/NgkygUL5QF
-	 7JW+0otzReoE7BYBXCe0YWiMXtKvnnkuHL0UvLy0ha/bo6obZKtwPpjDlb4nLM6fIIlw8
-	 KYjMfRZ0vS4OgYg7JoQitIXB7laSIEAN2UAMU9SOhxQaQYvscnyoMmouQzNsEUPEV+XZd
-	 o4CKvTW/bxLz9D1ccrgCcHCfQA+OLh4fn7tI0lGSYIIVJc9+7dWxsgbeQoNrUqfxyKQ==
+	t=1794248517;
+	b=LnzgFHFNQa93IZN0uDhb97CkS3AK6BZKBvhOQjNwdrc1VkFeIQDlAX6KsYJ/NSjIi/Lh
+	 cfp35XOQ78XDVLIWgL0ELMNChTMYFkVlQqljyWsi3V3AFyoEfbDRlyWgsT4ZbpLxAgKll
+	 nRHWvWcOWwerbhD1BqDR+Xp4GELaKh8TmMSM0S2Z+P5b02/mjX3hUHkBTg3EBfNOLpDQl
+	 /5psuuTkBwlP/wdEgfS/0g0EF4X/H5ihPAhy+rGol1y9M64MyeFyBcbyfDFqemLYGsTBi
+	 AQrwuQTjI1BZ0obsqQD3Hpx7N5mScg1KIuR7/NXRzcdDtDTqzuSie7nAyOro7SafPzA==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794244976;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794248517;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:
 	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
 	 Received:Message-ID:Date:MIME-Version:User-Agent:Subject:To:CC:
@@ -27,35 +27,35 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=g/YzGmlsRvtKgnshVsEjP7j0vmQU3C3vgGbsDnHJEm0=;
-	b=yZphnqjD6Q03W1Fx9tgtUao9pf2OV5aBE+CjDEvwnlnGYe+bshPDQVL+Z2e85Sku+ow2
-	 aelQlEuDxxxqkgpawz4IVEzOqeUz1o97LrKv/BtQd9G8z257vy6O/ar0pGzS1584f0f9C
-	 ypSbyLqTcmjM8uiMnwmg/RKapeSIPWg/fvfLSg754eUuF0PL6/axNfjoIwZjuiOQ8oJfW
-	 S5XMCudYuw8F60UVFE1cXfH9rtgeCPreTTHdmmtJ5qtmcY/r0bpc0MFfvz3PSpxgl3+cR
-	 hg7zEoc2SUpoFvLrF+x8Pd4l0p3yIfxoLmrStyTtJJ1u/aRL6TqaOkeKLlZIlZVFFFA==
+	bh=ZaR8SaGdhadUkF2SI+dRP82Z39rJt70X4U4ibnL8ODQ=;
+	b=XmVg9cIEKchDmmJwvbY+jH2H1ayzpdvTRqrF8PmywLRmW8PBXefQOXVp2M0uhvbptc6B
+	 Y9tAs5q7rWJynDXqw+Mikps2JYGJvplg0+SYYj1nl4Ytw8ixdNlSHt0B0Z2ZcF+23ECcW
+	 72LrU/MlHjQMPBQvErCKtih/HGrPCcHNkfNwCm23DxJsb3kAlWmrMX4d6Uf9Yzjd3Hd9U
+	 iLePjE5YbPlTsuqGJtkhNgr385knMKXn7tvbi0ZRLY79ycvFuuOaR+aS6dKB8kGxYAJCQ
+	 HFZfH8Q/lfxpiIWDTJE+EY2lA/gGvd/hmcb4lfN2i2wEBF6Is3X6nuIJ1GpGhKFb+4Q==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=NswfRWyu;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.85.52
-Received: from BYAPR05CU005.outbound.protection.outlook.com (mail-westusazon11010052.outbound.protection.outlook.com [52.101.85.52])
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=pC4YBeU6;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.57.20
+Received: from BN8PR05CU002.outbound.protection.outlook.com (mail-eastus2azon11011020.outbound.protection.outlook.com [52.101.57.20])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 384E6606A325;
-	Mon,  9 Nov 2026 17:22:56 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 384E6606A325
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E040606A31C;
+	Mon,  9 Nov 2026 18:21:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7E040606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=NswfRWyu
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=pC4YBeU6
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=UDh/AwkkMDysBW5Cfzf5sFo6CUtaMqqQka0f+jwHBctK6qOh62HAV09Bypq2Qbr/DFkJlL8/2a5+rQTQ0T1QnyTXEH2slxDAGKyiOGCvfled0S4bmfcYvrFshSFTzUJcN06U3bSeJKl37ZESybo0f5lmbuJBlR6fTmGIy/AG9Z6N0LzO746nYX9hcfczlQtSYEtAmoL/25GW7gjgihzY1ptFJJ0EDdF7ekN6aaiD7apPPdcq8/zJB/j+rC1GMJlVMFpc5HZVshhE44XOiOLnVhQG36ZUZf9qiVQRSBzsF2LaCwV3glKepOx3eanHQEiz1M0SHs2b4xRMnlbHpw9jag==
+ b=EF23cfPVUdZps5ot3wEaBNwXdzcJjSZOY0RM1iQhZ7rJYMWbIdPGYcEMy+f5xnyeDOwXo3QZ70eIC6nvnCqTfsQU+VS3BfOsCXEmQy4vAjav1IM/FjYgAsAmaEZTAu+WRHaemtFqMPfCOD2bL2PtAeEvWQZpflNqEGi27HUZfOqCxi6U6VGzm+4s+NvDF1GpGUUiWFuIKgwuOCAymdrG8Dkx60E4b5Xen+J+qvizkgUGGYz1FQo7pp502ZiuypmZ/Jw7KukrwUVWFIoCeAvDHlVpjp7Kel0yaFwEZ3Of/dCQ42IQlI/H66L/10L5SkVFVTVmMA2eR4hItemPdH8lOw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=g/YzGmlsRvtKgnshVsEjP7j0vmQU3C3vgGbsDnHJEm0=;
- b=lNke7DGQ0sb/cGfjrdQ0mWaQYCHb+2mZz2t8ql87ywzT53peXlozpDl13UqRy08JhdNQ8auc6Q6WEsCu1rN2vu7izmTM6BNcJaG3wqpYEptsa9HOuf4IQ1zBxyIz6WVo4cMwziHnXPArgpasHqPBTX8fWi0xBOVrzNSecRHEBdNituZq3OotybnwLPUu3rQ0RGuMG1HddzDENOmehrAvECiWfWqc/d9B9R7AdplF4v6bxiw0gshwIS4htyngmnMxvBGj2bF2tBv+SzMAFqULQwDy9roIEfe1YWHti++XAlb/j26mVDHr71YqxzdjGvP5G7RO7sp6iEYJC2Rti870sA==
+ bh=ZaR8SaGdhadUkF2SI+dRP82Z39rJt70X4U4ibnL8ODQ=;
+ b=m29nL5qaR5nZ5nVymwBPHxuLOv57By/w4Zve2A2grA6pKPuf8rA0dSullTGO3cXEDGfXv9eQj29hnHZbTm1CKREdfEQ4C2M5ZRM3lR0cTrnbZklhUzvgaw798iwIaB2Yfiz94flcYb5e+1YpFFEnhtATUqM8oaI2m0M0O16HtrX75Z7GGpV2klrdab2U/iIWHkP3Ff+n6D86J8Zp4rCnaNEDV3oC4PI4apkcisVu7fmNEBvdGM63/DqaA6zgG10qIBMI2NGEyGtkr1IdqcJ2l+3rWOVYiTzFUCchng6iAvWYa0tiIhru+l2YDs0GiBXodE6vUqdtfkvmlr4n6brCng==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.160) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -63,18 +63,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=g/YzGmlsRvtKgnshVsEjP7j0vmQU3C3vgGbsDnHJEm0=;
- b=NswfRWyuNs7WC1beyMwR9X3EKGw3a6mpwD8zNr/B6ahVl4OWM0PmeZyULdy/aFfnnhoQpm6yCi85WqqRV1Fm7k8FQrlB+xOjLkpUehoYLpoIdAxGZ2yiMDfqPADVP7ViXP3CSBfoQByTu4jRTwykB9SbgFIkSHMzv0ZFaT6yJ73kqB9CanwP0mZsGewz/JK5iQ5K3fZjhyZGIewHgKSrDkc2WRo+WWPOOri56WL33/D9MKZUXiWaeIFMYohn2aSLFJU3eyEULQymwi1/W5dRha18I35No420n0qkgrdYjcjD2QyQLGqghOP4/4ATOsUaQ1z19nmOnT0J8yQ/BV1l2Q==
-Received: from BN9PR03CA0176.namprd03.prod.outlook.com (2603:10b6:408:f4::31)
- by PH8PR12MB7326.namprd12.prod.outlook.com (2603:10b6:510:216::7) with
+ bh=ZaR8SaGdhadUkF2SI+dRP82Z39rJt70X4U4ibnL8ODQ=;
+ b=pC4YBeU6Dw1dtqkIUggIuIgxDerSCe5rCDv1UKinlPOK5pMVKOqbsntl8K9JsaT2LGmjaNJrtNGlV+BYQHQ5p+yI736mM8mlRqbJW4ViPqO2/EuhQ3BR6znG/zu7rMeqE1u68tUpfde030p23twp+hK8LwyCvgcyKAYLhmSwbco3HNltTGyIC41l1DrByNQAx+DhTZROEF9HzmslN6CnW8701ALJm89p2FwVOks+fl48WkISdvxPAJAcnJCOl9YX3o2L/lqeU/D94RETsiX3Dl5eDGd27UsYn1kXjryyqNsRVMQiCzjAWcUps52kt9HbYJsd/jVH3aDjgywdXPpuyQ==
+Received: from MN0PR05CA0029.namprd05.prod.outlook.com (2603:10b6:208:52c::23)
+ by MW4PR12MB7144.namprd12.prod.outlook.com (2603:10b6:303:21b::17) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.13; Mon, 9 Nov
- 2026 17:22:48 +0000
-Received: from IA0PEPF00000037.namprd03.prod.outlook.com
- (2603:10b6:408:f4:cafe::26) by BN9PR03CA0176.outlook.office365.com
- (2603:10b6:408:f4::31) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.592.13 via Frontend Transport; Mon, 9
- Nov 2026 17:22:48 +0000
+ 2026 18:21:46 +0000
+Received: from BN2PEPF0000A895.namprd04.prod.outlook.com
+ (2603:10b6:208:52c:cafe::1c) by MN0PR05CA0029.outlook.office365.com
+ (2603:10b6:208:52c::23) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.7 via Frontend Transport; Mon, 9
+ Nov 2026 18:21:44 +0000
 X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
  is 216.228.117.160) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -82,19 +82,19 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.117.160 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.117.160) by
- IA0PEPF00000037.mail.protection.outlook.com (10.167.249.68) with Microsoft
+ BN2PEPF0000A895.mail.protection.outlook.com (10.167.248.187) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Mon, 9 Nov 2026 17:22:48 +0000
+ 15.21.615.4 via Frontend Transport; Mon, 9 Nov 2026 18:21:43 +0000
 Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
  (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Mon, 9 Nov
- 2026 09:22:22 -0800
-Received: from [10.221.209.160] (10.126.230.37) by rnnvmail201.nvidia.com
+ 2026 10:21:16 -0800
+Received: from [10.221.197.41] (10.126.231.37) by rnnvmail201.nvidia.com
  (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Mon, 9 Nov
- 2026 09:22:16 -0800
-Message-ID: <ea4f9ee0-3925-4b93-b9c2-edfe20dd3a29@nvidia.com>
-Date: Mon, 9 Nov 2026 19:22:13 +0200
+ 2026 10:21:08 -0800
+Message-ID: <fa8bdce6-6f89-4de0-b81b-149ac20802a4@nvidia.com>
+Date: Mon, 9 Nov 2026 20:21:04 +0200
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -105,8 +105,8 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next 01/15] net/mlx5: Distinguish VFs/SFs in the SW
- system image GUID for LAG grouping
+Subject: Re: [PATCH net-next 05/15] net/mlx5: LAG, decouple iteration
+ end-of-walk from MLX5_MAX_PORTS
 To: Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
 	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
 	Jakub Kicinski <kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni
@@ -119,236 +119,285 @@ CC: Akiva Goldberger <agoldberger@nvidia.com>, Carolina Jubran
 	<moshe@nvidia.com>, Or Har-Toov <ohartoov@nvidia.com>, Patrisious Haddad
 	<phaddad@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>
 References: <20261103171009.563034-1-tariqt@nvidia.com>
- <20261103171009.563034-2-tariqt@nvidia.com>
+ <20261103171009.563034-6-tariqt@nvidia.com>
 Content-Language: en-US
 From: Shay Drori <shayd@nvidia.com>
-In-Reply-To: <20261103171009.563034-2-tariqt@nvidia.com>
+In-Reply-To: <20261103171009.563034-6-tariqt@nvidia.com>
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 X-ClientProxiedBy: rnnvmail202.nvidia.com (10.129.68.7) To
  rnnvmail201.nvidia.com (10.129.68.8)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: IA0PEPF00000037:EE_|PH8PR12MB7326:EE_
-X-MS-Office365-Filtering-Correlation-Id: bf4189e1-1eb2-435e-f1a4-08df3e861381
+X-MS-TrafficTypeDiagnostic: BN2PEPF0000A895:EE_|MW4PR12MB7144:EE_
+X-MS-Office365-Filtering-Correlation-Id: be4e88e4-5dd3-4a29-dc07-08df3e8e4eec
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|376014|1800799024|82310400026|36860700016|261028144727099003|4143699003|11063799006|261021133027099003|56012099006|261021135927099003|261021130227099003|261021123027099003|261021121427099003|261022075727099003|261022105027099003|261022115727099003|261022113327099003|261009223027099003|261026121527099003|261026130827099003|261026135527099003|261026140227099003|261102130727099003|261102123227099003|10067099003|22082099003|18002099003|6133799003;
+	BCL:0;ARA:13230040|376014|23010399003|1800799024|36860700016|82310400026|4143699003|56012099006|261021123027099003|261021121427099003|261022075727099003|261022105027099003|261009223027099003|261028144727099003|261026140227099003|261026121527099003|11063799006|261102123227099003|10067099003|18002099003|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	feI39IfAnD5Xs9pXWvhfhq3ri1FaE3kgqI9U91uwH/duTkD5LWEFh9axOnL5d34VlP7t0Y5f6CFEwmgwY335mQ67soskuirhPzbnY6+dfDFv5CFx8s1idf/t1B5g0MI54mUsYFQJSykatLZY4XOyfpVIG6wAvZt+Q6U59u7Ko8NKR7DnPh2VHXJwFNw2qYv7Vvb6ZKQMvwXOb7MXYbG0XW23tvIN6orD442z7Su7GcMzP8IQZxfOgtc4g2AUfAAZeig5271dWOV+10vfYEHljqzSIYtUap+4ml8Cg1ycmNaktR0aEmM3dgAB8IxUzyjsvsrTaOyuutrN44YKabRqZkLmipRR5tVb/fI52cZ6gNM3+xgHFHbY5eMaEfQFTtAFUaVMFazVOWZibotl7LMhAaMQ9q8IqlmBhk1Kg8Js38Utqin9hSuRzZMGAXy//60/9j8IDcwZzkxYrE8leWraQfsqlHBhRXXbMSKvgEycMmzjkmdpMbVoeEYvTYclUVfT1YpEZkLTIo8Pgy20C2lDHkF0dqXpEIVM92LuFwsJ8bzWCrwyDqmsUqNxImzAvYkEnf8O458yvXLQ+MofUM94BXF34wa8tu/MFt181kYVpeszdN7yYMPwx9LNk3V8rRlwaKXTxL6eKAWLjYcZXILuZm8wqSNnLMSYWB7Sxk2gGlY+zugGIFVbI/C9oTs131X9CpxZbI4GN3cfexIe0Y6Dow==
+	+Mr9Os8+lLosNuv/sYBD231YX+TQe/n6sw4OrwjrFAfP9z7Ag1hPeHGmvrWGUNOppp2BXEVfz0toisrvAx12EFaDXNB+nilr46OwCdzP8d9v/bDX0jp7XApZiqBrEU0zX7V7JmZPt4nD4f5ViT2PCL6+G9/MeqNOoKffpXR/65AeJIGPTJpO8ELaGc9ef52tlyDQO4huBeLHVeUBgLUmhv8P/rlRiGLWVH3UlRXaLxv5jfZE7u/7r6fajduyW2oRFpkFIV7QGa3ZMMqfzF2YvzvWND7ob/zZPdPAFOF7AFHlVKO9ACAR1RcCL+aYzc9WcAk3jMhv5eW2kK/ReaIoxv9dccRxtUj07/266Q5g3Ki2bJhiLeMenXeuRrkLDyrc7uKptbf8TGC1oN1Oyy2xVXMA1Yq0lf0I+5VoSgC6/wg2bf4EWvfOefLyW/qzha/qcFydLltRkOejl4Cqn2+dBpI6w8WAumVdhFWe0yPa8c/43bqK5Iv8CcZ4VVzifQvCUdMpAQ5JYtFvJ3wZ9zq/aE+a9l8idZTFhShnuokjdX66TLkZmGPh4zBFRwHDz6flRkrgzmsXr485pvNNf4QuuCtNCLlwSKXz8Z99vwvrDBDegHpiYVuY91yJewzgecFrze0p/d6iJzBgjQ/lJ2Oz+JV7IoWZgGZZlXaGC3FSu5uO2jVE7aj0sg0NNTFoAfLPAfOBzqQaqSZRzikguYENBA==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(376014)(1800799024)(82310400026)(36860700016)(261028144727099003)(4143699003)(11063799006)(261021133027099003)(56012099006)(261021135927099003)(261021130227099003)(261021123027099003)(261021121427099003)(261022075727099003)(261022105027099003)(261022115727099003)(261022113327099003)(261009223027099003)(261026121527099003)(261026130827099003)(261026135527099003)(261026140227099003)(261102130727099003)(261102123227099003)(10067099003)(22082099003)(18002099003)(6133799003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(23010399003)(1800799024)(36860700016)(82310400026)(4143699003)(56012099006)(261021123027099003)(261021121427099003)(261022075727099003)(261022105027099003)(261009223027099003)(261028144727099003)(261026140227099003)(261026121527099003)(11063799006)(261102123227099003)(10067099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	zreczQ15ahoHSSL89r45j4vCXcOf7TJrzhg77vC/UBUvBdQWCRzdQJ2l/qXXWbVvMFf4ATHJoKIScJ02l8kI3lpEUCuZp5gj2IJBvMbDrNxoy5inxpUK8LXyuNSqLZfSfTHo3fNdBaxHSaA7CHaw5hUKGGzvPSq3+W8RcoM3bNU12CanbNnUB0T23ItjgmIz2nnQa/kf208SmxfTSVEK+PZYPkvk1WUPEO+2d1sBdJ32Ai4nUwUsC1C2cQjiYA2edMaWXLv6bQhfETf8LECaMZMqYYaOJR3Qovj7VDLaKw/KWQkWfXG6CvTxzKBgq8uJvsgFOj92eNWrCrnya8AOV8TxUhgePJTPmxjPUZsHjN/Q32kP42O1PpS88aF23s4oeUbQZ2pPZzHG6A8ehEFlCO6SYZrrXJE1jf8yKhJ5NTmmWDoygcj3coD3aPysz84c
+	SJyLZpJatfQxSj2v16Lkkp+LW8jY317NQMXZqGuRZv94797RE4tasV2sb6awqb+4CnWP7mA81+NBCcAU0ASWfrlhNWHK/YQ9oacZacF3feqXOBPufMRlZrRZ8/VTCL6HHsKi+W1yfyTKKklVaDUdikW8lSwLRuhtoQ4BY5UNce6f+BNR85GmQwcnGabhSL5SsO+b99olYg2SemXHJjUOIdjH+FMnC7VceOKP6NmkTpCBNi2ij5e/W1+MZQ1oOQnXgIg1I6ozU4sd1TJXych6D2znoLfMZuLOSnfUAmUETPrf5VG5BqKYdqTAAVuh+WpnXh75jaQmrB+tMQ9DY+UqHRz08UEqn8szwLcLISct9GQUDwzWOdZMfuo3iWvVwtFHIB7PcLstv5XRtfv34GZfrcUvFvIdC0LLiuviWOldM79FaagoyvrapSYAK0JDV7vx
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Nov 2026 17:22:48.1997
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Nov 2026 18:21:43.8591
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: bf4189e1-1eb2-435e-f1a4-08df3e861381
+X-MS-Exchange-CrossTenant-Network-Message-Id: be4e88e4-5dd3-4a29-dc07-08df3e8e4eec
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	IA0PEPF00000037.namprd03.prod.outlook.com
+	BN2PEPF0000A895.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR12MB7326
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB7144
+
+
 
 On 03/11/2026 19:09, Tariq Toukan wrote:
 > From: Shay Drory <shayd@nvidia.com>
 > 
-> mlx5_query_nic_sw_system_image_guid() builds the key used to group
-> devices that may form a LAG. A PF and its VFs/SFs share the same FW
-> system image GUID, so without a discriminator a VF/SF that can join a
-> virt LAG would be grouped with its PF.
+> The LAG xarray iterators returned MLX5_MAX_PORTS as their end-of-walk
+> sentinel, and the open-coded callers compared the current index against
+> MLX5_MAX_PORTS to detect the end of iteration. This ties iteration to a
+> compile-time maximum rather than to the actual number of LAG members.
 > 
-> Appending bare discriminator bytes at conditional offsets is not enough:
-> distinct capability sets can collapse to the same key (a PF ending in a
-> load_balance byte of 0x01 vs a VF whose marker is 0x01). Give each
-> discriminator a fixed position instead, and add the VF and SF as such
-> fields. Trailing zero fields are trimmed, so keys of devices that set
-> none of the new fields are unchanged.
+> Add ldev->max_funcs, and use it as the loop bound. Update the open-coded
+> callers accordingly. When a member is added at an xarray index >=
+> ldev->max_funcs, increase max_funcs.
+> In addition, remove the xa_alloc() limit of MLX5_MAX_PORTS.
 > 
-> Set the VF/SF markers only when mlx5_virt_lag_is_supported(). The same
-> key also backs mlx5_same_hw_devs(), so a VF/SF that cannot join a virt
-> LAG keeps its current key and is still identified as the same HW as its
-> PF.
+> No functional change; this only removes the dependency on
+> MLX5_MAX_PORTS.
 > 
 > Signed-off-by: Shay Drory <shayd@nvidia.com>
 > Reviewed-by: Mark Bloch <mbloch@nvidia.com>
 > Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
 > Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 > ---
->   .../net/ethernet/mellanox/mlx5/core/lag/lag.h |  9 ++++
->   .../net/ethernet/mellanox/mlx5/core/vport.c   | 41 +++++++++++++++++--
->   include/linux/mlx5/driver.h                   |  2 +-
->   3 files changed, 48 insertions(+), 4 deletions(-)
+>   .../net/ethernet/mellanox/mlx5/core/lag/lag.c | 22 +++++++++++--------
+>   .../net/ethernet/mellanox/mlx5/core/lag/lag.h |  3 ++-
+>   .../ethernet/mellanox/mlx5/core/lag/mpesw.c   |  2 +-
+>   .../mellanox/mlx5/core/lag/shared_fdb.c       |  2 +-
+>   4 files changed, 17 insertions(+), 12 deletions(-)
 > 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h
-> index 8552792b9035..0ff337983a6d 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h
-> @@ -266,6 +266,15 @@ static inline void mlx5_lag_set_vports_agg_speed(struct mlx5_lag *ldev) {}
->   static inline void mlx5_lag_reset_vports_speed(struct mlx5_lag *ldev) {}
->   #endif
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> index b2ac5c671ae6..73bce918cddb 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+> @@ -395,6 +395,7 @@ static struct mlx5_lag *mlx5_lag_dev_alloc(struct mlx5_core_dev *dev)
+>   		mlx5_core_err(dev, "Failed to init multipath lag err=%d\n",
+>   			      err);
 >   
-> +static inline bool mlx5_virt_lag_is_supported(const struct mlx5_core_dev *dev)
-> +{
-> +	if (!MLX5_CAP_GEN(dev, multi_uplink_eswitch) ||
-> +	    !MLX5_CAP_GEN(dev, lag_master) ||
-> +	    MLX5_CAP_GEN(dev, num_lag_ports) >= 2)
-> +		return false;
-> +	return true;
-> +}
-> +
->   static inline bool mlx5_lag_is_supported(struct mlx5_core_dev *dev)
->   {
->   	if (!MLX5_CAP_GEN(dev, vport_group_manager) ||
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-> index 78f3d15b599d..50d2609374c4 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-> @@ -38,6 +38,7 @@
->   #include "mlx5_core.h"
->   #include "eswitch.h"
->   #include "sf/sf.h"
-> +#include "lag/lag.h"
+> +	ldev->max_funcs = ldev->ports;
+>   	return ldev;
 >   
->   /* Mutex to hold while enabling or disabling RoCE */
->   static DEFINE_MUTEX(mlx5_roce_en_lock);
-> @@ -1308,10 +1309,37 @@ u64 mlx5_query_nic_system_image_guid(struct mlx5_core_dev *mdev)
->   }
->   EXPORT_SYMBOL_GPL(mlx5_query_nic_system_image_guid);
+>   err_wq:
+> @@ -1284,7 +1285,7 @@ static void mlx5_lag_assert_locked_transition(struct mlx5_lag *ldev, u32 filter)
+>   	lockdep_assert_held(&ldev->lock);
 >   
-> +static u8 mlx5_sw_guid_load_balance(const struct mlx5_core_dev *mdev)
-> +{
-> +	if (MLX5_CAP_GEN_2(mdev, load_balance_id) &&
-> +	    MLX5_CAP_GEN_2(mdev, lag_per_mp_group))
-> +		return MLX5_CAP_GEN_2(mdev, load_balance_id);
-> +	return 0;
-> +}
-> +
-> +static u8 mlx5_sw_guid_sf(const struct mlx5_core_dev *mdev)
-> +{
-> +	return mlx5_core_is_sf(mdev) && mlx5_virt_lag_is_supported(mdev);
-> +}
-> +
-> +static u8 mlx5_sw_guid_vf(const struct mlx5_core_dev *mdev)
-> +{
-> +	return mlx5_core_is_vf(mdev) && mlx5_virt_lag_is_supported(mdev);
-> +}
+>   	i = mlx5_get_next_lag_func(ldev, 0, filter);
+> -	if (i < MLX5_MAX_PORTS) {
+> +	if (i < ldev->max_funcs) {
+>   		pf = mlx5_lag_pf(ldev, i);
+>   		if (filter == MLX5_LAG_FILTER_PORTS ||
+>   		    filter == MLX5_LAG_FILTER_ALL)
+> @@ -1831,7 +1832,7 @@ struct mlx5_devcom_comp_dev *mlx5_lag_get_devcom_comp(struct mlx5_lag *ldev)
+>   	filter = ldev->virt_lag ? MLX5_LAG_FILTER_ALL :
+>   		MLX5_LAG_FILTER_PORTS;
+>   	i = mlx5_get_next_lag_func(ldev, 0, filter);
+> -	if (i < MLX5_MAX_PORTS) {
+> +	if (i < ldev->max_funcs) {
+>   		pf = mlx5_lag_pf(ldev, i);
+>   		devcom = pf->dev->priv.hca_devcom_comp;
+>   	}
+> @@ -2095,7 +2096,7 @@ static int mlx5_handle_changeupper_event(struct mlx5_lag *ldev,
+>   				break;
+>   			}
+>   		}
+> -		if (i < MLX5_MAX_PORTS) {
+> +		if (i < ldev->ports) {
+>   			if (netif_is_bond_master(upper)) {
+>   				slave = bond_slave_get_rcu(ndev_tmp);
+>   				if (slave)
+> @@ -2360,13 +2361,16 @@ int mlx5_ldev_add_mdev(struct mlx5_lag *ldev,
+>   	if (!pf)
+>   		return -ENOMEM;
+>   
+> -	err = xa_alloc(&ldev->pfs, &idx, pf, XA_LIMIT(0, MLX5_MAX_PORTS - 1),
+> +	err = xa_alloc(&ldev->pfs, &idx, pf, XA_LIMIT(0, U8_MAX - 1),
+>   		       GFP_KERNEL);
+>   	if (err) {
+>   		kfree(pf);
+>   		return err;
+>   	}
+>   
+> +	/* max_funcs is the iteration ceiling; grow it, never shrink. */
+> +	if (idx >= ldev->max_funcs)
+> +		ldev->max_funcs = idx + 1;
+>   	pf->idx = idx;
+>   	pf->dev = dev;
 
 answers to net-dev sashiko
 
 Sashiko (Medium):
-Does this break PF to VF/SF same-HW detection for the VFs/SFs that do
-pass mlx5_virt_lag_is_supported()?
-The commit message says a VF/SF that cannot join a virt LAG keeps its
-current key and is still identified as the same HW as its PF. A VF/SF
-that reports multi_uplink_eswitch, lag_master and num_lag_ports < 2 now
-gets a key that differs from its PF's key:
-   PF: GUID [+ lb]                 (8 or 9 bytes)
-   VF: GUID + lb + 0x01            (10 bytes, lb may be 0)
-   SF: GUID + lb + 0x00 + 0x01     (11 bytes, lb may be 0)
-mlx5_same_hw_devs() requires the lengths and bytes to match exactly:
-drivers/net/ethernet/mellanox/mlx5/core/dev.c:mlx5_same_hw_devs() {
-     ...
-     return plen && flen && flen == plen &&
-         !memcmp(fsystem_guid, psystem_guid, flen);
-}
-mlx5e_tc_is_vf_tunnel() accepts only a PF out_dev with a VF or SF
-route_dev, and then depends on that same check:
-drivers/net/ethernet/mellanox/mlx5/core/en_tc.c:mlx5e_tc_is_vf_tunnel() {
-     ...
-     if (out_mdev->coredev_type != MLX5_COREDEV_PF)
-         return false;
-     if (route_mdev->coredev_type != MLX5_COREDEV_VF &&
-         route_mdev->coredev_type != MLX5_COREDEV_SF)
-         return false;
-     return mlx5e_same_hw_devs(out_priv, route_priv);
-}
-For these VFs/SFs, it looks like mlx5e_tc_is_vf_tunnel() can never
-return true. Would that cause the following?
-   mlx5e_tc_tun_route_lookup() skips the VF tunnel branch and never sets
-   rx_tun_attr->decap_vport. mlx5e_attach_decap_route() then bails out,
-   and the indirect table source vport rewrite is never set up.
-   mlx5e_set_vf_tunnel() takes the goto out path and does not rewrite
-   the source port to the VF vport.
-   mlx5e_update_vf_tunnel() returns -ENODEV.
-In NIC mode, tc_act_can_offload_mirred_nic() would also reject a
-redirect between a PF and such a VF/SF, or between a VF and an SF, with
-"devices are not on same switch HW, can't offload forwarding".
-No later patch in the series changes mlx5_same_hw_devs(),
-mlx5e_tc_is_vf_tunnel(), the tunnel code or mirred_nic.c. The final
-patch, "net/mlx5: LAG, enable LAG over functions that do not represent a
-physical port", relies on VF/SF functions that report exactly these
-capabilities.
-Should mlx5_same_hw_devs() use a key without the VF/SF markers, or
-compare only the bytes that identify the hardware?
+Is this store safe against readers that only hold lag_lock?
+max_funcs is written here with a plain store, under ldev->lock only. The
+store happens after xa_alloc() has already published pf, but before
+pf->dev is set. mlx5_lag_get_next_peer_mdev(), mlx5_lag_get_slave_port()
+and mlx5_lag_query_cong_counters() read it while holding only lag_lock.
+Each walk reads max_funcs more than once:
+- in mlx5_get_next_lag_func(), to produce the sentinel
+- again in the mlx5_lag_for_each() condition
+- and once more in mlx5_lag_get_next_peer_mdev(), after the loop
+Suppose an add grows max_funcs from M to M + 1 between those reads. The
+stale sentinel M then passes the tmp < (ldev)->max_funcs check. The body
+runs on slot M, which holds the new pf, and pf->dev is not set yet.
+Could mlx5_lag_get_next_peer_mdev() return a NULL peer here?
+On weakly ordered CPUs, can the max_funcs store also become visible before
+the xarray slot store? A reader could then see max_funcs == M + 1 while
+mlx5_lag_pf(ldev, M) returns NULL. In that case this code in
+mlx5_lag_get_next_peer_mdev() would dereference a NULL pf:
+     pf = mlx5_lag_pf(ldev, idx);
+     if (pf->dev != dev)
+Before this patch, the sentinel and the comparison used the same constant,
+so they could not disagree.
+The later commit "net/mlx5: LAG, do not add a device to an already-active
+LAG" narrows the window for callers that only walk while LAG is active.
+These readers do not check for an active LAG themselves, though.
 
-[SD] No, this is the point of the patch. A VF/SF that reports
-multi_uplink_eswitch and lag_master (and num_lag_ports < 2) is a nested
-eswitch manager. That makes it a different switch domain from its
-PF, not one more vport of the PF's FDB, so it must not be identified as
-the same HW as the PF. Without the marker it would also be grouped into
-the PF's LAG, which is what the patch prevents.
-
-A VF/SF that does not report these caps, i.e. every VF/SF that exists
-today, keeps its key unchanged and is still the same HW as its PF, as
-the commit message says. Dropping the markers inside mlx5_same_hw_devs()
-would make a nested eswitch manager the same HW as its PF again, i.e.
-undo the patch.
+[SD] all the readers above running only while LAG is active, and
+mlx5_lag_query_cong_counters() and mlx5_lag_get_slave_port() check
+whether lag is active explicitly before walking over the lag
 
 
-> +
-> +static u8 (* const mlx5_sw_guid_fields[])(const struct mlx5_core_dev *mdev) = {
-> +	mlx5_sw_guid_load_balance,
-> +	mlx5_sw_guid_vf,
-> +	mlx5_sw_guid_sf,
-> +	/* New fields should be added at the end */
-> +};
-> +
->   void mlx5_query_nic_sw_system_image_guid(struct mlx5_core_dev *mdev, u8 *buf,
->   					 u8 *len)
->   {
->   	u64 fw_system_image_guid;
-> +	u8 trim_len;
-> +	int i;
+>   	pf->group_id = group_id;
+> @@ -2395,7 +2399,7 @@ void mlx5_ldev_remove_mdev(struct mlx5_lag *ldev,
+>   		if (pf->dev == dev)
+>   			break;
+>   	}
+> -	if (i >= MLX5_MAX_PORTS)
+> +	if (i >= ldev->max_funcs)
+>   		return;
 >   
->   	*len = 0;
+>   	if (pf->port_change_nb.nb.notifier_call)
+> @@ -2608,7 +2612,7 @@ int mlx5_get_next_lag_func(struct mlx5_lag *ldev, int start_idx, u32 filter)
+>   					 MLX5_LAG_XA_MARK_PORT, start_idx)
+>   			if (pf->dev)
+>   				return idx;
+> -		return MLX5_MAX_PORTS;
+> +		return ldev->max_funcs;
+>   	}
 >   
-> @@ -1321,10 +1349,17 @@ void mlx5_query_nic_sw_system_image_guid(struct mlx5_core_dev *mdev, u8 *buf,
->   
->   	memcpy(buf, &fw_system_image_guid, sizeof(fw_system_image_guid));
->   	*len += sizeof(fw_system_image_guid);
-> +	trim_len = *len;
->   
-> -	if (MLX5_CAP_GEN_2(mdev, load_balance_id) &&
-> -	    MLX5_CAP_GEN_2(mdev, lag_per_mp_group))
-> -		buf[(*len)++] = MLX5_CAP_GEN_2(mdev, load_balance_id);
-> +	for (i = 0; i < ARRAY_SIZE(mlx5_sw_guid_fields); i++) {
-> +		u8 val = mlx5_sw_guid_fields[i](mdev);
-> +
-> +		buf[(*len)++] = val;
-> +		if (val)
-> +			trim_len = *len;
-> +	}
-> +
-> +	*len = trim_len;
+>   	xa_for_each_start(&ldev->pfs, idx, pf, start_idx) {
+> @@ -2618,7 +2622,7 @@ int mlx5_get_next_lag_func(struct mlx5_lag *ldev, int start_idx, u32 filter)
+>   		    filter == pf->group_id)
+>   			return idx;
+>   	}
+> -	return MLX5_MAX_PORTS;
+> +	return ldev->max_funcs;
 >   }
 >   
->   bool mlx5_vport_use_vhca_id_as_func_id(struct mlx5_core_dev *dev,
-> diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-> index abb99371ff13..d9d91faa0a1d 100644
-> --- a/include/linux/mlx5/driver.h
-> +++ b/include/linux/mlx5/driver.h
-> @@ -1395,7 +1395,7 @@ static inline struct net *mlx5_core_net(struct mlx5_core_dev *dev)
->   	return devlink_net(priv_to_devlink(dev));
->   }
+>   bool mlx5_lag_is_roce(struct mlx5_core_dev *dev)
+> @@ -2868,7 +2872,7 @@ struct mlx5_core_dev *mlx5_lag_get_next_peer_mdev(struct mlx5_core_dev *dev, int
+>   	if (!ldev)
+>   		goto unlock;
 >   
-> -#define MLX5_SW_IMAGE_GUID_MAX_BYTES 9
-> +#define MLX5_SW_IMAGE_GUID_MAX_BYTES 11
+> -	if (*i == MLX5_MAX_PORTS)
+> +	if (*i == ldev->max_funcs)
+>   		goto unlock;
+>   	mlx5_lag_for_each(idx, *i, ldev, mlx5_lag_get_filter(ldev, dev)) {
+>   		pf = mlx5_lag_pf(ldev, idx);
+> @@ -2876,7 +2880,7 @@ struct mlx5_core_dev *mlx5_lag_get_next_peer_mdev(struct mlx5_core_dev *dev, int
+>   			break;
+>   	}
 >   
->   static inline bool mlx5_data_direct_supported(struct mlx5_core_dev *mdev)
->   {
+> -	if (idx == MLX5_MAX_PORTS) {
+> +	if (idx == ldev->max_funcs) {
+>   		*i = idx;
+>   		goto unlock;
+>   	}
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h
+> index 872cc769297c..479d9f42ff3f 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h
+> @@ -83,6 +83,7 @@ struct mlx5_lag {
+>   	unsigned long		  mode_flags;
+>   	unsigned long		  state_flags;
+>   	u8			  ports;
+> +	u8			  max_funcs;
+>   	u8			  buckets;
+>   	bool			  virt_lag;
+>   	int			  mode_changes_in_progress;
+> @@ -298,7 +299,7 @@ static inline bool mlx5_lag_is_supported(struct mlx5_core_dev *dev)
+>   #define mlx5_lag_for_each(i, start_index, ldev, filter) \
+>   	for (int tmp = start_index; \
+>   	     tmp = mlx5_get_next_lag_func(ldev, tmp, filter), \
+> -	     i = tmp, tmp < MLX5_MAX_PORTS; tmp++)
+> +	     i = tmp, tmp < (ldev)->max_funcs; tmp++)
+>   
+>   #define mlx5_lag_for_each_reverse(i, start_index, end_index, ldev, filter) \
+>   	for (int tmp = start_index, tmp1 = end_index; \
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c
+> index b65ad9a26f71..56faa1d498c7 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c
+> @@ -223,7 +223,7 @@ void mlx5_mpesw_sd_devcoms_unlock(struct mlx5_lag *ldev)
+>   	struct mlx5_devcom_comp_dev *sd_devcom;
+>   	int i;
+>   
+> -	mlx5_ldev_for_each_reverse(i, MLX5_MAX_PORTS, 0, ldev) {
+> +	mlx5_ldev_for_each_reverse(i, ldev->max_funcs, 0, ldev) {
+>   		sd_devcom = mlx5_sd_get_devcom(mlx5_lag_pf(ldev, i)->dev);
+>   		if (sd_devcom)
+>   			mlx5_devcom_comp_unlock(sd_devcom);
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/shared_fdb.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/shared_fdb.c
+> index 7c7e6c832a93..29048b0c2797 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/shared_fdb.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/shared_fdb.c
+> @@ -71,7 +71,7 @@ static int mlx5_lag_create_single_fdb_filter(struct mlx5_lag *ldev, u32 filter)
+>   
+>   		err = mlx5_eswitch_offloads_single_fdb_add_one(master_esw,
+>   							       slave_esw,
+> -							       ldev->ports);
+> +							       ldev->max_funcs);
+
+
+Sashiko (Medium):
+The commit message says:
+     No functional change; this only removes the dependency on
+     MLX5_MAX_PORTS.
+Is that accurate? This hunk changes the max_slaves argument from
+ldev->ports to ldev->max_funcs, and that argument sizes the master's
+egress ACL. A later commit in the series, "net/mlx5: E-switch, drop
+master egress rule under a SW vport LAG", calls this value the ACL size.
+So the size of the hardware flow table changes whenever max_funcs !=
+ports.
+
+[SD] Only the ACL size changes, and only for SD, where more PFs than
+ports join the ldev and max_funcs > ports. The rules installed are the
+same as before, so there is no functional change.
+
+
+The patch also changes behaviour in two other places:
+- The xa_alloc() limit in mlx5_ldev_add_mdev() now accepts a 9th member.
+- The found check in mlx5_handle_changeupper_event() now uses
+   i < ldev->ports instead of the max_funcs sentinel.
+Could the commit message describe these changes?
+
+[SD] The xa_alloc() change is already in the commit message ("remove the
+xa_alloc() limit of MLX5_MAX_PORTS"), and the cover letter explains why
+it can't let in a 9th member.
+mlx5_handle_changeupper_event() runs only for a PF LAG without SD: the
+netdev notifier is registered only when !mlx5_sd_is_supported(). There
+each LAG port is one PF at an xarray index below ldev->ports
+(num_lag_ports), so "i < ldev->ports" is true in exactly the same cases
+as the old end-of-walk check.
+
+
+>   		if (err)
+>   			goto err;
+>   	}
 
