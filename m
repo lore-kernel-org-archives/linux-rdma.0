@@ -1,13 +1,13 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.209.63
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.196.59
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794221099;
-	b=OSgVHwxaoEiShmCU1NWDe/dtjgxyNRWkMhPmjPtGmBvlN8ic06mhtWXhSBqh005R5vtj
-	 6/A9u2eUDheeW+5KJgiAhwJs2DMHu4Yv72o5yKM2mAfiXK9mfE4LtZ6GpS6pfLdy3HGju
-	 wvv14Rwx/Z4kiDZTkqJMMgKu/qs2IS5VysBKEr1mF/rdNcmwwtMMot3DdKjJxkHGTWiqj
-	 OkrfJMeewipeHohx2s2U0AUqHc2alCfcPX2xagn6pAW+Q3o+igx6WDirUdq8K+QnjHn1d
-	 LeFzZcnyvAayudM9lFUPDnntAkNMjuajB932OEGp5kG5/ffNuvyXM1nJtABIOa87CyA==
+	t=1794221555;
+	b=a6YYhf9W7fM9TQvC4y9pIAzIqYE1jwNynzzXMzNaL6gZDWQqX//jfoQyssFm9slUKMyd
+	 xnXFy1FHN7eRu5owUx94GqavUOC7RkHlYiiUudukzGNY8vqrwlviAzuLiooMwzdBg8N4Q
+	 pBDs5xZznDcfyVhSWK3o0U/VO44zysyHoC5j98RKhH7jdYUC6Zb6G344v6/PYWExeu0n7
+	 PTFUS3TPry9v44WA+cI4dOYDNV4BxhY/Y/4NIldTxl6vg4zlsV1lKKoCw6bX4O5Vh4L0o
+	 RdIMQLSBFREoThVYWqD/TORcF6/5nvhSi7hZBls3JswU5Mff76F0rQfUFk2Y9/G51dQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794221099;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794221555;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:
 	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
 	 Received:Message-ID:Date:MIME-Version:User-Agent:Subject:To:CC:
@@ -27,35 +27,35 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=lxCE1wG/I3mMOJM+8q4VBNuNna6sL2JkhRWTAJELiTY=;
-	b=RG+hYxbP+L6QV59ChppHzqB81LFgXmfSC244Anf54ZOr04goJQQxxtXM+IWzi9JTPV1N
-	 Cdvrwt1Fk7yZ6vNsttu7uqpvpIh/xoWxvhnqJ+uDhuqFxAqXSPlOxfvCDH5UJ8re7KNnq
-	 yZ+Lsufo+Lz7GOYgG2yp/q7mTPG5iUTVi7+yTVZj4Or6XW5OiHixvU3KXeCCHJy6LzAqM
-	 1iBP6H4BlOLX0oStaqy5GUy280A3CDld7qgBlz3s3czkD84ocdYpvPw8kpLkWOCFb4A2S
-	 UzilPy5l513BmO2jzLbLoU0Uwb0dhWH1qbEY0Y7P+uJGhhR6JFoxqX/PxyWbCT5bG5g==
+	bh=H2m/iIwMg3NWHwB7SnknGQngQY4gKtSyJH9pyTIZWVM=;
+	b=oDxx5ws29OJIQkklFl26INg6asBa7H2wug7bwawEJHqZlyx6G/glYwDYWX592ML9B5a1
+	 ECAcDnyDyWOrc0gDidFClgS9fDCJFGwr5i+zttfVs7fvZhI+BJ0qteAwDDErvH+hmqRuP
+	 5Es6f/4CLxTLa3l5AG7CiOSq9WNrGwo0Ol3yXWzCVJRWbZ73T9gKBFeC6FpSb1iXsVSs3
+	 u/O+poBUyeAGASJVnejK3rZUhcwXzIHIKrnS3xzSGeKLP+7gMV5b14mb/b4Yu9eR7b/om
+	 OGMoQGQ0pxzqyJUjHWF13yArCR8EY9Jhl/S1yPZ6fN4uNCjgxwrIXyHejSdFP/iuVpA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=VbS7S3AR;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.209.63
-Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012063.outbound.protection.outlook.com [40.107.209.63])
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=FshHAS+S;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.196.59
+Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013059.outbound.protection.outlook.com [40.93.196.59])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D414606A325;
-	Mon,  9 Nov 2026 10:44:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7D414606A325
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66A84606A321;
+	Mon,  9 Nov 2026 10:52:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 66A84606A321
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=VbS7S3AR
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=FshHAS+S
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=nrZ5+DUQfd9CFDvV9Q4xKDffiyvnQfWBBOBKGBFS/SRqd1/Ese6LwJzu+wceXtSXm83uRrH2TsVbzSftr7r0Mup1/VzhCmsaPcOPUqVMbdwrWs2J75PqO2Czn+tllYwGtkDPKz0kLPNtxSKQYFWivmAwChEuhOkm+ErsfVeUHo0hHilIJDYrbqCmQHIR2BGwY3X4MGZeq0He5z1FthcyjPKv/MxlMgIZOqFroFViD2vRe54nR+zY+vxM1b1o6d/BdsNIpE9trsmM+oKS10+jcmHmhko1GrWyqnMylmETaXTiCG4yWTlfJF8tGLRghxL0u6pMnuCTPwej+4GgaGUgbw==
+ b=oP2GjQuvPDEALGlwqnNsiuuMfM/jKWmk3KzazEGI68Uc9FcWoIOxOK77PTtNT+z1UbrEddnhAiwCgsZ4TYX0PEQmdSkYUz0Nb3mI1OSpqQ+oCxPan4LX/VMlFB4MRI9R2QX7hQ4xLwEc8JvY52KbHqrizqg2HZkmF2RxEOjOlShS9G4+NWRL1S2XF1dCh7K88RdN09lTW4WIliKrfXOzPQUi+38VSb4G5A6FQlvBMmRTfCf5agilgFliRaieOcvFZkDZfmQ2hJMQ1u4qxbozynbMA5wezWPXMZXHFH35s72BmbPCFqvYWdyuOTI0ugJSl7CZ5dhgtqC6LznIfZ60mA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=lxCE1wG/I3mMOJM+8q4VBNuNna6sL2JkhRWTAJELiTY=;
- b=D2maa3L2NEAXThWUDQb6Yi3yr88ovbxzlVzcUGZ28bEka7buSecNm2I8NzTt8uB+GLQ1hL3VioT5PvbomAD9YZt8o+bFjLXLUU/y85EiBiRqWlmuX2V2kMBzkP1F9CFkEavLqmTyQrYeTCb8dziamDVOWNg7MjBVyGit8geidP3LjajY1e30aZxe+gwZRXtO2juPOa1FS1GHJjuFTSQSktyMPnVGvIJ6oW+S/vMNX7bCYC1Wg6iUMQgfubgL5oypJ3I6lUvdPL77sV8+FErLgJdZZtMSg/jS0lDBlBVcOwEQN5srVxqGlnzDSibNUhjDv48tUwRLXyrLWlr/QIJwlg==
+ bh=H2m/iIwMg3NWHwB7SnknGQngQY4gKtSyJH9pyTIZWVM=;
+ b=FgSys30J406ytIyvgjBss9KzWqjCBqF0cV9ogUN+D206tF49RGc068lqs3x0ASxkKkxDwUjnXjVeHg5V9aYxWLcwujxDfbXs7BzSUUMQLsIJmfOMUBxIbm2ibHKN7Oad+C7Tm6fK76XZq9R6Zbqs6U7r7dnfRwl4ASbN5P2Kbf831Vw++B5xMEPlBWORSVoIysHjcMmYA72j16kI2L5mQE0ccPR69ae4C+R7b64n787bdYOqNfy0i2ouIYYQNhD9JMxIzN3ZAWEc8U0vZXjqCc9sHHBBtehnF/E2ZX6zMbKTkXQqfYz/+WPtztN4E0AhHR7/Ipx8ZZzY8Ln1tg/zBA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -63,18 +63,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=lxCE1wG/I3mMOJM+8q4VBNuNna6sL2JkhRWTAJELiTY=;
- b=VbS7S3ARxjOoXgzhO8Qpb5sFQZo40vXo2jd4xuUGtk/BX1bvVCgcr+GZj2dqkTXu2qXtJ3hZjaiG7vEPz69dAF2UxSEXo8roCGANlQet+ihSubKHQV8GRxWfxRzKYV7nGEOLwrJLYl/ScLERSQElMNRzR45rEpumI3ZmUAt5/5L1yPJYoAkLagcjbzdKQBfOKh1WMZ9yw7oI0FeTBdHR0Y2iGnEpyiifYDg0EiC64kcpgKz9codMzSDQuGUbQMeSDy/vXKkKcguECPSclVMTQOciTlGyUowk1u+d0FV9XV3PAUKc8Q3KO/gkJbQiS94OUNPSw0pllV2JRKZ7RfryLw==
-Received: from BN9PR03CA0087.namprd03.prod.outlook.com (2603:10b6:408:fc::32)
- by AT6PR12MB026552.namprd12.prod.outlook.com (2603:10b6:170:116::15) with
+ bh=H2m/iIwMg3NWHwB7SnknGQngQY4gKtSyJH9pyTIZWVM=;
+ b=FshHAS+SJ3ZSge6qofR2CWIcS3BKRCDvAeczDtGoTgBYOnUFtA9o0IT6ZSfnnALiU0riRqgMhttFxq3qq0PyxSxUeC/jIa74owDHF0IJCRL/n9ZColotKgL+tyHVSfNduNhc0CDH6zeiyG/jXNK1d9E+H4OPgyYhGTXnv0nn8kRQEXZEh1Hjsqd5rG8eVq/Nm3ga3rKSM7WYWZ0lckO1oGytuLMwf31qcDOmi6A1iCMVCS3l1vjf8+HBvorOVqjFZSA+8Iv4cHHhg/Fj+IOCV0DAC0BNGY/336m8ZuurVP1Y9xZQyqp2YmAlZVKEI1JnjfZFMWcPMhGoSDJThjst4A==
+Received: from CH0PR04CA0085.namprd04.prod.outlook.com (2603:10b6:610:74::30)
+ by DS8PR12MB333896.namprd12.prod.outlook.com (2603:10b6:8:447::16) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.12; Mon, 9 Nov
- 2026 10:44:52 +0000
-Received: from BN3PEPF00022BCD.namprd03.prod.outlook.com
- (2603:10b6:408:fc:cafe::5e) by BN9PR03CA0087.outlook.office365.com
- (2603:10b6:408:fc::32) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.592.12 via Frontend Transport; Mon, 9
- Nov 2026 10:44:52 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.13; Mon, 9 Nov
+ 2026 10:52:29 +0000
+Received: from CH2PEPF0000014A.namprd02.prod.outlook.com
+ (2603:10b6:610:74:cafe::54) by CH0PR04CA0085.outlook.office365.com
+ (2603:10b6:610:74::30) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.592.13 via Frontend Transport; Mon, 9
+ Nov 2026 10:52:28 +0000
 X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
  is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -82,19 +82,19 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.117.161 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.117.161) by
- BN3PEPF00022BCD.mail.protection.outlook.com (10.167.248.169) with Microsoft
+ CH2PEPF0000014A.mail.protection.outlook.com (10.167.244.107) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Mon, 9 Nov 2026 10:44:51 +0000
+ 15.21.615.4 via Frontend Transport; Mon, 9 Nov 2026 10:52:28 +0000
 Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
  (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Mon, 9 Nov
- 2026 02:44:37 -0800
+ 2026 02:52:17 -0800
 Received: from [10.125.206.9] (10.126.231.37) by rnnvmail201.nvidia.com
  (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Mon, 9 Nov
- 2026 02:44:32 -0800
-Message-ID: <9113a476-91c5-44fe-9160-ff9c82f7550f@nvidia.com>
-Date: Mon, 9 Nov 2026 12:44:29 +0200
+ 2026 02:52:12 -0800
+Message-ID: <a9936dee-857d-41bc-b324-cc471172bdbf@nvidia.com>
+Date: Mon, 9 Nov 2026 12:52:09 +0200
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -105,55 +105,55 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH rdma-next 21/23] RDMA/mlx5: Clamp log_max_* shifts in
- query_device and ucontext paths
+Subject: Re: [PATCH rdma-next 23/23] RDMA/mlx5: Advertise adversarial mode via
+ ib_device::adversarial_mode
 To: <netdev-bot+sashiko@kernel.org>
 CC: <jgg@ziepe.ca>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
 	<netdev@vger.kernel.org>, <saeedm@nvidia.com>, <tariqt@nvidia.com>,
 	<mbloch@nvidia.com>, <kuba@kernel.org>, <pabeni@redhat.com>,
 	<edumazet@kernel.org>, <davem@davemloft.net>, <andrew+netdev@lunn.ch>,
 	<dtatulea@nvidia.com>, <moshe@nvidia.com>, <maorg@nvidia.com>
-References: <20261103163949.1554-22-yishaih@nvidia.com>
- <179408310732.994134.11296743978617194234@kernel.org>
+References: <20261103163949.1554-24-yishaih@nvidia.com>
+ <179408310891.994134.2389971836310893033@kernel.org>
 Content-Language: en-US
 From: Yishai Hadas <yishaih@nvidia.com>
-In-Reply-To: <179408310732.994134.11296743978617194234@kernel.org>
+In-Reply-To: <179408310891.994134.2389971836310893033@kernel.org>
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
 X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
  rnnvmail201.nvidia.com (10.129.68.8)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN3PEPF00022BCD:EE_|AT6PR12MB026552:EE_
-X-MS-Office365-Filtering-Correlation-Id: 36dcd3d7-f796-4d26-02e5-08df3e4e7c00
+X-MS-TrafficTypeDiagnostic: CH2PEPF0000014A:EE_|DS8PR12MB333896:EE_
+X-MS-Office365-Filtering-Correlation-Id: a2fb5536-1b81-46d1-bd97-08df3e4f8c6d
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|7416014|376014|23010399003|82310400026|36860700016|11063799006|4143699003|56012099006|261021121427099003|261021135927099003|261022075727099003|261022105027099003|261009223027099003|261026140227099003|261026121527099003|261028144727099003|261102123227099003|10067099003|18002099003|22082099003|6133799003;
+	BCL:0;ARA:13230040|7416014|23010399003|376014|1800799024|82310400026|36860700016|261009223027099003|11063799006|4143699003|56012099006|261021121427099003|261022105027099003|261022075727099003|261026121527099003|261026140227099003|261028144727099003|261102123227099003|10067099003|22082099003|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	QSVp12MjEHcRzcw1tLV+mi7W4v6JB7PjtLKHU31OgNHdDymIlEAk7i+RtcZHK+qBFM0mvR3cZFUxaE9ZB22dcduEzFNQ6umTCDtqiunesmCinyq7pqtojovTHQ+oLcF0l0tCjwCsJFyqHGLuFvkLkvCoYQ924dkcF0PooebLJVZHOR1ohmI+2bnVGsaYrHjyX0xLuOYRb86Yv5i9WjBtdLo8J4rZ4s+Ny9kKYhUf4iPBYUV3t2RlMLm94deMaaLaMZZi7vu6w4DEIrrtjqDUTFGBva7mNasLb2c6ay49AZoYUV+9VdOR31qZ1eDo2tCMkStlrJDb7l/UAw8weuju6UkAODuCyqIn0/plaOwi2Mfy0UZ0ut3as6NauIJV+6knw/89AfoCBKtqWwFieg/Jz/fH+OqpO/3neyBKadVJcu8z5kOxs8+rKz9gyDM0b4h+kse9E/pzFwPfr4ascCGEZ6IVptoAbqhU6/6Urvvjv5lWjtAbowyXC1wenRjFch0BxMnWnVuS1U8BSCkJI37a4N/7qmYsA+V8blFo3zd3EsSrh4AjqPX9zaXlv4aZVJfd9N/wsEqQWIfY8apQIfHiEtbML/cHDo3y9NwuLxRMQB9mKmQIyS6kbQOXGsgwySHPq56RdhaPu+TzWdnBaUoqQTX6St1kMnEhu94wvYH0q/x50GX55Am4PIvuVCDepwPlFfGTAODaNxyyqqnscQiG6w==
+	dZ9QXqCyZqMq9uUIlqiC8hDUrHJsenc1dyr/iiBNkTLnKWN7yL8bClV7iNxWJ9pc0qEkcGHOeR7eCaJf6YOYVOkJXWuRhC6UdUCUo9ZrZP4R4vSenVmpWnEtZtDb9+mMZem1CCqZQ6rogLPLkhfDnSyomp+0/RmX++tobP2X6Bbvz+gWMsbayJs3g6byFKwyPekFV0LqXg19KdfgTqzmF+qphQGew67IwRxjSd48VJusjB65pe+LY3TP5JY8PfxU1vjAYn+pPsTBoQYy/PGCpNor8N3LoQTNnzuXEcuoD14SFqmgwMANBUg2pmANE4G+F2gJWbXQl9iNvyH2Z7T8nhlyo3It4CoLrm6u+1LXWqGkXu1iFFyNDZQFv18DWeL3nAIrin1jGG9JB6pv3eVXKDMkAfJo0PX1m5jfTECa89S6rfAI8nIRdtkI2gp1ejVbbLQARaBRAeLnC4a7Ryyp7ZMFZ20R1ygmgEqFMp5GM4HMMoRPx9EePrH0pl4m64baiqja0JSqL6ciM/s0lyv/7FuLX7+NLSxJ/teKlobf+LBtaatyQ49z5XKeTiGUlOUbvhALEUgbI2ip1++gxIKXbwLM1XPIqWnZxG6Ksr8wBi5Wmy/2YTMbWmy/r4XK8uG23cDjLvmOnRcRh5SK+K9R3zsWI2MRptGuCZwfq9hWNGVr8laTTeKBCvMpbhc4a967eEu/fOepcT8IvAIuJ50+PA==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(23010399003)(82310400026)(36860700016)(11063799006)(4143699003)(56012099006)(261021121427099003)(261021135927099003)(261022075727099003)(261022105027099003)(261009223027099003)(261026140227099003)(261026121527099003)(261028144727099003)(261102123227099003)(10067099003)(18002099003)(22082099003)(6133799003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(7416014)(23010399003)(376014)(1800799024)(82310400026)(36860700016)(261009223027099003)(11063799006)(4143699003)(56012099006)(261021121427099003)(261022105027099003)(261022075727099003)(261026121527099003)(261026140227099003)(261028144727099003)(261102123227099003)(10067099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	NsH8nGrLRnoBgp6QSfS+Z8H3uxQlPIkilRYynpcp3MbJVFISTlJLlVzR8KII8WFt4/naPZ/XRL4gCG5LNuWoYrYkn5jaKoKzJC/6W2zFkzovZ/+ZCgFoVNgzGAVh8KBba1F3n0fEHaehGeRo72QJ9ECeODpqvvuny6kEeSNB7Vv7jQQ+5qLAFqCb5uwSQQemJIHDgOedQRwwmL0bhvfe/FEIdbbHmBUdL4mXmiAJj4r+drbq7uZ6kRmHXkcJk59bhjDhbgSnzmEmxLkNDpCOVJ6ZjYneXWJnYuEof2ZS86v0sNeMEhTJtJZbIJt53aClwEFy+zzOD+opDSnTcG5H1V4mahUs2qHnEQTnyPFVscIGwQAUYWlzWIa4L0lH3wNfdVfFBSPxYvzTqT9fAHwt6ftN45d6hHDHPLUWZjGdYXGye01NrXyUmGGIHjl15RsM
+	VKHatse6hNVwJfCBHBPDhe5Qt+LwuWk34YXnM7IiBJtxYtNNh9dzdeHLCp+dElsnCNRyV8Xj/xDKL3czNVaNcOD20OvxTlNJc4EQZnT6/e4iDeuJE74D6wUvXVTcrTd3ByTtv91ky47AVRn5GKlN9JDkGGwc3oO7Th7BQ1fQEtA3VeVA8NoNs47fZ4jpo1Te7tAXjhIzzvhkFxJOpQswJD0gDxgj6JuNW+9Qtsxdl2+oudEFRL9IvdGfdNVxwTPvoPo+SjNWuy7weNJUndVdrGphin1InLcrRlmt/kDBRO+lcdJrJJANgyWCDtmA11hXMIhq6XgTg/ibLHJz97jkYr99c4Oez7BfWqWNPxpUfbFsXHBuWE2dFadsPOGiASxtxLZ6ABJW830+ZqoFODoJvK6gFNwpmLgrxLYG70n5fmaAk/mPHxJJPgN8eRVWxfxV
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Nov 2026 10:44:51.6923
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Nov 2026 10:52:28.8141
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 36dcd3d7-f796-4d26-02e5-08df3e4e7c00
+X-MS-Exchange-CrossTenant-Network-Message-Id: a2fb5536-1b81-46d1-bd97-08df3e4f8c6d
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BN3PEPF00022BCD.namprd03.prod.outlook.com
+	CH2PEPF0000014A.namprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AT6PR12MB026552
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS8PR12MB333896
 
 On 07/11/2026 22:25, netdev-bot+sashiko@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 3 potential
+> Thank you for your contribution! Sashiko AI review found 2 potential
 > issue(s) to consider.
 > 
-> Critical: 0 · High: 0 · Medium: 1 · Low: 2
+> Critical: 0 · High: 0 · Medium: 1 · Low: 1
 > 
 > If you believe none of the issues are legitimate, please reply to each
 > issue of Medium severity or higher and explain why the AI is wrong.
@@ -161,152 +161,127 @@ On 07/11/2026 22:25, netdev-bot+sashiko@kernel.org wrote:
 > know by including "pw-bot: cr" as a separate line at the end of your reply
 > (one such reply per series is enough).
 > 
-> - [Medium] mlx5_ib_create_srq() (drivers/infiniband/hw/mlx5/srq.c) now
->    takes its SRQ size limit from MLX5_CAP_GEN_LOGSZ_U32(log_max_srq_sz).
-> - [Low] The commit message does not fully match the diff.
-> - [Low] When FW reports log_max_cq_sz >= 31, mlx5_ib_query_device() now
->    advertises props->max_cqe = MLX5_CAP_GEN_LOGSZ_U32(log_max_cq_sz) - 1…
+> - [Medium] The series is not bisectable on confidential-computing (CoCo)
+>    guests.
+> - [Low] The commit message understates what this one line does.
 > 
 > --
 > 
-> RDMA/mlx5: Clamp log_max_* shifts in query_device and ucontext paths
+> RDMA/mlx5: Advertise adversarial mode via ib_device::adversarial_mode
 > 
-> This commit replaces the open-coded 1 << cap computations of FW log_max_*
-> capabilities with MLX5_CAP_GEN_LOGSZ_U32() and MLX5_CAP_GEN_LOGSZ_U64().
-> This covers the query_device, query_port, ucontext and SRQ create paths.
-> It also computes max_qp_wr in 64 bits and saturates the max_res_rd_atom
-> and max_total_mcast_qp_attach products at U32_MAX.
-> 
->> The device, port and ucontext attributes and the SRQ size limit are
->> computed as 1 << cap from 8-bit log_max_* FW capabilities. An untrusted
->> NIC can report 31 or more, which makes the shift undefined. The same
->> applies to 1ull << log_pg_sz with a value of 64 or more.
-> 
-> [Severity: Low]
-> This isn't a bug, but is the "8-bit log_max_*" description accurate? In
-> mlx5_ifc.h several of the converted fields are narrower, for example:
-> 
-> 	u8         log_max_msg[0x5];
-> 
-> log_tag_matching_list_sz is also 5 bits wide. log_max_klm_list_size and
-> log_max_ra_req_qp are 6 bits.
-> 
-> The diff also changes the tso_caps computation in mlx5_ib_query_device():
-> 
-> 	resp.tso_caps.max_tso = BIT(max_tso);
-> 
-> Here max_tso comes from the 5-bit Ethernet cap MLX5_CAP_ETH(max_lso_cap),
-> not from a log_max_* general cap, and the commit message doesn't mention
-> this change. The BIT() conversion itself looks correct.
-> 
-> Could the message be updated to cover this change and to fix the field
-> width?
-
-Right, will fix the commit message in V1.
-
+> This commit sets ib_device::adversarial_mode from the
+> mlx5_ib_adversarial_mode global in mlx5_ib_stage_caps_init(). The uverbs
+> core can then report adversarial mode to rdma-core and only let
+> adversarial-mode-aware userspace open a context on the device.
 > 
 >> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
->> index c29102260989f..ace4cdc95c9da 100644
+>> index ace4cdc95c9da..f8af90941b53d 100644
 >> --- a/drivers/infiniband/hw/mlx5/main.c
 >> +++ b/drivers/infiniband/hw/mlx5/main.c
-> 
-> [ ... ]
-> 
->> @@ -1111,29 +1112,31 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
->>   	props->max_send_sge = max_sq_sg;
->>   	props->max_recv_sge = max_rq_sg;
->>   	props->max_sge_rd	   = MLX5_MAX_SGE_RD;
->> -	props->max_cq		   = 1 << MLX5_CAP_GEN(mdev, log_max_cq);
->> -	props->max_cqe = (1 << MLX5_CAP_GEN(mdev, log_max_cq_sz)) - 1;
->> +	props->max_cq		   = MLX5_CAP_GEN_LOGSZ_U32(mdev, log_max_cq);
->> +	props->max_cqe = MLX5_CAP_GEN_LOGSZ_U32(mdev, log_max_cq_sz) - 1;
-> 
-> [Severity: Low]
-> If FW reports log_max_cq_sz >= 31, this advertises max_cqe as 2^31 - 1.
-> Can the CQ create path actually honour that value?
-> 
-> mlx5_ib_create_user_cq() in cq.c rounds the requested size up and then
-> checks it against INT_MAX:
-> 
-> 	if (entries > max_cq_entries || entries > INT_MAX)
-> 		return -EINVAL;
-> 
-> cq_roundup_entries() is 1ULL << fls64(cqe), so any cqe in
-> [2^30, 2^31 - 1] rounds up to 2^31 and gets -EINVAL. That makes the real
-> maximum 2^30 - 1.
-> 
-> Would a consumer that sizes its CQ from attrs.max_cqe then fail to create
-> the CQ? For log_max_cq_sz <= 30 the two values agree.
-> 
-
-Right, V1 will cap the advertised max_cqe at the largest CQ size the 
-create path accepts.
-
-> [ ... ]
-> 
->> diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
->> index 6a4a937d97ce9..3fbb0eaf12558 100644
->> --- a/drivers/infiniband/hw/mlx5/srq.c
->> +++ b/drivers/infiniband/hw/mlx5/srq.c
->> @@ -198,7 +198,7 @@ int mlx5_ib_create_srq(struct ib_srq *ib_srq,
->>   	size_t buf_size;
->>   	int err;
->>   	struct mlx5_srq_attr in = {};
->> -	__u32 max_srq_wqes = 1 << MLX5_CAP_GEN(dev->mdev, log_max_srq_sz);
->> +	__u32 max_srq_wqes = MLX5_CAP_GEN_LOGSZ_U32(dev->mdev, log_max_srq_sz);
+>> @@ -4778,6 +4778,7 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
+>>   	}
+>>   
+>>   	dev->ib_dev.use_cq_dim = true;
+>> +	dev->ib_dev.adversarial_mode = mlx5_ib_adversarial_mode;
 > 
 > [Severity: Medium]
-> With log_max_srq_sz >= 31 this limit now saturates at 2^31. Can the rest
-> of mlx5_ib_create_srq() handle queue sizes that large?
+> Can the series still be bisected on CoCo guests when this assignment
+> comes last?
 > 
-> In adversarial mode the caps filter passes log_max_srq_sz through
-> unchanged (MLX5_HCA_CAP_ALLOW in caps_filter.c). A uverbs user could then
-> request max_wr = 0x7fffffff, which passes the
-> init_attr->attr.max_wr >= max_srq_wqes check. After that:
+> An earlier patch, "RDMA/mlx5: Derive mlx5_ib_adversarial_mode global from
+> mlx5_core adversarial API", sets the global in mlx5_ib_init():
 > 
-> 	srq->msrq.max    = roundup_pow_of_two(init_attr->attr.max_wr + 1);
+>      mlx5_ib_adversarial_mode = mlx5_is_adversarial();
 > 
-> This stores 2^31 into the int max field of struct mlx5_core_srq, which
-> becomes INT_MIN.
+> This comes from cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT), so it is true
+> on any SEV-SNP/TDX guest.
 > 
-> 	buf_size = srq->msrq.max * desc_size;
-> 	if (buf_size < desc_size)
-> 		return -EINVAL;
+> Next, "RDMA/mlx5: Block generic CQ poll path in adversarial mode" adds
+> this to mlx5_poll_one():
 > 
-> When msrq.max >= 2^26, this size_t product is a power of two >= 2^31. It
-> passes the wrap check. However, create_srq_user() and create_srq_kernel()
-> take int buf_size, so the value is truncated to 0 or INT_MIN.
+>      if (unlikely(mlx5_ib_adversarial_mode))
+>          return -EOPNOTSUPP;
 > 
-> On the user path the truncated value becomes the min_size passed to
-> ib_umem_get_desc_check(), so a dmabuf descriptor of any size is accepted.
+> That patch says this is safe because kernel ULPs don't bind to the device.
 > 
-> in.log_size = ilog2(srq->msrq.max) still describes the full queue to FW.
-> mlx5_cmd_create_srq()->create_srq_cmd()->__set_srq_page_size() then calls
-> get_pas_size(), which computes:
+> However, kernel ULPs only stop binding once ib_device_check_mandatory()
+> sees the core flag:
 > 
-> 	u32 rq_sz	  = 1 << (log_srq_size + 4 + log_rq_stride);
+>      if (device->adversarial_mode)
+>          device->kverbs_provider = false;
 > 
-> Here the shift count is 32 to 36. That is the same kind of undefined shift
-> this commit removes.
+> mlx5 doesn't set ib_dev.adversarial_mode until this commit.
 > 
-> The garbage result feeds the WARN_ON() that compares against
-> ib_umem_num_dma_blocks() in __set_srq_page_size(). A local user could
-> make that WARN fire, or create an SRQ whose FW-declared size doesn't match
-> the pinned buffer.
+> That leaves a window from the CQ poll blocking patch up to "RDMA/core:
+> Report and enforce adversarial mode via GET_CONTEXT". In that window,
+> kverbs_provider stays true for mlx5 on a CoCo guest.
 > 
-> Finally, init_attr->attr.max_wr = srq->msrq.max - 1 is a signed overflow
-> when msrq.max is INT_MIN.
+> add_client_context() then binds MAD, CM, rdma_cm, IPoIB, SRP, iSER,
+> NVMe-oF and the other clients. Their CQs use mlx5_poll_one():
 > 
-> The downstream overflow could already be reached with log_max_srq_sz
-> values of 26 to 30. However, the commit message notes "the limits can now
-> reach 2^31" and fixes other consumers of 2^31 values.
+> mlx5_ib_poll_cq()
+>    cq->poll_one() == mlx5_poll_one()
+>      returns -EOPNOTSUPP
 > 
-> Should the SRQ path get a tighter bound as well? For example, it could
-> reject msrq.max > INT_MAX / desc_size, or keep
-> log_size + 4 + wqe_shift below 32. 
+> mlx5_ib_poll_cq() stops at the first non-zero return, so it always reports
+> 0 completions. Wouldn't MAD sends time out, the IPoIB TX ring fill up, and
+> NVMe-oF/SRP I/O hang in those intermediate commits?
+> 
+> In the same window, legacy rdma-core would still get contexts, and uverbs
+> POLL_CQ would always come back empty.
+> 
+> Could this assignment move into the patch that enables the driver-side
+> mode? Another option is to place it right after "RDMA/core: Suppress
+> kverbs_provider for adversarial_mode devices", before any hardening patch
+> that changes behaviour. Either way, every commit in the series would keep
+> working.
 
-Right, V1 rejects an SRQ size and a buffer size above INT_MAX, computing
-the buffer size with check_mul_overflow(). This also keeps log_size + 4 
-+ wqe_shift below 32.
+Setting ib_dev.adversarial_mode declares that the device supports 
+adversarial mode, so it is done last, once all the hardening is in
+place. Adversarial mode is not expected to be used with only part of the 
+series.
+
+> 
+> [Severity: Low]
+> This isn't a bug, but the commit message only says:
+> 
+>      Set ib_device::adversarial_mode during capability init so that the
+>      uverbs core layer can report adversarial mode to rdma-core and enforce
+>      that only adversarial-mode-aware userspace opens a context on this
+>      device.
+> 
+> In practice, this line turns on the full adversarial policy for every
+> mlx5 ib_device on a CC_ATTR_GUEST_MEM_ENCRYPT guest. The pf, raw_eth/rep
+> and plane profiles all run MLX5_IB_STAGE_CAPS.
+> 
+> With the flag set, ib_device_check_mandatory() clears kverbs_provider.
+> add_client_context() then skips every client that lacks no_kverbs_req:
+> 
+>      if (!device->kverbs_provider && !client->no_kverbs_req)
+>          return 0;
+> 
+> Only uverbs has no_kverbs_req. As a result, MAD, ib_umad, IB CM, SA,
+> rdma_cm, IPoIB, SRP, iSER, NVMe-oF, NFS/RDMA, RDS and SMC-R no longer
+> bind.
+> 
+> Because cma and SA never bind, librdmacm users going through ucma can't
+> use the device either, even if they are adversarial-aware.
+> 
+> Unmodified rdma-core also gets -EPERM, both from GET_CONTEXT and from the
+> legacy write() path.
+> 
+> There is no opt-out, since the decision comes only from
+> cc_platform_has(). Other patches in the series say this is intended, but
+> this commit is where it takes effect for mlx5.
+> 
+> Could the commit message say that, once this is applied, kernel ULPs and
+> rdma_cm-based userspace stop working on mlx5 in CoCo guests?
+> 
+>>   
+>>   	return 0;
+>>
+> 
+
+OK, will update the commit message in V1.
 
 Yishai
