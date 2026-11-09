@@ -1,50 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.27.60.169
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794229851;
-	b=GFjO97UnnNnEYaWl9Z1EM2dEq+sDk8uLg5ebraron6GtHJ6chRk6dzDIflmUnXswybB0
-	 Uvt13hfxgaaG6SbDHkL0CPefnrvuX7KRpyib3SSJOa9yDhHjiRwEK6GCmZVU6o7jqIgrV
-	 +Te3S4V51PeRzh/N0crmH/H6KciVQev3krcBQDxfU91BeUzywcbPhbApiDnRN6PvvZNQq
-	 5XleETvtMc7PFsB/aepX/lKl07iu4GhU1u1y0iLf2AyvF9C1Zrg2p9J4BEu0sHORnyssq
-	 ar0WQ1FzL92FDT1m40Kyeykm1VpQBw2nTE/Ll2k1pv2SwjMzpWoUzSzqq34EgRFYqpQ==
+	b=oCVR3FvmE9LOOYki2Bz1hVC3kchWPMX0vWCSi7jyMYvyGlDpKYPnYUIWzb2WH+BkqU53
+	 aNz6t+zqYpt8ydqJAVrFXP/l1AyReaFnz9JUW3oHCV9WQLntyd6qy1rzkRsHbyOCE3swl
+	 jb1MEYOsM/CqVAJB3tO0sIh4rm2EyNzgl+2CberVSocrvOVVH3M02+Y5bRTpBj1n/PVe2
+	 KKgMzAz3/lxb8djVyiyHGQJ8ecL1mb+dx0fvROgFFevZb84vcFt4duR6o3T7PVdtn1TdK
+	 IV3vfTNc99+aIDhFhcheIcVbSttYft1Tzo2ixLFSjnJA5X48xK3vM3MaGButu1y5OKw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794229851;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=aMuTF0Rp4AJLqq/hu0ov8pdez1qv5/LPIm5Jj2vh8O0=;
-	b=OaI4569Zvr/b4DlsWME1q6OF6NcVduRO6uI82Z2OKecU3DrYnrJoRCuk8KCnas3DQSod
-	 j3oIeaaUIq7FVapTU6n24G4h+U0EC+CIX1zXdaccb1avXiemz874eYmTdw9cjbDQFKCMA
-	 fUYmzxUz/4WsXfMLv+hOiBR6Amgu0BEQoT+0LYF32gXpLGiduE/zsFw6sLNwmkS08aqrB
-	 sVesWrO0cpzbjvwgZzgssKgryitNQcLwuN5v801UNarKo0a21YMqhwaQ5wRvL1o8AmuOg
-	 75vsEnqd/vxdXjnI7ZdO7AKE6WqldOWuJ98qQIDiKRpHojtObx3I4XSVlo2T2Y+CDDA==
+	bh=A3yAH5h3g2Pti7IAaF+jwJJqscRI/6K/NBiUoKCaD1Y=;
+	b=f99j9amMdBWXIMfpmxhEmAOWN0bNwLzNuMlgzAQ423U+GSXHDN2dZlN2qdnZnumNALd2
+	 +IiWb60SziHqMkJXbcdmuJmziGJEzAS5RWDlVG30MgdisKgQ1tBSYT998w1X6TXZbIrk6
+	 txJjHK8hzl1YKc5Zfr6BNZuS5xJ9YavDmN8ZPxcCYZA2BPteIaojSYCCZy3/lEYlq6s+m
+	 HEcN2efLLU1NYXPlSbiMVUEBGb3LfMY+chPVLVyyXceHkvk3cLcvLykeFDcbcsAhH9FXP
+	 oU6aHOjBkjoEL/9Jl18jwTzmXwvhpu6XlEoxuSnaLdpKnsKZJ3DG/cSF+5v8EA8X6eg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=corp.free.fr;
 	spf=pass smtp.mailfrom=corp.free.fr;
-	dkim=pass header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=iGlistFp;
+	dkim=pass header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b="VoQk9b/s";
 	arc=none smtp.remote-ip=212.27.60.169
 Received: from rcs.proxad.net (rcs.proxad.net [212.27.60.169])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B9A0606EE82;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDCA2606EE90;
 	Mon,  9 Nov 2026 13:10:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7B9A0606EE82
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DDCA2606EE90
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=corp.free.fr
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=corp.free.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=iGlistFp
+	dkim=pass (2048-bit key) header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=VoQk9b/s
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=corp.free.fr; s=rcs;
-	t=1794229849; bh=AvMfG0x9eaHPXbYtLDNNClLkN0EMNdf+A2XCW1/CUVk=;
+	t=1794229849; bh=xZoQ+486byQ7fMwqV6pT7InUOBPmODFGr1KhFM9u6Gc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=iGlistFpJ5qbOjwp6fPAXzTmoqogXfxCJ009kAcl1Df92j55COLYEPGx0kLYQkEEP
-	 sj4NU8KjBU4o4IrmlFM/1XfWeEOaPfab1QSW7oVYSewjL0XN/mAVG+AQQCzTVMsog/
-	 d6WJ+XORKOW82mQx/yqC/vuoOhAVuUdyP3RgdkUdNlvl45SCO8+rSoUtLkPACkyNC1
-	 lptHSdjVtWHsNKzKTErmL4IllGKXZcoVQ6mT/1fVKCbW0uGJHMeRSfHEj37IYII+qX
-	 l2FsFzyp4nR9KBhYxjjQFuQnaJFrFvrJnAtWD8bQd7mX9f0mbbQrt++7kr82zbpxgs
-	 Xw+pAn7QhnIGw==
+	b=VoQk9b/sklXhEJ5wiehkqzPfH24J+XMHwQM+Urv2loWfdav1zuwl3LoehVXBMLejv
+	 h1DgqWVLZ6AG1/tcpzOQAD+/yCVcHDCyodZGoJwfMWvXUu7WVSkeOxF+Ce4GCm1BIs
+	 074kjgA7vgzNefHWtwO8+agZGvmO9itO/S1gCTty8u+GhzkId448EIBCE+ykswj6Rj
+	 0+G25I6wKac+pQsZvfJHU0J0W5uowKBqiXNu2gAXnb2HIsBa1jjNK0+soUxaiiRxYz
+	 29HU4pWTivbwR01KSFB1xAegvDIKdHGh5KOSlzMc/d9MornxkXiTyP4Jn3zWIO2HGM
+	 5shx5JaBZG+hQ==
 Received: from lnxos-dev.home (82-66-150-212.subs.proxad.net [82.66.150.212])
-	by rcs.proxad.net (Postfix) with ESMTPSA id AA07844C11DB;
-	Mon,  9 Nov 2026 14:10:48 +0100 (CET)
+	by rcs.proxad.net (Postfix) with ESMTPSA id 2F11444C11DE;
+	Mon,  9 Nov 2026 14:10:49 +0100 (CET)
 From: Alexandre Cassen <acassen@corp.free.fr>
 To: Saeed Mahameed <saeedm@nvidia.com>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -73,9 +73,9 @@ Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
 	linux-doc@vger.kernel.org,
 	linux-kselftest@vger.kernel.org,
 	oss-drivers@corigine.com
-Subject: [PATCH net-next 07/10] selftests: forwarding: tc_flower: test the enc_key_id mask
-Date: Mon,  9 Nov 2026 14:10:33 +0100
-Message-ID: <20261109131039.959438-8-acassen@corp.free.fr>
+Subject: [PATCH net-next 08/10] net/mlx5e: TC, offload RX queue mapping in NIC flows
+Date: Mon,  9 Nov 2026 14:10:34 +0100
+Message-ID: <20261109131039.959438-9-acassen@corp.free.fr>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261109131039.959438-1-acassen@corp.free.fr>
 References: <20261109131039.959438-1-acassen@corp.free.fr>
@@ -90,94 +90,154 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-A filter on a block of tunnel keys must match a key inside the block and
-no key outside it. It must also dump its mask. A second filter proves that
-the frame outside the block reaches the device.
+skbedit queue_mapping steers a flow to one RX queue. ice, hns3 and
+octeontx2 already offload it. Add it to mlx5e NIC flows. The rule points
+to the direct TIR of the channel like ethtool steering rules.
 
-When tc does not know the mask or a device refuses it under skip_sw, the
-test only logs this. Reporting a skip would turn the exit status of the
-whole script into a skip.
+The direct TIR takes over the destination of the rule. The action must
+come last and cannot follow goto or mirred. A goto would also unbalance
+the reference count of its chain table.
+
+Reducing the channel count below the queue of a rule drops its traffic
+until the channel returns. The direct RQT of an inactive channel points to
+the drop RQ. ethtool refuses such a change for its own rules but nothing
+tracks the queues of TC rules. A channel change racing with the range
+check of a new rule has the same result. Direct TIRs exist up to the
+maximum channel count. The rule always points to a valid one.
+
+Tested on ConnectX-7 with firmware 28.48.1000.
 
 Signed-off-by: Alexandre Cassen <acassen@corp.free.fr>
 ---
- .../selftests/net/forwarding/tc_flower.sh     | 57 +++++++++++++++++++
- 1 file changed, 57 insertions(+)
+ .../net/ethernet/mellanox/mlx5/core/Makefile  |  3 +-
+ .../mellanox/mlx5/core/en/tc/act/act.c        |  1 +
+ .../mellanox/mlx5/core/en/tc/act/act.h        |  1 +
+ .../mellanox/mlx5/core/en/tc/act/rx_queue.c   | 49 +++++++++++++++++++
+ .../net/ethernet/mellanox/mlx5/core/en_tc.c   |  4 ++
+ .../net/ethernet/mellanox/mlx5/core/en_tc.h   |  1 +
+ 6 files changed, 58 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/rx_queue.c
 
-diff --git a/tools/testing/selftests/net/forwarding/tc_flower.sh b/tools/testing/selftests/net/forwarding/tc_flower.sh
-index b58909a93112..9d9f109ab895 100755
---- a/tools/testing/selftests/net/forwarding/tc_flower.sh
-+++ b/tools/testing/selftests/net/forwarding/tc_flower.sh
-@@ -3,6 +3,7 @@
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Makefile b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
+index a1871259210d..f8d1696ab5eb 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/Makefile
++++ b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
+@@ -56,7 +56,8 @@ mlx5_core-$(CONFIG_MLX5_CLS_ACT)     += en/tc/act/act.o en/tc/act/drop.o en/tc/a
+ 					en/tc/act/vlan.o en/tc/act/vlan_mangle.o en/tc/act/mpls.o \
+ 					en/tc/act/mirred.o en/tc/act/mirred_nic.o \
+ 					en/tc/act/ct.o en/tc/act/sample.o en/tc/act/ptype.o \
+-					en/tc/act/redirect_ingress.o en/tc/act/police.o
++					en/tc/act/redirect_ingress.o en/tc/act/police.o \
++					en/tc/act/rx_queue.o
  
- ALL_TESTS="match_dst_mac_test match_src_mac_test match_dst_ip_test \
- 	match_src_ip_test match_ip_flags_test match_pcp_test match_vlan_test \
-+	match_enc_key_id_mask_test \
- 	match_ip_tos_test match_indev_test match_ip_ttl_test
- 	match_mpls_label_test \
- 	match_mpls_tc_test match_mpls_bos_test match_mpls_ttl_test \
-@@ -280,6 +281,62 @@ match_vlan_test()
- 	log_test "VLAN match ($tcflags)"
- }
+ ifneq ($(CONFIG_MLX5_TC_CT),)
+ 	mlx5_core-y			     += en/tc_ct.o en/tc/ct_fs_dmfs.o
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/act.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/act.c
+index 0380a04c3691..9b5d7d5ee271 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/act.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/act.c
+@@ -41,6 +41,7 @@ static struct mlx5e_tc_act *tc_acts_nic[NUM_FLOW_ACTIONS] = {
+ 	[FLOW_ACTION_ADD] = &mlx5e_tc_act_pedit,
+ 	[FLOW_ACTION_CSUM] = &mlx5e_tc_act_csum,
+ 	[FLOW_ACTION_MARK] = &mlx5e_tc_act_mark,
++	[FLOW_ACTION_RX_QUEUE_MAPPING] = &mlx5e_tc_act_rx_queue,
+ 	[FLOW_ACTION_CT] = &mlx5e_tc_act_ct,
+ };
  
-+enc_key_id_mask_check()
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/act.h b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/act.h
+index 2e528b2c34d6..e6df5f0f27a7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/act.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/act.h
+@@ -94,6 +94,7 @@ extern struct mlx5e_tc_act mlx5e_tc_act_sample;
+ extern struct mlx5e_tc_act mlx5e_tc_act_ptype;
+ extern struct mlx5e_tc_act mlx5e_tc_act_redirect_ingress;
+ extern struct mlx5e_tc_act mlx5e_tc_act_police;
++extern struct mlx5e_tc_act mlx5e_tc_act_rx_queue;
+ 
+ struct mlx5e_tc_act *
+ mlx5e_tc_act_get(enum flow_action_id act_id,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/rx_queue.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/rx_queue.c
+new file mode 100644
+index 000000000000..869da3cb703a
+--- /dev/null
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/rx_queue.c
+@@ -0,0 +1,49 @@
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++
++#include "act.h"
++#include "en/tc_priv.h"
++#include "en/rx_res.h"
++
++static bool
++tc_act_can_offload_rx_queue(struct mlx5e_tc_act_parse_state *parse_state,
++			    const struct flow_action_entry *act,
++			    int act_index,
++			    struct mlx5_flow_attr *attr)
 +{
-+	tc filter show dev gt-ex ingress pref 1 | grep -q "enc_key_id 256/0xf00"
-+	check_err $? "Did not dump the mask"
++	struct netlink_ext_ack *extack = parse_state->extack;
++	struct mlx5e_tc_flow *flow = parse_state->flow;
 +
-+	$MZ gt1 -c 1 -p 64 -a "$(mac_get gt1)" -b $h2mac -t ip -q
++	/* The direct TIR takes over the destination of the rule */
++	if (!flow_action_is_last_entry(parse_state->flow_action, act) ||
++	    attr->dest_chain || flow_flag_test(flow, HAIRPIN)) {
++		NL_SET_ERR_MSG_MOD(extack,
++				   "RX queue mapping must be the last action and cannot follow goto or mirred");
++		return false;
++	}
 +
-+	tc_check_packets "dev gt-ex ingress" 101 1
-+	check_err $? "Did not match a key inside the mask"
++	if (act->rx_queue >= flow->priv->channels.params.num_channels) {
++		NL_SET_ERR_MSG_MOD(extack, "RX queue index out of range");
++		return false;
++	}
 +
-+	$MZ gt2 -c 1 -p 64 -a "$(mac_get gt2)" -b $h2mac -t ip -q
-+
-+	tc_check_packets "dev gt-ex ingress" 102 1
-+	check_err $? "Did not receive the key outside the mask"
-+
-+	tc_check_packets "dev gt-ex ingress" 101 1
-+	check_err $? "Matched a key outside the mask"
-+
-+	log_test "enc_key_id mask match ($tcflags)"
++	return true;
 +}
 +
-+match_enc_key_id_mask_test()
++static int
++tc_act_parse_rx_queue(struct mlx5e_tc_act_parse_state *parse_state,
++		      const struct flow_action_entry *act,
++		      struct mlx5e_priv *priv,
++		      struct mlx5_flow_attr *attr)
 +{
-+	RET=0
++	attr->nic_attr->rx_tirn = mlx5e_rx_res_get_tirn_direct(priv->rx_res,
++							       act->rx_queue);
++	attr->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
 +
-+	if ! tc filter add dev $h2 ingress flower help 2>&1 | grep -q MASKED-KEY-ID; then
-+		echo "SKIP: iproute2 too old; tc is missing the enc_key_id mask"
-+		return 0
-+	fi
-+
-+	tunnel_create gt1 gretap 192.0.2.1 192.0.2.2 dev $h1 key 300
-+	tunnel_create gt2 gretap 192.0.2.1 192.0.2.2 dev $h1 key 600
-+	ip link set dev gt1 master v$h1
-+	ip link set dev gt2 master v$h1
-+	ip link add gt-ex type gretap external # To collect tunnel info
-+	ip link set dev gt-ex up
-+	ip link set dev gt-ex master v$h2
-+	tc qdisc add dev gt-ex clsact
-+
-+	# A device may refuse a partial mask but software must take it
-+	tc filter add dev gt-ex ingress protocol ip pref 1 handle 101 flower \
-+		$tcflags enc_key_id 256/0xf00 action drop
-+	if [[ $? -ne 0 && $tcflags == "skip_sw" ]]; then
-+		log_info "Device refuses the enc_key_id mask"
-+	else
-+		tc filter add dev gt-ex ingress protocol ip pref 2 handle 102 \
-+			flower $tcflags enc_key_id 600 action drop
-+		enc_key_id_mask_check
-+	fi
-+
-+	tc qdisc del dev gt-ex clsact
-+	tunnel_destroy gt-ex
-+	tunnel_destroy gt2
-+	tunnel_destroy gt1
++	return 0;
 +}
 +
- match_ip_tos_test()
- {
- 	RET=0
++struct mlx5e_tc_act mlx5e_tc_act_rx_queue = {
++	.can_offload = tc_act_can_offload_rx_queue,
++	.parse_action = tc_act_parse_rx_queue,
++	.is_terminating_action = true,
++};
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index 28f09d234835..3823ccc60dd3 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -1267,6 +1267,10 @@ mlx5e_add_offloaded_nic_rule(struct mlx5e_priv *priv,
+ 		dest[dest_ix].type = MLX5_FLOW_DESTINATION_TYPE_TIR;
+ 		dest[dest_ix].tir_num = nic_attr->hairpin_tirn;
+ 		dest_ix++;
++	} else if (nic_attr->rx_tirn) {
++		dest[dest_ix].type = MLX5_FLOW_DESTINATION_TYPE_TIR;
++		dest[dest_ix].tir_num = nic_attr->rx_tirn;
++		dest_ix++;
+ 	} else if (attr->action & MLX5_FLOW_CONTEXT_ACTION_FWD_DEST) {
+ 		dest[dest_ix].type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
+ 		if (attr->dest_chain) {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.h b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.h
+index e1b8cb78369f..254ea76fcbe9 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.h
+@@ -66,6 +66,7 @@ struct mlx5e_tc_update_priv {
+ struct mlx5_nic_flow_attr {
+ 	u32 flow_tag;
+ 	u32 hairpin_tirn;
++	u32 rx_tirn;
+ 	struct mlx5_flow_table *hairpin_ft;
+ };
+ 
 -- 
 2.43.0
 
