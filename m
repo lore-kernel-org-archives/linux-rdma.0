@@ -1,102 +1,102 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.221.179
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.217.53
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794262518;
-	b=PcoMv3FbRGAWJ6V6wEnulyczpki1gVBkdxoQVOryXAZ3AIWBzYSKNrwJkwj1stPDNwR6
-	 ZTePSlFERt/fRC1LmD9kWjIeKT7nDWRceLfOltJiE0xvY92NlUZmBYEqQDhOPGoqpZpPA
-	 n3fxqBAqd2AHTveBbaT2MjD3US2s1bQ2CKKLACBO7435CTZ8vB5BsZl0xKQ4ryQfOiBFc
-	 oeqclx623Zo1cCpMbw7QyKYmypYtHn6OsDhZsoYESqQUuuwpWm2yesd9+P1hB2XsB2MlA
-	 uF2Yan8pj5aKeQ8Edx9gtdYvQNkkEvJSxDndr0QPGCmuUZ2mKP1jR/M7CpQyR292nbg==
+	t=1794262781;
+	b=iGXy7IBjRPXm69jv9VM0COVvP5EyFYgVm4qN8M6KpCrh6Z1drGe5iC78c31dTDASFJHB
+	 ZDdCwcglgsHZwnGuFpM5YzTsewXkQyfVrI5Y7WsjeAlbb+KSZ5izjoibI9nk/Wz4SdekF
+	 mN/gYHu5HuKOU7+V1luVdUVb7ZtuEa/oW73imo8VoUGf0jgIV2B/xg86S7eLngvjIpPRD
+	 elHLzSINUB9KsHq/oIbXP7GYJuT/mqdQ7o9VtAF/ZrLm5khPSsEnosQMugpedpDJVe7D1
+	 fIOlbxvupD76F8boY09pnRCEc10RrYGIsUWW/w0CsETJydZlzw0/mVY0rqncEsMya+g==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794262518;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794262781;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
 	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
 	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=zD/j+uY7QicxwzFZfKyAuCYeUIYmRXFTetf96EJ3FYI=;
-	b=UImx7xmZZiJXDZCzJuTS5dIXo87ZzKhfTdsyU4xDAI/pYRBhqRN5N2/NCVWkEKcSyIuk
-	 s+5wGClhA3R+uxptjlmzo+R7+5JklGPMGyVmYLRlmvssCnfT7pE9DlaWgL1eAYKBiEIqd
-	 hvkG5VYLacOLh8q25o0En/1Kd4wszLgNGKQ9jcJT/vhK2Y0/IJNkeCznG6d3PqGq5X6wL
-	 NiKhlEEysBDTJl2gTpDZqiB7mRG4qqac8qen4OmYdO2hPOPKvrcGpXdG7UGSVfiBB6aXA
-	 gufNhONZ9tU38e14fEnyARzdTuJGpIp6ZoE8WnUW1FSPg8uv7qvNWVWe9NwHbOXK0Bg==
+	bh=MP+WAilXYUhWawcb62odslULgFQa1HZ4MqYuoDALXQk=;
+	b=RDTinHO8gnl80xveF8AN1aJBdR2437MhOx82JN/H7Lwj5Xed9ythcLp1oKL/SpT/mPPC
+	 Y/s250YGZRQRysQ0rQ4U3DnaiH4KKE5NSU60NoSWvq+5gyNXrGlRmxnMBWNgA8cpgRPLF
+	 YGuxeamrn/01MBrd8wmfvWgR/J2J4iGIUPEnNGs4qKeKGCQfvKhVYrx87AwX+7/2PbBmQ
+	 d9x3OYsiPSXVQhz3Kh/5ROdNB89ZKLK8QY0R39N/pHvHAa7zLPKtkg+L9UvQnNSyK6n9P
+	 wzXJmV3lm5CFbZOt5ynVAUdtWFVQtVodHevCQiUygPykKy66ZP7JXEjk7lQwBM+HsMA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=everpuredata.com;
 	spf=pass smtp.mailfrom=purestorage.com;
-	dkim=pass header.d=everpuredata.com header.i=@everpuredata.com header.a=rsa-sha256 header.s=google header.b=1O628pa1;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.221.179
-Received: from mail-vk1-f179.google.com (mail-vk1-f179.google.com [209.85.221.179])
+	dkim=pass header.d=everpuredata.com header.i=@everpuredata.com header.a=rsa-sha256 header.s=google header.b=U+7hfUYf;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.217.53
+Received: from mail-vs1-f53.google.com (mail-vs1-f53.google.com [209.85.217.53])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E963606A32A
-	for <linux-rdma@vger.kernel.org>; Mon,  9 Nov 2026 22:15:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6E963606A32A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8FA4606A325
+	for <linux-rdma@vger.kernel.org>; Mon,  9 Nov 2026 22:19:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C8FA4606A325
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=everpuredata.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=purestorage.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=everpuredata.com header.i=@everpuredata.com header.a=rsa-sha256 header.s=google header.b=1O628pa1
-Received: by mail-vk1-f179.google.com with SMTP id 71dfb90a1353d-5ecda93627eso448126e0c.1
-        for <linux-rdma@vger.kernel.org>; Mon, 09 Nov 2026 14:15:16 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794262515; cv=none;
+	dkim=pass (2048-bit key) header.d=everpuredata.com header.i=@everpuredata.com header.a=rsa-sha256 header.s=google header.b=U+7hfUYf
+Received: by mail-vs1-f53.google.com with SMTP id ada2fe7eead31-745497ac8fcso483406137.0
+        for <linux-rdma@vger.kernel.org>; Mon, 09 Nov 2026 14:19:40 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794262780; cv=none;
         d=google.com; s=arc-20260327;
-        b=mA7Eyy22kNaaOv/Pl/eg4sQlh3OP5hBTsdww6/GpS5iybzd5nsZ4Qm/M3TAtiOi/O3
-         TJ79a7hgydXpWkGx0oZXoCDTP9SyaJQlhfVw7jFfnTG34xYZiNG4yvfqKKkAJTa1FDEL
-         3ATe9/0XlpJNP4PnbAbgVCTuOF3t4j+HRCQ0zW4DT3UsOo9Exu/HKlj9tkvZ5MVPmjYq
-         RbALVtxxy+3c5z5BVwzXYlkVdzO+aInNWQjyK8E9/9tn7rI7GZ3AYGjuAe0AWukYypIW
-         9mwblerfCaS9aRVRYbvBJ8/Fh/LXHSl44dsDc3YD2dFaWq5mw3Zv/ZqbHKOFiTItG5lp
-         FX4Q==
+        b=rdlxozc6mujYDz9X9EYN/uvm3HYVDqHxlqTPRQYt6Rz557MmS3d2BBDrdVbeZybLx8
+         /jjT+1Th2jb/FDnH5cfBVDwT/56Su7/cTQkTv3ORwawP6CUnpQdD99TIc0jztVFetl3P
+         pZd21lvgIpL+xJCQNsRulWedOvsqOvl23dgV25D/sB0pxNUUIO45haAxbUePCTJzTrT/
+         b5CNlt/3VpZd8Z/pgRd1VaVlper+X3YPmekaw6SXAOg7AFVWtHZ2D3ts12caA1L292cJ
+         HREM7H643d+gZNhArPTTL744GpH4hS3ZtFVE/Er9B0gkdNOdDpY8LVRlIG2+pa7kwHdR
+         gv8Q==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=zD/j+uY7QicxwzFZfKyAuCYeUIYmRXFTetf96EJ3FYI=;
-        fh=Vs3ZsFmpZaMIMMZTMKoQWAbSUUNct8P/FlrTl8ksa4k=;
-        b=ACffyTa8Lkxx3H4lolnd1oc1uED3nVH/8K/PrP6VKSSAIyflDo737HVg8RE1V7+w5Z
-         ZXWJ7XwGi6611VzlAlirufEE3H7Xi/p8E0Y4l6k/9MoNhRsQb3duT0dnEqT7lOrnS5e8
-         GBpEOhiGKn3nUkhFLPZthisAdR8xT6mD+p2ermyQ8PNq1CjQwhyx52vBHUpDoxPEVhAd
-         J49HQ9lgsVzAzGKq8gV2j4a7YbJ7ku6tv6tXM618V8/GgefjDfE4vYOmdeXD2fO++5RH
-         E0cjzTftD/U1Wv8OtrCqR9h+FMWEvczqOwLsjTpIkg4k8mlrRQy5e21qJAOSTaZBKpem
-         TTrg==;
+        bh=MP+WAilXYUhWawcb62odslULgFQa1HZ4MqYuoDALXQk=;
+        fh=brkLLnwlxknjZXTq2faHk9nAzbZRW4BLkRthomr32tk=;
+        b=GqPU7+E2pzzWiSs3ulm3HxG8QPtiaWwS9URB/ev1dlbHXD+fiTmH2hvWf7mlDt2IA2
+         QuD7FVF6ioRvxsesrOQUE1pnopZShw3Brc3MgrcaWfCJklzqOqnZWE41OKRygU5YUQ8t
+         IEERYrB3S9LVc7pX0U+AXjeiiNlFXpp/H+pHhglxzE0Btd0rSPWLRYqO2gU9bPp1szZL
+         DPSZkbCQkF26RXd8H1eU9nFfGe5djy+6GX2EWuZ1GNInZ7tojfeKjbthulszhxVwpUFx
+         ZAFEY2GT30j69yhdbIjuyWNZU6yJBQ9VhFvH3H9BSTCwGgch9uV1OhVXFoxrK/ABSV2k
+         2IVQ==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=everpuredata.com; s=google; t=1794262515; x=1794867315; darn=vger.kernel.org;
+        d=everpuredata.com; s=google; t=1794262780; x=1794867580; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=zD/j+uY7QicxwzFZfKyAuCYeUIYmRXFTetf96EJ3FYI=;
-        b=1O628pa1h234nL/631ufgYuWxp+JPEA1EC21h44rBPn2YWbpKaDMo94x+duo+rj8Vg
-         xKQ7s+sM2SiGWn21Tv02B8eJ4Sqvk2/z/Cuh/RP/tRSLag8m6U9wnpW1NFPIIU6Qo3BU
-         lUWAADkoqTX43/pyJk7A7zz6yD4H38a4Zza3Js1KfjqJJp7EcjEBO/Fq6KaFcbuJal67
-         Y0zajSHxFy53rhvalse3QIT/BIA5/7hGBzwM4++Qscheey465PEGErx3XGHD4smfC2wk
-         StV+TvDSBavjsZIBqEHsJP19iDrgNl44f/8pnPZ3BYbickVbi0+NB3sZuT12XIWkDQJh
-         /bIA==
+        bh=MP+WAilXYUhWawcb62odslULgFQa1HZ4MqYuoDALXQk=;
+        b=U+7hfUYfJSddCWuUxckhMhwwVvf4YQFBKE3rf1Ffnn40Rejr9+Yh38Ga+vgHW5lrDO
+         u9zBamgBF4E9yKrbFaeNuXsqhU7D4jUwYHCs+p7/lLuhc+nD7UZkoVAxYTimQHOY+eEd
+         FOjF6Rda6TddzuH8q6z+viwpegCRBhwpbr/PDuXBvjfwd/7wVfQSe/cMW/cw3sBAdxbO
+         HrjbeK0dVcCQXC3Z9EPzXDXmSNajinR7ACfLkeWbPE9AeHc6ZU2UJsGI4oXlbjcsP3q4
+         +4M5TmhBAX+zDVdunngxvnmR0/Mm8nRnNwnfUQjk0lbY7olcbMW5erdmQYX1KGJ00t4L
+         ToNQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794262515; x=1794867315;
+        d=1e100.net; s=20260707; t=1794262780; x=1794867580;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=zD/j+uY7QicxwzFZfKyAuCYeUIYmRXFTetf96EJ3FYI=;
-        b=IocKRVNEwb1bR15l4kvwADgdxx7YQ8keElX1BJAgfZCqfY0nnHeXzEgh9b99YSWlK0
-         qcbBAXl+LO9T49LXn2+Lu6iU/wRVZcUhBED9x/zejYQ4wXNIzAznpYoCFi6tBjloID2d
-         NlSqFEvYKRhaaT6fRkS62R+s3X9O8sf6lWB4h1nkX3JdRJD/ottud5wJQ3wCtelC8SmP
-         zQlpRMjF452EPCvrXuyKtKgxgwUbKsXiclusgXxRmCtNJ15/Ukok9d9gJtW/Vr8FDJY2
-         U84ewJrTfMQruRc+CBxwZn2GrMt96a2cX1CS1QV+v+Za/JY538ZHcLrCttAF6HDG0LQ1
-         nt4Q==
-X-Forwarded-Encrypted: i=1; AL+hErFS1PHrKyzehuzUN9XEU3DVdpKl7eVpOAd/kc9IJLAqKpnQ6YnXhpUV2i24Ps63t2MNyVuk2vZWIEut@vger.kernel.org
-X-Gm-Message-State: APuU4Z+lU6nOgY7OaataglHzN8cEaoZM1uyD2YS2320PJvVuAmF/oeh1
-	AJqro32yRO3bNEhW05j2Gmjo8/rS61GT3RzgabmeYhKAjKZjS78I+PqiH6dmkTHbgqahPiIZv13
-	K2kvrEvDiGWP4N38xXX7P0azXyj77p25z9Z2hSMfa9g==
-X-Gm-Gg: AYBFou2hIB5hZ3mvJhu0oUCJ8LwCFi4Ox/hedZVZjiqJ/celwvhs/FIyqx0J3UJ4dqx
-	TENP5uCuof0firq8KOff0tkbClBxyNj1VrQNOAwQk4y1PR3Oy3tM0JtAbY7iqb29VER4YcT2vCE
-	cFPDbl6qM3Bt4CM88JXOF7/QUlvsQBsf8A+tMuzpAgwh9NGJlGrDzbD9fJ3v2AEpJBf1aqs2ikZ
-	Mtrhj6lXIK34edKULa2RClgbWY2jhbCyilEP2MnOlexAhiAYOA/MePR/P8IxPCxc2MmXZ3D8nwT
-	BqLvaWEozpn3tIL45LyKFK7LCZkJg7Wov9E9f2gUnYf00NImhtgHuBCmocljZZuVr2oX0Egucp3
-	Av5FdgoSk5zTKnl//DSyTQD+MBechbOVEkADINA9efMC2PeSkVEWdXUT7gGwE/7virJdh4jWHk9
-	unXH/4OLl3vBIFlw0wIM/w0+1dBqk/owJxqYekIwFCcx7EUGxNjKwdwm3K+n3PSFQrNW6OyETpt
-	mD6Qz3cHPjYjbnXUpuaQzjy
-X-Received: by 2002:a05:6122:c8f:b0:5ea:d14a:ef8f with SMTP id
- 71dfb90a1353d-5ee0d0a8883mr233540e0c.4.1794262515029; Mon, 09 Nov 2026
- 14:15:15 -0800 (PST)
+        bh=MP+WAilXYUhWawcb62odslULgFQa1HZ4MqYuoDALXQk=;
+        b=B7vNTH2hIDZ0SBno6YUaw5ixu3BSe6I+ial/gdEO3S2BAiyR6+A/1BlRMkSUsxgrwc
+         MJ8GrZl0R8Y9necLwB9V3uzJpOPxMqdiTsYzQ4enxRhH1exxsWK0q6j0d0Dty9hpJJzp
+         7zVN1AJS2vHRnjFwioEuoX5iAb/n2XgxLoP+P9um6vxuSy8TiziokIPnShcGTzX68Lja
+         qItcCsCuN5eXzZdYIOH4nntkItGfbnkZEUPRMUr3yUP+pdgZUS1HEE6JkzuODyii5epc
+         UO6SG43IjlJMUXxvRAKdQHS7i2Vv7tgITLqMK7hRTuz/2mXk/RqabvP/BbmvQavutuPU
+         vaCg==
+X-Forwarded-Encrypted: i=1; AL+hErFEJ9cStlQufdINHSCAYYEjrvb3FYFV7xIMqepIVfAGkModhxORV+XI38scpzrrclK2pgUJsF7YGkL8@vger.kernel.org
+X-Gm-Message-State: APuU4Z9BWzuVTSBd2Z9/vW85hVIbCRMMULTYcJl5UVIrzkRGRaGcv/Nw
+	OrSI4/iIkOaiWQEi5VbCAXhnS7IqsTOtqjETXtUo5rnzzFKtKP8ks5sjRTjZ1QesrTiBZf8Rbbs
+	EmhT/T0CtYRnH9SN8B0AqVQM4C0kkw9l58aU0Y/MrtA==
+X-Gm-Gg: AYBFou28Jjh4xx4OFa19BgKLnqg2mA7ppZDnso0iFtWL2iiaWjzttIdxaYzKNNUCRU2
+	XNkZfgcvhmpBHJtaPhg5EvzHTjVY+T3mX8I/u8whVcsKXj+sQiUfFslCrBhQGvdi9JRbH80gg5J
+	OBrfzVb+iUnPbLCvrVUZtr3uxO9Frduf1vT1Do7tRM57H+E6EqWfD5PBKWXiM+u/jdCazFzNZkF
+	2YTnOyhVCzhpC93AoRaGLkbUt9AW1bWFlcu7YEqZcHnzSRwannnncIea+KMlSL251pD6/MYFpSp
+	1b2St99KUXeUWxGvv+Jke4DE0/wU4fAAyeyotDjfqnVoew+//FcC7E6ZO3NOLPXW+kjv9DLX5Ar
+	WUw2XNDaG0ukpXnFYPjqT9iSv1G2OmIPbiqLSLwHKg4ru+zoWT296GzbBbdIN7SK1mpsq6PtNWV
+	A7UT8K/zAz67buUiTx2zY/iG0QV35oylIO3hLUUkmN/1CZ+PVNsZiuMPFOrV1gvYHBNOJxqVY9p
+	NyfrlgmukYIcteLBgLG376R
+X-Received: by 2002:a05:6102:a51:b0:7d2:d159:f425 with SMTP id
+ ada2fe7eead31-7d301bd171emr279481137.19.1794262779351; Mon, 09 Nov 2026
+ 14:19:39 -0800 (PST)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -106,14 +106,14 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261109114734.2087878-1-tariqt@nvidia.com> <20261109114734.2087878-8-tariqt@nvidia.com>
-In-Reply-To: <20261109114734.2087878-8-tariqt@nvidia.com>
+References: <20261109114734.2087878-1-tariqt@nvidia.com> <20261109114734.2087878-5-tariqt@nvidia.com>
+In-Reply-To: <20261109114734.2087878-5-tariqt@nvidia.com>
 From: Rishikesh Jethwani <rjethwani@everpuredata.com>
-Date: Mon, 9 Nov 2026 14:15:04 -0800
-X-Gm-Features: AclHuK9j1OwlsHfQeJwA6s9PPtzDxE85HQ6rKN1IJUuBSgMWqtNT0r3Z_OQPFZM
-Message-ID: <CAKaoeS2w15yqv-yd9t8KC3aZMJH1VXM=oepk4sR9h1pPjerKOw@mail.gmail.com>
-Subject: Re: [RFC net-next 7/7] net/mlx5e: kTLS, Keep a TX connection on one
- SQ at a time
+Date: Mon, 9 Nov 2026 14:19:28 -0800
+X-Gm-Features: AclHuK9TsNUujWmbkc3zBgB09FhFzj4OUSQiMJsQdVHQFSB58CNhyZd_ZNz-s24
+Message-ID: <CAKaoeS0AC-czE9g8OWi=+oenZYRsgXjRkSX-BsX2imHhKNW+QA@mail.gmail.com>
+Subject: Re: [RFC net-next 4/7] net/mlx5e: Drain old TX SQs before activating
+ new channels
 To: Tariq Toukan <tariqt@nvidia.com>
 Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
 	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
@@ -138,421 +138,317 @@ Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Nov 9, 2026 at 3:50=E2=80=AFAM Tariq Toukan <tariqt@nvidia.com> wro=
+On Mon, Nov 9, 2026 at 3:49=E2=80=AFAM Tariq Toukan <tariqt@nvidia.com> wro=
 te:
 >
-> A kTLS TX connection must not post WQEs to another SQ while WQEs that it
-> posted to its SQ may be pending: both SQs would update its TIS state
-> with no ordering, corrupting the records on the wire. The stack and the
-> driver keep the TX queue of such a connection stable
-> (TLSDEV_F_STICKY_TXQ), but some paths bypass or defeat that: tc skbedit
-> queue_mapping skips queue selection, sk_tx_queue_mapping is shared with
-> the other devices on the route, and ooo_okay can be stale after an
-> upper device's qdisc reordered the socket's skbs.
+> On devices with tis_tir_td_order, commit 3b88a535a8e1 ("net/mlx5e:
+> Defer channels closure to reduce interface down time") closes the old
+> channels only after the new ones are activated. Their SQs are
+> deactivated before that, which rings a final doorbell, but nothing
+> waits for the HW to execute their pending WQEs: the completions of a
+> deactivated SQ are not polled, and the SQ is destroyed only when its
+> channel is closed. Meanwhile, the new SQ of the same TX queue starts
+> transmitting. A flow's WQEs still pending on the old SQ can then
+> execute after its newer WQEs on the new SQ, as WQE fences order only
+> within an SQ.
 >
-> Enforce it where the WQEs are posted. Each connection records the TX
-> queue that it posts on. An skb on another TX queue moves the connection
-> only if no other skb of its socket is in flight. An skb is freed only
-> once the WQEs posted for it completed, or were destroyed with their SQ,
-> so the connection then has no WQE pending on any SQ. An SQ that
-> replaces another on the same TX queue was drained or destroyed first.
-> Otherwise the skb is dropped before anything is posted, and counted in
-> a new tx[i]_tls_drop_txq_move counter. TCP retransmits it.
+> Besides reordering packets, this breaks kTLS TX offload. The WQEs of a
+> connection update its TIS crypto and record tracking state as they
+> execute. When old WQEs execute after new ones, e.g. because a PFC
+> pause held the old SQ back, the TIS state gets out of sync with the
+> TCP stream, and the connection's records go out corrupted.
 >
-> The move is made under the old TX queue's lock, taken with a trylock,
-> under which the connection's skbs are posted there, so it cannot race
-> with them. A connection that stays on its TX queue only compares the
-> queue index.
+> Before activating the new channels, drain the TX SQs of the old ones:
+> reap their completions until all their WQEs have completed. If they
+> do not drain in time, e.g. under a long pause, warn, and close the old
+> channels before activating the new ones, as before that commit. Move
+> the deferred closure into mlx5e_switch_priv_channels(), next to that
+> decision.
 >
-> A move that the TX queue selection allows, when the socket has nothing
-> else in flight, is made at selection. Otherwise the socket's next skbs,
-> queued behind the first one on the new TX queue, would hold
-> sk_wmem_alloc when it reaches the driver, and it would be dropped,
-> although nothing of the connection is pending on the old SQ.
+> Pointed out by Rishikesh Jethwani while discussing kTLS TX TIS reuse
+> for TLS 1.3 rekey on netdev.
 >
-> Tested on ConnectX-6 Dx, with 128 channels and 32 kTLS TX offloaded
-> connections streaming pattern data for 60 seconds to a software kTLS
-> receiver that checks every byte, while an egress tc skbedit
-> queue_mapping filter flips them between two TX queues every 20 ms.
-> Without this patch, 23 of 55 connections failed decryption. With it,
-> none did, and 7515 skbs were dropped over 2035 flips. Without the flips,
-> no skb was dropped.
+> Reproduced on ConnectX-6 Dx, with 248 channels, by changing the
+> channel count between 247 and 248 every 2 seconds while 32 kTLS TX
+> offloaded connections stream pattern data to a software kTLS receiver
+> that checks every byte. On this setup, the new channels are activated
+> about 230 ms after the old ones are deactivated, so the old SQs must
+> still hold WQEs by then: with every TX queue rate limited to 10 Mb/s,
+> 9 of 41 connections failed decryption in 60 seconds, and 11 of 43 in
+> 120 seconds. With this patch, no record failed in five such runs, 7
+> minutes in total; the drain timed out and fell back to closing the old
+> channels first 7 times. At 1 Gb/s per queue, the old SQs always
+> drained in time.
 >
-> Suggested-by: Rishikesh Jethwani <rjethwani@everpuredata.com>
+> Fixes: 3b88a535a8e1 ("net/mlx5e: Defer channels closure to reduce interfa=
+ce down time")
+> Reported-by: Rishikesh Jethwani <rjethwani@everpuredata.com>
+> Closes: https://lore.kernel.org/netdev/CAKaoeS1hj9XuM7ojLBCjGA=3DEXc2M-b+=
+eRjC2Sk=3D8L_8XYeJ18w@mail.gmail.com/
 > Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 > ---
->  .../ethernet/mellanox/mlx5/counters.rst       |  7 ++
->  .../net/ethernet/mellanox/mlx5/core/en/selq.c | 16 +++--
->  .../mellanox/mlx5/core/en_accel/ktls_tx.c     | 71 +++++++++++++++++++
->  .../mellanox/mlx5/core/en_accel/ktls_txrx.h   |  6 ++
->  .../ethernet/mellanox/mlx5/core/en_stats.c    |  4 ++
->  .../ethernet/mellanox/mlx5/core/en_stats.h    |  2 +
->  6 files changed, 100 insertions(+), 6 deletions(-)
+>  .../net/ethernet/mellanox/mlx5/core/en/txrx.h |  1 +
+>  .../net/ethernet/mellanox/mlx5/core/en_main.c | 88 ++++++++++++++++++-
+>  .../net/ethernet/mellanox/mlx5/core/en_tx.c   | 41 +++++++--
+>  3 files changed, 118 insertions(+), 12 deletions(-)
 >
-> diff --git a/Documentation/networking/device_drivers/ethernet/mellanox/ml=
-x5/counters.rst b/Documentation/networking/device_drivers/ethernet/mellanox=
-/mlx5/counters.rst
-> index cc498895f92e..0a08ffddc834 100644
-> --- a/Documentation/networking/device_drivers/ethernet/mellanox/mlx5/coun=
-ters.rst
-> +++ b/Documentation/networking/device_drivers/ethernet/mellanox/mlx5/coun=
-ters.rst
-> @@ -711,6 +711,13 @@ the software port.
->         data.
->       - Acceleration
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/txrx.h b/drivers/=
+net/ethernet/mellanox/mlx5/core/en/txrx.h
+> index 24e91279243e..b5bd1b6e8601 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/txrx.h
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/txrx.h
+> @@ -112,6 +112,7 @@ struct mlx5e_xmit_data_frags {
 >
-> +   * - `tx[i]_tls_drop_txq_move`
-> +     - Number of TLS packets dropped on ring i because their connection =
-still
-> +       had packets in flight on another ring. Posting them on ring i wou=
-ld
-> +       break the ordering of the connection's TLS state updates in the
-> +       device. TCP retransmits the dropped data.
-> +     - Error
-> +
->     * - `ptp_cq[i]_abort`
->       - Number of times a CQE has to be skipped in precision time protoco=
-l due to
->         a skew between the port timestamp and CQE timestamp being greater=
- than
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/selq.c b/drivers/=
-net/ethernet/mellanox/mlx5/core/en/selq.c
-> index dfaee2c3624e..0bac217bbfec 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/selq.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/selq.c
-> @@ -9,6 +9,7 @@
->  #include "en.h"
->  #include "en/ptp.h"
->  #include "en/htb.h"
-> +#include "en_accel/ktls_txrx.h"
+>  netdev_tx_t mlx5e_xmit(struct sk_buff *skb, struct net_device *dev);
+>  bool mlx5e_poll_tx_cq(struct mlx5e_cq *cq, int napi_budget);
+> +bool mlx5e_txqsq_drain(struct mlx5e_txqsq *sq);
+>  void mlx5e_free_txqsq_descs(struct mlx5e_txqsq *sq);
 >
->  struct mlx5e_selq_params {
->         unsigned int num_regular_queues;
-> @@ -288,9 +289,6 @@ static int mlx5e_select_sticky_queue(struct net_devic=
-e *dev,
->  {
->         int txq_ix;
->
-> -       if (mlx5e_sk_txq_may_move(skb))
-> -               return -1;
-> -
->         txq_ix =3D sk_tx_queue_get(skb->sk);
->         if (txq_ix < 0 || txq_ix >=3D dev->real_num_tx_queues)
->                 return -1;
-> @@ -309,6 +307,7 @@ u16 mlx5e_select_queue(struct net_device *dev, struct=
- sk_buff *skb,
->         struct mlx5e_priv *priv =3D netdev_priv(dev);
->         struct mlx5e_selq_params *selq;
->         struct sock *sk =3D skb->sk;
-> +       bool may_move;
->         int txq_ix;
->
->         selq =3D rcu_dereference_bh(priv->selq.active);
-> @@ -323,14 +322,19 @@ u16 mlx5e_select_queue(struct net_device *dev, stru=
-ct sk_buff *skb,
->         if (likely(!mlx5e_sk_sticky_txq(sk)))
->                 return __mlx5e_select_queue(dev, skb, selq);
->
-> -       txq_ix =3D mlx5e_select_sticky_queue(dev, skb, selq);
-> -       if (txq_ix >=3D 0)
-> -               return txq_ix;
-> +       may_move =3D mlx5e_sk_txq_may_move(skb);
-> +       if (!may_move) {
-> +               txq_ix =3D mlx5e_select_sticky_queue(dev, skb, selq);
-> +               if (txq_ix >=3D 0)
-> +                       return txq_ix;
-> +       }
->
->         txq_ix =3D __mlx5e_select_queue(dev, skb, selq);
->         /* Cache the final queue, as netdev_pick_tx() does with its own p=
-ick. */
->         if (rcu_access_pointer(sk->sk_dst_cache))
->                 sk_tx_queue_set(sk, txq_ix);
-> +       if (may_move)
-> +               mlx5e_ktls_tx_select_txq(dev, skb, txq_ix);
->
->         return txq_ix;
->  }
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_tx.c b=
-/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_tx.c
-> index 0bd4d961e704..9603ef4b3eb3 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_tx.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_tx.c
-> @@ -92,12 +92,15 @@ enum {
->         MLX5E_KTLS_TX_RESYNC, /* WQEs lost, see mlx5e_ktls_tx_handle_lost=
-() */
->  };
->
-> +#define MLX5E_KTLS_TX_NO_TXQ (-1)
-> +
->  struct mlx5e_ktls_offload_context_tx {
->         /* fast path */
->         u32 expected_seq;
->         u32 tisn;
->         bool ctx_post_pending;
->         unsigned long flags; /* MLX5E_KTLS_TX_* */
-> +       int txq_ix; /* that it posts on, see mlx5e_ktls_tx_own_txq() */
->         /* control / resync */
->         struct list_head list_node; /* member of the pool */
->         union mlx5e_crypto_info crypto_info;
-> @@ -505,6 +508,7 @@ int mlx5e_ktls_add_tx(struct net_device *netdev, stru=
-ct sock *sk,
->
->         priv_tx->ctx_post_pending =3D true;
->         priv_tx->flags =3D 0;
-> +       priv_tx->txq_ix =3D MLX5E_KTLS_TX_NO_TXQ;
->         atomic64_inc(&priv_tx->sw_stats->tx_tls_ctx);
->
+>  static inline bool
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/=
+net/ethernet/mellanox/mlx5/core/en_main.c
+> index c3c2c5720c6f..a721e30bcaa8 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> @@ -3421,6 +3421,82 @@ static int mlx5e_switch_priv_params(struct mlx5e_p=
+riv *priv,
 >         return 0;
-> @@ -846,6 +850,59 @@ void mlx5e_ktls_tx_handle_lost(struct mlx5e_txqsq *s=
-q, struct sk_buff *skb)
->         rcu_read_unlock();
 >  }
 >
-> +/* A connection must not post WQEs to another SQ while WQEs that it post=
-ed to
-> + * its SQ may be pending, see TLSDEV_F_STICKY_TXQ. Let it move to the TX=
- queue
-> + * of @sq only if no other skb of its socket is in flight: an skb is fre=
-ed only
-> + * once the WQEs posted for it are done. The move is made under the lock=
- of the
-> + * old TX queue, under which the connection posts there.
-> + */
-> +static bool mlx5e_ktls_tx_own_txq(struct net_device *netdev,
-> +                                 struct mlx5e_ktls_offload_context_tx *p=
-riv_tx,
-> +                                 struct mlx5e_txqsq *sq, struct sk_buff =
-*skb)
+> +/* Time for the TX SQs of deactivated channels to complete their WQEs. *=
+/
+> +#define MLX5E_SQ_DRAIN_TIMEOUT 100 /* msecs */
+> +
+> +/* Returns 1 if the SQ still has pending WQEs, and records the first suc=
+h SQ. */
+> +static int mlx5e_drain_txqsq(struct mlx5e_txqsq *sq,
+> +                            struct mlx5e_txqsq **pending)
 > +{
-> +       int old =3D READ_ONCE(priv_tx->txq_ix);
-> +       struct netdev_queue *old_txq;
-> +       bool own;
+> +       if (mlx5e_txqsq_drain(sq))
+> +               return 0;
 > +
-> +       if (old =3D=3D MLX5E_KTLS_TX_NO_TXQ)
-> +               return cmpxchg(&priv_tx->txq_ix, old, sq->txq_ix) =3D=3D =
-old;
+> +       if (!*pending)
+> +               *pending =3D sq;
 > +
-> +       old_txq =3D netdev_get_tx_queue(netdev, old);
-> +       if (!__netif_tx_trylock(old_txq))
+> +       return 1;
+> +}
+> +
+> +/* Returns the number of the channel's TX SQs that still have pending WQ=
+Es. */
+> +static int mlx5e_drain_channel_txqsqs(struct mlx5e_channel *c,
+> +                                     struct mlx5e_txqsq **pending)
+> +{
+> +       struct mlx5e_txqsq __rcu **qos_sqs;
+> +       int num_pending =3D 0;
+> +       int i;
+> +
+> +       for (i =3D 0; i < c->num_tc; i++)
+> +               num_pending +=3D mlx5e_drain_txqsq(&c->sq[i], pending);
+> +
+> +       qos_sqs =3D mlx5e_state_dereference(c->priv, c->qos_sqs);
+> +       if (!qos_sqs)
+> +               return num_pending;
+> +
+> +       for (i =3D 0; i < c->qos_sqs_size; i++) {
+> +               struct mlx5e_txqsq *sq;
+> +
+> +               sq =3D mlx5e_state_dereference(c->priv, qos_sqs[i]);
+> +               if (sq)
+> +                       num_pending +=3D mlx5e_drain_txqsq(sq, pending);
+> +       }
+> +
+> +       return num_pending;
+> +}
+> +
+> +/* Wait for the TX SQs of deactivated channels to complete all their WQE=
+s,
+> + * so that none of them executes concurrently with the new SQs.
+> + * The PTP SQs are not waited for, they carry PTP event packets only.
+> + */
+
+The regular/QoS drain and the timeout ordering look right to me. The
+PTP SQs can carry TLS data, though. Their indices are in
+real_num_tx_queues and txq2sq, and egress skbedit can select them,
+bypassing mlx5e_select_queue(). mlx5e_xmit() runs the kTLS handling on
+any SQ, and does not reject a non-timestamped skb on a PTP SQ.
+
+If a PTP SQ holds TLS WQEs during a channel replacement, the drain can
+succeed while its TX queue index is reused, by the replacement PTP SQ
+or by a new regular SQ after a channel count change. With one TC,
+growing from 247 to 248 channels changes index 247 from PTP to the new
+regular channel's SQ. A fixed skbedit rule still selects 247, and patch
+7's owner-index comparison permits new TLS work there while the old
+PTP SQ is still pending and not yet destroyed.
+
+I'd prefer to include the PTP SQs in the drain/close ordering.
+Rejecting TLS data on them before any connection-state change or TLS
+WQE posting would also be safe, but with a fixed skbedit rule every
+retransmit goes back to the same queue and is dropped again, stalling
+the connection. Excluding their indices only in queue selection does
+not cover skbedit.
+
+> +static bool mlx5e_drain_channels_txqsqs(struct mlx5e_channels *chs)
+> +{
+> +       unsigned long exp_time;
+> +
+> +       exp_time =3D jiffies + msecs_to_jiffies(MLX5E_SQ_DRAIN_TIMEOUT);
+> +       for (;;) {
+> +               struct mlx5e_txqsq *pending =3D NULL;
+> +               int num_pending =3D 0;
+> +               int i;
+> +
+> +               for (i =3D 0; i < chs->num; i++)
+> +                       num_pending +=3D mlx5e_drain_channel_txqsqs(chs->=
+c[i],
+> +                                                                 &pendin=
+g);
+> +
+> +               if (!num_pending)
+> +                       return true;
+> +
+> +               if (time_after(jiffies, exp_time)) {
+> +                       netdev_warn(pending->netdev,
+> +                                   "Old TX SQs not drained in %d msecs (=
+%d pending, e.g. SQ 0x%x txq %d cc 0x%x pc 0x%x), closing the old channels =
+first\n",
+> +                                   MLX5E_SQ_DRAIN_TIMEOUT, num_pending,
+> +                                   pending->sqn, pending->txq_ix,
+> +                                   pending->cc, pending->pc);
+> +                       return false;
+> +               }
+> +
+> +               usleep_range(10, 20);
+> +       }
+> +}
+> +
+>  static int mlx5e_switch_priv_channels(struct mlx5e_priv *priv,
+>                                       struct mlx5e_channels *old_chs,
+>                                       struct mlx5e_channels *new_chs,
+> @@ -3428,6 +3504,7 @@ static int mlx5e_switch_priv_channels(struct mlx5e_=
+priv *priv,
+>                                       void *context)
+>  {
+>         struct net_device *netdev =3D priv->netdev;
+> +       bool defer_close =3D false;
+>         int carrier_ok;
+>         int err =3D 0;
+>
+> @@ -3450,7 +3527,10 @@ static int mlx5e_switch_priv_channels(struct mlx5e=
+_priv *priv,
+>         }
+>
+>         mlx5e_set_xdp_feature(priv);
+> -       if (!MLX5_CAP_GEN(priv->mdev, tis_tir_td_order))
+> +
+> +       defer_close =3D MLX5_CAP_GEN(priv->mdev, tis_tir_td_order) &&
+> +                     mlx5e_drain_channels_txqsqs(old_chs);
+> +       if (!defer_close)
+>                 mlx5e_close_channels(old_chs);
+>         priv->profile->update_rx(priv);
+>
+> @@ -3462,6 +3542,9 @@ static int mlx5e_switch_priv_channels(struct mlx5e_=
+priv *priv,
+>         if (carrier_ok)
+>                 netif_carrier_on(netdev);
+>
+> +       if (defer_close)
+> +               mlx5e_close_channels(old_chs);
+> +
+>         return err;
+>  }
+>
+> @@ -3499,9 +3582,6 @@ int mlx5e_safe_switch_params(struct mlx5e_priv *pri=
+v,
+>         if (err)
+>                 goto err_close;
+>
+> -       if (MLX5_CAP_GEN(priv->mdev, tis_tir_td_order))
+> -               mlx5e_close_channels(old_chs);
+> -
+>         kfree(new_chs);
+>         kfree(old_chs);
+>         return 0;
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/ne=
+t/ethernet/mellanox/mlx5/core/en_tx.c
+> index bee6f0bf1eff..eb20e3d14d46 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+> @@ -780,10 +780,11 @@ void mlx5e_txqsq_wake(struct mlx5e_txqsq *sq)
+>         }
+>  }
+>
+> -bool mlx5e_poll_tx_cq(struct mlx5e_cq *cq, int napi_budget)
+> +/* Returns the number of polled CQEs. */
+> +static int mlx5e_poll_tx_cqes(struct mlx5e_txqsq *sq, int napi_budget)
+>  {
+> +       struct mlx5e_cq *cq =3D &sq->cq;
+>         struct mlx5e_sq_stats *stats;
+> -       struct mlx5e_txqsq *sq;
+>         struct mlx5_cqe64 *cqe;
+>         u32 dma_fifo_cc;
+>         u32 nbytes;
+> @@ -791,14 +792,9 @@ bool mlx5e_poll_tx_cq(struct mlx5e_cq *cq, int napi_=
+budget)
+>         u16 sqcc;
+>         int i;
+>
+> -       sq =3D container_of(cq, struct mlx5e_txqsq, cq);
+> -
+> -       if (unlikely(!test_bit(MLX5E_SQ_STATE_ENABLED, &sq->state)))
+> -               return false;
+> -
+>         cqe =3D mlx5_cqwq_get_cqe(&cq->wq);
+>         if (!cqe)
+> -               return false;
+> +               return 0;
+>
+>         stats =3D sq->stats;
+>
+> @@ -891,11 +887,40 @@ bool mlx5e_poll_tx_cq(struct mlx5e_cq *cq, int napi=
+_budget)
+>
+>         netdev_tx_completed_queue(sq->txq, npkts, nbytes);
+>
+> +       return i;
+> +}
+> +
+> +bool mlx5e_poll_tx_cq(struct mlx5e_cq *cq, int napi_budget)
+> +{
+> +       struct mlx5e_txqsq *sq =3D container_of(cq, struct mlx5e_txqsq, c=
+q);
+> +       int i;
+> +
+> +       if (unlikely(!test_bit(MLX5E_SQ_STATE_ENABLED, &sq->state)))
 > +               return false;
 > +
-> +       own =3D READ_ONCE(priv_tx->txq_ix) =3D=3D old &&
-> +             sk_wmem_alloc_get(skb->sk) <=3D skb->truesize;
-
-This serializes the ownership check and update with posting on the old
-queue. But selection bypasses it:
-
-> +       if (own)
-> +               WRITE_ONCE(priv_tx->txq_ix, sq->txq_ix);
-> +       __netif_tx_unlock(old_txq);
+> +       i =3D mlx5e_poll_tx_cqes(sq, napi_budget);
+> +       if (!i)
+> +               return false;
 > +
-> +       return own;
-> +}
-> +
-> +/* The TX queue selection lets the socket of @skb move to @txq_ix only w=
-hile
-> + * no other skb of the socket is in flight, see mlx5e_select_queue(), so=
- the
-> + * connection has no WQE pending on any SQ: hand it the new TX queue now=
-. Once
-> + * @skb is queued there, the socket's next skbs queue up behind it and h=
-old
-> + * sk_wmem_alloc, and mlx5e_ktls_tx_own_txq() would refuse the move.
-> + */
-> +void mlx5e_ktls_tx_select_txq(struct net_device *netdev, struct sk_buff =
-*skb,
-> +                             u16 txq_ix)
-> +{
-> +       struct mlx5e_ktls_offload_context_tx *priv_tx;
-> +       struct tls_context *tls_ctx;
-> +
-> +       if (!tls_is_skb_tx_device_offloaded(skb))
-> +               return;
-> +
-> +       tls_ctx =3D tls_get_ctx(skb->sk);
-> +       if (rcu_dereference_bh(tls_ctx->netdev) !=3D netdev)
-> +               return;
-> +
-> +       priv_tx =3D mlx5e_get_ktls_tx_priv_ctx(tls_ctx);
-> +       WRITE_ONCE(priv_tx->txq_ix, txq_ix);
-> +}
-> +
-
-This write relies on an earlier may_move check in mlx5e_select_queue(),
-without locking the old queue or rechecking wmem.
-
-With independent bond child qdiscs and skbedit selecting different upper
-TX queues for A and B:
-
-  1. A is dequeued asynchronously and reaches the lower mlx5e selector.
-     Only A holds wmem, so may_move=3Dtrue.
-  2. TCP emits B through another child qdisc. B sees both charges,
-     reuses cached lower SQ0 and posts; its WQEs remain pending.
-  3. A resumes, picks SQ1 and overwrites the owner. The xmit guard sees
-     a matching index, so A posts on SQ1 while B's WQEs still reference
-     the same TIS from SQ0.
-
-A can be dequeued via a qdisc watchdog outside the socket lock. Lower
-selection precedes the lower TX lock. Both packets use the socket's
-offload slave. The same race exists when the owner is unclaimed and B
-claims it first.
-
-B must select and post between A's may_move check and owner write in
-one mlx5e_select_queue() call. Hard IRQs, vCPU descheduling and
-PREEMPT_RT preemption of BH-disabled sections can extend that short
-window while B runs on another CPU.
-
-Selection needs the same initial-claim CAS and locked handoff: recheck
-the owner and current wmem under the old queue's lock, and leave
-ownership unchanged on failure. Locking only the write leaves the wmem
-check stale. Preserve zero self-charge for non-decrypted, possibly
-partially orphaned skbs.
-
-A failed transfer can fall back to the owner's queue, updating the
-cache, if the index is in [0, real_num_tx_queues), still maps to a live
-SQ and is not a PTP index. Keep the xmit ownership guard.
-
->  bool mlx5e_ktls_handle_tx_skb(struct net_device *netdev, struct mlx5e_tx=
-qsq *sq,
->                               struct sk_buff *skb,
->                               struct mlx5e_accel_tx_tls_state *state)
-> @@ -881,6 +938,10 @@ bool mlx5e_ktls_handle_tx_skb(struct net_device *net=
-dev, struct mlx5e_txqsq *sq,
+>         mlx5e_txqsq_wake(sq);
 >
->         priv_tx =3D mlx5e_get_ktls_tx_priv_ctx(tls_ctx);
->
-> +       if (unlikely(READ_ONCE(priv_tx->txq_ix) !=3D sq->txq_ix) &&
-> +           !mlx5e_ktls_tx_own_txq(netdev, priv_tx, sq, skb))
-> +               goto err_move;
-> +
->         /* WQEs naming the TIS, pending context params included, are
->          * posted only for an skb that uses it.
->          */
-> @@ -929,6 +990,16 @@ bool mlx5e_ktls_handle_tx_skb(struct net_device *net=
-dev, struct mlx5e_txqsq *sq,
->
->         return true;
->
-> +err_move:
-> +       /* Nothing was posted for the skb, TCP retransmits it. */
-> +       stats->tls_drop_txq_move++;
-> +       netdev_warn_once(netdev,
-> +                        "kTLS TX connection moved to TX queue %d with pa=
-ckets in flight, dropping\n",
-> +                        sq->txq_ix);
-> +       dev_kfree_skb_any(skb);
-> +       mlx5e_tx_flush(sq, NULL);
-> +       return false;
-> +
->  err_lost:
->         /* Resync params may have moved the TIS state to the dropped skb.=
- */
->         set_bit(MLX5E_KTLS_TX_RESYNC, &priv_tx->flags);
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_txrx.h=
- b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_txrx.h
-> index a6b15dcd32b8..acfd1b4025aa 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_txrx.h
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_txrx.h
-> @@ -30,6 +30,8 @@ void mlx5e_ktls_tx_handle_resync_dump_comp(struct mlx5e=
-_txqsq *sq,
->                                            struct mlx5e_tx_wqe_info *wi,
->                                            u32 *dma_fifo_cc);
->  void mlx5e_ktls_tx_handle_lost(struct mlx5e_txqsq *sq, struct sk_buff *s=
-kb);
-> +void mlx5e_ktls_tx_select_txq(struct net_device *netdev, struct sk_buff =
-*skb,
-> +                             u16 txq_ix);
->
->  /* The WQEs posted for the skb may have not been executed. */
->  static inline void
-> @@ -84,6 +86,10 @@ mlx5e_ktls_tx_handle_lost(struct mlx5e_txqsq *sq, stru=
-ct sk_buff *skb) {}
->  static inline void
->  mlx5e_ktls_tx_try_handle_lost(struct mlx5e_txqsq *sq, struct sk_buff *sk=
-b) {}
->
-> +static inline void
-> +mlx5e_ktls_tx_select_txq(struct net_device *netdev, struct sk_buff *skb,
-> +                        u16 txq_ix) {}
-> +
->  static inline bool
->  mlx5e_ktls_rx_handle_resync_list(struct mlx5e_icosq *sq, int budget)
->  {
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c b/drivers=
-/net/ethernet/mellanox/mlx5/core/en_stats.c
-> index cd94bb44f6ab..d23790403714 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
-> @@ -132,6 +132,7 @@ static const struct counter_desc sw_stats_desc[] =3D =
-{
->         { MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_tls_skip_no_sync_d=
-ata) },
->         { MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_tls_drop_no_sync_d=
-ata) },
->         { MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_tls_drop_bypass_re=
-q) },
-> +       { MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_tls_drop_txq_move)=
- },
->  #endif
->
->         { MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_lro_packets) },
-> @@ -441,6 +442,7 @@ static void mlx5e_stats_grp_sw_update_stats_sq(struct=
- mlx5e_sw_stats *s,
->         s->tx_tls_skip_no_sync_data +=3D sq_stats->tls_skip_no_sync_data;
->         s->tx_tls_drop_no_sync_data +=3D sq_stats->tls_drop_no_sync_data;
->         s->tx_tls_drop_bypass_req   +=3D sq_stats->tls_drop_bypass_req;
-> +       s->tx_tls_drop_txq_move +=3D sq_stats->tls_drop_txq_move;
->  #endif
->         s->tx_cqes                  +=3D sq_stats->cqes;
+>         return (i =3D=3D MLX5E_TX_CQ_POLL_BUDGET);
 >  }
-> @@ -2303,6 +2305,7 @@ static const struct counter_desc sq_stats_desc[] =
-=3D {
->         { MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, tls_skip_no_sync_d=
-ata) },
->         { MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, tls_drop_no_sync_d=
-ata) },
->         { MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, tls_drop_bypass_re=
-q) },
-> +       { MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, tls_drop_txq_move)=
- },
->  #endif
->         { MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, csum_none) },
->         { MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, stopped) },
-> @@ -2456,6 +2459,7 @@ static const struct counter_desc qos_sq_stats_desc[=
-] =3D {
->         { MLX5E_DECLARE_QOS_TX_STAT(struct mlx5e_sq_stats, tls_skip_no_sy=
-nc_data) },
->         { MLX5E_DECLARE_QOS_TX_STAT(struct mlx5e_sq_stats, tls_drop_no_sy=
-nc_data) },
->         { MLX5E_DECLARE_QOS_TX_STAT(struct mlx5e_sq_stats, tls_drop_bypas=
-s_req) },
-> +       { MLX5E_DECLARE_QOS_TX_STAT(struct mlx5e_sq_stats, tls_drop_txq_m=
-ove) },
->  #endif
->         { MLX5E_DECLARE_QOS_TX_STAT(struct mlx5e_sq_stats, csum_none) },
->         { MLX5E_DECLARE_QOS_TX_STAT(struct mlx5e_sq_stats, stopped) },
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.h b/drivers=
-/net/ethernet/mellanox/mlx5/core/en_stats.h
-> index 09f155acb461..8f5fb0478f00 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.h
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.h
-> @@ -237,6 +237,7 @@ struct mlx5e_sw_stats {
->         u64 tx_tls_skip_no_sync_data;
->         u64 tx_tls_drop_no_sync_data;
->         u64 tx_tls_drop_bypass_req;
-> +       u64 tx_tls_drop_txq_move;
 >
->         u64 rx_tls_decrypted_packets;
->         u64 rx_tls_decrypted_bytes;
-> @@ -434,6 +435,7 @@ struct mlx5e_sq_stats {
->         u64 tls_skip_no_sync_data;
->         u64 tls_drop_no_sync_data;
->         u64 tls_drop_bypass_req;
-> +       u64 tls_drop_txq_move;
->  #endif
->         /* less likely accessed in data path */
->         u64 csum_none;
+> +/* Reap the completions of a deactivated SQ, whose NAPI is disabled, wit=
+hout
+> + * waking its TX queue. Returns true once all its WQEs have completed.
+> + */
+> +bool mlx5e_txqsq_drain(struct mlx5e_txqsq *sq)
+> +{
+> +       int polled;
+> +
+> +       do {
+> +               polled =3D mlx5e_poll_tx_cqes(sq, 0);
+> +       } while (polled =3D=3D MLX5E_TX_CQ_POLL_BUDGET);
+> +
+> +       return sq->cc =3D=3D sq->pc;
+> +}
+> +
+>  static void mlx5e_tx_wi_kfree_fifo_skbs(struct mlx5e_txqsq *sq, struct m=
+lx5e_tx_wqe_info *wi)
+>  {
+>         int i;
 > --
 > 2.44.0
 >
