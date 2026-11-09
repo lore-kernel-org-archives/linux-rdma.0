@@ -1,50 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.27.60.169
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794229850;
-	b=rQmEXbRxK5nx1spfvXDOAm2PbwpVDWMiT3DzPaCRpO6notGbqHFQllfVdy7deNVnRPjI
-	 oBivSdFLpwKUD4nUQDhrTm3dnwrUZennj28py2pgbZCx6VXDiVQOBG8S4gXgWkJx1eoUD
-	 z1bo7RIWzS6Ew0zYhrB/xjLhmUS+HS+WjyOYNOjrOcaAcVcu8/nXqctS7Ixzyxc38kQl6
-	 6rMNt56ZY09GWDDTqHSNRkrgWkO9eD8OZ0PIiWQDTxz2P8ITlsqZYd3x+Gqz4a2GfVmd5
-	 kNcU4sGOFZKPnMxIdSVyqcxkl4KwLnoAWVWCTk9Mc2QBpGApkE/RLh69GzijI2Xs4XQ==
+	b=vGodC8FzNu3oGB5n3XtQm2LKvEC0vUcifLxhERVV1/kLJgf4ZEc3HQEBvD9kpv1yAq6Y
+	 43QX0pnk9lYvlGRLhiozcVfavLwOR4wG+uJWaBC7KJJGucG/Ao/gjtmRZBElnwKjT1y12
+	 J0Sk5Ux5VSQ/vhAD/CxwnP1O8TS8SJq9B36wSlHkt+f1R5Rh8QVDczLuRLWVlwhXVXiSe
+	 TFvaKTzDTzBVewq/D4IMIZembmlRl9RXmVUw/fhi5ea3EPVRt7zE7IZmA9WpTaexEUScr
+	 L2JH8y+Q/T9liVI7s11/tVk03ECIo76wg9ZNniE5ZRo/pTu1ygInlkL4HlrUpruKihQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794229850;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=mKoXs6VqVthbWJtOwMd5KBChqjVY0ecFZeruwDYu1BY=;
-	b=OVK4AVwJ0lCf/yrXYag6tNoHuY3yuWS0heK51bazI5QoOIK5+yqNCMDcqanZun8VUg70
-	 hbRAKBtdkxxS2MITgnGJU0RO72EoCGqMHulZ+Lwk56RuQWGX8lo1UfCRqw/ZEH5kc4srL
-	 cAedcrA9dRR/zXiUyDGPA7sPuGKDU5qLsZx8wr11P9VYRA47LOrnoAwpl0gKya7+SdJl+
-	 SnOp5DhhSP2zDrOplN9jjM0/iLvKOH5NWbHJy0Stzl47nLf5ZC4acSU5AYEFWrPqpsrV5
-	 i0UfKiO/D/EbT1hhV577oePH7DRrvCQOeIV7yhdDekpqSd0e85rRkozt1ODMGbQrYGQ==
+	bh=iqFiRT83QmZISlmWEdJqLfZrAjHt8KFvUpnVMhb9+C0=;
+	b=P9OEH1tlMVQZeIBIos3NafZnXNcknTBuxm7/gB78CrRcTJO9D+aV8jlbCqydxYiPpIVl
+	 M7UEaPkJWpKnAv94QNWCRuk5Q0fND/9l5g3RAzybNaO2CGl8qZKXg2X8MpvX7TUczDBmb
+	 BcsXswPF1Ec/jutXn1GlPhKRMFa8IdkkKT7ntCNAk8ga/lskP5DKEWM4jzGwOleYh/Ie4
+	 FXp5kxEoKqr61q69SfSZ0KwcQ3/C6qR6xevriC7V77dzGoUQO1+7BRvhWFlkY7pR+fRJy
+	 LlwGDRpRPhCkb5I1wmEn/EW5LFPN44Zqxx0oIClgRSDkq+wtkEfkjJDrFcydzWu2joA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=corp.free.fr;
 	spf=pass smtp.mailfrom=corp.free.fr;
-	dkim=pass header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=SuY6TqlE;
+	dkim=pass header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=CRHJZNOU;
 	arc=none smtp.remote-ip=212.27.60.169
 Received: from rcs.proxad.net (rcs.proxad.net [212.27.60.169])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF372606D833;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E48B5606D834;
 	Mon,  9 Nov 2026 13:10:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DF372606D833
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E48B5606D834
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=corp.free.fr
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=corp.free.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=SuY6TqlE
+	dkim=pass (2048-bit key) header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=CRHJZNOU
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=corp.free.fr; s=rcs;
-	t=1794229848; bh=lbjz/+eNy9kE2MIpGzdcxAaIqpRBRcWZI2x7PMVFMzY=;
+	t=1794229848; bh=Db4ooscFNMd6Sx00ziJUqW+Qe9cjVpd/j8N9fbAoU2M=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=SuY6TqlEtxKy3ms7RTAlia3lKZqKakZTkgm09n/l/ATBEY1qA7//YPCcV4w1KvVu0
-	 a2YXw+OpxL6JLT9Ouy1MgBCBNNCw+K5Ou0dcfDfcKTnjxEYx4g7gHBzoGmTgerUrlm
-	 uwahKFgVeL8/jrQt+Ue/rXzalxRrc5SR7/D/uyw5OPMcak+JQ93FCrgqBVNRw6iYO8
-	 R/DKZf4S3mcDqIlUTKFDLkfbJ339/hfu5ZCSlrjVHQ3O19ekUoQffvHQJVIYfKd4mK
-	 XrpBw3Bw4mzOvDAA1s2lDPDQzK+JI7wre21LW9jcdFIUhVzht8HNese+Yyd2/bgC4w
-	 LWN7UmQGRvuYw==
+	b=CRHJZNOUx9+/5iq4KxxROQ54SW1CSJYfkyWdhl2vGKHU0tQgP7YqWBosh7IMvT2DR
+	 79nv+3fQlUXrrF/odf9+9NZ+Pp5XidBdzyMkXQv+CRMTCif/5YC4Ioe8VrOFWGPHO/
+	 C2122KFfE49rpQ1dwDab2PmadWNJ9HqTFO7LSXq8yJMX+0Wjm57DGzTH9MQspTKhlS
+	 l64RdAzbUbGKvwfeeQSMBqyQ+YBFgmjT8gVSKDYxH5f5/ZeKBO98LIebFO1OUOOrxO
+	 POqYYB/Gk/4LjIn8+GIEJ95wgAxvNwNuK71Sue5OieRYHAXX4etwD1cvfsPzORk8S3
+	 T0yr4SqhbgNyg==
 Received: from lnxos-dev.home (82-66-150-212.subs.proxad.net [82.66.150.212])
-	by rcs.proxad.net (Postfix) with ESMTPSA id B721644C11C6;
-	Mon,  9 Nov 2026 14:10:47 +0100 (CET)
+	by rcs.proxad.net (Postfix) with ESMTPSA id 3680244C11CC;
+	Mon,  9 Nov 2026 14:10:48 +0100 (CET)
 From: Alexandre Cassen <acassen@corp.free.fr>
 To: Saeed Mahameed <saeedm@nvidia.com>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -73,9 +73,9 @@ Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
 	linux-doc@vger.kernel.org,
 	linux-kselftest@vger.kernel.org,
 	oss-drivers@corigine.com
-Subject: [PATCH net-next 05/10] net/mlx5e: TC, reject a partial tunnel key with tunnel mapping
-Date: Mon,  9 Nov 2026 14:10:31 +0100
-Message-ID: <20261109131039.959438-6-acassen@corp.free.fr>
+Subject: [PATCH net-next 06/10] net/sched: cls_flower: add enc_key_id mask
+Date: Mon,  9 Nov 2026 14:10:32 +0100
+Message-ID: <20261109131039.959438-7-acassen@corp.free.fr>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261109131039.959438-1-acassen@corp.free.fr>
 References: <20261109131039.959438-1-acassen@corp.free.fr>
@@ -90,51 +90,86 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Tunnel mapping stores the matched tunnel key. The metadata of a packet
-missing in hardware after a goto chain or a sample is restored from it.
-A partial enc_key_id mask would restore a wrong tunnel id. Flower is about
-to accept such masks.
+Flower only matches enc_key_id exactly. A block of tunnel keys takes one
+filter per key. Add an optional mask. Without one the match stays exact.
 
-Tunnel options with a partial class or type are already rejected here.
-Rules without tunnel mapping keep working.
+  tc filter add dev <dev> ingress protocol ip flower \
+      enc_key_id 0x100/0xf00 action ...
 
-Found by an AI code review agent while auditing the users of enc_key_id.
-Tested on ConnectX-7 with firmware 28.48.1000 in switchdev mode.
+cxgb4, mlx5 and nfp program the mask. sfc does when its firmware supports
+it. hns3 and ice reject a partial one. The previous patches make bnxt and
+mlx5 tunnel mapping reject it too. i40e and iavf never program the value
+of enc_key_id, with or without this patch.
+
+Hardware holding a 24 bit VNI truncates the mask too. This is correct when
+the key fits the VNI. The previous patches enforce this on cxgb4, nfp and
+mlx5.
 
 Signed-off-by: Alexandre Cassen <acassen@corp.free.fr>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ Documentation/netlink/specs/tc.yaml | 4 ++++
+ include/uapi/linux/pkt_cls.h        | 2 ++
+ net/sched/cls_flower.c              | 5 +++--
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-index 708b7987ea4c..28f09d234835 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-@@ -2257,6 +2257,7 @@ static int mlx5e_get_flow_tunnel_id(struct mlx5e_priv *priv,
- 	struct tunnel_match_enc_opts tun_enc_opts;
- 	struct mlx5_rep_uplink_priv *uplink_priv;
- 	struct mlx5_flow_attr *attr = flow->attr;
-+	struct flow_match_enc_keyid enc_keyid;
- 	struct mlx5e_rep_priv *uplink_rpriv;
- 	struct tunnel_match_key tunnel_key;
- 	bool enc_opts_is_dont_care = true;
-@@ -2265,6 +2266,16 @@ static int mlx5e_get_flow_tunnel_id(struct mlx5e_priv *priv,
- 	u32 value, mask;
- 	int err;
+diff --git a/Documentation/netlink/specs/tc.yaml b/Documentation/netlink/specs/tc.yaml
+index b6ccc645b0e3..a20fa42e6715 100644
+--- a/Documentation/netlink/specs/tc.yaml
++++ b/Documentation/netlink/specs/tc.yaml
+@@ -2908,6 +2908,10 @@ attribute-sets:
+         byte-order: big-endian
+         enum: flower-key-ctrl-flags
+         enum-as-flags: true
++      -
++        name: key-enc-key-id-mask
++        type: u32
++        byte-order: big-endian
+   -
+     name: flower-key-enc-opts-attrs
+     name-prefix: tca-flower-key-enc-opts-
+diff --git a/include/uapi/linux/pkt_cls.h b/include/uapi/linux/pkt_cls.h
+index 28d94b11d1aa..fcaf06c6892d 100644
+--- a/include/uapi/linux/pkt_cls.h
++++ b/include/uapi/linux/pkt_cls.h
+@@ -560,6 +560,8 @@ enum {
+ 	TCA_FLOWER_KEY_ENC_FLAGS,	/* be32 */
+ 	TCA_FLOWER_KEY_ENC_FLAGS_MASK,	/* be32 */
  
-+	/* The mapping restores the tunnel id of a packet missing in hardware */
-+	if (flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_ENC_KEYID)) {
-+		flow_rule_match_enc_keyid(rule, &enc_keyid);
-+		if (enc_keyid.mask->keyid != cpu_to_be32(U32_MAX)) {
-+			NL_SET_ERR_MSG_MOD(extack,
-+					   "Partial match of tunnel key in chains isn't supported");
-+			return -EOPNOTSUPP;
-+		}
-+	}
++	TCA_FLOWER_KEY_ENC_KEY_ID_MASK,	/* be32 */
 +
- 	esw = priv->mdev->priv.eswitch;
- 	uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw, REP_ETH);
- 	uplink_priv = &uplink_rpriv->uplink_priv;
+ 	__TCA_FLOWER_MAX,
+ };
+ 
+diff --git a/net/sched/cls_flower.c b/net/sched/cls_flower.c
+index 23eba4a00a94..dd248a335402 100644
+--- a/net/sched/cls_flower.c
++++ b/net/sched/cls_flower.c
+@@ -661,6 +661,7 @@ static const struct nla_policy fl_policy[TCA_FLOWER_MAX + 1] = {
+ 	[TCA_FLOWER_KEY_VLAN_PRIO]	= { .type = NLA_U8 },
+ 	[TCA_FLOWER_KEY_VLAN_ETH_TYPE]	= { .type = NLA_U16 },
+ 	[TCA_FLOWER_KEY_ENC_KEY_ID]	= { .type = NLA_U32 },
++	[TCA_FLOWER_KEY_ENC_KEY_ID_MASK] = { .type = NLA_U32 },
+ 	[TCA_FLOWER_KEY_ENC_IPV4_SRC]	= { .type = NLA_U32 },
+ 	[TCA_FLOWER_KEY_ENC_IPV4_SRC_MASK] = { .type = NLA_U32 },
+ 	[TCA_FLOWER_KEY_ENC_IPV4_DST]	= { .type = NLA_U32 },
+@@ -2110,7 +2111,7 @@ static int fl_set_key(struct net *net, struct nlattr *tca_opts,
+ 	}
+ 
+ 	fl_set_key_val(tb, &key->enc_key_id.keyid, TCA_FLOWER_KEY_ENC_KEY_ID,
+-		       &mask->enc_key_id.keyid, TCA_FLOWER_UNSPEC,
++		       &mask->enc_key_id.keyid, TCA_FLOWER_KEY_ENC_KEY_ID_MASK,
+ 		       sizeof(key->enc_key_id.keyid));
+ 
+ 	fl_set_key_val(tb, &key->enc_tp.src, TCA_FLOWER_KEY_ENC_UDP_SRC_PORT,
+@@ -3680,7 +3681,7 @@ static int fl_dump_key(struct sk_buff *skb, struct net *net,
+ 		goto nla_put_failure;
+ 
+ 	if (fl_dump_key_val(skb, &key->enc_key_id, TCA_FLOWER_KEY_ENC_KEY_ID,
+-			    &mask->enc_key_id, TCA_FLOWER_UNSPEC,
++			    &mask->enc_key_id, TCA_FLOWER_KEY_ENC_KEY_ID_MASK,
+ 			    sizeof(key->enc_key_id)) ||
+ 	    fl_dump_key_val(skb, &key->enc_tp.src,
+ 			    TCA_FLOWER_KEY_ENC_UDP_SRC_PORT,
 -- 
 2.43.0
 
