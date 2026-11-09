@@ -1,51 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794212634;
-	b=QB5sPBxj/BBMAsYoqaXsO168edivEJ2s3HTBDbvgqliYSuCoRyMuzvxZlXIlzmxyhGpS
-	 3MIvOJmx2qgQAgzDcqTrXEvL68evysj1EuEue3G9vr/SwmubgMDuOMaMOuhxcWRd28nJr
-	 3YAMSIm9uWWeXTvPCnTkrGK4FJHfFTC5Eau0ItXDr74u2WRErK+CAUg7nsAkLSpM+MNRl
-	 E4d7lzn6kiOSZnXYgurAMx12WJSUloiUo7S+azof1WiJSo94MrLmCtUJ18fZk503DVQvE
-	 jZOcPHkVhBR0gm/Ifhz/W99SJ0Kh0gylFURoDcLXwZHa+xYIP0fq34FoO4EYjbGwoTA==
+	t=1794212818;
+	b=q4TnEQsCgAVOZrlJ24MaN8Sh0tUm3yxhcSOu3iW3ZGQK31kHC7MFXOxAw8V9vzh23tn3
+	 8wCXxx5k0NaNJmGIxBVy+s3UIBRDksG6tneTx1oR/fHjNQYmnWdHdWkEADTAiXxii/jx5
+	 ilj/9+qQsdE/Fjn8O8rF04TsMAs6B5YU2aSIstvhRRZAuja7JECnqAzGIaGnq0LoxZeoZ
+	 hNIMIBnNpxbOvAWAiJ5Kee4VJyfaNoepgdqGer6QXu0q+ZSkVIr9RX5Vg7v+HGPKvz7un
+	 mkt8ulzvtFXQNTmjSLE0sxb3Dx26ng+F31zx0xsrXIbHFoWv+7LLZiC21WZh8iv/OWg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794212634;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=1JTQyG22sdRNJ8RntkpKDjs1VJz1ws+WgBDgHO6I6AQ=;
-	b=kCMiOS61fnc52OaeqwWk71Gf0fTk5gbtk17b5WUAqHZI68hibNoujV3D8D4EiFafWyii
-	 rOR8PBDrlVbB0GIFyqhqh70hlIRDp3vjfFGwnR4jh1Cu4U54mKm6/mxPt/fKihdEAos8j
-	 PNR0MUdluageYStq7SawBVvIuvgKvly8LAUrorWGSkRkBVsFU/Vu8fM1uxVh6gcXxfG/T
-	 9rrFpP6p8buytBsDZ8TCLuBsD0mlueNiAdAZNy2MssZjTSMbp1jmJu8MG+OtC1sHOWp60
-	 yVpGhFcPdOhS7Krf+7MdKtRKDML0R2/9yylWCc7cYWcTJWwXC6Yxnmw3cAWnHyMwGxg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794212818;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=4cr3ATtMvw5rNis87z0n4tAzR96GGE9ZQkQcvQIpiIo=;
+	b=tq30p5bMKOiD70asIGRm9LVOICtVWNVJJ9aKuBcw+N1QJ1eiX9DHv2QylcN9bJVcEYtY
+	 rN6CIV8W0LNPURhUfqWKVgGmx/4F8GCSrpOq0MIGkJaWZxW5qOAJ1R0iK75j6u3ip3A5y
+	 sX8iIF6W4cRAAIH6UxPtbcgqG+/yc6BQ1qzl3SI7b0EV5vnOFD0kT18EpENs3pt356XJo
+	 wriJ/RwQArbMuAUgWB+Zqp7HnB6bUFYMizd6oYz1b9Of6vdfUpM9nnnniIxinIR8/Cfzg
+	 efSWmu3wJJHsDSVglX6OBep0qIYD4HXtyiNkoqq5hpSflv86o4hDNSWcQ6+HiCU72JQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UGFwOOt3;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FStTy+e+;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71E29606A322
-	for <linux-rdma@vger.kernel.org>; Mon,  9 Nov 2026 08:23:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7CAC606A326
+	for <linux-rdma@vger.kernel.org>; Mon,  9 Nov 2026 08:26:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UGFwOOt3
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50D741F0089F;
-	Mon,  9 Nov 2026 08:23:53 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FStTy+e+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C4561F008A2;
+	Mon,  9 Nov 2026 08:26:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794212634;
-	bh=1JTQyG22sdRNJ8RntkpKDjs1VJz1ws+WgBDgHO6I6AQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=UGFwOOt3CRrFGU+w17swOdrPUhCbMsaFvwh0clQX27L/jT9hmObkVlDgWaYnpVtUf
-	 qCijf6dNF4EMqWZrBxXU3bRpp+krfo+5gFaCFJJk7enyX2ElZNdn3kFwXH/0+AjKIH
-	 u3ASUwJWo+KiVXNxoBaGlNKYpvKU5KxhhYkNCMCKOi228aYf8Q7RqlkHur51dFyL27
-	 +xOQqQGBWAUu+jMS9thK6kHzPOXAcu+WwnDLWsTxON8SOpmfpfzWq0c7Ug2zUhwC5I
-	 piEc0P3cu+/hIIpj3amP5jJjWTRjva4bCCI5WSuD4f0w+g0Kk5lt8+opCAsp+GH4cn
-	 6bG8e556mpHWQ==
-Date: Mon, 9 Nov 2026 10:23:49 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Sung Byeongchan <tjdqudcks0424@naver.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH] RDMA/iwcm: restrict MAPINFO to administrators
-Message-ID: <20261109082349.GB8635@unreal>
-References: <20261107093338.618394-1-tjdqudcks0424@naver.com>
+	s=k20260515; t=1794212817;
+	bh=4cr3ATtMvw5rNis87z0n4tAzR96GGE9ZQkQcvQIpiIo=;
+	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
+	b=FStTy+e+0AKNKEiTPuBJ3pFUaPYWVkwC/fC1E+nr3kD2Ibnm8yuwT2h87bsvCc0D4
+	 Jza0jZHMjgZ47ccMSXqPo48oI6mK9vaVydaKY177DtE6mu4mkRlf7Yq6c7ksF6OcQS
+	 WdXD0LvAA0nnlRHW9FxoePxCCkvP4qu4RQxQ66h9qqdRyz3U9jzxR0ij8YzOPcc4d+
+	 c6Bnyxb952iCfIR9nGlofEoMy6uh/r66npL4tZiHBLuSh8VFZy69pzVh2iwE28SoU6
+	 6FyK8/GX0p/uhinPWPNChgzsa0CZwvm8AuIQy/Jr6KyBxshKMHi4/zsT125Hbs1BFR
+	 pXv6nPrhQ+PSQ==
+Message-ID: <sashiko-outbox-204586@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH for-next 3/3] RDMA/efa: Add Completion Actions support
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Ilia Kolominsky" <ikolomin@amazon.com>, linux-rdma@vger.kernel.org
+In-Reply-To: <20261109081349.27316-4-ikolomin@amazon.com>
+References: <20261109081349.27316-1-ikolomin@amazon.com>
+ <20261109081349.27316-4-ikolomin@amazon.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 09 Nov 2026 08:26:57 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -54,69 +58,37 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261107093338.618394-1-tjdqudcks0424@naver.com>
 
-On Sat, Nov 07, 2026 at 06:33:38PM +0900, Sung Byeongchan wrote:
-> 
-> RDMA_NL_IWPM_MAPINFO announces the userspace iWARP port mapper and asks
-> the kernel to send its live mapping table. Its callback registration does
-> not request an administrative permission check, so an ordinary local
-> NETLINK_RDMA sender can use the public mapper name and ABI version to
-> replace the global daemon portid.
-> 
-> With a production SIW mapping present, an unprivileged claimant received
-> the complete local and mapped sockaddr records in three of three fresh
-> KASAN boots. A second independent unprivileged socket could repeat the
-> claim. Wrong-name and old-version controls were rejected.
-> 
-> Set RDMA_NL_ADMIN_PERM on only the MAPINFO callback. The common RDMA
-> netlink receiver then requires CAP_NET_ADMIN before the callback changes
-> the daemon identity or serializes the mapping table.
-> 
-> The fixed kernel rejected the valid unprivileged request with -EPERM and
-> zero records in three of three matched boots. Legitimate root mapper
-> registration, live SIW mapping, daemon recovery, mapping removal and
-> post-remove cleanup all passed their baseline and fixed controls.
-> 
-> The demonstrated impact is disclosure of local iWARP endpoint metadata
-> and displacement of the trusted mapper identity. Uninitialized memory,
-> controlled read or write, RCE and LPE were not demonstrated.
+> Completion actions are device-side effects triggered by work requests:
+> when a work request completes, locally or at the remote side, the device
+> performs the action, so completions can be observed without polling a
+> completion queue.
+>=20
+> Implement the control path. A memory completion action object pins a
+> user buffer (VA or dmabuf) on a protection domain and yields the action
+> id that work requests carry; on each completion the device modifies
+> mem_modify_size bytes (1, 2 or 4) of that buffer with the operand the
+> work request supplies. The buffer must be physically contiguous. The
+> device also returns an action handle, which the driver keeps for the
+> destroy command.
+>=20
+> The object is an EFA ioctl object, exposed only when the device reports
+> the actions capability. It holds a reference on its protection domain,
+> so deallocating the PD while the action exists fails with EBUSY. QP
+> creation accepts a WQE feature block configuration - an enablement
+> bitmap and the offset of the action descriptor within the WQE -
+> determined by the user space provider, which owns the WQE layout, and
+> passed through to the device. The device capability, the maximum number
+> of memory completion actions and the supported work request types are
+> reported through query device.
+>=20
+> Reviewed-by: Michael Margolin <mrgolin@amazon.com>
+> Reviewed-by: Yonatan Nachum <ynachum@amazon.com>
+> Signed-off-by: Ilia Kolominsky <ikolomin@amazon.com>
 
-1. People still read commit messages, so please read yours before submitting.
-2. Write a proper commit message; don't submit AI-generated slop.
-3. Include the full kernel stack trace from dmesg in the commit message.
-4. Add RDMA_NL_ADMIN_PERM to all IWPM commands.
+Sashiko has reviewed this patch and found no issues.
 
-Thanks
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261109081349.2731=
+6-1-ikolomin@amazon.com?part=3D3
 
-> 
-> Fixes: b493d91d333e ("iwcm: common code for port mapper")
-> Assisted-by: OpenAI Codex
-> 
-> Signed-off-by: Sung Byeongchan <tjdqudcks0424@naver.com>
-> ---
->  drivers/infiniband/core/iwcm.c |    5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
-> index 4b05867dad895..8a3b5aa2dc5f7 100644
-> --- a/drivers/infiniband/core/iwcm.c
-> +++ b/drivers/infiniband/core/iwcm.c
-> @@ -86,7 +86,10 @@ static struct rdma_nl_cbs iwcm_nl_cb_table[RDMA_NL_IWPM_NUM_OPS] = {
->  	[RDMA_NL_IWPM_QUERY_MAPPING] = {.dump = iwpm_add_and_query_mapping_cb},
->  	[RDMA_NL_IWPM_REMOTE_INFO] = {.dump = iwpm_remote_info_cb},
->  	[RDMA_NL_IWPM_HANDLE_ERR] = {.dump = iwpm_mapping_error_cb},
-> -	[RDMA_NL_IWPM_MAPINFO] = {.dump = iwpm_mapping_info_cb},
-> +	[RDMA_NL_IWPM_MAPINFO] = {
-> +		.dump = iwpm_mapping_info_cb,
-> +		.flags = RDMA_NL_ADMIN_PERM,
-> +	},
->  	[RDMA_NL_IWPM_MAPINFO_NUM] = {.dump = iwpm_ack_mapping_info_cb},
->  	[RDMA_NL_IWPM_HELLO] = {.dump = iwpm_hello_cb}
->  };
-> 
-> base-commit: d48723711bae9b8cdc56719c448ba42fef28cbee
-> -- 
-> 2.43.0
