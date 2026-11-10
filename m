@@ -1,55 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794319076;
-	b=P1jaIxpxY+Pf3QOq7qMS2f5JAVKXYeCcoPQVVjlpKNP/nml2kfoKjGuL4eLpYJucBgy5
-	 7PwfmLmOaotBoA79nLRPFH+4sviwE0t/09dUVPS243BUWm7UBkkaal/0N/wjDhaopZxzl
-	 RQj3soU5mcIgDmqJLHa44VnRCOgr2WTHpUyXlhWRrO0fmvb1Acj/YyoEZeYJa2CLaVJK4
-	 Lpe3yR5m4W1Zd1Pgp10xBzLXgIfAkOsAKlljHG5ejBW/KleANExTtAafU20+cqA9h6Kma
-	 QwYwf5bUNP6YL2UcatPSZuCxpIfOxVM4BgP17dvNI/uJRLeUsgncv5yG0VVVoFQCedg==
+	t=1794319075;
+	b=2wn1IC6xkpNw/ShxnFCppHwF5aZMp8lbbF9nQp+4ktsLAZl88YaznEqy9oG+I2R5mFE/
+	 hS4P5O2ue2MhJUEDjXnKXwFwid/sgVHTyrSeqspGmRmCnj9gBVXC3+BBe8yQre1eVETzd
+	 1/Pt7veSwHZqBIfOQvG/21DkL+xkr8fiw1R07HprJ0pQeiN9S5fQpTSvdXUIJOQWVZMYe
+	 VMPpVdcW/+zmG5fp9kQiVzvz7WbZ7XkmYJhFzsrDq33xLnlMJZ/bglgOXEei6864qJmm+
+	 uhWH7CJ2Qy4KE4BdPkKQ4OioCCkqDNH7EtXM0/mHcINXuCghuK+ydiqNVa+ZRxEcXdA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794319076;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794319075;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=KZYzlwx+Tp8HX3h6UwJ31WqXAJ42qCy9VRYbHAt07pU=;
-	b=48x7gxtKDacH2/0WrfJCBBKn0zY0cTpPlcMZIzs/SG6KAyLshumeGlKaHh1pwgb2i0mC
-	 w1Dwb+m8N44c9mJX3XV7yP1f5G1DqHZjoJEJKwEXfiy/9t6aUT6WoUZI7sdFndoO0Lnv1
-	 rWFb0vDy2rdO0AkfOQH7qS1o5DmA5eG+0jDDe8O4LsfkfzvCbRJGW3pE8NwjgQMjxo/yG
-	 EG6H0JLxRLjucQlULVK/MbeS+LdWudak6xARJveogelC7UJzkC0GOqTf8VF3ihmHr5/Pb
-	 LX3El0hIJjvZnLM5vwaXuUZvg7xGB3DITLRsguWWAfXYm837AjvNWWj08huW+vSBDiQ==
+	bh=YFjW35zvvJYki6kMAd/FYXGvh/Dc0hX3ITs/Jgj221g=;
+	b=Ht25Wj7nu/7OvYGr0UR9uiWlmdWLE5qHzhGlfrOtXovXG+bJNxAnFcjQ0jMTD89aF+UP
+	 9d0wvcHd8JAaKGe36RCD6ZmlZhiDWiMXo0ha6H4IOfeD1xIXjnMTYbkUvvIWl3VNc1PZe
+	 c/zLIK45juFfcEHsQXn5CrqwcwUlfzm5Vk15IjPllGyatm9wUk0xThwh5z4y3CcPKX+GI
+	 vRSBk2yHduTf4VDAU6wPxoRZsClrJypoNeUxz8EGGgqg5YS3Tk2E6ISI8XNcOe0/6AY76
+	 xkBMeL5O+Cf6DV0h6qkxqlAccxNIAZd5n/UGNF0gPZW2EqlqqYpjde6h4Pk3M1j3k/g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=k1QwX7WY;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=krAdlZcS;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC600606A333;
-	Tue, 10 Nov 2026 13:57:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=k1QwX7WY
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEF5A1F0089F;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC8ED606A31C;
 	Tue, 10 Nov 2026 13:57:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=krAdlZcS
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF6611F008BC;
+	Tue, 10 Nov 2026 13:57:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794319075;
-	bh=KZYzlwx+Tp8HX3h6UwJ31WqXAJ42qCy9VRYbHAt07pU=;
+	s=k20260515; t=1794319074;
+	bh=YFjW35zvvJYki6kMAd/FYXGvh/Dc0hX3ITs/Jgj221g=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=k1QwX7WYwTixcNVgTaJJ5PEmIaPIu9MZ0r1nQqdtLpyTzozx2fSxNzt80TynkiJi9
-	 PYJYD1Efms1Cw5gwNiwJ5b7x4nUV0k1PEIhkGRiaizHGj4oK4Fb8NsrCb70lv4TyjO
-	 bdjziHpJZIkCyTzAtq+/YgY9rKxNVx56EI3nDfjVoKUopxvLrJI1U31B9bwAQb6eeo
-	 T2neEjRGgIwhfnJT87EK031wV3Dexm/bPGuz7Ki2t2UTU+LshveS31UZH1Did9gndg
-	 yrBxQ8WStcnILOmMCxiHWsxoFGQHkvOmkjzOu5IzyyvmtQYkmlwSuAkHgGfE9OXbp/
-	 1+VoRCu/Pre4g==
-Subject: Re: [PATCH net-next v11 11/12] net/rds: pin the connection across
- RDMA-CM event handling
+	b=krAdlZcSRj0nnmM43Q8bCuQOwVZWdvkiafW4cwyjURCSVctnGpVGivC394Dj+2jnj
+	 3HE6E66hnE/HFLkkj8jARceXSGMZ3HHpk/yx1ppe93IqjkAmOFnLHwwKla4B4ibukw
+	 OgJgZdWP9haC41YFqXTdSOMKn1kOrksnMmHEVXLbohT2C6lvvkpnM1Lsln0RcA4dae
+	 Qalx2mVlYJLap5pqvaCPWUvugpj1Wzn9jFtx4VkmeR6ksCaawUZHMmnTf4U8uDz54Z
+	 3zWA4t+wvUZjobEprnJhoY9E8Vj2YeGaBviQOoj3bhu/HEvf+1FZMbBl45HWVcisJp
+	 hNM5mMjnc71FQ==
+Subject: Re: [PATCH net-next v11 08/12] net/rds: hold a connection reference
+ from struct rds_incoming
 From: netdev-bot+sashiko@kernel.org
 To: achender@kernel.org
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, pabeni@redhat.com,
  edumazet@google.com, kuba@kernel.org, horms@kernel.org
-Date: Tue, 10 Nov 2026 13:57:54 +0000
-Message-ID: <179431907448.994134.16446113833625218243@kernel.org>
-In-Reply-To: <20261106031615.1047052-12-achender@kernel.org>
-References: <20261106031615.1047052-12-achender@kernel.org>
+Date: Tue, 10 Nov 2026 13:57:53 +0000
+Message-ID: <179431907345.994134.1298028433995703002@kernel.org>
+In-Reply-To: <20261106031615.1047052-9-achender@kernel.org>
+References: <20261106031615.1047052-9-achender@kernel.org>
 X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -74,99 +74,87 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [Medium] The patch adds a pin in rds_rdma_cm_event_handler_cmn()
-  (net/rds/rdma_transport.c): `if (conn &&…
+- [Medium] With this patch, every rds_incoming holds a reference on its
+  connection.
 
 --
 
-net/rds: pin the connection across RDMA-CM event handling
+net/rds: hold a connection reference from struct rds_incoming
 
-This patch has rds_rdma_cm_event_handler_cmn() take a reference on the
-connection found in cm_id->context for each event it handles. If the
-reference count is already zero, the event is ignored. It also adds
-rds_destroy_pending() checks to rds_ib_cm_initiate_connect() and
-rds_ib_cm_handle_connect(), so neither of them sets up a QP or a new
-cm_id on a connection whose destroy has begun.
+This patch makes every holder of rds_incoming->i_conn own a connection
+reference. The references are taken in rds_inc_init(), rds_inc_path_init(),
+rds_recv_incoming() and the three m_inc assignment sites in send.c. They
+are dropped from rds_inc_put() and from a new rds_message_free() helper,
+which fixes a use-after-free when a transport unload destroys a connection
+that queued incs still point at.
 
-> diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
-> index 75532734c054b..03c21ce2324c9 100644
-> --- a/net/rds/rdma_transport.c
-> +++ b/net/rds/rdma_transport.c
-> @@ -60,6 +60,21 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_cm_id *cm_id,
->  	rdsdebug("conn %p id %p handling event %u (%s)\n", conn, cm_id,
->  		 event->event, rdma_event_msg(event->event));
->  
-> +	/* cm_id->context carries no reference of its own.  Pin the
-> +	 * connection for the duration of the handler, since the mutex
-> +	 * released at out: lives in the connection's path array.  None
-> +	 * of the callbacks below drops a reference on this connection,
-> +	 * and the shutdown destroys the cm_id - waiting for a running
-> +	 * handler - before the last reference can go, so this is
-> +	 * defensive.  A connection already at zero references gets no
-> +	 * events handled.
-> +	 */
-> +	if (conn && !rds_conn_get_unless_zero(conn)) {
-> +		rdsdebug("conn %p id %p is being freed, ignoring event\n",
-> +			 conn, cm_id);
-> +		return 0;
-> +	}
+Closes: https://lore.kernel.org/netdev/20260720184955.3008978-1-nicoyip.dev@gmail.com/
+
+[ ... ]
+
+> diff --git a/net/rds/recv.c b/net/rds/recv.c
+> index 00ab60f2d9969..e4cae82c16818 100644
+> --- a/net/rds/recv.c
+> +++ b/net/rds/recv.c
+> @@ -46,6 +46,7 @@ void rds_inc_init(struct rds_incoming *inc, struct rds_connection *conn,
+>  {
+>  	refcount_set(&inc->i_refcount, 1);
+>  	INIT_LIST_HEAD(&inc->i_item);
+> +	rds_conn_get(conn);	/* put in rds_inc_put() */
+>  	inc->i_conn = conn;
+>  	inc->i_conn_path = NULL;
+>  	inc->i_saddr = *saddr;
 
 [Severity: Medium]
+With this reference, an unread inc on a socket receive queue keeps its
+connection, and so the transport's t_conn_count, elevated until the
+application reads the datagram or closes the socket. Can that block
+rmmod of a transport forever?
 
-Can this zero-reference check actually catch a connection that is going
-away?
+rds_tcp_exit() and rds_ib_exit() both call rds_conn_wait_conns_freed().
+That loop exits only when t_conn_count reaches zero:
 
-The conn pointer comes from cm_id->context, which owns no reference.
-rds_ib_conn_path_connect() passes conn to rdma_create_id() without taking
-a reference. rds_ib_cm_handle_connect() drops its own reference after it
-sets cm_id->context.
-
-The final put frees the memory straight away, with no grace period:
-
-net/rds/connection.c:rds_conn_destroy_fini() {
+net/rds/connection.c:rds_conn_wait_conns_freed() {
     ...
-	kfree(conn->c_path);
-	kmem_cache_free(rds_conn_slab, conn);
+	while (!wait_event_timeout(rds_conn_freed_waitq,
+				   !atomic_read(&trans->t_conn_count),
+				   msecs_to_jiffies(RDS_CONN_FREE_POLL_MS))) {
     ...
 }
 
-The slab is also not SLAB_TYPESAFE_BY_RCU:
+The loop never checks for signals, so nobody can kill the rmmod task, and
+the module stays in MODULE_STATE_GOING. The task wakes every 100ms, so the
+hung-task detector doesn't report it either. The only sign is the pr_warn
+every 10 seconds.
 
-net/rds/connection.c:rds_conn_init() {
-    ...
-	rds_conn_slab = KMEM_CACHE(rds_connection, 0);
-    ...
-}
+rds_find_bound() matches only on address, port and scope_id. It doesn't
+compare rs->rs_transport with conn->c_trans. A socket bound with one
+transport (through SO_RDS_TRANSPORT or rds_trans_get_preferred()) can
+therefore queue incs that arrived over another transport's connection,
+without holding a module reference on that transport:
 
-That means a zero count can only be seen inside rds_conn_destroy_fini(),
-between the count reaching zero and the kmem_cache_free() call. After
-that point, kref_get_unless_zero() reads conn->c_refcount from freed
-memory.
+  unprivileged process: binds an RDS socket using IB, never reads it
+  remote peer: connects to the rds_tcp listener and sends to that port
+    rds_recv_incoming()->rds_find_bound() matches the IB-bound socket
+    the inc is queued on rs_recv_queue, holding a TCP conn reference
+  admin: rmmod rds_tcp
+    rds_tcp_exit()->rds_conn_wait_conns_freed() never returns
 
-If another rds_connection has already reused the slot, the get succeeds.
-The handler would then take that connection's c_cm_lock and apply the
-peer's ESTABLISHED, REJECTED, DISCONNECTED or error events to the wrong
-connection.
+Before this patch, only the hash-table reference and short-lived
+references pinned a connection, so the wait added earlier in the series
+always finished.
 
-I could not find a current path that frees the connection while its
-cm_id can still deliver events. The shutdown pass calls rdma_destroy_id(),
-which waits for a running handler, before the initial reference is
-dropped. That matches what the commit message says. Still, memory safety
-here depends entirely on that ordering. The later patches in the series
-don't appear to change this: the handler and the synchronous
-kmem_cache_free() are left as they are.
+The commit message says this is intended:
 
-Given that, are the new comment ("A connection already at zero references
-gets no events handled") and this part of the commit message accurate?
+  "It also means the transport cannot unload while such a datagram is
+   unread ... That is the intended behaviour"
 
-  "the pin is defensive, keeping the handler correct without leaning on
-  that ordering."
+However, it lets an unprivileged application decide how long a privileged
+unload stays stuck. Could the unload path instead purge the departing
+transport's incs from socket receive queues? Or could the wait be made
+interruptible or abortable?
 
-If the goal is to stop depending on the destroy-before-free ordering,
-would cm_id->context need to own a real reference, released when the
-cm_id is destroyed? Another option would be RCU-deferred freeing, or
-SLAB_TYPESAFE_BY_RCU with an identity re-check after the get, such as
-ic->i_cm_id == cm_id.
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261106031615.1047052-1-achender%40kernel.org
