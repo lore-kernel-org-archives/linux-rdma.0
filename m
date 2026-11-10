@@ -1,97 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.181
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794280218;
-	b=PZGW7rvidekk2DOSS9iYBNBKcwPkQvs/B9jDqgZc7blUgkhEhWdwQWHh56GilyQUus0I
-	 fSmll9IK41Q9Lz/ycL3H7twmk/Z7TbJwuU7Xbb3e+hWneA0mvANSEnTyQBn2OJWrSVSzx
-	 l+gy6z8mKBy+u+tsuqSOlXieeYCgRIJ5pje1qkS7JPgxoDF+gut1PMDku9gTKDvp/xjgZ
-	 A6nHuvYZ2yU5Pv1AQzBrjPsVYB/DjJBLDETxn7jXXlxs87cA18UVm3U2wPeQN0kEtqBbr
-	 stPKYgWFq+p/7p9XZ5TSrR+bztsnxehTli6c8NwpVQyXoF3Tbp9Y8mAuiPRoO7NrO0A==
+	t=1794281598;
+	b=JDSBroivS1WMSK+R9dDC5HhpQI2QrtayHVdHlkx+d8a82yJ9UQ+yM+9wN1NoMgWsK0Jw
+	 SYJHMhAiiFmdZQ8kTxwcqUZCcc8Oa37gZnp7b9FyWyW5v05SlqJ2jzj0wVTvVK1WT/9wa
+	 Zw/wivlrl0MOiNoD+MROFNOhMYWJ8oZw6MDuZQvHot3Ntr7g62Z0yIXpa6e6hzoxcJ4Dy
+	 c48QSCC2BKvJmU/0P0kxjZ/4XK6nOwr4QReHYlwqXPZUmHVp+/McdwFq2B8JG3apIGHFX
+	 aFV9Qg9tzZWkhqS0uqe8NBJsVrYVxHDXDTJOFmqtfUZfqpUKfrm9ReT1atIZzdyBDbQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794280218;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=n3sfGKW7S9id4w6EJ1yBLSVpVy17lWswp5agSoZ8nvI=;
-	b=fOMwhUt8nEUVhnTPAGYtR9aWtmoxKaREHDcQgS7+kIt5op02GyfAUSaHTp1Z4NV/qpCb
-	 jwzRijJIwIoSHUT+Dr+35tYzhYSDDxhI4tZcBa5yv0UjZ+Pw5arWfMbX5oN48TlZxPKXm
-	 qRX8u7JrI6mgyUdwBbkpCIPqv0ONRuxIA0vVBsX6M+Y+YUq2z1ivzLnXf7b9lp6oKIpRE
-	 8E2p9vtxJawSfnFRdYFO7Oz39nWvkeNBofX+i0B7bfOtZu2gakYrgTdP9/ryKCVkHbop7
-	 JleiErZnnfV+UYh4MmP8NKY9BMPT/g9aUROj+i/CMxet24UJLaAHaBAoDNBIOxqbj6Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794281598;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=G4cV0qpzrSSxUu0qxWx8vpvyp1oQkWxlCcVGsNxeWrU=;
+	b=40BKmNxX/rncNXVfiSHQXMWz7FfAfWvhJgBSkNkFL8oEAKbGq8WvQlZk0DRkYbHzQP76
+	 xS7zsLlUTcKrCAlDaNf/VbRpmUzk7/26krvsFlj9gWs2J1vCn4Yof4PXOXsBAlLAbJsyE
+	 iQ13p28VAk1h2sMKSlK08Esf3ei3jdwVZDKODvZe2f9FT26tch8ukp+mr/x5fTIM4bTax
+	 YBLz2VcaKd+nrgVszOBpwUOcBp1sMqPE0uZGWwRkDStmI0nCmf+wKW6/x2xzt4gNl7jZz
+	 BLg96Lkr+Yszl3CCaF7QNcCkPCEiegmKTjCgA6S2THkqVFfvxIKsl2s7U/Wft5LkA+Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=DYpm3Hpn;
-	arc=none smtp.remote-ip=209.85.210.181
-Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=P4kmxBtl;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4777760A2609
-	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 03:10:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4777760A2609
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27ECA606A31C;
+	Tue, 10 Nov 2026 03:33:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=DYpm3Hpn
-Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-89d6bd67045so783146b3a.0
-        for <linux-rdma@vger.kernel.org>; Mon, 09 Nov 2026 19:10:17 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794280217; x=1794885017; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=n3sfGKW7S9id4w6EJ1yBLSVpVy17lWswp5agSoZ8nvI=;
-        b=DYpm3HpnJ+GzIwSECRt5WR39dUsLBo3DTMselW6Zj3ZQjnSK/25qvLf+DxdTelq+Mz
-         pUYKNlXEe7iDHrX6QoX8QFmxgfjV6diDh8sRgYR5gkBGeUqgI+AOcifvgqT4qFcfIpH7
-         BjR1DDaD5ZUYYPJsSwINXE0JwgEUIR8Lk0R2NcWsXbrvekrll7UItUNWO9VPT3XQcOTa
-         4ipLv9+uYnMcIlzfA0zTJ1Ru50EGS49Xqm1y2pKemiG7QmMd2Bp4WCBzlx3kHZJWfvEN
-         yerC9JHPW4Ba8Bj2GRXkXNgPwMW5R0og4UJCHQ0u+PR7twNDzOdus4biyT+Tl1x2MbJE
-         YevA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794280217; x=1794885017;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=n3sfGKW7S9id4w6EJ1yBLSVpVy17lWswp5agSoZ8nvI=;
-        b=RU573hjDMJctCqiolT/84v7NrCrNqx8cUg5wlXemmY0X5kbeYeMr/bOpUo0PKrRD4t
-         E/kowIHDkm150hZKPx/fqdfZ+B3JmkTUuCsXPbFZ8Y1juh//yqLyAXFc6OSJmLAOS+iZ
-         /7DIp7rcFiKNkYzok30qoVZ4+ajxmAAI+9gCalWpsEeVti9dj55NF8amns5867n/HySo
-         s04+qCzgkyrXMMFQBBtj835Znj2/b65qTrdTKfcIQHZZ95X71ehjrEXE4ID6+lJb80Zb
-         LYwrRR+XlSH0o4XwZ/Dx2RGZf2k/S9eeE2aVfhkOHkZq4LIAPwm9L1PqJBQc0Y2tkteA
-         he/w==
-X-Forwarded-Encrypted: i=1; AL+hErF4/im2BkBVDAijyLiO/awZDLypeIf8oEKX7yC0zOdO6Uptt+Bj3XRxR+9MDYvVPCcCV2csY5uA7Oh0@vger.kernel.org
-X-Gm-Message-State: APuU4Z8PGbUGnQ+Noy7hSWV0jCPNmSW9mL++1n02SlJfQ1AIVry4ugEi
-	L4N7FytR1czRp67ZqK51z5eoWmsc5B28s1AsiR4MI9la0iK6jUD+N3X0
-X-Gm-Gg: AYBFou0DjPDpCQL7dqZtsMVjaATDhaZCt5jL2Il9OHMLcHrTDyaFW1Os10HhWh0Js/X
-	ZEeZLGp52YueOWZzlevSxv9wDAATgvVKsEmBKEdLT4pqNqvOjnFB9LkicSvFFcq4a5DBL2zr0In
-	9vOh9HOBHcwYJVu2M7nJX7yOaXATHWbgZ3+P+yJDD/3hSLaW/uLNGnAFizvHe38Jv1XB7ApGUTI
-	iihAJFjzpFYTcCVhZA/NR6WAf8KmsDkoHJZAbCT6lGPBR/X1tdtHqmrl6LNQhJFX59t9/eZ0a9L
-	s+k7nRGZ7NXVZ+UeLPPsGCLPj3AyrCdZDQMzlRupWffwiZP94d7vsJSW/Tm2wrN6K3Ys/QRP+kc
-	2FAjKGgBzlUSY7Q0F3YtBUkLWK+0iCuQlLgM+luU2+U3KbwSX38jXj2cChZC1kJpVvEul2u7E7d
-	qbDcH7h6p9MTlT1YWQkFVInnDsiTpQ5uW+6TQBPcD89XPHILwUEwss3lyjr5vaZ1cYyAl/havpD
-	BlTKTUUgVWdYhbiYgn3vyCVRuTfyJhteMTtunfKx+DR1Qca1PCFSX4HMrAT/3EWhoYnNY94pYce
-	9hgBPegKH6qBwGQzHQAlxDcNP5BxaK1gmvHA3l9zYuo=
-X-Received: by 2002:a05:6a00:4009:b0:8b5:b292:85e2 with SMTP id d2e1a72fcca58-8ba95e80f66mr929417b3a.26.1794280216611;
-        Mon, 09 Nov 2026 19:10:16 -0800 (PST)
-Received: from localhost.localdomain ([183.62.176.219])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8baab8dffb5sm308939b3a.55.2026.11.09.19.10.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Nov 2026 19:10:16 -0800 (PST)
-From: liuyong <pkfxxxing@gmail.com>
-To: Bart Van Assche <bvanassche@acm.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	linux-rdma@vger.kernel.org,
-	target-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	security@kernel.org
-Subject: [PATCH 1/1] RDMA/srpt: Limit read data transfers to the command length
-Date: Tue, 10 Nov 2026 11:08:06 +0800
-Message-ID: <20261110030809.913063-2-pkfxxxing@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261110030809.913063-1-pkfxxxing@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=P4kmxBtl
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B50951F0089F;
+	Tue, 10 Nov 2026 03:33:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794281597;
+	bh=G4cV0qpzrSSxUu0qxWx8vpvyp1oQkWxlCcVGsNxeWrU=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=P4kmxBtlLavFxn9Hjf4L5Keokdutbl2O9g8vBRnyO6aa/XQ9m+CF3kmm2We1J/lB6
+	 qYV3AIOed6BhqBxISvi5SkqI30Bkuu5IlI/bNx+jCY+o2I6YSV8J4WegKkZcDblMCE
+	 pgUOxng6CP3sTmrEuyvXHYi+d7GWYA23oqBXPYohXuOITxXkLU73JYbZSrCDTAFZf3
+	 tSnwsRzzoI3mKXTxIdnZorxBvqGBvhvdNu31mCNyekFnCb1/B5P1Og3EZoBMXXAtSV
+	 mWU8L588ZECkkuPjr6Rv0lDBoJfyQ3zdUQ+yIoEPWT8Zt5NTchxtjDcQNZKfkSxb0f
+	 c9cd05/p/DiTw==
+Message-ID: <sashiko-outbox-206124@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH 1/1] RDMA/srpt: Limit read data transfers to the command
+ length
+Reply-To: sashiko-reviews@lists.linux.dev
+To: liuyong <pkfxxxing@gmail.com>
+Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+In-Reply-To: <20261110030809.913063-2-pkfxxxing@gmail.com>
 References: <20261110030809.913063-1-pkfxxxing@gmail.com>
+ <20261110030809.913063-2-pkfxxxing@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Tue, 10 Nov 2026 03:33:17 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -100,64 +60,113 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-SRPT builds RDMA contexts from the initiator's buffer descriptors before
-parsing the CDB. For a READ underflow, target core reduces
-cmd->data_length, but the prebuilt RDMA WRITE requests still cover the
-full descriptor length. A backend such as rd_mcp fills only the shortened
-command length, allowing the uninitialized tail to reach the initiator.
+Thank you for your contribution! Sashiko AI review found 2 potential
+issues to consider:
+- [Critical] RDMA/srpt: SCF_UNDERFLOW_BIT check in srpt_queue_response()
+  misses underflows
+- [High] RDMA/srpt: non-NULL sg_list on 0-SGE RDMA WRITE in
+  srpt_queue_response()
+--
 
-A remote initiator with access to the LUN can therefore read
-uninitialized target kernel memory beyond the requested SCSI data,
-potentially exposing sensitive data left from previous uses of those
-pages.
+commit e0d34787b9bf3f71d05931ff6cb12b336322ac7c
+Author: liuyong <pkfxxxing@gmail.com>
 
-For a READ underflow, limit the data SGEs in the RDMA WRITE chain to
-cmd->data_length before posting it. Preserve memory registration and
-invalidation requests, and retain zero-length RDMA WRITEs beyond the
-limit so that work-request accounting and resource cleanup remain
-unchanged.
+RDMA/srpt: Limit read data transfers to the command length
 
-The issue was discovered and fixed by Qihoo 360's Tulongfeng multi-agent
-system.
+This commit truncates the SGEs of prebuilt RDMA WRITE work requests to
+cmd->data_length in srpt_queue_response() when SCF_UNDERFLOW_BIT is set.
 
-Fixes: b99f8e4d7bcd ("IB/srpt: convert to the generic RDMA READ/WRITE API")
-Cc: stable@vger.kernel.org
-Signed-off-by: liuyong <pkfxxxing@gmail.com>
----
- drivers/infiniband/ulp/srpt/ib_srpt.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/u=
+lp/srpt/ib_srpt.c
+> index 43c3ff1ad8e7e..2f7857ef4face 100644
+> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> @@ -2913,6 +2913,26 @@ static void srpt_queue_response(struct se_cmd *cmd)
+>  			first_wr =3D rdma_rw_ctx_wrs(&ctx->rw, ch->qp,
+>  					ch->sport->port, NULL, first_wr);
+>  		}
+> +
+> +		if (cmd->se_cmd_flags & SCF_UNDERFLOW_BIT) {
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 43c3ff1ad..2f7857ef4 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2913,6 +2913,26 @@ static void srpt_queue_response(struct se_cmd *cmd)
- 			first_wr = rdma_rw_ctx_wrs(&ctx->rw, ch->qp,
- 					ch->sport->port, NULL, first_wr);
- 		}
-+
-+		if (cmd->se_cmd_flags & SCF_UNDERFLOW_BIT) {
-+			struct ib_send_wr *wr;
-+			u32 data_len = cmd->data_length;
-+
-+			/* Keep MR operations and WR accounting unchanged. */
-+			for (wr = first_wr; wr != &send_wr; wr = wr->next) {
-+				int j;
-+
-+				if (wr->opcode != IB_WR_RDMA_WRITE)
-+					continue;
-+				for (j = 0; j < wr->num_sge && data_len; j++) {
-+					struct ib_sge *sge = &wr->sg_list[j];
-+
-+					sge->length = min(sge->length, data_len);
-+					data_len -= sge->length;
-+				}
-+				wr->num_sge = j;
-+			}
-+		}
- 	}
- 
- 	if (state != SRPT_STATE_MGMT)
+[Severity: Critical]
+Can the prebuilt RDMA WRITE work requests still exceed cmd->data_length
+without SCF_UNDERFLOW_BIT being set?
+
+For SRP_DATA_DESC_INDIRECT, srpt_get_desc_tbl() sets *data_len (which
+initializes cmd->data_length) from idb->len, while srpt_alloc_rw_ctxs()
+allocates uninitialized scatterlist pages and builds RDMA WRITE work
+requests from each idb->desc_list[i].len without checking that their sum
+matches idb->len:
+
+drivers/infiniband/ulp/srpt/ib_srpt.c:srpt_get_desc_tbl() {
+    ...
+		*data_len =3D be32_to_cpu(idb->len);
+		return srpt_alloc_rw_ctxs(ioctx, idb->desc_list, nbufs,
+				sg, sg_cnt);
+    ...
+}
+
+If an initiator sends an indirect descriptor table where idb->len matches
+the CDB transfer length while idb->desc_list[i].len is larger,
+target_cmd_size_check() sees size =3D=3D cmd->data_length and never sets
+SCF_UNDERFLOW_BIT.  Similarly, on a READ command with a non-zero PROTECT
+field when T10-PI is enabled, sbc_check_prot() overwrites cmd->data_length
+with sectors * block_size before target_cmd_size_check() runs, so
+SCF_UNDERFLOW_BIT is not set there either.  In both cases,
+srpt_queue_response() skips this block and RDMA-writes uninitialized
+target kernel pages to the initiator.
+
+Should srpt_queue_response() clamp the RDMA WRITE SGEs to cmd->data_length
+unconditionally (and srpt_get_desc_tbl() validate that the descriptor
+lengths match idb->len)?
+
+> +			struct ib_send_wr *wr;
+> +			u32 data_len =3D cmd->data_length;
+> +
+> +			/* Keep MR operations and WR accounting unchanged. */
+> +			for (wr =3D first_wr; wr !=3D &send_wr; wr =3D wr->next) {
+> +				int j;
+> +
+> +				if (wr->opcode !=3D IB_WR_RDMA_WRITE)
+> +					continue;
+> +				for (j =3D 0; j < wr->num_sge && data_len; j++) {
+> +					struct ib_sge *sge =3D &wr->sg_list[j];
+> +
+> +					sge->length =3D min(sge->length, data_len);
+> +					data_len -=3D sge->length;
+> +				}
+> +				wr->num_sge =3D j;
+
+[Severity: High]
+When a read underflow spans multiple IB_WR_RDMA_WRITE work requests, can
+leaving wr->sg_list non-NULL on trailing work requests where wr->num_sge
+becomes 0 still transfer uninitialized memory on providers such as irdma?
+
+Once data_len reaches 0, subsequent IB_WR_RDMA_WRITE work requests get
+wr->num_sge =3D 0, but wr->sg_list remains non-NULL and wr->sg_list[0].leng=
+th
+keeps its original non-zero length.  In irdma_uk_rdma_write(), the 0-SGE
+path still passes op_info->lo_sg_list to iw_set_fragment() for fragment 0,
+and irdma_set_fragment() programs fragment 0 whenever sge is non-NULL:
+
+drivers/infiniband/hw/irdma/uk.c:irdma_set_fragment() {
+	if (sge) {
+		set_64bit_val(wqe, offset,
+			      FIELD_PREP(IRDMAQPSQ_FRAG_TO, sge->addr));
+		set_64bit_val(wqe, offset + 8,
+			      FIELD_PREP(IRDMAQPSQ_VALID, valid) |
+			      FIELD_PREP(IRDMAQPSQ_FRAG_LEN, sge->length) |
+			      FIELD_PREP(IRDMAQPSQ_FRAG_STAG, sge->lkey));
+	} else {
+    ...
+}
+
+The hardware then DMAs and RDMA-writes wr->sg_list[0].length bytes of
+uninitialized target kernel memory for each trailing work request.
+Clearing wr->sg_list =3D NULL when wr->num_sge =3D=3D 0 (matching
+srpt_zerolength_write()) avoids programming that fragment.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261110030809.9130=
+63-1-pkfxxxing@gmail.com?part=3D1
