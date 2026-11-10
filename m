@@ -1,13 +1,13 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.48.57
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.209.42
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794336059;
-	b=VFrmRLSO2K2DzxvPVEWWN/3B9ffArm1rj+9N35+g1CSEYMVThE12FdlAGrt9fIFvpewr
-	 S9o82AWUAD8xyLejOap+hdyow5re3ZqdmVFYWHCamhLeq4MKu90+FJS/YO8ZR7nJLhE/8
-	 8/qR9yN4/Ond3uIkyEMm7J3bP7mTEb/EwY1d1OkU9N9Xh7hZPSiVijmIHYM7+cuOZX2JW
-	 sk9FEXyO75vO7KWdxgyETh3uI9ow4DWr3JK0RDiIdita43MLq0WZYvnu8YWFiJJ7R3kY8
-	 BwhJCIzCKweulyPQaASB4vCYBlrMMZhN/ACr/m57oi0MZTytxCiFY+OnnD7lHAL5pIw==
+	t=1794336036;
+	b=CnQK8LttcfnjE4H8oYT5m2IWvjJor9owUFVLm7jPzy9CUfiTAaVr8+iRqUttpPe3/Sco
+	 NKFG4QscsgLk9Y/bIEGIm4c/wKxhxD7JrP1iqjtN414CMFwP5Eg8wzT46Df3HOg9tBHp9
+	 25IZtDFtiaKEN7hKrF16EH6UVC+2zJJ5H78oevL62HbOp02anU4fBmyAk1W9FaI2/p0JS
+	 jejzoeVpN01C+CbYfwEEmfglBI/1TekpTZnLnz6IIrhw+eZfk+Dc8saB3GlwIKCL8r32K
+	 S9KSF9fU9hVTlA5ysx+w3d1F/YqQC4LBOF4nLgMPq8IrrN7aS/ZJ0JRNicIiqJfJCTw==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794336059;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794336036;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:
 	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
 	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
@@ -26,75 +26,75 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=xxbvl5a/IAbV3dMnPSV6l78AOywHKsHS0fXZzENIObY=;
-	b=Hs0KDvFKKTaXnQTHKu9lHGMCcfIrR6Xe0LUgM8S/Y9Y8vmHZnMsiQJrWJoRe5WHGbmsm
-	 ImMXREeu+dVT51vCH3sNqAvC9rt/7NgaKHv/Jk4K6uIlM2HE5AJCw9tjpCvjRbvgIzsT9
-	 0gSmDR0rV9PYyEzyJ8Y2YEgz0oTsyuJza5+irCvSVC1h8Lw9ov+8zM1/GmfAu4oRRImy4
-	 LAXODmWyrRboAhKl2C5gkJeCoL0v6QheeixbFxpka9suV0HhGFbjFN0J3CEos+TJ7gxBO
-	 DHs3PyU6U6Zkxg2vl07fJluOUknivtO2pDdHk8F99jib2uPQIysvFNeQmGi8W7sFu9Q==
+	bh=iFZMuViaN5NB/q0v96K6OVbOiV4q/zf4PyWZGX4KHfQ=;
+	b=kUE9u2QhMRUOmNcsJyilWMD4uDfouxDifCjIHAOmGBwQhD/m5ZexSZEqndEf5qr2QAPK
+	 2CQzRZ7x9oFmG5NmCEeJn1jn02V5RkQJncbRua/rt/Ts8tGAGpYX4qTmqQiY7CRTxk6Vr
+	 g+3Xqy/PMglYjkYrsqbV/CdfYlk+4grGp3EeEgVnV43BQ9SW3H2q89l0bjzsM8eUBXASX
+	 B1Khgt8KDpW27huDAiUFzL8K1+1F7/4AwPRL1ss4v5FIxmWTs3ye4zApUDD5aXbgER5im
+	 rpvP+77NKW6w5ieF3Q71K0/PfjmaXgA6OmeFpxlwDfPvX4lc/PBf5ZlkmxtT1iltV6w==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=OPVhWRUn;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.48.57
-Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012057.outbound.protection.outlook.com [52.101.48.57])
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=tvv1YOV4;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.209.42
+Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012042.outbound.protection.outlook.com [40.107.209.42])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D40B60A2605;
-	Tue, 10 Nov 2026 18:40:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5D40B60A2605
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B43DA606B5A1;
+	Tue, 10 Nov 2026 18:40:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B43DA606B5A1
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=OPVhWRUn
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=tvv1YOV4
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=HZex9EWwOP2ljWck+3rrYYSQkwq81O/CRl3gI5a66BO6J3FarPH23AYgYx2Ar6aoRDFDE0f34F0xCoaulXNazW8uOPwx/PfrRCw9szu0/s5PKLDLDXgEVZFNgAwzqeu7ehyVWRgl0ePHN1X7xXZrpZshLtO9bU2lTsNwwhqUaLkWaMZMoQqStp9+62zId2k1GvurZcMqaCQVqVxmop1No//7Q91KjTbnzej856bElNsle2MjOEQidk5grfeWgMo25MiAbdx9NCgI/sYHPAQVVyledI5K8WsThh5fEE6CYkBai5wL/dxBCfT2B2JZPluaOl+tuNFYx/jn0q76h8P6YQ==
+ b=GTnwZekdrrPB6EaaDH4ypxNobudsl/xSdEww26PG5/mg+DQVqUajpT5stLAjelrjAEy0/st0biHt15JwOzKPaucWnJTgf+ARcBe6nsNDe5XhU0Q5dvJO11J5/z2afhWsHB0NlfMQXXpo2hvbOndDFOub97u27hMgBrBvh2Cpg8OA6GHTvCt9iiVemNwlXYHwVV8I4c/71JWl7gwW53a+DMDFvfej1QIXxS68OcqaMiT1DWHJmI4UtGp4POfsPU/t0+Q7V+vgsZHAyAFxfqWiAs5nGGhqjtzrwykVwa3fe6rFHhfTqeUliK2x+CQAHxMEIAhDeo4FQ47TYZdSR8sgxA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=xxbvl5a/IAbV3dMnPSV6l78AOywHKsHS0fXZzENIObY=;
- b=ElZuyxgnJUmPpwT6BJ/YNag/nEjs1lYJbbz3bGuEhvtokAIssz3HtV37ZukasATnw/emcbfgkj2VneZDID5emGOEA9oikR/Sic/PGTGp/qhSQ0VZthtqaF5w7sgTOwcwZ8ZV72FVJstkg3A6wiweCeIlDROgkHZnSJCoursTriqVbolxHxqRHWxiFSr1eMeQfYa4kYTg703qnW/tyTnFA/m5i1v06WFM7x+Phchc0bq9eSviInqEQtTSFrZUxPRM4dMuyw7kd947dxVx8sCNL0Wth75kV8AjUbnLto6IxDgR6QAsFm0vskJNYKarZP1wKAAKECxtQ0KjqM8J2ezYSA==
+ bh=iFZMuViaN5NB/q0v96K6OVbOiV4q/zf4PyWZGX4KHfQ=;
+ b=f3LLPuvwe/50uQOjehKuif660/WUOnmmJjSErCFLQr1cBwvwJWTdhwrpjx/i6TGkWzKvCEWmmqKvl0mJ4Eh4DS8FuOHaMq9WFqmtbFKugY+NDn5Evo/s/gubmgvSdFgEzrAEhkWyQQulFv8fFxvu/lwa9+MXVc+iYmB39eeW1JjRKmP+BinnYK5VnV97PNkbhgNwPPBhAHxEzk6/9kIRpMpqqfeqH5lbLUe1mOWrPArXHa05EU5xoaBTYZzLH0HGiqYUXWZ164JoiTO9kC7afd77W7NkN1LI15VJdWrDW1gop0khCkjB1IxYhERf1tH1rgrFDDJ9lS57MAnvDRtFGA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
+ 216.228.117.160) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=xxbvl5a/IAbV3dMnPSV6l78AOywHKsHS0fXZzENIObY=;
- b=OPVhWRUnUr6btsNHpxUsM8Hi1fEgX7BWkCDp5jTlk0+SV8wQ9UrKEEIm80HIaEPEDSFBt7McGpea8Uq2mTEJJJUFPj9caSqJ4RHxeyhKBlyBgVhi4xqjJP/YuhuozoQrNj2joTL+1gOCndrhPyhfqQqWujMJBcOtjGw/Cz2G3lPYdOZU8GgIThr6faExHn2R/3ZS2IFyHR62V1ycCj4VzL7uysV8B0xs43y467HMZis+2Q0hU1kaTsiEBNEK4Cs5DwSWP6xftj3IwWXODgi/2RTSeIYQanf3OnXxPAZ2hdz/7kfcUPWwEeoUVcWAtpQ3XCxle4h1SCl2Jwr77THxkA==
-Received: from CY8P222CA0002.NAMP222.PROD.OUTLOOK.COM (2603:10b6:930:6b::21)
- by SA0PR12MB7002.namprd12.prod.outlook.com (2603:10b6:806:2c0::18) with
+ bh=iFZMuViaN5NB/q0v96K6OVbOiV4q/zf4PyWZGX4KHfQ=;
+ b=tvv1YOV4t3YdPvaY859mInhi/SPNTRbET917cQOMXeii17PNnQAumu0gMks65ix/wLYS6LPhAJb19cSvOrqHI1555Xcq4YuIoiVFbuM3v+fdAxfEvhSrLMQDz2SwC06iYrnX1fvQLu1O2NVmdazmPH9+Izre3Yg7LcMsaRy+qqQOF1icm4LELNaQogURumgugZpCkQ8yXlqmbhVwKp5OpQwsfTQxZfWplu4Ex7MbKC4O17FFUIa6Lf0TYJh8TRlOKviATEOcmLqljoo2sEWIC1nuZb14Hzx28P/TShhEdWidCqV0CifjcTbs7VF+BrWJDP4hCoI9tIyANUHeXRyvyw==
+Received: from PH7P221CA0052.NAMP221.PROD.OUTLOOK.COM (2603:10b6:510:33c::23)
+ by PH7PR12MB7185.namprd12.prod.outlook.com (2603:10b6:510:201::14) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.8; Tue, 10 Nov
- 2026 18:40:53 +0000
-Received: from CY4PEPF000392DD.namprd03.prod.outlook.com
- (2603:10b6:930:6b:cafe::ad) by CY8P222CA0002.outlook.office365.com
- (2603:10b6:930:6b::21) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.13; Tue, 10 Nov
+ 2026 18:40:27 +0000
+Received: from PH2PEPF00048914.namprd05.prod.outlook.com
+ (2603:10b6:510:33c:cafe::ad) by PH7P221CA0052.outlook.office365.com
+ (2603:10b6:510:33c::23) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.8 via Frontend Transport; Tue, 10
- Nov 2026 18:40:53 +0000
+ Nov 2026 18:40:27 +0000
 X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ is 216.228.117.160) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- CY4PEPF000392DD.mail.protection.outlook.com (10.167.247.123) with Microsoft
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ PH2PEPF00048914.mail.protection.outlook.com (10.167.243.70) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Tue, 10 Nov 2026 18:40:53 +0000
-Received: from rnnvmail204.nvidia.com (10.129.68.6) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ 15.21.615.4 via Frontend Transport; Tue, 10 Nov 2026 18:40:27 +0000
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Tue, 10 Nov
- 2026 10:40:30 -0800
-Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail204.nvidia.com
- (10.129.68.6) with Microsoft SMTP Server (version=TLS1_2,
+ 2026 10:40:06 -0800
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail202.nvidia.com
+ (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Tue, 10 Nov
- 2026 10:40:29 -0800
+ 2026 10:40:06 -0800
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.6)
  with Microsoft SMTP Server id 15.2.2562.56 via Frontend Transport; Tue, 10
- Nov 2026 10:40:22 -0800
+ Nov 2026 10:39:58 -0800
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
 	<davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
@@ -110,10 +110,11 @@ CC: Bobby Eshleman <bobbyeshleman@meta.com>, Carolina Jubran
 	<almasrymina@google.com>, Nikolay Aleksandrov <razor@blackwall.org>, "Saeed
  Mahameed" <saeedm@nvidia.com>, Simon Horman <horms@kernel.org>, "Stanislav
  Fomichev" <sdf@fomichev.me>, Stanislav Fomichev <sdf.kernel@gmail.com>,
-	"Tariq Toukan" <tariqt@nvidia.com>, William Tu <witu@nvidia.com>
-Subject: [PATCH net-next V2 13/13] net/mlx5e: Enable the data direct netdev feature
-Date: Tue, 10 Nov 2026 20:38:26 +0200
-Message-ID: <20261110183826.2927274-14-tariqt@nvidia.com>
+	"Tariq Toukan" <tariqt@nvidia.com>, William Tu <witu@nvidia.com>, Bobby
+ Eshleman <bobbyeshleman@gmail.com>
+Subject: [PATCH net-next V2 10/13] net: devmem: add netdev_has_dmabuf_binding() helper
+Date: Tue, 10 Nov 2026 20:38:23 +0200
+Message-ID: <20261110183826.2927274-11-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20261110183826.2927274-1-tariqt@nvidia.com>
 References: <20261110183826.2927274-1-tariqt@nvidia.com>
@@ -131,167 +132,158 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF000392DD:EE_|SA0PR12MB7002:EE_
-X-MS-Office365-Filtering-Correlation-Id: a3218659-1e5f-4e1c-fe93-08df3f5a2658
+X-MS-TrafficTypeDiagnostic: PH2PEPF00048914:EE_|PH7PR12MB7185:EE_
+X-MS-Office365-Filtering-Correlation-Id: e8bfbedb-5ed2-437d-2bff-08df3f5a16d5
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|7416014|376014|82310400026|1800799024|36860700016|261026140227099003|261026121527099003|261021123027099003|261028144727099003|261009223027099003|261021121427099003|261022105027099003|10067099003|261102123227099003|11063799006|56012099006|22082099003|18002099003;
+	BCL:0;ARA:13230040|82310400026|36860700016|23010399003|7416014|376014|1800799024|18002099003|22082099003|10067099003|11063799006|261102123227099003|261102130727099003|261028144727099003|261021121427099003|261026121527099003|56012099006|261026140227099003|261022105027099003|261009223027099003;
 X-Microsoft-Antispam-Message-Info:
-	M/ARiApQZab83VkP1fHAWDooklF1t8UTYuOi6ixguwTbKZYiEtI5ULI7E7vOaxCABXir4bIPQUmvbU6AvtzPOWubasGiiohH2WS3z35n0cURrJx3DXgxNtGnqILXPmnXNdFVk6hj8Ph9SG5CbDhLtoFc1m+bgieY59dTglzKMf2bmrAob1P6vjyvVIGr81ttCQz+CrCbq5IB1Cm7dZVrAIsMr9LhPcDtvBmYwtuAxG51cn+KMHCmvemmVPmkL2tm0bGmhipkBbE9rkvLEROP3Ed9cdDVcTm6ENbJcxgFZ3avEprn1ABlNX/EdRXcNU3HugLXYo77OEj5BD4eCdOR7J8PYpGIjwp8TBdG2w9KmanVbKjoEsETomvyN9FXbyzsm2H59S/1uGwHNbgZ/Mr5gkO439mCB2dJdH85e6dNgleievgs7Jn6yZYrv4qm1W/k+oxCopOoI0uscprLdTewBMLF1Uvp9+u97UIrp0UdrLlLGZkPEzwtF+2rYU+DDvg/4pAXHBHiu0eUrnFWl0UmMUBHTS3QC5EefxKerK5FvD3Wky1wlPidYo7nY2ku38/thCDSUaMUZPqA/XrreWMXpPAM74M1LpeZF7fURTHb/Og3S81+Harxn/QkUYseulR7mxRiEI3a+bFPukvF7CqRCdBlCrc5RpfcIHzvNShKA44/z5Ha8nxSA1iecJoAgf8BosaSeh3GF+/+8kboO4LuKA==
+	2AcB6S2D8aH0fVNfQjYuuOQf9kZlJhNP0nhN3ycxSM8fUzYnEe1hYPDa0MWqcCrNmx4qDQBrHzuPTfHqx9X5pXJX9hB2+P0ukwvk9YJ4EWJ5artF9DvjWpAAkLPJyRVmLLsCpxSWwmFCEiUGBExL9Hamvho3eyMDENBmA811quE2GgUqFJA2TuQFWpEycVFiZWB2hMMJdPN+aXshyIA3ep+aZIG/VMgpaFW83FvpydZ0wu6dGQZkcAGy26HlbM119h5ZyiCWbCX1CqqRMSsSSM4bdxoECRNRqPzq+Bo6BfJCuE/I9nJgYJFLSN3WKH6Vs86Sb9iqMdQtDULsCLlXPRFLw3R49oxcJwa4bmMkHqG5uiAHJygXrsDAVASZG97nemv/YzZJ84zdEzmiYOFqBGLmnrJ2v6pCSKvQoJXGm8KOIBY5g3Dbq0wNzxVi0HHsUYlpaEyPzYUQEGvfLJVOr/Y2MxKILHSdAZ55DOSz4GSuNIgDCMyoktn/uZgh0Dj56OhdG/HdAXEvWAwMP3LDipnVubk1MK7sUOAfOZ3J1UnSDurATahFwDrlQg8tDJ7z2MdYbF5vycAZKPHzaIbGePM+aAowvHyox0QPmv3xp94Kr0RxVDW9kdFvnC1widNmWU5YCzKgihyWqcAYmYQ23LNOH3uduX71kRRYq8DVfBY81WInQdCPfQEfRPC3/J+3SyA9AhMGcUIYpM040cQ1DA==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(7416014)(376014)(82310400026)(1800799024)(36860700016)(261026140227099003)(261026121527099003)(261021123027099003)(261028144727099003)(261009223027099003)(261021121427099003)(261022105027099003)(10067099003)(261102123227099003)(11063799006)(56012099006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(36860700016)(23010399003)(7416014)(376014)(1800799024)(18002099003)(22082099003)(10067099003)(11063799006)(261102123227099003)(261102130727099003)(261028144727099003)(261021121427099003)(261026121527099003)(56012099006)(261026140227099003)(261022105027099003)(261009223027099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	NbEDt7eOdlrhxW9mwDOJCakO3DgkR9COopAo7mmz1XTUj19st3XHdWk0pW8BJUWXPcbYpC0rzHaiBX1Q0oYUWMiQvVLDRhdWBDuwx2i44QF6rj5DdzkL/qGbMB+xGbJzJEvaE4Yt0sPLNI2Mbqbgez1/qQY+yR6+UZslti0MD5mP6aqH9nql7mLOpQRqLaWmJuRESVdkVGIkwew6VJdtoZD+pPSf5q23fdrBqYgilhwRdobd1z4QIE49UhGkdhzFQgitfi0p+S7dAq+guCbkpS/ZtXugDD2X8neQZe678YWEhhFzoARmvZEuiY1ozB3JCyL9I+29ZfJyoD30A9XI1YY69Y5p0yfWoOyIcKt7yblD3lgmmzd/zVdgW4WoXo1JVVqthtmu+JT29wiBgB15V/rCzW1l53lyfdaY7/foC8TLrMXd+CyGlwtuouBw2vRq
+	yKLQSiMxCLIpoHlVuiKM1QlsLFBu9RAHQ1BlBz2iyyMR8cpWHQPsadOPnVNEO6yv8Ek1vU7uxyQ6xmuTcKtEi5JSYHZGgSl/zxZkvLBPYitQcxOKRJfzXaXs0u8YSA4qwTMZ5zalnh6f8KHWkHfzZJHR8z5e0jsch7/A1K6wHcG3qVJqOUfKPwmS0AuBrhHb5EqIpzkbFstrMgKJZUN2cZ7Ptk4PyXx42f9W5WTq4KrebksjR+9OhuhmkdXQ46xtwINzZpmZwusxo6UJJfxFMncU1MxLhooJAZoQ2BvJjmRU1gFdgZHmu4CA5bSidFKgVq23gtXP3Uhs+KtdYe9a1ovvIxCR7rsV2yu+ixRARRS98tBBU/Ga2pLG2OH1ycvZ2ISVqNWiNXPSTTVvyx1m69mFSiKRBW3Nw5bwIml9CAtkG8lE2Rkgj552UJuL6KWo
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Nov 2026 18:40:53.1667
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Nov 2026 18:40:27.1632
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: a3218659-1e5f-4e1c-fe93-08df3f5a2658
+X-MS-Exchange-CrossTenant-Network-Message-Id: e8bfbedb-5ed2-437d-2bff-08df3f5a16d5
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CY4PEPF000392DD.namprd03.prod.outlook.com
+	PH2PEPF00048914.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR12MB7002
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB7185
 
 From: Dragos Tatulea <dtatulea@nvidia.com>
 
-Add the implementation of the data direct private flag.
-This enables the feature altogether.
+Currently there is no way to check whether a dmabuf is bound on a TX
+queue. RX side has netif_rxq_has_unreadable_mp() which gives a hint
+of it.
 
-Do not allow state changes while a memory provider (devmem or io_uring
-zcrx) is installed on an RX queue or while dmabufs are still bound to
-the netdev for TX: their buffers are mapped against the DMA device of
-the current mode. Same for leased rx queues.
+To help with that, add a helper to check whether a devmem dmabuf
+binding may still be in use on a given netdev, optionally filtered by
+the DMA device the dmabuf was mapped against.
 
-Reject enabling the flag on uplink representors or in socket direct
-mode.
+A binding can outlive the user's unbind: it can still be referenced by
+in-flight TX skbs, whose DMA mappings are only valid for the device the
+dmabuf was attached to. Reporting such a binding as gone would let a
+driver swap the DMA device out from under those skbs. Bindings stay in
+the bindings xarray until they are freed, so walk it and report every
+binding of the netdev that is still mapped. Bindings that were already
+unmapped are not reported.
+
+This API is necessary for the upcoming support of data direct in mlx5e.
 
 Signed-off-by: Dragos Tatulea <dtatulea@nvidia.com>
-Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
+Cc: Bobby Eshleman <bobbyeshleman@gmail.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en.h  |  1 +
- .../ethernet/mellanox/mlx5/core/en_ethtool.c  | 63 ++++++++++++++++++-
- .../net/ethernet/mellanox/mlx5/core/en_main.c |  2 +-
- 3 files changed, 64 insertions(+), 2 deletions(-)
+ include/net/netmem.h | 24 ++++++++++++++++++++++++
+ net/core/devmem.c    | 43 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 67 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-index 23e45e87cdee..cc7cf23b5c56 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-@@ -1155,6 +1155,7 @@ int fn##_ctx(struct mlx5e_priv *priv, void *context) \
- 	return fn(priv); \
+diff --git a/include/net/netmem.h b/include/net/netmem.h
+index fb693bc1702a..35bb6fa0f719 100644
+--- a/include/net/netmem.h
++++ b/include/net/netmem.h
+@@ -397,16 +397,40 @@ static inline unsigned long netmem_get_dma_addr(netmem_ref netmem)
+ 	return netmem_to_nmdesc(netmem)->dma_addr;
  }
- int mlx5e_safe_reopen_channels(struct mlx5e_priv *priv);
-+bool mlx5e_has_leased_rxqs(struct net_device *netdev);
- int mlx5e_safe_switch_params(struct mlx5e_priv *priv,
- 			     struct mlx5e_params *new_params,
- 			     mlx5e_fp_preactivate preactivate,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-index 26f76449af35..2204b370f439 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-@@ -32,6 +32,7 @@
  
- #include <linux/dim.h>
- #include <linux/ethtool_netlink.h>
-+#include <linux/mlx5/data_direct.h>
- #include <net/netdev_queues.h>
- 
- #include "en.h"
-@@ -40,7 +41,9 @@
- #include "en/port.h"
- #include "en/params.h"
- #include "en/ptp.h"
-+#include "en_rep.h"
- #include "lib/clock.h"
-+#include "lib/mlx5.h"
- #include "en/fs_ethtool.h"
- 
- #define LANES_UNKNOWN		 0
-@@ -2407,7 +2410,65 @@ static int set_pflag_tx_port_ts(struct net_device *netdev, bool enable)
- 
- static int set_pflag_data_direct(struct net_device *netdev, bool enable)
++struct net_device;
++
+ #if defined(CONFIG_NET_DEVMEM)
+ static inline bool net_is_devmem_iov(const struct net_iov *niov)
  {
--	return -EOPNOTSUPP;
-+	struct mlx5e_priv *priv = netdev_priv(netdev);
-+	struct mlx5_core_dev *mdev = priv->mdev;
-+	struct mlx5e_params new_params;
-+	unsigned int i;
+ 	return niov->type == NET_IOV_DMABUF;
+ }
 +
-+	if (enable) {
-+		if (!mlx5_data_direct_supported(mdev) ||
-+		    !MLX5_CAP_GEN(mdev, crossing_vhca_mkey)) {
-+			netdev_err(netdev, "data_direct is not supported by the device\n");
-+			return -EOPNOTSUPP;
-+		}
++/**
++ * netdev_has_dmabuf_binding - is there a dmabuf binding for a
++ * given @dev and @dma_dev
++ *
++ * @dev: netdev to check bindings
++ * @dma_dev: dma device to check, when NULL it will not be checked
++ *
++ * A binding is reported for as long as it is mapped, which can be long
++ * after the user unbound it: net_iovs of a TX binding can still be queued
++ * in flight, with DMA mappings that are only valid for the device the dmabuf
++ * was attached to.
++ *
++ * Return: true if a binding is found under @dev and possibly @dma_dev
++ */
++bool netdev_has_dmabuf_binding(struct net_device *dev, struct device *dma_dev);
+ #else
+ static inline bool net_is_devmem_iov(const struct net_iov *niov)
+ {
+ 	return false;
+ }
 +
-+		if (!MLX5_CAP_GEN(mdev, shampo)) {
-+			netdev_err(netdev, "data_direct requires SHAMPO (Header-Data Split) support\n");
-+			return -EOPNOTSUPP;
-+		}
++static inline bool netdev_has_dmabuf_binding(struct net_device *dev,
++					     struct device *dma_dev)
++{
++	return false;
++}
+ #endif
+ 
+ void net_iov_inc_ref(struct net_iov *niov);
+diff --git a/net/core/devmem.c b/net/core/devmem.c
+index 5c7d9640e9d1..dd3987bbd9f6 100644
+--- a/net/core/devmem.c
++++ b/net/core/devmem.c
+@@ -513,6 +513,49 @@ struct net_devmem_dmabuf_binding *net_devmem_lookup_dmabuf(u32 id)
+ 	return binding;
+ }
+ 
++/* The attachment is cleared once the binding has been unmapped. */
++static bool
++net_devmem_binding_mapped_to(struct net_devmem_dmabuf_binding *binding,
++			     struct device *dma_dev)
++{
++	lockdep_assert_held(&binding->lock);
 +
-+		if (mlx5_get_sd(mdev)) {
-+			netdev_err(netdev, "data_direct is not supported with socket direct\n");
-+			return -EOPNOTSUPP;
-+		}
++	return binding->attachment &&
++	       (!dma_dev || binding->attachment->dev == dma_dev);
++}
 +
-+		if (mlx5e_is_uplink_rep(priv)) {
-+			netdev_err(netdev, "data_direct is not supported for uplink representors\n");
-+			return -EOPNOTSUPP;
-+		}
++bool netdev_has_dmabuf_binding(struct net_device *dev, struct device *dma_dev)
++{
++	struct net_devmem_dmabuf_binding *binding;
++	unsigned long xa_idx;
++	bool found = false;
 +
-+		if (!mlx5_data_direct_get_dev(mdev->data_direct)) {
-+			netdev_err(netdev, "data_direct device not bound\n");
-+			return -ENODEV;
-+		}
++	netdev_assert_locked(dev);
 +
-+		if (mlx5e_has_leased_rxqs(netdev)) {
-+			netdev_err(netdev, "data_direct is not supported with leased RX queues\n");
-+			return -EBUSY;
-+		}
-+	}
-+
-+	/* Changing the flag reopens the channels with a different DMA device,
-+	 * which would break the memory providers installed on the RX queues
-+	 * (devmem or io_uring zcrx) and the dmabufs bound for TX.
++	/* A binding stays in the xarray until it is freed. binding->dev is
++	 * only cleared under the instance lock of that netdev, and the free
++	 * takes it before erasing the binding, so a binding found under @dev
++	 * stays alive while the xarray lock is dropped.
 +	 */
-+	for (i = 0; i < netdev->real_num_rx_queues; i++) {
-+		if (netif_rxq_has_unreadable_mp(netdev, i)) {
-+			netdev_err(netdev, "Can't change data_direct while rxq %u has a memory provider\n",
-+				   i);
-+			return -EBUSY;
-+		}
++	xa_lock(&net_devmem_dmabuf_bindings);
++	xa_for_each(&net_devmem_dmabuf_bindings, xa_idx, binding) {
++		if (READ_ONCE(binding->dev) != dev)
++			continue;
++
++		xa_unlock(&net_devmem_dmabuf_bindings);
++		mutex_lock(&binding->lock);
++		found = net_devmem_binding_mapped_to(binding, dma_dev);
++		mutex_unlock(&binding->lock);
++		xa_lock(&net_devmem_dmabuf_bindings);
++		if (found)
++			break;
 +	}
++	xa_unlock(&net_devmem_dmabuf_bindings);
 +
-+	if (netdev_has_dmabuf_binding(netdev, NULL)) {
-+		netdev_err(netdev, "Can't change data_direct while dmabufs are bound\n");
-+		return -EBUSY;
-+	}
++	return found;
++}
++EXPORT_SYMBOL_GPL(netdev_has_dmabuf_binding);
 +
-+	new_params = priv->channels.params;
-+	MLX5E_SET_PFLAG(&new_params, MLX5E_PFLAG_DATA_DIRECT, enable);
-+
-+	return mlx5e_safe_switch_params(priv, &new_params, NULL, NULL, true);
- }
- 
- static const struct pflag_desc mlx5e_priv_flags[MLX5E_NUM_PFLAGS] = {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 63d91ef0dda8..ba4b09ab2d70 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -5914,7 +5914,7 @@ static int mlx5e_queue_start(struct net_device *dev,
- 	return 0;
- }
- 
--static bool mlx5e_has_leased_rxqs(struct net_device *netdev)
-+bool mlx5e_has_leased_rxqs(struct net_device *netdev)
+ void net_devmem_net_iov_inc_ref(struct net_iov *niov)
  {
- 	for (u32 i = 0; i < netdev->real_num_rx_queues; i++)
- 		if (READ_ONCE(__netif_get_rx_queue(netdev, i)->lease))
+ 	net_devmem_dmabuf_binding_get(net_devmem_iov_binding(niov));
 -- 
 2.44.0
 
