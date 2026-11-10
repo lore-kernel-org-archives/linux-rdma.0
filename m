@@ -1,82 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.173
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.181
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794280215;
-	b=ATb73ZiazkOJXDCZwKFbCXJ14kv3LFLc7yJYtZH12xAYkEi8hAlIzB+dwsWVZV124ZWj
-	 kNkFqE33Q8dFHu0nRwK+TP4xFG7sScV9Sb4iUzUoMQWTqndS02p2RjtDSKVvkTrXFFNB1
-	 oxuebSRBuU1rV4oLMWNHL4TBHNFB/VIhcTayviFDFlG4Si3wmjkzK14TX++3OrUYHyTIS
-	 NDc4IOQFX3uSsVo4bFXYs4ofqJ1437lK/tDeXf63Bi/8FzQi9JgK0QqyrL55g5dq05L/3
-	 NZUS67fq4sUyTIT2uCmdijdmqHYoVzoSaSVm54zbnomxsWnlbzJuY7CJLt8ClSWLv6w==
+	t=1794280218;
+	b=PZGW7rvidekk2DOSS9iYBNBKcwPkQvs/B9jDqgZc7blUgkhEhWdwQWHh56GilyQUus0I
+	 fSmll9IK41Q9Lz/ycL3H7twmk/Z7TbJwuU7Xbb3e+hWneA0mvANSEnTyQBn2OJWrSVSzx
+	 l+gy6z8mKBy+u+tsuqSOlXieeYCgRIJ5pje1qkS7JPgxoDF+gut1PMDku9gTKDvp/xjgZ
+	 A6nHuvYZ2yU5Pv1AQzBrjPsVYB/DjJBLDETxn7jXXlxs87cA18UVm3U2wPeQN0kEtqBbr
+	 stPKYgWFq+p/7p9XZ5TSrR+bztsnxehTli6c8NwpVQyXoF3Tbp9Y8mAuiPRoO7NrO0A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794280215;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794280218;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=6QYJzw9Rr63XbTuPHrN4Cbad1UtYv7xxIdUtWOpl04I=;
-	b=oXWUBwq2nrnsDiBxD5YgtJSOXLhxVExhNH+4/WNNxnDbrDBzAkI9Z6xrDySiaYFb7LcT
-	 nm4qglgPLKiLjocgaLloX6iTHS2CGL7hZ4t1Efwh9jM7DIisDWwhsnjb1o6EUQJueEn2d
-	 SHwyn9uC1R2o6Rm15O9cEXQ3fvJeT09thNtSz+T7D7rH6NcDTbIZ6KyAAfEK7YC5DkL9d
-	 DmznuyCQbeIn61ZdlWrV+3mj8VoYWC+MWNNHHUp3C8yGhJ2ZJ2kinbgZrKw7zUdvb7s6g
-	 hd+g64lcQjb1ccQ8MAFWxytBasHfGQt28vTwd7JTSBloYlHCHUDhZOAgOsTVnUDWY5w==
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=n3sfGKW7S9id4w6EJ1yBLSVpVy17lWswp5agSoZ8nvI=;
+	b=fOMwhUt8nEUVhnTPAGYtR9aWtmoxKaREHDcQgS7+kIt5op02GyfAUSaHTp1Z4NV/qpCb
+	 jwzRijJIwIoSHUT+Dr+35tYzhYSDDxhI4tZcBa5yv0UjZ+Pw5arWfMbX5oN48TlZxPKXm
+	 qRX8u7JrI6mgyUdwBbkpCIPqv0ONRuxIA0vVBsX6M+Y+YUq2z1ivzLnXf7b9lp6oKIpRE
+	 8E2p9vtxJawSfnFRdYFO7Oz39nWvkeNBofX+i0B7bfOtZu2gakYrgTdP9/ryKCVkHbop7
+	 JleiErZnnfV+UYh4MmP8NKY9BMPT/g9aUROj+i/CMxet24UJLaAHaBAoDNBIOxqbj6Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=L+yttUZi;
-	arc=none smtp.remote-ip=209.85.210.173
-Received: from mail-pf1-f173.google.com (mail-pf1-f173.google.com [209.85.210.173])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=DYpm3Hpn;
+	arc=none smtp.remote-ip=209.85.210.181
+Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BFB5606A33B
-	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 03:10:14 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5BFB5606A33B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4777760A2609
+	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 03:10:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4777760A2609
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=L+yttUZi
-Received: by mail-pf1-f173.google.com with SMTP id d2e1a72fcca58-89d6bd67045so783131b3a.0
-        for <linux-rdma@vger.kernel.org>; Mon, 09 Nov 2026 19:10:14 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=DYpm3Hpn
+Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-89d6bd67045so783146b3a.0
+        for <linux-rdma@vger.kernel.org>; Mon, 09 Nov 2026 19:10:17 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794280214; x=1794885014; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=6QYJzw9Rr63XbTuPHrN4Cbad1UtYv7xxIdUtWOpl04I=;
-        b=L+yttUZiKSMf9NvCb+E1pLmj8OeGaaYw08dr2RAirE+Lz4npNIabN93ZWVbnQvBOmk
-         L/yuJyZBJXk+gbkG3Ff9GbaY/UHwWlFTW80K5LASoZSSlGlA+HKK4+3kty5gpse5xRY4
-         TI+pERF8HLHwUyjXVIkZqzQHRQNiZ+4a9ipfpMf/81jymsAP0aUBrdIzokuk4ZY/WnEu
-         yxiBGwyFRYuoSKH4xpoBKm6g86uUhQq4pQbB86n6O8c6bHsYhFkKH+5rsFw6uBhO8JV8
-         YWitWZAUHAoOpHd6BhxUuy673W5AKuYLbtmnvskoeROhohACc5FBdnN4+re4uTlbXTZ+
-         3PnA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794280214; x=1794885014;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20260707; t=1794280217; x=1794885017; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=6QYJzw9Rr63XbTuPHrN4Cbad1UtYv7xxIdUtWOpl04I=;
-        b=nNcByJ0FFfjtlxV6cExz+WdckIYxKNmhTkhl2sbQSH6NZ2bRSv8MVpXtVg5KuUBLWs
-         E9gwNOs7B7qxIM5dLNFBcwFKfpkInKmqgmvEICGWUnf07FzTuR18KxgcYogDF7lb5MFm
-         YIRcqkAB+L4V2ApDGIudBjdGNCyaWUsPIXicufqkLMIgOAWubOS9QVGRiujZbSkEoiCe
-         5aUptw7MIazumqJDRVs+Zlh9lAhXzRUUyuvoue7Ofci1Z9h7vHWG5sb6gRMgLtw3KhlG
-         UtAHsRgIBmyXlqyGOZVr7R2DftUkSB8C+a6f6zKZ5DS70Dd9MYiUvkkEsrbqOigUBCX5
-         UQZw==
-X-Forwarded-Encrypted: i=1; AL+hErEh/+js/ER2xYLB7/pwkH2GR1zOgKD+3odhVPcfTJyBbcxzLy6Fvsn8wqCGEW9td3vf9RoThTKYyVzS@vger.kernel.org
-X-Gm-Message-State: APuU4Z8QQS7jH+aTLUR5xVy5p+kKwRP7nzLsaVrwYqgraSKu1v7o0zzq
-	wnnACQSWUWv6DO/PJKenHPhgV55vHN0d49u03FxmTjyNJWZKchzhdDUQ
-X-Gm-Gg: AYBFou3zuKniLJzu3u8CLdU0ofhItLh1boWgi9btucpakiszrUT/6NlLiRnGl8F7yDH
-	c1Xy14lMkBHRFfy++MDqPFpnTyMmQemXZe1Doid8e8FzB1kGsGVOU6Bs1pfW2kYX5XDS5+E5pm3
-	5k08rszPlGjnJ5Ilq1dIwpVmrQwYznC+tOSqpWhKKdbJcamQXl7Xwc7CbW1PwP2BHd+ujEWO83P
-	VN9D/Bo/PXyM6TAG7XF969qgsuhfd/WRYrCkStNmSB8JidmWmJqXj+wJBwHChxEhbjZSHAh6P5j
-	BBOF5rjnQh83jn0Lr1adOLh+g4XAIhwtQD3whLxCHcHCSTp2yVOwyBPmB5T8HIm4tVo5/qq7vZ7
-	56NSuGb5M2RzydBqH5QGMcn2TZpNu0wB8Lj25lhXLnlR9DKJX1hfbXanMpgZNeWeLp/c/SdNx3A
-	SWKQxFgCvMuvJsNUKVHzqHq5yiXkadqNo6MQhQjRODCh0J9MK9gVEq+jVJf2SzfMaY4qtXBBGYo
-	TM61oSy0bEzIK5o+rLKpJKXhoR0Ik0TLsOWy56mbK/U+PCMQ4eBSWOxbwnXyiuIdmh653cm4g8t
-	SdPnxjrLTCx7XpqVxvguFLy+8c1x3WMTGEqCfBECTQ==
-X-Received: by 2002:a05:6a00:9287:b0:8a0:12ab:e29 with SMTP id d2e1a72fcca58-8ba97ac0667mr920272b3a.9.1794280213567;
-        Mon, 09 Nov 2026 19:10:13 -0800 (PST)
+        bh=n3sfGKW7S9id4w6EJ1yBLSVpVy17lWswp5agSoZ8nvI=;
+        b=DYpm3HpnJ+GzIwSECRt5WR39dUsLBo3DTMselW6Zj3ZQjnSK/25qvLf+DxdTelq+Mz
+         pUYKNlXEe7iDHrX6QoX8QFmxgfjV6diDh8sRgYR5gkBGeUqgI+AOcifvgqT4qFcfIpH7
+         BjR1DDaD5ZUYYPJsSwINXE0JwgEUIR8Lk0R2NcWsXbrvekrll7UItUNWO9VPT3XQcOTa
+         4ipLv9+uYnMcIlzfA0zTJ1Ru50EGS49Xqm1y2pKemiG7QmMd2Bp4WCBzlx3kHZJWfvEN
+         yerC9JHPW4Ba8Bj2GRXkXNgPwMW5R0og4UJCHQ0u+PR7twNDzOdus4biyT+Tl1x2MbJE
+         YevA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794280217; x=1794885017;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=n3sfGKW7S9id4w6EJ1yBLSVpVy17lWswp5agSoZ8nvI=;
+        b=RU573hjDMJctCqiolT/84v7NrCrNqx8cUg5wlXemmY0X5kbeYeMr/bOpUo0PKrRD4t
+         E/kowIHDkm150hZKPx/fqdfZ+B3JmkTUuCsXPbFZ8Y1juh//yqLyAXFc6OSJmLAOS+iZ
+         /7DIp7rcFiKNkYzok30qoVZ4+ajxmAAI+9gCalWpsEeVti9dj55NF8amns5867n/HySo
+         s04+qCzgkyrXMMFQBBtj835Znj2/b65qTrdTKfcIQHZZ95X71ehjrEXE4ID6+lJb80Zb
+         LYwrRR+XlSH0o4XwZ/Dx2RGZf2k/S9eeE2aVfhkOHkZq4LIAPwm9L1PqJBQc0Y2tkteA
+         he/w==
+X-Forwarded-Encrypted: i=1; AL+hErF4/im2BkBVDAijyLiO/awZDLypeIf8oEKX7yC0zOdO6Uptt+Bj3XRxR+9MDYvVPCcCV2csY5uA7Oh0@vger.kernel.org
+X-Gm-Message-State: APuU4Z8PGbUGnQ+Noy7hSWV0jCPNmSW9mL++1n02SlJfQ1AIVry4ugEi
+	L4N7FytR1czRp67ZqK51z5eoWmsc5B28s1AsiR4MI9la0iK6jUD+N3X0
+X-Gm-Gg: AYBFou0DjPDpCQL7dqZtsMVjaATDhaZCt5jL2Il9OHMLcHrTDyaFW1Os10HhWh0Js/X
+	ZEeZLGp52YueOWZzlevSxv9wDAATgvVKsEmBKEdLT4pqNqvOjnFB9LkicSvFFcq4a5DBL2zr0In
+	9vOh9HOBHcwYJVu2M7nJX7yOaXATHWbgZ3+P+yJDD/3hSLaW/uLNGnAFizvHe38Jv1XB7ApGUTI
+	iihAJFjzpFYTcCVhZA/NR6WAf8KmsDkoHJZAbCT6lGPBR/X1tdtHqmrl6LNQhJFX59t9/eZ0a9L
+	s+k7nRGZ7NXVZ+UeLPPsGCLPj3AyrCdZDQMzlRupWffwiZP94d7vsJSW/Tm2wrN6K3Ys/QRP+kc
+	2FAjKGgBzlUSY7Q0F3YtBUkLWK+0iCuQlLgM+luU2+U3KbwSX38jXj2cChZC1kJpVvEul2u7E7d
+	qbDcH7h6p9MTlT1YWQkFVInnDsiTpQ5uW+6TQBPcD89XPHILwUEwss3lyjr5vaZ1cYyAl/havpD
+	BlTKTUUgVWdYhbiYgn3vyCVRuTfyJhteMTtunfKx+DR1Qca1PCFSX4HMrAT/3EWhoYnNY94pYce
+	9hgBPegKH6qBwGQzHQAlxDcNP5BxaK1gmvHA3l9zYuo=
+X-Received: by 2002:a05:6a00:4009:b0:8b5:b292:85e2 with SMTP id d2e1a72fcca58-8ba95e80f66mr929417b3a.26.1794280216611;
+        Mon, 09 Nov 2026 19:10:16 -0800 (PST)
 Received: from localhost.localdomain ([183.62.176.219])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8baab8dffb5sm308939b3a.55.2026.11.09.19.10.10
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8baab8dffb5sm308939b3a.55.2026.11.09.19.10.13
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Nov 2026 19:10:13 -0800 (PST)
+        Mon, 09 Nov 2026 19:10:16 -0800 (PST)
 From: liuyong <pkfxxxing@gmail.com>
 To: Bart Van Assche <bvanassche@acm.org>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>,
@@ -85,10 +86,12 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>,
 	target-devel@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	security@kernel.org
-Subject: [PATCH 0/1] RDMA/srpt: Fix read underflow information disclosure
-Date: Tue, 10 Nov 2026 11:08:05 +0800
-Message-ID: <20261110030809.913063-1-pkfxxxing@gmail.com>
+Subject: [PATCH 1/1] RDMA/srpt: Limit read data transfers to the command length
+Date: Tue, 10 Nov 2026 11:08:06 +0800
+Message-ID: <20261110030809.913063-2-pkfxxxing@gmail.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20261110030809.913063-1-pkfxxxing@gmail.com>
+References: <20261110030809.913063-1-pkfxxxing@gmail.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -100,47 +103,61 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
-
-This patch fixes an SRPT information disclosure that allows a remote
-initiator with LUN access to read uninitialized target kernel memory,
-potentially exposing sensitive data from previous uses of those pages.
-
-SRPT creates RDMA contexts from the initiator's buffer descriptors before
+SRPT builds RDMA contexts from the initiator's buffer descriptors before
 parsing the CDB. For a READ underflow, target core reduces
-cmd->data_length, and a backend such as rd_mcp fills only that length.
-The prebuilt RDMA WRITE requests still send the full descriptor-sized
-buffer, including the uninitialized tail. The underflow itself is valid;
-the problem is transferring more data than the command provides.
+cmd->data_length, but the prebuilt RDMA WRITE requests still cover the
+full descriptor length. A backend such as rd_mcp fills only the shortened
+command length, allowing the uninitialized tail to reach the initiator.
 
-The fix caps the data SGEs at cmd->data_length in srpt_queue_response().
+A remote initiator with access to the LUN can therefore read
+uninitialized target kernel memory beyond the requested SCSI data,
+potentially exposing sensitive data left from previous uses of those
+pages.
 
-The patch is based on Linux 7.4.0-rc1 commit
-f66469d9905b39d2c260a15d7d6db450f4db67c1. The issue was reproduced on
-the same commit using software RoCE and an rd_mcp RAMDISK with an explicit
-ACL-LUN mapping. The triggering READ(10) requests one 512-byte block but
-provides an 8192-byte data-in descriptor.
-
-Relevant target kernel log excerpt:
-
-[    7.496367] ib_srpt Received SRP_LOGIN_REQ with i_port_id 5352:502d:4556:494c:2d49:4e49:542d:3031, t_port_id 5054:00ff:fe12:3456:5054:00ff:fe12:3456 and it_iu_len 512 on port 1 (guid=fe80:0000:0000:0000:5054:00ff:fe12:3456); pkey 0xffff
-[    7.528685] TARGET_CORE[srpt]: Expected Transfer Length: 8192 does not match SCSI CDB Length: 512 for SAM Opcode: 0x28
-
-The patch has been compiled and verified to fix the reported issue.
-
-A reproducer and additional reproduction materials are available.
-Please contact me privately if you need them.
+For a READ underflow, limit the data SGEs in the RDMA WRITE chain to
+cmd->data_length before posting it. Preserve memory registration and
+invalidation requests, and retain zero-length RDMA WRITEs beyond the
+limit so that work-request accounting and resource cleanup remain
+unchanged.
 
 The issue was discovered and fixed by Qihoo 360's Tulongfeng multi-agent
 system.
 
-Regards,
-liuyong
-360 Vulnerability Research Institute
-
-liuyong (1):
-  RDMA/srpt: Limit read data transfers to the command length
-
+Fixes: b99f8e4d7bcd ("IB/srpt: convert to the generic RDMA READ/WRITE API")
+Cc: stable@vger.kernel.org
+Signed-off-by: liuyong <pkfxxxing@gmail.com>
+---
  drivers/infiniband/ulp/srpt/ib_srpt.c | 20 ++++++++++++++++++++
  1 file changed, 20 insertions(+)
 
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 43c3ff1ad..2f7857ef4 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -2913,6 +2913,26 @@ static void srpt_queue_response(struct se_cmd *cmd)
+ 			first_wr = rdma_rw_ctx_wrs(&ctx->rw, ch->qp,
+ 					ch->sport->port, NULL, first_wr);
+ 		}
++
++		if (cmd->se_cmd_flags & SCF_UNDERFLOW_BIT) {
++			struct ib_send_wr *wr;
++			u32 data_len = cmd->data_length;
++
++			/* Keep MR operations and WR accounting unchanged. */
++			for (wr = first_wr; wr != &send_wr; wr = wr->next) {
++				int j;
++
++				if (wr->opcode != IB_WR_RDMA_WRITE)
++					continue;
++				for (j = 0; j < wr->num_sge && data_len; j++) {
++					struct ib_sge *sge = &wr->sg_list[j];
++
++					sge->length = min(sge->length, data_len);
++					data_len -= sge->length;
++				}
++				wr->num_sge = j;
++			}
++		}
+ 	}
+ 
+ 	if (state != SRPT_STATE_MGMT)
