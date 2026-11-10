@@ -1,79 +1,79 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794283263;
-	b=eiBnifIPXNjJgi8OOsE6ozuLt/pw74pXrvTNmdHzPAcbm/MU41eacK03LpSIjUkAK4+/
-	 OJCfec35mY3/kJxNU53hIm0+dTUabgBZpvadU5Is+Vh80Ony7LG3kFQ18sSNa8GZ/mrts
-	 riZcdF09LUU/UyexSqVfpWmbwf5hcxCHq7JivPhpNqfGAH8qbpo5pVl3KqQkeaYhVc2AA
-	 7HMN1mYoua177PV/NYLEmJ3dqrBjZm8Os5Y3T+JbM1nV60fhqu2NIdHzla+8FBx6uJSAT
-	 /PXpgTXA+6tcIqSpAVgwUPZYRKgjmKCqBOyrN3oW1KRKUGSquoBwOdM2fvvyVYWyElg==
+	t=1794283268;
+	b=XFGwQLlCrOn9CD/jRdjGtTNA+y1+d3ltF3UAtZ3mc5XRkI0PfYxGRbfpg5589Ido1EHF
+	 Yr1cJRCfAlNEMSKQKzjTPAyPlvJVEjXtuOb0stNCGTPQGUmvQzJ6MxYSH4IVjB00tiazw
+	 W0vFmDlMlcYkdv26OU+yciOOXGZgsUOm5dSl231rdHCPYOAT0ncxzWq0Eu7oNnxP4SAhX
+	 wOR/vr3s/xi7yr/fXQcu5qB2hZTItCmR0h1L1V1XgsHMaDI+X6ksUEpR+NiF95TU+7HpR
+	 3wbskHB2EfbTojMYVV56E9NWEmKpexTCQ6ww5y2Swj7X8GXYZZN9hyQhiIuXyTYptaQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794283263;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794283268;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=rcxPcSLsYV3RcfoY5ROUgEmDjsX3JWtWnvxbYJQhYGw=;
-	b=CSTPnBr19J2FEVedWnN3dG6FaHfKIFVXe0mwMbLdXo/JcptGAbg2Ppx/f60HU3FC6bHu
-	 JW7LH+xTBYP7zlokvX4iIYJpPaGVWwutsSaCwKU35Jw4+AA1gJrSt/iQptruAlybAEsiv
-	 phFpaYtlpdC+Li/zNjLaLgDZZTTcw7thDYhuAhlq3KyKAksWxCe9u0QCHpyxWfvRcJZsh
-	 /A3S3nBUpuf5jrCy8Y3GDOqeE+OjhHvAFcaLiZU0DfTJ0yBMJDmY1CDDsKSDCKgGpX0Em
-	 nt2s79zz2pvvXs/JdEDFtDtGnahRS3sudCEKnmih2kMTCw1oL8v7dsj/RSM0RM1HyNg==
+	bh=PfP+/nE+Qy16Kl0QSbg1n1VB7S8Aht5hJLsAan2xsxQ=;
+	b=bk9XLYP8+BPmbPz9EAwIQG2rrgWaaHlbGZDSlgai2NDrprpHBRyhaCBZqJOmagYZXtXS
+	 dfd66j6/MvsW3HM1kGj/Imf1PbQ/5Y6gXFX99EDrIvu8Su6AE+mteWtucvfrTUFNBQooS
+	 H8lyTP8Io/nKKfQy15Pq+S5ip1Oor4KMT2s9+bXqLyTwei2k479eoSEAhthJalhNTSRAj
+	 ZisLDktZp9WE15rt6YNluEg4KR03YdacrPyUA0P2t9cyb+45Z6/Wtz7B6nByWr/l8iLKr
+	 cbaUquVTFuVJbUjVMhfFDQa73BZuRPPYS5qZe1gDGK8SbDgvdLE1+7wngr77srlV1wQ==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=K+Pb8lZ6;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ba0MQ5Zm;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E55E60A2621;
-	Tue, 10 Nov 2026 04:01:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FE4160A6F41;
+	Tue, 10 Nov 2026 04:01:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=K+Pb8lZ6
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ba0MQ5Zm
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1794283262;
-	b=SkwgWSEjgLhx/kghWBewk9xpAAqu0uD9Vel4TVNkKkkY3rSVZ3UnWez5jaJUUTN4MdYm
-	 gJBrAtPpuCiHDr1Zd2jgyCSRrl/59DjnTIMipscN+6Dp5JxpildQHDbYQHSlaTgcWjf+6
-	 5cpmkfpCRnzIXOgw5/U2kqxluxiqIY8hV785X9eQk2S0Aoj53Ww9fXR/Xe3txv4l/9pIz
-	 KCyYj4ZU0LoUNCtgz2VQ5fBU3GKtv+CXAkwwBi3eM+PgDDMX20wece7XhkLUzSEt5OBrj
-	 qIGhJEfW7NhipTgwlO9FFB52Aolane4PK5QTfdvxb07ug9fLiTebQ1BB1k3f1CDNi/w==
+	t=1794283267;
+	b=IjwPAyoJL5p3UEwY8O7QARLQDk2QZqkZYrSk051eOotFC1/CvkIWhN7VS908swThoWcC
+	 oe40kOcCk6E0OH4Rm94HnLlqtCynxgunRxgKcxN1F2wiPgq682ZlFIvn8woZZdZGE8eVm
+	 6C3qNYSxgqQ+1mgN6qIuByaTKSPaZNREu7h9nGCCLTT5aKgugA0whohnBB4oV/xcKu7eq
+	 Fgo+/BkbjN8l99i59O2Z6UrqGpGHSb9C701OfnXq4SHq907Anz0+LFfLJWuS7d+bQKlw6
+	 uUAr51A85B6Avfn7FiCx7kZSQ/sOnWzYNe3ZQdZpRvJmvbtcrDQrpwtszIHbNv+7Z0A==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1794283262;
+	c=relaxed/relaxed; t=1794283267;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=rcxPcSLsYV3RcfoY5ROUgEmDjsX3JWtWnvxbYJQhYGw=;
-	b=lc/cCM3bvBUz6Cm3Ux9Ad0ReGyY0R2PZ+x+JHjsqAVQq8hKAYtnPK1mICCQeZeGGnncl
-	 jF9iGOgI9nBXCKDgJt7AFR5/b2B4q0avCMJPJERnjVaM2Z4Lpst4Q4YAYQbClrlu3KR73
-	 hyyBF4jwqomlONlVln490kk9maF+46RxLUWmoqocJWNb3qKjc8QUblLZ90+aiisjuvdjx
-	 9ij+dQ3jrw7t6W4KjoeVbLC/LG3oo8+13eWoEFku9fX4MQXivJKrG3wsxa4tnmoXQEbOU
-	 NAEb+1GLxKpZ0g0o0Wj8bN36oBuVueFEaC7ya/nD0BXtM+oOEGMQIsW1gmems2NsHNQ==
+	bh=PfP+/nE+Qy16Kl0QSbg1n1VB7S8Aht5hJLsAan2xsxQ=;
+	b=UtnPddM/t4KXty+T0VlSwcrBV5qT3qsyqwEfwRQgQkOjnLRqH9GeqB/bSVU233nc4qmq
+	 9MjSDm9NSJ1/O3xzRjt2EJRZtolhvncWrN+7dH90wJ2G2M3FGPAXMvg20pUCOWDz4la52
+	 ygu716Rh2y2wELWgM0p+Q5x8BTfObReyqQjQjdk225M11V2TKUepbjS1Ppk+9suSJ8rP/
+	 WiLEF7yEPZa5syHWTVTIP+LYhyO5UaLvA8+EalhVP7lMV6Jc/8myX3evSnq90VZ1UiYbf
+	 sKniEI8XBlHU9dLXW9Ta1j6XAmzk+zygKlai5oK7WVx0TiZ002Rm3bSgUXEk1ZILbKQ==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id 41C001F00921;
-	Tue, 10 Nov 2026 04:00:52 +0000 (UTC)
+	by smtp.kernel.org (Postfix) with ESMTPS id E70371F008A6;
+	Tue, 10 Nov 2026 04:01:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794283262;
-	bh=rcxPcSLsYV3RcfoY5ROUgEmDjsX3JWtWnvxbYJQhYGw=;
+	s=k20260515; t=1794283267;
+	bh=PfP+/nE+Qy16Kl0QSbg1n1VB7S8Aht5hJLsAan2xsxQ=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=K+Pb8lZ6S0vFCXALvN08eh9PHrx8WnBAgPRPUflX1pt8oa6sJk6tIQmcZSIr59zV/
-	 1S2GNn9E9sSzhYxJD1yhRzkUOw0HHYYb2IV63dFcnh5gL7ojXJ4LUbFXoiRREMHpVZ
-	 Y1ZCyC26TfJ1oRZfHhGNlAzmrdPu92tA0pWvHJhRZakgxJ0B72POMU0VzEM6t0NRQj
-	 FQGj/JmKKtb4n9d32sQ4AtEgqlyQ6IdxYy0CkqyPoG7frlz+CM9XDAMe8pOTcqYf8A
-	 Ya7ywR7gljoOCuSTlWolwRoaD488+vghkoNjZjDK6dQDGNwBynXScNkdi9XpAx8vP1
-	 iMm5V+oWeZOTA==
+	b=ba0MQ5ZmUMWhGJGHBRm2v3N0/8MYKNE3XZm65CUaRkNbyJ8R2vpNOqOavB/Lo9BLv
+	 fg/Tv1dYso7nSkbv3xPpeBftTtegxZD5sPNL4DLm8KTOUtn/Leqv6mButTFLlFwaZQ
+	 28Y+mV6ywquguxXZu1Clysu1v5mDx3/XqcozcOBMssUmVZp58MU3o3mmBVwdIFx/iZ
+	 Vc/ppa3H+/gru4ai491DBzu/7X+Rj3gy1MEI2WXMar2WRi52W+iWjO55V87XhtTBgl
+	 DRcMbLbBTetKplvFG2KSYSD7RbpONLSgeo/IiZzAVSJAVpTkvo6JchyGGo0mkHVFcw
+	 6kyqF0JvNzBlA==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id C33B148808;
-	Tue, 10 Nov 2026 04:00:51 +0000 (UTC)
+	by lkml.kernel.org (Postfix) with ESMTP id 22EAB48818;
+	Tue, 10 Nov 2026 04:00:52 +0000 (UTC)
 From: Eric Davis via B4 Relay <devnull+eric.davis.broadcom.com@kernel.org>
-Date: Mon, 09 Nov 2026 20:00:37 -0800
-Subject: [PATCH rdma-next v3 04/13] RDMA/core: add the reliable unconnected
- queue pair type
+Date: Mon, 09 Nov 2026 20:00:41 -0800
+Subject: [PATCH rdma-next v3 08/13] RDMA/uverbs: factor out the queue pair
+ attribute copy
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -84,18 +84,18 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261109-uet-ib-core-v3-4-3e7e7ffed2e9@broadcom.com>
+Message-Id: <20261109-uet-ib-core-v3-8-3e7e7ffed2e9@broadcom.com>
 References: <20261109-uet-ib-core-v3-0-3e7e7ffed2e9@broadcom.com>
 In-Reply-To: <20261109-uet-ib-core-v3-0-3e7e7ffed2e9@broadcom.com>
 To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
 Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
  Eric Davis <eric.davis@broadcom.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1794283250; l=6296;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1794283250; l=9213;
  i=eric.davis@broadcom.com; s=20261014; h=from:subject:message-id;
- bh=7S0po+7OLDw6sPOuM4dE/na5F5m/Retz/CUc20NrLwk=;
- b=MESeNEtlQv4gfhyiIr2i541QU5WNGKTe8TGNqZVDZHXdKYeCLSWNMfiEFTjPBQ9r/petqWLia
- y51yhCsz8MYCEF2shR5tQfIjlOf2MAhJzgaGzfoOTiltiRtbkx3f40h
+ bh=kB2CErzfDz0J4odnATPSdxed3K/PaBP4pfJlSmVKizc=;
+ b=0Gu6aTQ0MWhCEDaYM/DkV1xOMR7jprQpeqQv8boM51EHPXZC8FpmC45SwystH+ZprvLoVw2kn
+ So4MBhkRJ5FDDjiDxZLqEvZqBe5rQ09dnmdEItLQFKW4H05zvABoqk9
 X-Developer-Key: i=eric.davis@broadcom.com; a=ed25519;
  pk=uy3oCTOYBipIPjryXGMynBmtPvbO6qN2FOrduzpiI4A=
 X-Endpoint-Received: by B4 Relay for eric.davis@broadcom.com/20261014 with
@@ -106,167 +106,254 @@ Content-Transfer-Encoding: 7bit
 
 From: Eric Davis <eric.davis@broadcom.com>
 
-Add IB_QPT_RU and its userspace counterpart, together with the field
-layout of a reliable unconnected queue pair number used by UET.
+modify_qp() validates a set of attributes that came from userspace and
+copies the ones its mask names into their kernel form. Queue pair
+creation needs the same work for a transport that is ready to send as
+soon as the pair exists, so move it into ib_uverbs_copy_qp_attr().
 
-Such a number uses all 32 bits, unlike the 24-bit InfiniBand and RoCE
-one, so exempt it from the restrack assertion that no queue pair number
-sets the top byte.
-
-A relative number is named within a job, so pairs in two jobs may share
-one, but restrack keys a queue pair by its number alone. Until it keys
-them by more, refuse the second such pair with -EADDRINUSE rather than
-leave it untracked.
-
-The provider posts its work requests, so the write post_send and
-post_recv commands refuse such a queue pair.
+No functional change.
 
 Signed-off-by: Eric Davis <eric.davis@broadcom.com>
 ---
- drivers/infiniband/core/restrack.c      | 15 ++++++++++++++-
- drivers/infiniband/core/uverbs_cmd.c    | 14 ++++++++++++++
- drivers/infiniband/core/verbs.c         | 13 +++++++++++++
- include/rdma/ib_verbs.h                 |  1 +
- include/uapi/rdma/ib_user_ioctl_verbs.h | 21 +++++++++++++++++++++
- 5 files changed, 63 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/uverbs.h     |   6 ++
+ drivers/infiniband/core/uverbs_cmd.c | 184 +++++++++++++++++++----------------
+ 2 files changed, 105 insertions(+), 85 deletions(-)
 
-diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
-index a8b838fdc7b5..a75af79adf2c 100644
---- a/drivers/infiniband/core/restrack.c
-+++ b/drivers/infiniband/core/restrack.c
-@@ -241,7 +241,20 @@ void rdma_restrack_add(struct rdma_restrack_entry *res)
- 		/* Special case to ensure that LQPN points to right QP */
- 		struct ib_qp *qp = container_of(res, struct ib_qp, res);
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index e179cd924eba..65a217bf65b5 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -319,6 +319,12 @@ struct ib_uverbs_flow_spec {
+ 	};
+ };
  
--		WARN_ONCE(qp->qp_num >> 24 || qp->port >> 8,
-+		/* An InfiniBand/RoCE QP number is 24 bits and the top byte is
-+		 * where the port is folded in for SMI and GSI. A reliable
-+		 * unconnected pair is an exception as its QP number is a
-+		 * full 32b wide, though of the top byte only the absolute bit
-+		 * may be set. An absolute number whose low bits are 0 or 1
-+		 * still conflicts SMI/GSI on port 128, which takes a device
-+		 * with both RU and MADs on that many ports. Two RU pairs in
-+		 * different jobs may also share a relative number, and
-+		 * create_qp() refuses the second.
-+		 */
-+		WARN_ONCE(qp->port >> 8 ||
-+			  (qp->qp_type != IB_QPT_RU && qp->qp_num >> 24) ||
-+			  (qp->qp_type == IB_QPT_RU &&
-+			   qp->qp_num & IB_UVERBS_QPN_UET_RESERVED_MASK),
- 			  "QP number 0x%0X and port 0x%0X", qp->qp_num,
- 			  qp->port);
- 		res->id = qp->qp_num;
++int ib_uverbs_copy_qp_attr(struct uverbs_attr_bundle *attrs,
++			   struct ib_device *device,
++			   struct ib_qp_attr *attr,
++			   const struct ib_uverbs_ex_modify_qp *src,
++			   u32 mask);
++
+ int ib_uverbs_kern_spec_to_ib_spec_filter(enum ib_flow_spec_type type,
+ 					  const void *kern_spec_mask,
+ 					  const void *kern_spec_val,
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index ed55fbbdfc18..e4fdfa0d9548 100644
+index cca386b2c3f0..140f1cf91527 100644
 --- a/drivers/infiniband/core/uverbs_cmd.c
 +++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2058,6 +2058,12 @@ static int ib_uverbs_post_send(struct uverbs_attr_bundle *attrs)
- 		goto out;
- 	}
+@@ -1779,7 +1779,7 @@ int copy_ah_attr_from_uverbs_ah(struct ib_device *dev,
  
-+	/* reliable unconnected work requests are posted by the provider */
-+	if (qp->qp_type == IB_QPT_RU) {
-+		ret = -EOPNOTSUPP;
-+		goto out_put;
-+	}
-+
- 	is_ud = qp->qp_type == IB_QPT_UD;
- 	sg_ind = 0;
- 	last = NULL;
-@@ -2335,6 +2341,14 @@ static int ib_uverbs_post_recv(struct uverbs_attr_bundle *attrs)
- 		goto out;
- 	}
+ static void copy_ah_attr_from_uverbs(struct ib_device *dev,
+ 				     struct rdma_ah_attr *rdma_attr,
+-				     struct ib_uverbs_qp_dest *uverb_attr)
++				     const struct ib_uverbs_qp_dest *uverb_attr)
+ {
+ 	rdma_attr->type = rdma_ah_find_type(dev, uverb_attr->port_num);
+ 	if (uverb_attr->is_global) {
+@@ -1800,6 +1800,101 @@ static void copy_ah_attr_from_uverbs(struct ib_device *dev,
+ 	rdma_ah_set_make_grd(rdma_attr, false);
+ }
  
-+	/* reliable unconnected work requests are posted by the provider */
-+	if (qp->qp_type == IB_QPT_RU) {
-+		rdma_lookup_put_uobject(&qp->uobject->uevent.uobject,
-+					UVERBS_LOOKUP_READ);
-+		ret = -EOPNOTSUPP;
-+		goto out;
-+	}
-+
- 	resp.bad_wr = 0;
- 	ret = qp->device->ops.post_recv(qp->real_qp, wr, &bad_wr);
- 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 1299125752d8..ccdb08284432 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1333,10 +1333,23 @@ static struct ib_qp *create_qp(struct ib_device *dev, struct ib_pd *pd,
- 		goto err_security;
- 
- 	rdma_restrack_add(&qp->res);
-+
-+	/* restrack keys a QP by its number alone, so an RU QP whose number
-+	 * another QP has, as one in another job may, is refused rather than
-+	 * left untracked
-+	 */
-+	if (qp->qp_type == IB_QPT_RU && !qp->res.valid) {
-+		ret = -EADDRINUSE;
-+		goto err_track;
-+	}
-+
- 	return qp;
- 
-+err_track:
-+	ib_destroy_qp_security_begin(qp->qp_sec);
- err_security:
- 	qp->device->ops.destroy_qp(qp, uverbs_get_cleared_udata(uattrs));
-+	ib_destroy_qp_security_end(qp->qp_sec);
- err_create:
- 	rdma_restrack_put(&qp->res);
- 	xa_destroy(&qp->comp_cntrs);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 02f3312c7cf2..8d74ed4fc581 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1188,6 +1188,7 @@ enum ib_qp_type {
- 	IB_QPT_RAW_PACKET = IB_UVERBS_QPT_RAW_PACKET,
- 	IB_QPT_XRC_INI = IB_UVERBS_QPT_XRC_INI,
- 	IB_QPT_XRC_TGT = IB_UVERBS_QPT_XRC_TGT,
-+	IB_QPT_RU = IB_UVERBS_QPT_RU,
- 	IB_QPT_MAX,
- 	IB_QPT_DRIVER = IB_UVERBS_QPT_DRIVER,
- 	/* Reserve a range for qp types internal to the low level driver.
-diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index ed72f48960f8..c568ed365c28 100644
---- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -91,6 +91,7 @@ enum ib_uverbs_qp_type {
- 	IB_UVERBS_QPT_RAW_PACKET = 8,
- 	IB_UVERBS_QPT_XRC_INI,
- 	IB_UVERBS_QPT_XRC_TGT,
-+	IB_UVERBS_QPT_RU,
- 	IB_UVERBS_QPT_DRIVER = 0xFF,
- };
- 
-@@ -302,6 +303,26 @@ struct ib_uverbs_buffer_desc {
- 	__aligned_u64 length;
- };
- 
-+/* A UET reliable unconnected queue pair number uses all 32 bits:
-+ *
-+ *	[ absolute 1b | reserved 7b | resource index 12b | PIDonFEP 12b ]
-+ *
-+ * An absolute pair is named by its number alone. A relative one is named
-+ * within a job, so it must carry a job key when it is created, and a number
-+ * the device picks is relative only for a pair that has one. The reserved
-+ * bits are zero.
-+ *
-+ * Two pairs on one device can't yet share a number, even in different jobs,
-+ * as the kernel tracks a pair by its number alone. Creating the second fails
-+ * with EADDRINUSE.
++/* Validate a set of QP attributes that came from userspace and copy the ones
++ * the mask names into their kernel form. Shared by the modify command, and by
++ * queue pair creation which takes the same set of attributes for a transport
++ * that is ready to send as soon as the QP is created.
 + */
-+#define IB_UVERBS_QPN_UET_PID_ON_FEP_MASK	0x00000fff
-+#define IB_UVERBS_QPN_UET_PID_ON_FEP_SHIFT	0
-+#define IB_UVERBS_QPN_UET_RI_MASK		0x00fff000
-+#define IB_UVERBS_QPN_UET_RI_SHIFT		12
-+#define IB_UVERBS_QPN_UET_RESERVED_MASK		0x7f000000
-+#define IB_UVERBS_QPN_UET_ABSOLUTE_ADDR_BIT	0x80000000
++int ib_uverbs_copy_qp_attr(struct uverbs_attr_bundle *attrs,
++			   struct ib_device *device,
++			   struct ib_qp_attr *attr,
++			   const struct ib_uverbs_ex_modify_qp *src,
++			   u32 mask)
++{
++	/* Last bit is reserved for extending the attr_mask by using
++	 * another field.
++	 */
++	if (mask & ~(IB_QP_ATTR_STANDARD_BITS | IB_QP_RATE_LIMIT))
++		return -EOPNOTSUPP;
 +
- enum ib_uverbs_comp_cntr_entry {
- 	IB_UVERBS_COMP_CNTR_ENTRY_COMP,
- 	IB_UVERBS_COMP_CNTR_ENTRY_ERR,
++	if ((mask & IB_QP_PORT) &&
++	    !rdma_is_port_valid(device, src->base.port_num))
++		return -EINVAL;
++
++	if ((mask & IB_QP_AV) &&
++	    !rdma_is_port_valid(device, src->base.dest.port_num))
++		return -EINVAL;
++
++	if ((mask & IB_QP_ALT_PATH) &&
++	    (!rdma_is_port_valid(device, src->base.alt_port_num) ||
++	     !rdma_is_port_valid(device, src->base.alt_dest.port_num) ||
++	     src->base.alt_port_num != src->base.alt_dest.port_num))
++		return -EINVAL;
++
++	if (((mask & IB_QP_CUR_STATE) && src->base.cur_qp_state > IB_QPS_ERR) ||
++	    ((mask & IB_QP_STATE) && src->base.qp_state > IB_QPS_ERR))
++		return -EINVAL;
++
++	if (mask & IB_QP_STATE)
++		attr->qp_state = src->base.qp_state;
++	if (mask & IB_QP_CUR_STATE)
++		attr->cur_qp_state = src->base.cur_qp_state;
++	if (mask & IB_QP_PATH_MTU)
++		attr->path_mtu = src->base.path_mtu;
++	if (mask & IB_QP_PATH_MIG_STATE)
++		attr->path_mig_state = src->base.path_mig_state;
++	if (mask & IB_QP_QKEY) {
++		if (src->base.qkey & IB_QP_SET_QKEY &&
++		    !(rdma_nl_get_privileged_qkey() ||
++		      rdma_uattrs_has_raw_cap(attrs)))
++			return -EPERM;
++		attr->qkey = src->base.qkey;
++	}
++	if (mask & IB_QP_RQ_PSN)
++		attr->rq_psn = src->base.rq_psn;
++	if (mask & IB_QP_SQ_PSN)
++		attr->sq_psn = src->base.sq_psn;
++	if (mask & IB_QP_DEST_QPN)
++		attr->dest_qp_num = src->base.dest_qp_num;
++	if (mask & IB_QP_ACCESS_FLAGS)
++		attr->qp_access_flags = src->base.qp_access_flags;
++	if (mask & IB_QP_PKEY_INDEX)
++		attr->pkey_index = src->base.pkey_index;
++	if (mask & IB_QP_EN_SQD_ASYNC_NOTIFY)
++		attr->en_sqd_async_notify = src->base.en_sqd_async_notify;
++	if (mask & IB_QP_MAX_QP_RD_ATOMIC)
++		attr->max_rd_atomic = src->base.max_rd_atomic;
++	if (mask & IB_QP_MAX_DEST_RD_ATOMIC)
++		attr->max_dest_rd_atomic = src->base.max_dest_rd_atomic;
++	if (mask & IB_QP_MIN_RNR_TIMER)
++		attr->min_rnr_timer = src->base.min_rnr_timer;
++	if (mask & IB_QP_PORT)
++		attr->port_num = src->base.port_num;
++	if (mask & IB_QP_TIMEOUT)
++		attr->timeout = src->base.timeout;
++	if (mask & IB_QP_RETRY_CNT)
++		attr->retry_cnt = src->base.retry_cnt;
++	if (mask & IB_QP_RNR_RETRY)
++		attr->rnr_retry = src->base.rnr_retry;
++	if (mask & IB_QP_ALT_PATH) {
++		attr->alt_port_num = src->base.alt_port_num;
++		attr->alt_timeout = src->base.alt_timeout;
++		attr->alt_pkey_index = src->base.alt_pkey_index;
++	}
++	if (mask & IB_QP_RATE_LIMIT)
++		attr->rate_limit = src->rate_limit;
++
++	if (mask & IB_QP_AV)
++		copy_ah_attr_from_uverbs(device, &attr->ah_attr,
++					 &src->base.dest);
++
++	if (mask & IB_QP_ALT_PATH)
++		copy_ah_attr_from_uverbs(device, &attr->alt_ah_attr,
++					 &src->base.alt_dest);
++
++	return 0;
++}
++
+ static int modify_qp(struct uverbs_attr_bundle *attrs,
+ 		     struct ib_uverbs_ex_modify_qp *cmd)
+ {
+@@ -1818,18 +1913,7 @@ static int modify_qp(struct uverbs_attr_bundle *attrs,
+ 		goto out;
+ 	}
+ 
+-	if ((cmd->base.attr_mask & IB_QP_PORT) &&
+-	    !rdma_is_port_valid(qp->device, cmd->base.port_num)) {
+-		ret = -EINVAL;
+-		goto release_qp;
+-	}
+-
+ 	if ((cmd->base.attr_mask & IB_QP_AV)) {
+-		if (!rdma_is_port_valid(qp->device, cmd->base.dest.port_num)) {
+-			ret = -EINVAL;
+-			goto release_qp;
+-		}
+-
+ 		if (cmd->base.attr_mask & IB_QP_STATE &&
+ 		    cmd->base.qp_state == IB_QPS_RTR) {
+ 		/* We are in INIT->RTR TRANSITION (if we are not,
+@@ -1878,80 +1962,10 @@ static int modify_qp(struct uverbs_attr_bundle *attrs,
+ 		}
+ 	}
+ 
+-	if ((cmd->base.attr_mask & IB_QP_ALT_PATH) &&
+-	    (!rdma_is_port_valid(qp->device, cmd->base.alt_port_num) ||
+-	    !rdma_is_port_valid(qp->device, cmd->base.alt_dest.port_num) ||
+-	    cmd->base.alt_port_num != cmd->base.alt_dest.port_num)) {
+-		ret = -EINVAL;
+-		goto release_qp;
+-	}
+-
+-	if ((cmd->base.attr_mask & IB_QP_CUR_STATE &&
+-	    cmd->base.cur_qp_state > IB_QPS_ERR) ||
+-	    (cmd->base.attr_mask & IB_QP_STATE &&
+-	    cmd->base.qp_state > IB_QPS_ERR)) {
+-		ret = -EINVAL;
++	ret = ib_uverbs_copy_qp_attr(attrs, qp->device, attr, cmd,
++				     cmd->base.attr_mask);
++	if (ret)
+ 		goto release_qp;
+-	}
+-
+-	if (cmd->base.attr_mask & IB_QP_STATE)
+-		attr->qp_state = cmd->base.qp_state;
+-	if (cmd->base.attr_mask & IB_QP_CUR_STATE)
+-		attr->cur_qp_state = cmd->base.cur_qp_state;
+-	if (cmd->base.attr_mask & IB_QP_PATH_MTU)
+-		attr->path_mtu = cmd->base.path_mtu;
+-	if (cmd->base.attr_mask & IB_QP_PATH_MIG_STATE)
+-		attr->path_mig_state = cmd->base.path_mig_state;
+-	if (cmd->base.attr_mask & IB_QP_QKEY) {
+-		if (cmd->base.qkey & IB_QP_SET_QKEY &&
+-		    !(rdma_nl_get_privileged_qkey() ||
+-		      rdma_uattrs_has_raw_cap(attrs))) {
+-			ret = -EPERM;
+-			goto release_qp;
+-		}
+-		attr->qkey = cmd->base.qkey;
+-	}
+-	if (cmd->base.attr_mask & IB_QP_RQ_PSN)
+-		attr->rq_psn = cmd->base.rq_psn;
+-	if (cmd->base.attr_mask & IB_QP_SQ_PSN)
+-		attr->sq_psn = cmd->base.sq_psn;
+-	if (cmd->base.attr_mask & IB_QP_DEST_QPN)
+-		attr->dest_qp_num = cmd->base.dest_qp_num;
+-	if (cmd->base.attr_mask & IB_QP_ACCESS_FLAGS)
+-		attr->qp_access_flags = cmd->base.qp_access_flags;
+-	if (cmd->base.attr_mask & IB_QP_PKEY_INDEX)
+-		attr->pkey_index = cmd->base.pkey_index;
+-	if (cmd->base.attr_mask & IB_QP_EN_SQD_ASYNC_NOTIFY)
+-		attr->en_sqd_async_notify = cmd->base.en_sqd_async_notify;
+-	if (cmd->base.attr_mask & IB_QP_MAX_QP_RD_ATOMIC)
+-		attr->max_rd_atomic = cmd->base.max_rd_atomic;
+-	if (cmd->base.attr_mask & IB_QP_MAX_DEST_RD_ATOMIC)
+-		attr->max_dest_rd_atomic = cmd->base.max_dest_rd_atomic;
+-	if (cmd->base.attr_mask & IB_QP_MIN_RNR_TIMER)
+-		attr->min_rnr_timer = cmd->base.min_rnr_timer;
+-	if (cmd->base.attr_mask & IB_QP_PORT)
+-		attr->port_num = cmd->base.port_num;
+-	if (cmd->base.attr_mask & IB_QP_TIMEOUT)
+-		attr->timeout = cmd->base.timeout;
+-	if (cmd->base.attr_mask & IB_QP_RETRY_CNT)
+-		attr->retry_cnt = cmd->base.retry_cnt;
+-	if (cmd->base.attr_mask & IB_QP_RNR_RETRY)
+-		attr->rnr_retry = cmd->base.rnr_retry;
+-	if (cmd->base.attr_mask & IB_QP_ALT_PATH) {
+-		attr->alt_port_num = cmd->base.alt_port_num;
+-		attr->alt_timeout = cmd->base.alt_timeout;
+-		attr->alt_pkey_index = cmd->base.alt_pkey_index;
+-	}
+-	if (cmd->base.attr_mask & IB_QP_RATE_LIMIT)
+-		attr->rate_limit = cmd->rate_limit;
+-
+-	if (cmd->base.attr_mask & IB_QP_AV)
+-		copy_ah_attr_from_uverbs(qp->device, &attr->ah_attr,
+-					 &cmd->base.dest);
+-
+-	if (cmd->base.attr_mask & IB_QP_ALT_PATH)
+-		copy_ah_attr_from_uverbs(qp->device, &attr->alt_ah_attr,
+-					 &cmd->base.alt_dest);
+ 
+ 	ret = ib_modify_qp_with_udata(qp, attr,
+ 				      modify_qp_mask(qp->qp_type,
 
 -- 
 2.56.0
