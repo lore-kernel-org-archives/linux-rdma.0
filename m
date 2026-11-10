@@ -1,102 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.171
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794352875;
-	b=nuvCOg3sWohxz8fXzZM+OAoIkqosJBnJ2XDyd8WE1CQEaNFU4q/njD2R/C5r22ynOeox
-	 8bIGwJoYgssX3gSIykafzqVIrcScEnzCN6+cMnvTqKFvuzUL5nQQnRUUJv2sDgGHhIgzU
-	 fgvdwrMf4eCH0ZGtOFdzD2ewhixXKCDu8871CslHGsHWXQw9g1nPkDTTccmfuFMSuYfov
-	 KQwwPvI5pO4dl+hzFAeEQODvBBtfYmPVveeZv+si+RaSY2TsgEeR6STM5iTeoUeGEznYg
-	 zpPdCluwmN/AAB1HvLns3NWJOHqBjG3GOZRFitJFJ6DHgkPpESOZvdpSeEh5Ekc6oeA==
+	t=1794353705;
+	b=3a9bZURYnYq8lKtWVmzHHVyFnCB5/GZ2cHYOKQMIwdloKK0qrMHIsSu54EQZlc1tL6CZ
+	 y1xZaHPsBM56QDEw5oZwOc00NoIwNYRQbAr5WnLjwAguj2e+2aRLM6mrbZ3nzzHIEWuDv
+	 LWdTD8UV5OCpmlKmTbKPHv1h1CkO1eaB+BUUVdbCNlEllVGp/YfMRiwrvcxfHGiONOijV
+	 MX7jWCFH7ftWULFi+EpobyX50+tbHoWcTgVF84/Q179+nmtFFpbxwWADbXnOf/AF47RfK
+	 Z1EeLHlKS+sZ5xmlBU2f4YKINV73hBukkuSl14ceS5+z7A/aJkfI7DMkI1kYNv0kbWg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794352875;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Date:From:To:Cc:Subject:Message-ID:Mail-Followup-To:References:
-	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=dmjEUol2qh+/Kf+BAZYRdZvYZ50LeNOIlSk9Quu1FKU=;
-	b=MI6KqZg+oiH1jMwBIeHXItCK2glqCn9f98SztGUmpU2byEsKe+scDx7S5OfaZ9yuAbgK
-	 tKZvpHRMVO1b4lzH9UrZyBneaGGyyFUua0MHbYNrXBRhnYG+MnCvZrLy9PTrNIljCfmU7
-	 HO5x7Er8kp8CDmwwQhidmJKaxVNrVzCIAFeB+gNTkz4jTmgKBb7ZHLJFnc3cqx0tskC+P
-	 vujE8guCHw/gz8BQlsJKk/xxCyO7n2AqqA26AFoTf6HQUeSha8kYJLiVRtD5Ezy3FIK1A
-	 w/UR87InTshLruFF7WbbIWmTfdcQuSFit63gpzVG848i5qT1fc9hJ4kI1B59a004PIA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794353705;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=ODQ/10oVzQfxcX9niXrGu4Ku1UwGX1ZHrfPE5kJVupA=;
+	b=ANsQ59YAsr5kYgiHW8A7oaSOT7Y6aFWFz+TX3Seeij+7NNnKCXtTm4m/XMQkCipsoFtj
+	 wyEXHnHsC58NO9Y2KXbROUsvmOnZNZvPY8UPUcT0g1pRw7BKgfU/h3vyKE4Dgo8cuGbfa
+	 t4a/NBC4DhAgcKQaSSJzCIg7FsFKneXQWsHliStzaqvy8zOfiByMYZ8JVqtm/ddf4F1DJ
+	 VAWLSrIjzs9o/SO4A2nQa5VnbuqGvVVzrj7H5nt2TLEh4NfWVyAj1mbF9ae6cysb+8+GO
+	 kCb+amHwoA1vwwwV51VL3X17qH6qFnunvpEwQbmnU8S0LRcjXJul4gwEAnA6YVMuYBQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=dama.to;
-	spf=none smtp.mailfrom=dama.to;
-	dkim=pass header.d=dama-to.20260707.gappssmtp.com header.i=@dama-to.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=ihJmqArm;
-	arc=none smtp.remote-ip=209.85.214.171
-Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AR6noewr;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D91C606A31C
-	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 23:21:14 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9D91C606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dama.to
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=dama.to
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35E6D606A320
+	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 23:35:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=dama-to.20260707.gappssmtp.com header.i=@dama-to.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=ihJmqArm
-Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-2e9eb579c0eso14781715ad.3
-        for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 15:21:14 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=dama-to.20260707.gappssmtp.com; s=20260707; t=1794352874; x=1794957674; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:mail-followup-to:message-id:subject:cc:to:from:date:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=dmjEUol2qh+/Kf+BAZYRdZvYZ50LeNOIlSk9Quu1FKU=;
-        b=ihJmqArmhhakMFCEzwTIjw/CEHNtN7ibidz+IQW+Zs6SdfWUceC9QePZqpzX8L6jgI
-         q2fIUwMTkq9BjGo/g9JF7U0ThMCM4KSMaC+JpiOlUv8xUsZnjMgyTXUMtYwbAZ6GOwZP
-         hUPGyQ7Fuay3QW4X1y2qW9MDLjghavNwl0FKVz5+vuL+Rkkq+JcOq+R5TR61/sl9gCR7
-         GhH7y4cyRDFqe5NpyFy5R0RlW2hFyjYtFJJkRTorvcoNMpVnunc8C9I2/ACKrMgVPFyG
-         EpTYeQsDXpReLgbY3r5W2XN0RozHUsGlvt/9RWYbBBMQ06wNaUSY46JplreNk+b9NjTT
-         w5nw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794352874; x=1794957674;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:mail-followup-to:message-id:subject:cc:to:from:date
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=dmjEUol2qh+/Kf+BAZYRdZvYZ50LeNOIlSk9Quu1FKU=;
-        b=ZyqVHloYShslA6yhe3Fvxy6t0WoAmg5BV60rkYWmEgpL9hEGkt/nTL0z7ntxmg7gV4
-         6A5gN8NtKmt3pp4azrH3V4orXwRFyKpNFD0bNhBRDgLbwqrU2mhxqpQpeB00cC4lZpcT
-         zmg5pX4U0NUIsBaC08QOl2Nt7/znfR2c2qjdsQOdfNkDI645p80m107TMELbZlJg+i+Q
-         xNQbm7Qio9us6Qy02lkbi40d+D6F27pIAcP4Y2GrEAz36PRS4J2FxQwCbVQlf+sFKDDd
-         urqLTcoZPuiU6nPSyQ/y92T3lmNNA55JRGS1c27/+XzhMfrp5wPxo7waMmLKCEsxhHTa
-         SKUA==
-X-Forwarded-Encrypted: i=1; AL+hErEGGG4BQvIBLhLxUoszhljVz7rYUA47fixS7Cr5A95SbfTKbV60izm5vsWvZYL97i0DTaLhCznhpijF@vger.kernel.org
-X-Gm-Message-State: APuU4Z+jfg2CdFsQd1XfqODGzHb8N2wWuic/7B6WrOx77XO7QXOuKhAo
-	YoD4bcDERcnPcElu3UGt3UIAG6U6qsIqaCP2QJU7hcmX7DMaMuqvwj5yGFeLL0UJ4/U=
-X-Gm-Gg: AYBFou2nOJOYMyrtv8fqXVfqNIVPqxqznCkemJVVW+93XzQb9VSCxTActJ9dZR2xlou
-	YsCR2BSHlaWH7LQLcKDHx2fUSUN8Z6P0ovBNQvTGlarjcy2MuVm2mDxyismdcclV5gvh7kd0/rx
-	JxEj9gTP49zMiyuTnrnYH82Fo7drYozwe0b6ZAG5iyIq0DpUqUWNS0bGrsreAor/nwaenRCuSir
-	enPsWtLOs5/O3yryQLaDS3YfbysQIGPWtQTCCTDhSeZRE/gUfnE650if9MeYTsVdG2ae+eZLM6I
-	l4XmzKCq70rzPer3FWyUzamhSwN8VRifX3G8Tzq6Pw62kYbotxARufcq8PxEBwMzu+eyXBgs8Kl
-	nr19oUvglfU9hyjccbGa3eNEx55i38m8tofTj6gW6L6nScQMpdb55NfFyHpmcPa3k/aoxnD/Gne
-	gg+kjPjq730KN0tAHrUFxMKyM+AaOXhSFRc49p7KA/WNJgB+7FrvIfwFzWzquvcjUqIuVRmtm+s
-	nFq2GDszlTtWUQ0bMps1Ip08VG5Csj2anbcPhKB+ZEXzmefvyZZ8B/z1ndVMKEgbM19kXCWPzcx
-	8TSHcA/aepBMvl4HVH8z+BXmI9xudKS/H/wnctWEHbzcA7YjcYbSytMgrRpilmtB
-X-Received: by 2002:a17:903:2f43:b0:2e2:cb65:a719 with SMTP id d9443c01a7336-2edd77694cbmr7109555ad.15.1794352874082;
-        Tue, 10 Nov 2026 15:21:14 -0800 (PST)
-Received: from localhost ([2a03:2880:2ff:5f::])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cdd8d7a26e5sm1257643a12.18.2026.11.10.15.21.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Nov 2026 15:21:13 -0800 (PST)
-Date: Tue, 10 Nov 2026 15:21:12 -0800
-From: Joe Damato <joe@dama.to>
-To: netdev-bot+sinfo@kernel.org
-Cc: netdev@vger.kernel.org, andrew+netdev@lunn.ch, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	horms@kernel.org, linux-kernel@vger.kernel.org,
-	Eric Dumazet <edumazet@kernel.org>, linux-rdma@vger.kernel.org,
-	Tariq Toukan <tariqt@nvidia.com>
-Subject: Re: [PATCH net-next 0/5] mlx4: cleanup and doorbell fix
-Message-ID: <avOm6IDyQokvMnc3@devvm20253.cco0.facebook.com>
-Mail-Followup-To: Joe Damato <joe@dama.to>, netdev-bot+sinfo@kernel.org,
-	netdev@vger.kernel.org, andrew+netdev@lunn.ch, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	horms@kernel.org, linux-kernel@vger.kernel.org,
-	Eric Dumazet <edumazet@kernel.org>, linux-rdma@vger.kernel.org,
-	Tariq Toukan <tariqt@nvidia.com>
-References: <20261110231304.1859217-1-joe@dama.to>
- <179435264086.488859.12644173782807656441@kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AR6noewr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AA3E1F0093C;
+	Tue, 10 Nov 2026 23:35:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794353704;
+	bh=ODQ/10oVzQfxcX9niXrGu4Ku1UwGX1ZHrfPE5kJVupA=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=AR6noewrQm3Is+5qhvuTUuLVSdYf4+jXNf8yeoC7iZE1W8NMl4uw//+KQX7IbXg5K
+	 xYyYQNfcAll03ftCwW7smUCXJFfCpKNYXfBmMOxqcoVre43hcq3c0Qo3eYjzSd9dxE
+	 jkb9fTvb4z7bJBUrUeysUiNdjzwQ/jLUeMlKvCsJmkv3/m0NDLY1OAEvu03pEuiz3r
+	 3/leqDXRC/vkzDIzCUsjnRcVykc2gK+bZGP8dwgRWIX5G0B3WOtntgCN4sQAw8RmQ0
+	 AIEe4g3i9p+JrIllQQJiVjfo0hzzCXbFW72iogWC9XaenoIfYfFDZAVJ3JECp67Wtz
+	 vP5QGlcSu9SFg==
+Message-ID: <sashiko-outbox-207941@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] IB/rdmavt: Call check_modify_qp after validating QP
+ attributes
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Serhat Kumral" <serhatkumral1@gmail.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261109201302.14531-1-serhatkumral1@gmail.com>
+References: <20261109201302.14531-1-serhatkumral1@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Tue, 10 Nov 2026 23:35:03 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -105,36 +59,23 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <179435264086.488859.12644173782807656441@kernel.org>
 
-On Tue, Nov 10, 2026 at 11:17:20PM +0000, netdev-bot+sinfo@kernel.org wrote:
-> Hi!
-> 
-> This is an automated message. This series looks like a fix, but its
-> commit messages seem to be missing some information:
-> 
->  - What hardware the change was tested on. For driver fixes please
->    mention the device (and if relevant firmware version) used for
->    testing, or say that the change was not tested on real hardware.
-> 
-> Please do not repost the series just to address the above. Instead,
-> reply to this email with the missing information, so that reviewers
-> can take it into account. If the series needs another revision for
-> other reasons, please include the information in the commit messages
-> then.
-> 
-> The evaluation is done by an LLM so it may be wrong, if you think
-> that is the case please reply and explain.
+> rvt_modify_qp() calls the driver's check_modify_qp() hook before it
+> validates the address handle attributes with rvt_check_ah().
+>=20
+> hfi1_check_modify_qp() uses the user-supplied SL in ah_to_sc() to index
+> ibp->sl_to_sc[32]. The SL is a u8 that is bounds-checked only in
+> hfi1_check_ah(), which runs later so an SL >=3D 32 causes an possible
+> out-of-bounds read.
+>=20
+> Move the check_modify_qp() call after all generic attribute checks.
+>=20
+> Fixes: e85ec33d820e ("IB/rdmavt: add modify queue pair driver helpers")
+> Signed-off-by: Serhat Kumral <serhatkumral1@gmail.com>
 
-I ran this code as part of a larger series that also includes SW USO support
-on an mlx4 machine.
+Sashiko has reviewed this patch and found no issues.
 
-The only fix in this series is the deferred doorbell flush (patch 5), but I
-need the other code (patches 1-4) for SW USO support I plan to submit next if
-this series is applied.
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261109201302.1453=
+1-1-serhatkumral1@gmail.com?part=3D1
 
-Since patch 5 fixes an issue I've never actually seen, I am sending this
-series to net-next without a fixes tag.
