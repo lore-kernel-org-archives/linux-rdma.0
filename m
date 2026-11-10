@@ -1,56 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794286753;
-	b=xHMK/UJLvjiAQOca5kQPyQpT8IFIkObnELOagCQHxzw7VbzpOyLNuLx9xkyM8Hn+SWaf
-	 O+7zOb7DS3coXzAsvk6fhdp5VgKyRlOv7lYYlXCJvsrl/MOnXpp112L0ZiRUpLcquIJ7v
-	 b0IalqGya82AVzCgQ8cQpJ+zCz7fI+8fTbMkG7ybMnoXl23xEv+HDgUvhx3MBbkp+7xcu
-	 Ds7je9712C3s8QFtGsOcA5DEFZDhceWsGY9LbTDbsUhQOp/Kbp5CtqWUYlqtgbAGFn09F
-	 Sq0NdhZ3NTLUghPmaurkj2hpDN0vGHDRtWUwFW04hfYtQDMoJiqhf/1xhHKexw9WExw==
+	t=1794287062;
+	b=eepaerUS62WbISnhXgLfqJEDalo3zX1TlQ7owOK6rQrW+O/fa3kT24t+mpEKSEFG4mTX
+	 IU5yn7YWywvbWdkqOfnZFJVYZVBtcc1cqLGYhNNuaYWcLjbT1pQw8D3tJGifhBAZQni4b
+	 o4Y1AZItuP0c+TlSr+Og9qHZdC8lZWkC4HJ/GUiTC6BQIVYjRFa/KkYCoM1gxgEiUMOMj
+	 7VDJsU/wLflIqPs/7mm27NGIksYJQKxI/JXOJR8NuZwew7ucXU80+pRkMTtVkXdvtHgdJ
+	 TmNnvq6919BCvJAIHu9F06LqUqYvw9gnQRtJJhyLy/ZP5A7AufujDwiTbUkyXjLU4WA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794286753;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794287062;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=VxKZfFgXNbmN8R+E0dJZX1324e363VKrpJySX+8KaXo=;
-	b=tRfML6pCU3URGQoAT1d98aOMkEHbLDKolOp72HYf9cWevFgOWVFF0C9hi+InXtjJmDNl
-	 U0RtwXQNJOmJKVWSvhEQLT8lbm8HDpgnWiUcnFKAnqmD4TYFGrSccIW95VhyymXItNgD2
-	 rg0TPtw6FL7WqwvaDUref+RBmUWSWjjrI1SH+vEd11jGJlU2VWrmVUW/zILpZanNheHcX
-	 or87gyuDl8joN4rDVKKTmpU+qDC5c8QmX7xBKDK5v5vHVWGugcKNlT7n0KNIkWCJh1oz0
-	 1JmexMlK7LtGNPduO9DtRv6N2mCaSHR8j/qoi+qxJ/UXsrYWILLM42QVM7Z8qISEEow==
+	bh=jWkgT+gCZgU2enygCXizqf6/JIkZXdI9eGo08Grj7LY=;
+	b=SHs8uWB51HYPAb+D9YxRBh2KbRTOvqV8HSG2wkuR9av9IFRkvUoaKyn9+U/mtODkks2r
+	 AvD8GjFbsuYO682RuC9hYDpQRnXIn2n0M8c2kwY5FVgjfk1wNboIcvbl1wzLs0AarruCa
+	 Egtd9k4/SK7eQx6710RFGKU/apjpQNaCQiSjbEzrR0Kpyt3j7FBG78UoH0iKaPC+++iq2
+	 ErVL8QhRiVnQb7YhLZ4qocrt8Os5Iru2K827MaSqTZAKRJL0S48APurRXNLrjkLNDR9jv
+	 8vxBRpE/XCABb9YVXtW3KRwOaO5dT7Ys7m/IUptpql2+UhldkLzKJsV+5d8MC0FQOvQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=i5dC4YXg;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WQXazH1v;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33476606A321
-	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 04:59:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FFEF606B093
+	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 05:04:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=i5dC4YXg
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 966D51F008A1;
-	Tue, 10 Nov 2026 04:59:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WQXazH1v
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B508D1F0089F;
+	Tue, 10 Nov 2026 05:04:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794286752;
-	bh=VxKZfFgXNbmN8R+E0dJZX1324e363VKrpJySX+8KaXo=;
+	s=k20260515; t=1794287061;
+	bh=jWkgT+gCZgU2enygCXizqf6/JIkZXdI9eGo08Grj7LY=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=i5dC4YXgYcjVaoGeBAmehuQcxh0HEmwEoM/48xLSw2pAc7U2u3Pc+YQUm5y5zXTjs
-	 os80WS9QxZwiE5cA96E5cEXzdKGqmxUtjJx2xP8wKEM2IAhkvebx72eTHMX67SIvsa
-	 gxMm+sJNrZvKGBiHnwzQ+xikDTQZyeyjcZiauKOv6gb7uQvuDjRGTGsoadIV3kP3eE
-	 nyZTHw/bemmZyYzodOrrVSCLtKz4tp4jeI0wTcpqgN2P/ENhVhuhyCCGcbvruaRrYc
-	 BIB4BS380NDHFRbDPXT5YOj6phLmC/25ps5SYcgFlDn3UZ+NruPN8AVvcpgckcoQS9
-	 VsbRkgzw9VY6A==
-Message-ID: <sashiko-outbox-206250@kernel.org>
+	b=WQXazH1vgo0Qj2gzTaz1fhXCKDOETODBxpX6gRV+gTVRENdp5lWdPt0+mPjv6gGKI
+	 OamtE+M59GsYiEeqcIiaWL9LYSMqHop0tO1xsi3ur3eaO9HolQR1gQnZ93VAtR+lpJ
+	 Lj4313W+SS553Fmawi5d6GXNrbnN8zGnFQBduvOmrBsSx4eNW7IZu89/rQYYnJC5K+
+	 k43mmT3m+I2hOUt0H8RtUhZgKSU+Mo2HJlUbXmWiX+huaFkA2s0vjUK0ljwNwnfcFf
+	 5tiJL5rYnojnJ86+nWWTM425ty8emn3ARGDPPWSjXjwB7eGhfF5QAzB3mfJQBXZoDn
+	 /LxEC8Flu1OiQ==
+Message-ID: <sashiko-outbox-206255@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v3 07/13] RDMA/core: job and job key objects
+Subject: Re: [PATCH rdma-next v3 08/13] RDMA/uverbs: factor out the queue
+ pair attribute copy
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Eric Davis" <eric.davis@broadcom.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261109-uet-ib-core-v3-7-3e7e7ffed2e9@broadcom.com>
+In-Reply-To: <20261109-uet-ib-core-v3-8-3e7e7ffed2e9@broadcom.com>
 References: <20261109-uet-ib-core-v3-0-3e7e7ffed2e9@broadcom.com>
- <20261109-uet-ib-core-v3-7-3e7e7ffed2e9@broadcom.com>
+ <20261109-uet-ib-core-v3-8-3e7e7ffed2e9@broadcom.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 10 Nov 2026 04:59:12 +0000
+Date: Tue, 10 Nov 2026 05:04:21 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -62,14 +63,12 @@ Precedence: list
 
 > From: Eric Davis <eric.davis@broadcom.com>
 >=20
-> An unconnected transport demultiplexes incoming traffic on a JobID rather
-> than on a connection. Add two objects for it: a job, which owns that ID
-> and a table of peer addresses reached from its port, and a job key, which
-> ties a job to a protection domain and authorizes a queue pair to act
-> within it.
+> modify_qp() validates a set of attributes that came from userspace and
+> copies the ones its mask names into their kernel form. Queue pair
+> creation needs the same work for a transport that is ready to send as
+> soon as the pair exists, so move it into ib_uverbs_copy_qp_attr().
 >=20
-> A job can be exported to a file descriptor and imported elsewhere, so an
-> unprivileged process can join a job that was set up for it.
+> No functional change.
 >=20
 > Signed-off-by: Eric Davis <eric.davis@broadcom.com>
 
@@ -77,5 +76,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261109-uet-ib-cor=
-e-v3-0-3e7e7ffed2e9@broadcom.com?part=3D7
+e-v3-0-3e7e7ffed2e9@broadcom.com?part=3D8
 
