@@ -1,13 +1,13 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.48.64
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.3
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794318311;
-	b=H2D8/CmB9yZiP2T2fLWCs5Hg2OxEmYzRUiagQSem4d0FWxGVsbhzCzRdXW3pwqsiKhaF
-	 BlRJMG8DFsqvHJ39LBSs+Ky2tWcL9whTaemZsmPsABF8OY0uJXAX5IxxestBVf3VXzsee
-	 SlRTnRDaIHNCytNVJ23GI52h4l3/hgfqrTWNwXE1ChaYOiR8ayXTD9+31byOq5JuY33N7
-	 vmiQhV4aDVN9PQRNUc11btiOx9euqrwA8rRtdQNP9frepeCED0O7T6GcKxAnVoo+7P0o+
-	 8wM+CmKFKmE4vR94apSq5wORyAe+BQ7mJsfkTHNQAesSZsOk3JE8cJrmBi6AVV42c1g==
+	t=1794318309;
+	b=5cKehTuiVwRwZsqcvw8/Frz9eDiGr6B9e6vBHRH0ZG0x8qTS4FmMvc0c1DIGJnMi/4mi
+	 t3sxFQdD0Zknxs5xvnDxBzepFJo9uc8ioeqEiT+90etK4+okKS39WolQcL3H/qCCIwADO
+	 /XsiVg6wGNi72yDNrkUoIOPY8uXH2CLwXkW4p9Nv4apy9qxLjDU0XZ0RYOXTdbn2zwz+y
+	 aZXrHxgRp3ur57mrUdNC4FlBch7Vh00t4qBAhxGipdnBsEy1mvTf/I7+W7DbuwiTiXimx
+	 VifyGtvm671hVXDby445Wvem5CDTzM1OrvPEWTQCOHWD2oGtk9mUYpR5EBP01cjAPGQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794318311;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794318309;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:
 	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
 	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
@@ -26,75 +26,75 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=mK/Kci4ToryXHZwBqbRQTofXOYBGDSN4+gy0DuOdXGQ=;
-	b=dCfB+ofCeFCG/vLqKTeDqYQCm16/3AsjybUwzle1Fd7lr2/twUoc9cQrwoD9RhGDR8nE
-	 K3fzGBujJG+VZknK0Tp1x93fXdsSTJRSO5EQ0IEL2tJW3g6FViawAAUgTLx2DNkyToO/2
-	 qOakVcd7bIwXEwwiYrXQiaZgURK9hjzeaDj8TOntV/fV3CwHphn1iMLQ+olsjEkDRQmCB
-	 6c58gJoO+Mhu18nOgOSyB6EBi8IKf3TEyIHHaBpI4OfafduBguyAsKu93EfTV07ndaKli
-	 2SVU9QAIZEEkw9njjQ9hjazh2Cty7edPQoRfn3QgApvYvWg9SplSw0Xi7eBCQYtCmbA==
+	bh=gs87B1syf2WvEICAwF5qaun0Do07ChegF/sXWkW09+I=;
+	b=keOasuG6Gpu3AUwnqNIaKuD4L8QhndAKN+DDk5jnIkZVzAgTcbJ17NGGZJfTDFW0ZeOp
+	 TNJQBSg01khDc6j5pzpU8fnamITThSMkl105nD7qZ2Rtcho95RjA3qeJgT+jqVvnozSFq
+	 CHCnSCR/GZ80daysRqmt0kn18lzwXGqKPkfr+75fWtbjBGTj4rFTdXHZp2sJsAa8CX9OD
+	 5oyhsywoiVF/mAp+BQpxp0QVjW8363dVtEErp4i66EqGVxxJ6BLngb38XethPeLMQfEZT
+	 PuznsSomQpvN54NbBuIBmSFK75Uz4KL4OSWK2fFoR1gd25NFaYYIPE9LC99lh2j3oxw==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=hTq+8hS4;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.48.64
-Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012064.outbound.protection.outlook.com [52.101.48.64])
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=O11nnSLP;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.3
+Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013003.outbound.protection.outlook.com [40.93.201.3])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E818606A332;
-	Tue, 10 Nov 2026 13:45:10 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2E818606A332
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC742606A336;
+	Tue, 10 Nov 2026 13:45:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AC742606A336
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=hTq+8hS4
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=O11nnSLP
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=RY2gjknzdU70csHGUTlz6araCY7R8A945mqSYQz4n0gnbzKIxtmoD1bdHKeQ67awSny9dfFfgmFXrhziXUbZkNmgbzG4gFLIv8x9eBIyE5zH0HB9EcKyztauZQd2Y0GfliMm8egy79duXqA2BdsVwZqlSyO8hBtbm4giofTrxA5dKwD3iNHmjhTIwjwST4nKvPGAjaEGMBoEOpyifdbczz6UbfXxMNhWOZDg4wgUvTBaQDs9Z6VH9WgpUOSEbRIBT4tsWEeT7ZAIxsguQKJGtRnmFyPSii//+br237WRd4cCBMfS7OmUJgs1k9wlmGWnBy0XtdyAcao7hkV4kWE2Og==
+ b=qijQgMRj9YXEFZQxQDWTh7c6qnK2dKMSi8uyb+GJtHgwiI5u7pDmtoVukKuTAULch030NF+n9NHMmO142YWt5aGiJA+jWr84XfTbrsHaPi0l9aCaa+NdgF3MWYCGC2gpm5kI+DoVRvnlk9KjNhhcAWGE8m5MTdI9NeYdMscIdBQ5xh5SbnznPZO0Na7PddRYxkv3S2ox/8qT2CNs+1lZKF47/YO+A3N0jUawwxGntdbsesDz5GIWBV96G0hU5F7e2QWNXedxVpvdyU3S1u7b/XHr+mvCXnzyqa3aKHMgoVfxj5BJA+r00SeXUCogiOU8JYTaW2F3c4M6geCb/YTxMA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=mK/Kci4ToryXHZwBqbRQTofXOYBGDSN4+gy0DuOdXGQ=;
- b=qw9ihGkeruUaSOTpfYTI0+qikgupSn8p4EUzB1EFypMt2vuwoiNnBF4DYM4WcHv1p4JA6uR5GXk03DOL7OjVaArfmiZO5AMKqVjfAmacmlrgKxqz2Lzau36fAkFg3NJHnhYxuetVUtE/ZnY6GcA75Lo8pgxMSpxUZtLsMo6/p5qIvB/ced6SL3VzRlp79FlF0q9t88K+dBq+wLw21Oh8Y0Ga4YS5WInNygsU3vF7ABNkIkBIuJSqsk3IukeNarwD3JlWa8CGL6M98s5l7iWBjVcDmp6QA+fk0EeTKIwiaIseCBjZtYPjOsunraj5RntgvXmq0IN7/TN3il8H83008g==
+ bh=gs87B1syf2WvEICAwF5qaun0Do07ChegF/sXWkW09+I=;
+ b=HVAmLqhkLzebLTCwUGU4eJjyHYB2Urq9h7eGrCRV7ic1pfdbTAIlDf1UPfKBwItZWC2rojLwaLEb+yNJooIi64fMPmvAGG1fsCwSYNi7JcMT3AxfdPCO6+Oa1PBhCCEZdJHDOcM9giBf6KE/Y9Esa7syE3YyVN+e5tG3OI/77Kr40XY9CLnqcc4viCEWSobeIMervqBsRzYfXnavGTSvDyrm1FymEFrqiZiNLhjXsUaxhkmMM1pj3xun9bQmo6KS17yXpiH0DOhoLccWlQB14tU4hLtBrCx6t3CH0euan1PuQoMVhfmvgBQWEY6o1Hnox2+klKDehNVWKEhqwz2tng==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=ziepe.ca smtp.mailfrom=nvidia.com;
+ 216.228.117.160) smtp.rcpttodomain=ziepe.ca smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=mK/Kci4ToryXHZwBqbRQTofXOYBGDSN4+gy0DuOdXGQ=;
- b=hTq+8hS4+m5xd3ILuVYtFse8MlfGbrAydslGDB98pVty7IuM6oS/JdP4sK3xS/v1ZY/kdKwihACVTnCRaFTdOmJ8sbOMwYfUL0e4d8VQYumrfdibxmK2Y1ps+hAYjSwFs7/XklvFE8uElS8ogct1spk86c6K2hcO6OR1Tcs2eYHf4t6E6cL+TUn4Zv0kDh1OiZkPFOo8qMeyN8Cg2JTya/13FnNsoRV1d1pz+ZP7CmvHrfLPxlHK8ekDOfiJw1TSMEffe7u8khw+TTYPH+dSNDx1j0FK617xoONhgJjkJ5v4J23gTaAue2fltLW/VqqyawUCzW2AcsK6Ark7pZdFmA==
-Received: from PH8PR02CA0054.namprd02.prod.outlook.com (2603:10b6:510:2da::14)
- by CH3PR12MB9314.namprd12.prod.outlook.com (2603:10b6:610:1c5::5) with
+ bh=gs87B1syf2WvEICAwF5qaun0Do07ChegF/sXWkW09+I=;
+ b=O11nnSLPdPo7MqyZp5Y6nighc/ltgjGbsIK0VTXXMV9JjTTR4xNB4Q3tMcxZNXGmHstBw2XqJBF7hqWCTfU6UcHeC8y7hLFlMXbPeraRNxXf+fo6KCbMAzbl0ZhgZ3k4/IcGUn8Yi+lQYi4AmzJWcbD8QCB280BRgqeQ+UQQEQuD0qPZfQaWwSDfoHnf28HWMwMyxceMhHJvKPbQapEVTwmabivnS2fftvPSQhW5rSUL7BeSBFfumTb51T3aTh8Uc/2OsdnBJ9n25WyPJxVdLWpAg+mAJGyq0a6X39+9+ZO7Psz4jz/OTUvU2FN1Bg49ZRGBn+rUIofxDxa9A8xTNQ==
+Received: from PH3PEPF000040A4.namprd05.prod.outlook.com (2603:10b6:518:1::53)
+ by MW3PR12MB4361.namprd12.prod.outlook.com (2603:10b6:303:5a::15) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.13; Tue, 10 Nov
- 2026 13:45:07 +0000
-Received: from CY4PEPF000392DD.namprd03.prod.outlook.com
- (2603:10b6:510:2da:cafe::3) by PH8PR02CA0054.outlook.office365.com
- (2603:10b6:510:2da::14) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.8; Tue, 10 Nov
+ 2026 13:45:03 +0000
+Received: from SJ5PEPF000001F0.namprd05.prod.outlook.com
+ (2a01:111:f403:c902::d) by PH3PEPF000040A4.outlook.office365.com
+ (2603:1036:903:49::3) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.8 via Frontend Transport; Tue, 10
- Nov 2026 13:45:07 +0000
+ Nov 2026 13:45:03 +0000
 X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ is 216.228.117.160) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- CY4PEPF000392DD.mail.protection.outlook.com (10.167.247.123) with Microsoft
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ SJ5PEPF000001F0.mail.protection.outlook.com (10.167.242.68) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Tue, 10 Nov 2026 13:45:06 +0000
-Received: from rnnvmail205.nvidia.com (10.129.68.10) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ 15.21.615.4 via Frontend Transport; Tue, 10 Nov 2026 13:45:03 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Tue, 10 Nov
- 2026 05:44:43 -0800
-Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail205.nvidia.com
- (10.129.68.10) with Microsoft SMTP Server (version=TLS1_2,
+ 2026 05:44:48 -0800
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Tue, 10 Nov
- 2026 05:44:43 -0800
+ 2026 05:44:47 -0800
 Received: from vdi.nvidia.com (10.127.8.12) by mail.nvidia.com (10.129.68.6)
  with Microsoft SMTP Server id 15.2.2562.56 via Frontend Transport; Tue, 10
- Nov 2026 05:44:39 -0800
+ Nov 2026 05:44:43 -0800
 From: Yishai Hadas <yishaih@nvidia.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
@@ -102,9 +102,9 @@ CC: <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
 	<kuba@kernel.org>, <pabeni@redhat.com>, <edumazet@kernel.org>,
 	<davem@davemloft.net>, <andrew+netdev@lunn.ch>, <dtatulea@nvidia.com>,
 	<moshe@nvidia.com>, <yishaih@nvidia.com>, <maorg@nvidia.com>
-Subject: [PATCH V1 rdma-next 12/24] RDMA/mlx5: Add shadow FIFO infrastructure for UMR completions
-Date: Tue, 10 Nov 2026 15:43:08 +0200
-Message-ID: <20261110134320.34408-13-yishaih@nvidia.com>
+Subject: [PATCH V1 rdma-next 13/24] RDMA/mlx5: Verify UMR CQ polling against a hostile NIC
+Date: Tue, 10 Nov 2026 15:43:09 +0200
+Message-ID: <20261110134320.34408-14-yishaih@nvidia.com>
 X-Mailer: git-send-email 2.18.1
 In-Reply-To: <20261110134320.34408-1-yishaih@nvidia.com>
 References: <20261110134320.34408-1-yishaih@nvidia.com>
@@ -121,205 +121,351 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CY4PEPF000392DD:EE_|CH3PR12MB9314:EE_
-X-MS-Office365-Filtering-Correlation-Id: fea6150a-b74b-49b3-a7a1-08df3f30d4ca
+X-MS-TrafficTypeDiagnostic: SJ5PEPF000001F0:EE_|MW3PR12MB4361:EE_
+X-MS-Office365-Filtering-Correlation-Id: 291016fc-9d61-47dc-63d5-08df3f30d29a
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|36860700016|82310400026|376014|1800799024|18002099003|22082099003|5023799004|56012099006|261028144727099003|10067099003|11063799006|261102123227099003|261022075727099003|261022113327099003|261022105027099003|261021133027099003|261021123027099003|261021135927099003|261026130827099003|261021121427099003|261021130227099003|261026140227099003|261022115727099003|261009223027099003|261026135527099003|261026121527099003;
+	BCL:0;ARA:13230040|36860700016|82310400026|1800799024|376014|23010399003|56012099006|5023799004|11063799006|22082099003|18002099003|6133799003|10067099003|261009223027099003|261028144727099003|261102123227099003|261021121427099003|261021135927099003|261026121527099003|261026140227099003|261022105027099003|261022075727099003;
 X-Microsoft-Antispam-Message-Info:
-	I/Bduyd/V3+KluN994Vu312CfjDNb8mtP4BVBZbAdSPweyMomsQXr74jdiiTym3yQ9VojXq4OOKw/hX84Bjh5sj+FoxBmAjDN1gqOYu291RvJagpj6BQcTWtf3oJ18lhl0DRF8kqn3L9hr97NeC6Ldh0gXubf/kcwgX4S84dz/5FdlNlScN7crIZgj46olaQQ3ZbY++wG0bagubHIySXcOd8DlBzBGT6r/lNSBxCu2C/LDeoJTgZGrt267pEsWxGPmQbii5Yw1aBei2y6LZ/aR0jJahsPgmloyOFQGPGajdBelUZF+GYL/N0ICZzkMi7WvbSDUs6zRtQyCybVZixgVqVYqasVj4+HK8FVfYL2g01uviZcVBpiTTgyBsEyAAB29MRWHherbpYItL08bFzBmd+3qqK9AozscHjz/SjpqnUExKmXH7N5a+HEI4rOzWWzYwFCHFiP9Yq2ZPdWvm7GENOnJKb7Vx73Cct9jd3bveeOmHRt2TaNi49tNglXUB5dAbLrCMnt11yFIpYdO6JI7XU2eCWWJGTMc9EDmI3nPJB8566WDbZlQWfmvDXgFlL0LtXYvFQ9OzEmPHFU44YA6guIqRbZymH3O0cUd5NSMG0R9+OWuw6Ii/bDQn6WtgsRIuFY7QYr+1XXT2u5IMySpig1P+85RezDWvU2ePKA5kJ1j8IgOqTXVKNv9Q36BuJF7khE9Wmx1f2jQqnp8U1mw==
+	i1SZx9TbbmabtCWEvtN7B0XvjaFdlHYI1FLPCDhbwh+Sj2lxSZG2gJXp/0WCFLpfJ21y3mT8Y0JVCvRrdIpUykncLW49dufP7fYjFWZB7sOMziJURrLNUuv8YeMxGsh8U5+vrw3IhanROYUc3b6tz8ReL9HrCD5inLWqt+nqq7nJB2kyN+TBGAma3NpT0mdwRfVtCQGba+AMr7+M5n6Mfr3cC2eIp8aK4ox0REtEvIEeiBsU+5kYey/uEM7JZCxEPT7rY349cuBDeaIDJiek9MZD8VQ4Hw7uOenqgDZqkBAf88COB+S4m5pECs6r6AWGKYFc8x+WwJnppMc/6Qq/fWcbv3O5AwEGGVhjz2B4bFJJP8kzIHkjIYvLBRHBqbJO8nHqUx2zEuJAjVjw6GhHeLzr2sQxNAT/vcVLnIAh8vQcjJMP5O2/O1MlYdj0NZU1A4wwqyV8bH5by78fHlmOWK02Bq8dGFpjO8oguTcgPix3+7gMSbIxOMJ+MvEEh7jmPdTLLvKVX2V30A9rxm/2i3DrUWlOLJ+PoHb7cjT0IkUCcz/bBPFWVfgDZH7wQPLr496uxlg302TCBf2twZI+hJzZ7dWHjF/n4UL/G5iCziBGHmps3DqKV4A9FWq6lCcZOUFEDvpDk3z74i1mVkmoxO0LtsQKtfk86/G+O8VGAudb+wVBTmpJjaD/5jJdPxEnOMuDDJfRNcir3EgSy3XqnQ==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(36860700016)(82310400026)(376014)(1800799024)(18002099003)(22082099003)(5023799004)(56012099006)(261028144727099003)(10067099003)(11063799006)(261102123227099003)(261022075727099003)(261022113327099003)(261022105027099003)(261021133027099003)(261021123027099003)(261021135927099003)(261026130827099003)(261021121427099003)(261021130227099003)(261026140227099003)(261022115727099003)(261009223027099003)(261026135527099003)(261026121527099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(82310400026)(1800799024)(376014)(23010399003)(56012099006)(5023799004)(11063799006)(22082099003)(18002099003)(6133799003)(10067099003)(261009223027099003)(261028144727099003)(261102123227099003)(261021121427099003)(261021135927099003)(261026121527099003)(261026140227099003)(261022105027099003)(261022075727099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	9WgOiRoig4F7koCUGI7YYwBJR0gsmhorHrwDBc0EL11dvFpmzCv4RFmLtujM6u3uJwnHCwxgnoSXrYfDcnGqq/IreU/pYBpCXhq3aIC9LxL28k9I7fjH2QwkUscXKCzUYXFZa2ODczOVU7iPpk/T5wq9WGodWGIvgcC2Z5v1O2To2pEOAux9/bdUbkBLfLXRa6wf49iNzOntXJ14liXloxvEUQlP21+cku0y9Kgz9CCA7k0khPjNEOS4isvXMTj7Z3iCxhMV8bZiwwyExN42DMZJusAeKXGxS4m/q6Wly9Ccf3YUK7KcXThFIWya6EQSJTUzsPbVYLKaCTomW+9JcLWpqmP7If8HnTVhvkrsBHrSvh/6qbCSvEEvt/DXwUiXwBeruxqQ1uvp5Hpkxzjpo6Ig7FJcOhzauJwJ1guIyWpYl0uCdA/unff/wyFBJ/2P
+	1C6d8D4lOC8fux//Y8L59Egsmbj7Blq/tZlaguuPcGQBcQtqYHqYzUnF4ZgN6xE9Q9wo26bzWX6E4xuxVliHp0ETENKfTXUt+OszF8sA0tQ/bPpfwz52QmB26LPtFkIfMdXWzj1ng943hF5go06nut+dZ6i9ASv600AAOa0PPqRbT+6LQVU84MMkOzIxIXvRsKNqiAaxER9TW/alNQ48mud9xrVJwr843EeNjLHfrHIuYl+u5+kQDCPFPYxZXONFTI5zDSI6s+5z9LN1GEevpd6Mnr5zaFk7TiJSV3gSHGiIYRxJhBAAEscjOKU3sfqvbs5KDjxjVlF6/q2IaP4JgeUE3NGte9qodUsAYvHl68AUae0yqYPsusB+xpWkmghkN6UAQ4PkiX3A20Ixu4PNTf9T3RG27kLWDHgM2r5zDX4XKBuqIsklPans/uc0ttQt
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Nov 2026 13:45:06.9971
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Nov 2026 13:45:03.3957
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: fea6150a-b74b-49b3-a7a1-08df3f30d4ca
+X-MS-Exchange-CrossTenant-Network-Message-Id: 291016fc-9d61-47dc-63d5-08df3f30d29a
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CY4PEPF000392DD.namprd03.prod.outlook.com
+	SJ5PEPF000001F0.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB9314
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW3PR12MB4361
 
-The UMR CQ is polled by the generic path, which finds the completed
-request by indexing qp->sq.wrid[] with the CQE wqe_counter. A hostile
-NIC can forge it to complete a request other than the one that really
-completed, or one that is not pending at all.
+The generic poll path trusts the CQE content: its opcode, QPN and
+wqe_counter decide which request is completed and which waiter is woken.
+A forged CQE can therefore complete a request the driver never posted,
+or one that already completed. The driver then writes through a context
+it no longer owns, which corrupts memory, as the context is usually on
+the waiter's stack.
 
-The UMR QP signals every WR, and its send queue completes in posting
-order. In adversarial mode, keep a FIFO of the posted UMR contexts, so
-a follow-up patch can check each CQE against the oldest pending
-request instead of trusting it. Each context also records the
-SQ producer counter it was posted at, as its address alone doesn't
-identify the post: it is usually on the stack and reused across posts.
+In adversarial mode, install a dedicated poll_one for the UMR CQ that
+does not take the CQE's word for it. The driver keeps a shadow FIFO of
+its posted requests, and a CQE is accepted only if its opcode and QPN
+match the UMR QP and its full wqe_counter matches the oldest pending
+request, one already passed to the doorbell. The context is then taken
+from the FIFO, never from the CQE. This cannot prove that the NIC
+really executed the request, as it can always report the oldest one as
+completed; it ensures that the driver completes only a context it owns,
+once and in order.
 
-Nothing consumes the FIFO yet.
+A CQE that fails validation proves the NIC is forging completions, so
+nothing it reports on this QP can be trusted any more. Mark the UMR
+path permanently failed, so neither a new post nor a QP recovery can
+reopen it, stop interpreting this CQ and force the mlx5_core health
+recovery. The forced variant is needed because such a NIC still looks
+healthy to the fatal sensors. Recovery moves the device to the internal
+error state, and the existing flush then completes the pending requests
+in software and wakes their waiters, so this path does not complete
+them itself.
+
+A non-flush error CQE is valid only while the UMR path is active: a real
+failure moves the QP to error, after which the NIC returns only flush
+errors until the recovery resets it. Accept one only by moving the state
+from active to recover atomically, and treat it as forged otherwise, so
+a single recovery runs at a time.
+
+On teardown, stop polling the CQ before destroying the UMR QP, so a CQE
+for the destroyed QP, or for a reused QPN, is never completed to a
+waiter.
 
 Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 10 +++++++
- drivers/infiniband/hw/mlx5/umr.c     | 42 +++++++++++++++++++++++-----
- drivers/infiniband/hw/mlx5/umr.h     |  6 ++++
- 3 files changed, 51 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/mlx5/cq.c      | 165 +++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |   5 +
+ drivers/infiniband/hw/mlx5/umr.c     |  38 ++++++
+ 3 files changed, 208 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 4833f42b3fd1..9cc4b2f99b69 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -758,6 +758,12 @@ enum {
- 	MLX5_UMR_STATE_ERR,
- };
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index 11c1153747c2..c6c3d02709aa 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -37,6 +37,7 @@
+ #include "mlx5_ib.h"
+ #include "srq.h"
+ #include "qp.h"
++#include "umr.h"
  
-+#define MLX5_UMR_MAX_WR 128
-+static_assert((MLX5_UMR_MAX_WR & (MLX5_UMR_MAX_WR - 1)) == 0,
-+	      "MLX5_UMR_MAX_WR must be a power of two for FIFO index masking");
-+
-+struct mlx5r_umr_context;
-+
- struct umr_common {
- 	struct ib_pd	*pd;
- 	struct ib_cq	*cq;
-@@ -771,6 +777,10 @@ struct umr_common {
- 	unsigned int state;
- 	/* Protects from repeat UMR QP creation */
- 	struct mutex init_lock;
-+	/* Posted UMR contexts in posting order, adversarial_mode only */
-+	struct mlx5r_umr_context **pending;
-+	u32 pending_head;
-+	u32 pending_tail;
- };
- 
- struct mlx5_ib_port_resources {
-diff --git a/drivers/infiniband/hw/mlx5/umr.c b/drivers/infiniband/hw/mlx5/umr.c
-index 4a3fa79eba3a..aba79a19d627 100644
---- a/drivers/infiniband/hw/mlx5/umr.c
-+++ b/drivers/infiniband/hw/mlx5/umr.c
-@@ -98,9 +98,7 @@ static int umr_check_mkey_mask(struct mlx5_ib_dev *dev, u64 mask)
- 	return 0;
+ #define UVERBS_MODULE_NAME mlx5_ib
+ #include <rdma/uverbs_named_ioctl.h>
+@@ -608,6 +609,170 @@ static int poll_soft_wc(struct mlx5_ib_cq *cq, int num_entries,
+ 	return npolled;
  }
  
--enum {
--	MAX_UMR_WR = 128,
--};
-+#define MAX_UMR_WR MLX5_UMR_MAX_WR
- 
- static int mlx5r_umr_qp_rst2rts(struct mlx5_ib_dev *dev, struct ib_qp *qp)
- {
-@@ -181,6 +179,16 @@ int mlx5r_umr_resource_init(struct mlx5_ib_dev *dev)
- 	if (ret)
- 		goto destroy_qp;
- 
-+	if (mlx5_ib_adversarial_mode) {
-+		dev->umrc.pending = kcalloc(MAX_UMR_WR,
-+					    sizeof(*dev->umrc.pending),
-+					    GFP_KERNEL);
-+		if (!dev->umrc.pending) {
-+			ret = -ENOMEM;
-+			goto destroy_qp;
++static int mlx5_ib_poll_one_stopped(struct mlx5_ib_cq *cq,
++				    struct mlx5_ib_qp **cur_qp, struct ib_wc *wc)
++{
++	return -EAGAIN;
++}
++
++/**
++ * mlx5_ib_cq_stop_polling - stop interpreting CQEs on a CQ
++ * @ibcq: the CQ
++ *
++ * Takes cq->lock, which mlx5_ib_poll_cq() holds while polling, so no poll
++ * is in flight on return and later polls return no CQE from the NIC.
++ */
++void mlx5_ib_cq_stop_polling(struct ib_cq *ibcq)
++{
++	struct mlx5_ib_cq *cq = to_mcq(ibcq);
++	unsigned long flags;
++
++	spin_lock_irqsave(&cq->lock, flags);
++	cq->poll_one = mlx5_ib_poll_one_stopped;
++	spin_unlock_irqrestore(&cq->lock, flags);
++}
++
++/*
++ * poll_one of the UMR CQ in adversarial_mode. A CQE is accepted only if it
++ * matches the oldest request in the shadow FIFO, otherwise the device is
++ * treated as compromised.
++ */
++int mlx5_ib_poll_one_umr(struct mlx5_ib_cq *cq, struct mlx5_ib_qp **cur_qp,
++		      struct ib_wc *wc)
++{
++	struct mlx5_ib_dev *dev = to_mdev(cq->ibcq.device);
++	struct mlx5r_umr_context *expected;
++	struct umr_common *umrc = &dev->umrc;
++	struct mlx5_err_cqe err_cqe;
++	struct mlx5_cqe64 *cqe64;
++	struct mlx5_ib_wq *wq;
++	struct mlx5_ib_qp *qp;
++	struct ib_qp *ibqp;
++	u16 wqe_ctr;
++	u8 opcode;
++	u32 head;
++	u32 sop_qpn;
++	u32 qpn;
++	u8 sop;
++	int idx;
++	void *cqe;
++
++	cqe = next_cqe_sw(cq);
++	if (!cqe)
++		return -EAGAIN;
++
++	cqe64 = (cq->mcq.cqe_sz == 64) ? cqe : cqe + 64;
++	++cq->mcq.cons_index;
++	/*
++	 * Read each field once, so a NIC rewriting the CQE cannot change it
++	 * between validation and use.
++	 */
++	rmb();
++	opcode  = READ_ONCE(cqe64->op_own) >> 4;
++	sop_qpn = ntohl(READ_ONCE(cqe64->sop_drop_qpn));
++	qpn     = sop_qpn & 0xffffff;
++	sop     = sop_qpn >> 24;
++	wqe_ctr = be16_to_cpu(READ_ONCE(cqe64->wqe_counter));
++
++	/*
++	 * This poll_one is installed before the UMR QP is published, so a CQE
++	 * seen while the QP is NULL is forged. Teardown stops polling before
++	 * the QP is destroyed.
++	 */
++	ibqp = smp_load_acquire(&dev->umrc.qp);
++	if (unlikely(!ibqp)) {
++		mlx5_ib_err(dev, "CQE on the UMR CQ before its QP is published\n");
++		goto forged_cqe;
++	}
++	qp = to_mqp(ibqp);
++	wq = &qp->sq;
++	idx = wqe_ctr & (wq->wqe_cnt - 1);
++
++	if (unlikely((opcode != MLX5_CQE_REQ && opcode != MLX5_CQE_REQ_ERR) ||
++		     qpn != umrc->qpn || sop != MLX5_OPCODE_UMR)) {
++		mlx5_ib_err(dev,
++			    "Unexpected CQE on UMR CQ: opcode 0x%x sop 0x%x qpn 0x%x\n",
++			    opcode, sop, qpn);
++		goto forged_cqe;
++	}
++
++	/* Pairs with smp_store_release() in mlx5r_umr_post_send() */
++	head = umrc->pending_head;
++	expected = smp_load_acquire(&umrc->pending[head & (MLX5_UMR_MAX_WR - 1)]);
++
++	if (unlikely(!expected)) {
++		mlx5_ib_err(dev,
++			    "UMR CQE wqe_ctr 0x%x with an empty shadow FIFO, possible NIC forgery\n",
++			    wqe_ctr);
++		goto forged_cqe;
++	}
++
++	if (unlikely(wqe_ctr != expected->wqe_ctr)) {
++		mlx5_ib_err(dev,
++			    "UMR wqe_ctr 0x%x mismatch with expected context, possible NIC forgery\n",
++			    wqe_ctr);
++		goto forged_cqe;
++	}
++
++	/*
++	 * A WQE records wq->head when posted, and mlx5r_ring_db() then advances
++	 * wq->head. If they are still equal, mlx5r_ring_db() was not reached
++	 * yet, so the WQE was never handed to the NIC.
++	 */
++	if (unlikely(wq->wqe_head[idx] == READ_ONCE(wq->head))) {
++		mlx5_ib_err(dev,
++			    "UMR CQE wqe_ctr 0x%x for an uncommitted WQE, possible NIC forgery\n",
++			    wqe_ctr);
++		goto forged_cqe;
++	}
++
++	if (opcode == MLX5_CQE_REQ) {
++		wc->status = IB_WC_SUCCESS;
++	} else {
++		/* Copy the CQE, so its syndrome is read once */
++		err_cqe = *(struct mlx5_err_cqe *)cqe64;
++		mlx5_handle_error_cqe(dev, &err_cqe, wc);
++		/*
++		 * A real failure during a recovery is forged, the QP
++		 * only flushes.
++		 */
++		if (wc->status != IB_WC_WR_FLUSH_ERR &&
++		    cmpxchg(&umrc->state, MLX5_UMR_STATE_ACTIVE,
++			    MLX5_UMR_STATE_RECOVER) != MLX5_UMR_STATE_ACTIVE) {
++			mlx5_ib_err(dev,
++				    "UMR error CQE status %d in state %d, possible NIC forgery\n",
++				    wc->status, READ_ONCE(umrc->state));
++			goto forged_cqe;
 +		}
 +	}
 +
- 	dev->umrc.cq = cq;
- 
- 	sema_init(&dev->umrc.sem, MAX_UMR_WR);
-@@ -208,6 +216,7 @@ void mlx5r_umr_resource_cleanup(struct mlx5_ib_dev *dev)
- 	/* After device init, UMR cp/qp are not unset during the lifetime. */
- 	ib_destroy_qp(dev->umrc.qp);
- 	ib_free_cq(dev->umrc.cq);
-+	kfree(dev->umrc.pending);
- }
- 
- int mlx5r_umr_init(struct mlx5_ib_dev *dev)
-@@ -236,7 +245,8 @@ void mlx5r_umr_cleanup(struct mlx5_ib_dev *dev)
- }
- 
- 
--static int mlx5r_umr_post_send(struct ib_qp *ibqp, u32 mkey, struct ib_cqe *cqe,
-+static int mlx5r_umr_post_send(struct ib_qp *ibqp, u32 mkey,
-+			       struct mlx5r_umr_context *ctx,
- 			       struct mlx5r_umr_wqe *wqe, bool with_data)
- {
- 	unsigned int wqe_size =
-@@ -245,6 +255,7 @@ static int mlx5r_umr_post_send(struct ib_qp *ibqp, u32 mkey, struct ib_cqe *cqe,
- 				    sizeof(struct mlx5_wqe_data_seg);
- 	struct mlx5_ib_dev *dev = to_mdev(ibqp->device);
- 	struct mlx5_core_dev *mdev = dev->mdev;
-+	struct umr_common *umrc = &dev->umrc;
- 	struct mlx5_ib_qp *qp = to_mqp(ibqp);
- 	struct mlx5_wqe_ctrl_seg *ctrl;
- 	union {
-@@ -267,13 +278,30 @@ static int mlx5r_umr_post_send(struct ib_qp *ibqp, u32 mkey, struct ib_cqe *cqe,
- 		goto out;
- 
- 	qp->sq.wr_data[idx] = MLX5_IB_WR_UMR;
-+	if (mlx5_ib_adversarial_mode) {
-+		/* mlx5r_finish_wqe() advances cur_post, so record it first */
-+		ctx->wqe_ctr = qp->sq.cur_post;
-+	}
- 
- 	mlx5r_memcpy_send_wqe(&qp->sq, &cur_edge, &seg, &size, wqe, wqe_size);
- 
--	id.ib_cqe = cqe;
-+	id.ib_cqe = &ctx->cqe;
- 	mlx5r_finish_wqe(qp, ctrl, seg, size, cur_edge, idx, id.wr_id, 0,
- 			 MLX5_FENCE_MODE_INITIATOR_SMALL, MLX5_OPCODE_UMR);
- 
++	/* Pop the shadow FIFO head: validated, dispatch to its waiter */
++	WRITE_ONCE(umrc->pending[head & (MLX5_UMR_MAX_WR - 1)], NULL);
++	umrc->pending_head = head + 1;
++	wc->wr_cqe = &expected->cqe;
++
++	wc->qp = &qp->ibqp;
++	wq->tail = wq->wqe_head[idx] + 1;
++	/* Advance wq->last_poll, the internal error flush starts from it */
++	handle_atomics(qp, cqe64, wq->last_poll, idx);
++
++	return 0;
++
++forged_cqe:
++	/* mlx5_ib_poll_cq() updates the CI only for a returned completion */
++	mlx5_cq_set_ci(&cq->mcq);
 +	/*
-+	 * Push to the shadow FIFO before the doorbell, so the entry exists
-+	 * before a CQE for it can arrive. A hostile NIC can post a CQE before
-+	 * the doorbell, so the UMR CQ poller, on another CPU, can't rely on
-+	 * the doorbell to see ctx->wqe_ctr and ctx->cqe.done with the entry.
-+	 * Publish it with a release, which pairs with the poller's acquire.
++	 * The NIC forged a CQE. Fail the UMR path for good, ignore any later
++	 * CQE and force the health recovery, as the fatal sensors still read
++	 * clean. The internal error flush then completes the waiters. Return
++	 * an error, not -EAGAIN, as a CQE was consumed.
 +	 */
++	umrc->state = MLX5_UMR_STATE_ERR;
++	cq->poll_one = mlx5_ib_poll_one_stopped;
++	mlx5_trigger_health_work_force(dev->mdev);
++	return -EIO;
++}
++
+ int mlx5_ib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
+ {
+ 	struct mlx5_ib_cq *cq = to_mcq(ibcq);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 9cc4b2f99b69..f7c718e3d974 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -768,6 +768,8 @@ struct umr_common {
+ 	struct ib_pd	*pd;
+ 	struct ib_cq	*cq;
+ 	struct ib_qp	*qp;
++	/* Checked against each CQE in adversarial_mode */
++	u32		qpn;
+ 	/* Protects from UMR QP overflow
+ 	 */
+ 	struct semaphore	sem;
+@@ -1311,6 +1313,9 @@ int mlx5_ib_create_user_cq(struct ib_cq *ibcq,
+ 			   struct uverbs_attr_bundle *attrs);
+ int mlx5_ib_destroy_cq(struct ib_cq *cq, struct ib_udata *udata);
+ int mlx5_ib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
++int mlx5_ib_poll_one_umr(struct mlx5_ib_cq *cq, struct mlx5_ib_qp **cur_qp,
++		      struct ib_wc *wc);
++void mlx5_ib_cq_stop_polling(struct ib_cq *ibcq);
+ int mlx5_ib_pre_destroy_cq(struct ib_cq *cq);
+ void mlx5_ib_post_destroy_cq(struct ib_cq *cq);
+ int mlx5_ib_arm_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags);
+diff --git a/drivers/infiniband/hw/mlx5/umr.c b/drivers/infiniband/hw/mlx5/umr.c
+index aba79a19d627..b0f00d4bc93c 100644
+--- a/drivers/infiniband/hw/mlx5/umr.c
++++ b/drivers/infiniband/hw/mlx5/umr.c
+@@ -194,6 +194,23 @@ int mlx5r_umr_resource_init(struct mlx5_ib_dev *dev)
+ 	sema_init(&dev->umrc.sem, MAX_UMR_WR);
+ 	mutex_init(&dev->umrc.lock);
+ 	dev->umrc.state = MLX5_UMR_STATE_ACTIVE;
++
 +	if (mlx5_ib_adversarial_mode) {
-+		smp_store_release(&umrc->pending[umrc->pending_tail & (MAX_UMR_WR - 1)],
-+				  ctx);
-+		umrc->pending_tail++;
++		struct mlx5_ib_cq *mcq = to_mcq(cq);
++		unsigned long flags;
++
++		dev->umrc.qpn = qp->qp_num;
++		/*
++		 * UMRs can be posted as soon as the QP is published below, by
++		 * this caller or by a concurrent MR registration, so install
++		 * mlx5_ib_poll_one_umr() first. The CQ is already armed, so
++		 * swap it under cq->lock, which the poll loop holds.
++		 */
++		spin_lock_irqsave(&mcq->lock, flags);
++		mcq->poll_one = mlx5_ib_poll_one_umr;
++		spin_unlock_irqrestore(&mcq->lock, flags);
 +	}
 +
- 	mlx5r_ring_db(qp, 1, ctrl);
+ 	smp_store_release(&dev->umrc.qp, qp);
  
- out:
-@@ -303,7 +331,7 @@ static int mlx5r_umr_recover(struct mlx5_ib_dev *dev, u32 mkey,
- 	 * This will ensure that all the previous WRs got a completion before
- 	 * we set the QP state to RESET.
- 	 */
--	err = mlx5r_umr_post_send(umrc->qp, mkey, &umr_context->cqe, wqe,
-+	err = mlx5r_umr_post_send(umrc->qp, mkey, umr_context, wqe,
- 				  with_data);
- 	if (err) {
- 		mlx5_ib_warn(dev, "UMR recovery post send failed, err %d\n", err);
-@@ -380,7 +408,7 @@ static int mlx5r_umr_post_send_wait(struct mlx5_ib_dev *dev, u32 mkey,
- 			continue;
- 		}
- 
--		err = mlx5r_umr_post_send(umrc->qp, mkey, &umr_context.cqe, wqe,
-+		err = mlx5r_umr_post_send(umrc->qp, mkey, &umr_context, wqe,
- 					  with_data);
- 		mutex_unlock(&umrc->lock);
- 		if (err) {
-diff --git a/drivers/infiniband/hw/mlx5/umr.h b/drivers/infiniband/hw/mlx5/umr.h
-index bda7123781a9..0b245eec521f 100644
---- a/drivers/infiniband/hw/mlx5/umr.h
-+++ b/drivers/infiniband/hw/mlx5/umr.h
-@@ -84,6 +84,12 @@ struct mlx5r_umr_context {
- 	struct ib_cqe cqe;
- 	enum ib_wc_status status;
- 	struct completion done;
+ 	mutex_unlock(&dev->umrc.init_lock);
+@@ -212,6 +229,14 @@ void mlx5r_umr_resource_cleanup(struct mlx5_ib_dev *dev)
+ {
+ 	if (dev->umrc.state == MLX5_UMR_STATE_UNINIT)
+ 		return;
++
 +	/*
-+	 * SQ producer counter the WQE was posted at, matched against the CQE
-+	 * wqe_counter in adversarial_mode. Unlike the context address, which
-+	 * is reused across posts, or the ring slot, it identifies the WQE.
++	 * Stop polling before the QP is destroyed, as its QPN may then be
++	 * reused and a forged CQE carrying it must not be interpreted.
 +	 */
-+	u16 wqe_ctr;
- };
++	if (mlx5_ib_adversarial_mode)
++		mlx5_ib_cq_stop_polling(dev->umrc.cq);
++
+ 	mutex_destroy(&dev->umrc.lock);
+ 	/* After device init, UMR cp/qp are not unset during the lifetime. */
+ 	ib_destroy_qp(dev->umrc.qp);
+@@ -319,6 +344,11 @@ static int mlx5r_umr_recover(struct mlx5_ib_dev *dev, u32 mkey,
+ 	int err;
  
- struct mlx5r_umr_wqe {
+ 	mutex_lock(&umrc->lock);
++	if (mlx5_ib_adversarial_mode && umrc->state == MLX5_UMR_STATE_ERR) {
++		/* The NIC forged a CQE, don't revive the QP */
++		mutex_unlock(&umrc->lock);
++		return -EFAULT;
++	}
+ 	/* Preventing any further WRs to be sent now */
+ 	if (umrc->state != MLX5_UMR_STATE_RECOVER) {
+ 		mlx5_ib_warn(dev, "UMR recovery encountered an unexpected state=%d\n",
+@@ -425,6 +455,14 @@ static int mlx5r_umr_post_send_wait(struct mlx5_ib_dev *dev, u32 mkey,
+ 		if (umr_context.status == IB_WC_WR_FLUSH_ERR)
+ 			continue;
+ 
++		if (mlx5_ib_adversarial_mode) {
++			/* A forged CQE was detected, don't recover the QP */
++			if (umrc->state == MLX5_UMR_STATE_ERR) {
++				err = -EFAULT;
++				break;
++			}
++		}
++
+ 		WARN_ON_ONCE(1);
+ 		mlx5_ib_warn(dev,
+ 			"reg umr failed (%u). Trying to recover and resubmit the flushed WQEs, mkey = %u\n",
 -- 
 2.18.1
 
