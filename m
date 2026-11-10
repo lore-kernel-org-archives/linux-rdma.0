@@ -1,97 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.195.41
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794282333;
-	b=REt/QMKd51Qw1ELuB1+25W0KRHYwmhh/dqr9sZscUJmzr+pv1xLbZnFSo0RNbwi6pEFp
-	 lk83dWIlbJ5FTpVpfZHSxcneFjqb7oUpU2BwUUOUrVG2oc9LWwd2lCB5MoyRUW4lJdFfg
-	 aBg4p4jZSnvBAmIW+ZwqjLbTZXW/1bby6VZ+f7grH3tEL7wN7b9wu4+j8eSt3oBXl8nFD
-	 U4zygRGYOFkmTuPjOItJPqw3LUobBkd+o83fF3CzZoL9LdzrQzjOsIDkPw8BFy6byu332
-	 xH3HfkIJtKz2qmF4kOWKx+utaN975tWPJgE1dKFZAFjcpMRKTsWC/DNCpMU6QAaTBuw==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794282333;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=Vcr3ANOqh4FnTgIC9l1Ac9wOKY5jyL63BGveL3W0hyY=;
-	b=dCMdAKMdIwmQJEG1ySnSQRk3sJuQv7s0iek++qFtLJKclc5d6fSJHOxZsAbuJP43xnr7
-	 SU+YhALfXv346KgCghL+M/5cIjNd9xrNV1cJo0TGrtcbHIX9vKlUOOwtt4MaIbR5FpZGS
-	 vnOiXl98v790SWqDdpD5FQ8OKyY8we457JEVFqPNXj696hL9VSH6i5nNFMxhFmXW//M1y
-	 TVBrQMn0t9/f5p7yr/pVYdwbvgkkc36T2fE2wihHj6qlsByaT1RZhlbj861WbxGnTjBVO
-	 Oyqumt76VDbJt8R7qtZ2gQxfzfhCXFJIpCh7rBi1hckLmlgBcve2JlWWgR83m6B1Yrw==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b="p2nCGy/c";
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.195.41
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012041.outbound.protection.outlook.com [40.93.195.41])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.227.131
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1794283078;
+	b=qzuyi7nrsLU3q4xMVEjiTkATPdOgX/TqT2Myf9fY/v1iVkeobOKk+cyC1EJKxNIggVlA
+	 GI/K83Zicl7V+NDkcdDH2QAlpkbw3Uueh+/PrOaCCKZczC8K0P/gN8hTQIxPJ4rB/g0bT
+	 InXKxiuLw2Io9HE5oETWftW9M4bg8yq4caxVCp1cIocaqiAe+cGqiGpLWeBKFC70DZg6F
+	 n6ay+Msc6Vr7kPnsx3V4mD5nwAoO2thkencM+J+eXl77W7lcRL2FHnfyDPiB8ra4Qt4Hf
+	 yBYiXsfR9GjzDj8K2orwmOnTysaPWJS02asvzecXU6FOx/RqXGQ76+5atch/n/+Lx/Q==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794283078;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=CXkr2SuKnzOJFNr+1uuWJMDmIGWuxbgW0PPb+hSRh9s=;
+	b=ydPTA0TEp/Mh8PavS7Epqc+opVeQPASM8k9XDNKpfgDhoP+mKFVd6poOccOQikJnESHJ
+	 Ec1VCH+9AIK+KMpbmzrDFTDhdXQxSEKhLeZ5gyl0dc4WRuHGyd71DwhMMMoPeUrH0/mRC
+	 r0mgOybuqUIUfdIhxDqFOCJUqfs/pw/X9bxb3d4uBJXjpGrE/t584Vgrz1zE3rrF0HjE/
+	 e+AEJzuc9VJqU3cx/nCSrhzVQkV7l98Nt4KrIVp1CHaKe70qEmdX2z2WJJHeg5eJJlVTO
+	 9UvlRGu2BL6Tw1aSicttr5RaUKMT2K+ffg3TNzDf2R2a4cIgZQVFnDHu/Pkf7yD3/gw==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=eWioS0GS;
+	arc=none smtp.remote-ip=74.125.227.131
+Received: from mail-pj2-f3.google.com (mail-pj2-f3.google.com [74.125.227.131])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B44D606A31C;
-	Tue, 10 Nov 2026 03:45:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6B44D606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E259A606A333
+	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 03:57:57 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E259A606A333
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=p2nCGy/c
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=a3ZZsFcRj5PLXZ38/syzfvSeLmNbQSiEG/Eq7/BgnNl2zMr441dpfuqoc1kKm3hKPM7uCerZNSurw2zAW59MWkeHspvxQMrAoJ4skIq8h2xv4kGNniS9QfSUV2C0qoQvzKv0hRTC37zc78ukQObTc+Uoq4lvDoR9ZPhClJs6N43F2LQaVcc5gX1o8FSee2QDu8ktwe2xRlMeLh7tHElNVHOh7FUg+c0/4ntznI7DhO4HlLBomSwVfYE+K5lyM1w6//+aAxD2DwrxgFgI9dM0q9zzPLzBWkxZnJwIQIrq5uMmFFihILs7uJ/FhyS25n0yS0g9Of2m6FOOVh9px6ZD/w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Vcr3ANOqh4FnTgIC9l1Ac9wOKY5jyL63BGveL3W0hyY=;
- b=dOGTDGMJ0zGTyja1pM/g/XerucpKaDaBuaR8xqnosiq9nWSwOY55H56NJd1IiAll3q8LHYmkJDU5bXF7u8c1+QhbO4CV54ErwyKcY2l+5f9diThF855NPEEg7tovh64GxxOLfrsJJ9exKaFAB/+TM1kHleMSikMDbAKERGeSZQgc2+xXXT9ko76kYgRjqsMc/VLb2fd3XjZvtfuo4mDDaaTODVGsGDnB0BKKSyxuWKxT+kFLOZIAYO25Wm09QYp9XbmL/7VAgXSbtXTQzdlGljeHLDKJ1NF2JJBPVGysCfgt90e7H5+6hwrpAoX8CjHtmVzVfmjRTHE4tNwKWWVI6g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Vcr3ANOqh4FnTgIC9l1Ac9wOKY5jyL63BGveL3W0hyY=;
- b=p2nCGy/cDX5r+6Vx6VCuesweAlVRc2KOiGjAxkeWaEOQ291Ay62B5sB5hKdHUak1IYXM0E92XtuB4dS1he8epmu+Y+ZlxC7XJmxP4fJ1M3mqvjy1UVotX5TqrxrL4lHTTpW9mT+j1FqiKDgcgw9z5A1YRsgxqmUOgprjWW/0O+nDyUgYPuWCdznBMKxmQ/vqQcopENzFPvgcydx5oypwUDlFOfIBwxXd6fq/QmB6uwmIR8Bg37d8EZxs7UuEQ9HTA+GgzJU7Ll+1AamAj8fnvA/bNdrWe6htl7/CkM0ai2Ix+NzPVfvF2C71fxOuVonxwDlJ1jB+ONHXtge2F3K11g==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from SAVPR12MB999143.namprd12.prod.outlook.com
- (2603:10b6:806:4e5::21) by CC6PR12MB283837.namprd12.prod.outlook.com
- (2603:10b6:170:209::18) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.13; Tue, 10 Nov
- 2026 03:45:28 +0000
-Received: from SAVPR12MB999143.namprd12.prod.outlook.com
- ([fe80::219e:6553:2ec0:3761]) by SAVPR12MB999143.namprd12.prod.outlook.com
- ([fe80::219e:6553:2ec0:3761%4]) with mapi id 15.21.0592.012; Tue, 10 Nov 2026
- 03:45:28 +0000
-Message-ID: <b1bd7ac1-be7c-4582-96aa-b9e982921c37@nvidia.com>
-Date: Tue, 10 Nov 2026 11:45:21 +0800
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] net/mlx5e: TC, release meter if rule offload fails
-To: netdev-bot+sashiko@kernel.org, vulab@iscas.ac.cn
-Cc: saeedm@nvidia.com, tariqt@nvidia.com, mbloch@nvidia.com, leon@kernel.org,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- stable@vger.kernel.org
-References: <20261103102856.1340672-1-vulab@iscas.ac.cn>
- <179405671897.994134.13525993179862980932@kernel.org>
-Content-Language: en-US
-From: Jianbo Liu <jianbol@nvidia.com>
-In-Reply-To: <179405671897.994134.13525993179862980932@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: SI2PR04CA0008.apcprd04.prod.outlook.com
- (2603:1096:4:197::20) To SAVPR12MB999143.namprd12.prod.outlook.com
- (2603:10b6:806:4e5::21)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=eWioS0GS
+Received: by mail-pj2-f3.google.com with SMTP id 98e67ed59e1d1-3ada6c66964so478996a91.0
+        for <linux-rdma@vger.kernel.org>; Mon, 09 Nov 2026 19:57:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1794283077; x=1794887877; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=CXkr2SuKnzOJFNr+1uuWJMDmIGWuxbgW0PPb+hSRh9s=;
+        b=eWioS0GSjJlvh6ZHCBGxaaeRsfQzkJcz33RP+AaoFNuh3hDMddsz7w5znvRQzJ3Dls
+         n+Fg0ZOheqMQcJc8Q1ya9lPIqyKWWgjAjKOQmXd7s340JImqVg5F9F4RUxdITsykRs9P
+         jV9CUDMEkySfso4mcRKycLxZnApuuoxPWjmekbsYqg2akOLS+2tbI/jH4KehIv7IwDb6
+         2RaVvTZegBY6dX+8qAyKHxsHqCSZ0ti8aBCLCPEiAimi4Q/mU5i3/x0xdSNTeRataRu6
+         m/ZMf43HMHWsEfeym+ATo4mX3nBntTDnUgOq+qsJJZJUEPkrEArzQjHCZxTFPZYI6sBO
+         676A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794283077; x=1794887877;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=CXkr2SuKnzOJFNr+1uuWJMDmIGWuxbgW0PPb+hSRh9s=;
+        b=lLEsK7E0ggmXA6p/cdZahmsuKD6xcxkIo0JApGKTXcAJAYStB0NUV4PQ+SwfiaAU73
+         H36Kj4fIjHVHg2IrMfQj90vrtZMQc2KL7V451OjD0cyY92awd8BXquiZyax0sqvceqN0
+         Dm6NI//xHBhmoyUEuTy+n4sFnAQ/16k5huo4E0ZTvjcgPQvxOMJUNjv9R2djOvDoGzro
+         eu8hHU0RXEOUPGoJvr+nldhn6801CQAGihq5NvClxIr3iYLEVD7PCYdc3hMWMZc+2Nxl
+         D6nin0nL9rWOvjnay4+wnFd+usjboJ8XEvtLMhZrFJDG2ecSAy+NhQ6rwhSgPP1CqSYu
+         JF5w==
+X-Forwarded-Encrypted: i=1; AL+hErFWedIg4XZbtBtyunX5j/1udoB+br7ErqjyhAUnoc0Km8IqgorGG2Er9ccY5XsAAqG+CXY5fJOgexus@vger.kernel.org
+X-Gm-Message-State: APuU4Z/Q494Rk7UnnpLqzOEjMIMSdYfFT4GVtxevnFAmIR7ldth++nwK
+	IREHOoI2A8EI67VuHMnk0yeSttgwVK2oCRuLEBFelvteSKUCIn6PFEQy
+X-Gm-Gg: AYBFou1R/aVmawmqEZS1up2Q0AKSKfq5TyFa7XmhauGgze8UlcDQ1f4ySgoLg3W15jD
+	ytgqJXSDW/gsumycYREP1i+fnVyB4Sge2+phoMOiHUmKclDK4QnlyHTKpHbuv7/foZ0vzB8k1PR
+	LfOKqIXsR9dM9DocMaUv250jKtLS2yIXXRavaZA0nOiBU/8TddAzKvINPkU4hdyM6OJFHRec9Qp
+	+hJuNkxhkBV/Fc3LJCRFKepzis+4ZuZet/S5mCgHLMPvuSa4zKK0PeySzDmpGnf7R1Rw42c+CNI
+	VbrN/KG1H23FpdeIXbBebFd3NgqndGMVG8Zlw8d9HJI/j4r68S2s71/t+LhiaLtb+alZAOMn1ya
+	yE1pR4M+1yvlqT59mrQHeAE/itNRnoscMRL/YpGpLFst2Hw4vGqum+YkopA21ZcuGfzDZPU/JFN
+	uQjhS3hJ79MVHhbiPfe5QumCVVr+fo12GA7J5tLX/6fjoeMieA1qisXQVKM4n8wlwux5U1ywL4J
+	EBcXhhnAeKp7bKvoHZbFhh1Me148TJ0stvWm3LY4quoyx7ttaHYfJsFVHrwWFmXzxUuKDJj1Zgb
+	eIwLe4EaVl1geM54VgNp4TXaq55L5G9UhsYFIYjUriyk05U=
+X-Received: by 2002:a17:90b:4a48:b0:3b0:d365:f8ed with SMTP id 98e67ed59e1d1-3b166cd7209mr1698733a91.21.1794283077269;
+        Mon, 09 Nov 2026 19:57:57 -0800 (PST)
+Received: from localhost ([164.52.124.84])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cdd8d7b37casm322833a12.22.2026.11.09.19.57.51
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Mon, 09 Nov 2026 19:57:56 -0800 (PST)
+From: Jiabin Deng <dengjiabin2023@gmail.com>
+To: netdev@vger.kernel.org
+Cc: Dragos Tatulea <dtatulea@nvidia.com>,
+	Saeed Mahameed <saeedm@nvidia.com>,
+	Tariq Toukan <tariqt@nvidia.com>,
+	Mark Bloch <mbloch@nvidia.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net v3] net/mlx5e: SHAMPO, Disable end padding when relaxed ordering is supported
+Date: Tue, 10 Nov 2026 11:57:23 +0800
+Message-ID: <20261110035723.26587-1-dengjiabin2023@gmail.com>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -101,107 +104,75 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SAVPR12MB999143:EE_|CC6PR12MB283837:EE_
-X-MS-Office365-Filtering-Correlation-Id: c9743fbf-d5da-4b61-0cd2-08df3edd0fe4
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|1800799024|23010399003|376014|7416014|18002099003|22082099003|10067099003|4143699003|11063799006|56012099006|261028144727099003|261022105027099003|261021123027099003|261026121527099003|261026140227099003|261009223027099003;
-X-Microsoft-Antispam-Message-Info:
-	q+ICFfJVb1JAd8r//hIw4FqAaSCJHEXCLxRIIhfmKkxJk+nn0rnmdlphrESyF7k96Lbw/+E0kjPicmqkiLEWqinh/Dirk2wlj6ZTy+h6XX/kHQKoRNaLLF/N/yect9fMMBflydW/S2ObQLXbZ8bTTqug7sQP3QVuvM7Zxms4GR89usXnCTVNqFBP7nIWa0MrNju1am3IXxi4lfcfC4TiA1l3i1SVypydVMYTLQqY9cDFZuJBtuzpL/a+cc16mhX9RnBIScmbBWn0MuOSuPeiJFPTSaLDTQmZILoMzccK82ouSSZt2WZAgU53Pc8Y2qh2EO+MzOXGclA61iV/ZyyAiI0q1uOMudVgHE2v49UiN6+BbV2h/NaXoqEZ3Qo64iNT/yAgujy1ja1qDQH74VJu3asy3v17BTCFTsj6dk5F9H4AMAhHWoCADRHqNRN9eq1XzfCZpCKvkH1Cr6nya2nlRv1hHeibcZm0H7dLU0Ld32Jia8UhNLcy30rhXYhKo8U8X6R4akigLhgLoZMV3ymwA2zdMuGm2lVWrrOfMa/xAwP38sbClrnd6DooV4QHNsOX/ZStxyQOnFn8PbWB7+6kcKmTqIBPljwUfgljsvNebyMIU+6aG+JdKJobU/kAW8c25xshTiDnk1aOv9GOpAZqss6L7qq4G3iU0h0eETPVJQo=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SAVPR12MB999143.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(23010399003)(376014)(7416014)(18002099003)(22082099003)(10067099003)(4143699003)(11063799006)(56012099006)(261028144727099003)(261022105027099003)(261021123027099003)(261026121527099003)(261026140227099003)(261009223027099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?QVlNVFpGTk0xdlR6Vy95alRrdE1vVERQNWo1ZFg5Si9PeHZiTXQrc0U0UG9R?=
- =?utf-8?B?TzAwT3RnY2IzRG9TZDlJYnAvUXlQd2FJZURpMVlFT29jZ0NtSGFuMVpXMTJ4?=
- =?utf-8?B?a1UyMG53c0NRSGtYbk10WVpQWWRBcHN1SU01aWt1a0lLOFdMS1FidUlhTGFI?=
- =?utf-8?B?eUJaYXc5RURIU3R3NHI1L0wvbzBzd1BodEFMZmdpeFhTT3d1bUVuVW1EUzZY?=
- =?utf-8?B?dXpFTkdoVzhYTjBZYjNLUmtYTEhONklqSUEyckZxTVdwbis5SE5iZmRkTlc3?=
- =?utf-8?B?YzdGQnFpY05Rb0kvTHg5WnRCNFVZSzNwYTZSek82Lzh5dWMzYy9mVDU4d28x?=
- =?utf-8?B?WTdFL3hxYTZYSksySWJzdEF2UDVTQUxjL1V1R3lRSVV0b1VYTEdFcVdjejlR?=
- =?utf-8?B?OEZjQW5mZlFLUE5jbURCYXZLemIrMjBSQWxnQ094WFhIZ0NSa1c2aGJvYjBI?=
- =?utf-8?B?VlBOd3prdFA5VnpTTnBrSVNQQXJ6a3U4Z2ZLMkxNUk5qUnJpbDRaSThYMUs2?=
- =?utf-8?B?cXhGL3QvYXA1M3FjV2owZW9nUkdlaTErY3RBdU4xZmNhMWsyOGVEc1h6M1Z3?=
- =?utf-8?B?L056dGZKa2tRbjg3K1RuRHBOV3k0eDl5R3ZEc3kxcDBML2JySmV5T1BvMzFD?=
- =?utf-8?B?TWk3SUpxUWtrcEhZaFJFMi8zMTFUN29NV0plODJxNm1yZU9DaUovNmNyZG9G?=
- =?utf-8?B?cWUranYxUm0rUlRnU21LNlpkRGNnNm1SQUVUQlAwUjh5RlNPY2tFeSt1ZGVx?=
- =?utf-8?B?ejdKRU9iVlhqT0tFTm1NNkwyNVFTVkNOYlR2ZjV0RU5HUGlnMUlTRG5zaUhV?=
- =?utf-8?B?UGgxZ1hJOXpYNkI3NXFtM2VJWGl2c1JibG5ObmhjZnQxd21PWEhqWUZzZklE?=
- =?utf-8?B?a3JFWVVpSTBQa0lhdWlGUzlScnk3dkRSclhscXRLbkVSbi84NjN2RzFKY1dJ?=
- =?utf-8?B?bmRvMUl3ZUZMcHNaaXhuZ252bTZOWU5PaWo4dTZsVTdGdVRjRDlaQldUYzRH?=
- =?utf-8?B?Nk1Hc0V4MnVPcmRCRjNCZGFNNmtZclN0YUsvNFM3dVFybGVNSXROSjR5MW9l?=
- =?utf-8?B?VjRuakdYWFYrUjhQL2VhbjQ5Z2dMVkhBYXN0V0tsai9PWXluRFV3aVdDN2N2?=
- =?utf-8?B?ZDBOTmIzR2FOU0FUSG0rckhDWHpZL2ZaVTVYSkdpYlcvZGlkaW9Eci9DaGhT?=
- =?utf-8?B?dWZBalJETGVlbWNQYjh5SnBVQngvdnp2OVdOcVZVSmRkOGtXdVJra2hBTDkx?=
- =?utf-8?B?NjNxQXljUkJFTHdRMUpFaVZiYWJXOUF1cGdZRktXdEJTZDF1NGpCZmZLY3No?=
- =?utf-8?B?N1lmN0ZONkY3U2YwNjBXY1Mwc1Z0UHpqdXlQanZ4LzFYYS8wNS90Z0pwN0Rv?=
- =?utf-8?B?bVZQWWtyQUNLNVRUMGtpQVFZYUsyTkVIajNkZjlpenlZMlNFZ09PeUtGZzdY?=
- =?utf-8?B?c0tJcHd1ZGcxQkFDbHJ1MWNrSTdNNWFtYjNnWThXWVpFcW5yVUZRTmFnSXhm?=
- =?utf-8?B?aDhSZ1JsMTVVUVdnYkNDdUp1L1RmWVh6Q05EQ0ovb2pGR092T2hCZkJRZkU2?=
- =?utf-8?B?Sm1meCszeFJOVHE2eThhQktseTl4aXJBYnluRFZTQTN0VWpZV2xtb0hNZVBM?=
- =?utf-8?B?U3dBVXU0VG5GdDNKT1lwbVlLYksxaWphOXVmeTJFQ3d6dklZcm11LzEva1VR?=
- =?utf-8?B?OGlmZEpGa1pEKzFLczNGWHJOSzh1S1Y0SHJhTlQ1RWZmY3ZCYlVvbDl3dEhk?=
- =?utf-8?B?cEp3ZERGQlRidjYya1EzUDJzRXhXdndEdEpGdXJrR0EwQXZSSm8wV2trenJQ?=
- =?utf-8?B?SjdvR25wWER6aTJJcDBlbjdzS2xmWCsyOWpkam81VlREbmVrbkw1T0d3ZFNF?=
- =?utf-8?B?TUE3QnNQUklkSEJhelpxZEtNM2JyUzRaNzZZbmFhMENIcmxRcE5Fejdpd0NS?=
- =?utf-8?B?U0hZaWs4SGNKTVFpZ1Z5WHRxeEZUK3NjcklzQ2pvN1pOT09CMXl4bjE0eUJa?=
- =?utf-8?B?S2hsUVNGWndJOHdGLzR4WTk5b281amhXTXcwaVVqdmplczVEbzhFRFdSR05w?=
- =?utf-8?B?ZnVaY3J2Yi8wVXVXbjZEb0pyNGRYVEpBSlJQa0Y2cXZYUU1OYXRFL2xTNk9Q?=
- =?utf-8?B?NGpWYkh0UGlrTmhibm1HbGZnTGp5NXFQZmZ4bnhUdU1KYXArdnFWNzAyejhE?=
- =?utf-8?B?ZTBJMWY3WHRkejg4aWpHWjhkejlzQ2xoNk5Bc3V5WUdXOStKNzhOVHZXZzk5?=
- =?utf-8?B?QmtKUmJ6RU5RelVtVzFqUUZ1eTJ0djRXZzMrMXEwcmEzQkN5V2FWQ09FRjFz?=
- =?utf-8?B?UHExVjJjK1JIS0w1WkxKWndyR25qT2ZLd3IwK3RadFRGUTdWY3FtUT09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c9743fbf-d5da-4b61-0cd2-08df3edd0fe4
-X-MS-Exchange-CrossTenant-AuthSource: SAVPR12MB999143.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Nov 2026 03:45:28.6106
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 95oWHeXjDLC3EHcTfODx0C7lbgEE7BHLUnR0lwCVCbtzAyNQ7P7yJW4cTzh+WfydpwJAP6R/ioX8zyTsdd9wtw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CC6PR12MB283837
+Content-Transfer-Encoding: 8bit
 
+When SHAMPO and relaxed ordering writes are enabled, aligned RQ end
+padding can corrupt received TCP data. Due to reordering, alignment
+padding written at the end of one packet can overwrite data from the
+next packet.
 
+The current RQ end padding selection avoids alignment padding for LRO,
+but not for SHAMPO. Extend the condition to SHAMPO to prevent this
+corruption.
 
-On 11/7/2026 9:05 PM, netdev-bot+sashiko@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 1 potential
-> issue(s) to consider.
-> 
-> Critical: 0 · High: 0 · Medium: 1 · Low: 0
+The issue was observed in a two-host test using a BlueField-3 NIC and
+an NVIDIA H20 GPU. In the original test with MTU 1500, 354 of 400
+transfers contained corrupted data before the fix. After applying this
+change, all 400 transfers across eight message sizes from 32 KiB to
+4 MiB, with 50 transfers per size, completed successfully, with no
+incorrect bytes or corrupted intervals.
 
-[ ... ]
+Fixes: e5ca8fb08ab2 ("net/mlx5e: Add control path for SHAMPO feature")
+Closes: https://lore.kernel.org/r/CAFxp=AY2cVRQrZvB9WNnigbsobuw11NMG-cagHx0_V+ur2ToFw@mail.gmail.com
+Link: https://lore.kernel.org/r/atZKOtjrb9HKSNHF@dtatulea-c5.nvidia.com
+Suggested-by: Dragos Tatulea <dtatulea@nvidia.com>
+Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
+Reviewed-by: Tariq Toukan <tariqt@nvidia.com>
+Cc: stable@vger.kernel.org
+Signed-off-by: Jiabin Deng <dengjiabin2023@gmail.com>
+---
 
->> +	rule = mlx5_eswitch_add_offloaded_rule(esw, spec, attr);
->> +	if (IS_ERR(rule) && meter_added)
->> +		mlx5e_tc_del_flow_meter(esw, attr);
-> 
-> [Severity: Medium]
-> Can this lead to a double free of the post meter and an extra meter put?
+Notes (shampo-submission):
+    Changes in v3:
+    - Use lore.kernel.org links for the original report and fix discussion.
+    - Add Tariq Toukan's Reviewed-by tag.
+    - Cc the netdev maintainers and linux-rdma mailing list.
+    - No code changes.
+    
+    v2: https://lore.kernel.org/netdev/20261109034444.11241-1-dengjiabin2023@gmail.com/
+    
+    Changes in v2:
+    - Clarify that the corruption is not specific to GPU or DMA-BUF memory.
+    - Explain how reordered alignment padding can overwrite the next
+      packet's data.
+    - Add Dragos Tatulea's Reviewed-by tag.
+    - No code changes.
+    
+    v1: https://lore.kernel.org/netdev/20261106083719.22798-1-dengjiabin2023@gmail.com/
 
-[ ... ]
+ drivers/net/ethernet/mellanox/mlx5/core/en/params.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-> Would it help to set attr->meter_attr.meter and
-> attr->meter_attr.post_meter to NULL, and undo the attr->dest_ft change,
-> after mlx5e_tc_del_flow_meter() in this failure path? A later unoffload
-> would then skip the meter release.
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/params.c b/drivers/net/ethernet/mellanox/mlx5/core/en/params.c
+index 5caf7820a136..159f79302a08 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/params.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/params.c
+@@ -911,10 +911,11 @@ static void mlx5e_build_rx_cq_param(struct mlx5_core_dev *mdev,
+ 
+ static u8 rq_end_pad_mode(struct mlx5_core_dev *mdev, struct mlx5e_params *params)
+ {
+-	bool lro_en = params->packet_merge.type == MLX5E_PACKET_MERGE_LRO;
++	bool no_pad = params->packet_merge.type == MLX5E_PACKET_MERGE_LRO ||
++		      params->packet_merge.type == MLX5E_PACKET_MERGE_SHAMPO;
+ 	bool ro = MLX5_CAP_GEN(mdev, relaxed_ordering_write);
+ 
+-	return ro && lro_en ?
++	return ro && no_pad ?
+ 		MLX5_WQ_END_PAD_MODE_NONE : MLX5_WQ_END_PAD_MODE_ALIGN;
+ }
+ 
 
-Hi Wentao,
-
-Thanks for the fix, the leak is real. This comment is valid too:
-mlx5e_tc_del_flow_meter() leaves the pointers set, and
-mlx5e_tc_rule_unoffload() releases the meter whenever
-attr->meter_attr.meter is non-NULL. After a failed re-offload in
-mlx5e_reoffload_encap() the flow is still marked OFFLOADED, so the next
-unoffload releases the meter and post meter a second time.
-
-Please clear both pointers in mlx5e_tc_del_flow_meter() in v2. The
-dest_ft part is not needed, the next mlx5e_tc_add_flow_meter() sets it
-again before it is used.
-
-Thanks,
-Jianbo
+base-commit: fafbc4051123d5459ea6950899cec08ed946e278
+-- 
+2.51.0
 
