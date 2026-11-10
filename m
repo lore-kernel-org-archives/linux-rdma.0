@@ -1,87 +1,120 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.46
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794322475;
-	b=xe/Xp3feIcdHCUqWny1tKNpjhEgbc69TUzUlfhqgwXfQtuSjxRiWSPQf3J+huuNNXl3L
-	 ujSudtKplk/5O6vRUwcJVVeq5O3P2LPvbpx//lnyPQpdU1YJgW9+fxSugfLjBtEO46BTK
-	 k6SkgJG6a9F7yBy2pDdq0ERpow8K5QqWbJJUnZGD4BrvK6eSkw/I9lyAbmNbmKdzdTMhC
-	 jRpvnIPHJpnDNqh+Vy1pwUoZEaDcbrc7JyGk5dZz9EikcxBsEzhsU43gzzC/O299d+tuE
-	 IrPWP3ZimLsIROp8/q0KqIE9RGVkRWw7cjfXgyRVCZYTDckNeBh3k0bxr4pmOdKm8Ig==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794322475;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:Message-ID:Date:
-	 MIME-Version:User-Agent:From:Subject:To:Content-Language:Autocrypt:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=E9vxJFfK8NJCEmm7us92SYrEo1nk8OOrFu+2JPwyTw8=;
-	b=B5TGDxehvH0zmxxOKYOBHxLba1eaTghcwUGxrpQgUO5p37/EY8TwApYaeG7N3mLkbuh5
-	 QzTiq7PyT/gwfQs0a4wuRkqU53liUKlz/3mHHfl0xm2qjHOn8tYK7voRT3rlpOcMkxa4/
-	 cBVB6bOcQd6DnoZMJOi99iqiAf8lAKvsN2AXPxJrU7AJrRylSENpzATsVvcbcbcysL5bl
-	 bouLHSPOESOHiZVsHJB7x8S9AIYKzbyVekBkgO7g3d5rKsi9vlx/Ju5SGhYbb1y3l3dA+
-	 pEd/1ZA41yh0cS8tVcp6TUym0wkXjMjtHcTC8T4jzsd9XKerfnxMIetrd+5fYja9dRw==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=suse.com;
-	spf=pass smtp.mailfrom=suse.com;
-	dkim=pass header.d=suse.com header.i=@suse.com header.a=rsa-sha256 header.s=google header.b=HzrdY7iS;
-	arc=none smtp.remote-ip=209.85.128.46
-Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com [209.85.128.46])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.69
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1794322708;
+	b=oUtsY8gOcl4cFFUfKAEnzvGHnXayWIC8qgQGZLV6JKZ/pNEfxFKssCwWakUniA0iS3kr
+	 f0aUaoQbC9o0DpQBFDkiydC0C4qeTBW7HEQjkCDKcSCNS5ppVgARsLHaUilM+T4SOqPr8
+	 pAtwfkEbWef4nFMmzFqW4M+Xl1klLgZFgDTzsCY0ImbuChgg0xn5o3FJpmcAjIVo1OHxm
+	 ZGnTj2DZbsRzihleStLDuhKzHF0v+y/XrI5PNTELM9kg4KSYGiIGo2fYEUECEr/djfGcP
+	 Lai7PeS9LP4cxouc2U4UrvPHQteR/521HUQKKGhQwZ/RII9pH15y9ZAxoIy2FjmAlhg==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794322708;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
+	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=1fEWVB4s8dxpy7WKjeYRypYyTAh25nN2QNj1LosPIjA=;
+	b=DiE3WS+M7eBzzqJBQZviyCg08CpPAesMLzwcUtgi8DqW5cBPxBlhU1lC2ZQi59tqHP3H
+	 Ufn59vgOjivvExrxr1YjZiPqNpmOhNHp6dDRNLUsOz2dqHnwDLESt/XEhFZooCf54KxAX
+	 ipEQoxbBOe+DK9GSIDkOW2IdV/+3hOjqwAxCmAYRviMkJDhkQDHy2Z72n15rrZZoQYacY
+	 xjL7GfyybqlcGrDm+Dxkqt9pU8Yf+jBk2C8n6+iG6YotfxEcRzQhs3yP+YzSZ1zrx/vjG
+	 lNht8foe1lMpD3iTdZkKDRYWDYtaS6Cf5X9agxHYMaAG7CIgEi70EhLfLZAuukce7sg==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=ZT2Vdl+F;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.69
+Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013069.outbound.protection.outlook.com [40.93.201.69])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27CCE606A33B
-	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 14:54:34 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 27CCE606A33B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 288EF606A32E;
+	Tue, 10 Nov 2026 14:58:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 288EF606A32E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.a=rsa-sha256 header.s=google header.b=HzrdY7iS
-Received: by mail-wm1-f46.google.com with SMTP id 5b1f17b1804b1-4a1bc97805eso1773195e9.2
-        for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 06:54:33 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1794322472; x=1794927272; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:autocrypt:content-language
-         :to:subject:from:user-agent:mime-version:date:message-id:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=E9vxJFfK8NJCEmm7us92SYrEo1nk8OOrFu+2JPwyTw8=;
-        b=HzrdY7iSE0tY3kQKqWBojh5TUxNDC7q15jBwXntUBKzqe5qLX1NYOuT5GpSenwlN8O
-         A41oa4LRyLlrvgCiF+i31kMzM0wYoxA84myrFp2gMivCCkbddCNqZgmcYSjngZ7jxVra
-         aDU4jbBbACqGWuHr986gaDpc/OM2Yx6288a8Lm+kcs67MHNIaTEqOXHlZJH6et/Oj9AU
-         4/t8osALhK4lra80TWijUioFF1YSOCQM1ew9y8N16h4CmRxWEWFFJ28oSOajjINvntHb
-         SuI2hyuyVLfTO5z2fEn/7rR7NXTBNf/6GFHzU0qXsAq9IQ16lenf8iC+PQyJvWNnvubJ
-         czhw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794322472; x=1794927272;
-        h=content-transfer-encoding:content-type:autocrypt:content-language
-         :to:subject:from:user-agent:mime-version:date:message-id:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=E9vxJFfK8NJCEmm7us92SYrEo1nk8OOrFu+2JPwyTw8=;
-        b=tTJmBxHtDMRJ+RuqybNNNBqSVbgDyunx3cYjEtJI6YlcdYx0fEZUJnXtLtab1PMEok
-         GbgtI7fevUnOxVpad09Fy3TMHDjWrUpQtJyWfTN74/VDx/DxAwP6YVFoBIWeHshvKkIw
-         j1xTNBIAs6pWhh74htuilmAa7BASnVQ4ZdVrzS9oT7pxKO1EuDnHFw7irxjLF459PLk7
-         iz9/PNE7yyDbjGmP/JG2oobUXK0tMSZWIEOMDkrJu9nZT9RwED3bOtib6Ej1FyMw8ZT4
-         O5oZl5Ak+6X6M1CmTS+MABB3wPqLjEXY2AmPT0RrRos76ODxA2trvdY2Znb3ubNBHXGG
-         ZpTQ==
-X-Gm-Message-State: APuU4Z8C38BDL/Pgzm236i2zWdevRBcfVGpiOYDrX/SAF7iZhtmnget+
-	k6nv25Tj5IwT/1AetCGeV+G+17OLttvPvSOzaF9c42th3UiBSCSCfcXwlQDCyLIiXpTdatKONwE
-	qmcG+Dng=
-X-Gm-Gg: AYBFou1Qa6fMk7WEREbiNtaASgVEoQu+mwTI46BFrmPIdSpRh89CiXcT6ic1iIKbtSP
-	MF9rFlfcJutL//xObpHw0JjrSLdo0lNjJlHcbIA21v/cXKSW4YiF3FuxUcvwU5KE1B1ra1BaAXw
-	BCrbYsHy0xPk45yLWdgnOn8qkjmLQOGOgEBYfKKKpXlGctpXjJAIGtuzPnxZkkLnWAbySt2AeU9
-	dkCFVXlNIUfd6+R5AtiQmxZRiC6XsI8uyPaTGUpKaktJJnlRqmBesmcnLzYOu+Vuv9spsP5G3dV
-	mWfqu7fUCGOJE5L7R1oaDyTtQXKSLsLEoM83TQx6mtc7jDWvowKSV4Zp4LOc3r4seRI9toP4Uqg
-	1SL+lWdKMaIdnpi2s61oC4vZesZp/KST4CTzAawe9qjn+Q1fxS1g+ifQeU9osmP/CrIrpcC7wdo
-	s7N3IHWYqkh+evB4F13kEPtHFG29etWCB+j8/Hyg/Sd7X2An05VG8OafRdFbshbeYYBZB1hNUHe
-	rWPX0a3tyX86lm0GPlqgfgiMcSHmy3yNZPONiGlErahlX/OZLutRGPwui1qr0pOX7Hj7ub65M6Y
-	FIvOu/OPwWUQmiqbjt8QyKXbar/HeIH/y+8hhYygbtY3sx1fQ/GXDrwWXAz4EBVJE02veFxp
-X-Received: by 2002:a05:600c:3e88:b0:4a1:e774:370d with SMTP id 5b1f17b1804b1-4ba02323dbamr43810695e9.1.1794322472080;
-        Tue, 10 Nov 2026 06:54:32 -0800 (PST)
-Received: from [10.20.0.128] (lfbn-ann-1-199-252.w86-200.abo.wanadoo.fr. [86.200.161.252])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4ba02005946sm78105405e9.1.2026.11.10.06.54.31
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 10 Nov 2026 06:54:31 -0800 (PST)
-Message-ID: <6ae2dce7-54da-444c-9386-ce573ee95735@suse.com>
-Date: Tue, 10 Nov 2026 15:54:30 +0100
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=ZT2Vdl+F
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=YW1soDX1RI1GjOOfOFd24YcXUpY+yb2XumymfVOErJPCjLWxJ+OP9r6pGdkpQMdIroZPbgsSZ5QNm0CdiV26yyMS2vy4M2+Y+w3S0mDidvstNq1KWx6sN2ITS+PIKnvtJJcu89W/9t8DPKi+2jvW/OL+xNwteYeRfsmmYXi4SUVqjL9kh4JWri4Mz0wB8A7DoWVw1/d3INOJ/Z9/0s2/tNt8UtOrXGYHhonIpFvdvxqUaEGkNkegEe9pzoNdC68Sr6zQAVw3z5xDLf1zUKmVT4M/Gywy82V21buAB6Nikgb6eC91MVPTyjt/m0pxXTPhOG5wzvzTqDqmhHMcnK+dwQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=1fEWVB4s8dxpy7WKjeYRypYyTAh25nN2QNj1LosPIjA=;
+ b=bdVpa/bOV3/38Uft3+ZmuMB8oPm8FvQMbz0JFxfjomPRGzChqEkYqTrFZsFDQ0AR05BFh3CCjgY2/hP1SO5+E3wH1vMAPeNJP/nbfYdmkiSH8uDIKs2H4PlNRTmVm8sDYq78pHuj+4ZnL9oxbFQeuDS3ISPlNca9OSLZKZDCnmcKbW4Gna72XOwo9HXPQ3TJGK/buczXg+WO1FPP6S9EV0sy/4WuiOzaag9c22a70mjlCFnBzuQljj2HwfOqLPLQj3S3aPpxyYkn2CzlgBfcCkLlrSCUJfbhPIHoipLSZIDnDO4aX8efjxgzb10z+9ZUTqQWs0oeQ0W0v8KMhycuVQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=1fEWVB4s8dxpy7WKjeYRypYyTAh25nN2QNj1LosPIjA=;
+ b=ZT2Vdl+Fx9I8nrxMMMCc0og39ud24jw11IlnhGJKm0N6eryRIudOybN2JZ4QcjwQ/90CMF8Y0O6SUxN7D13uPWH9zaLQp0E8R/YFewULTrZTXrsxp7bQdh4BMdEPAEgovFi50GN0JwLAhtzHM1nAiUDU3nrSFLGq7V6XCQ/MBSNQuKf5GTK3uTn2Hnfo8yxjcVBU43m7zRqOvD5WiinHBwGr50jca1l1OvAphA7lZVFkyvJaOscd0xnxap7pXkqbk5Z45Q3koR/EZgznZX5q40jce1IkpUZvmTtptq9D5k2zF3lrKIIC89v6ym7WUyvEdqklI4i0APppP1KHk1H7cA==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from IA4PR12MB932075.namprd12.prod.outlook.com
+ (2603:10b6:207:12d::15) by SJ0PR12MB6990.namprd12.prod.outlook.com
+ (2603:10b6:a03:449::9) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.13; Tue, 10 Nov
+ 2026 14:58:19 +0000
+Received: from IA4PR12MB932075.namprd12.prod.outlook.com
+ ([fe80::5a6f:1f74:6ccb:cf2f]) by IA4PR12MB932075.namprd12.prod.outlook.com
+ ([fe80::5a6f:1f74:6ccb:cf2f%5]) with mapi id 15.21.0615.007; Tue, 10 Nov 2026
+ 14:58:19 +0000
+Message-ID: <a483f6bd-3fbc-4b9c-9262-5e4dc0d5e849@nvidia.com>
+Date: Tue, 10 Nov 2026 16:58:08 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC net-next 7/7] net/mlx5e: kTLS, Keep a TX connection on one
+ SQ at a time
+To: Rishikesh Jethwani <rjethwani@everpuredata.com>,
+ Tariq Toukan <tariqt@nvidia.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
+ Jakub Kicinski <kuba@kernel.org>, John Fastabend <john.fastabend@gmail.com>,
+ Kuniyuki Iwashima <kuniyu@google.com>, Neal Cardwell <ncardwell@google.com>,
+ netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
+ Sabrina Dubroca <sd@queasysnail.net>, Willem de Bruijn <willemb@google.com>,
+ Alexander Graf <graf@amazon.com>, Aviad Yehezkel <aviadye@mellanox.com>,
+ Bobby Eshleman <bobbyeshleman@meta.com>, Boris Pismenny
+ <borisp@mellanox.com>, Boris Pismenny <borisp@nvidia.com>,
+ Carolina Jubran <cjubran@nvidia.com>, Costa Shulyupin
+ <costa.shul@redhat.com>, Dragos Tatulea <dtatulea@nvidia.com>,
+ Eran Ben Elisha <eranbe@mellanox.com>, Gal Pressman <gal@nvidia.com>,
+ Ilya Lesokhin <ilyal@mellanox.com>, Jacob Keller <jacob.e.keller@intel.com>,
+ Jonathan Corbet <corbet@lwn.net>, Leon Romanovsky <leon@kernel.org>,
+ linux-doc@vger.kernel.org, open list <linux-kernel@vger.kernel.org>,
+ linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
+ Martin Karsten <mkarsten@uwaterloo.ca>, Randy Dunlap
+ <rdunlap@infradead.org>, Richard Cochran <richardcochran@gmail.com>,
+ Saeed Mahameed <saeedm@mellanox.com>, Saeed Mahameed <saeedm@nvidia.com>,
+ Shuah Khan <skhan@linuxfoundation.org>, Simon Horman <horms@kernel.org>,
+ Stanislav Fomichev <sdf@fomichev.me>,
+ Stanislav Fomichev <sdf.kernel@gmail.com>,
+ Stefano Garzarella <sgarzare@redhat.com>, Tariq Toukan
+ <tariqt@mellanox.com>, Wang Zhan <wang.zhan@smartx.com>,
+ William Tu <witu@nvidia.com>
+References: <20261109114734.2087878-1-tariqt@nvidia.com>
+ <20261109114734.2087878-8-tariqt@nvidia.com>
+ <CAKaoeS2w15yqv-yd9t8KC3aZMJH1VXM=oepk4sR9h1pPjerKOw@mail.gmail.com>
+Content-Language: en-US
+From: Tariq Toukan <tariqt@nvidia.com>
+In-Reply-To: <CAKaoeS2w15yqv-yd9t8KC3aZMJH1VXM=oepk4sR9h1pPjerKOw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: MI2P293CA0006.ITAP293.PROD.OUTLOOK.COM
+ (2603:10a6:290:45::18) To IA4PR12MB932075.namprd12.prod.outlook.com
+ (2603:10b6:207:12d::15)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -91,1097 +124,91 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-From: Nicolas Morey <nmorey@suse.com>
-Subject: [ANNOUNCE] rdma-core: new stable releases
-To: linux-rdma@vger.kernel.org
-Content-Language: fr
-Autocrypt: addr=nmorey@suse.com; keydata=
- xsBNBFjZETwBCADEkoe7QWAXzd9xpSiPbQK6P2F4wKdxyTp6r0aN4I0O+4fc8xWXvmwOrCjF
- UsuoGZ3CxJaHgdB/3ueW/IhMO5Ldz7pylhKVlG/moUh4CBK2eRUdaG7mHID01GyJMtR3VQqu
- 22hJhHPYy0erpYViyr+I4MzQA9QZLoQhSxn4imjZOZPcj20JE+lRfXppNv9g7vQiRLMcXjTi
- KcnrqG5owOi6Cn1sZ201YfdeztGxKA+jvjWO+6absTTlorIlZNGUf85s2+caGDsqa31u2DPs
- hVv5UUTy1g/5aP2wacSWI3Qm4n2MWl1aCnHN2h737PCXXfBk5iGJsgBUnSQULgdgEAt1ABEB
- AAHNH05pY29sYXMgTW9yZXkgPG5tb3JleUBzdXNlLmNvbT7CwI4EEwEIADgWIQRC0lOFwaHA
- K4sbHG+AG924JZiPZAUCY5G8SAIbAwULCQgHAgYVCgkICwIEFgIDAQIeAQIXgAAKCRCAG924
- JZiPZMZiB/9QkcGfH248qvFUWZig3jssK5IgijfOFDKB0YK4e844M5C8LVSuWpu7Z+lM+cql
- 3mbrikW6mlZjPEusrQ/KGvT6TdfOM9VCQWjlshMzt7uiRDdzufHGtE5hhk/67UnkEVjmplpD
- k8cb1O0VsBfGym7e0nySHTlDWqr++9EcwgV3uo4psYYEqm6Aon1yKqjbmj+vfl/C5iW3V4lq
- DhBk8w21AvNS+tdEqJzhruxuXkEDZZ07wYFS7m8OxLNb4sMzn/Nz9x/NXeweBWx2ujIERtAq
- 1e/hh0ZAcoPVR3CfO2QTmfTfrzVdpZrZ8F54337ze3+BUNnrFGObQhlNe26NqNYWzsBNBFjZ
- ETwBCAC9zAzCRlTgzyO9siVLQYwbRUhcL1TUJU/FiOQWQTmL3uDdBc6MgVBs+hp82RwPbbXT
- v4W4rghBYPKdmFXvRN+jvGDLq1f2hsuCSiE1ckTMzFV+sKoWRIEC12tEpw5ncEFGm+1k/rJR
- Lk9eHxuqn+yRjPryN8CK6tK4+b4tZ2urKlP29XG+T3l/mbUSoqfjqvyeKaW6xw7ku89EX2Xo
- QWP/pm92RxUd6VDU9vpVW/T7qPZRl0wtUnDnO2wePoZmvUfEr5Osh3MNvm1myG+v4EV2Hgva
- NT6pa27IptrUq06cA6dDsIKwPtMuThJQp8/xumgl5Q9A/ErQoJTrB9rclIm7ABEBAAHCwF8E
- GAECAAkFAljZETwCGwwACgkQgBvduCWYj2QwNwf/eOIpFB67cKoUJvcm3JWcvnagZOuyasCw
- xwH9a0o9jORcq+nsJoynS/DpjUKGyZagy7+F7sBrF7Xx0cXF2f5Bo42XNNiQDE5P/VLwvgn9
- 62AJ3q0dp4O7oQI8UgNmdsocQhNaBHHCoOabLGrgNobDTaLBeb9zaOZqz8CBuAiZ0bVABEpg
- 50hDEYTHp4jCgWpadhAsp/eCgm93Tc+Y+e1fqtE3FmoOLxyhFa6evhn0Q1iX0kCasMZwlzse
- zqLZjTM1Koqn6+UIHXE3QaULyFKD1GDhisXxyolOB6P2TXsyfvitYdIZ3CCtI7PVDxzmX2Xk
- kvEz9bMtStoMpse9qAsmHQ==
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-These version were tagged/released:
- * v42.14 (last stable release on this branch)
- * v43.13 (last stable release on this branch)
- * v44.13
- * v45.12
- * v46.11
- * v47.10
- * v48.9
- * v49.9
- * v50.8
- * v51.8
- * v52.7
- * v53.7
- * v54.6
- * v55.5
- * v56.5
- * v57.4
- * v58.3
- * v59.3
- * v60.3
- * v61.2
- * v62.2
- * v63.2
- * v64.1
- * v65.1
-
-It's available at the normal places:
-
-git://github.com/linux-rdma/rdma-core
-https://github.com/linux-rdma/rdma-core/releases
-
----
-
-Here's the information from the tags:
-tag v42.14
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:01 2026 +0100
-
-rdma-core-42.14:
-
-Updates from version 42.13
- * Backport fixes:
-   * libibnetdisc: Correct argument order in calloc call to fix warning
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * mlx5: Fix clock update EBUSY error flow
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFwUbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2RX
-Swf/UDeAl+wcgLROQKpsF7NJjiL1J+szg9lgscj8CGXzim6EZJBw571XKuEHLzTK
-28NZ0TJTbCa6DPCxDo/gLGa4Z+vbP9ZZILvFvktclPGJ+qfoCCg50LWIGE8wn8g3
-WCvCBoS6kW1daojyP1EA4bb6HezCDiHhHgpuhvXNwtHiK9noDanJ7D2TqrVPqeKN
-WsESLy7yf6j3CRr46treLSBc4zxd1q2L+xZIxEltKnQxGZ8mZgYuFW+cdeG+VhLH
-beIBsSAIw4bTi/AHN3yeGR2pqLc66MlLjbrJG1avNsnEAjN4NbHBWpTq4ORr8ou6
-Gzx9SCyho0vwIj0eEHqQ8WwcEw==
-=dB3v
------END PGP SIGNATURE-----
-
-tag v43.13
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:06 2026 +0100
-
-rdma-core-43.13:
-
-Updates from version 43.12
- * Backport fixes:
-   * libibnetdisc: Correct argument order in calloc call to fix warning
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * providers/erdma: Initialize CQ doorbell record
-   * mlx5: Fix clock update EBUSY error flow
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFwobFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2QG
-fggAlk1SMmBlQMLat5NE4987iIGjZ/EGOFOyFfYS5+9dk9G71BCcZe2mnwTCb+2C
-DTOtLQL/ndM0+X4OaQSCR6or6DNx9CVIlDWEAexVvk2VG10U0Kq/4DJb23R11d4D
-KnOIWC+PhQy8tmgJIBDiz+sECCIeEVpDwhdpjycqG4omxjX3UkXIfxaHXrWeAp79
-Iq2sT4CkBCUMvhqJKyPS+L7Ph0sYSgh63mkLH606YAffiAIP28xIfVXOAtra12AE
-zP4VC72AjC1MAqBcv02zy1zMSZ9+pGXWyu32829rhlqTxW5iTyIPxdhBWN0VoYQ3
-vPKELgguureDAOhi8E1T/us5Cg==
-=LFnY
------END PGP SIGNATURE-----
-
-tag v44.13
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:07 2026 +0100
-
-rdma-core-44.13:
-
-Updates from version 44.12
- * Backport fixes:
-   * libibnetdisc: Correct argument order in calloc call to fix warning
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * providers/erdma: Initialize CQ doorbell record
-   * mlx5: Fix clock update EBUSY error flow
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFwsbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2R1
-6gf/aR876JjKO4+N0bc6BwoqsF74AuJBEaL5wLZ7r69HWru/Ofo/7M0A1MRbpmrq
-k/yQhgE0jiYCozjJimKhofZxKdhD9UQ13ICqY73p9AYSWhJquKYHq36rDiyyCEG8
-5CqmnHPiUCfPB6poSsOgLOvrCLrh/7Plf1jkU2b2jsEEGDiNjzsfHtHsjHPtEJ/w
-0SlgHWCsf3XoWC8Cu6rwUJNKT6bLmhELfphVTmiibswnoltm8ygYlUlR7A11ZB4m
-rx0vpFEuRWXSSKzbiYu/foMXkAC/6oX6uuRT7Ex32k40yt5gXtRT2PikR3WRrk3B
-xDOzjgqq6FL+ELq/zqlw/+uJNg==
-=yWhQ
------END PGP SIGNATURE-----
-
-tag v45.12
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:07 2026 +0100
-
-rdma-core-45.12:
-
-Updates from version 45.11
- * Backport fixes:
-   * libibnetdisc: Correct argument order in calloc call to fix warning
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * proviers/erdma: Fix wrong length passed to ibv_dofork_range
-   * mlx5: Fix clock update EBUSY error flow
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFwsbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2Te
-ogf+JRcH3/E3Vgk+3JJwnuoXXjHfrDv+7ZUMsPjTbhsGvJlyxJHdnuCdoyercGlU
-CuY9rOplQ+lkbydI4EXHVkG2HCVaWeHJpQO/bGKQbsw9GeGJvMLwqohItUN721zp
-a2rXLxE45spPzBum/RZwuhdFMGyyfDGNe98//o0AnVU8XSeldBZ/0yhpIfmHGbfb
-KKsjutKxtyrhwR9UTdD8PiODsNBBcpmb8DLo+M8brhFlQfDS9Q3BYv+zDOIwCP/H
-tnsr5oCAh+7lC/siyEg4uqLf2Gg/nZw3BRBGMDwT7Dt/+FeXAgTAcvFte+jIrl/Y
-im+mVu+65OfVVfaU2vJwOLDm9A==
-=hXXq
------END PGP SIGNATURE-----
-
-tag v46.11
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:08 2026 +0100
-
-rdma-core-46.11:
-
-Updates from version 46.10
- * Backport fixes:
-   * libibnetdisc: Correct argument order in calloc call to fix warning
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * mlx5: Fix clock update EBUSY error flow
-   * proviers/erdma: Fix wrong length passed to ibv_dofork_range
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFwwbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2Tt
-cAgAmz2/4eSLN0tV4xlQVKyrWGVWGTJNwvWlNL6gAg5xvq5Q3RyHBvU4eDgFfTon
-YePVbqNQ1VdyYddbwtKojjk9VrRWT3Y5QMDam2ya8/BzqkBl4hG0FytCrg7WJly7
-OA19/UUCnr1Zc4Cmv0OVvPp0Y8HHjqSaaCDreqSTkOayPJzDpumyMiBnqHVGfOe6
-IAupdEFcWjIpDkc92al/uyw9+Sl3c26qKpEJguWu0jMJ3qWIbSdDoRpO8+6imXgy
-0JSXIFP3S9zB8oHpn0Set6b+3kFYmW/4G41sMd59q4/J6Av018nem8I5nILbcf5B
-l4th2q2QDWCin3t+LYW4v14MpQ==
-=Yq7o
------END PGP SIGNATURE-----
-
-tag v47.10
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:08 2026 +0100
-
-rdma-core-47.10:
-
-Updates from version 47.9
- * Backport fixes:
-   * libibnetdisc: Correct argument order in calloc call to fix warning
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * mlx5: Fix clock update EBUSY error flow
-   * proviers/erdma: Fix wrong length passed to ibv_dofork_range
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFwwbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2QB
-UQf/YWEZpA3jg6ZWM7z0omOgdaAP2GhoJZB9BKD9+WBKb5RLd2af8pORJVDbwL/b
-fLQIojIXD75lTkmrG4VqXK/HzdsJjKdVfTZWInKpUzfsjc5RZC8vpwow52POXobZ
-icn6esbY0b81s6lazpiD9GnJKT4rUcbqa8kSvj6bpE/wC++EhMGjvUjnf5JeNBOn
-kND884SYZ5ENBWNM1S5s0TpHssx3+7N+YPKbi6zb4dXh5bgfY9kO1/ajMCNAmfya
-dMhMUqZlZ90SAQvAxr4PmxuVJrvyVcujeDf3e1HksUUsOVHZ8BHQgJ01jIWvjSyp
-HzpMdlQ4UZkh2rTjwoQqqWcHyA==
-=zpmP
------END PGP SIGNATURE-----
-
-tag v48.9
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:09 2026 +0100
-
-rdma-core-48.9:
-
-Updates from version 48.8
- * Backport fixes:
-   * libibnetdisc: Correct argument order in calloc call to fix warning
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * mlx5: Fix clock update EBUSY error flow
-   * proviers/erdma: Fix wrong length passed to ibv_dofork_range
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFw0bFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2RG
-9Af+Me0x8OlBP95ZKDpTj8oPhSZttB69dqbvHcz1Oh43YQJa0O3yavJZIaRiHCzo
-4B/mQWdCQfIu5FMGa+g3YkQ6F6x7SWf+qZz6CzTjyiNuhqFoxL1d6xCy30BkqNwD
-29EsHjtZb1S5g56nFKRCkhNq4IIg+DYi7dTUWNuCQ+6+3p0ouG9lIVbgESDHHh2W
-aLG8hPyqYBsM1TYgSx5LtxCt/75BOhTmqYLcNNk9qLyL+OAYFj9pP+/fMcHNA5nk
-L7uU65tLE5c3D6u8tv6SfpBDEUC2QA4vwBB4LqTU+7PW6Oi3WgHnmICAcO5HqWzs
-qeeU9eHGVtqrjnS5+uebamchOg==
-=m51/
------END PGP SIGNATURE-----
-
-tag v49.9
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:09 2026 +0100
-
-rdma-core-49.9:
-
-Updates from version 49.8
- * Backport fixes:
-   * libibnetdisc: Correct argument order in calloc call to fix warning
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * mlx5: Fix clock update EBUSY error flow
-   * proviers/erdma: Fix wrong length passed to ibv_dofork_range
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFw0bFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2QC
-tggAnIonP0AIUQ1ItqY5SXwYIAoB9zofP8F6jzDCq3J45v33hOKpKBBGYpMDTdhw
-qhHSdH2AJ5a8kfodWwryUy+LUIQjp0RAPtDxAHriR6c7UPYxXn5nqPigIPI/6LO7
-92pxa7okupXr76BCc2ibdPz0gBFx3AX7ytMHH8FP7qQiH9y3kpw+u6moVDXngy2f
-bRha5bMjV/Lzur4sVncYFrN7cCRaBTc3L95CGKakFTkoS3ZpS3gFi8nl2ezSbvQG
-jmbJEH+fFFaZdSfCEL/jM/ktYE9aYeFm4CtTCfW+ihKMKnBTDfkWmAC9iTRuhvsG
-JAHACbUx96DNSkIha/qza689SA==
-=l5w0
------END PGP SIGNATURE-----
-
-tag v50.8
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:10 2026 +0100
-
-rdma-core-50.8:
-
-Updates from version 50.7
- * Backport fixes:
-   * libibnetdisc: Correct argument order in calloc call to fix warning
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * mlx5: Fix clock update EBUSY error flow
-   * proviers/erdma: Fix wrong length passed to ibv_dofork_range
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFw4bFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2Q4
-LggAtq6aEmetxkHzDgGtYfQXIfEbSK90dIIjw80IE2BDSDFo/OusG9m1JmeGL1/i
-klqyQ+18ahf71f72llU9BJu9ry06vEiebUvTGwTH8C8DOmwqg9euulTSNzUHNcq4
-hmKGzEYYM1zt++A9/UnM1XP+EWJfKB28C0B+dYM0/mZDdqN3gGKtC/6g61n1HBKR
-2UbIFuHoMXZTh4M7grATG/i0vLFaRHlQruitvlyeId0twR9ijRRQnAlYVkXDzPEp
-G0M02UhlJT6WXSq1UeGkioBgXfDCaih8P3MMptfekPblimMybXmBxM2pmhDKY5gB
-tVNfAlK1A04dA2fvZHGmIkkkqQ==
-=jP3s
------END PGP SIGNATURE-----
-
-tag v51.8
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:10 2026 +0100
-
-rdma-core-51.8:
-
-Updates from version 51.7
- * Backport fixes:
-   * libibnetdisc: Correct argument order in calloc call to fix warning
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * mlx5: Fix clock update EBUSY error flow
-   * proviers/erdma: Fix wrong length passed to ibv_dofork_range
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFw4bFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2Tn
-Kwf+IMWcxHMLDJClpXcGpFbZbkq0IO5gh1S8+yduRf523v30Bl6otIRuFsewrS0t
-fL47QX2hdjLbqyB/jIkCNkifK4q67sySXdHHXxkALlMuwQ3Tg8vwwvxtavEojCbt
-dNAlO3FGfZcRM9raW5KBgy/IG4lu96RRwiWv9FJOVUhXHok44mtSMQgvOEhUrhPD
-E0v5QU8zRop6+NeYZ1Wb6y/QUZGy6C8bOr/b+828TzJrW4qbiUTTgOvGP+GhMaTZ
-gc525Tg14X3zN1C9gUFNGU55bbrWRXEuCC8znd521NYGtnOl2ndkAio041Io801C
-L5utO0JcPEj17SBzbu58RH9XWg==
-=JblE
------END PGP SIGNATURE-----
-
-tag v52.7
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:11 2026 +0100
-
-rdma-core-52.7:
-
-Updates from version 52.6
- * Backport fixes:
-   * libibnetdisc: Correct argument order in calloc call to fix warning
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * mlx5: Fix clock update EBUSY error flow
-   * proviers/erdma: Fix wrong length passed to ibv_dofork_range
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFw8bFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2Rz
-jwf/bHj5TWv1KwersjgCnWWOmJKhIe+MA4tiDzhJGUscdF6gOpEWat1ZXQK9DUaL
-AUsViuw8S/ntAD8JPF+K0KPuuQx7RJfjZ5NArf/DaXix8JvAEmxydtvTgUJQ2p0I
-z4ohYCyicichZWTZhXiO4DpCXV8tEZRMf4F2gx9Ju85P/qVqcz+R2uFkd8cpj0A8
-sDGwa9r5+p2FKiTlIxfySVLC3ebXuzFXrLE8tqewbtezVawQYUzVbv7pIE/ssgJ6
-yZk5KpqFXLbjj+t/94HQ3f2w9FRPGy7UYkIbPYgFgCo80AIDrAiXTu7WYtH+YUeV
-aWsINr91cCysDEJkQlCvyJ3wvg==
-=7xdP
------END PGP SIGNATURE-----
-
-tag v53.7
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:11 2026 +0100
-
-rdma-core-53.7:
-
-Updates from version 53.6
- * Backport fixes:
-   * libibnetdisc: Correct argument order in calloc call to fix warning
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * mlx5: Fix clock update EBUSY error flow
-   * proviers/erdma: Fix wrong length passed to ibv_dofork_range
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFw8bFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2SI
-3Af/aELRBxSk3dKgRU1IFZsAR5JywmEQS/CjpJ5ZABAXFW9L2Y9vmw7Try6wtmU1
-T9yTpYSOclnaa7YlV3LFfvxr3Kn+nQgwbfDstTWI36PFw3vjrclfM8wEGn8P2jdu
-EmyZc4ltBaBBKYLf/h7Ojw+ZjE63vFoRDyXzkYBjUdphfs3sO7iZ0f9hJ4UOFaIh
-o/lCfB7t4z/cp5uo7CAKhckgEezQftRYx0mX5BI7VRVCHP3wojmY8jHuE8HsqrDq
-AN5c1umwZ3O4am6S3u3AIR8UF3IL6106YeV6fCPE/TuUVPg7VoSrIT1wviY7vlym
-4moPcy3/QHaxJ/yCj8WPDhvPxw==
-=TF87
------END PGP SIGNATURE-----
-
-tag v54.6
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:12 2026 +0100
-
-rdma-core-54.6:
-
-Updates from version 54.5
- * Backport fixes:
-   * libibnetdisc: Correct argument order in calloc call to fix warning
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * mlx5: Fix clock update EBUSY error flow
-   * proviers/erdma: Fix wrong length passed to ibv_dofork_range
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFxAbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2S5
-fAf/VDNAqSjZn0V0X4gC0sgimqQF6ALWn5jBUzlebVfJOEm8PZPHF4v1acc2Ps0J
-ZsBuM5cHhd89W7WZqi9bxHifmEoTbqx7vtpCxectyuvWx6WJZgnITHMc3/qbufk7
-n161u9D6fYPmQ/leBE670HAlMB0iG3oCHULj8PflufzkQU72CG+02GGchex6KJV7
-LLNuvsp3UCCYO1LnGvTS72VPZ2m5x+9BdZHbjbJbvSU2feIbo1n0lmuW5jluJkLw
-0KdRUTUxy6FryU0VGbXNQiko25a11HtIuekMT+F5GmtVavxv2owBERYKnZ3sQBbj
-xweC9l0DvrEYcdW6N3iPUsUwUQ==
-=hihd
------END PGP SIGNATURE-----
-
-tag v55.5
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:12 2026 +0100
-
-rdma-core-55.5:
-
-Updates from version 55.4
- * Backport fixes:
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * mlx5: Fix clock update EBUSY error flow
-   * proviers/erdma: Fix wrong length passed to ibv_dofork_range
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFxAbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2SN
-nwgAu3BWpBLgOJ7rhO9VeK5r4M4ahmhgRJFJW/1AMHBSVX9zOKos8t6THA8A4b/K
-58lf31oPzr75OZjFeFFWsMjTs1NLWOtJAUWlFAnNptCEFOU0rFQTP2j/LikLRjOZ
-wviOO61Cj3G6zGCku5fB1/r7ZrLSKKrpyw8MncGEmZnqFakwIosgyzpYCm6WSpc3
-GEJXETzhM2DUhm/iTMLjcDLtA3G+JZRbe+6/k+UbDTcB2X+LcvTUMQu6eNNKGuEy
-DslwP7JKhwVijzPMg2vC1U0kE0Yfz0tFbOsITZ79zBNWi/oiePg5FqSKXDs5jPgJ
-G3Fk2IM6RQGLtYMcNa9a0nv1JQ==
-=nTTc
------END PGP SIGNATURE-----
-
-tag v56.5
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:13 2026 +0100
-
-rdma-core-56.5:
-
-Updates from version 56.4
- * Backport fixes:
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * libibumad: exclude Ethernet ports from SMI/GSI pairs
-   * libibumad: Skip Zero GUIDs local port interfaces
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * bnxt_re/lib: Fix slot count accumulation in WR API inline data path
-   * bnxt_re/lib: Fix for larger WR post_list sizes
-   * bnxt_re/lib: Fix issues in WR API callbacks
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * mlx5: Fix clock update EBUSY error flow
-   * proviers/erdma: Fix wrong length passed to ibv_dofork_range
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFxEbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2QI
-igf/YcKlsDvNoPmlB4cZQVVBY40mqMVxdKIEmH9Cx5VhQvhMUGxEDcpAHeQkm7ti
-l1RG6KoNwpxTR10A1utIG9otV/VAa8d61wjOq9HvR4r5CyJH2wC/+SM/qrZLeSAh
-CLZOSCg63cgMlFE5PIwKoScBq4QFo7vpsiRET9IWGo270VIv0+EjSzGtJEwULTL9
-ViKKL+wm5ezv+DqCHwyav7JCF6Sf6BmkXoqpGyFPMn5vah1SqJnsSSM2xLvFN91b
-13CLkT9hnOqjiqYVXrAnErfLtI8BPLTNyppvm3ioN9DBUwxh5anvh4hcpHoW+4VX
-lUwwD+vnGItK3hmagsweiT4i7w==
-=os04
------END PGP SIGNATURE-----
-
-tag v57.4
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:14 2026 +0100
-
-rdma-core-57.4:
-
-Updates from version 57.3
- * Backport fixes:
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * libibumad: exclude Ethernet ports from SMI/GSI pairs
-   * libibumad: Skip Zero GUIDs local port interfaces
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * bnxt_re/lib: Fix slot count accumulation in WR API inline data path
-   * bnxt_re/lib: Fix for larger WR post_list sizes
-   * bnxt_re/lib: Fix issues in WR API callbacks
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * mlx5: Fix clock update EBUSY error flow
-   * proviers/erdma: Fix wrong length passed to ibv_dofork_range
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFxIbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2RO
-aAf9EUZPX7xWl9PJpuIQ2dRbxyZJWNg1UA4gKg+ecczZe+DIIej9UUt8uykatye3
-Gy61aMiaY+Km0SD5opqvUR3kHdSKcHauf2dnLluqD2XlxuKNYlTSaWOqk/grK15T
-FiWAfDhk0QblRwpsom5ylK+tU9UQN+7tXSi9+5h+Jc5yv7mJbR7gYJCti+LN9NZb
-j/kMDAV//MlqH05CtTb/L2X6Mpf6rkjef/S4Y2Fy92OV7D/GtBQbH6ThPTevf/qa
-oiOVXj1Jjh9suOjTlHQQtFajQAJYa/1Yd8ylM+A3kNsnzFWYX9HkBNk9MY3kxnuH
-SYfGFCgjE9RH9t4N6Kbp0w5VPA==
-=vnWM
------END PGP SIGNATURE-----
-
-tag v58.3
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:14 2026 +0100
-
-rdma-core-58.3:
-
-Updates from version 58.2
- * Backport fixes:
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * libibumad: exclude Ethernet ports from SMI/GSI pairs
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * bnxt_re/lib: Fix slot count accumulation in WR API inline data path
-   * bnxt_re/lib: Fix for larger WR post_list sizes
-   * bnxt_re/lib: Fix issues in WR API callbacks
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * mlx5: Fix clock update EBUSY error flow
-   * proviers/erdma: Fix wrong length passed to ibv_dofork_range
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFxIbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2RA
-rQf9G32k57H8AV2gCGQ90xkbdRWOKwYV5R6IWzsh55NmtMhUUk3EMeC7i1NtrNUU
-tk1t0HiuBoaNlUJefYLgeNvdRUMvbDWOzDL3cb7F0nshRvRdoHoE1kYNHEWiJvf7
-35/UQsLl7v2/OzmP0UxrMgqcGchNKyRB4Bi3sYGiCdac2JhpPe38Vt5WGpnyy7Oy
-Oxs/cyMzHxDlhtikg72wvbQ7Q3LRtwMkVsFTzOEiGDY/WeHl1whyrUcYItrVIgQJ
-7vHEt8XsAZkHf6hJNHYH274J8+or4W10YQT9WU5R40KDnULworaSJcfBQ7aZ2avF
-Yddeikk4TH5ksh3TnUltvQXMgg==
-=p5pL
------END PGP SIGNATURE-----
-
-tag v59.3
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:15 2026 +0100
-
-rdma-core-59.3:
-
-Updates from version 59.2
- * Backport fixes:
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * libibumad: exclude Ethernet ports from SMI/GSI pairs
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * bnxt_re/lib: Fix slot count accumulation in WR API inline data path
-   * bnxt_re/lib: Fix for larger WR post_list sizes
-   * bnxt_re/lib: Fix issues in WR API callbacks
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * mlx5: Fix clock update EBUSY error flow
-   * proviers/erdma: Fix wrong length passed to ibv_dofork_range
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFxMbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2T7
-AggAolYbi2aYGLoDLIUt4BJsAce/4Xll70Q6zOwzFuPwFD+jdV0HeBgk9cLKGVPB
-D1x9F8YKzYKxjme2nL1OU4H9+I32CsnSy08viYYy9Z3Jq/aCOMLkARx5KRxYo2W8
-vspliLmZvI6C8duL5OP9yEa1ZKSzmMXQk+C+xV6m6LB7qJaRAp5nSRs4eR/MeHzT
-Fw621ONKcuu9lWT0YE2QA+TIwALWmUIrnZkUDgB/XTQcr/+SzZHXNZVPNT+UDPJZ
-w9ERqZ6Jaa1kjPuegrTva/IX7OprWgsgZZMcW99xzqsyV8kZBK47GNYfkHDt46C0
-mKlY1sySNi4AuH2s0keYED9ttw==
-=j8GK
------END PGP SIGNATURE-----
-
-tag v60.3
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:16 2026 +0100
-
-rdma-core-60.3:
-
-Updates from version 60.2
- * Backport fixes:
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * libibumad: exclude Ethernet ports from SMI/GSI pairs
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * bnxt_re/lib: Fix slot count accumulation in WR API inline data path
-   * bnxt_re/lib: Fix for larger WR post_list sizes
-   * bnxt_re/lib: Fix issues in WR API callbacks
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * mlx5: Fix clock update EBUSY error flow
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFxQbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2QR
-qQf9H5jojaYHe7f2TGHYiCp1E48bmweqWavjDZMekuFi6ZdXyGeMNW8KCR29Ir4n
-dQGy8aFwyBj20gvjeMR/V0nOb2iREvWM+IuHSthtGBOWzMVHYoG39huWlSXew3s+
-5dr9r161kDOA49JELh3EJcaecfM3WUyRMG/7fpHuN3MpPgMWXBLf8zgf9Nm8FuXV
-IrwslG5Mb8INs6NzGr8Tf3eu/RQX7kkb8AjiMQayqD+xVm5dnkepS8EypqBDVk7y
-/qgTPURrZgJCr0LZMSyqLrGtMEx1Yn2xaMFoQ2bLvAyv5NsNDvVKyHwQzgQgnrbU
-HeGhGfCYyDIwC3IzJeRyA82aYw==
-=qFqR
------END PGP SIGNATURE-----
-
-tag v61.2
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:16 2026 +0100
-
-rdma-core-61.2:
-
-Updates from version 61.1
- * Backport fixes:
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * libibumad: exclude Ethernet ports from SMI/GSI pairs
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * bnxt_re/lib: Fix slot count accumulation in WR API inline data path
-   * bnxt_re/lib: Fix for larger WR post_list sizes
-   * bnxt_re/lib: Fix issues in WR API callbacks
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * ionic: Fix have_movdir64b() cpuid max-leaf query
-   * mlx5: Fix clock update EBUSY error flow
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFxQbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2QF
-TAf7Blwc6Vxb5DTVhFYbAVugIBjaUPQg/3p4bWlIyfU73DvsSD4M+9xNew+bCwgm
-C+ls38AmKdRFXw0DRTY1Jes5d/QAyOThd+ux3mbQoTPyhSyeEGQDLVfP/Q2JXMoO
-mYzNz7JPbvOtWg1T7bZL/dZAadk4LiXFH4DSLLTqiWibCmhz8KlxzU8C0eyRwmKg
-Kx+oL+CLjhhyZr6Dz9Sp4FCB+74aJiiWBnFYabx7CL0+h0SjHcx8w+SJKZ2ob6FP
-ODkN3lc3nKDFWQtjUht8lYUnfKaJS8d9WFa6zPChStHQseWpI2QGlcZQVHzQ/E3S
-PvJN5TIVN+lJp/QBxsiR3UfAMg==
-=iRJK
------END PGP SIGNATURE-----
-
-tag v62.2
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:17 2026 +0100
-
-rdma-core-62.2:
-
-Updates from version 62.1
- * Backport fixes:
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * providers/mana: fix lost CQ notification when re-arming without polling
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * libibumad: exclude Ethernet ports from SMI/GSI pairs
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * bnxt_re/lib: Fix slot count accumulation in WR API inline data path
-   * bnxt_re/lib: Fix for larger WR post_list sizes
-   * bnxt_re/lib: Fix issues in WR API callbacks
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * ionic: Fix have_movdir64b() cpuid max-leaf query
-   * mlx5: Fix clock update EBUSY error flow
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFxUbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2Qv
-fQgAoU67esXGHs686x728EbTsGEzrBIXQnkMeYp8d64wuS2tjgKtuUQPZl4XOZ2O
-ypQX5XQYf7bDFng4tGi5tJtACQiYeOSkKRcfQU2ItbqVLV99Cds+MZmLHoO54kG0
-zZK1afRoDllW6wgo1jwQze1L2O+EgUTUpG7MhBasKucJ9/BjV+P64zor4KG24GKf
-0oLLXlFp8QwmznMF1KsJORvjN95JZxEWU0/OcpCKzLI3p/cel5xxxQ97by8R1xsL
-iWVz30rDmfBxN+lVrD47QBuz7X14YvFUF+4ugt1fxfeOPJadMhKBmz3H1uFl5y99
-iI5Eav/Gj68YoSf/xK8F4azOSQ==
-=EJR9
------END PGP SIGNATURE-----
-
-tag v63.2
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:18 2026 +0100
-
-rdma-core-63.2:
-
-Updates from version 63.1
- * Backport fixes:
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * providers/mana: fix lost CQ notification when re-arming without polling
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * libibumad: exclude Ethernet ports from SMI/GSI pairs
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * bnxt_re/lib: Fix slot count accumulation in WR API inline data path
-   * bnxt_re/lib: Fix for larger WR post_list sizes
-   * bnxt_re/lib: Fix issues in WR API callbacks
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * ionic: Fix have_movdir64b() cpuid max-leaf query
-   * mlx5: Fix clock update EBUSY error flow
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFxYbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2RG
-mwf+LK1AgcvQ/Ix70mzHwgJv6XhpRl1AkhFKCunLs5Kh5O6nKMORjlHtndPsXXlH
-2IBmd71yZBtZzA5SWmbPrJfVPFxxvD3rg9M97YnJ1b6/E29UBlC8VaM760mnVjQ9
-BGs52DGamWUTitaktU/5BacZmo9zjQYMggXJSyMgdzhEyFRGc1ziC+hY91ttrp/z
-qzZqz4qmeIZxUPF19QSu8Rzv8NlAPZk0xPlXKPHR/BQJw8Mkd57RH27wZY6eKA1l
-An2qKqGnVDYFlWF/UHSPXDUKtDEePJsZnrXlWrK6KlWbmct6rHZnP1V6XQSEVUq+
-ixQ5Sbp/xr5rqlnxzqs4xIgNKg==
-=Wn5Y
------END PGP SIGNATURE-----
-
-tag v64.1
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:18 2026 +0100
-
-rdma-core-64.1:
-
-Updates from version 64.0
- * Backport fixes:
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Set internal QP type on GEN3+ QP creation
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * providers/mana: fix lost CQ notification when re-arming without polling
-   * mthca: Fix signed-overflow UB in __mthca_cq_clean() sweep condition
-   * mlx4: Fix signed-overflow UB in mlx4_cq_clean() sweep condition
-   * libibumad: exclude Ethernet ports from SMI/GSI pairs
-   * mlx5: Fix signed-overflow UB in __mlx5_cq_clean() sweep condition
-   * mlx5: Fix dbrec alloc returning garbage pointer on failure
-   * bnxt_re/lib: Fix slot count accumulation in WR API inline data path
-   * bnxt_re/lib: Fix for larger WR post_list sizes
-   * bnxt_re/lib: Fix issues in WR API callbacks
-   * rdma_topo: Overhaul error handling to avoid tracebacks
-   * providers/erdma: Initialize CQ doorbell record
-   * providers/erdma: Allocate CQ buffer with mmap
-   * ionic: Fix have_movdir64b() cpuid max-leaf query
-   * mlx5: Fix clock update EBUSY error flow
-   * stable branch creation
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFxYbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2QD
-QwgAtfnFvKOpSak8azsrSkjFjsznc4dUab32TWOk+2/hS5oGLpDlS3YAkYAurK5N
-vfYlY7FN7VxEz9+EMsZW4QKx4v2HFxZn+q2ysnfPvDEXDerRy7TW7W8ILASGpRwo
-LM/dMCswl/sfaqbKZ8lQA8g5KQGuZEsju5WxQQTFlzuWzs9aA6T0Lxgi0fs1snXs
-cObgCIGJUY1BCdbdNex0AIRo7nKH4IzdQpACcqrtwJL/XQBYW/JRyLUIyf7Qtj5Q
-SSeT1UDPj8vdFf5R4gpvOdpaPlxnme/TwsoQnqEdeIOqwlVsVHXb/DL45vY8c1tx
-rzpAYTh4RSHChsQLaNV+q8RfZg==
-=ReWk
------END PGP SIGNATURE-----
-
-tag v65.1
-Tagger: Nicolas Morey <nmorey@suse.com>
-Date:   Mon Nov 9 19:55:26 2026 +0100
-
-rdma-core-65.1:
-
-Updates from version 65.0
- * Backport fixes:
-   * util: Fix the constant length check in the aarch64 mmio_memcpy_x64()
-   * libhns: Write all 64 bytes of a direct WQE explicitly
-   * providers/irdma: Discard unsignaled non-error completions
-   * providers/irdma: Use mmio_write32 for doorbell writes
-   * providers/irdma: Set internal QP type on GEN3+ QP creation
-   * providers/irdma: Reject zero-based addressing for type 1 MW bind
-   * providers/irdma: Fix MW bind flush completion status
-   * providers/irdma: Add missing load-load barrier in CQ clean loop
-   * providers/irdma: Expand IRDMAQPSQ_AHID mask to 25 bits
-   * mlx5: Fix underflow and stale data in dr_ste_copy_param()
-   * mlx5: Fix inline SGE length wrap in set_data_inl_seg()
-   * util: Only fall back in open_cdev() when the node is not found
-   * kernel-boot: Remove Wants=network-pre.target from initrd
-   * debian: fix version for newly added symbols
-   * stable branch creation
------BEGIN PGP SIGNATURE-----
-
-iQFgBAABCABKFiEEQtJThcGhwCuLGxxvgBvduCWYj2QFAmryFx4bFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyEBxubW9yZXlAc3VzZS5jb20ACgkQgBvduCWYj2RL
-pgf+J7wZi1rBeyBUVlwwYJcTPaofQqiNRc0nRmdIfIb6RCrp4GjMFw0N1v01UBYS
-glByrdc4co2jbyWfCWv3yTZnk2euCzh8uua5K2xDfzm4LzBkwrImZ2EUkSlty7Lf
-BpbUlzVkeQ1lzrcypFRIB0g4Mw8npZg1Kb+n/yWCRKcCW33xAtZ97TBcFFNS2+UJ
-4i+FN7M/KYrSJ5uPJ/r4J1mstH8ofdUyKGj8Q3Sg+g9h7ARQMmYl6+9WUUHzyNQR
-jUrdPH7tq0qpYmgvYsrcLQEdudrzSBNW2YddtWq23pLuhQUflMMy/oZYfvPQwUG+
-njdjdiTdZ0pxI69/RiZT3zeBOw==
-=JUcP
------END PGP SIGNATURE-----
-
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: IA4PR12MB932075:EE_|SJ0PR12MB6990:EE_
+X-MS-Office365-Filtering-Correlation-Id: 91e85f05-98d3-4ba0-f91f-08df3f3b0e7c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|376014|366016|7416014|1800799024|11063799006|4143699003|261022105027099003|261026121527099003|261026140227099003|261028144727099003|56012099006|10067099003|22082099003|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	BcVI3kgi/ff/RSJ8JVsbmt5TcmlMCfM4TAuSUf9wSEQ4mUNhsQZ0f+SP+7xxwgkVP8n/JJ8OTF2wbeNLKvECRtky3pNYP2+xKc4rn1Y47gojTJtY7hibeVTvhvPF35C74YGOGc+0311OlmC+VuKLT2GUejPH8I3W6RdR7dSGf9akUVaoOORZfpwBSIWNRF4Ft46kPH8euBen2w1YJC5Dkk/iEXikTNLdNSqJP586Aos5yQfJsJBobcFmwxwEgArc6+7OVNxkYRJoRpkX2yvig7FE/YdOs2CDP2LZkH8cG2wW2NYRqFAqQZnkB5aHQzK3fBQ1Qbnk95JCBP/yopLiHnnUMe8Q/UTaInPUnaAt6WeZuYGR39wF8Hdo+sX0oaT8o40YA3NuMsZ8RjKB+PIexNXhz+ElULeSL6hLrW2ILRbF2heczQCslaGmn4vIzmfDT+6OjtmrqBORx+4xs9sXsbnfVqT8Blgzu4WEpFn9A37tkVb2w0Ssy3INkrNhbi+RdTa3hcjVXQ8Ekj2doffKLt0ixIfUNaM9NsWPkiZ9uwiom95gOlZr0W35fnbvZxYPgNSh16vcVxH4Ppq91/7XxhcNlfpiNARIOqYbHogOYATJiGkbLUliR623Ih4lgniyLDVm3OwWuexLBW9vw2HK12rt1uMXJZjEGJ+epkapVDY=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA4PR12MB932075.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(376014)(366016)(7416014)(1800799024)(11063799006)(4143699003)(261022105027099003)(261026121527099003)(261026140227099003)(261028144727099003)(56012099006)(10067099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?bE41aUQxV01UbktJNE8xYWRwb01QTDlSemlGNUhsYktxeGZwRmM1VUowQ3J6?=
+ =?utf-8?B?T1ZqVFJ4WFZsRFg0WCttWk1KOWY5WEY3bVQvRHRtNERqNCt4dWpTUWlKbW55?=
+ =?utf-8?B?NHk4Vy9Uc0REcncwMFNiZVBCSjF1c0xOanlxMDFaMDExdEVjd2M3M1JBOTMr?=
+ =?utf-8?B?aGVBM0pRaUJnVlRQcTZXNU9INS9LY1JESXhxdkN1d3RHRW9LR2VKaVVJS0RD?=
+ =?utf-8?B?UDdXL0lPRGRKa05PUGxGMFJsaVZjOFNzMUpWOTNXYTdROEhidW1BTVRxTUZT?=
+ =?utf-8?B?cGlPMXlPRDYrdjZJejVVeHU5Mk5TWmNPZUZKRG43NkgvTUZLTFVBL3I1aWNY?=
+ =?utf-8?B?b3BJNjM4V2pCbE5CYnZUWEwwa1ljNnRhR2w2L1NmRXErWDYzVzk0U2lYcDNr?=
+ =?utf-8?B?RmxjM3h5YTRzRUZVcnJ2L3N6dmRGSk8wdGVCeUhQMDZDbVBRTURjUTFRMHdX?=
+ =?utf-8?B?TW9RNDMycmY0WktjTHI4T056ckgzSWRXM29mbnI4ZXBWWWxqWTE2R2YzMlh5?=
+ =?utf-8?B?Ty9ZTlFza3ZOZUdtUjJWU0hFMVlTazduK2pMUXF4VC9raGZoYmdKQVk0VWlM?=
+ =?utf-8?B?ajl6SGJMY1BXODlhZ21NRE1BZHYvYUMrRW1LRTNlT2VTSGlqR0lIcVpCdGJJ?=
+ =?utf-8?B?M1NEMHM5N0QwbU9BUS8yck9RT21RQ09aMFRXS2VERHZBRFJRTDBzNExjSEJD?=
+ =?utf-8?B?cHQ5eEJQcWc2eXhVUVBrV1NxYm1ia00waU9QNHd4SFhqMDY3M2FxNmNLaGd2?=
+ =?utf-8?B?RlVwSytwRnM1Nm1IQmNueEcvcVQwbWFaeEQyVDZZbHZkaUN5eEllaU9jalh5?=
+ =?utf-8?B?VHJOM1p3Rmt0bmgrMFI5dGF2amJ3NkUxT3hPUTdsSy9ydFhIenl4UUNGaGRn?=
+ =?utf-8?B?c1F1eUQxZkxwemZpRWNQVGVHNjBqeUFJSkNZQjVYWTFVOWRrWWNLaDJYTzNn?=
+ =?utf-8?B?TVB5RG9zS3BzWGdmSkVXalJsWmIzZjcvc2ZVbmE2c2ViamtrSWRWS2lKZnNz?=
+ =?utf-8?B?UUJHZGhhUWJwMXplaHhQSzJzU1V1aG9sS3VlTFZoNjdoc1VUTWRaY09NcWJZ?=
+ =?utf-8?B?YU1uMjR4TDVDS2drQWV2QU51TzkwV3dkQUJqSitxUWx2VXcvNlE2UDdlb0hX?=
+ =?utf-8?B?amZSK01kUUZONm1QZXJaQU9wM00zRVFTNzQvTWU2SWpkUDhraURwTkprd3dN?=
+ =?utf-8?B?VnRLSHBaOUx0SE83WjgrKzBqcGdrZG5VMGRnZEJ4L1dzZ1ExSk9McFBPajdo?=
+ =?utf-8?B?dXQrNmIwTEVBZTFWSGttUkVIMGNoeTJkc01OdEN5bnVwY0xPcTg0TWNYWXdK?=
+ =?utf-8?B?VFNNeVdmT0tsNjdsYTlpRXFpTUMyNFBRTy9PZlppTEduZ3JsMi9RWTgyVWdI?=
+ =?utf-8?B?ZSsxa1VicHdxTFpJTFlCampIS3VQL1BkYkN1T3RBaXVMVXdLQ1EwVDBablhj?=
+ =?utf-8?B?UTFtTW5vNkw5RDNjWndraHhabmRrVXBXWWRSa0pqMSsrUjV3a0gvVjVMUFNO?=
+ =?utf-8?B?WHQrZzZmemR0a3RYOGpuMjIzbDBBTzcrMzJtWkhUL2F3UnJzdnZ3R2NOSE1G?=
+ =?utf-8?B?Njl0V1EwU0VFQzFhYldsVWRVMzRybVhaYUZ5bmRYeG94cjZ6b0NwNW1ORnYw?=
+ =?utf-8?B?dkMxSUNXYmQ0elVyOTZBWUhUZTlwMCs1N1ZBQjBxZUYyeUU0Zk5VY2xOcDJ1?=
+ =?utf-8?B?VW9Fd1gxY3hqeGtrVEdoSjNGdmRNKzY4N3VobmFJNXlqS3BsMEVmYnEvZE1W?=
+ =?utf-8?B?ZFJaM1AwZFhzdzlHajl0UGFSMUFtcWFsUXh3ZS9EclZOTUt2bm9mYXVaVFJy?=
+ =?utf-8?B?ZzNScVJhdkFSY3lad01KdU05aDRNNE1Mbm1YWkxBMkhMV0psKytYZ2dqcVIz?=
+ =?utf-8?B?MDVrSUdQSTA5Q2lqM2JjNzZCbVNHekFnNEpvaUlOUWlUUXEvVk1VTU9uamE5?=
+ =?utf-8?B?b2pxYnBUbjlGZW5EZzdzdzdYRitKdTlWUC9yaDlRTUo0YjB0aVRaYXl1TWhV?=
+ =?utf-8?B?dXNTdjF0elRqak1IK3pPQW92ZkcxQWN1L3pZVG5hS3BDaW1yY2tyalNDZ2xs?=
+ =?utf-8?B?QVlIakU5S0dFVmNPamlCR2JGZDNHRlRzZ21Cb1JFai91aFVhblNGdkxVOXBX?=
+ =?utf-8?B?VnBJcEU0Vi93ekp6SjFJZGJ5QlpUNTFOWVRPTjRZSFJ6TVZYQzY4K1dBRGk0?=
+ =?utf-8?B?OCtsaDE1OE5IYlRiL21FOGxRb0Urcjc5aldzajdpaU1WVzhKbEs0aWpsNG9q?=
+ =?utf-8?B?bko2ZzN3OENHQklQQXltaDcwTnR3d2lHTS9PY0lXdDFFQTd1V0tXcHpmM0lh?=
+ =?utf-8?Q?M6ZWZzd4dbxQTQ0k+D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 91e85f05-98d3-4ba0-f91f-08df3f3b0e7c
+X-MS-Exchange-CrossTenant-AuthSource: IA4PR12MB932075.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Nov 2026 14:58:19.0921
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: CfjCFefMzXC9VjvgVfAawK+peprI3qgFrsLFfq1YstEFJJXx5LdHU0w3+KVacG1yyhMj2rBCWibsq/njUteD8g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB6990
+
+
+On 10/11/2026 0:15, Rishikesh Jethwani wrote:
+ > This write relies on an earlier may_move check in mlx5e_select_queue(),
+ > without locking the old queue or rechecking wmem.
+
+Right, I assumed the socket lock serializes selection, which doesn't
+hold with an upper device's qdisc in between.
+
+ > Selection needs the same initial-claim CAS and locked handoff: recheck
+ > the owner and current wmem under the old queue's lock, and leave
+ > ownership unchanged on failure. Locking only the write leaves the wmem
+ > check stale. Preserve zero self-charge for non-decrypted, possibly
+ > partially orphaned skbs.
+ >
+ > A failed transfer can fall back to the owner's queue, updating the
+ > cache, if the index is in [0, real_num_tx_queues), still maps to a live
+ > SQ and is not a PTP index. Keep the xmit ownership guard.
+
+Agreed, v2 does that. Selection and xmit move the connection through
+one helper, as you describe, and a failed move falls back to the
+owner's TX queue under those conditions. The xmit guard stays.
+
+Thanks,
+Tariq
