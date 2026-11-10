@@ -1,65 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.10.208.46
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794306155;
-	b=08k1BApLTCez73KG0Ldbw/4pG1S8/XSsRHezZZs6lC6uVQY+jX59QQeFVBk+ov3NVTb2
-	 XMGLttiJTiYDGq/dtbH39N3wTbkyXaMCfkVoEkBLHTQeeSMH3qunpV7MYZJWmWVPLZ0oW
-	 LAG+71xtvN/07bt3wZnc9G1fYCk9WnJouR+YKBaIZ2YTaB3IBNZp0gzd0ZI8SKqoGeXcD
-	 81l1u24eedAGJczFd9iOKO/lSoJkR0IGru2FWyq4Qfh690yr63N46N4RE3sbSghOeX68N
-	 1DC72LjwGyTfURACgbOfS/gABxeCJL+V/PejeRwq2aJEACk2u+hGKL8E5rWd6Ttb/TA==
+	t=1794307262;
+	b=0Y2AHls6tpL+jxqMPpH6pmuZk7qfUu9+hXCbRzv0Fqr38D3R06a7UdjtagTTLbrtq9wI
+	 dzdTzHUJBxHYe+tuOAAI3UuR2Lrg1ZJQgxBy6l+6d9pKlFQquElI09rMeD01dIPzlfjvW
+	 V1r9r+IUumZ6iNKbeZh6I5HUeoG8eKx7RTVPxKY86cITcutFu5Exto2YFDN8Asu9Xcky6
+	 +b7mX+fIerSZhR1aH6U7MpiBitslvKUdBetflbapbbI0xY8rWuAvVKuKmGqKcdL6+NytY
+	 W5Vxju6dGCjSLfa28/1aXKlHb+Q/Ollld0J/8SngWYCEl1/ZoblfF5xMqkR95pGEMiQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794306155;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
-	 In-Reply-To:References:Auto-Submitted:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=URC7r36kokGjXCV5G6Ei8oKV54JoMbconYpCKkPt2AY=;
-	b=EPADnBjwBCfjzhl4W+yj5D/rkulyeFrz+JboDinCFGUEMQ30VOchgydqrvVOi4otfOgv
-	 crIIQjjcb0vULf08bPZcNuqCUABYjNzt/9XnQiztXH27Y75J//gKGYXG0nTVm2H38h4TB
-	 G4w1pEQuHzAel43Tk7ypEt8pKy/GV7OOsh1PQv5CJPRapdijz1bVDMza3doYGatVbiwWs
-	 6aNKu8oY2VdJKdpjisfUiPomnBNYAniXCn68iBVOYKEhgojCCItHSAUgl8SzN+Bd7DZ4z
-	 dJaIrRiwKT4vFAWK2cWvL+9aUVKVRXhIBMGMl4DER1nIYV11Bmzzb00BnFDSeD67UrA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794307262;
+	h=DMARC-Filter:Received:DKIM-Signature:Message-ID:Date:MIME-Version:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:
+	 Organization:In-Reply-To:Content-Type:Content-Transfer-Encoding:
+	 X-Rspamd-Queue-Id;
+	bh=aRfxxKk5JELB+Ani22l80ZT8QKCCTc2Q/EP8+1DWDqM=;
+	b=osZKNehOkuESCGH7kG4fVPsGBVGp+9z+otvArPZT+mZKOmvpjs17aEsvJkN5EQAaeRJh
+	 TEBEEnTssczQUbg153o6s8YvGmA7M8gRhbkuB68A7BJrP0x/2gWFQhvvpgkiOqVx9j5DG
+	 z/0qN0umtRlESRM9oO1XkzkqcC5W8LPkb1O15rX+RanVoggGpul1RIJxW1S29RkCNNsPr
+	 3qirRBrtAC2uxnpfyNZP1RLjCYZtvFSdIS4/UIzSKPNIRuUXHIi+jFte/7Fqn8bRE/XXO
+	 9Bejnudpy+Fds21TiPVwGMnWZmvcA2nQRA5PFMyuEKvKX4jlLe7L4/7pVplD1yIaHtg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="b/gp5SIr";
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=none header.from=mandelbit.com;
+	spf=pass smtp.mailfrom=mandelbit.com;
+	dkim=pass header.d=mandelbit.com header.i=@mandelbit.com header.a=rsa-sha256 header.s=MBO0001 header.b=mVM172Nb;
+	arc=none smtp.remote-ip=195.10.208.46
+Received: from mout-b-106.mailbox.org (mout-b-106.mailbox.org [195.10.208.46])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24FF060710E1;
-	Tue, 10 Nov 2026 10:22:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B318606A321;
+	Tue, 10 Nov 2026 10:41:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4B318606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mandelbit.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mandelbit.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=b/gp5SIr
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6A261F0089F;
-	Tue, 10 Nov 2026 10:22:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794306154;
-	bh=URC7r36kokGjXCV5G6Ei8oKV54JoMbconYpCKkPt2AY=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=b/gp5SIrSHk4En+pltFbP5PRS6dkT4J2ZFB7VQ2IDO/QUmDhb9aGFtxnnPIQjT0V6
-	 gdYoW1kS+aKG67uRt3iei1rYk/0ONbTlEGkarwYH3H34F6WDqb1QDAMPVft61tIVTz
-	 cmlTNUQhivRiIKUTirDybO4k2aUDdu7tR9Lxq2WHtsWqccfbkfJ4YpgpJkdIdGPpXo
-	 CQoA851eIO8u2MbfW3uty+se8fm7YKyCfRwJL9S1lyCd6RSSlThaoZ5XtwMcYOWDyQ
-	 PyPsL/htSlPrMifQ66EdCroc5KWSiCNqWndDohxnicUL38yOAAWvs8otzbkEnWLymR
-	 UEJQVRB3JPQIw==
-From: netdev-bot+sinfo@kernel.org
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
- Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
- Paolo Abeni <pabeni@redhat.com>, Boris Pismenny <borisp@nvidia.com>,
- Gal Pressman <gal@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
- open list <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org,
- Mark Bloch <mbloch@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>,
- Simon Horman <horms@kernel.org>, William Tu <witu@nvidia.com>,
- Xuanqiang Luo <luoxuanqiang@kylinos.cn>
-Subject: Re: [PATCH net RESEND] net/mlx5e: kTLS, Fix missing error unwind when
- enabling RX offload
-Date: Tue, 10 Nov 2026 10:22:33 +0000
-Message-ID: <179430615346.488859.14108137500474713442@kernel.org>
-In-Reply-To: <20261110101709.2589088-1-tariqt@nvidia.com>
-References: <20261110101709.2589088-1-tariqt@nvidia.com>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	dkim=pass (2048-bit key, unprotected) header.d=mandelbit.com header.i=@mandelbit.com header.a=rsa-sha256 header.s=MBO0001 header.b=mVM172Nb
+Received: from smtp2.mailbox.org (smtp2.mailbox.org [IPv6:2001:67c:2050:b231:465::2])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519MLKEM768 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mout-b-106.mailbox.org (Postfix) with ESMTPS id 4jP38g4GZtzNlgV;
+	Tue, 10 Nov 2026 11:40:51 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mandelbit.com;
+	s=MBO0001; t=1794307251;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=aRfxxKk5JELB+Ani22l80ZT8QKCCTc2Q/EP8+1DWDqM=;
+	b=mVM172NbFfAuP9fWqdRHbtUWgMm4uhNbiOnlaF7GqnRp64feTeIessWyiri9s0RhH9BLcm
+	z84etFtO0Koq+RHOsFB+3RXhr4NeeHch4j+QxBP+BgL++Et/CzCLj2FR5U4rMKOcTUWr8W
+	ZkxhArrFaaOTNjM6tdkUwZXk3rjAUYmbb7i3c4yyndIr/ShLisygS92YwgifWlMJuleeIm
+	8gfCvys1o1l643c+66UwKGscW43RH6BKMR25fioNQOfEtesGfvYs3ONSyUwed/Fn3Svzd4
+	2z+fsz6atXytLLSf6Axqf945s3hs/2ra/unKY/LJxITOr3UlOrwr96TJKs7K4Q==
+Authentication-Results: outgoing_mbo_mout;
+	dkim=none;
+	spf=pass (outgoing_mbo_mout: domain of antonio@mandelbit.com designates 2001:67c:2050:b231:465::2 as permitted sender) smtp.mailfrom=antonio@mandelbit.com
+Message-ID: <674eb8ef-c93f-4926-a760-62df154ed3eb@mandelbit.com>
+Date: Tue, 10 Nov 2026 11:40:49 +0100
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -69,29 +66,78 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next v2] net/mlx5e: Prefetch the packet a few strides
+ ahead in the linear MPWQE path
+To: Dragos Tatulea <dtatulea@nvidia.com>, netdev@vger.kernel.org
+Cc: saeedm@nvidia.com, tariqt@nvidia.com, mbloch@nvidia.com, leon@kernel.org,
+ cratiu@nvidia.com, andrew+netdev@lunn.ch, davem@davemloft.net,
+ edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com, ast@kernel.org,
+ daniel@iogearbox.net, hawk@kernel.org, john.fastabend@gmail.com,
+ sdf@fomichev.me, linux-rdma@vger.kernel.org, bpf@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+References: <20261104195241.1883539-1-antonio@mandelbit.com>
+ <a31e1e60-7e31-4a14-a087-428d1e3627f2@nvidia.com>
+Content-Language: en-US
+From: Antonio Quartulli <antonio@mandelbit.com>
+Organization: Mandelbit SRL
+In-Reply-To: <a31e1e60-7e31-4a14-a087-428d1e3627f2@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Rspamd-Queue-Id: 4jP38g4GZtzNlgV
 
-Hi!
+Hi Dragos,
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+On 06/11/2026 11:55, Dragos Tatulea wrote:
+> Thanks for your patch! These look indeed like enticing numbers. I'd
+> like to take some time to try this at scale and on other NICs (CX8)
+> and CPUs (Grace) and also check latency.
 
- - How the issue was discovered, e.g. hit in production, hit during
-   development, syzbot report, manual code inspection, LLM or static
-   analysis tool scan.
+Thanks! In case it helps, I measured latency on my side in the meantime
+(I don't have access to the monster Grace/CX8 equipment, but it's still
+something :-)).
 
- - Whether the issue was actually triggered, or is only theoretical
-   (e.g. found by code inspection). If it was triggered please include
-   the symptoms, like the stack trace or error messages.
+Request/response over the bare ports (one transaction in flight, like
+netperf UDP_RR/TCP_RR), same system as in the commit message: one RX
+queue per port with its IRQ on a dedicated CPU, MTU 1500, default
+coalescing (adaptive RX, rx-usecs 8, rx-frames 128), 10s per test,
+prefetch off / v2 / v2 + next-WQE follow-up (see below) interleaved,
+mean of 3 rounds:
 
- - What hardware the change was tested on. For driver fixes please
-   mention the device (and if relevant firmware version) used for
-   testing, or say that the change was not tested on real hardware.
+                      p50 (us)              p90 (us)
+                  off    v2    +next    off    v2    +next
+   UDP, 64 B     24.60  24.61  24.60   25.37  25.37  25.39
+   UDP, 1400 B   25.08  25.08  25.10   25.94  25.96  25.92
+   TCP, 64 B     24.65  24.64  24.66   25.48  25.46  25.85 (*)
 
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account. If the series needs another revision for
-other reasons, please include the information in the commit messages
-then.
+   (*) one round at 26.59, the other two at 25.47 and 25.50
 
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
+p99 and p99.9 (37-45 us and 67-100 us) varied more between rounds than
+between the variants, and nothing was lost. So no latency cost that I
+could see at low rate.
+
+I'm also testing a small follow-up: v2 doesn't prefetch when the stride
+4 ahead is in the next WQE, so the first strides of every WQE are never
+prefetched. Following the WQ list to the next WQE (only when
+cur_sz >= 2, so it is posted and its pages are allocated) removes 26-32%
+of the remaining DRAM demand fills on the RX CPU and adds 1.8-3.3%
+throughput, measured with TCP inside an ovpn UDP tunnel (where the RX
+CPU is the bottleneck); its latency is the "+next" column above.
+
+I had planned to send it as a follow-up patch, but I can also fold it in 
+a v3, whatever you prefer once you have your results.
+
+If there is anything specific you'd like me to run here, feel free
+to let me know.
+
+
+Thanks!
+
+
+-- 
+Antonio Quartulli
+
+CEO and Co-Founder
+Mandelbit Srl
+https://www.mandelbit.com
+
