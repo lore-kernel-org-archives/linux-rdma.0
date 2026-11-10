@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794325530;
-	b=Oxrhnvdnl4THIFfn6JLsr4qYUq9jFB0Av1rTZrajXkgsgciU00n69LprYWJA0M0Vd6//
-	 qwFM/ka9uafx9wmWTqK5sO7UYghkHm0klY1BfFuXx5i0vUmMrQJ4WcaUgOE5t0KAVY1lL
-	 PIMOAHwnH7g9uqTk77DOxowiXGUrc3sT2fepbcorDjDEiHoN8tWOz008PgBwZMaZpD9bX
-	 /PLTkkC+TY4RDv+ZVRs9TNQjxNdPcHYPOaJqUB6l7G6l4FP4LOcP4375tDBIsnrESgK3O
-	 isUSiK3HJG1Vxex/yaE0VkiLoa6r8S8WcXdT8/UVyAG3eNCkuAGG/9plfHYWXF/Ok8A==
+	t=1794325531;
+	b=fI+aEeQSKnTs8Lvr/hUGWNXQUnzkxDCIwjfJ9uux7DfHrYxByZyvtpZBVgbg94Fmg3xN
+	 wcvwqaKNHpBCj/aEsJfQtDNaie+1r99j/O9RqKFWpgomgxIl9Gbsu79SSsLkNqPF6Rh+6
+	 AAa8PEsnoCKLe8uMf42bv3PunRhVqFKM4HzkZUWKVB2ZL9wOc62+oLBoFomaQ6kPU11Vy
+	 iwLaODIvqIwSf0deHuplgOIyrF3L2r43oMfHY7W4GqafFbA1NIdp12i7OuPrGoQaMTXy3
+	 i/S8Pr5AF8ApwMknjgGrduGgr2TD3UIU12tDi+Gs0io4QOGLX0gKU1zjSfmFUejDJ3w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794325530;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794325531;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=B2D3U+K2dgjYntkp7AbOmxjmj7WCeRXys49lIfDaQBk=;
-	b=Ba4rKVUR2H8+GXljoxZyYWT1DgnORENAxtMV/txQBysT/O/nr6atj1RWhmOhOhBVK+Mr
-	 ApEjKXWZ+56Eyo1UkCvxgqxzSna23im2S76rvb/iME0wINGQNhzdF/UsLltrMNsL4oflt
-	 KFc1tmleYVRxHERXWZ7b7prmpOr08iQc3n/xTwJzzAuSfTOCeIJSAP9msnUDv6NK5Bakj
-	 rVCRYSg8aWBeZda5qpZKI7Gdnxg97S2H7ymA/SDn1M2h6Q9wv3I6efr5guUHE8yLi1uKO
-	 zYr06XDzY9KELSyTVpDEHb+YoI7yojh0Ae+pZX+FZBMtqCH1H+cBo06DvlKl4txf5jA==
+	bh=DRvAWINHCO4tAK0CEPdlD4AS0MIGze+cfne8CP97g/s=;
+	b=4aLKNyWDAM0YHOKij6WACtGOJxQiEe9k9aOe01/kzB8W6yVun00veAtItQZVG3PqNTK4
+	 GRxevEZQYtN2F3gGRJLc+2XLGi682lObgVdSfv7+aSL5adJ5Qkyd1fAdqyTPFHa7NCLXC
+	 4tGuWumc4UE/f238LOqa/IW3yulmcLKBRfPnkq8Z4BSJ1ibkBAb+PMAbMUeA1OV7zgrzB
+	 OODuM8uJ+2V0ZKNGhVhNKJ4M0E145J6oKpbUjOxEREH57K7NiGy+UtpyV0BX47ronklFM
+	 WqDPezlVzrCV/8gMIM2tgSIYbBHwoCTTYXZTkpRqsOZW4eZdWybKsT6RXtOn1H71OLw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Etmh6q1E;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ebddtLq9;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 665F4606A330
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F7F5606C42A
 	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 15:45:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Etmh6q1E
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 144E81F0089F;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ebddtLq9
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADBDA1F008A1;
 	Tue, 10 Nov 2026 15:45:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1794325530;
-	bh=B2D3U+K2dgjYntkp7AbOmxjmj7WCeRXys49lIfDaQBk=;
+	bh=DRvAWINHCO4tAK0CEPdlD4AS0MIGze+cfne8CP97g/s=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Etmh6q1EHTfSx+4RhUY5N5cp61SC2i30mxiClzrHwj0HelxlXmcWbj+Yrjn3mLOj+
-	 BuzPpymfQgMzz7Jqg5XEBfoljMeBahRPy2bg1tvhQoNThLgoblUP9KwAVzAXIR//qk
-	 dF5+yzRKG21F8ailqBGDYDMe5o5+O9L81fjwJU9/IUd5e97f+z4DzcUOtLpyb/0z7d
-	 kCgIftJbvXDcOng3GKbC1Z5fMQdbNXONvJWnTkNR5zJdn42s7+L/+FymQ0SSfOEdUe
-	 bnR5+l2H+Wo93tA1GLhi62+KmeybVCxlUU4znScn+/R2NK+zN+tAOJ9ata1ScBEpZB
-	 5Cxt2sfMgcgkA==
-Message-ID: <sashiko-outbox-207287@kernel.org>
+	b=ebddtLq9L83CUD1Y4OP4qfBxwovNcyM4EK90+paBlKy/82goJwjoT2K7htI7bHQ3d
+	 rzplAI/LESW4LMA5/OYJLLWppOkOr11sNtsSFZGswdC9Z9m8vALdVBGuREEsKcqy5e
+	 YelfAUNO0l8QdeXXgo06yoeSRFRS+QlaPGRmC4r6iwFUPqUtdLAspEh9644pHmQKb1
+	 83I/9mfd7fjQRYaZyO8h+iayMtMc6A0zRWEIA6AFHBJNvoGV0YqJLTfF5oKlvp4iUJ
+	 9b/r4AUYH+W38qTFyJiO4F+abI72/s87gHU+CPpz0MluJi06BxdLKctQCbvngQq2Sn
+	 0+zR/s/IsQ0Sw==
+Message-ID: <sashiko-outbox-207288@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v10 1/4] net: mana: prepare HWC ownership for
- safe reinitialization
+Subject: Re: [PATCH net-next v10 2/4] net: mana: give each HWC message slot
+ its own completion state
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Wei Hu" <weh@linux.microsoft.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <df083dc6ad8a8958398e04afe66ca2c5f4bfb040.1794208055.git.weh@linux.microsoft.com>
+In-Reply-To: <d3c71452bb2938a5c1fcfebb32d44827eaea94e9.1794208055.git.weh@linux.microsoft.com>
 References: <cover.1794208055.git.weh@linux.microsoft.com>
- <df083dc6ad8a8958398e04afe66ca2c5f4bfb040.1794208055.git.weh@linux.microsoft.com>
+ <d3c71452bb2938a5c1fcfebb32d44827eaea94e9.1794208055.git.weh@linux.microsoft.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 10 Nov 2026 15:45:29 +0000
+Date: Tue, 10 Nov 2026 15:45:30 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,27 +63,26 @@ Precedence: list
 
 > From: Long Li <longli@microsoft.com>
 >=20
-> Dynamic HWC queue sizing tears down the bootstrap queues and establishes a
-> second channel before publishing it. Prepare the existing HWC ownership a=
-nd
-> teardown paths so that sequence cannot free or reuse state still reachable
-> by either the PF or an EQ handler.
+> Concurrent requests require the response handler and the waiting sender to
+> agree on the lifetime and result state of each message slot.
 >=20
-> The shared-memory aperture carries one request at a time. Serialize the
-> complete ESTABLISH_HWC and DESTROY_HWC transactions, including possession
-> polling and response validation. Record setup_active immediately before t=
-he
-> MMIO submission and clear it only after DESTROY_HWC is acknowledged.
+> Protect the caller's output buffer, Linux error and device status with a
+> per-slot lock. Publish the output buffer only while the sender is waiting
+> and withdraw it before every return. A late response cannot copy through a
+> pointer to caller storage whose lifetime has ended.
 >=20
-> Treat an unacknowledged destroy as retained PF ownership. Fence the HWC EQ
-> and withdraw its CQ from dispatch, but keep all queue memory and wrappers
-> for a later teardown retry. A new channel creation retries that retained
+> Reinitialize completion and result state under both the allocation and
+> per-slot locks when acquiring the slot. A response handler can still hold
+> the per-slot lock after the previous sender has returned its admission
+> permit, so an unpublished bitmap bit alone is not sufficient protection.
+> If the response records its result while the timed wait expires, return
 > [ ... ]
-> Link: https://lore.kernel.org/r/178910960115.219967.13830871915506436112@=
-kernel.org
-> Link: https://lore.kernel.org/r/179196575238.434549.10775387794024020898@=
-kernel.org
-> Link: https://lore.kernel.org/r/sashiko-outbox-170992@kernel.org
+> Link: https://lore.kernel.org/r/20260908035201.402424-4-longli@microsoft.=
+com
+> Link: https://lore.kernel.org/r/179196575434.434549.4428132041097324407@k=
+ernel.org
+> Link: https://lore.kernel.org/r/179196575640.434549.9102950927041409151@k=
+ernel.org
 > Signed-off-by: Long Li <longli@microsoft.com>
 > Signed-off-by: Wei Hu <weh@microsoft.com>
 
@@ -91,5 +90,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/cover.1794208055.gi=
-t.weh@linux.microsoft.com?part=3D1
+t.weh@linux.microsoft.com?part=3D2
 
