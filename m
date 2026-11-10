@@ -1,78 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794283265;
-	b=uf7ezeWqvcqua4V11J1JGg1WFDjIfL0EJBDvFNR/Nw62Q2jZOcE/gglBSp7isFzdsrtb
-	 mL2Mj618ECQ7TDp+O4vtkcWCH1/7lmdMeFIsB/Jv/MiHf4lwL3kt+w2VgCXUYpZsaa3qf
-	 EyVOukMwVwgggiQONZdz2KkbIcRmq0DV9b1QdYhtJXQMo3uSChwOV+lZete1CfucGKaTZ
-	 omesPBvPoZ9oDhk2U0+ws1qMx10dtNVjii3YXrZpXiKmnBD5eRjQBy2F5pZAf9I3V2RuL
-	 7AIQgYs1Xi53UzvrI5HU1LJrv9HUVr7mm031i/pqd1MQaBDIgzbea9XwfTtlG16OEqQ==
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.remote-ip=100.103.45.18
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=fail;
+	t=1794283266;
+	b=pfWgya2X+ivKgJwWD2WwzfbS8JAjt95ndhDTBOgiskM4BB7Yh9Rt8qkbIggK8k38UMT2
+	 j5405QodZQTidipvcUN7MqYIIuIZFKi5ChaIap1uBuORTa1BaFURuQDAUOTBDHUvwO2x2
+	 /Je6J88eVIlQKK+FmRKyGB1hyBeYZ6+MK45+dbZmZOAgiAfz7XskSJmpX8mwsGsRNN0C6
+	 WA3fWDaV+VKJOwz6ro0Vwffk1aOq9pkeaRAjLR4r1Hy2+u7x0j5L+jqGJizR3og8c+Z6S
+	 NvvTLx8xP8DumzDdTDk7q7sP4b7TAO4S7zb3G92nsIn7KN+N46EaubTnf48l9dkqFEg==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794283265;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794283266;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=zs6ukZfbAFX9b2vxcr0AVM9lrZdxCbvtGtCbdt2cNa8=;
-	b=Zs+9uasOj3jJUJvfbN4HQx5Z/KZapJL6OWFWC1TUjYK5hJVPJO2Gv0F/ysxE+3rWO9/f
-	 6PFn9Oc8mVju2tL9UiGOxuGMSvJ8i0lxwYOJRqzhgrVLGMzbozJryzQKiXuceuvnWrXl/
-	 oDL31W/Dwae8p/hY7fXh4X6GuK6FVBR6iMIiiJsU17kkSHmm71AyabFHbegd3ea2jM4Ov
-	 7kks/6afeefmTeCaQ1vaw0VDVmkTSKWno7KNUVtStgmnmDqdefBCwB2/0nSJhiUZJJvyX
-	 O4M1mmOnEsCwJMnuMQRk5hNV1UzMLicuOlieTJWfCwnF3Wmtn0Cq9Yy1LYS6qOt405w==
+	bh=fewmj+5C/6Me/LF8iKww4Vu3Of9bMNItha7qyi8zTms=;
+	b=MQ729DCbirP8oFQHnC/mfcu7GK81V5Rb7/C7NYxdykyY4N5QDCnvr5y25ORxm5KbZqiO
+	 hzXiKNt9AL78GKgu3r6E6A1KnTq7DVhnSeKMyGHqTVwLNsy1SmgbtuUeKt4CONlcXSI1T
+	 g4FGfHpAbxA+kgBs/60LKx6uiqD2gevJo2wJMJsU8ulZnnEP6FJnAjo+f57Tw4pcIarIk
+	 bcPsNZrTD4lAPbteBPXRafyM0jow0o0B0ZGPgHBT2TQlxIXIyBv0nK0GLAbjcCXifBLqy
+	 LLO/qicGZsRYPqAZ+oRtHVw4GxmwBxh/hVQZ2lTALj8WBxyG2Ky0F7YyIn4MCnT0Lrg==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="XhyaIy/j";
-	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=R3ADzmp5;
+	arc=fail smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71D7D60A2600;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1316D60A263A;
 	Tue, 10 Nov 2026 04:01:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XhyaIy/j
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=R3ADzmp5
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
 	t=1794283265;
-	b=BaOi7a4bLYLsBeSGpxiPhw0jJ0Hji9YZOLUTWO4/JjJyRKEfkJNUPYbNcGempiUi7EX0
-	 t8UQ1tk2Kq5S0G1E/6Vf9EJdneuzAIgQrpQOY+vPZtfRP6KgF76MCUk9U9x6ilQYk4J5W
-	 0UIb/fgglyNcW7YFlDSwoqXwDp3C/o7Hfp3z4iMQckMQaHnnnZtFM4WkLBwsSRP9NbgCu
-	 glF9SEVT+ANsnXYbx7zzFVI7boyG6i00VT1vBz34ZA2Kjot4qkz8vLhf5TBo3z7158WDV
-	 Lpsf2+fh/VUlxJ68+7ylQqJIt13hUntxSbwg+jOd+5U5ZEosPEzJQW6gw1QkNz/kD+g==
+	b=dLERH+oDKK8987jbO+bvKSOSUcK1a48/ALaSBQ5A+ABaS59ZRZ7WuofSPlqwDNZD7Cgk
+	 KtxvfHRS8/LLt8mEMVwU77Egb7G+oXkS/1AZcwdFFUzXqdezHku4dti/xe3cj2F/0NtSU
+	 PGyp8D9OYfWxga8xlb2LH6XF3sjkc42SKHYIvPCe2ycasJNivhKCFRPhS21RzPxPZGzrA
+	 k96iDPRF0vLOh3rjThJ0ZeMxV7tTI3ukzS4CeqGISF8ziFcelCIlsoiYe12INxO/ENQ+b
+	 om6n1ZpxdBeLcL5qWktEciF3n4LDgChWm1WpAH3oFA6iWeMLbv0dkGmF8dTtDgFbREg==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
 	c=relaxed/relaxed; t=1794283265;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=zs6ukZfbAFX9b2vxcr0AVM9lrZdxCbvtGtCbdt2cNa8=;
-	b=Y8t0fImWuj+pvcSucpsF2iMF8WETr1oa3u6SBmbKkQ+e1HH7NchVjdJUPr0oZg/9tR/r
-	 K0970eaW8sWOaTuRcycCi/NQiZlpvwCoa/z3VApyQFKcpBomJ33NZK8xcWlY7S4YmjV6L
-	 u46TVGb95cm9ZVYz2A7KlK+iIblk9CwaRA3plg1DOOBoNxGXaAj31nyN5slcYJ9EVPICn
-	 yLwsYUwcNYBJMWGoOvXc5jeFQ9D8IN0H5HsBzEPGoKOMSJsuq8Vst4Vs3+sgHSFFraKRu
-	 VV0tp8w7ikf7QSmg2g8QA1fdiYPkzXqxsJXU+XK0+GI2EIx6i6KEz/4k1WgLTwfQ7zQ==
+	bh=fewmj+5C/6Me/LF8iKww4Vu3Of9bMNItha7qyi8zTms=;
+	b=NSQnSF+Km8fqtXPGHHJ5z9sAdgaENWGF+E/ACXO2rzWxg8DOX367WJ8vmqGOJamXZBAt
+	 6Wo6Gc1SpSgOwLFZ8BEk7ICiijnNvOA029D/3WWJkdUQMRFfbtiEw/sR5Po8f6DSS8VRp
+	 0HRc7OmV0tidPyJ9v8xHwJE9cEMKGG47FmLi4BWN9hWTruFJ/bRTukqozdB/p6ZboK9o4
+	 Xfmt/Kd2N9Md2zxafXpF4AHuoe7VGjY8oxoX/3QWoc44sOm6KemS++QsDedVaqH1+Uvcc
+	 +AtSNs9hkESHDjn3U/OWvnBHCPij0la/Rdqmu76Djpm57n6+BwVuYpwznxDTXsw6ZKw==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id CDEE61F00904;
-	Tue, 10 Nov 2026 04:01:02 +0000 (UTC)
+	by smtp.kernel.org (Postfix) with ESMTPS id 586AF1F008A5;
+	Tue, 10 Nov 2026 04:00:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1794283265;
-	bh=zs6ukZfbAFX9b2vxcr0AVM9lrZdxCbvtGtCbdt2cNa8=;
+	bh=fewmj+5C/6Me/LF8iKww4Vu3Of9bMNItha7qyi8zTms=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=XhyaIy/j90cFsOT8IKi3A1+exn6+TCn1MGblVg852uvUtfLU9pBOeU8KQ+PmNs3Jq
-	 yHZXH3Qa3ioWevDi/LVwTSAM4yDgLhaGXyd/unbGHw3S0SYU074FMFxdThdHiB0klf
-	 S6p7mtPgapWl126wtwiS5FOM8AerMM3fCJxncfIiwNiYl/rrOFi8gzz4Af9TQu+jVo
-	 N+7thMlToJFo8Z1mAzhNIsTUCcuvXiJ/QX13hLLXfKzx6XLvGgkDBYhc1XVOJi1iKb
-	 iuq5vjDstQFUI6rP/xto3F27CzrONENZAto/Rm2Nt1kLO8GPeoJFJzQgI8O3ZrQXZo
-	 FrfLhLsxiDWLw==
+	b=R3ADzmp5KNQcJeOG6dS0heV9Qk7kbq9Vg/wgqFpqKVO8u4N16kcHBzUycw9IICEYW
+	 sTjiJcu9Hr1n2Eu+11zh6T49NKzV6KfErgKoazATlQbwdA9Xsfye93z3CWxB9h8tb6
+	 PemyYY7gX0sOd0wwv06fnCBqyOVi7YZaNfNRTid7M5w7VLPKe5JjdJRMT5XgreeuN7
+	 Qgb68ZPdlXY3FHAQznF/HI/LTc8CpRzh7n6xrE3SBfxIBN4F2cCznwV0fUx7lNLrz4
+	 KT9Oh+B9seBsp2Oeinn5T+hGtjjgX5ngCRbVOjzI9Dq1uD34axuIw87xdC6kp8RlMg
+	 Y1MU4EWdTDP4w==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 5B0ED48824;
-	Tue, 10 Nov 2026 04:00:52 +0000 (UTC)
+	by lkml.kernel.org (Postfix) with ESMTP id ECD0048810;
+	Tue, 10 Nov 2026 04:00:51 +0000 (UTC)
 From: Eric Davis via B4 Relay <devnull+eric.davis.broadcom.com@kernel.org>
-Date: Mon, 09 Nov 2026 20:00:44 -0800
-Subject: [PATCH rdma-next v3 11/13] RDMA/core: extended memory registration
+Date: Mon, 09 Nov 2026 20:00:39 -0800
+Subject: [PATCH rdma-next v3 06/13] RDMA/core: query the semantics a queue
+ pair type guarantees
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -83,18 +84,18 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261109-uet-ib-core-v3-11-3e7e7ffed2e9@broadcom.com>
+Message-Id: <20261109-uet-ib-core-v3-6-3e7e7ffed2e9@broadcom.com>
 References: <20261109-uet-ib-core-v3-0-3e7e7ffed2e9@broadcom.com>
 In-Reply-To: <20261109-uet-ib-core-v3-0-3e7e7ffed2e9@broadcom.com>
 To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
 Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
  Eric Davis <eric.davis@broadcom.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1794283250; l=16788;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1794283250; l=11643;
  i=eric.davis@broadcom.com; s=20261014; h=from:subject:message-id;
- bh=/P1ZKVTCIQYFoDk1FAhmhsp0eJwheAwpJBooMc7LKmk=;
- b=3j1xiVPLFCvwHv72ftQJLkElOJIyQOFO/mogVu8W6t7Slj1iVqs1xkr85qbtG+MSzGtdq2it/
- bBKGCng5DxtCY40UAhBC4mLvkqPgoegFt8MhCXftS4AgpBiqlbrKoWV
+ bh=oMX6jG/3Q1z2gbxhOYM2cI5o2PCTqmobuskSNncOtos=;
+ b=UfZQkCO3WA4Vt52A7Ia9iOuALGmsC7zYSNlhRL8hOScfPxIRzHLxhQe54rPS7MJ542uHdjOUM
+ HAmvu+IBI8UCchEFl8lpQKBnym92m4fL3Q1bzAEq23ULArai4sz5S06
 X-Developer-Key: i=eric.davis@broadcom.com; a=ed25519;
  pk=uy3oCTOYBipIPjryXGMynBmtPvbO6qN2FOrduzpiI4A=
 X-Endpoint-Received: by B4 Relay for eric.davis@broadcom.com/20261014 with
@@ -105,504 +106,299 @@ Content-Transfer-Encoding: 7bit
 
 From: Eric Davis <eric.davis@broadcom.com>
 
-Memory registration for an unconnected transport may take more than an
-address and an access mask. A job to bind the region to, a key the caller
-chose, or a region carved out of another. None of it fits the write()
-command, so add a device method that takes the wider set of attributes
-and reach it when the ioctl carries any of these new fields.
-
-A region bound to a job holds a reference to its job key until it is
-deregistered.
+An unconnected transport orders far less than a connected one, and how
+much varies by device. Add a device method that reports, for a queue pair
+type, which operations it orders against which and up to what size the
+data stays in that order, the largest packet it puts on the wire, how
+wide an immediate it carries, and whether that immediate consumes a
+posted receive.
 
 Signed-off-by: Eric Davis <eric.davis@broadcom.com>
 ---
- drivers/infiniband/core/device.c              |   1 +
- drivers/infiniband/core/uverbs_cmd.c          |   7 +-
- drivers/infiniband/core/uverbs_std_types_mr.c | 187 +++++++++++++++++++++++++-
- drivers/infiniband/core/verbs.c               |   9 ++
- include/rdma/ib_verbs.h                       |  46 +++++++
- include/uapi/rdma/ib_user_ioctl_cmds.h        |   5 +
- include/uapi/rdma/ib_user_ioctl_verbs.h       |  10 ++
- 7 files changed, 260 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/device.c                  |  1 +
+ drivers/infiniband/core/uverbs.h                  | 13 ++++
+ drivers/infiniband/core/uverbs_std_types_device.c | 90 ++++++++++++++++++++++-
+ include/rdma/ib_verbs.h                           | 15 ++++
+ include/uapi/rdma/ib_user_ioctl_cmds.h            |  6 ++
+ include/uapi/rdma/ib_user_ioctl_verbs.h           | 65 ++++++++++++++++
+ 6 files changed, 189 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index cf2a59afcf76..fd45decf9c4f 100644
+index 7c65a9373701..8b1563de4726 100644
 --- a/drivers/infiniband/core/device.c
 +++ b/drivers/infiniband/core/device.c
-@@ -3028,6 +3028,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_DEVICE_OP(dev_ops, reg_dm_mr);
- 	SET_DEVICE_OP(dev_ops, reg_user_mr);
- 	SET_DEVICE_OP(dev_ops, reg_user_mr_dmabuf);
-+	SET_DEVICE_OP(dev_ops, reg_user_mr_ex);
- 	SET_DEVICE_OP(dev_ops, req_notify_cq);
- 	SET_DEVICE_OP(dev_ops, rereg_user_mr);
- 	SET_DEVICE_OP(dev_ops, resize_user_cq);
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index afe891e7b42d..fa9a02ef3070 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -731,6 +731,7 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs)
- 	mr->type    = IB_MR_TYPE_USER;
- 	mr->dm	    = NULL;
- 	mr->sig_attrs = NULL;
-+	ib_mr_init_core_refs(mr);
- 	mr->uobject = uobj;
- 	atomic_inc(&pd->usecnt);
- 	mr->iova = cmd.hca_va;
-@@ -790,7 +791,10 @@ static int ib_uverbs_rereg_mr(struct uverbs_attr_bundle *attrs)
- 
- 	mr = uobj->object;
- 
--	if (mr->dm) {
-+	/* A region bound to a job or to another region is re-created rather
-+	 * than re-registered, so those bindings can't be lost or bypassed.
-+	 */
-+	if (mr->dm || mr->jkey || mr->parent || atomic_read(&mr->usecnt)) {
- 		ret = -EINVAL;
- 		goto put_uobjs;
- 	}
-@@ -838,6 +842,7 @@ static int ib_uverbs_rereg_mr(struct uverbs_attr_bundle *attrs)
- 		new_mr->device = new_pd->device;
- 		new_mr->pd = new_pd;
- 		new_mr->type = IB_MR_TYPE_USER;
-+		ib_mr_init_core_refs(new_mr);
- 		new_mr->uobject = uobj;
- 		atomic_inc(&new_pd->usecnt);
- 		new_uobj->object = new_mr;
-diff --git a/drivers/infiniband/core/uverbs_std_types_mr.c b/drivers/infiniband/core/uverbs_std_types_mr.c
-index 0c72f801e0d3..8d281d13d210 100644
---- a/drivers/infiniband/core/uverbs_std_types_mr.c
-+++ b/drivers/infiniband/core/uverbs_std_types_mr.c
-@@ -40,8 +40,13 @@ static int uverbs_free_mr(struct ib_uobject *uobject,
- 			  enum rdma_remove_reason why,
- 			  struct uverbs_attr_bundle *attrs)
- {
--	return ib_dereg_mr_user((struct ib_mr *)uobject->object,
--				&attrs->driver_udata);
-+	struct ib_mr *mr = uobject->object;
-+
-+	/* regions derived from this one still use it */
-+	if (atomic_read(&mr->usecnt))
-+		return -EBUSY;
-+
-+	return ib_dereg_mr_user(mr, &attrs->driver_udata);
+@@ -3011,6 +3011,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
+ 	SET_DEVICE_OP(dev_ops, query_port);
+ 	SET_DEVICE_OP(dev_ops, query_port_speed);
+ 	SET_DEVICE_OP(dev_ops, query_qp);
++	SET_DEVICE_OP(dev_ops, query_qp_semantics);
+ 	SET_DEVICE_OP(dev_ops, query_srq);
+ 	SET_DEVICE_OP(dev_ops, query_ucontext);
+ 	SET_DEVICE_OP(dev_ops, rdma_netdev_get_params);
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 6aaac1c309f0..2160985f18e9 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -407,5 +407,18 @@ static inline void ib_uverbs_comp_dev(struct ib_uverbs_device *dev)
+ 	complete(&dev->comp);
  }
  
- static int UVERBS_HANDLER(UVERBS_METHOD_ADVISE_MR)(
-@@ -132,6 +137,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_DM_MR_REG)(
- 	mr->pd      = pd;
- 	mr->type    = IB_MR_TYPE_DM;
- 	mr->dm      = dm;
-+	ib_mr_init_core_refs(mr);
- 	mr->uobject = uobj;
- 	atomic_inc(&pd->usecnt);
- 	atomic_inc(&dm->usecnt);
-@@ -246,6 +252,9 @@ static int UVERBS_HANDLER(UVERBS_METHOD_REG_DMABUF_MR)(
- 	mr->device = pd->device;
- 	mr->pd = pd;
- 	mr->type = IB_MR_TYPE_USER;
-+	mr->iova = iova;
-+	mr->length = length;
-+	ib_mr_init_core_refs(mr);
- 	mr->uobject = uobj;
- 	atomic_inc(&pd->usecnt);
++/* the semantics fields, ordering bits and usage flags uverbs knows of */
++#define QP_SEMANTICS_MASK_ALL	((IB_UVERBS_QP_SEMANTICS_MASK_USAGE << 1) - 1)
++#define QP_ORDER_ALL		((IB_UVERBS_QP_ORDER_WAW << 1) - 1)
++#define QP_USAGE_ALL		IB_UVERBS_QP_USAGE_IMM_DATA_RQ
++
++/* the ordering bits each data-ordering size limits */
++#define QP_ORDER_RAW_SIZED	(IB_UVERBS_QP_ORDER_RDMA_RAW |	\
++				 IB_UVERBS_QP_ORDER_RAW)
++#define QP_ORDER_WAR_SIZED	(IB_UVERBS_QP_ORDER_RDMA_WAR |	\
++				 IB_UVERBS_QP_ORDER_WAR)
++#define QP_ORDER_WAW_SIZED	(IB_UVERBS_QP_ORDER_RDMA_WAW |	\
++				 IB_UVERBS_QP_ORDER_WAW)
++
  
-@@ -266,6 +275,118 @@ static int UVERBS_HANDLER(UVERBS_METHOD_REG_DMABUF_MR)(
- 	return ret;
- }
+ #endif /* UVERBS_H */
+diff --git a/drivers/infiniband/core/uverbs_std_types_device.c b/drivers/infiniband/core/uverbs_std_types_device.c
+index db65032e80b4..4fed4e79a3d2 100644
+--- a/drivers/infiniband/core/uverbs_std_types_device.c
++++ b/drivers/infiniband/core/uverbs_std_types_device.c
+@@ -591,6 +591,93 @@ DECLARE_UVERBS_NAMED_METHOD(
+ 			    UVERBS_ATTR_TYPE(u32),
+ 			    UA_OPTIONAL));
  
-+/* Attributes that an extended MR registration uses. The 64b wide keys are
-+ * not in the list as they are not a property of how the MR was registered
-+ * and instead a device property which could be used by an ordinary register.
++/* What a QP type guarantees on this device. Which operations it orders
++ * against, how large a packet it puts on the wire, how wide an immediate it
++ * carries.
 + */
-+static const u16 reg_mr_ext_attrs[] = {
-+	UVERBS_ATTR_REG_MR_FLAGS,
-+	UVERBS_ATTR_REG_MR_JKEY_HANDLE,
-+	UVERBS_ATTR_REG_MR_PARENT_MR_HANDLE,
-+	UVERBS_ATTR_REG_MR_DERIVE_CNT,
-+	UVERBS_ATTR_REG_MR_REQ_RKEY64,
-+};
-+
-+static bool reg_mr_has_ext_attrs(struct uverbs_attr_bundle *attrs)
++static int UVERBS_HANDLER(UVERBS_METHOD_QUERY_QP_SEMANTICS)(
++	struct uverbs_attr_bundle *attrs)
 +{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(reg_mr_ext_attrs); i++)
-+		if (uverbs_attr_is_valid(attrs, reg_mr_ext_attrs[i]))
-+			return true;
-+
-+	return false;
-+}
-+
-+static int reg_mr_ex_attr(struct uverbs_attr_bundle *attrs, struct ib_pd *pd,
-+			  struct ib_mr_ex_attr *ex)
-+{
-+	u64 caps = pd->device->attrs.device_cap_flags;
++	struct ib_uverbs_qp_semantics resp = {};
++	struct ib_qp_semantics sem = {};
++	struct ib_ucontext *ucontext;
++	struct ib_device *ib_dev;
++	enum ib_qp_type qp_type;
 +	int ret;
 +
-+	ret = uverbs_get_flags32(&ex->flags, attrs, UVERBS_ATTR_REG_MR_FLAGS,
-+				 (IB_UVERBS_REG_MR_USER_RKEY |
-+				  IB_UVERBS_REG_MR_IDEMPOTENT_SAFE));
++	ucontext = ib_uverbs_get_ucontext(attrs);
++	if (IS_ERR(ucontext))
++		return PTR_ERR(ucontext);
++	ib_dev = ucontext->device;
++
++	if (!ib_dev->ops.query_qp_semantics)
++		return -EOPNOTSUPP;
++
++	ret = uverbs_get_const(&qp_type, attrs,
++			       UVERBS_ATTR_QUERY_QP_SEMANTICS_QP_TYPE);
 +	if (ret)
 +		return ret;
 +
-+	if (uverbs_attr_is_valid(attrs, UVERBS_ATTR_REG_MR_JKEY_HANDLE)) {
-+		struct ib_jkey *jkey = uverbs_attr_get_obj(
-+			attrs, UVERBS_ATTR_REG_MR_JKEY_HANDLE);
-+
-+		if (IS_ERR(jkey))
-+			return PTR_ERR(jkey);
-+
-+		/* a key acts within the PD it was made on */
-+		if (jkey->pd != pd)
-+			return -EINVAL;
-+
-+		if (!(caps & (IB_DEVICE_MR_JOB_RESTRICTED |
-+			      IB_DEVICE_MR_QP_JOB_RESTRICTED)))
-+			return -EOPNOTSUPP;
-+
-+		ex->jkey = jkey;
-+	}
-+
-+	/* a region carved out of another, execute the range check */
-+	if (uverbs_attr_is_valid(attrs, UVERBS_ATTR_REG_MR_PARENT_MR_HANDLE)) {
-+		struct ib_mr *parent = uverbs_attr_get_obj(
-+			attrs, UVERBS_ATTR_REG_MR_PARENT_MR_HANDLE);
-+
-+		if (IS_ERR(parent))
-+			return PTR_ERR(parent);
-+
-+		if (parent->pd != pd || parent->type != IB_MR_TYPE_USER)
-+			return -EINVAL;
-+
-+		/* a window stays within its parent's job */
-+		if (parent->jkey &&
-+		    (!ex->jkey || ex->jkey->job != parent->jkey->job))
-+			return -EINVAL;
-+
-+		if ((ex->iova < parent->iova) ||
-+		    (ex->length > parent->length) ||
-+		    ((ex->iova - parent->iova) >
-+		     (parent->length - ex->length)))
-+			return -EINVAL;
-+
-+		ex->parent_mr = parent;
-+	}
-+
-+	if (uverbs_attr_is_valid(attrs, UVERBS_ATTR_REG_MR_DERIVE_CNT)) {
-+		ret = uverbs_copy_from(&ex->derive_cnt, attrs,
-+				       UVERBS_ATTR_REG_MR_DERIVE_CNT);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	if (ex->flags & IB_UVERBS_REG_MR_USER_RKEY) {
-+		if (!(caps & IB_DEVICE_USER_RKEY))
-+			return -EOPNOTSUPP;
-+
-+		ret = uverbs_copy_from(&ex->req_rkey64, attrs,
-+				       UVERBS_ATTR_REG_MR_REQ_RKEY64);
-+		if (ret)
-+			return ret;
-+
-+		if (ex->req_rkey64 > U32_MAX && !(caps & IB_DEVICE_KEY64))
-+			return -EOPNOTSUPP;
-+	} else if (uverbs_attr_is_valid(attrs,
-+					UVERBS_ATTR_REG_MR_REQ_RKEY64)) {
-+		/* a key with no flag to say it is the caller's */
-+		return -EINVAL;
-+	}
-+
-+	/* Idempotent-safe is a property of the key so it can only be asked
-+	 * for on a key the caller chose.
++	/* only the types userspace can create, less the driver type, whose
++	 * subtypes one answer can't describe
 +	 */
-+	if ((ex->flags & IB_UVERBS_REG_MR_IDEMPOTENT_SAFE) &&
-+	    !(ex->flags & IB_UVERBS_REG_MR_USER_RKEY))
++	switch (qp_type) {
++	case IB_UVERBS_QPT_RC:
++	case IB_UVERBS_QPT_UC:
++	case IB_UVERBS_QPT_UD:
++	case IB_UVERBS_QPT_RAW_PACKET:
++	case IB_UVERBS_QPT_XRC_INI:
++	case IB_UVERBS_QPT_XRC_TGT:
++	case IB_UVERBS_QPT_RU:
++		break;
++	default:
 +		return -EINVAL;
++	}
 +
-+	return 0;
++	ret = ib_dev->ops.query_qp_semantics(ib_dev, qp_type, &sem);
++	if (ret)
++		return ret;
++
++	/* only the fields, bits and flags uverbs knows of reach userspace */
++	resp.comp_mask = sem.comp_mask & QP_SEMANTICS_MASK_ALL;
++	if (resp.comp_mask & IB_UVERBS_QP_SEMANTICS_MASK_MSG_ORDER)
++		resp.msg_order = sem.msg_order & QP_ORDER_ALL;
++	if (resp.comp_mask & IB_UVERBS_QP_SEMANTICS_MASK_RAW)
++		resp.max_rdma_raw_size = sem.max_rdma_raw_size;
++	if (resp.comp_mask & IB_UVERBS_QP_SEMANTICS_MASK_WAR)
++		resp.max_rdma_war_size = sem.max_rdma_war_size;
++	if (resp.comp_mask & IB_UVERBS_QP_SEMANTICS_MASK_WAW)
++		resp.max_rdma_waw_size = sem.max_rdma_waw_size;
++	if (resp.comp_mask & IB_UVERBS_QP_SEMANTICS_MASK_PDU)
++		resp.max_pdu = sem.max_pdu;
++	if (resp.comp_mask & IB_UVERBS_QP_SEMANTICS_MASK_USAGE)
++		resp.usage_flags = sem.usage_flags & QP_USAGE_ALL;
++	if (resp.comp_mask & IB_UVERBS_QP_SEMANTICS_MASK_IMM)
++		resp.imm_data_size = sem.imm_data_size;
++
++	/* a pair whose data-ordering size is 0 is not ordered */
++	if (!resp.max_rdma_raw_size)
++		resp.msg_order &= ~QP_ORDER_RAW_SIZED;
++	if (!resp.max_rdma_war_size)
++		resp.msg_order &= ~QP_ORDER_WAR_SIZED;
++	if (!resp.max_rdma_waw_size)
++		resp.msg_order &= ~QP_ORDER_WAW_SIZED;
++
++	return uverbs_copy_to_struct_or_zero(
++		attrs, UVERBS_ATTR_QUERY_QP_SEMANTICS_RESP, &resp,
++		sizeof(resp));
 +}
 +
- static int UVERBS_HANDLER(UVERBS_METHOD_REG_MR)(
- 	struct uverbs_attr_bundle *attrs)
- {
-@@ -276,10 +397,12 @@ static int UVERBS_HANDLER(UVERBS_METHOD_REG_MR)(
- 	u32 valid_access_flags = IB_ACCESS_SUPPORTED;
- 	u64 length, iova, fd_offset = 0, addr = 0;
- 	struct ib_device *ib_dev = pd->device;
-+	struct ib_mr_ex_attr ex = { .fd = -1 };
- 	struct ib_dmah *dmah = NULL;
- 	bool has_fd_offset = false;
- 	bool has_addr = false;
- 	bool has_fd = false;
-+	bool has_ext;
- 	u32 access_flags;
- 	struct ib_mr *mr;
- 	int fd;
-@@ -293,6 +416,10 @@ static int UVERBS_HANDLER(UVERBS_METHOD_REG_MR)(
- 	if (ret)
- 		return ret;
- 
-+	has_ext = reg_mr_has_ext_attrs(attrs);
-+	if (has_ext && !ib_dev->ops.reg_user_mr_ex)
-+		return -EOPNOTSUPP;
++DECLARE_UVERBS_NAMED_METHOD(
++	UVERBS_METHOD_QUERY_QP_SEMANTICS,
++	UVERBS_ATTR_CONST_IN(UVERBS_ATTR_QUERY_QP_SEMANTICS_QP_TYPE,
++			     enum ib_uverbs_qp_type,
++			     UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_QUERY_QP_SEMANTICS_RESP,
++			    UVERBS_ATTR_STRUCT(struct ib_uverbs_qp_semantics,
++					       imm_data_size),
++			    UA_MANDATORY));
 +
- 	if (uverbs_attr_is_valid(attrs, UVERBS_ATTR_REG_MR_ADDR)) {
- 		ret = uverbs_copy_from(&addr, attrs,
- 				       UVERBS_ATTR_REG_MR_ADDR);
-@@ -318,7 +445,8 @@ static int UVERBS_HANDLER(UVERBS_METHOD_REG_MR)(
- 	}
+ DECLARE_UVERBS_GLOBAL_METHODS(UVERBS_OBJECT_DEVICE,
+ 			      &UVERBS_METHOD(UVERBS_METHOD_GET_CONTEXT),
+ 			      &UVERBS_METHOD(UVERBS_METHOD_INVOKE_WRITE),
+@@ -600,7 +687,8 @@ DECLARE_UVERBS_GLOBAL_METHODS(UVERBS_OBJECT_DEVICE,
+ 			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_CONTEXT),
+ 			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_GID_TABLE),
+ 			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_GID_ENTRY),
+-			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_COMP_CNTR_CAPS));
++			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_COMP_CNTR_CAPS),
++			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_QP_SEMANTICS));
  
- 	if (has_fd) {
--		if (!ib_dev->ops.reg_user_mr_dmabuf)
-+		/* an extended registration hands the fd to reg_user_mr_ex */
-+		if (!has_ext && !ib_dev->ops.reg_user_mr_dmabuf)
- 			return -EOPNOTSUPP;
- 
- 		/* FD requires offset and can't come with addr */
-@@ -358,7 +486,27 @@ static int UVERBS_HANDLER(UVERBS_METHOD_REG_MR)(
- 	if (ret)
- 		return ret;
- 
--	if (has_fd)
-+	if (has_ext) {
-+		ex.addr = addr;
-+		ex.length = length;
-+		ex.iova = iova;
-+		ex.access_flags = access_flags;
-+		ex.dmah = dmah;
-+		if (has_fd) {
-+			/* -1 already names host memory to the driver */
-+			if (fd < 0)
-+				return -EBADF;
-+			ex.fd = fd;
-+			ex.fd_offset = fd_offset;
-+		}
-+
-+		ret = reg_mr_ex_attr(attrs, pd, &ex);
-+		if (ret)
-+			return ret;
-+
-+		mr = pd->device->ops.reg_user_mr_ex(pd, &ex,
-+						    &attrs->driver_udata);
-+	} else if (has_fd)
- 		mr = pd->device->ops.reg_user_mr_dmabuf(pd, fd_offset, length,
- 							iova, fd, access_flags,
- 							dmah, attrs);
-@@ -373,12 +521,26 @@ static int UVERBS_HANDLER(UVERBS_METHOD_REG_MR)(
- 	mr->device = pd->device;
- 	mr->pd = pd;
- 	mr->type = IB_MR_TYPE_USER;
-+	mr->iova = iova;
-+	mr->length = length;
-+	ib_mr_init_core_refs(mr);
- 	mr->uobject = uobj;
- 	atomic_inc(&pd->usecnt);
- 	if (dmah) {
- 		mr->dmah = dmah;
- 		atomic_inc(&dmah->usecnt);
- 	}
-+
-+	/* hold a reference to the job key, deregistration will drop it */
-+	mr->jkey = ex.jkey;
-+	if (ex.jkey)
-+		atomic_inc(&ex.jkey->usecnt);
-+
-+	/* and to the region this one was derived from */
-+	mr->parent = ex.parent_mr;
-+	if (ex.parent_mr)
-+		atomic_inc(&ex.parent_mr->usecnt);
-+
- 	rdma_restrack_new(&mr->res, RDMA_RESTRACK_MR);
- 	rdma_restrack_set_name(&mr->res, NULL);
- 	rdma_restrack_add(&mr->res);
-@@ -529,6 +691,23 @@ DECLARE_UVERBS_NAMED_METHOD(
- 	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_REG_MR_RESP_RKEY,
- 			    UVERBS_ATTR_TYPE(u32),
- 			    UA_MANDATORY),
-+	UVERBS_ATTR_FLAGS_IN(UVERBS_ATTR_REG_MR_FLAGS,
-+			     enum ib_uverbs_reg_mr_flags,
-+			     UA_OPTIONAL),
-+	UVERBS_ATTR_IDR(UVERBS_ATTR_REG_MR_JKEY_HANDLE,
-+			UVERBS_OBJECT_JKEY,
-+			UVERBS_ACCESS_READ,
-+			UA_OPTIONAL),
-+	UVERBS_ATTR_IDR(UVERBS_ATTR_REG_MR_PARENT_MR_HANDLE,
-+			UVERBS_OBJECT_MR,
-+			UVERBS_ACCESS_READ,
-+			UA_OPTIONAL),
-+	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_REG_MR_DERIVE_CNT,
-+			   UVERBS_ATTR_TYPE(u32),
-+			   UA_OPTIONAL),
-+	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_REG_MR_REQ_RKEY64,
-+			   UVERBS_ATTR_TYPE(u64),
-+			   UA_OPTIONAL),
- 	UVERBS_ATTR_UHW());
- 
- DECLARE_UVERBS_NAMED_METHOD_DESTROY(
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 9359318141b7..a80d750777f4 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -2374,6 +2374,7 @@ struct ib_mr *ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	mr->type = IB_MR_TYPE_USER;
- 	mr->pd = pd;
- 	mr->dm = NULL;
-+	ib_mr_init_core_refs(mr);
- 	atomic_inc(&pd->usecnt);
- 	mr->iova =  virt_addr;
- 	mr->length = length;
-@@ -2405,6 +2406,8 @@ int ib_dereg_mr_user(struct ib_mr *mr, struct ib_udata *udata)
- 	struct ib_pd *pd = mr->pd;
- 	struct ib_dm *dm = mr->dm;
- 	struct ib_dmah *dmah = mr->dmah;
-+	struct ib_jkey *jkey = mr->jkey;
-+	struct ib_mr *parent = mr->parent;
- 	struct ib_sig_attrs *sig_attrs = mr->sig_attrs;
- 	int ret;
- 
-@@ -2417,6 +2420,10 @@ int ib_dereg_mr_user(struct ib_mr *mr, struct ib_udata *udata)
- 			atomic_dec(&dm->usecnt);
- 		if (dmah)
- 			atomic_dec(&dmah->usecnt);
-+		if (jkey)
-+			atomic_dec(&jkey->usecnt);
-+		if (parent)
-+			atomic_dec(&parent->usecnt);
- 		kfree(sig_attrs);
- 	}
- 
-@@ -2464,6 +2471,7 @@ struct ib_mr *ib_alloc_mr(struct ib_pd *pd, enum ib_mr_type mr_type,
- 	mr->need_inval = false;
- 	mr->type = mr_type;
- 	mr->sig_attrs = NULL;
-+	ib_mr_init_core_refs(mr);
- 
- 	rdma_restrack_new(&mr->res, RDMA_RESTRACK_MR);
- 	rdma_restrack_parent_name(&mr->res, &pd->res);
-@@ -2525,6 +2533,7 @@ struct ib_mr *ib_alloc_mr_integrity(struct ib_pd *pd,
- 	mr->need_inval = false;
- 	mr->type = IB_MR_TYPE_INTEGRITY;
- 	mr->sig_attrs = sig_attrs;
-+	ib_mr_init_core_refs(mr);
- 
- 	rdma_restrack_new(&mr->res, RDMA_RESTRACK_MR);
- 	rdma_restrack_parent_name(&mr->res, &pd->res);
+ const struct uapi_definition uverbs_def_obj_device[] = {
+ 	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(UVERBS_OBJECT_DEVICE),
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 8be766b80ce0..07fd5731d458 100644
+index 68f7a271cf7a..003b70424429 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -2084,6 +2084,13 @@ struct ib_mr {
- 		struct list_head	qp_entry;	/* FR */
- 	};
- 
-+	/* the job this region is restricted to, NULL if it is unrestricted */
-+	struct ib_jkey	  *jkey;
-+	/* the region this one was derived from, NULL if registered fresh */
-+	struct ib_mr	  *parent;
-+	/* regions derived from this one that are still registered */
-+	atomic_t	   usecnt;
-+
- 	struct ib_dm      *dm;
- 	struct ib_sig_attrs *sig_attrs; /* only for IB_MR_TYPE_INTEGRITY MRs */
- 	struct ib_dmah *dmah;
-@@ -2098,6 +2105,28 @@ struct ib_mr {
- 	struct rdma_restrack_entry res;
+@@ -2496,6 +2496,18 @@ struct ib_counters {
+ 	atomic_t	usecnt;
  };
  
-+struct ib_mr_ex_attr {
-+	u64			addr;
-+	u64			length;
-+	u64			iova;
-+	u32			access_flags;	/* enum ib_access_flags */
-+	u32			flags;		/* enum ib_uverbs_reg_mr_flags */
-+	int			fd;		/* -1 = host memory addr */
-+	u64			fd_offset;
-+	struct ib_dmah		*dmah;
-+	/* bind the region to a job, NULL leaves it unrestricted */
-+	struct ib_jkey		*jkey;
-+	/* carve/derive the region out of this one, NULL registers fresh. The
-+	 * driver refuses a region outside the parent's memory, or with access
-+	 * the parent lacks.
-+	 */
-+	struct ib_mr		*parent_mr;
-+	/* how many regions the user expects to derive from this one */
-+	u32			derive_cnt;
-+	/* the key the user chose, valid with IB_UVERBS_REG_MR_USER_RKEY */
-+	u64			req_rkey64;
++/* what a queue pair of a given type guarantees (query_qp_semantics) */
++struct ib_qp_semantics {
++	u32	comp_mask;		/* enum ib_uverbs_qp_semantics_mask */
++	u32	msg_order;		/* enum ib_uverbs_qp_msg_order */
++	u32	max_rdma_raw_size;
++	u32	max_rdma_war_size;
++	u32	max_rdma_waw_size;
++	u32	max_pdu;
++	u32	usage_flags;		/* enum ib_uverbs_qp_usage_flags */
++	u8	imm_data_size;		/* bits */
 +};
 +
- struct ib_mw {
- 	struct ib_device	*device;
- 	struct ib_pd		*pd;
-@@ -2813,6 +2842,9 @@ struct ib_device_ops {
- 				       u64 length, u64 virt_addr,
+ struct ib_counters_read_attr {
+ 	u64	*counters_buff;
+ 	u32	ncounters;
+@@ -2751,6 +2763,9 @@ struct ib_device_ops {
  				       int mr_access_flags, struct ib_pd *pd,
  				       struct ib_udata *udata);
-+	struct ib_mr *(*reg_user_mr_ex)(struct ib_pd *pd,
-+					struct ib_mr_ex_attr *attr,
-+					struct ib_udata *udata);
  	int (*dereg_mr)(struct ib_mr *mr, struct ib_udata *udata);
- 	int (*query_qp_semantics)(struct ib_device *device,
- 				  enum ib_qp_type qp_type,
-@@ -4818,6 +4850,20 @@ static inline u32 ib_inc_rkey(u32 rkey)
- 	return ((rkey + 1) & mask) | (rkey & ~mask);
- }
- 
-+/**
-+ * ib_mr_init_core_refs - clears what core reads back when an MR is
-+ *   deregistered.
-+ * @mr: struct ib_mr pointer to initialize.
-+ *
-+ * A driver's MR need not be zeroed, so every path that makes an MR calls this.
-+ */
-+static inline void ib_mr_init_core_refs(struct ib_mr *mr)
-+{
-+	mr->jkey = NULL;
-+	mr->parent = NULL;
-+	atomic_set(&mr->usecnt, 0);
-+}
-+
- /**
-  * ib_attach_mcast - Attaches the specified QP to a multicast group.
-  * @qp: QP to attach to the multicast group.  The QP must be type
++	int (*query_qp_semantics)(struct ib_device *device,
++				  enum ib_qp_type qp_type,
++				  struct ib_qp_semantics *sem);
+ 	struct ib_mr *(*alloc_mr)(struct ib_pd *pd, enum ib_mr_type mr_type,
+ 				  u32 max_num_sg);
+ 	struct ib_mr *(*alloc_mr_integrity)(struct ib_pd *pd,
 diff --git a/include/uapi/rdma/ib_user_ioctl_cmds.h b/include/uapi/rdma/ib_user_ioctl_cmds.h
-index 1de6a1ffd92c..fd8372c0c550 100644
+index 40fcd4bd1b5e..fb746257eb2c 100644
 --- a/include/uapi/rdma/ib_user_ioctl_cmds.h
 +++ b/include/uapi/rdma/ib_user_ioctl_cmds.h
-@@ -369,6 +369,11 @@ enum uverbs_attrs_reg_mr_cmd_attr_ids {
- 	UVERBS_ATTR_REG_MR_FD_OFFSET,
- 	UVERBS_ATTR_REG_MR_RESP_LKEY,
- 	UVERBS_ATTR_REG_MR_RESP_RKEY,
-+	UVERBS_ATTR_REG_MR_FLAGS,
-+	UVERBS_ATTR_REG_MR_JKEY_HANDLE,
-+	UVERBS_ATTR_REG_MR_PARENT_MR_HANDLE,
-+	UVERBS_ATTR_REG_MR_DERIVE_CNT,
-+	UVERBS_ATTR_REG_MR_REQ_RKEY64,
- };
- 
- enum uverbs_attrs_create_counters_cmd_attr_ids {
-diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index 9ae45f7d3dc0..c0532fa418a7 100644
---- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -303,6 +303,16 @@ struct ib_uverbs_buffer_desc {
- 	__aligned_u64 length;
- };
- 
-+/* Extended memory registration, for devices whose memory keys are 64 bits
-+ * wide and may be bound to a job. See UVERBS_ATTR_REG_MR_FLAGS.
-+ */
-+enum ib_uverbs_reg_mr_flags {
-+	/* REQ_RKEY64 carries the key, rather than the device assigning one */
-+	IB_UVERBS_REG_MR_USER_RKEY		= 1 << 0,
-+	/* the region tolerates a replayed idempotent operation */
-+	IB_UVERBS_REG_MR_IDEMPOTENT_SAFE	= 1 << 1,
+@@ -77,6 +77,12 @@ enum uverbs_methods_device {
+ 	UVERBS_METHOD_QUERY_GID_ENTRY,
+ 	UVERBS_METHOD_QUERY_PORT_SPEED,
+ 	UVERBS_METHOD_QUERY_COMP_CNTR_CAPS,
++	UVERBS_METHOD_QUERY_QP_SEMANTICS,
 +};
 +
- /* A UET reliable unconnected queue pair number uses all 32 bits:
-  *
-  *	[ absolute 1b | reserved 7b | resource index 12b | PIDonFEP 12b ]
++enum uverbs_attrs_query_qp_semantics_attr_ids {
++	UVERBS_ATTR_QUERY_QP_SEMANTICS_QP_TYPE,
++	UVERBS_ATTR_QUERY_QP_SEMANTICS_RESP,
+ };
+ 
+ enum uverbs_attrs_invoke_write_cmd_attr_ids {
+diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
+index 4975771290eb..9ae45f7d3dc0 100644
+--- a/include/uapi/rdma/ib_user_ioctl_verbs.h
++++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
+@@ -323,6 +323,52 @@ struct ib_uverbs_buffer_desc {
+ #define IB_UVERBS_QPN_UET_RESERVED_MASK		0x7f000000
+ #define IB_UVERBS_QPN_UET_ABSOLUTE_ADDR_BIT	0x80000000
+ 
++enum ib_uverbs_qp_semantics_mask {
++	IB_UVERBS_QP_SEMANTICS_MASK_MSG_ORDER	= 1 << 0,
++	IB_UVERBS_QP_SEMANTICS_MASK_RAW		= 1 << 1,
++	IB_UVERBS_QP_SEMANTICS_MASK_WAR		= 1 << 2,
++	IB_UVERBS_QP_SEMANTICS_MASK_WAW		= 1 << 3,
++	IB_UVERBS_QP_SEMANTICS_MASK_PDU		= 1 << 4,
++	IB_UVERBS_QP_SEMANTICS_MASK_IMM		= 1 << 5,
++	IB_UVERBS_QP_SEMANTICS_MASK_USAGE	= 1 << 6,
++};
++
++/* Ordering guarantees between operations on one QP. "X after Y" means an
++ * X may not pass a Y posted before it. A bit that is clear means the pair
++ * does not order that combination, and an application that needs it must
++ * wait for the earlier completion.
++ */
++enum ib_uverbs_qp_msg_order {
++	/* atomic after atomic */
++	IB_UVERBS_QP_ORDER_ATOMIC_RAR	= 1 << 0,
++	IB_UVERBS_QP_ORDER_ATOMIC_RAW	= 1 << 1,
++	IB_UVERBS_QP_ORDER_ATOMIC_WAR	= 1 << 2,
++	IB_UVERBS_QP_ORDER_ATOMIC_WAW	= 1 << 3,
++	/* rma after rma */
++	IB_UVERBS_QP_ORDER_RDMA_RAR	= 1 << 4,
++	IB_UVERBS_QP_ORDER_RDMA_RAW	= 1 << 5,
++	IB_UVERBS_QP_ORDER_RDMA_WAR	= 1 << 6,
++	IB_UVERBS_QP_ORDER_RDMA_WAW	= 1 << 7,
++	/* send against send, rma and atomic */
++	IB_UVERBS_QP_ORDER_RAS		= 1 << 8,
++	IB_UVERBS_QP_ORDER_SAR		= 1 << 9,
++	IB_UVERBS_QP_ORDER_SAS		= 1 << 10,
++	IB_UVERBS_QP_ORDER_SAW		= 1 << 11,
++	IB_UVERBS_QP_ORDER_WAS		= 1 << 12,
++	/* rma or atomic against rma or atomic, in any mix, so each also
++	 * covers its RDMA_ and ATOMIC_ bit
++	 */
++	IB_UVERBS_QP_ORDER_RAR		= 1 << 13,
++	IB_UVERBS_QP_ORDER_RAW		= 1 << 14,
++	IB_UVERBS_QP_ORDER_WAR		= 1 << 15,
++	IB_UVERBS_QP_ORDER_WAW		= 1 << 16,
++};
++
++enum ib_uverbs_qp_usage_flags {
++	/* immediate data consumes a posted receive */
++	IB_UVERBS_QP_USAGE_IMM_DATA_RQ	= 1 << 0,
++};
++
+ /* An address handle that names a peer using both transport+network addresses.
+  * Used for reliable unconnected QPs in both work request address handles and
+  * a Job address table.
+@@ -332,6 +378,25 @@ struct ib_uverbs_ah_attr_ex {
+ 	__u32 remote_qpn;
+ };
+ 
++struct ib_uverbs_qp_semantics {
++	__u32 comp_mask;		/* enum ib_uverbs_qp_semantics_mask */
++	__u32 msg_order;		/* enum ib_uverbs_qp_msg_order */
++	/*
++	 * Data ordering: the largest transfer, in bytes, for which the target
++	 * memory reflects the order of the pair under its RDMA_ and plain
++	 * msg_order bits. 0 if not provided, and those bits are then clear.
++	 * The sizes don't limit the ATOMIC_ bits. There is no read-after-read
++	 * size, as two reads leave memory unchanged.
++	 */
++	__u32 max_rdma_raw_size;	/* read after write */
++	__u32 max_rdma_war_size;	/* write after read */
++	__u32 max_rdma_waw_size;	/* write after write */
++	__u32 max_pdu;			/* largest packet, bytes */
++	__u32 usage_flags;		/* enum ib_uverbs_qp_usage_flags */
++	__u8  imm_data_size;		/* widest immediate, in bits */
++	__u8  reserved[3];
++};
++
+ enum ib_uverbs_comp_cntr_entry {
+ 	IB_UVERBS_COMP_CNTR_ENTRY_COMP,
+ 	IB_UVERBS_COMP_CNTR_ENTRY_ERR,
 
 -- 
 2.56.0
