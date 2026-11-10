@@ -1,108 +1,47 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794308427;
-	b=mZxtJdntsdIk9Lud6HVGSKexwcUBUsCnn8RIMQ/1ECVkuYhO1CrSaTkj3aDWd7gHx0Uf
-	 X+S8k2PEFz9ePjhYc9c3L90w4L9cb2yHZF4Qi5qEMVTNQWlJQeZ9oTr6SkKJCnGl+wONH
-	 d8Hbd35AsO8XdszjePJOOQyLQcbas8ES/zPKUNEKSJZ5m4dmX/R5vMCe4Eb+hAnx3t4jz
-	 g4RR3gVpPy2jaAzo0aMDLP9BQl0zQ7lPRhDlpmqngDSqspSUvl92mQ3IIm0vkjQu8lnwM
-	 GSmxoZAdImMTmfynJBrGACBjMH/MjE/JW9vgiRxDB8C4/JrcJ58U2WgxpXKg/bc4oxg==
+	t=1794310098;
+	b=K22t4274AhAO3XoN28g7i4MbbWIerbTWu9Jr4/C7s43Cvl5ZADWnIRZ27S/Mf4JyVZZ0
+	 fxxVRir7WO+HL5Ua/1d3WxbTCrwXlCaJrgkdsNrogLHUQGzH8EaSIQVWLcNfjWuMtiuJY
+	 F2vyh+wk6XvxHhHW54GNrVPnB2aCZrtRnjBaKC/L1hdJ5GbZN7ukkn7Y+y5Pk+Ru1UJ3r
+	 BFO3LsPjT5ZxhvMdK5JWyccRGmxMogTA/9wA7gohnEkiiQ0aBBwsQ2nCvIZk+nNyEaY1h
+	 7pVHYjnmh5rob+W6NhLVLIiRistuWEVljzuqvkdwSHgH4ELSKEV4B6d149rqrinUj6A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794308427;
-	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
-	 X-Mimecast-MFC-AGG-ID:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 X-Received:Received:Message-ID:Date:MIME-Version:User-Agent:Subject:
-	 To:Cc:References:Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=PvjZgTETpTgpa2EwGhWe6LWOvKhagS++4LBHee0TILc=;
-	b=tARvYMR/yG9pyLCI1cUcn/BTTvUKq1z3NFULkdSbv6sn4ycaeL/LqtSToQUEXvAcuH/0
-	 izZdi+T9TAo9Tboz0WQ7rij2wc3B6m/3NUIGccgpsoXks5yDQYZk64Z0Yc5SjfKw8WbVZ
-	 nBFPndjt7sETzy0ZA9RDb5sxvboRY2I4+ljNzt9Z9mu4gIfKwNg9T5L2F/0TUIJ3PuWLj
-	 hR4FvDE3q7BlK3sx49haODuUel+VmDSW7uP+7fxHD4EzWkK6rrhPKwONQP4yArrHYM795
-	 0Y+wukdsTu1nVLrSrsQSQ2ih9yxb8krknSUIOQLH933BSYPcd1BbGQJ506JGUuw56+A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794310098;
+	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:Content-Language:To:Cc:References:From:Autocrypt:Organization:
+	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	bh=Bow83wIczwiYl+mYNYisPcBsNVqLXF/ekH8fXtAJVuI=;
+	b=h0SevbFsdJemG+3oXqjiA8a2+gtxr2gBleTipfwHqX22JlqfJSiqu18Vy1PouNlchpB6
+	 MWuYZun5GLHdZAIMsaeK9RmdPp7r553zpE5RHDIY44500WN7xwEGsF4lOmNa+ZpJJTNye
+	 ViFYhAljQoXF+WTTk+OXNKqEzCeomKK4f784i/7Oy2MVGkals/sHkXJM0zzqwjObU92WE
+	 HSGA3o2VJGsVCS4Ufh9qPu0M0uNvMxffCQj4kbpg8hT83VjIgUpvaeGV0hmjJ9mfNmLCH
+	 8du29KiwWEN89e/rjjFVt7FuCIfanhm9edw/rDXWZWqY86IR7TDMQPkcJdZt800JMIg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=redhat.com;
-	spf=pass smtp.mailfrom=redhat.com;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b="Zx/tcHns";
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=aGxW5UwB;
-	arc=none smtp.remote-ip=170.10.133.124
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dDeiScvo;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA51360A2602
-	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 11:00:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EA51360A2602
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F74F606A32E;
+	Tue, 10 Nov 2026 11:28:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=Zx/tcHns;
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=aGxW5UwB
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1794308426;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=PvjZgTETpTgpa2EwGhWe6LWOvKhagS++4LBHee0TILc=;
-	b=Zx/tcHnsXU9bYCgwbuuA9BbmlMfKI/eHN1oFfmH5LlJ8HukocX3M0vvkvlvbIQ5kYqtUGv
-	TIf+TARp658IlpyeufgyYBxCVJoCe2NeHgBybCXv6tX3y/l+ipcaRs79Uh7281DfS9Zrbf
-	NmHeUKJ8imdxNFCc2UHzcqjVcqBeK4s=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-220-zy-4tdi_OsKEuVIphyXIlw-1; Tue, 10 Nov 2026 06:00:24 -0500
-X-MC-Unique: zy-4tdi_OsKEuVIphyXIlw-1
-X-Mimecast-MFC-AGG-ID: zy-4tdi_OsKEuVIphyXIlw_1794308423
-Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-49953abe51fso14113555e9.1
-        for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 03:00:24 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1794308423; x=1794913223; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=PvjZgTETpTgpa2EwGhWe6LWOvKhagS++4LBHee0TILc=;
-        b=aGxW5UwBL6Ch2N3+dvQ6/Gppqp/AubIefTtK1oM3wugrAIpPyZzt2Bc7oCP3J56nNS
-         koFRcyDesiB0ooi2zC3h8Cy+VEP00ezo9CrpMDD/jL9ZM/mZX9b0m9mUJoK/uYrRDOJO
-         lMZZ1XymsknXqIt4b2kfOBX4WB47oQRsZmxyljE6R6Am5ygN1EC7vFhNLmXHVeQRC75D
-         4L2nHFIYw1AvJqg/MpE9bX2xP2cyojHTSk0tNth/8igEtkLQcoCStUHYWJrqJ13CS+nv
-         1rm81pej5a8HH/DpRIFnvfM2YSdujniYSkP190FegldAVTnjJl++jp9k9Jxm+lMrXPK2
-         FaGg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794308423; x=1794913223;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=PvjZgTETpTgpa2EwGhWe6LWOvKhagS++4LBHee0TILc=;
-        b=qQfv/k2UreJAt8mty1TiD8aIbRW0kJxOXXg1YCc8raWllD6WMPvSeYsmdkV8ffYlDi
-         38ylmfS+/xzolYtr5dxiKlx6/GfQctOtc1gmWIgagqmCNFbEaGHqbq/bHzFFVoByPFGZ
-         e+bvjC7rm1VAJfWeFpH8mKqzJkoPmGwvhEwtNvCxbt6xoy6qY0Dw5cpz7nL8PQ3IEPg/
-         OVWEo0YHbKzttnT8A/zD3wsAvOf0YgK0hXi68pDOSTVbT/cxyX5iRV+Jw7I9/8GYGce0
-         axEDLa0qiEGlTdNgqWznrbB5QLlawFBA+5nArm/wGcYJNy+FgqGHeoPk/UPEERWG4Jzd
-         ncUQ==
-X-Forwarded-Encrypted: i=1; AL+hErE0T77FEdnhNdUMtY8W1RGEsxYb/ArwjXoRwbRCKKN/9i5gv0jYwjiWyxDrsuLy/KnC46Jf+z6AW/eN@vger.kernel.org
-X-Gm-Message-State: APuU4Z8hT/Q5DYbu6plMKRGqugshJ35qzFGkMoWd7UuFgzZPPmbq6Zr9
-	hAoYbhgCrETtPlBFVgnU/vs0TBKgtF1by62txbctS3PlzQ6/k0H63p+8XncYAeccab6sP/nOa62
-	VHNWS15/lg4G+cto78Xt+XwUbD/ET15JP2dqHgK1dx6Thl/f05+VairJlc0YGyUE=
-X-Gm-Gg: AYBFou305f2D4ZT/m31+/t1pSd5YyhGaXUqt5OlCKY1ypymnPgXll/Im1TeOL9R4QNG
-	gmPEVfDT65ZEi4AvLrguv8JtngAkiVsXKz4knIEV7sYj9MPXrLS9hYCJD9aQ/HNyAYy2iP71vYN
-	5yWUXZMXwgUhyGi8WB60m58oNENeSCGE1bhooGhwni73GnRYGwqsCkl5I5rXva0r6hMbmrwFcsi
-	s+dgmr9CATqD9nZxS/FOaMs73gDtHXF4pszK7HoVtNOkc5v098gO28J1oGJEbEPeWQ/GaXaTQt6
-	cDc5a7h/lw1+2WkRwPvp6DTr+/yQoj+CAOcZhREJIsE1u+vplpr3UEN7lhO6B5CEmfrfJJp6rv1
-	ecz4RilVhGJ6WqrJduFYbN1XOfXULMEz637zlvQPr93V0T+cJ6SrCWGd2fgtUvTsigaRMSzncM6
-	pMfEyJURUfdYxuLfNp7+YNaFfsMKsk11ExiFOqUw6U1mnF
-X-Received: by 2002:a05:600c:6095:b0:4b2:3c81:d1 with SMTP id 5b1f17b1804b1-4ba02336388mr36938145e9.5.1794308422273;
-        Tue, 10 Nov 2026 03:00:22 -0800 (PST)
-X-Received: by 2002:a05:600c:6095:b0:4b2:3c81:d1 with SMTP id 5b1f17b1804b1-4ba02336388mr36936355e9.5.1794308420789;
-        Tue, 10 Nov 2026 03:00:20 -0800 (PST)
-Received: from [192.168.88.30] (ip231-128-192-82.pool-bba.aruba.it. [82.192.128.231])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4ba0204e22csm52154425e9.12.2026.11.10.03.00.17
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 10 Nov 2026 03:00:18 -0800 (PST)
-Message-ID: <e15d78be-1e80-469d-96e1-dd83cd90a929@redhat.com>
-Date: Tue, 10 Nov 2026 12:00:16 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dDeiScvo
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2808E1F008A1;
+	Tue, 10 Nov 2026 11:28:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794310097;
+	bh=Bow83wIczwiYl+mYNYisPcBsNVqLXF/ekH8fXtAJVuI=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=dDeiScvozPtJL2n8qM+O8IYSe4tDr75pEKgeDQV/2HtafsTURojPSPpvFqmo1cN2s
+	 GNA4CAxFdnwnUocGJO/qkY33Wkvh0iDQp0ti8/bl7tM6+cAE9Im6fH1wkgORmxv7pT
+	 /S4BrOAaIH0J1PG7YF+XMYDaCFdQvToy8iw0IssbHfxidsoHXgcOXQuRjh46ndqltW
+	 NaTufVAhNVRcEw9a/2txcKtAOUtXBDjh0dxAReVTdLVenPqGQhEHuFaY+JL6er0vAm
+	 UJjsI7NNM6mTUthKYkQvyQBwAByiK1w3j6G37bIPZu/ksTBjjoa7b8kHtqbcmrHbrs
+	 EEaMiN0YqAZ8Q==
+Message-ID: <35051734-9f07-47f3-88c6-f603b8263df6@kernel.org>
+Date: Tue, 10 Nov 2026 12:28:01 +0100
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -112,83 +51,113 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next 05/15] net/mlx5: LAG, decouple iteration
- end-of-walk from MLX5_MAX_PORTS
-To: Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
- Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org
-Cc: Akiva Goldberger <agoldberger@nvidia.com>,
- Carolina Jubran <cjubran@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>,
- Edward Srouji <edwards@nvidia.com>, Gal Pressman <gal@nvidia.com>,
- Leon Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
- linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
- Moshe Shemesh <moshe@nvidia.com>, Or Har-Toov <ohartoov@nvidia.com>,
- Patrisious Haddad <phaddad@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>,
- Shay Drory <shayd@nvidia.com>
-References: <20261103171009.563034-1-tariqt@nvidia.com>
- <20261103171009.563034-6-tariqt@nvidia.com>
-Content-Language: en-US
-From: Paolo Abeni <pabeni@redhat.com>
-In-Reply-To: <20261103171009.563034-6-tariqt@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+User-Agent: Mozilla Thunderbird Beta
+Subject: Re: [PATCH net-next 07/14] mptcp: annotate data-races around pernet
+ sysctls
+Content-Language: fr
+To: Jiayuan Chen <jiayuan.chen@linux.dev>
+Cc: netdev@vger.kernel.org, David Ahern <dsahern@kernel.org>,
+ Ido Schimmel <idosch@nvidia.com>, "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+ Phil Sutter <phil@nwl.cc>, Nikolay Aleksandrov <razor@blackwall.org>,
+ Paul Moore <paul@paul-moore.com>, Mat Martineau <martineau@kernel.org>,
+ Geliang Tang <geliang@kernel.org>, Julian Anastasov <ja@ssi.bg>,
+ Allison Henderson <achender@kernel.org>,
+ Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
+ Xin Long <lucien.xin@gmail.com>, "D. Wythe" <alibuda@linux.alibaba.com>,
+ Dust Li <dust.li@linux.alibaba.com>, Sidraya Jayagond
+ <sidraya@linux.ibm.com>, Mahanta Jambigi <mjambigi@linux.ibm.com>,
+ Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>,
+ linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, bridge@lists.linux.dev,
+ linux-security-module@vger.kernel.org, mptcp@lists.linux.dev,
+ lvs-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org,
+ linux-s390@vger.kernel.org
+References: <20261109025425.328445-1-jiayuan.chen@linux.dev>
+ <20261109025425.328445-8-jiayuan.chen@linux.dev>
+From: Matthieu Baerts <matttbe@kernel.org>
+Autocrypt: addr=matttbe@kernel.org; keydata=
+ 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
+ lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
+Organization: NGI0 Core
+In-Reply-To: <20261109025425.328445-8-jiayuan.chen@linux.dev>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-Hi,
+Hi Jiayuan,
 
-there are a couple of unanswered comments here...
+Thank you for the patch!
 
-On 11/3/26 18:09, Tariq Toukan wrote:
-> @@ -2095,7 +2096,7 @@ static int mlx5_handle_changeupper_event(struct mlx5_lag *ldev,
->   				break;
->   			}
->   		}
-> -		if (i < MLX5_MAX_PORTS) {
-> +		if (i < ldev->ports) {
+On 09/11/2026 03:52, Jiayuan Chen wrote:
+> enabled, add_addr_timeout, checksum_enabled, allow_join_initial_addr_port,
+> stale_loss_cnt, close_timeout, pm_type and syn_retrans_before_tcp_fallback
+> are read by their ctrl.c helpers without any lock while the sysctl
+> handlers update them with WRITE_ONCE(), and the path_manager handler
+> stores pm_type with a plain write. Add READ_ONCE() to the readers and
+> WRITE_ONCE() to that handler.
+I have the same patch on the MPTCP ML (the WRITE_ONCE() is split in
+another one):
 
-[medium]
-Should this compare against ldev->max_funcs, like the other converted call
-sites?
-The iterator's end-of-walk value is now ldev->max_funcs. That holds both in
-mlx5_get_next_lag_func() and in the mlx5_lag_for_each() condition.
-Indices are never compacted and max_funcs never shrinks. So a PORT-marked
-member can sit at an index in [ldev->ports, max_funcs) while the ldev still
-has ldev->ports members. One way to get there: more PFs than num_lag_ports
-join the ldev, and a lower-index one is removed later.
-In that case the inner loop finds the matching pf and breaks with
-i >= ldev->ports. idx has already been incremented, but this block is
-skipped, so the bond_status |= (1 << idx) and has_inactive updates are
-lost. The later check would then fail:
-	is_in_lag = num_slaves == ldev->ports &&
-		bond_status == GENMASK(ldev->ports - 1, 0);
-Wouldn't that leave this bond silently not offloaded?
-The old i < MLX5_MAX_PORTS check covered the whole index range that the old
-xa_alloc() limit allowed. This code is unchanged at the end of the series.
 
-This looks valid to me.
+https://lore.kernel.org/e8335e14eff144774aec63393f5cce13e69dddc0.1790147728.git.yangang@kylinos.cn
 
->   			if (netif_is_bond_master(upper)) {
->   				slave = bond_slave_get_rcu(ndev_tmp);
->   				if (slave)
-> @@ -2360,13 +2361,16 @@ int mlx5_ldev_add_mdev(struct mlx5_lag *ldev,
->   	if (!pf)
->   		return -ENOMEM;
->   
-> -	err = xa_alloc(&ldev->pfs, &idx, pf, XA_LIMIT(0, MLX5_MAX_PORTS - 1),
-> +	err = xa_alloc(&ldev->pfs, &idx, pf, XA_LIMIT(0, U8_MAX - 1),
->   		       GFP_KERNEL);
+So that's good to me:
 
-[high]
-Can this let member indices reach 8 or more while several arrays are still
-sized MLX5_MAX_PORTS?
+Reviewed-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
 
-this is solved at the end of the series, so not really a problem.
+Note that my patch was still in review because Sashiko kept complaining
+that this was not fixing all issues, e.g. the new WRITE_ONCE() you
+introduced is not enough. Gang has a fix for that [1], and that's not
+blocking your patch.
 
-Note that there are more unanswered comments on patch 15/15.
+[1]
+https://lore.kernel.org/c9f533ea507e6a88d3401768785153a63790c3d8.1790147728.git.yangang@kylinos.cn
 
-I think a v2 is need. For the future I suggest using smaller series:
-15 non trivial patches will have increasingly hard time with AI
-reviews.
-
-/P
+Cheers,
+Matt
+-- 
+Sponsored by the NGI0 Core fund.
 
