@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794311414;
-	b=gUxXdT6iu9gIpXxdBlTD8qCNpjyYh9owQ23SZVUrXFksfy0iGhohM1Ctnk16Pzm+Ak5j
-	 BlwA0x/M1A7OWupAuMhfNmCbs/DvoOjwMJnmSaF3shtTCOsY/Mr43pi4PA7V7CLFTOtgC
-	 7L8rPjkJ/xTpo+OAlhSXRgF4HFcTfDGy7NjKHNBrSdyJ0SvgjTAhXw95zXxx6UwbWsLd4
-	 SrYX+z9g6YtV0n9gwIK7LJtodXPNEKdUVKjuRAkbcfhncCln/KkrH9rAWbO0DxPI9bNfz
-	 Y7Yp1gwMNeVdg0drQ1U8ubJoq59ng3AqraOQvTrzq4Mlqe4BVbiIztFxKa19NMVWZrw==
+	t=1794311416;
+	b=oIAmKp2rkJA96X+QTINPvO3nfNkmzv4nEiSYGDPK/6JbR7kLF628HI5IFLk3uzgaVzWW
+	 HGVJGI6QjiNLJHMDvzw6lUhaR00/r0yNsITMHAaq2K5OBnsKrMmtMY2hjsj/u7ogFvSZ3
+	 JFbwWvXFo8PSvM+y0jJfZ6DeG3eCwEkeu9DbYd7hC51EtjKblwC8SCZ9/hxNqMzWvBUxg
+	 bwO3Lo/Uacq500l3FjgcGb7Kj5+uZcz/bWqIL6s1vZq6EQjfWbU6C0q6pc2aKwuHQgoak
+	 /nEGdscCDu0OaFC+UJoA4MWXrUMYouk3JracCEeu3N49iW1l55HpSIlnDow4zSoH6uw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794311414;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794311416;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=dGFbF9Anuu1/ALvQWjfraC6OLrqS/f8iZ6ssP3p8OFk=;
-	b=H+2ipUSxw8So5//CD68ZBUVqZGSPHqfObcktC528Cm16kB+n2JdYTEZ7o1iF/QJepuJw
-	 Jvko3vOMO4AZSjoaQBAYyW2iGg+kZ50+3wNIWs4vacklBolsmt6oUnRyZzQsMe9OPuYiC
-	 rz/yX5iMzPfg9L5JmnwXtPJMcRJ9DEFECcPOyCjgK+QOOmtLLOhmm46MBkQWiRPKnYTe4
-	 yldtSOtVNfv3ayPk6o3aqkG85oLloYwITDzue71Dg6n3ggHGLc0OInOJ3eacNwHm+sBHs
-	 gzL2y8da9QVFTXBNsib21EWnvLxOcMzUEG/soIgvLK00dqvRPHaqhfhIwVyS3cLuE+g==
+	bh=qlzEk2JJk+7yb2ap3z40Qv3sIgrzPTZOnpm2PJDyPVM=;
+	b=Z1bu8NkbVhBgDQKV47caL5Ivh/ry5BlTcuPKEMksUQIy46JoaoGHs0xdkF3WVibtrwpZ
+	 2u/lwl80fHR5io1I1k7SJpUqGESGWTzTihNj8tbAmH/6t9wFc6NjFPV3X78nxW8DKAdK2
+	 vnQL7srJ/iFqxXgNsYVhoM//YPsiWiwc8mIadRgc0dNo8XvO357TCRm2WkDCD4432HfBm
+	 B/VFVLZA3zU9g8Y/wle1ONTDhp2OXvJH6tSYL6AD+h8VLbzJMih1Y/na46fnyoxkUA01o
+	 ibCX9rnyB59hZiWk82unzk9URDnpxgVhu0vRo2tq129A6I8ftw3grCA+yGiF1+sI9Wg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="JSi/J09O";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=knjOnds2;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28A91606B592
-	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 11:50:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54B3C606B5A6
+	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 11:50:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JSi/J09O
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69F251F008A1;
-	Tue, 10 Nov 2026 11:50:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=knjOnds2
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F0451F008A3;
+	Tue, 10 Nov 2026 11:50:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794311413;
-	bh=dGFbF9Anuu1/ALvQWjfraC6OLrqS/f8iZ6ssP3p8OFk=;
+	s=k20260515; t=1794311415;
+	bh=qlzEk2JJk+7yb2ap3z40Qv3sIgrzPTZOnpm2PJDyPVM=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=JSi/J09OGNa1hd2MrlgLM9MPwEUs7Cj7M1eh6fP5Eh5n+3IXccKifvK2PTZ31W3lX
-	 SE8SncOE0kCFkOtXfZkMjdzCFJypt8yLdt4llTwoADR7YMzdpix2xRUpGJBrT4AY/7
-	 ICfzYYMmOIyo8eVy9GzP3yPfiwd6YyMdwwOrmtSOBUaGy0dGfnB61gLmxcs4iEKIDt
-	 k2eh6KgO4xR36kM4B3avDh1ipZhu4PoUrznD1bLkyJ5cyjiC14YLkis1CIAs1EW/HC
-	 feaaT46M9cyfE2yrOwbvWjk0TNZX7wq8grFbkVhQCTBVtp3VVX7QBJkOKkmchAK1CU
-	 xEJ4qp14H29dQ==
-Message-ID: <sashiko-outbox-206956@kernel.org>
+	b=knjOnds2sk2fRk0kvsyG9iwwjWXH9ecTUzShu+HIItlutd6b1y6uSi412tYcSXei7
+	 3YJu+8eevWI+iS7JnwEP5sCO8doLUZEKo/J3eXR/94MxK4x2J1xqgtdhVTaPtijZbx
+	 H4Ve4U1OicPjfvYg+0lnaoQgkMEa4DDAWKLnF/ahjBeY2be05SfELah8bAB0QuEbqe
+	 rwU/jEoJoKQcKQ5FGjDCW36I74c6s62hxuN6+XuaU0CElBKz1B+c0PReuswwVPllJC
+	 4mC51bLlSCDdA4SC95Yk5jleJE3G0yLJ8voOolx//FIKTZ1aBqbV/ZsPV2eSIqmEhG
+	 N+BSSEXFmSM7w==
+Message-ID: <sashiko-outbox-206957@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [RFC net-next 4/7] net/mlx5e: Drain old TX SQs before
- activating new channels
+Subject: Re: [RFC net-next 5/7] net: tls: keep the TX queue of a
+ device-offloaded socket stable
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261109114734.2087878-5-tariqt@nvidia.com>
+In-Reply-To: <20261109114734.2087878-6-tariqt@nvidia.com>
 References: <20261109114734.2087878-1-tariqt@nvidia.com>
- <20261109114734.2087878-5-tariqt@nvidia.com>
+ <20261109114734.2087878-6-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 10 Nov 2026 11:50:12 +0000
+Date: Tue, 10 Nov 2026 11:50:13 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,156 +63,123 @@ Precedence: list
 
 Thank you for your contribution! Sashiko AI review found 1 potential
 issue to consider:
-- [High] net/mlx5e: mlx5e_poll_tx_cqes() queues recover_work on
-  deactivated SQs
+- [Medium] net: netdev_pick_tx() skips sk_tx_queue_set() when
+  sk_dst_cache is NULL
 --
 
-commit fd69ab25361dddbeaf22971fdc4198ef4326e153
+commit 32c68c0d3ebf3235b8df4cd0c9b9ac85b4fd2c5f
 Author: Tariq Toukan <tariqt@nvidia.com>
 
-net/mlx5e: Drain old TX SQs before activating new channels
+net: tls: keep the TX queue of a device-offloaded socket stable
 
-This commit drains pending WQEs from deactivated TX SQs before activating
-new channels when tis_tir_td_order is supported, falling back to closing
-the old channels first if the drain times out.
+This commit adds TLSDEV_F_STICKY_TXQ and SOCK_STICKY_TXQ so that sockets
+offloaded to stateful TLS TX devices keep their cached TX queue mapping and
+avoid setting skb->ooo_okay while packets are in flight.
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/ne=
-t/ethernet/mellanox/mlx5/core/en_tx.c
-> index bee6f0bf1eff5..eb20e3d14d461 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-> @@ -780,10 +780,11 @@ void mlx5e_txqsq_wake(struct mlx5e_txqsq *sq)
->  	}
+Link: https://lore.kernel.org/netdev/20261022181751.1349984-1-rjethwani@pur=
+estorage.com/
+
+> diff --git a/include/net/sock.h b/include/net/sock.h
+> index 9bba1e793f1ee..ab4b5a5a74f5d 100644
+> --- a/include/net/sock.h
+> +++ b/include/net/sock.h
+[ ... ]
+> @@ -2067,6 +2072,29 @@ static inline void sk_tx_queue_clear(struct sock *=
+sk)
+>  	WRITE_ONCE(sk->sk_tx_queue_mapping, NO_QUEUE_MAPPING);
 >  }
 > =20
-> -bool mlx5e_poll_tx_cq(struct mlx5e_cq *cq, int napi_budget)
-> +/* Returns the number of polled CQEs. */
-> +static int mlx5e_poll_tx_cqes(struct mlx5e_txqsq *sq, int napi_budget)
->  {
-> +	struct mlx5e_cq *cq =3D &sq->cq;
->  	struct mlx5e_sq_stats *stats;
-> -	struct mlx5e_txqsq *sq;
->  	struct mlx5_cqe64 *cqe;
->  	u32 dma_fifo_cc;
->  	u32 nbytes;
-> @@ -791,14 +792,9 @@ bool mlx5e_poll_tx_cq(struct mlx5e_cq *cq, int napi_=
-budget)
->  	u16 sqcc;
->  	int i;
-> =20
-> -	sq =3D container_of(cq, struct mlx5e_txqsq, cq);
-> -
-> -	if (unlikely(!test_bit(MLX5E_SQ_STATE_ENABLED, &sq->state)))
-> -		return false;
-> -
->  	cqe =3D mlx5_cqwq_get_cqe(&cq->wq);
->  	if (!cqe)
-> -		return false;
-> +		return 0;
-> =20
->  	stats =3D sq->stats;
-> =20
-> @@ -891,11 +887,40 @@ bool mlx5e_poll_tx_cq(struct mlx5e_cq *cq, int napi=
-_budget)
-> =20
->  	netdev_tx_completed_queue(sq->txq, npkts, nbytes);
-> =20
-> +	return i;
-> +}
+> +#define SK_WMEM_ALLOC_BIAS 1
 > +
-> +bool mlx5e_poll_tx_cq(struct mlx5e_cq *cq, int napi_budget)
-> +{
-> +	struct mlx5e_txqsq *sq =3D container_of(cq, struct mlx5e_txqsq, cq);
-> +	int i;
-> +
-> +	if (unlikely(!test_bit(MLX5E_SQ_STATE_ENABLED, &sq->state)))
-> +		return false;
-> +
-> +	i =3D mlx5e_poll_tx_cqes(sq, napi_budget);
-> +	if (!i)
-> +		return false;
-> +
->  	mlx5e_txqsq_wake(sq);
-> =20
->  	return (i =3D=3D MLX5E_TX_CQ_POLL_BUDGET);
->  }
-> =20
-> +/* Reap the completions of a deactivated SQ, whose NAPI is disabled, wit=
-hout
-> + * waking its TX queue. Returns true once all its WQEs have completed.
+> +/* A SOCK_STICKY_TXQ socket keeps its TX queue while it has packets in
+> + * flight: a stateful TX offload must not see the flow on a new queue
+> + * while its work may still be pending on the previous one.
 > + */
-> +bool mlx5e_txqsq_drain(struct mlx5e_txqsq *sq)
+> +static inline bool sk_tx_queue_pinned(const struct sock *sk)
 > +{
-> +	int polled;
-> +
-> +	do {
-> +		polled =3D mlx5e_poll_tx_cqes(sq, 0);
-> +	} while (polled =3D=3D MLX5E_TX_CQ_POLL_BUDGET);
-> +
-> +	return sq->cc =3D=3D sq->pc;
+> +	return sock_flag(sk, SOCK_STICKY_TXQ) &&
+> +	       refcount_read(&sk->sk_wmem_alloc) - SK_WMEM_ALLOC_BIAS >=3D
+> +	       SKB_TRUESIZE(1);
 > +}
+> +
+> +/* Like sk_tx_queue_clear(), but keeps a pinned mapping, see
+> + * sk_tx_queue_pinned(). Lifecycle resets (allocation, cloning) must use
+> + * sk_tx_queue_clear() directly.
+> + */
+> +static inline void sk_tx_queue_maybe_clear(struct sock *sk)
+> +{
+> +	if (!sk_tx_queue_pinned(sk))
+> +		sk_tx_queue_clear(sk);
+> +}
+> +
+>  int sk_tx_queue_get(const struct sock *sk);
+> =20
+>  static inline void __sk_rx_queue_set(struct sock *sk,
+> @@ -2237,7 +2265,7 @@ __sk_dst_set(struct sock *sk, struct dst_entry *dst)
+>  {
+>  	struct dst_entry *old_dst;
+> =20
+> -	sk_tx_queue_clear(sk);
+> +	sk_tx_queue_maybe_clear(sk);
+>  	WRITE_ONCE(sk->sk_dst_pending_confirm, 0);
+>  	old_dst =3D rcu_dereference_protected(sk->sk_dst_cache,
+>  					    lockdep_sock_is_held(sk));
+> @@ -2250,7 +2278,7 @@ sk_dst_set(struct sock *sk, struct dst_entry *dst)
+>  {
+>  	struct dst_entry *old_dst;
+> =20
+> -	sk_tx_queue_clear(sk);
+> +	sk_tx_queue_maybe_clear(sk);
+>  	WRITE_ONCE(sk->sk_dst_pending_confirm, 0);
+>  	old_dst =3D unrcu_pointer(xchg(&sk->sk_dst_cache, RCU_INITIALIZER(dst))=
+);
+>  	dst_release(old_dst);
 
-[Severity: High]
-Can mlx5e_txqsq_drain() -> mlx5e_poll_tx_cqes() queue sq->recover_work on
-a deactivated SQ when it polls an MLX5_CQE_REQ_ERR completion?
+[Severity: Medium]
+Can netdev_pick_tx() transmit a packet on a newly selected TX queue without
+updating sk->sk_tx_queue_mapping when sk->sk_dst_cache is NULL?
 
-Before this patch, mlx5e_poll_tx_cq() returned early when
-MLX5E_SQ_STATE_ENABLED was clear.  Now mlx5e_poll_tx_cqes() runs on the
-deactivated SQs in old_chs during mlx5e_switch_priv_channels(), after
-mlx5e_open_channels() -> mlx5e_health_channels_update() has already reset
-priv->tx_reporter->health_state to DEVLINK_HEALTH_REPORTER_STATE_HEALTHY.
-If an old SQ completes a WQE or the deactivation NOP with
-MLX5_CQE_REQ_ERR, mlx5e_poll_tx_cqes() queues sq->recover_work on
-cq->workqueue:
-
-drivers/net/ethernet/mellanox/mlx5/core/en_tx.c:mlx5e_poll_tx_cqes() {
+net/core/dev.c:netdev_pick_tx() {
 	...
-		if (unlikely(err_cqe)) {
-			if (!test_and_set_bit(MLX5E_SQ_STATE_RECOVERING,
-					      &sq->state)) {
-				mlx5e_dump_error_cqe(&sq->cq, sq->sqn,
-						     (struct mlx5_err_cqe *)cqe);
-				mlx5_wq_cyc_wqe_dump(&sq->wq, ci, wi->num_wqebbs);
-				queue_work(cq->workqueue, &sq->recover_work);
-			}
-			stats->cqe_err++;
-		}
+	if (queue_index < 0 || skb->ooo_okay ||
+	    queue_index >=3D dev->real_num_tx_queues) {
+		int new_index =3D get_xps_queue(dev, sb_dev, skb);
+
+		if (new_index < 0)
+			new_index =3D skb_tx_hash(dev, sb_dev, skb);
+
+		if (sk && sk_fullsock(sk) &&
+		    rcu_access_pointer(sk->sk_dst_cache))
+			sk_tx_queue_set(sk, new_index);
+
+		queue_index =3D new_index;
+	}
 	...
 }
 
-When mlx5e_safe_reopen_channels() is invoked from devlink health recovery
-under devl_lock(devlink), this causes an ABBA deadlock with
-cancel_work_sync(&sq->recover_work) when old_chs is closed:
+In __tcp_transmit_skb(), when a SOCK_STICKY_TXQ socket with no packets in
+flight sends an skb, it sets skb->ooo_okay =3D 1 and charges skb->truesize =
+to
+sk->sk_wmem_alloc before calling queue_xmit, which makes
+sk_tx_queue_pinned(sk) true.  If sk->sk_dst_cache is cleared before that skb
+reaches netdev_pick_tx() (for example by a concurrent sk_dst_reset() on a
+redirect/PMTU update, or by an egress cgroup BPF program updating SO_MARK),
+sk_tx_queue_maybe_clear() leaves the previous sk->sk_tx_queue_mapping intact
+while setting sk->sk_dst_cache to NULL.
 
-CPU0                              CPU1 (kworker)
-----                              --------------
-devl_lock(devlink)
-  ...
-  mlx5e_switch_priv_channels()
-    mlx5e_drain_channels_txqsqs()
-      mlx5e_poll_tx_cqes()
-        queue_work(..., &sq->recover_work)
-                                  mlx5e_tx_err_cqe_work()
-                                    mlx5e_reporter_tx_err_cqe()
-                                      devlink_health_report()
-                                        devl_lock(devlink)
-    mlx5e_close_channels(old_chs)
-      ...
-      mlx5e_close_txqsq()
-        cancel_work_sync(&sq->recover_work)
+When that skb enters netdev_pick_tx(), skb->ooo_okay picks a new queue
+new_index, but sk_tx_queue_set() is skipped because sk->sk_dst_cache is NUL=
+L.
+A subsequent packet sent while the first is still in flight has
+skb->ooo_okay =3D 0, repopulates sk->sk_dst_cache without clearing the old
+sk->sk_tx_queue_mapping (since sk_tx_queue_pinned(sk) is true), and is sent
+on the old queue while the first packet is still in flight on new_index,
+corrupting per-connection device TLS state.
 
- *** DEADLOCK ***
-
-Even when devl_lock(devlink) is not held by the caller (such as during an
-ethtool channel change), queuing sq->recover_work for an SQ in old_chs
-runs devlink_health_report() after mlx5e_open_channels() marked
-tx_reporter healthy, which either leaves tx_reporter in an error state for
-an already-closed SQ or starts a recovery graceful period that suppresses
-real error recovery on new_chs.
-
-Should mlx5e_poll_tx_cqes() only queue sq->recover_work when
-MLX5E_SQ_STATE_ENABLED is set?
+Allowing netdev_pick_tx() to also call sk_tx_queue_set() when
+sock_flag(sk, SOCK_STICKY_TXQ) is set would keep sk->sk_tx_queue_mapping in
+sync with the queue actually used.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261109114734.2087=
-878-1-tariqt@nvidia.com?part=3D4
+878-1-tariqt@nvidia.com?part=3D5
