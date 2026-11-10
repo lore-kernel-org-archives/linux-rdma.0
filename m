@@ -1,66 +1,66 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794350178;
-	b=4VQiTLrvPo3XemrYEZcBuqQw7d9AmcVBnKvICV2+tNRw7CSynuPWtXl9g3D+c74YcUKN
-	 9WIcVQ1hmqLHTcrEYP6tsCe80ek7rb+Cf2RXT3WEwHXK4BE7wQew5A6DsE0e1RUHlTBtt
-	 B1TG43YGEHeUP0ulF3mH1jkJP2QyktVR2hpzRixApU+XT1z/cm8oVV33v4M6sTdziuh3y
-	 RIcCf5BfbSC1eDPJ/QqawP4ZSYf0LU7831VvjFBISgr63g03ZJaiNbLRcFdnlCm8LDOvg
-	 elXmkDWHG+W5p1ZEgDxBOWxh79we4cwfqIoxjRUEMs6VWziTgyYv5yeeEsMQNH8H/jQ==
+	t=1794350234;
+	b=r5U+v77JfqagBgL0k1zTBAdyhWF53fuHkW44k7RdQsq+fHie18qBWGm6sIoxj0Ao+IxW
+	 ugSzvBJ8wTc93sa9TvLlpeYt1Bj+/IkJeOwrf8/AX0cIXYN3HATebndzTVJTGS5YymM2E
+	 Yn/EVXRD1D9hjSWu7AUPPBHe+Qp+SvSqBwk6NE/RFmtIFWATcXJGayI+YSaik9GmGT1x7
+	 biUwTd36r1inlBt64w1cH1ADvhs+HmWJJdZih6Wzcz0Kz0pfb86OALcuXgH9e+/uQnlgL
+	 plM6/o9oPH6r/jlDYZxXdIuMFFTvOMugJZ/MrTfAC10CXnX6C/OwjPfWwu8/RVmAVAw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794350178;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794350234;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 In-Reply-To:References:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=GFO5SgMs8ReKJKikz9lkRPOPcMKY8LAMToxS0clBDck=;
-	b=ndnSHi804GShSnA3099AOjO1l0rFeuSL66dWmukowdVeUyGMqJxdsKV7pgxh/xmbTsq0
-	 nmuGG3Mq02EA5QM3Y7IaDfHHP2Go3dhPO/bEKW4gmdYYPOTNCWpHmkKu85QVlTlm/+qTs
-	 zhT9O1DOxId0CHG2s2nkq42PXTlPF/QlRrhksrgYI3VvnXpIQaDz1gXYtlqlO/auETtSq
-	 gCA584OT0Wem4K+hOjNTZxfx1VialICZcy3JtGYXUWcyNictJ96wKSsjm38B4hVznV4it
-	 QtMikwjtTeUqrf9ccdSWGi2gUvrdwlCAgZ1GW4hVf4l4pE+RRnWbbD2/mKWzopXObjg==
+	bh=iMS4Ufw6oLz0jxlRn0HZ4WRoRoCLrOY1iIoKp6s0bcg=;
+	b=sAUWqXxr6unvyVyGtf1mctOdAUncQeMpTQ5vRRvlCTToNG+fyukPo7oJz18q79b1pIfH
+	 IYGx1PuYrAzXB2Cfvab5gHHcVKy48ixd9ihdV9GCydPaIOnE+6gmvlbEkgR3BRTElm5BC
+	 7h9lXgLg25Hfq3lt9M4mJsH7IFgC33CRAtjgK/yQC4MmT3G5Kn8clQrRoaMPH/cjbs7lj
+	 8ctYdQKpApXIpUHQed0xnGvEaNV00WItkVfhy/+EzQ7i4SECYc68En4pfqzYpKgzN+4V9
+	 H2Z4C7vlcJyNflxVRZtAKhv1H0t/NlacDKLSbA21ONQLAOkgYF4J8znt/bG9k8P/DsQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=E1bUdJnQ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XSrafjLU;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D4B1606A31C;
-	Tue, 10 Nov 2026 22:36:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E2AE606A31C;
+	Tue, 10 Nov 2026 22:37:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=E1bUdJnQ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D6731F008A2;
-	Tue, 10 Nov 2026 22:36:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XSrafjLU
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA5561F008A2;
+	Tue, 10 Nov 2026 22:37:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794350178;
-	bh=GFO5SgMs8ReKJKikz9lkRPOPcMKY8LAMToxS0clBDck=;
+	s=k20260515; t=1794350233;
+	bh=iMS4Ufw6oLz0jxlRn0HZ4WRoRoCLrOY1iIoKp6s0bcg=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=E1bUdJnQlEXRrR7QwKxM8f/74VboDlP7DcSq6c1FP0RZH1JDytqc+nluEKFsPs84P
-	 E5umCdkWdxo/6HC5b3qc2cV/OOBCM1ink1Ul5+LiInafa7lCc6yPUSnHhtS0XrEw1Y
-	 boeMQhkDwhBDC/foVQuFvfuk7ye9QAzqJmvFaiQk/BoiTwH9W/fIrAyZ4yqCQT8LZd
-	 t8mUTO8JYNjEm0TN8w/lwk86hvlBuDY/DMqWXKGuxcCaigXhMpoXnLqrUcdlDki6zk
-	 r/t89iiRwxbB6kyh2nW5pIq3qkUN5EbS4cX4LQPIAuBeXfrps36IaCoVj3q2MDCKtg
-	 8a/W3Onh4mYow==
-Date: Tue, 10 Nov 2026 14:36:15 -0800
+	b=XSrafjLUY47PUGSIDCgHxp8gdbmVLU2OR2SY2FmhaEWsenRuM432FQAGVenZvU0D4
+	 HTAFn1EOHS4zMJBVOWehiTkfLwhDZAxJ17Gw0xldhMGHo5fLsAnSCvGW+ZltKfq0jV
+	 MQI0V1bMYEvaTD8SXU9RD8+88iaMymTzkoxpLpELe5zaulvAEKXIvBBOzWFcGFRgc9
+	 mPHwpwEizkkJ2VQK6KkH61FnlA7GyGKRjOlAD7/VnUvfBF6GDLzmu00vNbyiEoO+5C
+	 YPxkv/zbA+4kwvQwTpoFiAO5twLPjn1hc22xJFSdOgUL8YIl46hBCw4XTwzMW8HXOo
+	 PC+GCdZjo93cA==
+Date: Tue, 10 Nov 2026 14:37:11 -0800
 From: Jakub Kicinski <kuba@kernel.org>
 To: Stanislav Fomichev <sdf.kernel@gmail.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com,
- pabeni@redhat.com, andrew+netdev@lunn.ch, edumazet@kernel.org,
- horms@kernel.org, corbet@lwn.net, skhan@linuxfoundation.org,
- rdunlap@infradead.org, michael.chan@broadcom.com,
- pavan.chebbi@broadcom.com, saeedm@nvidia.com, tariqt@nvidia.com,
- mbloch@nvidia.com, alexanderduyck@fb.com, kernel-team@meta.com,
- sdf@fomichev.me, dimitri.daskalakis1@gmail.com, almasrymina@google.com,
- dtatulea@nvidia.com, bobbyeshleman@meta.com, asml.silence@gmail.com,
- daniel@iogearbox.net, razor@blackwall.org, leitao@debian.org,
- linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+Cc: netdev-bot+sashiko@kernel.org, netdev@vger.kernel.org,
+ davem@davemloft.net, edumazet@google.com, pabeni@redhat.com,
+ andrew+netdev@lunn.ch, edumazet@kernel.org, horms@kernel.org,
+ corbet@lwn.net, skhan@linuxfoundation.org, rdunlap@infradead.org,
+ michael.chan@broadcom.com, pavan.chebbi@broadcom.com, saeedm@nvidia.com,
+ tariqt@nvidia.com, mbloch@nvidia.com, alexanderduyck@fb.com,
+ kernel-team@meta.com, sdf@fomichev.me, dimitri.daskalakis1@gmail.com,
+ almasrymina@google.com, dtatulea@nvidia.com, bobbyeshleman@meta.com,
+ asml.silence@gmail.com, daniel@iogearbox.net, razor@blackwall.org,
+ leitao@debian.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-rdma@vger.kernel.org, linux-kselftest@vger.kernel.org,
  leon@kernel.org
-Subject: Re: [PATCH net-next v3 4/9] net: devmem: add a per-device netmem TX
- frag size limit
-Message-ID: <20261110143615.05f9adbd@kernel.org>
-In-Reply-To: <20261105222058.944293-5-sdf@fomichev.me>
-References: <20261105222058.944293-1-sdf@fomichev.me>
-	<20261105222058.944293-5-sdf@fomichev.me>
+Subject: Re: [PATCH net-next v3 1/9] bnxt_en: let the stack segment GSO skbs
+ with too many frags
+Message-ID: <20261110143711.1421385b@kernel.org>
+In-Reply-To: <e4def2839d68382fd50e4fe1e6b4f116@gmail.com>
+References: <179418737248.994134.10509157155829463489@kernel.org>
+	<e4def2839d68382fd50e4fe1e6b4f116@gmail.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -73,11 +73,11 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Thu,  5 Nov 2026 14:20:53 -0800 Stanislav Fomichev wrote:
-> Devmem TX frags are bounded only by the net_iov size, which is about
-> to grow up to 2MB, more than some devices can describe in a single TX
-> descriptor.
+On Mon, 09 Nov 2026 10:29:20 -0800 Stanislav Fomichev wrote:
+> > The commit message describes both problems. Without a Fixes: tag, stable
+> > kernels that carry b91e82129400 won't pick up this fix.  
+> 
+> Will add a Fixes tag, but not sure it's worth the backports..
 
-How is this different than normal zerocopy Tx?
-Drivers already have to deal with long frags.
-Having partially applicable limit seems like a bad idea.
+Either it doesn't matter and targets net-next or it needs a Fixes tag
+and targets net. Ignore the bot.
