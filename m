@@ -1,59 +1,59 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794279688;
-	b=hSxiRAzzIGQ9mR991x6G4wPtVeJ/Ee6bUds08/A+cBaaRscQ8DUbWssrAMZsHHTzKtdr
-	 RST2rgmu5+VqgiOg5yCtvbD+I2uRjOlHe2Z0nZ9d8qnnOITrFjxepIoRxrdV3MUG8jZcO
-	 xjE+iQABSCnlhKHh7mnTPLJrcJIYBn9RHaM1aaa5RpibUIDlGsDoHtQa7eRKKbjxm1Cva
-	 vMhMGrQKS0LsAYha6TYZfMJIvYWsGZ250+x307bwuGqRI2xUN4+N6cgsRiW4elI9obXyg
-	 l2w2GI0P2GxVe+q+54GxXatu24NZUE9WKIMk9h7mxFuxPJEu8J5sTORZB2l5vLbsYRg==
+	t=1794279683;
+	b=J6SzZPpsnvjH4/84GCecRU+2Z+taV4Un78UuCG6T/fNe/tWs+YDmqLCHJGT39posr+66
+	 Js+B6qJWzHzvHtJh0KAeX5O+o37p9vGyehkCP2/kmcUtOMxZVSEsJSVGwNtRNVSEhXXkc
+	 wjJzYQ6+FkPy/U2aZrGfk9XU0H/kRQa7yIFZB4AKyaaha5RdCimcWAtqbS6Lw1eJYJfef
+	 PWfI3ZiMNg4E5PUtEz5Z/Hhc0EQU8rhm9mVCL8Uv0M7FKPVth8BaQn2OvfnfGzdZAMLhl
+	 29lhsnrK3EDsccZvMhKht6rjXIt+6Wo6j3bJE70SgNRO275Eo3WO8sFjQadAOg4PlPg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794279688;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794279683;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=jahtBZOJe+7+2N5SkoAMkPIdliEdUcLfb/yopyYMb4I=;
-	b=rCaEGGJuisVvUlWU/GUqJRAzP+Etx1AiPRNrHqujCyAdpQNwznKewifEjzWC2q3EzfZ/
-	 YS5+IJ9iKnR2Bd1X3ULnJE+trT28eR06vp6xAhxDqJ4CfG/Ak6c8Zm04xyLQjlml6QHx/
-	 xzqFwzy9X/XVdeYD0NL0FxDHHn4O0jlnhyXVrQMoUWUJM68ZmNQC+7fjYeQnGsnHbnvky
-	 H30KASU7zo/JFdxXgdL7POvJII2Al5ilCfQGLxZ/u0C4fVdJmBHsPBfM69m8C2nVM15Rv
-	 CmN/aPk/uvjTZ9TyRDPD8TPSZ4rYhtWkNTr8hDFL+9rUTYIt9OCGAaV2xJ8Ko4JIJnw==
+	bh=O/bewW18xR2NvS8nckxTcXJjBnu+lrKrh/wIuRHvOUE=;
+	b=N5cmLJBeqONb7/DPbKypPLc53dLPAnUZRFwmak6w0u3VyIacgxMrfH724YKXYD8pr0RW
+	 4Xrf2Vu+lPS3mzZveBsBqBWJYnZSVN5QLKN/fjXj/ssMo7XqqWpdq46J5BSEIvkdoHQwH
+	 qFCZ2T6OTgS5PN8FmZGAT1fWIefcczEDSPK0+1q1Z/otSaSHaoW+JcgO92eS4umBbvPkO
+	 6mGRqwd+7WGK+IVcdTooUxETUHnkXMBlVlHxCmV7TU9zEZgTWh3/kRrciT/5GKgOtCdn/
+	 4EVxuMG3SYTZDG8NlNf3NrBAIRivMP5Tl94xmkySCWZBEOSPafpx2M51SHmqMyalY0g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OTsgGRRh;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YqOAa1ab;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 265D3606A32A;
-	Tue, 10 Nov 2026 03:01:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EBA0606A31C;
+	Tue, 10 Nov 2026 03:01:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OTsgGRRh
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F6781F008A2;
-	Tue, 10 Nov 2026 03:01:26 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YqOAa1ab
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56FD31F0089F;
+	Tue, 10 Nov 2026 03:01:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794279688;
-	bh=jahtBZOJe+7+2N5SkoAMkPIdliEdUcLfb/yopyYMb4I=;
+	s=k20260515; t=1794279682;
+	bh=O/bewW18xR2NvS8nckxTcXJjBnu+lrKrh/wIuRHvOUE=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=OTsgGRRhBAqNQ45zko+AV/XSMAjZWeBBTjIpcPFQuFZeDwrJtAM9bu6i/eZCCDsHc
-	 PXELZMGuAhYoF+sWTXXjmn6iFZmO3PDQqAK4kTSD4hTT817aSA0coprFQfUjHxgKk1
-	 gA0M8E0Ud6EkFK9d3DBPzdkfTENUhOKowGrkdLDz7yrrP0Cpp5EHfZZC4vy+TEGvW/
-	 HvYr5DBy8QrEsm63Bfe33KfumZcu+ivTuM/+NaaD5wRUnkq1KD93ckyr5pdQeCzjT+
-	 00Iy20HXC5d53jbw8jdJWdeozvYABDcr6O4wYeGJOYinLi5P1OUsAj1CLIg8oE4Zwg
-	 OAhXihpGMO2gA==
-Message-ID: <sashiko-outbox-206079@kernel.org>
+	b=YqOAa1abLIiPUBwqcFg0z8OZtrQ+4XAyJbQfrHpyeO6ALmVEB5RMPQoNkrQgAzYMf
+	 jckQqA8rmItUqFCleOPBQAy7g7LnerOoG4vvrmfmFORPtQZHEb5IQtIn9t/jJni1Z4
+	 SIJmjKmgx/90put0ooKweLnyGbA33ndpv3r4Hn55RQUhONGUWNeJiDrYSZRGExe02S
+	 TCBaNdcPEyAwIo8XTgDPebzVTrdmwQRpv2kM/ekRGZLp/Ji4wyDqCOKie45yQ/PyfB
+	 uT51GHwvp0eTwU65LzsUzb7kFP/fhV+9yV7aLGejXrQ2AIj1tqH6q06OEY7DH+jUCB
+	 dcqE7200hQTJQ==
+Message-ID: <sashiko-outbox-206074@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next 06/14] sctp: annotate data-races around sctp
+Subject: Re: [PATCH net-next 01/14] ipv4: annotate data-races around ip_rt_*
  sysctls
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Jiayuan Chen" <jiayuan.chen@linux.dev>
 Cc: linux-security-module@vger.kernel.org, mptcp@lists.linux.dev, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, "Heiko
  Carstens" <hca@linux.ibm.com>, "Vasily Gorbik" <gor@linux.ibm.com>, "Alexander
  Gordeev" <agordeev@linux.ibm.com>, "Christian Borntraeger" <borntraeger@linux.ibm.com>
-In-Reply-To: <20261109025425.328445-7-jiayuan.chen@linux.dev>
+In-Reply-To: <20261109025425.328445-2-jiayuan.chen@linux.dev>
 References: <20261109025425.328445-1-jiayuan.chen@linux.dev>
- <20261109025425.328445-7-jiayuan.chen@linux.dev>
+ <20261109025425.328445-2-jiayuan.chen@linux.dev>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 10 Nov 2026 03:01:26 +0000
+Date: Tue, 10 Nov 2026 03:01:21 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,96 +63,46 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issues to consider:
-- [Low] sctp: missing READ_ONCE() on cookie_auth_enable in
-  proc_sctp_do_hmac_alg()
-- [Low] sctp: missing READ_ONCE() in proc_sctp_do_rto_min() and
-  proc_sctp_do_rto_max()
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue to consider:
+- [Low] ipv4: double READ_ONCE() of ip_rt_min_pmtu in
+  __ip_rt_update_pmtu()
 --
 
-commit 93a2b54452b64ee91dbf610597cfa8b06cc871d2
+commit d59c48746ce88d155c2f7dae0505f71dcceee996
 Author: Jiayuan Chen <jiayuan.chen@linux.dev>
 
-sctp: annotate data-races around sctp sysctls
+ipv4: annotate data-races around ip_rt_* sysctls
 
-This commit adds READ_ONCE() and WRITE_ONCE() annotations to per-netns SCTP
-sysctl variables accessed concurrently by readers and sysctl handlers.
+This commit wraps lockless reads of the ip_rt_* routing sysctls in
+READ_ONCE() to avoid data races with concurrent sysctl writes.
 
-> diff --git a/net/sctp/sysctl.c b/net/sctp/sysctl.c
-> index 2b94c211427de..8a84ae3272d24 100644
-> --- a/net/sctp/sysctl.c
-> +++ b/net/sctp/sysctl.c
-> @@ -402,11 +402,11 @@ static int proc_sctp_do_hmac_alg(const struct ctl_t=
-able *ctl, int write,
->  		if (ret)
->  			return ret;
->  		if (!strcmp(tmp, "sha256")) {
-> -			net->sctp.cookie_auth_enable =3D 1;
-> +			WRITE_ONCE(net->sctp.cookie_auth_enable, 1);
->  			return 0;
->  		}
->  		if (!strcmp(tmp, "none")) {
-> -			net->sctp.cookie_auth_enable =3D 0;
-> +			WRITE_ONCE(net->sctp.cookie_auth_enable, 0);
->  			return 0;
->  		}
->  		return -EINVAL;
+> diff --git a/net/ipv4/route.c b/net/ipv4/route.c
+> index d0a5f6d77094c..83f49b2d4c36a 100644
+> --- a/net/ipv4/route.c
+> +++ b/net/ipv4/route.c
+
+[ ... ]
+
+> @@ -1063,14 +1066,14 @@ static void __ip_rt_update_pmtu(struct rtable *rt=
+, struct flowi4 *fl4, u32 mtu)
+> =20
+>  	rcu_read_lock();
+>  	net =3D dst_dev_net_rcu(dst);
+> -	if (mtu < net->ipv4.ip_rt_min_pmtu) {
+> +	if (mtu < READ_ONCE(net->ipv4.ip_rt_min_pmtu)) {
+>  		lock =3D true;
+> -		mtu =3D min(old_mtu, net->ipv4.ip_rt_min_pmtu);
+> +		mtu =3D min(old_mtu, READ_ONCE(net->ipv4.ip_rt_min_pmtu));
+>  	}
 
 [Severity: Low]
-Should the read path right below in proc_sctp_do_hmac_alg() also use
-READ_ONCE(net->sctp.cookie_auth_enable)?
-
-net/sctp/sysctl.c:proc_sctp_do_hmac_alg() {
-    ...
-	if (net->sctp.cookie_auth_enable)
-		tbl.data =3D (char *)"sha256";
-    ...
-}
-
-Unlike proc_dointvec(), proc_dostring() only sees the selected string
-literal, so a concurrent sysctl read and write of cookie_hmac_alg still
-race on net->sctp.cookie_auth_enable.
-
-> @@ -441,7 +441,7 @@ static int proc_sctp_do_rto_min(const struct ctl_tabl=
-e *ctl, int write,
->  		if (new_value > max || new_value < min)
->  			return -EINVAL;
-> =20
-> -		net->sctp.rto_min =3D new_value;
-> +		WRITE_ONCE(net->sctp.rto_min, new_value);
->  	}
-> =20
->  	return ret;
-> @@ -469,7 +469,7 @@ static int proc_sctp_do_rto_max(const struct ctl_tabl=
-e *ctl, int write,
->  		if (new_value > max || new_value < min)
->  			return -EINVAL;
-> =20
-> -		net->sctp.rto_max =3D new_value;
-> +		WRITE_ONCE(net->sctp.rto_max, new_value);
->  	}
-> =20
->  	return ret;
-
-[Severity: Low]
-Do proc_sctp_do_rto_min() and proc_sctp_do_rto_max() also need READ_ONCE()
-when dereferencing ctl->extra2 and ctl->extra1?
-
-sctp_sysctl_net_register() points rto_min's extra2 at &net->sctp.rto_max
-and rto_max's extra1 at &net->sctp.rto_min:
-
-net/sctp/sysctl.c:proc_sctp_do_rto_min() {
-	struct net *net =3D container_of(ctl->data, struct net, sctp.rto_min);
-	unsigned int min =3D *(unsigned int *) ctl->extra1;
-	unsigned int max =3D *(unsigned int *) ctl->extra2;
-    ...
-}
-
-Reading or writing rto_min while rto_max is being updated (or vice versa)
-still performs an unannotated plain read against the peer handler's
-WRITE_ONCE().
+Should READ_ONCE(net->ipv4.ip_rt_min_pmtu) be cached in a local variable
+here, as done in ip_error()?  If net.ipv4.route.min_pmtu is lowered
+between the two reads, the first load can observe the old higher limit
+while the second observes the new lower value, clamping and locking mtu
+below the incoming packet's reported PMTU.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261109025425.3284=
-45-1-jiayuan.chen@linux.dev?part=3D6
+45-1-jiayuan.chen@linux.dev?part=3D1
