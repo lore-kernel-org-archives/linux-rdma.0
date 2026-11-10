@@ -1,54 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794316265;
-	b=an44n4iheh/W1xeBHFLxIgfGOfnuarbNlWGDfrRLGaC3eOurAZIXjAzkf1Yxeiw3gQ/R
-	 InHd0C0ebxZJNx0NE+p2O/jhvBY1hz3WvblYDQPr5rNtpc/mCGjSECvCMlfW2lnpf2Qj7
-	 3468eKv7Aka47DPvo/leoOOI6ttkGYk4BSXUYBnngYv7tZmmAcn21Egkccw0y55zgDRSW
-	 UBaRiMuK4MTqpG0D/Cm06Oy51LqAtXhgjy11THRnJiYIr9qnqNVmehq36KLIDYjHCNi1p
-	 BYpQPd34bsXmA98PwPfLytwTdBCjcs7jAPfQwSAz0holrGRxSC1H5vq6rSoJ5sxW5NA==
+	t=1794316266;
+	b=BUZdXfkmlUszCe6qzza0Cc7DKBI9KPoI0kGD7Iizb7IkPHTA7CXW5+Uc8uweOp4I93bf
+	 Z7yidJHtPu6OLC5ZesohkEuEnheMJ40JxWPuUOlp195hl9qkSbXr1DU8PnNI0x2D3axJp
+	 7hHNzDmSrvwIjjt6lPYss7c8kKMnycedF0CuyzbC5kQPJhvlIBsZ8RjuNowyIUlEbpkNe
+	 e+SqgrkrbzB9hN3BaDjaQaMYFe0l6XUCqFcev2Ow6rCuC+/nzaHankUtshIsE/ZXRHSAl
+	 /mOqXm+iXZXVF4HpcSHr+z/igoNHSuthue6QqwfdBhKbpbUFzVA1QSkFhKgqkImV5Fw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794316265;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794316266;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=YqhHrbvxknMNvTFhD6gQDJ6KM+r9Hkl/Zrq8MpHjLuA=;
-	b=2XEZAMk0C69pkyH3eCl+hL2RDPk6Ad37uudUzrwqY/Axn3u+fQ4NSii6AsyXLEjH8Zlt
-	 YBKzLTqpoXLYcszzG9Sfi481sPm7rW7pAsgMvnvuqiPG+rdemhgPtp2twbE0/r1sSWAiy
-	 HyLUCwC/ZUbuEana7C4ZXZ4nqtcPxv58ORwWQVZpCnGnz6rItUJ/qFi3MA7ymhltnvtfA
-	 Of9sv4gjqqT+pZClMBt8quAtt/hYHhU/LAEpupBGoUhLsXHl/QyQXVIv/Aic74XeU2hlS
-	 +uAcLFw4v7MxdqGcUAVf+JHj6VimcaC2nmrdaCRk4KBGEsKA2qdgMBLnQ+QzwESf01w==
+	bh=SvSFe8TSo/c/iq/Yoze/QhYyxtLvkMOz0J6i3rnFcPI=;
+	b=bYx6Fcu9667pXSZzpC82QS3xz8IaAAf3RiF2vYDSz/b2/r8LjQ3FUZB6fuCti8hqoY5R
+	 UqTcBf1/y17677b+NpYB3V5yEjGdKKD6egFzxccbDRJlw5eGL14UDwtnDf27eMrRdLs4o
+	 fnCtXrb9GaE0tefHFAqnf2byQjKNtNJDys3/7BhzcWVKVdQH85wdl9Rlay3DKXyTfR3Nd
+	 DKkR9moHGkFI0R3yEdzqYJqmE66WlZRGCrB3LRjVvUYcSHiQ4Wg/oNmHeFdcdArdkPgI8
+	 NnCKutleDeRnliTt2t7FlfeDCDy8nIsaaJcjorCY4Iwn8+TG+XbA2M6mikf8IwNN/WA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="kh/2Pgpo";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=h3tCqDZq;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2C91606A32E
-	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 13:11:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4B16606A7E9
+	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 13:11:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kh/2Pgpo
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B30A1F008BF;
-	Tue, 10 Nov 2026 13:11:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=h3tCqDZq
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F8BE1F0089F;
+	Tue, 10 Nov 2026 13:11:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794316264;
-	bh=YqhHrbvxknMNvTFhD6gQDJ6KM+r9Hkl/Zrq8MpHjLuA=;
+	s=k20260515; t=1794316265;
+	bh=SvSFe8TSo/c/iq/Yoze/QhYyxtLvkMOz0J6i3rnFcPI=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=kh/2PgpoTVssk3mtBlshcm7CzBBGuqVGjTJLf2HxOa7MplNw4dTF29raOmnB7o6BS
-	 9hyFkWZ2+TQUkyb6TUAXBoDDgUnWooXfxqRdkQqmv4IpSG2KlLzPCcLUDg1/A+IFv3
-	 u60odDHJie6Fb/EA7k9ZomjjzMfmrYa7Zpkz8Qv//pAX4IK+UW9iCIEdEy152fzAZ2
-	 Jl+vTeWzq2xhDCiUK5785yEvQvvorsvoWBEvexQqUuDVu1Pf+KfQJspfoTkWGax993
-	 nMcxubVGes3+FfQ103CUzftk+wuDyKq6KA6IDK3+YSINsmPFBq8U/7+rYW3DlbKYIc
-	 ZflPfC+z6Wo0Q==
-Message-ID: <sashiko-outbox-207097@kernel.org>
+	b=h3tCqDZqK9mhKm2qAoP1bCniN/7zEh6Fw4V/82amPhcLAzx9MnAdOFUTMumGCZpJO
+	 Cv5JQme1ECnMgyE/9fMOsBKlgpjoRcUEBV81LvorYR+ZZeiZY/SVOhE5Jjc654OqHC
+	 D280XQ3PGlfmJ7VGBbJDaQWkZx8zDexYGE3ckeqz/gGQIMOOdSQ89QHPZblzh85XZW
+	 1kew275UiBYMKrLj5pkLAYvVDH/CbmztZjV52gROUzgQ1HYw9XyOPv++vpG3zDHk9c
+	 puiAQSQFAGwAa+DReJxCAgW+KR6pFpHFuKFQEgoB2M5Ag/qCrk524a7UWFNNmW81lc
+	 ZtL/lUpmWG67w==
+Message-ID: <sashiko-outbox-207098@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next 08/10] net/mlx5e: TC, offload RX queue mapping
- in NIC flows
+Subject: Re: [PATCH net-next 09/10] net/mlx5e: TC, match the tunnel key
+ without a tunnel device
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Alexandre Cassen" <acassen@corp.free.fr>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261109131039.959438-9-acassen@corp.free.fr>
+In-Reply-To: <20261109131039.959438-10-acassen@corp.free.fr>
 References: <20261109131039.959438-1-acassen@corp.free.fr>
- <20261109131039.959438-9-acassen@corp.free.fr>
+ <20261109131039.959438-10-acassen@corp.free.fr>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Tue, 10 Nov 2026 13:11:04 +0000
@@ -61,22 +61,25 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> skbedit queue_mapping steers a flow to one RX queue. ice, hns3 and
-> octeontx2 already offload it. Add it to mlx5e NIC flows. The rule points
-> to the direct TIR of the channel like ethtool steering rules.
+> RSS can't spread GTP-U traffic between a few endpoints. The outer headers
+> barely vary and the TEID is not hashed. A masked tunnel key partitions
+> this traffic into RX queues. Other tunnels spread better under RSS. The
+> same match still gives a block of tenants its own queue.
 >=20
-> The direct TIR takes over the destination of the rule. The action must
-> come last and cannot follow goto or mirred. A goto would also unbalance
-> the reference count of its chain table.
+> Without a tunnel device nothing decapsulates. enc_key_id reads the tunnel
+> header on the wire like cxgb4 and hns3 do on a physical port. The plain
+> ip_proto and dst_port keys select the match register and its capability:
 >=20
-> Reducing the channel count below the queue of a rule drops its traffic
-> until the channel returns. The direct RQT of an inactive channel points to
-> the drop RQ. ethtool refuses such a change for its own rules but nothing
-> tracks the queues of TC rules. A channel change racing with the range
-> check of a new rule has the same result. Direct TIRs exist up to the
-> maximum channel count. The rule always points to a valid one.
+>   GRE     ip_proto 0x2f   misc.gre_key     ft_field_support
+>   VXLAN   dst_port 4789   misc.vxlan_vni   ft_field_support
+>   GENEVE  dst_port 6081   misc.geneve_vni  flex parser and
+>                                            ft_field_support
+>   GTP-U   dst_port 2152   misc3.gtpu_teid  flex parser
 >=20
-> Tested on ConnectX-7 with firmware 28.48.1000.
+> [ ... ]
+> the uplink and VF representors in dmfs, smfs and hmfs. This includes
+> redirect to a VF. GTP-U needs flex parser profile 3 and GENEVE profile 0.
+> GRE and VXLAN work on both.
 >=20
 > Signed-off-by: Alexandre Cassen <acassen@corp.free.fr>
 
@@ -84,5 +87,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261109131039.9594=
-38-1-acassen@corp.free.fr?part=3D8
+38-1-acassen@corp.free.fr?part=3D9
 
