@@ -1,62 +1,108 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.10.208.46
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.133.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794307262;
-	b=0Y2AHls6tpL+jxqMPpH6pmuZk7qfUu9+hXCbRzv0Fqr38D3R06a7UdjtagTTLbrtq9wI
-	 dzdTzHUJBxHYe+tuOAAI3UuR2Lrg1ZJQgxBy6l+6d9pKlFQquElI09rMeD01dIPzlfjvW
-	 V1r9r+IUumZ6iNKbeZh6I5HUeoG8eKx7RTVPxKY86cITcutFu5Exto2YFDN8Asu9Xcky6
-	 +b7mX+fIerSZhR1aH6U7MpiBitslvKUdBetflbapbbI0xY8rWuAvVKuKmGqKcdL6+NytY
-	 W5Vxju6dGCjSLfa28/1aXKlHb+Q/Ollld0J/8SngWYCEl1/ZoblfF5xMqkR95pGEMiQ==
+	t=1794308427;
+	b=mZxtJdntsdIk9Lud6HVGSKexwcUBUsCnn8RIMQ/1ECVkuYhO1CrSaTkj3aDWd7gHx0Uf
+	 X+S8k2PEFz9ePjhYc9c3L90w4L9cb2yHZF4Qi5qEMVTNQWlJQeZ9oTr6SkKJCnGl+wONH
+	 d8Hbd35AsO8XdszjePJOOQyLQcbas8ES/zPKUNEKSJZ5m4dmX/R5vMCe4Eb+hAnx3t4jz
+	 g4RR3gVpPy2jaAzo0aMDLP9BQl0zQ7lPRhDlpmqngDSqspSUvl92mQ3IIm0vkjQu8lnwM
+	 GSmxoZAdImMTmfynJBrGACBjMH/MjE/JW9vgiRxDB8C4/JrcJ58U2WgxpXKg/bc4oxg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794307262;
-	h=DMARC-Filter:Received:DKIM-Signature:Message-ID:Date:MIME-Version:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:
-	 Organization:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-	 X-Rspamd-Queue-Id;
-	bh=aRfxxKk5JELB+Ani22l80ZT8QKCCTc2Q/EP8+1DWDqM=;
-	b=osZKNehOkuESCGH7kG4fVPsGBVGp+9z+otvArPZT+mZKOmvpjs17aEsvJkN5EQAaeRJh
-	 TEBEEnTssczQUbg153o6s8YvGmA7M8gRhbkuB68A7BJrP0x/2gWFQhvvpgkiOqVx9j5DG
-	 z/0qN0umtRlESRM9oO1XkzkqcC5W8LPkb1O15rX+RanVoggGpul1RIJxW1S29RkCNNsPr
-	 3qirRBrtAC2uxnpfyNZP1RLjCYZtvFSdIS4/UIzSKPNIRuUXHIi+jFte/7Fqn8bRE/XXO
-	 9Bejnudpy+Fds21TiPVwGMnWZmvcA2nQRA5PFMyuEKvKX4jlLe7L4/7pVplD1yIaHtg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794308427;
+	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
+	 X-Mimecast-MFC-AGG-ID:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 X-Received:Received:Message-ID:Date:MIME-Version:User-Agent:Subject:
+	 To:Cc:References:Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=PvjZgTETpTgpa2EwGhWe6LWOvKhagS++4LBHee0TILc=;
+	b=tARvYMR/yG9pyLCI1cUcn/BTTvUKq1z3NFULkdSbv6sn4ycaeL/LqtSToQUEXvAcuH/0
+	 izZdi+T9TAo9Tboz0WQ7rij2wc3B6m/3NUIGccgpsoXks5yDQYZk64Z0Yc5SjfKw8WbVZ
+	 nBFPndjt7sETzy0ZA9RDb5sxvboRY2I4+ljNzt9Z9mu4gIfKwNg9T5L2F/0TUIJ3PuWLj
+	 hR4FvDE3q7BlK3sx49haODuUel+VmDSW7uP+7fxHD4EzWkK6rrhPKwONQP4yArrHYM795
+	 0Y+wukdsTu1nVLrSrsQSQ2ih9yxb8krknSUIOQLH933BSYPcd1BbGQJ506JGUuw56+A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=mandelbit.com;
-	spf=pass smtp.mailfrom=mandelbit.com;
-	dkim=pass header.d=mandelbit.com header.i=@mandelbit.com header.a=rsa-sha256 header.s=MBO0001 header.b=mVM172Nb;
-	arc=none smtp.remote-ip=195.10.208.46
-Received: from mout-b-106.mailbox.org (mout-b-106.mailbox.org [195.10.208.46])
+	dmarc=pass header.from=redhat.com;
+	spf=pass smtp.mailfrom=redhat.com;
+	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b="Zx/tcHns";
+	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=aGxW5UwB;
+	arc=none smtp.remote-ip=170.10.133.124
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B318606A321;
-	Tue, 10 Nov 2026 10:41:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4B318606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mandelbit.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mandelbit.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA51360A2602
+	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 11:00:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EA51360A2602
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=mandelbit.com header.i=@mandelbit.com header.a=rsa-sha256 header.s=MBO0001 header.b=mVM172Nb
-Received: from smtp2.mailbox.org (smtp2.mailbox.org [IPv6:2001:67c:2050:b231:465::2])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519MLKEM768 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mout-b-106.mailbox.org (Postfix) with ESMTPS id 4jP38g4GZtzNlgV;
-	Tue, 10 Nov 2026 11:40:51 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mandelbit.com;
-	s=MBO0001; t=1794307251;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=Zx/tcHns;
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=aGxW5UwB
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1794308426;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=aRfxxKk5JELB+Ani22l80ZT8QKCCTc2Q/EP8+1DWDqM=;
-	b=mVM172NbFfAuP9fWqdRHbtUWgMm4uhNbiOnlaF7GqnRp64feTeIessWyiri9s0RhH9BLcm
-	z84etFtO0Koq+RHOsFB+3RXhr4NeeHch4j+QxBP+BgL++Et/CzCLj2FR5U4rMKOcTUWr8W
-	ZkxhArrFaaOTNjM6tdkUwZXk3rjAUYmbb7i3c4yyndIr/ShLisygS92YwgifWlMJuleeIm
-	8gfCvys1o1l643c+66UwKGscW43RH6BKMR25fioNQOfEtesGfvYs3ONSyUwed/Fn3Svzd4
-	2z+fsz6atXytLLSf6Axqf945s3hs/2ra/unKY/LJxITOr3UlOrwr96TJKs7K4Q==
-Authentication-Results: outgoing_mbo_mout;
-	dkim=none;
-	spf=pass (outgoing_mbo_mout: domain of antonio@mandelbit.com designates 2001:67c:2050:b231:465::2 as permitted sender) smtp.mailfrom=antonio@mandelbit.com
-Message-ID: <674eb8ef-c93f-4926-a760-62df154ed3eb@mandelbit.com>
-Date: Tue, 10 Nov 2026 11:40:49 +0100
+	bh=PvjZgTETpTgpa2EwGhWe6LWOvKhagS++4LBHee0TILc=;
+	b=Zx/tcHnsXU9bYCgwbuuA9BbmlMfKI/eHN1oFfmH5LlJ8HukocX3M0vvkvlvbIQ5kYqtUGv
+	TIf+TARp658IlpyeufgyYBxCVJoCe2NeHgBybCXv6tX3y/l+ipcaRs79Uh7281DfS9Zrbf
+	NmHeUKJ8imdxNFCc2UHzcqjVcqBeK4s=
+Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
+ [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-220-zy-4tdi_OsKEuVIphyXIlw-1; Tue, 10 Nov 2026 06:00:24 -0500
+X-MC-Unique: zy-4tdi_OsKEuVIphyXIlw-1
+X-Mimecast-MFC-AGG-ID: zy-4tdi_OsKEuVIphyXIlw_1794308423
+Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-49953abe51fso14113555e9.1
+        for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 03:00:24 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1794308423; x=1794913223; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=PvjZgTETpTgpa2EwGhWe6LWOvKhagS++4LBHee0TILc=;
+        b=aGxW5UwBL6Ch2N3+dvQ6/Gppqp/AubIefTtK1oM3wugrAIpPyZzt2Bc7oCP3J56nNS
+         koFRcyDesiB0ooi2zC3h8Cy+VEP00ezo9CrpMDD/jL9ZM/mZX9b0m9mUJoK/uYrRDOJO
+         lMZZ1XymsknXqIt4b2kfOBX4WB47oQRsZmxyljE6R6Am5ygN1EC7vFhNLmXHVeQRC75D
+         4L2nHFIYw1AvJqg/MpE9bX2xP2cyojHTSk0tNth/8igEtkLQcoCStUHYWJrqJ13CS+nv
+         1rm81pej5a8HH/DpRIFnvfM2YSdujniYSkP190FegldAVTnjJl++jp9k9Jxm+lMrXPK2
+         FaGg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794308423; x=1794913223;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=PvjZgTETpTgpa2EwGhWe6LWOvKhagS++4LBHee0TILc=;
+        b=qQfv/k2UreJAt8mty1TiD8aIbRW0kJxOXXg1YCc8raWllD6WMPvSeYsmdkV8ffYlDi
+         38ylmfS+/xzolYtr5dxiKlx6/GfQctOtc1gmWIgagqmCNFbEaGHqbq/bHzFFVoByPFGZ
+         e+bvjC7rm1VAJfWeFpH8mKqzJkoPmGwvhEwtNvCxbt6xoy6qY0Dw5cpz7nL8PQ3IEPg/
+         OVWEo0YHbKzttnT8A/zD3wsAvOf0YgK0hXi68pDOSTVbT/cxyX5iRV+Jw7I9/8GYGce0
+         axEDLa0qiEGlTdNgqWznrbB5QLlawFBA+5nArm/wGcYJNy+FgqGHeoPk/UPEERWG4Jzd
+         ncUQ==
+X-Forwarded-Encrypted: i=1; AL+hErE0T77FEdnhNdUMtY8W1RGEsxYb/ArwjXoRwbRCKKN/9i5gv0jYwjiWyxDrsuLy/KnC46Jf+z6AW/eN@vger.kernel.org
+X-Gm-Message-State: APuU4Z8hT/Q5DYbu6plMKRGqugshJ35qzFGkMoWd7UuFgzZPPmbq6Zr9
+	hAoYbhgCrETtPlBFVgnU/vs0TBKgtF1by62txbctS3PlzQ6/k0H63p+8XncYAeccab6sP/nOa62
+	VHNWS15/lg4G+cto78Xt+XwUbD/ET15JP2dqHgK1dx6Thl/f05+VairJlc0YGyUE=
+X-Gm-Gg: AYBFou305f2D4ZT/m31+/t1pSd5YyhGaXUqt5OlCKY1ypymnPgXll/Im1TeOL9R4QNG
+	gmPEVfDT65ZEi4AvLrguv8JtngAkiVsXKz4knIEV7sYj9MPXrLS9hYCJD9aQ/HNyAYy2iP71vYN
+	5yWUXZMXwgUhyGi8WB60m58oNENeSCGE1bhooGhwni73GnRYGwqsCkl5I5rXva0r6hMbmrwFcsi
+	s+dgmr9CATqD9nZxS/FOaMs73gDtHXF4pszK7HoVtNOkc5v098gO28J1oGJEbEPeWQ/GaXaTQt6
+	cDc5a7h/lw1+2WkRwPvp6DTr+/yQoj+CAOcZhREJIsE1u+vplpr3UEN7lhO6B5CEmfrfJJp6rv1
+	ecz4RilVhGJ6WqrJduFYbN1XOfXULMEz637zlvQPr93V0T+cJ6SrCWGd2fgtUvTsigaRMSzncM6
+	pMfEyJURUfdYxuLfNp7+YNaFfsMKsk11ExiFOqUw6U1mnF
+X-Received: by 2002:a05:600c:6095:b0:4b2:3c81:d1 with SMTP id 5b1f17b1804b1-4ba02336388mr36938145e9.5.1794308422273;
+        Tue, 10 Nov 2026 03:00:22 -0800 (PST)
+X-Received: by 2002:a05:600c:6095:b0:4b2:3c81:d1 with SMTP id 5b1f17b1804b1-4ba02336388mr36936355e9.5.1794308420789;
+        Tue, 10 Nov 2026 03:00:20 -0800 (PST)
+Received: from [192.168.88.30] (ip231-128-192-82.pool-bba.aruba.it. [82.192.128.231])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4ba0204e22csm52154425e9.12.2026.11.10.03.00.17
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 10 Nov 2026 03:00:18 -0800 (PST)
+Message-ID: <e15d78be-1e80-469d-96e1-dd83cd90a929@redhat.com>
+Date: Tue, 10 Nov 2026 12:00:16 +0100
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -67,77 +113,82 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v2] net/mlx5e: Prefetch the packet a few strides
- ahead in the linear MPWQE path
-To: Dragos Tatulea <dtatulea@nvidia.com>, netdev@vger.kernel.org
-Cc: saeedm@nvidia.com, tariqt@nvidia.com, mbloch@nvidia.com, leon@kernel.org,
- cratiu@nvidia.com, andrew+netdev@lunn.ch, davem@davemloft.net,
- edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com, ast@kernel.org,
- daniel@iogearbox.net, hawk@kernel.org, john.fastabend@gmail.com,
- sdf@fomichev.me, linux-rdma@vger.kernel.org, bpf@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20261104195241.1883539-1-antonio@mandelbit.com>
- <a31e1e60-7e31-4a14-a087-428d1e3627f2@nvidia.com>
+Subject: Re: [PATCH net-next 05/15] net/mlx5: LAG, decouple iteration
+ end-of-walk from MLX5_MAX_PORTS
+To: Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
+ Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org
+Cc: Akiva Goldberger <agoldberger@nvidia.com>,
+ Carolina Jubran <cjubran@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>,
+ Edward Srouji <edwards@nvidia.com>, Gal Pressman <gal@nvidia.com>,
+ Leon Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
+ linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
+ Moshe Shemesh <moshe@nvidia.com>, Or Har-Toov <ohartoov@nvidia.com>,
+ Patrisious Haddad <phaddad@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>,
+ Shay Drory <shayd@nvidia.com>
+References: <20261103171009.563034-1-tariqt@nvidia.com>
+ <20261103171009.563034-6-tariqt@nvidia.com>
 Content-Language: en-US
-From: Antonio Quartulli <antonio@mandelbit.com>
-Organization: Mandelbit SRL
-In-Reply-To: <a31e1e60-7e31-4a14-a087-428d1e3627f2@nvidia.com>
+From: Paolo Abeni <pabeni@redhat.com>
+In-Reply-To: <20261103171009.563034-6-tariqt@nvidia.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-Rspamd-Queue-Id: 4jP38g4GZtzNlgV
 
-Hi Dragos,
+Hi,
 
-On 06/11/2026 11:55, Dragos Tatulea wrote:
-> Thanks for your patch! These look indeed like enticing numbers. I'd
-> like to take some time to try this at scale and on other NICs (CX8)
-> and CPUs (Grace) and also check latency.
+there are a couple of unanswered comments here...
 
-Thanks! In case it helps, I measured latency on my side in the meantime
-(I don't have access to the monster Grace/CX8 equipment, but it's still
-something :-)).
+On 11/3/26 18:09, Tariq Toukan wrote:
+> @@ -2095,7 +2096,7 @@ static int mlx5_handle_changeupper_event(struct mlx5_lag *ldev,
+>   				break;
+>   			}
+>   		}
+> -		if (i < MLX5_MAX_PORTS) {
+> +		if (i < ldev->ports) {
 
-Request/response over the bare ports (one transaction in flight, like
-netperf UDP_RR/TCP_RR), same system as in the commit message: one RX
-queue per port with its IRQ on a dedicated CPU, MTU 1500, default
-coalescing (adaptive RX, rx-usecs 8, rx-frames 128), 10s per test,
-prefetch off / v2 / v2 + next-WQE follow-up (see below) interleaved,
-mean of 3 rounds:
+[medium]
+Should this compare against ldev->max_funcs, like the other converted call
+sites?
+The iterator's end-of-walk value is now ldev->max_funcs. That holds both in
+mlx5_get_next_lag_func() and in the mlx5_lag_for_each() condition.
+Indices are never compacted and max_funcs never shrinks. So a PORT-marked
+member can sit at an index in [ldev->ports, max_funcs) while the ldev still
+has ldev->ports members. One way to get there: more PFs than num_lag_ports
+join the ldev, and a lower-index one is removed later.
+In that case the inner loop finds the matching pf and breaks with
+i >= ldev->ports. idx has already been incremented, but this block is
+skipped, so the bond_status |= (1 << idx) and has_inactive updates are
+lost. The later check would then fail:
+	is_in_lag = num_slaves == ldev->ports &&
+		bond_status == GENMASK(ldev->ports - 1, 0);
+Wouldn't that leave this bond silently not offloaded?
+The old i < MLX5_MAX_PORTS check covered the whole index range that the old
+xa_alloc() limit allowed. This code is unchanged at the end of the series.
 
-                      p50 (us)              p90 (us)
-                  off    v2    +next    off    v2    +next
-   UDP, 64 B     24.60  24.61  24.60   25.37  25.37  25.39
-   UDP, 1400 B   25.08  25.08  25.10   25.94  25.96  25.92
-   TCP, 64 B     24.65  24.64  24.66   25.48  25.46  25.85 (*)
+This looks valid to me.
 
-   (*) one round at 26.59, the other two at 25.47 and 25.50
+>   			if (netif_is_bond_master(upper)) {
+>   				slave = bond_slave_get_rcu(ndev_tmp);
+>   				if (slave)
+> @@ -2360,13 +2361,16 @@ int mlx5_ldev_add_mdev(struct mlx5_lag *ldev,
+>   	if (!pf)
+>   		return -ENOMEM;
+>   
+> -	err = xa_alloc(&ldev->pfs, &idx, pf, XA_LIMIT(0, MLX5_MAX_PORTS - 1),
+> +	err = xa_alloc(&ldev->pfs, &idx, pf, XA_LIMIT(0, U8_MAX - 1),
+>   		       GFP_KERNEL);
 
-p99 and p99.9 (37-45 us and 67-100 us) varied more between rounds than
-between the variants, and nothing was lost. So no latency cost that I
-could see at low rate.
+[high]
+Can this let member indices reach 8 or more while several arrays are still
+sized MLX5_MAX_PORTS?
 
-I'm also testing a small follow-up: v2 doesn't prefetch when the stride
-4 ahead is in the next WQE, so the first strides of every WQE are never
-prefetched. Following the WQ list to the next WQE (only when
-cur_sz >= 2, so it is posted and its pages are allocated) removes 26-32%
-of the remaining DRAM demand fills on the RX CPU and adds 1.8-3.3%
-throughput, measured with TCP inside an ovpn UDP tunnel (where the RX
-CPU is the bottleneck); its latency is the "+next" column above.
+this is solved at the end of the series, so not really a problem.
 
-I had planned to send it as a follow-up patch, but I can also fold it in 
-a v3, whatever you prefer once you have your results.
+Note that there are more unanswered comments on patch 15/15.
 
-If there is anything specific you'd like me to run here, feel free
-to let me know.
+I think a v2 is need. For the future I suggest using smaller series:
+15 non trivial patches will have increasingly hard time with AI
+reviews.
 
-
-Thanks!
-
-
--- 
-Antonio Quartulli
-
-CEO and Co-Founder
-Mandelbit Srl
-https://www.mandelbit.com
+/P
 
