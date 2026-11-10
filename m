@@ -1,57 +1,97 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.181
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794288567;
-	b=KMjmr3NBhuWTv3agdht8pOIX9fegkReHxj715ms1/1qQZ5JI4SsBnGUFvOj8kG+W5wRb
-	 /8NLKsk9cbGhlCVis2rz3U0vGroJllqSqAXeqveucyYD51s7t6OZbGmOF+KlK99UsSiEC
-	 T4JxsmvXAXNlPzu/T9xMLTM+HgBhSW2hcSOYlidGfq6Mvxu/dooisEbJ7V4EjgR8qLzzr
-	 DT5D8kXK4JIep00mdCKDJ0PZPzUFIKaqXsZIe/UqAv7SE6fRDjRVeQqvjAl6XQbx9e+0I
-	 nH2p27ssBD0au2wx2Sr6S5iHNxyyen6xfI927uXAxDIq6/NNI4FwowCfsiwnFDGlxWA==
+	t=1794288578;
+	b=mNQ7X8QGfRB1BaoK1KyLoqgm3C355PaLZ8pXQw+8eUb7pDHJ3u0ZqaIVpzWcOZB18TS+
+	 cn7X48kjsB5p3NFmPbczWHdlrhy9Rnx0CE+cqJZ7hiKHX4Al3lQwPDm5M8BQ61d28qj4W
+	 kbi/1LaH8nplGDEI4lGJMIovoMsgv0S8gQuuN5rXMMrktRBoPOY+1ZVoE4b0muY4hb9D8
+	 HeOO+nfCthfde7N89PJy0Vl0WvWCimXXyl/LkVQArLYfCQEnn+itFMyDgHkCFsO/fXN6E
+	 h0mdCLsGUjm5WfeTV05NGUhfYjm6R8n5xQ0ilZo/evcprNMMVVSCk1rt90hlV/GhyPg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794288567;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=JB6kwIhv0MXPbFQBiM8aG+2iGLCzE0jmb6RFJUO1kpw=;
-	b=2vULrf53piPmf4gLNlDJL0jxSOCdarOfO0+pSmdBAt6vaRAno48fq11vmYmdBkIF/G12
-	 Ux1jBL3B0FJPK19MjZNwvVwvJ3rD+MG7RUFySWw98zh4US24Hgi9+B2ufR1XOiMroBpsC
-	 /3oAfBpaf3NH3P0AQoFoVH8mz6XH3rseWIMu9SwZmvbi54RFCWBotH2HlZt/Yj+bl5Wmr
-	 oYt6NpA2j+oCUXN6PJ3tafd07BcnkYmrgpI20S4EdYmOm++FH9iSPDjDEDQgkx5AC/v7y
-	 qtpbcpcvX+N5MOsZMUt7UWIBBTEEy73jcaaODCLTCshstaXrPHMYE1CWWluJD8nZIHA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794288578;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=p2T/Tnq0wrJazsgzibf7bEuis2IKzeDcfBGA8lydX14=;
+	b=XVXNSVYkhC+/hCCnd7VRR3eejPDKfq6ZUzdJM4OfNejWZ2BEuZsgQPrAHTAtt0dvctnt
+	 e0T4Nm2ZiBqpZY+cSvY52tIUZsFuzi+P/PDo5/tFegB76eq0ZBvw6DJzch+kV0yGK7YAY
+	 cff5CN0JhqxbCqlfIKUNJ1HjdKBVBWb9FVKw4Uwo5TBLeI2DhNF2tYvnnPG1dKjL3E9Oj
+	 43bJETXz5aRdPVN88MHJSrxTBsuL7VnBoxX4iacXMtF0M38yAFG0dvTmG6WfQJ3iCtVp1
+	 3494tZHp/doePVZ/Rd24wUaNaWj2iBIE6aBQ9pemEGZ7JDVJIvTBswnTxbY1DdgRWZg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=i1BYOXM+;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=GvIrSLnm;
+	arc=none smtp.remote-ip=209.85.210.181
+Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61477606A31C
-	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 05:29:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AB0A606A31C
+	for <linux-rdma@vger.kernel.org>; Tue, 10 Nov 2026 05:29:36 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1AB0A606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=i1BYOXM+
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D33941F0089F;
-	Tue, 10 Nov 2026 05:29:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794288567;
-	bh=JB6kwIhv0MXPbFQBiM8aG+2iGLCzE0jmb6RFJUO1kpw=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=i1BYOXM+wnipB9sx9O/AQRSYjnVuK5zmYGhkn09visVZaWMBDEy07i/kTEe/lbu0Z
-	 giwYFBQHyEdT+xNV7z64wUopPhQfVJEtO1pSPMb7pBkVt4e1/AUdQ/8ZM/a7Zgdzkq
-	 xPc/daEU0vkggDE0fS+WdcDZWqyR1YJhxcJtM44BOM9g++nrCqOJaRxLeyCpibmnf6
-	 1jvphBrWwv/gfhmFO5VjsLhFue9tA+5cZ+gakeIeo70p4ge0ik372zDXNcmS6uNjse
-	 uCBsxkL4Yqsy6sdJtlCy7Sd+lIXWR4bgdwMw+KR3M8BbnguyaXI15SGHRbYliK/i0f
-	 4/VKmejAnPtZw==
-Message-ID: <sashiko-outbox-206295@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v3 10/13] RDMA/core: queue pair attributes for
- unconnected transports
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Eric Davis" <eric.davis@broadcom.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261109-uet-ib-core-v3-10-3e7e7ffed2e9@broadcom.com>
-References: <20261109-uet-ib-core-v3-0-3e7e7ffed2e9@broadcom.com>
- <20261109-uet-ib-core-v3-10-3e7e7ffed2e9@broadcom.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 10 Nov 2026 05:29:26 +0000
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=GvIrSLnm
+Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-8a0673d9bd2so971906b3a.3
+        for <linux-rdma@vger.kernel.org>; Mon, 09 Nov 2026 21:29:36 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1794288576; x=1794893376; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=p2T/Tnq0wrJazsgzibf7bEuis2IKzeDcfBGA8lydX14=;
+        b=GvIrSLnmuwFnsNPBX/JyOUrvoXMsCql0KosPD5ppgPaPqcc6R5CxsHsikD9OU2PMvP
+         ZZdJwsdIW5Ow1aVXIJeDuHZKA03ifzweRfP2uL+MFNias2IwYZH+M0HUrL3b5JA6S8hU
+         saio/qh6Vi5j69eII53NZXVIVuUKXV+xSco+gMpvToX16L0Kv+CsX/IJzYXZfoRxlfQy
+         uS6BRZk+ouZVMvp4AB8n/eqkjK6Ok73T3aCSRrVdzMFps6tMHJxu62NNRyMZk83w0EqP
+         nsk6eydxgvE2TZhX7WmV0/DM7HH8v3hYvd2T8ongfOHOfCiko2RJZCr3KUQDcM8GUM1q
+         tzOA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794288576; x=1794893376;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=p2T/Tnq0wrJazsgzibf7bEuis2IKzeDcfBGA8lydX14=;
+        b=lX0gSX+s8YwZRGzXOSXbr43OzEae8FK+Fl/U3UQKRbmINBbsa+Qba9sW1iE3mLoTOx
+         eU2t1L7yiZDXZB0PWETc/a3JKRpIgFcfPNhszSXaHxeZQS7VjfMjRhxGO9u49nkHxEoN
+         B3M5YMvhYyc6dsLQEwqv0YW9bfkAuTV9Ss1sHf9CgHqBj4BEjFZkI0DhninD8INdxJIi
+         vz9zKZkCsYoZrLAqw9kpsypbOVXWD++ro/UlGHYpXBrJbhTlNHVX5kHzNaBegGek0xhb
+         XNYIhQmS0tgH/D0GCYsynQUjcvm5mricDbyqB2a3A6EoAu+uj2jinIP6cKv5PpOTgGKr
+         j/Ww==
+X-Forwarded-Encrypted: i=1; AL+hErEgHtlEnld0tdWOkzF1dvsLDHqyhTtF9w0+Adr9Nvbuuq4QZNai88zpbcrA1XJuVm4Z/9WfrQ0NpWlw@vger.kernel.org
+X-Gm-Message-State: APuU4Z+WB8fCSRMAiqPfh9bO8duzL242p17gWt7XdIotJ+eDLYFPEQGD
+	WLBGao6lN8CCeaG5dEZpnpJVnuzlpFME7D1BnelNBZ2+tl0SDCyo1fmY
+X-Gm-Gg: AYBFou3RbB97LSSQlOTd5je3H4sonYi2msblIEY+bydJDwxxaoylt4o4S9fBPqLyAr/
+	BvTj0CnUfFXQdnWoqM2JwCxUwf5S0uS6tRuB/Z6jbUb9Xp+lzWlgi/VXnY3lZPa+47DgORDMT5r
+	hQ1gsqynCsdeQxGwZQZ3pbc5dKoWCtXTu/CvKgOudq0D5Eu275PWAt7Glz/d1zC/1F9FHIRZe+Q
+	nkfQyacjqQSQ0YZhZ0uKabTrzBR2gIEoCem3WnlWkG7HlxfO9qlmrFvF0HGx+Cui+4u9nO/iWlW
+	UIhfHqJRN64nyjzZCMVm0wkxPKHL0NRWiUAb5o47eWzuUTv+SFcBAlWjhtToveBlLyQiSdrJEYU
+	uS95KVyUoBdACRo4A5jr0FSPMsDCPF3l+mSnKgw44N2UI0KEOfBOjUHr8oOYO6ta65SKEtVDNzK
+	Cv7izjqYWvAMEuOWGErwd9RwTy6rRl3qdPFoWCRg7qANihMWAYuTwX8Zf95mbW84RMIjAg2+Gpu
+	JE6Sk+GchY4is3MNwgyU1PVhDmB8h2bpkSLmfJ52fpv4qPFCw6oHHw6VSk92lLDLnhqpSDQGqpt
+	9GYVFHBcGl7FFOFbi6eBdZRK79N3gl5jTkiTGyUuBA==
+X-Received: by 2002:a05:6a21:1f82:b0:3e2:6f6b:467f with SMTP id adf61e73a8af0-3f18eeaa3dbmr1587066637.33.1794288576305;
+        Mon, 09 Nov 2026 21:29:36 -0800 (PST)
+Received: from localhost.localdomain ([183.62.176.219])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cdd8d67adcfsm402224a12.8.2026.11.09.21.29.30
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 09 Nov 2026 21:29:35 -0800 (PST)
+From: liuyong <pkfxxxing@gmail.com>
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	linux-rdma@vger.kernel.org,
+	target-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	security@kernel.org
+Subject: [PATCH v2] RDMA/srpt: Limit read data transfers to the command length
+Date: Tue, 10 Nov 2026 13:28:26 +0800
+Message-ID: <20261110052827.963143-1-pkfxxxing@gmail.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20261110030809.913063-2-pkfxxxing@gmail.com>
+References: <20261110030809.913063-1-pkfxxxing@gmail.com> <20261110030809.913063-2-pkfxxxing@gmail.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,90 +100,79 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue to consider:
-- [Medium] RDMA/core: incomplete zero-size ordering check in
-  create_qp_opt_attrs()
---
+SRPT builds RDMA contexts from the initiator's buffer descriptors before
+parsing the CDB. The resulting RDMA WRITE requests can exceed
+cmd->data_length after target core shortens the command or when an
+indirect descriptor's buffers exceed its advertised total length.
+A backend such as rd_mcp fills only cmd->data_length bytes, leaving an
+uninitialized tail that is still transferred to the initiator.
 
-commit ab78e9acb0c6a04e98901cf4dece43df9ce37611
-Author: Eric Davis <eric.davis@broadcom.com>
+A remote initiator with access to the LUN can therefore read
+uninitialized target kernel memory beyond the requested SCSI data,
+potentially exposing sensitive data left from previous uses of those
+pages.
 
-RDMA/core: queue pair attributes for unconnected transports
+Limit the data SGEs in every read response to cmd->data_length without
+depending on SCF_UNDERFLOW_BIT. Keep MR operations and WR accounting
+unchanged by retaining excess RDMA WRITEs as zero-length requests.
+Clear sg_list when num_sge becomes zero so that providers such as irdma
+do not program a non-zero first fragment from the original SGE list.
 
-This commit adds creation attributes for reliable unconnected (IB_QPT_RU)
-queue pairs, including initiator source ID, job key binding, and ordering
-semantics validation.
+The issue was discovered and fixed by Qihoo 360's Tulongfeng multi-agent
+system.
 
-> diff --git a/drivers/infiniband/core/uverbs_std_types_qp.c b/drivers/infi=
-niband/core/uverbs_std_types_qp.c
-> index 249206d2992f9..a1112083fb73f 100644
-> --- a/drivers/infiniband/core/uverbs_std_types_qp.c
-> +++ b/drivers/infiniband/core/uverbs_std_types_qp.c
+Fixes: b99f8e4d7bcd ("IB/srpt: convert to the generic RDMA READ/WRITE API")
+Cc: stable@vger.kernel.org
+Signed-off-by: liuyong <pkfxxxing@gmail.com>
+---
 
-[ ... ]
+Changes in v2 (addressing the two issues reported by sashiko-bot):
+- Limit every read response to cmd->data_length without relying on
+  SCF_UNDERFLOW_BIT.
+- Clear sg_list when num_sge is zero to avoid stale fragments on irdma.
 
-> +	if (has_semantics) {
-> +		ret =3D uverbs_copy_from_or_zero(&usem, attrs,
-> +					       UVERBS_ATTR_CREATE_QP_SEMANTICS);
-> +		if (ret)
-> +			return ret;
-> +
-> +		m =3D usem.comp_mask;
-> +		if ((m & ~QP_SEMANTICS_MASK_ALL) ||
-> +		    ((m & IB_UVERBS_QP_SEMANTICS_MASK_MSG_ORDER) &&
-> +		     (usem.msg_order & ~QP_ORDER_ALL)) ||
-> +		    ((m & IB_UVERBS_QP_SEMANTICS_MASK_USAGE) &&
-> +		     (usem.usage_flags & ~QP_USAGE_ALL)) ||
-> +		    memchr_inv(usem.reserved, 0, sizeof(usem.reserved)))
-> +			return -EINVAL;
-> +
-> +		/* only the fields comp_mask selects reach the driver */
-> +		sem->comp_mask =3D m;
-> +		if (m & IB_UVERBS_QP_SEMANTICS_MASK_MSG_ORDER)
-> +			sem->msg_order =3D usem.msg_order;
-> +		if (m & IB_UVERBS_QP_SEMANTICS_MASK_RAW)
-> +			sem->max_rdma_raw_size =3D usem.max_rdma_raw_size;
-> +		if (m & IB_UVERBS_QP_SEMANTICS_MASK_WAR)
-> +			sem->max_rdma_war_size =3D usem.max_rdma_war_size;
-> +		if (m & IB_UVERBS_QP_SEMANTICS_MASK_WAW)
-> +			sem->max_rdma_waw_size =3D usem.max_rdma_waw_size;
-> +		if (m & IB_UVERBS_QP_SEMANTICS_MASK_PDU)
-> +			sem->max_pdu =3D usem.max_pdu;
-> +		if (m & IB_UVERBS_QP_SEMANTICS_MASK_USAGE)
-> +			sem->usage_flags =3D usem.usage_flags;
-> +		if (m & IB_UVERBS_QP_SEMANTICS_MASK_IMM)
-> +			sem->imm_data_size =3D usem.imm_data_size;
-> +
-> +		/* nor an ordering whose data-ordering size it gives as 0 */
-> +		if (((m & IB_UVERBS_QP_SEMANTICS_MASK_RAW) &&
-> +		     !sem->max_rdma_raw_size &&
-> +		     (sem->msg_order & QP_ORDER_RAW_SIZED)) ||
-> +		    ((m & IB_UVERBS_QP_SEMANTICS_MASK_WAR) &&
-> +		     !sem->max_rdma_war_size &&
-> +		     (sem->msg_order & QP_ORDER_WAR_SIZED)) ||
-> +		    ((m & IB_UVERBS_QP_SEMANTICS_MASK_WAW) &&
-> +		     !sem->max_rdma_waw_size &&
-> +		     (sem->msg_order & QP_ORDER_WAW_SIZED)))
-> +			return -EINVAL;
+This revision has been compiled and verified to fix the reported issue.
 
-[Severity: Medium]
-Can userspace bypass this zero-size ordering check by omitting
-IB_UVERBS_QP_SEMANTICS_MASK_MSG_ORDER from comp_mask?
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-sem->msg_order is only populated when IB_UVERBS_QP_SEMANTICS_MASK_MSG_ORDER
-is set in m, remaining 0 otherwise.  If a caller sets
-IB_UVERBS_QP_SEMANTICS_MASK_RAW with max_rdma_raw_size =3D=3D 0 and leaves
-IB_UVERBS_QP_SEMANTICS_MASK_MSG_ORDER clear, sem->msg_order is 0 and this
-check passes even though the caller did not relax msg_order and the device
-default adv.msg_order still has QP_ORDER_RAW_SIZED set, passing inconsistent
-semantics in attr->qp_semantics to the driver.  Should this check test
-against the effective msg_order (using adv.msg_order when
-IB_UVERBS_QP_SEMANTICS_MASK_MSG_ORDER is not set, and conversely checking
-adv.max_rdma_*_size when a sized ordering bit is requested without its size
-mask)?
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261109-uet-ib-cor=
-e-v3-0-3e7e7ffed2e9@broadcom.com?part=3D10
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 43c3ff1ad..9257c6beb 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -2907,12 +2907,32 @@ static void srpt_queue_response(struct se_cmd *cmd)
+ 	if (ioctx->cmd.data_direction == DMA_FROM_DEVICE &&
+ 	    ioctx->cmd.data_length &&
+ 	    !ioctx->queue_status_only) {
++		struct ib_send_wr *wr;
++		u32 data_len = cmd->data_length;
++
+ 		for (i = ioctx->n_rw_ctx - 1; i >= 0; i--) {
+ 			struct srpt_rw_ctx *ctx = &ioctx->rw_ctxs[i];
+ 
+ 			first_wr = rdma_rw_ctx_wrs(&ctx->rw, ch->qp,
+ 					ch->sport->port, NULL, first_wr);
+ 		}
++
++		/* Do not expose uninitialized data beyond cmd->data_length. */
++		for (wr = first_wr; wr != &send_wr; wr = wr->next) {
++			int j;
++
++			if (wr->opcode != IB_WR_RDMA_WRITE)
++				continue;
++			for (j = 0; j < wr->num_sge && data_len; j++) {
++				struct ib_sge *sge = &wr->sg_list[j];
++
++				sge->length = min(sge->length, data_len);
++				data_len -= sge->length;
++			}
++			wr->num_sge = j;
++			if (!j)
++				wr->sg_list = NULL;
++		}
+ 	}
+ 
+ 	if (state != SRPT_STATE_MGMT)
