@@ -1,121 +1,149 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.195.7
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.159.104
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794336702;
-	b=o/c4vcbdRdpohIUgWfiWNfQYhcYmY5yz034mx/UoZ7gYxGmxI9cx2FcynQ/5/iA+BpHv
-	 Pz0YApc68m/20CYVmSvxzhBpUx6AMeWVbRWtfgVoI/s39+fvwQgsWzLDP3pI6qGIpNLJt
-	 vpA2DmH0V+UZ/a7ey3VYya9SXGBnWeEJcxkvQxwqdlfeJPfvjbdO4k/56QblQNJqdUbij
-	 wVL5UtesKQ3Ay9mE5dgOb6KHlC16B5FwKmEsLifi1F2KF0hQ4le7uAXPn9Po33pQ7ynsC
-	 6LxYY2k/4idGijfy/YqEfXT2hYLNaFEn5UabNBfHUAsGgXRcNViyGkO3I3Tpt9tzecA==
+	t=1794336955;
+	b=M0kaoSpyxoLuEXrI1s6MXW6Ztaldg9Wi0V3F/lcDrPak+oKQmbiUhX99Jd6GSu+A7iVn
+	 7o9dmy7+KhHNxisBfcvDZtwucTlgjPEqss5SwmY5nPlDAqxeQswClJOBYqbNlUVoNPSsd
+	 SCiPjQRUqrKJbFOT/ZVCH5zDIcsN0O/HJvt3FUga3U98LLr4V6sKZzqFJskC/8b9REiWp
+	 iS355yXItjuGsY1Z8iQZ0pS7HKExxbMLi0cL6b+XqCL34Rs0XJGZLpJRhIrfpIkA3xukX
+	 SiDom36X2rgVIZEs9oekxCp/SiWCtklNeUtYsOFqV+bmIsfeWyfUwppNT6CEuMqZjTw==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794336702;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:
-	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
-	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:
-	 Content-Type:X-NV-OnPremToCloud:X-EOPAttributedMessage:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-LD-Processed:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	a=rsa-sha256; c=relaxed/relaxed; t=1794336955;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:From:To:CC:Subject:
+	 Thread-Topic:Thread-Index:Date:Message-ID:References:In-Reply-To:
+	 Accept-Language:Content-Language:X-MS-Has-Attach:X-MS-TNEF-Correlator:
+	 msip_labels:x-ms-traffictypediagnostic:x-ms-publictraffictype:
+	 client-request-id:request-id:x-ms-office365-filtering-correlation-id:
+	 x-ms-exchange-senderadcheck:x-ms-exchange-antispam-relay:
+	 x-microsoft-antispam:x-microsoft-antispam-message-info:
+	 x-forefront-antispam-report:
+	 x-ms-exchange-antispam-messagedata-chunkcount:
+	 x-ms-exchange-antispam-messagedata-0:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-AuthAs:X-MS-Exchange-CrossTenant-AuthSource:
 	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-Id:
-	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-originalarrivaltime:
+	 X-MS-Exchange-CrossTenant-fromentityheader:
+	 X-MS-Exchange-CrossTenant-id:X-MS-Exchange-CrossTenant-mailboxtype:
+	 X-MS-Exchange-CrossTenant-userprincipalname:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=/4oGOhaamHF4seuAGCNwe1TO1I3nwECDlckD3fVXNeI=;
-	b=KIL2AhK71JUr/lVh1XAVMx3ATZ+0kPuurM40uHqkuqfLM/QPIG9jWQmwfCwjSmODEBk9
-	 edpN4NLm3VF64wTPJX1pupNpu0FxUWI5RR7VYsCv6K1RtAQSuvqQW3FVkstTLL5Fd0IjP
-	 zm4bYTYC7gdsj52c1VF0SKLK5znIxQFXccKHzWkPx9siP8iJXJpP5snwBOJEoqg5cZSIX
-	 siPpM8VNd+QfSSvjdhA6hOWLWHkevZ/uaJ9u5ULZ+50vgGeI6gAuUjKKAhSk1sXHna2iS
-	 SC4lSGWr/pp2STkYadaX3h9VqZv55mBoCLdhHyl2EVs/cc5bqXUWFd0RsvDBDXLTauA==
+	bh=daMOFw+sPERhjtovlGH+0mp6nNFPc5RD2JGgOfPmUhE=;
+	b=DFp4w5HcmAbEfCZNAWgU/MONR1/V2gn9/qwFMJ/MNXboGIkBIA9wWjy9SQP1mQm8Jgnn
+	 o1zOHInPluTFZGOHvOFQFhqd501w81yGxsL7XGMgrT5M++eUXpAEofoA2mcEL/njRFzJt
+	 pKcWpUrRebdMYU+p3vi2WXfSMjU+xHzNqvb5loeOx5YjGYFa4qa0Hppel3pd8bPa3tzfC
+	 Nu0fRe+3XZ4wD/iCknzro3kWogHE1ETybKU9RQY2IHHjIpssr3/nWm9rHJA5BlrI6LB6y
+	 m2KUghrIiIwjYjPa9YmcF1fb5WWSy+hjmC4xg0/C3RdT6NlK7Gpnho+Kjr+L2hV7f9g==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=jegMaMpJ;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.195.7
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012007.outbound.protection.outlook.com [40.93.195.7])
+	dmarc=pass header.from=microsoft.com;
+	spf=pass smtp.mailfrom=microsoft.com;
+	dkim=pass header.d=microsoft.com header.i=@microsoft.com header.a=rsa-sha256 header.s=selector2 header.b=LlhswCiy;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.159.104
+Received: from OSPPR02CU001.outbound.protection.outlook.com (mail-norwayeastazon11023104.outbound.protection.outlook.com [40.107.159.104])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C6C4606A32E;
-	Tue, 10 Nov 2026 18:51:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4C6C4606A32E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FA9360A2628;
+	Tue, 10 Nov 2026 18:55:54 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7FA9360A2628
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=jegMaMpJ
+	dkim=pass (1024-bit key, unprotected) header.d=microsoft.com header.i=@microsoft.com header.a=rsa-sha256 header.s=selector2 header.b=LlhswCiy
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=JfgTMTaX+XwL0txwHVy6FgditIqq2q6Q+6VjH/gzYWlpyrCmMIvH4CSs0vmC0T/zJHZZ89B/sXBbTTQ8WWsmeE9Px6+ZK/AMsStn5GPY5TM6PaoMbRnWTj0AUOKreu+xe9EYhdxLqW+ZT3gEVdmYRv33+33eACPwx1j/nPXbR3Y+NPd+mRjlHPxJpZuQqvrlZERb6E/4bMd0htcU1GYk3onYmxvkn+/PAlFHkkogjhTXD0F7cnPWdW9SRa1g+YjH1kDzL7iW/iQY3v6AOs8Mo8W3k3Ne8PaDj6oGFmanq+ceyCbQkCFY3yOfhOIbcb3Cyrf0ysJG2DjyAGQTI6XQOQ==
+ b=AZfhWhd3RuZ0Bg9zx5gLnYoCoFrrM1tTcV3jKG84JXDHfZMSR+7YIE1LXSaKpm+X53tcZCDUtWTN01pXqSahUxS9DtwqOA0leuUjQ8lLNoRgGyuTSoGkhseeQ/b6mWxCFsnE1PToI9cr8pNJocLjiSo+b5JerpEHS0yotO3nslpTpHKSUBb1Dv5+U4wZqh+EJSy4Es+FereXR93BVQZRZgNHymHQ6/e8/ByhVmsIZ3A9Qeubvdo9rVhwaJYrAlTn8m1U8el2D9JHBvTsF9VfUZRFir2gDjL/DIn2NC5JqbPgEcQxn79jn2T2hHfyYVLc9fto9p4Uxix+c5tDIxKghA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=/4oGOhaamHF4seuAGCNwe1TO1I3nwECDlckD3fVXNeI=;
- b=MbUiJXOoriN9puCHo+SWS3Rt7o6ihlnl+y/SQ1MNcZZhp3CoBO18RkVlxiTRUuWouEQE8BfQIksaN/LEj8XQWcymhnG1ql+QdxL1IFehIqD94EMdSlCarDALTTioVrQFhQyUe84djbJVQXOTERmBTEcTpdTvcShtK0W3Q95ymzRBmngzSSKQr0NEuj+rmAJnCSk1sCbLeVEVOXlEjKI4CZJPP7oIBJNm2dLzvMq3EvFKb1mkpnBi0nKAmukotIBk4el6iSyht1oNC785R70PXLnSXG4+S+vX8pHAwwqq5Rgm/9jO11/+luahdmkmoXoxZqtZ/FUvw5dcIxCXGbyS5Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ bh=daMOFw+sPERhjtovlGH+0mp6nNFPc5RD2JGgOfPmUhE=;
+ b=Uea9aBTQM7ld03TsCGrFmTVqMTIx8YcYRE75XXQZPZZ4ztbKscidDe98oNCZ5OHuboDKJbbYecmIk4OO8PhX9x6NePaIRt9JV0ONGZByi4pb1tB1DO0N4xbZ6Lin5A3MlA0teF4TaKdbhT6Fe3JDO8ASjUMxdsCFFvVxRwkIriBZpThAKeeX0VdxIf5mz2EkUNMcOotPMI1095yRdb14fKtQ1M3Jq6pA9okdituoeECcnGoUMkDAAq9UkU48Ka1VkrN141F1Z6fu/HGZCSkrb//wMaTSDeO31gE+5z8DnkHCT24zH8IBF9qZ/4b1rDYuwsHzgW3BFhqY8wxTymOHAg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=microsoft.com; dmarc=pass action=none
+ header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=/4oGOhaamHF4seuAGCNwe1TO1I3nwECDlckD3fVXNeI=;
- b=jegMaMpJgAsnq96sa0BPnbzDLxN/1IJLnHJ4+hMepxcpFFP8MB0MD5DVZugfm0P6pt3j6CCEoPwXc3KqXCDgNEgsVYbmkRiFNWy22cuHxFB0Ts7rK5nGGyKCwWpr1JvN7xor7YM2PRzruFc45dAwkEl5vDoWAB7B5LL8LAkwpHfObwxotCd5476D/ifis3ourrbKxhnZ5ODYOhYsOl4ZZ2g3QG+nluPutgwWsOoY7NjF2CtmtWa3wQnRp70Rak3ngQL7ZsveuzqlD4r3VCW2NziOXMOdVLEpbkQfe9ZSkyNEISqUVzAcCnhF3zoqASuBvmye6x4ZBYR8cITuNbBH6g==
-Received: from CY8PR12CA0005.namprd12.prod.outlook.com (2603:10b6:930:4e::13)
- by DS4PR12MB733313.namprd12.prod.outlook.com (2603:10b6:8:50e::9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.8; Tue, 10 Nov
- 2026 18:51:37 +0000
-Received: from EA8PEPF0000000C.namprd05.prod.outlook.com
- (2603:10b6:930:4e:cafe::af) by CY8PR12CA0005.outlook.office365.com
- (2603:10b6:930:4e::13) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.8 via Frontend Transport; Tue, 10
- Nov 2026 18:51:37 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 216.228.117.160) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- EA8PEPF0000000C.mail.protection.outlook.com (10.167.249.235) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Tue, 10 Nov 2026 18:51:36 +0000
-Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Tue, 10 Nov
- 2026 10:50:52 -0800
-Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail203.nvidia.com
- (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Tue, 10 Nov
- 2026 10:50:45 -0800
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.10)
- with Microsoft SMTP Server id 15.2.2562.56 via Frontend Transport; Tue, 10
- Nov 2026 10:50:39 -0800
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
-	<davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
-	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>
-CC: Alexei Starovoitov <ast@kernel.org>, <bpf@vger.kernel.org>, "Carolina
- Jubran" <cjubran@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>, "Daniel
- Borkmann" <daniel@iogearbox.net>, Dragos Tatulea <dtatulea@nvidia.com>, "Gal
- Pressman" <gal@nvidia.com>, Jesper Dangaard Brouer <hawk@kernel.org>, "John
- Fastabend" <john.fastabend@gmail.com>, Leon Romanovsky <leon@kernel.org>,
-	"open list" <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>, "Li
- RongQing" <lirongqing@baidu.com>, Mark Bloch <mbloch@nvidia.com>, "Richard
- Cochran" <richardcochran@gmail.com>, Saeed Mahameed <saeedm@nvidia.com>,
-	Shahar Shitrit <shshitrit@nvidia.com>, Stanislav Fomichev <sdf@fomichev.me>,
-	Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH net-next V2 2/2] net/mlx5e: Batch ICOSQ trigger RCU synchronization
-Date: Tue, 10 Nov 2026 20:50:05 +0200
-Message-ID: <20261110185005.2932568-3-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <20261110185005.2932568-1-tariqt@nvidia.com>
-References: <20261110185005.2932568-1-tariqt@nvidia.com>
+ bh=daMOFw+sPERhjtovlGH+0mp6nNFPc5RD2JGgOfPmUhE=;
+ b=LlhswCiydTO4wGguTjqw0+Rilj2lR+nhhzDa7DpkgmD1ohzrtEM/evZUD3GxLJhOBh8SwwxAtR/gcWoiUSkjKXUfUnUOrtFDqR38YzdYCCPVxyLY+YTq2FCB5i8EpPFwtwmcORYKx1SqtfHuixSOhI9q/jDv4R059TtPU6UhDLo=
+Received: from MA8PR83MB465002.EURPRD83.prod.outlook.com
+ (2603:10a6:250:7c::20) by GV1PR83MB0753.EURPRD83.prod.outlook.com with HTTP
+ via P2P; Tue, 10 Nov 2026 18:55:49 +0000
+Received: from MA8PR83MB465002.EURPRD83.prod.outlook.com
+ ([fe80::7dc3:38ee:abc1:5102]) by MA8PR83MB465002.EURPRD83.prod.outlook.com
+ ([fe80::7dc3:38ee:abc1:5102%5]) with mapi id 15.21.0639.000; Tue, 10 Nov 2026
+ 18:55:49 +0000
+From: Konstantin Taranov <kotaranov@microsoft.com>
+To: Leon Romanovsky <leon@kernel.org>, Konstantin Taranov
+	<kotaranov@linux.microsoft.com>
+CC: Snehal Sanghvi <snsanghvi@microsoft.com>, "longli@microsoft.com"
+	<longli@microsoft.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH rdma-next v9 2/9] RDMA/mana: Create and destroy kernel RC
+ QPs
+Thread-Topic: [PATCH rdma-next v9 2/9] RDMA/mana: Create and destroy kernel RC
+ QPs
+Thread-Index: AQHdcUUa3o74yQcgyUSr8N0dPY7KeA==
+Date: Tue, 10 Nov 2026 18:55:49 +0000
+Message-ID:
+ <MA8PR83MB46500225F6F556D2D6D930B45CB4722@MA8PR83MB465002.EURPRD83.prod.outlook.com>
+References: <20261105175928.1326682-1-kotaranov@linux.microsoft.com>
+ <20261105175928.1326682-3-kotaranov@linux.microsoft.com>
+ <20261110154117.GN8635@unreal>
+In-Reply-To: <20261110154117.GN8635@unreal>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+msip_labels:
+ MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=37836565-49fc-43bf-8548-6386ac7c1102;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ContentBits=0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=true;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Method=Standard;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=Internal;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2026-11-10T18:42:43Z;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Tag=10,
+ 3, 0, 1;
+authentication-results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=microsoft.com;
+x-ms-traffictypediagnostic: MA8PR83MB465002:EE_|GV1PR83MB0753:EE_
+x-ms-publictraffictype: Email
+client-request-id: 1bd144e3-a396-4fe8-bcea-d536ae7b13d2
+request-id: 660694d3-7643-44bb-79d5-08df3f5c3cab
+x-ms-office365-filtering-correlation-id: 660694d3-7643-44bb-79d5-08df3f5c3cab
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam:
+ BCL:0;ARA:13230040|366016|376014|23010399003|1800799024|22082099003|18002099003|7146999003|10067099003|38070700021|4143699003|261028144727099003|261021135927099003|11063799006|261021121427099003|261021123027099003|261022075727099003|261009223027099003|261102123227099003|261022105027099003|261026121527099003|56012099006|261026140227099003;
+x-microsoft-antispam-message-info:
+ SQCgqgmh8Fc3sa9at2ZVCGTzNsIrBRtbMda/ryAPx0bIQKxtiodemN37R1sTYlAwqTAOrUzfsHmZO8Mmo2iiZoU22nNWaSgA8siYHi7JF+FYOPPG/JhqP2Q462niybE2plo4emIIexHcbVRDLYbRNVOniRGy+5EKkOJtY7wJl8/f1hTB2UjMaCSy1a+zjcvrwOmhl9eKtKjTqGWpJkuKXidsykaxQ7jt3PHjUIy1BWgCbJo+uSoJffgpOORsSjElEXiiP2Jb1V2OtNSdQH8vn7TlrhreZVI63kpB0M2+9iDYyNagpDIG3gIVTD4G64RqhYvuPy9M9HcFMYUvSZZDddw4nb61qkbSm1ZdzllLOv6moKeVWl7OcQjdv154lNRURZkeHmTLY77D91zDv6SaNOd8D6QfsFnGGaaUfM4VQi/CPdWZ2GkCIssXEml1lC9StLUFJ4vJupNPiaHew7f/mlmFPB20oK06V24oCoW8cGYrcld+EzmyaS9+EW6oPMLLM9qUcH8j0UQpc4vS2W2ZQcTzHm18q9g1eXNDSJ1Eh9ZkA+eZKPKJBBZKkaAy0V1o8Df3KY3c0sNpxHA++vvaPgbkRz6DK4JISPK2+6G865qBSA5YW3iSeVfeyvgigw6RSTqRPaMY0ENyx4oya3HdAL8doFX9iAFV5QJ+kK9xxxl0lceoW8ythk9Cme/xDttWKxq9J9GTtua7jNqI+tO2YIDtP9iXl01TUwD4tx6MYBM=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(23010399003)(1800799024)(22082099003)(18002099003)(7146999003)(10067099003)(38070700021)(4143699003)(261028144727099003)(261021135927099003)(11063799006)(261021121427099003)(261021123027099003)(261022075727099003)(261009223027099003)(261102123227099003)(261022105027099003)(261026121527099003)(56012099006)(261026140227099003);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?us-ascii?Q?PlVyXJntJjwzFjIYZ7lzvuu32DEunrZvUZzlEIWn4STkbNauHIjgPzZNCwsG?=
+ =?us-ascii?Q?J1B05GeZMnUqdkebpUQOyOE8yxwgQy40THhdmK2JLWXfFOP0kLoXCcPDrma7?=
+ =?us-ascii?Q?LjA4nCqb7Gc9YUkhYjc6ahxQ0RnLFWL3vL/agZcIldiF3mW0c12qpwV2i0ML?=
+ =?us-ascii?Q?wHvE28ISVb6pEl+5N27d7UyBLK+LvaCdA79+Xn5tX7LiNVIPFWQTWOYT30kg?=
+ =?us-ascii?Q?Dhxkb9AQA/LjNvwNSBMHGNm3jQ4pdmF5KhGqtl49rlg8jg5Cl1+EpzzJITdi?=
+ =?us-ascii?Q?/y2DkQG8mp1sMxNXf4TeFGGBMdVpDgHsWSa2mPsGLUwxzO1x+HuNEeEgdvU6?=
+ =?us-ascii?Q?APbtAzQ8jPFHTY633dyfZKvyNUPngNRag4VRE28s8Nwve3FWxDmP9oT1YUVb?=
+ =?us-ascii?Q?LT1CAg2z/Q4eakBTpDrnpXB5FedVAZ6ZJzKmbD0L9AWV/irkz1ZZCOtp/klK?=
+ =?us-ascii?Q?O3nAM723kVbj52LALcCtf6veQXDzah/7TNcGrL9zGO/aRU+VaJu0VzWsMpIa?=
+ =?us-ascii?Q?aBzj/SvxjaMgFbDDIAxq6qNmTCL2gXaOXXcbCoDi8NzPoF85PgVW1/4D/by1?=
+ =?us-ascii?Q?oGi5cfRe/a8QgB56TuRRNXh4+PmHpDCv+ysnfDYBpsN1igf3gAV5EiLnDBg1?=
+ =?us-ascii?Q?ptpnYks39rWu/occcASJwgANgNeK0fVItBnh/4/nrDLClbOjLu4nQEw90dwU?=
+ =?us-ascii?Q?NzXsHYT8+k7P5WnCxyKYo4cpv73uwkXFX6VplBvAS8xMQthx/8UoSzbWPvQ3?=
+ =?us-ascii?Q?VGdFcNCQGhPBxXa4YfYLszaoFE8C7HdgKRqxzO+odPrP+/Ni41vK2QODt+vN?=
+ =?us-ascii?Q?ri0xkUX1U2GJIvoSP/o7/l5lcEYWTF+u+KN8bcyMBiMzhABNNts1cCnVQnsa?=
+ =?us-ascii?Q?z49lKkNKC0PewH43FU4Vg3z7ypO0TKb6hAL3sIJHdnjw1kXbEDjKtJG4Jw7t?=
+ =?us-ascii?Q?WoVtJ0HHJaH6krDg4BLS907jAE1fauD7oFj9uhXqdxjWyRkWefOvSyg/Zria?=
+ =?us-ascii?Q?an2Hq6UD9bkKW7m9LOzkLCKIYK8ADf0tkSOUwjDHmhwf3XpUdkgpYJzIA0OX?=
+ =?us-ascii?Q?xVo3vahKYVsTkkn66TdEIHic9BXBa3Jy+L65QD6uPDs/Jo7d+thw1dmopaYb?=
+ =?us-ascii?Q?ysrJAUGxJ45ZkoTP3iKEQ6uxHpY8im3C8M4453V1HlpD3KhpKoNZNYq7eAiM?=
+ =?us-ascii?Q?yJP0FcXb+i00ZRGK+FSSR+e+joG7kcLxCYHb4VJL53NLflQ7IaPSTM0HvsGQ?=
+ =?us-ascii?Q?8b4rnolOX+bwjrcfCM7mkVAArlak5BP32o0CRb6FAn56xCwvypH6/CNzv0mH?=
+ =?us-ascii?Q?/jsgOmADBdr1eOZQE3Hx5Ss366dvs79coYZbF5ymZtEVF3VrIf+ifQvxAte7?=
+ =?us-ascii?Q?lTezTrf5HLCAVFFJaDM3dCMOqfJSSjL5jLb7Nf49r6ntqNec3UKgmS6yfWtV?=
+ =?us-ascii?Q?4NZxtB3xzhYzD6xxrHK5JYkfgtElTVuL8kw/NKUF2xzeJVvPNDocbIyzccjT?=
+ =?us-ascii?Q?gYSacT87plvGDMYW1x6Qv0pma0eAOOdhrsPveXRVul1SLkiy79aN7rx7vhr4?=
+ =?us-ascii?Q?4fkEobfhd7LbdpDxqQX1Eydk+1fpJN4VJufCPVRcOnhjnV9R/brnjSCTaxIE?=
+ =?us-ascii?Q?WMP8eWoIz9mpUgFKQKd/+eHUXyfOWr0pakJ5C9HxRClnzwwItqooutt3/EkT?=
+ =?us-ascii?Q?UcAWjQ=3D=3D?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -125,124 +153,244 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: EA8PEPF0000000C:EE_|DS4PR12MB733313:EE_
-X-MS-Office365-Filtering-Correlation-Id: 17c6426a-1228-4b48-d970-08df3f5ba5f9
-X-LD-Processed: 43083d15-7273-40c1-b7db-39efd9ccc17a,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|1800799024|82310400026|376014|7416014|23010399003|18002099003|22082099003|6133799003|10067099003|11063799006|261009223027099003|261028144727099003|261026140227099003|261102123227099003|261021121427099003|261022105027099003|56012099006|261021123027099003|261022113327099003|261022075727099003;
-X-Microsoft-Antispam-Message-Info:
-	dIxhuCbHlnNvl5qYgLbR71al5rdByeUjHxEaS/BiQ2bTP7Jdj87c6uPXjKl9wnWNAcKlyzgt5L96xhm5xxAz0KeuFqQJpJSOgNGBOGiqYz9KCEw1FlslRy84qXc0RuHPeKCk97Y10TyKTSH//HzcEdQn+4Q53WVFK0aWGaUqLkKRZI2VFuYWqkBnQ+FVYfSo63inG3rsk1qaNJNLSVPeeYhXc/Sp8dFs2vdH5LOjWKATpMsT1HLO3UqBCeRf4mzuKLSBvXue7sjus8wITTlhgXfXHjXxWzIWaQ8yShCaWvJeVpYY87rXTl0GgeWoS5ion8rLEZqwoB/4yN1NePlnu+J/VhGDrd2zohHPb8GAQYO/5VMljLih08oPvnTVN2GA2r7NmfSM3xSoiHZHveaO9jQigUeCrhwsuB773W1A80klC/rRgW5ujmTi7gp3pGMhWCIRLL8eb2/CHEU2gdotapNCc3LIuahXSWpp0bJSW6wVO/ANAMMYCzdci566paVAMtfOcFJ5+6lzvvsOgpxO+1BpW6IZoriBChZPMrjFyJdGB0bq6KAa2wlC6rjeGQgv4xzWJpj7Vae/zcAiDPYmjuorZYL6/JM+MB8JiftjPnCZw2nulct80rksUasPS/FETcLCFCM7MoGZp34bpg9/MWi6Qoid7Y46fFF8kQmU8Y0ydyzW5yRuvgbGzsX6BK1ixidBQhiNEhQyW7JHbLtHaQ==
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(1800799024)(82310400026)(376014)(7416014)(23010399003)(18002099003)(22082099003)(6133799003)(10067099003)(11063799006)(261009223027099003)(261028144727099003)(261026140227099003)(261102123227099003)(261021121427099003)(261022105027099003)(56012099006)(261021123027099003)(261022113327099003)(261022075727099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	Ojph21dhJ/IM44LrGF+D/R3fhxpS5EkvY7oxB2IWQCVSdlOLPs2cvBPasYaPIoatpGudNNEPRNGIKySyOIHMnTiC9AOhADi1a0fwWHa+dez5sdGB/DjB+TmbNDhabGkpEUSANHcT0gAM6fy12E4XCq2d4rAQPl9v5MEY33+nDo2o4ZjWBRiqu8ll5rgHQpD/UZkXMHyzgnUBLx+wP6nAz0R4uhPgAsIQ+83J3mxDpN5fLYVIeilYZh/P9hAi3qj/xI2VIuo+IJvEXMXI53Nfsitz4C1DI3aR20B/9qpdjajYucbCqlltFMqDihF5W9h189A93rXAPuKDR4DSmp/hxgSEIMtjU7TzDulD2txbKl7a467aT3KUyh3fi1PE5vmBw3qr2gHbzWSEpOi1EzmMR0NkXHDhJpSSJg4gJzHsfTavgB2pVtS8HIJSmR954/BS
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Nov 2026 18:51:36.8050
+X-OriginatorOrg: microsoft.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: MA8PR83MB465002.EURPRD83.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 660694d3-7643-44bb-79d5-08df3f5c3cab
+X-MS-Exchange-CrossTenant-originalarrivaltime: 10 Nov 2026 18:55:49.7145
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 17c6426a-1228-4b48-d970-08df3f5ba5f9
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	EA8PEPF0000000C.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS4PR12MB733313
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: I4v2LJTWxZUWZVTrYzASLUs8HED0FeCmw99Rj4qWvsgx/TuljVEJ6bkWijKLPGfKj4YmdEiiVEpu+cEAwdsAeg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: GV1PR83MB0753
 
-From: Carolina Jubran <cjubran@nvidia.com>
+> On Thu, Nov 05, 2026 at 09:59:21AM -0800, Konstantin Taranov wrote:
+> > From: Konstantin Taranov <kotaranov@microsoft.com>
+> >
+> > Implement kernel RC QP creation and destruction. This feature requires
+> > extended-WQE and power-of-two-SQ support from the HW.
+> >
+> > Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+> > ---
+> > v5:
+> > - Validate kernel QP queue sizes before allocating queues.
+> > - Bound SGE counts and enforce the TX/RX WQE size limits.
+> > v4:
+> > - Reject RNIC firmware send-SGE counts below 2.
+> > - Subtract the reserved SGE for extra-large OOB only for RNIC mana_ib.
+> >
+> >  drivers/infiniband/hw/mana/main.c    |  10 +-
+> >  drivers/infiniband/hw/mana/mana_ib.h |   6 +
+> >  drivers/infiniband/hw/mana/qp.c      | 206 +++++++++++++++++++++++++--
+> >  3 files changed, 211 insertions(+), 11 deletions(-)
+> >
+> > diff --git a/drivers/infiniband/hw/mana/main.c
+> b/drivers/infiniband/hw/mana/main.c
+> > index ceb4ec58023a..f54905764f59 100644
+> > --- a/drivers/infiniband/hw/mana/main.c
+> > +++ b/drivers/infiniband/hw/mana/main.c
+> > @@ -733,6 +733,13 @@ int mana_ib_gd_query_adapter_caps(struct
+> mana_ib_dev *dev)
+> >  	if (err)
+> >  		return err;
+> >
+> > +	/* Hardware supports at least one data SGE plus one reserved for extr=
+a-
+> large OOB. */
+> > +	if (resp.max_send_sge_count < 2) {
+> > +		ibdev_err(&dev->ib_dev, "Invalid max_send_sge_count %u,
+> expected at least 2\n",
+> > +			  resp.max_send_sge_count);
+> > +		return -EINVAL;
+> > +	}
+>=20
+> This check does not make sense here. If this firmware is present, continu=
+e to
+> support it; do not fail just because the kernel has been upgraded. If it =
+is
+> not present, why check for it?
 
-During channel activation, mlx5e_activate_channels() triggers the ICOSQ
-once for every channel in order to kick NAPI. mlx5e_trigger_napi_icosq()
-sets MLX5E_SQ_STATE_LOCK_NEEDED and waits for an RCU grace period before
-serializing the trigger with ICOSQ users in NAPI context.
+It was Sashiko comment at some point that I should add this protection as
+a faulty HW could respond with sge cap to be 0 or 1. I can remove this chec=
+k as=20
+it is useless, but it is true that a faulty HW could return 0 or 1 and it m=
+ay result
+in a bug. I am happy to remove, but I also think that AI had a point.
 
-Mark all channel ICOSQs as requiring locking first, wait for a single
-grace period, and then trigger all of them.
+Leon, should I remote it?
 
-Keep mlx5e_trigger_napi_icosq() with its existing synchronization
-semantics for standalone callers.
+>=20
+> > +
+> >  	caps->max_sq_id =3D resp.max_sq_id;
+> >  	caps->max_rq_id =3D resp.max_rq_id;
+> >  	caps->max_cq_id =3D resp.max_cq_id;
+> > @@ -748,7 +755,8 @@ int mana_ib_gd_query_adapter_caps(struct
+> mana_ib_dev *dev)
+> >  				resp.max_requester_sq_size /
+> GDMA_MAX_SQE_SIZE,
+> >  				resp.max_requester_rq_size /
+> GDMA_MAX_RQE_SIZE);
+> >  	caps->max_inline_data_size =3D resp.max_inline_data_size;
+> > -	caps->max_send_sge_count =3D resp.max_send_sge_count;
+> > +	/* Account for the SGE reserved for extra-large OOB. */
+> > +	caps->max_send_sge_count =3D resp.max_send_sge_count - 1;
+> >  	caps->max_recv_sge_count =3D resp.max_recv_sge_count;
+> >  	caps->feature_flags =3D resp.feature_flags;
+> >
+> > diff --git a/drivers/infiniband/hw/mana/mana_ib.h
+> b/drivers/infiniband/hw/mana/mana_ib.h
+> > index 5ca6e2acf974..6f5df64e838a 100644
+> > --- a/drivers/infiniband/hw/mana/mana_ib.h
+> > +++ b/drivers/infiniband/hw/mana/mana_ib.h
+> > @@ -267,6 +267,10 @@ struct mana_ib_qp {
+> >  	u32 sq_psn;
+> >  	bool sq_sig_all;
+> >
+> > +	/* Serializes receive WR posting. */
+> > +	spinlock_t rq_lock;
+> > +	/* Serializes send and memory-management WR posting. */
+> > +	spinlock_t sq_lock;
+> >  	/* Serializes QP modification and error-list transitions. */
+> >  	struct mutex modify_lock;
+> >
+> > @@ -274,6 +278,7 @@ struct mana_ib_qp {
+> >  	struct list_head recv_err_node;
+> >  	struct shadow_queue shadow_rq;
+> >  	struct shadow_queue shadow_sq;
+> > +	struct shadow_queue shadow_mmq;
+> >
+> >  	refcount_t		refcount;
+> >  	struct completion	free;
+> > @@ -315,6 +320,7 @@ enum mana_ib_adapter_features {
+> >  	MANA_IB_FEATURE_DEV_COUNTERS_SUPPORT =3D BIT(5),
+> >  	MANA_IB_FEATURE_MULTI_PORTS_SUPPORT =3D BIT(6),
+> >  	MANA_IB_FEATURE_MSN_IN_WQE_SUPPORT =3D BIT(7),
+> > +	MANA_IB_FEATURE_EXTENDED_WQE_FORMAT =3D BIT(9),
+> >  	MANA_IB_FEATURE_RC_QP_SQ_POW2_SUPPORT =3D BIT(14),
+> >  	MANA_IB_FEATURE_MULTI_PORT_GSI_SUPPORT =3D BIT(15),
+> >  };
+> > diff --git a/drivers/infiniband/hw/mana/qp.c
+> b/drivers/infiniband/hw/mana/qp.c
+> > index ae2ebbcc759a..387586c45aa0 100644
+> > --- a/drivers/infiniband/hw/mana/qp.c
+> > +++ b/drivers/infiniband/hw/mana/qp.c
+> > @@ -427,27 +427,88 @@ static u32 mana_ib_fixed_wqe_size(u32 sge, u32
+> oob_size)
+> >  	return roundup_pow_of_two(mana_ib_wqe_size(sge, oob_size));
+> >  }
+> >
+> > -static u32 mana_ib_queue_size(struct ib_qp_init_attr *attr, u32 queue_=
+type)
+> > +static u32 mana_ib_queue_size(struct mana_ib_dev *mdev, struct
+> ib_qp_init_attr *attr,
+> > +			      u32 queue_type)
+> >  {
+> > -	u32 queue_size;
+> > +	u32 send_wr =3D max(attr->cap.max_send_wr, 1U);
+> > +	u32 recv_wr =3D max(attr->cap.max_recv_wr, 1U);
+> > +	u32 max_wqe_size =3D MAX_TX_WQE_SIZE;
+> > +	u32 wr, wqe_size, read_sge;
+> > +	u64 queue_size;
+> > +
+> > +	if (attr->cap.max_send_sge > MAX_TX_WQE_SIZE / sizeof(struct
+> gdma_sge) ||
+> > +	    attr->cap.max_recv_sge > MAX_RX_WQE_SIZE / sizeof(struct
+> gdma_sge))
+> > +		return 0;
+> >
+> >  	switch (attr->qp_type) {
+> >  	case IB_QPT_UD:
+> >  	case IB_QPT_GSI:
+> > -		if (queue_type =3D=3D MANA_UD_SEND_QUEUE)
+> > -			queue_size =3D attr->cap.max_send_wr *
+> > -				mana_ib_wqe_size(attr->cap.max_send_sge,
+> INLINE_OOB_LARGE_SIZE);
+> > -		else
+> > -			queue_size =3D attr->cap.max_recv_wr *
+> > -				mana_ib_wqe_size(attr->cap.max_recv_sge,
+> INLINE_OOB_SMALL_SIZE);
+> > +		if (queue_type =3D=3D MANA_UD_SEND_QUEUE) {
+> > +			wr =3D send_wr;
+> > +			wqe_size =3D mana_ib_wqe_size(attr-
+> >cap.max_send_sge, INLINE_OOB_LARGE_SIZE);
+> > +		} else {
+> > +			wr =3D recv_wr;
+> > +			max_wqe_size =3D MAX_RX_WQE_SIZE;
+> > +			wqe_size =3D mana_ib_wqe_size(attr->cap.max_recv_sge,
+> INLINE_OOB_SMALL_SIZE);
+> > +		}
+> > +		break;
+> > +	case IB_QPT_RC:
+> > +		switch (queue_type) {
+> > +		case MANA_RC_SEND_QUEUE_REQUESTER:
+> > +			wr =3D send_wr;
+> > +			wqe_size =3D mana_ib_fixed_wqe_size(attr-
+> >cap.max_send_sge,
+> > +
+> INLINE_OOB_EXTRA_LARGE_SIZE);
+> > +			break;
+> > +		case MANA_RC_SEND_QUEUE_MMQ:
+> > +			wr =3D send_wr;
+> > +			wqe_size =3D mana_ib_wqe_size(1U,
+> INLINE_OOB_EXTRA_LARGE_SIZE);
+> > +			break;
+> > +		case MANA_RC_SEND_QUEUE_RESPONDER:
+> > +			return MANA_PAGE_SIZE;
+> > +		case MANA_RC_RECV_QUEUE_REQUESTER:
+> > +			wr =3D send_wr;
+> > +			max_wqe_size =3D MAX_RX_WQE_SIZE;
+> > +			read_sge =3D min(attr->cap.max_send_sge, mdev-
+> >ib_dev.attrs.max_sge_rd);
+> > +			wqe_size =3D mana_ib_wqe_size(read_sge,
+> INLINE_OOB_SMALL_SIZE);
+> > +			break;
+> > +		case MANA_RC_RECV_QUEUE_RESPONDER:
+> > +			wr =3D recv_wr;
+> > +			max_wqe_size =3D MAX_RX_WQE_SIZE;
+> > +			wqe_size =3D mana_ib_wqe_size(attr->cap.max_recv_sge,
+> INLINE_OOB_SMALL_SIZE);
+> > +			break;
+> > +		default:
+> > +			return 0;
+> > +		}
+> >  		break;
+> >  	default:
+> >  		return 0;
+> >  	}
+> >
+> > +	if (!wqe_size || wqe_size > max_wqe_size)
+> > +		return 0;
+> > +
+> > +	queue_size =3D (u64)wr * wqe_size;
+> > +	if (queue_size > U32_MAX / 2 + 1)
+> > +		return 0;
+> > +
+> >  	return MANA_PAGE_ALIGN(roundup_pow_of_two(queue_size));
+> >  }
+> >
+> > +static int mana_ib_check_kernel_qp_sizes(struct mana_ib_dev *mdev,
+> > +					 struct ib_qp_init_attr *attr, u32
+> num_queues)
+> > +{
+> > +	u32 i;
+> > +
+> > +	for (i =3D 0; i < num_queues; i++) {
+> > +		if (!mana_ib_queue_size(mdev, attr, i)) {
+> > +			ibdev_dbg(&mdev->ib_dev, "Invalid kernel QP queue
+> %u size\n", i);
+>=20
+> If your code needs to validate in-kernel users, something is fundamentall=
+y
+> wrong
+> with your design. We trust them.
 
-248 channels, rcu_normal=1, ip link set eth2 up:
-Before: 3.095s
-After:  1.794s (~1.7x faster) 
+It was Sashiko comment at some point. I also agree that it is partially red=
+undant, but it also
+helps to detect u32 overflow. I think we should keep as we had a similar co=
+mment
+for CQ u32 overflow, and Sashiko rated it as High. I think better safe than=
+ sorry
 
-Signed-off-by: Carolina Jubran <cjubran@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
----
- .../net/ethernet/mellanox/mlx5/core/en_main.c | 28 +++++++++++++++----
- 1 file changed, 22 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 73b504ba8c8c..0726c42290b8 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -2837,14 +2837,11 @@ static int mlx5e_channel_stats_alloc(struct mlx5e_priv *priv, int ix, int cpu)
- 	return 0;
- }
- 
--void mlx5e_trigger_napi_icosq(struct mlx5e_channel *c)
-+static void mlx5e_trigger_napi_icosq_post_sync(struct mlx5e_channel *c)
- {
- 	struct mlx5e_icosq *sq = &c->icosq;
- 	bool locked;
- 
--	set_bit(MLX5E_SQ_STATE_LOCK_NEEDED, &sq->state);
--	synchronize_net();
--
- 	locked = mlx5e_icosq_sync_lock(sq);
- 	mlx5e_trigger_irq(sq);
- 	mlx5e_icosq_sync_unlock(sq, locked);
-@@ -2852,6 +2849,13 @@ void mlx5e_trigger_napi_icosq(struct mlx5e_channel *c)
- 	clear_bit(MLX5E_SQ_STATE_LOCK_NEEDED, &sq->state);
- }
- 
-+void mlx5e_trigger_napi_icosq(struct mlx5e_channel *c)
-+{
-+	set_bit(MLX5E_SQ_STATE_LOCK_NEEDED, &c->icosq.state);
-+	synchronize_net();
-+	mlx5e_trigger_napi_icosq_post_sync(c);
-+}
-+
- void mlx5e_trigger_napi_async_icosq(struct mlx5e_channel *c)
- {
- 	struct mlx5e_icosq *sq = c->async_icosq;
-@@ -3105,6 +3109,19 @@ int mlx5e_open_channels(struct mlx5e_priv *priv,
- 	return err;
- }
- 
-+static void mlx5e_trigger_napi_icosqs(struct mlx5e_channels *chs)
-+{
-+	int i;
-+
-+	for (i = 0; i < chs->num; i++)
-+		set_bit(MLX5E_SQ_STATE_LOCK_NEEDED, &chs->c[i]->icosq.state);
-+
-+	synchronize_net();
-+
-+	for (i = 0; i < chs->num; i++)
-+		mlx5e_trigger_napi_icosq_post_sync(chs->c[i]);
-+}
-+
- static void mlx5e_activate_channels(struct mlx5e_priv *priv, struct mlx5e_channels *chs)
- {
- 	int i;
-@@ -3115,8 +3132,7 @@ static void mlx5e_activate_channels(struct mlx5e_priv *priv, struct mlx5e_channe
- 	if (priv->htb)
- 		mlx5e_qos_activate_queues(priv);
- 
--	for (i = 0; i < chs->num; i++)
--		mlx5e_trigger_napi_icosq(chs->c[i]);
-+	mlx5e_trigger_napi_icosqs(chs);
- 
- 	if (chs->ptp)
- 		mlx5e_ptp_activate_channel(chs->ptp);
--- 
-2.44.0
-
+>=20
+> Thanks
