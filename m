@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794312900;
-	b=3+7Vcye8C4xrOb9vSQ41C3bSmvb4vpzCMP7rhch4Q3GAYU6p5SvmSJraTnpjdBY8bu5M
-	 Y2E68N43ZEV6uhhYFtIQO+3SPfI5cLIsJjb0nzkQen/BYmDORMOWhHC1F6j6To0HBkrPE
-	 DAhdILPLzeaDsKivez85xF0bXevYi5N93EV9exrDgfrnOOgrIE3QkUS2dnkjol8Wf8PzJ
-	 eEpEaTj0RPHVL+56+y7INe85G97XkcMUsdjNxmPsyP2AvhlKd2idLkil8cBKxmjTDTVnB
-	 NFf8Os53Bcq4ElAAhaKRKnbdSRftNlLmq2O1a5uxtEl0UlWKrtINk116P6877He8e7g==
+	t=1794312902;
+	b=pKBnypnQrEV3oJmKqxw4qtF4HPFrQNajK3u75dBmFu47MMW9N+BZFrGx3oX3eNrJBo7m
+	 9/EpRgz3KNMZOZs2cgiRHe/VmKCi4BUTa0Vuezyq2/eaex4eZ19TO6YMjS7PIzCN4LfgO
+	 PWjXMTIZeqzzsLedFBDy8YFhzwub6ZiqL8th6D1d6FdmK3ZmccgT+WTOcrrwmZ8puzRdu
+	 ZBxCI0dXTragiyJDo4SHdr52uD1q72lsdAaIHnFntPhE+LdlTHhCBGRGspVqa1OSe4XwU
+	 4QoIm8mpF4+5Qh2St/bXmLK5NRwlAa4TrcNyvONUXmlOzu/Yd+ufh97FrgxtdlR9vCA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794312900;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794312902;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=qz9Cg/+Lb0BoddJpAlf9vuo5dFigQSPPYLNDQ49b5og=;
-	b=Z/J8JN5VxCEATLYHkDEdxvFHtdSCfND2HGlqe6P/uUz5Xr7MBoYMK+bCVzJC6B0NEIYq
-	 wsWGmmxECDvd5cGEEt61Y2eCKKFXggpzR/T2m1PVSX07Mu8XmquH0d8z3xBiO/bQTaUbA
-	 XuGCutx732HK75BuGIC93ays2wTs4iwoT0gOtcJ2rBLeCR0zv+s1t/brvhTsaJIm6SvtO
-	 HXobPa1MsdmsTVpDEuuFlOtC4y0eugmTpUSvKGliGIuZxzrOjQeyFcW6oVQCNKqTgwr7u
-	 d4qR2OhoOPGBFkx4ZkJcFHcBkd1h6yB3Jwj+egaKqqjKbC+t3zDrNQksu8QvAx2XeBQ==
+	bh=K+AtYtLXT5CtwyWdEY39KFim4auSE6S4YP6dmETiu/I=;
+	b=qemMKlNn7eZqPznHBrkQMGR4UNn4t3uuStzVlmsKPCLuM2RH7LmyKzURqbXIZN+qKleB
+	 QcwjCpBEphUs/g3funpFnn0BnWO2YOtq60q8AMNfs6tvRHo3L7hJ96/eUTFaC7I2yNIMb
+	 DYIXirZUZFCwOE2BrV3EUXy/5DV0YpxoWIlrvgwFFFqZB1x8phJe6gcDN7wMLS5hTPt3m
+	 m537/rnYJUSpnGvLwnpZ4fDvvML0cuWJyYOL14Q8Wlvqf9y8TkhTPwyG0+ZVWBCk6C5od
+	 PIHrnqrxo87c/aeJkSMAn1+Sh3HJ99+lB/HgvMVD1S+e0drX78tWRkQSmzMghQLCgVA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=I83LR7wi;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=W2SdmF+p;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA92B606A31C;
-	Tue, 10 Nov 2026 12:14:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9C6D606A32A;
+	Tue, 10 Nov 2026 12:15:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=I83LR7wi
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D0F01F0089F;
-	Tue, 10 Nov 2026 12:14:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=W2SdmF+p
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D74D11F008A1;
+	Tue, 10 Nov 2026 12:14:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794312899;
-	bh=qz9Cg/+Lb0BoddJpAlf9vuo5dFigQSPPYLNDQ49b5og=;
+	s=k20260515; t=1794312901;
+	bh=K+AtYtLXT5CtwyWdEY39KFim4auSE6S4YP6dmETiu/I=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=I83LR7wiT0O/eZpQPZN1xM/PMVVJQkMFyt9p4NCgPMD4V8mZTfREIiqvcAkKoTKN7
-	 zNzff4tPoD3ewxUVFgoAXmd9KE1CMw/MWfrUcUGsi4MPI9xcY94GefLmFFtZLrzyvv
-	 piD74h9Tj4giYwy5n/joMXw1CfHknf3AOeRJmLORJH++sk6/7aAbxgNZNxzmu7pxoe
-	 7PQTOBKojEghR0pPYtL/+eh8DOilPmL0iIjks/4tC2jeEHAInPovQwqrPJnMJxAn8h
-	 A7C+Q+beN1r/YGkiwItzNA9acDSKKHuzPKbvWD1c0PIxrvtZKpjh900tlvibYuD9WF
-	 LAyRVnvcygujg==
-Subject: Re: [PATCH net-next v2 2/3] RDMA/ionic: Use the ionic command timeout
- for the admin queue
+	b=W2SdmF+p/0CvcB+OrayA3456jeYWT2XsLbJxpjym3PqfxOwi09beeCAJ8pjeNCq1k
+	 D2s5SPYWSdCJj7WbTBDXJvbVfhVRm1BVp3j+FRw++LLm+ds0q0YBNJkYPWQLEMrXt3
+	 YIo3ZSyFcMQnCneeWnJ3HxxNaHnYW6oUsXdYAVcJ9CZyhyJ4685r9spAX1V8ItBBl1
+	 DAS0cagK9ZvpQ8SXv8lK/O88fzGwa/fmOJyug7IEAZS/AMXQAfruvN2YoiCkpfH/Cc
+	 4211b3J21NY/7OhNlDkYYyNmFI9kyMpfzU0DE/MWsXQA/djwgRU5WDdUXVmDJab0MX
+	 Pxm/N+Nq2zKVw==
+Subject:
+ Re: [PATCH net-next v2 3/3] ionic: add devlink param for command timeout
 From: netdev-bot+sashiko@kernel.org
 To: nikhil.rao@amd.com
 Cc: brett.creeley@amd.com, andrew+netdev@lunn.ch, davem@davemloft.net,
@@ -51,11 +51,11 @@ Cc: brett.creeley@amd.com, andrew+netdev@lunn.ch, davem@davemloft.net,
  rdunlap@infradead.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org, eric.joyner@amd.com,
  ArunKumar.Prakash@amd.com
-Date: Tue, 10 Nov 2026 12:14:57 +0000
-Message-ID: <179431289755.994134.3080122667953359752@kernel.org>
-In-Reply-To: <20261105-b4-ionic-cmd-timeout-v2-2-35a9a2aa48b1@amd.com>
-References: <20261105-b4-ionic-cmd-timeout-v2-2-35a9a2aa48b1@amd.com>
-X-sashiko-severity: High
+Date: Tue, 10 Nov 2026 12:14:59 +0000
+Message-ID: <179431289941.994134.11663452629837334156@kernel.org>
+In-Reply-To: <20261105-b4-ionic-cmd-timeout-v2-3-35a9a2aa48b1@amd.com>
+References: <20261105-b4-ionic-cmd-timeout-v2-3-35a9a2aa48b1@amd.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -68,10 +68,10 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 2 potential
+Thank you for your contribution! Sashiko AI review found 4 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 1
+Critical: 0 · High: 0 · Medium: 2 · Low: 2
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -79,145 +79,244 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] The fix is incomplete: an RDMA LIF reset at 2 seconds can still
-  happen on the AH busy-wait path.
-- [Low] The commit fixes a user-visible bug: a spurious RDMA LIF reset,
-  after which every verb fails with -ENODEV.
+- [Medium] ionic_dl_cmd_timeout_get() always sends a live
+  IONIC_CMD_GETATTR(IONIC_DEV_ATTR_CMD_TIMEOUT) dev command and never…
+- [Medium] Any local user can now make the driver send firmware mailbox
+  commands.
+- [Low] The cmd_timeout devlink parameter is not registered for the whole
+  life of the devlink instance, and neither the commit message nor…
+- [Low] The patch adds a new lock dependency: the FW-down deferred worker
+  (ionic_lif_handle_fw_down) and the PCI reset_prepare/AER…
 
 --
 
-RDMA/ionic: Use the ionic command timeout for the admin queue
+ionic: add devlink param for command timeout
 
-This patch changes the RDMA admin queue watchdog in ionic_admin_dwork().
-It used a fixed 2 second threshold and now uses HZ * ionic_cmd_timeout(),
-which is 5 seconds by default. The AH create/destroy busy-wait keeps its
-fixed 2 second bound.
+This patch adds a permanent devlink parameter, cmd_timeout. It is stored
+in device NVM on firmware that advertises IONIC_DEV_CAP_CMD_TIMEOUT, and a
+non-zero value replaces the device command and admin queue timeouts on the
+next probe or reset. The parameter is unregistered on FW-down and PCI reset,
+and registered again when the LIF restarts.
 
-> diff --git a/drivers/infiniband/hw/ionic/ionic_admin.c b/drivers/infiniband/hw/ionic/ionic_admin.c
-> index 0ccd869ad8e6a..b463ad8b4e804 100644
-> --- a/drivers/infiniband/hw/ionic/ionic_admin.c
-> +++ b/drivers/infiniband/hw/ionic/ionic_admin.c
-> @@ -18,8 +18,6 @@
->  #define IONIC_ADMIN_BUSY_RETRY_COUNT	2000
->  #define IONIC_ADMIN_BUSY_RETRY_MS	1
+> diff --git a/drivers/net/ethernet/pensando/ionic/ionic_devlink.c b/drivers/net/ethernet/pensando/ionic/ionic_devlink.c
+> index 4ec66a6be0738..c9a07a86aa383 100644
+> --- a/drivers/net/ethernet/pensando/ionic/ionic_devlink.c
+> +++ b/drivers/net/ethernet/pensando/ionic/ionic_devlink.c
+> @@ -51,6 +51,56 @@ static int ionic_dl_info_get(struct devlink *dl, struct devlink_info_req *req,
+>  	return err;
+>  }
 >  
-> -/* admin queue will be considered failed if a command takes longer */
-> -#define IONIC_ADMIN_TIMEOUT	(HZ * 2)
->  #define IONIC_ADMIN_WARN	(HZ / 8)
->  
->  /* will poll for admin cq to tolerate and report from missed event */
-> @@ -28,6 +26,11 @@
->  /* work queue for polling the event queue and admin cq */
->  struct workqueue_struct *ionic_evt_workq;
->  
-> +static unsigned long ionic_admin_timeout(struct ionic_ibdev *dev)
-> +{
-> +	return HZ * ionic_cmd_timeout(dev->lif_cfg.lif);
-> +}
+> +enum ionic_devlink_param_id {
+> +	IONIC_DEVLINK_PARAM_ID_BASE = DEVLINK_PARAM_GENERIC_ID_MAX,
+> +	IONIC_DEVLINK_PARAM_ID_CMD_TIMEOUT,
+> +};
 > +
+> +static int ionic_dl_cmd_timeout_get(struct devlink *dl, u32 id,
+> +				    struct devlink_param_gset_ctx *ctx,
+> +				    struct netlink_ext_ack *extack)
+> +{
+> +	struct ionic *ionic = devlink_priv(dl);
+> +
+> +	/* devlink fills PARAM_DEL with this on PCI reset; no FW_RESET check */
+> +	return ionic_dev_getattr_cmd_timeout(ionic, &ctx->val.vu8);
+
+[Severity: Medium]
+Is the comment above accurate for every caller that reaches this getter
+through PARAM_DEL?
+
+When a devlink monitor is listening, the unregister path calls this getter
+to fill the notification:
+
+ionic_lif_handle_fw_down()
+  ionic_devlink_params_unregister()
+    devl_params_unregister()
+      devlink_param_unregister()
+        devlink_param_notify(DEVLINK_CMD_PARAM_DEL)
+          devlink_nl_param_fill()
+            devlink_param_get()
+              ionic_dl_cmd_timeout_get()
+                ionic_dev_getattr_cmd_timeout()
+
+On the watchdog path, ionic_lif_handle_fw_down() only runs after fw_status
+has lost IONIC_FW_STS_F_RUNNING. ionic_reset_prepare() is also reached from
+ionic_pci_error_detected() for io_frozen, where MMIO reads return 0xff. In
+both cases the firmware cannot answer the GETATTR.
+
+__ionic_dev_cmd_wait() then prints the warning and returns -ENXIO. do_msg
+does not gate this warning, so the _nomsg variant still prints it:
+
+	if (!done && !fw_up) {
+		ionic_dev_cmd_clean(ionic);
+		dev_warn(ionic->dev, "DEVCMD %s (%d) interrupted - FW is down\n",
+			 ionic_opcode_to_str(opcode), opcode);
+		return -ENXIO;
+	}
+
+devlink_param_notify() drops the message on that error:
+
+	err = devlink_nl_param_fill(msg, devlink, port_index, param_item, cmd,
+				    0, 0, 0, NULL);
+	if (err) {
+		nlmsg_free(msg);
+		return;
+	}
+
+So no PARAM_DEL is sent, but ionic_restart_lif() sends PARAM_NEW again on
+FW-up. Monitors would see two PARAM_NEW events with no PARAM_DEL between
+them, and a spurious warning is logged on every FW-down.
+
+There is also the case where FW-down starts while fw_status still reads
+running (a generation change, or IONIC_EVENT_RESET) and the restarted
+firmware does not complete the command. Could the getter then block the
+deferred FW-down work for up to ionic->cmd_timeout? This patch raises that
+limit to as much as 255 seconds.
+
+[Severity: Medium]
+Can an unprivileged user use this getter to tie up the device command
+mailbox?
+
+In net/devlink/netlink_gen.c, DEVLINK_CMD_PARAM_GET (both the do and the
+dump op) has no GENL_ADMIN_PERM; only PARAM_SET does. So every
+"devlink dev param show" from any local user ends up in
+ionic_dev_getattr_cmd_timeout(), which holds dev_cmd_lock while it waits:
+
+	mutex_lock(&ionic->dev_cmd_lock);
+	ionic_dev_cmd_getattr(&ionic->idev, IONIC_DEV_ATTR_CMD_TIMEOUT);
+
+	err = ionic_dev_cmd_wait_nomsg(ionic, ionic->cmd_timeout);
+
+The wait can last up to ionic->cmd_timeout (now up to 255 seconds), with
+msleep(1000) retries on IONIC_RC_EAGAIN. Before this patch, ionic
+registered no devlink params, and ionic_dl_info_get() only uses cached
+data. Devlink gave unprivileged users no path to the dev_cmd mailbox.
+
+With slow firmware, which is the case this patch targets, a loop of gets
+could delay identify, port init/reset, VF ops, flash and setattr. All of
+these need dev_cmd_lock. It could also delay FW-down recovery, which now
+needs devl_lock.
+
+Between the firmware stopping and the watchdog unregistering the param,
+each get also prints a dev_warn from __ionic_dev_cmd_wait() that is not
+rate-limited ("interrupted - FW is down" or "timeout after N secs").
+
+ionic_update_cmd_timeout() already reads the value at probe and reset.
+Could the getter return a cached copy of the stored value, updated on set,
+instead of querying the firmware on every call?
+
+[ ... ]
+
+> @@ -74,6 +124,43 @@ void ionic_devlink_free(struct ionic *ionic)
+>  	devlink_free(dl);
+>  }
+>  
+
+[ ... ]
+
+> +void ionic_devlink_params_unregister(struct ionic *ionic)
+> +{
+> +	struct devlink *dl = priv_to_devlink(ionic);
+> +
+> +	devl_lock(dl);
+> +	if (ionic->dl_params_registered) {
+> +		devl_params_unregister(dl, ionic_dl_params,
+> +				       ARRAY_SIZE(ionic_dl_params));
+> +		ionic->dl_params_registered = false;
+> +	}
+> +	devl_unlock(dl);
+> +}
 
 [Severity: Low]
-This fixes a user-visible problem, but the patch has no Fixes: tag.
-The 2 second IONIC_ADMIN_TIMEOUT removed above was added by f3bdbd42702c
-("RDMA/ionic: Create device queues to support admin operations"), which
-is in released kernels.
+This adds devl_lock to two paths that did not take it before:
 
-Should this carry a Fixes: tag for that commit?
+- the FW-down deferred worker in ionic_lif_handle_fw_down();
+- ionic_reset_prepare(), which runs under device_lock for FLR and AER.
 
-ionic_admin_timeout() also depends on ionic_cmd_timeout(). That function
-does not exist at the baseline. The previous patch in the series, "ionic:
-make the command timeout per device", adds it and describes itself as
-"No functional change". If this fix is picked for stable without that
-patch, it won't build.
+Is it intended that FW and PCI recovery now wait behind any devlink
+operation that holds devl_lock?
 
-Could the commit message mention this dependency?
+For example, devlink flash_update holds devl_lock for all of
+ionic_firmware_update(). ionic_fw_status_long_wait() retries on -EAGAIN and
+-ETIMEDOUT for up to IONIC_FW_INSTALL_TIMEOUT (25 minutes), and each dev
+command inside it can take up to cmd_timeout:
 
->  static void ionic_admin_timedout(struct ionic_aq *aq)
->  {
->  	struct ionic_ibdev *dev = aq->dev;
-> @@ -294,7 +297,7 @@ static void ionic_admin_dwork(struct work_struct *ws)
->  		}
+	do {
+		mutex_lock(&ionic->dev_cmd_lock);
+		ionic_dev_cmd_go(&ionic->idev, &cmd);
+		err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
+		mutex_unlock(&ionic->dev_cmd_lock);
+
+		msleep(20);
+	} while (time_before(jiffies, end_time) && (err == -EAGAIN || err == -ETIMEDOUT));
+
+A param get or set also holds devl_lock while its dev command waits.
+
+While devl_lock is held here, the PARAM_DEL fill also calls
+ionic_dl_cmd_timeout_get(). That puts a firmware round trip under
+dev_cmd_lock in the middle of teardown.
+
+In ionic_lif_handle_fw_down(), the worker blocks after
+netif_device_detach() but before the queues are stopped and before
+ionic_reset(). Every other item on lif->deferred (LINK_STATUS, RX_MODE, the
+later fw_up) queues behind it.
+
+There does not appear to be an AB-BA deadlock, since no devl_lock holder
+waits on deferred.work or device_lock. Recovery can still take longer,
+though.
+
+[ ... ]
+
+> diff --git a/drivers/net/ethernet/pensando/ionic/ionic_lif.c b/drivers/net/ethernet/pensando/ionic/ionic_lif.c
+> index b0868ab139dd5..a89f9c72eb39d 100644
+> --- a/drivers/net/ethernet/pensando/ionic/ionic_lif.c
+> +++ b/drivers/net/ethernet/pensando/ionic/ionic_lif.c
+> @@ -3398,6 +3398,7 @@ static void ionic_lif_handle_fw_down(struct ionic_lif *lif)
+>  	netif_device_detach(lif->netdev);
 >  
->  		if (time_is_after_eq_jiffies(aq->stamp +
-> -					     IONIC_ADMIN_TIMEOUT)) {
-> +					     ionic_admin_timeout(dev))) {
+>  	ionic_auxbus_unregister(ionic->lif);
+> +	ionic_devlink_params_unregister(ionic);
+>  	mutex_lock(&lif->queue_lock);
+>  	if (test_bit(IONIC_LIF_F_UP, lif->state)) {
+>  		dev_info(ionic->dev, "Surprise FW stop, stopping queues\n");
+> @@ -3460,6 +3461,7 @@ int ionic_restart_lif(struct ionic_lif *lif)
+>  	netif_device_attach(lif->netdev);
+>  	ionic_queue_doorbell_check(ionic, IONIC_NAPI_DEADLINE);
+>  
+> +	ionic_devlink_params_register(ionic);
+>  	ionic_auxbus_register(ionic->lif);
+>  
+>  	return 0;
 
-[Severity: High]
-Only the watchdog in ionic_admin_dwork() moves to ionic_cmd_timeout()
-here. Can the RDMA LIF still be reset after 2 seconds through the AH
-busy-wait path?
+[Severity: Low]
+Two paths unregister the cmd_timeout parameter:
 
-ionic_create_ah_cmd() and ionic_destroy_ah_cmd() in ionic_controlpath.c
-set IONIC_ADMIN_F_BUSYWAIT for non-sleepable callers. In that case
-ionic_admin_busy_wait() still gives up after about 2 seconds:
+- ionic_lif_handle_fw_down();
+- ionic_reset_prepare(), reached on FLR and on AER io_frozen through
+  ionic_pci_error_detected().
 
-drivers/infiniband/hw/ionic/ionic_admin.c:ionic_admin_busy_wait() {
-	for (try_i = 0; try_i < IONIC_ADMIN_BUSY_RETRY_COUNT; ++try_i) {
-		if (completion_done(&wr->work))
-			return 0;
+It is registered again only here, at the success tail of
+ionic_restart_lif().
 
-		mdelay(IONIC_ADMIN_BUSY_RETRY_MS);
-		...
-	}
-	...
-	ionic_admin_timedout(aq);
-	return -ETIMEDOUT;
-}
+During each FW-down/FW-up or PCI reset cycle, "devlink dev param show" and
+"devlink dev param set" for cmd_timeout fail because the parameter is not
+found. Monitors also see PARAM_DEL and PARAM_NEW events.
 
-ionic_admin_timedout() then queues the same reset that the watchdog
-uses:
+If recovery fails, the parameter stays missing until the next successful
+recovery or a driver reload. Recovery can fail on these paths:
 
-	/* Reset ALL adminq if any one times out */
-	if (atomic_read(&aq->admin_state) < IONIC_ADMIN_KILLED)
-		queue_work(ionic_evt_workq, &dev->reset_work);
+- the err_out path of ionic_lif_handle_fw_up(), when ionic_identify(),
+  ionic_port_identify(), ionic_port_init() or ionic_restart_lif() fails;
+- ionic_reset_done(), when ionic_setup_one() or ionic_restart_lif() fails.
 
-After that, ionic_reset_work() calls ionic_kill_rdma_admin(dev, true),
-and every later verb fails with -ENODEV. The commit message describes
-this same failure.
+The new documentation only says:
 
-This path seems easy to reach. cm_alloc_msg() in
-drivers/infiniband/core/cm.c creates its AH without
-RDMA_CREATE_AH_SLEEPABLE:
+  The value is stored in device NVM and takes effect on the next driver
+  probe or device reset. Only available when the device firmware supports
+  it.
 
-	ah = rdma_create_ah(mad_agent->qp->pd, &cm_id_priv->av.ah_attr, 0);
-
-cm.c also destroys those AHs with flags 0. On RoCE, every IB CM message
-therefore goes through the 2 second busy-wait:
-
-cm_alloc_msg()
-  rdma_create_ah()
-    ionic_create_ah()
-      ionic_create_ah_cmd()
-        ionic_admin_wait()
-          ionic_admin_busy_wait()
-            ionic_admin_timedout()
-
-This happens when firmware takes between 2 seconds and cmd_timeout to
-service the AH command. It can also happen when ionic_admin_post() puts
-the AH command on the queue chosen by raw_smp_processor_id() % aq_count,
-behind a slow command. The watchdog now allows that slow command up to
-cmd_timeout, but the busy-wait still gives up at 2 seconds.
-
-The kernel-doc for ionic_cmd_timeout() in ionic_api.h calls it the
-"device and admin queue command timeout". The busy-wait doesn't follow
-it.
-
-Later in the series, "ionic: add devlink param for command timeout"
-allows cmd_timeout from 5 to 255 seconds. It says it "replaces the device
-command and admin queue timeouts". ionic_admin_busy_wait() is not changed
-anywhere in the series, so the gap gets wider.
-
-The commit message says:
-
-    The AH create/destroy busy-wait keeps its fixed 2 second bound.
-
-It doesn't say that reaching this bound still resets the whole RDMA LIF.
-Should the busy-wait also be bounded by ionic_cmd_timeout(), or should
-its expiry not trigger the LIF reset?
-
->  			/* Timeout threshold not met */
->  			ibdev_dbg(&dev->ibdev, "no progress after %ums\n",
->  				  (u32)jiffies_to_msecs(jiffies - aq->stamp));
+The design may be reasonable, since the capability can change after a
+firmware update. Should the commit message and ionic.rst say that the
+parameter is absent while a reset is in progress, and stays absent if
+recovery fails?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261105-b4-ionic-cmd-timeout-v2-0-35a9a2aa48b1%40amd.com
