@@ -1,84 +1,65 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.181
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794423678;
-	b=VfjDcCle6NrMHP/F1GcgMzs7XNTuF6tLuLXmRRrlsMZ6W7p7sqnnWbfj4qxpxsymyh9v
-	 wPNgR6fEYYiVpwTZt3UIJ/ZOheVo2oQWitrQWNpRa21Fk36iGd49BruUfsETW579H/KsG
-	 KsChk5p70doNm7fuH8PX+K+n5RpeTTPXsVMSoSpBgwlkwczqMuZiCC1tHi+t73msu6PKO
-	 6RCwNLyKWUKAvFWX1wk1jxQdy5muBJVziNgWkHdyz00CEE4At/dG1RjAUBpE2X4vwK4g8
-	 AsYb0rWpfMGI4IFb4H/vEqaxkciykmUmy02zNgaQoKQJ6piAQJrJts98/L+SeMHqYGg==
+	t=1794424321;
+	b=ERYxaDyh5v/lWDqyFJfb5c+3oJwdzpr2FNxPEAnItC1B6yAaByHAzRoCoQtGEa4g4eeQ
+	 SZohTrKDT+9T2vzxFERXekKOcsL6XT6c56KNagkzLVnxfJFjGSwe7I29q9RR4euL0Ol7H
+	 DHP0WW7vxA/9q4i/aDU8HwhadjU64mFOIQMckPKYmE1xBFmNqtkClQsyLOqEDDAPHh1fl
+	 H1leinxltYwtG3cVLnsUPaTVOK97J9ClzJCKJvIgYN/DZmexas254txAY7OllQwPBEGlA
+	 cbTaCC1+HTNZU+82m/hxCvu1SZXwNcwXgycRFAVK1dyjsRxgKeN5CMaEtq9j9QmFUjg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794423678;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Mime-Version:Content-Transfer-Encoding:Content-Type:Date:Message-Id:
-	 Cc:Subject:From:To:X-Mailer:References:In-Reply-To;
-	bh=3mcdsvysa9luSuezEbeTLmuh15u7mjwAepQLZ7oOKD4=;
-	b=xx6GRunQFy0Vvi+uG5lIdC8AuVhLVo01/28/Wso+xoZMXB+U2+xIMVmmvtSnCZktsOCX
-	 hKJ4Yq70Ooz6TUlOi6mTRdFtN+1gVtFcHTYXxv7Qr4FWsy9tcvllHIV45xX4NkpFrqgBG
-	 0ErXyCRFLLGI0RFlgtoe0Kwtf6ewgAQhkf3UgzfdKSqWH7AhNPsCJqG9SbvGXg6Q4LMrU
-	 /ozZSpKYSlNH4l5i9/ERbhhmdGBuQNFoIBvz/8JV6ThlrcXw3USFvtGhh5MlU4PBfBrhh
-	 4Y8FrjQTEnUGCcbaBb+Wwlb5iBDXQhlpTbsENh9L9LteIuwfdD5W84Hj141RtwRc0Pg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794424321;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=TYtcSEbeXrJzZbwSSVOIQbwHlUL+6uRNPP+QvBhwGKw=;
+	b=vfhcN0i0BcZwYO0zAVG0VfQSP/uKgPf1JTr2dEkxZMi+Z3hMt8QB++1XtdZhFZoxzr0v
+	 5ZKtY2guMkT3Zm1jHp45pRUdnnnb9YPFv6gzAuSn/XFV3rdy6mVapRqiE26Qgf8fjliSX
+	 MORNB0PQO2fFJRXrkO/KP2ChKdn8wPRpEVWBCv6Fa7cLU5nlanKCUm+di9+KRnb3wnIlV
+	 pkR0sW2jtOlNAbe0sCKLx/VewSseq78E1dAil76wHIOmHX1fBY3kiiErZHzXReojLNXNy
+	 i56UMq5QJDItC1UIWQ2b1p01hTS1TjhWCTZlShmI8BXcRGX+Gbw65DhGEoPxYUvJoFQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=LHkRigWs;
-	arc=none smtp.remote-ip=209.85.222.181
-Received: from mail-qk1-f181.google.com (mail-qk1-f181.google.com [209.85.222.181])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Dki0UB+p;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41B79606A326
-	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 19:01:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 41B79606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD363606A881;
+	Wed, 11 Nov 2026 19:12:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=LHkRigWs
-Received: by mail-qk1-f181.google.com with SMTP id af79cd13be357-93f1cf92c9eso337137985a.0
-        for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 11:01:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794423677; x=1795028477; darn=vger.kernel.org;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-type:content-transfer-encoding:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=3mcdsvysa9luSuezEbeTLmuh15u7mjwAepQLZ7oOKD4=;
-        b=LHkRigWscoO1IXIQFs6/S7w1FUhRnu66lP+me1F9tp+woQK1t61v4UNNSyggqb4mOX
-         hkOb5/IVXmfs4ZveeHLDMgbH2NVuzIEY/J/WPy/shFxDKAiXJz6IbXyPUV4ckFZ+CsC+
-         c9gkmXH6qx8NuT+7knfat6nN41LKdJI5AqHmXOuhg18s+O76DdTa+1UL8roEbcvId/Ns
-         kTG/VWDpa7xwT+xoPmwPqh3uf6iTwuE9zBLajqn7CgcAuA/eMNIzXPPLnoO373jqfflo
-         BWXGJsKWiNERilvEBM6NM78A4lF9eT8HO6VECVYKCKap11URDX6Ewiu7J/Bp2B4VyeQc
-         r7RQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794423677; x=1795028477;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-type:content-transfer-encoding:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=3mcdsvysa9luSuezEbeTLmuh15u7mjwAepQLZ7oOKD4=;
-        b=2X/k/66e2ELPFOh77Vg6QraWImYCpaXKt1Of6wtkf1stisx+EF+MHIgu4Q7yuZlZRX
-         XH8SOaUFm68xUt8xNqwEra6dvT4SQikXgWT3rSZ6YIpkzLrZRFmm95dSkakUUP7dVqiI
-         p2u03qLplDFYcFYxFwnVQTOGGrOnMlf2OZf5XdGfar9n58lMtksupF61KjnZd3AUwa8G
-         nW/lvQNiS/wkSC8/RS4JS/tMDLAkwtdB8znVoLGbjKx9vxFTa1mVcKRmqCGZSka2LnXC
-         NTBioTHH82wWGT9+zwZg54OT9CMSdUSUKC76ApaW+WQ8D99MZiv1MSTmqPSjoH4sWmlo
-         T/ug==
-X-Forwarded-Encrypted: i=1; AL+hErGzErEp3xUr5K7qus911wsYDrMTMYWBxht9tKUr1fEddLqOrdPO1pJDtuJtRmvV/sV6JPzOdjuK1xgD@vger.kernel.org
-X-Gm-Message-State: APuU4Z9XIShnZJbdIqy54mBfsuZjDqa98rP7viEvgnEce4VqLNTAXDkq
-	jRxw+tBt0lvfaLWDdeKVwLFE6Fa4n7siloaTmqyoOHDMEQssR+fHAgyi
-X-Gm-Gg: AYBFou2qbzVk+EnseaD6QGkYUqAnJ2C0JWZXAjAr6U9P6qgmj7r8PLKloLV3zLJ9GAi
-	bKC/zQpX5aSTXIDMfclPEGIw+k57DdDXVd7zSDpBlzvbrbSvOl7yR3GM03fPgIVkzEBcDsiLR1K
-	kh3SbaD1/0IjYW2skzpZZRYLBSBNcBZKktgBxi/y89OMi7irxQxkvii6QejkITajLkmuKX4y5yv
-	o5M1juoojE6X3r5SYbv+FOJWsT+GsmvrKfxL9ujA+tBf5SJtFgBx5ndHAmDEYVxFDeG4Z2Lepyu
-	0BqydpG4V8lYqUTcVvELIVGtLd/G+/VdAaRW85jnVatqebuv+U/AAK5/XFsCW4mX0zShQ/I/2eA
-	uKOsVa/3GP3bDqa/VJTaqLf3eGvR26VDJq1ubmEBpnxrTmB2rJkntoPf+qU5ch8jTcEkc+0smbZ
-	p3XEjta6wlobnPLvTqiRtvE6OvFs5yqQpqUmtjQWmA0rGSbkSvxAJNU+6fPM3UMjFzRRJo0EOok
-	ErXcvT+H+tQeirjBLcnyifcjzwPZ7iZkH/f4fnEphx/2nAdvownrzwJoiVkH2rNBAQVS4OhOF1K
-	48aJ4nn7mnMt/bPJx+IgmEUNBITxaV0jrulif7TwELc0SfomVEpL5e0=
-X-Received: by 2002:a05:620a:2b96:b0:93f:53d1:54c7 with SMTP id af79cd13be357-947b00d141dmr521152085a.70.1794423676923;
-        Wed, 11 Nov 2026 11:01:16 -0800 (PST)
-Received: from localhost ([2600:4040:9399:4000:e553:72e5:7d37:c7ef])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9479e73b2d2sm545314185a.10.2026.11.11.11.01.14
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 11 Nov 2026 11:01:15 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Dki0UB+p
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 109F21F00A05;
+	Wed, 11 Nov 2026 19:12:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794424321;
+	bh=TYtcSEbeXrJzZbwSSVOIQbwHlUL+6uRNPP+QvBhwGKw=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=Dki0UB+pU+9/Xirz3xv2X3IJ+8lHbn95JE6UV7Dcbk+PtyjesMnB64E+gnYdcT/p3
+	 Gihdt+S31WhdUCTKtZurtAnm30hR/+xztWYtxadxxmJDG5IfPnzG5Jeg0haph8IqMO
+	 6zPowngiipoBJ03kpd9PJpp7oVz5oknKi2QquY4qQvMm29zQ4SISYh6+D+Cn2WY1kS
+	 +1g0ohmkAEDSbgveD3fH+VN0GOAVqlgvleYWCEqtzkmhWO1o500zTAaiAtK1Wvmd/f
+	 O1EoSkBx/QQ7pTU+LA4xAYnVGfsDqAgMcYC6bBs+eHiM7OfIaOQK0i9DG3NbOzsxgY
+	 N604CpVViz/2w==
+Subject: Re: [PATCH net-next 02/10] cxgb4: flower: refuse a tunnel key wider
+ than the VNI
+From: netdev-bot+sashiko@kernel.org
+To: acassen@corp.free.fr
+Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
+ jhs@mojatatu.com, jiri@resnulli.us, andrew+netdev@lunn.ch,
+ davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ horms@kernel.org, michael.chan@broadcom.com, pavan.chebbi@broadcom.com,
+ bharat@chelsio.com, donald.hunter@gmail.com, corbet@lwn.net,
+ skhan@linuxfoundation.org, rdunlap@infradead.org, dsahern@kernel.org,
+ idosch@nvidia.com, shuah@kernel.org, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-kselftest@vger.kernel.org, oss-drivers@corigine.com
+Date: Wed, 11 Nov 2026 19:11:59 +0000
+Message-ID: <179442431962.2199510.14986379471426017@kernel.org>
+In-Reply-To: <20261109131039.959438-3-acassen@corp.free.fr>
+References: <20261109131039.959438-3-acassen@corp.free.fr>
+X-sashiko-severity: Medium
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -87,104 +68,175 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Wed, 11 Nov 2026 14:01:14 -0500
-Message-Id: <DMSM3RNRY412.1GXB07F4KGJYR@gmail.com>
-Cc: <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>,
- "Andrew Lunn" <andrew+netdev@lunn.ch>, =?utf-8?q?Bj=C3=B6rn_T=C3=B6pel?=
- <bjorn@kernel.org>, <bpf@vger.kernel.org>, "Daniel Borkmann"
- <daniel@iogearbox.net>, "Donald Hunter" <donald.hunter@gmail.com>, "Eric
- Dumazet" <edumazet@kernel.org>, "Jakub Kicinski" <kuba@kernel.org>, "Jamal
- Hadi Salim" <jhs@mojatatu.com>, "Jiri Pirko" <jiri@resnulli.us>, "John
- Fastabend" <john.fastabend@gmail.com>, <linux-doc@vger.kernel.org>,
- <linux-kernel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
- <linux-rdma@vger.kernel.org>, "Martin KaFai Lau" <martin.lau@linux.dev>,
- "Paolo Abeni" <pabeni@redhat.com>, "Saeed Mahameed" <saeedm@nvidia.com>,
- "Simon Horman" <horms@kernel.org>, "Tariq Toukan" <tariqt@nvidia.com>, "Wei
- Wang" <weiwan@google.com>, "Willem de Bruijn"
- <willemdebruijn.kernel@gmail.com>
-Subject: Re: [PATCH net-next v1 04/15] psp: add support for socket-less psp
- associations
-From: "Daniel Zahka" <daniel.zahka@gmail.com>
-To: "Todd Bert Freed" <toddfreed@meta.com>, "Daniel Zahka"
- <daniel.zahka@gmail.com>
-X-Mailer: aerc 0.21.0-threadmapfix
-References: <20261111005533.6436-1-toddfreed@meta.com>
- <20261111005533.6436-5-toddfreed@meta.com>
- <DMSJB8MZZCXK.MCEBRZQDAM5Q@gmail.com>
- <CADh2yMx8MPjcH7Bpj72rNNd_tT=6uSC5Ow9JyGjTMjFgs499Pw@mail.gmail.com>
-In-Reply-To: <CADh2yMx8MPjcH7Bpj72rNNd_tT=6uSC5Ow9JyGjTMjFgs499Pw@mail.gmail.com>
+MIME-Version: 1.0
 
-On Wed Nov 11, 2026 at 1:23 PM EST, Todd Bert Freed wrote:
->> I'm not sure the kernel actually needs any bookkeeping at all for these
->> generic rx spi allocations. You could probably just pass the spi, dev
->> id, key, and probably rotation count (as a device key generation of
->> sorts) to the user without creating a kernel object. For socket
->> psp_assocs, the rx state is consulted on the datapath before queueing to
->> the socket. For tx state in all psp_assocs, there is the possibility
->> that an SADB handle needs to be cleaned up. Neither of those apply here
->> or in the rest of the series as I understand it.
->>
->> I figure the tc ingress rule can just take the spi and dev id by value
->> rather than needing a reference to an object that we create here.
->
-> That is how it works in this series. The tc psp decap rule (ingress) does=
- not
-> make reference to an rx assoc ; instead, it should have flower matches on
-> psp_spi, psp_ver, and psp_dev. That effectively ties it to packets from j=
-ust
-> one rx assoc.
->
-> So why keep track of rx assoc objects at all? Two considerations.
->
-> 1/ don't accept packets that correspond to a stale association. That is, =
-even
-> if the device decrypted the packet, it should be dropped if the device ke=
-y
-> which minted the assoc's SPI is two rotations behind. For psp socket offl=
-oad
-> that is enforced in __psp_sk_rx_policy_check() with the pas->generation
-> check.
->
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-I asked why we needed to keep track of socketless rx assoc objects. The
-above applies to the existing transport mode code, which is my point.
-The rx state from the assoc is looked up from the datapath. It doesn't
-seem like that is the case in this series.
+Critical: 0 · High: 0 · Medium: 1 (1) · Low: 1
 
-> The spec permits SPIs to be reused immediately after two rotations. So th=
-e
-> device could decrypt a packet with a SPI that is more than two rotations =
-old
-> in that case, or if a previous packet is being replayed, for example.
->
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-A SPI that is two generations old will cause and auth error on rx. The
-hazard is that an old tc rule with a SPI from two generations ago can
-alias a different SPI from this generation. Userspace can just flush old
-rules before doing a key rotation. That is why I suggested including a
-'rotations' attribute, although that is probably not even necessary to
-keep track of which rules need to be flushed.
+- [Medium] cxgb4: unvalidated tunnel key mask in
+  cxgb4_validate_flow_match()
+- [Low] The commit message says the bug is already reachable today: "An
+  exact key above bit 23 already selects the wrong VNI".
 
-> 2/ hardware offload. the solution to #1 should be able to be fully offloa=
-ded
-> to the device. psp tunnel mode will be hw offload only, and is implemente=
-d
-> in the eswitch with connect-x.
->
-> We could add a psp_gen flower match to replicate the pas->generation
-> check, but the device has no access to the pas and can't offload that.
->
-> Keeping track of the rx assoc means that the kernel can take action on th=
-e
-> "this assoc is now stale" event. Possibly by enumerating the tc rules and
-> either deleting them, or marking them stale for userspace to reap.
->
+Pre-existing issues:
+- [Medium] This bug was not introduced by this patch, but it produces the
+  same symptom the commit message gives as its motivation ("The rule…
 
-I think it makes more sense for userspace to just get rid of the rules
-before rotating the keys.=20
+--
 
-> -Todd
+cxgb4: flower: refuse a tunnel key wider than the VNI
 
+This patch adds a check to cxgb4_validate_flow_match(). Flower rules whose
+enc_key_id key has bits set above bit 23 are now rejected. Before this, the
+driver silently truncated such keys into the 24 bit vni bitfield.
+
+> An exact key above bit 23 already selects the wrong VNI.
+
+[Severity: Low]
+The commit message says the truncation can already be hit today. Should
+this carry a Fixes: tag, and possibly go through net?
+
+At the baseline, cls_flower parses TCA_FLOWER_KEY_ENC_KEY_ID with
+TCA_FLOWER_UNSPEC as the mask, so the mask is all ones. After that,
+cxgb4_process_flow_match() stores the key and the mask into the 24 bit
+fields:
+
+drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c:cxgb4_process_flow_match() {
+    ...
+		fs->val.vni = be32_to_cpu(match.key->keyid);
+		fs->mask.vni = be32_to_cpu(match.mask->keyid);
+		if (fs->mask.vni) {
+			fs->val.encap_vld = 1;
+			fs->mask.encap_vld = 1;
+		}
+    ...
+}
+
+The field is declared as uint32_t vni:ENCAP_VNI_BITWIDTH in struct
+ch_filter_tuple. So enc_key_id 0x01000005 becomes vni 0x5 with a vni mask
+of 0xffffff. The rule's action then applies to VNI 5 traffic.
+
+The truncation seems to date back to:
+
+Fixes: 98f3697f8d41 ("cxgb4: add tc flower match support for tunnel VNI")
+
+No later patch in the series touches drivers/net/ethernet/chelsio/, so
+nothing else adds the tag.
+
+> diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c
+> index 3307e50426819..d9a509be5c517 100644
+> --- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c
+> +++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_flower.c
+> @@ -316,6 +316,17 @@ static int cxgb4_validate_flow_match(struct netlink_ext_ack *extack,
+>  		return -EOPNOTSUPP;
+>  	}
+>  
+> +	if (flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_ENC_KEYID)) {
+> +		struct flow_match_enc_keyid match;
+> +
+> +		flow_rule_match_enc_keyid(rule, &match);
+> +		if (be32_to_cpu(match.key->keyid) >> ENCAP_VNI_BITWIDTH) {
+> +			NL_SET_ERR_MSG_MOD(extack,
+> +					   "Tunnel key does not fit the 24 bit VNI");
+> +			return -EOPNOTSUPP;
+> +		}
+> +	}
+
+[Severity: Medium]
+Does this check cover the case the commit message describes? It only
+looks at match.key->keyid. The hazard named in the changelog is a mask
+that only covers bits above 23.
+
+cls_flower stores the key already ANDed with the mask. So a rule with
+enc_key_id 0 and a mask of 0xff000000 reaches
+cxgb4_validate_flow_match() with match.key->keyid == 0 and
+match.mask->keyid == cpu_to_be32(0xff000000). Shifting the key gives 0,
+and the rule is accepted.
+
+cxgb4_process_flow_match() then does:
+
+	fs->mask.vni = be32_to_cpu(match.mask->keyid);
+
+This truncates into the 24 bit vni bitfield of struct
+ch_filter_tuple and leaves fs->mask.vni == 0. The if (fs->mask.vni)
+block is skipped, so fs->val.encap_vld and fs->mask.encap_vld stay 0.
+__cxgb4_set_filter() then never reaches t4_alloc_encap_mac_filt().
+
+The hardware filter ends up with no tunnel constraint at all. It
+matches any traffic its other keys allow, including non-encapsulated
+packets. That is the failure mode the commit message says this patch
+prevents, and it opens up once the later patch in the series lets
+flower accept partial enc_key_id masks.
+
+Simply testing match.mask->keyid >> ENCAP_VNI_BITWIDTH would not work
+either. Exact matches today arrive with an all ones mask from
+TCA_FLOWER_UNSPEC, so every existing rule would be rejected.
+
+Would it make sense to also refuse a non-zero mask whose low
+ENCAP_VNI_BITWIDTH bits are all zero? Or is there a better way to
+express "match any VNI" for this hardware?
+
+[Severity: Medium]
+This is a pre-existing issue and was not introduced by this patch. It
+causes the same symptom the commit message names ("The rule would match
+any traffic its other keys allow"), but it depends on the firmware
+configuration.
+
+validate_filter() in cxgb4_filter.c checks encap_vld only against fconf
+VNIC_ID_F and the chip version:
+
+	    unsupported(fconf, VNIC_ID_F, fs->val.encap_vld,
+			fs->mask.encap_vld) ||
+    ...
+	if (fs->val.encap_vld &&
+	    CHELSIO_CHIP_VERSION(adapter->params.chip) < CHELSIO_T6)
+		return -EOPNOTSUPP;
+
+It never checks that iconf (TP_INGRESS_CONFIG) has USE_ENC_IDX_F set.
+
+In __cxgb4_set_filter(), the VNI is programmed only in the USE_ENC_IDX_F
+branch:
+
+	iconf = adapter->params.tp.ingress_config;
+	if (iconf & VNIC_F) {
+		f->fs.val.ovlan = (fs->val.pf << 13) | fs->val.vf;
+		f->fs.mask.ovlan = (fs->mask.pf << 13) | fs->mask.vf;
+		f->fs.val.ovlan_vld = fs->val.pfvf_vld;
+		f->fs.mask.ovlan_vld = fs->mask.pfvf_vld;
+	} else if (iconf & USE_ENC_IDX_F) {
+		if (f->fs.val.encap_vld) {
+			...
+			ret = t4_alloc_encap_mac_filt(adapter, pi->viid,
+			...
+
+If iconf has VNIC_F, ovlan_vld is overwritten with pfvf_vld, which is 0
+for a flower rule. If iconf has neither bit, nothing is programmed.
+
+set_filter_wr() has no VNI field, so tunnel information reaches hardware
+only through ovlan/ovlan_vld. In both cases the FW_FILTER_WR is sent
+without any VNI constraint.
+
+On a T6 with such a firmware config, could a rule like "flower skip_sw
+enc_key_id 5 action drop" be reported as offloaded with a VNI match, but
+drop all ingress traffic on the port that matches its other keys?
+
+Flower doesn't reach the hash filter path for these rules, since
+is_filter_exact_match() returns false when fs->mask.encap_vld is set.
+
+One possible fix would be for validate_filter() to reject encap_vld
+unless (iconf & USE_ENC_IDX_F).
+
+No later patch in the series touches drivers/net/ethernet/chelsio/.
+
+[ ... ]
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261109131039.959438-1-acassen%40corp.free.fr
