@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794424325;
-	b=P8i2LE/MxenK3FUBUSkv2qyLIPam7J81Rq6CKjcT8k71YHPuCHBnt1eUgRv+mZj/YY7N
-	 rIuXiTZsYy1hg7+yfXd/sBmJX4PqVMPFZrYu4d+qzDNDS450pOUIPPSWTrgkmaLFJlIM+
-	 Xun7vScazdq4HirRQS455ZZIsFewZJA6BMJK+Y4DgFHZxBCldLKRi+4LQuVTk7f+na/sh
-	 Nas86raHUy0b6lNEa/oHOaG/keY4kcmY6SVZtOLr+Rm2smiG6CTu7CFIJbXjZOQUmJQSA
-	 P/XCHC0biQZSojhmampokMQSGh62RulZfgwMufVpnibVb2QKAB/hOBR7qOhXVzUFagg==
+	t=1794424332;
+	b=v1QFS8Mi9M85rXWCTW1blGHwluVzUYA1XBv9Y4BeBY9aNgUAD26fiGttK+RgMFLue1JP
+	 X0GOqBOgEKNPHdQgj8TE8GRbMXyl6LmneOKPFZC2qwto1MvwBm18RM8TNYDi/gxVIs6xx
+	 oPz8TvN3wPq7ipJipNPJKonoc0XZFgAecDOGjgPrSW4AVuXILECa5V8/HxrmLDf/k95DW
+	 nHiv+bqyHsVhiay7iRSZrAurj/r2faLpqJdroni+oiUqRi6aWhtRdPHzq2Nh+a2YddblM
+	 jgGb+LPIKccirksPYh6CNPK2EUlWRrlbFKp6ehuGWw3vAAN/DoVaEDDiz8lrX/VkmFw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794424325;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794424332;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=GWPCe/ldRNhLGb02fnB2WOPB4LQypi+fk7L8hqeqjmQ=;
-	b=tXnBefUvPZ1rgzK2gy2Ne7XH8X8Kg+YN6C+sNf1A5zz+GhE54BUYasmYtg/APv2jQRSE
-	 lGRHSg5wo1a9+gvgTbOkDD+zgdGafiMYgjo6lknTLtt/N55bzewaNVJqW3NrgwVoLWPkG
-	 LWOUgpdmV1JSqXrPFUp3TAvS1YGPd7Ja5mUqR+Pio7YxhJAxu2mnKpaghU1wyL9isOC71
-	 m81oOWlYb5WfipRejB8xUos38+O19+Avnnv82JbJz5HfKfSMyGTPFAHjfrsW+BDiQE0qP
-	 sceLgVzILakS+gN0BIJyxF0cvJsKJyCcyGnYQO+WCXuzW0hr0oc7oxjmrrMxEgmveoA==
+	bh=JzLMSwghD2PO6Xb9dFzksMNtTAGLMaDroH8J4cxYrno=;
+	b=5XPyLXe04eShmJnD/TwfnxIOc6dsUyk1AQLzfJtFNSdr7+UjQvQeSPrzxb7ViYc6YHk8
+	 TUUG4mH+WcrOc6VtgaRiC+mRzT6rXQuqL4lq/xiQ7DiPEKvhtlxaZ+3dQ/C9kHilMVtz1
+	 w7rYoHlsK9VQp02oSGamnceOV2baD155BAgIIukc0BO+llNY7IZ6KcmzzC5iuv/0hMBQQ
+	 80Onk2rGC4/mELrMmWJ43xGyVOQdh5ouo94sMmry+0YxoqbyIM4W7YRuYxbBhJ4qopI7D
+	 5QITRgeX/Zt8D6RCx9mJf96SBDrWBGurV7t+7XzDvO+0EdZ5vbOXU9yQdQ0qngdpQgA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=T0kegdlg;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XByef+ej;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D04BA606A326;
-	Wed, 11 Nov 2026 19:12:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 942DA606A89E;
+	Wed, 11 Nov 2026 19:12:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=T0kegdlg
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38EB81F00A0E;
-	Wed, 11 Nov 2026 19:12:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XByef+ej
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 754D21F00A05;
+	Wed, 11 Nov 2026 19:12:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794424325;
-	bh=GWPCe/ldRNhLGb02fnB2WOPB4LQypi+fk7L8hqeqjmQ=;
+	s=k20260515; t=1794424331;
+	bh=JzLMSwghD2PO6Xb9dFzksMNtTAGLMaDroH8J4cxYrno=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=T0kegdlgrk9PoSsp6PKx1X6Eg7xnnT9E2j03QTnOPQFAvCZaAl59irhKAtg/5mTDq
-	 bgx0yE7dltZJxE/ev1qf4BkMLr8jTnUg/OYU70/6onc0JUjeGAGFcsu4vhzMdkXCwt
-	 KKhGj+9nN1lXEel9NJ4CeL/Y8lQpAM6VrN/c8AmjrFbaHjeDOp5hajPKSCKfj01xnz
-	 UYlDxbj269iKs9ymtbOEB10OzsVRJUS6gg1DGrPA5hZJt9UPZZBeQ3r5iTadG3nPEp
-	 ylGhdgQ6QZYY45YZFz8oG8ckmis67EfbB125QqnZKUuWLeprAhxtcxUa9kv1VakR02
-	 TRYwbJ+Ih+Hfw==
-Subject: Re: [PATCH net-next 04/10] net/mlx5e: TC, refuse a tunnel key wider
- than the VNI
+	b=XByef+ejZRyzUxQ92DESKOvJm6sqvLAET0v1veFV25qfPJ5WdYJQkiMrVgJUk3xjl
+	 9QiRxoLRrnHRLZCD/Mz3sIX3TmKtUmk2229Ox+qg4kTlGgBxu5diIfO/ZfJlvRtWFQ
+	 RsvB3z5hfCfKQreWPttK67Yh9NFXr2p+Oxxju9bSiAghWpGYbm+TrArCy00/hh7Ej1
+	 PhD4PbbuHnQdcIP+vxJ3b7vzR3BECdis3iF0wNoNlq48ialpARH7W7GIsYUnX8Cg+v
+	 uqgVIIUJt+gotnnADcl/gEW+hj5YRxj83BJ9LOa4CCmRkAVMo6yQHTEX+3Aq60tczi
+	 lRsJ10MCQDXVQ==
+Subject: Re: [PATCH net-next 07/10] selftests: forwarding: tc_flower: test the
+ enc_key_id mask
 From: netdev-bot+sashiko@kernel.org
 To: acassen@corp.free.fr
 Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
@@ -53,11 +53,11 @@ Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
  idosch@nvidia.com, shuah@kernel.org, netdev@vger.kernel.org,
  linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org,
  linux-kselftest@vger.kernel.org, oss-drivers@corigine.com
-Date: Wed, 11 Nov 2026 19:12:03 +0000
-Message-ID: <179442432378.2199510.219572665710096354@kernel.org>
-In-Reply-To: <20261109131039.959438-5-acassen@corp.free.fr>
-References: <20261109131039.959438-5-acassen@corp.free.fr>
-X-sashiko-severity: Low
+Date: Wed, 11 Nov 2026 19:12:10 +0000
+Message-ID: <179442433006.2199510.18178415453434864193@kernel.org>
+In-Reply-To: <20261109131039.959438-8-acassen@corp.free.fr>
+References: <20261109131039.959438-8-acassen@corp.free.fr>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -70,86 +70,114 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 · Low: 0
 
-- [Low] The commit message says this is a fix for a bug that exists
-  today: "An exact key above bit 23 already selects the wrong VNI." The…
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] When tcflags=skip_sw, match_enc_key_id_mask_test()
+  (tools/testing/selftests/net/forwarding/tc_flower.sh) never tests…
 
 --
 
-net/mlx5e: TC, refuse a tunnel key wider than the VNI
+selftests: forwarding: tc_flower: test the enc_key_id mask
 
-This patch makes mlx5e_tc_tun_parse_vxlan() and
-mlx5e_tc_tun_parse_geneve_vni() reject an enc_key_id whose key does not
-fit in the 24 bit VNI match field. Such rules now fail with -EOPNOTSUPP
-and an extack message. The 32 bit GRE key handling is left as is.
+This adds match_enc_key_id_mask_test() to tc_flower.sh. The test puts a
+flower filter with enc_key_id 256/0xf00 on a gretap external device. It
+checks three things: the mask shows up in the dump, a key inside the mask
+matches, and a key outside the mask only hits a second exact-match filter.
+Under skip_sw, if adding the masked filter fails, the test only logs it.
 
-> VXLAN and GENEVE flows truncate the key and the mask of enc_key_id to a 24
-> bit VNI. An exact key above bit 23 already selects the wrong VNI. Flower
-> is about to accept partial masks. A mask that only covers bits above 23
-> would then match any VNI. Refuse a key that no VNI can match. GRE keeps
-> its 32 bit key.
+> diff --git a/tools/testing/selftests/net/forwarding/tc_flower.sh b/tools/testing/selftests/net/forwarding/tc_flower.sh
+> index b58909a931129..9d9f109ab8954 100755
+> --- a/tools/testing/selftests/net/forwarding/tc_flower.sh
+> +++ b/tools/testing/selftests/net/forwarding/tc_flower.sh
 
 [ ... ]
 
-> Signed-off-by: Alexandre Cassen <acassen@corp.free.fr>
+> +match_enc_key_id_mask_test()
+> +{
 
-[Severity: Low]
-The commit message says the problem exists today ("An exact key above bit
-23 already selects the wrong VNI"). Should the patch carry a Fixes: tag,
-and maybe go through net?
+[ ... ]
 
-The truncation does look reachable in the current tree. Flower parses
-TCA_FLOWER_KEY_ENC_KEY_ID with TCA_FLOWER_UNSPEC as the mask type, so every
-enc_key_id rule is an exact 32 bit match. The parsers then write the key
-into 24 bit fields:
+> +	ip link add gt-ex type gretap external # To collect tunnel info
+> +	ip link set dev gt-ex up
+> +	ip link set dev gt-ex master v$h2
+> +	tc qdisc add dev gt-ex clsact
+> +
+> +	# A device may refuse a partial mask but software must take it
+> +	tc filter add dev gt-ex ingress protocol ip pref 1 handle 101 flower \
+> +		$tcflags enc_key_id 256/0xf00 action drop
+> +	if [[ $? -ne 0 && $tcflags == "skip_sw" ]]; then
+> +		log_info "Device refuses the enc_key_id mask"
 
-mlx5e_tc_tun_parse_vxlan() {
+[Severity: Medium]
+Can the skip_sw pass ever reach enc_key_id_mask_check(), or does it always
+end up in this branch?
+
+gt-ex is a gretap external device, and ip_gre has no ndo_setup_tc. When
+clsact is added on it, tcf_block_offload_bind() calls
+tcf_block_offload_cmd(). That function sets up the indirect block and then
+always returns an error:
+
+net/sched/cls_api.c:tcf_block_offload_cmd() {
     ...
-	MLX5_SET(fte_match_set_misc, misc_v, vxlan_vni,
-		 be32_to_cpu(enc_keyid.key->keyid));
+	flow_indr_dev_setup_offload(dev, sch, TC_SETUP_BLOCK, block, &bo,
+				    tc_block_indr_cleanup);
+	tcf_block_setup(block, &bo);
+
+	return -EOPNOTSUPP;
+}
+
+As a result, tcf_block_offload_bind() does block->nooffloaddevcnt++ for
+the gt-ex block.
+
+After that, fl_hw_replace_filter() calls tc_setup_cb_add() with
+err_stop set to skip_sw. tc_setup_cb_add() then rejects the filter before
+any driver callback is called:
+
+net/sched/cls_api.c:tc_setup_cb_add() {
+    ...
+	if (block->nooffloaddevcnt && err_stop) {
+		ok_count = -EOPNOTSUPP;
+		goto err_unlock;
+	}
     ...
 }
 
-mlx5e_tc_tun_parse_geneve_vni() {
-    ...
-	MLX5_SET(fte_match_set_misc, misc_v, geneve_vni, be32_to_cpu(enc_keyid.key->keyid));
-    ...
-}
+So every skip_sw flower filter on gt-ex would fail, whatever the mask is.
+An exact enc_key_id 256 would fail the same way.
 
-In mlx5_ifc.h, vxlan_vni and geneve_vni are 0x18 bits wide, so MLX5_SET()
-masks off bits 24-31.
+On any setup where tc_offload_check passes, the skip_sw pass would print
+"Device refuses the enc_key_id mask". It would then skip filter 102 and
+enc_key_id_mask_check(), and report no result.
 
-The VXLAN-GBP path in mlx5e_tc_tun_parse_vxlan() also loses those bits. It
-shifts the key left by 8 into the 32 bit tunnel_header_1:
+The comment above, the log_info() text and the commit message all say
+the mask is the reason:
 
-	MLX5_SET(fte_match_set_misc5, misc_v, tunnel_header_1,
-		 be32_to_cpu(enc_keyid.key->keyid) << 8);
+  When tc does not know the mask or a device refuses it under skip_sw, the
+  test only logs this.
 
-As a result, a skip_sw rule with enc_key_id 0x01000001 is offloaded as a
-match on VNI 1. Software never matches that rule.
+Is that accurate, given that no skip_sw filter can be installed on gt-ex
+at all?
 
-Because this fixes a mismatch that already exists, a Fixes: tag would tell
-backporters which stable trees are affected. These look like the
-candidate targets:
+This also means the skip_sw half never tests the hardware mask
+programming that this series adds to cxgb4, mlx5 and nfp. A regression
+there would look like the same info line.
 
-  9272e3df3023 ("net/mlx5e: Geneve, Add support for encap/decap flows
-  offload") for the geneve_vni MLX5_SET()
+Even without the block-level check, nfp_flower_calculate_key_layers()
+looks like it would reject this filter for another reason: it matches only
+enc_key_id, with no ENC_CONTROL or enc_dst_ip match. Again, that has
+nothing to do with the mask.
 
-  the original en_tc.c commit that added VXLAN VNI matching, for the
-  vxlan_vni MLX5_SET(). d386939a327d ("net/mlx5e: Rearrange tc tunnel code
-  in a modular way") later moved that code into tc_tun_vxlan.c.
-
-  eacc77a73275 ("net/mlx5e: Use custom tunnel header for vxlan gbp") for
-  the tunnel_header_1 path
-
-Would it also make sense to send this to net as a standalone fix, rather
-than untagged as part of the net-next series that adds flower partial
-masks?
+Should the skip_sw case be dropped, or moved to a block that can actually
+be offloaded?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261109131039.959438-1-acassen%40corp.free.fr
