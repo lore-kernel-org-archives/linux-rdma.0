@@ -1,84 +1,91 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.50
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.226
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794415799;
-	b=PkJPzR2cUDWMxL0khvm5DfjYWhcRplRdVpfUJO/7jYi49e76YRwNPEaDtXViCVajeIeg
-	 Odsmq9KnZJRIJIDiDIcfup+96Pi/mZubw30E/uaJ3EoX7MzFJs5i4vbPtJ7HcZ8mXqaRe
-	 a+KxxpBdE+0OpcjMo79Bo5JrvmU139IH5X+B7TmWZ9UEhJxfE+dyusRh52oi400M4dv/+
-	 UGGOpcQNGNGzfN5ERTu0BwjZFQ9rtgyoDROUQNvU8Sy1S1147tDjEWaC7hYIyWIp6fwJe
-	 zQz/bUbgHBkwDFAr4MH+kz4ypBXB/B9TUi/IsthW5hxmhji+RQygjE12NgQsw8PUBag==
+	t=1794415817;
+	b=avjzcar6UYNCQpY4EhgXUmYOOldM3HQEj+DooGnC4hUSCJvRUJlNZj8MPHhidDBFASkg
+	 sP1jTpakgTmcvhMAMapeZV7/8j/wvRrwipYsCSFC57rf0LY5axdc8KFtj2G23KpbJNWyM
+	 wcFctz6RXiu6TEa53mV1PPwlRcSzSDhWdQRIoPoHKrNP42Fi5sPyc5UAHgIxZSGm3NVyp
+	 HRlCsJ0uoENmIneOgyELN8DSzYOjD7bNS/NUGMv5VRuAcrcVcyvPEz+U7C25NZi0vjuNV
+	 zzw6T1L+YT78pCxyuD5OjAXh/sToAseV65skyEGLP/pR3Jt924w03UbILO6jZxno50A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794415799;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Mime-Version:Content-Transfer-Encoding:Content-Type:Date:Message-Id:
-	 Cc:Subject:From:To:X-Mailer:References:In-Reply-To;
-	bh=rFud020d6ZqbAIZTEaEuXG8erb5QVVdBjItcD5kJ9qU=;
-	b=Iaa2B9igMhCfzBWrkNn1b86kimr2oTXCHMTIwAHbS3ngi+R4/W6pSwQLm9IJ+HCfSf/K
-	 3jZ1Cyg0H0RMNFjOZiTUWCkfgQsLtLxPrDmHlrAb3m6xVUuTWkP5pvxs4M9FV7f/bMsuC
-	 luTHKD3r9YpTxgrcEwp/4WLcssOY7YVIFFzcKNHdwrMCVlgroZoyIb/QheY1bOG7nhlRi
-	 c1IvCZgeoFDwuLiCgTFtIsZ3eK6ohWE+UXf67YKc8291u0UZida0R/xw1BvKHYd5rZVLL
-	 Qol+2QGzsrHnwZEdE73cWLMpH6RjKJ5QYUZtT0Ri2XfAFV8pZGSo+RofLq8Mb6mkA2g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794415817;
+	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Gm-Message-State:
+	 X-Gm-Gg:X-Received:Received:X-Relaying-Domain:X-CFilter-Loop:Received:
+	 DKIM-Signature:X-Received:X-Received:MIME-Version:References:
+	 In-Reply-To:From:Date:X-Gm-Features:Message-ID:Subject:To:Cc:
+	 X-DetectorID-Processed:Content-Type;
+	bh=Y+Kn25QRMC3mmI80LSHZ76EQqZfZxoMY4TavrU77wRo=;
+	b=dN3BLse0AXeTORcRKHb/4ptlEyRPj5nHv6IYBJ0H3U9TqN1mk9NOEnHN6nwzHEqVMn3U
+	 /S9O4XxbK79V/q0l5t4JRK+lkf9fi+0IIDBgBHQZgK9zXhSTNR4+jw+cAJeEE4yWXOQFQ
+	 viEA5C8mrUbk74kHE1sWGyV2RNrvEEj1cM8CQofjsC8QQrPXBZB+qcV7D5g5uIpT8vHSV
+	 aYBg2b4mqQGByX6egQzFSeAOUvaRtusJo2QRbXtQVsKm+TUJKLw7vUS8rAIxHlDxMc5Sz
+	 ACINMP0miGlVQWzisFfw2AJIrVS4wxdKeaHpnaTY/Qxy+jSIBXproBJb0Yo5C2Dznww==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=HJL1TZqY;
-	arc=none smtp.remote-ip=209.85.219.50
-Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
+	dmarc=pass header.from=broadcom.com;
+	spf=fail smtp.mailfrom=broadcom.com;
+	dkim=pass header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=btv8PF+2;
+	arc=none smtp.remote-ip=209.85.160.226
+Received: from mail-qt1-f226.google.com (mail-qt1-f226.google.com [209.85.160.226])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DA73606A338
-	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 16:49:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6DA73606A338
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBAF1606A31C
+	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 16:50:16 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CBAF1606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=HJL1TZqY
-Received: by mail-qv1-f50.google.com with SMTP id 6a1803df08f44-91e8938fd01so37101616d6.3
-        for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 08:49:59 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794415798; x=1795020598; darn=vger.kernel.org;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-type:content-transfer-encoding:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=rFud020d6ZqbAIZTEaEuXG8erb5QVVdBjItcD5kJ9qU=;
-        b=HJL1TZqY3pycAyt7sUA767m90KqajI8zY0xT1ZfuAA/QfImIGgMx+vAqH5Imyi/a6+
-         aMEZPSuWC0VKrlzb13m1Nrwk3QQ1wPZefNNmLRBLCtq5cxDePjkDtwTpye0fVTiEcWB6
-         aQ5mmiFm7UHTtv3f/HgmSB/WAizRAoppvvJqsmn96SgIn97pqx1oC1BFwsrGLw8pgc3I
-         Zt2pBuE1m63/KLFVCv993l8Nq/ZcD/Q9G+j++A6DU9uB42JKnPgnXP5fvqJ5tv1540yF
-         pMvXIlsts3LByVlAX0I2AnxgbnLfwxfrlIL0MQSTx9vfi1sV4y8WMcWGj2UrnyRyZjKB
-         Frcg==
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=btv8PF+2
+Received: by mail-qt1-f226.google.com with SMTP id d75a77b69052e-5351d76e1baso244101cf.1
+        for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 08:50:16 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794415798; x=1795020598;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-type:content-transfer-encoding:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=1e100.net; s=20260707; t=1794415816; x=1795020616;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:dkim-signature:x-gm-gg:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=Y+Kn25QRMC3mmI80LSHZ76EQqZfZxoMY4TavrU77wRo=;
+        b=UkSwNVwQ149qq6oyOx8///wf4o6e4ScnZzeP1iP7FLmAH6Vo4Ga5wQBApVPeTjulZR
+         5AM4LTYo9XCs4K1QlrnPYHGCK90wx2+4glVPE2exebsDnreV6ehP1lxQwNqUbtiVximB
+         pYYqvBVJuAYzk7hWqmUpkn3g4jbOzCJa9sPW5LCQIvwzuH0djaL2YZ/MFqlWPc7FOFi0
+         2+A2pnuzg572Nm2i7rN5DfkMhxxK/wH2Uucq94sYMw/YAEeNd2RzWD7qa0mhQEc2a93O
+         An0xM1cbu/QcueVlQDNS8IKtTd7Nl5RxQY/jWx4ajjgGcC8uqXG+tu3YLQV4RJULnKlO
+         vrEg==
+X-Gm-Message-State: APuU4Z/ztUO8+RC3w2k2muEcKLhLZ72wPvrnOrpXPV7eqCB0K/2TAlVs
+	kRRDVCO5ygJcA/G8Pwsvw0fdiF8VA4wP8FU7S/F3B1TLl3T3wopAxZSQdtYHqiprTcBleHnE1sB
+	Yliu8D08sQjyt8KgAMiv5ntLm/Zx6iEZV9k5rvnvfQ9MsqW1fxw6k1/obz0PuQPe/J7P5W/7yyD
+	zgG76LPkk6Wsga8A3XkKcz36p6s0RqpkM8gxzCp+LOAHAPTVL1MkO3Lss30MwO9BfvzQqRDcUJM
+	jLnGVxGBJtGBA==
+X-Gm-Gg: AYBFou2yucwzn6yN8+K387F8Sm3lDl8W589xGvQxyC3TDsA0KyP1rJ8K8bXoaFiCsjn
+	jcgj3+wcD7lyL4pdBZBTnawftD+4uIgoix6YT5WqeJ5PT2pbLK32zkriii4uIzBX4+1nxs6HIlR
+	nCnud8r/hjb4Os6m7aRF84OiwU8hehhi+kiuQ4jSZisfxAskSOvy4EUMPNSKaL8Oujm6tbHbb3U
+	C2uZhyUv1b1Z30E12/zjdSdH+V3ViqGTJWHyHd3qKqSajjBJkUqGRjn70sWu08hQiSkRLuZSQ75
+	mqI7cfR3Bo1cIh8ZJO5XwVBeC0DwbfD6bIS6b2E7E/yfuF5jVcTZYSq4hDrBOhJfCeHL/PWVGPC
+	TW3PFJ/lx8ElAt5J+VFbSzv9G8Rc4fTQpKqaHOVkPcQK3rszE8B5QzCHHVarg30L9ClDwAgcq0N
+	QX88cPVke2O1N+BNVdQkGZr+Que30H/1+O
+X-Received: by 2002:ac8:5a4c:0:b0:531:2eb:be76 with SMTP id d75a77b69052e-5595684465cmr395791cf.22.1794415815531;
+        Wed, 11 Nov 2026 08:50:15 -0800 (PST)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-28.dlp.protect.broadcom.com. [144.49.247.28])
+        by smtp-relay.gmail.com with ESMTPS id d75a77b69052e-5550b840548sm965691cf.24.2026.11.11.08.50.14
+        for <linux-rdma@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 11 Nov 2026 08:50:15 -0800 (PST)
+X-Relaying-Domain: broadcom.com
+X-CFilter-Loop: Reflected
+Received: by mail-ej1-f72.google.com with SMTP id a640c23a62f3a-c29c391bd2fso301397766b.2
+        for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 08:50:14 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google; t=1794415813; x=1795020613; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=rFud020d6ZqbAIZTEaEuXG8erb5QVVdBjItcD5kJ9qU=;
-        b=E1POh91RBlgp+IAekhoZLyHCCBiYtIvMO47ygV6pAxzEBrZqvXT1m5szyizraVeFkM
-         WQQfGZRaSHSUbf/xkhHPJonTORuhgkebFYkO0nhpX5VYxfwLbE0y42HsGULC5H6Zyezu
-         cHNikCVFKdwRjw5E5RKiqXQTQuRCXXqRIV4hAuZ7UyyhDc/mJ+Q7L2/pbhTReYCuXEEN
-         +DHUNJ4n0Z+hKDhDe2Oms1lOL2zVfyme30y7VX/9s3wF7c/xAXPBn0NVQH/4B7zIAJAv
-         pVZeYZRIRBUiJKUXdjY33f9geXgvQuixxYXDBBPzY7jU3Va7WL1TUZHnTt46rY61Lxk/
-         xxww==
-X-Forwarded-Encrypted: i=1; AL+hErG71/gFmLvM5BrnY5eL5b5EPFQj37X34f9WPqEtfwm5kHKUXtqurgxCw/AhUh1UBV8OgLsG3JFPyx/z@vger.kernel.org
-X-Gm-Message-State: APuU4Z9wSiAMX5Iy4iub3837x2mbOohZKCPJnr1WO6ND9POP73nOWPi/
-	+VF7qPg61PB2TiiPtogBaU1WQAC5SFSn8BD7r8ZN3pGJ9BvQiRx0WVcj
-X-Gm-Gg: AYBFou1n32lPeHn9Vkgtf5ikS6jaRikQYE1RCwV64KCabkxGVfLFK4ro8FLTcnB/ElR
-	OcFM4ptkFIzHPSegvPQE0lysh5avn/J/7d43ZKSeVU9EFeGoS7iTxS7EBCPme5torCwLDoxJDV4
-	H3dW83SJuvuBSOZVuiMNPCWh2DwnUCrROViJ17zgmsyWvGb2jlbH5172RZuXyWMT0WSTD+PeSqj
-	WWpPa0EpicK3GSF9Bh5KDmKVspKuR4iVglAnT1RpPNyMaoEr1dBuTsv3NhkEPOnbOfDu6ESMJHl
-	yE7YEDUaFNZiXV0KieVXIeXWCdR4EJszg1MSqkyGLkn5p2xYIGvmvxd2riCguaR2Q8Ib0Tif5tC
-	BtLpQtZ6bydRP36Ko+nCt4Le8Bih0qv5UpGKw0hlh8IFrYidiCq0YenGNY8qClpIJQyCbFGAW6V
-	5ny0h1i3gsF3lgrR9D91Q1TkX4iPVr8DmCI7qz0W3afW/nVi2CKSlEwbvIDcDk2C2T8FW5pLqVi
-	ZdBdAifwaK7Tq/ftensTCuatiAULNPr7ldF/+vroyh+lud+K0Sm79yplfD/4of9Oc2zs02TxIQx
-	m3bZuewnruacwjkA
-X-Received: by 2002:a05:6214:398d:b0:91e:aa6d:d408 with SMTP id 6a1803df08f44-91f03e88ff2mr51627976d6.7.1794415797982;
-        Wed, 11 Nov 2026 08:49:57 -0800 (PST)
-Received: from localhost ([2620:10d:c091:500::6:868a])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91ef04ab626sm51981516d6.15.2026.11.11.08.49.56
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 11 Nov 2026 08:49:57 -0800 (PST)
+        bh=Y+Kn25QRMC3mmI80LSHZ76EQqZfZxoMY4TavrU77wRo=;
+        b=btv8PF+2NrsxDkDdWfejUjaCCED64hrSwkA0DH+zoF0ThHUspaWJ6jqm2zgeDDqeYp
+         zdYb+1wA3v0dN3QX1YHYb6nMIvhmPJydkchjc9iNkaXl0HdPJchHHheRkEp9VIpX8dsv
+         ++jHNd7JfmhUF2sROvOvK5F+2rENo2pqLmyuo=
+X-Received: by 2002:a17:907:961a:b0:c4d:4ce5:7733 with SMTP id a640c23a62f3a-c5066b47974mr231100366b.30.1794415813146;
+        Wed, 11 Nov 2026 08:50:13 -0800 (PST)
+X-Received: by 2002:a17:907:961a:b0:c4d:4ce5:7733 with SMTP id
+ a640c23a62f3a-c5066b47974mr231098166b.30.1794415812536; Wed, 11 Nov 2026
+ 08:50:12 -0800 (PST)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -87,187 +94,157 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
+MIME-Version: 1.0
+References: <20261109-uet-ib-core-v3-0-3e7e7ffed2e9@broadcom.com>
+ <20261109-uet-ib-core-v3-13-3e7e7ffed2e9@broadcom.com> <sashiko-outbox-206403@kernel.org>
+In-Reply-To: <sashiko-outbox-206403@kernel.org>
+From: Eric Davis <eric.davis@broadcom.com>
+Date: Wed, 11 Nov 2026 08:49:44 -0800
+X-Gm-Features: AclHuK-9myP5sE6RQ76RXYDzKbis4jaL4liHUq7-Tg_ozYWMBDz1erRP_nxNphQ
+Message-ID: <CAMouMYLToUfUx9Xqms8MHCQ=T1SB8s-3eTizrVz8j2Gm_X2quQ@mail.gmail.com>
+Subject: Re: [PATCH rdma-next v3 13/13] RDMA/core: attach a memory region to a
+ queue pair
+To: sashiko-reviews@lists.linux.dev
+Cc: linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Leon Romanovsky <leon@kernel.org>
+X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
+	boundary="000000000000244eaf066002fda8"
+
+--000000000000244eaf066002fda8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Wed, 11 Nov 2026 11:49:56 -0500
-Message-Id: <DMSJB8MZZCXK.MCEBRZQDAM5Q@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>, "Andrew Lunn"
- <andrew+netdev@lunn.ch>, =?utf-8?q?Bj=C3=B6rn_T=C3=B6pel?=
- <bjorn@kernel.org>, <bpf@vger.kernel.org>, "Daniel Borkmann"
- <daniel@iogearbox.net>, "Daniel Zahka" <daniel.zahka@gmail.com>, "Donald
- Hunter" <donald.hunter@gmail.com>, "Eric Dumazet" <edumazet@kernel.org>,
- "Jakub Kicinski" <kuba@kernel.org>, "Jamal Hadi Salim" <jhs@mojatatu.com>,
- "Jiri Pirko" <jiri@resnulli.us>, "John Fastabend"
- <john.fastabend@gmail.com>, <linux-doc@vger.kernel.org>,
- <linux-kernel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
- <linux-rdma@vger.kernel.org>, "Martin KaFai Lau" <martin.lau@linux.dev>,
- "Paolo Abeni" <pabeni@redhat.com>, "Saeed Mahameed" <saeedm@nvidia.com>,
- "Simon Horman" <horms@kernel.org>, "Tariq Toukan" <tariqt@nvidia.com>, "Wei
- Wang" <weiwan@google.com>, "Willem de Bruijn"
- <willemdebruijn.kernel@gmail.com>
-Subject: Re: [PATCH net-next v1 04/15] psp: add support for socket-less psp
- associations
-From: "Daniel Zahka" <daniel.zahka@gmail.com>
-To: "Todd Freed" <toddfreed@meta.com>, <netdev@vger.kernel.org>
-X-Mailer: aerc 0.21.0-threadmapfix
-References: <20261111005533.6436-1-toddfreed@meta.com>
- <20261111005533.6436-5-toddfreed@meta.com>
-In-Reply-To: <20261111005533.6436-5-toddfreed@meta.com>
 
-On Tue Nov 10, 2026 at 7:55 PM EST, Todd Freed wrote:
-> currently, a psp association is bound to a tcp socket when it is
-> created, and can hold both an rx and a tx key.
->
-> add a small registry of un-bound associations. These have either an rx
-> or tx flavor, and are referenced by an id. other parts of the stack can
-> then attach them to packets. see the subsequent patches, where the tc
-> psp action does just this.
->
-> an rx association records the spi, version, and device key generation,
-> primarily for describe (assoc-get). a tc filter matches these fields
-> with the flower keys psp_spi, psp_ver, and psp_dev instead of
-> referencing the association by id, to facilitate hw offload. these
-> matches are added in a subsequent patch.
->
-> adds the following new netlink commands for managing these associations.
-> note, these are admin-only and restricted to the netns of the psp device
->
->   rx-spi-alloc  allocate an rx spi + derived key, and publish an rx
->                 association for it, returns its id. the key is
->                 delivered to the peer out of band
->   assoc-add     create a tx association and install a tx key, returns
->                 its id
->   assoc-del     drop the registry's reference to an association
->   assoc-get     get / dump associations ; only the spi is reported
->
-> assoc-get and assoc-del operate on both rx and tx associations.
->
-> socket associations do not go into the registry, and these apis do not
-> address them. so for example, assoc-get does not list them.
->
-> socket-less associations are on the device's association lists, like
-> socket associations. they are therefore marked stale by key rotation in
-> the same way, except tx ones: they hold the peer's key, which the
-> rotation of the device key doesn't affect. assoc-get reports it
-> (stale), so that user space can identify such entries.
->
-> key material enters through netlink and is never reported back. no key
-> is stored for rx associations, and users reference associations by id
-> and never handle keys
->
-> published associations are dropped from the registry when their psp
-> device is unregistered.
->
+On Mon, Nov 9, 2026 at 10:20=E2=80=AFPM <sashiko-bot@kernel.org> wrote:
+> Can uverbs_free_mr() observe a stale non-zero mr->usecnt after
+> UVERBS_METHOD_QP_DETACH_MR or ib_destroy_qp_user() detaches the region an=
+d
+> spuriously fail with -EBUSY?
 
-I think the design could be improved by not reusing struct psp_assoc for
-the socketless rx spi accounting, and by not placing the socketless tx
-assoc on the active, prev, and stale lists next to the socket
-associations. I'll try to comment inline to give you a better idea of
-what I'm talking about.
+It can, but only for a dereg racing the detach. That dereg has no way
+to know the detach finished, and -EBUSY is what it would get had it
+run a moment earlier. If userspace orders the dereg after the detach
+returns, whatever orders them also orders the decrement. Nothing is
+freed early: the detach holds the MR with READ for its whole run.
+Attach needs the barrier after its increment because there the other
+outcome, a dereg reading 0 for an attached region, frees it in use.
 
-In general, what I'd like to minimize is having one object used for
-three different things, where each usecase has its own subset of fields
-active, and then having a bunch of glue in places like
-psp_assocs_key_rotated(), where you have to check if the assoc is
-socketless, followed by if it is tx or rx.
+> In addition, both UVERBS_METHOD_QP_DETACH_MR and ib_destroy_qp_user()
+> clear mr->attached_qp before decrementing mr->usecnt.
 
-[...]
+On the destroy path this can happen, since QP destroy holds no lock on
+the MR. Again the outcome is a spurious -EBUSY in a race of the
+application with itself; the count never reads 0 early. Decrementing
+first would be worse there: once usecnt is 0 the region can be freed
+before attached_qp is cleared, the use-after-free found on v2.
 
-> +int psp_nl_rx_spi_alloc_doit(struct sk_buff *skb, struct genl_info *info=
-)
-> +{
-> +	struct psp_dev *psd =3D info->user_ptr[0];
-> +	struct psp_key_parsed key;
-> +	struct psp_assoc *pas;
-> +	struct sk_buff *rsp;
-> +	u32 version;
-> +	int err;
-> +
-> +	if (GENL_REQ_ATTR_CHECK(info, PSP_A_ASSOC_VERSION))
-> +		return -EINVAL;
-> +
-> +	version =3D nla_get_u32(info->attrs[PSP_A_ASSOC_VERSION]);
-> +	if (!(psd->caps->versions & (1 << version))) {
-> +		NL_SET_BAD_ATTR(info->extack, info->attrs[PSP_A_ASSOC_VERSION]);
-> +		return -EOPNOTSUPP;
-> +	}
-> +
-> +	rsp =3D psp_nl_reply_new(info);
-> +	if (!rsp)
-> +		return -ENOMEM;
-> +
-> +	err =3D psd->ops->rx_spi_alloc(psd, version, &key, info->extack);
-> +	if (err)
-> +		goto err_free_rsp;
-> +
-> +	pas =3D psp_assoc_create(psd);
+> --
+> Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261109-uet-ib-c=
+ore-v3-0-3e7e7ffed2e9@broadcom.com?part=3D13
 
-I'm not sure the kernel actually needs any bookkeeping at all for these
-generic rx spi allocations. You could probably just pass the spi, dev
-id, key, and probably rotation count (as a device key generation of
-sorts) to the user without creating a kernel object. For socket
-psp_assocs, the rx state is consulted on the datapath before queueing to
-the socket. For tx state in all psp_assocs, there is the possibility
-that an SADB handle needs to be cleaned up. Neither of those apply here
-or in the rest of the series as I understand it.
+Thanks,
+- eric
 
-I figure the tc ingress rule can just take the spi and dev id by value
-rather than needing a reference to an object that we create here.
+--000000000000244eaf066002fda8
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
 
-> +	if (!pas) {
-> +		err =3D -ENOMEM;
-> +		goto err_free_rsp;
-> +	}
-> +	pas->version =3D version;
-> +	pas->rx.spi =3D key.spi;
-> +
-> +	err =3D psp_assoc_publish(pas);
-> +	if (err)
-> +		goto err_put_pas;
-> +
-> +	if (nla_put_u32(rsp, PSP_A_ASSOC_ID, pas->id) ||
-> +	    nla_put_u32(rsp, PSP_A_ASSOC_DEV_ID, psd->id) ||
-> +	    psp_nl_put_key(rsp, PSP_A_ASSOC_RX_KEY, version, &key)) {
-> +		psp_assoc_unpublish(pas);
-> +		err =3D -EMSGSIZE;
-> +		goto err_put_pas;
-> +	}
-> +
-> +	psp_assoc_put(pas);
-> +	memzero_explicit(&key, sizeof(key));
-> +
-> +	return psp_nl_reply_send(rsp, info);
-> +
-> +err_put_pas:
-> +	psp_assoc_put(pas);
-> +err_free_rsp:
-> +	memzero_explicit(&key, sizeof(key));
-> +	nlmsg_free(rsp);
-> +	return err;
-> +}
-> +
-
-[...]
-
-> @@ -310,7 +311,13 @@ void psp_assocs_key_rotated(struct psp_dev *psd)
->  	 * be able to Rx any traffic.
->  	 */
->  	list_for_each_entry_safe(pas, next, &psd->prev_assocs, assocs_list) {
-> -		pas->generation |=3D ~PSP_GEN_VALID_MASK;
-> +		/* A socket-less Tx association holds the peer's key, which
-> +		 * the rotation of the device key doesn't affect
-> +		 */
-> +		if (pas->id && psp_assoc_is_tx(pas))
-> +			continue;
-> +		WRITE_ONCE(pas->generation,
-> +			   pas->generation | ~PSP_GEN_VALID_MASK);
->  		psd->stats.stales++;
->  	}
->  	list_splice_init(&psd->prev_assocs, &psd->stale_assocs);
-
-I would create a separate list for the socketless tx assocs, so that
-SADB handles can be flushed on psp_dev_unregister(). Then you can just
-leave this function untouched, because invalidating the generation is
-only for __psp_sk_rx_policy_check(), which isn't used by the socketless
-rx assocs.
+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
+THSLCC9N61nO6/woOMp7U0lttATSMIeibGPNnU8AizWyI5DxXKkIG5jv1EosjdJwBsJ8ZntvpfIx
++KplEkYfqN7Sy+7LOzXXkl5KhTkDELRuftv+sahPNzVHW1cJgj0HjMb1sCrFjzcAuO27JA4geQXW
+cl+gyZDv53xtHnMSNmIoqDEINo4yoSHYPGK+cTtGC4K9a6yCXdP2zyLkkSQtZ+hEUOru4dQ1gIZf
+4bWVHOILQGaMbqVAVA1OrjpUNGktgz0CAwEAAaOCAdswggHXMA4GA1UdDwEB/wQEAwIFoDAMBgNV
+HRMBAf8EAjAAMIGTBggrBgEFBQcBAQSBhjCBgzBGBggrBgEFBQcwAoY6aHR0cDovL3NlY3VyZS5n
+bG9iYWxzaWduLmNvbS9jYWNlcnQvZ3NnY2NyNnNtaW1lY2EyMDIzLmNydDA5BggrBgEFBQcwAYYt
+aHR0cDovL29jc3AuZ2xvYmFsc2lnbi5jb20vZ3NnY2NyNnNtaW1lY2EyMDIzMGUGA1UdIAReMFww
+CQYHZ4EMAQUDAzALBgkrBgEEAaAyASgwQgYKKwYBBAGgMgoDAjA0MDIGCCsGAQUFBwIBFiZodHRw
+czovL3d3dy5nbG9iYWxzaWduLmNvbS9yZXBvc2l0b3J5LzBBBgNVHR8EOjA4MDagNKAyhjBodHRw
+Oi8vY3JsLmdsb2JhbHNpZ24uY29tL2dzZ2NjcjZzbWltZWNhMjAyMy5jcmwwIgYDVR0RBBswGYEX
+ZXJpYy5kYXZpc0Bicm9hZGNvbS5jb20wEwYDVR0lBAwwCgYIKwYBBQUHAwQwHwYDVR0jBBgwFoAU
+ACk2nlx6ug+vLVAt26AjhRiwoJIwHQYDVR0OBBYEFIjgxJwMJZ5pkTAB1796PUvJ+W7DMA0GCSqG
+SIb3DQEBCwUAA4ICAQCM/INVouXcD/gHdJNCPtF31BpLUwHGTj4BlO4083w8xuxt0iSjyb0EKv7S
+LBz29Dw9scSTMRS/sY9dotjJ03vVvzceiGB4FbMIZNSKHTy1PTNu0oZR7TwhBEEZHC4RtST9S2hU
+MvDagOAWRM/56PG6FH2i7dnhwtcnsBX8CMeVJQc6SB21LuxJVqgULli/kbrkr1DBVMh2f7oCFHVu
+0VgtvRtACeQVi7ny8wspKNV/WXN2IqT06c0vtUmFUPkidlgGxMzYCfQXbXcE3YvA7+xYqmCY0zdQ
+f/ira3VJoAytznhfRSBRV4gmlChdSg8yoaM6LHNE7igDDqhVFT2QCqkRkIcPOCQYxNE4kViiDKKo
+3VFnREnYmLzRbJkdGY4X3m+N7HOU8R99Zeatx6hN02eJQH1vZ1J9cH4SqxuqDxKi05n3SGE7J4Wc
+oNsgfaIDL28JX+2JBG+gKr/vvjocja5y9G43gvIOs9yEzGBt91FCuuwPedXIIREUcqJtq6+MOvAq
+ZMEsct9jQXibihTD7z9wLTIkXqOHumCc6f53zhsQCRofr8m7Tm0YrckGCHd0BowU12A6oVax5xEQ
+6j1hyszkhFPrlLKAlaFU7VuIwlcjKvN9XYrmOfXfTnYoVV6f1IDwhgbtJNlKnJksqoCzfsbAVd0e
+usA704DOznTCfAYJqjGCAlcwggJTAgEBMGIwUjELMAkGA1UEBhMCQkUxGTAXBgNVBAoTEEdsb2Jh
+bFNpZ24gbnYtc2ExKDAmBgNVBAMTH0dsb2JhbFNpZ24gR0NDIFI2IFNNSU1FIENBIDIwMjMCDFfq
+Ldxf930IzIe8izANBglghkgBZQMEAgEFAKCBxzAvBgkqhkiG9w0BCQQxIgQgtkaha8Fgk/SBveY7
+7UWytyktVmDek+pnF+dIi43nW0AwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0B
+CQUxDxcNMjYxMTExMTY1MDEzWjBcBgkqhkiG9w0BCQ8xTzBNMAsGCWCGSAFlAwQBKjALBglghkgB
+ZQMEARYwCwYJYIZIAWUDBAECMAoGCCqGSIb3DQMHMAsGCSqGSIb3DQEBBzALBglghkgBZQMEAgEw
+DQYJKoZIhvcNAQEBBQAEggEAyeh9n2dlyVZovgrzD/AUPjy9dnyAauGAFMMGiDNHA/gf4ePzFR5V
+MGhsQLt6mvRJfbJmD533Lj/XxmSrgrRBVO91UDu8tbsCrFuF1Vi4sJb8LNDRIyfydkNsU9oIGzxy
++msLVfoA263hH+68ChAY+QPlxay6XWFW7wQWRS1HMFKda1J7BSCWOfiavksTj0Vpbqaua7XP+6fj
+3z6O3OtF8COUQHzwttg7mN95XcHAHdIOeMwVMXCixTjNtez2Ep+6baLvuSbYgH0EJG2zClQYEZ/F
+YDT1RoCKRMFOohMlfCyFqWgyvROCKZjt2pie7Y9XnlZNJn3XIak8JZ8ZRFx9pg==
+--000000000000244eaf066002fda8--
