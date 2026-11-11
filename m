@@ -1,51 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=45.254.49.197
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794399801;
-	b=enzPYhOfDvisXAgZgQ3ZSOgcX8WU9jrAFLcyulzqIRas+wYJzfUVgtrEIzXeVKTdG995
-	 bv+4XIoicO10GYWDPqQ1zkftwe3zvJH2pRKtuyT0aq4U0fO8qllnVyCm2I3VfcGIafiNG
-	 MYbeYscuSG+/j/LAQHLsQ5OEKQxiOHplv4In5SzBGJrumDbq1nlKZNJ7J0gw5pgGoQ3vi
-	 wetli16y+sKNJ4XSPgfP1bjQOn88v8p1FCtGIvPGqvMPehZmqC1Ch7YgaGCIQIpP9pv0j
-	 hRDOSRwBFcjCgQjpbU8xdvspAAbDL8Ygj1lArE+nGR8JSm5CLzWv6+mn+BpI3nJ8kJw==
+	t=1794400548;
+	b=OKwVLyusytDazCfMQXAcjpPfFJ/khBq9Ycvx770VkVubqV52xievGB0zjldhRjSw6rAB
+	 DKYdLWsUhtdcbQtJ7Wt3RulweFsxeUcZxQpXlmkTBt2OhvBdePPO1DkbkDjd7cdRKu9Fj
+	 u3KLDHn7bkTNOyjBGXptHzQUGjXefIiAv9jJcOUcVIqqsB+H5PMn1So9Dj2o0UbjPcfPf
+	 7VL/jQ9WzvOZph5AdVmrWpP+7jIWG4YuU+Q6V4G5pTN8+66Vm6Htkitjcj6mBrznC5rw3
+	 RwcSh/uezogLWEznBSz6Xrgxfr8sssOz66Z3Zs4RZ9njCWZwJz3T1xQgoaasRWqa9Jw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794399801;
-	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding:X-HM-Tid:
-	 X-HM-MType:X-HM-Spam-Status:DKIM-Signature;
-	bh=WXshdJqSb+edAWMTGD9R6SzvNB+QpXRPR15W3Kt4cvA=;
-	b=lgsfXIu0CxPotft0E0sfr0ldT876gVeHbGzLHM3arVQGzxV/AdElEuzBFEqkj87L/D2C
-	 jxS0xO95lgHZy2iwlWWMj7+82Y8IySoU6y9h9Fe4NcpJslvp8FMCgiWh6XNLNqe0q9XG4
-	 UytfvPZbP4K8Vk+QbSA6hVKuKG9eaT4J8IFkpkH+Nn5OF44OamakZKkXF70/FUC/0FQBr
-	 mdH9DKNsfi84gWtzj0f9CT+U6j8h5MWuRgXRrLUPDGppNsFeJ89HWtDoShdokf8vKH28L
-	 x2hyjzfX0HBRsP6uve1At2Ez4PQLhjFMVAcuSejPIGGfkX0Xgj5iz4no7R1STcpFrGw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794400548;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=IxNsntBSGGy4qw3Axq+wbaXuWdDpWyx4Q8eXAATlKWM=;
+	b=VOx6e7wq24YyZB/qoAOnkPJjPeZ+l/9HARVjO5uN7AnHd/ivRjROQ7LjrW6deWUd2OZV
+	 JY+86wNv6FJkWKm7B4KiwVEBMJfCsDB0EF5WVQCnnxBud0CmAHKKcBWJRoDCBXjRd8xwk
+	 jbGZWMN8zwYwNOtZsfUIQeQ0wko/YH1Znul4ZqtPK9JshvlFhRySXzB6Rked92x0VJriO
+	 8WrgSROXGAoIbsxo4tvb7Cqi94WAA3aoI/6ocZAj1iG+ksHVnU6Hi8fCsH/MBYnNxCU/9
+	 JeXPbD6Ww9o/9QjdnbfnQdMrAOzMEMRNdfb1bLQEa51aGAf/WUjGiG/8z1+cNgCf8Ag==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=mail.sdu.edu.cn;
-	spf=pass smtp.mailfrom=mail.sdu.edu.cn;
-	dkim=pass header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=EHeqL3gG;
-	arc=none smtp.remote-ip=45.254.49.197
-Received: from mail-m49197.qiye.163.com (mail-m49197.qiye.163.com [45.254.49.197])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=MzmEbX8C;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D52C260A2616;
-	Wed, 11 Nov 2026 12:23:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D52C260A2616
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mail.sdu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mail.sdu.edu.cn
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24E97606A33C
+	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 12:35:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=EHeqL3gG
-Received: from lgs.. (unknown [101.76.249.61])
-	by smtp.qiye.163.com (Hmail) with ESMTP id 54502a176;
-	Wed, 11 Nov 2026 20:23:15 +0800 (GMT+08:00)
-From: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>
-To: Bart Van Assche <bvanassche@acm.org>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] RDMA/srp: Fix potential fast registration list leak
-Date: Wed, 11 Nov 2026 20:23:14 +0800
-Message-ID: <20261111-e5624093d6-rdma-srp@mail.sdu.edu.cn>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=MzmEbX8C
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE7FE1F00A0C;
+	Wed, 11 Nov 2026 12:35:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794400548;
+	bh=IxNsntBSGGy4qw3Axq+wbaXuWdDpWyx4Q8eXAATlKWM=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=MzmEbX8CFopDJZhHHvDkK0JHXtxhI0uyE3kPTwTOTKdMoBdtbOu1vFd2A/ACyVrFi
+	 LmVaHeLeHqziTzTU0GY44U1BaKYjs9yMvxEtG35+fvFWvFy4bP50slM9v0jaHUonC1
+	 p9RBnCw/SUlNsnaQldlryhNLL3m0phUHyjpb3rYEpGpHQ5qkXF3COFI9q6AtGUpptc
+	 zbpqGCqHh4yfvK/0wgrqbxgt4TXdieoqlsQQR/akTrozvwlyTrlkefzZBNuRu6FROM
+	 Q569axdFMKbeS/w7+h9ZjQcXqgtfwXVkkO0JqT7qJGQLRnm0m8vZN4XF4ahsSAzLVi
+	 JxdXF/2g3xYdQ==
+Message-ID: <sashiko-outbox-208985@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] IB/hfi1: Fix potential leaks in IPoIB TX queue
+ initialization
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Guangshuo Li" <liguangshuo@mail.sdu.edu.cn>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261111-e5624093d6-rdma-hfi1@mail.sdu.edu.cn>
+References: <20261111-e5624093d6-rdma-hfi1@mail.sdu.edu.cn>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 11 Nov 2026 12:35:47 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -54,47 +59,20 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-HM-Tid: 0aa1ca8ffa5303a1kunme998f16f1b366e
-X-HM-MType: 10
-X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVlCTRhPVkJDT0JNHRofHUhPTVYeHw
-	5VEwETFhoSFyQUDg9ZV1kYEgtZQVlKS0pVTE1VSU9CVU1KWVdZFhoPEhUdFFlBWU9LSFVKS0lCQ0
-	NMVUpLS1VLWQY+
-DKIM-Signature: a=rsa-sha256;
-	b=EHeqL3gGcIkw/hC06qer8BoTyN9awHtlP1xgd79JscnZeJuG9HdjHND4lGwRrsA1kqay3D8fCTt8jdzeN7az6kHBKAhdzinbkPE1PPsxDxMElQWgD3Nw5fdRdODSvgVe6abLNb/5nS0GdgH/+AKzdTXx791rsQlHgwM0p61uS3A=; s=default; c=relaxed/relaxed; d=mail.sdu.edu.cn; v=1;
-	bh=WXshdJqSb+edAWMTGD9R6SzvNB+QpXRPR15W3Kt4cvA=;
-	h=date:mime-version:subject:message-id:from;
 
-If the indirect descriptor allocation fails, srp_init_cmd_priv() returns
-without freeing the fast registration list. The failed request does not
-receive an exit_cmd_priv callback. Release the list on this error path.
+> When an SDMA header allocation fails, rollback skips the current TX
+> queue. Its ring and already allocated headers are leaked. Free the
+> partially initialized ring before unwinding the completed queues.
+>=20
+> This issue was found by our static analysis tool under development.
+>=20
+> Fixes: c874ad879c2f ("IB/hifi1: add a null check of kzalloc_node in hfi1_=
+ipoib_txreq_init")
+> Signed-off-by: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>
 
-This issue was found by our static analysis tool under development.
+Sashiko has reviewed this patch and found no issues.
 
-Fixes: ad215aaea4f9 ("RDMA/srp: Make struct scsi_cmnd and struct srp_request adjacent")
-Signed-off-by: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261111-e5624093d6=
+-rdma-hfi1@mail.sdu.edu.cn?part=3D1
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 5811f02df980..1cea1896d162 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -996,8 +996,10 @@ static int srp_init_cmd_priv(struct Scsi_Host *shost, struct scsi_cmnd *cmd)
- 			goto out;
- 	}
- 	req->indirect_desc = kmalloc(target->indirect_size, GFP_KERNEL);
--	if (!req->indirect_desc)
-+	if (!req->indirect_desc) {
-+		kfree(req->fr_list);
- 		goto out;
-+	}
- 
- 	dma_addr = ib_dma_map_single(ibdev, req->indirect_desc,
- 				     target->indirect_size,
-
-base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
