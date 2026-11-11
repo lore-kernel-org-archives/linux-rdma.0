@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794399262;
-	b=vDdZkwCzxj92a8+kbdU6rf9ue2buS6gvYGJp2y3bDK74WdLhvmxuBIrh1bUjnSi5K4uf
-	 cIc8qMapXNbrjSsYWTplLaiXv2FDi1Olwvx6rE+367MiMesZdKGfryScs7Tkt/ni30+OO
-	 YEB5kVBO95I1q/2gOVDZaAdi3CmTrY1MlXt+K6dTk6197CQUPvf0Yrp2ev0FawGWTxv+x
-	 MnwU4LafnGHL/WpZ/mvg9WhPeQSsjX0mkoES0I5o7M1pAANbz0IwYqOGbRca3Qdc/Q3MT
-	 GkxbBAoangJKDSoprpiMGTIaSs0S5gCc8/2nX4DQas2uKYcw5Ahsypl2TheLurug39Q==
+	b=FAUbxkVHfnnpevtsst6wX4VFVeRsdLW67i9tFhfF6UisdSG8Jp0+P/1Oax0y3sYIwFuH
+	 0D4KDR+0bIS0lHOevomT3pDFYxPfM3QW/fX3+SssVkJmobntRXEyw1m1F9oltY8s7wg4h
+	 Ath7eEZ/2bYMgcB1AU5/e7AUgFbULA/o+B5um61VKtipMxORMHq8uWe0/Hz8t3ABxWnAI
+	 9+E0OxjSNpvD04+IXQXpvVUjvz+wd5050NqABND0iTDqVh6+rE+2CJQBCE79cHMn+VFjV
+	 aKWh+043aaYWk+vRzPXlq1pX2a0QdfgjkCOYkWR7NZg85jx2OHy7AH8XQyQYWIDhGzw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794399262;
 	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=J8sPkfShRACIjFhi5b5P9unZx2jKFYw60ldoyo/5V1w=;
-	b=EfWb0rqj9iiIKWbLOyi2qrkgQu+9vAq2teOGVBqnp4IBL2BFx5SvR7nqmBvXQG6xvmdc
-	 MUv2VPlfbQMNez0LEOyiIA4GUdXhN2eAs9UoaF6bMGc7V3g896qRyti86FJ0jqXx+ZCr1
-	 PrK/KQnxYM74HsiBCGpKKUG4mo7EnuHJR8Uoh5gJgILREw0SPxsvS3nGbS+qAMP70wL3O
-	 z50ptBilnWRcgVzZOl4y1axYqxL9w8kkRArb2m1AJ+0GWc34m5sn9FR1Nw5cQy5JtocyJ
-	 MXqI3Y6tShO676CG8pvdqpiMRNrM+cJvd3jXj0DSifCk+EEasEbHiHw7QZyjANeXnWA==
+	bh=LkklW7mOExH8dGsVaibL+R3v5RwpD0O9R0fVgP2/cM0=;
+	b=zZpko9as/PJq5EW9syHOHz3qqdNUNEoNjYi+tFcHUZm+6OdMiGsMGRUV5Uc3RAd8Vgpv
+	 WRFynWP3TkldowiVAPvbwvwuVOOAghu/OHwAlURnA4ibbS0TVr3reY1Jmh1IEWq546q97
+	 bY3anOaR8kMOHTS7univ/7LbFSf7gSMy4zJ8F5vrQTNOGUSkEH6Ha0ke9j+gZ5bg9Npcj
+	 HrTW0hehg3WrHivjpl4qkjMjF8fw8gC39E/3An2eY5lmTRKJxAqUhs1GIw53eeB916yNy
+	 JnqcVp4Lc8xQz1sH7buXm0MJqbUxfpbTMCN91GeUAu9oBm1lKUvNDWbFZ15JN9ofa/g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.microsoft.com;
 	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=h8g3vo8m;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=KIO0XmlX;
 	arc=none smtp.remote-ip=13.77.154.182
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3CE96606A327;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id DF052606A338;
 	Wed, 11 Nov 2026 12:14:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3CE96606A327
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DF052606A338
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=h8g3vo8m
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=KIO0XmlX
 Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id 02A7B20B716B; Wed, 11 Nov 2026 04:14:17 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 02A7B20B716B
+	id 4F29C20B7171; Wed, 11 Nov 2026 04:14:18 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 4F29C20B7171
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1794399258;
-	bh=J8sPkfShRACIjFhi5b5P9unZx2jKFYw60ldoyo/5V1w=;
+	bh=LkklW7mOExH8dGsVaibL+R3v5RwpD0O9R0fVgP2/cM0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=h8g3vo8m95BU7tXpE1xorBjilKko6Up4EKDNJxeybZ+iVUHOM4LhjROzxPTE7/60f
-	 UQ06beucXc3v5jpCD+pn34VZ+qvgEbeYJOdw/89W0FuIGsZNm4y6XAiHLNc1grVz5r
-	 esTmcWG06Bba6lwqlQ3XqD+6XuIVBUHVTKjcR2sY=
+	b=KIO0XmlXRGREgs24JmAnU5R8yL1pS4PW/AbGUxhWKZWiui9b8GzQwVGE0Mmz3NUgM
+	 D95AmPaDg2Oi6GSvmiqqQ47RNzCUv55Jwo4S5lOqJ8NFYqb7BbXvuPfnN4sVhXmmGA
+	 vXe21l7mL3l8l/l/qzOm3fMpdWqKxt19uIGWTVns=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	snsanghvi@microsoft.com,
@@ -48,9 +48,9 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v10 2/9] RDMA/mana: Create and destroy kernel RC QPs
-Date: Wed, 11 Nov 2026 04:14:10 -0800
-Message-ID: <20261111121417.1265896-3-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next v10 8/9] RDMA/mana_ib: Flush and notify CQs when kernel QPs enter ERR
+Date: Wed, 11 Nov 2026 04:14:16 -0800
+Message-ID: <20261111121417.1265896-9-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.7
 In-Reply-To: <20261111121417.1265896-1-kotaranov@linux.microsoft.com>
 References: <20261111121417.1265896-1-kotaranov@linux.microsoft.com>
@@ -67,302 +67,304 @@ Content-Transfer-Encoding: 8bit
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Implement kernel RC QP creation and destruction. This feature requires
-extended-WQE and power-of-two-SQ support from the HW.
+Complete the RC software flush path by adding a kernel QP to the CQ
+error lists when it transitions to the ERR state.
+
+Invoke the CQ handlers after the transition to flush pending work
+requests.
 
 Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 ---
-v10:
-- Remove SGE check and QP queue validation as the kernel consumers are trusted
+v6:
+- Notify after posting to error-listed QPs adn reuse new helper for GSI.
+- Report pending flush WCs (mana_ib_cq_has_flush_work) for IB_CQ_REPORT_MISSED_EVENTS
 v5:
-- Validate kernel QP queue sizes before allocating queues.
-- Bound SGE counts and enforce the TX/RX WQE size limits.
-v4:
-- Reject RNIC firmware send-SGE counts below 2.
-- Subtract the reserved SGE for extra-large OOB only for RNIC mana_ib.
+- Remove the unused QP state field.
+v3:
+- Skip kernel state update handling for userspace QPs.
+- Warn and refuse to add userspace QPs to the CQ error lists.
+- Add mana_remove_qp_from_cqs() for UC
+v2:
+- Skip software CQ notifications for IB_POLL_DIRECT.
 
- drivers/infiniband/hw/mana/main.c    |   3 +-
- drivers/infiniband/hw/mana/mana_ib.h |   6 ++
- drivers/infiniband/hw/mana/qp.c      | 168 +++++++++++++++++++++++++++++++++--
- 3 files changed, 167 insertions(+), 10 deletions(-)
+ drivers/infiniband/hw/mana/cq.c | 27 +++++++++++++++++++--
+ drivers/infiniband/hw/mana/qp.c | 53 +++++++++++++++++++++++++++++++++++++----
+ drivers/infiniband/hw/mana/wr.c | 42 +++++++++++++++++++++++---------
+ 3 files changed, 105 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index ceb4ec58023a..d0e36fad224a 100644
---- a/drivers/infiniband/hw/mana/main.c
-+++ b/drivers/infiniband/hw/mana/main.c
-@@ -748,7 +748,8 @@ int mana_ib_gd_query_adapter_caps(struct mana_ib_dev *dev)
- 				resp.max_requester_sq_size / GDMA_MAX_SQE_SIZE,
- 				resp.max_requester_rq_size / GDMA_MAX_RQE_SIZE);
- 	caps->max_inline_data_size = resp.max_inline_data_size;
--	caps->max_send_sge_count = resp.max_send_sge_count;
-+	/* Account for the SGE reserved for extra-large OOB. */
-+	caps->max_send_sge_count = resp.max_send_sge_count - 1;
- 	caps->max_recv_sge_count = resp.max_recv_sge_count;
- 	caps->feature_flags = resp.feature_flags;
+diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana/cq.c
+index 408dee5ad458..cc519d3e42f4 100644
+--- a/drivers/infiniband/hw/mana/cq.c
++++ b/drivers/infiniband/hw/mana/cq.c
+@@ -278,6 +278,25 @@ static inline void mana_ib_cq_doorbell(struct mana_ib_cq *cq, uint8_t arm)
+ 	mana_gd_wq_ring_doorbell_ext(mdev_to_gc(mdev), gdma_cq, idx, arm, 0);
+ }
  
-diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index 5ca6e2acf974..6f5df64e838a 100644
---- a/drivers/infiniband/hw/mana/mana_ib.h
-+++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -267,6 +267,10 @@ struct mana_ib_qp {
- 	u32 sq_psn;
- 	bool sq_sig_all;
++static bool mana_ib_cq_has_flush_work(struct mana_ib_cq *cq)
++{
++	struct mana_ib_qp *qp;
++
++	list_for_each_entry(qp, &cq->send_err_qp_list, send_err_node) {
++		if (!shadow_queue_empty(&qp->shadow_sq))
++			return true;
++		if (!shadow_queue_empty(&qp->shadow_mmq))
++			return true;
++	}
++
++	list_for_each_entry(qp, &cq->recv_err_qp_list, recv_err_node) {
++		if (!shadow_queue_empty(&qp->shadow_rq))
++			return true;
++	}
++
++	return false;
++}
++
+ int mana_ib_arm_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags)
+ {
+ 	struct mana_ib_cq *cq = container_of(ibcq, struct mana_ib_cq, ibcq);
+@@ -290,8 +309,12 @@ int mana_ib_arm_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags)
  
-+	/* Serializes receive WR posting. */
-+	spinlock_t rq_lock;
-+	/* Serializes send and memory-management WR posting. */
-+	spinlock_t sq_lock;
- 	/* Serializes QP modification and error-list transitions. */
- 	struct mutex modify_lock;
+ 	spin_lock_irqsave(&cq->cq_lock, irq_flags);
+ 	mana_ib_cq_doorbell(cq, SET_ARM_BIT);
+-	if (flags & IB_CQ_REPORT_MISSED_EVENTS)
++	if (flags & IB_CQ_REPORT_MISSED_EVENTS) {
+ 		missed = cq->has_pending_cqe;
++		/* Software flushes cannot retrigger the hardware CQ notification. */
++		if (!missed)
++			missed = mana_ib_cq_has_flush_work(cq);
++	}
+ 	spin_unlock_irqrestore(&cq->cq_lock, irq_flags);
  
-@@ -274,6 +278,7 @@ struct mana_ib_qp {
- 	struct list_head recv_err_node;
- 	struct shadow_queue shadow_rq;
- 	struct shadow_queue shadow_sq;
-+	struct shadow_queue shadow_mmq;
+ 	return missed;
+@@ -592,7 +615,7 @@ static void mana_drain_gsi_sq(struct mana_ib_qp *qp)
+ 		list_add_tail(&qp->send_err_node, &cq->send_err_qp_list);
+ 	spin_unlock_irqrestore(&cq->cq_lock, flags);
  
- 	refcount_t		refcount;
- 	struct completion	free;
-@@ -315,6 +320,7 @@ enum mana_ib_adapter_features {
- 	MANA_IB_FEATURE_DEV_COUNTERS_SUPPORT = BIT(5),
- 	MANA_IB_FEATURE_MULTI_PORTS_SUPPORT = BIT(6),
- 	MANA_IB_FEATURE_MSN_IN_WQE_SUPPORT = BIT(7),
-+	MANA_IB_FEATURE_EXTENDED_WQE_FORMAT = BIT(9),
- 	MANA_IB_FEATURE_RC_QP_SQ_POW2_SUPPORT = BIT(14),
- 	MANA_IB_FEATURE_MULTI_PORT_GSI_SUPPORT = BIT(15),
- };
+-	if (cq->ibcq.comp_handler)
++	if (cq->ibcq.poll_ctx != IB_POLL_DIRECT && cq->ibcq.comp_handler)
+ 		cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
+ }
+ 
 diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
-index ae2ebbcc759a..c603f264c548 100644
+index e1797cd1bead..cebd88a5a19d 100644
 --- a/drivers/infiniband/hw/mana/qp.c
 +++ b/drivers/infiniband/hw/mana/qp.c
-@@ -427,24 +427,57 @@ static u32 mana_ib_fixed_wqe_size(u32 sge, u32 oob_size)
- 	return roundup_pow_of_two(mana_ib_wqe_size(sge, oob_size));
- }
- 
--static u32 mana_ib_queue_size(struct ib_qp_init_attr *attr, u32 queue_type)
-+static u32 mana_ib_queue_size(struct mana_ib_dev *mdev, struct ib_qp_init_attr *attr,
-+			      u32 queue_type)
- {
-+	u32 send_wr = max(attr->cap.max_send_wr, 1U);
-+	u32 recv_wr = max(attr->cap.max_recv_wr, 1U);
-+	u32 wr, wqe_size, read_sge;
- 	u32 queue_size;
- 
- 	switch (attr->qp_type) {
- 	case IB_QPT_UD:
- 	case IB_QPT_GSI:
--		if (queue_type == MANA_UD_SEND_QUEUE)
--			queue_size = attr->cap.max_send_wr *
--				mana_ib_wqe_size(attr->cap.max_send_sge, INLINE_OOB_LARGE_SIZE);
--		else
--			queue_size = attr->cap.max_recv_wr *
--				mana_ib_wqe_size(attr->cap.max_recv_sge, INLINE_OOB_SMALL_SIZE);
-+		if (queue_type == MANA_UD_SEND_QUEUE) {
-+			wr = send_wr;
-+			wqe_size = mana_ib_wqe_size(attr->cap.max_send_sge, INLINE_OOB_LARGE_SIZE);
-+		} else {
-+			wr = recv_wr;
-+			wqe_size = mana_ib_wqe_size(attr->cap.max_recv_sge, INLINE_OOB_SMALL_SIZE);
-+		}
-+		break;
-+	case IB_QPT_RC:
-+		switch (queue_type) {
-+		case MANA_RC_SEND_QUEUE_REQUESTER:
-+			wr = send_wr;
-+			wqe_size = mana_ib_fixed_wqe_size(attr->cap.max_send_sge,
-+							  INLINE_OOB_EXTRA_LARGE_SIZE);
-+			break;
-+		case MANA_RC_SEND_QUEUE_MMQ:
-+			wr = send_wr;
-+			wqe_size = mana_ib_wqe_size(1U, INLINE_OOB_EXTRA_LARGE_SIZE);
-+			break;
-+		case MANA_RC_SEND_QUEUE_RESPONDER:
-+			return MANA_PAGE_SIZE;
-+		case MANA_RC_RECV_QUEUE_REQUESTER:
-+			wr = send_wr;
-+			read_sge = min(attr->cap.max_send_sge, mdev->ib_dev.attrs.max_sge_rd);
-+			wqe_size = mana_ib_wqe_size(read_sge, INLINE_OOB_SMALL_SIZE);
-+			break;
-+		case MANA_RC_RECV_QUEUE_RESPONDER:
-+			wr = recv_wr;
-+			wqe_size = mana_ib_wqe_size(attr->cap.max_recv_sge, INLINE_OOB_SMALL_SIZE);
-+			break;
-+		default:
-+			return 0;
-+		}
- 		break;
- 	default:
- 		return 0;
- 	}
- 
-+	queue_size = wr * wqe_size;
-+
- 	return MANA_PAGE_ALIGN(roundup_pow_of_two(queue_size));
- }
- 
-@@ -460,6 +493,21 @@ static enum gdma_queue_type mana_ib_queue_type(struct ib_qp_init_attr *attr, u32
- 		else
- 			type = GDMA_RQ;
- 		break;
-+	case IB_QPT_RC:
-+		switch (queue_type) {
-+		case MANA_RC_SEND_QUEUE_REQUESTER:
-+		case MANA_RC_SEND_QUEUE_RESPONDER:
-+		case MANA_RC_SEND_QUEUE_MMQ:
-+			type = GDMA_SQ;
-+			break;
-+		case MANA_RC_RECV_QUEUE_REQUESTER:
-+		case MANA_RC_RECV_QUEUE_RESPONDER:
-+			type = GDMA_RQ;
-+			break;
-+		default:
-+			type = GDMA_INVALID_QUEUE;
-+		}
-+		break;
- 	default:
- 		type = GDMA_INVALID_QUEUE;
- 	}
-@@ -726,7 +774,7 @@ static int mana_ib_create_ud_qp(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 		return -EOPNOTSUPP;
- 
- 	for (i = 0; i < MANA_UD_QUEUE_TYPE_MAX; ++i) {
--		queue_size = mana_ib_queue_size(attr, i);
-+		queue_size = mana_ib_queue_size(mdev, attr, i);
- 		err = mana_ib_create_kernel_queue(mdev, queue_size, mana_ib_queue_type(attr, i),
- 						  &qp->ud_qp.queues[i]);
- 		if (err) {
-@@ -779,12 +827,107 @@ destroy_queues:
+@@ -742,6 +742,27 @@ destroy_queues:
  	return err;
  }
  
-+static int mana_init_kernel_rc_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp,
-+				  struct ib_qp_init_attr *attr, u64 *flags)
++static void mana_add_qp_to_error_cqs(struct mana_ib_qp *qp)
 +{
-+	u32 wqe_size;
-+	int err;
++	struct mana_ib_cq *send_cq = container_of(qp->ibqp.send_cq, struct mana_ib_cq, ibcq);
++	struct mana_ib_cq *recv_cq = container_of(qp->ibqp.recv_cq, struct mana_ib_cq, ibcq);
++	unsigned long flags;
 +
-+	err = create_shadow_queue(&qp->shadow_rq, attr->cap.max_recv_wr,
-+				  sizeof(struct shadow_wqe_header));
-+	if (err)
-+		return err;
++	if (WARN_ON_ONCE(qp->ibqp.uobject))
++		return;
 +
-+	err = create_shadow_queue(&qp->shadow_sq, attr->cap.max_send_wr,
-+				  sizeof(struct shadow_wqe_header));
-+	if (err)
-+		goto destroy_rq;
++	/* Keep ERR QPs linked until reset/destroy, including later drain WRs. */
++	spin_lock_irqsave(&send_cq->cq_lock, flags);
++	if (list_empty(&qp->send_err_node))
++		list_add_tail(&qp->send_err_node, &send_cq->send_err_qp_list);
++	spin_unlock_irqrestore(&send_cq->cq_lock, flags);
 +
-+	err = create_shadow_queue(&qp->shadow_mmq, attr->cap.max_send_wr,
-+				  sizeof(struct shadow_wqe_header));
-+	if (err)
-+		goto destroy_sq;
-+
-+	wqe_size = mana_ib_fixed_wqe_size(attr->cap.max_send_sge,
-+					  INLINE_OOB_EXTRA_LARGE_SIZE);
-+	*flags |= MANA_RC_FLAG_FIXED_SIZE_WQE;
-+	if (mdev->adapter_caps.feature_flags & MANA_IB_FEATURE_MSN_IN_WQE_SUPPORT)
-+		*flags |= MANA_RC_FLAG_MSN_IN_WQE;
-+	qp->rc_qp.wqe_size_in_bu = wqe_size / GDMA_WQE_BU_SIZE;
-+
-+	return 0;
-+
-+destroy_sq:
-+	destroy_shadow_queue(&qp->shadow_sq);
-+destroy_rq:
-+	destroy_shadow_queue(&qp->shadow_rq);
-+	return err;
++	spin_lock_irqsave(&recv_cq->cq_lock, flags);
++	if (list_empty(&qp->recv_err_node))
++		list_add_tail(&qp->recv_err_node, &recv_cq->recv_err_qp_list);
++	spin_unlock_irqrestore(&recv_cq->cq_lock, flags);
 +}
 +
-+static int mana_ib_create_rc_qp_kernel(struct ib_qp *ibqp, struct ib_pd *ibpd,
-+				       struct ib_qp_init_attr *attr)
-+{
-+	struct mana_ib_dev *mdev = container_of(ibpd->device, struct mana_ib_dev, ib_dev);
-+	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
-+	u32 doorbell = mdev->gdma_dev->doorbell;
-+	u32 queue_size;
-+	u64 flags = 0;
-+	int i, err;
+ static void mana_remove_qp_from_cqs(struct mana_ib_qp *qp, bool reset)
+ {
+ 	struct mana_ib_cq *send_cq = container_of(qp->ibqp.send_cq, struct mana_ib_cq, ibcq);
+@@ -1034,15 +1055,16 @@ static int mana_ib_gd_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	return 0;
+ }
+ 
+-static void mana_ib_modify_qp_state(struct ib_qp *ibqp, struct ib_qp_attr *attr,
++static bool mana_ib_modify_qp_state(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 				    int attr_mask, struct ib_udata *udata)
+ {
+ 	struct mana_ib_dev *mdev = container_of(ibqp->device, struct mana_ib_dev, ib_dev);
+ 	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
+ 	struct gdma_queue *rq;
++	bool notify = false;
+ 
+-	if (udata)
+-		return;
++	if (udata || ibqp->uobject)
++		return false;
+ 
+ 	if (attr_mask & IB_QP_PATH_MTU)
+ 		qp->mtu = attr->path_mtu;
+@@ -1055,6 +1077,10 @@ static void mana_ib_modify_qp_state(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		default:
+ 			break;
+ 		}
++		if (attr->qp_state == IB_QPS_ERR) {
++			mana_add_qp_to_error_cqs(qp);
++			notify = true;
++		}
+ 	}
+ 
+ 	if (attr_mask & IB_QP_SQ_PSN) {
+@@ -1070,12 +1096,27 @@ static void mana_ib_modify_qp_state(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 						     SET_ARM_BIT, MANA_PSN_CLIENT_OFFSET);
+ 		}
+ 	}
 +
-+	if (!(mdev->adapter_caps.feature_flags & MANA_IB_FEATURE_EXTENDED_WQE_FORMAT))
-+		return -EOPNOTSUPP;
-+	if (!(mdev->adapter_caps.feature_flags & MANA_IB_FEATURE_RC_QP_SQ_POW2_SUPPORT))
-+		return -EOPNOTSUPP;
-+
-+	for (i = 0; i < MANA_RC_QUEUE_TYPE_MAX; ++i) {
-+		queue_size = mana_ib_queue_size(mdev, attr, i);
-+		err = mana_ib_create_kernel_queue(mdev, queue_size,
-+						  mana_ib_queue_type(attr, i),
-+						  &qp->rc_qp.queues[i]);
-+		if (err)
-+			goto destroy_queues;
-+	}
-+
-+	err = mana_init_kernel_rc_qp(mdev, qp, attr, &flags);
-+	if (err)
-+		goto destroy_queues;
-+
-+	err = mana_ib_gd_create_rc_qp(mdev, qp, attr, doorbell, flags);
-+	if (err)
-+		goto deinit_queues;
-+
-+	qp->ibqp.qp_num = qp->rc_qp.queues[MANA_RC_RECV_QUEUE_RESPONDER].id;
-+	qp->port = attr->port_num;
-+
-+	for (i = 0; i < MANA_RC_QUEUE_TYPE_MAX; ++i)
-+		qp->rc_qp.queues[i].kmem->id = qp->rc_qp.queues[i].id;
-+
-+	err = mana_table_store_qp(mdev, qp);
-+	if (err)
-+		goto destroy_qp;
-+
-+	return 0;
-+
-+destroy_qp:
-+	mana_ib_gd_destroy_rnic_qp(mdev, qp);
-+deinit_queues:
-+	destroy_shadow_queue(&qp->shadow_rq);
-+	destroy_shadow_queue(&qp->shadow_sq);
-+	destroy_shadow_queue(&qp->shadow_mmq);
-+destroy_queues:
-+	while (i-- > 0)
-+		mana_ib_destroy_queue(mdev, &qp->rc_qp.queues[i]);
-+	return err;
++	return notify;
 +}
 +
- int mana_ib_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attr,
- 		      struct ib_udata *udata)
++static void mana_ib_notify_error_cqs(struct mana_ib_qp *qp)
++{
++	struct ib_cq *send_cq = qp->ibqp.send_cq;
++	struct ib_cq *recv_cq = qp->ibqp.recv_cq;
++
++	if (send_cq->poll_ctx != IB_POLL_DIRECT && send_cq->comp_handler)
++		send_cq->comp_handler(send_cq, send_cq->cq_context);
++	if (recv_cq != send_cq && recv_cq->poll_ctx != IB_POLL_DIRECT &&
++	    recv_cq->comp_handler)
++		recv_cq->comp_handler(recv_cq, recv_cq->cq_context);
+ }
+ 
+ int mana_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		      int attr_mask, struct ib_udata *udata)
  {
  	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
++	bool notify = false;
+ 	int ret;
  
- 	qp->sq_sig_all = attr->sq_sig_type == IB_SIGNAL_ALL_WR;
-+	spin_lock_init(&qp->rq_lock);
-+	spin_lock_init(&qp->sq_lock);
- 	mutex_init(&qp->modify_lock);
- 	INIT_LIST_HEAD(&qp->send_err_node);
- 	INIT_LIST_HEAD(&qp->recv_err_node);
-@@ -798,7 +941,10 @@ int mana_ib_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attr,
+ 	mutex_lock(&qp->modify_lock);
+@@ -1094,11 +1135,14 @@ int mana_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		goto out_unlock;
+ 	}
  
- 		return mana_ib_create_qp_raw(ibqp, ibqp->pd, attr, udata);
- 	case IB_QPT_RC:
--		return mana_ib_create_rc_qp(ibqp, ibqp->pd, attr, udata);
-+		if (udata)
-+			return mana_ib_create_rc_qp(ibqp, ibqp->pd, attr, udata);
-+		else
-+			return mana_ib_create_rc_qp_kernel(ibqp, ibqp->pd, attr);
- 	case IB_QPT_UC:
- 		return mana_ib_create_uc_qp(ibqp, ibqp->pd, attr, udata);
- 	case IB_QPT_UD:
-@@ -1030,7 +1176,11 @@ static int mana_ib_destroy_rc_qp(struct mana_ib_qp *qp, struct ib_udata *udata)
+-	mana_ib_modify_qp_state(ibqp, attr, attr_mask, udata);
++	notify = mana_ib_modify_qp_state(ibqp, attr, attr_mask, udata);
+ 
+ out_unlock:
+ 	mutex_unlock(&qp->modify_lock);
+ 
++	if (notify)
++		mana_ib_notify_error_cqs(qp);
++
+ 	return ret;
+ }
+ 
+@@ -1220,6 +1264,7 @@ static int mana_ib_destroy_uc_qp(struct mana_ib_qp *qp, struct ib_udata *udata)
  		return err;
  
  	mana_table_remove_qp(mdev, qp);
 +	mana_remove_qp_from_cqs(qp, false);
- 
-+	destroy_shadow_queue(&qp->shadow_rq);
-+	destroy_shadow_queue(&qp->shadow_sq);
-+	destroy_shadow_queue(&qp->shadow_mmq);
  	/* Ignore return code as there is not much we can do about it.
  	 * The error message is printed inside.
  	 */
+diff --git a/drivers/infiniband/hw/mana/wr.c b/drivers/infiniband/hw/mana/wr.c
+index 366f9e11eff8..c8f8336b0fe9 100644
+--- a/drivers/infiniband/hw/mana/wr.c
++++ b/drivers/infiniband/hw/mana/wr.c
+@@ -72,6 +72,25 @@ static inline u8 convert_wr_to_hw_opcode(enum ib_wr_opcode opcode)
+ 	}
+ }
+ 
++static void mana_ib_notify_flush(struct ib_cq *ibcq, struct list_head *err_node)
++{
++	struct mana_ib_cq *cq = container_of(ibcq, struct mana_ib_cq, ibcq);
++	unsigned long flags;
++	bool flush;
++
++	if (ibcq->poll_ctx == IB_POLL_DIRECT)
++		return;
++	if (!ibcq->comp_handler)
++		return;
++
++	spin_lock_irqsave(&cq->cq_lock, flags);
++	flush = !list_empty(err_node);
++	spin_unlock_irqrestore(&cq->cq_lock, flags);
++
++	if (flush)
++		ibcq->comp_handler(ibcq, ibcq->cq_context);
++}
++
+ static int mana_ib_post_rq(struct mana_ib_qp *qp, const struct ib_recv_wr *wr)
+ {
+ 	struct ib_sge mana_ib_dummy_sge = {.addr = 1, .length = 0, .lkey = 0};
+@@ -129,8 +148,10 @@ static int mana_ib_post_recv_ud(struct mana_ib_qp *qp, const struct ib_recv_wr *
+ 		ring_rq = true;
+ 	}
+ 
+-	if (ring_rq)
++	if (ring_rq) {
+ 		mana_gd_wq_ring_doorbell(mdev_to_gc(mdev), rq);
++		mana_ib_notify_flush(qp->ibqp.recv_cq, &qp->recv_err_node);
++	}
+ 
+ 	return err;
+ }
+@@ -141,6 +162,7 @@ static int mana_ib_post_recv_rc(struct mana_ib_qp *qp, const struct ib_recv_wr *
+ 	struct mana_ib_dev *mdev = container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
+ 	struct mana_ib_queue *ib_rq = mana_qp_get_rq(qp);
+ 	unsigned long flags;
++	bool posted = false;
+ 	u8 wqe_cnt = 0;
+ 	int err = 0;
+ 
+@@ -152,6 +174,7 @@ static int mana_ib_post_recv_rc(struct mana_ib_qp *qp, const struct ib_recv_wr *
+ 			*bad_wr = wr;
+ 			break;
+ 		}
++		posted = true;
+ 		wqe_cnt++;
+ 		if (wqe_cnt == 0xFF) {
+ 			mana_gd_wq_ring_doorbell_ext(mdev_to_gc(mdev), ib_rq->kmem,
+@@ -167,6 +190,9 @@ static int mana_ib_post_recv_rc(struct mana_ib_qp *qp, const struct ib_recv_wr *
+ 					     wqe_cnt, 0);
+ 
+ 	spin_unlock_irqrestore(&qp->rq_lock, flags);
++	if (posted)
++		mana_ib_notify_flush(qp->ibqp.recv_cq, &qp->recv_err_node);
++
+ 	return err;
+ }
+ 
+@@ -259,11 +285,8 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_send_wr *
+ 				const struct ib_send_wr **bad_wr)
+ {
+ 	struct mana_ib_dev *mdev = container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
+-	struct mana_ib_cq *cq = container_of(qp->ibqp.send_cq, struct mana_ib_cq, ibcq);
+ 	struct gdma_queue *queue = qp->ud_qp.queues[MANA_UD_SEND_QUEUE].kmem;
+-	unsigned long flags;
+ 	bool ring_sq = false;
+-	bool flush_send;
+ 	int err = 0;
+ 
+ 	for (; wr; wr = wr->next) {
+@@ -277,13 +300,7 @@ static int mana_ib_post_send_ud(struct mana_ib_qp *qp, const struct ib_send_wr *
+ 
+ 	if (ring_sq) {
+ 		mana_gd_wq_ring_doorbell(mdev_to_gc(mdev), queue);
+-
+-		spin_lock_irqsave(&cq->cq_lock, flags);
+-		flush_send = !list_empty(&qp->send_err_node);
+-		spin_unlock_irqrestore(&cq->cq_lock, flags);
+-
+-		if (flush_send && cq->ibcq.comp_handler)
+-			cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
++		mana_ib_notify_flush(qp->ibqp.send_cq, &qp->send_err_node);
+ 	}
+ 
+ 	return err;
+@@ -567,6 +584,9 @@ static int mana_ib_post_send_rc(struct mana_ib_qp *qp, const struct ib_send_wr *
+ 					 qp->rc_qp.queues[MANA_RC_SEND_QUEUE_REQUESTER].kmem);
+ 
+ 	spin_unlock_irqrestore(&qp->sq_lock, flags);
++	if (ring_sq || ring_mmq)
++		mana_ib_notify_flush(qp->ibqp.send_cq, &qp->send_err_node);
++
+ 	return err;
+ }
+ 
 -- 
 2.43.0
 
