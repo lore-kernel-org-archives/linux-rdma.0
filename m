@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794404815;
-	b=dQc4inG377TRxYu2Ql9IMmuNCOvuqv4TDA1wotWnBM/ZDXSSltVgHJdImpz28/joU+cc
-	 X/OsKVcnPc+JWdcsy1f0n9YqsEYeUl7LWgmjTLiUoPnnG6q77PXJX6MZmernpVyxlfXly
-	 mrZq3Mjfrh869utkznAb8DyL5ADVLO39SKI6u+zIT9+B1T/zguTcVbk4TqFl4jbgXu2Hh
-	 ZkoJe2uu3FlHmINDJVUOeTpTkRKn94JrIaNIwd74Zpx5TARyKANI19izn0ULfwwn9bkLx
-	 gf43LpnYXvjWxECzQApg6sQF3rkIQpMsNDwklJEy7afnZTZRglcmRq/8+VpWtwcq0Tw==
+	t=1794404816;
+	b=wIcMFCRbD8fKjd7AOXp0r0AMsXZy9rFNmpbe2NG01L3GfkIVDV3Ygn6B18O2K0kSrpvE
+	 Y/EvfBHwWPoJ62FuTuKlEqnk8EL4c6Scv3OyyTb2vjF4L/D1aHDVGFzL0wLoH0qQL6LFA
+	 SIb9xPy0isHjhMOGiqQZA1TbPOBmP0ygExV4I3c++Cm191dI3Jqt2Y5p1adskPfOCxHlD
+	 zWFoCyA/w1WQUn7CUYSAT189wuaOOIBjFHcVUsqWwiD/Dc9CNEaTBb+xuQNsSIck4jnqM
+	 Uh6ZXcP2dgiJEje0orS54OVYYvvNn/JWfACCxr8FfY12pqqDMbtxodT1atD5Si/v+Mg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794404815;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794404816;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=uZIlLwVLxM59C31w2KCxkL8QutdgLGBjIyI1iWX3Dec=;
-	b=AsUA/aHrmZ5xZ4Fh0c70SoqwB3Vt7fzeW/Bi5lBQCIYywOo8N/i9Ph8r0EgLpD5Fwdbb
-	 cb34bSzB3rDxAGAH1m67jgu8WoCe+u4SU6aMa1wnFpH50/hGYMyvpuZbNXUwdj7Zj0UXf
-	 Aluqp8o6apUx99pKgT1VT7B3dwZEMqDQBFXVoUUj9FcC0aD6I1U0jql9VZ0vuwwz3Q8oG
-	 34Gn/XYDssiGUToqT/QrBR/YCEuXY/2n1Y+bHVW60B/XnuEq5/gklWDt/b8fHHObmWuqh
-	 oXZyVheZkTD3NOV0obWo0Bq3XJ3HrU8ayyiCTLuwgTX1CyrHtHIBZ12Vnh+Q2jN+ppg==
+	bh=DAsPpZ237m4bN94BfIoLWnTye3GIkrJfbAEa9MCqqEw=;
+	b=gzN4aeEuYUy5w9J5/zb6xjZKPdtBAjJb02AAHFcQnGaWYBEn4FJy4BLqAyYgqgKXEJCy
+	 3/8a/WSUlMWleHJCLFmqq0lbnaPX9JTG73zoMABeTwX7IMnMY8HaznKHlJGUT+i6cqum4
+	 CW/hCR4naBitHV+lQqCZaIBVe3/uAa6m8HDUBdPqimI3wj9o+kT9dcn3NSJO/cvXuiDdo
+	 Hgt94BtgQKhaDcUQxYtgX+x09T3KdhehQ029P5cZHMg8Zv03IZM/uun7hvVHvvpEMuQ2T
+	 ZzwpEn0Rju6dGMVYfm1XAiNHkUe7tn//FcQpM0Hm7A6yj1y3R3ph0V/UlYT4+gUI0tA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Hx4/Nxpu";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DTw8Ra5w;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E5C9606A886
-	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 13:46:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 222DC606A88D
+	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 13:46:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Hx4/Nxpu
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3191D1F00A06;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DTw8Ra5w
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB0451F00A05;
 	Wed, 11 Nov 2026 13:46:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794404815;
-	bh=uZIlLwVLxM59C31w2KCxkL8QutdgLGBjIyI1iWX3Dec=;
+	s=k20260515; t=1794404816;
+	bh=DAsPpZ237m4bN94BfIoLWnTye3GIkrJfbAEa9MCqqEw=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Hx4/NxpupUkkvNo8U6Gfg0oXy8CQajlM0hIkxUrUwei2j5m6wvnM1AGGVeWk/ZTOB
-	 fzG1m8iHp8xHZIm3jtEo4Ecpm7W/3h71XgTsmY3QsSTv52ALpnUXJrp1hRyT77cbCm
-	 WTroPpXnJ8hOtXzjc+2h28A/tKkRBoAHvUFuCN4OG93bBUW60ZdIDNJl4qOHLMC1jr
-	 Ovkv3V2X/smKdX2az6BfB8wGehxAjJ+0IYp3U67aDQLECu7yWi0YeBigMV7vpVd61L
-	 0G46X6IhY3p0MCZ4tIyD0LJ2cio7NBkmuwF69s8dFbsGjrBLPhkFlGO9GGEl6sWqv9
-	 lhHikh87ipVIQ==
-Message-ID: <sashiko-outbox-209102@kernel.org>
+	b=DTw8Ra5w0p+XaNYDFj437KfqkfuWnXsNwjGoE73wYGefMrLmgw1KEJblVd6XVT9HK
+	 LfYhqF+FewWuAIz9JQ+DZiOhiX5eiz7x7b9kDx6PtIcBZkSkiIL8kT8x2+xj4njAcf
+	 N6Bn/I+j74Ibe01hU7rQQmBRUElVCotwbkV409ZLLex8lPaH6n63V6PCdQ+sQYMFDu
+	 sUsH6DLdjcYMEiY21NhW3djm2y5r8xt2pX1P65S8oe9PX0N0zdF6vFZ/7ZA2H4zTqz
+	 Y4LkLd0XUdzYAm7xqQwQG7WMMETRIFJrWblDRqY/g0xsv49Se9Cyuu5/iHOZxU/G3W
+	 f/M6AEvfkft4A==
+Message-ID: <sashiko-outbox-209103@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH V1 rdma-next 17/24] RDMA/mlx5: Ignore completion events
- for a kernel CQ that is not ready
+Subject: Re: [PATCH V1 rdma-next 18/24] RDMA/mlx5: Validate EQE port and GSI
+ port before indexing devr.ports[]
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Yishai Hadas" <yishaih@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261110134320.34408-18-yishaih@nvidia.com>
+In-Reply-To: <20261110134320.34408-19-yishaih@nvidia.com>
 References: <20261110134320.34408-1-yishaih@nvidia.com>
- <20261110134320.34408-18-yishaih@nvidia.com>
+ <20261110134320.34408-19-yishaih@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 11 Nov 2026 13:46:54 +0000
+Date: Wed, 11 Nov 2026 13:46:55 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,20 +61,16 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> A kernel CQ can be reached from the completion interrupt before it is
-> set up: __ib_alloc_cq() sets its poll context and handler only after
-> ops.create_cq(), and devr->c0 has no handler, as it is never armed.
+> devr.ports[] has 2 entries, but it is indexed by port numbers taken
+> from the NIC, which adversarial mode does not trust.
 >=20
-> A trusted NIC raises no event for a CQ that is not armed, but a hostile
-> NIC in adversarial mode can. For devr->c0 that ends in a NULL call. For
-> a CQ from __ib_alloc_cq(), on a weakly ordered CPU, the interrupt can
-> see the handler but not the poll context, and crash in irq_poll.
+> handle_port_change() uses the EQE port before any validation, so port 0
+> wraps the index to UINT_MAX and a port above 2 overflows the array.
+> mlx5_ib_create_gsi() gets a port already checked against phys_port_cnt,
+> but that comes from the num_ports and num_vhca_ports FW caps, which may
+> report more than 2 ports.
 >=20
-> In adversarial mode, give kernel CQs their own event callback, which
-> ignores events until the first arm, the point where the core has
-> finished setting up the CQ. mlx5_ib_arm_cq() marks the CQ ready with a
-> release before the doorbell, and the callback checks it with an
-> acquire.
+> Validate the port and bound it by ARRAY_SIZE() in both paths.
 >=20
 > Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
 
@@ -82,5 +78,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261110134320.3440=
-8-1-yishaih@nvidia.com?part=3D17
+8-1-yishaih@nvidia.com?part=3D18
 
