@@ -1,84 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.178
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794397061;
-	b=diKNV3UKcahoLTeVGgvHGaDKThO7p3fsk9h+MMWyU155ZtR1WBTJVADOS7rgPZE5FSMp
-	 dcJ5WqxYGHIJM5ECfOLaXkT44ehuP1KS+umGOXlxJvd8m6sPPvz6M4vnykF2l8L8/c08T
-	 AfpZevts58KMV72eohzdmqfT+sRdsxQDYwwRfdFtqdgwm6vB13ZpXjdYfnUagNJvqfDTF
-	 8Sk54BkRa+CEKD9x2YF7ZAYeemhU3ywJVQCLCZ3gsonVk6N8ELaj5gk2eW8/FqJSZaJlV
-	 08oinLOyNEmISF70YrmHN51W+1XkKzSJ5EKNBKosCeHMrywE8zwEjOFKS2p4UWz2aQw==
+	t=1794399261;
+	b=ki0B3E4VTX9l2dfn+H/Awa27GUvbtJ+faNw+15hYZHJnK2mmZhCmgeVADGJxvx75tT5s
+	 tLb0vHTAXF6kUbUJDDFWg1Arcf4XoG7IblJn8qW+qG12nkygOlNKQ7BfzCLj3pXjSNM+a
+	 b0jBmo9OjEBbMwbWxVlRVIYFTcX9pdK4hYIYNzKIpszralEO1Z/pT44/7IJ4LueXWgwK0
+	 0w6RwHIMbNn4oZG11L8S8unRelKf8jQEiVPmlxh75xJvEEPvHTua1Z61NpQHNS4pEDvaJ
+	 XxOOBr7vmirgirb1suwz5yCvl1FooOzGkD8mGVQUZm9xm99MG2oAANPH4K0NI5j/rNQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794397061;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Mime-Version:Content-Transfer-Encoding:Content-Type:Date:Message-Id:
-	 Cc:Subject:From:To:X-Mailer:References:In-Reply-To;
-	bh=GWmJbLCR3Z0PWF883WQy0SlXPcx6C4wxGpgsQpGnChg=;
-	b=s6HtObhnwAX/WSswefPHXbX7z/nfqpQqpUK7WrUghfq59Xui4YENLWiJoPL7iLeouwgJ
-	 JYifYsbyqJz8B3ZtMAW8CAKHYbnvjRsc2APJ7dsdg2eTuqWTxSK8jUlWJdLrorky3tYEm
-	 nkCcHokuJR1VQA5pWTkpLxl5LnkhjXZXjIyAknA9xm+q7PtyanCM+so43J/gmJZlGemDL
-	 ZXeyrfPIxjX6ZayXdzX40FDQxgbOwAo3+SR3PycKhDxANw4O0Ozd7Nbxjz+DqpIe7LrTQ
-	 HTMCKtopHQs+HjyOr/YnbkitEFmBAIYc8jURE6zBGZexwRtYuH1OQgUz1fyTZN7xMbQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794399261;
+	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=N41quIfnMKlk0yGGLP2bTGDp4ct65b4cGCAbOTy9tt0=;
+	b=fou2ZRfD3JMG3vKrlFYdE0DFnZkNVjjArNO+nCLjLhO2u6sfwXe5vcQIZ5X6jXYUqMVI
+	 yRSHIj49pMQAiBhmuBEpTz4KE36LlG73eVa+3873JSmJ9cS6UacI8S6Nuiyh4a51dS9vf
+	 bql7Z7rQTpiWV25JjChJ9XqBFw9xsUyw9ldqjJ1TLMeDrjLcKw8iE4W5SVfHBl16F89TU
+	 BaC1oPsuA85gYa/E/rHMdgraiM4kjsHIW0CHuWSUUXfH3AzE8hJLw6umEEc4PihKyGTNM
+	 gy4TG3j9sm6sf8l4jPQ8o9tiFF5gA1mr0TIlG2coFrxBthFg4w2/z1u8om1u3Yq5Aqw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=BlC5Gblx;
-	arc=none smtp.remote-ip=209.85.160.178
-Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A001606A324
-	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 11:37:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4A001606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	dmarc=pass header.from=linux.microsoft.com;
+	spf=pass smtp.mailfrom=linux.microsoft.com;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=rUXTrDiP;
+	arc=none smtp.remote-ip=13.77.154.182
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3CCF9606A324;
+	Wed, 11 Nov 2026 12:14:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3CCF9606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=BlC5Gblx
-Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-535179e995bso33216501cf.0
-        for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 03:37:41 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794397060; x=1795001860; darn=vger.kernel.org;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-type:content-transfer-encoding:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=GWmJbLCR3Z0PWF883WQy0SlXPcx6C4wxGpgsQpGnChg=;
-        b=BlC5GblxeuC6mh7E5mlcHWaa6FbwL7M5zsHQyzNo0ElWDR1HAb/10OXHf4NPTjJrYZ
-         28qVLgXYI0cEYMl1lacrKBU6nz6AUicANfMZJzE7tO5nUNNb/YLGhvSTEHQIGzEOAuHd
-         nVuqyNnNQTSTYCKjeMB9T9GmTGazkGf9pwsNZ07qbwteqNGC2d7g3SsUnHMTDJ/U9yLA
-         UNk/kC7bqqiC/S3ciUXpdExCDcSYSMdftZTBSKD4owXddH4eUYyHOmIyppHH6JwIk37s
-         OAcw2gv8gQOn9dcZudYcQ7SMmXcsyH1a+VEFKbwnhezz+4FwBTNzgzrVoz9I0rpjutiu
-         fZ8g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794397060; x=1795001860;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-type:content-transfer-encoding:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=GWmJbLCR3Z0PWF883WQy0SlXPcx6C4wxGpgsQpGnChg=;
-        b=0lydAE9xIrBoroINZYMs/NAPUdwkVkTk8G8FMG2HutHnmPjz5mjubYboDg5DFVaM4J
-         075r0Rg0/1r84cd15QMiDV+dMOptf4PAT54FF0uGNk+nR6S9FStkYm/xqQVHB78Ff8Yh
-         MvpoxLYXgAZ5dw9znT9+K5SMab8sLUFjHbQl0q2VnunEYlWu8waT05t9tmXJIxLzrT9I
-         9/vbhY+RWCbXhGY45M79RdlyMG0iMIwhJxtjgrP2x3RvC0yBtkAnsuNkq5cdmCUXpNjB
-         Ylx/WWUNKfrCNoRaEabvtwrcGZOc5vBef2KalZvlInleossZV09y3T2CeXPTf8IaaLD5
-         NjsA==
-X-Forwarded-Encrypted: i=1; AL+hErHhIbOY80fQ29dKWzDT4DtXfDrfuj/3UHMdZydd2AvsQ33qVXy0IobVkCPhXs6ddTkzehmQw9SnZdQA@vger.kernel.org
-X-Gm-Message-State: APuU4Z+jp9zGFDRqnZ03uao9iwGR1JGXLiwXlon1s41KCGt+bVJmUyzK
-	Ng412heN9SCy28II3shDOkquX++LybCkEWIZBn8uQ4mHkIWz0Q0y6bLk
-X-Gm-Gg: AYBFou22Ci++DEX4TuY1AJdSxKS0bGRVK/LuCLugBOvn+toy2SGB+f/fIHuoDlchksA
-	9RQzdd2bPv9gdtGJHkHbIQyDfx30VWHquaXXOb5EVlVqsoiuYv3FT904NMuq/11hAe8NTO1phtI
-	Ga7tBrNSQA82fbUF7gdSsizsVLMIwUIuFnEytPfKyisgGNtks5JhiLLpNG9Ef1+tLsXh0VQpw+8
-	oqpe1yVZE39p5Bz3W8FTY5eGXLlDuqBEV4xV7M0rjsPAGrvpWixp47sCIPjF8I7sess7L+gViqF
-	Cg75zssWSKLiQfsLXgUAfKaHLzt7VvtqObF/2WpQSSTkZEyk1llQI2wNftO4ddPWdm2lRx5ol/v
-	e1mrkXiY35jxt7t/6KSxNwFElaZbtqK8OPMPfQths3tNrMVxFxw3wcXQN66LoT2UXfe6UOGnzFc
-	OzuFzSHcVc/acfWN7ORevgeiEIwj+pYIz8yA3BSI6FT0f6DFt6dvyPG2SJa8eqU8BPyrmoEqsoT
-	2i/RB3oWwX6yh/3G/+3weo2Zk1b8vTCkkckqntQdkPs5kJ7Jx07ldJtVClQBbl2Lv1PzMkVPCXt
-	uj85aZXz4rRcJIC49LP/bggtykgDJsmSm8D+4vgaJ7a37bq8p/KVK5Y=
-X-Received: by 2002:a05:620a:4444:b0:93f:3e45:a419 with SMTP id af79cd13be357-947b002af5bmr318209785a.38.1794397060199;
-        Wed, 11 Nov 2026 03:37:40 -0800 (PST)
-Received: from localhost ([2600:4040:9399:4000:e553:72e5:7d37:c7ef])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9479e7dc398sm462686385a.35.2026.11.11.03.37.38
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 11 Nov 2026 03:37:39 -0800 (PST)
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=rUXTrDiP
+Received: by linux.microsoft.com (Postfix, from userid 1186)
+	id EA17420B716A; Wed, 11 Nov 2026 04:14:17 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com EA17420B716A
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1794399257;
+	bh=N41quIfnMKlk0yGGLP2bTGDp4ct65b4cGCAbOTy9tt0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=rUXTrDiPWASY+gzk0FfixiWrQMPh1DjYwcJwv+DulMRmCqV+Zn+SRmkuihSLVwyip
+	 DRTJhwlcqpxkDY8wVy3VRiXeEzUt7qKTaWy6agR4LY52aJGp5x3VY0w69pnzTXHIKm
+	 +kTEUxKL9KYH4G+ewDq1ATdULrPqj63EfUcUGoAE=
+From: Konstantin Taranov <kotaranov@linux.microsoft.com>
+To: kotaranov@microsoft.com,
+	snsanghvi@microsoft.com,
+	longli@microsoft.com,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH rdma-next v10 1/9] RDMA/mana_ib: Allocate and map fast-registration MRs
+Date: Wed, 11 Nov 2026 04:14:09 -0800
+Message-ID: <20261111121417.1265896-2-kotaranov@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.7
+In-Reply-To: <20261111121417.1265896-1-kotaranov@linux.microsoft.com>
+References: <20261111121417.1265896-1-kotaranov@linux.microsoft.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -87,81 +62,338 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Wed, 11 Nov 2026 06:37:38 -0500
-Message-Id: <DMSCO4I434TK.15MMEZI0V4UZR@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>, "Andrew Lunn"
- <andrew+netdev@lunn.ch>, =?utf-8?q?Bj=C3=B6rn_T=C3=B6pel?=
- <bjorn@kernel.org>, <bpf@vger.kernel.org>, "Daniel Borkmann"
- <daniel@iogearbox.net>, "Daniel Zahka" <daniel.zahka@gmail.com>, "Donald
- Hunter" <donald.hunter@gmail.com>, "Eric Dumazet" <edumazet@kernel.org>,
- "Jakub Kicinski" <kuba@kernel.org>, "Jamal Hadi Salim" <jhs@mojatatu.com>,
- "Jiri Pirko" <jiri@resnulli.us>, "John Fastabend"
- <john.fastabend@gmail.com>, <linux-doc@vger.kernel.org>,
- <linux-kernel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
- <linux-rdma@vger.kernel.org>, "Martin KaFai Lau" <martin.lau@linux.dev>,
- "Paolo Abeni" <pabeni@redhat.com>, "Saeed Mahameed" <saeedm@nvidia.com>,
- "Simon Horman" <horms@kernel.org>, "Tariq Toukan" <tariqt@nvidia.com>, "Wei
- Wang" <weiwan@google.com>, "Willem de Bruijn"
- <willemdebruijn.kernel@gmail.com>
-Subject: Re: [PATCH net-next v1 08/15] psp: only give time-wait sockets of
- psp connections a validator
-From: "Daniel Zahka" <daniel.zahka@gmail.com>
-To: "Todd Freed" <toddfreed@meta.com>, <netdev@vger.kernel.org>
-X-Mailer: aerc 0.21.0-threadmapfix
-References: <20261111005533.6436-1-toddfreed@meta.com>
- <20261111005533.6436-9-toddfreed@meta.com>
-In-Reply-To: <20261111005533.6436-9-toddfreed@meta.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Tue Nov 10, 2026 at 7:55 PM EST, Todd Freed wrote:
-> psp_twsk_init() sets tw_validate_xmit_skb on tcp time-wait sockets.
-> today, that becomes set whether or not the socket has psp offload, which
-> is not needed but is harmless. psp_validate_xmit() passes such packets.
->
+From: Konstantin Taranov <kotaranov@microsoft.com>
 
-This can get sent as a standalone patch. I would probably tag it as a
-fix too, even though it is benign. I can't remember why we (I) didn't
-put the validation hook under the branch, but looking at it now, it just
-looks like a bug.
+Implement alloc_mr and map_mr_sg for memory-registration MRs.
 
-> but a validator makes a socket look like it has an encryption offload of
-> its own, and the tc psp action, added in the next patch, relies on that:
-> encap refuses the packets of such a socket, and sk_validate_xmit_skb()
-> drops a packet with a psp association whose socket has a validator.
->
-> set the validator only when the socket has a psp association.
->
-> Signed-off-by: Todd Freed <toddfreed@meta.com>
-> ---
->  net/psp/psp_sock.c | 8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
->
-> diff --git a/net/psp/psp_sock.c b/net/psp/psp_sock.c
-> index 609b06c7af65..664955bfb4fd 100644
-> --- a/net/psp/psp_sock.c
-> +++ b/net/psp/psp_sock.c
-> @@ -330,10 +330,14 @@ void psp_twsk_init(struct inet_timewait_sock *tw, c=
-onst struct sock *sk)
->  {
->  	struct psp_assoc *pas =3D psp_sk_assoc(sk);
-> =20
-> -	if (pas)
-> +	if (pas) {
->  		refcount_inc(&pas->refcnt);
-> +		/* Only for PSP connections: a validator makes the socket
-> +		 * look like it has an encryption offload of its own
-> +		 */
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+---
+v10:
+- Remove the max_num_sg limit check as kernel consumers are trusted
+v5:
+- Reject max_num_sg above MANA_MAX_FMR_PAGES
+v4:
+- Use an explicit 64-byte FMR MST alignment
 
-comment nit: for my taste, having a comment that starts with "Only for
-PSP connections:" two lines under an if (pas) branch feels unnecessary.
+ drivers/infiniband/hw/mana/device.c  |  2 +
+ drivers/infiniband/hw/mana/main.c    |  3 +-
+ drivers/infiniband/hw/mana/mana_ib.h | 48 +++++++++++++++++++++
+ drivers/infiniband/hw/mana/mr.c      | 84 +++++++++++++++++++++++++++++++++++-
+ include/net/mana/gdma.h              | 15 +++++++
+ 5 files changed, 150 insertions(+), 2 deletions(-)
 
-> +		tw->tw_validate_xmit_skb =3D psp_validate_xmit;
-> +	}
->  	rcu_assign_pointer(tw->psp_assoc, pas);
-> -	tw->tw_validate_xmit_skb =3D psp_validate_xmit;
->  }
-> =20
->  void psp_twsk_assoc_free(struct inet_timewait_sock *tw)
+diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
+index 62c7803ca6c6..cdaada7f6e8a 100644
+--- a/drivers/infiniband/hw/mana/device.c
++++ b/drivers/infiniband/hw/mana/device.c
+@@ -19,6 +19,7 @@ static const struct ib_device_ops mana_ib_dev_ops = {
+ 
+ 	.add_gid = mana_ib_gd_add_gid,
+ 	.alloc_mw = mana_ib_alloc_mw,
++	.alloc_mr = mana_ib_alloc_mr,
+ 	.alloc_pd = mana_ib_alloc_pd,
+ 	.alloc_ucontext = mana_ib_alloc_ucontext,
+ 	.create_ah = mana_ib_create_ah,
+@@ -40,6 +41,7 @@ static const struct ib_device_ops mana_ib_dev_ops = {
+ 	.get_dma_mr = mana_ib_get_dma_mr,
+ 	.get_link_layer = mana_ib_get_link_layer,
+ 	.get_port_immutable = mana_ib_get_port_immutable,
++	.map_mr_sg = mana_ib_map_mr_sg,
+ 	.mmap = mana_ib_mmap,
+ 	.modify_qp = mana_ib_modify_qp,
+ 	.modify_wq = mana_ib_modify_wq,
+diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
+index 672bd3f650dd..ceb4ec58023a 100644
+--- a/drivers/infiniband/hw/mana/main.c
++++ b/drivers/infiniband/hw/mana/main.c
+@@ -133,7 +133,7 @@ int mana_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
+ 			     sizeof(resp));
+ 
+ 	if (!udata)
+-		flags |= GDMA_PD_FLAG_ALLOW_GPA_MR;
++		flags |= GDMA_PD_FLAG_ALLOW_GPA_MR | GDMA_PD_FLAG_ALLOW_FMR_MR;
+ 
+ 	req.flags = flags;
+ 	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
+@@ -647,6 +647,7 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
+ 	props->max_ah = INT_MAX;
+ 	props->max_pkeys = 1;
+ 	props->local_ca_ack_delay = MANA_CA_ACK_DELAY;
++	props->max_fast_reg_page_list_len = MANA_MAX_FMR_PAGES;
+ 	if (!mana_ib_is_rnic(dev))
+ 		props->raw_packet_caps = IB_RAW_PACKET_CAP_IP_CSUM;
+ 
+diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
+index 74edb6e707a1..5ca6e2acf974 100644
+--- a/drivers/infiniband/hw/mana/mana_ib.h
++++ b/drivers/infiniband/hw/mana/mana_ib.h
+@@ -39,6 +39,8 @@
+  */
+ #define MANA_IB_MAX_MR		0xFFFFFFu
+ 
++#define MANA_MAX_FMR_PAGES	504
++
+ /*
+  * The CA timeout is approx. 260ms (4us * 2^(DELAY))
+  */
+@@ -51,6 +53,8 @@
+ 
+ #define MANA_GSI_QPN		(1)
+ 
++#define MANA_PTE_VALID_MASK	0x1ULL
++
+ struct mana_ib_adapter_caps {
+ 	u32 max_sq_id;
+ 	u32 max_rq_id;
+@@ -150,10 +154,46 @@ struct mana_ib_mw {
+ 	mana_handle_t mw_handle;
+ };
+ 
++#define MANA_FMR_MST_ALIGNMENT 64
++
++struct mana_fmr_mst_entry {
++	u32 reserved1;
++	u32 reserved2		: 8;
++	u32 page_size		: 5;
++	u32 reserved3		: 3;
++	u32 access_right	: 8;
++	u32 addr_type		: 2;
++	u32 reserved4		: 6;
++	u32 reserved5[2];
++	u64 start_va;
++	u64 length;
++	u32 reserved6[8];
++}; /* HW DATA */
++
++static inline u32 mana_ib_fmr_header_offset(u32 num_ptes)
++{
++	/* The header follows the PTEs with the required MST alignment. */
++	return ALIGN(sizeof(u64) * num_ptes, MANA_FMR_MST_ALIGNMENT);
++}
++
++static inline u32 mana_ib_fmr_buf_sz(u32 num_ptes)
++{
++	return mana_ib_fmr_header_offset(num_ptes) + sizeof(struct mana_fmr_mst_entry);
++}
++
++struct mana_ib_fmr {
++	u64 *ptes;
++	dma_addr_t dma_handle;
++	size_t size;
++	u32 max_ptes;
++	u32 pte_count;
++};
++
+ struct mana_ib_mr {
+ 	struct ib_mr ibmr;
+ 	struct ib_umem *umem;
+ 	mana_handle_t mr_handle;
++	struct mana_ib_fmr fmr;
+ };
+ 
+ struct mana_ib_dm {
+@@ -840,8 +880,16 @@ int mana_ib_create_rwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_table,
+ 
+ int mana_ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_tbl);
+ 
++enum gdma_mr_access_flags
++mana_ib_verbs_to_gdma_access_flags(int access_flags);
++
+ struct ib_mr *mana_ib_get_dma_mr(struct ib_pd *ibpd, int access_flags);
+ 
++struct ib_mr *mana_ib_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
++			       u32 max_num_sg);
++int mana_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		      unsigned int *sg_offset);
++
+ struct ib_mr *mana_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  u64 iova, int access_flags,
+ 				  struct ib_dmah *dmah,
+diff --git a/drivers/infiniband/hw/mana/mr.c b/drivers/infiniband/hw/mana/mr.c
+index 1233685b4b89..34dcc50d0be9 100644
+--- a/drivers/infiniband/hw/mana/mr.c
++++ b/drivers/infiniband/hw/mana/mr.c
+@@ -10,7 +10,7 @@
+ 
+ #define VALID_DMA_MR_FLAGS (IB_ACCESS_LOCAL_WRITE)
+ 
+-static enum gdma_mr_access_flags
++enum gdma_mr_access_flags
+ mana_ib_verbs_to_gdma_access_flags(int access_flags)
+ {
+ 	enum gdma_mr_access_flags flags = GDMA_ACCESS_FLAG_LOCAL_READ;
+@@ -55,6 +55,11 @@ static int mana_ib_gd_create_mr(struct mana_ib_dev *dev, struct mana_ib_mr *mr,
+ 		req.gva.virtual_address = mr_params->gva.virtual_address;
+ 		req.gva.access_flags = mr_params->gva.access_flags;
+ 		break;
++	case GDMA_MR_TYPE_FMR:
++		/* page_size is deprecated field and must be 0. */
++		req.fmr.page_size = 0;
++		req.fmr.rsvd_pte_count = mr_params->fmr.rsvd_pte_count;
++		break;
+ 	case GDMA_MR_TYPE_ZBVA:
+ 		req.zbva.dma_region_handle = mr_params->zbva.dma_region_handle;
+ 		req.zbva.access_flags = mr_params->zbva.access_flags;
+@@ -294,6 +299,77 @@ err_free:
+ 	return ERR_PTR(err);
+ }
+ 
++struct ib_mr *mana_ib_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
++			       u32 max_num_sg)
++{
++	struct mana_ib_pd *pd = container_of(ibpd, struct mana_ib_pd, ibpd);
++	struct gdma_create_mr_params mr_params = {};
++	struct gdma_context *gc;
++	struct mana_ib_dev *dev;
++	struct mana_ib_mr *mr;
++	int err;
++
++	dev = container_of(ibpd->device, struct mana_ib_dev, ib_dev);
++	gc = mdev_to_gc(dev);
++
++	if (mr_type != IB_MR_TYPE_MEM_REG)
++		return ERR_PTR(-EOPNOTSUPP);
++
++	mr = kzalloc_obj(*mr);
++	if (!mr)
++		return ERR_PTR(-ENOMEM);
++
++	mr->fmr.max_ptes = max_num_sg;
++	mr->fmr.size = mana_ib_fmr_buf_sz(max_num_sg);
++	mr->fmr.ptes = dma_alloc_coherent(gc->dev, mr->fmr.size, &mr->fmr.dma_handle,
++					  GFP_KERNEL);
++	if (!mr->fmr.ptes) {
++		err = -ENOMEM;
++		goto err_free;
++	}
++
++	mr_params.pd_handle = pd->pd_handle;
++	mr_params.mr_type = GDMA_MR_TYPE_FMR;
++	mr_params.fmr.rsvd_pte_count = max_num_sg;
++
++	err = mana_ib_gd_create_mr(dev, mr, &mr_params);
++	if (err)
++		goto err_dma;
++
++	return &mr->ibmr;
++
++err_dma:
++	dma_free_coherent(gc->dev, mr->fmr.size, mr->fmr.ptes,
++			  mr->fmr.dma_handle);
++
++err_free:
++	kfree(mr);
++	return ERR_PTR(err);
++}
++
++static int mana_ib_set_page(struct ib_mr *ibmr, u64 addr)
++{
++	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
++
++	if (mr->fmr.pte_count >= mr->fmr.max_ptes)
++		return -ENOMEM;
++
++	mr->fmr.ptes[mr->fmr.pte_count] = addr | MANA_PTE_VALID_MASK;
++	mr->fmr.pte_count++;
++
++	return 0;
++}
++
++int mana_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		      unsigned int *sg_offset)
++{
++	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
++
++	mr->fmr.pte_count = 0;
++
++	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, mana_ib_set_page);
++}
++
+ static int mana_ib_gd_create_mw(struct mana_ib_dev *dev, struct mana_ib_pd *pd, struct ib_mw *ibmw)
+ {
+ 	struct mana_ib_mw *mw = container_of(ibmw, struct mana_ib_mw, ibmw);
+@@ -352,6 +428,7 @@ int mana_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+ {
+ 	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
+ 	struct ib_device *ibdev = ibmr->device;
++	struct gdma_context *gc;
+ 	struct mana_ib_dev *dev;
+ 	int err;
+ 
+@@ -360,11 +437,16 @@ int mana_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+ 		return err;
+ 
+ 	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
++	gc = mdev_to_gc(dev);
+ 
+ 	err = mana_ib_gd_destroy_mr(dev, mr->mr_handle);
+ 	if (err)
+ 		return err;
+ 
++	if (mr->fmr.ptes)
++		dma_free_coherent(gc->dev, mr->fmr.size, mr->fmr.ptes,
++				  mr->fmr.dma_handle);
++
+ 	if (mr->umem)
+ 		ib_umem_release(mr->umem);
+ 
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 2a28fcaa637d..332f394b82e1 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -865,6 +865,8 @@ enum gdma_mr_access_flags {
+ 	GDMA_ACCESS_FLAG_REMOTE_WRITE = BIT_ULL(3),
+ 	GDMA_ACCESS_FLAG_REMOTE_ATOMIC = BIT_ULL(4),
+ 	GDMA_ACCESS_FLAG_BIND_MW = BIT_ULL(5),
++	GDMA_ACCESS_FLAG_INVALIDATE = BIT_ULL(6),
++	GDMA_ACCESS_FLAG_FMR = BIT_ULL(7),
+ };
+ 
+ /* GDMA_CREATE_DMA_REGION */
+@@ -917,6 +919,7 @@ struct gdma_destroy_dma_region_req {
+ 
+ enum gdma_pd_flags {
+ 	GDMA_PD_FLAG_ALLOW_GPA_MR = BIT(0),
++	GDMA_PD_FLAG_ALLOW_FMR_MR = BIT(1),
+ 	GDMA_PD_FLAG_SHORT_PDN = BIT(2),
+ };
+ 
+@@ -953,6 +956,11 @@ enum gdma_mr_type {
+ 	 * address that is set up in the MST
+ 	 */
+ 	GDMA_MR_TYPE_GVA = 2,
++	/* Fast Memory - MRs are initially put in the free state,
++	 * and the specified number of PTEs are reserved for future fast
++	 * memory registrations
++	 */
++	GDMA_MR_TYPE_FMR = 3,
+ 	/* Guest zero-based address MRs */
+ 	GDMA_MR_TYPE_ZBVA = 4,
+ 	/* Device address MRs */
+@@ -982,6 +990,9 @@ struct gdma_create_mr_params {
+ 			u64 length;
+ 			enum gdma_mr_access_flags access_flags;
+ 		} da;
++		struct {
++			u32 rsvd_pte_count;
++		} fmr;
+ 	};
+ };
+ 
+@@ -1006,6 +1017,10 @@ struct gdma_create_mr_request {
+ 			u64 offset;
+ 			enum gdma_mr_access_flags access_flags;
+ 		} __packed da;
++		struct {
++			u32 page_size;
++			u32 rsvd_pte_count;
++		} __packed fmr;
+ 	} __packed;
+ 	u32 reserved_2;
+ 	union {
+-- 
+2.43.0
 
