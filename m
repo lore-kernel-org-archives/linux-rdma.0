@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794404808;
-	b=cvqhjFWkIGMNwT0Me8BX4jJZnpz08Rqx5bExN5GvrHsXXzf4ZtAlDDwHPYuM1JsQjh5c
-	 5IIOASmjAHH/6vhlAqDEX6HLKE3OhYEFGFa1HrqwShWOtMOIUcbLwN342ALvP7XcBgCF6
-	 Rajx97AWM89ym/ASYhXS/rdxV+k5CSUPFDF2qSUaEOW3pSo135frfE7O492AWyhRuyDIc
-	 +SX7XLocy0ykPFO+eisbK8wQa/j41Xs7bx3lQ3Ryp5IE6wXHGHSXzGcEZsogIOA1TOJ2M
-	 0GAkJIiTZHrIsNFvteGEW67bQ/8jeHpwU6n0s6z5wwLYEb1tH+tZnzJdzeFlpDydI/A==
+	t=1794404809;
+	b=lBwaZL1V7tawAYEurXRAnxwmnSEQDjo5xu6xeyUqHD6b43BH1E1ewLHa+dhFh0MAeDEq
+	 iYtyg38Xxw3XQxvNFAqx9/V1eo6CAHtAWQJdgyhtZ6g0NOJwtREnuss468I0KIzWuHRXj
+	 /GByDVQa2NHkVAWwG4OxWAS7M0yEgcrOdEJKh8r2sMej71+MCR4eF7bmiuwXPitJSsvIZ
+	 CqvL/5X+c0z+QAXM/GOuPDa49Ot8I2TFlyHDHKLSKVpm0DaCDnUWpyTNG7WXeqV1jA+FB
+	 UhEt5LupNlGWw8tPE3EW3oGobugqbXkF0MHHIRVhqw4LaXwekyIiJMPu34Ulo/tvqgw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794404808;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794404809;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=ehtBPGv40VgIO/IkeBHmQBm2jlxJ5IaBapF1d8aJMyQ=;
-	b=hLLcLY2UCkS/yoD4+A51r2yX+UfTDkbKpEFOsFoR3RW6dJsOpQe+AIDc42hOrSZSgZWe
-	 O3Ou/C61/XOfTG0q72QbGcLKJbiL98y+JpS6k1qFXSZ4MbB/mqLGS8cmltxZnVg+l+WP8
-	 Ie4EgQAC+nuWfFfZu+SUloKpGxinenRGgFkq24tmczH8UCe6CDEdS0JE5+qmAFYeoY+Pc
-	 Ob161G/u3+hJK/scLjudDknMRaa5Ps65mFfMzoHu3f/UcHpqD9SwO6KkIzgZenpuXXvTA
-	 9SO3b0bSE1yRqocFOcN+l2QJAVDsgXwqByp7H0Gcpq/LHe/EHYnl3fu3XMTjYb03KRA==
+	bh=PRiVmHZo0P1XJRCamyYd4LEyikkxQWmgusm2LN4+v54=;
+	b=KCq1OIz0KY5/4XqaTc+Xp6qdqE8WQQrjOSzANhSqcbl5CW6ILfzCyhscwqJEfDZ0/Arp
+	 wRPAooN6qwGiODSioe9egaFxV225gXn8jZGUBFFnVWS8i9hg10OqwugPLCicNDImQLfhs
+	 2ZYvPCHjgQk0/zcgtIupXGbjSsydgPBmAO1/e3JtmytZUV4guYvNQvWyYQmxaPxX85I4j
+	 sVoAmZb/2UrMZ8Ucwjdoc6YH6LAoGBx69rUpA89X1OWWPqugeYMDppJnAiFGaIIm8DzKi
+	 9Dj8L29psWUL45vimvTJJoxPjirN1Nop19R61eq6l0blfHNSWdmJE3hdbswaINT6xww==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AS6dQDRa;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=J8bQxih6;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F5FC606A335
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECB06606A338
 	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 13:46:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AS6dQDRa
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01E2B1F00A06;
-	Wed, 11 Nov 2026 13:46:47 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=J8bQxih6
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A21331F00A06;
+	Wed, 11 Nov 2026 13:46:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1794404808;
-	bh=ehtBPGv40VgIO/IkeBHmQBm2jlxJ5IaBapF1d8aJMyQ=;
+	bh=PRiVmHZo0P1XJRCamyYd4LEyikkxQWmgusm2LN4+v54=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=AS6dQDRaTvzUkPm7nCVIL13j+OsjqJmkODM10aviGhy40VwUwRAH3OddLrECf1j/B
-	 H+NTABiTjZQf4TG2xRVX37czNf5geHTXFwWhswjb9XUnuK30acsuNeOgdpI3q8OV5r
-	 D28USRIgtEPrlOEfWWqf8/fYvo67TCFNwInCKk6hgrIkTaNzs1PSPddH1QWYQ86AC0
-	 YA6TEaTRce/vAA3noTvvVxVJk3pqn0e+ScJI1+N7lP3K+J5EmADJ3aPzAAhzx2E4LZ
-	 ThXCyas5h+RIZy+DnY3zZ7YUWnlDW4UvcroTegeQsJ8GBpAMKPj8OGNTwZJM7eA5lK
-	 xi0fNGNX5zcoA==
-Message-ID: <sashiko-outbox-209091@kernel.org>
+	b=J8bQxih6QUh/H/v4+k00jdD6UIemJY4T7m1WG7XXhvfC6InY3FyRotjz9yN5YiQXe
+	 Ab+hJPcKYgHuhkezniQLhksXf8pnHGCyYmHNWvnzefEtMmKQ/uo+QFutY4tI1Tc3eU
+	 vtbXt6+0dF0KsgoKVdv8hr1AeEzs6xchLemJa6PZpe7J1CuKn0DIInojREy1B3w9C0
+	 VwJYUuV85mGVblEUxIgmI1+6equwlYsjMLI0vzKKxUaILWqOZlzxlSm5gsA9HE09hB
+	 ARVcMNni5WjKzVEKVal4ZNb4SWbPNhiTLs80oY8vMXw9pDUeDb4heJLppa0Y40f2al
+	 CE+2PgQwpFJ7A==
+Message-ID: <sashiko-outbox-209092@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH V1 rdma-next 06/24] RDMA/mlx5: Reject QP transport types
- not enabled by FW capability
+Subject: Re: [PATCH V1 rdma-next 07/24] RDMA/mlx5: Require IB_QPT_DRIVER for
+ the DC vendor QP types
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Yishai Hadas" <yishaih@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261110134320.34408-7-yishaih@nvidia.com>
+In-Reply-To: <20261110134320.34408-8-yishaih@nvidia.com>
 References: <20261110134320.34408-1-yishaih@nvidia.com>
- <20261110134320.34408-7-yishaih@nvidia.com>
+ <20261110134320.34408-8-yishaih@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 11 Nov 2026 13:46:47 +0000
+Date: Wed, 11 Nov 2026 13:46:48 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,18 +61,20 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> check_qp_type() checks the FW capability only for XRC and DC. RC, UC
-> and UD QPs are created even if the FW does not report the matching
-> capability bit.
+> check_qp_type() checks the dct capability only for IB_QPT_DRIVER, but
+> process_vendor_flags() turns any QP that carries a DC type flag into a
+> DCI or DCT QP. A QP created as, for example, IB_QPT_RC with a DC flag
+> thus becomes a DC QP without the capability check.
 >=20
-> Check the rc, uc and ud capabilities as well, so that QP creation is
-> refused for a transport the FW does not support.
+> Accept the DC type flags only on IB_QPT_DRIVER, the type userspace
+> uses to create DC QPs.
 >=20
+> Fixes: 37518fa49f76 ("RDMA/mlx5: Process all vendor flags in one place")
 > Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261110134320.3440=
-8-1-yishaih@nvidia.com?part=3D6
+8-1-yishaih@nvidia.com?part=3D7
 
