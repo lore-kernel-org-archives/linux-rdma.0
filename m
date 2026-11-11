@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794424328;
-	b=HK8+ELGYaisDcM/fLSkBvFtFgJzNa3xzLQ37b0VlLFyfxgL/bYMGmj/LH2ey9My30Nl0
-	 IwAlUB4v6ZCXt8NaLq2y3t6ojulTFpcqMBCEwyjkdpa5JEl+bgGvTtKNgL/SHDiqyfWAu
-	 //P1hEKWAJrwpgZlaHofv3AfNyZ8BeYffMBfRuoaQeerVIZbH4OngKQNEb9A+yf9twdba
-	 mhRHTBAR9Ryafp9hFqVT26CAwORKs91yGy5/Pf4wsOcWAWOLczFjot+BgD6hS/Zaeb8Wl
-	 WPKZM07ZrFvR/vaeCnM32EKiYJ9rcJgWTYC8xe+XdO2NFhAR/JxV4OCrT3ZVqTcuRsQ==
+	t=1794424323;
+	b=sEwgxYfx40cSpzqvjGXx8taPznrPAd9acisLqKuJh0wSPbxjOdgG4amRK29dGZqbXrzK
+	 43sN/wSAaBZ8w+y1XwTTdfe7FEUhIlc7mMgIQI8FEuIsB3MPoypRZvkD8rra3MhXpgbrx
+	 oXbNQJo2uWyc91h8MSZUkaWWtrmNc6V3spZ7tsdb4sD/285D5RuJDnr1tgQpeYBe7d90g
+	 UKpf8/q3QhshLKL9mWpeK1csxMpr5pTekrLZDKmu9400MPiPTShNT+B7Z/ToF/c0Ue9uu
+	 rogPurw1hwx2mjOn3Gd7I4FuQFCa5kHJ1x9iB4IKgHqztzTDtfML60weqStzahMbJwg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794424328;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794424323;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=jGvOIlTOeKyRBFS8dOTR3QjQ1zJt+mIHpbYnrWv4/V8=;
-	b=u2S/+lHOmF3sLTeG3IVSeTE/E6i+oUm7SE4VtWvCuya6uTd0aUN8N98ok0JxX1ZVgaxc
-	 ZqShyn59n6ZahjwCH8ubOl+SPdu2IaOPmipkE61ogTsCflvvjTKoYlEVpvsbsfsbmPuVL
-	 fj2MoCIMpbf/N5kAnEvEcScCPVfXpWr/Sh2wOg3MYrcnfVEoChqGWcLvuYQkQRhWhMHYm
-	 5dXpSm1XE8ewZrfiWLdM82BqzIw0CU2dqBcJ9xYxxojDstjn/s4kTOX/e1qDVAd4DLA1i
-	 fn1Ok2z5FBd0ua/SqWii/YtHiwicfs8p7Uj4g13md7mCNuzXeIfGBF49wganXyLVjpg==
+	bh=NdkY7xp/B3wLXw3qOXSqhfDSdGzSUXTIrLEEowBCGRg=;
+	b=cccO6AyJ1eN0+ZqjoeiW7hQjiRP5og87mtWtAia4jLgc66X1NYwV7T1xrd6+mZ/8ehLg
+	 9754ykHzf3qWv+6MrSz/4rzcs3MlvgZKmAPdUv6euF3yGWMg85CAX3UXnAVc+wDClrDQu
+	 9/IMBuVFk/m7/i24HgbjFwNXZMbh3N2ez8HvvT8osQ58Bx4TsY+b9pM++oaxC6xPY55h6
+	 J4ilpiLbdUat7WY2hJmGYWgbJrRrsZk2+kreZVTusBvCsvDPDjVgLuCvwlS3XbhzbCDJM
+	 6mkj609g4+u42D9u64rQHfi+dvYoIQha7Df+u+n4ucN25xnNn+9K64kwP4Wllc0Ht6g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XIxDLlGo;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=U5j+cBKs;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49D4D606A881;
-	Wed, 11 Nov 2026 19:12:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB0C560A2623;
+	Wed, 11 Nov 2026 19:12:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XIxDLlGo
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D4701F00A0E;
-	Wed, 11 Nov 2026 19:12:06 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=U5j+cBKs
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 392AD1F00A0A;
+	Wed, 11 Nov 2026 19:12:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794424327;
-	bh=jGvOIlTOeKyRBFS8dOTR3QjQ1zJt+mIHpbYnrWv4/V8=;
+	s=k20260515; t=1794424323;
+	bh=NdkY7xp/B3wLXw3qOXSqhfDSdGzSUXTIrLEEowBCGRg=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=XIxDLlGoZXvoaeaKnQLZPVrifVFUBVUpV8UOL5M9dXcSN+liqxWys2ABdrGynNn9T
-	 xy5tfQSuYB8yhdYLTU5FoKz+lWjMpyEJXPgeigzm9kBSCtUQeiU9bBJiGvBKnCmUr6
-	 4w5+qLImGf44G7yJdEp0tJLZC996AgSakxR8bz9DTe1Hws/Xk0O4fRmcYGzsqCGUy9
-	 bV6lRA/26X256WF7SiMh+p1hOJ+iJb6InwBYwnaPu6s3lKkdnn47Rz2nEA8XC+dQhO
-	 tCtOUYtXln/3Z62GgV0v3hQRn0SvRWVket4WUodAY9zlgPDPSDKznAfzSD0oBByxid
-	 g8gFAJDgU+/cA==
-Subject: Re: [PATCH net-next 05/10] net/mlx5e: TC, reject a partial tunnel key
- with tunnel mapping
+	b=U5j+cBKsc9a+yOI/eNXb3MiV6eEzlMohwMgskjrcIC+ih7x1kepi0vN+TEoMw7dOY
+	 0FSxCO87K0iZ2f9iUQIGWPPNp+RQ50211hsLgk7+h8bILxLAw1LgXO5O9/C47rzPQQ
+	 L4orGYyYDz/NDqvYW3qv1pPplfev5UT2a3YmujDY9ciRiaoL8VDz4pJDcDEuoMZ22o
+	 fn/J9bjAZ22AhP5NrwgKeuEkVUbttOntcm9W2BtpMeBOn2czZvB8jffSxJz1mqchs8
+	 87HxPmdG1M85svOBi0M7Hnq6Fy2vn1kxMoOX0pQGbqNwjB8F+9yMZ5n95Ngf5qIbDO
+	 PJXWzKJzJTX4g==
+Subject: Re: [PATCH net-next 03/10] nfp: flower: refuse a tunnel key wider
+ than the VNI
 From: netdev-bot+sashiko@kernel.org
 To: acassen@corp.free.fr
 Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
@@ -53,10 +53,10 @@ Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
  idosch@nvidia.com, shuah@kernel.org, netdev@vger.kernel.org,
  linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org,
  linux-kselftest@vger.kernel.org, oss-drivers@corigine.com
-Date: Wed, 11 Nov 2026 19:12:05 +0000
-Message-ID: <179442432587.2199510.12038956805266142950@kernel.org>
-In-Reply-To: <20261109131039.959438-6-acassen@corp.free.fr>
-References: <20261109131039.959438-6-acassen@corp.free.fr>
+Date: Wed, 11 Nov 2026 19:12:01 +0000
+Message-ID: <179442432180.2199510.17732935950535223359@kernel.org>
+In-Reply-To: <20261109131039.959438-4-acassen@corp.free.fr>
+References: <20261109131039.959438-4-acassen@corp.free.fr>
 X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -76,81 +76,87 @@ you want to address the nit picks below when you respin.
 
 Low priority / nit picks for your consideration:
 
-- [Low] The new check in mlx5e_get_flow_tunnel_id()
-  (drivers/net/ethernet/mellanox/mlx5/core/en_tc.c) rejects any…
+- [Low] In drivers/net/ethernet/netronome/nfp/flower/offload.c, the new
+  nfp_flower_check_tun_vni() fixes a bug that already exists.
 
 --
 
-net/mlx5e: TC, reject a partial tunnel key with tunnel mapping
+nfp: flower: refuse a tunnel key wider than the VNI
 
-This commit adds a check to mlx5e_get_flow_tunnel_id() that rejects an
-enc_key_id mask other than all-ones when tunnel mapping is used. The
-mapping is used to restore tunnel metadata for packets that miss in
-hardware after a goto chain or a sample. This is preparation for flower
-accepting partial enc_key_id masks.
+This patch adds nfp_flower_check_tun_vni() so that VXLAN and GENEVE flower
+rules are refused when the enc_key_id key does not fit in the 24 bit VNI.
+The check runs in nfp_flower_calculate_key_layers() after the UDP tunnel
+type is known. GRE keeps its 32 bit key.
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> index 708b7987ea4cd..28f09d234835d 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-
-[ ... ]
-
-> @@ -2265,6 +2266,16 @@ static int mlx5e_get_flow_tunnel_id(struct mlx5e_priv *priv,
->  	u32 value, mask;
->  	int err;
->  
-> +	/* The mapping restores the tunnel id of a packet missing in hardware */
-> +	if (flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_ENC_KEYID)) {
-> +		flow_rule_match_enc_keyid(rule, &enc_keyid);
-> +		if (enc_keyid.mask->keyid != cpu_to_be32(U32_MAX)) {
-> +			NL_SET_ERR_MSG_MOD(extack,
-> +					   "Partial match of tunnel key in chains isn't supported");
-> +			return -EOPNOTSUPP;
-> +		}
-> +	}
+> diff --git a/drivers/net/ethernet/netronome/nfp/flower/offload.c b/drivers/net/ethernet/netronome/nfp/flower/offload.c
+> index 161190200dbd0..e5f6f4f464ad6 100644
+> --- a/drivers/net/ethernet/netronome/nfp/flower/offload.c
+> +++ b/drivers/net/ethernet/netronome/nfp/flower/offload.c
+> @@ -150,6 +150,23 @@ static bool nfp_flower_check_higher_than_l3(struct flow_rule *rule)
+>  	       flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_ICMP);
+>  }
+>
+> +static int
+> +nfp_flower_check_tun_vni(struct flow_rule *rule,
+> +			 struct netlink_ext_ack *extack)
+> +{
+> +	struct flow_match_enc_keyid enc_keyid;
+> +
+> +	if (!flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_ENC_KEYID))
+> +		return 0;
+> +
+> +	flow_rule_match_enc_keyid(rule, &enc_keyid);
+> +	if (be32_to_cpu(enc_keyid.key->keyid) < VXLAN_N_VID)
+> +		return 0;
 
 [Severity: Low]
-Should the full-mask width here depend on the tunnel type?
+The commit message says "An exact key above bit 23 already selects the
+wrong VNI", so this check also fixes a bug that exists today. Should the
+patch carry a Fixes: tag and a stable Cc so that stable trees get it too?
 
-On VXLAN and GENEVE the tunnel key is a 24-bit VNI. The parsers in the
-same driver already refuse wider keys and program the 24-bit match
-fields:
+Before cls_flower accepts an enc_key_id mask, fl_set_key() passes
+TCA_FLOWER_UNSPEC as the mask attribute. That means any enc_key_id that is
+present always gets an exact mask:
 
-drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun_vxlan.c:mlx5e_tc_tun_parse_vxlan() {
+net/sched/cls_flower.c:fl_set_key() {
     ...
-	if (be32_to_cpu(enc_keyid.key->keyid) >= MLX5E_TC_TUN_N_VNI) {
-    ...
-	MLX5_SET(fte_match_set_misc, misc_c, vxlan_vni,
-		 be32_to_cpu(enc_keyid.mask->keyid));
+	fl_set_key_val(tb, &key->enc_key_id.keyid, TCA_FLOWER_KEY_ENC_KEY_ID,
+		       &mask->enc_key_id.keyid, TCA_FLOWER_UNSPEC,
+		       sizeof(key->enc_key_id.keyid));
     ...
 }
 
-mlx5e_tc_tun_parse_geneve_vni() does the same with geneve_vni.
+nfp_flower_compile_tun_udp_key() then shifts the key and the mask left by
+NFP_FL_TUN_VNI_OFFSET (8), which throws away bits 24-31:
 
-That means a mask of 0x00ffffff programs the same hardware criteria as
-0xffffffff. The masked key stored in the tunnel mapping is also equal to
-the full VNI, so mlx5e_tc_restore_tunnel() would restore the correct
-tunnel id.
+drivers/net/ethernet/netronome/nfp/flower/match.c:nfp_flower_compile_tun_udp_key() {
+    ...
+		vni = be32_to_cpu((match.key->keyid & match.mask->keyid)) <<
+		      NFP_FL_TUN_VNI_OFFSET;
+		*key |= cpu_to_be32(vni);
+		vni = be32_to_cpu(match.mask->keyid) << NFP_FL_TUN_VNI_OFFSET;
+		*key_msk |= cpu_to_be32(vni);
+    ...
+}
 
-Once the later series commit "net/sched: cls_flower: add enc_key_id mask"
-lets userspace send a mask, a rule like enc_key_id N/0xffffff on a VXLAN
-or GENEVE device would be refused with -EOPNOTSUPP here. This happens in
-any chain > 0, and in chain 0 with goto or sample. Is that intended?
+So on current and stable kernels, a VXLAN or GENEVE rule with enc_key_id
+0x01000005 gets programmed into the NIC as VNI 5 with mask 0xffffff00. The
+hardware then matches VNI 5 traffic. In software the rule never matches,
+because VXLAN and GENEVE tunnel ids are only 24 bits wide.
 
-The extack text "Partial match of tunnel key in chains isn't supported"
-also seems misleading for that case, because the mask covers the whole
-VNI.
-
-The earlier series commit "net/mlx5e: TC, refuse a tunnel key wider than
-the VNI" treats 24 bits as the full key for VXLAN and GENEVE, but this
-check uses 32 bits. Only GRE, with its 32-bit gre_key, seems to need a
-full 32-bit mask. This check is still the same at the end of the series.
+The Fixes: tag would need to point at the commit that first added
+VXLAN/GENEVE VNI matching to nfp flower. Commit 77a5f73a8b33 ("nfp: flower:
+move udp tunnel key match compilation to helper function") only moved this
+code and says it makes no functional change, so the original commit is
+older than that one.
 
 > +
->  	esw = priv->mdev->priv.eswitch;
->  	uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw, REP_ETH);
->  	uplink_priv = &uplink_rpriv->uplink_priv;
+> +	NL_SET_ERR_MSG_MOD(extack, "unsupported offload: tunnel key does not fit the 24 bit VNI");
+> +	return -EOPNOTSUPP;
+> +}
+> +
+
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261109131039.959438-1-acassen%40corp.free.fr
