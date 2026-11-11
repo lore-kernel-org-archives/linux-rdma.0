@@ -1,54 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794402215;
-	b=OrDH/ibPccXw1TbO2KvVpGn9bXLlHx0/uy6kjBkZQKL0y7ZRs8YxiUoC6sNbOCvtlzZK
-	 yDCHPaCutTl62ITCcNOi/FuqaKdQvjWylEDFB0F44inNCfzN/UKv+efkZxaCOruOTdcA3
-	 MKtViulgtD8H1brCusqvHthTmINTIEOS564v+hgZcdpyqknu8nD4+V61HtFaMXsIS8vVM
-	 DdGyByvnr01ZYHZF6e6rZnntBDQsUN0K4d65DfjdyKF2vvg/txaRxi1vtJwQC1Gj0oqdl
-	 3wxVA8RAkJdnSTZNjVwl8fHvZl66tMMxV5AmyT3G6h0cjGqP8LnsUYxhGJbXdSK99AA==
+	t=1794402456;
+	b=KC711CnW8Pg1SjaUzK63VTg/b5UnnLp7ABgEII8y4UOsC/oxo1jXcqsSHBd+5cJXyIgM
+	 IBR9jIOV61igClEMeu2jFo859PIDxbz4pNwDRysL1rIqnLSoSOE/fVFHfZx+4cLlAyoKU
+	 surfDqZw75F6fgwJCD8dAH0Hzs1zIapdiSCh0j7ST2W6U4h7QFUfNT5v/ELAig/tUk2j9
+	 5VXlK1fpsZzaITpPCfP4CWwKrqpE/n7zLzjga8fXYgage+cqiS0MOEGXsakMcJck4krmX
+	 uipoEr9j3e+GIrhHNS3MuAk5D635YpvM/ot4JVV6ALGAaxyUqY6OYINafTY9kgoueAw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794402215;
-	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
-	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Mailer;
-	bh=6YmO+MoEE0ce5P3MUBMcliy9K3KCnXGyVw8iCLp6D8w=;
-	b=EuB2EVt/qwl2J1MxxIrrgFq25fEbSXeFBmoD8a7YlgoZcL5HEUv3A0ZQfH2VmaunlExU
-	 2yYIBASLRpMEIxRl6ZQ2uaZY0e9uxQ0qbQAhHxByWJ/mNDPghbUaOMPLAX8T8zXV688Cu
-	 1zUFXK9/lwOgfsUmnN1Kee63AI9hsIEMSJZfyKUG93fJthvw0WV+LaW4C2idDueuYbPrq
-	 ioNi+GBh7Kdiz/+RhwhVtSDZwgCEvp7Ehn2kQmstmw9qxeOgo9/ryktjrbRSKEgUjaf8L
-	 hxhr5dUblluKegYUNLp0abwdqdcUx6TNbL92y1J8wCsifndygwC44Nqe+GIv4FNmUyw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794402456;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=XqUYhSlvBHP0cvJjkQW9/TQ+C8BRRvAIssLjdxVusqY=;
+	b=iA9Ad3uodTVtVGYksQx/MATXCVftgjs516ebrF7OX8RAIYs/VE8kbkmC7xuWDyhrT73/
+	 kBqhKaclBt4Gye4B25g3Eosn5NoK4+8UEE6m9Dt7YB2y1WW829dlL1fkNm5JNdUqeCeE4
+	 ZoxoLZ/iNgtnmN1WWS8DU92MALlE/FsTOUPRwKsuuDTmxNs3/gDErIfgYX67U2R2oRJj6
+	 Sp3hIeY7Ys479cvXZywEpPfF6hv2PUfUyGtUXv6udOf6/np6FjpW8A43C45xUFfU0m43f
+	 ueAMJO0puM4EuOanCfPR/cVxfaf3jEfzP0sVgqqvd2lrNnPrpXFZ77FLi0nDqHCgpbg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=M8lCtOCM;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gzLc4gFD;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FD96606A31C;
-	Wed, 11 Nov 2026 13:03:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14251606A31C
+	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 13:07:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=M8lCtOCM
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E99C1F00A05;
-	Wed, 11 Nov 2026 13:03:34 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gzLc4gFD
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 816941F00A05;
+	Wed, 11 Nov 2026 13:07:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794402215;
-	bh=6YmO+MoEE0ce5P3MUBMcliy9K3KCnXGyVw8iCLp6D8w=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=M8lCtOCMs+ipL0JNSRuUd+G2YyETYvnrZkrFcUvQU3ffGQ4gcqm2xLyUM+Daf21Vv
-	 P5ZU684C7BmWCOu6KmkawX0sMKHpPlW7no1JkweVEizdrHMtsqWix/lIOZ3uYGGMsr
-	 jY58lWscPa5ZcbczPddGp+cE76N+7FQnlMVcit47V0FR/CqqPxHMd1C3lgjb/fSClE
-	 KMnm1XFsAeH8oEvWxktoUEhT0d6BZtCbD/TqqajxL2h0zYyvPdBXdsxRVWHaTECj/+
-	 hypVk9HG7x4HESRjiN0ZXxCrf6bGAU20jDv8TwMm1slMpaVDy6O6JaP9Rw/WhRj/HE
-	 HS0U8OImF1DOg==
-From: Leon Romanovsky <leon@kernel.org>
-To: Chengyu Liu <lui2012qwq@gmail.com>
-Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, stable@vger.kernel.org
-In-Reply-To: <20261105042922.14733-1-lui2012qwq@gmail.com>
-References: <20261105042922.14733-1-lui2012qwq@gmail.com>
-Subject: Re: [PATCH v3] RDMA/ipoib: cancel the AH reaper synchronously on
- teardown
-Message-Id: <179440221192.582485.13243946413799722882.b4-ty@kernel.org>
-Date: Wed, 11 Nov 2026 08:03:31 -0500
+	s=k20260515; t=1794402455;
+	bh=XqUYhSlvBHP0cvJjkQW9/TQ+C8BRRvAIssLjdxVusqY=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=gzLc4gFDdC6ZOu0sv+F7rWRk2NiMOftk9GfiHJprIWuFLI2Pqc7dGykTrMArTjUA1
+	 agIpZP9YEWiGp9h7FQVOQN0MHbwdvnCudqENfZPtvuZgufeXAeVK7ybkkRYl9q1IGa
+	 Oj+hZrroux8+ZFSQj0vz5AKrdkFFsdD/KpLbFY5muuQbmfo4C3twOH1A5+YSQ5qKIP
+	 GxTiY7pqYIEp5JPUP51+wLGnBvvHR6OiDdrhDMf+5uF/RTSWKRv6/PfAf5x2ADML+E
+	 vKzzKATBo4768b8gBoeeWo9IiR2z4cXRWe6oR43GSkSP7g3SNztPHMPqJE/ExVUk5E
+	 yCW3JODDrdznQ==
+Message-ID: <sashiko-outbox-209040@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH rdma-next v10 6/9] RDMA/mana_ib: Post send and
+ memory-management WRs on RC QPs
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261111121417.1265896-7-kotaranov@linux.microsoft.com>
+References: <20261111121417.1265896-1-kotaranov@linux.microsoft.com>
+ <20261111121417.1265896-7-kotaranov@linux.microsoft.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 11 Nov 2026 13:07:35 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -57,34 +60,23 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
 
+> From: Konstantin Taranov <kotaranov@microsoft.com>
+>=20
+> Implement send work request posting for RC QPs. Post communication WRs
+> to the send queue and memory WRs to the memory management queue.
+>=20
+> Advertise the memory management extensions on adapters that support
+> extended WQEs.
+>=20
+> Annotate the immediate-data OOB fields as little-endian to match
+> the encoded values and avoid Sparse endianness warnings.
+>=20
+> Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 
-On Thu, 05 Nov 2026 12:29:22 +0800, Chengyu Liu wrote:
-> ipoib_stop_ah_reaper() uses cancel_delayed_work(), which cannot stop a
-> callback that is already running.  ipoib_reap_ah() re-arms itself after
-> an unlocked test_bit(IPOIB_STOP_REAPER) check, so a callback that has
-> passed the check but has not re-armed yet still queues the delayed work
-> after the "stop":
-> 
->   CPU0 (reaper)                     CPU1 (stop/teardown)
->   test_bit(STOP_REAPER) == 0
->                                     set_bit(STOP_REAPER)
->                                     cancel_delayed_work()  (no-op)
->                                     ... destroy_workqueue(priv->wq)
->   queue_delayed_work(priv->wq, ...)  <- delayed work sits on the timer
-> 
-> [...]
+Sashiko has reviewed this patch and found no issues.
 
-Applied, thanks!
-
-[1/1] RDMA/ipoib: cancel the AH reaper synchronously on teardown
-      https://git.kernel.org/rdma/rdma/c/36d1eca030a37b
-
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261111121417.1265=
+896-1-kotaranov@linux.microsoft.com?part=3D6
 
