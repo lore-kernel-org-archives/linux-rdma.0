@@ -1,62 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=67.231.153.30
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=67.231.145.42
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794358609;
-	b=PJ77uksjTYohVbniD7wzflvzD1bQmK9zMXwb3a4UXXsvSziGY8ou7ZYsr9DX2+/0j7mB
-	 zXWDNt3dxJi2RDRsaQ4ChtBCBaxr/JgD+RIu04LVZnSX/T5r1cPLfa+9Z9jDUCzDjo0cF
-	 0nfrRC1T6AKMsUP9KFnuqnWL9MFGQB7De4abQSkLtYk165rt1SBer6dXkBEZgsUXDIfyT
-	 hN84SsHGoxFL4nMuu4g+qmEPO0z5lfBZcZvDHxNVq8Hn3AY+7dOpF5igSKRVicNn3nvW9
-	 QYxPAUjQhvRLRl4MGf7b0nmqaREZ/BnumzluD0uudD80LrdWJinnt+dwSre6dD/cPmA==
+	t=1794358610;
+	b=mw0qLHFCN2qgYvw3/9rtpLkLH++Jl9yg6B6aT9FHNWgbQX3PQHSRGqa6v2qp4aOf+PfW
+	 4N2CIHleaKklx43LBQAqwAiQDuwtwACwkpBROq5J4SepauicjpsuJQkun+rfz/SoKdx9q
+	 Phs1Y4+vsb7y07vl6nSWLmv0mhkxsl0ebKOd5SIU7pXTyxIaIrnmOowlocMp1Id/xqOzb
+	 1Ift7OJqDFDXXbtgW1zU3ROB+O76tsnQ1zKvo1kOf10nfIGWJMueicZ0N3FF8V/MeWFnQ
+	 f4ciBgumGFJ6HymkQdr59y1sCMurgrovU54jBlg92eTZzkw28eia9v4POW1av/X9itw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794358609;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794358610;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:From:To:CC:
 	 Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:Content-Type:X-Originating-IP:
-	 X-Proofpoint-GUID:X-Authority-Analysis:X-Proofpoint-Spam-Info:
+	 X-Authority-Analysis:X-Proofpoint-GUID:X-Proofpoint-Spam-Info:
 	 X-Proofpoint-ORIG-GUID:X-Proofpoint-Spam-Details-Enc:
 	 X-Proofpoint-Virus-Version;
-	bh=+1LibQQLPKM4D2ajYv2wbrs66QTPPLBOK0a4ogH5UlE=;
-	b=BjYXefdO3boJQpJxMCQu/i/gxcqzgJRb5X2k7GvjdjjAqdx3MKmF99Pb7YiO3Gl5dbGo
-	 exWp6fC+gdz8eSBEilaut9Kpj9xP9SptVfMTedWJwtvqZBChrp8pwwgzJw85xVLfTd7gD
-	 JkRBAKEQy8vIzRd9DS0Y9uiTcp55S78W70sLOYiZNfiMMviSD8Uz5dHFLY/Ke/Xid9ODj
-	 VsmmIHE8JWBI/lq5glWEE3e2ctZhw1DX3dtadlQFlT3V8kmYpu4Z9f1vqFlpItm2vb6Bs
-	 3cc3rq3qHmA1MwRt+x+ZLkwMeFc6zoIm1KKRwcjv5LLWROJJWe5Lzu7DbzwWjf2JaNg==
+	bh=fe/3ZzWyMTm9YIRz1HSgSxtZ46qPtlw2KRJRQ2hdvFM=;
+	b=PTWIB65R8Z+PQQnNT5R+4C1mtXC345OKSbRU7YDHFfbHDzXjR/uqapOY3vV/q/gUfzhc
+	 NjmmuSfXeu+MkotMx41F12samjtdelm1qh2eoTf5I1Vu1jb9BrqfcwdKi/flz3SftssMB
+	 Xt5RCA6wq76xdPy0XqqjnuvCtUFpV5Ml+6SkVK7/huVm+6ZdHyK8MVJD4WqxX6duXnMur
+	 vRsN3Fa45ZOJaiSzY9/yakO84Edain47DhBamPuxGFnoM7YOPZpBPp14syVVq52GgfWLM
+	 DOEWCY1T9q6CTI9C3OLbg7vtbd4nxX3XeVarr2MR6RS+ip7Yq+TFyLn32501+jQmZRw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=meta.com;
 	spf=pass smtp.mailfrom=meta.com;
-	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b="HZrBb/Rt";
-	arc=none smtp.remote-ip=67.231.153.30
-Received: from mx0b-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
+	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=Ntxa8gDe;
+	arc=none smtp.remote-ip=67.231.145.42
+Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ED5E606AA02;
-	Wed, 11 Nov 2026 00:56:48 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1ED5E606AA02
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6327606AA16;
+	Wed, 11 Nov 2026 00:56:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C6327606AA16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=HZrBb/Rt
-Received: from pps.filterd (m0148460.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AB0WRv02552606;
-	Tue, 10 Nov 2026 16:56:22 -0800
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=Ntxa8gDe
+Received: from pps.filterd (m0109333.ppops.net [127.0.0.1])
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AB0WPid3063914;
+	Tue, 10 Nov 2026 16:56:16 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to; s=
-	pps82601-s2048-2026-q3; bh=+1LibQQLPKM4D2ajYv2wbrs66QTPPLBOK0a4o
-	gH5UlE=; b=HZrBb/RteNoalKWpVdIcGVtlZrRSQYdnBMhXJEXmheq9LQE79k/nz
-	DQFuOSxjxwSIFDrouwdtLhnA6P+8/FLd4OgrVwwiEJ/bLQPDiRjS26XT2/asRP6e
-	74LubeOcZzozm5bod3A+S4Tcq2yD7ncfgwx0LGOY0z44B4Ew0Tn7WecF7cOtO2/g
-	kkBffDh4snoq9EktMeioLrkLEdjzH1oCAQ18pd7WXWAv7VC+AYOkF2sf4W9w6Ce7
-	k5Kgvf0wqnLZaY3ty9lRqYs/yzVPINQ7IEXbkUgodSfTbCpbfudm5ZW6WTAhC2mh
-	Uiz707pfxOADvd5WVIlipBAEDz/1OPjCA==
-Received: from mail.thefacebook.com ([163.114.134.16])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4hv7y3u5g0-1
+	pps82601-s2048-2026-q3; bh=fe/3ZzWyMTm9YIRz1HSgSxtZ46qPtlw2KRJRQ
+	2hdvFM=; b=Ntxa8gDed7SBllRXgRfxFl+R1KwwT9yE4wKQAQGfheOIlJYXWLSkg
+	hgCMrqSlhwKg95WZ754NUzbCm1jgxpKSgQuBbnV7y32A9phDSrendOjS2RGg9C55
+	y9bzVGARH5NXLSl9+wrVqC+dnY7+69lyAHXDNAhiOGz82T+WstfXq6//oxOd1Sfe
+	037TUvDSJsG33TiNGcRfXRzBVLEfYEcLjNFOkmMNGSqb/vuhc0gPEF5cVd1d2pp/
+	FvvW8kkZjOkBiieKlkt/GcetUQdO14ootss+HZzluZJibbTE9cZ0RfjH6RoZuXxF
+	WqtZApdsayKDpC0uHCbUZi13xUiychSmQ==
+Received: from maileast.thefacebook.com ([163.114.135.16])
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4huqrpspmq-5
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Tue, 10 Nov 2026 16:56:21 -0800 (PST)
-Received: from localhost (2620:10d:c085:108::150d) by mail.thefacebook.com
- (2620:10d:c08b:78::c78f) with Microsoft SMTP Server (version=TLS1_2,
+	Tue, 10 Nov 2026 16:56:16 -0800 (PST)
+Received: from localhost (2620:10d:c0a8:1b::2d) by mail.thefacebook.com
+ (2620:10d:c0a9:6f::8fd4) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.56; Wed, 11 Nov
- 2026 00:56:11 +0000
+ 2026 00:56:13 +0000
 From: Todd Freed <toddfreed@meta.com>
 To: <netdev@vger.kernel.org>, <toddfreed@meta.com>
 CC: "David S. Miller" <davem@davemloft.net>,
@@ -85,9 +85,9 @@ CC: "David S. Miller" <davem@davemloft.net>,
         Wei Wang <weiwan@google.com>,
         Willem de Bruijn
 	<willemdebruijn.kernel@gmail.com>
-Subject: [PATCH net-next v1 12/15] selftests: drv-net: psp: test that software encap on ingress drops
-Date: Tue, 10 Nov 2026 16:55:30 -0800
-Message-ID: <20261111005533.6436-13-toddfreed@meta.com>
+Subject: [PATCH net-next v1 14/15] selftests: tc-testing: add tests for the psp action
+Date: Tue, 10 Nov 2026 16:55:32 -0800
+Message-ID: <20261111005533.6436-15-toddfreed@meta.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20261111005533.6436-1-toddfreed@meta.com>
 References: <20261111005533.6436-1-toddfreed@meta.com>
@@ -102,248 +102,538 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: Z92DtesEhwaiwfEfDUDd1wWq8PbtNJg-
-X-Authority-Analysis: v=2.4 cv=PeFqFShd c=1 sm=1 tr=0 ts=6af3bd35 cx=c_pps
- a=CB4LiSf2rd0gKozIdrpkBw==:117 a=CB4LiSf2rd0gKozIdrpkBw==:17
+X-Authority-Analysis: v=2.4 cv=PapqFShd c=1 sm=1 tr=0 ts=6af3bd30 cx=c_pps
+ a=MfjaFnPeirRr97d5FC5oHw==:117 a=MfjaFnPeirRr97d5FC5oHw==:17
  a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
- a=JnKecZnUtZousrUlYMGU:22 a=VabnemYjAAAA:8 a=y88YBaQT-65dKC87SboA:9
- a=O8hF6Hzn-FEA:10 a=gKebqoRLp9LExxC7YDUY:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTExMDAwMyBTYWx0ZWRfXxm5TlbWlYr3x
- 7PkURyu0FwEq2vuwajvoGTBscQurqTnlzmJlyZiQKwIMcNvI1N66Fzew/3Crgl94JmiPqsbJFBE
- s5yBjrmU/8Kv959ZedH6W43eC5MMVL4=
-X-Proofpoint-ORIG-GUID: Z92DtesEhwaiwfEfDUDd1wWq8PbtNJg-
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTExMDAwMyBTYWx0ZWRfXwNqgTM+2c+iP
- 25QmpwlQEH5CiFBM4urWCMgO8sP/2bFbdWsJVcDenCsWdv/2LmP5zfcSpqIAsrXGasS8sPg0FOG
- XL164asmDBmfmLhgsNsQDo7p14I6iAXLpxDW1sC4AKbCXeXqcndaSwJTbId7CRuOR4tt6xYMO9D
- lLWrm+f5JhnjV0hYQqV1WL9+vyf79L+GWE9yR+bwnIRmdGTtery97kW9FzF+EX5KdicArCehpBH
- SnNEx/8DyUa9Y+ZnrOrUZkYokVqjh7s7Bck5orC3vTz9wMFTTOYF7IWz2mLw2yoyu8ymBVo9Hj/
- peHuxGwNa92asFXQLwMEv0HLw6TcEGUEckX6IeDo5PN+ENcbI4C0H1oxU79+J4DraAQkkpsePv2
- qUmLaD4Oqy/urGbgQt5GAUjnUIldIUcziGuOolEgx5u/iw08/UX30IsUFWi61fI1PgygHe+VcVZ
- lpv5RixzkQF4LNPjY7A==
+ a=tpM8CJlwf7uhpglF1g9U:22 a=VabnemYjAAAA:8 a=HMdNEJOxOCjlhTofXdEA:9
+ a=gKebqoRLp9LExxC7YDUY:22
+X-Proofpoint-GUID: DoLNlsY-Bh1k9nVE8ajU8J4GNffGjODP
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTExMDAwMyBTYWx0ZWRfXxEHWoec5vg9A
+ 6NpXtmyK7F99zoGIX8Ip2HJc4uBeFBWpWZBnTjBE5F5vbLssI9l+rCpUoAXUR8vxNcG38tDPA/N
+ mXkPxbHz4SNKG1+8UoUE6okXYF7hQMw=
+X-Proofpoint-ORIG-GUID: DoLNlsY-Bh1k9nVE8ajU8J4GNffGjODP
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTExMDAwMyBTYWx0ZWRfXyAvSZ0bLBebA
+ NetXwZjRYrndfrs4mRH+X0TaWw2SnsqtteRh3XXVo5GlBhG7f5gjyYdnTh6fwWGM1gRmWsjp5S4
+ ubkCnwmT+QSHqYO26gfpI3LttGypBVgs04DQkDq8PX07mXvJIPgi12FZN4Obr9PUB5vuiqdaVHI
+ lekMDzqVi1uaF6FW92WudHAo5iZRaGkQ6GCun6uJI2x7swLcrFAfPa9P7M0m9EOy4RSweyNlIeR
+ LsEgDOu3a3F3o1TYIncDDXJlQArLM+oVS/iFuU20AoX+OwUjxq7n0bOgOryiyyr3TwEDE+U7Dwd
+ +kozmBWtsMu19SCEGnTrBgM6ytS9V+kfR8upYg0HPoR0LTQWhKvFOxyiFh1JrPMzD6Hfdkx6WMI
+ bIk90P9iq7rir9s6BpDSTmYE2p9AZufDtBnSR/XC4n09H51fgOnWakD3vY3ys4pgSbTFt6KVKRO
+ 7sgG/lyZW+8ZXA1lqrg==
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
  definitions=2026-11-10_07,2026-11-06_01,2025-10-01_01
 
-encap on ingress is hardware offload only. In software, the packet is
-dropped.
+Add / replace / delete / flush psp decap actions, check that encap
+without an association, associations which don't exist, and decap with
+an association are rejected, and add flower filters matching on
+psp_spi, psp_ver and psp_dev, out of range psp_ver and psp_dev
+rejected.
 
-Verify it on traffic of a client behind a veth, with encap on the veth's
-ingress: forwarded, the packets must not reach the remote in clear text,
-and to a local address, they must not reach the local socket.
+Creating associations takes the PSP netlink family and a PSP device,
+the drv-net psp.py test covers actions using them.
 
-  data_tc_encap_routed  routed packets are dropped by encap, IPv4 and
-                        IPv6
-  data_tc_encap_local   so are packets to a local address
+The tests need a tc with the psp action and the flower psp_* keys; they
+skip without it (dependsOn).
 
 Signed-off-by: Todd Freed <toddfreed@meta.com>
 ---
- tools/testing/selftests/drivers/net/config |   2 +
- tools/testing/selftests/drivers/net/psp.py | 159 ++++++++++++++++++++-
- 2 files changed, 159 insertions(+), 2 deletions(-)
+ tools/testing/selftests/tc-testing/config     |   2 +
+ .../tc-testing/tc-tests/actions/psp.json      | 459 ++++++++++++++++++
+ tools/testing/selftests/tc-testing/tdc.sh     |   1 +
+ 3 files changed, 462 insertions(+)
+ create mode 100644 tools/testing/selftests/tc-testing/tc-tests/actions/psp.json
 
-diff --git a/tools/testing/selftests/drivers/net/config b/tools/testing/selftests/drivers/net/config
-index baf1c9d0dd13..b39de6e64263 100644
---- a/tools/testing/selftests/drivers/net/config
-+++ b/tools/testing/selftests/drivers/net/config
-@@ -5,6 +5,7 @@ CONFIG_DUMMY=m
- CONFIG_INET_PSP=y
- CONFIG_IPV6=y
- CONFIG_MACSEC=m
-+CONFIG_NET_ACT_GACT=m
- CONFIG_NET_ACT_MIRRED=m
- CONFIG_NET_ACT_PSP=m
- CONFIG_NET_ACT_SKBEDIT=m
-@@ -25,5 +26,6 @@ CONFIG_NET_SCH_PRIO=m
- CONFIG_PPP=y
- CONFIG_PPPOE=y
- CONFIG_TLS=y
-+CONFIG_VETH=m
- CONFIG_VLAN_8021Q=m
- CONFIG_XDP_SOCKETS=y
-diff --git a/tools/testing/selftests/drivers/net/psp.py b/tools/testing/selftests/drivers/net/psp.py
-index fb7544410051..f7613fcd2fbf 100755
---- a/tools/testing/selftests/drivers/net/psp.py
-+++ b/tools/testing/selftests/drivers/net/psp.py
-@@ -22,7 +22,7 @@ from lib.py import ksft_variants, KsftNamedVariant
- from lib.py import KsftSkipEx, KsftFailEx
- from lib.py import NetDrvEpEnv, NetDrvContEnv
- from lib.py import Netlink, NlError, PSPFamily, RtnlFamily
--from lib.py import NetNSEnter
-+from lib.py import NetNS, NetNSEnter
- from lib.py import bkg, rand_port, wait_port_listen
- from lib.py import cmd, ip, tc
- 
-@@ -1242,6 +1242,160 @@ def data_tc_encap_ingress(cfg):
-             del_flt.exec()
- 
- 
-+def _tc_act_stats(dev, pref, host=None):
-+    """ Stats of the first action of the ingress filter @pref of @dev """
-+    filters = tc(f"-s filter show dev {dev} ingress pref {pref}",
-+                 json=True, host=host)
-+    for flt in filters:
-+        for act in flt.get("options", {}).get("actions", []):
-+            return act["stats"]
-+    raise KsftFailEx(f"no action on the {dev} pref {pref} filter")
-+
-+
-+def _tc_act_pkts(dev, pref, host=None):
-+    """ Packets of the first action of the ingress filter @pref of @dev """
-+    return _tc_act_stats(dev, pref, host)["packets"]
-+
-+
-+def _fwd_client(cfg, ipver):
-+    """
-+    Set up a client in a netns behind veth psp-fwd0, and forward its
-+    traffic: only from psp-fwd0, the host's own forwarding settings stay as
-+    they are. Return a UDP socket of the client.
-+    """
-+    ns = NetNS()
-+    defer(ns.__del__)
-+    ip(f"link add psp-fwd0 type veth peer name psp-fwd1 netns {ns.name}")
-+    defer(ip, "link del psp-fwd0")
-+    if ipver == "4":
-+        fwd = "/proc/sys/net/ipv4/conf/psp-fwd0/forwarding"
-+        local, client, plen = "198.51.100.1", "198.51.100.2", 24
-+    else:
-+        fwd = "/proc/sys/net/ipv6/conf/psp-fwd0/force_forwarding"
-+        local, client, plen = "2001:db8:fe::1", "2001:db8:fe::2", 64
-+    if not os.path.exists(fwd):
-+        raise KsftSkipEx(f"{fwd} not supported")
-+    # Goes away with the device
-+    with open(fwd, "w", encoding="utf-8") as fp:
-+        fp.write("1")
-+    # IPv6 may be disabled on new devices
-+    if cmd(f"ip addr add {local}/{plen} dev psp-fwd0 nodad",
-+           fail=False).ret:
-+        raise KsftSkipEx(f"can't add {local} to a new device")
-+    ip("link set psp-fwd0 up")
-+    ip(f"-n {ns.name} addr add {client}/{plen} dev psp-fwd1 nodad")
-+    ip(f"-n {ns.name} link set psp-fwd1 up")
-+    ip(f"-n {ns.name} route add default via {local}")
-+
-+    family = socket.AF_INET if ipver == "4" else socket.AF_INET6
-+    with NetNSEnter(ns.name):
-+        s = socket.socket(family, socket.SOCK_DGRAM)
-+    defer(s.close)
-+    return s
-+
-+
-+def _remote_filter(cfg, pref, proto, match):
-+    """
-+    Add a flower filter on the remote's ingress, to count what gets there.
-+    In software only: drivers refresh the counters of offloaded filters
-+    periodically, and these counts must be exact.
-+    """
-+    _tc_clsact(cfg.remote_ifname, host=cfg.remote)
-+    tc(f"filter add dev {cfg.remote_ifname} ingress pref {pref} handle 1 "
-+       f"protocol {proto} flower skip_hw {match}", host=cfg.remote)
-+    defer(tc, f"filter del dev {cfg.remote_ifname} ingress pref {pref} "
-+          f"handle 1 protocol {proto} flower", host=cfg.remote)
-+
-+
-+def _tc_encap_ingress(proto, port, tx):
-+    """ psp encap on psp-fwd0's ingress, which software drops """
-+    _tc_clsact("psp-fwd0")
-+    tc(f"filter add dev psp-fwd0 ingress pref 10 protocol {proto} "
-+       f"flower ip_proto udp dst_port {port} "
-+       f"action psp encap assoc {tx['id']}")
-+
-+
-+@ksft_variants(_get_ip_variants())
-+def data_tc_encap_routed(cfg, ipver):
-+    """ Test software encap on ingress drops routed packets """
-+    cfg.require_ipver(ipver)
-+    _init_psp_dev(cfg)
-+    _require_tc_psp(cfg)
-+
-+    proto = _tc_proto(ipver)
-+    _, tx = _sockless_assocs(cfg)
-+    s = _fwd_client(cfg, ipver)
-+
-+    port = rand_port(socket.SOCK_DGRAM)
-+    _remote_filter(cfg, 10, proto,
-+                   f"ip_proto udp dst_port {port} action drop")
-+
-+    def remote_pkts():
-+        return _tc_act_pkts(cfg.remote_ifname, 10, host=cfg.remote)
-+
-+    def send(n):
-+        for _ in range(n):
-+            s.sendto(b'0123456789', (cfg.remote_addr_v[ipver], port))
-+            time.sleep(0.01)
-+        time.sleep(0.2)
-+
-+    # Without encap the packets are forwarded to the remote, unless
-+    # something else, e.g. a FORWARD policy, stops them
-+    send(10)
-+    sent = remote_pkts()
-+    if not sent:
-+        raise KsftSkipEx("forwarded packets don't reach the remote")
-+
-+    # Encap on ingress is hardware offload only: in software the action
-+    # drops the packets. They must not reach the remote in clear text.
-+    _tc_encap_ingress(proto, port, tx)
-+    send(10)
-+    ksft_eq(_tc_act_pkts("psp-fwd0", 10), 10)
-+    ksft_eq(_tc_act_stats("psp-fwd0", 10)["drops"], 10,
-+            comment="dropped by encap")
-+    ksft_eq(remote_pkts(), sent)
-+
-+
-+@ksft_variants(_get_ip_variants())
-+def data_tc_encap_local(cfg, ipver):
-+    """ Test software encap on ingress drops packets to a local address """
-+    cfg.require_ipver(ipver)
-+    _init_psp_dev(cfg)
-+    _require_tc_psp(cfg)
-+
-+    _, tx = _sockless_assocs(cfg)
-+    s = _fwd_client(cfg, ipver)
-+    fam = "inet" if ipver == "4" else "inet6"
-+    addrs = ip("addr show dev psp-fwd0", json=True)[0]["addr_info"]
-+    local = [a["local"] for a in addrs
-+             if a["family"] == fam and a["scope"] == "global"][0]
-+
-+    family = socket.AF_INET if ipver == "4" else socket.AF_INET6
-+    with socket.socket(family, socket.SOCK_DGRAM) as srv:
-+        srv.bind((local, 0))
-+        srv.settimeout(0.5)
-+        port = srv.getsockname()[1]
-+
-+        # Without encap the packets are delivered, unless something
-+        # else, e.g. an INPUT policy, stops them
-+        s.sendto(b'clear', (local, port))
-+        try:
-+            got = srv.recv(64)
-+        except socket.timeout as e:
-+            raise KsftSkipEx("the client's packets aren't delivered") from e
-+        ksft_eq(got, b'clear')
-+
-+        # Encap on ingress is hardware offload only: in software the
-+        # action drops the packets, rather than let them be received
-+        _tc_encap_ingress(_tc_proto(ipver), port, tx)
-+        s.sendto(b'encap', (local, port))
-+        with ksft_raises(socket.timeout):
-+            srv.recv(64)
-+        ksft_eq(_tc_act_pkts("psp-fwd0", 10), 1)
-+        ksft_eq(_tc_act_stats("psp-fwd0", 10)["drops"], 1,
-+                comment="dropped by encap")
-+
-+
- def removal_device_tc(cfg):
-     """ Test removing a PSD with tc actions holding its assocs """
-     cfg.require_nsim()
-@@ -1760,7 +1914,8 @@ def main() -> None:
-                                                           cfg.comm_port),
-                                                          timeout=1)
- 
--                cases = [data_basic_send, data_mss_adjust, data_tc_basic_send]
-+                cases = [data_basic_send, data_mss_adjust, data_tc_basic_send,
-+                         data_tc_encap_routed, data_tc_encap_local]
- 
-                 if has_cont:
-                     cases += [
+diff --git a/tools/testing/selftests/tc-testing/config b/tools/testing/selftests/tc-testing/config
+index 0e5618be0335..7828161cc3c8 100644
+--- a/tools/testing/selftests/tc-testing/config
++++ b/tools/testing/selftests/tc-testing/config
+@@ -101,6 +101,8 @@ CONFIG_NET_ACT_TUNNEL_KEY=m
+ CONFIG_NET_ACT_CT=m
+ CONFIG_NET_ACT_MPLS=m
+ CONFIG_NET_ACT_GATE=m
++CONFIG_INET_PSP=y
++CONFIG_NET_ACT_PSP=m
+ CONFIG_NET_IFE_SKBMARK=m
+ CONFIG_NET_IFE_SKBPRIO=m
+ CONFIG_NET_IFE_SKBTCINDEX=m
+diff --git a/tools/testing/selftests/tc-testing/tc-tests/actions/psp.json b/tools/testing/selftests/tc-testing/tc-tests/actions/psp.json
+new file mode 100644
+index 000000000000..990e8bd1ce9a
+--- /dev/null
++++ b/tools/testing/selftests/tc-testing/tc-tests/actions/psp.json
+@@ -0,0 +1,459 @@
++[
++    {
++        "id": "8357",
++        "name": "Add psp decap action",
++        "category": [
++            "actions",
++            "psp"
++        ],
++        "dependsOn": "$TC actions add action psp help 2>&1 | grep -q decap",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            [
++                "$TC actions flush action psp",
++                0,
++                1,
++                255
++            ]
++        ],
++        "cmdUnderTest": "$TC actions add action psp decap index 1",
++        "expExitCode": "0",
++        "verifyCmd": "$TC actions get action psp index 1",
++        "matchPattern": "action order [0-9]+: psp decap pipe.*index 1 ref",
++        "matchCount": "1",
++        "teardown": [
++            "$TC actions flush action psp"
++        ]
++    },
++    {
++        "id": "7676",
++        "name": "Add psp decap action with drop control",
++        "category": [
++            "actions",
++            "psp"
++        ],
++        "dependsOn": "$TC actions add action psp help 2>&1 | grep -q decap",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            [
++                "$TC actions flush action psp",
++                0,
++                1,
++                255
++            ]
++        ],
++        "cmdUnderTest": "$TC actions add action psp decap drop index 2",
++        "expExitCode": "0",
++        "verifyCmd": "$TC actions get action psp index 2",
++        "matchPattern": "action order [0-9]+: psp decap drop.*index 2 ref",
++        "matchCount": "1",
++        "teardown": [
++            "$TC actions flush action psp"
++        ]
++    },
++    {
++        "id": "9a26",
++        "name": "Add psp decap action without index",
++        "category": [
++            "actions",
++            "psp"
++        ],
++        "dependsOn": "$TC actions add action psp help 2>&1 | grep -q decap",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            [
++                "$TC actions flush action psp",
++                0,
++                1,
++                255
++            ]
++        ],
++        "cmdUnderTest": "$TC actions add action psp decap",
++        "expExitCode": "0",
++        "verifyCmd": "$TC actions list action psp",
++        "matchPattern": "action order [0-9]+: psp decap pipe",
++        "matchCount": "1",
++        "teardown": [
++            "$TC actions flush action psp"
++        ]
++    },
++    {
++        "id": "156e",
++        "name": "Replace psp decap action",
++        "category": [
++            "actions",
++            "psp"
++        ],
++        "dependsOn": "$TC actions add action psp help 2>&1 | grep -q decap",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            [
++                "$TC actions flush action psp",
++                0,
++                1,
++                255
++            ],
++            "$TC actions add action psp decap index 3"
++        ],
++        "cmdUnderTest": "$TC actions replace action psp decap pass index 3",
++        "expExitCode": "0",
++        "verifyCmd": "$TC actions get action psp index 3",
++        "matchPattern": "action order [0-9]+: psp decap pass.*index 3 ref",
++        "matchCount": "1",
++        "teardown": [
++            "$TC actions flush action psp"
++        ]
++    },
++    {
++        "id": "006b",
++        "name": "Add psp action with an existing index",
++        "category": [
++            "actions",
++            "psp"
++        ],
++        "dependsOn": "$TC actions add action psp help 2>&1 | grep -q decap",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            [
++                "$TC actions flush action psp",
++                0,
++                1,
++                255
++            ],
++            "$TC actions add action psp decap index 4"
++        ],
++        "cmdUnderTest": "$TC actions add action psp decap pass index 4",
++        "expExitCode": "255",
++        "verifyCmd": "$TC actions get action psp index 4",
++        "matchPattern": "action order [0-9]+: psp decap pipe.*index 4 ref",
++        "matchCount": "1",
++        "teardown": [
++            "$TC actions flush action psp"
++        ]
++    },
++    {
++        "id": "3f41",
++        "name": "Delete psp action",
++        "category": [
++            "actions",
++            "psp"
++        ],
++        "dependsOn": "$TC actions add action psp help 2>&1 | grep -q decap",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            [
++                "$TC actions flush action psp",
++                0,
++                1,
++                255
++            ],
++            "$TC actions add action psp decap index 5"
++        ],
++        "cmdUnderTest": "$TC actions del action psp index 5",
++        "expExitCode": "0",
++        "verifyCmd": "$TC actions list action psp",
++        "matchPattern": "action order [0-9]+: psp",
++        "matchCount": "0",
++        "teardown": [
++            "$TC actions flush action psp"
++        ]
++    },
++    {
++        "id": "2b21",
++        "name": "Flush psp actions",
++        "category": [
++            "actions",
++            "psp"
++        ],
++        "dependsOn": "$TC actions add action psp help 2>&1 | grep -q decap",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            [
++                "$TC actions flush action psp",
++                0,
++                1,
++                255
++            ],
++            "$TC actions add action psp decap index 6",
++            "$TC actions add action psp decap drop index 7"
++        ],
++        "cmdUnderTest": "$TC actions flush action psp",
++        "expExitCode": "0",
++        "verifyCmd": "$TC actions list action psp",
++        "matchPattern": "action order [0-9]+: psp",
++        "matchCount": "0",
++        "teardown": [
++            "$TC actions flush action psp"
++        ]
++    },
++    {
++        "id": "2d50",
++        "name": "Add psp action without encap or decap",
++        "category": [
++            "actions",
++            "psp"
++        ],
++        "dependsOn": "$TC actions add action psp help 2>&1 | grep -q decap",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            [
++                "$TC actions flush action psp",
++                0,
++                1,
++                255
++            ]
++        ],
++        "cmdUnderTest": "$TC actions add action psp index 12",
++        "expExitCode": "255",
++        "verifyCmd": "$TC actions list action psp",
++        "matchPattern": "action order [0-9]+: psp",
++        "matchCount": "0",
++        "teardown": [
++            "$TC actions flush action psp"
++        ]
++    },
++    {
++        "id": "cab5",
++        "name": "Add psp encap action without assoc, with index",
++        "category": [
++            "actions",
++            "psp"
++        ],
++        "dependsOn": "$TC actions add action psp help 2>&1 | grep -q decap",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            [
++                "$TC actions flush action psp",
++                0,
++                1,
++                255
++            ]
++        ],
++        "cmdUnderTest": "$TC actions add action psp encap index 8",
++        "expExitCode": "255",
++        "verifyCmd": "$TC actions list action psp",
++        "matchPattern": "action order [0-9]+: psp",
++        "matchCount": "0",
++        "teardown": [
++            "$TC actions flush action psp"
++        ]
++    },
++    {
++        "id": "3203",
++        "name": "Add psp encap action with an unknown assoc",
++        "category": [
++            "actions",
++            "psp"
++        ],
++        "dependsOn": "$TC actions add action psp help 2>&1 | grep -q decap",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            [
++                "$TC actions flush action psp",
++                0,
++                1,
++                255
++            ]
++        ],
++        "cmdUnderTest": "$TC actions add action psp encap assoc 4294967295 index 9",
++        "expExitCode": "255",
++        "verifyCmd": "$TC actions list action psp",
++        "matchPattern": "action order [0-9]+: psp",
++        "matchCount": "0",
++        "teardown": [
++            "$TC actions flush action psp"
++        ]
++    },
++    {
++        "id": "0c17",
++        "name": "Reject psp decap action with an assoc",
++        "category": [
++            "actions",
++            "psp"
++        ],
++        "dependsOn": "$TC actions add action psp help 2>&1 | grep -q decap",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            [
++                "$TC actions flush action psp",
++                0,
++                1,
++                255
++            ]
++        ],
++        "cmdUnderTest": "$TC actions add action psp decap assoc 1 index 10",
++        "expExitCode": "255",
++        "verifyCmd": "$TC actions list action psp",
++        "matchPattern": "action order [0-9]+: psp",
++        "matchCount": "0",
++        "teardown": [
++            "$TC actions flush action psp"
++        ]
++    },
++    {
++        "id": "a744",
++        "name": "Add flower psp_spi filter with psp decap",
++        "category": [
++            "actions",
++            "psp",
++            "filter"
++        ],
++        "dependsOn": "$TC filter add flower help 2>&1 | grep -q psp_spi",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            "$TC qdisc add dev $DEV1 ingress"
++        ],
++        "cmdUnderTest": "$TC filter add dev $DEV1 ingress protocol ip pref 1 flower psp_spi 0x1234 action psp decap",
++        "expExitCode": "0",
++        "verifyCmd": "$TC filter show dev $DEV1 ingress",
++        "matchPattern": "psp_spi 0x1234.*psp decap pipe",
++        "matchCount": "1",
++        "teardown": [
++            "$TC qdisc del dev $DEV1 ingress"
++        ]
++    },
++    {
++        "id": "be4e",
++        "name": "Add flower psp_spi filter with mask",
++        "category": [
++            "actions",
++            "psp",
++            "filter"
++        ],
++        "dependsOn": "$TC filter add flower help 2>&1 | grep -q psp_spi",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            "$TC qdisc add dev $DEV1 ingress"
++        ],
++        "cmdUnderTest": "$TC filter add dev $DEV1 ingress protocol ipv6 pref 1 flower psp_spi 0x80001234/0x8000ffff action drop",
++        "expExitCode": "0",
++        "verifyCmd": "$TC filter show dev $DEV1 ingress",
++        "matchPattern": "psp_spi 0x80001234/0x8000ffff",
++        "matchCount": "1",
++        "teardown": [
++            "$TC qdisc del dev $DEV1 ingress"
++        ]
++    },
++    {
++        "id": "4e1f",
++        "name": "Add flower psp_spi, psp_ver and psp_dev filter with psp decap",
++        "category": [
++            "actions",
++            "psp",
++            "filter"
++        ],
++        "dependsOn": "$TC filter add flower help 2>&1 | grep -q psp_spi",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            "$TC qdisc add dev $DEV1 ingress"
++        ],
++        "cmdUnderTest": "$TC filter add dev $DEV1 ingress protocol ip pref 1 flower psp_spi 0x1234 psp_ver 1 psp_dev 7 action psp decap",
++        "expExitCode": "0",
++        "verifyCmd": "$TC filter show dev $DEV1 ingress",
++        "matchPattern": "psp_spi 0x1234.*psp_ver 1.*psp_dev 7.*psp decap pipe",
++        "matchCount": "1",
++        "teardown": [
++            "$TC qdisc del dev $DEV1 ingress"
++        ]
++    },
++    {
++        "id": "7c3a",
++        "name": "Add flower psp_ver 0 filter",
++        "category": [
++            "actions",
++            "psp",
++            "filter"
++        ],
++        "dependsOn": "$TC filter add flower help 2>&1 | grep -q psp_spi",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            "$TC qdisc add dev $DEV1 ingress"
++        ],
++        "cmdUnderTest": "$TC filter add dev $DEV1 ingress protocol ipv6 pref 1 flower psp_ver 0 action drop",
++        "expExitCode": "0",
++        "verifyCmd": "$TC filter show dev $DEV1 ingress",
++        "matchPattern": "psp_ver 0",
++        "matchCount": "1",
++        "teardown": [
++            "$TC qdisc del dev $DEV1 ingress"
++        ]
++    },
++    {
++        "id": "b58d",
++        "name": "Add flower psp_ver filter with an invalid version",
++        "category": [
++            "actions",
++            "psp",
++            "filter"
++        ],
++        "dependsOn": "$TC filter add flower help 2>&1 | grep -q psp_spi",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            "$TC qdisc add dev $DEV1 ingress"
++        ],
++        "cmdUnderTest": "$TC filter add dev $DEV1 ingress protocol ip pref 1 flower psp_ver 16 action drop",
++        "expExitCode": "2",
++        "verifyCmd": "$TC filter show dev $DEV1 ingress",
++        "matchPattern": "psp_ver",
++        "matchCount": "0",
++        "teardown": [
++            "$TC qdisc del dev $DEV1 ingress"
++        ]
++    },
++    {
++        "id": "2f96",
++        "name": "Add flower psp_dev filter with an invalid device",
++        "category": [
++            "actions",
++            "psp",
++            "filter"
++        ],
++        "dependsOn": "$TC filter add flower help 2>&1 | grep -q psp_spi",
++        "plugins": {
++            "requires": "nsPlugin"
++        },
++        "setup": [
++            "$TC qdisc add dev $DEV1 ingress"
++        ],
++        "cmdUnderTest": "$TC filter add dev $DEV1 ingress protocol ip pref 1 flower psp_dev 65536 action drop",
++        "expExitCode": "2",
++        "verifyCmd": "$TC filter show dev $DEV1 ingress",
++        "matchPattern": "psp_dev",
++        "matchCount": "0",
++        "teardown": [
++            "$TC qdisc del dev $DEV1 ingress"
++        ]
++    }
++]
+diff --git a/tools/testing/selftests/tc-testing/tdc.sh b/tools/testing/selftests/tc-testing/tdc.sh
+index 25cdc256287d..433af92364ac 100755
+--- a/tools/testing/selftests/tc-testing/tdc.sh
++++ b/tools/testing/selftests/tc-testing/tdc.sh
+@@ -24,6 +24,7 @@ try_modprobe act_mpls
+ try_modprobe act_nat
+ try_modprobe act_pedit
+ try_modprobe act_police
++try_modprobe act_psp
+ try_modprobe act_sample
+ try_modprobe act_simple
+ try_modprobe act_skbedit
 -- 
 2.53.0-Meta
 
