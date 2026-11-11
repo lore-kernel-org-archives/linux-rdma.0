@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794408193;
-	b=k4WnkPgWBG8VxTzMMyanKveiKyzLBmKIJDjRlxQ3myvmZjG99KskErBZ7D76x3ZnhS53
-	 oC4DkR28NjlzaRbTK0gtWnyZ19lWsbDix2+D86jiyW8kD6zmYHWfXAynT7sUt1+heZb3w
-	 nxgk+IjXGtpZcYOYq4u4b1XT37VH46Yxs0/jvVTJteBaSQSIA0Di195h4VvxuFG5dWcmf
-	 my5A6Sfzw4zbtVRyg1xLYSbUWsexayP2Z7W0B01btRSUcpxjxevXY3CcAMOMFqODalZZq
-	 O0VIJpXmg2hhOU2Pz2RB9UDZo0Lh0+ga+dBCK3kk2VZQWFvMDZwpC60f/Ys8B/652TQ==
+	t=1794408536;
+	b=vocOV8wFL6CB+BiIMrX9v/UHRKPHn3qbcsKThH0fxsv9YgVkoOuk0DTfE+ZyIb1rQOrg
+	 AXpwbWqa3zNigSwqpn0ryvuVFU3hWUpCYbRxr+PR8r1xy8tmLtwWs6vq5qlpMneU8nhni
+	 Y4/ARm++l5EoWGk4NuRimJUysV/Unjsbc6X7j1LPr8r2QzsYdiE1xb1JJjGbx3CHVgtO4
+	 vkoMcliYfrc42YqX6Kft7dFrKfnY/yM7N8qEfaGahBPsNahkN9uYXh5jmKNUVAfqoKm8g
+	 7MP5jixsF86O6KB8WRx3j8RtWRmWEwe7Mmu4j0tlXrwW/MB+zyIkIQ68hoL/Cz6ISvg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794408193;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794408536;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=QZ/jjMaavQFC9NFDjTTyQN/mahaSvEO/Smbts2yoNvA=;
-	b=FQ60vHihfZsH5oV6/j78iVeD+cP1KPn6KtH/OFkM7RK/cAM6wbS7pN656GUS5UpfaK2b
-	 e4aZeSHEcPByl2YEarf6SRIjAFdIuDhzR6Qf9JksLOLaBtDbH3NIxSEOGXyZ1uICS6swu
-	 PDjP2fCUq/9WhwX6/aFc2qsdbg7ynq57KUx42hQTIRs1MRvn8ev8k1nnabJs1oTOw56OW
-	 7hSs4pdBdk0tUkVElERz42CvIXC4+6IZZhA16g0i/DRGk947LBj8OzUuSVzNXG59wvepZ
-	 XSQp2wY8aLgqhaw/0aKzXc5X5VWpPwBtgXpRXCT+lSeeKFv/ah4263EkEJvyU2gzykw==
+	bh=gFTBcYWeLeBPEONSeocFblGDpZdJstpCic/d0dN8QVY=;
+	b=LapMUW+CDg4VFS1N7dV6AotaLaeTxbVYjgwYZDsXQ0RCxhDpxhvbcjh7mnXvKbJphenI
+	 cjm+UxcvY28RzmzNcUippooQswTGGuYMIscxVafaZ/x5IG1xd0psIQy3hoFwrwh5pB+UA
+	 83oFza5cPTfNLnEZgVoz+Wy7eT815RGOvZmws7RplIcRBy0ruhalixh9sB401Yh7Iwoa2
+	 R2HyRrmP6epGSUpwOWQ+dPCQbTPYIY1Zu7/I4iBk2yUV4tGYmlrXZr4s0dQ5YbKNPXUuh
+	 YtiIMkqo+0IMEQSK+g+8eGvo8FnXeW/fZrDmQxvEOsXJK3v2AvI1CwzdWqOKQDFGlmA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NbBagsV0;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Mltoy4jq;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF629606A338
-	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 14:43:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C603606A324
+	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 14:48:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NbBagsV0
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A07DB1F00A05;
-	Wed, 11 Nov 2026 14:43:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Mltoy4jq
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF1E71F00A06;
+	Wed, 11 Nov 2026 14:48:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794408193;
-	bh=QZ/jjMaavQFC9NFDjTTyQN/mahaSvEO/Smbts2yoNvA=;
+	s=k20260515; t=1794408535;
+	bh=gFTBcYWeLeBPEONSeocFblGDpZdJstpCic/d0dN8QVY=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=NbBagsV06u6/zzDJV7rJN46W5hMNXQ8cr067C9pjzKtfBrJAhJqJNYFL3nZ/BwQn9
-	 WnhbgHHcZWKCi0vfScyfMeDdG6mc6kgrwb+U4zgbvNv7aOxLwVHuCaxvcY+Gq9J1nV
-	 UuYu29Pwh993F8AaY1uPEO+oupStRmYWMZ3JAKJqdAXws0VpXon1mhpEO48Xirjpbt
-	 3NrD+zYy7vc9ou4WnpiQuEaJ4BQRko6GHd+l6GbTWQXExNYYmtqrpw+JtCfWop6XyB
-	 XgsHwAr1SbsRqSw7eZtiU3SStzChmdjYgUDKCbRoHsg6UVoZ+xPCdILVlXCcax60Yr
-	 VY0Mt2B69kj4w==
-Message-ID: <sashiko-outbox-209180@kernel.org>
+	b=Mltoy4jqSdLPSJQ+lxvcttkuOHncdTySVObFymcrLNTF71aqdkg42tLOhy7dB9857
+	 LUfBX3Xi6rLxh6/rtkuhbT807vmVymo6USE6cxyR0UmROVMGySynMoOR+sjRY6IuEP
+	 1OtTrXbpvDXAneQEtex7KnkMgDs/WDvoAUkfpb+xBFfNNGxJn835XeaGritNv6dgQW
+	 MNLAwxiaazV5a23wrBcGz3/MAgjgrgSyq2sNJRGX/vi65FkPBT4hauRwU+fT8Bzztw
+	 oP93OYDJAMKLZLJCBy14bXWwQiqGNnbQ0QW4v8E0h8V2PYdIxZb9pTfN/u81lNB2LS
+	 WSYL0jR/4Fk/w==
+Message-ID: <sashiko-outbox-209193@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v2 3/3] RDMA/core: Don't warn on oversized
- bundle allocations
+Subject: Re: [PATCH rdma-next v2 1/3] RDMA/mlx5: Respect pgsz_bitmap when
+ reducing the DEVX UMEM page size
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Edward Srouji" <edwards@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261111-devx-umem-mailbox-overflow-v2-3-1e7ca8237b58@nvidia.com>
+In-Reply-To: <20261111-devx-umem-mailbox-overflow-v2-1-1e7ca8237b58@nvidia.com>
 References: <20261111-devx-umem-mailbox-overflow-v2-0-1e7ca8237b58@nvidia.com>
- <20261111-devx-umem-mailbox-overflow-v2-3-1e7ca8237b58@nvidia.com>
+ <20261111-devx-umem-mailbox-overflow-v2-1-1e7ca8237b58@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 11 Nov 2026 14:43:13 +0000
+Date: Wed, 11 Nov 2026 14:48:55 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,31 +61,30 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> From: Uri Dar <udar@nvidia.com>
+> devx_umem_find_best_pgsize() starts from the largest usable page size
+> allowed by the user's pgsz_bitmap and halves it until the umem starts
+> on a page boundary and its length is a multiple of the page size. The
+> halving ignores pgsz_bitmap, so the umem can be created with a page
+> size userspace did not allow, although the bitmap is meant to reflect
+> the HW limits of the intended use of the umem.
 >=20
-> _uverbs_alloc() serves requests that do not fit in the bundle's internal
-> buffer from kvmalloc(), prepending a small list header. The requested
-> size can be derived from userspace input, and since commit 7661809d493b
-> ("mm: don't allow oversized kvmalloc() calls") kvmalloc() WARNs on any
-> request above INT_MAX unless __GFP_NOWARN is given.
+> Step down to the next smaller size in pgsz_bitmap instead, and fail
+> the registration if none is left. The default bitmap includes every
+> power-of-two page size from 4K up, so the result is unchanged when
+> userspace does not pass one.
 >=20
-> mlx5 DEVX UMEM registration is one such caller: its CREATE_UMEM mailbox
-> scales with the size of the user's UMEM, and a mailbox that passes the
-> driver's INT_MAX check can still exceed INT_MAX once the header is
-> added.
+> The Sashiko AI reviewer found this while reviewing another DEVX UMEM
+> patch.
 >=20
-> As with memdup_user(), an allocation sized by userspace should fail
-> quietly rather than warn. Pass __GFP_NOWARN so such requests fail with
-> -ENOMEM.
->=20
-> Fixes: 461bb2eee4e1 ("IB/uverbs: Add a simple allocator to uverbs_attr_bu=
-ndle")
-> Signed-off-by: Uri Dar <udar@nvidia.com>
+> Fixes: 7610ab57de56 ("RDMA/mlx5: Allow larger pages in DevX umem")
+> Reported-by: Sashiko <sashiko-bot@kernel.org>
+> Closes: https://lore.kernel.org/linux-rdma/sashiko-outbox-205134@kernel.o=
+rg/
 > Signed-off-by: Edward Srouji <edwards@nvidia.com>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261111-devx-umem-=
-mailbox-overflow-v2-0-1e7ca8237b58@nvidia.com?part=3D3
+mailbox-overflow-v2-0-1e7ca8237b58@nvidia.com?part=3D1
 
