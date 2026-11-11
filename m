@@ -1,46 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794424330;
-	b=gIrsbZoNTu1XA59hba1Vb3SZ0ngQ1o5gOfxhJ3u1/C8CL4Q/qC7b2x8y1628O4uRiHlW
-	 82fWNsyBg4t3rxXfQWkXBxDFGi/r33O5HmKu3fYPmcmDunoHij1OBvtp3Y0GTi1rR80Bv
-	 J6M9+FOomUNYrlkZs//46CVNAgOdOBunUicWUgjdGg7bq23NrmAIwRnLt8TK6VE+rQN8i
-	 UUtaah7UJ9ktBAQPFxfWF+lKOFZRAqtht83WXCvTblAd7v1EJECFURzNdcUGyRwG+amCF
-	 4oL+DOIfhtMPuG7QaICdavEcn8kUC8o+lAVgdFlzf4efXX+9JTNG930AIojDDeFEMDQ==
+	t=1794424338;
+	b=MFYcNT2Qb7LuodD7bONcCa2zKdftnikJAMjuMp6ijiIrQxoH4liihPnni2BqxklaQz+r
+	 p9wNQdu7P+DEWFB3lK58KqOsEV8VsohK0xndTbgZ2bQPK2s4h9ABzZKwcajgSz/T/Pf0E
+	 ZPkNtGmOGui+/tY1qhUBk1SbL/rSpkF2Cse70A3x3hkm0fApzZGvgY4OGOk9WcxvfEHuX
+	 LdgobCVbstJcxJ8JP3Gdk2gZr6i2RyZyaizOV5tVKyvKq/9jCQuycEoTPgjDQTjBr7BOl
+	 ImsAqGPyYXcLB8VerRxbc41t/kPKCdYjHLaVL/pgItvAnX1XwGhx4IIjXA90EeyXqyA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794424330;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794424338;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=nCP5ZM0Xh8+yWU/AcUsqoA4PfWxdOwn0jfBwhfBlWIg=;
-	b=r89KR1QkLuGkyD8N07OU4m7UTV4uh3grqFecAtx8dJ+Sl76EhljAUTGZ+PBWR0NtWqgw
-	 7D5fB1kK2h7LRuUXY4ny9jiGWieyiOdVgiRB1xsX79K8GjyiMvXDcX6dIa2T+fSwpb+Wk
-	 h3ms6VHsLHufs6pAkDLSZYbxZCaoBl+SLqnYuoRJV0I0HTbDSDf0LTG4aZBHlawaTri6P
-	 vUoT7PmyJZA+l4xz4XRWP2X6TDApRA5ZlPAuExXouYUQBTFVvBA+gaUZkdPRGd9N/UmEz
-	 u2w9IrNViIuISAuAXAgNilxA5kZpMym625vmeFB2qmNwsKRHmOqYSJRJOx0vKYZUxNQ==
+	bh=TYBYTqmsCEkuPeF6UUVuvymRyySqseSuHMHuFSF29/s=;
+	b=F79HWPG4grb0ujPWjBAIVwttDXsMBcJs0GaD6daYndQiCTWw1hUm0ngok7k2Ygngiszt
+	 Hcyk+P5tYj63z6mqj9RR7hvFpH6sLpg8BgXC8/0L6tEVZ2vNPWG0cbfOsNeICM9sY6kWj
+	 cPvXBZqQNaS1TNegDWSCBRXYIO4b1HgmIcTmVCAoS5qChrl3rRJHRsSJv8P7AOVnN8gQb
+	 JmDmcz+2fA7SdyjfYZKtupXkcpKzHYZ2cezh2h/jO7sg6VM5rLrxhmvRAOli0mm7TpvKr
+	 2NfUxYNANl9iF/R0q6VU69pzVbLyQjHqSjcfqYFsgdIHG7G7xsJXRYWd94DaSXlgjOg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=P1njNFm9;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Tb9sIjD5;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DCC960A380A;
-	Wed, 11 Nov 2026 19:12:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5105A606A8A7;
+	Wed, 11 Nov 2026 19:12:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=P1njNFm9
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61F521F00A05;
-	Wed, 11 Nov 2026 19:12:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Tb9sIjD5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B9751F00A06;
+	Wed, 11 Nov 2026 19:12:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794424329;
-	bh=nCP5ZM0Xh8+yWU/AcUsqoA4PfWxdOwn0jfBwhfBlWIg=;
+	s=k20260515; t=1794424337;
+	bh=TYBYTqmsCEkuPeF6UUVuvymRyySqseSuHMHuFSF29/s=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=P1njNFm9CRjRcoY78wDe+gQnFM13wyxX4hF9YC52ds+gnKJfA5TMZYMUkVzyg6LnT
-	 CNmoMJSkBZqUxLOVbd/fZ9YKB1V4e2+Uw3SObRxGfTISzZehuxHXRa+VFdZA1udbsX
-	 lVRtYDvA2ZZLYKm9XaJQjjYYmJTVKDbpoayFboV/T4E9lZjcpMCAcp/Hl3HEbGQgwI
-	 obDBUK5AnpJ0nd2gu99KIvt0nfxjiPx2vezLD369jDQvS71ltcIFvCXzKwKvI5AyCb
-	 99obRQurWy4slj9X4SRTnlQby1+83OwF7E92Lsp6khnHauOeibSpbN+bfmjW8EGwoX
-	 hAwZOIRe9Phzg==
-Subject: Re: [PATCH net-next 06/10] net/sched: cls_flower: add enc_key_id mask
+	b=Tb9sIjD5MfxoIVlQ61rTb+WDUHdk4NZtEH6zlIzApmb331n5cMDbSLhoLzkrStAJI
+	 gmOi2NHeC/1pCO/UNWcLECw4jj9XNxO0QVObKGYKS24JWiWDtvrxo2+MyOKVWI0EzE
+	 Icn6rMoHDD5qJIeqcQ1yJsv6ZydJkY2DIKy8kMUz2KjWLxJB1+jw6B0v1qo3v11x33
+	 QK9RgcoxvdACiNQfaAHriAZvaUX8Wu1z8Kl6V0aassKuEos/5GUpQU30YaYzGKaNHW
+	 tpP205MwY/pH+K0UJEW8h+XeeYoOV1p54OscB4NI680JEkqn51Vklu/A4Wws586b6a
+	 aguPrJ59Sq8SA==
+Subject: Re: [PATCH net-next 10/10] docs: networking: describe tunnel key
+ partitioning in TC queue filtering
 From: netdev-bot+sashiko@kernel.org
 To: acassen@corp.free.fr
 Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
@@ -52,11 +53,11 @@ Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
  idosch@nvidia.com, shuah@kernel.org, netdev@vger.kernel.org,
  linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org,
  linux-kselftest@vger.kernel.org, oss-drivers@corigine.com
-Date: Wed, 11 Nov 2026 19:12:07 +0000
-Message-ID: <179442432794.2199510.1364864921481333835@kernel.org>
-In-Reply-To: <20261109131039.959438-7-acassen@corp.free.fr>
-References: <20261109131039.959438-7-acassen@corp.free.fr>
-X-sashiko-severity: Medium
+Date: Wed, 11 Nov 2026 19:12:16 +0000
+Message-ID: <179442433615.2199510.11200298531505956799@kernel.org>
+In-Reply-To: <20261109131039.959438-11-acassen@corp.free.fr>
+References: <20261109131039.959438-11-acassen@corp.free.fr>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -69,135 +70,151 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 0 · Medium: 1 (1) · Low: 0
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] net/sched: cls_flower: 24-bit VNI mask truncation in
-  fl_set_key() offload
-
-Pre-existing issues:
-- [Medium] i40e and iavf accept an enc_key_id match but never program the
-  tenant ID into hardware.
+- [Low] The new mlx5 paragraph in Documentation/networking/tc-queue-
+  filters.rst (lines 54-56) says: "The filter therefore needs skip_sw.
+- [Low] The commit message says the patch documents 'what enc_key_id
+  means on a physical port of mlx5'.
 
 --
 
-net/sched: cls_flower: add enc_key_id mask
+docs: networking: describe tunnel key partitioning in TC queue filtering
 
-This adds an optional TCA_FLOWER_KEY_ENC_KEY_ID_MASK attribute to flower,
-so one filter can match a block of tunnel keys. When no mask is given, the
-enc_key_id match stays exact. The new attribute is also added to the policy,
-the dump path and the tc.yaml netlink spec.
+This commit documents tunnel key partitioning in tc-queue-filters.rst, where
+a mask on enc_key_id steers blocks of tunnel flows to RX queues. It adds a
+GTP-U example and describes what enc_key_id means on an mlx5 physical port.
+It also covers what happens to the filter when its target queue goes away.
 
-> diff --git a/net/sched/cls_flower.c b/net/sched/cls_flower.c
-> index 23eba4a00a947..dd248a335402a 100644
-> --- a/net/sched/cls_flower.c
-> +++ b/net/sched/cls_flower.c
+> diff --git a/Documentation/networking/tc-queue-filters.rst b/Documentation/networking/tc-queue-filters.rst
+> index 6b417092276f6..de54d43687c60 100644
+> --- a/Documentation/networking/tc-queue-filters.rst
+> +++ b/Documentation/networking/tc-queue-filters.rst
+> @@ -35,3 +35,25 @@ queues and/or a single queue are supported as below:
 
 [ ... ]
 
-> @@ -2110,7 +2111,7 @@ static int fl_set_key(struct net *net, struct nlattr *tca_opts,
->  	}
->  
->  	fl_set_key_val(tb, &key->enc_key_id.keyid, TCA_FLOWER_KEY_ENC_KEY_ID,
-> -		       &mask->enc_key_id.keyid, TCA_FLOWER_UNSPEC,
-> +		       &mask->enc_key_id.keyid, TCA_FLOWER_KEY_ENC_KEY_ID_MASK,
->  		       sizeof(key->enc_key_id.keyid));
+> +  # GTP-U TEIDs whose two top bits are 01 go to queue 1
+> +  tc filter add dev eth0 ingress protocol ip flower skip_sw \
+> +      ip_proto udp dst_port 2152 enc_key_id 0x40000000/0xc0000000 \
+> +      action skbedit queue_mapping 1 skip_sw
+> +
+> +Not all drivers can program a partial mask.
+> +
+> +On mlx5 devices such a filter runs on a physical port where nothing
+> +decapsulates the packet. All the keys describe the packet on the wire.
+> +ip_proto and dst_port tell the hardware which tunnel header holds the key.
 
-[Severity: Medium]
-The commit message says truncating the mask to a 24 bit VNI is correct
-when the key fits the VNI. The earlier patches in the series only check
-the key. Doesn't that miss a mask with no bits set in the low 24 bits?
+[Severity: Low]
 
-Take enc_key_id 0x0/0xff000000. It passes the check in
-cxgb4_validate_flow_match(), because be32_to_cpu(match.key->keyid) >>
-ENCAP_VNI_BITWIDTH is 0. cxgb4_process_flow_match() then stores
-be32_to_cpu(match.mask->keyid) into the 24 bit fs->mask.vni field, which
-ends up as 0.
+The commit message says this documents "what enc_key_id means on a physical
+port of mlx5". Should this paragraph also list the limits the driver
+enforces? As written, the driver can refuse the GTP-U example above, and
+small variations of it, for reasons the document does not mention.
 
-fs->val.encap_vld and fs->mask.encap_vld are only set under
-if (fs->mask.vni). So the rule is programmed without the encapsulation
-qualifier, and t4_alloc_encap_mac_filt() is skipped. The hardware filter
-can then match non-encapsulated traffic on the port, which the user
-never asked for.
+First, the GTP-U example needs firmware flex parser support:
 
-mlx5e_tc_tun_parse_vxlan() has the same shape. It only bails out when
-enc_keyid.mask->keyid is zero, and only checks the key against
-MLX5E_TC_TUN_N_VNI. It then writes the truncated mask into vxlan_vni in
-misc_c. That gives a zero VNI mask while MLX5_MATCH_MISC_PARAMETERS is
-still set in spec->match_criteria_enable, so the VNI is no longer
-constrained at all. The same applies to
-mlx5e_tc_tun_parse_outer_key_vxlan(), added earlier in this series.
-
-Before this patch the mask was always all ones whenever enc_key_id was
-present, so the low 24 bits could never be zero. This patch is what
-makes the mismatch reachable from userspace.
-
-Should these drivers reject a mask whose low 24 bits are all zero? Or
-should cxgb4 base encap_vld on the full 32 bit mask rather than the
-truncated fs->mask.vni? Either way, it looks like the "key fits the VNI"
-checks from the earlier patches need to look at the mask as well.
-
-[Severity: Medium]
-This is a pre-existing issue and was not introduced by this patch. With
-this change, partial masks can now reach i40e and iavf. Neither driver
-programs the tenant ID into hardware, yet both report the offload as
-successful.
-
-In i40e_parse_cls_flower(), any non-zero mask, including a partial one,
-sets the tenant ID field flag:
-
-drivers/net/ethernet/intel/i40e/i40e_main.c:i40e_parse_cls_flower() {
+drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun_gtp.c:mlx5e_tc_tun_parse_outer_key_gtp() {
     ...
-	if (match.mask->keyid != 0)
-		field_flags |= I40E_CLOUD_FIELD_TEN_ID;
-
-	filter->tenant_id = be32_to_cpu(match.key->keyid);
+	if (!(MLX5_CAP_GEN(priv->mdev, flex_parser_protocols) &
+	      MLX5_FLEX_PARSER_GTPU_TEID_ENABLED)) {
+		NL_SET_ERR_MSG_MOD(extack,
+				   "Matching on GTP-U TEID is not supported");
+		return -EOPNOTSUPP;
     ...
 }
 
-But i40e_set_cld_element() memsets the AQ element and never writes
-cld->tenant_id:
+The commit "net/mlx5e: TC, match the tunnel key without a tunnel device"
+says GTP-U needs flex parser profile 3, while GENEVE needs profile 0. Since
+skip_sw is mandatory there is no software fallback. The documented command
+therefore fails on a device that runs another profile.
 
-drivers/net/ethernet/intel/i40e/i40e_main.c:i40e_set_cld_element() {
+Second, queue mapping is only offloaded in NIC mode. In en/tc/act/act.c,
+FLOW_ACTION_RX_QUEUE_MAPPING is registered only in tc_acts_nic, and
+mlx5e_tc_act_get() uses tc_acts_fdb for FDB flows. The action is refused on
+the uplink representor in switchdev mode, which is also a physical port.
+
+Third, ip_proto and dst_port only select a match register.
+mlx5e_tc_tun_outer_lookup() accepts only ip_proto GRE or an exact UDP
+dst_port of 2152, 4789 or 6081:
+
+drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c:mlx5e_tc_tun_outer_lookup() {
     ...
-	/* tenant_id is not supported by FW now, once the support is enabled
-	 * fill the cld->tenant_id with cpu_to_le32(filter->tenant_id)
-	 */
-	if (filter->tenant_id)
-		return;
+	/* Only an exact port names a tunnel */
+	if (ports.mask->dst != htons(U16_MAX))
+		return NULL;
+
+	switch (ntohs(ports.key->dst)) {
+    ...
 }
 
-iavf_parse_cls_flower() has the same problem. It sets
-IAVF_CLOUD_FIELD_TEN_ID for any non-zero mask but never sends a tenant ID
-value to the PF.
+VXLAN on port 8472, or a masked port, is refused with "enc_key_id needs
+ip_proto 0x2f or the exact dst_port of a supported tunnel".
 
-As a result, the hardware filter installed on these drivers does not match
-the requested tunnel key, whether the mask is exact or partial. An exact key
-is ignored in the same way today, so a partial mask does not add a new kind
-of mismatch.
+Fourth, VXLAN and GENEVE keys are 24 bit VNIs.
+mlx5e_tc_tun_parse_outer_key_vxlan() and
+mlx5e_tc_tun_parse_outer_key_geneve() refuse a masked key that does not fit
+in 24 bits ("Tunnel key does not fit the 24 bit VNI"). The top bits mask
+from the example (0x40000000/0xc0000000) cannot be reused for those tunnels.
 
-The commit message already says this accurately:
+Fifth, mlx5e_tc_tun_parse_outer_key() also refuses decap actions.
 
-  "i40e and iavf never program the value of enc_key_id, with or without
-  this patch."
+The only caveat the document gives is "Not all drivers can program a
+partial mask", which covers none of these limits.
 
-Should i40e_parse_cls_flower() and iavf_parse_cls_flower() reject an
-enc_key_id match with -EOPNOTSUPP, at least until firmware support for the
-tenant ID exists? That would stop the offload from appearing to succeed
-while ignoring the key. It would probably fit best as a separate fix.
+> +The software datapath has no tunnel metadata on such a port. The filter
+> +therefore needs skip_sw. Without it the filter stays in software, where
+> +the port reads key zero.
 
->  
->  	fl_set_key_val(tb, &key->enc_tp.src, TCA_FLOWER_KEY_ENC_UDP_SRC_PORT,
+[Severity: Low]
 
-[ ... ]
+Is "Without it the filter stays in software" accurate for the queue_mapping
+filters this document describes? Leaving out skip_sw does not seem to
+install a software only filter.
+
+If skip_sw is removed only from the filter, tcf_action_init() rejects the
+skip_sw action:
+
+net/sched/act_api.c:tcf_action_init() {
+    ...
+				if ((tc_act_skip_sw(act->tcfa_flags) && !skip_sw) ||
+				    (tc_act_skip_hw(act->tcfa_flags) && !skip_hw)) {
+					NL_SET_ERR_MSG(extack,
+						       "Mismatch between action and filter offload flags");
+					err = -EINVAL;
+					goto err;
+				}
+    ...
+}
+
+If skip_sw is removed from the action, tcf_skbedit_init() refuses ingress
+queue_mapping:
+
+net/sched/act_skbedit.c:tcf_skbedit_init() {
+    ...
+		if (is_tcf_skbedit_ingress(act_flags) &&
+		    !(act_flags & TCA_ACT_FLAGS_SKIP_SW)) {
+			NL_SET_ERR_MSG_MOD(extack, "\"queue_mapping\" option on receive side is hardware only, use skip_sw");
+			return -EOPNOTSUPP;
+		}
+    ...
+}
+
+The filter level skip_sw is not merged into the flags that the action init
+sees, so this happens whatever the filter flags are. Both failures happen
+before mlx5e_tc_tun_parse_outer_key() runs.
+
+The "stays in software, reads key zero" behavior only seems to apply to
+actions that can run in software, such as drop, mirred or mark. The text
+looks like it was carried over from the commit message of "net/mlx5e: TC,
+match the tunnel key without a tunnel device", which describes generic
+actions.
+
+Could this sentence say that the queue_mapping request is refused instead?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261109131039.959438-1-acassen%40corp.free.fr
