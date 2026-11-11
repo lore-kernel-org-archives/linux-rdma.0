@@ -1,55 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794418489;
-	b=iD4VskO5NzYc+xwZaqS3masoD+AMH/FY317XGdppOU3wxokrDp/PA8QLX1WXJdhPao+m
-	 epLO9GZZaNGbpowfg3Wbog0D4y/OfxE2Nf0zY+5hjYnES9Mx+P5GY52mtJWNSJWNRNswM
-	 YjbkhQV4kxg6I1D+VRFfz++8nRBHbqq263035W3hBmnG/teaC5mWxMCvwDH5+4BNo09Oe
-	 1m/6vL6tmFVrfNJxc2R8JKJC3Ulh3KOKXXnTt4IaP4CKz3UEYaW47653j3AMa/mi/2zFc
-	 8lbXvnNb5d7Dewu/OMUwghdJiIHvJpaHAvpGtkJzMjXv1hdx4PR/qSWKWMjFi9Xhdmw==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794418489;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=FNluiPJ7F+Cn7/2xRPOJAlpKpFHd95L6uojgtai2vcc=;
-	b=aMzmwlBgUa0/WKs/Bu7YF9WP0w191oSd0Ilafdxpe/ZcifDMHeg+RtbATF0+lD9iuR5z
-	 EKkm/bLpf6XlWrroPy1/hq3Bqzgbvc71CKpbon6nhnNGfpRNMoQecj8UguvAbY4u+I6td
-	 ofUSfwT5IP7Sv2Tn5BBzyymxP6Q5WITNvbIsFYUWkFwCf6HyR60Ouj6Ojw4rjev7SxP2j
-	 CBztig1bpaioMZ10JYyhJTNevabDCUhJgOIl9OLbLPIv00QUCPlmQHiujVXWHrZunuKNv
-	 c8ymADvPUo/vVJzr0zuLKbNuIenXFZrxpJ9XtsqABLoq04j2jS4rgYThntZN8iksOKQ==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lXEwaKO3;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.160.172
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1794418550;
+	b=ekKwpuS84I3Qi/0Rdfq/BAiYQ4c0u7I2jQowWruCjISnBOjeB7jaHip9Mr8Gi3nrNshU
+	 lxO1A6ej5nCLS/wfk6IVJgBdZrAYfZ+aUIvXgbzZJkifEunGWlb7d6tmFvliZMjPHalih
+	 vKoCn6ek7yLru65JyDVutCiURB5rw6oKLbfjAB6ahDOg+ag4ZKOTMZX00Cb8A9WO+qtYg
+	 t4U9jT6TUWsZs2qRtB6N+08X6MXDKdl5SNum5+dZbGlD1pG4kB6m9ThdsLBsFC3qrAz+j
+	 por5mLA6Cy8jTAYVbn121D/Tire9qn8FRpjcAj5HXj4xL/usFB6PMkqN78al1wpgm3A==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794418550;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=rze7Z0eQK7AqMt9RdC+BLJSkX48Eh5M3Ql7thr+dG0Q=;
+	b=4bP779TfUSF2AMCkZobCU5cjgHTNBbyWEjs6FIR/87dg8+XO5q3yvSzxP2ni+H6y3pyp
+	 hSKYrU8rp6BQ1nm/5ACgBOxpre0yJkqBG9Q8Y1ehiWFalXq8Hfb2p8E1qqG9tv8VRKC5j
+	 WNIDeiICl/5o+68lrzOI35Jol01kOVbZOEoBcVPl7Ckk8x2yJQaniBQ35bWafQ6I+LYOI
+	 pRY1NxBVxkyF66HTOGtj7thmLjLGfH9Roncpkyu7SFUKey6EzfTrcSw3jHE+/lDeK0BPe
+	 XIbuCjbPeipO1dAzyCR2cVzTMkHWKuBT8MF2dzpfz8jEeB+Ddwv7kYl8GzMqDzH4y0A==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=google.com;
+	spf=pass smtp.mailfrom=google.com;
+	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=IkC0eirw;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.160.172
+Received: from mail-qt1-f172.google.com (mail-qt1-f172.google.com [209.85.160.172])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE88C606A31C
-	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 17:34:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A27D606A31C
+	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 17:35:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9A27D606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lXEwaKO3
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 583A71F00A05;
-	Wed, 11 Nov 2026 17:34:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794418489;
-	bh=FNluiPJ7F+Cn7/2xRPOJAlpKpFHd95L6uojgtai2vcc=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=lXEwaKO3VX9eBueeM8CwZO7C0tdFEtgue3/8N7oxOEK7yTzZb/UxNPnpG4cXVuceo
-	 HitNfAwA8dJCFi69kdh8LHDLAIPaikYS29PUJvcWUCfh7tfn2tFAh2dHxHr9Tfzg18
-	 bCelTNX4w/F1GI4gPigj3SZyWfjx6qt62hheKxlGPHLb2muNYMXHdmysr1RYIdCTMa
-	 Z31EallnPu31nwseTs8h333DIbcPTJ3JKOfTVqTqNleKQptx/4gdY0C4vvwcuopwI+
-	 +r8YGLi+V1SFt07GC4PIi4bTv2ILV9HyzJZ/jvChutlSiyt6/xirEZibWR2Vf5345M
-	 qkwHMfwhFUGyg==
-Message-ID: <sashiko-outbox-209418@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net] net/mlx5: HWS, fix flow meter release on FTE update
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Alexandre Cassen" <acassen@corp.free.fr>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261110173437.2471233-1-acassen@corp.free.fr>
-References: <20261110173437.2471233-1-acassen@corp.free.fr>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 11 Nov 2026 17:34:48 +0000
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=IkC0eirw
+Received: by mail-qt1-f172.google.com with SMTP id d75a77b69052e-5383c97c8cfso245081cf.1
+        for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 09:35:49 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794418548; cv=none;
+        d=google.com; s=arc-20260327;
+        b=Go8DswpCvt9d3aCQ2C9gko3kWJUW2dJRBPpWaUA3mXaWylO1P5H12PIVYSaUBZwrCF
+         2PZVI62XxSX7IAk393meLZzU59N6Z+RzzkxxTIoUoSaT194uEPUWzjjvX0z9JTkYhp5F
+         se5IO9GusQJiwUcSqoTViZUg+mwsmqgoBlwJoL9/urBMInEmfhJSBXLJ0pjYEaAOHyrZ
+         Er1c9hxKBVNAsrZnZy2tsBXW8DynrZHpPyaSW8Lze79GoOv4oOegh1GopfUzuNrdqSls
+         vrC9NWltLQfM/gh7gQGNSPHCTkt4JmH6SdcBF6JW/2mmd6KC8b+gFz/tbma+SEj0k5G7
+         Wzdw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=rze7Z0eQK7AqMt9RdC+BLJSkX48Eh5M3Ql7thr+dG0Q=;
+        fh=OTE2xHXhD/EfMnD1QpggksW3Qf4X9i4T7mm3g/8oGx0=;
+        b=EC42YsrtLra+L+u0X3w/LxLQ+zWiMhq2PsD7PvfkJRfs9JxI0JNHMbBMDEuqUgjTuu
+         +2LHEtYQpvbPMIH+YHhN8wgNaHq3lOd1JZ9xO3btj35E5Tv+ObesmQfZnC6Lyxk4IQs5
+         KmSlGZRV5CbzgEPAG0e4PTu52KWkNm3/vXxlUYnGDC/J2/ICAUOqocU32FMvFlQ8yfZo
+         PqBXIh5CPQ+nHtMdeWRdVX+PKBTB6zB/g3k0MAte4BVhmu15a/h0f6MzgrVNR89bcApl
+         /uyhHx5FzuFCswCHAzURd5FM9RTWhdAAV/Nk7B5xqjEehb8+eYwFpLhzP4mmpjHg3iM6
+         5C0w==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20260707; t=1794418548; x=1795023348; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=rze7Z0eQK7AqMt9RdC+BLJSkX48Eh5M3Ql7thr+dG0Q=;
+        b=IkC0eirwlEe7MNOEfGkeXCfoBJnEvwG7EAZ1rM5fwsp8yplFuI/xD1D3bBc7rVsduF
+         IEOyIaM0QMN4DkEU1PFucRq1qcH08BOV3tiM44jzmTd3R6UBYPDAhO7QCacBx45xgLsC
+         3USBBW21eK73JLNXGZ2okflamitE1v6YQXO7d428vDSTiWp63WDEaRsGNDL10QFQF1na
+         43pQR9J3hwrilQWNfPf6NY7y9Pamz+Z+Tmg27EuHYo/z+5gnJGp1FJr6ynJLsA8e8M2t
+         wtMObUuSYt5fimycZsGWC6PdtQ5L/OvhtGzQ2/aQZI2KR1Gyc0qIwZxRSwPY6dFBQuZ9
+         Scxw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794418548; x=1795023348;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=rze7Z0eQK7AqMt9RdC+BLJSkX48Eh5M3Ql7thr+dG0Q=;
+        b=sBXowF353frPAeR3pHzLjwssu0JvY8T771hZuzUF1+LA17Xv4Nipg7gdWrI0ajPUHQ
+         nUIpnDzjc4FCny0dncNotOTKoHK3EyMHKJhO0P89VA7As1k9ArB2djjWFQRsbgzJ2ESL
+         1kMiLp1J9PHKRFJhmseuZmywszv6YYVttGIHy/i+FuEWlYdI2yMh7ajGD7se2c8EuA6K
+         L9fgZfcfNHpVdQSoKWHy4vegxhHVi1VYp6AvlROW4XvGdqqJM4RJiqwwtvrt0WSWmFKX
+         WVnxCxfCJCL8mgRH2Dj51jj9tLVkkWdVbpCG4USSWlDap6MZvW9gHWQkADtipRN/CrVN
+         LD6w==
+X-Forwarded-Encrypted: i=1; AL+hErERSI402ARxMgl5YLE09xHLajuveGckCSDxU2TzOFRT1tmfk3tUil1HYjgio9PdiluoHUewt3iPfqOa@vger.kernel.org
+X-Gm-Message-State: APuU4Z+FL8Ki52Luj1QhjU35tYSr9IaTsAZF7hPOTaFAgJM2vE6a7roH
+	v4Vlnryn3oIvEs+1fkTRvuAuMrBvrfm/IN9GOn0ffYIAllFS3j0+202xXKfIhNjZUe9mcOcsL3N
+	h+ilq+FKQW3D/jlByA76Z6E4C2CB5a4wzdMqDgTY=
+X-Gm-Gg: AYBFou0o5H1LaWzlcy7EUEZiAZQrrC+BjAEuOp6xLvo+/gNU7xlGtC589QXzsOk70KP
+	cXo5/65cE9N1IiXf3+rkePi6yGMKNJZtq/zjXdSZy1J25+pyEfhhYi//MAlYORC5Jjt5QAKyJVM
+	zVoF6Vz/rbiVyr9aZWB+ah/I29Rk9qksqk9jfDR7yayC17dcT96rYo3KZlNh/6IO80r7/wTBoU3
+	44xvj1gzsE8ZTH9nVK0M/GtrSzrdjx8zS9ZDtsWX8cFEA5l8clpCGUqjnjVhLoReTIsibnoMovG
+	VUGk1D7VbZ8Qn3PiWCEaJieIDVr5vNLGKNpYS7AqsOBMYswvYOOZIvBVyGcwup9tG09AJzGHqD1
+	mmdJ1F7gXE8xrFxWNVEIJe0MYzTyeWDShf5NNtrlBsBg6dQpbyiUpX2Ut7xhJ81nQACizIA==
+X-Received: by 2002:a05:622a:4c0d:b0:535:84ef:2e26 with SMTP id
+ d75a77b69052e-556c02ffb41mr23168971cf.7.1794418545907; Wed, 11 Nov 2026
+ 09:35:45 -0800 (PST)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,85 +103,43 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+References: <20261106221201.2266301-1-jmoroni@google.com> <20261106221201.2266301-2-jmoroni@google.com>
+ <CAPd9Lg-242fV-2NhvXA-Ya2v7tZ0CHFLdwOBV7yK5aEHpkiULQ@mail.gmail.com> <CAHYDg1Q9MKJATZHcZ+-J7kRZUsW-bkP9FA7PGYDEzi==XO=A6A@mail.gmail.com>
+In-Reply-To: <CAHYDg1Q9MKJATZHcZ+-J7kRZUsW-bkP9FA7PGYDEzi==XO=A6A@mail.gmail.com>
+From: David Hu <xuehaohu@google.com>
+Date: Wed, 11 Nov 2026 12:35:34 -0500
+X-Gm-Features: AclHuK_oamB5MRuVNp7CgR-X1kV5cGbb4b_mU-_KZUhjdtbnmmQBYsO2F1Ud-GI
+Message-ID: <CAPd9Lg_m_piYp=OCtRhSTWGwVaJ3=dLorptLso-w3BbAgtb+8w@mail.gmail.com>
+Subject: Re: [PATCH rdma-next 1/4] RDMA/irdma: Fix QP handle assignment for
+ SRQ completions
+To: Jacob Moroni <jmoroni@google.com>
+Cc: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, leon@kernel.org, 
+	linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Thank you for your contribution! Sashiko AI review found no new issues
-in this patch, but noticed 1 related pre-existing issue it does not
-introduce:
-- [High] net/mlx5: null pointer dereference in
-  mlx5_fs_destroy_fs_action() [1]
---
+On Tue, Nov 10, 2026 at 6:08=E2=80=AFPM Jacob Moroni <jmoroni@google.com> w=
+rote:
+>
+> Hi,
+>
+> Thanks for taking a look. It is not really necessary to check avoid_mem_c=
+flct
+> in this case because SRQs are only supported on GEN3+, which always
+> use 64B CQEs. The reason I added the check in the clean loop is because
+> that loop walks every ring slot, so with 32B CQEs it can land on the seco=
+nd
+> half of an extended CQE, where bit 52 isn't the SRQ bit (it's undefined) =
+and
+> reading offset 40 would run into the next slot (or past the end of the ri=
+ng).
+> The poll path always skips the extension slot, so it doesn't have this pr=
+oblem.
+>
 
-commit a0812bfa068bccb4957fe6b500d9c96fead53b69
-Author: Alexandre Cassen <acassen@corp.free.fr>
+Thank you, Jacob, for the clarification. That is helpful. Tidying up
+the handling between default 32B CQE, 32B extended CQE, 64B CQE, SRQ,
+and 64B extended CQE is not an easy task.
 
-net/mlx5: HWS, fix flow meter release on FTE update
-
-This commit stores the ASO meter base_id directly in struct
-mlx5_fs_hws_rule_action instead of keeping a pointer to the FTE's exe_aso,
-preventing FTE updates from releasing the new rule's meter action.
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.=
-c b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
-> index 812b2f3cddcff..cbcbc2b62809d 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
-[ ... ]
-> @@ -704,7 +704,7 @@ static void mlx5_fs_destroy_fs_action(struct mlx5_flo=
-w_root_namespace *ns,
->  		mlx5_fc_put_hws_action(fs_action->counter);
->  		break;
->  	case MLX5HWS_ACTION_TYP_ASO_METER:
-> -		mlx5_fs_put_action_aso_meter(fs_ctx, fs_action->exe_aso);
-> +		mlx5_fs_put_action_aso_meter(fs_ctx, fs_action->aso_base_id);
->  		break;
->  	case MLX5HWS_ACTION_TYP_SAMPLER:
->  		mlx5_fs_put_dest_action_sampler(fs_ctx, fs_action->sampler_id);
-> @@ -937,7 +937,7 @@ static int mlx5_fs_fte_get_hws_actions(struct mlx5_fl=
-ow_root_namespace *ns,
->  			fte_action->exe_aso.flow_meter.init_color;
->  		(*ractions)[num_actions++].action =3D tmp_action;
->  		fs_actions[num_fs_actions].action =3D tmp_action;
-> -		fs_actions[num_fs_actions++].exe_aso =3D &fte_action->exe_aso;
-> +		fs_actions[num_fs_actions++].aso_base_id =3D fte_action->exe_aso.base_=
-id;
->  	}
-> =20
->  	if (fte_action->action & MLX5_FLOW_CONTEXT_ACTION_DROP) {
-
-[Severity: High]
-This problem wasn't introduced by this patch, but can
-mlx5_fs_destroy_fs_action() dereference a NULL fs_action->action when
-dest_action creation fails in mlx5_fs_fte_get_hws_actions() [1]?
-
-Later in mlx5_fs_fte_get_hws_actions(), the MLX5_FLOW_DESTINATION_TYPE_RANGE
-case (as well as MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM and
-MLX5_FLOW_DESTINATION_TYPE_FLOW_SAMPLER) appends dest_action to fs_actions[]
-and increments num_fs_actions before checking whether dest_action is NULL:
-
-drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c:mlx5_fs_fte_g=
-et_hws_actions() {
-	...
-			case MLX5_FLOW_DESTINATION_TYPE_RANGE:
-				dest_action =3D mlx5_fs_create_dest_action_range(ctx, dst);
-				fs_actions[num_fs_actions++].action =3D dest_action;
-				break;
-			...
-			}
-			if (!dest_action) {
-				err =3D -ENOMEM;
-				goto free_actions;
-			}
-	...
-free_actions:
-	mlx5_fs_destroy_fs_actions(ns, fs_actions, num_fs_actions);
-}
-
-When mlx5_fs_create_dest_action_range() returns NULL, the free_actions
-cleanup path passes that NULL entry to mlx5_fs_destroy_fs_action(), which
-immediately dereferences fs_action->action in mlx5hws_action_get_type().
-
-[1] https://sashiko.dev/#/bug/linux-13dff211-595e-45fa-ac59-340929fc7d57
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261110173437.2471=
-233-1-acassen@corp.free.fr?part=3D1
+Reviewed-by: David Hu <xuehaohu@google.com>
