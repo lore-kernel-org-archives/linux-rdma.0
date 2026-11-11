@@ -1,103 +1,66 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=67.231.153.30
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=199.89.1.14
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794356355;
-	b=4eNvUUStl2vnZKWOdxv2Cpn09qUJB5fBAhyy8QRxrnOUB5zooxm2i2aYJj0IqmWbxm8n
-	 Xzw2SR95lFg+7UJKTzUXJzgGhayssvSPmN/esH78jIPb6t5SpfKsP8hj8Jf8DS9uZGiHy
-	 19vjImcC982Poju6wzASc5BovLicmhAFBxyXFFeVHSUW/KTT/Kruut6niHpbQn98kpZbj
-	 lX78WRzlkS4t8djGcFqmnSxYJnj7okwaLAfBK78x3G2Vy4LeAKeS70o8GJeujoS3kZfNP
-	 vN7WidrARVympJ5dOP0e/TuFPDLyc4URCEO7LvwVFVZNJgc8TajZid8ECjhXpCosenw==
+	t=1794357863;
+	b=wU7w2Bsrw9Cew9J9a/9C2Ag5jklUyxuMNCkfPsGLKagtSkp01BWyFk7HGfOdQdWEXoD+
+	 LCgJXFZxA4W9xUBLTH5DwWqGtjLDbnbASLR37LAxjD4ViyW/0Z2w+Ph01G12j4d9zhi9u
+	 NXNsdB/wpyqPyZfkIaqPpeRCucm6tQXF3oLIfehnFMkS16wWZzUZyT/h0jMfexcr3UIZQ
+	 tyYfh1NRwW5LXPBuZhq2l7/wPVV1j/IC+yOJEiovg0bH85pRZSedoERq5KkWu1vMg+NrJ
+	 hb23XyIx6g6cERuXX/BbCXjnyy8zeYNPurGfjEursgADMQ1ihi5JvcCrTgbcUp4UUvg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794356355;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:From:To:CC:
-	 Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:Content-Type:X-Originating-IP:
-	 X-Proofpoint-Spam-Info:X-Proofpoint-Spam-Details-Enc:
-	 X-Authority-Analysis:X-Proofpoint-GUID:X-Proofpoint-ORIG-GUID:
-	 X-Proofpoint-Virus-Version;
-	bh=g+MWHMRxcXzv7wOFHOUfT5Dnfi1frvr4zOpXqitHGao=;
-	b=d+Gy3IyuHPLcvM608IHDT9XE0iE07s7iVkqU2GbULa8HMEpX3wLZ5zS5QesIBxehcPck
-	 WPSFYkYguG2UvqWkTSmnjdCPjtRbde5Gh3fF2GcYhKdztL4kP+TCccZCx0L5bRjjPsoiM
-	 IO1eF1tY4krWLtaY66CbBS61jArR00tM6C2EMfw+DMYSxIhc6D3kbz/n13GEM29TJjUVZ
-	 oJcGMal2okqGMzuZUn5Bgk7yX5ZKdpgkJsMXpgte00WZlh+i7+XliXGXJnOJIWVvuc1sz
-	 9IJQcr4NSDFNb/kly+TE9svU91/luXx9hDEXQtHGY6ZbnyyPEsXGpnTwOxhi3VxXYaA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794357863;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Virus-Scanned:Received:
+	 Received:Message-ID:Date:MIME-Version:User-Agent:Subject:To:Cc:
+	 References:Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=8oqnPwNZ9QuIUCkiqQZgQ2z6Wmi9drWxAq99KWLaH8w=;
+	b=MC4u81wAPC9aMm0Khu1lvbAr46zDNQfpwIa6a9ctImSKx7YRgq2bwxgdLZHRSfcQuBLF
+	 GN0aHgXJXAUrxzC4IF4qEnVyxaCkCHc6ZMyu1ZdomI5vW+hB90XXLTCqkj3EelQ1JUS++
+	 dG6+zI+MdvWWMqqP67AzGWMKWUbHja4DfmTlr1TyByEpJOOpfCwrPBPPZH4BI8Z2fLcsw
+	 FDOwEy484x7yAIN3FvdPuw1TTYXi++xGm0LdZhmYJ0Qhavo9eu0nG/LJzSujC8FElB1OX
+	 PbyiMgnXNbjTZTlpw8x0U0nPUfhrmG1fJ5iQxQFHs64fYP7BtpXb5o/mA1kksqiUxYA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=meta.com;
-	spf=pass smtp.mailfrom=meta.com;
-	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=LX1l5zIW;
-	arc=none smtp.remote-ip=67.231.153.30
-Received: from mx0a-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
+	dmarc=pass header.from=acm.org;
+	spf=pass smtp.mailfrom=acm.org;
+	dkim=pass header.d=acm.org header.i=@acm.org header.a=rsa-sha256 header.s=mr01 header.b=BdE71XlL;
+	arc=none smtp.remote-ip=199.89.1.14
+Received: from 011.lax.mailroute.net (011.lax.mailroute.net [199.89.1.14])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B460360A5BC7;
-	Wed, 11 Nov 2026 00:19:14 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B460360A5BC7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E171606A325;
+	Wed, 11 Nov 2026 00:44:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7E171606A325
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=acm.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=LX1l5zIW
-Received: from pps.filterd (m0089730.ppops.net [127.0.0.1])
-	by m0089730.ppops.net (8.18.1.11/8.18.1.11) with ESMTP id 6AAMKVMR721830;
-	Tue, 10 Nov 2026 16:18:54 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=
-	pps82601-s2048-2026-q3; bh=g+MWHMRxcXzv7wOFHOUfT5Dnfi1frvr4zOpXq
-	itHGao=; b=LX1l5zIW1WYpEufX0TfXpRymDuA9Vs1/DhdMtC0qOPqAEXaTbSm8J
-	DtwdU+nkjj6nb46JwSvURPZNdd9sbcDAuQ79rLQaxRHGl5WEsl/1Mjk0ESTz9qs+
-	C/O5gvmJgs/qt8Ry0pKBt42W9b55k2Rv2Tl7blxLBUojv1QvLEdctYWkUIMIKKZS
-	xjJ0Mhy3ccpq38q0itBck3EgrBwmkLFJ8gOSWeA0nvmWEjmYO7gbQutNcJakEiFI
-	oQb86IOYw6D/BIsvsvOzGeAOrBBAa9zhNfuZLe4DdefWNwXLkVkQxBtZkpSZBpgt
-	xGSxVPMQqp7Y5TH69TWiaEvRJLoG1+hng==
-Received: from mail.thefacebook.com ([163.114.134.16])
-	by m0089730.ppops.net (PPS) with ESMTPS id 4huqmr91ns-5
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Tue, 10 Nov 2026 16:18:53 -0800 (PST)
-Received: from localhost (2620:10d:c085:108::150d) by mail.thefacebook.com
- (2620:10d:c08b:78::c78f) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.56; Wed, 11 Nov
- 2026 00:18:52 +0000
-From: Todd Freed <toddfreed@meta.com>
-To: <netdev@vger.kernel.org>, <toddfreed@meta.com>
-CC: "David S. Miller" <davem@davemloft.net>,
-        Andrew Lunn
-	<andrew+netdev@lunn.ch>,
-        =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?=
-	<bjorn@kernel.org>,
-        Boris Pismenny <borisp@nvidia.com>, Cosmin Ratiu
-	<cratiu@nvidia.com>,
-        Daniel Zahka <daniel.zahka@gmail.com>,
-        David Ahern
-	<dsahern@kernel.org>,
-        Dragos Tatulea <dtatulea@nvidia.com>,
-        Eric Dumazet
-	<edumazet@kernel.org>, Ido Schimmel <idosch@nvidia.com>,
-        Jakub Kicinski
-	<kuba@kernel.org>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Leon Romanovsky
-	<leon@kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-kselftest@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        Mark Bloch
-	<mbloch@nvidia.com>, Paolo Abeni <pabeni@redhat.com>,
-        Raed Salem
-	<raeds@nvidia.com>,
-        Rahul Rameshbabu <rrameshbabu@nvidia.com>,
-        "Sabrina
- Dubroca" <sd@queasysnail.net>,
-        Saeed Mahameed <saeedm@nvidia.com>, Shuah Khan
-	<shuah@kernel.org>,
-        Simon Horman <horms@kernel.org>, Tariq Toukan
-	<tariqt@nvidia.com>,
-        Wei Wang <weiwan@google.com>,
-        Willem de Bruijn
-	<willemdebruijn.kernel@gmail.com>
-Subject: [PATCH net v5 8/8] net/mlx5e: psp: tso: replace only the length in checksum seed
-Date: Tue, 10 Nov 2026 16:18:31 -0800
-Message-ID: <20261111001831.3710881-9-toddfreed@meta.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20261111001831.3710881-1-toddfreed@meta.com>
-References: <20261111001831.3710881-1-toddfreed@meta.com>
+	dkim=pass (2048-bit key, unprotected) header.d=acm.org header.i=@acm.org header.a=rsa-sha256 header.s=mr01 header.b=BdE71XlL
+Received: from localhost (localhost [127.0.0.1])
+	by 011.lax.mailroute.net (Postfix) with ESMTP id 4jPPss4VQ2z1XMYJg;
+	Wed, 11 Nov 2026 00:44:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acm.org; h=
+	content-transfer-encoding:content-type:content-type:in-reply-to
+	:from:from:content-language:references:subject:subject
+	:user-agent:mime-version:date:date:message-id:received:received;
+	 s=mr01; t=1794357855; x=1796949856; bh=8oqnPwNZ9QuIUCkiqQZgQ2z6
+	Wmi9drWxAq99KWLaH8w=; b=BdE71XlLFoQN1tu3q9sh0WsCmkwxXz0pRG8CNHKf
+	9eEzCj1c6FRAgYDDeR+OKKTnFg3+JOgfKsi1AmDFuvsEjKu7SximDhbau9607+bl
+	S2xGfBcaXVwBWDSHZ8soi9nLVV/tcq84KWsXgH+E0JFj1fH6LVkN2d1dwJ9phjP2
+	nCIG3PBE5GIlAJKMzQ1wifPFEi8s4GiVhpkEm7pdyTAsdwhKBvgWoAmp0HbifgVL
+	TzUcnW6fOc6yJfI9BEOGc1Az8DeoWUjJbsSju53wXIpFwZjy7C1B+mdmiIk3SxjH
+	Q5CbNpu38jR/y7Xp2WYhUoE3xHrL6gs5venlXKBcrK43SA==
+X-Virus-Scanned: by MailRoute
+Received: from 011.lax.mailroute.net ([127.0.0.1])
+ by localhost (011.lax [127.0.0.1]) (mroute_mailscanner, port 10029) with LMTP
+ id dmXf0lVUXjJD; Wed, 11 Nov 2026 00:44:15 +0000 (UTC)
+Received: from [100.80.231.125] (unknown [104.135.182.41])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: bvanassche@acm.org)
+	by 011.lax.mailroute.net (Postfix) with ESMTPSA id 4jPPsq16F2z1XMYJb;
+	Wed, 11 Nov 2026 00:44:15 +0000 (UTC)
+Message-ID: <70bd9162-e9f9-4580-bfb5-cc29107a4126@acm.org>
+Date: Tue, 10 Nov 2026 16:44:13 -0800
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -107,96 +70,44 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTExMDAwMCBTYWx0ZWRfX2HCcR9d6eIVs
- nVAzJ551tICZpjoKBil307UsTQ5wv8wNWqkRDOcbBJKKMAqlvHUXGw2pm0rNtcrIcKBlsjZHT9G
- fdbTrVWgcOp3d0f91WYsaJ81E0rkuMg=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTExMDAwMCBTYWx0ZWRfX/pNWHGRB5aNK
- i/lJq/hOg1HG40zTSjYlbX6EsJsapDZpyvLj1VIm10SZNn2sygkiQoNBhkOpnfCs7xlwGnUBYjB
- PiwhE9tYZr4hiyWNm5EgaNLzAcrYKn65B34xLgjhsdWRnIknsQ+B5yvztNvUXK1WRSaAKD1VrBR
- e3v+UM4uQZcXkIPHJaAsns/ETCJuVBS908M1pkJ6wE/cXjcZObzInLdtl/T0Mp/1FF7RJg9Mxmu
- ZMearJZLpaysNNMbMxknkdlFj3bB/T8P63L9RgrgMJ/e/VeEnF35IGI6bsTVokHZVNCniobJsmR
- VDBqo0wnpuHOIFPkXgptLVK5qlfZX54/XNGD/mwOYRtTwCndz/N76fJTvk1/cp/j3XtOde7QMSz
- T8404b+rakj1Ao0AcKFwEou7SaS36Jn34zf7RPeciemhPwMzmopvOsjU59u4Bjp/myCHI139Nhp
- fIqOJnqfkEnL+ETSzuQ==
-X-Authority-Analysis: v=2.4 cv=YIgKWhGx c=1 sm=1 tr=0 ts=6af3b46d cx=c_pps
- a=CB4LiSf2rd0gKozIdrpkBw==:117 a=CB4LiSf2rd0gKozIdrpkBw==:17
- a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
- a=855S8uPTkML1Oy45N9_h:22 a=pGLkceISAAAA:8 a=VabnemYjAAAA:8
- a=nThHfc4DiEoPSTtPicgA:9 a=gKebqoRLp9LExxC7YDUY:22
-X-Proofpoint-GUID: X8TguCogmc0mmwFmypAnbm425qiR5iGT
-X-Proofpoint-ORIG-GUID: X8TguCogmc0mmwFmypAnbm425qiR5iGT
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-10_07,2026-11-06_01,2025-10-01_01
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] RDMA/srp: Reserve send queue and CQ space for
+ ib_drain_qp()
+To: Praneeth Balasubramanian <praneethb2002@gmail.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ Praneeth Balasubramanian <praneeth@ucsb.edu>
+References: <20261110222421.205573-1-praneeth@ucsb.edu>
+Content-Language: en-US
+From: Bart Van Assche <bvanassche@acm.org>
+In-Reply-To: <20261110222421.205573-1-praneeth@ucsb.edu>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-for psp tcp with tso,
+On 11/10/26 2:24 PM, Praneeth Balasubramanian wrote:
+ > srp_destroy_qp() calls ib_drain_qp(), which also drains the send queue.
+ > ib_drain_sq() requires the caller to "ensure there is room in the CQ and
+ > SQ for the drain work request and completion".
+ >
+ > SRP reserves that room on the receive side, where the queue and CQ have
+ > queue_size + 1 entries. Commit 9294000d6d89 ("IB/srp: Drain the send
+ > queue before destroying a QP") switched from ib_drain_rq() to
+ > ib_drain_qp() but did not grow the send side.
 
- - __tcp_transmit_skb() -> tcp_v6_send_check() or tcp_v4_send_check()
-   computes the checksum seed using the addresses on the socket and the
-   total length, then
+Agreed. srp_destroy_qp() reaps the send CQ before it calls
+ib_drain_qp(). After the QP has been moved into the error state, up to
+m * queue_size flushed work requests may complete on the send CQ, and
+the drain work request needs a free send queue slot. Hence, both the
+send queue and the send CQ need one additional entry.
 
- - mlx5e_psp_handle_tx_skb() recomputes the checksum seed using
-   addresses from the packet's l3 header, and the length of one segment
+ > Signed-off-by: Praneeth Balasubramanian <praneeth@ucsb.edu>
 
-the length difference is expected by the device. however, the difference
-in addresses is incorrect in cases where the l3 header daddr is an
-intermediate hop, for example,
+The From: header of this email is praneethb2002@gmail.com while the
+Signed-off-by: tag uses praneeth@ucsb.edu. If this patch is applied
+as-is, the gmail address will be recorded as the author. Please either
+add an in-body "From: Praneeth Balasubramanian <praneeth@ucsb.edu>" line
+when reposting or make sure that both addresses match.
 
- - ipv4 source route option (IP_OPTIONS with lsrr or ssrr)
- - ipv6 IPV6_RTHDR header (conceptually ; ipv6 extension headers are not
-   properly supported on this path yet)
+With that addressed:
 
-in these cases every segment of the tso packet to go out with a bad tcp
-checksum
-
-the fix is to replace only the length in the seed which tcp had already
-computed. this is also what tcp_gso_segment() does.
-
-tested on connectx-7, with a psp tcp socket whose ipv4 loose source
-route's first hop isn't the final destination, and the peer checking
-tcp checksums in software.
-
-Fixes: e5a1861a298e ("net/mlx5e: Implement PSP Tx data path")
-Acked-by: Daniel Zahka <daniel.zahka@gmail.com>
-Signed-off-by: Todd Freed <toddfreed@meta.com>
----
- .../mellanox/mlx5/core/en_accel/psp_rxtx.c    | 21 ++++++++-----------
- 1 file changed, 9 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.c
-index 348fd7a96261..d9c2742b3c24 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp_rxtx.c
-@@ -177,18 +177,15 @@ bool mlx5e_psp_handle_tx_skb(struct net_device *netdev,
- 		return false;
- 	}
- 	if (skb_is_gso(skb)) {
--		int len = skb_shinfo(skb)->gso_size + inner_tcp_hdrlen(skb);
--		struct tcphdr *th = inner_tcp_hdr(skb);
--
--		if (skb->protocol == htons(ETH_P_IP)) {
--			const struct iphdr *ip = ip_hdr(skb);
--
--			th->check = ~tcp_v4_check(len, ip->saddr, ip->daddr, 0);
--		} else {
--			const struct ipv6hdr *ip6 = ipv6_hdr(skb);
--
--			th->check = ~tcp_v6_check(len, &ip6->saddr, &ip6->daddr, 0);
--		}
-+		u32 seg_len = skb_shinfo(skb)->gso_size + inner_tcp_hdrlen(skb);
-+		u32 len = skb->len - skb_inner_transport_offset(skb);
-+
-+		/* update just the length component of the checksum seed
-+		 * tcp computed the seed with the total length, but mlx5
-+		 * devices are expecting the segment length
-+		 */
-+		inet_proto_csum_replace4(&inner_tcp_hdr(skb)->check, skb,
-+					 htonl(len), htonl(seg_len), true);
- 	}
- 
- 	return true;
--- 
-2.53.0-Meta
-
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
