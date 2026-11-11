@@ -1,57 +1,53 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794403560;
-	b=ik5mnYKFqhJn7RfFSEqc+M9gGB5rzc7J/ekcqQsjZ28QrHcl6crZ7wJexi7nBKEr6tZb
-	 Q1c0wV4cwgORGCxV7ejII3WF0RDumUbYK6LdQeuOPh4xcp7r7/Jgq+tcxGN8YUKKQ2F3C
-	 +2/AmMBehBYqgS2cuRVt3rRMj8fl67eoEzZR0Yta8btGMw5OoWXFZ9Odl4m5qj/ByvgJf
-	 TWr4175wyz8gEayae5ziVtDRRV1V24Sts2nCSVRIjkOklHOyva1RYBG8luN7iUDTFVQea
-	 4PDGA9JqR8xC15piIbFo4KCRrZxRRgMAgWxADViu28INog0jb4NCA/c1oeFxoboUtAw==
+	t=1794404294;
+	b=ZkGB5ImfCy0zlnCzYY6x1bhCCoJS6rKsB2qwcW/EWSNx+rc0R/99Bc0+hw4DsAKULYPl
+	 NqlRyslzNta1EwG8LUAeVYoxa8scn6dhio8QIOAyueBWCoeHsZAB0OAI4PMOgibGMl3xa
+	 wzLEDUVwoWKcC9bJJZphgOTWDV4MwbffG2eyWGAn+ehgdYJcudUjyjcNdDWWZ0xm8+peh
+	 mOm5seaT5qOXaR4O18z1RjFTN8lMIlrimqQNBHBOQDGLF7oohExDQFfyQxnvDz+FFfWEQ
+	 mdB7Vgt8XMaOPva/z5f1oRUPpWdmUeYbLsms0lEZ8fn4RuYFrqrnT/G4+/+fNg4jfqQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794403560;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=8OHLHAC1/xO2y/mOPLdYPy9EIep69G6lhZW4pPcCfDY=;
-	b=HNQ2LoGEcCwTYM4vSqJj29lVsxvgcnbf+i/pzX1pEd8MRXo/6tMS7JtTY4KvAdXtb/9o
-	 egvOePPRlsUjWE8ivHev25vr0+KEQw0SiSkvdEkURQYObYuuqc192FP9oYCThZc44Cesd
-	 qNBAdfPYCtEKiEXo9DL6WL1SQk8qj/V1+Np+z6WuRjbRuPCRO9KhZOPZBAcrbWPZeTtl0
-	 7gCBjtPn6KTpxDprkvWyWhGd5UqhpjrIMU44iuYI5sA0ucdXPcg24V1SsaNtiYodlA/vi
-	 ptNeExlXYaFOUqLOVk1CgUFLkawZxPpS3GVE7/cro1b9R1J6mJyqc8/G9pgTaXIJdZA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794404294;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=u5UXXfLjdcD8s36JEwM0JvoXfnr0525eeXKE1fUsHhA=;
+	b=ZNjpndKC8671E0fXZMr352UG9NozPZas0sXYIZgJtoQYaRJJVo0Rxl3torfkz6mBRSf8
+	 Dr0/BkDf5AD4q14GsU9ZG2DkCsCQYWJY9GO413TWQqIYLP/Iv1l2F/K/bKSuK5i9aEsa9
+	 ee9M7pd0UC0qfDTZXEoi+r/n6+s5ckIaxFFcJ6Ys38Qk9dGEa3cwFqSdBXzAqC4JOfll8
+	 /y45gK4ncSW/21j5JiGQ2vrFW7he6bGyz/kydSojYendup5pCRtwVQTm7wwhhYmg4LbOv
+	 HDad0+tWNbXFsa1VHbshwa1eQXTV1sdyzUg3GcGlppgSKZzAJs9+SMNsXwaC8hka8yg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iZTkvnCI;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dYWewhp+;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 330F2606A31C
-	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 13:25:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39C42606A32D;
+	Wed, 11 Nov 2026 13:38:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iZTkvnCI
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A03731F00A05;
-	Wed, 11 Nov 2026 13:25:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dYWewhp+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65F091F00A05;
+	Wed, 11 Nov 2026 13:38:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794403559;
-	bh=8OHLHAC1/xO2y/mOPLdYPy9EIep69G6lhZW4pPcCfDY=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=iZTkvnCIPi9/EutYU2xbHiu67n/lQEUzMaCWeXTMW5DkRvmIDnZSPQN3P8U4eGT6p
-	 v5luQUNrMhVJw4DxBtKTcpg7/+UCG8iVv7x4qtLkxmPv5V5mqkDNDxDqj29kwM8xqT
-	 3tZe7z7ABZ1tDhY5xTH7sCXE4mtBMubB3DPaUvTCsyCYEJIVeqdMgcndFHtGJhQevm
-	 16tZ/5h6fcOyJ36SLa+iOcWpQYjgdIpFye47GTrV/bi4+e4qeTziY1IEQtP3yDoRJD
-	 L++boitZWSfq26hjPrBGo9rtvgxNt432a1ZoroybFYgpLbaATAEzkhBIAhs4VGkN7I
-	 dgaGTD7yS8LPQ==
-Message-ID: <sashiko-outbox-209073@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v10 7/9] RDMA/mana_ib: Poll RC completions
- using PSN and FSN progress
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261111121417.1265896-8-kotaranov@linux.microsoft.com>
-References: <20261111121417.1265896-1-kotaranov@linux.microsoft.com>
- <20261111121417.1265896-8-kotaranov@linux.microsoft.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 11 Nov 2026 13:25:59 +0000
+	s=k20260515; t=1794404294;
+	bh=u5UXXfLjdcD8s36JEwM0JvoXfnr0525eeXKE1fUsHhA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=dYWewhp+8DTAc7QQsC9lhI++VogBEsco6/bbPQoEzK2t+wYzgvvkyklkf6YL4Mb5C
+	 XDQAy1cU0FqpvbveGG3zUhcc0R6tEiySV+V9CDtzusSosJl/oyGZu2h8jM7Za8GHtn
+	 Eaa/ZklFLlFTt9QDce7aPzs2vP4h3Mvs3PP1f3F9nOZL/RfL7D3Jl/vqKi2Ad5Ffh6
+	 woinDOICekSskNZSnFcHfNxsc/k3ke5NTlfQA/CSYD12gPr6je/UHwXgiOJPk/Fj8d
+	 SjOrQfIxYiW9YhEsqdJWzFczQTn8RuG0eow7KASY4j/AQDrwjUk7Uqm92OOtsXXwoW
+	 Pn9viK+BfTqlA==
+Date: Wed, 11 Nov 2026 15:38:10 +0200
+From: Leon Romanovsky <leon@kernel.org>
+To: Yuehong Wu <wuyuehong@cmss.chinamobile.com>
+Cc: linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH rdma-rc] RDMA/ucma: free a queued CONNECT_REQUEST with
+ its new context
+Message-ID: <20261111133810.GS8635@unreal>
+References: <20261109-ucma-conn-req-ctx-1-yuehongwu@cmss.chinamobile.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,100 +56,85 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261109-ucma-conn-req-ctx-1-yuehongwu@cmss.chinamobile.com>
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue to consider:
-- [Medium] RDMA/mana_ib: stale pending_cqe left on shared CQ in
-  mana_remove_qp_from_cqs()
---
+On Mon, Nov 09, 2026 at 11:20:00AM +0800, Yuehong Wu wrote:
+> ucma_cleanup_ctx_events() only frees the events that belong to the
+> context being destroyed.  A CONNECT_REQUEST uevent that has not been
+> delivered to user space belongs to the listening context, but it also
+> keeps the newly created connection context in uevent->conn_req_ctx, and
+> that context is already reachable from user space because
+> ucma_finish_ctx() published its id before the event was queued.
+> 
+> If user space destroys the new id while the event is still queued, i.e.
+> before it fetches it with get_event, the event is skipped here and stays
+> in the listener's event list with a pointer to a context that
+> ucma_destroy_private_ctx() then frees.  Destroying the listener later
+> (which is what closing its file does) reaches the
+> uevent->conn_req_ctx->id lookup in the xa_cmpxchg() below with a
+> dangling pointer, and when the freed context was reallocated the
+> comparison can match an unrelated live context, which is then detached
+> from the id table and freed.
+> 
+> The match in commit 8ae291cc95e4 ("RDMA/ucma: Do not miss ctx
+> destruction steps in some cases") replaced "uevent->ctx == ctx ||
+> uevent->conn_req_ctx == ctx" with a plain "uevent->ctx != ctx" test and
+> lost the case where the new context is the one being destroyed.
+> 
+> Free the event in that case and return the backlog slot it consumed: it
+> was never delivered to user space, so it can no longer be acted upon.
+> 
+> Fixes: 8ae291cc95e4 ("RDMA/ucma: Do not miss ctx destruction steps in some cases")
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Yuehong Wu <wuyuehong@cmss.chinamobile.com>
+> ---
+> Validated in a QEMU/KVM guest running this tree with CONFIG_KASAN=y and
+> CONFIG_RDMA_RXE=y.  A reproducer creates an rxe device, queues a
+> CONNECT_REQUEST, sees it with poll() without fetching it, finds the new
+> connection id by trying the small integer ids that belong to its own
+> file, destroys that id and then the listener.  The unpatched kernel
+> reports
+> 
+>   BUG: KASAN: slab-use-after-free in ucma_destroy_private_ctx+0x1c0/0x4f0
+>   Read of size 4 at addr ff11000102295a00 by task c9repro/302
+>   Allocated by task 12:
+>    ucma_alloc_ctx+0x2b/0x170
+>    ucma_event_handler+0x1ad/0x3a0
+>   Freed by task 302:
+>    ucma_destroy_private_ctx+0x468/0x4f0
+>    ucma_destroy_id+0x180/0x1e0
+> 
+> With this patch the same sequence run four times produces no report, and
+> a probe shows the queued event is dropped when the new context is
+> destroyed.
+> 
+> Note: ucma_migrate_id() can move the new context to another file, which
+> leaves its queued CONNECT_REQUEST in the original file's event list.
+> That cross-file case predates 8ae291cc95e4 and is left for a separate
+> fix.
+> 
+>  drivers/infiniband/core/ucma.c | 17 ++++++++++++++++-
+>  1 file changed, 16 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+> --- a/drivers/infiniband/core/ucma.c
+> +++ b/drivers/infiniband/core/ucma.c
+> @@ -534,8 +534,23 @@ static int ucma_cleanup_ctx_events(struct ucma_context *ctx)
+>  	/* Cleanup events not yet reported to the user.*/
+>  	mutex_lock(&ctx->file->mut);
+>  	list_for_each_entry_safe(uevent, tmp, &ctx->file->event_list, list) {
+> -		if (uevent->ctx != ctx)
+> +		/*
+> +		 * A CONNECT_REQUEST that has not been delivered to user
+> +		 * space belongs to the listening context but also holds the
+> +		 * new one. 
 
-commit 806a276151b888efca6e4438e92abdefb2dc1d9e
-Author: Konstantin Taranov <kotaranov@microsoft.com>
+I don't understand this sentence. conn_req_ctx is created and added to
+event_list at the same function without any conditions.
 
-RDMA/mana_ib: Poll RC completions using PSN and FSN progress
+Please explain with function call chain how your claim is possible.
 
-This commit decodes RC receive, armed-PSN, and MMQ completions, retiring
-requester and MMQ shadow entries using PSN and FSN progress while honoring
-cross-queue fence dependencies and rearming the next signaled PSN.
-
-> diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana=
-/cq.c
-> index 843e2c64b32bc..307383bfa4ac7 100644
-> --- a/drivers/infiniband/hw/mana/cq.c
-> +++ b/drivers/infiniband/hw/mana/cq.c
-
-[ ... ]
-
-> @@ -277,15 +283,18 @@ int mana_ib_arm_cq(struct ib_cq *ibcq, enum ib_cq_n=
-otify_flags flags)
->  	struct mana_ib_cq *cq =3D container_of(ibcq, struct mana_ib_cq, ibcq);
->  	struct gdma_queue *gdma_cq =3D cq->queue.kmem;
->  	unsigned long irq_flags;
-> +	bool missed =3D false;
-> =20
->  	if (!gdma_cq)
->  		return -EINVAL;
-> =20
->  	spin_lock_irqsave(&cq->cq_lock, irq_flags);
->  	mana_ib_cq_doorbell(cq, SET_ARM_BIT);
-> +	if (flags & IB_CQ_REPORT_MISSED_EVENTS)
-> +		missed =3D cq->has_pending_cqe;
->  	spin_unlock_irqrestore(&cq->cq_lock, irq_flags);
-> =20
-> -	return 0;
-> +	return missed;
->  }
-
-[ ... ]
-
-> @@ -390,17 +425,108 @@ static void handle_rq_cqe(struct mana_ib_qp *qp, s=
-truct gdma_comp *cqe,
->  	shadow_queue_advance_consumer(&qp->shadow_rq);
->  }
-
-[ ... ]
-
->  static bool mana_handle_cqe(struct mana_ib_cq *cq, struct mana_ib_dev *m=
-dev,
->  			    struct mana_cq_poll *poll)
->  {
->  	struct gdma_comp *cqe =3D &cq->pending_cqe;
->  	struct mana_rdma_cqe *rdma_cqe =3D (struct mana_rdma_cqe *)cqe->cqe_dat=
-a;
->  	struct mana_ib_qp *qp =3D mana_get_qp_ref(mdev, cqe->wq_num, cqe->is_sq=
-);
-> +	bool consumed =3D true;
-> =20
->  	if (!qp)
->  		return true;
-> =20
->  	switch (rdma_cqe->cqe_type) {
-> +	case CQE_TYPE_ARMED_CMPL:
-> +		consumed =3D handle_psn_cqe(qp, rdma_cqe->rc_armed_completion.psn, pol=
-l);
-> +		break;
-> +	case CQE_TYPE_LWR:
-> +		consumed =3D handle_mmq_cqe(qp, rdma_cqe->rc_mm.fsn, poll);
-> +		break;
-
-[Severity: Medium]
-Can destroying an RC QP leave a stale cq->pending_cqe on a shared CQ when
-handle_psn_cqe() or handle_mmq_cqe() hits poll->budget?
-
-When mana_advance_send() exhausts poll->budget, mana_handle_cqe() returns
-false and mana_ib_poll_cq() leaves cq->has_pending_cqe set.  If that QP is
-then destroyed before the remaining WQEs are polled, mana_ib_arm_cq() with
-IB_CQ_REPORT_MISSED_EVENTS falsely reports a missed event, and if the
-hardware queue ID is reused by a new QP before the next poll,
-mana_ib_poll_cq() will process the destroyed QP's pending_cqe against the
-new QP and prematurely retire its shadow WQEs.
-
-Follow-up commit "RDMA/mana_ib: Handle error CQEs for kernel QPs" in this
-series adds mana_ib_cq_clean() to mana_remove_qp_from_cqs(), but only
-under if (reset), so mana_ib_destroy_rc_qp() calling
-mana_remove_qp_from_cqs(qp, false) still leaves the destroyed QP's
-pending_cqe and unpolled CQEs on the shared CQ.
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261111121417.1265=
-896-1-kotaranov@linux.microsoft.com?part=3D7
+Thanks
