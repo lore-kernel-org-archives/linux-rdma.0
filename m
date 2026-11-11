@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794404812;
-	b=5smiE3blx62PnEXwO4MWgRhhp03Pm+mkKd+FyHJjoUFlGDTPNUNtUmBuafzltMNCqmYE
-	 fBOOEiiIZOCiHAYeebWmZOE4pRIHmxeA9xHWnARE7odaXu6zG7vadsB004uurkyQKH/kH
-	 wGXtimlm+3dda4YKm4meuWhRhXWddlQJLaQXdnCY6tidyTM9ecwIy3AraCBxYTw+Gs4+v
-	 TXy9SCAuEf99BSpnOwONYEhbOPuLRA2HjwvxAUKw4fnhCjaDXx0mnQQNRTwhFdWgdJKDz
-	 nL1kNki7Ff5HnoLxfznTrHXgmGgOXLHgMo5jBJ/H8uHQAqZv2ltC16mrhmmzupDrl7w==
+	b=ozH4XlMsAxz4IMy9TQ6Lb06TMMfZJjwdGKdvMMYIEDHBYOul0//CRTFE68LHdpV8xzbC
+	 XZkNVxx9FRXqt2vSGgm1slqy1znPqGE5LBWdiEbgAILPEVNxA8wzoEyDhcG4T9bQgzAr/
+	 Sr32OWDDKuNIPIYookUujr2zSygTLbCBfv1JDyOnz2GLmJulwArl6RqSGxUPZ9c6crfmQ
+	 uvUjFjCTmZE/TYRLb8RGkW5+CoWNpM4WLYsXiW5z5yxavK7VAEasokytBwaWOXzsJnNjj
+	 ihv16/B/cX249UQ1xiR6klzggEm61Jd3swyQ5Rf99FFoeXURapyz7shyWFarBR3ozgw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794404812;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=nhOCtmALi1qE/WbW6lCCI9gKLLwANvDDL81xjKy+zz4=;
-	b=tMHLK7dN3tTsSyXdThBxmEWLRQrhIxUOEcH15sKpIJMTNL3V1yzaDQW5aPtgljXVg92A
-	 Oc/ULBX3f7QF7kjqwp6O9h0LvEXYSwuNeXpcjKHteFMh7xhw7vc3x/rv28Z9kH66wu6OG
-	 8ghNPvdz7Te88RHElfCKXa3rpL39GIfUjmdY+UBMoE0zbhZFxn6Qqfn+D7nbPcACd6Du+
-	 Z0+lqo4CrmCFnSASHh5zpbIDdebM5KO/Nfjo0aJ1NALUUpK1w2KTzFN7901hqdKSQP5Vx
-	 jKMVXUtd+ev5PMn/bxqUJCP3TNvZQMme1OfR8xU/zqKD6ZRkd9fXjlvJaGfd9wlGhfA==
+	bh=wIAzsn090CpXR/N8GStBnq3Y1TI/Nt/l0DCGPfg4d0A=;
+	b=M/rwk8JTQLHoSZFMMzUnmQY4fTxNFeBR0OTrEFjDmy+rde1rjYXqnoCwcF1A4c3FIlX0
+	 fnEsaReDcSKk8YIa7f1PRnkbcEEkKbBMXZzBwO7/x9AGyYegbNY1NBZP6yy/tsqONH2+4
+	 WJ6mg+OG9nwHhpPaFhrlw9GdxFUSpDiY4xNVAnIa2qdN2zBhWk/MDMcATG9QA8biMPMMi
+	 xvSvBYoSoWCfsG5A6OPvkPpPErj+EmYAE1WaABydX3nm0jmTAkEAI5FjzAJYQdzkt5qDQ
+	 bHh8dx2H0wClJs5nfI00XU9M1kmOPqQi6HwqelNXkmsHM49ao2gMybua8SNR15K0J9g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=A3U63NEt;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=N5Gqq15V;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C642606A882
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF132606A884
 	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 13:46:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=A3U63NEt
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E789D1F00A08;
-	Wed, 11 Nov 2026 13:46:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=N5Gqq15V
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CB971F00A05;
+	Wed, 11 Nov 2026 13:46:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1794404812;
-	bh=nhOCtmALi1qE/WbW6lCCI9gKLLwANvDDL81xjKy+zz4=;
+	bh=wIAzsn090CpXR/N8GStBnq3Y1TI/Nt/l0DCGPfg4d0A=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=A3U63NEt0X6i3KqZGZfXq4xo+11l2lDXIKK5aIn2EFobWGj92jQcnF2URkqtdABHe
-	 0JyAvQnE93+iKMYOPKK1RZiIu1NaS9OqusnpiB6iSov1CV7wLEyu+mHkFLPzTVQN6w
-	 QYU5HA75buO1Sbf7O2WxaDWjZi71Xl4OYNTEsGqERk3QQXNGTFTwsotZUx4nONVAhE
-	 HuKWtPguMsulND7smjR5MzMLhCCVGuxdC0zytv6XWIjt8SKC+FI7rj9adwFFl5G0kR
-	 xGY+3e+EPRBvmO+z+GKBtT8bhs0635mpXK2qHGo0J8750lAX59frHjWPcenEStIpEb
-	 nccm85p2HG7fg==
-Message-ID: <sashiko-outbox-209097@kernel.org>
+	b=N5Gqq15VgCCvQYCX9tEfX511XdCGhpOUfR2Imyg6yUXPLXnzuL2wS+5Cnqr+5liin
+	 UqernFFicDCPJT1rZ5IcMdP4JwBdfgonD7blXGgSdQ2UBqExDbyHAAkWJ26r/eW76E
+	 biPRHQZbykfYtYuRv2zrMqvJNLszvc6zHhjk8Ud5ygOWN4y3vee0d3UKPmQYx4hhxN
+	 k1XT7E3yr8m6NGM3c8mhKtAL1KcylQ4qfUMZcdhll9uS8ZUrPOID9OzOqANfc9NRkm
+	 KpleL1Nzg8Q9yCSRglJUbLHKeqO3yHoSADwXA2fBLCuIQpQlpOt36NtC8OqRI1VCG4
+	 PLRxZWQOF1BaQ==
+Message-ID: <sashiko-outbox-209098@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH V1 rdma-next 12/24] RDMA/mlx5: Add shadow FIFO
- infrastructure for UMR completions
+Subject: Re: [PATCH V1 rdma-next 13/24] RDMA/mlx5: Verify UMR CQ polling
+ against a hostile NIC
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Yishai Hadas" <yishaih@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261110134320.34408-13-yishaih@nvidia.com>
+In-Reply-To: <20261110134320.34408-14-yishaih@nvidia.com>
 References: <20261110134320.34408-1-yishaih@nvidia.com>
- <20261110134320.34408-13-yishaih@nvidia.com>
+ <20261110134320.34408-14-yishaih@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 11 Nov 2026 13:46:51 +0000
+Date: Wed, 11 Nov 2026 13:46:52 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,19 +61,25 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> The UMR CQ is polled by the generic path, which finds the completed
-> request by indexing qp->sq.wrid[] with the CQE wqe_counter. A hostile
-> NIC can forge it to complete a request other than the one that really
-> completed, or one that is not pending at all.
+> The generic poll path trusts the CQE content: its opcode, QPN and
+> wqe_counter decide which request is completed and which waiter is woken.
+> A forged CQE can therefore complete a request the driver never posted,
+> or one that already completed. The driver then writes through a context
+> it no longer owns, which corrupts memory, as the context is usually on
+> the waiter's stack.
 >=20
-> The UMR QP signals every WR, and its send queue completes in posting
-> order. In adversarial mode, keep a FIFO of the posted UMR contexts, so
-> a follow-up patch can check each CQE against the oldest pending
-> request instead of trusting it. Each context also records the
-> SQ producer counter it was posted at, as its address alone doesn't
-> identify the post: it is usually on the stack and reused across posts.
->=20
-> Nothing consumes the FIFO yet.
+> In adversarial mode, install a dedicated poll_one for the UMR CQ that
+> does not take the CQE's word for it. The driver keeps a shadow FIFO of
+> its posted requests, and a CQE is accepted only if its opcode and QPN
+> match the UMR QP and its full wqe_counter matches the oldest pending
+> request, one already passed to the doorbell. The context is then taken
+> from the FIFO, never from the CQE. This cannot prove that the NIC
+> really executed the request, as it can always report the oldest one as
+> completed; it ensures that the driver completes only a context it owns,
+> [ ... ]
+> On teardown, stop polling the CQ before destroying the UMR QP, so a CQE
+> for the destroyed QP, or for a reused QPN, is never completed to a
+> waiter.
 >=20
 > Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
 
@@ -81,5 +87,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261110134320.3440=
-8-1-yishaih@nvidia.com?part=3D12
+8-1-yishaih@nvidia.com?part=3D13
 
