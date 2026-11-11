@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794424332;
-	b=v1QFS8Mi9M85rXWCTW1blGHwluVzUYA1XBv9Y4BeBY9aNgUAD26fiGttK+RgMFLue1JP
-	 X0GOqBOgEKNPHdQgj8TE8GRbMXyl6LmneOKPFZC2qwto1MvwBm18RM8TNYDi/gxVIs6xx
-	 oPz8TvN3wPq7ipJipNPJKonoc0XZFgAecDOGjgPrSW4AVuXILECa5V8/HxrmLDf/k95DW
-	 nHiv+bqyHsVhiay7iRSZrAurj/r2faLpqJdroni+oiUqRi6aWhtRdPHzq2Nh+a2YddblM
-	 jgGb+LPIKccirksPYh6CNPK2EUlWRrlbFKp6ehuGWw3vAAN/DoVaEDDiz8lrX/VkmFw==
+	t=1794424333;
+	b=MX2UpHj/APqebhErC+DqxxqsX78/9gyB65tCXBPEQbh6UJFfUbMctxjSxayhR8Xk/DeV
+	 AtOa2J2z3DpU38+Q0vKZpqB5VQXXybsSRzzZ5RvCPxC/gjDqps+t9nOGCq0mgd9KOhodh
+	 Vb6GQS98mQ0tAA69ywuFyyyQO090kQBBPzRelwwYjJ6QTJ4rdYSXwUhgVGx9B12U2zSLO
+	 4gld+n75tnFBHCoaST5OxCc/LiGfeGEbfnFAeTUzrps0bmJN8NVMR+BdTx8XBhn19xlYu
+	 kiDijgCp/nQEDB7k4q4om4X81PuX1ATm9M3A1dXmrhwio92ylXKHYXjJkSkX2S84m7A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794424332;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794424333;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=JzLMSwghD2PO6Xb9dFzksMNtTAGLMaDroH8J4cxYrno=;
-	b=5XPyLXe04eShmJnD/TwfnxIOc6dsUyk1AQLzfJtFNSdr7+UjQvQeSPrzxb7ViYc6YHk8
-	 TUUG4mH+WcrOc6VtgaRiC+mRzT6rXQuqL4lq/xiQ7DiPEKvhtlxaZ+3dQ/C9kHilMVtz1
-	 w7rYoHlsK9VQp02oSGamnceOV2baD155BAgIIukc0BO+llNY7IZ6KcmzzC5iuv/0hMBQQ
-	 80Onk2rGC4/mELrMmWJ43xGyVOQdh5ouo94sMmry+0YxoqbyIM4W7YRuYxbBhJ4qopI7D
-	 5QITRgeX/Zt8D6RCx9mJf96SBDrWBGurV7t+7XzDvO+0EdZ5vbOXU9yQdQ0qngdpQgA==
+	bh=9jTV1cU8eRCsu/cOln8DSW5YMovrmFKMV7huP79WNyk=;
+	b=yB5aJn/U7Vw8l6gOrCtkSDJzwPgFnFoM0umxvZ6qedcJxLK5o6SA9gN4MrsZDfQOPpZX
+	 pyLDn2xuOWNY2Iz1eqD2oBNV4U1MQfdU/Xxa3mdsq6dAkGC2syLyiinB2SexEfk1qHd1S
+	 5pFT8QJnNPxXI85x5vwMqRC7Kg8FfcTD3PVLY4Ih37I+FrlsVn2+rRYLPaNaz3swRkj10
+	 P7+ooKFz4bZ4lXffLdmredLprxhD2DXgFW+d4+XDmevG9PXxrH64imHwnQppWRjPdg0aY
+	 D1SZ7kA7BKKwGoLw1w0gJIBPA86lMTzVtiLhtl83DIfkkJTcoI2ik/MPzHXJbeyO0dw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XByef+ej;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QhS5rO7q;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 942DA606A89E;
-	Wed, 11 Nov 2026 19:12:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB558606A89F;
+	Wed, 11 Nov 2026 19:12:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XByef+ej
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 754D21F00A05;
-	Wed, 11 Nov 2026 19:12:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QhS5rO7q
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63D671F00A09;
+	Wed, 11 Nov 2026 19:12:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794424331;
-	bh=JzLMSwghD2PO6Xb9dFzksMNtTAGLMaDroH8J4cxYrno=;
+	s=k20260515; t=1794424333;
+	bh=9jTV1cU8eRCsu/cOln8DSW5YMovrmFKMV7huP79WNyk=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=XByef+ejZRyzUxQ92DESKOvJm6sqvLAET0v1veFV25qfPJ5WdYJQkiMrVgJUk3xjl
-	 9QiRxoLRrnHRLZCD/Mz3sIX3TmKtUmk2229Ox+qg4kTlGgBxu5diIfO/ZfJlvRtWFQ
-	 RsvB3z5hfCfKQreWPttK67Yh9NFXr2p+Oxxju9bSiAghWpGYbm+TrArCy00/hh7Ej1
-	 PhD4PbbuHnQdcIP+vxJ3b7vzR3BECdis3iF0wNoNlq48ialpARH7W7GIsYUnX8Cg+v
-	 uqgVIIUJt+gotnnADcl/gEW+hj5YRxj83BJ9LOa4CCmRkAVMo6yQHTEX+3Aq60tczi
-	 lRsJ10MCQDXVQ==
-Subject: Re: [PATCH net-next 07/10] selftests: forwarding: tc_flower: test the
- enc_key_id mask
+	b=QhS5rO7q7Kkwt5pgyQUSnaeRTvuxOkKq0LhVvckZ5oa8yBhmvAja8xok+1xdRVW9l
+	 88A/GInH3A015FrOBWehEs6vmLkvXqzpzH3884CSjQSy8/H/P3DonNYR5Uw6Q7+ak/
+	 ZUkHfN73KzLR7XOgK9i5zdjSb5jn8d4sFPqyv+2yEzaKkS53AoxLctTf0k/0wrDrgV
+	 aeREkyS/FCK8MNZZoo7578L0RHG4M79zjCWOwwNsTKrE1L2TbVIKh/zhMRmveW05kN
+	 SArqPYH9B8/VkDiMwfPBgwKxYghVMM6/GolvCOaHoAhbI3WGAMH8xgQzc3wQp99bcw
+	 hW9W0fiHOS9ww==
+Subject: Re: [PATCH net-next 08/10] net/mlx5e: TC, offload RX queue mapping in
+ NIC flows
 From: netdev-bot+sashiko@kernel.org
 To: acassen@corp.free.fr
 Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
@@ -53,10 +53,10 @@ Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
  idosch@nvidia.com, shuah@kernel.org, netdev@vger.kernel.org,
  linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org,
  linux-kselftest@vger.kernel.org, oss-drivers@corigine.com
-Date: Wed, 11 Nov 2026 19:12:10 +0000
-Message-ID: <179442433006.2199510.18178415453434864193@kernel.org>
-In-Reply-To: <20261109131039.959438-8-acassen@corp.free.fr>
-References: <20261109131039.959438-8-acassen@corp.free.fr>
+Date: Wed, 11 Nov 2026 19:12:11 +0000
+Message-ID: <179442433199.2199510.1112413550328435081@kernel.org>
+In-Reply-To: <20261109131039.959438-9-acassen@corp.free.fr>
+References: <20261109131039.959438-9-acassen@corp.free.fr>
 X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -70,10 +70,10 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
+Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 0
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -81,103 +81,124 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [Medium] When tcflags=skip_sw, match_enc_key_id_mask_test()
-  (tools/testing/selftests/net/forwarding/tc_flower.sh) never tests…
+- [Medium] The terminating-action guard in tc_act_can_offload_rx_queue()
+  (drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/rx_queue.c) is…
+- [Low] tc_act_can_offload_rx_queue() reads
+  `flow->priv->channels.params.num_channels` (a u16) with no lock and no…
 
 --
 
-selftests: forwarding: tc_flower: test the enc_key_id mask
+net/mlx5e: TC, offload RX queue mapping in NIC flows
 
-This adds match_enc_key_id_mask_test() to tc_flower.sh. The test puts a
-flower filter with enc_key_id 256/0xf00 on a gretap external device. It
-checks three things: the mask shows up in the dump, a key inside the mask
-matches, and a key outside the mask only hits a second exact-match filter.
-Under skip_sw, if adding the masked filter fails, the test only logs it.
+This commit offloads the tc skbedit queue_mapping action for mlx5e NIC
+flows. Matching traffic goes to the direct TIR of the selected channel,
+the same way ethtool steering rules do it. The action must be last and
+cannot follow goto or mirred.
 
-> diff --git a/tools/testing/selftests/net/forwarding/tc_flower.sh b/tools/testing/selftests/net/forwarding/tc_flower.sh
-> index b58909a931129..9d9f109ab8954 100755
-> --- a/tools/testing/selftests/net/forwarding/tc_flower.sh
-> +++ b/tools/testing/selftests/net/forwarding/tc_flower.sh
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/rx_queue.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/rx_queue.c
+> new file mode 100644
+> index 0000000000000..869da3cb703a8
+> --- /dev/null
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/rx_queue.c
+> @@ -0,0 +1,49 @@
 
 [ ... ]
 
-> +match_enc_key_id_mask_test()
+> +static bool
+> +tc_act_can_offload_rx_queue(struct mlx5e_tc_act_parse_state *parse_state,
+> +			    const struct flow_action_entry *act,
+> +			    int act_index,
+> +			    struct mlx5_flow_attr *attr)
 > +{
-
-[ ... ]
-
-> +	ip link add gt-ex type gretap external # To collect tunnel info
-> +	ip link set dev gt-ex up
-> +	ip link set dev gt-ex master v$h2
-> +	tc qdisc add dev gt-ex clsact
+> +	struct netlink_ext_ack *extack = parse_state->extack;
+> +	struct mlx5e_tc_flow *flow = parse_state->flow;
 > +
-> +	# A device may refuse a partial mask but software must take it
-> +	tc filter add dev gt-ex ingress protocol ip pref 1 handle 101 flower \
-> +		$tcflags enc_key_id 256/0xf00 action drop
-> +	if [[ $? -ne 0 && $tcflags == "skip_sw" ]]; then
-> +		log_info "Device refuses the enc_key_id mask"
+> +	/* The direct TIR takes over the destination of the rule */
+> +	if (!flow_action_is_last_entry(parse_state->flow_action, act) ||
+> +	    attr->dest_chain || flow_flag_test(flow, HAIRPIN)) {
+> +		NL_SET_ERR_MSG_MOD(extack,
+> +				   "RX queue mapping must be the last action and cannot follow goto or mirred");
+> +		return false;
+> +	}
 
 [Severity: Medium]
-Can the skip_sw pass ever reach enc_key_id_mask_check(), or does it always
-end up in this branch?
 
-gt-ex is a gretap external device, and ip_gre has no ndo_setup_tc. When
-clsact is added on it, tcf_block_offload_bind() calls
-tcf_block_offload_cmd(). That function sets up the indirect block and then
-always returns an error:
+Does this guard catch every earlier terminating action whose destination
+the direct TIR would override? It only checks attr->dest_chain on the
+current attr and the HAIRPIN flag.
 
-net/sched/cls_api.c:tcf_block_offload_cmd() {
-    ...
-	flow_indr_dev_setup_offload(dev, sch, TC_SETUP_BLOCK, block, &bo,
-				    tc_block_indr_cleanup);
-	tcf_block_setup(block, &bo);
+A preceding gact ok seems to get through. mlx5e_tc_act_accept has
+is_terminating_action set, but tc_act_parse_accept() only does:
 
-	return -EOPNOTSUPP;
-}
+	attr->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
+	attr->flags |= MLX5_ATTR_FLAG_ACCEPT;
 
-As a result, tcf_block_offload_bind() does block->nooffloaddevcnt++ for
-the gt-ex block.
+Nothing on the NIC path reads MLX5_ATTR_FLAG_ACCEPT, and dest_chain and
+HAIRPIN are not changed. So a filter like this passes the check:
 
-After that, fl_hw_replace_filter() calls tc_setup_cb_add() with
-err_stop set to skip_sw. tc_setup_cb_add() then rejects the filter before
-any driver callback is called:
+  tc filter add dev eth0 ingress protocol ip flower skip_sw ... \
+      action ok action skbedit queue_mapping 3
 
-net/sched/cls_api.c:tc_setup_cb_add() {
-    ...
-	if (block->nooffloaddevcnt && err_stop) {
-		ok_count = -EOPNOTSUPP;
-		goto err_unlock;
-	}
-    ...
-}
+verify_attr_actions() accepts it too, because it only rejects FWD_DEST
+combined with DROP. In mlx5e_add_offloaded_nic_rule(), the new branch
+then wins over the default forward to the VLAN table:
 
-So every skip_sw flower filter on gt-ex would fail, whatever the mask is.
-An exact enc_key_id 256 would fail the same way.
+	} else if (nic_attr->rx_tirn) {
+		dest[dest_ix].type = MLX5_FLOW_DESTINATION_TYPE_TIR;
+		dest[dest_ix].tir_num = nic_attr->rx_tirn;
 
-On any setup where tc_offload_check passes, the skip_sw pass would print
-"Device refuses the enc_key_id mask". It would then skip filter 102 and
-enc_key_id_mask_check(), and report no result.
+As a result, hardware sends the flow to direct TIR 3. In tc, the action
+list ends at ok, so the queue mapping should never apply.
 
-The comment above, the log_info() text and the commit message all say
-the mask is the reason:
+Can a goto in an earlier split attr get past the check in the same way?
+Take goto chain N, then a non-clear ct, then skbedit queue_mapping Q.
+tc_act_is_multi_table_act_ct() returns true for the ct, so
+parse_tc_actions() splits after it. mlx5e_clone_flow_attr_for_post_act()
+then clears the new attr:
 
-  When tc does not know the mask or a device refuses it under skip_sw, the
-  test only logs this.
+	attr2->dest_chain = 0;
 
-Is that accurate, given that no skip_sw filter can be installed on gt-ex
-at all?
+When the rx_queue action is checked against attr2, attr->dest_chain is
+0, so the rule is accepted. Hardware would then steer to queue Q instead
+of processing chain N.
 
-This also means the skip_sw half never tests the hardware mask
-programming that this series adds to cxgb4, mlx5 and nfp. A regression
-there would look like the same info line.
+This second case assumes NIC CT offload is available and that goto
+followed by ct is accepted on the first attr.
 
-Even without the block-level check, nfp_flower_calculate_key_layers()
-looks like it would reject this filter for another reason: it matches only
-enc_key_id, with no ENC_CONTROL or enc_dst_ip match. Again, that has
-nothing to do with the mask.
+> +
+> +	if (act->rx_queue >= flow->priv->channels.params.num_channels) {
 
-Should the skip_sw case be dropped, or moved to a block that can actually
-be offloaded?
+[Severity: Low]
+
+Is this read of priv->channels.params.num_channels meant to be lockless?
+
+mlx5e_setup_tc() sets f->unlocked_driver_cb = true, so this path can run
+without rtnl:
+
+mlx5e_configure_flower()->parse_tc_actions()->tc_act_can_offload_rx_queue()
+
+At the same time, mlx5e_switch_priv_channels() overwrites the whole
+struct under rtnl and priv->state_lock:
+
+	priv->channels = *new_chs;
+
+That leaves a plain write racing a plain read, which KCSAN can report.
+
+The commit message already accepts the functional result. No out of
+bounds access is possible either: num_channels never exceeds max_nch,
+and direct TIRs exist for every index up to max_nch.
+
+For comparison, the similar ring_cookie check in validate_flow() in
+en_fs_ethtool.c runs under rtnl, so it is serialized with set_channels.
+
+Should this read use READ_ONCE(), or should the check take
+priv->state_lock?
+
+> +		NL_SET_ERR_MSG_MOD(extack, "RX queue index out of range");
+> +		return false;
+> +	}
+
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261109131039.959438-1-acassen%40corp.free.fr
