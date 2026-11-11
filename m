@@ -1,54 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.191
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794417837;
-	b=4XR2dLrx0iRlKE+xJU0uAxkcJy+9kw9oRLzSVH6QzzUrwQK3P06/TsG18RZDITJO9Fft
-	 8HfZXEyv1yu00Lb9eZ5v2CpPwY2zfjlawJcuPK+yrcxTKbhlGnfNdMWbGfy4tAHtYnlJX
-	 ZKV61JKWgNZ6UH8nDOT7A6Nh76c5pJIUsDWh+rPvbbeZ3zsbBtkqe5P5/+hc7ycuIcs26
-	 eBhOcuV60F/mnlvPpac7XC4ZhNOVU7f2lgm6JVhzbdbr3eHMHPQVFeZETuBzfAVA0Sv+m
-	 NPmAC4JfkhXfQG9pmNEJyo2MwJsxylXUWzGH65R6U2XjvDJ3t0fFEk4mJdUqt+nSRug==
+	t=1794418489;
+	b=iD4VskO5NzYc+xwZaqS3masoD+AMH/FY317XGdppOU3wxokrDp/PA8QLX1WXJdhPao+m
+	 epLO9GZZaNGbpowfg3Wbog0D4y/OfxE2Nf0zY+5hjYnES9Mx+P5GY52mtJWNSJWNRNswM
+	 YjbkhQV4kxg6I1D+VRFfz++8nRBHbqq263035W3hBmnG/teaC5mWxMCvwDH5+4BNo09Oe
+	 1m/6vL6tmFVrfNJxc2R8JKJC3Ulh3KOKXXnTt4IaP4CKz3UEYaW47653j3AMa/mi/2zFc
+	 8lbXvnNb5d7Dewu/OMUwghdJiIHvJpaHAvpGtkJzMjXv1hdx4PR/qSWKWMjFi9Xhdmw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794417837;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=/58Jha5NG0Qp32+vp68Fvhj4Kk5ApXpmQQLXlCM5qN0=;
-	b=Ua69645W1bZiUIupAtDGyLtnyOAUAPtTw0PngELIjk9zqDKzhORtvEcxmPdk77dt17PR
-	 bhuoaTJvm64bAl8yMLTFNonfKvJCWgkw7bnSJxcHY8eybAf7y2qqps+/IU0f4UFPueVZl
-	 0YJ6BrYMFIrrmhJSvAup78fFxLHf+vWuYkDKrQcBhvTizw2DULreZALEcSwVQQlodSk9s
-	 Nt8ZiLgDSOPN1Lid9JRZ2gjpDhFUTD39VMOsZ07q3chYlku2Y48vJxOsrDaquiDuNYmq+
-	 ZM+hvvfpyP1+Lt+CjwdPoymqbZ3PE+3aM2BlD3BsCMf/cnz/Z9/QS7qAG4DPhQ3XoPA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794418489;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=FNluiPJ7F+Cn7/2xRPOJAlpKpFHd95L6uojgtai2vcc=;
+	b=aMzmwlBgUa0/WKs/Bu7YF9WP0w191oSd0Ilafdxpe/ZcifDMHeg+RtbATF0+lD9iuR5z
+	 EKkm/bLpf6XlWrroPy1/hq3Bqzgbvc71CKpbon6nhnNGfpRNMoQecj8UguvAbY4u+I6td
+	 ofUSfwT5IP7Sv2Tn5BBzyymxP6Q5WITNvbIsFYUWkFwCf6HyR60Ouj6Ojw4rjev7SxP2j
+	 CBztig1bpaioMZ10JYyhJTNevabDCUhJgOIl9OLbLPIv00QUCPlmQHiujVXWHrZunuKNv
+	 c8ymADvPUo/vVJzr0zuLKbNuIenXFZrxpJ9XtsqABLoq04j2jS4rgYThntZN8iksOKQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=LQ2wMiHQ;
-	arc=none smtp.remote-ip=95.215.58.191
-Received: from mta1.migadu.com (out-191.mta1.migadu.com [95.215.58.191])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lXEwaKO3;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B998606A89D
-	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 17:23:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0B998606A89D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE88C606A31C
+	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 17:34:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=LQ2wMiHQ
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=HH9Yk2PZ9DIY2PN7Fkuz2dJMByRfYwONeINkWkas0DU=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1794417834; v=1; x=1795022634;
- b=LQ2wMiHQl1Rot65H8FN0kYmM1Wo3XmdHr+12roVh+wVehzZgVq/8QbyxodjTOIeUFk22WaPx
- DG5JLn1bJwbrDPyH/+8Ij5GbJgV0jA+X0tcghW4uonpWZq4i2HQ/ftfbA+Lus4dYxhaq/Vd1uZS
- cBY5oFQNdoQfZFEv3Qfj8Er4=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id e4ea36ede1eb2242;
-	Wed, 11 Nov 2026 17:23:54 +0000
-X-Mizu-Trace-ID: e4ea36ede1eb2242
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <850a06b0-d77b-40a2-acb9-4b3f974aa064@linux.dev>
-Date: Wed, 11 Nov 2026 18:23:48 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lXEwaKO3
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 583A71F00A05;
+	Wed, 11 Nov 2026 17:34:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794418489;
+	bh=FNluiPJ7F+Cn7/2xRPOJAlpKpFHd95L6uojgtai2vcc=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=lXEwaKO3VX9eBueeM8CwZO7C0tdFEtgue3/8N7oxOEK7yTzZb/UxNPnpG4cXVuceo
+	 HitNfAwA8dJCFi69kdh8LHDLAIPaikYS29PUJvcWUCfh7tfn2tFAh2dHxHr9Tfzg18
+	 bCelTNX4w/F1GI4gPigj3SZyWfjx6qt62hheKxlGPHLb2muNYMXHdmysr1RYIdCTMa
+	 Z31EallnPu31nwseTs8h333DIbcPTJ3JKOfTVqTqNleKQptx/4gdY0C4vvwcuopwI+
+	 +r8YGLi+V1SFt07GC4PIi4bTv2ILV9HyzJZ/jvChutlSiyt6/xirEZibWR2Vf5345M
+	 qkwHMfwhFUGyg==
+Message-ID: <sashiko-outbox-209418@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net] net/mlx5: HWS, fix flow meter release on FTE update
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Alexandre Cassen" <acassen@corp.free.fr>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261110173437.2471233-1-acassen@corp.free.fr>
+References: <20261110173437.2471233-1-acassen@corp.free.fr>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 11 Nov 2026 17:34:48 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -57,263 +58,85 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3] RDMA/siw: Fix early peer close handling on listeners
-To: Jaeyeong Lee <lee@jaeyeong.cc>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20261105022253.368316-1-lee@jaeyeong.cc>
-From: Bernard Metzler <bernard.metzler@linux.dev>
-In-Reply-To: <20261105022253.368316-1-lee@jaeyeong.cc>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 
-On 05.11.2026 03:22, Jaeyeong Lee wrote:
-> A TCP child socket inherits the listener callbacks and sk_user_data before
-> kernel_accept() associates it with a new connection endpoint. If the peer
-> closes during this window, siw_cm_llp_state_change() queues a PEER_CLOSE
-> work item against the listening endpoint.
-> 
-> The worker releases that endpoint without removing it from the listener
-> list. A later listener teardown then walks the dangling entry, causing a
-> use-after-free in siw_destroy_listen(). KASAN reports:
-> 
->    ==================================================================
->    BUG: KASAN: slab-use-after-free in __list_del_entry_valid_or_report+0x32/0x1a0
->    Read of size 8 at addr ffff888008f502c8 by task rping/59
-> 
->    CPU: 0 UID: 0 PID: 59 Comm: rping Tainted: G    B               7.4.0-rc1-g6628e7d4c6b2 #1 PREEMPT(lazy)
->    Tainted: [B]=BAD_PAGE
->    Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
->    Call Trace:
->     <TASK>
->     dump_stack_lvl+0x54/0x70
->     print_address_description+0x73/0x1f0
->     ? __list_del_entry_valid_or_report+0x32/0x1a0
->     print_report+0x58/0x70
->     kasan_report+0x117/0x150
->     ? add_taint+0x43/0x90
->     ? __list_del_entry_valid_or_report+0x32/0x1a0
->     __list_del_entry_valid_or_report+0x32/0x1a0
->     siw_destroy_listen+0xe1/0x630
->     destroy_cm_id+0x25c/0x480
->     ? srso_return_thunk+0x5/0x5f
->     ? srso_return_thunk+0x5/0x5f
->     ? lock_acquire+0xf7/0x220
->     ? _destroy_id+0x2d1/0xe30
->     iw_destroy_cm_id+0xf/0x80
->     _destroy_id+0x6cc/0xe30
->     _cma_cancel_listens+0x2ee/0x360
->     _destroy_id+0x2ad/0xe30
->     ucma_destroy_private_ctx+0xb7/0x9d0
->     ? srso_return_thunk+0x5/0x5f
->     ? do_raw_spin_unlock+0x4d/0x230
->     ucma_close+0xd5/0x130
->     __fput+0x31a/0x720
->     fput_close_sync+0x91/0x110
->     filp_close_sync+0x18/0x30
->     put_files_struct+0x25a/0x280
->     do_exit+0x70e/0x1d00
->     ? lock_acquire+0xf7/0x220
->     ? get_signal+0x21c/0xf60
->     do_group_exit+0x19e/0x250
->     get_signal+0xf20/0xf60
->     ? futex_wait+0x99/0x230
->     arch_do_signal_or_restart+0x46/0x420
->     exit_to_user_mode_loop+0xbd/0x510
->     do_syscall_64+0x2ed/0x3b0
->     ? entry_SYSCALL_64_after_hwframe+0x76/0x7e
->     ? srso_return_thunk+0x5/0x5f
->     ? trace_hardirqs_off+0x65/0x90
->     entry_SYSCALL_64_after_hwframe+0x76/0x7e
->    RIP: 0033:0x7f92984c6e51
->    Code: Unable to access opcode bytes at 0x7f92984c6e27.
->    RSP: 002b:00007ffeae782d10 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
->    RAX: fffffffffffffe00 RBX: 000055fb4e9819b8 RCX: 00007f92984c6e51
->    RDX: 0000000000000000 RSI: 0000000000000189 RDI: 000055fb4e9819b8
->    RBP: 00007ffeae782d50 R08: 0000000000000000 R09: 00000000ffffffff
->    R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
->    R13: 0000000000000000 R14: 000055fb4e9819b8 R15: 000055fb4e97da25
->     </TASK>
-> 
->    Allocated by task 59:
->     kasan_save_track+0x3e/0x80
->     __kasan_kmalloc+0x72/0x90
->     __kmalloc_cache_noprof+0x245/0x3c0
->     siw_cep_alloc+0x4f/0x390
->     siw_create_listen+0x39e/0xd60
->     iw_cm_listen+0xfc/0x1d0
->     rdma_listen+0x749/0xa90
->     cma_listen_on_dev+0x404/0x760
->     rdma_listen+0x3dc/0xa90
->     ucma_listen+0xe2/0x180
->     ucma_write+0x1bd/0x1e0
->     vfs_write+0x1a9/0x8e0
->     ksys_write+0xba/0x180
->     do_syscall_64+0xee/0x3b0
->     entry_SYSCALL_64_after_hwframe+0x76/0x7e
-> 
->    Freed by task 30:
->     kasan_save_track+0x3e/0x80
->     kasan_save_free_info+0x40/0x50
->     __kasan_slab_free+0x3a/0x60
->     kfree+0x155/0x470
->     siw_cm_work_handler+0x7af/0x2d40
->     process_scheduled_works+0x970/0x12d0
->     worker_thread+0x894/0xd20
->     kthread+0x2db/0x3b0
->     ret_from_fork+0x266/0x570
->     ret_from_fork_asm+0x1a/0x30
-> 
->    The buggy address belongs to the object at ffff888008f50200
->     which belongs to the cache kmalloc-512 of size 512
->    The buggy address is located 200 bytes inside of
->     freed 512-byte region [ffff888008f50200, ffff888008f50400)
-> 
->    The buggy address belongs to the physical page:
->    page: refcount:0 mapcount:0 mapping:0000000000000000
->    index:0xffff888008f51400 pfn:0x8f50
->    head: order:2 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
->    flags: 0x4000000000000240(workingset|head|zone=1)
->    page_type: f5(slab)
->    raw: 4000000000000240 ffff888005842040 ffff888005840d08 ffff888005840d08
->    raw: ffff888008f51400 00000000000a0003 00000000f5000000 0000000000000000
->    head: 4000000000000240 ffff888005842040 ffff888005840d08 ffff888005840d08
->    head: ffff888008f51400 00000000000a0003 00000000f5000000 0000000000000000
->    head: 4000000000000002 ffffea000023d401 00000000ffffffff 00000000ffffffff
->    head: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
->    page dumped because: kasan: bad access detected
-> 
->    Memory state around the buggy address:
->     ffff888008f50180: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
->     ffff888008f50200: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->    >ffff888008f50280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->                                                  ^
->     ffff888008f50300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->     ffff888008f50380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->    ==================================================================
-> 
-> There is a second race while creating a listener. listen() starts
-> accepting connections before the endpoint is linked to the CM ID and
-> changed from IDLE to LISTENING. ACCEPT work queued in this interval can
-> run immediately, see the IDLE state, and return without accepting the
-> first child.
-> 
-> Keep the listener endpoint in use from allocation until its CM ID, listener
-> list entry, and LISTENING state have all been published. This makes early
-> ACCEPT work wait for listener setup to complete.
-> 
-> During accept, serialize the endpoint handoff with socket state changes and
-> reject a child that has already reached TCP_CLOSE or TCP_CLOSE_WAIT. Ignore
-> close notifications inherited from the listener before that handoff. Live
-> accepted sockets continue through the normal close path.
-> 
-> The issue was found by static analysis.
-> 
-> The unpatched kernel reproduced the KASAN report above in an x86_64 QEMU
-> guest. With a temporary 500 ms delay after listen(), the previous version
-> lost the first child and timed out waiting for an MPA response; this
-> version accepted the same child and returned an MPA response.
-> RST-before-accept and MPA-request-followed-by-FIN tests also completed
-> without KASAN or lockdep reports. The final SIW object was built with
-> LLVM 22.1.8 and W=1.
-> 
-> Fixes: 6c52fdc244b5 ("rdma/siw: connection management")
-> Suggested-by: Stefan Metzmacher <metze@samba.org>
-> Link: https://lore.kernel.org/r/33abff2233b36a51e468d691cb4327d0294d2734.1620343860.git.metze@samba.org
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Jaeyeong Lee <lee@jaeyeong.cc>
-> ---
-> Changes in v3:
-> - Serialize listener setup so early ACCEPT work cannot be consumed in IDLE.
-> - Include the complete KASAN report requested by Leon.
-> 
-> Changes in v2:
-> - Cover the IDLE interval between listen() and the LISTENING transition.
-> - Serialize accepted-socket handoff and reject an already closed child.
-> 
->   drivers/infiniband/sw/siw/siw_cm.c | 23 ++++++++++++++++++++---
->   1 file changed, 20 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
-> index ed49818793dde..90adb9543d9d0 100644
-> --- a/drivers/infiniband/sw/siw/siw_cm.c
-> +++ b/drivers/infiniband/sw/siw/siw_cm.c
-> @@ -973,6 +973,7 @@ static void siw_accept_newconn(struct siw_cep *cep)
->   	struct socket *s = cep->sock;
->   	struct socket *new_s = NULL;
->   	struct siw_cep *new_cep = NULL;
-> +	bool peer_closed;
->   	int rv = 0; /* debug only. should disappear */
->   
->   	if (cep->state != SIW_EPSTATE_LISTENING)
-> @@ -1009,11 +1010,23 @@ static void siw_accept_newconn(struct siw_cep *cep)
->   	}
->   	new_cep->sock = new_s;
->   	siw_cep_get(new_cep);
-> -	new_s->sk->sk_user_data = new_cep;
->   
->   	if (siw_tcp_nagle == false)
->   		tcp_sock_set_nodelay(new_s->sk);
-> +
+Thank you for your contribution! Sashiko AI review found no new issues
+in this patch, but noticed 1 related pre-existing issue it does not
+introduce:
+- [High] net/mlx5: null pointer dereference in
+  mlx5_fs_destroy_fs_action() [1]
+--
 
-Since new_cep isn't yet visible (until attached to the
-new_s) I suggest moving the two locks after new_cep state
-assignment. We don't have to protect this. Just to keep
-locking time as short as possible.> +	lock_sock(new_s->sk);
-> +	write_lock_bh(&new_s->sk->sk_callback_lock);
->   	new_cep->state = SIW_EPSTATE_AWAIT_MPAREQ;
-> +	new_s->sk->sk_user_data = new_cep;
-> +	peer_closed = new_s->sk->sk_state == TCP_CLOSE ||
-> +		      new_s->sk->sk_state == TCP_CLOSE_WAIT;
-> +	write_unlock_bh(&new_s->sk->sk_callback_lock);
-> +	release_sock(new_s->sk);
-> +
-> +	if (peer_closed) {
-> +		rv = -ECONNRESET;
-> +		goto error;
-> +	}
->   
->   	rv = siw_cm_queue_work(new_cep, SIW_CM_WORK_MPATIMEOUT);
->   	if (rv)
-> @@ -1361,6 +1374,10 @@ static void siw_cm_llp_state_change(struct sock *sk)
->   
->   	case TCP_CLOSE:
->   	case TCP_CLOSE_WAIT:
-> +		if (cep->state == SIW_EPSTATE_LISTENING ||
-> +		    (cep->state == SIW_EPSTATE_IDLE &&
-> +		     !READ_ONCE(sk->sk_socket)))
-> +			break;
->   		if (cep->qp)
->   			cep->qp->tx_ctx.tx_suspend = 1;
->   		siw_cm_queue_work(cep, SIW_CM_WORK_PEER_CLOSE);
-> @@ -1880,6 +1897,7 @@ int siw_create_listen(struct iw_cm_id *id, int backlog)
->   		rv = -ENOMEM;
->   		goto error;
->   	}
-> +	siw_cep_set_inuse(cep);
->   	siw_cep_socket_assoc(cep, s);
->   
->   	rv = siw_cm_alloc_work(cep, backlog);
-> @@ -1932,14 +1950,13 @@ int siw_create_listen(struct iw_cm_id *id, int backlog)
->   
->   	siw_dbg(id->device, "Listen at laddr %pISp\n", &id->local_addr);
->   
-> +	siw_cep_set_free(cep);
->   	return 0;
->   
->   error:
->   	siw_dbg(id->device, "failed: %d\n", rv);
->   
->   	if (cep) {
-> -		siw_cep_set_inuse(cep);
-> -
->   		siw_free_cm_id(cep);
->   		siw_socket_disassoc(s);
->   		cep->state = SIW_EPSTATE_CLOSED;
+commit a0812bfa068bccb4957fe6b500d9c96fead53b69
+Author: Alexandre Cassen <acassen@corp.free.fr>
 
-Otherwise looks good, thank you!
+net/mlx5: HWS, fix flow meter release on FTE update
 
-Acked-by: Bernard Metzler <bernard.metzler@linux.dev>
+This commit stores the ASO meter base_id directly in struct
+mlx5_fs_hws_rule_action instead of keeping a pointer to the FTE's exe_aso,
+preventing FTE updates from releasing the new rule's meter action.
 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.=
+c b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
+> index 812b2f3cddcff..cbcbc2b62809d 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
+[ ... ]
+> @@ -704,7 +704,7 @@ static void mlx5_fs_destroy_fs_action(struct mlx5_flo=
+w_root_namespace *ns,
+>  		mlx5_fc_put_hws_action(fs_action->counter);
+>  		break;
+>  	case MLX5HWS_ACTION_TYP_ASO_METER:
+> -		mlx5_fs_put_action_aso_meter(fs_ctx, fs_action->exe_aso);
+> +		mlx5_fs_put_action_aso_meter(fs_ctx, fs_action->aso_base_id);
+>  		break;
+>  	case MLX5HWS_ACTION_TYP_SAMPLER:
+>  		mlx5_fs_put_dest_action_sampler(fs_ctx, fs_action->sampler_id);
+> @@ -937,7 +937,7 @@ static int mlx5_fs_fte_get_hws_actions(struct mlx5_fl=
+ow_root_namespace *ns,
+>  			fte_action->exe_aso.flow_meter.init_color;
+>  		(*ractions)[num_actions++].action =3D tmp_action;
+>  		fs_actions[num_fs_actions].action =3D tmp_action;
+> -		fs_actions[num_fs_actions++].exe_aso =3D &fte_action->exe_aso;
+> +		fs_actions[num_fs_actions++].aso_base_id =3D fte_action->exe_aso.base_=
+id;
+>  	}
+> =20
+>  	if (fte_action->action & MLX5_FLOW_CONTEXT_ACTION_DROP) {
+
+[Severity: High]
+This problem wasn't introduced by this patch, but can
+mlx5_fs_destroy_fs_action() dereference a NULL fs_action->action when
+dest_action creation fails in mlx5_fs_fte_get_hws_actions() [1]?
+
+Later in mlx5_fs_fte_get_hws_actions(), the MLX5_FLOW_DESTINATION_TYPE_RANGE
+case (as well as MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM and
+MLX5_FLOW_DESTINATION_TYPE_FLOW_SAMPLER) appends dest_action to fs_actions[]
+and increments num_fs_actions before checking whether dest_action is NULL:
+
+drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c:mlx5_fs_fte_g=
+et_hws_actions() {
+	...
+			case MLX5_FLOW_DESTINATION_TYPE_RANGE:
+				dest_action =3D mlx5_fs_create_dest_action_range(ctx, dst);
+				fs_actions[num_fs_actions++].action =3D dest_action;
+				break;
+			...
+			}
+			if (!dest_action) {
+				err =3D -ENOMEM;
+				goto free_actions;
+			}
+	...
+free_actions:
+	mlx5_fs_destroy_fs_actions(ns, fs_actions, num_fs_actions);
+}
+
+When mlx5_fs_create_dest_action_range() returns NULL, the free_actions
+cleanup path passes that NULL entry to mlx5_fs_destroy_fs_action(), which
+immediately dereferences fs_action->action in mlx5hws_action_get_type().
+
+[1] https://sashiko.dev/#/bug/linux-13dff211-595e-45fa-ac59-340929fc7d57
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261110173437.2471=
+233-1-acassen@corp.free.fr?part=3D1
