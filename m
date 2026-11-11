@@ -1,65 +1,91 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.41
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794424336;
-	b=DlMrKkyUR9Rs61Yb8k3XZQXPjcKTu8srIItIZE7xIwD+l3XbTM8SdUzkrWtDq30RyUwt
-	 KX7b9PWB8kAe3J5uvaa1Ne75IiO6ZjIQDL5AQ4nU37JNPEf0Ro82TD8916zhz0F8I68Fo
-	 HuHlrIaqfidqRn4mMQH4P+GqvLja53aKq7B/RGCltNHqb6cCQH0RrUryc2pG8RBEDqTU8
-	 vgaw9NFxSVbmkcjCBBhdPogQZAZ4InKIHoRPGbFccf3WThTo//WL4obIxcRUCZ4Rj9Ycx
-	 ftlCs8obAicEauTCAuy83QEwe8h6MIJx0R1Th2Z4BBtIYpmBNQ52bAM5LPwD9dI/KSQ==
+	t=1794424758;
+	b=x+MX8BHVJvMmBySGcwHpCLKGvamerYbFyejxmL/3iep+WL0oD0cW6hpPeJoQA7XopZh1
+	 rMwN9Rc+TUVwCRUoesGw5FBrTe2RjrKmy9JWceKUWt2NoKJNEmCyyfUCCURjIzj16O1Jq
+	 r/adcfou42wrm7IsPfS/x+CgguypBrKymizHpey8CWECip/rJ2yieumDDFneZc6ixj+wp
+	 3sCKhnBJTTmnPAB5tZCwQqqPCLznZ0rwAGxLF+EQTYR2ewXUAr2vLJtFLZ4+wHGMzxZEN
+	 M2V3h8OgEKCLrETalL+QHiWuOFeN2if/25Xv/u92zYP5L7sB3/7QgvcDwIfwxonk3vw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794424336;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=+vddkaLT6r9Qg+VZp9hd3qPKksz/5ONk6NPlMylLqlY=;
-	b=rad9OXnEe0XEDrqN3k3UFy8kpSq07Bml0Der311vllV9QigL7Qv4LrMxMIslyysDizbf
-	 nCYFjd1FzdSL6pR32VD6DqaHAXt8NhV8hRBakQYstYSxJ7Lh5wwTojCgvzJ8bsLNAWP6j
-	 ytgknCkqxVNim8RgbvPPAAtX/3P4/rsnQ4gyoTy04e/T5KGEM7vHgadCYSxSNoF47lvWh
-	 BkYul+lfyAvOp8iDE2UD2RJts9OjGSvIVYlYvjBdeZBPeESAYAVBEj8HfgbQvDk6sYem2
-	 z2uFnYhod4ZYd5VDSFIKxkfu+cPxhW8Q6XwMEYS4DE8g1TQy/VDvUsCW4EGD25/6fig==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794424758;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=DNMNS9bjIlPpM4mJV2mBmIlqngWBVSFIpNHBbmVzyeE=;
+	b=fMS+rJU4DpjDGiBHAMvViRTBfZJaSnkR3f4zHXbwnT5yWZhfxUzD95q0i9H5oG5FLms8
+	 faVBSKDCqtG4/NkFu0IzUIpBK92Wn3wUKY2xqd0mk429Y54Jgjyl0UB5OL3JcnrlDBeIb
+	 GrCRTJODkx//Zsnddz6akBzX5W+m9Cl+sSSAGEiYrQUBhOZLWSRowAIXK2wZsIkCUc8B6
+	 E8yCnfu3uF97nrrQ1i2SukFfif/LP1lv1lqko0k6lth8VAbNL72J6SHwgKhJ/jfG1LXgw
+	 p8QTI9FtqF3+6ZUGwAASqx77dXYpab277miDGyWhlerNkGJ2SXJSsZJTHmTaNocSe5w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RDDOvhOW;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="rGUz/LH1";
+	arc=none smtp.remote-ip=209.85.219.41
+Received: from mail-qv1-f41.google.com (mail-qv1-f41.google.com [209.85.219.41])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EBBF60A380A;
-	Wed, 11 Nov 2026 19:12:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD814606A33B
+	for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 19:19:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DD814606A33B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RDDOvhOW
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 610A61F00A11;
-	Wed, 11 Nov 2026 19:12:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794424336;
-	bh=+vddkaLT6r9Qg+VZp9hd3qPKksz/5ONk6NPlMylLqlY=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=RDDOvhOWStL5eTghhV+WNTTCfKRx6kWFREOg2W2H070X2Ard9W44EKqZR1Uwws/wX
-	 XQGOGA2tjsvVok0sZD9zEcaeVlTJSphZdpXDr7OkUfIWeYc/8gfgC3LG+TzMhu/4xw
-	 nNVXAOm4woXHENuHdhmJ9EAAn+V5ZuKG0VhQ0WVR0BlbHN7HEvAyDCsQ4sh3b+O1za
-	 DN71KhGHHiwRT/qPDmTkzJMu9Nk2oDQqg7W/Bwgs56sXkzPDW7QL5OTTABjZw7HO5B
-	 DMtNX9wK2iIyDfYhDf01oOJITRcAE2xKJogwk7KaVqis4b7lnuQ2xASOrRsOeTGbdq
-	 7XvbnISPa8Z7Q==
-Subject: Re: [PATCH net-next 09/10] net/mlx5e: TC, match the tunnel key
- without a tunnel device
-From: netdev-bot+sashiko@kernel.org
-To: acassen@corp.free.fr
-Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
- jhs@mojatatu.com, jiri@resnulli.us, andrew+netdev@lunn.ch,
- davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
- horms@kernel.org, michael.chan@broadcom.com, pavan.chebbi@broadcom.com,
- bharat@chelsio.com, donald.hunter@gmail.com, corbet@lwn.net,
- skhan@linuxfoundation.org, rdunlap@infradead.org, dsahern@kernel.org,
- idosch@nvidia.com, shuah@kernel.org, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org,
- linux-kselftest@vger.kernel.org, oss-drivers@corigine.com
-Date: Wed, 11 Nov 2026 19:12:13 +0000
-Message-ID: <179442433391.2199510.196528697168850523@kernel.org>
-In-Reply-To: <20261109131039.959438-10-acassen@corp.free.fr>
-References: <20261109131039.959438-10-acassen@corp.free.fr>
-X-sashiko-severity: High
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=rGUz/LH1
+Received: by mail-qv1-f41.google.com with SMTP id 6a1803df08f44-91f11161831so3845766d6.1
+        for <linux-rdma@vger.kernel.org>; Wed, 11 Nov 2026 11:19:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1794424757; x=1795029557; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=DNMNS9bjIlPpM4mJV2mBmIlqngWBVSFIpNHBbmVzyeE=;
+        b=rGUz/LH1Hg4ztzYnaz0kw8LJKtEtrnr0UUfOvAN67vVaber3yRKo/TYg7KU49P+wTd
+         O0rMBJXbiZB8qiLv1xgXmLavkJ0q8MhHR3KHsqj16ZxznvXlu7pF2BZHeWRCLuJA4rfO
+         MNjXk+rQE9F6kw3jSZJjar5Izm57pFLvQmD49TmYS1J6auglt1H5teqzLNqTZba2Mv0o
+         QXmHhKwbh0TbRVy4fj+6lp+QiplAtz2MrhjaofBlhK/+uW24czwIWmgAfzV/t6GSYAB8
+         B0DDCS/4WYC6H0mFrhJxRNyrgUnakvujrUUhk8Fv9Yg6TnR6x1WbRWJ73CgQU/boRfgi
+         ve8Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794424757; x=1795029557;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=DNMNS9bjIlPpM4mJV2mBmIlqngWBVSFIpNHBbmVzyeE=;
+        b=pdgr8onHNFLMA5NrvimScLK3d18T9CADFR6Ivc7Tb8glnBYl22Bxxmf0TBejHPY3he
+         aWOWG7nVcaYPvWcAbxw2DNaD0AjcM6EZ7BZHxG9TYq6TKvgfshZmET8SSOd43ChqGIPI
+         aN4v5yFvAMdEiuWRfC6Pab1H+wGV4jNCXmHKNDoDv1vW3JtP1V6/RiqKKG88K7W2ycCf
+         VUjuMLdSic0solQu0Y2KvMh1A00hP4qhc1JxFhHRMYl+fHamY84MC9eOjQEUhVdXUqzx
+         P/vg/BFqF0TJfX6G3aZ6grUWTUwm4xwJyoZycu/rG0gP0fxe1YPg1aeT36X/4uQmpGlV
+         5ISQ==
+X-Gm-Message-State: APuU4Z8WoMhvaHKkP2NYpTezicIe5H8Co0VegsyXtl9k9fdHmVpsBM1E
+	VLGfDFeGWd/3TVTnTEvgbs/YcjbaTV6xQhztpQ7nUBf21lif86X/CKyUYlWQogw2
+X-Gm-Gg: AYBFou2vWkYFUlRgd3QR5rS1xaI6P9D6sVMGAeKCJcNfro+WhqoMbmXfH4LSRjSqTlh
+	4GS7Jurl1qPl0wQ23xUlBO4lryJzOCQC6062DowaDDFzia5C9iUIRmuziSqOUEid9m1M4Lp9T2C
+	3AGz+yk/gIWy3NEQ1S+fk0bAJmhp4UgmDAQYiK7pLv0/Kp18Ry+BWySGwl1mGlZnJNgDfB0X3ds
+	hZnWR9ZSTJoqMkDa2U5hhnFy7UUQq7Yfoj8KqpWtjEg5R1wBo120oFkeDk/PivBZ765BSPUYlXt
+	ufcOJesLQr4k6G+AymEyBjnGZUjQJnClho7WH3gZA5q4WvCVQPzEd4mCU1Z+ppnHnhcezoSKBI8
+	KErqsCME1UhiHjy5QMcLHhJskOuy3QTZyChR3Uvj+qkVXPkCxlDOjOo03EDRaat6sOhnvkvybqp
+	okjgOx0QQvL0F4NG3CfzCfY7IcxTvUjF9QiQbk87E9hfweRXWswIJjEXElOzJ3iqX9+8HkUwGxi
+	JPHDXuIhSrxJPlAdspMSfrIu5fDnynlfnK5LSRV05IfEgJmmXWks233/rUpp265VR/xp0NQlySr
+	/PNpuLS9yDslC075/66DEKSfA5T+wX4ozi/w+yvr6rXTcHbEOUpukRM/iKtgtICrTwpTVl42nqM
+	=
+X-Received: by 2002:a05:6214:1c82:b0:91c:6258:ec97 with SMTP id 6a1803df08f44-91f0402b4f3mr63373686d6.11.1794424756577;
+        Wed, 11 Nov 2026 11:19:16 -0800 (PST)
+Received: from linux.. ([8.34.174.240])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91ef05493desm53753466d6.45.2026.11.11.11.19.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 11 Nov 2026 11:19:15 -0800 (PST)
+From: Changyul Lee <lcy8047@gmail.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Changyul Lee <lcy8047@gmail.com>
+Subject: [PATCH] RDMA/cm: Read the remote_id_table root under cm.lock
+Date: Wed, 11 Nov 2026 14:19:13 -0500
+Message-ID: <20261111191913.98044-1-lcy8047@gmail.com>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -69,175 +95,55 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 3 potential
-issue(s) to consider.
+cm_find_remote_id() reads the root of cm.remote_id_table before it
+takes cm.lock. While it waits for the lock, cm_destroy_id() or
+cm_reset_to_idle() on another CPU can remove that cm_timewait_info from
+the tree and free it, and the lookup then starts from freed memory.
+This lookup is done for a REJ with reason IB_CM_REJ_TIMEOUT.
 
-Critical: 0 · High: 1 · Medium: 2 · Low: 0
+Read the root after taking cm.lock.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+Fixes: cfa68b0d0440 ("RDMA/cm: Make find_remote_id() return a cm_id_private")
+Signed-off-by: Changyul Lee <lcy8047@gmail.com>
+---
+Found with a static analysis tool we are developing.
 
-- [High] The new non-tunnel-device path in __parse_cls_flower()
-  (en_tc.c:2789-2793) offloads any rule that carries ENC_KEYID.
-- [Medium] The patch fixes a bug that users can already hit, but the fix
-  ships inside a net-next feature patch with no Fixes: tag.
-- [Medium] On VF representor (FDB) flows, the new path matches fields
-  that sit past the header region the eswitch min-inline contract…
+Reproduced in QEMU (x86_64, KASAN) on rdma_rxe over virtio-net, with a
+test module that connects to a listener on the same device through
+rdma_cm and destroys each active cm_id while it is in IB_CM_REQ_SENT,
+so a REJ with IB_CM_REJ_TIMEOUT is sent. Another kthread destroys the
+passive cm_ids. The window was widened for the test with an msleep(20)
+between reading the root and taking cm.lock. Without this patch, KASAN
+reported 46 to 48 slab-use-after-free reads in cm_work_handler() per
+20 second run in three runs, on a cm_timewait_info allocated by
+cm_create_timewait_info() and freed by cm_destroy_id() through
+cm_reset_to_idle(). With it, there was no KASAN report in three runs.
 
---
+ drivers/infiniband/core/cm.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-net/mlx5e: TC, match the tunnel key without a tunnel device
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 1a2c2775b14d..5347b7519a8d 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -734,11 +734,12 @@ cm_insert_remote_id(struct cm_timewait_info *timewait_info)
+ static struct cm_id_private *cm_find_remote_id(__be64 remote_ca_guid,
+ 					       __be32 remote_id)
+ {
+-	struct rb_node *node = cm.remote_id_table.rb_node;
++	struct rb_node *node;
+ 	struct cm_timewait_info *timewait_info;
+ 	struct cm_id_private *res = NULL;
+ 
+ 	spin_lock_irq(&cm.lock);
++	node = cm.remote_id_table.rb_node;
+ 	while (node) {
+ 		timewait_info = rb_entry(node, struct cm_timewait_info,
+ 					 remote_id_node);
 
-This adds a parse_outer_key tunnel op. With it, __parse_cls_flower() can
-offload enc_key_id on filter devices that are not tunnel devices. The GRE
-key, VXLAN VNI, GENEVE VNI or GTP-U TEID is matched on the wire, and the
-tunnel is picked from ip_proto and an exact dst_port. These rules must be
-skip_sw and cannot carry a decap action.
-
-> This covers NIC and eswitch flows. A rule on the uplink representor used
-> to accept enc_key_id without matching on it. It caught all the traffic of
-> its other keys. It now matches the key or gets refused.
-
-[Severity: Medium]
-This describes a bug that predates this patch. Before this change,
-__parse_cls_flower() whitelisted FLOW_DISSECTOR_KEY_ENC_KEYID but only read
-it when mlx5e_get_tc_tun(filter_dev) was non-NULL. So a skip_sw rule with
-enc_key_id on a non-tunnel device was offloaded without the key.
-
-Could the fix go in its own patch with a Fixes: tag? As it stands, stable
-trees can't take it without also taking the new outer key feature,
-tc_tun_gtp.c and the parse_outer_key op.
-
-Is the old bug really limited to the uplink representor?
-parse_cls_flower() is shared by mlx5e_add_nic_flow() and
-__mlx5e_add_fdb_flow(). That suggests the NIC netdev (FS_FT_NIC_RX) and VF
-representors accepted enc_key_id the same way without matching it.
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c
-> index de74dbfe7b20c..921af801d4d4e 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c
-
-[ ... ]
-
-> @@ -996,3 +997,90 @@ int mlx5e_tc_tun_parse_udp_ports(struct mlx5e_priv *priv,
-
-[ ... ]
-
-> +/* Without a tunnel device only the hardware can read the tunnel key */
-> +int
-> +mlx5e_tc_tun_parse_outer_key(struct mlx5e_priv *priv,
-> +			     struct mlx5_flow_spec *spec,
-> +			     struct flow_cls_offload *f,
-> +			     enum fs_flow_table_type fs_type)
-> +{
-
-[ ... ]
-
-> +	tunnel = mlx5e_tc_tun_outer_lookup(rule);
-> +	if (!tunnel) {
-> +		NL_SET_ERR_MSG_MOD(extack,
-> +				   "enc_key_id needs ip_proto 0x2f or the exact dst_port of a supported tunnel");
-> +		return -EOPNOTSUPP;
-> +	}
-> +
-> +	flow_rule_match_enc_keyid(rule, &enc_keyid);
-> +	return tunnel->parse_outer_key(priv, spec, extack,
-> +				       be32_to_cpu(enc_keyid.key->keyid),
-> +				       be32_to_cpu(enc_keyid.mask->keyid),
-> +				       fs_type);
-> +}
-
-[Severity: High]
-Are the other tunnel keys in the same rule silently dropped here?
-
-The used_keys whitelist in __parse_cls_flower() still accepts
-ENC_IPV4_ADDRS, ENC_IPV6_ADDRS, ENC_PORTS, ENC_IP, ENC_OPTS and ENC_CONTROL
-on any filter device. Only two places turn these keys into hardware
-matches:
-
-  - mlx5e_get_flow_tunnel_id()
-  - mlx5e_tc_tun_parse() and mlx5e_tc_verify_tunnel_ecn()
-
-Both are reached only from the mlx5e_get_tc_tun(filter_dev) branch.
-
-This path programs only the key register and then returns 0. Take this rule
-on the uplink representor:
-
-  tc filter add dev <uplink_rep> ingress protocol ip flower skip_sw \
-      ip_proto 0x2f enc_key_id 100 enc_dst_ip 10.0.0.1 \
-      action mirred egress redirect dev <vf_rep> skip_sw
-
-It looks like the rule would be accepted. Hardware would then redirect
-every GRE packet with key 100 to that VF, whatever its outer destination.
-enc_opts, enc_dst_port and enc_tos would be ignored in the same way.
-
-Because skip_sw is required, software never shows the wider match. A
-documentation patch later in the series says "All the keys describe the
-packet on the wire", which makes such rules more likely. That patch does
-not change this code.
-
-Should mlx5e_tc_tun_parse_outer_key() refuse rules that carry any other
-ENC_* key?
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> index 3823ccc60dd39..6780e54a0cb93 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> @@ -2786,6 +2786,10 @@ static int __parse_cls_flower(struct mlx5e_priv *priv,
->  		err = mlx5e_tc_verify_tunnel_ecn(priv, f, &match_inner_ecn);
->  		if (err)
->  			return err;
-> +	} else if (flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_ENC_KEYID)) {
-> +		err = mlx5e_tc_tun_parse_outer_key(priv, spec, f, fs_type);
-> +		if (err)
-> +			return err;
->  	}
-
-[Severity: Medium]
-Can this path be hit on VF representors whose eswitch min-inline mode does
-not cover the tunnel header?
-
-For non-uplink eswitch flows, parse_cls_flower() only checks the match
-level:
-
-	if (rep->vport != MLX5_VPORT_UPLINK &&
-	    (esw->offloads.inline_mode != MLX5_INLINE_MODE_NONE &&
-	    esw->offloads.inline_mode < non_tunnel_match_level)) {
-
-mlx5e_tc_tun_parse_outer_key() writes misc.gre_key, vxlan_vni, geneve_vni
-or misc3.gtpu_teid, but it never raises *outer_match_level. The level stays
-at MLX5_MATCH_L3 (from ip_proto) or MLX5_MATCH_L4 (from dst_port).
-
-On the VF TX side, mlx5e_calc_min_inline() does:
-
-	case MLX5_INLINE_MODE_TCP_UDP:
-		hlen = eth_get_headlen(skb->dev, skb->data, skb_headlen(skb));
-	...
-	case MLX5_INLINE_MODE_IP:
-		hlen = mlx5e_skb_l3_header_offset(skb);
-
-So inline_mode IP does not inline the GRE key. With inline_mode TCP_UDP,
-the inlined bytes end after the UDP header, so the VXLAN, GENEVE or GTP-U
-header is left out.
-
-A GRE key rule therefore passes the check with inline_mode IP. A VXLAN,
-GENEVE or GTP-U rule passes with inline_mode TCP_UDP.
-
-On min-inline devices, such as ConnectX-4 Lx with vport context inline
-mode, could the eswitch miss these bytes in VF-originated traffic? The
-skip_sw rule would then never fire, or would match the wrong packets.
-
-Before this patch, tunnel key matching never reached hardware on VF
-representors. The VF representor testing in the commit message was on
-ConnectX-7, where inline mode is NONE.
-
-Should this path refuse the rule on non-uplink vports when
-esw->offloads.inline_mode is not MLX5_INLINE_MODE_NONE?
-
+base-commit: 7475ea8b58616b33c04afb976cf0fbaad9dd63fb
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261109131039.959438-1-acassen%40corp.free.fr
+2.43.0
+
