@@ -1,79 +1,105 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.6
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794488379;
-	b=ekC3U1L4DuRrD5C0ApPE1XOrmRcWXEvclGNo58pc8odIu0uroyhdFSvoNdwT9TH/o5c/
-	 hkBKAcpFXZlTBsqbIob2k/acqz9VKpe5aJ4BnWcIslyNp5eB0mWYBXYt2xN21+wl24uIM
-	 fy8J8jzXR+40yR60QQDGKLQ/MzsF3joxD88gUYJ8t5dwxyECKI8cA00TRALy/M9FrMVM9
-	 zvHMtjhxidHPY/OiRBEQe2cIogdbv3WvF9VZBBt4s4mpnXg4TlQMUOqZA9uqLzxz+hKML
-	 lPHXrUIiGlknUevMtB0UMUkB8fNImRZg1vXvlubuuRdW/BH44mgjDhem2wzH/lsQT1Q==
+	t=1794490090;
+	b=Iqq3XPiJKlcTySjAdFV2ixRUu4y36hVWjijHISOUacWq+H1cf2wIWJj6oAFdhpu3e4MZ
+	 mHZKP1k8DgRj/qVa6dpw9eF5PznOap0VsgCasgV/UFcVhXdndnKwpr9qLwT3XFDHMXDF+
+	 usjgOQaP24IRcDKPA1YayOegwD61Y7Cb22fUWZ9YZo2OxOW7e2Gwx9zwY8dprkVL+cdmD
+	 vrEIrq5CqE3cMUpuxsThbqLiP+rt2ZUZqkBWxJ6h4rn2KYOp3paoqAxZs1ShHbx1v0Svw
+	 V2oCTU3O7AH7PM1n0eDKMJcY2thcL/+7So45QxTIIkAt2ZO1Her1BkWRnBK9yHtLRwQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794488379;
-	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
-	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
-	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=Fzxkb4/JV9OoSzG1fRaEZIFJr+6dWXOO29ubYb1uyPc=;
-	b=GApgWfVMmMLpOctxzIjROOervLTmu0th5U2j9Sfu7LanuKpGJSIeafPPSA/2ivEz8h9J
-	 s+nlRiZgWqO9jJ6tiIG+tabxBMQckue0BrPuaoAtqMdxfbjGJ29DxcYqsX8QG3J7aXaiy
-	 siINPyvST6dc+cmkoINJlajZWyrJqz8Bz+yG81sjO1Ys1fneTb6vuoIm4ih5zANIIVFx5
-	 6jMmY6kf7HLjN4zIxzTfuT7MsXNkTuRjeLuQ/3vvbvl7Z3XRl5/eio5PnLiL5zf0NNWxu
-	 tKW2r+uSbufaN6ldXQPoxeDDhgac0CCFdbsLqiFsQ44uVQBHsCC6YG6P/guxedO9rsw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794490090;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:
+	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
+	 Received:Received:From:Date:Subject:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:Message-ID:X-B4-Tracking:X-Change-ID:To:CC:
+	 X-Mailer:X-Developer-Signature:X-Developer-Key:X-NV-OnPremToCloud:
+	 X-EOPAttributedMessage:X-MS-PublicTrafficType:
+	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
+	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
+	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+	 X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-Id:
+	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=OwuN+LCiYj80Uw3ja1i6M7jUN+qSf4MIFyinyu/bjFs=;
+	b=mfEAbu+QQ2sSfBYtD7xfz/m8If9KcAhXt4HDfzUCWa7IYOOLQl+kA7i7Wypgj1AdXvyn
+	 c1UwxtqnMaC4DLgTvEnbDHOL+YlTjJP5g8dzC2pCWgEacL9cIWISf+jjC6LvrDuUSUV0H
+	 J8iZTZaF7m65jDbgcrBaIujkgEiSEI0UWXsdPFFeGjLuZypv+hpR5nEN9YjzcGbmlkJZO
+	 rPKnrKFG+whXql+HqT4/YwURyavvLyew3C+e+uWI77l6suxIA8ShfOkNE8RHAOzowBP1n
+	 oq9H1iFjRUQvZXKjELUHqOXr3zpR3+ydIy4Z3Az00szfJHTgUgwH+ucWuJNnpCkboog==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kCgGLfUL;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=uLpNYM0W;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.6
+Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013006.outbound.protection.outlook.com [40.93.201.6])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D1D2606A8B4;
-	Thu, 12 Nov 2026 12:59:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CC0F606A31C;
+	Thu, 12 Nov 2026 13:28:09 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0CC0F606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kCgGLfUL
-Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
-ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1794488379;
-	b=c5UN3FQeRsCTqyBH8zpu20tuhIROA9xZLBc84GVGwyTThcPlZwIJwdiMCQlNTTQOWILZ
-	 gGVG97WGY+PQDz1KNbKqwIaIbF2liyE8kLOV4ZqCHWTRZEZPpEwr0hLpeSNLzIN2bo0Kb
-	 iZFX3sWQQWh0jhg+i4JYJYrBB1unytyE2TJ1W2iEx4FO6LsJuhLuKtxuBjQXMSPQs7FH6
-	 0OsuZINHdRFJadwWPYwnWtalAk8V5Ei1RYytJ0CMsnzPN3he6/FC4cf/8u5BOS9Xm9jlQ
-	 TqzpIn7CKSHCEs+y/vz6QgXdb0G9KC+gKZ59qDhffRXh2R8/WMc0HZgVlMB13n1qqbw==
-ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1794488379;
-	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
-	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
-	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=Fzxkb4/JV9OoSzG1fRaEZIFJr+6dWXOO29ubYb1uyPc=;
-	b=zVBzH8b46o46Zpc8DYMrsQr/jbu128cTJSQCO2Idt+82NV3RI0Q06QwM6dEntV/CXRBY
-	 vTI6T3JzEJBtuSYwWe5BETTInhc3RW/HZtBlLFBqar0tsjw26Y2WWDtciiFdXFmx7Srzj
-	 7K0+gM6WHt5jy99bpVzed8qII1lm+7BJVfivVTIox6Tcx9zpBlWHtT3K06hHRwrcdGnOe
-	 4j6emF+eR+vQKBkoslqsMocKHTEKys74bTrk9+IG+aD8hAKGQXfYH7bdjLgkmYDhfqbfR
-	 PG6oyHeb0sNaivt1GgsZXu1CARlJLtdG+fmH6SqRGYoQplvmN2Bvqpy5AhZGYsaI5Mg==
-ARC-Authentication-Results: i=1; smtp.kernel.org; 
-	arc=none smtp.remote-ip=100.80.115.77
-Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id 05C591F00A0D;
-	Thu, 12 Nov 2026 12:59:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794488379;
-	bh=Fzxkb4/JV9OoSzG1fRaEZIFJr+6dWXOO29ubYb1uyPc=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=kCgGLfULRKksFYgYfF2YgODvDIeP+yQ6oU38Ee70aJWehOSVLVTXAFKY/yxx/+/+p
-	 I52p/JrYqYnam/TDRLmqExsflTAWRuFgsaRMUsZg+FLNUQETHu/pkfAYhHnUEXZog5
-	 NqqAEZ4QX4A8QY1m2kSJO24e8qVLuyASpSIGbZpI+TTYI5d52JHnTBv43NaRMijFZp
-	 cO4PhJirvZ8z60G7TP55yVyCwuMBhMqSDLSf94HMgvTte7pMI/BGQ10AefGd9KA3OH
-	 qNZih/IpKKS6AsE7v4JSdAOBEZ+4WyV9fscaiK276s9vEdu07rMgeBVqKnpr6JrZSp
-	 gJP685G/ggwwA==
-Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 7D559494F0;
-	Thu, 12 Nov 2026 12:59:36 +0000 (UTC)
-From: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
-Date: Thu, 12 Nov 2026 07:59:40 -0500
-Subject: [PATCH net v9 6/6] net/smc: bound the link failover cursor advance
- to the send buffer
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=uLpNYM0W
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Z4YwTknrXGW9E09+QApVFQrx1LhChJxwGQw3Ot2T+JVpxKJveT5bE71QIK/GD0D/31vp8gGpcC3yeHUDCZbcv5csKLB/5KLrE7wxs3zi+9SfEoQA9TXcLI7W2CvsEZ/wIq9+lxUvPySqjM1zgS4gjZ77YbRVyfLggamD9xdqErH3RcwHA6RuD7HlNcheESKOJXCZ17f7Iy5dfvHSmK0DNJej/+ZpUxd+Yy0Xd4df+/q3llzMqY6w224AUsp5POvS2DFotVt2Obv1jXgCi0jRgxJGPU1W7ycdjv6ywYtwi9rFd6jB7ymSUvwWTifGSC7/U0lIqzmmHLeXYZXrH6eckw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=OwuN+LCiYj80Uw3ja1i6M7jUN+qSf4MIFyinyu/bjFs=;
+ b=fS/ZRE9f4FQg2oTlV8GduHvEpQw2ZZuvmosKMHd3g3L/1hnNo9O2L5vCcfFe+A26QYg6SLG3mkvbDaBMrAopEG0BrqOTYPI28fPUEwCt40c2CPGRIAxPQLCix5AiAY7qiks/lt25GyfM5Q64JrhdVXoiT23xHM80+oDuStTSBsRZCky8RPn7Lts842VDbfxRhXNX5vy0WTFR0hpuAlAM/2PZ5SH21X2oobgnm621ckL6W5hRgemYKQSlimejoWMMUqbduv/rdYpsMXWi7GjZJ3WAM8zDmDfXpNs0L2Vyy9S5X3PAXED3lBe7keqXlIuLyiHn3IbqOdhxD0GDHaaQPw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.118.233) smtp.rcpttodomain=cybernetics.com smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=OwuN+LCiYj80Uw3ja1i6M7jUN+qSf4MIFyinyu/bjFs=;
+ b=uLpNYM0WG4ogiTFKbzQWRIrNUCFYxbTuexk98K/2SEj6EytZyfvYV76ynNUJTya6qzZ1+wWc8KnQtFVPEqM1QlD6b9DIDgyP5yPdJ6106iDXoZjAGynHpEe8EC9knajRUZl5BLKz6gm0/keovyj6+1a2IV8ksgmZTTumDoCJfdZFtrLB0/mAlM8WdUdhPb7NwO7js2u0qSHCRs1brQnqQeVNoX5cNd2L616K6gBhrAVlCEsKhltKIhpeVi4Ly2w+GmW48qb8GZHH1BOhmUR744w5EI1AwLmNB228R8/GaM/WCUOuEG20PseOPgTxEQuU2Rz6BSXDBf/e9Oz+1HAUIw==
+Received: from DS7PR05CA0044.namprd05.prod.outlook.com (2603:10b6:8:2f::10) by
+ CH3PR12MB504406.namprd12.prod.outlook.com (2603:10b6:610:34b::7) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.9; Thu, 12 Nov
+ 2026 13:28:06 +0000
+Received: from CH1PEPF0005BD62.namprd02.prod.outlook.com
+ (2603:10b6:8:2f:cafe::80) by DS7PR05CA0044.outlook.office365.com
+ (2603:10b6:8:2f::10) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.8 via Frontend Transport; Thu, 12
+ Nov 2026 13:28:06 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 216.228.118.233) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.233) by
+ CH1PEPF0005BD62.mail.protection.outlook.com (10.167.244.251) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.615.4 via Frontend Transport; Thu, 12 Nov 2026 13:28:06 +0000
+Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
+ (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Thu, 12 Nov
+ 2026 05:27:45 -0800
+Received: from drhqmail201.nvidia.com (10.126.190.180) by
+ drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.56; Thu, 12 Nov 2026 05:27:45 -0800
+Received: from [192.168.122.1] (10.127.8.10) by mail.nvidia.com
+ (10.126.190.180) with Microsoft SMTP Server id 15.2.2562.56 via Frontend
+ Transport; Thu, 12 Nov 2026 05:27:43 -0800
+From: Edward Srouji <edwards@nvidia.com>
+Date: Thu, 12 Nov 2026 15:27:19 +0200
+Subject: [PATCH rdma-rc] RDMA/mlx5: Skip vport context query on FW without
+ ib_virt support
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -84,183 +110,111 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261112-b4-disp-0287c16e-v9-6-e5e8fa688177@proton.me>
-References: <20261112-b4-disp-0287c16e-v9-0-e5e8fa688177@proton.me>
-In-Reply-To: <20261112-b4-disp-0287c16e-v9-0-e5e8fa688177@proton.me>
-To: Mahanta Jambigi <mjambigi@linux.ibm.com>, 
- Dust Li <dust.li@linux.alibaba.com>, Eric Dumazet <edumazet@kernel.org>, 
- Paolo Abeni <pabeni@redhat.com>, "David S. Miller" <davem@davemloft.net>, 
- Jakub Kicinski <kuba@kernel.org>, "D. Wythe" <alibuda@linux.alibaba.com>, 
- Sidraya Jayagond <sidraya@linux.ibm.com>
-Cc: Ursula Braun <ubraun@linux.ibm.com>, 
- Wenjia Zhang <wenjia@linux.ibm.com>, Stefan Raspl <raspl@linux.ibm.com>, 
- linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Wen Gu <guwen@linux.alibaba.com>, Tony Lu <tonylu@linux.alibaba.com>, 
- Simon Horman <horms@kernel.org>, 
- Guangguan Wang <guangguan.wang@linux.alibaba.com>, 
- linux-rdma@vger.kernel.org, netdev@vger.kernel.org, 
- Hidayath Khan <hidayath@linux.ibm.com>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1794488375; l=7639;
- i=hexlabsecurity@proton.me; s=default; h=from:subject:message-id;
- bh=uAbSDIRlrWBelymt5BrgkkgeH3WfRs3rAFudHlXVEr8=;
- b=pt0Gwsz1IrVUDmy4uj2+rgftHh2Lk9VLJDqJK1JPJWspsQpm90zoFjtczKxAOtQ+bl9yj2WjB
- pE9lhpul7eaAkLfVZwDEZHrvyR5X91kMkudLuS1zoJNdpKIKhvY7Rlh
-X-Developer-Key: i=hexlabsecurity@proton.me; a=ed25519;
- pk=xw1AhCtQdvuoQc+bOQIYy9o8G++cp4/VniI2G/tc3G8=
-X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/default with
- auth_id=893
-X-Original-From: Bryam Vargas <hexlabsecurity@proton.me>
-Reply-To: hexlabsecurity@proton.me
 Content-Transfer-Encoding: 7bit
+Message-ID: <20261112-moshe-ib-virt-guard-v1-1-6d2caf8bdb1b@nvidia.com>
+X-B4-Tracking: v=1; b=H4sIALa+9WoC/x2MQQqDMBBFryKzdqBxkdJepbiIya+ZRVQmrQiSu
+ zv4du/B/ydVqKDSuztJsUuVdTFxfUcxh2UGSzKn4TF4Z3BZa7Y48S764/kfNDEiEvD0L+c92XJ
+ TfOW4Xz+kqQTWSGNrFxpRbgduAAAA
+X-Change-ID: 20261111-moshe-ib-virt-guard-ecedee769166
+To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, "Artemy
+ Kovalyov" <artemyko@mellanox.com>
+CC: <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>, "Moshe
+ Shemesh" <moshe@nvidia.com>, <stable@vger.kernel.org>, Tony Battersby
+	<tonyb@cybernetics.com>, Edward Srouji <edwards@nvidia.com>
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1794490062; l=2649;
+ i=edwards@nvidia.com; s=20251029; h=from:subject:message-id;
+ bh=nWKDCkiRsrrXYt0Uwiwt/yuZKPfda3/Ad6QnfMCDNzE=;
+ b=wJTg8Lx4UFs9X6Rkn5oVbI9rvrt4ZHfXtVdXCfTl+aslB3d7bl0rsJvCZTiqsh4detAP13v3P
+ zwyiT8DRpfBAPdLEe72Dqd0kog5q63A0SAJtsHjdzwMH6nvPD4x4uCd
+X-Developer-Key: i=edwards@nvidia.com; a=ed25519;
+ pk=VME+d2WbMZT5AY+AolKh2XIdrnXWUwwzz/XLQ3jXgDM=
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CH1PEPF0005BD62:EE_|CH3PR12MB504406:EE_
+X-MS-Office365-Filtering-Correlation-Id: bea03728-a2e1-4c0e-139e-08df40c0c931
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|82310400026|1800799024|36860700016|376014|23010399003|18002099003|261009223027099003|5023799004|11063799006|56012099006|261028144727099003|261102123227099003|261026121527099003|261026140227099003|261021123027099003|261022105027099003|261021121427099003|260925022911599003|10067099003|260925021311599003|260925021911599003;
+X-Microsoft-Antispam-Message-Info:
+	FFw97NuH8SkCIu9B23CNce7DSLyUaJGhJCMZ+NlkjR87imQ+zBWy0nWue5hWWXpgxgD7mX4jXwlG0sZmmvKYUxz154SQ9BTgs7yaRdIto2qfONRc5Cm++Dg+o2tFRS8DusNYp0GPXEIdGhqeUpEXCyM3OAjGbvVBeMBkLL0kByJUC0aHRw85KmZ45uANWO7rcyoM8GHFVw0yDK7oLcGDFPD+P4cPEmo9sUKkttwydJkEp3N6STt90FHIUQYCLNtsEqr9PU2YXss2gQonFlSzK8xmLIOO5bKKKJugfpQNWY3cnLaneXxbBR4+kIm7TgM/pJOZnoQO92OeP39Qmg3YFvuuKTVu0z073/WrCTjzXB48Li7IxclB2FIkoVdHgcpqxKHCDzFRIXDHU33LGiKWNipjJ6N6YCzzUM/pSPXBjjAjTfTzqwPfpgF+nLS70hdybosapIrhpbdbpEwbFweZMsKSDDN4oaeWQc+swraEnNJVicpno83pKoH8dTWth11Ks/x6XzMfRtRTs8mlZBoyUmEITCmHWFr1TmgRFyW8BvwjODLTs/dEcTQ63yjtoLknmi9TZ0AoY0hM7I2wpWgsGMjuiwVgbqTZP5rGpAumuKz5sSuBuBZ9kXfhr12Tf1QCMGO0JgYpfiebWunp8C5bdDeQ4M+3fAH9CnJ2rYUnQU9qvTmY5SnUEriJjyeZSvNPfHacXTNBo76MZXg3LmwqkA==
+X-Forefront-Antispam-Report:
+	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(36860700016)(376014)(23010399003)(18002099003)(261009223027099003)(5023799004)(11063799006)(56012099006)(261028144727099003)(261102123227099003)(261026121527099003)(261026140227099003)(261021123027099003)(261022105027099003)(261021121427099003)(260925022911599003)(10067099003)(260925021311599003)(260925021911599003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	FmUcLqWcG6yqBRKGg14dUVwzfMbKCQf0jxDikvjL3cRX7AIGXFV5g7ciI6W3JiMqsHfhc9B1KAgm8VPDFS785W3JpRKUgH+SZX2/WEEbc2AIC62Zac9YLLQP81gFIPAkagaZvL2aZtiQk+08J/s5FB7vEuF6Wr88bSwbUU5Nj43zkl4XzDmeW33z0vd1jBugs+s3KtLu3DUy/5Ek52x/HqDcEnM5yn10Nx7yfk9+j5RT6ZDR73L2M3PRU8v41hsmt71GB7j5UzIoVynmx8XojBXM7+D6/bGIWi4ZfxfIabBIMCfTQ25qGr+b6PUxB4rT/q9g1pNopH0GXF5EodddtSeb4kzF1HkFVzR9w7bQsFzsvPqAUMA+WLdIImLxJANgMKu2kW9TdeD2yqV59Zxlw4oaDe8ZaIVP368LxzNNYzqq10oNI8zIIAKOwAy3qwZT
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Nov 2026 13:28:06.1764
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: bea03728-a2e1-4c0e-139e-08df40c0c931
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CH1PEPF0005BD62.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB504406
 
-From: Bryam Vargas <hexlabsecurity@proton.me>
+From: Moshe Shemesh <moshe@nvidia.com>
 
-On SMC-R link failover, smc_switch_cursor() rewinds the send and
-producer cursors to the last completed CDC send, then advances them by
-the distance the peer's consumer cursor is ahead. That cursor comes
-from the wire: a forged one adds an arbitrary amount to sndbuf_space
-and to the cursors, and the next RDMA write takes its source past the
-send buffer.
+Since commit b02289b3d60f ("RDMA: Validate grh_required when handling
+AVs"), mlx5_port_immutable() unconditionally issues
+QUERY_HCA_VPORT_CONTEXT on InfiniBand ports to read grh_required.
+Devices that do not support the InfiniBand virtualization interface
+(ib_virt cleared) are not guaranteed to implement this command. For
+example, Connect-IB with FW 10.10.5020 rejects it and mlx5_ib fails to
+probe:
 
-Advance only for a count inside the peer's RMBE, and no further than
-tx_curs_prep; a conforming peer's cursor is inside both. For any other
-count the write that follows can end past the peer's RMBE and needs
-"net/smc: keep an RDMA write inside the peer's RMBE" to bound it. Set
-tx_curs_fin and local_tx_ctrl_fin from the advanced cursors instead of
-adding to them: smc_cdc_tx_handler() can rewrite both while the switch
-runs. The switch is still not serialized against the handler: a
-completion handled inside it is still credited more than once and can
-make the next write hand the peer bytes it has already read.
+  mlx5_core 0000:01:00.0: mlx5_cmd_out_err:810:(pid 731): QUERY_HCA_VPORT_CONTEXT(0x762) op_mod(0x0) failed, status bad operation(0x2), syndrome (0x3590f5), err(-22)
+  infiniband mlx5_0: Couldn't create per-port data
+  mlx5_ib.rdma: probe of mlx5_core.rdma.0 failed with error -12
 
-Fixes: c6f02ebeea3a ("net/smc: switch connections to alternate link")
-Cc: stable@vger.kernel.org # see patch description, needs another patch
-Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
+All other HCA vport context users in mlx5_ib are already gated on
+ib_virt, either directly, as in set_has_smi_cap(),
+mlx5_ib_get_plane_num() and mlx5_ib_modify_port(), or via
+mlx5_use_mad_ifc(), which selects MAD_IFC for port queries when
+ib_virt is not supported.
+
+Skipping the query loses nothing. grh_required indicates a GID-based
+vport, which only exists with InfiniBand virtualization. Without
+ib_virt the port is always LID-based and the field is zero, even on
+firmware that accepts the command. This also matches the behavior
+before b02289b3d60f, when grh_required was filled in only by
+mlx5_query_hca_port() and was never set on the MAD_IFC path.
+
+Fixes: b02289b3d60f ("RDMA: Validate grh_required when handling AVs")
+Cc: stable@vger.kernel.org
+Reported-by: Tony Battersby <tonyb@cybernetics.com>
+Closes: https://lore.kernel.org/all/064dfa67-8fd4-40f0-b925-6d1e0cd42e6a@cybernetics.com/
+Tested-by: Tony Battersby <tonyb@cybernetics.com>
+Signed-off-by: Moshe Shemesh <moshe@nvidia.com>
+Signed-off-by: Edward Srouji <edwards@nvidia.com>
 ---
-v9: tx_curs_fin and local_tx_ctrl_fin are copied from the advanced
-tx_curs_sent and local_tx_ctrl.prod, which change only under send_lock,
-instead of being added to (second point of [1]). The write past the
-peer's RMBE that v8 introduced for a count past the RMBE is bounded in
-5/6. The cap is tx_curs_prep and not the pre-failover tx_curs_sent: an
-earlier failover may have rewound that one below the peer's cursor.
+ drivers/infiniband/hw/mlx5/main.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-rxe, two links (v7.4-rc2 plus d7900fa51642, KASAN), send buffer 64K,
-peer RMBE 16K: one byte and then 4096 confirmed; 12000 and 5000 sent and
-not confirmed, the 5000 in two writes, 287 up to the end of the RMBE and
-4713; all read by a conforming peer. A hook holds the pending
-completions and hands the first one to smc_cdc_tx_handler() inside
-smc_switch_cursor(), after it has read tx_curs_fin and
-local_tx_ctrl_fin: unpatched and v8 leave local_tx_ctrl_fin at count
-16713 (the RMBE is 16384 bytes) and tx_curs_fin 12000 bytes past
-tx_curs_prep; v9 leaves tx_curs_fin on tx_curs_prep and
-local_tx_ctrl_fin on prod. Without the hook, v8 ends the same run with
-the cursors v9 leaves.
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 65455aedd559b6291831492e92a68b24a6bd361e..2ab38068db838880419f1f9d446c6527bc567c59 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3536,7 +3536,8 @@ static int mlx5_port_immutable(struct ib_device *ibdev, u32 port_num,
+ 	if (err)
+ 		return err;
+ 
+-	if (ll == IB_LINK_LAYER_INFINIBAND) {
++	if (ll == IB_LINK_LAYER_INFINIBAND &&
++	    MLX5_CAP_GEN(dev->mdev, ib_virt)) {
+ 		if (ibdev->type == RDMA_DEVICE_TYPE_SMI)
+ 			port_num = smi_to_native_portnum(dev, port_num);
+ 
 
-The first case of the note under v8's 4/4 (cursor forged one wrap
-ahead at count 64, with 4096 bytes unconfirmed in one run and corked
-in another) gives on v9 what that note reports for v8: the advance
-stops at tx_curs_prep and nothing is written after the switch. v8 and
-unpatched were not rerun for it.
-
-Not changed: the switch is not serialized against the handler. The
-handler takes send_lock inside the socket spinlock (smc_tx_pending())
-and the switch holds send_lock only, so keeping it out means taking the
-socket spinlock around send_lock in smc_switch_conns(). What remains,
-on unpatched, v8 and v9 alike unless noted:
-  - a completion handled inside the switch is credited to sndbuf_space
-    by the handler and again by the advance: in the run above
-    sndbuf_space is 77536 after the switch, for a 65536-byte send
-    buffer. The old-link completions that follow set tx_curs_fin back
-    and credit 4713 bytes once more: 82249. 3/6 keeps send() inside the
-    buffer, but send() can then overwrite data the peer has not received
-    (by inspection).
-  - a completion between the first two cursor copies of the switch
-    leaves tx_curs_sent behind local_tx_ctrl.prod. The next write starts
-    at tx_curs_sent and lands at prod, that far past its place in the
-    RMBE, so the peer is handed that many bytes a second time. In the
-    first case under 4/6 the peer reads 600 bytes twice on all three. In
-    the fourth case under 5/6, where the peer has read across the end of
-    its RMBE before the resend, unpatched and v8 have the write refused
-    and the connection lost; v9's goes out and the peer gets 600 bytes
-    twice there too.
-  - v9 only: the first case under 4/6 ends with sndbuf_space 1200 bytes
-    over the buffer, against 600 on unpatched and v8. v9 sets
-    tx_curs_fin back to tx_curs_sent, and the next old-link completion,
-    when it is handled before the validation message's, credits those
-    600 once more. Handled after it, all three end 600 over (by
-    inspection).
-  - the completion of the switch's validation message carries
-    tx_curs_sent and steps tx_curs_fin back to it whenever a completion
-    handled before it left tx_curs_fin ahead; across the end of the ring
-    that step is credited as more than a whole ring (the mechanism is in
-    3/6's message). In the fourth case under 5/6 it is credited 124472
-    bytes for a 65536-byte send buffer on every variant, and on v9,
-    where the last write goes out, sndbuf_space ends at 3x the buffer.
-    v9's smc_curs_copy() removes one route to that state, the switch
-    itself leaving tx_curs_fin ahead (by inspection); late old-link
-    completions are still one.
-
-[1] https://lore.kernel.org/all/179364387382.3131.13471253186660322977@kernel.org/
 ---
- net/smc/smc_core.c | 26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+base-commit: 915fb85a378e02f22c9bc3c9c9166582d276629e
+change-id: 20261111-moshe-ib-virt-guard-ecedee769166
 
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index 0edbe6106c1a..b5625f1a8792 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -1034,7 +1034,7 @@ static int smc_switch_cursor(struct smc_sock *smc, struct smc_cdc_tx_pend *pend,
- 			     struct smc_wr_buf *wr_buf)
- {
- 	struct smc_connection *conn = &smc->conn;
--	union smc_host_cursor cons, fin;
-+	union smc_host_cursor cons, fin, prep;
- 	int rc = 0;
- 	int diff;
- 
-@@ -1043,16 +1043,22 @@ static int smc_switch_cursor(struct smc_sock *smc, struct smc_cdc_tx_pend *pend,
- 	/* set prod cursor to old state, enforce tx_rdma_writes() */
- 	smc_curs_copy(&conn->local_tx_ctrl.prod, &fin, conn);
- 	smc_curs_copy(&cons, &conn->local_rx_ctrl.cons, conn);
--
--	if (smc_curs_comp(conn->peer_rmbe_size, &cons, &fin) < 0) {
--		/* cons cursor advanced more than fin, and prod was set
--		 * fin above, so now prod is smaller than cons. Fix that.
-+	smc_curs_copy(&prep, &conn->tx_curs_prep, conn);
-+
-+	if (cons.count < conn->peer_rmbe_size &&
-+	    smc_curs_comp(conn->peer_rmbe_size, &cons, &fin) < 0) {
-+		/* cons cursor advanced more than fin, and prod was set fin
-+		 * above: catch up. cons comes off the wire, so only for a
-+		 * count inside the peer's RMBE and no further than
-+		 * tx_curs_prep. smc_cdc_tx_handler() is not excluded and can
-+		 * rewrite the fin cursors meanwhile: set them, do not add.
- 		 */
--		diff = smc_curs_diff(conn->peer_rmbe_size, &fin, &cons);
-+		diff = min(smc_curs_diff(conn->peer_rmbe_size, &fin, &cons),
-+			   smc_curs_diff(conn->sndbuf_desc->len,
-+					 &conn->tx_curs_sent, &prep));
- 		smc_curs_add(conn->sndbuf_desc->len,
- 			     &conn->tx_curs_sent, diff);
--		smc_curs_add(conn->sndbuf_desc->len,
--			     &conn->tx_curs_fin, diff);
-+		smc_curs_copy(&conn->tx_curs_fin, &conn->tx_curs_sent, conn);
- 
- 		smp_mb__before_atomic();
- 		atomic_add(diff, &conn->sndbuf_space);
-@@ -1060,8 +1066,8 @@ static int smc_switch_cursor(struct smc_sock *smc, struct smc_cdc_tx_pend *pend,
- 
- 		smc_curs_add(conn->peer_rmbe_size,
- 			     &conn->local_tx_ctrl.prod, diff);
--		smc_curs_add(conn->peer_rmbe_size,
--			     &conn->local_tx_ctrl_fin, diff);
-+		smc_curs_copy(&conn->local_tx_ctrl_fin,
-+			      &conn->local_tx_ctrl.prod, conn);
- 	}
- 	/* recalculate, value is used by tx_rdma_writes() */
- 	atomic_set(&smc->conn.peer_rmbe_space, smc_write_space(conn));
-
+Best regards,
 -- 
-2.56.0
-
+Edward Srouji <edwards@nvidia.com>
 
