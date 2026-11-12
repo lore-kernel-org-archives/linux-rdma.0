@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794476415;
-	b=T78FO/aZNhAclj0igm3mBt6o96mkB+Ih9ojcJgZcILh04Ph3XU6uyxuXhAO+eH+hqODG
-	 vmLN/GXpN9rQcze7WdoT6y49OABxbpQXL1hdsXd3/gEUxKbihiDzVHiIIzlpchOUfD6I6
-	 oQRkz6qee4u6pO9ZL7+i4vOWTw5HxGhLFT175MY7z00Cwxb8rujYKz8CfgBblZqqsWgzd
-	 5ySFlBIRoRG80sfJBuvPIhepX5xA4fg40eJRTVSv/XHkQbxJpsyxcKpbDZ0q0ECow+vGf
-	 K2jXDqUDaOql8nv5TxJ1J3UuA1GBbYQO7tHtZEM7m9OwfrnpoF5HR0QjXUTmMl+mnRQ==
+	t=1794476410;
+	b=xwAUD3lEN0von1NbTO5OsNoY2NEFJ8KhBlzxzOpxaQ+LyFpqYG8qwPpO33OcRCjHVe6j
+	 zYT7C+nWJAiOkLuPx9EMd2upqISk0njhVcdkMaV2fNPvREFYcPW3iHhp06MawSxE/QDSh
+	 OgG07oOuebDGudvbFTNZaqwjzTQuGbNyAljwZSVCzsL2bIxqAdMGZJ1sKXZAgcCf7mczK
+	 V8I1mc4HlERKUC2h0nkGzd0H+cK8TzONWUIunpE4TqqOVr5k5pPVofyfGyXEeshVseZFh
+	 CNyfIzVPAvVu2QyQD53Ewkqt3KFvPc8cdHi2KfCovPYaA51vVaN9kibCY5ED/re9EBA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794476415;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794476410;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=7lW23EWLEHnxDCRZobawWrlqPkzq3V4K9TcjMlbU7iQ=;
-	b=ExVkbeYZAl/TUnTHffBRvcUbHx359+EA/Y549eWrLR3ES5tc09dTMe0n6sO8JxlhXjdR
-	 jPrRwgwU05zCrSzfWfU1JwEgWkyBLUOxPdDSkwTD2siI3PDN3QyICP0RYScyTa0LmTuYr
-	 bj9ZV/wgLm+s8kGr7TAvf0m/U/ciDGk0Ks7F/YeJ/Sr2R/qkekuxXKQwZc3LfE9gC0vi4
-	 bUxLY54kdU98zwkEauwKVbCrhXEiBoOxV4koFAfByiTNsz53JHiDahpDhk080wdKUqaC/
-	 muHz8lVuZ3Tbv7xAhE0qj47ov3heRAtcR02JdebRkhz1E7bYP1E5Yl/CGJbsESZ9rXQ==
+	bh=AdcPgdUCX5fSaySPrdWMpwkUGc9cjfG0AEC73tSRupw=;
+	b=FhKviu2tzQCvyhL8GB7iMN8aMRuXAbf03PwUZNAYBYcA17kDnOc5XL+HJLrIZ1KWUlTk
+	 OfqOGQ02FdAxJqPif6vF01YxIJngWhyHrVCM9sF914BwnKR5fdrzlUSd4F4/C/pipKVsl
+	 9tQRuXSrRCMF+kdmvpcxVSwUqxtTrIU/pRnroHXm0oHHPO6Jc5L0rkEOJJkj7uOmwt25S
+	 9N2iGPrq89R4yfJ3aTI3Pd2zoPeMZ4O6NeB7kQdoHT9nH+nr8geM/TVbMBdgKv8je+1Ny
+	 jG7cbAJJ9r7DOGzncD9tKt2TpvHi/bf2ZR7F2bp/4Vhlk3mKgDCTMb/Qr1jEqqNXr4g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Pul5c+Nr;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZvUn6CH3;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26384606A882;
-	Thu, 12 Nov 2026 09:40:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 384DF60A2629;
+	Thu, 12 Nov 2026 09:40:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Pul5c+Nr
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1315E1F00A10;
-	Thu, 12 Nov 2026 09:40:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZvUn6CH3
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 603BD1F00AD8;
+	Thu, 12 Nov 2026 09:40:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794476414;
-	bh=7lW23EWLEHnxDCRZobawWrlqPkzq3V4K9TcjMlbU7iQ=;
+	s=k20260515; t=1794476410;
+	bh=AdcPgdUCX5fSaySPrdWMpwkUGc9cjfG0AEC73tSRupw=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=Pul5c+Nr3mdoAbDL9hp7J97xaGOKL3e4328xezUbw6gtZBt+7IEGJsrJBJruIr26w
-	 aiaJwh6vs30KCwBQJueiEftaekq7zUJ41F726KpGsxHhpqeOy1A28tQrwf762q4NRw
-	 NTJVOwBYZZkeTAd+MEpWQ0FBwgQCqWeftndLTf6Cf+pO5cvbFIG5n5Zkk0o2IPO2A2
-	 9UVDhUqw4AHuuq2+sEke1Qo7qLdpRnF1CIryJcyOQeLMyKaQ0izeCI2UPLLLGraLVO
-	 NYwYi1yX7L6j1T2GfueycMhQIUxBgMlG7PXCvk/49zNUKgxEWqir6zpEgKpMRka5QK
-	 Cty9Y1rj/F+sg==
-Subject: Re: [PATCH net-next V2 10/13] net: devmem: add
- netdev_has_dmabuf_binding() helper
+	b=ZvUn6CH3DHzkDjxn5lm7LrDVoxik/Pv+ut0lWEqGG8f0rcYFYeMuX19NGsu6TIyR4
+	 GHEeRG2nwdBIButTc5JRZD1aaJwmbaQGpDJ9ZrFcSgdKOtB7CM8JzKwZ75zpjgZIhM
+	 f115JXOnqIvx4YCSmaqW0pV01osU4PnDCxmeBeN1QtxGYklzzKzTCMowMqG0XmalFB
+	 5yKLLjxorN7cARrf4nI6WQ+1fXaAdUOUTaSQbLnY8KIfLTTkq7vDInIgT/n7K1QhXP
+	 LSxmc9O50XWYObXLGNtOQaiT622nMi1m+FyLB6Qh3rBAJHoNbwl1Nl9t130aRXFgF+
+	 Oj3Wu/3v7/5aQ==
+Subject: Re: [PATCH net-next V2 07/13] net/mlx5e: SHAMPO, Use page_pool DMA
+ sync helper for SKB frags
 From: netdev-bot+sashiko@kernel.org
 To: tariqt@nvidia.com
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
@@ -53,11 +53,11 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
  mbloch@nvidia.com, mfleming@cloudflare.com, almasrymina@google.com,
  razor@blackwall.org, saeedm@nvidia.com, horms@kernel.org, sdf@fomichev.me,
  sdf.kernel@gmail.com, witu@nvidia.com
-Date: Thu, 12 Nov 2026 09:40:12 +0000
-Message-ID: <179447641258.2199510.921186677435570994@kernel.org>
-In-Reply-To: <20261110183826.2927274-11-tariqt@nvidia.com>
-References: <20261110183826.2927274-11-tariqt@nvidia.com>
-X-sashiko-severity: Medium
+Date: Thu, 12 Nov 2026 09:40:07 +0000
+Message-ID: <179447640791.2199510.16646668257000691425@kernel.org>
+In-Reply-To: <20261110183826.2927274-8-tariqt@nvidia.com>
+References: <20261110183826.2927274-8-tariqt@nvidia.com>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -70,162 +70,93 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 0
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] The kernel-doc and commit message promise more than
-  netdev_has_dmabuf_binding() actually checks.
+- [Low] The commit message describes this patch as preparation for data
+  direct only.
 
 --
 
-net: devmem: add netdev_has_dmabuf_binding() helper
+net/mlx5e: SHAMPO, Use page_pool DMA sync helper for SKB frags
 
-This adds an exported helper, netdev_has_dmabuf_binding(). It walks the
-global devmem bindings xarray and reports whether a binding of a given
-netdev is still mapped, with an optional filter on the DMA device. The
-goal is to let drivers (data direct support in mlx5e) avoid swapping
-the DMA device while in-flight skbs may still use dmabuf mappings.
+This patch changes mlx5e_add_skb_frag() to call
+page_pool_dma_sync_netmem_for_cpu() instead of calling
+dma_sync_single_for_cpu() on rq->pdev directly. The stated reason is the
+upcoming data direct support, where SHAMPO payload netmem is mapped
+against the data direct device rather than rq->pdev.
 
-> diff --git a/include/net/netmem.h b/include/net/netmem.h
-> index fb693bc1702a4..35bb6fa0f7194 100644
-> --- a/include/net/netmem.h
-> +++ b/include/net/netmem.h
+> Switch to the page_pool DMA API which takes care of not calling
+> dma_sync_* for unreadable netmem. Do it only for the place where it
+> makes sense: SHAMPO payloads, the only RX buffers that can be
+> unreadable.
+>
+> Until now it was ok to call the dma_sync_* API directly. But with the
+> introduction of data direct it will no longer be correct: the payload
+> netmem of a data direct RQ is mapped against the data direct device,
+> not rq->pdev.
 
-[ ... ]
+[Severity: Low]
+Is "Until now it was ok to call the dma_sync_* API directly" accurate?
 
-> +/**
-> + * netdev_has_dmabuf_binding - is there a dmabuf binding for a
-> + * given @dev and @dma_dev
-> + *
-> + * @dev: netdev to check bindings
-> + * @dma_dev: dma device to check, when NULL it will not be checked
-> + *
-> + * A binding is reported for as long as it is mapped, which can be long
-> + * after the user unbound it: net_iovs of a TX binding can still be queued
-> + * in flight, with DMA mappings that are only valid for the device the dmabuf
-> + * was attached to.
-> + *
-> + * Return: true if a binding is found under @dev and possibly @dma_dev
-> + */
-> +bool netdev_has_dmabuf_binding(struct net_device *dev, struct device *dma_dev);
+Since commit db3010bb5a01 ("net/mlx5e: Add support for UNREADABLE netmem
+page pools"), mlx5e_alloc_rq() allows unreadable netmem for SHAMPO RQs:
 
-[ ... ]
-
-> diff --git a/net/core/devmem.c b/net/core/devmem.c
-> index 5c7d9640e9d14..dd3987bbd9f6c 100644
-> --- a/net/core/devmem.c
-> +++ b/net/core/devmem.c
-
-[ ... ]
-
-> +bool netdev_has_dmabuf_binding(struct net_device *dev, struct device *dma_dev)
-> +{
-> +	struct net_devmem_dmabuf_binding *binding;
-> +	unsigned long xa_idx;
-> +	bool found = false;
-> +
-> +	netdev_assert_locked(dev);
-> +
-> +	/* A binding stays in the xarray until it is freed. binding->dev is
-> +	 * only cleared under the instance lock of that netdev, and the free
-> +	 * takes it before erasing the binding, so a binding found under @dev
-> +	 * stays alive while the xarray lock is dropped.
-> +	 */
-> +	xa_lock(&net_devmem_dmabuf_bindings);
-> +	xa_for_each(&net_devmem_dmabuf_bindings, xa_idx, binding) {
-> +		if (READ_ONCE(binding->dev) != dev)
-> +			continue;
-
-[Severity: Medium]
-Does this check match what the kernel-doc promises, "A binding is
-reported for as long as it is mapped"? The commit message also says the
-helper will "report every binding of the netdev that is still mapped".
-
-For leased RX queues, binding->dev may not be the device that holds the
-mapping. netdev_nl_bind_rx_doit() passes the netdev the user named,
-which can be a virtual leasee such as netkit:
-
-net/core/netdev-genl.c:netdev_nl_bind_rx_doit() {
+drivers/net/ethernet/mellanox/mlx5/core/en_main.c:mlx5e_alloc_rq() {
     ...
-    binding = net_devmem_bind_dmabuf(netdev, NULL, dma_dev, DMA_FROM_DEVICE,
+		/* Shampo header data split allow for unreadable netmem */
+		if (test_bit(MLX5E_RQ_STATE_SHAMPO, &rq->state))
+			pp_params.flags |= PP_FLAG_ALLOW_UNREADABLE_NETMEM;
     ...
 }
 
-The dma_dev, though, comes from the physical queue the RX queue is
-leased from:
+This means these RQs can be backed by the dma-buf devmem memory provider,
+which does this:
 
-net/core/netdev_queues.c:netdev_queue_get_dma_dev() {
+net/core/devmem.c:mp_dmabuf_devmem_init() {
     ...
-	hw_rxq = __netif_get_rx_queue(dev, idx)->lease;
-
-	netdev_lock(hw_rxq->dev);
-	idx = get_netdev_rx_queue_index(hw_rxq);
-	dma_dev = __netdev_queue_get_dma_dev(hw_rxq->dev, idx);
-    ...
-}
-
-So binding->dev is the leasee, while binding->attachment->dev is the
-DMA device of the physical NIC. That also seems to disagree with the
-comment on struct net_devmem_dmabuf_binding::dev ("Physical NIC that
-does the actual DMA for this binding"), which this helper relies on.
-
-On top of that, both teardown paths skip the unmap in the lease case
-but still clear binding->dev:
-
-net/core/devmem.c:mp_dmabuf_devmem_uninstall() {
-    ...
-			if (!rxq->lease)
-				net_devmem_dmabuf_binding_unmap(binding);
-			ASSERT_EXCLUSIVE_WRITER(binding->dev);
-			WRITE_ONCE(binding->dev, NULL);
+	/* dma-buf dma addresses do not need and should not be used with
+	 * dma_sync_for_cpu/device. Force disable dma_sync.
+	 */
+	pool->dma_sync = false;
+	pool->dma_sync_for_cpu = false;
     ...
 }
 
-net/core/devmem.c:net_devmem_dev_unregister() {
-    ...
-		if (!netif_is_queue_leasee(dev))
-			net_devmem_dmabuf_binding_unmap(binding);
-		xa_lock(&net_devmem_dmabuf_bindings);
-		WRITE_ONCE(binding->dev, NULL);
-    ...
-}
+That rule was added by commit 7dba339faae9 ("page_pool: disable sync for
+cpu for dmabuf memory provider"), before mlx5 supported unreadable
+netmem. Its commit message asks drivers to switch to this helper when
+they add netmem support.
 
-After this, the binding stays in the xarray with attachment != NULL
-until in-flight net_iovs release it. The check above can no longer
-match it for any dev.
+Before this patch, mlx5e_add_skb_frag() always called
+dma_sync_single_for_cpu(rq->pdev, addr + frag_offset, ...) on these
+dma-buf addresses.
 
-Could netdev_has_dmabuf_binding(phys_dev, phys_dma_dev) then return
-false while a binding is still mapped against phys_dma_dev?
+At this commit, pp_params.dev is rq->pdev and pp_params.dma_dir is
+rq->buff.map_dir. For regular page pools the new helper therefore does
+the same thing as the old code. The only functional change is that the
+sync is now skipped for dma-buf devmem pools, and that fixes the
+existing behaviour.
 
-The only caller in this series, set_pflag_data_direct() in mlx5e,
-already rejects installed RX memory providers and leased RX queues, so
-it may not hit this today. Since the helper is exported, would it make
-sense to either restrict the kernel-doc and commit message to TX
-bindings (or bindings whose dev is still set), or to also match
-bindings by attachment->dev against the DMA device(s) of @dev?
+Should the commit message say that this also fixes the devmem case? It
+could also carry a Fixes: db3010bb5a01 tag, so backporters don't treat it
+as prep work for data direct only.
 
-> +
-> +		xa_unlock(&net_devmem_dmabuf_bindings);
-> +		mutex_lock(&binding->lock);
-> +		found = net_devmem_binding_mapped_to(binding, dma_dev);
-> +		mutex_unlock(&binding->lock);
-> +		xa_lock(&net_devmem_dmabuf_bindings);
-> +		if (found)
-> +			break;
-> +	}
-> +	xa_unlock(&net_devmem_dmabuf_bindings);
-> +
-> +	return found;
-> +}
-> +EXPORT_SYMBOL_GPL(netdev_has_dmabuf_binding);
+A smaller point: page_pool_dma_sync_netmem_for_cpu() does not check for
+unreadable netmem in general. It checks a per-pool flag:
+
+	if (!pool->dma_sync_for_cpu)
+		return;
+
+Only the dma-buf provider clears that flag. io_uring zcrx pools are also
+unreadable, but they leave it set and are still synced through
+pool->p.dev.
+
+Could the wording "takes care of not calling dma_sync_* for unreadable
+netmem" be made more precise?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261110183826.2927274-1-tariqt%40nvidia.com
