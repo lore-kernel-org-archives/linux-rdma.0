@@ -1,70 +1,80 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=35.83.148.184
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794481085;
-	b=AVKgaQV1cOkotsv40MiEK9lcHJrcSJtD1Gx+gQ0bhFoLlEb1FTI6X8S7faOBYgban4Qn
-	 XmL7lgb/lKIL5nwOZ7ouT4j68h5oLSPHOyifuA4cuiTT+7DOF0IwMYMKy1nb23SmG5wDt
-	 r0GdhYnD8HDS0uhbnM1xBZESpnzEVFxDEIzyCey8mq34I7ws/T+S4mpt/30JvXhFydNRz
-	 pXfvK6XLktowh9siP50HjD0Y0nr3nC89fIeJWDImtMWT15LpoQGqBeRg+XedSwxRiWHZW
-	 V6Bcv/BS7BnO3YfkPGQpPmWqlMPbE6lyR61rGcL3AALs6ItaMob0dvEY/U7YHikbdQw==
+	t=1794481595;
+	b=V1OG10yov/idjUvqaxdlJYbnSntO1CDuKAyfDvnR9nUqAibdJKjGsTw5aU9JCG8ZNd4y
+	 aQ/q/ASgBqtSes7Osraikxwru76zA37Z52LDTVFu26yEtm6r/7zPUHJ1KgODEoV7DxLwW
+	 n/kBiO7uMYtQOo0u2n16dArnhB/nTQUZ0c9c2ZbYlpNHUmP3+LETNIgg9Sb4rgEetQQa+
+	 18GLLlw5Dxb73vqviBEDVJ5e9PGdKht53t1IFhvuPTwDWW4nF5cyvWe4W9A5NXJ2cItbb
+	 RkCNKULUZirwE3C6/g/67UphkGypkAXFNrjtG0AIexHPOXXQhTZtK34Mj/HDjcKgSKQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794481085;
-	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Subject:
-	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-Spam-Status:X-Spam-Checker-Version;
-	bh=GUeyCkWJ30TKeXscHAtkA+LtWzqmgJiXCIh4pQZpiKI=;
-	b=YEE2GMd/acZWOIrOBCVP+36IO47YM+crwR6Iw7dWiYWT8LUBnQct6A5HsFOVTu1GRpfR
-	 ZVVuy7W4zrcEhY+eXXha12T0NjVGW2rb8IupMZlElbcWMtk51F1jtDE+NshQ4bjUOjpns
-	 78Y07ReyhTByjcSyI6fCijbU1OvgFwGXnT2T/kxV4LnnrHQTrCRz04YH8IjWioDE9UBCl
-	 A6GdKqFO23A/RLSJSVeRj9Ql7/AP1ExN5V+WZYknDWmc04TCJ+aXP2pjR3dkfI+DfC440
-	 vRN/l/yTU+TWGobfJjWwFSEUdlltrzBynAfQl1lI54meFwLX1ubSIedM4lkyXKOjPQg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794481595;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:Received:Received:X-Farcaster-Flow-ID:Received:Received:
+	 From:To:CC:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding:Content-Type:X-Originating-IP:
+	 X-ClientProxiedBy;
+	bh=U2avUcuoObfC15e2wpulGRQmTSkSpE6zv+IRtjwj1H4=;
+	b=rdrJRfxW35hOQnWn6e6paAi4wt+jAGVSitNM+Ojl2D8cjO0AoMIDPa8qVcpuGUxhimMZ
+	 X9R4SQNqxiCqpib/AwITbXt7jT8L9l2JPwU+cf9xlDW6wPNrO2psKIYgDO7550Z8AF5dm
+	 5+D9JZOE86AHow/88jM/rW0dR8stMgJq5FxTaK6n3nXMjER00JY972jMaZfU1v5rZFlQH
+	 6iX7LWFb8KdF2T1bi8GjOYuZw0pZtVgqgbGekKoW9UMLcHs9jnzbJQCKhXyy/8DWaHdri
+	 nB1Nu9merVtGUyHn5VtD3prZa+V+QiLBpZZ63EuYFler3UJsf5KE9X3M5HVDYkYVTAg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.microsoft.com;
-	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=lCZb3yKc;
-	arc=none smtp.remote-ip=13.77.154.182
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id EB8A6606A321;
-	Thu, 12 Nov 2026 10:58:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EB8A6606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	dmarc=pass header.from=amazon.com;
+	spf=pass smtp.mailfrom=amazon.com;
+	dkim=pass header.d=amazon.com header.i=@amazon.com header.a=rsa-sha256 header.s=amazoncorp2 header.b=JqW+yN8c;
+	arc=none smtp.remote-ip=35.83.148.184
+Received: from pdx-out-014.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-014.esa.us-west-2.outbound.mail-perimeter.amazon.com [35.83.148.184])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 468BF606A323
+	for <linux-rdma@vger.kernel.org>; Thu, 12 Nov 2026 11:06:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 468BF606A323
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=lCZb3yKc
-Received: from kali.mshome.net (unknown [4.213.232.19])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 34F3020B7168;
-	Thu, 12 Nov 2026 02:57:56 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 34F3020B7168
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1794481080;
-	bh=GUeyCkWJ30TKeXscHAtkA+LtWzqmgJiXCIh4pQZpiKI=;
-	h=From:To:Subject:Date:From;
-	b=lCZb3yKcup/JAsYlNeFlSW7d8PXVj2Hz/MSwDVQN83kwTfhXK4AgpLDhCRvCQmtV5
-	 jKnNe7tRd8nqH/f1Qoa26wo0vROkUk1j6GCz25y9uAGir9TTMa1bsnIQ+1qPvZblgQ
-	 Kqd4VjLwW5bfz5eZmTtahbJXAdUt5la0EerHLRag=
-From: Sahil Chandna <sahilchandna@linux.microsoft.com>
-To: haiyangz@microsoft.com,
-	wei.liu@kernel.org,
-	decui@microsoft.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	weh@microsoft.com,
-	kotaranov@microsoft.com,
-	horms@kernel.org,
-	ernis@linux.microsoft.com,
-	gargaditya@linux.microsoft.com,
-	leitao@debian.org,
-	sahilchandna@linux.microsoft.com,
-	linux-hyperv@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org
-Subject: [PATCH net-next] net: mana: Add CQE polling as first-level TX timeout recovery
-Date: Thu, 12 Nov 2026 04:57:18 -0600
-Message-ID: <20261112105752.978446-1-sahilchandna@linux.microsoft.com>
-X-Mailer: git-send-email 2.53.0
+	dkim=pass (2048-bit key, unprotected) header.d=amazon.com header.i=@amazon.com header.a=rsa-sha256 header.s=amazoncorp2 header.b=JqW+yN8c
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
+  t=1794481595; x=1826017595;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=U2avUcuoObfC15e2wpulGRQmTSkSpE6zv+IRtjwj1H4=;
+  b=JqW+yN8c08cSYY5P2DzNs5Y1bqcrUtC+LSItoYuz2Ek50e9fQW6DrtLu
+   IxgjjJw+GWuek1QpsgmoM4vB6OH9Vg5i+eJLWGYS+n/J43o+kGEPJbXux
+   TbeFQ17IY6ueEJGvc5I7VejT4/HMP5nf4YO7Q6FQkLYhx/4/rRu9MUjoz
+   XvDuHHlkA587FvmNFnDiDymBedJlD/X5FI+Pt0jugRwljX10hN8NWD8G4
+   e8fVEqRBcOalGt5TuiSH+58jPjjRp5eGFg4O+HX0PZOaHtDQId1FkZVe5
+   j5ebLDbPwIvusUlnhPRuk1lShbZAhkTIToQbjl5wW2UiiD5l1/KnKJlFM
+   A==;
+X-CSE-ConnectionGUID: YFC7sQHJRrCbGaRBjYDjyw==
+X-CSE-MsgGUID: mpNUeolFQGCQa8G6DrNoWA==
+X-IronPort-AV: E=Sophos;i="6.27,209,1787011200"; 
+   d="scan'208";a="33595036"
+Received: from ip-10-5-0-115.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.0.115])
+  by internal-pdx-out-014.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2026 11:06:32 +0000
+Received: from EX19MTAUWB001.ant.amazon.com [205.251.233.104:19019]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.24.250:2525] with esmtp (Farcaster)
+ id c7b0e0d1-a745-46eb-82ed-7d04a74ee92e; Thu, 12 Nov 2026 11:06:32 +0000 (UTC)
+X-Farcaster-Flow-ID: c7b0e0d1-a745-46eb-82ed-7d04a74ee92e
+Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
+ EX19MTAUWB001.ant.amazon.com (10.250.64.248) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.56;
+ Thu, 12 Nov 2026 11:06:32 +0000
+Received: from dev-dsk-ikolomin-1a-673563de.eu-west-1.amazon.com
+ (172.19.125.167) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.56; Thu, 12 Nov 2026
+ 11:06:30 +0000
+From: Ilia Kolominsky <ikolomin@amazon.com>
+To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
+CC: <sleybo@amazon.com>, <matua@amazon.com>, <gal.pressman@linux.dev>
+Subject: Re: [PATCH for-next 0/3] RDMA/efa: Add Completion Actions support
+Date: Thu, 12 Nov 2026 11:06:24 +0000
+Message-ID: <20261112110624.19917-1-ikolomin@amazon.com>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20261109081349.27316-1-ikolomin@amazon.com>
+References: <20261109081349.27316-1-ikolomin@amazon.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -75,137 +85,12 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: EX19D031UWA002.ant.amazon.com (10.13.139.96) To
+ EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-The current mana_tx_timeout() handler unconditionally schedules a full
-port queue reset (detach/attach) whenever the TX watchdog fires.
-This is unnecessary for transient stalls where completions are
-simply delayed or an interrupt was missed.
+The rdma-core counterpart is up for review:
+https://github.com/linux-rdma/rdma-core/pull/1854
 
-Implement a graduated recovery approach: on the first TX timeout (or
-when the previous timeout was more than 2 minutes ago), schedule NAPI on
-the stalled queue's TX CQ via napi_schedule(). This triggers
-mana_poll_tx_cq() through the normal NAPI path, processing any pending
-completions without relying on the interrupt and recovering
-missed-interrupt scenarios without queue reset.
-
-If any subsequent TX timeout fires on any queue, within 2 minutes of
-the previous one, escalate to the existing port-level detach/attach
-reset, as the CQE poll did not recover the queue.
-
-This makes the TX timeout recovery three-tiered:
-
-  Level 1: CQE poll via napi_schedule() (this patch)
-  Level 2: Port queue reset (detach/attach)
-  Level 3: device reset(FLR)
-
-Co-developed-by: Dipayaan Roy <dipayanroy@linux.microsoft.com>
-Signed-off-by: Dipayaan Roy <dipayanroy@linux.microsoft.com>
-Signed-off-by: Sahil Chandna <sahilchandna@linux.microsoft.com>
----
- drivers/net/ethernet/microsoft/mana/mana_en.c | 31 ++++++++++++++++---
- .../ethernet/microsoft/mana/mana_ethtool.c    |  2 ++
- include/net/mana/mana.h                       |  4 +++
- 3 files changed, 33 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index e6d494df22e4..0d8c8b8fbc83 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -336,6 +336,9 @@ static void mana_per_port_queue_reset_work_handler(struct work_struct *work)
- 	if (err)
- 		netdev_err(ndev, "mana_attach failed: %d\n", err);
-
-+	/* Let the next TX timeout try a CQE poll recovery first */
-+	WRITE_ONCE(apc->last_tx_timeout, 0);
-+
- dealloc_pre_rxbufs:
- 	mana_pre_dealloc_rxbufs(apc);
- clear_flag:
-@@ -964,6 +967,7 @@ static void mana_tx_timeout(struct net_device *netdev, unsigned int txqueue)
- 	struct mana_port_context *apc = netdev_priv(netdev);
- 	struct mana_context *ac = apc->ac;
- 	struct gdma_context *gc = ac->gdma_dev->gdma_context;
-+	unsigned long last = READ_ONCE(apc->last_tx_timeout);
-
- 	/* Debug knob for bringup/qualification: when set, log the timeout and
- 	 * skip the reset so the failing state is preserved for telemetry.
-@@ -980,11 +984,30 @@ static void mana_tx_timeout(struct net_device *netdev, unsigned int txqueue)
- 	if (test_bit(GC_IN_SERVICE, &gc->flags))
- 		return;
-
--	/* Note: If there are pending queue reset work for this port(apc),
--	 * subsequent request queued up from here are ignored. This is because
--	 * we are using the same work instance per port(apc).
-+	if (!apc->port_is_up)
-+		return;
-+
-+	/* If the previous timeout fired less than
-+	 * MANA_TX_TIMEOUT_RESET_THRESHOLD ago, the earlier CQE poll did not
-+	 * help and queue stalled again	: escalate to a port reset.
-+	 * Note: If there is pending queue reset work for this port (apc),
-+	 * subsequent requests queued up from here are ignored, because the
-+	 * same work instance is used per port (apc).
- 	 */
--	queue_work(ac->per_port_queue_reset_wq, &apc->queue_reset_work);
-+	if (last &&
-+	    time_after(last, jiffies - MANA_TX_TIMEOUT_RESET_THRESHOLD)) {
-+		queue_work(ac->per_port_queue_reset_wq, &apc->queue_reset_work);
-+		return;
-+	}
-+
-+	/* First timeout, or the previous one was long ago: try to recover by
-+	 * polling the TX CQ for completions before escalating to a reset.
-+	 */
-+	if (txqueue < apc->num_queues && apc->tx_qp && apc->tx_qp[txqueue]) {
-+		WRITE_ONCE(apc->last_tx_timeout, jiffies);
-+		apc->eth_stats.tx_cqe_poll_recovery++;
-+		napi_schedule(&apc->tx_qp[txqueue]->tx_cq.napi);
-+	}
- }
-
- static int mana_shaper_set(struct net_shaper_binding *binding,
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-index a91eb12badca..ff4799c61a6c 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-@@ -22,6 +22,8 @@ static const struct mana_stats_desc mana_eth_stats[] = {
- 				       tx_linear_pkt_cnt)},
- 	{"rx_cqe_unknown_type", offsetof(struct mana_ethtool_stats,
- 					rx_cqe_unknown_type)},
-+	{"tx_cqe_poll_recovery", offsetof(struct mana_ethtool_stats,
-+					tx_cqe_poll_recovery)},
- };
-
- static const struct mana_stats_desc mana_hc_stats[] = {
-diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
-index 09725e3256fa..5de6eaa02102 100644
---- a/include/net/mana/mana.h
-+++ b/include/net/mana/mana.h
-@@ -94,6 +94,8 @@ enum mana_priv_flag_bits {
-
- #define MANA_RX_FRAG_ALIGNMENT 64
-
-+#define MANA_TX_TIMEOUT_RESET_THRESHOLD (2 * 60 * HZ)
-+
- struct mana_stats_rx {
- 	u64 packets;
- 	u64 bytes;
-@@ -447,6 +449,7 @@ struct mana_tx_qp {
- struct mana_ethtool_stats {
- 	u64 stop_queue;
- 	u64 wake_queue;
-+	u64 tx_cqe_poll_recovery;
- 	u64 tx_cqe_err;
- 	u64 tx_cqe_unknown_type;
- 	u64 tx_linear_pkt_cnt;
-@@ -566,6 +569,7 @@ struct mana_port_context {
- 	struct net_device *ndev;
- 	struct work_struct queue_reset_work;
-
-+	unsigned long last_tx_timeout;
- 	/* Debug knob to log TX timeout but skip recovery reset */
- 	bool tx_timeout_skip_reset;
-
---
-2.53.0
-
+Thanks,
+Ilia
