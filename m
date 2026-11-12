@@ -1,156 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.43.26
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794480230;
-	b=pCnVjuwB/ZwTJgLTZSmpPxpGN4rSbBmtlK8QPAGYh5UU+Dz6H6fjnqjOrmreBmynXrpq
-	 IoufXXKKqWhquvuNedAdZHK8ziAp4mxJC0cro3fcBjc0JS0chpoudaPT/op4fX2AqSV5q
-	 jcempUmJro4vWAwbYmauko1zoVvpapHNOTfQn8Fx6WxCg4lZ7tENOHEowmkHwIofAmKuu
-	 L6UO0K7N0uGOYV03nyVtKpm8aDe5Bgr1UaWariOQbYzyeOorsIhUqhHCssZDVZujjyrf4
-	 fMBygUI4lrwUNHnKlzQToyR6AKvlbW55AbviDFJZQw3S0ZWtzEfYGFeunWnHG0oUz9Q==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794480230;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:From:To:CC:Subject:
-	 Thread-Topic:Thread-Index:Date:Message-ID:References:In-Reply-To:
-	 Reply-To:Accept-Language:Content-Language:X-MS-Has-Attach:
-	 X-MS-TNEF-Correlator:x-ms-publictraffictype:
-	 x-ms-traffictypediagnostic:x-ms-office365-filtering-correlation-id:
-	 x-ms-exchange-senderadcheck:x-ms-exchange-antispam-relay:
-	 x-microsoft-antispam:x-microsoft-antispam-message-info:
-	 x-forefront-antispam-report:
-	 x-ms-exchange-antispam-messagedata-chunkcount:
-	 x-ms-exchange-antispam-messagedata-0:Content-Type:Content-ID:
-	 Content-Transfer-Encoding:MIME-Version:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-AuthAs:X-MS-Exchange-CrossTenant-AuthSource:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-originalarrivaltime:
-	 X-MS-Exchange-CrossTenant-fromentityheader:
-	 X-MS-Exchange-CrossTenant-id:X-MS-Exchange-CrossTenant-mailboxtype:
-	 X-MS-Exchange-CrossTenant-userprincipalname:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=Hc4D0FRoRj9GN/sEauUH1OFsYFPQley+9V+oVLSt3Uo=;
-	b=RPrfRisSvUIUa5oSTVrLKkgBr5iIWjtK5ijrYay61nCzb/p1CEDvcQRVuXTTBTdUiqAu
-	 yT9krSSqZTAw1qYi/CkO/FkUEGz2rXZdEIfr1SfZsmI3MAhybD4ex1b+NxXzfPPWwqbUG
-	 skYerGcHlD/WSOeUN6h00ylEH71ZEIsr/xXH/QJZ7vv05xgZsKJkvHyRLVMSWR7WjUwjZ
-	 8cGy+tZ59rC1VOA9qe5vgkIn2eybzG8IUD5jU9q9JxFyhx9y/ifO6Su2/234k6XCmLp0N
-	 3/6dPNmYRRQ9yyixp2BIzWyXhVZJ4X+cX9TybDnHQz5/m6IEAN9v27lSpxTZAufuQAQ==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=tFkvKHQR;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.43.26
-Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012026.outbound.protection.outlook.com [52.101.43.26])
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1794480473;
+	b=zUmpa+z1DMZiWVvj8MXVBeEZaYDN46WF+Iev8PT1tdI8Bnu0oIXlv9tlPhSC4lGlC9zZ
+	 tl2b1rRe8Srdn63B9FGcuDqaiAPI/Wr1X9hSb0naJeXEh92wCy00ceW6oKUr8cV5yo0EE
+	 H+gHO2H0lhvDgEb+DzhY0r+Dk0AkH5Q2+RuA/+Tl3jj7l0vbGSK1kPFnma3ihxtQWVwoq
+	 Y8ffu8XTpVsflWY9xfU4bm3o+tcXQmSOWej1w5aIVUo37rqgNY2auR2/HcRh8ncYiIEUY
+	 AtBmJOi6l/cg9AzDWCXNR4KJtHBpd2KQu+TxrHPVV+btO6rAm55EUXuW4EpjopiMlyA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794480473;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=LaAKKhAngwkFxDGEu7glsCDhQDKP6or5IXQD5q9C6lk=;
+	b=OFcbvIjbOzHGNtCHG4HXx0ddP1wgbt/3Y/+r4tWI7i36QpRA3TGP0QsB2bseewFlcLCS
+	 8I4tTQUplDSzJVrhdpMpR0IPnJtPlzQeXnXCJHIuJdi76Lsr5SF1+BD+TFKCEaPbbO/s6
+	 5RrHs6wJ+YP4kvKLu1McTyGz84P2VIYLHaSHB0/Jvz52Lmq3vffGz/sCSYW9ThnJAB2uW
+	 wLDOrhRz5qCp/OgUEPfDJD+H/xDPh2Fyy0xck4E6UXLMLJnSFGtJH9n25BHQRvUXCdzYu
+	 /2xSs4cwMFQuddCM4BELRVLokR3ISqVgFmbrCOJfCSf3kiFteblPsdztAfgfHSwhG4A==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="bhRW52/O";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49112606A889;
-	Thu, 12 Nov 2026 10:43:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 49112606A889
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 505CF606A32D;
+	Thu, 12 Nov 2026 10:47:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=tFkvKHQR
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=zPqbPqqP9UXmoIzkEbBoKxpQctcQ6rNzJrxwcF4iN5h+dN+c/gYnDwpOjlbUpKT3ISkCGvcjz22B6qTL8BffMsZjjgn/0shUTRNYxRyI4Cu4uQCDhOD57SLWuBNPFUGHQO1XIqixrfcNgnK6xmNdslkbHSf4ZcqgNeu8OMtIYlfTVK53DcL+v6JDZuffgaZuVavA0H2oiV6DJ2OsKKECLG87unsiV/R6C87rvskU71mtZPAmW3ihMtrVufBu6zf6UG+Z6mM5xJMwbdnMDj/ZZbIqkwpQteDDht2Zn1xznPQJpvtxtYQx6rtMt6nN796CwT8ZFGHx+ChYQJprzn9Xsw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Hc4D0FRoRj9GN/sEauUH1OFsYFPQley+9V+oVLSt3Uo=;
- b=Cv5Rvq2NepsvULKbalxjxY9OJHsOxyDsUXQFp/meOuS8MhrulIrBJQO6T/f/csqpcd1Ru6ykTst7H9noFIeZbiQCX0KojONZuj1YcGPd1bhAkSAffpVZ2EWs9i/GHYQbsQaodqv3LOSVam/fIWRjxHMzmqUtri52uy/S6mUnKK3dTTgIPWoeQ4mMdRHSPrjPIIG7YVUYemdtSfRZvvChQNiEoHLf367RQe2qzgyYQ9jjZSXKmdHMopEZpbkl9bCydp6agy7qIOnhLqu9TDoui6GnSRj4cHWaVaz4Z5yLSMvlu8cXYVIuDm9eIqj0mwn7JzXf8r+Q/0hQwn4K0VRATA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Hc4D0FRoRj9GN/sEauUH1OFsYFPQley+9V+oVLSt3Uo=;
- b=tFkvKHQRJZV9uhIBDCgRCFq2FjPMYc699zqphDTr7p995EUedzSrIzDg1gY8sjcNoO8WxA9WqndSwim3k9CiAhAWr0yQDblmmWyGKWURRGCxhHUhnZ1ezUoFP23XEH7J2rjFuop1XLGfJOx1vXOqwYqVF5FtFsEwkDiQVIoznaa3rAZN/qSYJYgyG99W8rKjY3XlxV8OaDU+eyAll+XKRuVIYQfuqfJUoMZ+RmESDgEEfNIttQ3THpbcgiRD6c/sfviS1eXyqignjxB2cwz95F4SqxGgLaSHnXHme6QAdpYSgkrn7AYgpIZIoFSsOyS79vUEzPNnvlB4wr04M/5TXA==
-Received: from DS5PPF266051432.namprd12.prod.outlook.com
- (2603:10b6:f:fc00::648) by LV0PR12MB657608.namprd12.prod.outlook.com
- (2603:10b6:408:609::21) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.9; Thu, 12 Nov
- 2026 10:43:48 +0000
-Received: from DS5PPF266051432.namprd12.prod.outlook.com
- ([fe80::9cef:7e0f:2134:13fe]) by DS5PPF266051432.namprd12.prod.outlook.com
- ([fe80::9cef:7e0f:2134:13fe%3]) with mapi id 15.21.0615.007; Thu, 12 Nov 2026
- 10:43:47 +0000
-From: Cosmin Ratiu <cratiu@nvidia.com>
-To: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "mzuhayr@earthlink.iq"
-	<mzuhayr@earthlink.iq>
-CC: Tariq Toukan <tariqt@nvidia.com>, Leon Romanovsky <leonro@nvidia.com>,
-	Saeed Mahameed <saeedm@nvidia.com>, "linux-rdma@vger.kernel.org"
-	<linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>
-Subject: Re: [BUG] net/mlx5: nf flowtable offload rules never hit in switchdev
- - root chain misses to slow path, not to the FT chain
-Thread-Topic: [BUG] net/mlx5: nf flowtable offload rules never hit in
- switchdev - root chain misses to slow path, not to the FT chain
-Thread-Index: AQHdbElUgfk1enT3QE6ugzlHtdAqZbcqTM+A
-Date: Thu, 12 Nov 2026 10:43:47 +0000
-Message-ID: <62612ebd42aef5eec1f06a5465e3e6aff9110d41.camel@nvidia.com>
-References:
- <AM0PR02MB4307F6D53A2B0AD628D91C81C6682@AM0PR02MB4307.eurprd02.prod.outlook.com>
-In-Reply-To:
- <AM0PR02MB4307F6D53A2B0AD628D91C81C6682@AM0PR02MB4307.eurprd02.prod.outlook.com>
-Reply-To: Cosmin Ratiu <cratiu@nvidia.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: DS5PPF266051432:EE_|LV0PR12MB657608:EE_
-x-ms-office365-filtering-correlation-id: bdc6eace-df8e-4fb3-b4d6-08df40a9d4fc
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|1800799024|366016|376014|23010399003|22082099003|261009223027099003|18002099003|261022105027099003|261028144727099003|261026121527099003|261026140227099003|56012099006|10067099003|11063799006|38070700021;
-x-microsoft-antispam-message-info:
- oOcPmlrl1itIkv6Dq7zA3VlvJTflilIt0PhsdXoSkTfGiwpNDHjmIanPK4jqx5zf6aMtMEIl1bz2l5lxYTC8FRFjOAuPBL2xN5LdKFd0C7A6HFi0A5PgvG5j+5Q2+lNgE9O021IBlHJxY+fRK7UcpHuTQsrdvVbtJgo2O0T6rGwKELeNM8wBNonuY6L5MS0K4T5Vtt+/qMPtKS1isNce4mHM4jkxH9D60Psr77JO8Pd+N6oZbmyeGEHZXgjvWsYRSAxWG8WSmRioDUavZ0+TiokvKuepLf8N4RyKXQh6oaHOEAyJECOtym9CHB2mLyWSo5ymU2DWzzUhj7AVQ55GDNh68MYihsCzDrlCRAE0DJiCoQibNBGb4J28TYYTNfrq6eNnVm1t4UPod917AM7CzL7USBoXgJ1mWaIuaGQEvazeGGfsDHql36YjQOXigdSOeJyuy99qaYXBnOwdFCNz3qZ8E70gwZL8WD8AgiUrPFh/7iGIuzvPtBIGNyVw+34lFDmNQVO552daeGZDtW8LnxQByU2NPx1QtyhZux4qoxAeG4blAxRXorMRTZK8qBAdz0Q9+bufvfw3qTZS+8rEEZRfSsUo9bs4rlhlhmU2+lat2G3TggXzvcl8sd/o5tz3DV67WEnVMatDKbl4cNZ+jGzO8Ir7d3ASsILm6O0Yqb23y69bTVjes90ITSxK/TpCkjDjOEvUy47mBjhRppBj1u+VDiDuvvenYRCUcKamSXE=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS5PPF266051432.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(23010399003)(22082099003)(261009223027099003)(18002099003)(261022105027099003)(261028144727099003)(261026121527099003)(261026140227099003)(56012099006)(10067099003)(11063799006)(38070700021);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?eUpoNWo1SGlSaHpWaWVtcHZPQTlwb1ZlTTNTUU11NVVMVUhBMGhxblVXZlVJ?=
- =?utf-8?B?R2FrZmR0NkRPaFBERGF1OHNESlIyenZPYjQ1Z0FvUS9QaUFpMFk2YlVGdlFm?=
- =?utf-8?B?SHpPSThIUk05dHdmdHVtalh3SEZTN3JQRjJkMDJwRkp3eGpZa3RKOHRGZXdO?=
- =?utf-8?B?S2dSY1E3NUNvRXcva0hVSUh2R0NOMVZ1b0RleWJGN1VtbWMrSkVBRUdqTlha?=
- =?utf-8?B?c2ZLVThHc1hyUVcycU5FZjdPbTFUWGRUZUJzSG5nOGJKK2xIYk5YUkFZVnlt?=
- =?utf-8?B?M2pESkljUTBWcHR1L2Q5M1Q1YzFDMFQydkl4UXdpTHpUMUh2L0lUUzBlTm5M?=
- =?utf-8?B?aDREWFl2MVY1Vyt1NUY2Y3gwclBmTkZIV2JNQ3RZUVUxMWNMT0VEaWt4NCsr?=
- =?utf-8?B?SktaY01rRlNKaDVnM09QRDZ0ZDBBZHJiVndGZFdtMmNTbFRSQjNuV3hTRTNh?=
- =?utf-8?B?VVV0UmVsQ01OT2lJVXlndUVJWkJ1UW5JQTFWSzFEYkc1dXkrWkl0QU9hRThj?=
- =?utf-8?B?VmJNdWlhNmFrNkllbkhkUXRMUUVBVk1Qd29YNVFJZjZSSGlvMjZHRlVOUTdS?=
- =?utf-8?B?RG9YMGU1UVJpcEZVeDRsYWk1YnRJc01sYUlSbFVYb3FQVFQvUkdmUEI0ZkVz?=
- =?utf-8?B?RGJUNVphVmVYV0NlelRnc3NUM3dLajBqcW5xTzQranEzejFOUC9rN2NWS2xD?=
- =?utf-8?B?YW9QMjRZUWpQRnFLODFaZ2FSYUthS05QTFBtazJnMmZ3c2YvTHUraVNxckFO?=
- =?utf-8?B?S2M3akFuaXJuaE5mZXNHV1ZiVEw0Ui9tQ2hudXZCSTJGQUdqT2dnZTNTTWYv?=
- =?utf-8?B?VUFTUm9NUFF5bk1qK1dDZ2xhazV0aktBdUYrZHVPa1dHQ3ZCaWxZYWdYdHZT?=
- =?utf-8?B?cTNvVXZCeCtDdEhIL1E4SjdRM3JXQ09lQ2NneHl3K1l4U2xJUDVjbG0vR290?=
- =?utf-8?B?WFVTSVNjYzI3NVpDNktTZ09xOHlycS9yM2NZdXBWdkZmaEU0YVFoNStyWXpt?=
- =?utf-8?B?QzNETmYwL2hGT3duY2QrRDFqcWRyT2E5OE9EaXVIeDY1WlQrZE9pSzVBemxq?=
- =?utf-8?B?alZSSVAxTkhaSUNCSk5Pb1ZpcUxXMnVLYTNuRHlkNzRXM29McGNJcWRuYVlU?=
- =?utf-8?B?RXh6bVhINndGLzk5aXBLRzhkSE40UnE1YzgzUmQ3bzNxcVA5OTVTdHI0RjZM?=
- =?utf-8?B?dzJkUG9ZNExHelBibnlOSUZVSlY4KzlHbVYzek5FUEpwaDAxMDNqT3pXa1ha?=
- =?utf-8?B?ZytEdDlQWjVXUUkrbW90RjlnQ0xmd3hDTHVnaklWWXp4M3N0RFZ4eWtVcDBm?=
- =?utf-8?B?K0Q2REtHYUZ2Y0U0NFp6aDhxZlVkQm03VGMzVEwvWlRyRTUwZ21IcGVjNkJt?=
- =?utf-8?B?QzhpU2FlTFFTTlc0Ulp6VnZTMkp1YXVwUUFrTWlmcklCbzBXM09SdXQ3OFZ2?=
- =?utf-8?B?VEdNYkhzRG1CNTlCQVEvajJKOXQrUXFBYWk1TlFCdGF2dDY5aUNtd1RMMmk1?=
- =?utf-8?B?OWo4aXkrT0xxMUlZTEE1YjNVb3lkT3FoNTFOZnZ1YlNMeThnN1JlVHAyZy9Y?=
- =?utf-8?B?YTQzUm5Od0dVTkx4N0s5T0NEN1dJcnJGNUNwMHJHdEg0OXJCbVVLcnNRTVV3?=
- =?utf-8?B?L3lob0pZbzF5ZkpVMmFaQjY1Q0pHeXYzU2tXNlQ0VkZCbFh4eHNBUEJvbW1v?=
- =?utf-8?B?Y0t0QlF5amdVTEhOSWd1L2VwZ3YwSEJidUNtZ2t4djMySGIwYmI2TDVRb1lR?=
- =?utf-8?B?NytQamFrUi9OR3U3WERrZzhiaGVlSVNvSW9PUzNqNDVPajZrWmlJTGJrWjVl?=
- =?utf-8?B?UFdMNjh6RXBUK2JSSTZTWW1VZU9aM3Z0VHlFdXBPYmRiMDNNN0ZIRXoyajAv?=
- =?utf-8?B?a2tRZCsrYzV6ZzVvSlh3dVV3SmpORklFZVBVd3RGZzZ6VU5NcjVYczZWSmtj?=
- =?utf-8?B?YXBmZTV0ZXVMVitzNk9vb0VGY0VxYnJudFJNdjhmTXNJWUkvVUlhNDdyYXZT?=
- =?utf-8?B?RVM1ZjMvNGRCalhkeGRpRzJaQWtTTGVoU2FvNFU3M2wvZ3pyOHFBdzBQdnp0?=
- =?utf-8?B?M0dzaU5Xd0NoT3VsajZIWVUyME9ERjhNbTZWdWJrUDI0QWtkV1kyZ0wrTEE1?=
- =?utf-8?B?WXoxdGVyb3Z5NkRPWjJiTzNYNlc0Zk9TL2lZa2ZONG9ZNEVrQlpDQlFHckw1?=
- =?utf-8?B?djJkTng0YXhreU5rS0RXYk8rVzdFOExZWmR1MEc2eFJVT0pJVTcvVnk1aUor?=
- =?utf-8?B?U3dRRy9TVXEvQm1YemJYZ2dRYXYwRUhyYkdvdjhDVm1mV20vSmRLT1ZnUDZ0?=
- =?utf-8?B?b1BTN1NQeGhGUnp3WXlqRDZJbytkdGpFdFlmdDc2QjdaaER2RnVZQT09?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <9DC26C73E0750D4CAC097E919BD3B995@namprd12.prod.outlook.com>
-Content-Transfer-Encoding: base64
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bhRW52/O
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D85FD1F00A05;
+	Thu, 12 Nov 2026 10:47:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794480472;
+	bh=LaAKKhAngwkFxDGEu7glsCDhQDKP6or5IXQD5q9C6lk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=bhRW52/OaiERqOjVo+YsX7WenTAM+RkUSYdDbFFgDeELIFl5MCvdrQ4/lrfg3PaBP
+	 OJEvlXHrGI0KP6Sf7isOdA90CQUC1tSnbnlL7KMlGmOGy1uOT4Tps4k2NALfzc5lt4
+	 GBKdaLdl6Hn4QG7D1jOt3xg+R2SbDhwXqrQ5QTOpBVzV6PCDTf9sB1jcXxmSVYEwEX
+	 9k1ve7B7mHoKt9f85FezBUXVhvbLCq9DZT0dTEHtWXQsiFKFjjwdYqhwDGS2C9B8hk
+	 PMIxYSXrd0qwW336ZZGtXr/22P+Xd17f+e0rYlMLg9nZUtItJXlZjgdtGYx+r60Y9l
+	 +6iWNMqoSTUaQ==
+Date: Thu, 12 Nov 2026 11:47:38 +0100
+From: Alejandro Colomar <alx+linux-hardening@kernel.org>
+To: Bence Csokas <bence.csokas@arm.com>
+Cc: Kees Cook <kees@kernel.org>, 
+	"Gustavo A. R. Silva" <gustavoars@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, 
+	Luiz Augusto von Dentz <luiz.dentz@gmail.com>, Sumit Semwal <sumit.semwal@linaro.org>, 
+	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>, Philipp Stanner <phasta@kernel.org>, 
+	Sudeep Holla <sudeep.holla@kernel.org>, Cristian Marussi <cristian.marussi@arm.com>, 
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
+	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, 
+	Simona Vetter <simona@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, 
+	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, 
+	Tvrtko Ursulin <tursulin@ursulin.net>, Lyude Paul <lyude@redhat.com>, 
+	Danilo Krummrich <dakr@kernel.org>, Zack Rusin <zack.rusin@broadcom.com>, 
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, Selvin Xavier <selvin.xavier@broadcom.com>, 
+	Kalesh AP <kalesh-anakkur.purayil@broadcom.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Leon Romanovsky <leon@kernel.org>, Chengchang Tang <tangchengchang@huawei.com>, 
+	Junxian Huang <huangjunxian6@hisilicon.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
+	Hans de Goede <hansg@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, 
+	Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>, 
+	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
+	Paolo Abeni <pabeni@redhat.com>, Miri Korenblit <miriam.rachel.korenblit@intel.com>, 
+	Jes Sorensen <Jes.Sorensen@gmail.com>, Ping-Ke Shih <pkshih@realtek.com>, 
+	Johannes Berg <johannes@sipsolutions.net>, Benson Leung <bleung@chromium.org>, 
+	Tzung-Bi Shih <tzungbi@kernel.org>, Guenter Roeck <groeck@chromium.org>, 
+	Nilesh Javali <njavali@marvell.com>, GR-QLogic-Storage-Upstream@marvell.com, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, "Martin K. Petersen" <mkp@kernel.org>, 
+	linux-hardening@vger.kernel.org, linux-kernel@vger.kernel.org, linux-bluetooth@vger.kernel.org, 
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, 
+	arm-scmi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	intel-gfx@lists.freedesktop.org, nouveau@lists.freedesktop.org, linux-rdma@vger.kernel.org, 
+	linux-hyperv@vger.kernel.org, netdev@vger.kernel.org, linux-wireless@vger.kernel.org, 
+	chrome-platform@lists.linux.dev, linux-scsi@vger.kernel.org
+Subject: Re: [PATCH v2 1/2] stddef: Add offsetofend() variant of
+ struct_offset()
+Message-ID: <avWY8kNFlkLyxIrX@devuan>
+References: <20261112-offsetof-v2-0-276ede839967@arm.com>
+ <20261112-offsetof-v2-1-276ede839967@arm.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -160,36 +87,139 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: DS5PPF266051432.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: bdc6eace-df8e-4fb3-b4d6-08df40a9d4fc
-X-MS-Exchange-CrossTenant-originalarrivaltime: 12 Nov 2026 10:43:47.6639
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: 41F55OYag34fsS/ErAqeunv+Sik2zIrFFx8Ci9WyT0fwzZbjsBbf52PVSI8yJ3Pk12MqjLKhIxybtDpVqnaMuw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV0PR12MB657608
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="hmbonzz4lyxux25l"
+Content-Disposition: inline
+In-Reply-To: <20261112-offsetof-v2-1-276ede839967@arm.com>
 
-T24gV2VkLCAyMDI2LTExLTA0IGF0IDEwOjQ2ICswMDAwLCBNdWhhbW1hZCBadWhheXIgYWwtVGF5
-eWFyIHdyb3RlOg0KPiBBbmFseXNpcw0KPiAtLS0tLS0tLQ0KPiBlc3dfY2hhaW5zX2NyZWF0ZSgp
-IChlc3dpdGNoX29mZmxvYWRzLmMpIGRvZXMsIGluIHRoaXMgb3JkZXI6DQo+IA0KPiDCoCAxLiBu
-Zl9mdCA9IG1seDVfY2hhaW5zX2dldF90YWJsZShjaGFpbnMsDQo+IG1seDVfY2hhaW5zX2dldF9u
-Zl9mdF9jaGFpbihjaGFpbnMpLCAxLCAwKTsNCj4gwqAgMi4gZnQgPSBtbHg1X2NoYWluc19nZXRf
-dGFibGUoY2hhaW5zLCAwLCAxLCAwKTvCoMKgwqDCoMKgIC8qICJBbHdheXMNCj4gb3BlbiB0aGUg
-cm9vdCIgKi8NCj4gwqAgMy4gbWx4NV9jaGFpbnNfc2V0X2VuZF9mdChjaGFpbnMsIG5mX2Z0KTsN
-Cj4gDQo+IG1seDVfY2hhaW5zX2NyZWF0ZV9wcmlvKCkgKGxpYi9mc19jaGFpbnMuYykgY2hvb3Nl
-cyB0aGUgbWlzcw0KPiBkZXN0aW5hdGlvbg0KPiBvZiBhIG5ldyBwcmlvIHdoZW4gdGhhdCBwcmlv
-IGlzIGNyZWF0ZWQ6DQo+IA0KPiAJbmV4dF9mdCA9IChjaGFpbiA9PSBtbHg1X2NoYWluc19nZXRf
-bmZfZnRfY2hhaW4oY2hhaW5zKSkgPw0KPiAJCcKgIGNoYWluc19kZWZhdWx0X2Z0KGNoYWlucykg
-Og0KPiAJCcKgIGNoYWluc19lbmRfZnQoY2hhaW5zKTsNCj4gDQo+IFdoZW4gdGhlIHJvb3QgcHJp
-byBpcyBjcmVhdGVkIGluIHN0ZXAgMiwgY2hhaW5zX2VuZF9mdCgpIGlzIHN0aWxsDQo+IGF0dHIt
-PmRlZmF1bHRfZnQgKHNldCBpbiBtbHg1X2NoYWluc19pbml0KCksIGhlcmUgdGNfbWlzc190YWJs
-ZSkuIFNvDQo+IHRoZQ0KPiByb290J3MgbWlzcyBydWxlIGZvcndhcmRzIHRvIHRjX21pc3NfdGFi
-bGUsIGkuZS4gdGhlIHNsb3cgcGF0aCwgYW5kDQo+IHRoZSBGVA0KPiBjaGFpbiBpcyB1bnJlYWNo
-YWJsZS4NCg0KVGhhbmsgeW91IGZvciB0aGUgcmVwb3J0LCBpdCBsb29rcyBjb3JyZWN0Lg0KVGhl
-IHN1Z2dlc3RlZCBmaXggYWxzbyBsb29rcyBjb3JyZWN0Lg0KDQpXb3VsZCB5b3UgcHJlZmVyIHRv
-IGZvcm1hbGx5IHNlbmQgYSBwYXRjaCB3aXRoIHRoZSBmaXggb3IgYXJlIHlvdSBoYXBweQ0KdG8g
-bGV0IHVzIGhhbmRsZSBpdCwgd2l0aCBhIFJlcG9ydGVkLWJ5IGF0dHJpYnV0aW5nIHRvIHlvdT8N
-Cg0KQ29zbWluLg0K
+
+--hmbonzz4lyxux25l
+Content-Type: text/plain; protected-headers=v1; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+From: Alejandro Colomar <alx+linux-hardening@kernel.org>
+To: Bence Csokas <bence.csokas@arm.com>
+Cc: Kees Cook <kees@kernel.org>, 
+	"Gustavo A. R. Silva" <gustavoars@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, 
+	Luiz Augusto von Dentz <luiz.dentz@gmail.com>, Sumit Semwal <sumit.semwal@linaro.org>, 
+	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>, Philipp Stanner <phasta@kernel.org>, 
+	Sudeep Holla <sudeep.holla@kernel.org>, Cristian Marussi <cristian.marussi@arm.com>, 
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
+	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, 
+	Simona Vetter <simona@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, 
+	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, 
+	Tvrtko Ursulin <tursulin@ursulin.net>, Lyude Paul <lyude@redhat.com>, 
+	Danilo Krummrich <dakr@kernel.org>, Zack Rusin <zack.rusin@broadcom.com>, 
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, Selvin Xavier <selvin.xavier@broadcom.com>, 
+	Kalesh AP <kalesh-anakkur.purayil@broadcom.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Leon Romanovsky <leon@kernel.org>, Chengchang Tang <tangchengchang@huawei.com>, 
+	Junxian Huang <huangjunxian6@hisilicon.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
+	Hans de Goede <hansg@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, 
+	Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>, 
+	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
+	Paolo Abeni <pabeni@redhat.com>, Miri Korenblit <miriam.rachel.korenblit@intel.com>, 
+	Jes Sorensen <Jes.Sorensen@gmail.com>, Ping-Ke Shih <pkshih@realtek.com>, 
+	Johannes Berg <johannes@sipsolutions.net>, Benson Leung <bleung@chromium.org>, 
+	Tzung-Bi Shih <tzungbi@kernel.org>, Guenter Roeck <groeck@chromium.org>, 
+	Nilesh Javali <njavali@marvell.com>, GR-QLogic-Storage-Upstream@marvell.com, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, "Martin K. Petersen" <mkp@kernel.org>, 
+	linux-hardening@vger.kernel.org, linux-kernel@vger.kernel.org, linux-bluetooth@vger.kernel.org, 
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, 
+	arm-scmi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	intel-gfx@lists.freedesktop.org, nouveau@lists.freedesktop.org, linux-rdma@vger.kernel.org, 
+	linux-hyperv@vger.kernel.org, netdev@vger.kernel.org, linux-wireless@vger.kernel.org, 
+	chrome-platform@lists.linux.dev, linux-scsi@vger.kernel.org
+Subject: Re: [PATCH v2 1/2] stddef: Add offsetofend() variant of
+ struct_offset()
+Message-ID: <avWY8kNFlkLyxIrX@devuan>
+References: <20261112-offsetof-v2-0-276ede839967@arm.com>
+ <20261112-offsetof-v2-1-276ede839967@arm.com>
+MIME-Version: 1.0
+In-Reply-To: <20261112-offsetof-v2-1-276ede839967@arm.com>
+
+Hi Bence,
+
+> Date: 2026-11-12 10:29:33+0100
+> From: Bence Csokas <bence.csokas@arm.com>
+>
+> Many call sites of offsetofend() use it for the purpose of pointer
+> artihmetic. Thus, a common usage pattern is:
+>=20
+>   offsetofend(typeof(*ptr), member)
+>=20
+> Capturing this in one macro helps keep lines short and terse, while
+> still making the purpose clear. It also helps discourage spelling out
+> the type name on every callsite, leading to more maintainable code.
+>=20
+> A similar struct_offset() macro already exists, so add an offsetof()
+> variant in the same spirit.
+>=20
+> Signed-off-by: Bence Csokas <bence.csokas@arm.com>
+> ---
+>  include/linux/overflow.h | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+>=20
+> diff --git a/include/linux/overflow.h b/include/linux/overflow.h
+> index d0f04436343e..060dad4b6f3e 100644
+> --- a/include/linux/overflow.h
+> +++ b/include/linux/overflow.h
+> @@ -464,6 +464,18 @@ static __always_inline size_t __must_check size_sub(=
+size_t minuend, size_t subtr
+>   */
+>  #define struct_offset(p, member) (offsetof(typeof(*(p)), member))
+> =20
+> +/**
+> + * struct_offsetofend() - Calculate the end of a member within a struct
+> + * @p: Pointer to the struct
+> + * @member: Name of the member to get the end offset of
+> + *
+> + * Calculates the offset of the end of a particular @member of the struc=
+ture
+> + * pointed to by @p.
+> + *
+> + * Return: number of bytes to the location of @member.
+> + */
+> +#define struct_offsetofend(p, member) (offsetofend(typeof(*(p)), member))
+
+The outer parentheses are unnecessary (they are unnecessary in
+struct_offset() too, but that already exists).
+
+
+Have a lovely day!
+Alex
+
+> +
+>  /**
+>   * __DEFINE_FLEX() - helper macro for DEFINE_FLEX() family.
+>   * Enables caller macro to pass arbitrary trailing expressions
+>=20
+> --=20
+> 2.56.1
+>=20
+>=20
+
+--=20
+<https://www.alejandro-colomar.es>
+
+--hmbonzz4lyxux25l
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEES7Jt9u9GbmlWADAi64mZXMKQwqkFAmr1mUAACgkQ64mZXMKQ
+wqniCg//WgRXXz7luTnHUaMXrHNthttFpY3wBO557jzGIfLwMa+0tJqYgSh8MGS8
+7F44pQ7lX8E0qC+aMkDd3ItqdrKeD3McIbqqgpr8iU1VT0ljohr8pnTU7UIyIP/u
+bX/o22pWYohJFt/xcJcLxQ63rHmjcfjH2ug2i8ZgZHh/YGX+Biah79nfkcAB+uYX
+NI+43mSTP1aHvUK3Jf/z7PJF/v1/vyv1zJ/nsoN74w3JhlYGMggMcXHSu+dp0jmX
+qJUkyYJ5SQEzMdU/n2pSgOJFIZl6YS957I6fhU3GxEPXSldcnd/VIH/QRKMpSyjM
+jWzBsyjyyink+9RSw7AcmU46DJ28GeWMW5jZdg7jXq6ZGjO0/AKleOtMrevQLN4s
+hB7CzUrtofXBv5Oa5javphhfKIEoawgDsDch5eXFQW/Rm9rSflWysbPTCST5n/h0
+GfKbUEzD+COFj6I+Y8COEceKp4Xv8Y08A3r6CyyNIPzPwcc0CulK6xAmHbsMxIXZ
+c6uz3LLfqukMfbuquIZE4KhlNt+ZLRtnxL6rFfFkvLYdz4KwIsljmiPqoyPQxp9A
+OX5vOdZ9ulzmuuNoTY5OeJWSlsI6edzNc17hE6jjR1+wFfJSzVF2cvvv6mRGnpY/
+bGpmsQZFuH/KWJutZlHbsMGYEKF7lo42UH0Tqx57oaglMss89x4=
+=8quq
+-----END PGP SIGNATURE-----
+
+--hmbonzz4lyxux25l--
