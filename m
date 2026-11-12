@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794445022;
-	b=CYeV2eU9aKX/+tWWWQgECSNO0GJdtCCzMmXuB8sJLWOERvZSHOIiG8UeiyJL5inZ+e3t
-	 S/ty4mx91b5bY8MGkOcUYhrMejbKAhl4pooM4bxM9hcanAd4WPJHAG5xIe81qPqk1kYGY
-	 3v9CRBOCvD6NeM43FbUPT050m251CJX0LmUmxQnM8YFTe2cnnlEwYkRsDWiPxCvOCO77c
-	 MXA6XBPYGVkKBaBvn0N1a1pte11q1TOjGvavKI7+YqUBrcC9Xj5s8wglONVfDmHl/TJB8
-	 hkRlm3KYdZmv8YOaZP2lyzropsRB6iVtFRQ5RFJKTezmsF4cd+N10mh6ABZf+z72zpA==
+	t=1794445023;
+	b=p548h60+LkTRszFSZw2DwQTGfOOOhv1sLHrQV/YAz5FEljTC8mp+VONLmWlxYUxMOP83
+	 EHsK/FmHoAIdJcqHF2JLX57Npjdqxrd90WQghspQvvGJpqyPijFQPsCetaZbd/Ip+jRLO
+	 8PqTKVHIH4vfLN+uV4EArHDdOSCqC45tPL2WjZs5Jl/D1qeX+QwXSrDop1HNkesNHqzwM
+	 Q46wwaUGP8tMbOep23OvOPI5kAobjCFFj//g8kJe647rVkr/N0nH21x71eiSQx6EJJAT9
+	 4kITOh0j4emK6ljz1/P/IY/TBGQFihC4PbLXl2Ri9Djz4tpnpAjHsUsYFAvtWC6WMcQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794445022;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794445023;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=hKApyV/aS+9KqkPmaO1BZU1VaB2VbTd3gghIjFzdoW4=;
-	b=eyh9LkK+qBYUtGVot89MYpNj64xtYCeIJBmK3fRQrGD4tNqdCYNdydBl+XtWVrXXr3id
-	 Q5/QuXNq0QtqXExFVF5Xd1SBc+V4TSvYKHzzvfgcHuz/XhKl6gUj1vjL9O7FBLNJNibNu
-	 wQwjdlFBsqHlQGxbErY6XsxXi92Mmsf6tHGplMDR0dPTNikc0bO5Locp3xOjt57/TP5PE
-	 seiaW5bFH93VT50vTquURjKRYy/Fu3Ld5JviywjKh26kTVRmk8HIw1abikycIlVNdVs+C
-	 zsWRYH/Gj6+Koa6oyfzSqQ2orDX9TKeT1qNk99bcTMqecpuNX2buOPrK+3NM5W1JvUQ==
+	bh=oXrBHfLYt6bQEB33iijrydxoOIfBh7HHRAZ3p36hyi8=;
+	b=TCevzlU99FI2do2lPc0VUEaWKp0tyMpewNX6xKg9b2abe5WGIdsWcy/aQgrtpLLzrhWS
+	 dlvZfOLc+jks+XHXzMMzOQZqUaxXCacuF5O6jIj2pOcWQZ4IL/5blDCf9ZSihnC3NLcF4
+	 9lHVP1JCX/7badHoopEd9TbRvlqASCV4mBTwPG7U37KqsivsWc/tpbGGILb/N5H2kz907
+	 depWkJ+3K4vsHuk9PX/8DI8RE3YEoq/c/L4OJnrj9ilKKR+YDf+mQKJ1uL5xpPLdpv0PP
+	 mNiHIzqrUhknxdQfN41bCegA2dtOhL4WnE71WXFbxrMe6bHiLL0g4tFgGXsB3s8OyBQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="CDZC/n/U";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Xf0OU0Zk;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8ED63606A321;
-	Thu, 12 Nov 2026 00:57:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61484606A881
+	for <linux-rdma@vger.kernel.org>; Thu, 12 Nov 2026 00:57:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CDZC/n/U
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14C321F00A06;
-	Thu, 12 Nov 2026 00:57:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Xf0OU0Zk
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12EFF1F00A0A;
+	Thu, 12 Nov 2026 00:57:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794445022;
-	bh=hKApyV/aS+9KqkPmaO1BZU1VaB2VbTd3gghIjFzdoW4=;
+	s=k20260515; t=1794445023;
+	bh=oXrBHfLYt6bQEB33iijrydxoOIfBh7HHRAZ3p36hyi8=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=CDZC/n/UXscJ0YkWeSISNjgouhtEXyZ2040Mn0MjK2N7ocpRhRIdwb9vLNDDnrfed
-	 PDxr4egmmkI9RljfWhBezOxGh2CmKCQmOF9aVGYgzRKPw7/vP7Q+jsXYR5++ciRM1K
-	 q4fNzDMSvU19Hw6srsvVwmyNiC/vp+NxE1naSwYOSWjG2/NhmLHEkrv4pjzP2oBEau
-	 Qx83kUjzmZoaveynAHAYQd1qTAW8KzLLCdTC7p9pn18pvv76hAEBk5Yln7jQPBDI6Z
-	 lUptRn9JC34Cy9ZmGRXt/k+eeEX1VYwsSu3rFnAwMqk5wFSCMANX//tmqv8PRTJYDN
-	 wBBDNmEJOWAnw==
-Message-ID: <sashiko-outbox-210008@kernel.org>
+	b=Xf0OU0Zk0nR3isE6cQSmMRUw8p5UvBf1CEJL60FNVZ0Si/HJzyRjwrMV0V0TAJMhn
+	 pgfHLDDRkm19O1DKYItAkJczsLoIXqa9WKa3l8p0xnyRgb5nvils9KBSOG69le1nwC
+	 CLgZ1sn2CvEVGa388yulizY9cLq+TwHA9qty97LzHix7O1iAsAI9oEpX4a4y28PWAX
+	 ZZYz8JVC1FS5/+mLx3nV5YpogKi+/lolD18Hn8oFgKoWSsCRn7uxKh/JRX+Uu2qztW
+	 ZZC3Wrr/Q3rroi4T8Li05MzrO+9CsuzoKEapOAA6+y5Ld7puPSc+AUeIUSrMlYkxwJ
+	 R/0yLpnlDMAXQ==
+Message-ID: <sashiko-outbox-210009@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v1 05/15] net: add METADATA_PSP dst to carry a
- psp association on an skb
+Subject: Re: [PATCH net-next v1 06/15] net/sched: act_mirred: don't send
+ decrypted skbs from egress to ingress
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Todd Freed" <toddfreed@meta.com>
-Cc: bpf@vger.kernel.org, linux-rdma@vger.kernel.org
-In-Reply-To: <20261111005533.6436-6-toddfreed@meta.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261111005533.6436-7-toddfreed@meta.com>
 References: <20261111005533.6436-1-toddfreed@meta.com>
- <20261111005533.6436-6-toddfreed@meta.com>
+ <20261111005533.6436-7-toddfreed@meta.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 12 Nov 2026 00:57:01 +0000
+Date: Thu, 12 Nov 2026 00:57:02 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,63 +61,34 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found no new issues
-in this patch, but noticed 1 related pre-existing issue it does not
-introduce:
-- [Critical] net: out-of-bounds read in skb_metadata_dst_cmp() [1]
---
+> on transmit, skb->decrypted means the device must encrypt the packet.
+> For example, a packet of a ktls or psp offload socket, or, with the tc
+> psp action added later in this series, one which psp encap attached a
+> tx association to.
+>=20
+> on receive, skb->decrypted means the device decrypted the packet.
+>=20
+> a packet redirected or mirrored from egress to ingress is by definition
+> not going to the device that would encrypt it, and on ingress
+> skb->decrypted now (incorrectly, for this packet) indicates it was
+> decrypted by the device.
+>=20
+> this is less of a problem with socket offloads, whose packets are by
+> definition originated locally; more of a problem with socket-less psp,
+> which can also apply to forwarded traffic.
+>=20
+> mirred also drops the dst, which for socket-less psp carries the tx
+> association. clearing the bit instead would let the packet be forwarded
+> in clear text, so that wouldn't work.
+>=20
+> don't send decrypted skbs from egress to ingress: a redirected one is
+> dropped, a mirrored one isn't copied.
+>=20
+> Signed-off-by: Todd Freed <toddfreed@meta.com>
 
-commit bf04d738461897fa25a1f7c67c60f36977a2704d
-Author: Todd Freed <toddfreed@meta.com>
-
-net: add METADATA_PSP dst to carry a psp association on an skb
-
-This commit adds a METADATA_PSP metadata_dst type to hold a reference to a
-PSP association on socket-less skbs and validates target device and MTU
-constraints during transmission.
-
-> diff --git a/include/net/dst_metadata.h b/include/net/dst_metadata.h
-> index f45d1e3163f00..73755bce2df06 100644
-> --- a/include/net/dst_metadata.h
-> +++ b/include/net/dst_metadata.h
-[ ... ]
-> @@ -125,6 +142,8 @@ static inline int skb_metadata_dst_cmp(const struct s=
-k_buff *skb_a,
->  	case METADATA_XFRM:
->  		return memcmp(&a->u.xfrm_info, &b->u.xfrm_info,
->  			      sizeof(a->u.xfrm_info));
-> +	case METADATA_PSP:
-> +		return a->u.psp_info.pas !=3D b->u.psp_info.pas;
->  	default:
->  		return 1;
->  	}
-
-[Severity: Critical]
-This problem wasn't introduced by this patch, but can skb_metadata_dst_cmp()
-trigger an out-of-bounds read [1] by casting skb_dst() without checking
-DST_METADATA?
-
-include/net/dst_metadata.h:skb_metadata_dst_cmp() {
-	...
-	a =3D (const struct metadata_dst *) skb_dst(skb_a);
-	b =3D (const struct metadata_dst *) skb_dst(skb_b);
-
-	if (!a !=3D !b || a->type !=3D b->type)
-		return 1;
-	...
-}
-
-When loopback_xmit() preserves a standard rtable via skb_dst_force() and the
-packet enters gro_list_prepare(), skb_metadata_dst_cmp() downcasts the rtab=
-le
-to struct metadata_dst without using skb_metadata_dst(). Because struct
-metadata_dst is larger than struct rtable, reading a->type and the union
-members (such as METADATA_IP_TUNNEL's tun_info and options_len) reads past
-the rtable slab object, which can crash the kernel if the access crosses an
-unmapped page boundary.
-
-[1] https://sashiko.dev/#/bug/linux-cad8ab9c-3c7e-48ba-8546-0bb9ceb5d8be
+Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261111005533.6436=
--1-toddfreed@meta.com?part=3D5
+-1-toddfreed@meta.com?part=3D6
+
