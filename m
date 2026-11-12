@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794443459;
-	b=OcYSW5gBg/bFGhHHfsvKKou9PoUlAlXD1royTFzcbYobI7ZinyUrDB7qF+l6mAiWsTuB
-	 5pqIMzVpaNX7BD0ogIt/0SD1RfqKs4mgHP0VMT5FbopSr1+jaLxGBBTpBbDmBDJruSi9i
-	 qZB9uG4e1HBEptteeyNqwJZMgiBvDEPEWrX4mSs6wvUpZWdcmODRvlb2BZWQN3XXlVJrQ
-	 AIttBunGkN/0uPyQ4MCtiEcZaXbfCooA8r7rzSdQekxSxMz4PGMuL2CfCUQa/0kkHR2Nh
-	 tgrPVM26/5T/axkfJbebcIo8FHlWQiDSY1KPURsq+PPhtTxTKabxSoiXfg35wkez0FA==
+	t=1794443460;
+	b=mdfW9gsqNwO0NBE5zqB27VNawmZMIsG9k++qPVBAhrIwhLog6Fw8VtGxQfyClcKk50/S
+	 M7MXKh1KeQRATSDuRg4kARgCIrFtKLWI9xkekPZYJz6/Cn38RABILM1ua5EHFO4G6AE8D
+	 VEymUVZV1Je0/Jbau9l8Mvr7xFyU1CAe4/04AGTMIdjBDpu4h/jlaz2rjpPU/vCVqZmgO
+	 wE4fa1t1lvieGNGejYQyharFehEwvEQiP9X/DAW1MvnJgdK2Fos8EV3WJ42MTj0GFGg8J
+	 6BPiDiKpm7pBA2EC1gv/P8XL3nfpjzv5diKMRjQ8CJ0umjT9gwbRwNq04T45Sv2mdTA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794443459;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794443460;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=KtSOgS0IYH+s3iOWjZRxLNf2p/EksNk9mFXjusJIRn8=;
-	b=nQX7nVuShAHdl6UaDnSzgmqixiy62iDQxqcrzpLlilYdMmqcTAzqLeU1d7sU/4RORWYo
-	 uVz13vwCCagyByftFHzM3OAdHpVvSFK+G5KDjzKsCnQMamlKY916Vu5fcMDny9RuiBIMm
-	 mE9khsehil5yIgQNhaFPCHksemV2VwYscqFnU5cNHLitYJCtmHiRYYETLX1gXzI4kiGwv
-	 x19TC3M/PC+AMWQijXFOGFEdKWtLkztsWvAymrxFxPrJkuvViXu2WLR+Sxw86Vs4z3TTA
-	 ed79JZp/F1RM4dN1PdMvVkFJfp2A4uVCymahBuM1JWtljZxSk0UCOrsXPDm8g5GIPjQ==
+	bh=asiV0Nb3CKTVvWzzJZdh56T+JeGFdtUuK3jyjs0qlE8=;
+	b=lck6Iza9iTravRROnDw1DbgRnF9nQzCLxsIWlJHAHnJ9jpyL8Y4b8UHAznjO+J8i/eIm
+	 yBzCkcDMyL4QNeJR/PiOhV16WFO2Vdo1J5k0Qrb6rYw5D8Bx+yABsNAWRXSNJJ0Nx9KtG
+	 z9RKZ1QyTdyxRHLyVle8lrDcg3L2+TA4FGCxK0/oIDG0VzIEvN9LrwXSn4Z0fC1/dnBMQ
+	 2oDMhvJe8ouHY0QY4B4EusCbHdfij+JLiTtYMr7bTeVeweRLjQQ1snhC4V2GKry5u1a6+
+	 VRqDA3z6Dg0DwI9X3v8DCd9uNziX2O0wlAUXtflKI1sQcZfCm2EZC2MyrePsw9p2Cow==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GFubs3GR;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WiPrtlZG;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99D1C606A324
-	for <linux-rdma@vger.kernel.org>; Thu, 12 Nov 2026 00:30:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1898F606A32E
+	for <linux-rdma@vger.kernel.org>; Thu, 12 Nov 2026 00:31:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GFubs3GR
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C45B1F00A05;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WiPrtlZG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7C991F00A06;
 	Thu, 12 Nov 2026 00:30:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1794443459;
-	bh=KtSOgS0IYH+s3iOWjZRxLNf2p/EksNk9mFXjusJIRn8=;
+	bh=asiV0Nb3CKTVvWzzJZdh56T+JeGFdtUuK3jyjs0qlE8=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=GFubs3GRO+VQdWpaFDNaVy35ntWPWGUbxk2gMxwVIdGmqZ0e8cJnalM3ZuIcFPRcL
-	 uLcht8UCoq6KWms1MfkMUQzuwCNT+bMregK0PCjUqiYkW2bZlH4p57Dttd6DntWme3
-	 T0+AKRg3ILAvCfpCtjWg83+NeayGTRkE5ZZ8C+G6A4OEN2oftHusdvIKcqLGKfwmoS
-	 0KH2fD5TIgdZTOGCXrOGCyJTtnmOkTB6gy44EX5zeuwJDSpcyn5DcaewYyZLIs9F6E
-	 4uzwlfAWz5UX6RX0hhGlPUOpPdy3QTi+wV8qKo3rq+RRCGo4wmeqfR9Ao1kGjHMFXu
-	 rOabCYdv2ib5Q==
-Message-ID: <sashiko-outbox-209925@kernel.org>
+	b=WiPrtlZG4gBvoSd5XkcG/mzp3Sxv4fEn93NrGP5xeHFwPZpMQVmKxin+kTbRgT2OD
+	 5l/Q65shZpnwhRwYNJE5Crg0abRT4bgpN6oYouLMcYPWyGkI/ssSk09O+H+ZYTYF8u
+	 f39i0ADc2L3LKjMYilnOmB02bLJtXur2bygciWTZOkGrhGFbtFDYsbuHjPzJMIZwF2
+	 8cAorMIjuXZHdzYd3vY+vUiRumA8LBKKtV+F8sKdekSCFo3Z2cDHeNhKqxGmey1GPX
+	 UjsOmzHfZfeIgjwvg28nyH2tEUUY+DRMXjhjhZyCkRcBgMdKHtfjDQZQDmnPI1HyFc
+	 gkXt/0NKMPWEQ==
+Message-ID: <sashiko-outbox-209926@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net v5 1/8] net/mlx5e: ring the tx doorbell when an
- accel offload drops a packet
+Subject: Re: [PATCH net v5 2/8] psp: don't encapsulate ipv6 packets with
+ extension headers
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Todd Freed" <toddfreed@meta.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261111001831.3710881-2-toddfreed@meta.com>
+In-Reply-To: <20261111001831.3710881-3-toddfreed@meta.com>
 References: <20261111001831.3710881-1-toddfreed@meta.com>
- <20261111001831.3710881-2-toddfreed@meta.com>
+ <20261111001831.3710881-3-toddfreed@meta.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 12 Nov 2026 00:30:58 +0000
+Date: Thu, 12 Nov 2026 00:30:59 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,32 +61,36 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> when mlx5e_accel_tx_begin() drops the skb, e.g. because psp can't
-> encapsulate it, mlx5e_xmit() returns without posting anything. the skbs
-> before it in a bulk dequeue may have been posted with xmit_more, which
-> defers the doorbell to the next one, and an mpwqe session may be open.
-> the device then doesn't see them until the next transmit on that sq, and
-> since the queue isn't stopped, the tx watchdog doesn't fire.
+> psp_dev_encapsulate() inserts the udp+psp headers at the transport
+> header, rewrites the protocol of the fixed ip header to udp, and writes
+> tcp as the psp next header. so tcp must directly follow the fixed
+> header.
 >=20
-> flush the sq on this drop like the dma error paths do: close the mpwqe
-> session, post a nop and ring the doorbell.
+> if the packet is an ipv6 packet with extension headers, udp+psp is
+> placed after them, but the next header indicating the l4 protocol is on
+> the last extension header in the chain, not in the fixed header.
+> therefore this produces a malformed packet.
 >=20
-> mlx5e_tx_flush() doesn't check whether the nop leaves less than
-> stop_room in the sq. for the dma error paths that is rare, but a run of
-> offload drops would post nops without stopping the queue, and could
-> overrun wqes in flight. so check it in mlx5e_tx_flush(), like the other
-> producers do. the completion of the nop wakes the queue again.
+> in addition to being malformed, with mlx5 this kind of packet goes out
+> unencrypted. since the tx association encodes intent to send encrypted
+> packets, drop such packets instead.
 >=20
-> the next patch makes the psp drop reachable from user space, with an
-> ipv6 extension header set on a psp socket.
+> a psp tcp socket emits such packets if certain socket options are set on
+> it (e.g. IPV6_DSTOPTS). refusing the combination of such socket options
+> with psp association would be helpful but is not implemented here. since
+> extension headers can also come from a route the datapath check is
+> needed anyway.
 >=20
-> Fixes: 2ac9cfe78223 ("net/mlx5e: IPSec, Add Innova IPSec offload TX data =
-path")
+> the check also covers ipv4: the l4 protocol must be tcp, and the
+> transport header must follow the ip header and its options. packets of
+> a psp tcp socket always pass it.
+>=20
+> Fixes: fc724515741a ("psp: provide encapsulation helper for drivers")
 > Signed-off-by: Todd Freed <toddfreed@meta.com>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261111001831.3710=
-881-1-toddfreed@meta.com?part=3D1
+881-1-toddfreed@meta.com?part=3D2
 
