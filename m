@@ -1,46 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794476417;
-	b=4GXK4iBK1U3MMbjA3/pBr/rEcVrJ1CdrV+YTDb3Mxwd+3vuTQdhty5PUagq9JjlRuKWH
-	 WekChZwSwU+lz3DRwG3C8Jm9Y/DX62dqOrHVcXJsbUycWykn0dvXnkVrziZ2Y2sUrgFP5
-	 3uvxmVoHPnLE9HLD6XnCPa+gUdAlwHVq9BfW2raRt+f+BkE3wzMRqBtt4CfZndCCtsmK/
-	 eBzTg2ZBIogjSXdh+94uq264ki4P/GGfNEkSXWewUlnEA1p7hH1W0c4hxbuzXxjWtfGEj
-	 ifMDIImV9cF6V4rdpHqenrBeu5Hb6it5P8LoZVKXR8XpJsB11u8rV2cBgxlrt6OzILA==
+	t=1794476420;
+	b=fSwgn60jP8yVtcgluOFIEXuKvaHsu9biMibfn9msPxf3TFCmfnxb+naG4PuVlGtlXH88
+	 qrLZCNeCbeRwTaV7KMHZIBvMFOcdstRsIa1/UySpu16bAoM/H8vPSXtROKMHyNleh7Nex
+	 vnPtEpKZhqHbprmvgqrog9UtmuXJWDExbTIUNlaW41EoIFca7AwOfTZuONIB/nIeiV/ql
+	 2GAZ4RRIttxAfO/mbf4xNXyzFc46BPxeAPRr9zSBB7I5EqCe55voPA984MUKVUQAkxnzS
+	 ezFIcGPr4IEAj4cq9Lhp34fisLRkI61SEYBiCJozrGqGBjm90MVuMGF4epXlb3DEGnQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794476417;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794476420;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=yVlS5CLKXtywGMbmucGGD+lm2y0RRJ5qeoKITFu0EHE=;
-	b=s3vXQmoo2X74WlGbv3aOsaUlEW/zZD2rPEQliLRGHa1w2A8P1e4Xwvkz1+vn6Nxk9TXh
-	 rzvN9NA1y6UZUnnS9Q67ICiU1R9e+XHKeI3hNBZlEF4SUDViFMST1iC2y75MeqAl9eIaT
-	 ooyIunmPdI7PkjtleFoM+DW1lQTOnkuHC5fNa2qZzdoXpcdOBMGHgn+BjamZ+ftCEej/c
-	 QqRAF2Dq+ECFnN1r5reRIKQ49ydBXSoPijwHUAj/emFF+UxhOHGetushhXoeis79HG4AR
-	 6s8jxusHY9BC+moNOHXkOJbfUVgVfRAWl8m9wzSH7kDFkodkJ8PccJWvyUcebDeSn7w==
+	bh=nfBezKBdxLXSAVbqgVYtBr/75KwOkIqOMORKzm/Op+o=;
+	b=NIiwKZ9lBdh636Jpg6Zu/F7/VTH5gYjH3QDeb60u+cj6AOuvkrrk28Rjmx42Nea8h9X6
+	 zQof6TMEPnGw22mCbSI+a4co1sQQrrxlUfP6u1pP+A0TUk3nNgVHexKqpFPeB7khDcpvG
+	 dr+EWsrusax0RC7KcouZ3RHKdMQ4kMGUqs2mYqwedO5lGO+Z/tDuIc91sMBYuKhwVjBLq
+	 iPlpHjxO0aFCl3fZ8KrJJh2W7BSEGHunqy25iVG9QAupSq50nJtbSKcO5nYWA2NOzB7uF
+	 7UOK8g8spdMjqT4zXmZem+KA8N5aVwAZLj9tTwjUOw+/MgDHwfpJcJf6FeC9oUi1p5g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TFs1mLoX;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cFnjPKgB;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C089606A887;
-	Thu, 12 Nov 2026 09:40:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E61E6606A895;
+	Thu, 12 Nov 2026 09:40:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TFs1mLoX
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72D9F1F00A05;
-	Thu, 12 Nov 2026 09:40:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cFnjPKgB
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC46F1F00A14;
+	Thu, 12 Nov 2026 09:40:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794476417;
-	bh=yVlS5CLKXtywGMbmucGGD+lm2y0RRJ5qeoKITFu0EHE=;
+	s=k20260515; t=1794476419;
+	bh=nfBezKBdxLXSAVbqgVYtBr/75KwOkIqOMORKzm/Op+o=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=TFs1mLoXh3aYAEDFz3lGVxEuy0JNtNHH/+HO7SfYr19qDERH+QlDr8fLi/5yVhEW0
-	 dMo67WP0K+bRDdEwlUecl0fK0bZbk/v9/bIO21am1xt+4PTN18KscSTByFG/DHI4yi
-	 L+Ux+13NOEUolRnFcc4Tub/mnrImBvxq/W29qYMe2JBMtEjlnp8vhoCAbw0/GXxMN3
-	 gbLvTIXWOzON8lmQ+FDQrf1K1KpZSSHuk8Qu+1t3vF5TatInZKe+VX9Mm0bw1+RKa1
-	 ROq/x+iHRaKNWJUFyfeOFncho4MpForoW0V3Itlzm/R0Rhqi4tOdnigm7ydewSJT/D
-	 0LstL4ehHIngw==
-Subject: Re: [PATCH net-next V2 11/13] net: add netdev_unbind_dma_dev() helper
+	b=cFnjPKgB5YRnaQmJ22jrU+hoVkiEfZiC23vGTlfBDAxi0Vs2O/6y27iXS8U73rCJe
+	 +GoaqO8nY/MubvPluRvXjO7MfLoKWUOO0ehAn4OHhwtpQ01B/QCw4/U/lnd1UXmagi
+	 wq0F6Ibj/xcTHoLSKuOd0YG2U9x5vkftqDtkSJforRUg2uXLhfW9a+bRiDYPKBhnu8
+	 XEPboPV+MmAO1CyxDZjBVyirfCOljLUdbFvqEVkilXUUG23uaeFzq6gLd2U/r2Uhc5
+	 RZxAmjktcuLB8sWWSKJQ+eyT0O3onMzAgp0FhEkxv0k4il47bd9D5O8J/JmkJWiYQm
+	 gdE/IxD1jShgA==
+Subject: Re: [PATCH net-next V2 12/13] net/mlx5e: Disable data direct on data
+ direct device unbind
 From: netdev-bot+sashiko@kernel.org
 To: tariqt@nvidia.com
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
@@ -52,11 +53,11 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
  mbloch@nvidia.com, mfleming@cloudflare.com, almasrymina@google.com,
  razor@blackwall.org, saeedm@nvidia.com, horms@kernel.org, sdf@fomichev.me,
  sdf.kernel@gmail.com, witu@nvidia.com
-Date: Thu, 12 Nov 2026 09:40:14 +0000
-Message-ID: <179447641496.2199510.9115038837644205059@kernel.org>
-In-Reply-To: <20261110183826.2927274-12-tariqt@nvidia.com>
-References: <20261110183826.2927274-12-tariqt@nvidia.com>
-X-sashiko-severity: High
+Date: Thu, 12 Nov 2026 09:40:17 +0000
+Message-ID: <179447641740.2199510.285792504757822678@kernel.org>
+In-Reply-To: <20261110183826.2927274-13-tariqt@nvidia.com>
+References: <20261110183826.2927274-13-tariqt@nvidia.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -69,10 +70,10 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 7 potential
+Thank you for your contribution! Sashiko AI review found 4 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 · Medium: 2 · Low: 4
+Critical: 0 · High: 0 · Medium: 2 · Low: 2
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -80,376 +81,234 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] netdev_unbind_dma_dev() (net/core/netdev_queues.c:84) refuses
-  only when the netdev is both running and present (`netif_running(dev)…
-- [Medium] The two halves of netdev_unbind_dma_dev() use different rules
-  for which mappings belong to @dma_dev.
-- [Medium] __netif_mp_close_rxq() (net/core/netdev_rx_queue.c:291)
-  quietly accepts an already-uninstalled provider only when…
-- [Low] The commit message says "A detached netdev also works because ...
-  new bindings can't be added", but the core does not enforce this for…
-- [Low] Several in-tree comments that list binding lifecycle rules were
-  not updated for the new site that clears and unmaps bindings, and the…
-- [Low] netdev_unbind_dma_dev() treats a NULL result from
-  __netdev_queue_get_dma_dev() as "this queue maps against the departing…
-- [Low] net_devmem_unbind_dma_dev() (devmem.c:575-596) clears
-  NET_DEVMEM_BINDING_LIVE to "hide the binding from TX lookups while it…
+- [Medium] The suspend teardown and the notifier teardown leave the
+  data_direct private flag in different states.
+- [Medium] mlx5e_data_direct_event() can run against a netdev that
+  mlx5e_nic_disable() or mlx5e_nic_enable() is in the middle of…
+- [Low] Socket-direct gap: both new paths only look at priv->mdev's data-
+  direct device, while mlx5e_queue_get_dma_dev() picks the DMA device…
+- [Low] Notifier payload contract: mlx5_data_direct_do_unbind() now
+  passes reg->dd.dev as the UNBIND payload.
 
 --
 
-net: add netdev_unbind_dma_dev() helper
+net/mlx5e: Disable data direct on data direct device unbind
 
-This adds an exported helper for a closed or detached netdev. It
-uninstalls the memory providers of RX queues mapped against a departing
-DMA device and unmaps the devmem bindings that use that device. It is
-meant for mlx5 data direct, where the DMA device is not the netdev's own
-PCI device.
+When the data direct device is unbound, the notifier handler now stops the
+netdev, releases the providers bound to that DMA device and clears the
+data_direct private flag. The suspend path also releases those providers,
+because the notifier is not registered while the device is suspended.
 
-> diff --git a/net/core/devmem.c b/net/core/devmem.c
-> index dd3987bbd9f6c..bc8ae12b2318a 100644
-> --- a/net/core/devmem.c
-> +++ b/net/core/devmem.c
-> @@ -556,6 +556,48 @@ bool netdev_has_dmabuf_binding(struct net_device *dev, struct device *dma_dev)
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/data_direct.c b/drivers/net/ethernet/mellanox/mlx5/core/data_direct.c
+> index 7db94b8a5b79c..246a03f44afd3 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/data_direct.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/data_direct.c
+> @@ -198,9 +198,11 @@ static void mlx5_data_direct_bind(struct mlx5_data_direct_registration *reg,
+>  static void
+>  mlx5_data_direct_do_unbind(struct mlx5_data_direct_registration *reg)
+>  {
+> +	struct mlx5_data_direct_dev *dev = reg->dd.dev;
+> +
+>  	WRITE_ONCE(reg->dd.dev, NULL);
+>  	blocking_notifier_call_chain(&reg->users, MLX5_DATA_DIRECT_UNBIND,
+> -				     NULL);
+> +				     dev);
 >  }
->  EXPORT_SYMBOL_GPL(netdev_has_dmabuf_binding);
->  
-> +/* Unmap the bindings of a closed @dev that use @dma_dev, the way netdev
-> + * unregister does. Senders that raced the detach drop their skbs at xmit.
-> + */
-> +void net_devmem_unbind_dma_dev(struct net_device *dev, struct device *dma_dev)
-> +{
-> +	struct net_devmem_dmabuf_binding *binding;
-> +	unsigned long xa_idx;
-> +	bool match, live;
-> +
-> +	netdev_assert_locked(dev);
-> +
-> +	xa_lock(&net_devmem_dmabuf_bindings);
-> +	xa_for_each(&net_devmem_dmabuf_bindings, xa_idx, binding) {
-> +		if (READ_ONCE(binding->dev) != dev)
-> +			continue;
-> +
-> +		/* Hide the binding from TX lookups while it is checked. */
-> +		live = xa_get_mark(&net_devmem_dmabuf_bindings, xa_idx,
-> +				   NET_DEVMEM_BINDING_LIVE);
-> +		if (live)
-> +			__xa_clear_mark(&net_devmem_dmabuf_bindings, xa_idx,
-> +					NET_DEVMEM_BINDING_LIVE);
-> +		xa_unlock(&net_devmem_dmabuf_bindings);
 
 [Severity: Low]
-Does clearing the mark here actually hide the binding from TX lookups?
-net_devmem_lookup_dmabuf() runs under rcu_read_lock() and does:
+This isn't a bug, but the UNBIND payload is now an implicit contract. It is
+not documented next to enum mlx5_data_direct_event in
+include/linux/mlx5/data_direct.h.
 
-    binding = xa_find(&net_devmem_dmabuf_bindings, &xa_idx, id,
-                      NET_DEVMEM_BINDING_LIVE);
+reg->dd.dev can be NULL here when mlx5_data_direct_cleanup() calls this for
+a registration that was never bound. mlx5e_data_direct_event() dereferences
+dd_dev->device without a NULL check.
 
-net_devmem_unbind_dmabuf() needs a grace period after clearing the mark
-for exactly this reason:
+As far as I can tell, that path can't be hit today.
+mlx5_data_direct_cleanup() is only called from mlx5_unload(). By then,
+mlx5_detach_device() or mlx5_unregister_device() has already gone through
+mlx5e_nic_disable()->mlx5_data_direct_unregister(). The dereference also
+sits behind the pflag check, and the pflag can only be set while dd.dev is
+non-NULL.
 
-    /* Ensure no tx net_devmem_lookup_dmabuf() are in flight after the
-     * mark is cleared.
-     */
-    synchronize_net();
+Would it make sense to document the payload type and the fact that it can
+be NULL, or to add a NULL check in the handler?
 
-There is no synchronize_net() here. A lookup already in flight can still
-find a matching binding and take a reference. The safety of matching
-bindings then rests only on clearing binding->dev and the check at xmit
-time.
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> index ebd41f24330d0..63d91ef0dda80 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> @@ -6170,9 +6170,53 @@ static int mlx5e_data_direct_event(struct notifier_block *nb,
 
-There is also a side effect for bindings that don't match. A binding on
-@dev that doesn't use @dma_dev is invisible while xa_lock is dropped. A
-concurrent SO_DEVMEM_TX sendmsg on it could get a spurious -EINVAL.
+[ ... ]
 
-The mark is cleared on entry and restored on exit to guard this region,
-rather than to express state. Is the clear and restore needed at all?
-
+> +	if (action != MLX5_DATA_DIRECT_UNBIND)
+> +		return NOTIFY_DONE;
 > +
-> +		mutex_lock(&binding->lock);
-> +		match = net_devmem_binding_mapped_to(binding, dma_dev);
-> +		mutex_unlock(&binding->lock);
-> +		if (match)
-> +			net_devmem_dmabuf_binding_unmap(binding);
+> +	rtnl_lock();
+> +	netdev_lock(netdev);
+> +
+> +	mutex_lock(&priv->state_lock);
+> +	enabled = MLX5E_GET_PFLAG(&priv->channels.params,
+> +				  MLX5E_PFLAG_DATA_DIRECT);
+> +	mutex_unlock(&priv->state_lock);
+> +	if (!enabled)
+> +		goto out;
+> +
+> +	reopen = netif_running(netdev);
+> +	netif_close(netdev);
 
 [Severity: Medium]
-The commit message calls this half "devmem TX", and the comment says it
-works "the way netdev unregister does". However, nothing here filters on
-binding->direction or LIVE. net_devmem_dev_unregister() skips LIVE RX
-bindings:
+Can this handler run against a netdev that mlx5e_nic_disable() has already
+detached? Nothing checks netif_device_present() before netif_close().
 
-    if (binding->direction == DMA_FROM_DEVICE) {
-        if (READ_ONCE(binding->dev) != dev ||
-            xa_get_mark(..., NET_DEVMEM_BINDING_LIVE))
-            continue;
+On the disable side, mlx5_data_direct_do_unbind() sets dd.dev to NULL. The
+handler then blocks in rtnl_lock() while mlx5e_nic_disable() holds rtnl and
+runs:
 
-The two halves of netdev_unbind_dma_dev() also pick mappings by
-different rules. The RX loop uses the driver's current per-queue report
-and skips leased queues. Here, net_devmem_binding_mapped_to() treats a
-NULL @dma_dev as a wildcard:
+	if (netif_running(priv->netdev))
+		mlx5e_close(priv->netdev);
+	netif_device_detach(priv->netdev);
+	...
+	mlx5e_data_direct_unbind_dev(priv);
+	netdev_unlock(priv->netdev);
+	rtnl_unlock();
 
-    return binding->attachment &&
-           (!dma_dev || binding->attachment->dev == dma_dev);
+	mlx5e_nic_set_rx_mode(priv);
 
-Take an RX binding whose queue the RX loop skipped but which matches
-here. That can happen with a NULL @dma_dev, with a driver that already
-reports a different device, or on the leased-queue path. Such a binding
-is unmapped and gets binding->dev cleared while rxq->mp_params and
-binding->bound_rxqs still point to it. mp_dmabuf_devmem_uninstall()
-avoids this by clearing dev only once bound_rxqs is empty.
+	mlx5_data_direct_unregister(mdev, &priv->data_direct_nb);
 
-A later netlink socket close then reaches net_devmem_unbind_dmabuf()
-with a NULL binding->dev:
+mlx5e_data_direct_unbind_dev() finds mlx5_data_direct_get_dev() == NULL and
+returns without doing anything. mlx5e_close() is the ndo-level call, so
+IFF_UP and __LINK_STATE_START stay set.
 
-    if (netif_mp_close_rxq(binding->dev, rxq_idx, &mp_params))
+Once rtnl is dropped, the handler continues with the pflag still set and
+reopen = true. netif_close()->__dev_close_many() clears IFF_UP and
+__LINK_STATE_START and sends NETDEV_GOING_DOWN/NETDEV_DOWN. Then
+netif_open()->__dev_open() fails with -ENODEV because the device is
+detached.
 
-Wouldn't netif_mp_close_rxq() then dereference dev->real_num_rx_queues
-through NULL? If the netdev is reopened first, the page pool would be
-built from the provider that is still installed, over an sgt that has
-already been unmapped.
+The profile can be enabled again later, on resume or for the uplink rep
+profile after an eswitch mode change. At that point mlx5e_nic_enable()
+checks:
 
-This doesn't look reachable from the in-tree mlx5 caller. But the helper
-is exported, and netdev_has_dmabuf_binding() documents a NULL dma_dev as
-"any". Should this half filter on DMA_TO_DEVICE, or should a NULL
-@dma_dev be rejected?
+	if (netif_running(netdev))
+		mlx5e_open(netdev);
+
+That check is now false. Does the interface then stay administratively
+down?
+
+The enable side has a similar window. mlx5e_nic_enable() registers the
+notifier before it takes rtnl and before netif_device_attach(). An unbind
+handled in that window would do the same close and failed open on a netdev
+that is still detached.
+
+Is a netif_device_present() check needed here, or some other handling for
+the detached case?
 
 > +
-> +		xa_lock(&net_devmem_dmabuf_bindings);
-> +		if (match) {
-> +			WRITE_ONCE(binding->vdev, NULL);
-> +			WRITE_ONCE(binding->dev, NULL);
-
-[Severity: Low]
-This isn't a bug, but some comments about the binding lifecycle don't
-cover this new site.
-
-The net_devmem_lock_dev() kernel-doc lists where binding->dev is
-cleared:
-
- * NULL while holding netdev_lock(dev) (in mp_dmabuf_devmem_uninstall(),
- * net_devmem_unbind_dmabuf(), or net_devmem_dev_unregister() during
-
-In struct net_devmem_dmabuf_binding, the vdev comment says "cleared with
-WRITE_ONCE() on unregistration". The ref comment says "TX bindings are
-also unmapped earlier if their device is unregistered". Both of these now
-also happen when the DMA device goes away.
-
-The new netdev_unbind_dma_dev() kernel-doc says it uninstalls queues
-"that map against @dma_dev". It also uninstalls queues for which the
-driver reports no DMA device at all.
-
-Should these comments be updated?
-
-> +		} else if (live) {
-> +			__xa_set_mark(&net_devmem_dmabuf_bindings, xa_idx,
-> +				      NET_DEVMEM_BINDING_LIVE);
-> +		}
+> +	err = netdev_unbind_dma_dev(netdev, dd_dev->device);
+> +	if (WARN_ON_ONCE(err)) {
+> +		netdev_err(netdev, "Failed to unbind dma device, won't reopen netdev, err=%d\n",
+> +			   err);
+> +		goto out;
 > +	}
-> +	xa_unlock(&net_devmem_dmabuf_bindings);
-> +}
+> +
+> +	mutex_lock(&priv->state_lock);
+> +	new_params = priv->channels.params;
+> +	MLX5E_SET_PFLAG(&new_params, MLX5E_PFLAG_DATA_DIRECT, false);
+> +	mlx5e_safe_switch_params(priv, &new_params, NULL, NULL, false);
+> +	mutex_unlock(&priv->state_lock);
+> +
+> +	netdev_info(netdev, "data_direct device unbound, disabled data_direct\n");
+>  
+> -	if (action == MLX5_DATA_DIRECT_UNBIND)
+> -		mlx5_core_dbg(priv->mdev, "data direct device unbound\n");
+> +	if (reopen) {
+> +		err = netif_open(netdev, NULL);
+> +		if (err)
+> +			netdev_err(netdev, "Failed to reopen after data_direct unbind, err=%d\n",
+> +				   err);
+> +	}
 
 [ ... ]
 
-> diff --git a/net/core/netdev_queues.c b/net/core/netdev_queues.c
-> index 27cb6397bdd4e..71cc7bfc087dd 100644
-> --- a/net/core/netdev_queues.c
-> +++ b/net/core/netdev_queues.c
-
-[ ... ]
-
-> @@ -58,6 +60,55 @@ struct device *netdev_queue_get_dma_dev(struct net_device *dev,
->  	return dma_dev;
+> @@ -6407,6 +6451,24 @@ static int mlx5e_nic_enable(struct mlx5e_priv *priv)
+>  	return err;
 >  }
 >  
-> +/**
-> + * netdev_unbind_dma_dev() - drop the memory providers of a departing DMA device
-> + * @dev:	net_device, closed or detached by the caller
-> + * @dma_dev:	DMA device the driver is about to lose
-
-[Severity: Low]
-The commit message says:
-
-  A detached netdev also works because the driver has already torn down
-  the queues and new bindings can't be added.
-
-Is that enforced for io_uring zcrx? The devmem netlink bind paths check
-netif_device_present(). zcrx_register_netdev() only needs
-netdev_queue_get_dma_dev() to return non-NULL before it calls
-netif_mp_open_rxq(). Neither netif_mp_open_rxq() nor
-__netif_mp_open_rxq() checks whether the device is present.
-
-So once this returns and the instance lock is dropped, the only thing
-stopping a new zcrx area from being mapped against the departing device
-is the driver's ndo_queue_get_dma_dev() no longer reporting it. mlx5
-does stop reporting it: channels->num is 0 when closed, and dd.dev is
-cleared before the notifier runs.
-
-The kernel-doc only says "net_device, closed or detached by the caller".
-Should it also state that the driver must stop reporting @dma_dev?
-
-> + *
-> + * Uninstalls the memory provider of every RX queue of @dev that maps
-> + * against @dma_dev. Unmaps the devmem bindings of @dev that use @dma_dev.
-> + * The bindings stay allocated until their users release them.
-
-[ ... ]
-
-> + * Return: 0 on success, -EBUSY if @dev is running and present.
-> + */
-> +int netdev_unbind_dma_dev(struct net_device *dev, struct device *dma_dev)
+> +static void mlx5e_data_direct_unbind_dev(struct mlx5e_priv *priv)
 > +{
-> +	unsigned int i;
+> +	struct mlx5_data_direct_dev *dd_dev;
+> +	bool enabled;
 > +
-> +	netdev_assert_locked(dev);
-> +
-> +	if (netif_running(dev) && netif_device_present(dev))
-> +		return -EBUSY;
-
-[Severity: High]
-Can a netdev that is running but detached get past this check while
-validated devmem TX skbs are still sitting in a qdisc?
-
-The commit message says:
-
-  The netdev must be closed or detached so that the hardware no longer
-  accesses the mappings and the qdiscs hold no validated skbs.
-
-netif_device_detach() only clears __LINK_STATE_PRESENT and stops the TX
-queues. Only dev_close()->dev_deactivate()->qdisc_reset() empties the
-qdiscs.
-
-The mlx5 caller later in this series seems to reach exactly this state
-in mlx5e_nic_disable():
-
-    if (netif_running(priv->netdev))
-        mlx5e_close(priv->netdev);
-    netif_device_detach(priv->netdev);
-    ...
-    mlx5e_data_direct_unbind_dev(priv);
-
-mlx5e_close() is the ndo_stop, so __LINK_STATE_START stays set. The
-check above then passes because the device is not present.
-
-Consider this sequence:
-
-sch_direct_xmit()
-  validate_xmit_skb_list()
-    validate_xmit_unreadable_skb()   <- binding->dev still set, passes
-                                     mlx5e_close() stops the txq
-  dev_requeue_skb(skb, q)            <- skb parked in q->gso_skb
-
-netdev_unbind_dma_dev()
-  net_devmem_unbind_dma_dev()
-    net_devmem_dmabuf_binding_unmap()
-      dma_buf_unmap_attachment()
-      dma_buf_unpin()
-
-On resume, mlx5e_open() and netif_device_attach() wake the queue.
-dequeue_skb() then returns the gso_skb with:
-
-    /* skb in gso_skb were already validated */
-    *validate = false;
-
-The binding->dev check in validate_xmit_unreadable_skb() never runs
-again for that skb. Would the NIC then be given net_iov DMA addresses
-that are no longer mapped for the DMA device?
-
-The comment above net_devmem_unbind_dma_dev() says "Senders that raced
-the detach drop their skbs at xmit". That doesn't seem to hold for these
-requeued skbs.
-
-For RX, the check relies on an unenforced convention that a detached
-driver has already torn down its RX rings. mlx5 meets it because it
-closes before detaching. A caller that only detaches would have its
-dmabuf and zcrx mappings revoked while RX descriptors still point at
-them. Should the exported helper enforce or document this?
-
-> +
-> +	for (i = 0; i < dev->real_num_rx_queues; i++) {
-> +		struct netdev_rx_queue *rxq = __netif_get_rx_queue(dev, i);
-> +		struct pp_memory_provider_params p = rxq->mp_params;
-> +		struct device *queue_dev;
-> +
-> +		if (!p.mp_ops)
-> +			continue;
-> +
-> +		queue_dev = __netdev_queue_get_dma_dev(dev, i);
-> +		if (queue_dev && queue_dev != dma_dev)
-> +			continue;
+> +	dd_dev = mlx5_data_direct_get_dev(priv->mdev->data_direct);
 
 [Severity: Low]
-Here a NULL from __netdev_queue_get_dma_dev() counts as a match. Is that
-intended for a closed netdev?
+This helper and the notifier only look at priv->mdev's data direct device.
+mlx5e_queue_get_dma_dev() picks the DMA device per channel:
 
-mlx5e_queue_get_dma_dev() returns NULL whenever:
+	dma_dev = mlx5e_get_dma_dev(ch->mdev, dd);
 
-    /* Allow only opened channels. */
-    if (queue_index < 0 || queue_index >= channels->num)
-        goto out;
+Here ch->mdev comes from mlx5_sd_ch_ix_get_dev(). With socket direct, would
+providers and dmabuf bindings mapped to a secondary PF's data direct device
+stay in place?
 
-mlx5e_close_channels() sets chs->num = 0. So in the closed state this
-helper requires, the @dma_dev filter appears to do nothing for the only
-in-tree caller. Every RX queue with a provider is uninstalled, whichever
-device it is actually mapped to.
+This appears to be resolved later in the series. The patch "net/mlx5e:
+Enable the data direct netdev feature" makes set_pflag_data_direct() return
+-EOPNOTSUPP when mlx5_get_sd(mdev) is non-NULL, and at this commit the flag
+can't be enabled at all.
 
-If a driver's queues can map against more than one device, wouldn't
-providers on a device that isn't going away be torn down as well? A
-leased queue with a provider would also get past this filter and hit
-the WARN_ON_ONCE(rxq->lease). The TX half filters on
-binding->attachment->dev instead.
-
-mlx5 doesn't allow data direct to be toggled while providers exist, so
-there's no in-tree effect today. The semantics still look fragile.
-
+> +	if (!dd_dev)
+> +		return;
 > +
-> +		if (WARN_ON_ONCE(rxq->lease))
-> +			continue;
-> +
-> +		memset(&rxq->mp_params, 0, sizeof(rxq->mp_params));
-> +		__netif_mp_uninstall_rxq(rxq, &p);
+> +	mutex_lock(&priv->state_lock);
+> +	enabled = MLX5E_GET_PFLAG(&priv->channels.params,
+> +				  MLX5E_PFLAG_DATA_DIRECT);
+> +	mutex_unlock(&priv->state_lock);
+> +	if (enabled)
+> +		WARN_ON_ONCE(netdev_unbind_dma_dev(priv->netdev,
+> +						   dd_dev->device));
+> +}
 
 [Severity: Medium]
-Can this race with io_close_queue() in io_uring/zcrx.c and trigger the
-WARN_ON_ONCE() in __netif_mp_close_rxq()?
+mlx5e_data_direct_event() clears the flag, but this helper only releases the
+providers. MLX5E_PFLAG_DATA_DIRECT stays set in priv->channels.params. Can
+that leave a stale flag after resume?
 
-__netif_mp_close_rxq() only accepts an already-uninstalled provider on
-the unregister path:
+On PCI PM suspend the path is:
 
-    if (dev->reg_state > NETREG_REGISTERED &&
-        !rxq->mp_params.mp_ops)
-        return 0;
+mlx5_suspend()
+  mlx5_unload_one(dev, true)
+    mlx5e_suspend()
+      mlx5e_detach_netdev()
+        mlx5e_nic_disable()
+          mlx5e_data_direct_unbind_dev()
 
-    if (WARN_ON_ONCE(rxq->mp_params.mp_ops != old_p->mp_ops ||
+While the device is suspended, mlx5_unload()->mlx5_data_direct_cleanup()
+frees the registration, and the mlx5e notifier is unregistered.
 
-Here mp_params is cleared on a device that is still registered. One
-possible sequence:
+The data direct PCI function could go away in that window. The commit
+message says such an unbind "would go unnoticed". In that case
+mlx5_data_direct_init() finds no matching device on resume, and dd.dev
+stays NULL.
 
-io_close_queue()
-  copies ifq->netdev, sets ifq->netdev = NULL under pp_lock
-  netdev_lock(netdev)   <- blocks, held by the unbind caller
-                                  netdev_unbind_dma_dev()
-                                    memset(&rxq->mp_params, 0, ...)
-                                    __netif_mp_uninstall_rxq()
-                                      io_pp_uninstall()
-                                        io_zcrx_unmap_areas()
-                                        io_zcrx_drop_netdev()
-                                        (ifq->if_rxq left unchanged)
-  if (ifq->if_rxq != -1)
-      netif_mp_close_rxq(netdev, ifq->if_rxq, &p);
-        __netif_mp_close_rxq()
-          reg_state == NETREG_REGISTERED, mp_ops == NULL
-          WARN_ON_ONCE(...) -> -EINVAL
+mlx5e_attach_netdev() and mlx5e_nic_enable() keep the old params.
+mlx5e_nic_enable() registers the notifier again without checking the flag
+against mlx5_data_direct_get_dev().
 
-The areas are already unmapped, so cleanup still completes. Would a
-zcrx teardown that races with a data direct unbind or a suspend produce
-a WARN splat (fatal with panic_on_warn) plus a spurious -EINVAL?
+That has three effects:
 
-> +	}
-> +
-> +	net_devmem_unbind_dma_dev(dev, dma_dev);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(netdev_unbind_dma_dev);
+- ethtool reports data_direct as on with no device behind it.
+- mlx5e_queue_get_dma_dev()->mlx5e_get_dma_dev() returns NULL for every
+  queue. Devmem and io_uring zcrx binds then fail instead of falling back
+  to the PF DMA device.
+- mlx5e_alloc_txqsq() keeps creating SQs with MLX5E_SQ_STATE_DATA_DIRECT
+  and the crossing mkey.
+
+The commit message says "To prevent further use disable the private flag",
+but the flag is not cleared on this path. Should the suspend path clear it
+too, or should mlx5e_nic_enable() check it again?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261110183826.2927274-1-tariqt%40nvidia.com
