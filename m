@@ -1,65 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=111.22.67.139
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794450672;
-	b=k7phSdOTl5kND2DwSDMJtbj0rEHYgxcBIJu8+9IuyMBJDjUaVLqOpq+JyE9crcUFWiT0
-	 Cp3V2mtcVllEjbmIWrBQIJ/OT2tyRGb66bmRuznNUJ6wYAKBez3D69LVkjAMmMiTVtpEN
-	 lzQ1EFiDJbIayfIYqwD35BRAQxPHWiP99yJyt5ahdWITnV3Hax4qjhMPpOz9xg3O5YAY/
-	 HP0KpceOpcYfv0UU1J0z3dyT0DQY+LtmxGVkCrpUWcK+mZR4Z+7XOXMAF2GVaJ2I6whMx
-	 jYkOwzTQS/xiMMMHsm0lxS/WdC9sTDaQ6ZvS1zkYdY17sKJptQlOi8YeI5olJWHHjYQ==
+	t=1794451078;
+	b=DGXg3lcrplweeD9FJQvz56Ut7uUCM4W4U+Sv5cMKUOdkf76PIq8b3TB9i8bi/y5L53c0
+	 7u2UKK4oepoacci+h4kNsTzx9327dAIAEjHkiRCldjJAaNPN8A2LolqHglJeRfnmTNJ5J
+	 k1E2oAAz9NsJonp4mzSNQRmbHUdTRw0J6olGS1XYDFmVlhOvJ0MMC9FRhb4iS6wmLKWqI
+	 8p7/QSKT8QVLxuG3zwNnpKN0p2+c6PWplz7TiUjxeikCbpt7oijSxzJb4VA3oe7twsvPW
+	 0V55v3MSjagzhOEjv4qZtmfxGw20w2eIPdbYstPK1nPAj29hnARYzl77vJZSn/3t3cA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794450672;
-	h=DMARC-Filter:DKIM-Signature:X-RM-TagInfo:X-RM-SPAM-FLAG:Received:
-	 X-RM-TRANSID:X-RM-TagInfo:X-RM-SPAM-FLAG:Received:X-RM-TRANSID:From:
-	 To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=3CWR+vMXWt3mBJZisyf3GWzxuDJnUbQNp9mDBk4w9RQ=;
-	b=W0grcm9IvdBDlJyZfQOTymDKokg8bv8N0NZmNe9iBruch7W4laoLjxJbYaujnTyvLSmy
-	 hNHurdK4poiogtSfjXpeOYD2aIM8JycGuDUShzmTvsGnemxnwYYiAaQoa3M4LZWI3rx37
-	 3KawTdemkxPXo/2LFuUobfR0c8jbXc+BRClHSkUMKuf8M+lkNFA8co+AEL0DFdLBt7b7X
-	 ChfvNkDcikxWxNsOtKUxLtOmVFKKF41zoMzaU9n/2/D0yWveAfdVAmgwHk70bgw6E8cQ9
-	 2AtJTosamly6qOZotECT1DIEsohywxb9tCzDCv10qkD1nun8emjXGbQxEdaAPHNyRkg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794451078;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=Pc0PAXiL5bd5SZju0Q78TlUmIssl03IYgwuMMhZiJSY=;
+	b=0gPFWXqTY/FFk6P6/zldpYC+cmZfqX9IzlE0TJ+4TRUjuWC8D8HNGK17LDzcmtJUg/uX
+	 g4WVPckQiYI1tT91UYsTptHhgbFel0Qhepa1FsYkYst0M5kx+GyDowX1Q7B6OKbBus7pt
+	 BobXeRh/L0wnRbaylmf3F5f3V5lq8Yr58Rc+NNmT1YG3EOpgnmt+DTUfG0c60gmBsoVJb
+	 8N2ktJGLD6aViSNpDfTUkrU3/IVoX8Dq6Oef8zE/LYIS2gGCRWXvemzP7B7tBo2y4ybZ9
+	 XBislIROXONlmcJPKS7LnYaPE+hqpwXsJCU8qMfWHnOaGdqfx8vr8kjxGXqiICMD0SQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=cmss.chinamobile.com;
-	spf=pass smtp.mailfrom=cmss.chinamobile.com;
-	dkim=pass header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.a=rsa-sha256 header.s=default header.b=ofhdVLAz;
-	arc=none smtp.remote-ip=111.22.67.139
-Received: from cmccmta6.chinamobile.com (cmccmta6.chinamobile.com [111.22.67.139])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 227C2606A323;
-	Thu, 12 Nov 2026 02:31:10 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 227C2606A323
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmss.chinamobile.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cmss.chinamobile.com
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=eTfy4Lj4;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B89F606A321
+	for <linux-rdma@vger.kernel.org>; Thu, 12 Nov 2026 02:37:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.a=rsa-sha256 header.s=default header.b=ofhdVLAz
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=cmss.chinamobile.com; s=default; l=0;
-	h=from:subject:message-id:to:cc:mime-version;
-	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
-	b=ofhdVLAzTPFZcSZJsyOyCT2XgijXo1G1dU/Zi+Fp50nH1GmOKo0BEb399k7ARZxZuUreX+8V6+oaN
-	 efuT6RQmMiYFEP8bq5eECCWTyeF/gZPNEBIWog3BOgbAXaV4PTauVpWKyuOjpsL+WScHjiY2zVNexd
-	 WTJxH/GNJYEO4A2Y=
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM-FLAG:00000000
-Received:from spf.mail.chinamobile.com (unknown[10.188.0.87])
-	by rmmx-syy-dmz-app05-12005 (RichMail) with SMTP id 2ee56af524eda15-da11f;
-	Thu, 12 Nov 2026 10:31:10 +0800 (CST)
-X-RM-TRANSID:2ee56af524eda15-da11f
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM-FLAG:00000000
-Received:from devin-VMware-Virtual-Platform (unknown[10.55.1.72])
-	by rmsmtp-syy-appsvr03-12003 (RichMail) with SMTP id 2ee36af524ecf54-ee2e3;
-	Thu, 12 Nov 2026 10:31:09 +0800 (CST)
-X-RM-TRANSID:2ee36af524ecf54-ee2e3
-From: Zhu Jun <zhujun2@cmss.chinamobile.com>
-To: leon@kernel.org
-Cc: jgg@ziepe.ca,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Zhu Jun <zhujun2@cmss.chinamobile.com>
-Subject: [PATCH] RDMA/mlx5: Return ENOMEM when allocating a MEMIC operation fails
-Date: Thu, 12 Nov 2026 10:31:08 +0800
-Message-ID: <20261112023108.118187-1-zhujun2@cmss.chinamobile.com>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=eTfy4Lj4
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A351B1F00A05;
+	Thu, 12 Nov 2026 02:37:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794451077;
+	bh=Pc0PAXiL5bd5SZju0Q78TlUmIssl03IYgwuMMhZiJSY=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=eTfy4Lj4tb1pWi85RfsbljWca99RkjKCkb6phO80r0DQjTRZsZhFrQ1rxcSg2QLsC
+	 3YLIPI9y/9ukc9f8eFnvP8Uwws1Jvs9ceIhEsgh2hs3DvwmwuCjOoAPVVMLmEAZMI9
+	 PT0XsZ2Z8wlmc4guI6M5vcP6yzfc8GqIcRcdc4SQQ2cybFRSLupfDAwrYZl+KK2xIF
+	 UcSCndpTZgqwWQ85nL9jfOipL0Zn3CK1Sywl3dzst5pRt+fgppNeu6TjQ/bg4+0ahS
+	 x6SS7Krwwu0x6lL9c/JuT2pDYOhpcNt7gSjq9cHle4o2yO416pFYpz7JbF1mEV66Mr
+	 XuY3Ka8hWiVxQ==
+Message-ID: <sashiko-outbox-210211@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] RDMA/mlx5: Return ENOMEM when allocating a MEMIC
+ operation fails
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Zhu Jun" <zhujun2@cmss.chinamobile.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261112023108.118187-1-zhujun2@cmss.chinamobile.com>
+References: <20261112023108.118187-1-zhujun2@cmss.chinamobile.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Thu, 12 Nov 2026 02:37:57 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -68,37 +59,21 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-When a MEMIC operation is not already mapped, map_existing_op() leaves
-err set to -ENOENT. If allocating the new operation entry then fails, the
-handler returns that stale lookup error instead of -ENOMEM.
+> When a MEMIC operation is not already mapped, map_existing_op() leaves
+> err set to -ENOENT. If allocating the new operation entry then fails, the
+> handler returns that stale lookup error instead of -ENOMEM.
+>=20
+> Set err to -ENOMEM before allocating the operation entry.
+>=20
+> OpenAI Codex assisted with analysis and patch preparation.
+>=20
+> Fixes: cea85fa5dbc2 ("RDMA/mlx5: Add support in MEMIC operations")
+> Signed-off-by: Zhu Jun <zhujun2@cmss.chinamobile.com>
 
-Set err to -ENOMEM before allocating the operation entry.
+Sashiko has reviewed this patch and found no issues.
 
-OpenAI Codex assisted with analysis and patch preparation.
-
-Fixes: cea85fa5dbc2 ("RDMA/mlx5: Add support in MEMIC operations")
-Signed-off-by: Zhu Jun <zhujun2@cmss.chinamobile.com>
----
- drivers/infiniband/hw/mlx5/dm.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/infiniband/hw/mlx5/dm.c b/drivers/infiniband/hw/mlx5/dm.c
-index 7a6fe4fea3e2..61727118d1b4 100644
---- a/drivers/infiniband/hw/mlx5/dm.c
-+++ b/drivers/infiniband/hw/mlx5/dm.c
-@@ -228,6 +228,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_ADDR)(
- 	if (!err || err != -ENOENT)
- 		goto err_unlock;
- 
-+	err = -ENOMEM;
- 	op_entry = kzalloc_obj(*op_entry);
- 	if (!op_entry)
- 		goto err_unlock;
--- 
-2.51.0
-
-
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261112023108.1181=
+87-1-zhujun2@cmss.chinamobile.com?part=3D1
 
