@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794473697;
-	b=n1pC6B8lqR2/LVDU0yBqmljo8GIjwfdU4vYfkfDAZwXDYR+vDVTyQX5dnGV+TsocVmqf
-	 9cB7JB6gKlL8u0Qz+vAmn0smKdrBrxd594SbJMLqVbFgTTT+LwMESJ13HG2JrdbPFqcuG
-	 I13kKe8mOfWXuVm6OEc7wF20dj/H+VzgwMLCGavoGqJhiLC4/hI2aQNtsL0bkaHgUAF2T
-	 aZTJLXusoXDv8B7nEY/SV8gqNecNuaONYvLIfo1EFOLcCoTwqw7sa8/M1NXdeo1SB0+lk
-	 6plqHCf5xGxhmpkQwH50+LbQQZumReiNhFdSOM6ymSzOSnso2hJSr18qOX8NSpjcAxg==
+	t=1794473737;
+	b=oXjqzF3iFiCGEoHgi6ttCPDUQiXHepGtezNK4wUPso8xo24dTx3npyqYCUCNEgITfKh6
+	 BapZVD8TK5SOJt45wG7RrPz10WtDNME06jzb4cqap1+O5rXOZGrHEhSOc4ZMD86q9lgwU
+	 N8eE/CSCGrOjEuH///LaWPXTbR65Y3SDv4va6nkccCdGu2h1xbs+J4ZfKKIircB4rly2l
+	 rBn8b4DFcug1y030ut9kJi8Jajdbcx3/97pxuyy7pQ7ANSJ6uBcAGRAKLywLiY2O7YHWU
+	 UUnlzWs/4/N/Wy7JLflJs1yAc8iucdOMcGMTShghAWY9sEDvZ7f3AGwwenA3lQpibTw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794473697;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794473737;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=agYjtlPVrXUx1JpyDDg5OMp4jj9TP/xbtubBQgEubos=;
-	b=fEvY77tCz7//hE7Q3clpATKh3ZY7Iw+NAvCDY92dnzetND5WEkQwVJS7mtF/ecbSpsih
-	 QbCDyWhI1PzWzwWZ3fgi2hI3V4MT9/Rpcl/IDdxHTmrJ6i9eatSbtWGRa/t93Hn9wlVzv
-	 2J601RURX92i6bhr8Gmd9YJfJ0vDOgnAEQBo4SwrxmUqJwThUeKxoUIREd8+rDTk286nr
-	 9UDFWp8JlGnZ/USmUjp+gySuq5pHXevHW8/C4v4kY/AifItoGM8HmavxQWycBaMHSkZBi
-	 nEksk4jRxoBqyMNoL2TIKiYpJCK7wANlMn6of+5VWitoaEZjbG03XtvwUIq8xHTOlmQ==
+	bh=5u87AWGScTGEk0s6yXSh7Xnj4g/Nmct+BufbrMoWGUU=;
+	b=VM/dcOGqr5OORxuvAiO3F52TGetFqUNYOe4QN7tYITrijOU4S5XqjdvA7VydqCU8q3Du
+	 YO2FvUz2ootzPVq/kgoXSJFE4rsBilUbyMMlY0mUhEMHz6sj/hosWrm/8/9gTTiAvniUv
+	 E5gnA8xJ4BkIDujtXUi5AVhSmdfRG7Vww2pFTKi5PvmeNChEySBkW2YhzCE889w2cZySq
+	 AAIGeD6jFx13+W9j1bpdWM80ZcjRV2bYzJbCYgsroHhHMtB/PYOEUGKLn2x2ZebdQbuy0
+	 6ysHHDCErSI0Jbv3BqWWn+dbfjnrnrg3UDceOu2qbP4LbNgPH1mlqjL5L2CM3ylTcUg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PBlu2IZ2;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="EemdknG/";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07346606A323
-	for <linux-rdma@vger.kernel.org>; Thu, 12 Nov 2026 08:54:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDAF960A2621
+	for <linux-rdma@vger.kernel.org>; Thu, 12 Nov 2026 08:55:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PBlu2IZ2
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F8061F00A06;
-	Thu, 12 Nov 2026 08:54:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EemdknG/
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 349BB1F00A06;
+	Thu, 12 Nov 2026 08:55:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794473696;
-	bh=agYjtlPVrXUx1JpyDDg5OMp4jj9TP/xbtubBQgEubos=;
+	s=k20260515; t=1794473737;
+	bh=5u87AWGScTGEk0s6yXSh7Xnj4g/Nmct+BufbrMoWGUU=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=PBlu2IZ2+HgphgYCtZwIttu3Zcj7aa4b0wKP0X8b6ZcXocGsUB8ql3Lzxr/Oo70y9
-	 MF05zLHnJ0ANqbwJfTHYDlXbNV8d9yjSpJ2DC/c9qD2LCgCU3aCdD6qvAymm3ixOwx
-	 HUhvGnTzWwLzxRPGHP4A5TS9+Q8sn5mJ4ufNgwVNSnz4F+CxIyfe00lcDGVdbViCNW
-	 9b5m6HYsqp7vHGwipXD+zLrWvbDw0gRSeBB+gjB0RrbEtKg8wKRjgxR7G9Nj3GiQS4
-	 nfA+9HeM3JBlhiQHKAOFCGrprVnCxFzykK5NQ5ZQ7Y4WOECoBX9gXNe8SoB362Od7d
-	 By4YBoWbEg52g==
-Message-ID: <sashiko-outbox-210798@kernel.org>
+	b=EemdknG/8Ju/pS/eUHO9oMcbfpQotjinIgTGNcjYmdNldhRL2XVYFwyTJNwCo39Tc
+	 TJlqBe4vbKJmRAk9S1QxYXm05KlrCwmG2zUfhad60RolTtIj3YbGrxzV2Z7vHLCcsR
+	 ZGMRGQSZQuQjObNnX7SBGHOaripB2e0385zTBRkRCC3yASn9CByVOrPRJ9Q/4+qqjj
+	 71wCwl3HoroOMtZak3xX0P3gs/+k1obvt27O9xphZKtlEEG6Aat7I5xbOYi1rTQUzO
+	 HArcI1DU7iFTHtyiY5kSizJanHD2sO9dNY65/4IbPZjG7mVDe1ZEtKy7pGMhIqDGZQ
+	 PYayGNLKYsgyg==
+Message-ID: <sashiko-outbox-210799@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v11 4/9] RDMA/mana_ib: Maintain kernel RC QP
- state
+Subject: Re: [PATCH rdma-next v11 5/9] RDMA/mana_ib: Post receive WRs on
+ kernel RC QPs
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261112084716.1483342-5-kotaranov@linux.microsoft.com>
+In-Reply-To: <20261112084716.1483342-6-kotaranov@linux.microsoft.com>
 References: <20261112084716.1483342-1-kotaranov@linux.microsoft.com>
- <20261112084716.1483342-5-kotaranov@linux.microsoft.com>
+ <20261112084716.1483342-6-kotaranov@linux.microsoft.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 12 Nov 2026 08:54:55 +0000
+Date: Thu, 12 Nov 2026 08:55:36 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,12 +63,9 @@ Precedence: list
 
 > From: Konstantin Taranov <kotaranov@microsoft.com>
 >=20
-> Update mana_ib_modify_qp_state() to support RC QPs. Initialize the
-> packet, message, and frame counters for use by work requests.
->=20
-> Arm the requester receive queue at the initial PSN so that a CQE is
-> generated when the specified PSN is acknowledged, indicating send
-> completions.
+> Implement receive request posting for RC QPs. When posting a batch of
+> WRs, ring the doorbell periodically to prevent the u8 counter from
+> overflowing.
 >=20
 > Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 
@@ -76,5 +73,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261112084716.1483=
-342-1-kotaranov@linux.microsoft.com?part=3D4
+342-1-kotaranov@linux.microsoft.com?part=3D5
 
