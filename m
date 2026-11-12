@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794476412;
-	b=wAdgBJnIeRFWZ/PNHbB3ksGMFCd8iAERmsArHtQeWIpiaF8D02nueiEQMKSZ4A4bASQn
-	 h4k5tMNSt5PTnOmUwc10y9/f1o/GAVZbyp3bqQ+ckcqY5M00sSgtDWuJemtiskryxYH6s
-	 AqwQ+VfcV+eNUnJxvTr6PgM3j7ft1QVwR/Av5kjF9EYeQrCDpd00eh6p7EmvwKj4RztKK
-	 ErXWjSK33CpZTEEic7sPt65J3noMj6krlg6TBWE1Qg1rDmZ3YSOrKZZPCS3buJMEAQuCK
-	 OJTv7a+Vuf/bRGIbmBfU0JAY4QqekAhL1mArZ8d1ie5YGK05JyKIKRGDS1AoJxHmiEA==
+	t=1794476415;
+	b=T78FO/aZNhAclj0igm3mBt6o96mkB+Ih9ojcJgZcILh04Ph3XU6uyxuXhAO+eH+hqODG
+	 vmLN/GXpN9rQcze7WdoT6y49OABxbpQXL1hdsXd3/gEUxKbihiDzVHiIIzlpchOUfD6I6
+	 oQRkz6qee4u6pO9ZL7+i4vOWTw5HxGhLFT175MY7z00Cwxb8rujYKz8CfgBblZqqsWgzd
+	 5ySFlBIRoRG80sfJBuvPIhepX5xA4fg40eJRTVSv/XHkQbxJpsyxcKpbDZ0q0ECow+vGf
+	 K2jXDqUDaOql8nv5TxJ1J3UuA1GBbYQO7tHtZEM7m9OwfrnpoF5HR0QjXUTmMl+mnRQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794476412;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794476415;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=NyUq0HGbA3xYCUVID2+llNrlZkXulKWcxnwhqdibIlI=;
-	b=BbpDg3fZ3TSQRNkduHb0TYmh6erjdTkOYcn02sezTkW38pbql/ccGf8Wznqiyok36NI4
-	 fqAXnSpniMDOJ5ZUrg17jF206pBbCbu4wQSdbOX0nxlPuR3N0UtW/6Caf4gtDha3HSWrL
-	 Ko7QzLRx+/cjCZ00Z2ygUIxLmHXnRGhBtcektpYG8IjzgmjIGLXb2ZYj6fWx/v7tKOveL
-	 CPpEABCNWuq+UgmdpEfWSdHQrAUm/7cTlywMhWM0MLTrhTGK6mv309ilHYyjtlzMpPE6s
-	 moss1tuyTy1xJx6Njycpc+Y3Whz1NSE94Tsp4IuTpynW72RsDSc5p1grhTGMzsCU27g==
+	bh=7lW23EWLEHnxDCRZobawWrlqPkzq3V4K9TcjMlbU7iQ=;
+	b=ExVkbeYZAl/TUnTHffBRvcUbHx359+EA/Y549eWrLR3ES5tc09dTMe0n6sO8JxlhXjdR
+	 jPrRwgwU05zCrSzfWfU1JwEgWkyBLUOxPdDSkwTD2siI3PDN3QyICP0RYScyTa0LmTuYr
+	 bj9ZV/wgLm+s8kGr7TAvf0m/U/ciDGk0Ks7F/YeJ/Sr2R/qkekuxXKQwZc3LfE9gC0vi4
+	 bUxLY54kdU98zwkEauwKVbCrhXEiBoOxV4koFAfByiTNsz53JHiDahpDhk080wdKUqaC/
+	 muHz8lVuZ3Tbv7xAhE0qj47ov3heRAtcR02JdebRkhz1E7bYP1E5Yl/CGJbsESZ9rXQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UPZlP6fI;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Pul5c+Nr;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EE9E606A31C;
-	Thu, 12 Nov 2026 09:40:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26384606A882;
+	Thu, 12 Nov 2026 09:40:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UPZlP6fI
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4DB81F00A09;
-	Thu, 12 Nov 2026 09:40:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Pul5c+Nr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1315E1F00A10;
+	Thu, 12 Nov 2026 09:40:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794476412;
-	bh=NyUq0HGbA3xYCUVID2+llNrlZkXulKWcxnwhqdibIlI=;
+	s=k20260515; t=1794476414;
+	bh=7lW23EWLEHnxDCRZobawWrlqPkzq3V4K9TcjMlbU7iQ=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=UPZlP6fIyXjZhhA+CNHsPkCgdn5sAUbpb3i3F4cFFKZ6tuCoptu5y5g2XU/TLPBza
-	 aiEYyXN9v4JlBVZfZwV3gqObA/OfgDyY4AHiKAaplcrwjfjectqRtGAOUuy1+6pJTO
-	 Ne5iumWe4eEcKUl6NEnpW9fS1C0hZEm6jEyDOP0+lEmitTbEklX+qtv0eKfJ7S6Zo2
-	 dRWYrqA7IAX6iEk2q3yTBGlX36k5nT/O2EZXdgtha2Y0SFg7JKqCqSsIONuszM3oOn
-	 jeOmcJck/qAKKkrANM27gH02V3j7+8eDcBzK5G/peQTc2euLnEvWkFC/CzsInUlI10
-	 sVK88RwRZGADg==
-Subject: Re: [PATCH net-next V2 09/13] net/mlx5e: Use the correct DMA dev when
- data_direct is enabled
+	b=Pul5c+Nr3mdoAbDL9hp7J97xaGOKL3e4328xezUbw6gtZBt+7IEGJsrJBJruIr26w
+	 aiaJwh6vs30KCwBQJueiEftaekq7zUJ41F726KpGsxHhpqeOy1A28tQrwf762q4NRw
+	 NTJVOwBYZZkeTAd+MEpWQ0FBwgQCqWeftndLTf6Cf+pO5cvbFIG5n5Zkk0o2IPO2A2
+	 9UVDhUqw4AHuuq2+sEke1Qo7qLdpRnF1CIryJcyOQeLMyKaQ0izeCI2UPLLLGraLVO
+	 NYwYi1yX7L6j1T2GfueycMhQIUxBgMlG7PXCvk/49zNUKgxEWqir6zpEgKpMRka5QK
+	 Cty9Y1rj/F+sg==
+Subject: Re: [PATCH net-next V2 10/13] net: devmem: add
+ netdev_has_dmabuf_binding() helper
 From: netdev-bot+sashiko@kernel.org
 To: tariqt@nvidia.com
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
@@ -53,11 +53,11 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
  mbloch@nvidia.com, mfleming@cloudflare.com, almasrymina@google.com,
  razor@blackwall.org, saeedm@nvidia.com, horms@kernel.org, sdf@fomichev.me,
  sdf.kernel@gmail.com, witu@nvidia.com
-Date: Thu, 12 Nov 2026 09:40:10 +0000
-Message-ID: <179447641026.2199510.5931919267235772242@kernel.org>
-In-Reply-To: <20261110183826.2927274-10-tariqt@nvidia.com>
-References: <20261110183826.2927274-10-tariqt@nvidia.com>
-X-sashiko-severity: Low
+Date: Thu, 12 Nov 2026 09:40:12 +0000
+Message-ID: <179447641258.2199510.921186677435570994@kernel.org>
+In-Reply-To: <20261110183826.2927274-11-tariqt@nvidia.com>
+References: <20261110183826.2927274-11-tariqt@nvidia.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -70,137 +70,162 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 · Low: 0
 
-- [Low] This patch makes the data-direct PCI device (dd_dev->device) the
-  DMA device for the page_pool of data-direct RQs (mlx5e_alloc_rq,…
-- [Low] mlx5e_get_dma_dev() (en_main.c:965-976) reads
-  mdev->data_direct->dev with READ_ONCE() through…
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] The kernel-doc and commit message promise more than
+  netdev_has_dmabuf_binding() actually checks.
 
 --
 
-net/mlx5e: Use the correct DMA dev when data_direct is enabled
+net: devmem: add netdev_has_dmabuf_binding() helper
 
-This commit adds mlx5e_get_dma_dev(). When data_direct is enabled it
-returns the data direct device instead of the PF PCI device. The helper
-is used for the RQ page_pool DMA device and for .ndo_queue_get_dma_dev,
-and the latter now refuses to return a device in data-direct mode when
-RX queues are leased.
+This adds an exported helper, netdev_has_dmabuf_binding(). It walks the
+global devmem bindings xarray and reports whether a binding of a given
+netdev is still mapped, with an optional filter on the DMA device. The
+goal is to let drivers (data direct support in mlx5e) avoid swapping
+the DMA device while in-flight skbs may still use dmabuf mappings.
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-> index 5b99099e4ed0c..ebd41f24330d0 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-> @@ -962,6 +962,19 @@ static void mlx5e_rq_free_shampo(struct mlx5e_rq *rq)
->  	kvfree(shampo);
->  }
->  
-> +static struct device *mlx5e_get_dma_dev(struct mlx5_core_dev *mdev,
-> +					bool data_direct)
-> +{
-> +	struct mlx5_data_direct_dev *dd_dev;
-> +
-> +	if (!data_direct)
-> +		return mlx5_core_dma_dev(mdev);
-> +
-> +	dd_dev = mlx5_data_direct_get_dev(mdev->data_direct);
-> +
-> +	return dd_dev ? dd_dev->device : NULL;
-
-[Severity: Low]
-Is anything keeping dd_dev alive between the READ_ONCE() in
-mlx5_data_direct_get_dev() and the dd_dev->device dereference here?
-
-The unbind side clears the pointer, runs the notifier chain, and then
-frees the device:
-
-mlx5_data_direct_remove()
-    mlx5_data_direct_dev_unreg(dev)
-        ...
-        mlx5_data_direct_do_unbind()
-            WRITE_ONCE(reg->dd.dev, NULL);
-            blocking_notifier_call_chain(&reg->users,
-                                         MLX5_DATA_DIRECT_UNBIND, NULL);
-    pci_disable_device(pdev);
-    kfree(dev->vuid);
-    kfree(dev);
-
-At this commit, mlx5e_data_direct_event() only logs on
-MLX5_DATA_DIRECT_UNBIND. It takes none of the locks the readers hold,
-which is priv->state_lock in mlx5e_queue_get_dma_dev() and in the channel
-open path that reaches mlx5e_alloc_rq().
-
-If a reader has already loaded a non-NULL dd_dev, can it dereference it
-after kfree(dev)? The returned struct device pointer is also used
-without taking a reference.
-
-This does not look reachable at this commit. set_pflag_data_direct()
-still returns -EOPNOTSUPP, so data_direct is never true here.
-
-Later in the series, "net/mlx5e: Disable data direct on data direct
-device unbind" makes the notifier take rtnl_lock(), netdev_lock() and
-priv->state_lock before it returns. That serializes it against these
-readers before kfree(dev) runs.
-
-> +}
-> +
->  static int mlx5e_alloc_rq(struct mlx5e_params *params,
->  			  struct mlx5e_rq_param *rq_param,
->  			  struct mlx5e_rq_opt_param *rqo,
-> @@ -1105,7 +1118,11 @@ static int mlx5e_alloc_rq(struct mlx5e_params *params,
->  		pp_params.flags     = PP_FLAG_DMA_MAP | PP_FLAG_DMA_SYNC_DEV;
->  		pp_params.pool_size = pool_size;
->  		pp_params.nid       = node;
-> -		pp_params.dev       = rq->pdev;
-> +		pp_params.dev       = mlx5e_get_dma_dev(mdev, data_direct);
-
-[Severity: Low]
-With this change, the page_pool of a data direct RQ is created against
-dd_dev->device. mlx5e_queue_get_dma_dev() also hands that device to
-memory providers (devmem, io_uring zcrx), which map their buffers
-against it.
-
-What tears these down when the data direct device is unbound? At this
-commit, this is the only mlx5e consumer of MLX5_DATA_DIRECT_UNBIND:
-
-mlx5e_data_direct_event() {
-    ...
-	if (action == MLX5_DATA_DIRECT_UNBIND)
-		mlx5_core_dbg(priv->mdev, "data direct device unbound\n");
-
-	return NOTIFY_OK;
-}
-
-It doesn't close the data direct RQs, destroy their page pools, or
-unbind the memory provider mappings. mlx5_data_direct_remove() then
-runs pci_disable_device() and kfree(dev) right after the notifier
-returns.
-
-Could the page_pool and dmabuf mappings outlive the device they were
-mapped against?
-
-This also doesn't appear reachable at this commit, since
-set_pflag_data_direct() in en_ethtool.c still returns -EOPNOTSUPP.
-
-Later in the series, "net/mlx5e: Disable data direct on data direct
-device unbind" rewrites mlx5e_data_direct_event(). The new version calls
-netif_close() and netdev_unbind_dma_dev(), then clears
-MLX5E_PFLAG_DATA_DIRECT. The flag only becomes settable later, in
-"net/mlx5e: Enable the data direct netdev feature".
-
-> +		if (!pp_params.dev) {
-> +			err = -ENODEV;
-> +			goto err_free_by_rq_type;
-> +		}
->  		pp_params.napi      = rq->cq.napi;
->  		pp_params.netdev    = rq->netdev;
->  		pp_params.dma_dir   = rq->buff.map_dir;
+> diff --git a/include/net/netmem.h b/include/net/netmem.h
+> index fb693bc1702a4..35bb6fa0f7194 100644
+> --- a/include/net/netmem.h
+> +++ b/include/net/netmem.h
 
 [ ... ]
+
+> +/**
+> + * netdev_has_dmabuf_binding - is there a dmabuf binding for a
+> + * given @dev and @dma_dev
+> + *
+> + * @dev: netdev to check bindings
+> + * @dma_dev: dma device to check, when NULL it will not be checked
+> + *
+> + * A binding is reported for as long as it is mapped, which can be long
+> + * after the user unbound it: net_iovs of a TX binding can still be queued
+> + * in flight, with DMA mappings that are only valid for the device the dmabuf
+> + * was attached to.
+> + *
+> + * Return: true if a binding is found under @dev and possibly @dma_dev
+> + */
+> +bool netdev_has_dmabuf_binding(struct net_device *dev, struct device *dma_dev);
+
+[ ... ]
+
+> diff --git a/net/core/devmem.c b/net/core/devmem.c
+> index 5c7d9640e9d14..dd3987bbd9f6c 100644
+> --- a/net/core/devmem.c
+> +++ b/net/core/devmem.c
+
+[ ... ]
+
+> +bool netdev_has_dmabuf_binding(struct net_device *dev, struct device *dma_dev)
+> +{
+> +	struct net_devmem_dmabuf_binding *binding;
+> +	unsigned long xa_idx;
+> +	bool found = false;
+> +
+> +	netdev_assert_locked(dev);
+> +
+> +	/* A binding stays in the xarray until it is freed. binding->dev is
+> +	 * only cleared under the instance lock of that netdev, and the free
+> +	 * takes it before erasing the binding, so a binding found under @dev
+> +	 * stays alive while the xarray lock is dropped.
+> +	 */
+> +	xa_lock(&net_devmem_dmabuf_bindings);
+> +	xa_for_each(&net_devmem_dmabuf_bindings, xa_idx, binding) {
+> +		if (READ_ONCE(binding->dev) != dev)
+> +			continue;
+
+[Severity: Medium]
+Does this check match what the kernel-doc promises, "A binding is
+reported for as long as it is mapped"? The commit message also says the
+helper will "report every binding of the netdev that is still mapped".
+
+For leased RX queues, binding->dev may not be the device that holds the
+mapping. netdev_nl_bind_rx_doit() passes the netdev the user named,
+which can be a virtual leasee such as netkit:
+
+net/core/netdev-genl.c:netdev_nl_bind_rx_doit() {
+    ...
+    binding = net_devmem_bind_dmabuf(netdev, NULL, dma_dev, DMA_FROM_DEVICE,
+    ...
+}
+
+The dma_dev, though, comes from the physical queue the RX queue is
+leased from:
+
+net/core/netdev_queues.c:netdev_queue_get_dma_dev() {
+    ...
+	hw_rxq = __netif_get_rx_queue(dev, idx)->lease;
+
+	netdev_lock(hw_rxq->dev);
+	idx = get_netdev_rx_queue_index(hw_rxq);
+	dma_dev = __netdev_queue_get_dma_dev(hw_rxq->dev, idx);
+    ...
+}
+
+So binding->dev is the leasee, while binding->attachment->dev is the
+DMA device of the physical NIC. That also seems to disagree with the
+comment on struct net_devmem_dmabuf_binding::dev ("Physical NIC that
+does the actual DMA for this binding"), which this helper relies on.
+
+On top of that, both teardown paths skip the unmap in the lease case
+but still clear binding->dev:
+
+net/core/devmem.c:mp_dmabuf_devmem_uninstall() {
+    ...
+			if (!rxq->lease)
+				net_devmem_dmabuf_binding_unmap(binding);
+			ASSERT_EXCLUSIVE_WRITER(binding->dev);
+			WRITE_ONCE(binding->dev, NULL);
+    ...
+}
+
+net/core/devmem.c:net_devmem_dev_unregister() {
+    ...
+		if (!netif_is_queue_leasee(dev))
+			net_devmem_dmabuf_binding_unmap(binding);
+		xa_lock(&net_devmem_dmabuf_bindings);
+		WRITE_ONCE(binding->dev, NULL);
+    ...
+}
+
+After this, the binding stays in the xarray with attachment != NULL
+until in-flight net_iovs release it. The check above can no longer
+match it for any dev.
+
+Could netdev_has_dmabuf_binding(phys_dev, phys_dma_dev) then return
+false while a binding is still mapped against phys_dma_dev?
+
+The only caller in this series, set_pflag_data_direct() in mlx5e,
+already rejects installed RX memory providers and leased RX queues, so
+it may not hit this today. Since the helper is exported, would it make
+sense to either restrict the kernel-doc and commit message to TX
+bindings (or bindings whose dev is still set), or to also match
+bindings by attachment->dev against the DMA device(s) of @dev?
+
+> +
+> +		xa_unlock(&net_devmem_dmabuf_bindings);
+> +		mutex_lock(&binding->lock);
+> +		found = net_devmem_binding_mapped_to(binding, dma_dev);
+> +		mutex_unlock(&binding->lock);
+> +		xa_lock(&net_devmem_dmabuf_bindings);
+> +		if (found)
+> +			break;
+> +	}
+> +	xa_unlock(&net_devmem_dmabuf_bindings);
+> +
+> +	return found;
+> +}
+> +EXPORT_SYMBOL_GPL(netdev_has_dmabuf_binding);
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261110183826.2927274-1-tariqt%40nvidia.com
