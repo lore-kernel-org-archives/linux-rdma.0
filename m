@@ -1,83 +1,70 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794480473;
-	b=zUmpa+z1DMZiWVvj8MXVBeEZaYDN46WF+Iev8PT1tdI8Bnu0oIXlv9tlPhSC4lGlC9zZ
-	 tl2b1rRe8Srdn63B9FGcuDqaiAPI/Wr1X9hSb0naJeXEh92wCy00ceW6oKUr8cV5yo0EE
-	 H+gHO2H0lhvDgEb+DzhY0r+Dk0AkH5Q2+RuA/+Tl3jj7l0vbGSK1kPFnma3ihxtQWVwoq
-	 Y8ffu8XTpVsflWY9xfU4bm3o+tcXQmSOWej1w5aIVUo37rqgNY2auR2/HcRh8ncYiIEUY
-	 AtBmJOi6l/cg9AzDWCXNR4KJtHBpd2KQu+TxrHPVV+btO6rAm55EUXuW4EpjopiMlyA==
+	t=1794481085;
+	b=AVKgaQV1cOkotsv40MiEK9lcHJrcSJtD1Gx+gQ0bhFoLlEb1FTI6X8S7faOBYgban4Qn
+	 XmL7lgb/lKIL5nwOZ7ouT4j68h5oLSPHOyifuA4cuiTT+7DOF0IwMYMKy1nb23SmG5wDt
+	 r0GdhYnD8HDS0uhbnM1xBZESpnzEVFxDEIzyCey8mq34I7ws/T+S4mpt/30JvXhFydNRz
+	 pXfvK6XLktowh9siP50HjD0Y0nr3nC89fIeJWDImtMWT15LpoQGqBeRg+XedSwxRiWHZW
+	 V6Bcv/BS7BnO3YfkPGQpPmWqlMPbE6lyR61rGcL3AALs6ItaMob0dvEY/U7YHikbdQw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794480473;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=LaAKKhAngwkFxDGEu7glsCDhQDKP6or5IXQD5q9C6lk=;
-	b=OFcbvIjbOzHGNtCHG4HXx0ddP1wgbt/3Y/+r4tWI7i36QpRA3TGP0QsB2bseewFlcLCS
-	 8I4tTQUplDSzJVrhdpMpR0IPnJtPlzQeXnXCJHIuJdi76Lsr5SF1+BD+TFKCEaPbbO/s6
-	 5RrHs6wJ+YP4kvKLu1McTyGz84P2VIYLHaSHB0/Jvz52Lmq3vffGz/sCSYW9ThnJAB2uW
-	 wLDOrhRz5qCp/OgUEPfDJD+H/xDPh2Fyy0xck4E6UXLMLJnSFGtJH9n25BHQRvUXCdzYu
-	 /2xSs4cwMFQuddCM4BELRVLokR3ISqVgFmbrCOJfCSf3kiFteblPsdztAfgfHSwhG4A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794481085;
+	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Subject:
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-Spam-Status:X-Spam-Checker-Version;
+	bh=GUeyCkWJ30TKeXscHAtkA+LtWzqmgJiXCIh4pQZpiKI=;
+	b=YEE2GMd/acZWOIrOBCVP+36IO47YM+crwR6Iw7dWiYWT8LUBnQct6A5HsFOVTu1GRpfR
+	 ZVVuy7W4zrcEhY+eXXha12T0NjVGW2rb8IupMZlElbcWMtk51F1jtDE+NshQ4bjUOjpns
+	 78Y07ReyhTByjcSyI6fCijbU1OvgFwGXnT2T/kxV4LnnrHQTrCRz04YH8IjWioDE9UBCl
+	 A6GdKqFO23A/RLSJSVeRj9Ql7/AP1ExN5V+WZYknDWmc04TCJ+aXP2pjR3dkfI+DfC440
+	 vRN/l/yTU+TWGobfJjWwFSEUdlltrzBynAfQl1lI54meFwLX1ubSIedM4lkyXKOjPQg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="bhRW52/O";
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 505CF606A32D;
-	Thu, 12 Nov 2026 10:47:52 +0000 (UTC)
+	dmarc=pass header.from=linux.microsoft.com;
+	spf=pass smtp.mailfrom=linux.microsoft.com;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=lCZb3yKc;
+	arc=none smtp.remote-ip=13.77.154.182
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id EB8A6606A321;
+	Thu, 12 Nov 2026 10:58:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EB8A6606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bhRW52/O
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D85FD1F00A05;
-	Thu, 12 Nov 2026 10:47:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794480472;
-	bh=LaAKKhAngwkFxDGEu7glsCDhQDKP6or5IXQD5q9C6lk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=bhRW52/OaiERqOjVo+YsX7WenTAM+RkUSYdDbFFgDeELIFl5MCvdrQ4/lrfg3PaBP
-	 OJEvlXHrGI0KP6Sf7isOdA90CQUC1tSnbnlL7KMlGmOGy1uOT4Tps4k2NALfzc5lt4
-	 GBKdaLdl6Hn4QG7D1jOt3xg+R2SbDhwXqrQ5QTOpBVzV6PCDTf9sB1jcXxmSVYEwEX
-	 9k1ve7B7mHoKt9f85FezBUXVhvbLCq9DZT0dTEHtWXQsiFKFjjwdYqhwDGS2C9B8hk
-	 PMIxYSXrd0qwW336ZZGtXr/22P+Xd17f+e0rYlMLg9nZUtItJXlZjgdtGYx+r60Y9l
-	 +6iWNMqoSTUaQ==
-Date: Thu, 12 Nov 2026 11:47:38 +0100
-From: Alejandro Colomar <alx+linux-hardening@kernel.org>
-To: Bence Csokas <bence.csokas@arm.com>
-Cc: Kees Cook <kees@kernel.org>, 
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, 
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>, Sumit Semwal <sumit.semwal@linaro.org>, 
-	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>, Philipp Stanner <phasta@kernel.org>, 
-	Sudeep Holla <sudeep.holla@kernel.org>, Cristian Marussi <cristian.marussi@arm.com>, 
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
-	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, 
-	Simona Vetter <simona@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, 
-	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, 
-	Tvrtko Ursulin <tursulin@ursulin.net>, Lyude Paul <lyude@redhat.com>, 
-	Danilo Krummrich <dakr@kernel.org>, Zack Rusin <zack.rusin@broadcom.com>, 
-	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, Selvin Xavier <selvin.xavier@broadcom.com>, 
-	Kalesh AP <kalesh-anakkur.purayil@broadcom.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	Leon Romanovsky <leon@kernel.org>, Chengchang Tang <tangchengchang@huawei.com>, 
-	Junxian Huang <huangjunxian6@hisilicon.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
-	Hans de Goede <hansg@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, 
-	Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>, 
-	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Miri Korenblit <miriam.rachel.korenblit@intel.com>, 
-	Jes Sorensen <Jes.Sorensen@gmail.com>, Ping-Ke Shih <pkshih@realtek.com>, 
-	Johannes Berg <johannes@sipsolutions.net>, Benson Leung <bleung@chromium.org>, 
-	Tzung-Bi Shih <tzungbi@kernel.org>, Guenter Roeck <groeck@chromium.org>, 
-	Nilesh Javali <njavali@marvell.com>, GR-QLogic-Storage-Upstream@marvell.com, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, "Martin K. Petersen" <mkp@kernel.org>, 
-	linux-hardening@vger.kernel.org, linux-kernel@vger.kernel.org, linux-bluetooth@vger.kernel.org, 
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, 
-	arm-scmi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	intel-gfx@lists.freedesktop.org, nouveau@lists.freedesktop.org, linux-rdma@vger.kernel.org, 
-	linux-hyperv@vger.kernel.org, netdev@vger.kernel.org, linux-wireless@vger.kernel.org, 
-	chrome-platform@lists.linux.dev, linux-scsi@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] stddef: Add offsetofend() variant of
- struct_offset()
-Message-ID: <avWY8kNFlkLyxIrX@devuan>
-References: <20261112-offsetof-v2-0-276ede839967@arm.com>
- <20261112-offsetof-v2-1-276ede839967@arm.com>
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=lCZb3yKc
+Received: from kali.mshome.net (unknown [4.213.232.19])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 34F3020B7168;
+	Thu, 12 Nov 2026 02:57:56 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 34F3020B7168
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1794481080;
+	bh=GUeyCkWJ30TKeXscHAtkA+LtWzqmgJiXCIh4pQZpiKI=;
+	h=From:To:Subject:Date:From;
+	b=lCZb3yKcup/JAsYlNeFlSW7d8PXVj2Hz/MSwDVQN83kwTfhXK4AgpLDhCRvCQmtV5
+	 jKnNe7tRd8nqH/f1Qoa26wo0vROkUk1j6GCz25y9uAGir9TTMa1bsnIQ+1qPvZblgQ
+	 Kqd4VjLwW5bfz5eZmTtahbJXAdUt5la0EerHLRag=
+From: Sahil Chandna <sahilchandna@linux.microsoft.com>
+To: haiyangz@microsoft.com,
+	wei.liu@kernel.org,
+	decui@microsoft.com,
+	andrew+netdev@lunn.ch,
+	davem@davemloft.net,
+	edumazet@kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	weh@microsoft.com,
+	kotaranov@microsoft.com,
+	horms@kernel.org,
+	ernis@linux.microsoft.com,
+	gargaditya@linux.microsoft.com,
+	leitao@debian.org,
+	sahilchandna@linux.microsoft.com,
+	linux-hyperv@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org
+Subject: [PATCH net-next] net: mana: Add CQE polling as first-level TX timeout recovery
+Date: Thu, 12 Nov 2026 04:57:18 -0600
+Message-ID: <20261112105752.978446-1-sahilchandna@linux.microsoft.com>
+X-Mailer: git-send-email 2.53.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -87,139 +74,138 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="hmbonzz4lyxux25l"
-Content-Disposition: inline
-In-Reply-To: <20261112-offsetof-v2-1-276ede839967@arm.com>
+Content-Transfer-Encoding: 8bit
 
+The current mana_tx_timeout() handler unconditionally schedules a full
+port queue reset (detach/attach) whenever the TX watchdog fires.
+This is unnecessary for transient stalls where completions are
+simply delayed or an interrupt was missed.
 
---hmbonzz4lyxux25l
-Content-Type: text/plain; protected-headers=v1; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-From: Alejandro Colomar <alx+linux-hardening@kernel.org>
-To: Bence Csokas <bence.csokas@arm.com>
-Cc: Kees Cook <kees@kernel.org>, 
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, 
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>, Sumit Semwal <sumit.semwal@linaro.org>, 
-	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>, Philipp Stanner <phasta@kernel.org>, 
-	Sudeep Holla <sudeep.holla@kernel.org>, Cristian Marussi <cristian.marussi@arm.com>, 
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
-	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, 
-	Simona Vetter <simona@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, 
-	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, 
-	Tvrtko Ursulin <tursulin@ursulin.net>, Lyude Paul <lyude@redhat.com>, 
-	Danilo Krummrich <dakr@kernel.org>, Zack Rusin <zack.rusin@broadcom.com>, 
-	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, Selvin Xavier <selvin.xavier@broadcom.com>, 
-	Kalesh AP <kalesh-anakkur.purayil@broadcom.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
-	Leon Romanovsky <leon@kernel.org>, Chengchang Tang <tangchengchang@huawei.com>, 
-	Junxian Huang <huangjunxian6@hisilicon.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
-	Hans de Goede <hansg@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, 
-	Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>, 
-	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Miri Korenblit <miriam.rachel.korenblit@intel.com>, 
-	Jes Sorensen <Jes.Sorensen@gmail.com>, Ping-Ke Shih <pkshih@realtek.com>, 
-	Johannes Berg <johannes@sipsolutions.net>, Benson Leung <bleung@chromium.org>, 
-	Tzung-Bi Shih <tzungbi@kernel.org>, Guenter Roeck <groeck@chromium.org>, 
-	Nilesh Javali <njavali@marvell.com>, GR-QLogic-Storage-Upstream@marvell.com, 
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, "Martin K. Petersen" <mkp@kernel.org>, 
-	linux-hardening@vger.kernel.org, linux-kernel@vger.kernel.org, linux-bluetooth@vger.kernel.org, 
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, 
-	arm-scmi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	intel-gfx@lists.freedesktop.org, nouveau@lists.freedesktop.org, linux-rdma@vger.kernel.org, 
-	linux-hyperv@vger.kernel.org, netdev@vger.kernel.org, linux-wireless@vger.kernel.org, 
-	chrome-platform@lists.linux.dev, linux-scsi@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] stddef: Add offsetofend() variant of
- struct_offset()
-Message-ID: <avWY8kNFlkLyxIrX@devuan>
-References: <20261112-offsetof-v2-0-276ede839967@arm.com>
- <20261112-offsetof-v2-1-276ede839967@arm.com>
-MIME-Version: 1.0
-In-Reply-To: <20261112-offsetof-v2-1-276ede839967@arm.com>
+Implement a graduated recovery approach: on the first TX timeout (or
+when the previous timeout was more than 2 minutes ago), schedule NAPI on
+the stalled queue's TX CQ via napi_schedule(). This triggers
+mana_poll_tx_cq() through the normal NAPI path, processing any pending
+completions without relying on the interrupt and recovering
+missed-interrupt scenarios without queue reset.
 
-Hi Bence,
+If any subsequent TX timeout fires on any queue, within 2 minutes of
+the previous one, escalate to the existing port-level detach/attach
+reset, as the CQE poll did not recover the queue.
 
-> Date: 2026-11-12 10:29:33+0100
-> From: Bence Csokas <bence.csokas@arm.com>
->
-> Many call sites of offsetofend() use it for the purpose of pointer
-> artihmetic. Thus, a common usage pattern is:
->=20
->   offsetofend(typeof(*ptr), member)
->=20
-> Capturing this in one macro helps keep lines short and terse, while
-> still making the purpose clear. It also helps discourage spelling out
-> the type name on every callsite, leading to more maintainable code.
->=20
-> A similar struct_offset() macro already exists, so add an offsetof()
-> variant in the same spirit.
->=20
-> Signed-off-by: Bence Csokas <bence.csokas@arm.com>
-> ---
->  include/linux/overflow.h | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
->=20
-> diff --git a/include/linux/overflow.h b/include/linux/overflow.h
-> index d0f04436343e..060dad4b6f3e 100644
-> --- a/include/linux/overflow.h
-> +++ b/include/linux/overflow.h
-> @@ -464,6 +464,18 @@ static __always_inline size_t __must_check size_sub(=
-size_t minuend, size_t subtr
->   */
->  #define struct_offset(p, member) (offsetof(typeof(*(p)), member))
-> =20
-> +/**
-> + * struct_offsetofend() - Calculate the end of a member within a struct
-> + * @p: Pointer to the struct
-> + * @member: Name of the member to get the end offset of
-> + *
-> + * Calculates the offset of the end of a particular @member of the struc=
-ture
-> + * pointed to by @p.
-> + *
-> + * Return: number of bytes to the location of @member.
-> + */
-> +#define struct_offsetofend(p, member) (offsetofend(typeof(*(p)), member))
+This makes the TX timeout recovery three-tiered:
 
-The outer parentheses are unnecessary (they are unnecessary in
-struct_offset() too, but that already exists).
+  Level 1: CQE poll via napi_schedule() (this patch)
+  Level 2: Port queue reset (detach/attach)
+  Level 3: device reset(FLR)
 
+Co-developed-by: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+Signed-off-by: Dipayaan Roy <dipayanroy@linux.microsoft.com>
+Signed-off-by: Sahil Chandna <sahilchandna@linux.microsoft.com>
+---
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 31 ++++++++++++++++---
+ .../ethernet/microsoft/mana/mana_ethtool.c    |  2 ++
+ include/net/mana/mana.h                       |  4 +++
+ 3 files changed, 33 insertions(+), 4 deletions(-)
 
-Have a lovely day!
-Alex
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+index e6d494df22e4..0d8c8b8fbc83 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_en.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+@@ -336,6 +336,9 @@ static void mana_per_port_queue_reset_work_handler(struct work_struct *work)
+ 	if (err)
+ 		netdev_err(ndev, "mana_attach failed: %d\n", err);
 
-> +
->  /**
->   * __DEFINE_FLEX() - helper macro for DEFINE_FLEX() family.
->   * Enables caller macro to pass arbitrary trailing expressions
->=20
-> --=20
-> 2.56.1
->=20
->=20
++	/* Let the next TX timeout try a CQE poll recovery first */
++	WRITE_ONCE(apc->last_tx_timeout, 0);
++
+ dealloc_pre_rxbufs:
+ 	mana_pre_dealloc_rxbufs(apc);
+ clear_flag:
+@@ -964,6 +967,7 @@ static void mana_tx_timeout(struct net_device *netdev, unsigned int txqueue)
+ 	struct mana_port_context *apc = netdev_priv(netdev);
+ 	struct mana_context *ac = apc->ac;
+ 	struct gdma_context *gc = ac->gdma_dev->gdma_context;
++	unsigned long last = READ_ONCE(apc->last_tx_timeout);
 
---=20
-<https://www.alejandro-colomar.es>
+ 	/* Debug knob for bringup/qualification: when set, log the timeout and
+ 	 * skip the reset so the failing state is preserved for telemetry.
+@@ -980,11 +984,30 @@ static void mana_tx_timeout(struct net_device *netdev, unsigned int txqueue)
+ 	if (test_bit(GC_IN_SERVICE, &gc->flags))
+ 		return;
 
---hmbonzz4lyxux25l
-Content-Type: application/pgp-signature; name="signature.asc"
+-	/* Note: If there are pending queue reset work for this port(apc),
+-	 * subsequent request queued up from here are ignored. This is because
+-	 * we are using the same work instance per port(apc).
++	if (!apc->port_is_up)
++		return;
++
++	/* If the previous timeout fired less than
++	 * MANA_TX_TIMEOUT_RESET_THRESHOLD ago, the earlier CQE poll did not
++	 * help and queue stalled again	: escalate to a port reset.
++	 * Note: If there is pending queue reset work for this port (apc),
++	 * subsequent requests queued up from here are ignored, because the
++	 * same work instance is used per port (apc).
+ 	 */
+-	queue_work(ac->per_port_queue_reset_wq, &apc->queue_reset_work);
++	if (last &&
++	    time_after(last, jiffies - MANA_TX_TIMEOUT_RESET_THRESHOLD)) {
++		queue_work(ac->per_port_queue_reset_wq, &apc->queue_reset_work);
++		return;
++	}
++
++	/* First timeout, or the previous one was long ago: try to recover by
++	 * polling the TX CQ for completions before escalating to a reset.
++	 */
++	if (txqueue < apc->num_queues && apc->tx_qp && apc->tx_qp[txqueue]) {
++		WRITE_ONCE(apc->last_tx_timeout, jiffies);
++		apc->eth_stats.tx_cqe_poll_recovery++;
++		napi_schedule(&apc->tx_qp[txqueue]->tx_cq.napi);
++	}
+ }
 
------BEGIN PGP SIGNATURE-----
+ static int mana_shaper_set(struct net_shaper_binding *binding,
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+index a91eb12badca..ff4799c61a6c 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
+@@ -22,6 +22,8 @@ static const struct mana_stats_desc mana_eth_stats[] = {
+ 				       tx_linear_pkt_cnt)},
+ 	{"rx_cqe_unknown_type", offsetof(struct mana_ethtool_stats,
+ 					rx_cqe_unknown_type)},
++	{"tx_cqe_poll_recovery", offsetof(struct mana_ethtool_stats,
++					tx_cqe_poll_recovery)},
+ };
 
-iQIzBAABCgAdFiEES7Jt9u9GbmlWADAi64mZXMKQwqkFAmr1mUAACgkQ64mZXMKQ
-wqniCg//WgRXXz7luTnHUaMXrHNthttFpY3wBO557jzGIfLwMa+0tJqYgSh8MGS8
-7F44pQ7lX8E0qC+aMkDd3ItqdrKeD3McIbqqgpr8iU1VT0ljohr8pnTU7UIyIP/u
-bX/o22pWYohJFt/xcJcLxQ63rHmjcfjH2ug2i8ZgZHh/YGX+Biah79nfkcAB+uYX
-NI+43mSTP1aHvUK3Jf/z7PJF/v1/vyv1zJ/nsoN74w3JhlYGMggMcXHSu+dp0jmX
-qJUkyYJ5SQEzMdU/n2pSgOJFIZl6YS957I6fhU3GxEPXSldcnd/VIH/QRKMpSyjM
-jWzBsyjyyink+9RSw7AcmU46DJ28GeWMW5jZdg7jXq6ZGjO0/AKleOtMrevQLN4s
-hB7CzUrtofXBv5Oa5javphhfKIEoawgDsDch5eXFQW/Rm9rSflWysbPTCST5n/h0
-GfKbUEzD+COFj6I+Y8COEceKp4Xv8Y08A3r6CyyNIPzPwcc0CulK6xAmHbsMxIXZ
-c6uz3LLfqukMfbuquIZE4KhlNt+ZLRtnxL6rFfFkvLYdz4KwIsljmiPqoyPQxp9A
-OX5vOdZ9ulzmuuNoTY5OeJWSlsI6edzNc17hE6jjR1+wFfJSzVF2cvvv6mRGnpY/
-bGpmsQZFuH/KWJutZlHbsMGYEKF7lo42UH0Tqx57oaglMss89x4=
-=8quq
------END PGP SIGNATURE-----
+ static const struct mana_stats_desc mana_hc_stats[] = {
+diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
+index 09725e3256fa..5de6eaa02102 100644
+--- a/include/net/mana/mana.h
++++ b/include/net/mana/mana.h
+@@ -94,6 +94,8 @@ enum mana_priv_flag_bits {
 
---hmbonzz4lyxux25l--
+ #define MANA_RX_FRAG_ALIGNMENT 64
+
++#define MANA_TX_TIMEOUT_RESET_THRESHOLD (2 * 60 * HZ)
++
+ struct mana_stats_rx {
+ 	u64 packets;
+ 	u64 bytes;
+@@ -447,6 +449,7 @@ struct mana_tx_qp {
+ struct mana_ethtool_stats {
+ 	u64 stop_queue;
+ 	u64 wake_queue;
++	u64 tx_cqe_poll_recovery;
+ 	u64 tx_cqe_err;
+ 	u64 tx_cqe_unknown_type;
+ 	u64 tx_linear_pkt_cnt;
+@@ -566,6 +569,7 @@ struct mana_port_context {
+ 	struct net_device *ndev;
+ 	struct work_struct queue_reset_work;
+
++	unsigned long last_tx_timeout;
+ 	/* Debug knob to log TX timeout but skip recovery reset */
+ 	bool tx_timeout_skip_reset;
+
+--
+2.53.0
+
