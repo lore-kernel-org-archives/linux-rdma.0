@@ -1,81 +1,119 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=115.124.30.100
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794459290;
-	b=4iNhu42vX0R+msbksGQWM0qmDU1gaA/8tO46AICAc4mqlXKwYRm12SBBCFdW3Ydrtl28
-	 JEUlRqcB/GkJ3BN74utxjOqZTxb9+aj9JIpHHrHWpwsAOJnndkkwWTCXFGyvJFffIeehI
-	 gekOauXfJ7zV3Z7VRRzhwwXrmwGa+1mwHo8AQdBd7sZVZSyCHUMNB1AdNFxs484YlqpAH
-	 qSDMMCD8A9dEY++iZkHqEnlTQi8MEDTaGrkp5EBCBhG3+q7K/hFgiOUd66lTHaUV7MAVH
-	 6PAR1ZMA3+5sqO6cFOH+y5v0sLpZvZ0JUnE0G0yMOWQquCF+/8QXHU2pFu6w0slo6rQ==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794459290;
-	h=DMARC-Filter:DKIM-Signature:X-Alimail-AntiSpam:Received:Date:From:To:
-	 Cc:Subject:Message-ID:Reply-To:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To;
-	bh=/V28rCHXi3T9oO9LFCn5sfVOcz0zmvubCJbcVebXDxQ=;
-	b=xEHiGJOb9wMcknM/xQqVA+uG6A8Dw1YzVX26qlYAbMjn4oioog3Mr3AAKT08BzbQoPlm
-	 e4OxRa1wKaPDLNWamivJj3958wPNvpfHxAP5PxeVSkECNXrHj2oaV/4/lAcCdMRexkeTL
-	 X0FThaqeWpQgmrzDoL3pFzhKNHmoVMUP5vmAd9pZxc8sa/B+aEOPL4ZrFGXYGhwHmntJs
-	 X5hn1wYLE0pkULJeQ3gbW4FqosCURDlMCm0jKcWUUhUDbJTt+ULk7cXmLAc7lHINhDuGf
-	 f8vZSxmm4Eiwpdkimfi00q9bVb/kT200z+62eU59VqS4jJXdgCjPqorqoo3DXRn/iZw==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.alibaba.com;
-	spf=pass smtp.mailfrom=linux.alibaba.com;
-	dkim=pass header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=MXltY6b0;
-	arc=none smtp.remote-ip=115.124.30.100
-Received: from out30-100.freemail.mail.aliyun.com (out30-100.freemail.mail.aliyun.com [115.124.30.100])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.48.50
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1794471245;
+	b=xB046OIEwMQOC/xBzg5wTkfi8uktAFP6OxzTQZpUtAfmnJx41FbSeEsh17UPBE/6x2IA
+	 zv9tNOZ2pbKgqnxFI32PEO8iKZ4d/i/D0HQ8PksDxoGLUHLI5Rv3u4fquz8GNuURgP3MH
+	 0gnS9EznNpw7SPSEBUZAnwCfKZnPU2J11V2jWxdfQfQrTwu8J5lQBiSQ1+dv6UaSLJju2
+	 DYCrH4m/8+LFANoYQZZwNBlQncKbqaS7L6YNBHdt0thx/hm2KAZWPrp8T+hmsWTj/CJD2
+	 Mave7faq34dk41gQ5CAjArOB7AbccXGdbU8fQwsh6IwgqPoJ+8qb9MA0jiEEN4bDM/Q==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794471245;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:
+	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
+	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding:Content-Type:
+	 X-NV-OnPremToCloud:X-EOPAttributedMessage:X-MS-PublicTrafficType:
+	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
+	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
+	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+	 X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-Id:
+	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=DMHEYgOdqvRoaIoBzq+1xGsjU8NWukhmEboUfrer25o=;
+	b=gNnkfk8RK3Nkqs46GGyZm5dFTl46CCmKdnI8g+Htwq+/uDf2odKSNJRjiAODHOJ3FquZ
+	 9gCH2hJuTdlpjaizeZkOIgvJMzd4lyYbSdglt6kdH7fvenHXTGUSFNNhm0M1rdS/Pf1UP
+	 nivrB/QywAeK2tIUjMlYH8mfHB6aOOmwU98kBtsXSp+TAIRhJLC5+5MnR8MdAYELn54oH
+	 Wh8GDE+eSMe8EZ5a9UK8nt2vcd/Ov1LscEVaSAgf2QvPya8MEdIqQRx3WuYhId5bfFtrX
+	 I7PvqrEqjamerELcx1HwmJb3FRWv6bFwqA90e/dOU4mntsbLxrYkFPKKy2enNe8Fx4g==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=EKXzdu5L;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.48.50
+Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012050.outbound.protection.outlook.com [52.101.48.50])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FBCB606A32A;
-	Thu, 12 Nov 2026 04:54:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9FBCB606A32A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA805606A31C;
+	Thu, 12 Nov 2026 08:14:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AA805606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=MXltY6b0
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1794459284; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
-	bh=/V28rCHXi3T9oO9LFCn5sfVOcz0zmvubCJbcVebXDxQ=;
-	b=MXltY6b02zxJBPSSJCcrFOFIVlsBPwa+MF+BOn7nVcYMoHG/lR/idyOofAtP+7o28bmnleqYQobOuF1X03XhPFzpBC/hqZgH8dTQlrXbc1lMAFQJxWEzyBHEg4X9w+v0wAMn3OjhU+vlgQS7hHIJLJYkmTvC3eWmg5pBomYYpaY=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam011083073210;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=37;SR=0;TI=SMTPD_---0XEaoXEq_1794459281;
-Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0XEaoXEq_1794459281 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Thu, 12 Nov 2026 12:54:41 +0800
-Date: Thu, 12 Nov 2026 12:54:41 +0800
-From: Dust Li <dust.li@linux.alibaba.com>
-To: Jiayuan Chen <jiayuan.chen@linux.dev>, netdev@vger.kernel.org
-Cc: David Ahern <dsahern@kernel.org>, Ido Schimmel <idosch@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Paul Moore <paul@paul-moore.com>,
-	Matthieu Baerts <matttbe@kernel.org>,
-	Mat Martineau <martineau@kernel.org>,
-	Geliang Tang <geliang@kernel.org>, Julian Anastasov <ja@ssi.bg>,
-	Allison Henderson <achender@kernel.org>,
-	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-	Xin Long <lucien.xin@gmail.com>,
-	"D. Wythe" <alibuda@linux.alibaba.com>,
-	Sidraya Jayagond <sidraya@linux.ibm.com>,
-	Mahanta Jambigi <mjambigi@linux.ibm.com>,
-	Tony Lu <tonylu@linux.alibaba.com>,
-	Wen Gu <guwen@linux.alibaba.com>, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	bridge@lists.linux.dev, linux-security-module@vger.kernel.org,
-	mptcp@lists.linux.dev, lvs-devel@vger.kernel.org,
-	linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
-	linux-sctp@vger.kernel.org, linux-s390@vger.kernel.org
-Subject: Re: [PATCH net-next 12/14] net/smc: annotate data-races around smc
- sysctls
-Message-ID: <avVGkcI_j0hDPjQB@linux.alibaba.com>
-Reply-To: dust.li@linux.alibaba.com
-References: <20261109025425.328445-1-jiayuan.chen@linux.dev>
- <20261109025425.328445-13-jiayuan.chen@linux.dev>
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=EKXzdu5L
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=ofg71QExNwuTfkFvp70A8/PMtK/UwuqvNaVVS3xTE3mR3dTYG+Ru8Z38tRtVQ4OpqcW2TjwtmyJDhYJl9T8FSY9maTL6jqayBGutC53Vsk1sXUTf0pgz+2HIwRrSm7WTuMgey5T+x8khFbF0D9NyNna3NthAgshYsgwOq97vvB/X0uR+/pb7apJG1/807/gWvKGj+AAk4BNZ3DmrHebOYhzKCHwwqSOMHeHra8q9D2Ql5+LPW5/8wNosxjvE9TJa8ds1CVqcKhnODI70spgIY2J9jhDbE05PuKBLL144C2uF3we/1bAxK9xtEmAOzjMhZhasvTfupWGhvZyZ+ZZQuA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=DMHEYgOdqvRoaIoBzq+1xGsjU8NWukhmEboUfrer25o=;
+ b=H9wookEFzr9kc7fQcJAoq2ZMCsOK6XkFxuyG6uWN2yyy/LqF9iWyuTWhfAOH3oEraBt3OMt2nHaIVlu6R1bKN3Rs7Oay8wOFDQqkf963vj5yfY74PFFrsgqhUmcYdc8fM04omrgytiyKVcAyPc3Zrujvh8LA/Qxyhd2WdIfZ2M8UNLv25p8waBPyDTUf/OZ+tHmTMq5Gp5BnRnnGIFEofT/2b0FUgBY9eXqPXWBBphrEAf1oZLcYeYg26aVhOTkXZCMUHj9nPN6gtYMN5d6o5J0uAZ5m98LKqFc3EyLc6QyxJJUGLdMiL9n1xroTcAeIGem1IzR9tKh1Uirh/E/r6w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=linuxfoundation.org
+ smtp.mailfrom=nvidia.com; dmarc=pass (p=reject sp=reject pct=100) action=none
+ header.from=nvidia.com; dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=DMHEYgOdqvRoaIoBzq+1xGsjU8NWukhmEboUfrer25o=;
+ b=EKXzdu5LpoExvnM/VjJ8N1BdV+skY3wKXolljtNBxHBgBBBmHf7orAdt4xme9DW6Mg3ExTmOUUahh6DHyrsCJj+VzglkFUvArruRMitq9ozJxYMVgEHsse+u8wXQEijiMR+BK10+XbaiGaxC2v/L8+czeXJxy/ncIn/mrodl//hcRndUCUae/cPHw4wtyvq6pBTEX/uqvfK7jObul/rOhaMH7194JqtcaJNFN24O1BSws10C6jXwftCItmwVL0O9GsIC2V+E8g3U++pnh7s+SsUKuS+uKMmAa37WfNDIJkiev32ifhi2MJ0FhSuO48wLHxo6Vnzu+qUThoHpOtY1PA==
+Received: from MW4PR04CA0086.namprd04.prod.outlook.com (2603:10b6:303:6b::31)
+ by CH3PR12MB8212.namprd12.prod.outlook.com (2603:10b6:610:120::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.10; Thu, 12 Nov
+ 2026 08:13:58 +0000
+Received: from CO1PEPF0001885E.namprd02.prod.outlook.com
+ (2603:10b6:303:6b:cafe::27) by MW4PR04CA0086.outlook.office365.com
+ (2603:10b6:303:6b::31) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.9 via Frontend Transport; Thu, 12
+ Nov 2026 08:13:58 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ CO1PEPF0001885E.mail.protection.outlook.com (10.167.249.247) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.615.4 via Frontend Transport; Thu, 12 Nov 2026 08:13:58 +0000
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Thu, 12 Nov
+ 2026 00:13:41 -0800
+Received: from rnnvmail203.nvidia.com (10.129.68.9) by rnnvmail202.nvidia.com
+ (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Thu, 12 Nov
+ 2026 00:13:40 -0800
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.9)
+ with Microsoft SMTP Server id 15.2.2562.56 via Frontend Transport; Thu, 12
+ Nov 2026 00:13:34 -0800
+From: Tariq Toukan <tariqt@nvidia.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki"
+	<rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, Johan Hovold
+	<johan@kernel.org>
+CC: <driver-core@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
+	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>, Andrew Lunn
+	<andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, "Eric
+ Dumazet" <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
+	<pabeni@redhat.com>, Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky
+	<leon@kernel.org>, Mark Bloch <mbloch@nvidia.com>, Amir Tzin
+	<amirtz@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>, Shay Drory
+	<shayd@nvidia.com>, Parav Pandit <parav@nvidia.com>, Przemek Kitszel
+	<przemyslaw.kitszel@intel.com>, Jacob Keller <jacob.e.keller@intel.com>, "Gal
+ Pressman" <gal@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, Leon Romanovsky
+	<leonro@nvidia.com>
+Subject: [PATCH V3] driver core: auxiliary bus: Fix IRQ sysfs directory cleanup
+Date: Thu, 12 Nov 2026 10:13:19 +0200
+Message-ID: <20261112081319.3466442-1-tariqt@nvidia.com>
+X-Mailer: git-send-email 2.44.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -85,123 +123,122 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261109025425.328445-13-jiayuan.chen@linux.dev>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CO1PEPF0001885E:EE_|CH3PR12MB8212:EE_
+X-MS-Office365-Filtering-Correlation-Id: 051540f3-d025-4b69-324e-08df4094e6da
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|7416014|23010399003|1800799024|36860700016|82310400026|10067099003|11063799006|260925021311599003|260925022911599003|260925021911599003|56012099006|261022105027099003|261028144727099003|261026140227099003|261021123027099003|261021121427099003|261102123227099003|261009223027099003|18002099003|13003099007;
+X-Microsoft-Antispam-Message-Info:
+	Mwij12s21BcR7ckIZYwcvqfDkN45KeybY6C60ATb22Ipf8i4AAw96AQWBtf0X0qqLyAxizy7er3noCoqMoKXRd34rib+M3TWdUe7JVdhqdzXwFWQqkomVSxpo+n8eVnumh7A4jJc6edd/qnrK9pTb2KPivAd9GZJDlqZ5/YZOGv99iA/e0WMwp+wg/SzDinw7mKX+kB+tzhd2SvdwMNuUPIWwFnHyz/Yp7BLzbrAWV8ot6ObWstZn80iZc7cWoZCQ05Xo9jeUZWnGYsHS4xMmQmP5R2BKB/JXygtDXt71VG2XKWXMMZNuhIJG94QI6IcIItlocr3tk99n98y5C6A60QlYIKsE68O+BmL4C3OCwAjMq18+tuNepbOvjVWGFMNtKVHBiWnWHbx5hD1Qtt+Q1SrD8C7Bk2T3VL9ZwkQN7cFg/i6TaZ0QTg2nWMhG+OmPOTVRrnmz8EmBc+N+CZa1jyY6/+HBINX3f5xdHSyXFCfk9619V4WTBwg1dVDTqq8fBJda86pT5D8uKOqJOZwBeMrFB9Z4gXVK/EI8m+qRnz00q0dxZftOF0pPoL6sWXQB87fcjDRWAnlgRYug8U5Y81DDS04mnIzHIpMUg4kqQafUedhHXAaOXylkXzUG0lD13/d6/PKhW9RiLZUyFUENpn8dIDsl3RzMtNeStpjA/JOtDimRi/euK75tp4nloWnK9AyS3ESpSeYD9W+7E40LA==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(7416014)(23010399003)(1800799024)(36860700016)(82310400026)(10067099003)(11063799006)(260925021311599003)(260925022911599003)(260925021911599003)(56012099006)(261022105027099003)(261028144727099003)(261026140227099003)(261021123027099003)(261021121427099003)(261102123227099003)(261009223027099003)(18002099003)(13003099007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	nNW4Q1Ggb6u+yPXoOtOWvwFwSnhPtIAO8GlzlgU69itvb4Aj643nX3i3dufCmmglZwsaat45by8LYjvPPs3JF4MTN3VmrxGo9tSBqqJPbFzkh/e6gQgFtzg70aBlNlHS9/xbSQeSodUKqB6+SslILLFyJMk/aHpl4uSivBD89YLoT6OxpV/QNI9ooLoYuy/rS4THRlB4VVcPnGgd27FhuF2ACEDhiKH19A+ssT+zp8szdPB8IxjtSSBqMrnZnZNgqnw0jM1o1HA46pgmDXmE0AiBcrk2gZioW+uvmW3OLvwRV04cVWgznAwpyMD0biOVcw0y5Sgb3LHN4iPuCgMvdRnuyYIaHV6/yrtAqtrLapW3jGj3KQDFQsmPPIhmHJaAUj7PIqQqrRSJ87muldOn3ukqhTG9kPFy6nXdRYfleRwhvi1pdBZPM8W4VylWYJPz
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Nov 2026 08:13:58.1224
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 051540f3-d025-4b69-324e-08df4094e6da
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CO1PEPF0001885E.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8212
 
-On 2026-11-09 10:52:11, Jiayuan Chen wrote:
->autocorking_size, smcr_buf_type, smcr_max_links_per_lgr,
->smcr_max_conns_per_lgr and limit_smc_hs are read without any lock while
->their sysctl handlers update them with WRITE_ONCE(), and the SMC netlink
->handlers toggle limit_smc_hs with plain writes. Add READ_ONCE() to the
->readers and WRITE_ONCE() to those handlers.
->
->Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
-Acked-by: Dust Li <dust.li@linux.alibaba.com>
+From: Amir Tzin <amirtz@nvidia.com>
 
-Best regards,
-Dust
+In case an auxiliary device with IRQs directory is unbound, the
+directory is released, but auxdev->sysfs.irq_dir_exists remains true.
+This leads to a failure recreating the directory on bind.
 
->---
-> net/smc/af_smc.c   | 8 ++++----
-> net/smc/smc_clc.c  | 8 ++++----
-> net/smc/smc_core.c | 2 +-
-> net/smc/smc_tx.c   | 2 +-
-> 4 files changed, 10 insertions(+), 10 deletions(-)
->
->diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
->index d10244af5bd29..9a657172be8f9 100644
->--- a/net/smc/af_smc.c
->+++ b/net/smc/af_smc.c
->@@ -88,7 +88,7 @@ int smc_nl_dump_hs_limitation(struct sk_buff *skb, struct netlink_callback *cb)
-> 		return -ENOMEM;
-> 
-> 	if (nla_put_u8(skb, SMC_NLA_HS_LIMITATION_ENABLED,
->-		       sock_net(skb->sk)->smc.limit_smc_hs))
->+		       READ_ONCE(sock_net(skb->sk)->smc.limit_smc_hs)))
-> 		goto err;
-> 
-> 	genlmsg_end(skb, hdr);
->@@ -102,13 +102,13 @@ int smc_nl_dump_hs_limitation(struct sk_buff *skb, struct netlink_callback *cb)
-> 
-> int smc_nl_enable_hs_limitation(struct sk_buff *skb, struct genl_info *info)
-> {
->-	sock_net(skb->sk)->smc.limit_smc_hs = true;
->+	WRITE_ONCE(sock_net(skb->sk)->smc.limit_smc_hs, true);
-> 	return 0;
-> }
-> 
-> int smc_nl_disable_hs_limitation(struct sk_buff *skb, struct genl_info *info)
-> {
->-	sock_net(skb->sk)->smc.limit_smc_hs = false;
->+	WRITE_ONCE(sock_net(skb->sk)->smc.limit_smc_hs, false);
-> 	return 0;
-> }
-> 
->@@ -411,7 +411,7 @@ void smc_sk_init(struct net *net, struct sock *sk, int protocol)
-> 	spin_lock_init(&smc->conn.send_lock);
-> 	mutex_init(&smc->clcsock_release_lock);
-> 	smc_init_saved_callbacks(smc);
->-	smc->limit_smc_hs = net->smc.limit_smc_hs;
->+	smc->limit_smc_hs = READ_ONCE(net->smc.limit_smc_hs);
-> 	smc->use_fallback = false; /* assume rdma capability first */
-> 	smc->fallback_rsn = 0;
-> 	smc_close_init(smc);
->diff --git a/net/smc/smc_clc.c b/net/smc/smc_clc.c
->index 014d527d5462d..df0afeef67cbd 100644
->--- a/net/smc/smc_clc.c
->+++ b/net/smc/smc_clc.c
->@@ -990,8 +990,8 @@ int smc_clc_send_proposal(struct smc_sock *smc, struct smc_init_info *ini)
-> 	}
-> 	if (smcr_indicated(ini->smc_type_v2)) {
-> 		memcpy(v2_ext->roce, ini->smcrv2.ib_gid_v2, SMC_GID_SIZE);
->-		v2_ext->max_conns = net->smc.sysctl_max_conns_per_lgr;
->-		v2_ext->max_links = net->smc.sysctl_max_links_per_lgr;
->+		v2_ext->max_conns = READ_ONCE(net->smc.sysctl_max_conns_per_lgr);
->+		v2_ext->max_links = READ_ONCE(net->smc.sysctl_max_links_per_lgr);
-> 	}
-> 
-> 	pclc_base->hdr.length = htons(plen);
->@@ -1272,12 +1272,12 @@ int smc_clc_srv_v2x_features_validate(struct smc_sock *smc,
-> 
-> 	if (ini->smcr_version & SMC_V2) {
-> 		ini->max_conns = min_t(u8, pclc_v2_ext->max_conns,
->-				       net->smc.sysctl_max_conns_per_lgr);
->+				       READ_ONCE(net->smc.sysctl_max_conns_per_lgr));
-> 		if (ini->max_conns < SMC_CONN_PER_LGR_MIN)
-> 			return SMC_CLC_DECL_MAXCONNERR;
-> 
-> 		ini->max_links = min_t(u8, pclc_v2_ext->max_links,
->-				       net->smc.sysctl_max_links_per_lgr);
->+				       READ_ONCE(net->smc.sysctl_max_links_per_lgr));
-> 		if (ini->max_links < SMC_LINKS_ADD_LNK_MIN)
-> 			return SMC_CLC_DECL_MAXLINKERR;
-> 	}
->diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
->index 6021322253e93..3d338019a1b8b 100644
->--- a/net/smc/smc_core.c
->+++ b/net/smc/smc_core.c
->@@ -990,7 +990,7 @@ static int smc_lgr_create(struct smc_sock *smc, struct smc_init_info *ini)
-> 		lgr->net = smc_ib_net(lnk->smcibdev);
-> 		lgr_list = &smc_lgr_list.list;
-> 		lgr_lock = &smc_lgr_list.lock;
->-		lgr->buf_type = lgr->net->smc.sysctl_smcr_buf_type;
->+		lgr->buf_type = READ_ONCE(lgr->net->smc.sysctl_smcr_buf_type);
-> 		atomic_inc(&lgr_cnt);
-> 	}
-> 	smc->conn.lgr = lgr;
->diff --git a/net/smc/smc_tx.c b/net/smc/smc_tx.c
->index 0f0c6df3bf2ce..30bffe79d06a3 100644
->--- a/net/smc/smc_tx.c
->+++ b/net/smc/smc_tx.c
->@@ -148,7 +148,7 @@ static bool smc_should_autocork(struct smc_sock *smc)
-> 	int corking_size;
-> 
-> 	corking_size = min_t(unsigned int, conn->sndbuf_desc->len >> 1,
->-			     sock_net(&smc->sk)->smc.sysctl_autocorking_size);
->+			     READ_ONCE(sock_net(&smc->sk)->smc.sysctl_autocorking_size));
-> 
-> 	if (atomic_read(&conn->cdc_pend_tx_wr) == 0 ||
-> 	    smc_tx_prepared_sends(conn) > corking_size)
->-- 
->2.43.0
+[] mlx5_core.sf mlx5_core.sf.2: mlx5_irq_affinity_request:167:(pid 1939):
+   Failed to create sysfs entry for irq 56, ret = -2
+[] mlx5_core.sf mlx5_core.sf.2: mlx5_eq_table_create:1195:(pid 1939):
+   Failed to create async EQs
+[] mlx5_core.sf mlx5_core.sf.2: mlx5_load:1362:(pid 1939):
+   Failed to create EQs
+
+The irqs directory state is described by three pieces: the sysfs group,
+the irq_dir_exists flag and the irqs xarray. Currently, only the sysfs
+group removal is managed by the devres API, and on unbind the group is
+removed while the flag and xarray are left intact. Thus, a subsequent
+bind sees irq_dir_exists still set and skips recreating the directory.
+
+Manage all three under a single release function passed to
+devm_add_action_or_reset(), so the whole directory state is created and
+destroyed as a unit.
+
+Fixes: a808878308a8 ("driver core: auxiliary bus: show auxiliary device IRQs")
+Suggested-by: Danilo Krummrich <dakr@kernel.org>
+Signed-off-by: Amir Tzin <amirtz@nvidia.com>
+Reviewed-by: Mark Bloch <mbloch@nvidia.com>
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+---
+ drivers/base/auxiliary_sysfs.c | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
+
+V3:
+- New approach.
+- Retitle, and add Danilo's Suggested-by.
+- Drop Jacob's Reviewed-by, as the approach changed.
+
+V2:
+https://lore.kernel.org/all/20260219210435.1769394-1-tariqt@nvidia.com/
+
+V1:
+https://lore.kernel.org/all/1761200367-922346-1-git-send-email-tariqt@nvidia.com/
+
+diff --git a/drivers/base/auxiliary_sysfs.c b/drivers/base/auxiliary_sysfs.c
+index dea7f46f7dd0..656ba057dc98 100644
+--- a/drivers/base/auxiliary_sysfs.c
++++ b/drivers/base/auxiliary_sysfs.c
+@@ -22,21 +22,32 @@ static const struct attribute_group auxiliary_irqs_group = {
+ 	.attrs = auxiliary_irq_attrs,
+ };
+ 
++static void auxiliary_irq_dir_release(void *data)
++{
++	struct auxiliary_device *auxdev = data;
++
++	xa_destroy(&auxdev->sysfs.irqs);
++	auxdev->sysfs.irq_dir_exists = false;
++	sysfs_remove_group(&auxdev->dev.kobj, &auxiliary_irqs_group);
++}
++
+ static int auxiliary_irq_dir_prepare(struct auxiliary_device *auxdev)
+ {
+-	int ret = 0;
++	int ret;
+ 
+ 	guard(mutex)(&auxdev->sysfs.lock);
+ 	if (auxdev->sysfs.irq_dir_exists)
+ 		return 0;
+ 
+-	ret = devm_device_add_group(&auxdev->dev, &auxiliary_irqs_group);
++	ret = sysfs_create_group(&auxdev->dev.kobj, &auxiliary_irqs_group);
+ 	if (ret)
+ 		return ret;
+ 
+ 	auxdev->sysfs.irq_dir_exists = true;
+ 	xa_init(&auxdev->sysfs.irqs);
+-	return 0;
++
++	return devm_add_action_or_reset(&auxdev->dev,
++					auxiliary_irq_dir_release, auxdev);
+ }
+ 
+ /**
+
+base-commit: b71c101bbb9814d163c00234d43c41f0a17907d4
+-- 
+2.44.0
+
