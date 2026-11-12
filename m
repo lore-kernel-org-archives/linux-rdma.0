@@ -1,60 +1,86 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.41
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794478068;
-	b=1g1tumIYWuih8ssmk9S0KhpBaPpuWc2TDehmrWlDkuNE/816GJrxSlVw7dlVNImm88tH
-	 4SR3SE+P4D93pCs+Xy2U7DMtowXZMKLlAXg2vn5bB+7dsv2nPpGGo97RFn/tymPKTjujL
-	 PIk+xp1O+TzE0Zk3VzigIfTP+VrvejDHXR/nsbqiwNtzspr9p0/Xq1fma7Tt2vwnqbq2f
-	 N/u4f93jggl3JMUo7BmD8njrfguqZTqYOYgzf16JUdJRM2fWSV9wyAVSbMt4648eGmCpw
-	 reLvbZaYzUbOtAuxXvmWi27TiNS7Gm2PsuhNTPoiqx2HLIc0FGU5tv0g0Do5QXkxVNA==
+	t=1794478501;
+	b=VwJuYSyU9leY09KQNPuyCTd1unQkB4tWt65Bv0SRYHKs7eq9U0WPe/hda/mLVRvdF5im
+	 qi1x6l0xV+DQbPwnFir2wfPWFpw/TYXDcW4kCNYETA8Vr/DW8ttTaBfs0lbte6kfBt0Ai
+	 dTn/kkTSkMTGz6SWoAu1i+850FEqHv6StYzXmNNJMoGdjW3o4RBjSLWST510JNPPtCuGm
+	 9/sFZL8VcWkDksX6Vh8V99TLcdj9EPuie3A1r+fYfid/G8tvR/9Y4jDIPo9YLRASjj4yB
+	 5JosOyXVvKIKJo+5LWN2bK56O2Fw5yY4ox/8zL9BxQa7PGMIkjkwd278sfdT2rZ/xQQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794478068;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=CB8hpFcaKprHhoAZRaCL1l/n1/2Q6E5P58wFUUAlJYA=;
-	b=DWztIel1NtldjGHwWZb+B04pk2KBb936sUftlBsJVMbYgaLJkrDxDVcOmsEN1KODKXEX
-	 0L9f6a1Zr7zrcAkgIxZ3cvS86W1orV30Mt+SbYKX/gNmW85gj8dUzM1MLN0VxMXz9ZCp1
-	 bhSARjagqVVhYrydyg7qU2KO0ob2Va0UnP061dJj/Q7gOkd2kUDrKkwgIUM4YbW9I/izQ
-	 w/GRWDIDfqPYLHhl+qCL600y5jq8eOdjDk8RcxZ7D8SqVSxTEB+zBJVyBPXI3mTUCsigh
-	 7G9yfdRFVsv/DPkt4FpkrZ9pxvDlSlGspdUFevdAAuYRTZmz+m475f2HW1hPoZrR2ow==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794478501;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
+	 Content-Transfer-Encoding:Message-Id:References:To:X-Mailer;
+	bh=ihVUDcggHZh6D0xYhZJc42bMgYps+7jjufAK/stHqbo=;
+	b=FIkkuq4OFp7Y6hRc4i9X2DStrFOJ6IwNsuPUtdBqhXwn8bXFr2TDtW+O08zgiYV5b+lP
+	 piZlft5pGxg64U5Lc79mr4+CRYKggaW49GMq1K+9cd6kzycfVGQZI25bUjqJ/RfR3P9VQ
+	 zZxRVGMGySSFFvcb+k11gpSoZ4m8KDjwk4R258aN5f+Hog8kJxV+MXe4j9QOwK8dVlpjo
+	 zZkLCBveIaNjIcq8OvRFY4czsQxvBx5C3qQx3H0H5ZPxSLJSE0dGEbF9wXUbydfa3PI7P
+	 acwuogCCaYS40OJKuG2Rn5P5cjHjmf+wX5ZrKvM1IkyAIl/Lkyb5wGlgdvRK2/mACkg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=R6apUdRW;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=TSgcoAzY;
+	arc=none smtp.remote-ip=209.85.128.41
+Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com [209.85.128.41])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04308606A321
-	for <linux-rdma@vger.kernel.org>; Thu, 12 Nov 2026 10:07:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0399606A8A8
+	for <linux-rdma@vger.kernel.org>; Thu, 12 Nov 2026 10:15:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E0399606A8A8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=R6apUdRW
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70F571F00A05;
-	Thu, 12 Nov 2026 10:07:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794478067;
-	bh=CB8hpFcaKprHhoAZRaCL1l/n1/2Q6E5P58wFUUAlJYA=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=R6apUdRWvgGRDV5I2oPauAPXm0LN7rdo+WwJTM1Ac/y8GzJLT3qI0nx5p+AMWXGkX
-	 9OVe+GgG5bkivvDp2Nd0lbBMPCXrVbpeKVjlwlgn1kKrXpOoBeQG5n36BvXp3gyyoG
-	 2HdvdsFAVZxCMb82kMKqDdKz7zqtBfSvAm8h0HD+AbiLsHacZSUZ1iOQsGcaQqSLB6
-	 xKXf8gH9CDE8kW4F2bJ9zW/5SC3f3MrEabD7RzscHgysS/924nvKRdQGuMNNFsgHws
-	 Xa0xXgRnv0j/wked88olV5lzmvwmE0I0e7vGafqWab6oh8vN86aVUuIwwuuDA9q1Sf
-	 dX7sWsBtejp7Q==
-Message-ID: <sashiko-outbox-210923@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v4] RDMA/srpt: Prevent uninitialized read buffer
- disclosure
-Reply-To: sashiko-reviews@lists.linux.dev
-To: liuyong <pkfxxxing@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261112094138.1390409-1-pkfxxxing@gmail.com>
-References: <20261110030809.913063-1-pkfxxxing@gmail.com>
- <20261110030809.913063-2-pkfxxxing@gmail.com>
- <20261110052827.963143-1-pkfxxxing@gmail.com>
- <20261111065342.1282709-1-pkfxxxing@gmail.com>
- <20261112094138.1390409-1-pkfxxxing@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 12 Nov 2026 10:07:46 +0000
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=TSgcoAzY
+Received: by mail-wm1-f41.google.com with SMTP id 5b1f17b1804b1-4a9a8d6cea8so7845235e9.1
+        for <linux-rdma@vger.kernel.org>; Thu, 12 Nov 2026 02:15:00 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1794478499; x=1795083299; darn=vger.kernel.org;
+        h=to:references:message-id:content-transfer-encoding:cc:date
+         :in-reply-to:from:subject:mime-version:content-type:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=ihVUDcggHZh6D0xYhZJc42bMgYps+7jjufAK/stHqbo=;
+        b=TSgcoAzYSBGKg8YleqBq0oSirYkeMKTSHAk1fuGI/Ma6xKCokSaxTddLnZLIf3yuXx
+         MfbwAaoioEP2GFhBmnxpxlLvy2093taK53Rc/Ndf0mkW2go13gq19PpZ/mKNDzTXGxvf
+         5f4W15IQdBuZC7xcEYGhjGFVUnI8W4pmq7CqHcuhDrfuDbYZCX9FxZsDzj3f7/1uF6kN
+         0MVvnQ/Sisk0L+854rFAY8WF7iV+6F6LhC+BYrwynW95cItJOPimtlpJK5r1PrDxDzVd
+         iPwJWJFozgVKMIHJhBHlmqYl8WATj1y72ZfvRJzgcZwzkZ15q4x8yqCBje+rNX39FKqB
+         sj/A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794478499; x=1795083299;
+        h=to:references:message-id:content-transfer-encoding:cc:date
+         :in-reply-to:from:subject:mime-version:content-type:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=ihVUDcggHZh6D0xYhZJc42bMgYps+7jjufAK/stHqbo=;
+        b=R/3ppJM5DOURmG9YImOTAAnKp12964IhCe3reeqoyjl6/Hy7pAvBldBRGF/iVKqD49
+         EaNfVr92CcqdVfql1REID7kSQLRAwa7f5OKqyFhkgYhLz1jhS2oiP2lVOS2PyYXfh9RI
+         ZYxYQJurhRGMx25Ms8dLeqgHIcfVoeeJPxmaBrN7CNmdxXl4H5pD+lrKAg0tQ6gpalX0
+         +yckQQB69rQOKm38BL11pZbhCzfPJLudmGDG6CkWDJ4cv6PaXpzwp1S3HjTqGNsHsXdL
+         O+U8ttxb0oQrBNltApsyN3ROd3GlXn6uhHBVBZ9wEkMMA7UO3J4KTAmIprpHTBj7Vt7e
+         864A==
+X-Forwarded-Encrypted: i=1; AL+hErEDXCB/vGbb+EktxEuNzPLCtb5/wH7llApI1MyrUCeEPWmhJNRRuXvu7fSbyfqEyRQ39NWvDmyTkrrY@vger.kernel.org
+X-Gm-Message-State: APuU4Z/cazIfxs8XUNTRMzezq3K35ZVw5lv7KnV2nmZcbB3/+rww4wMr
+	ajaoQcSmPWhx6cf3C88L9IFcR6szCb43QcxZ4/NBltYe1abL8xZSGKZz
+X-Gm-Gg: AYBFou3ZxLusOfH1tWirYAb3OiJOvVBYCaah++A5CtcwBpCFg5+NZkAAWjhJs/bkZOv
+	WJYYYxr7gUhfILFT5zQusUOD05c/YD6qIBZb7z+do1+jbNbkWgmdKuCICYzmEzXnDYlQMemxiyj
+	h0+in8H/pPIrtm9FZ2CyvWDJcMksi+BHoHfngr1U96QRg3vKSgYNCpdrTtAJ3CJPXUQRHsc6pzL
+	ZMTEX5EMECVYDhkypq9ObYXvxY2fkUdDDYSzjGOFA2PZ933ztk5fjeWV/zxGX57/zOh3ly+CT8R
+	ErwIoOxDqoX4QxTw5COHSxvFl28GZYgESRwM52I4ti06PsVl4sd5tGwq39H/p2T7xzsNYUAk4/Z
+	+mSxH5CI+HkBfOhDSVTR9YcvKqXU/25JxGFXyvShmQFkT0JhX2J0Dz2jdGPeEkhc9EwQo1YINZc
+	pMUEazy2JfEYgNt7CUQcxYNT+eRQ7L/TYRm0SxGsJtCYeV7MQhrf5KRBXmQYch2BybNuAS5aTvY
+	Vf7vMJaJrtIiDBDhorhMwmke1/XUfnKOqYJaBRjISJXhVLHFua5GNj9dAdRi/3HGZ/NCjjNLOIp
+	uFVu0BoyrIgPekC863RnLy9T+lecqWhRiUXuO6HWzBC+jLzk8Z9QWWpq6v9ngiY/SvRFv6tS
+X-Received: by 2002:a05:600c:154a:b0:4a2:10f9:37db with SMTP id 5b1f17b1804b1-4bb4e27a9afmr42890975e9.7.1794478499301;
+        Thu, 12 Nov 2026 02:14:59 -0800 (PST)
+Received: from smtpclient.apple ([217.111.110.194])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb4e26700fsm66747305e9.10.2026.11.12.02.14.58
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 12 Nov 2026 02:14:59 -0800 (PST)
+Content-Type: text/plain;
+	charset=us-ascii
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,41 +89,42 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3901.200.71.1.16\))
+Subject: Re: [PATCH ipsec v2 1/7] xfrm: esp6: use the current sequence number
+ for the IV
+From: Usman Malik <usmalik90@gmail.com>
+In-Reply-To: <20261108142652.1330952-2-Jeremy.Jean@oss.cyber.gouv.fr>
+Date: Thu, 12 Nov 2026 11:14:48 +0100
+Cc: Steffen Klassert <steffen.klassert@secunet.com>,
+ Herbert Xu <herbert@gondor.apana.org.au>,
+ Sabrina Dubroca <sd@queasysnail.net>,
+ "David S. Miller" <davem@davemloft.net>,
+ Boris Pismenny <borisp@nvidia.com>,
+ Saeed Mahameed <saeedm@nvidia.com>,
+ Leon Romanovsky <leonro@nvidia.com>,
+ Tariq Toukan <tariqt@nvidia.com>,
+ Mark Bloch <mbloch@nvidia.com>,
+ netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org,
+ stable@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <530C7AD4-2591-49A9-9707-D504EEB48542@gmail.com>
+References: <20261108142652.1330952-1-Jeremy.Jean@oss.cyber.gouv.fr>
+ <20261108142652.1330952-2-Jeremy.Jean@oss.cyber.gouv.fr>
+To: =?utf-8?B?SsOpcsOpbXkgSmVhbg==?= <Jeremy.Jean@oss.cyber.gouv.fr>
+X-Mailer: Apple Mail (2.3901.200.71.1.16)
 
-> From: Yong Liu <pkfxxxing@gmail.com>
->=20
-> SRPT allocates read buffers and creates RDMA contexts from the
-> initiator's descriptors before parsing the CDB. When target core reduces
-> cmd->data_length, a backend such as rd_mcp fills only the shorter
-> length, but the prebuilt RDMA transfer still sends the full buffer.
-> Control CDB handlers can also leave bytes within cmd->data_length
-> unwritten, while target core only clears the first SG entry of these
-> preallocated buffers. Both cases can disclose stale target kernel memory
-> to a remote initiator with access to the LUN.
->=20
-> Reject indirect descriptor tables whose direct descriptor lengths do not
-> sum to the advertised total before allocating RDMA contexts. Also
-> initialize commands rejected during descriptor parsing so the BUSY
-> response path has valid callbacks and a command reference.
->=20
-> Save the original buffer length and zero the entire control read buffer
-> before command execution. For data READs, zero any tail beyond
-> cmd->data_length before posting the existing RDMA transfers. Synchronize
-> each mapped SG list for device access in the response path.
->=20
-> The issue was discovered by Qihoo 360's Tulongfeng multi-agent system.
->=20
-> Fixes: b99f8e4d7bcd ("IB/srpt: convert to the generic RDMA READ/WRITE API=
-")
-> Fixes: 8b8807b9e982 ("scsi: RDMA/srpt: Fix handling of command / TMF subm=
-ission failure")
-> Cc: stable@vger.kernel.org
-> Suggested-by: Bart Van Assche <bvanassche@acm.org>
-> Signed-off-by: Yong Liu <pkfxxxing@gmail.com>
+On Sun, 8 Nov 2026 14:26:46 +0000, Jeremy Jean wrote:
+> When a GSO packet is split in software for IPv6 ESP,
+> validate_xmit_xfrm() calls esp6_xmit() for each segment.
 
-Sashiko has reviewed this patch and found no issues.
+I tested v1 of this patch and posted the results in the v1 thread:
+=
+https://lore.kernel.org/netdev/20260930144523.435271-3-Jeremy.Jean@oss.cyb=
+er.gouv.fr/T/
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261112094138.1390=
-409-1-pkfxxxing@gmail.com?part=3D1
+The code of this patch is the same in v2, so the results hold.
+
+Tested-by: Usman Malik <usmanmalik@engineer.com>
 
