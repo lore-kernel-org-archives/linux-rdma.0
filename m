@@ -1,103 +1,87 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.174
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794503876;
-	b=mUqnESIeq/ymsAmp8Q4KAGKk07Bmpd6Z6c9p9p8EN7IBF4ObEBZzP83DhzeHfaHCyx/D
-	 ce5HqslU5MDrJnCm71C6sfElkLD9ZgNnelNCTVb+7iLZMWaRKhE+Pugb1KTAD1V+SwWPL
-	 jf+tNW7yZkB69RvijNtWqc795etdUa3p4AiaflBNf/7a4l4HtCcNZ91EWbtyzb5MDqTdK
-	 L6g75FSwo6PUBOuKcvXHrVL9Ce/LmPNUF5eyBaT8wmQ0NNy1k2cmySvFGiC2MWBOBUwis
-	 PhzxLqkfTWL2nCBcZLFxCjHmaSvFoWXRdHw6c3WJlsRMgMuzyxSpqPWXa4iICvlg4uQ==
+	t=1794505548;
+	b=j3hipvy5x2TEA/zVVQp1Hj3mvfIEz5lT7ca+PySj8rXMVLVkk66iariAVS/dXr0N6pKm
+	 FfYOoCAuzBofCU8oUXBdxR47C01/hPMX6W6CaBnVxWwA2sgd9tAcLBwMCBhERXxoGJ9Gj
+	 PyhvSPv35nULtaxzQz/SjsZpFWmSUXOpWZdNFiOiAtvntaJjrti6S+pyy/T7kWczyquGy
+	 rjWhg6hNGYW0SIiqZOmtuUfqM4Qr4nfO5rN2DzRrHg9m+H2d7tuULb6TlaBF00SZ7uSgL
+	 vZZgVxbPVNYAV7gGOlqTuAFRubv3e7wRUJYZ2dexF2YmLKYnkmFonZClHdlEOWs3X9A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794503876;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:
-	 Content-Transfer-Encoding:In-Reply-To;
-	bh=VMi+hIkLWXT7siLEN9ATyCll+A1V4GrHFAEeCBcDPio=;
-	b=25EheIKy2mCkG8KJlAlZepDJWxlqrKr+5BN9JIO/HMNByML0t0lLkBu4Zaf+7kH51Lny
-	 DYkTXFwlZAsxwcsi6YduH5D+XS8Cwdq0kv1PlDhwN855MVJSaJKkXLjBdPgdRQJLN2vBG
-	 r8eaGZpfhZWDUlNj50PVceX+1SYrhFq0+W6oaO2XHMr7+IvXMfoNo9xTuD67DEyKFI4cc
-	 t/hPuGPnNt48OnmjFSR//Min+O/yId5ZzT7zdZc3v+1wT8ayhWQ4tKB0h70EOEV/tvaj5
-	 B5kL53GbKUfL5e3XjxkJAlyDyBkN5VKE1prug4a3OFXHrhXPTY941KK7co0zesIKq3g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794505548;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:Message-ID:Date:
+	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
+	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	bh=czdhaGFv7cIrx8yTbMDRh9Bkh0lnaUBxN3R0u1dkKDY=;
+	b=aHU5pC/NS4Few2pQq+DPHHCvjTsKwTEHeQ7Zel1GmdjIDANH7up9+FrRKCjaOXivNpzh
+	 5VhzNhivvEUXSeXpzl8Q3NhENITk+5TvP+SHxIZ8TwSpETz0WJ9az9ufR2qJPYEvvNWGC
+	 lzd+muix9W2jyXB0hyrxPN79wixMkZj2pvbDBSSAWE1j0sLGkyNognn7lHzilc1JwHWzE
+	 gdRuGPGbObZhDp6KzKlofatJno7gk7CdzQMGzXPFStZ+VH5dve3w3v9UQGr/SZNYmXOgk
+	 09PYeKpkBYEiJMYlIABzO7yK0qHNpNPmYYQkz4OpMZyO7WR/vr+Ba87tYtuAUjzaS8A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Xi1M0Wrq;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=z9NmTDM2;
+	arc=none smtp.remote-ip=74.125.82.174
+Received: from mail-dy1-f174.google.com (mail-dy1-f174.google.com [74.125.82.174])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82F8A606A321;
-	Thu, 12 Nov 2026 17:17:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB7E7606A321
+	for <linux-rdma@vger.kernel.org>; Thu, 12 Nov 2026 17:45:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BB7E7606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Xi1M0Wrq
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B9171F000C5;
-	Thu, 12 Nov 2026 17:17:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794503876;
-	bh=VMi+hIkLWXT7siLEN9ATyCll+A1V4GrHFAEeCBcDPio=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Xi1M0WrqH5bMvx0n0pi4w5v7a8qJzrxjW4xzgjyJBTk4w5Ha9LDFHd8Q2SIO4bI0/
-	 R1AH44wKcxNJXbaWLeAun1BY623lBE7mWeM8MlocaX0VT4oGCtm1o/G3AsbPIXS1Ln
-	 HAfe4Gi1tJJQuDHDrzTAcmJcvP7xkP9KNg6uFt8kIbAQS0k0mQOiMe1zrTRcGbMEAP
-	 QjV4y8GkI+IFa+IR6J9g75IGth5ijUGZ2Wd4tjx81In8/mDCI0Hl19n37GOo0mpyES
-	 RMm1owYYSjXmybNXysJzMRsSMwbMIAEWBzrarLAWP33yYlnJBqzwDlRjfOGVF8svjx
-	 eUQ0ymv8EqhZg==
-Date: Thu, 12 Nov 2026 09:17:55 -0800
-From: Kees Cook <kees@kernel.org>
-To: Bence Csokas <bence.csokas@arm.com>
-Cc: "Gustavo A. R. Silva" <gustavoars@kernel.org>,
-	Marcel Holtmann <marcel@holtmann.org>,
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-	Philipp Stanner <phasta@kernel.org>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Cristian Marussi <cristian.marussi@arm.com>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	Maxime Ripard <mripard@kernel.org>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
-	Jani Nikula <jani.nikula@linux.intel.com>,
-	Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-	Rodrigo Vivi <rodrigo.vivi@intel.com>,
-	Tvrtko Ursulin <tursulin@ursulin.net>,
-	Lyude Paul <lyude@redhat.com>, Danilo Krummrich <dakr@kernel.org>,
-	Zack Rusin <zack.rusin@broadcom.com>,
-	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>,
-	Selvin Xavier <selvin.xavier@broadcom.com>,
-	Kalesh AP <kalesh-anakkur.purayil@broadcom.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
-	Chengchang Tang <tangchengchang@huawei.com>,
-	Junxian Huang <huangjunxian6@hisilicon.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hansg@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Haiyang Zhang <haiyangz@microsoft.com>,
-	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Miri Korenblit <miriam.rachel.korenblit@intel.com>,
-	Jes Sorensen <Jes.Sorensen@gmail.com>,
-	Ping-Ke Shih <pkshih@realtek.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Benson Leung <bleung@chromium.org>,
-	Tzung-Bi Shih <tzungbi@kernel.org>,
-	Guenter Roeck <groeck@chromium.org>,
-	Nilesh Javali <njavali@marvell.com>,
-	GR-QLogic-Storage-Upstream@marvell.com,
-	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-	"Martin K. Petersen" <mkp@kernel.org>,
-	linux-hardening@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	arm-scmi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	intel-gfx@lists.freedesktop.org, nouveau@lists.freedesktop.org,
-	linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	chrome-platform@lists.linux.dev, linux-scsi@vger.kernel.org
-Subject: Re: [PATCH v2 0/2] Add struct_offsetofend() for pointer arithmetic
-Message-ID: <202611120916.3619B95@keescook>
-References: <20261112-offsetof-v2-0-276ede839967@arm.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=z9NmTDM2
+Received: by mail-dy1-f174.google.com with SMTP id 5a478bee46e88-36e99cf7bb3so180873eec.0
+        for <linux-rdma@vger.kernel.org>; Thu, 12 Nov 2026 09:45:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1794505547; x=1795110347; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=czdhaGFv7cIrx8yTbMDRh9Bkh0lnaUBxN3R0u1dkKDY=;
+        b=z9NmTDM2KEtrOPsMIPA0GyJhqok0T9B5pAXcyqyXKBM9waVNRE6kC9mExqfl+luOde
+         y3nAspNsgUy5LXpTcKx8bRerd4pTwLrv6wHUY3R4Uu8PFKJBYxW7iTfpsfw+u19StEyW
+         XwL3reU+PZv+eLY2jndOz48VQPfhuBjl8ARlL6aqBLlQZPqBqE0D7V7gVskV5nRKXark
+         Yx/lZKwvs8NvHn/SWSA9RAMKr9AwGQxVK64/lr4tanTQ/EA6mJVsPIa9ova4al5m9PFz
+         COwXU8rwGEH9kwu/I9rmAiNDOk37QkBQP77k6YHrDslCNSNk3uaMo2VYoCnHzODfhc9E
+         OFmw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794505547; x=1795110347;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=czdhaGFv7cIrx8yTbMDRh9Bkh0lnaUBxN3R0u1dkKDY=;
+        b=y63frSCtx3P2jJVwnsOp7kZJQhXRU5+m4ISjLhMcguHsIlglCzWY9Ob/PYCGGahoaZ
+         fhIZfXhy7cydBOS559qYWYA6lrPvciJAYovgD7VEE71kbk9bQ89fpT7z33XFJypR10No
+         XElhx+3r0hgJ6ugvK6FrDuccbmaYV/SzhYnwlb6zT1CuvHoULy9WmOyclWaNDD4EarC5
+         8t8Hp82PCWjKPhPCvxXjnyxu8B1VSirZ4ndxvwkITn0zbie6IRxpy6o3pR0TmLzECBhD
+         UwrgEmjjW5hoYhADdm+o/mNd7VdryT6IBQVpOnUtIQitCBUHZyLZkWlRlGfEQEQSdCaN
+         qBrA==
+X-Gm-Message-State: APuU4Z+oSgS+KXdGABH3PlmMzY1nWhcnzE7lHez/oPtGbQBt+MpL4UzL
+	TcVsscLPZ7qEVUQPYiLvOYUE1Iabk/EMOJEojmnEvBapVG6UtWoOoJkIZpzkZA==
+X-Gm-Gg: AYBFou3liLbNBeNcyBaXsTPsO2MrlNlukBdNaW1J8GqG9fmeVufcEmiiBK5DJ+G9Xhw
+	o041vCGfWcQr82o5QYP82L85znwWhFyjRkgs0zZ2Sd14HJAMAmoEFu9zAR2D0NJq056QRkUETpz
+	EglQpcZhIMskZDTRQGF+e4IMu6YRyvINVh5WJQSSYw/imk6pyew8diqw1YdzFqQCZQJXiBgAn78
+	usc/COIKfed0pEytFDo1GaDWt1/tgf7V5LFI+DL+yEW+f51LGCDRDRZLN3RcFn5BXPzn3A6nHi8
+	ZSw5ZGRMXDPdNgFX6Kcm09J6QL49fUVNlOp7Pye2KPBCNVbL1yNwz4XElg8n0kOfTkyfJacc6de
+	4oSYPagckUQr6rbZfbr43n8X5tFuUyu1C4/hIO8+6PO5vs8SygdL/WpIPQU8qLRhRU9PFZgDUOB
+	j+M3Aboe2uh5IgG0h2MyZ6Ma1I3mv9ZHp4cS1jjOvic8A4/fPi5ofyjIOEwSi+cXmQuB0a/hDHt
+	v9Wmotw3z7a4/IhTSdiLtW3J6yUkvILEvZ/Hbj8A5TJ2rOcaV4jeHbkOzObrPopgGMeB3+ATyzr
+	HZHKqa656Zfxtv84P6HRDl/4SYKxgrvLx9yCXSX8cDAeutMWbgvCqqC6ysstn3CHODNIgPpjXDu
+	Cn6BPSBQUMoA4UOrGrKZiqK/E1Sm5mrZMNv0/gg==
+X-Received: by 2002:a05:7300:23d2:b0:36e:800a:71fe with SMTP id 5a478bee46e88-37683861491mr6399782eec.1.1794505546344;
+        Thu, 12 Nov 2026 09:45:46 -0800 (PST)
+Received: from ?IPV6:2a03:83e0:1151:15:c24:4ad9:f660:1904? ([2620:10d:c090:500::6:db98])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-37956bad6casm59005eec.26.2026.11.12.09.45.45
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 12 Nov 2026 09:45:45 -0800 (PST)
+Message-ID: <b1df2930-2bb5-484d-b134-de842762ce89@gmail.com>
+Date: Thu, 12 Nov 2026 09:45:44 -0800
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -107,150 +91,126 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next v4] net/mlx5e: advertise tcp-data-split support
+To: sashiko-reviews@lists.linux.dev
+Cc: linux-rdma@vger.kernel.org
+References: <20261111170558.1654691-1-dimitri.daskalakis1@gmail.com>
+ <sashiko-outbox-211565@kernel.org>
+Content-Language: en-US
+From: Dimitri Daskalakis <dimitri.daskalakis1@gmail.com>
+In-Reply-To: <sashiko-outbox-211565@kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20261112-offsetof-v2-0-276ede839967@arm.com>
 
-On Thu, Nov 12, 2026 at 10:29:32AM +0100, Bence Csokas wrote:
-> A common usage pattern for offsetof() is the following:
+On 11/12/26 9:06 AM, sashiko-bot@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 2 potential
+> issues to consider:
+> - [Medium] net/mlx5e: missing HW-GRO cap check in
+>   mlx5e_ethtool_set_tcp_data_split()
+> - [Low] net/mlx5e: missing Fixes trailer for commit 46bcce5dfd33
+> --
 > 
->   offsetof(typeof(*ptr), member)
+> commit 10e87fc2f39f7859cabd43f8c342a731e4043353
+> Author: Dimitri Daskalakis <daskald@meta.com>
 > 
-> This is exactly the definition of struct_offset(). Some call sites use
-> offsetofend() instead of offsetof(). Add this variant, then replace all
-> call sites with the corresponding macros.
-
-Yeah, I think this is reasonable. I'd prefer to see the Coccinelle
-script explicitly added to tools/coccinelle/api/ though, so it can be
-trivially re-run as needed.
-
-Also, while Alejandro is right about the needless outer parens, I think
-I'd like to keep them just to match the other define, and they do no
-harm.
-
--Kees
-
+>> net/mlx5e: advertise tcp-data-split support
+>>
+>> Since commit 46bcce5dfd33 ("net/mlx5e: Support ethtool tcp-data-split
+>> settings"), mlx5 no longer reports tcp-data-split from
+>> mlx5e_ethtool_get_ringparam() and the reply carries only the stored
+>> config. With the default config (auto) the attribute is omitted, so the
+>> device looks like it does not support tcp-data-split, even while HW-GRO
+>> is on and SHAMPO is splitting headers.
+>>
+>> On mlx5, header-data split is performed by SHAMPO, which is used only
+>> when HW-GRO is enabled. The driver already keeps HW-GRO on while
+>> tcp-data-split is enabled, but nothing enforces the other direction.
+>> A user can disable tcp-data-split and then enable rx-gro-hw, leaving
+>> the device splitting while the config says it is off.
+>>
+>> To make the feature handling consistent, report tcp-data-split as on
+>> when SHAMPO is active and off otherwise. Only allow disabling
+>> tcp-data-split while HW-GRO is off, and keep HW-GRO off in
+>> mlx5e_fix_features() when tcp-data-split is already disabled.
+>>
+>> Signed-off-by: Dimitri Daskalakis <daskald@meta.com>
 > 
-> Signed-off-by: Bence Csokas <bence.csokas@arm.com>
-> ---
-> Changes in v2:
-> - Use struct_offset() instead of reinventing it
-> - Rename offsetofendp() to struct_offsetofend()
-> - Merge the two treewide patches
-> - Link to v1: https://patch.msgid.link/20261105-offsetof-v1-0-4153f5c10edc@arm.com
+> [Severity: Low]
+> As reported by Björn Töpel on v3 [1], should this include a Fixes tag for
+> stable backports:
 > 
-> To: Kees Cook <kees@kernel.org>
-> To: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-> To: Marcel Holtmann <marcel@holtmann.org>
-> To: Luiz Augusto von Dentz <luiz.dentz@gmail.com>
-> To: Sumit Semwal <sumit.semwal@linaro.org>
-> To: Christian K�nig <christian.koenig@amd.com>
-> To: Philipp Stanner <phasta@kernel.org>
-> To: Sudeep Holla <sudeep.holla@kernel.org>
-> To: Cristian Marussi <cristian.marussi@arm.com>
-> To: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-> To: Maxime Ripard <mripard@kernel.org>
-> To: Thomas Zimmermann <tzimmermann@suse.de>
-> To: David Airlie <airlied@gmail.com>
-> To: Simona Vetter <simona@ffwll.ch>
-> To: Jani Nikula <jani.nikula@linux.intel.com>
-> To: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-> To: Rodrigo Vivi <rodrigo.vivi@intel.com>
-> To: Tvrtko Ursulin <tursulin@ursulin.net>
-> To: Lyude Paul <lyude@redhat.com>
-> To: Danilo Krummrich <dakr@kernel.org>
-> To: Zack Rusin <zack.rusin@broadcom.com>
-> To: Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
-> To: Selvin Xavier <selvin.xavier@broadcom.com>
-> To: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
-> To: Jason Gunthorpe <jgg@ziepe.ca>
-> To: Leon Romanovsky <leon@kernel.org>
-> To: Chengchang Tang <tangchengchang@huawei.com>
-> To: Junxian Huang <huangjunxian6@hisilicon.com>
-> To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> To: Hans de Goede <hansg@kernel.org>
-> To: Mauro Carvalho Chehab <mchehab@kernel.org>
-> To: Haiyang Zhang <haiyangz@microsoft.com>
-> To: Wei Liu <wei.liu@kernel.org>
-> To: Dexuan Cui <decui@microsoft.com>
-> To: Andrew Lunn <andrew+netdev@lunn.ch>
-> To: "David S. Miller" <davem@davemloft.net>
-> To: Eric Dumazet <edumazet@kernel.org>
-> To: Jakub Kicinski <kuba@kernel.org>
-> To: Paolo Abeni <pabeni@redhat.com>
-> To: Miri Korenblit <miriam.rachel.korenblit@intel.com>
-> To: Jes Sorensen <Jes.Sorensen@gmail.com>
-> To: Ping-Ke Shih <pkshih@realtek.com>
-> To: Johannes Berg <johannes@sipsolutions.net>
-> To: Benson Leung <bleung@chromium.org>
-> To: Tzung-Bi Shih <tzungbi@kernel.org>
-> To: Guenter Roeck <groeck@chromium.org>
-> To: Nilesh Javali <njavali@marvell.com>
-> To: GR-QLogic-Storage-Upstream@marvell.com
-> To: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-> To: "Martin K. Petersen" <mkp@kernel.org>
-> Cc: linux-hardening@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: linux-bluetooth@vger.kernel.org
-> Cc: linux-media@vger.kernel.org
-> Cc: dri-devel@lists.freedesktop.org
-> Cc: linaro-mm-sig@lists.linaro.org
-> Cc: arm-scmi@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: intel-gfx@lists.freedesktop.org
-> Cc: nouveau@lists.freedesktop.org
-> Cc: linux-rdma@vger.kernel.org
-> Cc: linux-hyperv@vger.kernel.org
-> Cc: netdev@vger.kernel.org
-> Cc: linux-wireless@vger.kernel.org
-> Cc: chrome-platform@lists.linux.dev
-> Cc: linux-scsi@vger.kernel.org
-> 
-> ---
-> Bence Csokas (2):
->       stddef: Add offsetofend() variant of struct_offset()
->       treewide: Use struct_offset()
-> 
->  drivers/bluetooth/btmrvl_main.c                    | 12 +++++-----
->  drivers/dma-buf/dma-resv.c                         |  2 +-
->  drivers/firmware/arm_scmi/base.c                   |  2 +-
->  drivers/gpu/drm/drm_edid.c                         | 26 +++++++++++-----------
->  drivers/gpu/drm/i915/gem/i915_gem_object.c         |  4 ++--
->  drivers/gpu/drm/i915/i915_active.c                 |  2 +-
->  drivers/gpu/drm/i915/i915_sw_fence_work.c          |  2 +-
->  .../gpu/drm/nouveau/nvkm/subdev/gsp/rm/r535/gsp.c  |  2 +-
->  drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c            | 12 +++++-----
->  drivers/infiniband/hw/bnxt_re/qplib_fp.c           |  2 +-
->  drivers/infiniband/hw/hns/hns_roce_cq.c            |  4 ++--
->  drivers/infiniband/hw/hns/hns_roce_qp.c            |  6 ++---
->  drivers/media/usb/uvc/uvc_v4l2.c                   |  4 ++--
->  drivers/net/hyperv/rndis_filter.c                  |  2 +-
->  drivers/net/wireless/intel/iwlwifi/iwl-drv.c       |  2 +-
->  drivers/net/wireless/intel/iwlwifi/mvm/rs-fw.c     |  2 +-
->  drivers/net/wireless/intel/iwlwifi/mvm/rs.c        |  2 +-
->  .../net/wireless/intel/iwlwifi/pcie/ctxt-info-v2.c |  5 ++---
->  drivers/net/wireless/realtek/rtl8xxxu/core.c       |  2 +-
->  drivers/net/wireless/realtek/rtw88/fw.c            |  2 +-
->  drivers/net/wireless/realtek/rtw89/core.c          |  2 +-
->  drivers/net/wireless/realtek/rtw89/fw.c            |  8 +++----
->  drivers/net/wireless/virtual/mac80211_hwsim_main.c |  4 ++--
->  drivers/platform/chrome/cros_ec_lightbar.c         |  4 ++--
->  drivers/scsi/qla2xxx/qla_gs.c                      |  2 +-
->  drivers/scsi/qla2xxx/qla_mbx.c                     |  2 +-
->  drivers/scsi/qla2xxx/qla_os.c                      |  2 +-
->  drivers/scsi/qla2xxx/qla_tmpl.c                    |  4 ++--
->  drivers/scsi/scsi_transport_fc.c                   |  2 +-
->  include/linux/overflow.h                           | 12 ++++++++++
->  30 files changed, 75 insertions(+), 64 deletions(-)
-> ---
-> base-commit: 9d66f26fefacebfeed15de31c1123451a17ff119
-> change-id: 20261105-offsetof-f62aa6348f0d
-> 
-> Best regards,
-> --  
-> Bence Csokas <bence.csokas@arm.com>
+>   Fixes: 46bcce5dfd33 ("net/mlx5e: Support ethtool tcp-data-split settings")
 > 
 
--- 
-Kees Cook
+The fix was for updating netdev features after a successful ring param
+change. That was sent here [1].
+
+As for the rest of this patch, it's more of a user behavior change than a
+fix. The HW splitting capability still works when GRO is enabled, it's just
+reporting to the stack/user that gets corrected.
+
+[1]
+https://lore.kernel.org/all/20261017005401.1582755-1-dimitri.daskalakis1@gmail.com/
+
+>> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+>> index 1f534051cdfe4..8e7c748caf2d2 100644
+>> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+>> @@ -388,6 +388,13 @@ static void mlx5e_get_ringparam(struct net_device *dev,
+>>  	struct mlx5e_priv *priv = netdev_priv(dev);
+>>  
+>>  	mlx5e_ethtool_get_ringparam(priv, param, kernel_param);
+>> +
+>> +	if (dev->hw_features & NETIF_F_GRO_HW)
+>> +		kernel_param->tcp_data_split =
+>> +			priv->channels.params.packet_merge.type ==
+>> +			MLX5E_PACKET_MERGE_SHAMPO ?
+>> +			ETHTOOL_TCP_DATA_SPLIT_ENABLED :
+>> +			ETHTOOL_TCP_DATA_SPLIT_DISABLED;
+>>  }
+>>  
+>>  static bool mlx5e_ethtool_set_tcp_data_split(struct mlx5e_priv *priv,
+>> @@ -399,7 +406,14 @@ static bool mlx5e_ethtool_set_tcp_data_split(struct mlx5e_priv *priv,
+>>  	if (tcp_data_split == ETHTOOL_TCP_DATA_SPLIT_ENABLED &&
+>>  	    !(dev->features & NETIF_F_GRO_HW)) {
+>>  		NL_SET_ERR_MSG_MOD(extack,
+>> -				   "TCP-data-split is not supported when GRO HW is disabled");
+>> +				   "TCP-data-split can not be enabled without HW-GRO, set it to 'auto' and enable HW-GRO first");
+>> +		return false;
+>> +	}
+>> +
+>> +	if (tcp_data_split == ETHTOOL_TCP_DATA_SPLIT_DISABLED &&
+>> +	    dev->features & NETIF_F_GRO_HW) {
+>> +		NL_SET_ERR_MSG_MOD(extack,
+>> +				   "TCP-data-split can not be disabled while HW-GRO is on, set it to 'auto' and disable HW-GRO first");
+>>  		return false;
+>>  	}
+> 
+> [Severity: Medium]
+> Does mlx5e_ethtool_set_tcp_data_split() allow setting
+> ETHTOOL_TCP_DATA_SPLIT_DISABLED on devices that do not support
+> NETIF_F_GRO_HW?
+> 
+> On hardware without SHAMPO support, dev->features & NETIF_F_GRO_HW is
+> always 0, so requesting ETHTOOL_TCP_DATA_SPLIT_DISABLED succeeds and saves
+> that value in dev->cfg->hds_config.  Because rings_prepare_data() copies
+> dev->cfg->hds_config into kernel_ringparam.tcp_data_split before calling
+> mlx5e_get_ringparam(), and mlx5e_get_ringparam() leaves tcp_data_split
+> untouched when NETIF_F_GRO_HW is not in dev->hw_features, subsequent
+> ETHTOOL_MSG_RINGS_GET queries will report tcp-data-split as supported and
+> disabled on unsupported hardware.  Requesting ETHTOOL_TCP_DATA_SPLIT_ENABLED
+> on such devices also returns an extack telling the user to enable HW-GRO
+> first when the device cannot support it.
+> 
+> Rejecting non-ETHTOOL_TCP_DATA_SPLIT_UNKNOWN values in
+> mlx5e_ethtool_set_tcp_data_split() when !(dev->hw_features & NETIF_F_GRO_HW)
+> would prevent this.
+>
+
+I don't think it's worth the extra code. Presumably these devices cannot
+split anyway, so it's fine for a user to disable the feature.
+
+> [1] https://lore.kernel.org/r/87a4ons7dd.fsf@all.your.base.are.belong.to.us
+> 
+
