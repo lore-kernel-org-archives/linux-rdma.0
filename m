@@ -1,59 +1,58 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794490209;
-	b=gs/wJjVZHrxjK0u04/Z6HVr0pbM6kviodx0JlcqxLaQEWcodnUtJ8X83gT1WRGmt/ua5
-	 F+3GpTMUjEAr0FYaKThsEoBHaJOChFmzEbVww9cX6mf94X/xHGU9HYqYX3b8lOsWWuwrq
-	 UMxeXqbibkqiwuyAzWSU4qky/IvyIaqO5bxbmUc0S6UsG4peEqT+LuttgmoytRDNgOMpl
-	 xKSAHZn34AyGNVXVJyoZ1oHPw6jpDU8HelHmqxcSsIc1JlFLJ/2L7xqJYWqOy0uldZbkh
-	 uCyrFQqgawOhzOTt1RzLycknrebHRY7OZu82uM+6xK0EH7/JX2+UkhcthIYgJuDbzQg==
+	t=1794490210;
+	b=OIsi5ZF3LwuDdPjMx/OMyrF2EEYJXxpr/cEjky5KpZOBoEfq68B/PxVI1LlObFrSTDy/
+	 Ygcyiec50KDMSV+20eyyYPfCgPlQaVdXFgvGfYtPw1n7nYwOsYUjWWgaxRvMHi6gJ57iQ
+	 7XjiQ6yr/DlcuGxEeR/BlanrcxPJ6e+o3UbEG7jN0SMtVg7ce+SQvr5uL5gXDtED+1hT+
+	 X3Smb8JqJHi+ZCZcidzBx4kVyCemwnq9GLrhg/wg8OKHoB+86uF9cQnHmUigazgA8xjoU
+	 arXI8qlTph9Q8IjaJJyZizBZoGyiofY9t2DbDqMC9nhYHMD+LB8Q2KzbQqyDOXLV1AA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794490209;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794490210;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=EQEz73t2+dQBMCfDeYWc7ElzpUll+268CW8sfUkmsLg=;
-	b=gWZOVwtzeRHTszS2YOUWE0Bh1cs2f0eYR6b3BfqLLtGt/dXrzp8F6P+7gRUIqhDcJVzr
-	 wa/hNhi38hUGUy9MyFB6qT/+YPV5nIOYoaPIWV55kaD25XLmSx/P/8OytpcMLx2OoE1Z0
-	 FFpaYTQT3OTRPOqwVEhmKtWaWPy+kA3pdQNoyvrRPEhlPFk21y+e4YQ/fPZUD8GQWTHm4
-	 kFGHcM/tDWgsg8rX/PvMy9qgINOXRrNvgFcBzm3EK7jXcwtZXgbewQcSY0JI5GDruCHCa
-	 IcCI85xfyluEenwy0ca8zdmwlxU8lhmYloJlvaX0+Nf05Ogp3F+ZdfY5g/qpj9Bkmyw==
+	bh=nnaH4nu2FbTKzUmwkmnigLUCLVTUwraTpT4CyX2gHlI=;
+	b=lKqtIRImW+GgRzs3EMlTDf3x/RIW6ERHPTtbAU/syhGIoLNcTEKFx3pEVqluB8/nw77i
+	 Z8WzzRAgXg12g8HeNJCMxDLeR4uF4D7nweRR35BQ7nEx3poODIyIJrEjc9EjmfHgcAU6o
+	 SaK8Hdm2J4JxW71A/jF5R3xx7OoAsfnktjAZcyh32+P6s1p61+ztp4RRW3JDI4ranxV00
+	 eR6A9IOgc8qcpO/dPiSuGhiaWiijvvEnjDpxLXNq5wY7sdGVFOE3kXPtny8aSEsDnPIA/
+	 fPG3KzQSkVJhbPfrdm8Egz1aBwkMNrXhDKxrxRRyHgarNzqonKcZXBr44mpBSPbro5g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ovm8V4hf;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="ilwBsv/p";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9C71606A31C;
-	Thu, 12 Nov 2026 13:30:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A3A3606A32A;
+	Thu, 12 Nov 2026 13:30:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ovm8V4hf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D558D1F00A05;
-	Thu, 12 Nov 2026 13:30:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ilwBsv/p
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC8A01F00A06;
+	Thu, 12 Nov 2026 13:30:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794490209;
-	bh=EQEz73t2+dQBMCfDeYWc7ElzpUll+268CW8sfUkmsLg=;
+	s=k20260515; t=1794490210;
+	bh=nnaH4nu2FbTKzUmwkmnigLUCLVTUwraTpT4CyX2gHlI=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Ovm8V4hfsfoY+7ha37Zr4Qlfx63UDMr5T+xbDyxSFra3Eoek6Y+/34gQ5EI2NNusp
-	 2Oc6rbABMGUwrI/dBU6VkM3plxVFwwSQgPps+z6+wzAf1JYFOSdgVAK9YmLEJNCt1Q
-	 fXtJo+rKgW/zNzwlexPIUPlILY2nbbdJ+FWODbHV6/7yUH9T29vsenDAEwtDZZXr/5
-	 E+El6w10ejfL7H38luaEirFT43lnZJe/SvAvXlbo4CbgkslFHtCunaXag/eY3xV7l6
-	 ESRNXrzUdt15c5MA70RSZo9nQc7DgySalA5ki1vLvJUUeMDn/LSvIctYJoyBBJjaoc
-	 piH35fawT3hEA==
-Message-ID: <sashiko-outbox-211184@kernel.org>
+	b=ilwBsv/pyAbWUIi7QbP0RzC0dq7877lHCBLt7mFg3OKgIj+hzD/7BL9YTjNJntDut
+	 OxqR8Q4ySFPdsuLzDE390+eNT9Et/NHw45WaPaYlQ9g7uXw+41lnrJ2fJsPp62iJnd
+	 6JhRhCfImzmI/yuaDrYihSpszGqe91BkZoqtM4TGjx7bYSYRW33dFBw/8kiDu0xH7L
+	 AFptFLMHAG3GrGd28gB8cH9wE1ge9Ml8OfKISc+KMJtT49CMKEiAIa0Mw65vgzAVJX
+	 W/IC2hZKZAQzNzZ9qHA7ODCzZc4YhmtFYl+BqyEhqjHFxjtocAIaKPZexaG/JY7gat
+	 N6InZlT2N7psw==
+Message-ID: <sashiko-outbox-211185@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net v9 1/6] net/smc: bound the wire-controlled producer
- cursor to the RMB
+Subject: Re: [PATCH net v9 2/6] net/smc: bound the receive length to the RMB
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Bryam Vargas" <hexlabsecurity@proton.me>
 Cc: linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, "Heiko Carstens" <hca@linux.ibm.com>, "Vasily
  Gorbik" <gor@linux.ibm.com>, "Alexander Gordeev" <agordeev@linux.ibm.com>, "Christian
  Borntraeger" <borntraeger@linux.ibm.com>
-In-Reply-To: <20261112-b4-disp-0287c16e-v9-1-e5e8fa688177@proton.me>
+In-Reply-To: <20261112-b4-disp-0287c16e-v9-2-e5e8fa688177@proton.me>
 References: <20261112-b4-disp-0287c16e-v9-0-e5e8fa688177@proton.me>
- <20261112-b4-disp-0287c16e-v9-1-e5e8fa688177@proton.me>
+ <20261112-b4-disp-0287c16e-v9-2-e5e8fa688177@proton.me>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Thu, 12 Nov 2026 13:30:08 +0000
+Date: Thu, 12 Nov 2026 13:30:09 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -65,20 +64,32 @@ Precedence: list
 
 > From: Bryam Vargas <hexlabsecurity@proton.me>
 >=20
-> smcr_cdc_msg_to_host() and smcd_cdc_msg_to_host() import the peer's
-> producer cursor from the wire into conn->local_rx_ctrl.prod without
-> bounding it to the RMB. smc_cdc_handle_urg_data_arrival() then uses its
-> count as a raw index into the RMB, so a producer cursor past
-> rmb_desc->len makes the receive tasklet read past the RMB, and
-> recv(MSG_OOB) hands that byte to the application.
+> smc_rx_recvmsg() sizes the copy from bytes_to_rcv and starts it past the
+> bytes MSG_PEEK or splice() already took. A forged producer cursor drives
+> bytes_to_rcv past the RMB or negative, and with a conforming peer it
+> drops below the peeked count when a MSG_PEEK|MSG_WAITALL reader sleeps
+> while another recv() consumes what it peeked. Either way the copy reads
+> past the RMB into the reader's buffer. poll(), SIOCINQ and the deferred
+> accept read the same raw count.
 >=20
-> Bound the producer cursor count to rmb_desc->len when it comes off the
-> wire, for SMC-R and SMC-D. Leave the consumer cursor alone: it indexes
-> the peer's RMB, which can be larger than ours, so clamping it to our
-> RMB would under-credit peer_rmbe_space and could stall sending to that
-> peer. Conforming peers are unaffected.
+> Make smc_rx_data_available() report at most what fits in the RMB behind
+> the peeked and spliced bytes, never a negative count, and use it in all
+> of these. Cache the RMB length for the unlocked wait, where rmb_desc may
+> already be freed, and drop released bytes from splice_pending under the
+> socket lock, with the consumer cursor update, so a reader cannot run
+> between the two and count them twice.
 >=20
-> Fixes: de8474eb9d50 ("net/smc: urgent data support")
+> Fixes: 952310ccf2d8 ("smc: receive data from RMBE")
+> Fixes: 9014db202cb7 ("smc: add support for splice()")
+> Fixes: a4b6539038c1 ("net/smc: fix data error when recvmsg with MSG_PEEK =
+flag")
+> Reported-by: Sashiko <sashiko-bot@kernel.org>
+> Closes: https://sashiko.dev/#/patchset/20261008-b4-disp-f7cd3d96-v6-0-fba=
+616c0920c@proton.me?part=3D2
+> Closes: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261008-b4-d=
+isp-f7cd3d96-v6-0-fba616c0920c%40proton.me?part=3D2
+> Closes: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261008-b4-d=
+isp-f7cd3d96-v6-0-fba616c0920c%40proton.me?part=3D1
 > Cc: stable@vger.kernel.org
 > Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
 
@@ -86,5 +97,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261112-b4-disp-02=
-87c16e-v9-0-e5e8fa688177@proton.me?part=3D1
+87c16e-v9-0-e5e8fa688177@proton.me?part=3D2
 
