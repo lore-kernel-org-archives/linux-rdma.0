@@ -1,57 +1,71 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794475037;
-	b=ZkYm4a1qQi/2nrzU/rIBp62cFi+gxbUQhi9yvYt5tXpy3UB8PdLCfUuMogK4SNDaMauO
-	 5adQPfRwc2wciWiDm8aNpJwtznO6A8Z6sIQkcDDJjk/TW72e59cn5cMqk2yl7sZaNjfA2
-	 rItO/r6QSXucTsUCBdXRNy4MalkGKEJQUmfWZL7/Tr/3ZIzCYkjuNuviinMV7qVTCdWKH
-	 I+TDPk84tilZAZJCue0sQWHX5SUfejazfcAJQO7c426evAkVJnZLTwQZ5pT91GBnrXn7S
-	 wDVJp/YYQK1Elfx4awwtrKjnrosJhtSzeAv/fTJWBPdLhzfhX0lsMoAxhyeXC2QZVsw==
+	t=1794475412;
+	b=oNDa1IrUJ33ZOBgG43kwsyvET0LgliV1xKqMCH9ElhD/Y0Ic3Uvy/Ysf+WNseaRzWTgc
+	 p872RlPz+F5lughFbMXJqHGf3EedU4L+3Pr10rhEYHIMvtXd5/1uLJQqDPzsh6hV4ItHE
+	 /qz5PQqy+9xbrDJF88Q2Oq7CTZdawG6bnHQMI5ir24wfZXkshpYVDSGvtp1hVTnr38aux
+	 xI5AQVB+fK4F8du8faMvVqBK1LxmlvgjykSEQMPiXRHhi/fTZ4GdxJKouA5f0Yyp3H0tm
+	 faVnrpzOQCj0E4hZbjpYq6m/j8gUJcvhxr2RjIo5bR47m25+dCM4ozV8+r0VgTI9ZHQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794475037;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=TpfKQ6rG8Wt3gju4As05ucJ2UDsSpfpZcchjxK/wBJM=;
-	b=Gud8ItvsdjS9jFf7l5urEu+0TCDcGZ/RpFjBRaMb2m9WYOcsFSugae6A9aB4YrIqxXGk
-	 V5G7i7fJnbrHXcm2QPPKHOD2C5oGlL0QWQqIUzaIQYE0fCf7m6Aw5hU0omZ7TZU0Jyszg
-	 LgsDNVlLJx1CWMkC37M2StoYWvis9ZznXrzg9/J17N9AcyeyIT1zRVcIpqQUcr1eMlhzh
-	 4Z5F1ZOMvy4HwHNAJUpPDROhvFQFQateakvV9BDIx2Gj5VW/Hxg0meP3jNNcNpxiOLsJf
-	 DvQbMs2euImV0bz0naxbYYH8ZgMdszgBXJxqNVN4jfEQeFXx0842LonGdQlnV54TL6A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794475412;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:
+	 Content-Transfer-Encoding:In-Reply-To;
+	bh=Yt4A8NZadS0W5LYvptZOhNRvoJ7zuxm37iF0wtrvYzQ=;
+	b=RJvk3NdUNtQSobUQf2OIJy/h7+fYdne7s44IeHFxrDgTmcOCgzjz+i8joEtmk9IJrxnv
+	 nzQwWkv4YpD3NWH8RLgDdjLOle9Z6wgt6gkBMkzSUSK9sZwTVETQoD8Y1P2XhOQiFtFiS
+	 yqIk2GUCaaOkysrzXjQlzlqaZSU8RWFLsjIv/Vkhnl+0GEt+fSAMY01DZXV7+hlTgxCHi
+	 zvuMKlZOvcHNcOhzdrBDpsl7d5R76/Qrva0V5JIqCEWTKU4kQ0b6uM4+zmbeJ0MkWCVUC
+	 tYOCBFE8xsI7SFR6QBEfMx3UmVCRu+MxiMy+EmnT/NN5uQ1488n0vGcKhDkzunckoww==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KelS4Yzv;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Al8XrrSs;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A149F606A321
-	for <linux-rdma@vger.kernel.org>; Thu, 12 Nov 2026 09:17:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6E25606A32E;
+	Thu, 12 Nov 2026 09:23:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KelS4Yzv
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A0D31F00A06;
-	Thu, 12 Nov 2026 09:17:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Al8XrrSs
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B11CC1F00A05;
+	Thu, 12 Nov 2026 09:23:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794475037;
-	bh=TpfKQ6rG8Wt3gju4As05ucJ2UDsSpfpZcchjxK/wBJM=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=KelS4YzvwdqW6zUkJ3mkr6ynVxK/nzn3O9aZhpgKDiJv8Z2wYgDloLGvTemG+7hQ/
-	 e9Bl6bT82R2QSo9qsjCappiDqKfZSiKYAwFTjVyH0gHqdMesCW4Ggmrtj1I/1u9FFY
-	 Qskfj7+dWOGTvbkXUM0CKlO28Sqi2jHbmfw6TUOekw+0lFQNcVRTOAPGlGhMZCHIYQ
-	 xhKEuIh8iXXTve/RTtNSlcBqi4D+S+Mw4egeVnH8uGcgGPIMLS2KBs53JD0EKULrP7
-	 5kdSKXQq0QUX3TLy1XxiRQXo7ww5vN3fCd88NVaqsfAim6wpeibjS2zL0ToVAapj8g
-	 mkYLEC5JQ1NQg==
-Message-ID: <sashiko-outbox-210859@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v11 9/9] RDMA/mana_ib: Handle error CQEs for
- kernel QPs
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Konstantin Taranov" <kotaranov@linux.microsoft.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261112084716.1483342-10-kotaranov@linux.microsoft.com>
-References: <20261112084716.1483342-1-kotaranov@linux.microsoft.com>
- <20261112084716.1483342-10-kotaranov@linux.microsoft.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 12 Nov 2026 09:17:16 +0000
+	s=k20260515; t=1794475411;
+	bh=Yt4A8NZadS0W5LYvptZOhNRvoJ7zuxm37iF0wtrvYzQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Al8XrrSs8SlF0Ee63VyaB5C5G3Uo5XX4ccMBtcpNj1/nlgPcep7aeKERTSWgnucOp
+	 MfDI/asrfWa/3CEmg6pEOW0iwUBXTbrstHK+aT1k/N2rH9Ze++0BQyE3m5E+Bsvhla
+	 Li75qTYXiN8XuLzDwXR8iTaIguGAuDTQE2CzXwvzHiWzxEQE/Ee8NN8ZEee7hLNl61
+	 N4HHHSK9uoj65Dbf4ioWvuiLsqurNOmaBgvsD1iZXXvUzX8srVURqbXYCpIx3J/ZGz
+	 +ThyHkvnZ3z8Ki/YNSmcFC2kOCj7mKH9R4pbLysLKP+MoYmyyEJ9f00YCJEhD/InKP
+	 yDI53+WDSqvfg==
+Date: Thu, 12 Nov 2026 11:23:26 +0200
+From: Leon Romanovsky <leon@kernel.org>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	"Joerg Roedel (AMD)" <joro@8bytes.org>,
+	Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+	Thomas =?iso-8859-1?Q?Hellstr=F6m?= <thomas.hellstrom@linux.intel.com>,
+	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org, iommu@lists.linux.dev,
+	Tushar Dave <tdave@nvidia.com>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex@shazbot.org>,
+	Ankit Agrawal <ankita@nvidia.com>, Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: Re: [PATCH v13 00/19] PCI/P2PDMA: Route peer-to-peer DMA by TLP class
+Message-ID: <20261112092326.GU8635@unreal>
+References: <20261111121602.GQ8635@unreal>
+ <20261111224136.GA754433@bhelgaas>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,63 +74,133 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20261111224136.GA754433@bhelgaas>
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue to consider:
-- [Medium] RDMA/mana_ib: wrong WC status in vendor_error_to_wc_error()
---
+On Wed, Nov 11, 2026 at 04:41:36PM -0600, Bjorn Helgaas wrote:
+> On Wed, Nov 11, 2026 at 02:16:02PM +0200, Leon Romanovsky wrote:
+> > On Thu, Nov 05, 2026 at 12:04:31PM +0200, Leon Romanovsky wrote:
+> > > Punch line for Linus from Jason:
+> > > "Enhance detecting if the PCI fabric can support a peer to peer path
+> > > by evaluating the full bi-directional fabric path over each of the
+> > > three traffic type ACS controls. Expand the number of fabric
+> > > configurations where the P2P algorithm makes the correct determination
+> > > of support to include non-uniform ACS and situations where translated
+> > > takes different routes from untranslated."
+> > 
+> > Bjorn,
+> > 
+> > Just a friendly reminder.
+> 
+> Thanks for the reminder.  I put this on pci/p2pdma for build testing
+> (no issues expected; I always try to get build testing before merging
+> into linux-next).
+> 
+> I'm still struggling to describe this in a way that connects to the
+> code changes and is accessible to non-experts, so please correct
+> things I get wrong here.
 
-commit 3890146d1e1c2dc4555e62f3e8c6c195602b6f98
-Author: Konstantin Taranov <kotaranov@microsoft.com>
+When asked to explain what I’m working on during hallway conversations, I usually
+start with a top-down view:
 
-RDMA/mana_ib: Handle error CQEs for kernel QPs
+“In order to support P2P in VMs, the virtual PCI topology needs to know whether
+P2P is possible. However, the guest OS cannot see the physical topology because
+it is hidden by the hypervisor. Since the VM and hypervisor run the same OS, we
+need a generic way to report whether P2P is supported, rather than relying on a
+CPU-supported whitelist. This is why we need ACPI HMAT [1].
 
-This commit decodes hardware error CQEs for kernel QPs, defers moving
-errored QPs to the ERR state via a workqueue, and cleans up pending CQEs
-when resetting or destroying kernel QPs.
+However, HMAT alone is not enough: it is static and comes from firmware, the
+BIOS, or the platform. We also need to account for ACS registers and different
+traffic types.
 
-> diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana=
-/cq.c
-> index 3d09ff5e5414c..24dca3b6e5bfc 100644
-> --- a/drivers/infiniband/hw/mana/cq.c
-> +++ b/drivers/infiniband/hw/mana/cq.c
+This series provides the ACS, traffic piece of the puzzle.”
 
-[ ... ]
+[1] https://lore.kernel.org/linux-pci/20260812-hmat-p2p-v1-0-75ac41380585@nvidia.com/
 
-> @@ -37,12 +40,30 @@ static enum ib_wc_status vendor_error_to_wc_error(uin=
-t32_t vendor_error)
->  	case VENDOR_ERR_TX_ATB_WQE_ACCESS_VIOLATION:
->  	case VENDOR_ERR_TX_ATB_WQE_ADDR_RANGE:
->  	case VENDOR_ERR_TX_ATB_WQE_CONFIG_ERR:
-> +	case VENDOR_ERR_TX_RDMA_ATB_CMD_MISS:
-> +	case VENDOR_ERR_TX_RDMA_ATB_CMD_IDX_ERROR:
-> +	case VENDOR_ERR_TX_RDMA_ATB_CMD_TAG_MISMATCH_ERROR:
-> +	case VENDOR_ERR_TX_RDMA_ATB_CMD_PDID_MISMATCH_ERROR:
-> +	case VENDOR_ERR_TX_RDMA_ATB_CMD_AR_ERROR:
-> +	case VENDOR_ERR_TX_RDMA_ATB_CMD_PT_OVF:
-> +	case VENDOR_ERR_TX_RDMA_ATB_CMD_PT_LENGHT_MISMATCH:
-> +	case VENDOR_ERR_TX_RDMA_ATB_CMD_ILLEGAL_CMD:
->  	case VENDOR_ERR_RX_ATB_SGE_ADDR_RANGE:
->  	case VENDOR_ERR_RX_ATB_SGE_MISSCONFIG:
->  		return IB_WC_LOC_PROT_ERR;
->  	case VENDOR_ERR_RX_ATB_SGE_ADDR_RIGHT:
->  	case VENDOR_ERR_RX_GFID:
->  		return IB_WC_LOC_ACCESS_ERR;
-> +	case VENDOR_ERR_RX_OP_REQ:
-> +		return IB_WC_REM_INV_REQ_ERR;
-> +	case VENDOR_ERR_RX_ATB_RKEY_MISCONFIG_ERR:
-> +	case VENDOR_ERR_RX_ATB_RKEY_ADDR_RIGHT:
-> +	case VENDOR_ERR_RX_ATB_RKEY_ADDR_RANGE:
-> +	case VENDOR_ERR_RX_REMOTE_ACCESS_NAK:
-> +		return IB_WC_REM_ACCESS_ERR;
-> +	case VENDOR_ERR_RX_INVALID_REQ_NAK:
-> +	case VENDOR_ERR_RX_REMOTE_OP_ERR_NAK:
-> +		return IB_WC_REM_OP_ERR;
+> 
+> I had the impression that this series helps VMs by making P2PDMA work
+> with passthrough devices in cases where it currently doesn't, but
+> maybe that's not the case; I don't see any mention of that in the
+> series.
 
-[Severity: Medium]
-Should VENDOR_ERR_RX_INVALID_REQ_NAK return IB_WC_REM_INV_REQ_ERR instead
-of IB_WC_REM_OP_ERR?
+It is a fundamental building block (see my explanation above), but it is also
+useful on its own. Even without VMs or HMAT, ACS and routing are important
+(see the removed patch [2]): they allow us to dynamically enable or disable
+ATS for each DMA mapping, support asymmetric PCI topologies, and more broadly
+enable P2P by checking every PCI route.
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261112084716.1483=
-342-1-kotaranov@linux.microsoft.com?part=3D9
+This is why I didn't mention VM to the cover letter.
+
+[2] https://lore.kernel.org/all/20260920-fix-p2p-acs-v4-0-v7-19-ca0828ab697c@nvidia.com/
+
+> 
+> IIUC the P2PDMA core doesn't actually *control* any TLP routing, i.e.,
+> it doesn't change any ACS controls or change any TLP attributes that
+> affect how TLPs are routed, so to me, these subject lines suggest more
+> than is actually happening:
+> 
+>   Route Relaxed Ordering Completions directly
+>   Reject Translated Requests blocked by Translation Blocking
+>   Route Translated Requests under Direct Translated P2P
+> 
+> It seems like we're just *learning* whether RO Completions will be
+> routed directly, whether Translated Requests will be rejected, etc?
+
+Right, the path and these bits are static.
+
+> 
+> I think the core basically looks at the ACS controls on the path
+> between two devices and decides whether:
+> 
+>   (a) the devices can do P2P DMA directly (PCI_P2PDMA_MAP_BUS_ADDR),
+> 
+>   (b) they can do P2P DMA but only through host bridges on the
+>   allowlist (PCI_P2PDMA_MAP_THRU_HOST_BRIDGE),
+> 
+>   (c) no P2P DMA is possible (PCI_P2PDMA_MAP_NOT_SUPPORTED),
+
+This is equivalent to returning -EOPNOTSUPP when the functionality is
+unavailable.
+
+> 
+>   (d) PCI_P2PDMA_MAP_NONE -- I don't understand this one; the comment
+>   says "not a P2PDMA transfer", and pci_p2pdma_state() returns it when
+>   the page is not a p2pdma_page, I guess because
+>   pci_p2pdma_add_resource() has not set MEMORY_DEVICE_PCI_P2PDMA?
+>   Not sure how this is used.
+
+This means that this is regular DMA transfer which involves CPU.
+
+> 
+> I guess one benefit of this series is that a path where P2P Completion
+> Redirect is set used to mean that pci_p2pdma_map_type() would return
+> PCI_P2PDMA_MAP_NOT_SUPPORTED (unless the RC was allow-listed), and now
+> it might return PCI_P2PDMA_MAP_BUS_ADDR because if P2P Request
+> Redirect is clear, Requests can be routed directly?
+
+I'm not sure the first part (return PCI_P2PDMA_MAP_NOT_SUPPORTED) is correct,
+since callers have so far ensured that P2P is supported before calling this
+function. The second part is correct.
+
+> 
+> That sounds great as long as the Request uses Relaxed Ordering, so the
+> Completion won't be affected by P2P Completion Redirect.  But devices
+> aren't *required* to use RO even if enabled, and I'm doubtful that a
+> non-RO Completion redirected to the RC is going to work.  So I don't
+> understand how p2pdma.c can guarantee safety.
+> 
+> Translated Requests seems similar -- are we assuming that if ACS
+> Direct Translated P2P is set and ATS Enable is set, the device
+> *always* generates Translated Requests?
+
+PCI spec allows "A Function is permitted to intermix translated
+and untranslated requests" and p2p doesn't decide anything except
+if routing is possible or not.
+
+Thanks
+
+> 
+> Bjorn
