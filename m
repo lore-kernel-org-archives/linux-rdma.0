@@ -1,56 +1,64 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794583657;
-	b=5EhcZ4/jNYMX7+b8IfUkiVysHagMBuKchb9ai38IosDntGGvbdjwwT8h624wIB3jn4/S
-	 khkx3/tZMjUBMkpu5gF7Y8F6l1FH+lcb4yWqHh1IKJ8Dc5W0P6feQiGCkiH6VMwt4eVU5
-	 T3FlGU/73I4o1NZEmIp5AVyUOYwI+2fdjNclA/83DN9ITF6W76HDbo7sBx6TsZaTv9M2i
-	 qtjUu5j6T6K7b27oYv7WwggAcg3P2bvWBIGxz/lgTaeFNSursHYhxxfbK5jVup9MtURYP
-	 UuUGx3WkBOn4/lSbVKOp59qa67sjydgZpNinHQZ4OktHLa3adFfU02OdVqnH2ARom9w==
+	t=1794583665;
+	b=UM4/OFLQZbUsVhN8AxcdCVCQzl0xQM6NWUdehNP/IhWO0MEryM9FDs5DZXNKnZUMQT3I
+	 SmRPdJZUQvk04F0RvBGBtb+0Aq0lEh9XU40RbGeeZe/427j+ZtdyAGR821MpH76cVLpEL
+	 YXHfmijX+uSUugKanqC9mPKY9hDhsOfQpNjt2+2tMsWHAx4WwzSXUhNxRxxiVqzf6soNX
+	 fryUqPqRLyavLvUfqrYIH49KNBz76UxiyAbBRuXpeMBZW2YtHJJUHGChodDnd/8VO3D2z
+	 p0mX2sGawbSq1ScDcpzNxKnAMAhlpDTLTkj/vpxJ+tL7eOZuHyiY3E/xRSPgsNbvV5w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794583657;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=BBBrdtU2t9dzevLArI+XY8GHtkyeZcaoBH3Pgyu3/FY=;
-	b=O+saMqKA3vMSCSnat1aeELo6VFfYTngmAy3tXrFgu8kk77iHVTOIH/eyu0CFaeDSGNQx
-	 gJzwufGvp5o1SzsfKikOTHJHTWaGaIP+cKTtslgD+M4YpgeQPfTkdLaHKJ/32+W5g7Edb
-	 eZaoPoaReoPKbmrGq5gCdKF2XsPYfI1DmrLUsxqMwk/vNPAcTWeTdaIDbyUSRRU4fmuu/
-	 lwcH2rhXuMK5+TcDCH6tetRQcEE3uS1fA/sZ6bf8kWLOQ0QIAfgEtazOX4RjfkK3O1PQB
-	 d1g56rmT0JPNlWBYIIbH07amKGBJjtxWKMv+pdkqkPGVJP7MZVmFZyjeY6EHGb3oqcA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794583665;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
+	 In-Reply-To:References:Auto-Submitted:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=oVTc5I6nKpBiLsItkBZmeShBR8ASpkDeEBpnWBZ++aw=;
+	b=TlEsBtTyGX8sfYomityBCA6OPOR9nqJ2bY3OCnLxvXPQhm3fTabMS7uL3wPiPLxtK/H8
+	 rfVZZrZNu8UhBCWLgs+0RSSuAnWEGnFL8va88oFrIpIQVfxlDvWvtZM8YgD4elU1MCIjt
+	 lie4EP59Nicw91OJ9U3zxuOP/ghvVefvvIGeSIBPJuNyhThw2ToXtzVl8bbFUPkAroPcF
+	 uvoPByrihFxn6EUCTkh96LY9ouqGYRqm5vSegWN58GSI/gS58cyPsxbz6SMBdEZl2CmB0
+	 LlXh6aF7mYKV4LmDILgdEsbz/DrU1CdDnfAbVJFtihjBFcahrYhYuugmMIsyERvDb/w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AWkwufjg;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JyBaqzb5;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86717606A8AB
-	for <linux-rdma@vger.kernel.org>; Fri, 13 Nov 2026 15:27:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A99B606A890;
+	Fri, 13 Nov 2026 15:27:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AWkwufjg
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B86F1F000C8;
-	Fri, 13 Nov 2026 15:27:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JyBaqzb5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 071581F000C5;
+	Fri, 13 Nov 2026 15:27:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794583657;
-	bh=BBBrdtU2t9dzevLArI+XY8GHtkyeZcaoBH3Pgyu3/FY=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=AWkwufjg8Nyu95poMsLoPKPT7NNUvngtIml9QML4TODx6RASxTE8we/v1rXR1sXkq
-	 3A+fSKFqznPcCBY2nB1H7Qi4rwYpSj/+EoWfFMoxICgoECSMbGFbvkRjMKSm1AnI/B
-	 d3jD4WEdNbXMzQ8sIV1sg7xVgGuYV4YcLA1zwj4Wid6kjbZ+I1ApEHcfckekPD/HyH
-	 iw5D37nWnVKelidrJbkVuZV+qaa+s2b1KXpce5qbgBQ/lVCWpiivmGUgaReuQniYPN
-	 WlEh6o4jiw/HBOsKeqkBfk3VqLea2jseNnCuHY4eRnU8mKxy7Ua8LgRisUQCu8ZSAq
-	 ONHd0nQaBnoFQ==
-Message-ID: <sashiko-outbox-213088@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net] net/mlx5: IFC, enlarge active_port field to support
- 8 port LAG
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Tariq Toukan" <tariqt@nvidia.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261112182940.3655773-1-tariqt@nvidia.com>
-References: <20261112182940.3655773-1-tariqt@nvidia.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Fri, 13 Nov 2026 15:27:36 +0000
+	s=k20260515; t=1794583664;
+	bh=oVTc5I6nKpBiLsItkBZmeShBR8ASpkDeEBpnWBZ++aw=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=JyBaqzb5EK8bIQjRZtAMSfMQy+4fT8zgbjvd0sz2CxEEWkPGBLpGpjiYPO9nhPWCM
+	 oreWbXK84Ns0N6OwwhsPluXFT2Ot5jCrslyeMxAAdG3GgpAFUe5iAdLzQA2CiDQ7QY
+	 r8cdCWL1Ur/aeWUGVE8seRs5K59QprhmYHe3jnAP1A3uHLYlSgWvgtbFIeUU6m4N+F
+	 UUtMTnQEDHDmHPzCMMuQD67DQN1nJSl44MthhfLkRGe5UPQSqHMKxzq4BDYDM1HxH1
+	 Ajn2QChmE1g/WzDjsOpyTlcdeGlV44QXA5TnR6QsSVW8PEkjKl/Y2IAI/JqSns/YU8
+	 n4q5kSEgeg+hA==
+From: netdev-bot+sinfo@kernel.org
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
+ Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+ Paolo Abeni <pabeni@redhat.com>, Gal Pressman <gal@nvidia.com>,
+ Leon Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
+ linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
+ Mark Zhang <markzhang@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>,
+ Saeed Mahameed <saeedm@nvidia.com>, Shay Drory <shayd@nvidia.com>
+Subject: Re: [PATCH net V2] net/mlx5e: rep, Fix races between devcom PAIR
+ event and uplink close
+Date: Fri, 13 Nov 2026 15:27:43 +0000
+Message-ID: <179458366354.2168702.9670595647220092131@kernel.org>
+In-Reply-To: <20261112182403.3646298-1-tariqt@nvidia.com>
+References: <20261112182403.3646298-1-tariqt@nvidia.com>
+Auto-Submitted: auto-generated
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,23 +67,26 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
 
-> From: Shay Drory <shayd@nvidia.com>
->=20
-> active_port is a bitmask with a bit per LAG port. The cited commit
-> enabled 8 port LAG, but active_port remained 4 bits wide.
->=20
-> Enlarge active_port to 8 bits, as defined in the PRM.
->=20
-> Fixes: e0e6adfe8c20 ("net/mlx5: Enable 8 ports LAG")
-> Signed-off-by: Shay Drory <shayd@nvidia.com>
-> Reviewed-by: Mark Bloch <mbloch@nvidia.com>
-> Reviewed-by: Akiva Goldberger <agoldberger@nvidia.com>
-> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+Hi!
 
-Sashiko has reviewed this patch and found no issues.
+This is an automated message. This series looks like a fix, but its
+commit messages seem to be missing some information:
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261112182940.3655=
-773-1-tariqt@nvidia.com?part=3D1
+ - How the issue was discovered, e.g. hit in production, hit during
+   development, syzbot report, manual code inspection, LLM or static
+   analysis tool scan.
 
+ - Whether the issue was actually triggered, or is only theoretical
+   (e.g. found by LLM and not proven at runtime). If it was triggered
+   please include the symptoms, like the stack trace or kernel messages.
+
+Please do not repost the series just to address the above. Instead,
+reply to this email with the missing information, so that reviewers
+can take it into account. If the series needs another revision for
+other reasons, please include the information in the commit messages
+then.
+
+The evaluation is done by an LLM so it may be wrong, if you think
+that is the case please reply and explain.
