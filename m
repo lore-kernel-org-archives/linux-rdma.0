@@ -1,44 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794545042;
-	b=PuC+Jxkm7FjFsM6oUjkVXhUNZh3czC5Y0Az30mWWJG4OfawYjUiTWYPaw1Ias5Akuhqa
-	 t6j22brKA+6WLmnYJMRbc0Ud+9b4imKtd43vdDrB9p4yLcT7c64uqUuTvkcqaXijwWuzL
-	 s8KUX3GmbLZhzA3tErKBYwbwig/eZFbFKq2DJYKT4g46aO9zIWUAjmWT19X6soxvMadDl
-	 sd7/e7WV4mYZSPkvJ8XEhfpfblo/3P4SsjaQdVlGDqVw4zHYLAR/95dncRw0wDBfNrdRO
-	 SoHLbCb44jnOzmhmH5jjfdED0bgn1rlCCiQbKBLYYEPtenR6J1gFyxXrI224/2TJUIQ==
+	t=1794545037;
+	b=qEqmx39o/bgDWwEXPKC/0IwNylTJRagNKkr6RLSdtj/h/vSYq3pAPvJg5IV72Kx0TWIZ
+	 Ru/joNRSTZbd8v77VDkR6ezN6EqWfS4Qno1oMBYB163oVt9MdZpnag9dz/cMO/FkK1DVT
+	 xwuttotUVuFzzOUNN5P6KgnSRa46Fd7Gikw3wQUpSdUHXkQ/5khAkj4z6dIai0tNW9p4I
+	 wMNVSKLf7gFqNV0mGnsvKMHQHtGWtR/H8foU5zA5rHKpfUN4e6Eq+SO4S3EDn4WVEA6U/
+	 k55A0FEP9D4ctZkLupz+cW1t/m324pGUOlL6iOqbhun1U1Ekw2qVjmnghZLptUO8k8Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794545042;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794545037;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=7Di1L7BSWw1TBFRpaQGa6rpVzqNErV/jhh7XpUXXTvU=;
-	b=gb5whOfbtkQFFXKdaq8KfPRZtbhtTecBjeep2j8ciHQnzYdQi/EmvdF/VIoTfX+rDGCD
-	 SnheJajheMkSIE8OMeXtaXsuQ0DQwBiv2zgbmKDS+g1r7TyvHpEw3vyFeiAQfSQSfFTaJ
-	 Q2I4dKI9L3Q/bagP/P4MJJG+fttS4anRDJ3h2gggY8SvunE+e+UjU3nD+s2VNLFr0UGfR
-	 2oBo9bq/Au3hen41zY8BK4Zl49JWl5DXPbvX9F4gGKx7raZkD2f3vzTQBvsGyEciciEpA
-	 CN5NjulOeagKsg6RDhqV8Ckm9hzNl2WpYWvjpesvAAdGFM+sg9uYU+goRmhaAJ/8kZQ==
+	bh=kWrqpQdW3eFWvTDbVP1woMyFzomYqq4J9cnkshJxnWs=;
+	b=Rkf2By4k2xSC0L0pUM1ZG02zWde55vXDC916L408HZrbVtzOCNaSm2MI9u++IRUfCoyH
+	 JfD8dntrymWNSEUIKLCF0h81TpPVRMW+KlK/sznYPrYWcJFcFkbBiQLPU3oq8iUqFQUjI
+	 ByqaV7Bj4FwORJNs5N9C+xCMXvjvZ8XojerfYz7ymJDESBKlc/cQHtkCwYsA3YAw0xsp1
+	 wKXQpWS/n4E/v0xb906cg3as9mQYzOLxgiB3kHZRAdWZ3IIl5h+Czhe9v8770XwZRsEZD
+	 V1j9QHoMM5GRRnv3FhFiSrWsaPcQx8mYiraW/nY3ZQIv4SwVAsTIqVOWOCTeEBbszJw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HGy3r64j;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YJEhcdvT;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15AE460A2626;
-	Fri, 13 Nov 2026 04:44:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D7B0606A337;
+	Fri, 13 Nov 2026 04:43:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HGy3r64j
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 931231F000C7;
-	Fri, 13 Nov 2026 04:44:01 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YJEhcdvT
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B9881F000C5;
+	Fri, 13 Nov 2026 04:43:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794545041;
-	bh=7Di1L7BSWw1TBFRpaQGa6rpVzqNErV/jhh7XpUXXTvU=;
+	s=k20260515; t=1794545037;
+	bh=kWrqpQdW3eFWvTDbVP1woMyFzomYqq4J9cnkshJxnWs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=HGy3r64jolpzA3KWE4b3wLL0zN4nKigLtFUCio8dw6C58cE43njddRdWAP35AZHde
-	 ivDOESdvXIuFl9Ap4E+jXeI00tUgfHxrKDiDS+1W6uGvCUQOwWLacXVAk3n8xtyOdT
-	 Ca8fNezmkhCZGraub6xYraTG7ERY2lOOriOveQmE0+Mx6mZBOQ9vb4SZJ/KROCptb+
-	 hw2aRacxIdVaj8XdSbyeuKrh+sGA6uIJfKFp4MaL6JDgexDtdPNpFUvIZ7CLrLfBrp
-	 sg/90ca8ake9wGIMMO9R7/gt3MdIMzIIfFazQOdXLyy9D+zHuw3xNYoXMixqDiX0AO
-	 ENkfzpx7G91xQ==
+	b=YJEhcdvTkyQRBv7EcaP9qIRydz29OnbLbo6QvhoIo44PBgGDzCTN+qjP/7D1IMkyp
+	 CqctSUsV+oCpbyOovkaC9WjtXOBuulMmmJy+uxNXepmo35KbcdAbIKQEn7BOPfRmzl
+	 lUiy6ssSIEpxhCUoLeCcbvL5CeZH0RqRjPKR8bYeVxzayuPTCvJIhEbnuwqvSmDGOI
+	 grqSFHjhdlXFet6BlbfeW0ZjQYFl/Msg8XdnTRrPC25OfILafA2OpQy/OY0HIOCodU
+	 OAnEz3tq+mm5h7slIzb4MSnxx9eBYMSRK4F5fpB6Hs8ES1Kz/pvk983EAbfJWTOsW7
+	 BtUIKc4Z7KPcQ==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -47,9 +47,9 @@ To: netdev@vger.kernel.org,
 	kuba@kernel.org,
 	horms@kernel.org
 Cc: achender@kernel.org
-Subject: [PATCH net-next v12 11/12] net/rds: give cm_id->context a reference on its connection
-Date: Thu, 12 Nov 2026 21:43:54 -0700
-Message-ID: <20261113044355.2932029-12-achender@kernel.org>
+Subject: [PATCH net-next v12 02/12] net/rds: ib: refuse to attach a connection to a device being removed
+Date: Thu, 12 Nov 2026 21:43:45 -0700
+Message-ID: <20261113044355.2932029-3-achender@kernel.org>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20261113044355.2932029-1-achender@kernel.org>
 References: <20261113044355.2932029-1-achender@kernel.org>
@@ -64,182 +64,175 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-rds_rdma_cm_event_handler_cmn() picks the connection up from
-cm_id->context and holds c_cm_lock - a mutex that lives in the
-connection's path array - across the transport callbacks, but the
-context pointer owns no reference.  What keeps the connection alive
-under the handler is ordering: rds_ib_conn_path_shutdown() destroys the
-id, and rdma_destroy_id() waits for a running handler, before the
-destroy drops the connection's initial reference, so no event is
-handled on a connection that is being freed.  Before this series that
-ordering was broken from inside the handler, since rds_conn_destroy()
-freed synchronously and the one callback that destroyed its
-connection, rds_ib_cm_connect_complete() on a protocol version below
-3.1, left the handler's mutex_unlock() running on freed memory;
-commit f97d8c7bab78 ("rds: ib: use rds_conn_drop() on protocol version
-mismatch") has since switched that path to rds_conn_drop(), which also
-removed the deadlock that destroy took on c_cm_lock.
+rds_ib_remove_one() drops every connection on the device's conn_list
+in rds_ib_dev_shutdown(), then clears the client data so that no new
+connect can find the device.  A connect that is already past
+rds_ib_get_client_data() when the walk runs is not covered by either:
+rds_ib_setup_qp() goes on to rds_ib_add_conn(), which moves the
+connection onto the conn_list the walk has just finished with, and
+builds a QP on a device that is on its way out.
 
-Now that connections are reference counted, give the id a reference of
-its own rather than rely on that ordering.  rds_ib_conn_path_connect()
-takes it once rdma_create_id() has installed the connection as the
-context, rds_ib_cm_handle_connect() takes it when it installs the id on
-the passive side, and each is dropped after rdma_destroy_id() has
-returned: in rds_ib_conn_path_shutdown(), and on the two failure paths
-of rds_ib_conn_path_connect() that destroy the id straight away.  With
-that the handler cannot find its connection freed under it, whatever
-the callbacks do to the other holders - the destroy's initial
-reference, a socket's cache, a parent's c_passive, an inc.  None of the
-new puts can be the last reference: the shutdown runs on behalf of a
-destroy, or of a drop on a connection still in the hash, and the
-connect worker runs on a connection still in the hash, and each of
-those holds a reference of its own.
+On a hot removal the rdma_cm still catches that: its own client
+removal runs after RDS's and delivers RDMA_CM_EVENT_DEVICE_REMOVAL to
+the connection's id, whose drop shuts the connection down and returns
+it to ib_nodev_conns.  On module unload there is no such event - the
+device stays registered - and rds_destroy_pending() is already true,
+so every drop short of a destroy returns early.  Nothing drops that
+connection then: the device's shutdown walk is over, and the
+connection never returns to ib_nodev_conns, which is the only list the
+transport exit sweeps.  So it outlives the module, QP, device
+reference and all.  The trigger is unloading rds_rdma while a connect
+is in flight.
 
-rds_ib_cm_initiate_connect() and rds_ib_cm_handle_connect() get a
-defensive check of the same kind.  A destroy that began while the
-address and route were resolving either waits on c_cm_lock behind the
-ROUTE_RESOLVED handler - and its shutdown pass then tears down
-whatever the handler set up, QP, cm_id and device reference alike - or
-has already destroyed the id, in which case no event for it reaches
-the handler.  On the passive side a quiesced connection is unhashed,
-so rds_conn_create() cannot hand it to a connect request, and the
-listeners are stopped before any IB connection is destroyed at unload.
-Neither path is reachable today, then; both functions nevertheless
-decline to set up a QP, or install a new cm_id, on a connection whose
-destroy has begun, so that the contract does not rest on that
-ordering.  rds_ib_cm_initiate_connect() returns success when it
-declines: the id is still ic->i_cm_id, for the shutdown to destroy,
-and a non-zero return would have the rdma_cm destroy it instead.  An
-unload that begins after the check has passed is covered by
-rds_ib_add_conn() refusing a device that rds_ib_dev_shutdown() has
-marked.
+Make rds_ib_dev_shutdown() mark the device as shutting down under
+rds_ibdev->spinlock before it walks conn_list, and have
+rds_ib_add_conn() refuse, under the same lock, to attach a connection
+to a device so marked.  Every connection is then either on the list
+when the walk drops it, or refused: the connect fails, the connection
+stays on ib_nodev_conns, and either its own drop or the exit sweep
+tears it down.  rds_ib_setup_qp() has not taken anything from the
+device at that point, so the failure needs no unwinding beyond the
+client-data reference it already releases - but on the unload path
+that release can now be the device's last: rds_ib_remove_one() has
+dropped its own references by then, and the refused connect, holding
+c_cm_lock, releases its reference only when the exit sweep's
+rds_conn_destroy() of that connection waits for the lock, after
+rds_ib_unregister_client()'s flush of rds_wq.  rds_ib_dev_free()
+would then run on rds_wq with no flush left before the module text
+goes away, so rds_ib_exit() flushes rds_wq once more after the sweep.
 
+This covers the connect that attaches after rds_ib_dev_shutdown()'s
+walk.  Its twin - a connection still on conn_list when the exit sweep
+runs, because its shutdown work has not yet moved it back to
+ib_nodev_conns - is left for the unload wait later in the series,
+which re-sweeps that list until every connection is gone.
+
+This mirrors the UEK gate on the device removal flag in
+rds_ib_add_conn().
+
+Fixes: fc19de38be92 ("RDS/IB: disconnect when IB devices are removed")
 Assisted-by: Claude-Code:claude-fable-5
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- net/rds/ib_cm.c          | 41 ++++++++++++++++++++++++++++++++++++----
- net/rds/rdma_transport.c |  7 +++++++
- 2 files changed, 44 insertions(+), 4 deletions(-)
+ net/rds/ib.c      | 12 ++++++++++++
+ net/rds/ib.h      |  7 ++++++-
+ net/rds/ib_cm.c   |  4 +++-
+ net/rds/ib_rdma.c | 17 +++++++++++++++--
+ 4 files changed, 36 insertions(+), 4 deletions(-)
 
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index 4ea9838d090c..8758ae4cef36 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -86,6 +86,11 @@ static void rds_ib_dev_shutdown(struct rds_ib_device *rds_ibdev)
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&rds_ibdev->spinlock, flags);
++	/* Close the device to new connections under the same lock that
++	 * rds_ib_add_conn() attaches them under, so that every
++	 * connection is either dropped by the walk below or refused.
++	 */
++	rds_ibdev->shutting_down = true;
+ 	list_for_each_entry(ic, &rds_ibdev->conn_list, ib_node)
+ 		rds_conn_path_drop(&ic->conn->c_path[0], true);
+ 	spin_unlock_irqrestore(&rds_ibdev->spinlock, flags);
+@@ -539,6 +544,13 @@ void rds_ib_exit(void)
+ #endif
+ 	rds_ib_unregister_client();
+ 	rds_ib_destroy_nodev_conns();
++	/* A connect that was refused above may have held the last
++	 * reference on its device, and dropped it - deferring
++	 * rds_ib_dev_free() to rds_wq - only once the sweep had destroyed
++	 * its connection, after rds_ib_unregister_client()'s flush.
++	 * Drain rds_wq again before this module's text goes away.
++	 */
++	flush_workqueue(rds_wq);
+ 	rds_ib_sysctl_exit();
+ 	rds_ib_recv_exit();
+ 	rds_trans_unregister(&rds_ib_transport);
+diff --git a/net/rds/ib.h b/net/rds/ib.h
+index 1901226368c9..d1a3d421d439 100644
+--- a/net/rds/ib.h
++++ b/net/rds/ib.h
+@@ -258,6 +258,10 @@ struct rds_ib_device {
+ 	unsigned int		max_initiator_depth;
+ 	unsigned int		max_responder_resources;
+ 	spinlock_t		spinlock;	/* protect the above */
++	/* set under spinlock by rds_ib_dev_shutdown(): the device is
++	 * going away and no connection may attach to it any more
++	 */
++	bool			shutting_down;
+ 	refcount_t		refcount;
+ 	struct work_struct	free_work;
+ 	int			*vector_load;
+@@ -384,7 +388,8 @@ void rds_ib_cm_connect_complete(struct rds_connection *conn,
+ struct rds_ib_device *rds_ib_get_device(__be32 ipaddr);
+ int rds_ib_update_ipaddr(struct rds_ib_device *rds_ibdev,
+ 			 struct in6_addr *ipaddr);
+-void rds_ib_add_conn(struct rds_ib_device *rds_ibdev, struct rds_connection *conn);
++int rds_ib_add_conn(struct rds_ib_device *rds_ibdev,
++		    struct rds_connection *conn);
+ void rds_ib_remove_conn(struct rds_ib_device *rds_ibdev, struct rds_connection *conn);
+ void rds_ib_destroy_nodev_conns(void);
+ void rds_ib_mr_cqe_handler(struct rds_ib_connection *ic, struct ib_wc *wc);
 diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
-index 5bf6b22c10d6..a580a8c667ca 100644
+index 16bfeaaf3b97..ebb5e7aab580 100644
 --- a/net/rds/ib_cm.c
 +++ b/net/rds/ib_cm.c
-@@ -876,6 +876,15 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
- 	 * see the comment above rds_queue_reconnect()
- 	 */
- 	mutex_lock(&conn->c_cm_lock);
-+	/* Defensive: a destroy that has quiesced this conn also unhashed
-+	 * it, so rds_conn_create() cannot have returned it, and the
-+	 * listeners are stopped before any IB connection is destroyed at
-+	 * unload.  Should a request reach a conn in RDS_CONN_DOWN with
-+	 * its destroy begun all the same, do not install a new cm_id and
-+	 * QP that nothing would tear down.
-+	 */
-+	if (rds_destroy_pending(conn))
+@@ -524,7 +524,9 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
+ 	fr_queue_space = RDS_IB_DEFAULT_FR_WR;
+ 
+ 	/* add the conn now so that connection establishment has the dev */
+-	rds_ib_add_conn(rds_ibdev, conn);
++	ret = rds_ib_add_conn(rds_ibdev, conn);
++	if (ret)
 +		goto out;
- 	if (!rds_conn_transition(conn, RDS_CONN_DOWN, RDS_CONN_CONNECTING)) {
- 		if (rds_conn_state(conn) == RDS_CONN_UP) {
- 			rdsdebug("incoming connect while connecting\n");
-@@ -904,6 +913,10 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
- 	BUG_ON(ic->i_cm_id);
  
- 	ic->i_cm_id = cm_id;
-+	/* The id owns a reference on the connection it points at, put
-+	 * after rdma_destroy_id() in rds_ib_conn_path_shutdown().
+ 	max_wrs = rds_ibdev->max_wrs < rds_ib_sysctl_max_send_wr + 1 ?
+ 		rds_ibdev->max_wrs - 1 : rds_ib_sysctl_max_send_wr;
+diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
+index db7e92e7bd29..50c02f47cf68 100644
+--- a/net/rds/ib_rdma.c
++++ b/net/rds/ib_rdma.c
+@@ -119,7 +119,8 @@ int rds_ib_update_ipaddr(struct rds_ib_device *rds_ibdev,
+ 	return 0;
+ }
+ 
+-void rds_ib_add_conn(struct rds_ib_device *rds_ibdev, struct rds_connection *conn)
++int rds_ib_add_conn(struct rds_ib_device *rds_ibdev,
++		    struct rds_connection *conn)
+ {
+ 	struct rds_ib_connection *ic = conn->c_transport_data;
+ 
+@@ -127,15 +128,27 @@ void rds_ib_add_conn(struct rds_ib_device *rds_ibdev, struct rds_connection *con
+ 	spin_lock_irq(&ib_nodev_conns_lock);
+ 	BUG_ON(list_empty(&ib_nodev_conns));
+ 	BUG_ON(list_empty(&ic->ib_node));
+-	list_del(&ic->ib_node);
+ 
+ 	spin_lock(&rds_ibdev->spinlock);
++	/* rds_ib_dev_shutdown() has walked conn_list, or is about to
++	 * with this lock held: a connection attached now would never be
++	 * dropped by it, so leave the connection on the nodev list for
++	 * the caller to fail and the transport exit to find.
 +	 */
-+	rds_conn_get(conn);
- 	cm_id->context = conn;
++	if (rds_ibdev->shutting_down) {
++		spin_unlock(&rds_ibdev->spinlock);
++		spin_unlock_irq(&ib_nodev_conns_lock);
++		return -ENODEV;
++	}
++	list_del(&ic->ib_node);
+ 	list_add_tail(&ic->ib_node, &rds_ibdev->conn_list);
+ 	spin_unlock(&rds_ibdev->spinlock);
+ 	spin_unlock_irq(&ib_nodev_conns_lock);
  
- 	/* We got halfway through setting up the ib_connection, if we
-@@ -928,10 +941,8 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
- out:
- 	if (conn) {
- 		mutex_unlock(&conn->c_cm_lock);
--		/* Drop the reference rds_conn_create() handed us.  The
--		 * conn stays reachable through cm_id->context without a
--		 * reference of its own for now; the CM event handler is
--		 * given one of its own by a following patch.
-+		/* Drop the reference rds_conn_create() handed us; the
-+		 * cm_id holds its own from here on.
- 		 */
- 		rds_conn_put(conn);
- 	}
-@@ -950,6 +961,18 @@ int rds_ib_cm_initiate_connect(struct rdma_cm_id *cm_id, bool isv6)
- 	union rds_ib_conn_priv dp;
- 	int ret;
- 
-+	/* Defensive: a destroy that began while the address and route
-+	 * were being resolved either waits on c_cm_lock behind this
-+	 * handler, and its shutdown pass then tears down whatever is
-+	 * set up here, or has already destroyed the id this event
-+	 * arrived on, in which case the event never gets here.  Decline
-+	 * to set up a QP all the same, and return success: the id is
-+	 * still ic->i_cm_id, for that shutdown to destroy, and a
-+	 * non-zero return would have the rdma_cm destroy it instead.
-+	 */
-+	if (rds_destroy_pending(conn))
-+		return 0;
+ 	ic->rds_ibdev = rds_ibdev;
+ 	refcount_inc(&rds_ibdev->refcount);
 +
- 	/* If the peer doesn't do protocol negotiation, we must
- 	 * default to RDSv3.0 */
- 	rds_ib_set_protocol(conn, RDS_PROTOCOL_4_1);
-@@ -1007,6 +1030,10 @@ int rds_ib_conn_path_connect(struct rds_conn_path *cp)
- 		rdsdebug("rdma_create_id() failed: %d\n", ret);
- 		goto out;
- 	}
-+	/* The id owns a reference on the connection it points at, put
-+	 * after rdma_destroy_id() wherever the id is destroyed.
-+	 */
-+	rds_conn_get(conn);
++	return 0;
+ }
  
- 	/* rds_ib_laddr_check() only vouched for the local address being
- 	 * on an IB device; the address resolution below picks the device
-@@ -1017,6 +1044,7 @@ int rds_ib_conn_path_connect(struct rds_conn_path *cp)
- 		rdsdebug("rdma_restrict_node_type() failed: %d\n", ret);
- 		rdma_destroy_id(ic->i_cm_id);
- 		ic->i_cm_id = NULL;
-+		rds_conn_put(conn);
- 		goto out;
- 	}
- 
-@@ -1058,6 +1086,7 @@ int rds_ib_conn_path_connect(struct rds_conn_path *cp)
- 			 ret);
- 		rdma_destroy_id(ic->i_cm_id);
- 		ic->i_cm_id = NULL;
-+		rds_conn_put(conn);
- 	}
- 
- out:
-@@ -1188,6 +1217,10 @@ void rds_ib_conn_path_shutdown(struct rds_conn_path *cp)
- 			rds_ib_recv_clear_ring(ic);
- 
- 		rdma_destroy_id(ic->i_cm_id);
-+		/* The id's reference on the connection.  Never the last
-+		 * one: whoever runs this shutdown holds its own.
-+		 */
-+		rds_conn_put(conn);
- 
- 		/*
- 		 * Move connection back to the nodev list.
-diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
-index 75532734c054..5d7d41c2db29 100644
---- a/net/rds/rdma_transport.c
-+++ b/net/rds/rdma_transport.c
-@@ -60,6 +60,13 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_cm_id *cm_id,
- 	rdsdebug("conn %p id %p handling event %u (%s)\n", conn, cm_id,
- 		 event->event, rdma_event_msg(event->event));
- 
-+	/* cm_id->context owns a reference on the connection, dropped
-+	 * only after rdma_destroy_id() has returned, and that waits for
-+	 * a running handler.  The connection, and the mutex released at
-+	 * out: that lives in its path array, therefore outlive this
-+	 * handler whatever the callbacks below do to the other holders.
-+	 */
-+
- 	/* Prevent shutdown from tearing down the connection
- 	 * while we're executing. */
- 	if (conn) {
+ void rds_ib_remove_conn(struct rds_ib_device *rds_ibdev, struct rds_connection *conn)
 -- 
 2.50.1
 
