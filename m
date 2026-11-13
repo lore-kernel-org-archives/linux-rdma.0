@@ -1,44 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794545041;
-	b=I+c/PnfXGvL74JhT1cFA/m2TXEYi+UrZ8rbcVux60rHBBSnkcZ/K96KqYuWinJwXhUkR
-	 6T7PEQJPcFk3wollrSmmgsjWl674NM5wYANdHfEy1KHiv4YrlKGPCG5hi3SpPvryRl1pZ
-	 4/QSXDN0kZWuJ3gER6DOFIGqxWkOF3M/3EZ1CMeQZbmcFX0zkmgMp8CF6PBw0qURaGvC3
-	 3vZKqWgAC7u1EDtl7JXKj9Q5b9GoaWz/y4bDuXM3qzc+hOJvNFh9oTsFQXnAysmuouRHg
-	 R7Ewj/GCR6r/SUFf70W4WeBD1Uwuod4C9s0rEByPcgMsntBV4GthUjP0H7jB0biDH4g==
+	t=1794545042;
+	b=PuC+Jxkm7FjFsM6oUjkVXhUNZh3czC5Y0Az30mWWJG4OfawYjUiTWYPaw1Ias5Akuhqa
+	 t6j22brKA+6WLmnYJMRbc0Ud+9b4imKtd43vdDrB9p4yLcT7c64uqUuTvkcqaXijwWuzL
+	 s8KUX3GmbLZhzA3tErKBYwbwig/eZFbFKq2DJYKT4g46aO9zIWUAjmWT19X6soxvMadDl
+	 sd7/e7WV4mYZSPkvJ8XEhfpfblo/3P4SsjaQdVlGDqVw4zHYLAR/95dncRw0wDBfNrdRO
+	 SoHLbCb44jnOzmhmH5jjfdED0bgn1rlCCiQbKBLYYEPtenR6J1gFyxXrI224/2TJUIQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794545041;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794545042;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=6xaoxifvY23UPd5Pl5k1g4wGQeX4X9m3tRKXdO7g+0k=;
-	b=JhRn8r9QH56fUVjCXRDePMEFqiVpEhk3Rb5rGf7yxRCXQ0ay4ULDV12IuCzWYehoKIve
-	 umwMkK3A8RhJT5P74tAvGXY1x8msKQwXUvziqA/8a0iWzQh5kHxxnDOOGI+ZTi6qQucav
-	 dbMN+lRQKr7676pXZugYapxG5N0EVw9dH2X8v/h9corXWSaFwBqGOxBZ0+O+VJMe+iZ2+
-	 5AB7ilLxQE4E05WPbmp7WiphLVp1hHiO1cLyHM4Ki041e5RArfOa3HNEmqIq2inYRUzmF
-	 FMWU3r7+eJP+3ztQSCJuf0oOOvYGtT3fxFLfU/FXUtAroZK6GjlmoAeMIWmeCi0UhrQ==
+	bh=7Di1L7BSWw1TBFRpaQGa6rpVzqNErV/jhh7XpUXXTvU=;
+	b=gb5whOfbtkQFFXKdaq8KfPRZtbhtTecBjeep2j8ciHQnzYdQi/EmvdF/VIoTfX+rDGCD
+	 SnheJajheMkSIE8OMeXtaXsuQ0DQwBiv2zgbmKDS+g1r7TyvHpEw3vyFeiAQfSQSfFTaJ
+	 Q2I4dKI9L3Q/bagP/P4MJJG+fttS4anRDJ3h2gggY8SvunE+e+UjU3nD+s2VNLFr0UGfR
+	 2oBo9bq/Au3hen41zY8BK4Zl49JWl5DXPbvX9F4gGKx7raZkD2f3vzTQBvsGyEciciEpA
+	 CN5NjulOeagKsg6RDhqV8Ckm9hzNl2WpYWvjpesvAAdGFM+sg9uYU+goRmhaAJ/8kZQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dBGy9r+S;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HGy3r64j;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0414F60A260D;
-	Fri, 13 Nov 2026 04:44:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15AE460A2626;
+	Fri, 13 Nov 2026 04:44:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dBGy9r+S
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85D6F1F000C7;
-	Fri, 13 Nov 2026 04:44:00 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HGy3r64j
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 931231F000C7;
+	Fri, 13 Nov 2026 04:44:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794545040;
-	bh=6xaoxifvY23UPd5Pl5k1g4wGQeX4X9m3tRKXdO7g+0k=;
+	s=k20260515; t=1794545041;
+	bh=7Di1L7BSWw1TBFRpaQGa6rpVzqNErV/jhh7XpUXXTvU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=dBGy9r+ShxCmLjYrEl+chzRJqYIi3NRwsd4fgFVBw/pmEZO0COMSiEACtq80RHeyE
-	 XuZ18dVh89ibhuvDa9pkc/juhYeVf7/AOsbfQgYR7KiU9U3J1Y33KAHOGS0cABTeFw
-	 Lms0zlTy6o4T+lPcsjtQe/G7rsg9lzdlgOyoJK/f6+6rwPqwggfhDFwT93HJh2t7Wo
-	 eYAy8uEUAh85OF6VkoSO6hztmLmiceC62k25c58jT3jKRT2UIVu9hgQF+WOH3Sc0dD
-	 lTl4tUQDmCKcZktZ/4A2mQ4d22lDDrvs+Q95a+iz3p8DHa5kEG0BvkB73BBuXVfQqG
-	 ktijN9tn0sN9Q==
+	b=HGy3r64jolpzA3KWE4b3wLL0zN4nKigLtFUCio8dw6C58cE43njddRdWAP35AZHde
+	 ivDOESdvXIuFl9Ap4E+jXeI00tUgfHxrKDiDS+1W6uGvCUQOwWLacXVAk3n8xtyOdT
+	 Ca8fNezmkhCZGraub6xYraTG7ERY2lOOriOveQmE0+Mx6mZBOQ9vb4SZJ/KROCptb+
+	 hw2aRacxIdVaj8XdSbyeuKrh+sGA6uIJfKFp4MaL6JDgexDtdPNpFUvIZ7CLrLfBrp
+	 sg/90ca8ake9wGIMMO9R7/gt3MdIMzIIfFazQOdXLyy9D+zHuw3xNYoXMixqDiX0AO
+	 ENkfzpx7G91xQ==
 From: Allison Henderson <achender@kernel.org>
 To: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
@@ -47,9 +47,9 @@ To: netdev@vger.kernel.org,
 	kuba@kernel.org,
 	horms@kernel.org
 Cc: achender@kernel.org
-Subject: [PATCH net-next v12 09/12] net/rds: take cp_lock to purge cp_send_queue in the quiesce
-Date: Thu, 12 Nov 2026 21:43:52 -0700
-Message-ID: <20261113044355.2932029-10-achender@kernel.org>
+Subject: [PATCH net-next v12 11/12] net/rds: give cm_id->context a reference on its connection
+Date: Thu, 12 Nov 2026 21:43:54 -0700
+Message-ID: <20261113044355.2932029-12-achender@kernel.org>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20261113044355.2932029-1-achender@kernel.org>
 References: <20261113044355.2932029-1-achender@kernel.org>
@@ -64,94 +64,182 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-rds_conn_path_quiesce() empties cp_send_queue by walking it with no
-lock held, while every path that adds to that queue -
-rds_send_queue_rm(), rds_send_probe(), the retransmit requeue in
-rds_send_path_reset() - does so under cp_lock.  The unlocked walk was
-justified by the destroy running with nothing else alive: at every
-destroy trigger there is - netns teardown and module unload - no
-socket can still be sending on the connection, since a bound socket
-pins its transport module and a namespace closes its sockets before
-its RDS connections are torn down.
+rds_rdma_cm_event_handler_cmn() picks the connection up from
+cm_id->context and holds c_cm_lock - a mutex that lives in the
+connection's path array - across the transport callbacks, but the
+context pointer owns no reference.  What keeps the connection alive
+under the handler is ordering: rds_ib_conn_path_shutdown() destroys the
+id, and rdma_destroy_id() waits for a running handler, before the
+destroy drops the connection's initial reference, so no event is
+handled on a connection that is being freed.  Before this series that
+ordering was broken from inside the handler, since rds_conn_destroy()
+freed synchronously and the one callback that destroyed its
+connection, rds_ib_cm_connect_complete() on a protocol version below
+3.1, left the handler's mutex_unlock() running on freed memory;
+commit f97d8c7bab78 ("rds: ib: use rds_conn_drop() on protocol version
+mismatch") has since switched that path to rds_conn_drop(), which also
+removed the deadlock that destroy took on c_cm_lock.
 
-That argument still holds, but it is an argument about the callers,
-not a property of the code.  Splice the queue away under cp_lock and
-drop the message references outside it, so that the one walker of the
-list follows the same lock discipline as its adders.  This does not
-by itself make a sender that is still running safe - nothing here
-tells such a sender that the queue is closed - and it does not need
-to, since no such sender exists at any destroy trigger.
+Now that connections are reference counted, give the id a reference of
+its own rather than rely on that ordering.  rds_ib_conn_path_connect()
+takes it once rdma_create_id() has installed the connection as the
+context, rds_ib_cm_handle_connect() takes it when it installs the id on
+the passive side, and each is dropped after rdma_destroy_id() has
+returned: in rds_ib_conn_path_shutdown(), and on the two failure paths
+of rds_ib_conn_path_connect() that destroy the id straight away.  With
+that the handler cannot find its connection freed under it, whatever
+the callbacks do to the other holders - the destroy's initial
+reference, a socket's cache, a parent's c_passive, an inc.  None of the
+new puts can be the last reference: the shutdown runs on behalf of a
+destroy, or of a drop on a connection still in the hash, and the
+connect worker runs on a connection still in the hash, and each of
+those holds a reference of its own.
 
-While at it, make the purge coherent with rds_send_drop_to(), the
-other path that removes messages from a connection queue.  drop_to
-decides whether it owns the queue's reference by test_and_clear on
-RDS_MSG_ON_CONN, and unlinks m_conn_item from whatever list the
-message is on.  The purge used to BUG_ON() a message that a socket
-still had queued, and that assertion is also what kept a drop_to
-racing it from putting the queue's reference a second time or
-unlinking from the purge list; the lock above is what closes the
-stale-next hazard of the old walk, not the assertion.  Clear the bit
-under cp_lock as part of the splice, so that drop_to leaves a purged
-message alone, and turn the BUG_ON() into a WARN_ON_ONCE(): a socket
-with messages queued at destroy is still a condition worth reporting -
-no sender or closer can be running at any destroy trigger today - but
-not one worth a panic, since the socket side keeps its own reference
-and retires the message on close.
+rds_ib_cm_initiate_connect() and rds_ib_cm_handle_connect() get a
+defensive check of the same kind.  A destroy that began while the
+address and route were resolving either waits on c_cm_lock behind the
+ROUTE_RESOLVED handler - and its shutdown pass then tears down
+whatever the handler set up, QP, cm_id and device reference alike - or
+has already destroyed the id, in which case no event for it reaches
+the handler.  On the passive side a quiesced connection is unhashed,
+so rds_conn_create() cannot hand it to a connect request, and the
+listeners are stopped before any IB connection is destroyed at unload.
+Neither path is reachable today, then; both functions nevertheless
+decline to set up a QP, or install a new cm_id, on a connection whose
+destroy has begun, so that the contract does not rest on that
+ordering.  rds_ib_cm_initiate_connect() returns success when it
+declines: the id is still ic->i_cm_id, for the shutdown to destroy,
+and a non-zero return would have the rdma_cm destroy it instead.  An
+unload that begins after the check has passed is covered by
+rds_ib_add_conn() refusing a device that rds_ib_dev_shutdown() has
+marked.
 
 Assisted-by: Claude-Code:claude-fable-5
 Signed-off-by: Allison Henderson <achender@kernel.org>
 ---
- net/rds/connection.c | 29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+ net/rds/ib_cm.c          | 41 ++++++++++++++++++++++++++++++++++++----
+ net/rds/rdma_transport.c |  7 +++++++
+ 2 files changed, 44 insertions(+), 4 deletions(-)
 
-diff --git a/net/rds/connection.c b/net/rds/connection.c
-index c7655e9339ca..9c8c4b28d2b2 100644
---- a/net/rds/connection.c
-+++ b/net/rds/connection.c
-@@ -540,6 +540,8 @@ void rds_conn_shutdown(struct rds_conn_path *cp)
- static void rds_conn_path_quiesce(struct rds_conn_path *cp)
- {
- 	struct rds_message *rm, *rtmp;
-+	unsigned long flags;
-+	LIST_HEAD(purge);
- 
- 	if (!cp->cp_transport_data)
- 		return;
-@@ -551,12 +553,29 @@ static void rds_conn_path_quiesce(struct rds_conn_path *cp)
- 	rds_conn_path_drop(cp, true);
- 	flush_work(&cp->cp_down_w);
- 
--	/* tear down queued messages */
--	list_for_each_entry_safe(rm, rtmp,
--				 &cp->cp_send_queue,
--				 m_conn_item) {
-+	/* Tear down queued messages.  Every path that adds to
-+	 * cp_send_queue does so under cp_lock; take it here too.  No
-+	 * sender can still be running at any destroy trigger, so this is
-+	 * lock discipline rather than a race fix: nothing here tells a
-+	 * sender that the queue is closed.
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index 5bf6b22c10d6..a580a8c667ca 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -876,6 +876,15 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
+ 	 * see the comment above rds_queue_reconnect()
+ 	 */
+ 	mutex_lock(&conn->c_cm_lock);
++	/* Defensive: a destroy that has quiesced this conn also unhashed
++	 * it, so rds_conn_create() cannot have returned it, and the
++	 * listeners are stopped before any IB connection is destroyed at
++	 * unload.  Should a request reach a conn in RDS_CONN_DOWN with
++	 * its destroy begun all the same, do not install a new cm_id and
++	 * QP that nothing would tear down.
 +	 */
-+	spin_lock_irqsave(&cp->cp_lock, flags);
-+	list_splice_init(&cp->cp_send_queue, &purge);
-+	/* Give up the queue's claim on each message while still under
-+	 * the lock, so that rds_send_drop_to(), which decides ownership
-+	 * of the connection-queue reference by this bit, neither drops
-+	 * it a second time nor unlinks the message from our list.
++	if (rds_destroy_pending(conn))
++		goto out;
+ 	if (!rds_conn_transition(conn, RDS_CONN_DOWN, RDS_CONN_CONNECTING)) {
+ 		if (rds_conn_state(conn) == RDS_CONN_UP) {
+ 			rdsdebug("incoming connect while connecting\n");
+@@ -904,6 +913,10 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
+ 	BUG_ON(ic->i_cm_id);
+ 
+ 	ic->i_cm_id = cm_id;
++	/* The id owns a reference on the connection it points at, put
++	 * after rdma_destroy_id() in rds_ib_conn_path_shutdown().
 +	 */
-+	list_for_each_entry(rm, &purge, m_conn_item)
-+		clear_bit(RDS_MSG_ON_CONN, &rm->m_flags);
-+	spin_unlock_irqrestore(&cp->cp_lock, flags);
-+	list_for_each_entry_safe(rm, rtmp, &purge, m_conn_item) {
-+		/* No socket can still have messages queued on a connection
-+		 * at any destroy trigger; say so if one does, since the
-+		 * socket side then retires the message on its own.
-+		 */
-+		WARN_ON_ONCE(!list_empty(&rm->m_sock_item));
- 		list_del_init(&rm->m_conn_item);
--		BUG_ON(!list_empty(&rm->m_sock_item));
- 		rds_message_put(rm);
++	rds_conn_get(conn);
+ 	cm_id->context = conn;
+ 
+ 	/* We got halfway through setting up the ib_connection, if we
+@@ -928,10 +941,8 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
+ out:
+ 	if (conn) {
+ 		mutex_unlock(&conn->c_cm_lock);
+-		/* Drop the reference rds_conn_create() handed us.  The
+-		 * conn stays reachable through cm_id->context without a
+-		 * reference of its own for now; the CM event handler is
+-		 * given one of its own by a following patch.
++		/* Drop the reference rds_conn_create() handed us; the
++		 * cm_id holds its own from here on.
+ 		 */
+ 		rds_conn_put(conn);
  	}
- 	if (cp->cp_xmit_rm)
+@@ -950,6 +961,18 @@ int rds_ib_cm_initiate_connect(struct rdma_cm_id *cm_id, bool isv6)
+ 	union rds_ib_conn_priv dp;
+ 	int ret;
+ 
++	/* Defensive: a destroy that began while the address and route
++	 * were being resolved either waits on c_cm_lock behind this
++	 * handler, and its shutdown pass then tears down whatever is
++	 * set up here, or has already destroyed the id this event
++	 * arrived on, in which case the event never gets here.  Decline
++	 * to set up a QP all the same, and return success: the id is
++	 * still ic->i_cm_id, for that shutdown to destroy, and a
++	 * non-zero return would have the rdma_cm destroy it instead.
++	 */
++	if (rds_destroy_pending(conn))
++		return 0;
++
+ 	/* If the peer doesn't do protocol negotiation, we must
+ 	 * default to RDSv3.0 */
+ 	rds_ib_set_protocol(conn, RDS_PROTOCOL_4_1);
+@@ -1007,6 +1030,10 @@ int rds_ib_conn_path_connect(struct rds_conn_path *cp)
+ 		rdsdebug("rdma_create_id() failed: %d\n", ret);
+ 		goto out;
+ 	}
++	/* The id owns a reference on the connection it points at, put
++	 * after rdma_destroy_id() wherever the id is destroyed.
++	 */
++	rds_conn_get(conn);
+ 
+ 	/* rds_ib_laddr_check() only vouched for the local address being
+ 	 * on an IB device; the address resolution below picks the device
+@@ -1017,6 +1044,7 @@ int rds_ib_conn_path_connect(struct rds_conn_path *cp)
+ 		rdsdebug("rdma_restrict_node_type() failed: %d\n", ret);
+ 		rdma_destroy_id(ic->i_cm_id);
+ 		ic->i_cm_id = NULL;
++		rds_conn_put(conn);
+ 		goto out;
+ 	}
+ 
+@@ -1058,6 +1086,7 @@ int rds_ib_conn_path_connect(struct rds_conn_path *cp)
+ 			 ret);
+ 		rdma_destroy_id(ic->i_cm_id);
+ 		ic->i_cm_id = NULL;
++		rds_conn_put(conn);
+ 	}
+ 
+ out:
+@@ -1188,6 +1217,10 @@ void rds_ib_conn_path_shutdown(struct rds_conn_path *cp)
+ 			rds_ib_recv_clear_ring(ic);
+ 
+ 		rdma_destroy_id(ic->i_cm_id);
++		/* The id's reference on the connection.  Never the last
++		 * one: whoever runs this shutdown holds its own.
++		 */
++		rds_conn_put(conn);
+ 
+ 		/*
+ 		 * Move connection back to the nodev list.
+diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
+index 75532734c054..5d7d41c2db29 100644
+--- a/net/rds/rdma_transport.c
++++ b/net/rds/rdma_transport.c
+@@ -60,6 +60,13 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_cm_id *cm_id,
+ 	rdsdebug("conn %p id %p handling event %u (%s)\n", conn, cm_id,
+ 		 event->event, rdma_event_msg(event->event));
+ 
++	/* cm_id->context owns a reference on the connection, dropped
++	 * only after rdma_destroy_id() has returned, and that waits for
++	 * a running handler.  The connection, and the mutex released at
++	 * out: that lives in its path array, therefore outlive this
++	 * handler whatever the callbacks below do to the other holders.
++	 */
++
+ 	/* Prevent shutdown from tearing down the connection
+ 	 * while we're executing. */
+ 	if (conn) {
 -- 
 2.50.1
 
