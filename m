@@ -1,63 +1,58 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794552402;
-	b=l2KVgjDo7+/4rCalKaesDrwgHOIB8YWSXPJ2+BlfqLUDNJ/mycRdaI68CZQnPkeyRWzJ
-	 bTZe+1lim7tYIHb+aisfJRK53nvknL81OKJjgo9giY7RPxBamXVxKVaV+ZJ4LTxo0W5+9
-	 fYey/3RQB4rIxOfhbfw354Eb53GIbkh1BOJCo3dHVz9NujPXFoGN/VzzTK39N+p563ZdI
-	 YtnZuRnWRsiP0MWRhRHY9NnunvGkT5Vb8pVgG7sQaH1VLHmAqGbxV4lE1HNwjzlji3zKg
-	 3llykfW/t+wUJoGBuT/X4PbnNdQFh+uXHSd8TLtFsvmiVEPr7UC91VMWCoU3RqJOOMg==
+	t=1794557184;
+	b=v6TdMXiac732MHhTrLapKnHJwVlVy0use34H6ZsEg2gKdVckiQ/Nc2FbJnZMOtGIOMWx
+	 t5rfI1RPqViTHLjhHSlG5Tm0Fu4ZkF75L8LG69Rzq1XvMcUkHLeQFLlZEs9N97Lfo+YqM
+	 xpQwqVpqc3CjM82k3b2Dab1gNEt9fx/yUQkOkx2DXDVA7YaIRjUcOvVUdjx38wIyW07Ca
+	 TCgfRERnF0GtalBQpCUyZLoELGcbxYGX81HfLOkIZG/7DxerQbPeVO1lqprBppIvU8nBj
+	 sphYJGcZR2NZ3f7WJ00RW1J2E4bUTlGpmcKe2btlMxKMtZXgLug+hLeMF/X6l+TPURQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794552402;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794557184;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=+W4MtmrIqWp+kYZjfKbvtwBvtxVj9xj86hKfD148kIc=;
-	b=C+5zWaYXz71NpnE338Ue6Qk0bq/TkZs2bz3yYDFdN9f14/6GHboap3TXKMsPncgkE+K0
-	 svAVOBHVn8CkWaoFQHijNhf5BQ1hrfLGb3TmG71EXDUoikw4zB8vaR+05G3Yje7km/bjA
-	 DNfOgqjPK9QsQv3541rHSYfQQS4Ag6wQGMADl/5vwIWEBlygGQLAJFD4SwowsB88n/CVh
-	 JgcnfX3zyTF8yVqjDYy7ctWJr7xBNfAiWV4txnKyVWQ+NQvJzYfsJ5UdP6uHD2TRfN37s
-	 ZtqAt0YzAdqEdyCqm1m144Ykp3IcuJOfMeJwpEbpj1M7uQ/5WRhbsrynG55g//pIvbw==
+	bh=lb4Edw7yh0QJZr9z5jSn2QIVos+nFDc8neFuLj7Hbhw=;
+	b=Zl7Fc0tLxWgkPdNe8zWuZBlN74/tg+HpSeezH1eDRhjh0JpyNFuRuG2ZKC43EOqnYwJu
+	 cdYUgCY/kIVay7hHmCyABxRImcgLKXTHGW/Yknhkk/hgZqRbuoxnB7a/d9lPKnmlV8QyD
+	 DMlmkEX+0CmY4YTM+8BdjmDZ4uxw21R307HJWuQXN7TLJomEkuSBGD3PPzqTqY2/PCQAZ
+	 rX4U+j4hH/+NO+ITQx8V0r82g+4RjU4tQ8vlgK29+z4TG0T2Dd2YrZCTTDKElz7WXUqNP
+	 IuTzbTAUk9al4klYcu4UyRU14jDwFBrmpyXwbCObuiM8+bDDbeSyHdZpl/7msNtq2UQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PLZ0TglA;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UcHftlkA;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D5E9606A896;
-	Fri, 13 Nov 2026 06:46:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1017606A31C;
+	Fri, 13 Nov 2026 08:06:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PLZ0TglA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A12D51F000C8;
-	Fri, 13 Nov 2026 06:46:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UcHftlkA
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 986131F000C4;
+	Fri, 13 Nov 2026 08:06:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794552402;
-	bh=+W4MtmrIqWp+kYZjfKbvtwBvtxVj9xj86hKfD148kIc=;
+	s=k20260515; t=1794557183;
+	bh=lb4Edw7yh0QJZr9z5jSn2QIVos+nFDc8neFuLj7Hbhw=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=PLZ0TglAR5MbJwLgt3abZ/SZP2Yo71jSMtcn1mzgmBb8QBji8Gqyt1H5LrRy+QQ3W
-	 3hZtmhFfSshijgETgFmSUAieK/Y+z1Y5TU3YhbS3mlyVlsfQfWgh5UG8TZ1Py3YukA
-	 /K1bvtR9FFzi3aYrsoezV1A82xGWuvH/6UcNrIr0XbhWVrImwMAC2A42mGiZkiCA7P
-	 GR0T5wdfzNL67QRAWcdztClUBLtfAqDyLjl9IcTH44jiRNyaSSx66TMIwMbYRThr1s
-	 I5NV0hZ4REbx5yYAjEILlQPyQH4yYtm1FyyX26yr9evFuppMv6XeZPhvWMpeBrJbPF
-	 InaswWSYWbe4Q==
-Subject:
- Re: [PATCH net-next v10 3/4] net: mana: support concurrent HWC requests
+	b=UcHftlkAxlMUoAHLH8VSPUOsFhelDvPy+o87pyiVN2VT7skEDm66aBi86qvxzVfBn
+	 +uURM/9tB/z+AHJ3mp+8euBYcJONXsvOPq5dXhQMYWwU6IFExLNl1yoEh7t2akUVpz
+	 1YyAtMwGiN/1Q8+DSlF5iby+eSDqHX19/Toj/sC3B08oXyRwKjnBRnBXKUBvJ4dgxh
+	 L3Ib6Ox0l61YU5c3aMXJJKgvhT34NHVy0dZIN90tjfOcGzFlkqIb2SeH5fYaMlEGVq
+	 oCrHR2gZNelltU6kLImqLDFuVjjgDJgSYal2qOitulw+Xq/WY+INtSYe2HRMWENZOA
+	 yQ4q1kaSDYaRA==
+Subject: Re: [PATCH net-next v4] net/mlx5e: advertise tcp-data-split support
 From: netdev-bot+sashiko@kernel.org
-To: weh@linux.microsoft.com
-Cc: longli@kernel.org, kotaranov@microsoft.com, kuba@kernel.org,
- davem@davemloft.net, pabeni@redhat.com, edumazet@google.com,
- andrew+netdev@lunn.ch, jgg@ziepe.ca, leon@kernel.org, haiyangz@microsoft.com,
- wei.liu@kernel.org, decui@microsoft.com, shradhagupta@linux.microsoft.com,
- horms@kernel.org, ernis@linux.microsoft.com, stephen@networkplumber.org,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
- gargaditya@linux.microsoft.com, kees+treewide@kernel.org, kees@kernel.org,
- mawasthi@linux.microsoft.com, weh@microsoft.com, edumazet@kernel.org
-Date: Fri, 13 Nov 2026 06:46:40 +0000
-Message-ID: <179455240021.2199510.18244084352437360589@kernel.org>
-In-Reply-To: <2ae0e8b22569dc23178d0ea42178808ad92cb6db.1794208055.git.weh@linux.microsoft.com>
-References: <2ae0e8b22569dc23178d0ea42178808ad92cb6db.1794208055.git.weh@linux.microsoft.com>
-X-sashiko-severity: High
+To: dimitri.daskalakis1@gmail.com
+Cc: davem@davemloft.net, saeedm@nvidia.com, tariqt@nvidia.com,
+ mbloch@nvidia.com, leon@kernel.org, andrew+netdev@lunn.ch,
+ edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com, gal@nvidia.com,
+ cratiu@nvidia.com, dtatulea@nvidia.com, noren@nvidia.com, cjubran@nvidia.com,
+ bjorn@kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Date: Fri, 13 Nov 2026 08:06:22 +0000
+Message-ID: <179455718216.2199510.10119051325167179247@kernel.org>
+In-Reply-To: <20261111170558.1654691-1-dimitri.daskalakis1@gmail.com>
+References: <20261111170558.1654691-1-dimitri.daskalakis1@gmail.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -70,10 +65,10 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 5 potential
+Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 (1) · Medium: 1 · Low: 3
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -81,344 +76,109 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] After one HWC command times out, later commands are rejected
-  without being posted, so teardown commands never reach the device.
-- [Medium] mana_hwc_try_get_msg_index() turns a full bitmap into
-  -ETIMEDOUT whenever atomic_read(&hwc->abandoned_msgs) is non-zero,…
-- [Low] The patch fixes a real bug without naming it: a late HWC response
-  could be delivered to the wrong command.
-- [Low] mana_need_log() now suppresses logging for -ETIMEDOUT/-ENODEV
-  whenever gc->hwc.driver_data is NULL.
-- [Low] gc->hwc_drain_waitq belongs to gdma_context (it sits next to
-  gc->hwc_lock, which the patch correctly initializes in…
-
-Pre-existing issues:
-- [High] Some code reads gc->hwc.driver_data with no hwc_lock and no
-  active_senders reference, then dereferences it:…
+- [Medium] mlx5e_get_ringparam() now reports tcp-data-split as ENABLED
+  whenever SHAMPO is active, even when dev->cfg->hds_config is still…
+- [Low] The patch has no Fixes: tag, even though its commit message
+  describes regressions caused by commit 46bcce5dfd33 ("net/mlx5e:…
 
 --
 
-net: mana: support concurrent HWC requests
+net/mlx5e: advertise tcp-data-split support
 
-This patch gives each HWC message slot separate sender and response
-references. It serializes SQ posting and replaces the semaphore with a
-wait queue for admission. It also adds a publish/unpublish and
-sender-drain protocol around gc->hwc.driver_data for runtime teardown.
+On devices that support HW-GRO, mlx5e_get_ringparam() now reports
+tcp-data-split as enabled when SHAMPO is active and as disabled otherwise.
+The patch also rejects disabling tcp-data-split while HW-GRO is on.
+mlx5e_fix_features() now keeps HW-GRO off when tcp-data-split is disabled.
 
-Link: https://lore.kernel.org/r/20260908035201.402424-4-longli@microsoft.com
-Link: https://lore.kernel.org/r/20260914175044.2a26bb46@kernel.org
-Link: https://lore.kernel.org/r/179196575640.434549.9102950927041409151@kernel.org
-Link: https://lore.kernel.org/r/179250339266.3135.15035365058593192217@kernel.org
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> index 8df130386da34..bb4a963c2cf5d 100644
-> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> @@ -142,22 +142,26 @@ int mana_gd_init_registers(struct gdma_context *gc)
->  		return mana_gd_init_vf_regs(gc);
->  }
->  
-> -/* Suppress logging when we set timeout to zero */
-> +/* Cancellation and unpublication make teardown request failures expected. */
->  bool mana_need_log(struct gdma_context *gc, int err)
->  {
->  	struct hw_channel_context *hwc;
-> +	bool need_log = true;
-> +	unsigned long flags;
->  
-> -	if (err != -ETIMEDOUT)
-> +	if (err != -ETIMEDOUT && err != -ENODEV)
->  		return true;
->  
->  	if (!gc)
->  		return true;
->  
-> +	spin_lock_irqsave(&gc->hwc_lock, flags);
->  	hwc = gc->hwc.driver_data;
-> -	if (hwc && hwc->hwc_timeout == 0)
-> -		return false;
-> +	if (!hwc || !mana_hwc_timeout_read(hwc))
-> +		need_log = false;
-> +	spin_unlock_irqrestore(&gc->hwc_lock, flags);
+> Since commit 46bcce5dfd33 ("net/mlx5e: Support ethtool tcp-data-split
+> settings"), mlx5 no longer reports tcp-data-split from
+> mlx5e_ethtool_get_ringparam() and the reply carries only the stored
+> config. With the default config (auto) the attribute is omitted, so the
+> device looks like it does not support tcp-data-split, even while HW-GRO
+> is on and SHAMPO is splitting headers.
 
 [Severity: Low]
+This isn't a bug, but should this patch carry a Fixes: tag?
 
-Will this also hide live-channel failures during setup?
+The commit message names 46bcce5dfd33 as the cause. That commit removed
+the assignment of kernel_param->tcp_data_split from the SHAMPO state in
+mlx5e_ethtool_get_ringparam().
 
-mana_hwc_test_channel() sets channel_up = true and calls
-mana_gd_test_hwc_eq() before mana_hwc_publish_channel(). So
-gc->hwc.driver_data is still NULL when mana_gd_test_eq_request() checks
-the error:
+Since then, rings_prepare_data() seeds the value from
+dev->cfg->hds_config. rings_fill_reply() only emits
+ETHTOOL_A_RINGS_TCP_DATA_SPLIT when the value is non-zero, so in auto mode
+the attribute is missing.
 
-mana_hwc_create_channel()
-  mana_hwc_create_bootstrap_channel()
-    mana_hwc_test_channel()
-      mana_gd_test_hwc_eq()
-        mana_gd_test_eq_request()
-          mana_need_log(gc, err)   /* driver_data == NULL -> false */
+46bcce5dfd33 also enforced only one direction in mlx5e_fix_features().
+This patch restores the reporting and adds the missing direction, so
+would this be appropriate:
 
-If the bootstrap EQ test fails with -ETIMEDOUT or -ENODEV, the
-"test_eq failed: %d" message is now dropped. The commit message says the
-patch will "keep logging live-channel failures", which doesn't match.
+Fixes: 46bcce5dfd33 ("net/mlx5e: Support ethtool tcp-data-split settings")
 
-Before this patch, driver_data was set at the start of
-mana_hwc_create_channel() and the timeout was nonzero, so this was logged.
+Without the tag, stable kernels that contain 46bcce5dfd33 would keep the
+missing attribute in auto mode.
 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+> index 1f534051cdfe4..8e7c748caf2d2 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+> @@ -388,6 +388,13 @@ static void mlx5e_get_ringparam(struct net_device *dev,
+>  	struct mlx5e_priv *priv = netdev_priv(dev);
 >  
-> -	return true;
-> +	return need_log;
+>  	mlx5e_ethtool_get_ringparam(priv, param, kernel_param);
+> +
+> +	if (dev->hw_features & NETIF_F_GRO_HW)
+> +		kernel_param->tcp_data_split =
+> +			priv->channels.params.packet_merge.type ==
+> +			MLX5E_PACKET_MERGE_SHAMPO ?
+> +			ETHTOOL_TCP_DATA_SPLIT_ENABLED :
+> +			ETHTOOL_TCP_DATA_SPLIT_DISABLED;
 >  }
-
-[ ... ]
-
-> @@ -1482,9 +1542,12 @@ int mana_gd_verify_vf_version(struct gdma_context *gc)
->  	struct gdma_verify_ver_resp resp = {};
->  	struct gdma_verify_ver_req req = {};
->  	struct hw_channel_context *hwc;
-> +	u32 timeout_ms;
->  	int err;
->  
-> +	/* The setup caller must exclude concurrent HWC teardown. */
->  	hwc = gc->hwc.driver_data;
-> +
-
-[Severity: High]
-
-This is a pre-existing issue, but the new comment claims an exclusion
-that nothing seems to enforce. Is anything keeping hwc alive between
-this read and the later mana_hwc_timeout_read() and
-mana_hwc_timeout_update() calls?
-
-GC_PROBE_SUCCEEDED is not cleared on suspend. If a
-GDMA_EQE_HWC_RESET_REQUEST arrives during PM resume,
-mana_gd_process_eqe() schedules the service work, which runs without
-device_lock:
-
-mana_serv_func()
-  mana_serv_reset()
-    mana_gd_suspend()
-      mana_gd_cleanup()
-        mana_hwc_destroy_channel()
-          kfree(hwc)
-
-Meanwhile the resume thread may be in
-mana_gd_resume()->mana_gd_setup()->mana_gd_verify_vf_version(), still
-holding the raw pointer. The new active_senders drain only covers
-callers inside mana_gd_send_request().
-
-mana_gd_create_dma_region() (with the similar "The caller must keep the
-HWC alive" comment) and mana_ib_gd_create_dma_region() in
-drivers/infiniband/hw/mana/main.c have the same problem: both
-dereference hwc->max_req_msg_size without hwc_lock.
-
-Teardown now clears driver_data at the very start. Could these readers
-also see NULL mid-teardown and dereference it?
-
->  	mana_gd_init_req_hdr(&req.hdr, GDMA_VERIFY_VF_DRIVER_VERSION,
->  			     sizeof(req), sizeof(resp));
-
-[ ... ]
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> index 6f0ccdeffc4f9..8bc00001d20e5 100644
-> --- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> +++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> @@ -6,48 +6,140 @@
-
-[ ... ]
-
-> +static int mana_hwc_try_get_msg_index(struct hw_channel_context *hwc,
-> +				      void *resp, u32 resp_len,
-> +				      struct hwc_caller_ctx **caller_ctx)
->  {
->  	struct gdma_resource *r = &hwc->inflight_msg_res;
->  	struct hwc_caller_ctx *ctx;
->  	unsigned long flags;
->  	u32 index;
-> -
-> -	down(&hwc->sema);
-> +	int err;
->  
->  	spin_lock_irqsave(&r->lock, flags);
-> +	if (!hwc->channel_up) {
-> +		spin_unlock_irqrestore(&r->lock, flags);
-> +		return -ENODEV;
-> +	}
->  
-> -	index = find_first_zero_bit(hwc->inflight_msg_res.map,
-> -				    hwc->inflight_msg_res.size);
-> +	index = find_first_zero_bit(r->map, r->size);
-> +	if (index >= r->size) {
-> +		err = -EBUSY;
-> +		if (!mana_hwc_timeout_read(hwc) ||
-> +		    atomic_read(&hwc->abandoned_msgs))
-> +			err = -ETIMEDOUT;
-> +		spin_unlock_irqrestore(&r->lock, flags);
-> +		return err;
-> +	}
-
-[Severity: High]
-
-Can this reject teardown commands without ever posting them to the
-device?
-
-After a command times out, mana_hwc_wait_for_response() keeps the
-response reference. The bitmap bit then stays set until a late response
-arrives or mana_hwc_stop_channel() runs:
-
-	if (err == -EINPROGRESS) {
-		ctx->error = -ETIMEDOUT;
-		ctx->responded = true;
-		atomic_inc(&hwc->abandoned_msgs);
-		abandoned = true;
-	}
-
-On the depth-one bootstrap channel, every later caller finds
-index >= r->size with abandoned_msgs != 0. It returns -ETIMEDOUT here,
-before anything is written to the SQ or the doorbell is rung.
-
-The same happens when hwc_timeout is 0 after mana_serv_reset() calls
-mana_gd_cancel_hwc_timeout(). In the mana_gd_suspend() that follows,
-only the first command is posted.
-
-Before this patch, the slot was released on timeout, so the next command
-was still posted with a 1 ms wait.
-
-The destructive callers free the memory whatever the error.
-mana_destroy_wq_obj() returns void, and mana_destroy_rxq() continues to
-page_pool_destroy() and mana_gd_destroy_queue(). mana_gd_destroy_queue()
-then calls mana_gd_free_memory() whatever mana_gd_destroy_dma_region()
-returns.
-
-If the device is slow but still alive, could it keep WQ objects and DMA
-regions that point at pages already returned to the allocator?
-mana_hwc_timeout_reduce() drops the timeout to 1 ms after the first
-abandonment. Against a device slower than that, roughly every other
-later command could be dropped this way.
-
-The commit message says:
-
-    A congestion-only -EBUSY can make destructive callers skip a
-    teardown command and still free its DMA memory.
-
-Doesn't returning -ETIMEDOUT at admission have the same effect on those
-callers?
-
-This also seems to remain at the end of the series. "net: mana: add
-dynamic HWC queue depth with reinit path" keeps the depth-one channel
-when the PF reports depth 1, a depth above 128, or non-default maxima.
-
-[ ... ]
-
-> +static int mana_hwc_get_msg_index(struct hw_channel_context *hwc, void *resp,
-> +				  u32 resp_len,
-> +				  struct hwc_caller_ctx **caller_ctx)
-> +{
-> +	int err;
-> +
-> +	/* Healthy contention must not skip a destructive control request. */
-> +	wait_event(hwc->admission_waitq,
-> +		   (err = mana_hwc_try_get_msg_index(hwc, resp, resp_len,
-> +						    caller_ctx)) != -EBUSY);
-> +	return err;
-> +}
 
 [Severity: Medium]
+With this change, tcp-data-split is reported as enabled whenever SHAMPO
+is active, even while dev->cfg->hds_config is still auto
+(ETHTOOL_TCP_DATA_SPLIT_UNKNOWN). Does this break the XDP cases in
+tools/testing/selftests/drivers/net/hds.py?
 
-Only -EBUSY keeps a caller waiting here. mana_hwc_try_get_msg_index()
-turns a full bitmap into -ETIMEDOUT whenever abandoned_msgs is non-zero,
-however many of the occupied slots are actually abandoned.
+With HW-GRO on, set_xdp() and ioctl_set_xdp() now see 'enabled' and set
+tcp-data-split back to 'unknown'. hds_config is already unknown, so
+ethnl_set_rings() sees no change and returns without calling the
+driver. HW-GRO and SHAMPO stay on.
 
-Take a queue of depth N >= 2 with one abandoned slot and N-1 normal
-in-flight commands. The next caller would fail at once, with nothing
-posted. Waiting would be bounded: each of the other slots is released or
-abandoned within its timeout, and abandonment calls wake_up_all() on
-admission_waitq.
+The core checks in dev_xdp_attach() and netif_xdp_propagate() only
+reject single-buffer XDP when hds_config is
+ETHTOOL_TCP_DATA_SPLIT_ENABLED. The request therefore reaches the driver,
+and mlx5e_xdp_allowed() rejects it:
 
-Would a check such as abandoned_msgs >= r->size match the commit
-message's "without mistaking healthy contention for a failed command"?
+	if (params->packet_merge.type != MLX5E_PACKET_MERGE_NONE) {
+		netdev_warn(netdev, "can't set XDP while HW-GRO/LRO is on, disable them first\n");
+		return -EINVAL;
 
-At depth one the two checks are equivalent. However, "net: mana: add
-dynamic HWC queue depth with reinit path" rebuilds the channel with
-depths 2..128 and leaves this logic unchanged.
+That matches "not ok 9 hds.set_xdp" and "not ok 12 hds.ioctl_set_xdp" in
+the posted run. Before this patch, ioctl_set_xdp found the attribute
+missing in auto mode and skipped.
 
-[ ... ]
+In auto mode with HDS reported as on, the ring param also can't be used
+to turn HDS off. mlx5e_ethtool_set_tcp_data_split() now rejects
+'disabled' while HW-GRO is on.
 
-> @@ -90,40 +182,53 @@ static void mana_hwc_handle_resp(struct hw_channel_context *hwc, u32 resp_len,
->  				 struct hwc_work_request *rx_req, u16 msg_id)
->  {
->  	const struct gdma_resp_hdr *resp_msg = rx_req->buf_va;
-> +	struct gdma_resource *r = &hwc->inflight_msg_res;
->  	struct hwc_caller_ctx *ctx;
-> +	bool release;
->  	int err;
->  
-> -	if (!test_bit(msg_id, hwc->inflight_msg_res.map)) {
-> +	spin_lock(&r->lock);
-> +	if (!test_bit(msg_id, r->map)) {
-> +		spin_unlock(&r->lock);
->  		dev_err(hwc->dev, "hwc_rx: invalid msg_id = %u\n", msg_id);
->  		mana_hwc_post_rx_wqe(hwc->rxq, rx_req);
->  		return;
->  	}
->  
->  	ctx = hwc->caller_ctx + msg_id;
-> -
->  	spin_lock(&ctx->lock);
-> -	if (!ctx->output_buf) {
-> +	spin_unlock(&r->lock);
-> +
-> +	/* Consume the response-side reference exactly once. This releases a
-> +	 * quarantined slot after its late response arrives.
-> +	 */
-> +	release = mana_hwc_clear_resp_pending(hwc, ctx);
-> +
-> +	if (ctx->responded) {
+With HW-GRO off, enabled_set_xdp() and ioctl_enabled_set_xdp() call
+rings_set() with tcp-data-split set to 'enabled' and no exception
+handling. The driver now returns -EINVAL for that request.
 
-[Severity: Low]
+The "SKIP enabling of HDS not supported by the device" lines in the
+posted results don't seem to exist anywhere under
+tools/testing/selftests/. Did those results come from a locally modified
+hds.py?
 
-This isn't a bug, but the quarantine here also fixes a real misdelivery.
+Because of the _hds_reset() logic in hds.py, some of these cases could
+already fail before this patch, depending on test order.
 
-Before the series, a timed-out slot was released immediately, and at
-depth one the next request reused msg_id 0. A late response for the old
-command then passed test_bit() and was copied into the next caller's
-output_buf.
-
-The previous patch in the series says late-response correlation is
-handled here. This commit message describes the quarantine but does not
-name the misdelivery, and there is no Fixes: tag.
-
-Could a Fixes: tag be added, for stable backports?
-
-[ ... ]
-
-> @@ -1020,11 +1175,146 @@ void mana_hwc_free_retained_channel(struct gdma_context *gc)
-
-[ ... ]
-
-> +	gd->gdma_context = gc;
-> +	hwc->gdma_dev = gd;
-> +	hwc->dev = gc->dev;
-> +	WRITE_ONCE(hwc->hwc_timeout, HW_CHANNEL_WAIT_RESOURCE_TIMEOUT_MS);
-> +	init_waitqueue_head(&hwc->admission_waitq);
-> +	init_waitqueue_head(&gc->hwc_drain_waitq);
-
-[Severity: Low]
-
-Should gc->hwc_drain_waitq be initialized once in mana_gd_probe() and
-mana_cdx_gd_probe(), next to spin_lock_init(&gc->hwc_lock)? It belongs to
-gdma_context, but here it is re-initialized on every channel creation,
-including each mana_gd_resume()->mana_gd_setup().
-
-mana_hwc_stop_channel() sleeps on this queue after driver_data has been
-cleared. A concurrent creator, for example the service reset work racing
-PM suspend/resume, would see driver_data == NULL. It would then call
-init_waitqueue_head() on a queue that still has a waiter.
-
-Could that orphan the waiter in mana_hwc_stop_channel() and lose its
-wakeup?
+Should hds.py be updated together with this change? If not, could the
+commit message mention the expected hds.py failures on mlx5?
 
 [ ... ]
 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/cover.1794208055.git.weh%40linux.microsoft.com
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261111170558.1654691-1-dimitri.daskalakis1%40gmail.com
