@@ -1,13 +1,13 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.208.34
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.56.37
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794581063;
-	b=Y1tYh/CBhKFrbW6SNh9hIm+7C2i0Yi6kDparsQ71eq9XH5mAVKMkbVumya91iaQBp6zr
-	 Rn6ICRl4bd7KEH43eRwMGDPSRvfGlc6fbxe0CNN8LN72Rs5fUNesocJgEDLE+ATx+Q1vm
-	 iudrVFdET2orMTeBdZmLS0tC3phAkXspcSQVd8KslF7YJtDb8G8xZgoph+9CSSodlbgeO
-	 VVz/9zJcq+BEVcJ9wUaaDcKVeVMAqtYeivjC1SUL2L3fhVu0fGR8szOE3qNXU0MeJ1/NF
-	 JkAQHlTgL0D1cVD4lHMtsoWW5P8VgEWqx6e++AvsRr7fxWj1bBcg0MsYDsPZc18dc2w==
+	t=1794582046;
+	b=Sx/9OLvPEksifCDJ1VtLP0RkMzpxI72SZCVIDk+ieqtlj81h07bUgjljmSlbZ5slbmxh
+	 NT/jDoJGH89U6cCw26Uf68S1PSsz8Cf0rUUEuDkTkbGgTI9CMoHUcJVMG6BdvZwHShD2b
+	 Zhn6VzOYeLkoC6yPeoQafP6sAO8EFEHfiX9led+kge0o0/sgcL19+A4ENMXKA575rgYCf
+	 hPsx0NnX5FAw7VQmGpTd+IIPH4kO66DZ1f+mwp3bfi6Q5E45npSE5mgMiSpDrPsXNmYVQ
+	 O9k+ZHzjZtZtHj9hewRHgfRiA/n4e++xDJ30E8Wh8IFORx+83o5fftSl1+nCaxxngHg==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794581063;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794582046;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
 	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
 	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
@@ -24,78 +24,87 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
 	 X-MS-Exchange-CrossTenant-UserPrincipalName:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=tk9wlrWDUXO1lVweVNM5p2rIifI9hxafN2aho22NTwU=;
-	b=rWPfZceKulFyEFBcdBg9QF5C/tfh5I1vn2AV5n4XzByN1ZQDrZvbdetYQBWutwntkj3+
-	 kM1hoWtb2G97dsLgQh7Y2g5sHuPceJUo/PNQAjXhmPcZCQBRuPqN094d2Dosb4wxyhqKt
-	 Qjbjay54WcfXnS7zGuLCl/Acc95jASBEC6O4u05kAVqhPT30IgcpTwABYtJpDaSxW+w3W
-	 xE2WfbajQo+HX97kxVwNyCTfTr9daVz8PQouQpitQ5jZFJ5Q4wKOaCLllx1RdO9l5F1k0
-	 ZscZ8zKxC5EnXXVbSR2J8QsJEgVrBSKi8y0swT3eJ87xn1ZkZIf/sJEHmFsxew1R55A==
+	bh=z84tTSoE5BhFk8h40bAhW37rHwhW8OQWv0WoJc0Kyik=;
+	b=5R/zcwcqhVkdYgulTZyi9ZLBVA5MaWvz7sUwK3MeWU+ce6WUQDmoBom8Wt+mNUxLlInB
+	 /A22z5kK1gRzq9dfvHwPROgvYOtnNFIjW7NI1DjnzxfNYxtV9c0yprU7Mebj8LKJ/1Ekp
+	 wbIJavvcl/ORVM92ZeeEDQHA/MHAWF4/GOsB8WewLgqdheazj9xnFaYqH4QvO1L7u2KW6
+	 tr1bt1WN6DwrEDOP/K8bKycNSAhnib0hpG2+EL8HxBlPfDEOvExAWwJB1MsZytEkbR65o
+	 69ix3tGB2BUSMBpOIqKOR9uoqkgtS4lqyA/XQQZD++/i8DWkc2SUf8GpIlvV1u/NuDA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=ndDqXs3u;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.208.34
-Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011034.outbound.protection.outlook.com [40.107.208.34])
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=IdprD2Sb;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.56.37
+Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11010037.outbound.protection.outlook.com [52.101.56.37])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D7CB606A32E;
-	Fri, 13 Nov 2026 14:44:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2D7CB606A32E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C41A5606A323;
+	Fri, 13 Nov 2026 15:00:45 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C41A5606A323
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=ndDqXs3u
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=IdprD2Sb
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=i71OVbPfH8RXiWveAe6RQP5kbSeZ6BH5UOxm+ITeAIdt47hVv5Zm3Le6/jKbiLRQUbi4mMZccwKRnq2dotSwKWCkFQKFuArAMUjMBwrow34JgMN9ffLWSCy3hyURqEV9CInvZzCqog9PxeT71e53OYYSMsrPupN3SAaPyJhS2AE8IWdoH2BG91BL0CKEEUvC3geOiWyfSFNFZsdlDVt7dLCnJ0uB/CJJDmqDKIXURt/JIgE4dDTRNQZxdAv+qB1YOQ/DfYysk4BSL85lGVMfA345lRpKS078FkNTcby8IgsE2z8O/n7exsMgGqdMmfM+xruMdSKAVGN++SVI5/yzAA==
+ b=mEf1LoTyQu3yv93fTOyP8eSSDPTektV1g0ZST4cVWA8gCIyxgAG1fF0XSJFRAeAsg0RsNQz/182P9m3sdgeH2RIvgRycp7ry6UesiyPGZ8XOP9KG6X2PdCma4ZcFeQNbwbpiuMtci0YPKDQqg7HfIEKxwSY7pv6NySYfF+ywVdmhMN49M2JTsUKhHN6UMhf0ID/gm15U4JWEcdDCWARf8qVpe5JpO7C/oRGn54aTo7OZzgvI5ksOZBhOTptIQXlxI/E4wfj0TEBr6pMPs6rqvLcmt+c52skDlCXfM0LsO0codpLKqdeSdHEW2kQ6vSh2mP93Rdqr59TvQn7Cu72Okw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=tk9wlrWDUXO1lVweVNM5p2rIifI9hxafN2aho22NTwU=;
- b=SpVNsoDdp7fHg88iIsqSIgPHoZL42PijeaUy6ehzkVFEyrJRXjQ5DGiw1ItnYkuWLRymO6QY+SO6vn7HdqCYT4TnqBJhTVA51cuK168JX06Q5p5zchWWP2TmwYm/aElsLS8EDANO7K3lstKbpX47OlFYRb/rwRrQz5bJjci0fOgyijqCYll7POJDSw6oxIXG+keESXiEI9wdWvRyDIUr5A5oyxI/R6b1sZJo2hqqs77ZnAs5YtlwcYZf+nm7fc/hU9znXC+2L6xrdWPyatGsKJDDKU615n0wR3D3mLr+unvQ/W1L6q2Sb6d7KPJiedPMq7MULFxlo036ilt6p8McwQ==
+ bh=z84tTSoE5BhFk8h40bAhW37rHwhW8OQWv0WoJc0Kyik=;
+ b=f0UyhXZfHjDqMyyS1UcQoTBFGw6CkE1MvGr9EddQLiTMqvmOACZa4dqSkuSiK51KrqJeTsvrLuMdNzqr1O1n2pgz+Lu/nVdHZ+3fGvuEOchz/jnBNAEQpP6v98WOFWZolcjzULGtH+/qIcaB4YH0hvmrcuOxhGu2Lt5TRbqKO5798hJ+2Mbwhul2pZu9kAs8tfNB0sRMYnRLe/Y7YpDnB1/HcucjEfGX90WB3LiQB4JtMen40tJfX/Klj+WzF0hnGD4XeoDp2agTe2lIMtoJ8VC996bTRPdtkGe1BjXcgA+r6Y8RHo6AGRti4+bzBYbDJ+U1L8bmW0biO1qhFumf2g==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=tk9wlrWDUXO1lVweVNM5p2rIifI9hxafN2aho22NTwU=;
- b=ndDqXs3urSSkPrlCo2yJPoM8ymhAS+sBiFN0Pgr/diEwYo7Dse5nxhT9MpLf7UGfQUtIKx5ZT8OPqzmTmGhPIvQauxEdktUQkxBzqlEcKYdrkOTMjjCcyaQ4Ezr3GRkTbkrfFWu13OiF/1a+evwR7W717Q8hECeEyurwPRyE/Yzrm90HsDP56xLkrhafBTDjmvhYMTPWDNIpj/JT9zpXRZl4rXYJVuY6h/8peQ5BxvRlLaeCIxXsinK+x31YJAfnpkrvp6OJKPGFh5NvjnfA9S90wpy46rCtbbW9gkLfbLZ5S2gwA9Z3g7pLVgozN/4fIp4HEylT4GATFAP+9T4SvA==
+ bh=z84tTSoE5BhFk8h40bAhW37rHwhW8OQWv0WoJc0Kyik=;
+ b=IdprD2SbEZxrv1IDkZD0QU+kpBTmg44n4BstkCh6HaRvJ8Xxh0cXg/TroORcvjwRFhSkhhxMkjsac2WFhC8Vvao8O9qnTnivFRQfSK9R7/ra5fdzQ/ADKZILaNZw957ptOdKOJrsHzqUNDKIzzGaCp3zY6NkOeVI5vksYQh8scq152GCdxhzFU6ZhgRictwRqGxGTibJEnh/9wrR2Gp5tzy03daun3/dosL8UExD8Bntn2bGBiy4zYMvo4yvRy4dap6T45kODvdrvt9+KF3X3//QnbdBFVvbkpRwOY1kfJagkK21xC7pQw0zCsrLiw+x0EzCGvMAx9Tejz0LPgEpLw==
 Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from CHAPR12MB999248.namprd12.prod.outlook.com
- (2603:10b6:610:2ff::22) by PH7PR12MB6812.namprd12.prod.outlook.com
- (2603:10b6:510:1b6::15) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.9; Fri, 13 Nov
- 2026 14:43:57 +0000
+ (2603:10b6:610:2ff::22) by IA1PR12MB6530.namprd12.prod.outlook.com
+ (2603:10b6:208:3a5::20) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.12; Fri, 13 Nov
+ 2026 15:00:37 +0000
 Received: from CHAPR12MB999248.namprd12.prod.outlook.com
  ([fe80::4972:8062:d74e:b205]) by CHAPR12MB999248.namprd12.prod.outlook.com
  ([fe80::4972:8062:d74e:b205%6]) with mapi id 15.21.0615.007; Fri, 13 Nov 2026
- 14:43:57 +0000
-Message-ID: <251bb36e-3cb3-419f-b47f-30d464bd4239@nvidia.com>
-Date: Fri, 13 Nov 2026 16:43:48 +0200
+ 15:00:37 +0000
+Message-ID: <ebd14110-49f4-4fbd-9dbe-1c39a1706da9@nvidia.com>
+Date: Fri, 13 Nov 2026 17:00:28 +0200
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next V2 09/13] net/mlx5e: Use the correct DMA dev when
- data_direct is enabled
-To: netdev-bot+sashiko@kernel.org, tariqt@nvidia.com
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
- bobbyeshleman@meta.com, cjubran@nvidia.com, cratiu@nvidia.com,
- daniel@iogearbox.net, dw@davidwei.uk, erfansh@meta.com, gal@nvidia.com,
- Jacob.e.keller@intel.com, kaifengw@google.com, leon@kernel.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, mbloch@nvidia.com,
- mfleming@cloudflare.com, almasrymina@google.com, razor@blackwall.org,
- saeedm@nvidia.com, horms@kernel.org, sdf@fomichev.me, sdf.kernel@gmail.com,
- witu@nvidia.com
-References: <20261110183826.2927274-10-tariqt@nvidia.com>
- <179447641026.2199510.5931919267235772242@kernel.org>
+Subject: Re: [PATCH net-next V2 10/13] net: devmem: add
+ netdev_has_dmabuf_binding() helper
+To: Stanislav Fomichev <sdf.kernel@gmail.com>,
+ Tariq Toukan <tariqt@nvidia.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
+ Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+ Paolo Abeni <pabeni@redhat.com>, Bobby Eshleman <bobbyeshleman@meta.com>,
+ Carolina Jubran <cjubran@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>,
+ Daniel Borkmann <daniel@iogearbox.net>, David Wei <dw@davidwei.uk>,
+ Erfan Sharafzadeh <erfansh@meta.com>, Gal Pressman <gal@nvidia.com>,
+ Jacob Keller <Jacob.e.keller@intel.com>, Kaifeng Wang <kaifengw@google.com>,
+ Leon Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
+ linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
+ Matt Fleming <mfleming@cloudflare.com>, Mina Almasry
+ <almasrymina@google.com>, Nikolay Aleksandrov <razor@blackwall.org>,
+ Saeed Mahameed <saeedm@nvidia.com>, Simon Horman <horms@kernel.org>,
+ Stanislav Fomichev <sdf@fomichev.me>, William Tu <witu@nvidia.com>,
+ Bobby Eshleman <bobbyeshleman@gmail.com>
+References: <20261110183826.2927274-1-tariqt@nvidia.com>
+ <20261110183826.2927274-11-tariqt@nvidia.com>
+ <avTdfAaW9tlBRM34@devvm16445.scu0.facebook.com>
 Content-Language: en-US
 From: Dragos Tatulea <dtatulea@nvidia.com>
-In-Reply-To: <179447641026.2199510.5931919267235772242@kernel.org>
+In-Reply-To: <avTdfAaW9tlBRM34@devvm16445.scu0.facebook.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: MM0P280CA0032.SWEP280.PROD.OUTLOOK.COM (2603:10a6:190:b::6)
- To CHAPR12MB999248.namprd12.prod.outlook.com (2603:10b6:610:2ff::22)
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: OS6P279CA0135.NORP279.PROD.OUTLOOK.COM
+ (2603:10a6:e10:3b::12) To CHAPR12MB999248.namprd12.prod.outlook.com
+ (2603:10b6:610:2ff::22)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -106,195 +115,199 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CHAPR12MB999248:EE_|PH7PR12MB6812:EE_
-X-MS-Office365-Filtering-Correlation-Id: f6a25159-74ab-4c52-6b59-08df41948c06
+X-MS-TrafficTypeDiagnostic: CHAPR12MB999248:EE_|IA1PR12MB6530:EE_
+X-MS-Office365-Filtering-Correlation-Id: a243c821-69b9-4772-62c1-08df4196e02b
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|23010399003|7416014|366016|1800799024|10067099003|11063799006|5023799004|4143699003|261021121427099003|261026121527099003|56012099006|261102123227099003|261009223027099003|261028144727099003|261026140227099003|261022105027099003|22082099003|18002099003;
+	BCL:0;ARA:13230040|23010399003|376014|366016|7416014|1800799024|261026121527099003|11063799006|4143699003|261102123227099003|261026140227099003|261028144727099003|261021121427099003|261009223027099003|56012099006|261022105027099003|10067099003|18002099003|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	JrfFDe7eB7UqClqxU+is2MB8z4K0jgJp96S1BUf/nPZ4ElqzlCIGoXfnn/nu+Q+KYv/YLUEUQUV9t8kwYFKEUZoZYokTnSWxKsN6ri8AYL/JU1PKa+jaapknexqGpf7bwudUY/7fX7hojGHLIO+y2DLtN2yKaIOzjPxAXaZApAa+gkgr02NqN14hLvg7+0W7KPAhTo8Uql7wZwFtW+E1iHajhxTK1K4DNPrTRMjXSdyRFJpi0osJWx2VYCIbAVnM1o3X0c8Ds+Pgsr6zXfJHB7fkG/bKQ9CvYV52DYz/C4pPFlkinmjZ+h8Qg+nWQJcfH2V7dpgCTdibR3Ee55bybwVPslc+LVyuKKimxIu6/SkI5umZeWdBhcoE9cZaTHXR0B6GGAKvG3MpNxyO3caJdWvFwvcDDelVckKyigjSa0aqI7Xpb5FRlH3Xlb9bj+X2n7vVoXqyV58Uv04cAyL3sZdJz073hhoLkB6zjRibNAS/ljjPm0unLf4ZGCp8PuPPrFVOHVZDch2CnsmmVnwOcJqUBZdBiM5BNLWT+iDoKMr1J7EJZr2LkU0Czsn9oDoD9MnbANsbv7f/NOYsYybLdHvlhnFfi9wsgXgJiTRsabDCWPnBh40SYTSzbHgMdNz3ik4H57WsbnubOpkTLbuxlueSW8vGS0a4MReTH6J5ETM=
+	ZDCU5UrUV6WsvpIIbnD/sK0/810bO2Ln6mCUL81y9KxVNdvXgUoPgvaCHPoDDSw7vs1H5dxR+aQ2jFCCb8xkEkljFAZlEVYe/LfFZtBBIeAR1vwhq62QvtshD4d3HMkXoF1exsD+iD7zlL326jjzxmTbntY44f/pysNxKJq3hivLY4ocJglcezGfgzot+wuWzuCROfMQmzZ6ZFabqXNSemj3FTkIWlUBuJKmy8ncUAnQgimx5lJOIPkm9q2JV3w30x5ol+TtJeZDaC82XjG33CO31bF+0AoLdc+qRlRwzpLzio4AyovVVuznVOVn+FOl9Cbt6e37Afm/hIfeh04O0kUDcurMbkvH2mMwyEN+K/pm9q0DmjwPhd3L+42FSg+hlR+2kVTjkUILqo2qHKa6i6lTNTVXEAHrxXdByra2FOKQ+lJV8ZF6KWneFpEfo9pnq2a0UXWJvFKfnyUi2LBt19dpq+q9llwxTWQmW+WyE0UqbCDIY2kgq8G6rTZyUXfNuw8sZ6lPAx1P/RzN1oZbwGUWaQIk6LTWDzntt39GRag8foeiVDWTyGsGGk9DaRBJPq9b+SCMgD2NqzzucXptJZk7qIl4BjIeh6EWd8pTxTFVEe0ogzZAYRF2IrGR8gLCQrTtpuKRaNe1qOytY89+hD2zZFhNGs51zEkaoWaXDAM=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CHAPR12MB999248.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(23010399003)(7416014)(366016)(1800799024)(10067099003)(11063799006)(5023799004)(4143699003)(261021121427099003)(261026121527099003)(56012099006)(261102123227099003)(261009223027099003)(261028144727099003)(261026140227099003)(261022105027099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CHAPR12MB999248.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(376014)(366016)(7416014)(1800799024)(261026121527099003)(11063799006)(4143699003)(261102123227099003)(261026140227099003)(261028144727099003)(261021121427099003)(261009223027099003)(56012099006)(261022105027099003)(10067099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?L3FmKzF4WU9wdjNoSXY3SmxMTHpVWnlab0NLWmg0eTgzRDZSSVBadko2Q2I3?=
- =?utf-8?B?T2pnakhUU0pON2k3SE5lcGR2ZU41UGxIaitGdVZMelVhU3JuczBzWE0wVUxM?=
- =?utf-8?B?cDk2aTVqdUovZytjN3VLanBqV0FUY3lRVm5tY2daRFFwdmhJQWpWbGhOQVVG?=
- =?utf-8?B?T1BMRFliVFdHNlRTelVoUnc1V2RGTDR0dEFSS2IvOHhSMWdqc2gzMWVpN2hE?=
- =?utf-8?B?dWtKM3NsNzBOOGZoUDRtRTlFR2ZWbnAxWWxoQlVEVkhGbHRkRE1jMmtWaEJl?=
- =?utf-8?B?WHBvZmdLZENSQ3QwdS9xelE4bHNRVSs5V013RGQ5ZEZQRTRZOHpRN21RWVpO?=
- =?utf-8?B?ZWh3dWhEdDNZQnBjU3lLK2tKZGlScExXUU5sTzBnTjBaZCsxL3FTV24wT1BO?=
- =?utf-8?B?NDNsOTVlT2xnY3A4c1pEOG1DNitlNVQycmpXazJEU0NtQ1NCalZqOTA0QWZC?=
- =?utf-8?B?b2lkcHB2c0N2eTB2N09oN016MDFkSGNzRyt1Y0RYNzhMbFRKbWNBVlhYaDJn?=
- =?utf-8?B?WlRSOGJ0T01FZEkzVEUrQWlqS2MrOHhBZ216WWo2dmpHaXdBNEZINnVydU9l?=
- =?utf-8?B?cTR6QlJCSTNHcEVYL3JHZG1sZWh3NmZTU1NiMjZkc2I5Znk0ZXNSa3NyL0F3?=
- =?utf-8?B?YTJLd1ZMQnlZcDEyZWtmUUZhQW9CWkNLTzdyd3lWY0psMDlXdzVYbjJIU2xS?=
- =?utf-8?B?bE5OSzN4ZWtncGZWakYyeGZYT0ZMMXB1Q3c1NjJpcVNyd0tKT1p6Nlh4L1Rl?=
- =?utf-8?B?UWRtS1dsU3dkVmZ3RERpV2pJOTFKY3BUcXk3ZjdrTkJXSE5NSkNkRW44ZEln?=
- =?utf-8?B?enh1K0R6alBpQWpYYmgwUG9IZkROOTg3M3l1dWZIOVY2THM3R3hRanNmVDRh?=
- =?utf-8?B?UFp5a2pwYzFtQStEa2N3bllSZXZ1UHMreWk5TnlpeHd5emNjOE81UzU4cEpJ?=
- =?utf-8?B?U0tLeGRzN0hCeUo3ZDdmUy92cUJoanMxN0JVZ2pTVVMzWitTK1NHK1JCYUpL?=
- =?utf-8?B?V00xbi90MEpTd05uclZzY3VCTEhrUTIzQ05WK052RndBTmhhcE5XemppU1Vx?=
- =?utf-8?B?cld6L2xZczBBaUdLTXhKT2xTVWtoWlpIV2dINmxNeFIyQXBWTXRWWjVmNkdu?=
- =?utf-8?B?R0J1TVNrb0tlaE9FRW9oOS94WXI0WFdrblRCcCtFN0R6RGVNNDdXVGpUL2RY?=
- =?utf-8?B?MDBmK205Q1FPWDc0Tk1qYy9qT3JncGdkbkxFSlZNYzZhSmViczkrNjJRdHoz?=
- =?utf-8?B?Ym9zL1RpcGdMbDRLVG1qalkvU1BGQVIvanZLN2dzZzFtVWJqVnNiUmJXdGpS?=
- =?utf-8?B?QzAwTHF5M29UUGltRzl6K2oyZSs3emVpQkU0YWRhTkhhZjRqdmlnUDRlVjZ3?=
- =?utf-8?B?RTFRVXVDUk9vZEhvNkdUTjgvbXB1V0J6Z0NvVDNvdjNsTm1ueW9mVjN1enND?=
- =?utf-8?B?dDZlelRMeXVQY2xvZVRzaEllMTF6NFRaTTU3dzhIMGh4RVhYODBUUnRndnBn?=
- =?utf-8?B?dWRNbDcxVm5KcktxdVBrSUg5WS9IQ242eDFudVZtL2hlVmJ4cG1tMkllbS9v?=
- =?utf-8?B?Umc2SXM1SmIrckl2aFAzVnlDOTEzNmhSTlBSZHhYVWhCSHBSZGtrVHZtY3p1?=
- =?utf-8?B?ekFIWmVZeFhSMmo0UEZTenJ2QWZ4bFBlRGlHNEQwQXh4cVYwOUV4bGxDR0I1?=
- =?utf-8?B?NDZ5S2FGOHVHV1pFT1hEZ21Ua2pZMzBKaTczSWpKY1dyMENwcHpkaXlsbnZL?=
- =?utf-8?B?NlNTa3NZWTBZczhZaEdncy83UlBXVDJNRHhkOEYycWc1WFplS1pmSkh1Nk03?=
- =?utf-8?B?ckRMYTBoSEFTNTVLOXhiZktWRFVQZ29VM3pDdUtmM2IwKytZSnRHNWVuaW9l?=
- =?utf-8?B?N1laU0dGS3RONFE3aWk2bWdEVkRVOXluck9CS3dRN1ZTYnI2akd4bFBwSEhY?=
- =?utf-8?B?NHc2UzQ4MEdnN0xocW1FcEV4U3pqeit1d0JZVkNST3YzWEE2ZzRHdXR3dGFl?=
- =?utf-8?B?emp3cjRPby9ZbTVNTTdYQlRRYVdGenNuMFNIQm9sQnRFUHM3eDE1NnBoN1R2?=
- =?utf-8?B?OFozWnlWaFUvamhZTkJJV1UrLzFzdjBxTVkzcUxqbmVkUkY2Y0J0RjVwRlFJ?=
- =?utf-8?B?aHMwN21jL3V5ZDBvMFpxRzh5WU9iNElrSTQ3MkRUQ3Y1NHVFdGQyUlNwc0xE?=
- =?utf-8?B?Y2ZuR0Qxd1BxblhTbndBYzdYL1dWS3ljSHhCMDBsZzlDU2c1NlBBL2N1M3ZR?=
- =?utf-8?B?WGpCdzR2eDNPNFBFR0ZNOHZySDFVVnQwbXZ3ZEpqUHZMTVdDczNCRHBKOHZ0?=
- =?utf-8?B?YUUrOHQ4a3B5bmJ0TkM5aUo1L2FrUW9LUm9vSWN3aFNLbnVIRVNNZz09?=
+	=?utf-8?B?OU8rMWRsYzBYNE5lNnh1bVg2OGVYcDlEQk5WVjNpYmIzNm14QkwzY1pmaElH?=
+ =?utf-8?B?bXRud0JqS1BieWs3MVpTeW9pOTNEbHZVTXBxOEdxdTY5VEc0WWVlalZKZE02?=
+ =?utf-8?B?K0V0OGptRDlScnVPSmt1dTZmbmFEWm1zaG1mMnlPWW03cm8ranB1b0prcnR2?=
+ =?utf-8?B?dldPVWVKZ0JkUmRBVUxlZ2RJVUJTenplQm1rSUt4eUN1dkIzNFduR254RmdM?=
+ =?utf-8?B?QklWTENNbk1wa3dJcVpmQkxTQVZ2NE5oa2w3TitjTmJCMTg1OVFWN0FLa1M3?=
+ =?utf-8?B?WUtFQzZURDVxc08rTWgxZC9RK2J0YTBnM0x5T2JjUXJpbU5Lditkc3QvQ2cr?=
+ =?utf-8?B?alMxcEJxdXVhR2JkNXN5QS9DTUhVeExqQTBHeTVUV3c1bTRTcEdQNkd1Vmpj?=
+ =?utf-8?B?U0krdGc3Vm96V3pFbGR1RFdvU1UzOHA3TUZqakRZRHlsenJtN3p3S3RQZzJM?=
+ =?utf-8?B?Vm5hdTQrT2QwTXVzMTQ2QzdUay9sazlRMnFDemxEQlkzZGxEOWZuWVhUcFZF?=
+ =?utf-8?B?S0JWZVpZZnFNbmFaNXY3ZnJxQ244aGRueW5MS01JMER1V3FUenF6TTFlRnVp?=
+ =?utf-8?B?RkF0Tm5nWEFJNlVUL25lekFpeEorRWo5bUxLS0grQzN5aUJyOGRKYVcrRUpx?=
+ =?utf-8?B?QXV2ZnRqT1MvMWdVTGYrenoxK2o4dm95YmExalpRdnMwZW8wdGk2bGZsTlRH?=
+ =?utf-8?B?Z1Y4QzFwSkZGQkErQUJ1UUZkNTh4Qlp0OUpLOFA2MXZxSWdNbnBUNUx2emlD?=
+ =?utf-8?B?TDhYOWYzTElKTm9WRnAvZWpQY29SaStSeHJXWGtZS0pHTk1IQmhZeDk0OVdh?=
+ =?utf-8?B?blBlN1FVYlRORmhBNERCK3F0Q0pMSXlhcm10aHQvbXp3ekNGTnRYb2ljcG9U?=
+ =?utf-8?B?RUFDOURCdlF1cWxtSExPUmM5QXZtYkZ1SG9XM2JpQWhUTS9zdGM4UUZ0OWI4?=
+ =?utf-8?B?WmVWNVVveHNxK2E5enVJK3pIRGRoQ2dyNlBnNmFwdGc2UVEzVTRpam9ZR1Rp?=
+ =?utf-8?B?WjhoL0QydFdaTUJnU2g2YXU0OHBJVDdLZ0dpTm9oejJtWXZ1RkUrYThZMHF6?=
+ =?utf-8?B?TXRtZmJUV3lZNGhhSWtPMlppazNIY3ZCZWRQSkFPd3pmWS9QNjBJeDBEYlFZ?=
+ =?utf-8?B?VlBqbFYxM3lGdWhKM0V3YlJwZ0c0eDVudFQvRC83VG55OHFLWXZ1cGFOQmV1?=
+ =?utf-8?B?MFo1eGoxSnFxWE0xSmhleWhXdGFScDY5cUVqZnVMeXZWMWRRYjFUaHhiUGhC?=
+ =?utf-8?B?R3N2VThzUkxIU3c0R0ZXZ0VhbmlKOHg0RlFaUDJRdzdQbktvODFvQmhMZHJS?=
+ =?utf-8?B?ZG9zZEpKUldVb0djRGJrc2haWE9YTG1JTFIzV1lBbCtMamJFc3BVR0xkMDAz?=
+ =?utf-8?B?cVF2a0I5OTZjMDRCOHQ2YlNzNVptbjdMcE4wVkRKREZhSmlWck9DenJLZTEy?=
+ =?utf-8?B?MTVsMTE2dGhQdUtRS2hPdmowdThBNmJoQVg2NFpXT3RySDd6Q0ZBbDZkRkVT?=
+ =?utf-8?B?VTBZL1ZDaU5IUkU1VUgya2I5WEMxMk1aR2wxNjBQVHRHbEpDVHJJT0h2QkNC?=
+ =?utf-8?B?YVJwbG1tOTU1Tm1Hd2prTHJ1OGxQYVJpN3gwdkcvakFpaWtBVlBhK1B5SDhF?=
+ =?utf-8?B?ZkxzY01BUGZ4UjFYTUdsaXNNTFNjQXorRi9BU0JWaWo0U2o3TDVobUlIY1hq?=
+ =?utf-8?B?UEFDc21yaHNCZVgzcW5DcWRRK2Fpc2U3R2paK1Z2SUp4d2hKQTJnL1gvaUZX?=
+ =?utf-8?B?N1dHRkZUU2lTS0t6a0Q0a0RpRnR1ZnRzc2JuWGJRWnplSnc3bmhjenNvQW9K?=
+ =?utf-8?B?LzRLUFk3bTFQOFVydnRyWGw4emU4aXlCc3lld1RJVnd4TU4zL2g2QXAzVGhP?=
+ =?utf-8?B?UEFESEM0WmRVaFZCRGY2Y2FlM3duM3ZTQ3FVZVN4RS9UODdCcEUxVW8ycGQ1?=
+ =?utf-8?B?ZlE5MFRHdHJvaW1OcmpZYTgwOXhKZ3MyVisrNHU5V2lVWEZHMjlmcWRqelVz?=
+ =?utf-8?B?TW4wTU5kLzhCQ2xyZXIwYmZpNU42ZUpUeEd5bGdFcnJ1eHVqOWVmNE1QcGM2?=
+ =?utf-8?B?N3Jua0dVVGFZOEl2VmxVMTFIU2ZTSlB0ZHdZK0doYjRvbktkUTFObTArU3Bl?=
+ =?utf-8?B?VHhRNTRTdk00cWNxZUp1ckxxNG9YSy9pL2sxNmw4Z080YldqUG9Ub1dmeE9Y?=
+ =?utf-8?B?RVNEdEpSVlRlc0kxVk9TOVdkVFlQMG8rZDJwRThJK0xYclozRmRubmgxMkta?=
+ =?utf-8?B?cHBZdVUxK3hycU1EUzNzeHRrWFlrdEY0NFF4SFliOE1CUlQ4M2oxRzBXMDFq?=
+ =?utf-8?B?ZUsvd0p4MTZ4L2daSGRtK0VFWFBKdzhCU256Yms3YXZpMWRmNytGZz09?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f6a25159-74ab-4c52-6b59-08df41948c06
+X-MS-Exchange-CrossTenant-Network-Message-Id: a243c821-69b9-4772-62c1-08df4196e02b
 X-MS-Exchange-CrossTenant-AuthSource: CHAPR12MB999248.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Nov 2026 14:43:57.1367
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Nov 2026 15:00:37.2987
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: rJ8wV2biTWdGe0bNRZe30Hv2OiK6PPaGI1+6mkHfuc0MxCgVZcKewXc16/Wy/aziOAVntWqA8ZBybLvC8EWaYw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB6812
+X-MS-Exchange-CrossTenant-UserPrincipalName: nWl+GDHMWKvvqAkpwarkDY+DSi1Cxv5TAhmVoOB17x01q1bPkwGOwASXiWZ0RC1KiAcQ95haV8sjNjaTkwe42Q==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6530
 
-On 12.11.26 10:40, netdev-bot+sashiko@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found more severe
-> issue(s) in other patches of this series. This mail is only an FYI, in case
-> you want to address the nit picks below when you respin.
-> 
-> Low priority / nit picks for your consideration:
-> 
-> - [Low] This patch makes the data-direct PCI device (dd_dev->device) the
->   DMA device for the page_pool of data-direct RQs (mlx5e_alloc_rq,…
-> - [Low] mlx5e_get_dma_dev() (en_main.c:965-976) reads
->   mdev->data_direct->dev with READ_ONCE() through…
-> 
-> --
-> 
-> net/mlx5e: Use the correct DMA dev when data_direct is enabled
-> 
-> This commit adds mlx5e_get_dma_dev(). When data_direct is enabled it
-> returns the data direct device instead of the PF PCI device. The helper
-> is used for the RQ page_pool DMA device and for .ndo_queue_get_dma_dev,
-> and the latter now refuses to return a device in data-direct mode when
-> RX queues are leased.
-> 
->> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
->> index 5b99099e4ed0c..ebd41f24330d0 100644
->> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
->> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
->> @@ -962,6 +962,19 @@ static void mlx5e_rq_free_shampo(struct mlx5e_rq *rq)
->>  	kvfree(shampo);
+On 11.11.26 22:46, Stanislav Fomichev wrote:
+> On 11/10, Tariq Toukan wrote:
+>> From: Dragos Tatulea <dtatulea@nvidia.com>
+>>
+>> Currently there is no way to check whether a dmabuf is bound on a TX
+>> queue. RX side has netif_rxq_has_unreadable_mp() which gives a hint
+>> of it.
+>>
+>> To help with that, add a helper to check whether a devmem dmabuf
+>> binding may still be in use on a given netdev, optionally filtered by
+>> the DMA device the dmabuf was mapped against.
+>>
+>> A binding can outlive the user's unbind: it can still be referenced by
+>> in-flight TX skbs, whose DMA mappings are only valid for the device the
+>> dmabuf was attached to. Reporting such a binding as gone would let a
+>> driver swap the DMA device out from under those skbs. Bindings stay in
+>> the bindings xarray until they are freed, so walk it and report every
+>> binding of the netdev that is still mapped. Bindings that were already
+>> unmapped are not reported.
+>>
+>> This API is necessary for the upcoming support of data direct in mlx5e.
+>>
+>> Signed-off-by: Dragos Tatulea <dtatulea@nvidia.com>
+>> Cc: Bobby Eshleman <bobbyeshleman@gmail.com>
+>> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+>> ---
+>>  include/net/netmem.h | 24 ++++++++++++++++++++++++
+>>  net/core/devmem.c    | 43 +++++++++++++++++++++++++++++++++++++++++++
+>>  2 files changed, 67 insertions(+)
+>>
+>> diff --git a/include/net/netmem.h b/include/net/netmem.h
+>> index fb693bc1702a..35bb6fa0f719 100644
+>> --- a/include/net/netmem.h
+>> +++ b/include/net/netmem.h
+>> @@ -397,16 +397,40 @@ static inline unsigned long netmem_get_dma_addr(netmem_ref netmem)
+>>  	return netmem_to_nmdesc(netmem)->dma_addr;
 >>  }
 >>  
->> +static struct device *mlx5e_get_dma_dev(struct mlx5_core_dev *mdev,
->> +					bool data_direct)
+>> +struct net_device;
+>> +
+>>  #if defined(CONFIG_NET_DEVMEM)
+>>  static inline bool net_is_devmem_iov(const struct net_iov *niov)
+>>  {
+>>  	return niov->type == NET_IOV_DMABUF;
+>>  }
+>> +
+>> +/**
+>> + * netdev_has_dmabuf_binding - is there a dmabuf binding for a
+>> + * given @dev and @dma_dev
+>> + *
+>> + * @dev: netdev to check bindings
+>> + * @dma_dev: dma device to check, when NULL it will not be checked
+>> + *
+>> + * A binding is reported for as long as it is mapped, which can be long
+>> + * after the user unbound it: net_iovs of a TX binding can still be queued
+>> + * in flight, with DMA mappings that are only valid for the device the dmabuf
+>> + * was attached to.
+>> + *
+>> + * Return: true if a binding is found under @dev and possibly @dma_dev
+>> + */
+>> +bool netdev_has_dmabuf_binding(struct net_device *dev, struct device *dma_dev);
+>>  #else
+>>  static inline bool net_is_devmem_iov(const struct net_iov *niov)
+>>  {
+>>  	return false;
+>>  }
+>> +
+>> +static inline bool netdev_has_dmabuf_binding(struct net_device *dev,
+>> +					     struct device *dma_dev)
 >> +{
->> +	struct mlx5_data_direct_dev *dd_dev;
+>> +	return false;
+>> +}
+>>  #endif
+>>  
+>>  void net_iov_inc_ref(struct net_iov *niov);
+>> diff --git a/net/core/devmem.c b/net/core/devmem.c
+>> index 5c7d9640e9d1..dd3987bbd9f6 100644
+>> --- a/net/core/devmem.c
+>> +++ b/net/core/devmem.c
+>> @@ -513,6 +513,49 @@ struct net_devmem_dmabuf_binding *net_devmem_lookup_dmabuf(u32 id)
+>>  	return binding;
+>>  }
+>>  
+>> +/* The attachment is cleared once the binding has been unmapped. */
+>> +static bool
+>> +net_devmem_binding_mapped_to(struct net_devmem_dmabuf_binding *binding,
+>> +			     struct device *dma_dev)
+>> +{
+>> +	lockdep_assert_held(&binding->lock);
 >> +
->> +	if (!data_direct)
->> +		return mlx5_core_dma_dev(mdev);
->> +
->> +	dd_dev = mlx5_data_direct_get_dev(mdev->data_direct);
->> +
->> +	return dd_dev ? dd_dev->device : NULL;
-> 
-> [Severity: Low]
-> Is anything keeping dd_dev alive between the READ_ONCE() in
-> mlx5_data_direct_get_dev() and the dd_dev->device dereference here?
-> 
-> The unbind side clears the pointer, runs the notifier chain, and then
-> frees the device:
-> 
-> mlx5_data_direct_remove()
->     mlx5_data_direct_dev_unreg(dev)
->         ...
->         mlx5_data_direct_do_unbind()
->             WRITE_ONCE(reg->dd.dev, NULL);
->             blocking_notifier_call_chain(&reg->users,
->                                          MLX5_DATA_DIRECT_UNBIND, NULL);
->     pci_disable_device(pdev);
->     kfree(dev->vuid);
->     kfree(dev);
-> 
-> At this commit, mlx5e_data_direct_event() only logs on
-> MLX5_DATA_DIRECT_UNBIND. It takes none of the locks the readers hold,
-> which is priv->state_lock in mlx5e_queue_get_dma_dev() and in the channel
-> open path that reaches mlx5e_alloc_rq().
-> 
-> If a reader has already loaded a non-NULL dd_dev, can it dereference it
-> after kfree(dev)? The returned struct device pointer is also used
-> without taking a reference.
-> 
-> This does not look reachable at this commit. set_pflag_data_direct()
-> still returns -EOPNOTSUPP, so data_direct is never true here.
-> 
-> Later in the series, "net/mlx5e: Disable data direct on data direct
-> device unbind" makes the notifier take rtnl_lock(), netdev_lock() and
-> priv->state_lock before it returns. That serializes it against these
-> readers before kfree(dev) runs.
-> 
-You said it yourself. So nothing to change in this patch.
-
+>> +	return binding->attachment &&
+>> +	       (!dma_dev || binding->attachment->dev == dma_dev);
 >> +}
 >> +
->>  static int mlx5e_alloc_rq(struct mlx5e_params *params,
->>  			  struct mlx5e_rq_param *rq_param,
->>  			  struct mlx5e_rq_opt_param *rqo,
->> @@ -1105,7 +1118,11 @@ static int mlx5e_alloc_rq(struct mlx5e_params *params,
->>  		pp_params.flags     = PP_FLAG_DMA_MAP | PP_FLAG_DMA_SYNC_DEV;
->>  		pp_params.pool_size = pool_size;
->>  		pp_params.nid       = node;
->> -		pp_params.dev       = rq->pdev;
->> +		pp_params.dev       = mlx5e_get_dma_dev(mdev, data_direct);
+>> +bool netdev_has_dmabuf_binding(struct net_device *dev, struct device *dma_dev)
+>> +{
+>> +	struct net_devmem_dmabuf_binding *binding;
+>> +	unsigned long xa_idx;
+>> +	bool found = false;
+>> +
+>> +	netdev_assert_locked(dev);
+>> +
+>> +	/* A binding stays in the xarray until it is freed. binding->dev is
+>> +	 * only cleared under the instance lock of that netdev, and the free
+>> +	 * takes it before erasing the binding, so a binding found under @dev
+>> +	 * stays alive while the xarray lock is dropped.
+>> +	 */
+>> +	xa_lock(&net_devmem_dmabuf_bindings);
+>> +	xa_for_each(&net_devmem_dmabuf_bindings, xa_idx, binding) {
+>> +		if (READ_ONCE(binding->dev) != dev)
+>> +			continue;
+>> +
+>> +		xa_unlock(&net_devmem_dmabuf_bindings);
+>> +		mutex_lock(&binding->lock);
+>> +		found = net_devmem_binding_mapped_to(binding, dma_dev);
+>> +		mutex_unlock(&binding->lock);
+>> +		xa_lock(&net_devmem_dmabuf_bindings);
 > 
-> [Severity: Low]
-> With this change, the page_pool of a data direct RQ is created against
-> dd_dev->device. mlx5e_queue_get_dma_dev() also hands that device to
-> memory providers (devmem, io_uring zcrx), which map their buffers
-> against it.
+> Sorry, my cache is already empty after c4466d2c3e77.. I wonder if it would
+> be easier to change kfree(binding) to kfree_rcu(binding, ...) and then
+> we can rcu_lock/xa_for_each here without xa_lock/mutex? All we care is our
+> netdev bindings, and these are not being changed as long as we
+> hold the instance lock (but the other ones are now concurrently freed,
+> hence rcu so we can safely do READ_ONCE on the binding)..
 > 
-> What tears these down when the data direct device is unbound? At this
-> commit, this is the only mlx5e consumer of MLX5_DATA_DIRECT_UNBIND:
+> And then the same applies to path 11?
 > 
-> mlx5e_data_direct_event() {
->     ...
-> 	if (action == MLX5_DATA_DIRECT_UNBIND)
-> 		mlx5_core_dbg(priv->mdev, "data direct device unbound\n");
-> 
-> 	return NOTIFY_OK;
-> }
-> 
-> It doesn't close the data direct RQs, destroy their page pools, or
-> unbind the memory provider mappings. mlx5_data_direct_remove() then
-> runs pci_disable_device() and kfree(dev) right after the notifier
-> returns.
-> 
-> Could the page_pool and dmabuf mappings outlive the device they were
-> mapped against?
-> 
-> This also doesn't appear reachable at this commit, since
-> set_pflag_data_direct() in en_ethtool.c still returns -EOPNOTSUPP.
-> 
-> Later in the series, "net/mlx5e: Disable data direct on data direct
-> device unbind" rewrites mlx5e_data_direct_event(). The new version calls
-> netif_close() and netdev_unbind_dma_dev(), then clears
-> MLX5E_PFLAG_DATA_DIRECT. The flag only becomes settable later, in
-> "net/mlx5e: Enable the data direct netdev feature".
->
-Same.
- 
+> (trying to keep all the complexity in net_devmem_dev_unregister)
+Done. Will be part of v3. Code does look cleaner now for both patches.
+Thanks for the suggestion!
+
 Thanks,
 Dragos
