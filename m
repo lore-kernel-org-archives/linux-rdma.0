@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794546312;
-	b=Mk087KOJDfsqvnBuqaSQ7Ajyg/USZlUMKg3cvkK6MMmN8ETvdx3AzKTpYedHFT+sTsjn
-	 kdMzr7LmS3cxubOw68y0HdW+OeCSV9FM9rUQGXTLD/VndZgXI1DTr0rf6kxHD3rYXeDvP
-	 lBliImTwP1UnIwe7KGpK8yP4BMZyJJNOT+ohLxs8W8L3S3imrcO1Tx7T7lLlAryY8v7/a
-	 p3MRP9vf5jjCeTofdEagyNkG9xx0HcipIpMslT8PlwA77NU3HkVyvSyAuAh6gyby4YflN
-	 X9+axolih7rfbvesC+sK9BNPUIH290yIRP14C7r800SBDBpTJn1+3hLHP8/xeSgGobw==
+	b=g/2GIqNRqlAcV2mUEL62Aq2L8fA14Ri/QeR5Uz4QpfZYPg00rKIQY4n0uqsAtMHTq4cy
+	 Paod8YwZXsXhw62owv+7h485NGU5psqoLabR+HKXkwQH4V7RVwt5gwhYKUuZeTLoOL6nQ
+	 rkVUkzpzyv6ye3iScPeuM1yWMZ7OwYuJ8rQPNKZPbGn9i0Yse1fbIZjkILFL+3YUSBUpH
+	 6+DlqW7XXSslqYw4T9q0CHgGZm7HyEROyqQo3zzL7GMr69YUUm3V+WMwaCY/d5bcTdFwQ
+	 ydwPkXhc+Ce137Bfxq9xtt1xt9nEOp/ULzo5BM6BzcfPRr7RZGhTtsM9n4YQ98xvOmw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794546312;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=Edag5sPpTqbn+hCE/jogNpDfEZUXi3jkUNZRnVgH3xM=;
-	b=EfTbeXlK+cXKm1m6l19p7HaWhQchAaDO0cHSPrvLQ8o88rNhe3psjy4tzLeqznOId1Kl
-	 Cz6kg9ju3QOO32/tuaj+Ico4XykClk47/T6Dhj2xmPf9q4iwAEx4rHcqt9pOcQgD58sAa
-	 oHxxKEMgqqUGjYUM7Ky3BXqFiKABUOAYUfxcF4MgNIISDjj0v2RMFJNEDKaLXT+GcK/Pd
-	 SIjp9SzdYgcG8P1jZrqfmvyOb+4SNMoCpqyv1x7fOBXPLi9xQfXJA/h8Iuvk/Nd+Xnlov
-	 kOQXwEs7Y8voC+osy3kISB7GtFQ85dz8XLLf6n4f64z/MNedr456lX4WZqnXkhZw+Lw==
+	bh=J88UePbA3wa8F5l8ERYmVfwaqcJV62N6x2Mtjs+aGUo=;
+	b=TmcBggUIXQOWReUlDdrFavk+mefsJvZ633tkt/AfSi9C0Zv8CkbppKqs5/4ioHWR7qIV
+	 BS+3bGX4LqOWdTojhW1yTdVmog7mbt6RwAj8vvjGhi3zab1QngG5NLRxCkHebGBIfuHyZ
+	 fSuRaUuCM4cS4/PbCj0+e9Oo3WA0Y+rKi03WJFocfCJWMLB8vNfBAew1aSjCSPkDbLxci
+	 dg+KwfcxLxcDEuOo+3GK7/vqo2MeLpfPpdSkXuG1oJTGycZvCWQsrWN2uAl0mR8JZku4X
+	 kugSgwNmVVpmGF5Zve4diZhjOCU24mRGCQ+2RZFbjsKP1s18WWfX6KLpdgOUI4lAelQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Vey9gaKE;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="h/JNoNLS";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19FB9606A323
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A06E2606A332
 	for <linux-rdma@vger.kernel.org>; Fri, 13 Nov 2026 05:05:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Vey9gaKE
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5FD71F000C5;
-	Fri, 13 Nov 2026 05:05:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=h/JNoNLS
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AB6A1F000C5;
+	Fri, 13 Nov 2026 05:05:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1794546312;
-	bh=Edag5sPpTqbn+hCE/jogNpDfEZUXi3jkUNZRnVgH3xM=;
+	bh=J88UePbA3wa8F5l8ERYmVfwaqcJV62N6x2Mtjs+aGUo=;
 	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=Vey9gaKEd7xhtefSrY5PkhmeoQcRks/Om9ybEHbWWGJph0a8iPqiFwT6JpnbCNCTN
-	 CvYxoEGJJpERx6/BFB2XhY6GNFfiVVqRUquU3iRyb4DXPkmsMpgcbA6u+22Y9eTr3w
-	 ABc5I6wfqa0/jTzuv4KwSlsSZoz9HWq3oPfEiUr2vNrcu5kBnXC3BI5HtdbYUIiXhT
-	 56tuwxm48mlvghVRx7btxyEETsb5IZhqcO2vUHQjyuLmQDFbD4dwlWWhcF3piQNCWP
-	 wJpODe2LbakW+5kjq2LAu8ggA5hKymQ2OVp8P8BAc1rgEvi0xXo8qaLG+IvHCFskEo
-	 QQ2A17wKK0c5A==
-Message-ID: <sashiko-outbox-212191@kernel.org>
+	b=h/JNoNLSnI4479or0phY+L7ArmwI3gi+Zk65CDvmh/orN6OVWwi0MlqirOrB61W0q
+	 PPTvJgJmdakLA0xs14GF33kPxieTxctlJk8Yl35ghkw1enQGb6jok4hvWipnA2bmiX
+	 bmm2Poj3V/I3S7XwZxl7lFLRlGNeHyARzf217/qQABFPmsD8DvChu14GIvmtIuKiiV
+	 uiiyLY8uOsp1TasOE+5DqWLInR/LYQqUhAczoHCCQW1rVbh2rqAQHsemwdIh/+5hyi
+	 MYzqXcI34gjtxr1+hbXpo2ZV+jHHIiKEuv29OGQItSB5Tw90o5nUF+jRRVkDuIyDu7
+	 H4+cHA0F9DHdA==
+Message-ID: <sashiko-outbox-212192@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v12 02/12] net/rds: ib: refuse to attach a
- connection to a device being removed
+Subject: Re: [PATCH net-next v12 03/12] net/rds: guard every work-requeueing
+ site with rds_destroy_pending()
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Allison Henderson" <achender@kernel.org>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261113044355.2932029-3-achender@kernel.org>
+In-Reply-To: <20261113044355.2932029-4-achender@kernel.org>
 References: <20261113044355.2932029-1-achender@kernel.org>
- <20261113044355.2932029-3-achender@kernel.org>
+ <20261113044355.2932029-4-achender@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 13 Nov 2026 05:05:11 +0000
+Date: Fri, 13 Nov 2026 05:05:12 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,25 +60,25 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> rds_ib_remove_one() drops every connection on the device's conn_list
-> in rds_ib_dev_shutdown(), then clears the client data so that no new
-> connect can find the device.  A connect that is already past
-> rds_ib_get_client_data() when the walk runs is not covered by either:
-> rds_ib_setup_qp() goes on to rds_ib_add_conn(), which moves the
-> connection onto the conn_list the walk has just finished with, and
-> builds a QP on a device that is on its way out.
+> rds_conn_destroy() cancels the path works and then destroys the
+> per-path workqueue.  The sites that can re-arm those works are
+> supposed to test rds_destroy_pending() under rcu_read_lock() first,
+> paired with the synchronize_rcu() in the destroy path, so that no new
+> work can be queued once the cancellation has begun.
 >=20
-> On a hot removal the rdma_cm still catches that: its own client
-> removal runs after RDS's and delivers RDMA_CM_EVENT_DEVICE_REMOVAL to
-> the connection's id, whose drop shuts the connection down and returns
-> it to ib_nodev_conns.  On module unload there is no such event - the
-> device stays registered - and rds_destroy_pending() is already true,
-> so every drop short of a destroy returns early.  Nothing drops that
-> connection then: the device's shutdown walk is over, and the
+> Five arming sites never got that guard:
+>=20
+>   - rds_ib_send_cqe_handler() and rds_ib_send_add_credits() re-arm
+>     cp_send_w when a send completion or a credit update clears
+>     RDS_LL_SEND_FULL,
+>   - rds_ib_recv_refill() re-arms cp_recv_w when the recv ring runs
+>     low,
+>   - rds_tcp_accept_one() kicks cp_recv_w on the freshly accepted
+>     socket, and
 > [ ... ]
-> rds_ib_add_conn().
+> module unload cases; the following patch extends it to the destroy of a
+> single connection.
 >=20
-> Fixes: fc19de38be92 ("RDS/IB: disconnect when IB devices are removed")
 > Assisted-by: Claude-Code:claude-fable-5
 > Signed-off-by: Allison Henderson <achender@kernel.org>
 
@@ -86,5 +86,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261113044355.2932=
-029-1-achender@kernel.org?part=3D2
+029-1-achender@kernel.org?part=3D3
 
