@@ -1,76 +1,76 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.16
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794529041;
-	b=f6nZcRwaNKcpWE20mHvhp/dgQdSnzK5ywuk6JZHtviZX35sfl+jELdofbB2zCDBoZxr2
-	 c152Bw9kfGCP//Z0nXPQ5ZkSeOIB91HYKBvTO0/B/sCDPHi225o8eqeBpx8co/TT+3vvd
-	 gUuIbPM8Es5CSLSCrrIBy8LK48t9IsZz2ThqnN4aq3iKUKUNnrccKkzoW8oOwhtQMgBf8
-	 LhLcw3aAoK9e86QwToGotcNBRO7ZkdXLGuqoHFSNwzP7qr87XRCeWfbfEFtMymDqUbstu
-	 NxO+6YHA9qmpBNLOIbXOvxvPzdc2cMNgyxHp0AKiL/rB0IAwJx36fLAOab3apSk+DEQ==
+	b=hOsMx35U69mBOnifhqGt+g824PHpimOB+8GwUYp2fwkiPQOsopCXOHnSqatM2wo3OOwR
+	 V9Vu7ptR7C7oSyi5Qnwc2b0PoeFcubdTkLWk06i9j04CaRwHlx0F1S0msoCD2WGbIqjAl
+	 IlHG1Co5aOvrfoqGOhBAyLlGlsA2eGjMt7CqH32KFiAbFKIPK7QqdB60rNaWuyMRlyMsK
+	 R8izO9GakT42Ekq1A18DOyLSjbFdIj9lAxs1s6ovG9bb1/+2lV1YLs3FJ+zLK8tMg5kWn
+	 W7XOBR1INbnw0aulm3YfdAS7UeOYMuYXi0s5ajG7u56ynU64kG7GcC5EQtWytaADKuw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794529041;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
 	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
 	 Cc:Subject:Message-ID:User-Agent;
-	bh=Wj472BmpCBR/OnBhXLu54bMwGLFUjXw7FT/baxm9uco=;
-	b=W9bD9vnJ6VUIAuhZKMYg0sIXRgqb9xSPZBIj7oh/2Ey2FJB04KJLDyKlQ6Wjt7R+qywc
-	 pvhcR36JaH1qaDNFUK6ao2VC4qfDUx3u1zT8Qcmn1XlxhxsfVpAR7JccKOXHeYW26JkYp
-	 qhv5Y8/4ApEdL9qAHlUv+wOwzpU7jbI/Qfb/6/Aem9rnEttkejCyA7ASGKfCWOnD06dn3
-	 sZAYoqDG25RugJT95jDTysKJUv5h4cn4ceCsPGDwHgPwTiVr6RmPa+FPvBDGujH9B1doS
-	 l1CqULwyQ4YUq80S0ka8W6hR0cqSM+lNLRXA8rf9p77Sz7odseiLlHNLUzJ97vkdrnw==
+	bh=ZL4nV5DJkrT5Gqe7mZb6HtSHU4puSbiKPqWb8kuvWsE=;
+	b=4+0DapsXgknmMjbsFMA5GYrPCtcNWShg34nxv0S/HWEGDpDIf0iNPuWEozx6xi8yXtbV
+	 4X8+dZGwelZT4+T0PY6nLQX+lQqJQhtzIM7EM2I8EkW+FtAAQpDG3MjATA7mWbhN8A5sd
+	 AxsT3h5k0zPXxWoNeiBmJh5VFGYQn52A9TqtgDL7W3jboEWz84E4cW+7KJMkyXi0bRise
+	 xmGWoUfOaywlK9c+pRXYIIbue5fBFODZLZ1zulqZsroJ3LEkhN4UTjqOb3HEhYje1aZ50
+	 oIS4kA8+my0clUrgoQkyFawTRzwLseCqy9eGllllvH13NpdCuF2DZiZSCbaJvX2JbFg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=intel.com;
 	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=Tv2C0Ew7;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=PPTOmSJy;
 	arc=none smtp.remote-ip=198.175.65.16
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76A85606A321
-	for <linux-rdma@vger.kernel.org>; Fri, 13 Nov 2026 00:17:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 76A85606A321
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18C8A606A32D
+	for <linux-rdma@vger.kernel.org>; Fri, 13 Nov 2026 00:17:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 18C8A606A32D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=Tv2C0Ew7
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=PPTOmSJy
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794529040; x=1826065040;
+  t=1794529041; x=1826065041;
   h=date:from:to:cc:subject:message-id;
-  bh=m3Qq8yXQ2harXFODu+LLxqCxWROqe5AuSSNxubb9C/0=;
-  b=Tv2C0Ew7mMbZ4szDOFjR5ZgRVNtED/2Ubcvm/oWdXbgPLgS/dsatFnNP
-   DMa8/e26DINor4uytQeKOr4e96IdBBYL8sDleLJzPXWgIamxwcQhHPFl/
-   Hqb9/KL/xEpDQOXHO0huWwJTMb6peVVjJsBxVQadMZcdszqn+1auheM35
-   iZXYSD8vPNeCxfrOkU2DpbQAcpdm8F8fqqFie9OuQN2jc38ukpBYRrKH+
-   3ZFkjZ6qADSYvCuw3WOlAKOPM10fjB+duNfKSfpfkC4vWy6qsugaAo/Kp
-   ald0fIF+xQZQN+egDqZfZc9gE+S5qe0H4m3nqmKlHKlqTOfNtyPe/u120
-   Q==;
-X-CSE-ConnectionGUID: P/29nX2bTKCX7thY9wQlxw==
-X-CSE-MsgGUID: nYtgLmN3SyevmdMYEEiF6w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11964"; a="3316165"
+  bh=Dt9InF0AuBKDgj7rMluyW1vF2bveOJBN5rlmmtbsQNc=;
+  b=PPTOmSJy09rOjMlwoueE3mOnG13OTIgJVGRHbvt23fTCmNPIVEwBLOn1
+   soArXPyuGHjl7oRerJWLW4dagNfamUPeWx7g/LyMAEamqrobMhSGBzZ/B
+   rLGI1zOhW5KAS3S2DpyPShLSkRIym5I2RA7ymKyQRPDeJyZucas4sCsbe
+   rFWbC3+bDxECnTMP9YrCy7JEN8KXfNWB+WS1NeeYGPOx67gKkQ+tE8YcH
+   WT4gslP2TTHsLN1sYnyAG0VVikJk72pcCV30fVpG4kbagqH0ltEPq7faT
+   PDbutfriHjc3POfr+uoNW5/ap8VYyuAtwqQEDTZUWB45qB5zbqRe69eZP
+   g==;
+X-CSE-ConnectionGUID: uaXRFpaOQRKKho5NZfzFLw==
+X-CSE-MsgGUID: mu1rB6LBR22I9HRaLtpBKw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11964"; a="3316161"
 X-IronPort-AV: E=Sophos;i="6.27,210,1787036400"; 
-   d="scan'208";a="3316165"
+   d="scan'208";a="3316161"
 Received: from orviesa002.jf.intel.com ([10.64.159.142])
   by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2026 16:17:20 -0800
-X-CSE-ConnectionGUID: KDUEor6TTw2TKurWrQKNlQ==
-X-CSE-MsgGUID: C2pxyMeIQ6e7TpkyyHOvlg==
+X-CSE-ConnectionGUID: TO01vPUIQyG7W+ufo9gl7A==
+X-CSE-MsgGUID: bTWjivRyQxOzF1mCkEHdow==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,210,1787036400"; 
-   d="scan'208";a="8779742"
+   d="scan'208";a="8779740"
 Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
   by orviesa002.jf.intel.com with ESMTP; 12 Nov 2026 16:17:19 -0800
 Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
 	(envelope-from <lkp@intel.com>)
-	id 1xReyh-000000012CJ-456A;
+	id 1xReyh-000000012CL-49Ug;
 	Fri, 13 Nov 2026 00:17:15 +0000
-Date: Fri, 13 Nov 2026 08:16:53 +0800
+Date: Fri, 13 Nov 2026 08:17:11 +0800
 From: kernel test robot <lkp@intel.com>
 To: Leon Romanovsky <leon@kernel.org>
 Cc: Doug Ledford <dledford@redhat.com>,
  Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [rdma:wip:leon-for-next] BUILD SUCCESS
- 36d1eca030a37baa00a56bf34962f36263181918
-Message-ID: <20261113081653.dIGd1anY-lkp@intel.com>
+Subject: [rdma:wip:leon-for-rc] BUILD SUCCESS
+ da0c7b9ba5e91b745aeb857be096a60d63c27ec8
+Message-ID: <20261113081711.Uj0wBJ1a-lkp@intel.com>
 User-Agent: s-nail v14.9.25
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -81,8 +81,8 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
-branch HEAD: 36d1eca030a37baa00a56bf34962f36263181918  RDMA/ipoib: cancel the AH reaper synchronously on teardown
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-rc
+branch HEAD: da0c7b9ba5e91b745aeb857be096a60d63c27ec8  RDMA/mlx5: Add missing error flow in mlx5_ib_set_vport_rep
 
 elapsed time: 974m
 
