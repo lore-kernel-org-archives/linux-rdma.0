@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794546315;
-	b=SZNFTITuvLbGPuP6M+55V0PMfdjpWDouXdB7YHAluIJ0AxT0BPV7floK4vKdpP8RIiWN
-	 Xlod9m8jYDUDZGx4h9+NsTTGzTWPUUObwtI3HPL7v0opIL/qNbcZyILajCOG9Ao3wUVey
-	 yNgi0Rx8iVlfcsD9r4Iu6O5A5J4HLVB/XYSWZZACqgDXilgBB1WrZlrxc2kZ8hnpV8lFQ
-	 v+4tn8rxm5CFZfxrD6HHGU3hbOsiLb48fXz8npOFEvxITjJ/Kael97VfdrtL8WzfUPsjR
-	 4DpR3QpUQxM41LmryAVtfmNHvXiWsu8wProyxvGVIJqt10Q6lLWsP7TRtPmzgNcOevw==
+	b=o/otR/anU3SWskpmPIN6I2kkIf73OOkahEV0kV/UH+jXyUsym0wS3Ndl/39C1KG+3KrI
+	 SqynwdbpVa5TbGVtaHKwLuSI4kRsY993NlKIarMOLhohIWs5zVf1CLC1J6i7WWtTmUY3d
+	 IEMXwJHWjio92nMSE2lRb68RMP0cC0Umv+2lDA3DUv39vBCj7zxAheXdoTDqQzDSNN9AI
+	 oVccT94hzxhD5k6OlrptRz0UnV5qndCw1vBwZp0D946rVm2j8NCYL7cltN+4/Jjlb+QMh
+	 DiYq2iA3Qvvm/yun1uh6Q08srR7u9oo3RWZvdUXjNv6SShYi4WhZdZ8riMCtqQZtt7Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794546315;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=hl4IWQ+0Psh6VKiep5HELh+2VcvqS1vXQ4emgjFDwjE=;
-	b=LvbQVkbGw/LtTsk0Rtnqi7k9fGX/6DjXMC3SPF7r3MK4udUgbekHJ6/L8opN167yX7b1
-	 nd86R+NB/2MhNWuVcGm9q3pWqAaZmAB4xlYpZUY+e3TreOMThsS/7KuQytbk9iAggHHIH
-	 /+ej6E4Ts0GmIcfoWOmkxDq6vN16n538fp0fnBUEnaJz6tb1BqgDHIq9ymCy55TH1Dexc
-	 pqc+RTWwCu3PB6848qTMA483//Iz+k4eKZGiNTaYqylD0D0R1+FaTPemp3eeC0FJqgcTY
-	 kVjDRMgH7UIKgT1DPcncszfk5MPJpnVi4R+bz+BrT2EpO8N0NUVlu1bvN7kCIfLhEQw==
+	bh=YyQmb2KIVp3duyReFHHLrdgs8gf7yj4rDVDS7R9P0NE=;
+	b=V4YvUhAy+3tzDvS0LU5tn59KPrD3jl73ZSZJ58PIZP6CCTrbccQIbBJ6Npgt1lT9UKKg
+	 oaQekF44lo6RnYtkf9g5zCsRKK29iA/NwWOARo8cIkj2+TW/XyfLUfM9SGurG2gLSiZqK
+	 NZ8sF92zRoifHIUUvJYI1Y76T1XS/7UE32wCSBJZO/5zP3ajbl5w0DBlYYV21Id9sZjLa
+	 4bBWZ+gxH/38ply9KkzwzrqrAf9IibgpksdyBqUIMfPNRDu7RPNmfov4rsgiDyRXNkbYk
+	 M2ak28aPxyj2xZrEmq6VdXengvcdg1FonK5NZIFyeJbz5pZqTACtvb+htuhalj9HH5A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EigHMKF2;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fgYUmtUF;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23805606A327
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B566606A339
 	for <linux-rdma@vger.kernel.org>; Fri, 13 Nov 2026 05:05:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EigHMKF2
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E01981F000C5;
-	Fri, 13 Nov 2026 05:05:14 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fgYUmtUF
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 646B51F000C4;
+	Fri, 13 Nov 2026 05:05:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1794546315;
-	bh=hl4IWQ+0Psh6VKiep5HELh+2VcvqS1vXQ4emgjFDwjE=;
+	bh=YyQmb2KIVp3duyReFHHLrdgs8gf7yj4rDVDS7R9P0NE=;
 	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=EigHMKF2xGk5axTjU00PCOgVJLDlR3rdiImpX7qKbUG/Vh5g3fOwhcalh3OvAjWVR
-	 Dk97zTmGdZMSjUYnKUE3RXO+stN8MC72fWkvcg3qrD4Z+djQpKtPim7JRL5nDN1D+x
-	 Bf43fD8AvXy+HsJ/peAX5FI71mZG5HZIfSrwmlM0FJ2o4O9rbB8LP1Nr8alY+pew5z
-	 rCU5Yp1svmu0cnE6fPbBiG+u/6yztoRLmcmr7dbbtoTD6IwMfBuBYqqlJmNOFyHUh7
-	 VX8y1QR+vfQBBRZFNwVUbQCYhaezg295Ch0VIhBiJT0hoYlVn6nELLEzMZBv/K6L4I
-	 RONmRBppZIAXw==
-Message-ID: <sashiko-outbox-212196@kernel.org>
+	b=fgYUmtUF0yu67uuqMsLm3OoRva93KYm9Jiv8GUe9Icfy32doXxjzqU7PGQmxlLMXf
+	 fj61cwaDrfG1uFgI1cnvtUDoUor33lW57/ER5Eq95FnG6h64JaDQ4Y2/6k0l7KYbM+
+	 RxbY2BYg1xrKSsSqwsCw6vf1yY2bHf/9GsjBut2/D/+h8WyZjrLJsJCuiQuD5P0Pov
+	 5ZpEpXm3ZZRyr+Bu5KvWwflPuS7dLwWLWD3TkVGPae+BGoHLJYj8M3UQsbPTrxq82s
+	 O2AC0NM6ak5ELn6BQTIohwfGVzQiUqSWZIuTSY8GqJ+jVuknPi5fvawsLJ7ISmv1lP
+	 05tyo/vOQEfJg==
+Message-ID: <sashiko-outbox-212197@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v12 07/12] net/rds: wait for connections to be
- freed on transport unload
+Subject: Re: [PATCH net-next v12 08/12] net/rds: hold a connection reference
+ from struct rds_incoming
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Allison Henderson" <achender@kernel.org>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261113044355.2932029-8-achender@kernel.org>
+In-Reply-To: <20261113044355.2932029-9-achender@kernel.org>
 References: <20261113044355.2932029-1-achender@kernel.org>
- <20261113044355.2932029-8-achender@kernel.org>
+ <20261113044355.2932029-9-achender@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 13 Nov 2026 05:05:14 +0000
+Date: Fri, 13 Nov 2026 05:05:15 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,31 +60,31 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> From: Sharath Srinivasan <sharath.srinivasan@oracle.com>
+> struct rds_incoming->i_conn stores a pointer to the connection a message
+> it belongs to, for both received messages and messages the socket sends.
+> But without taking a reference, nothing keeps that connection alive.
+> Embedded as the messages m_inc, an inc routinely outlives the connection
+> it points at, by sitting in the socket's receive queue until the
+> application reads it, while the connection is destroyed under it - and
+> every dereference of i_conn after that point touches freed memory. Netns
+> teardown and unloading rds.ko cannot do that to a live socket, which
+> pins both, but a transport unload can: rds_find_bound() does not check
+> the transport, so a socket bound with one transport (SO_RDS_TRANSPORT)
+> can hold incs that arrived over another transport's connection, and
+> unloading that other transport destroys the connection while the socket
+> stays open.
 >=20
-> Since connection free became asynchronous, rds_conn_destroy() only
-> quiesces the connection; the actual free - including the transport's
-> conn_free, which lives in the transport module - runs when the last
-> reference is dropped.  The transports' exit paths destroy all of
-> their connections and then proceed to unload, so a free that is still
-> pending - once the following patches hand out references to lookups,
-> sockets and incs - would execute transport module code after that
-> module's text is gone.  At this point in the series the initial
-> reference is the only one, so the wait only has work to do for IB,
-> where it also catches the late arrivals described below; the
-> guarantee becomes load-bearing with those patches.
->=20
-> Count each transport's live connections in t_conn_count (incremented
+> Chengfeng Ye reported one way to reach it, where the socket info
 > [ ... ]
->  place of UEK's wait_event_timeout() + WARN_ON(), plus the resweep for
->  IB's asynchronous device detach; also cover rds_loop_exit(); rewrite
->  commit message]
-> Assisted-by: Claude-Code:claude-fable-5
+>  m_inc reference is dropped from a shared rds_message_free() helper
+>  that both paths call; rds_recv_incoming() takes the new reference
+>  before dropping the old; rewrite commit message]
+> Assisted-by: Claude-Code:claude-opus-5
 > Signed-off-by: Allison Henderson <achender@kernel.org>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261113044355.2932=
-029-1-achender@kernel.org?part=3D7
+029-1-achender@kernel.org?part=3D8
 
