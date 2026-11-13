@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794546317;
-	b=zfoQIhuF+OHaHITtaUHLZRiLeFxz7+1Kirgrto/Hbt6fAmsP6ZRVZMbCbKKhwa8GfOFR
-	 fhu+bWG8I20rbPgOZWf4XB12ED1vMYMFV0+0WbNB7cSInEh09Z0Feg36ik3jpSRPbwhNW
-	 dN75AhcDJkttzHwRyX/KJ0m5auXGhH8uW+Y2xyJfNO0PEKAeB6HRF3HnSOAzr1fZMzP87
-	 l6lWen92w8gb1QahkXXSdPtiLsBVtkwGvGsW5MWcEhGflvLBN1RtKbhZQfFWiub6ueKMt
-	 6/l8cJiLbobaBcLLZTrLGS/x4cROhHbrot5LdVjAowerXkXROas4Z6fSsuNfRNrwa4Q==
+	b=DM24XQMmWjgzSLpjKX6Fn4ghz5kbDHTU//T2Gyvxjk3Y7WocXYhcRcnUttJudGS/7QTT
+	 CcKNmzCF0eoXoFJFdufbhrDxSN76DcDQ2jlsEQqzH5oIvNfX/OhUJeoxkYTfGuPNDVh45
+	 irc647yE08Hv4CjMp4FmxZB96iUYwlZDowQ0/00aiJNctdjVbfRgeez7l2ktGYcperz1G
+	 siIjhmGWwDSEqe6UK6dEFCdZTU3+tDUSXMkV56l466DoJiP85HTojSZQNmv6K84MnN9Pc
+	 /Fo+LHVkxdsvqEcUIKDHYR/7EpBjgZtxI57TfYic+1uuLLVeb6alsDslLpvef1FKxkA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794546317;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=+yLww650GX89ddmDlgj1XG/R9JuWJ+hvlRgt/HxEzAU=;
-	b=EUPa/Lwk+rYQ884IsAaZXYlL6YaYY3XFtjeyy2pmSxkHyvHS2ily0suU/OCMdfFNQsqK
-	 HBtqTuO5shQUTJ8NSGwKAlOUkall4AKsvFvlXLRMS9NGbb8fSGSdGnLYbIYcX3jg1+5+M
-	 3JZgAfhrsy23bKcK5U0Rau6CVSaGCRxy+Wja0Yf4vteaPLtFvcZsAkz89Ooz8uH0Lsymu
-	 5eSIDEjH0Fr0Il7rgTy4WzDGlmZykaR7hnIo8dxenOtJRi7pK6iP0SkLqfihhmNtNoCGo
-	 W3FHluD4ds+hbzLiLR+ckuc8bwOZNhNoWtzcbP8d1B+e4X8Yl7CkXtbpjnplTd70rBQ==
+	bh=VV5NkUtKHSOKkIc9N2qJR+fEYMSQq5H0M4IhHZy5ySI=;
+	b=DUVBuefkMvtJVHIcYlNEXeVQGwAxBmzkm15nhlacKaZM92P5+2RnTuxYqrTG34MDw4D0
+	 KJk+ut43SK6FZCUWKFBczYroiGdhfAhjnUUZ36XZAn8JeiPsjPSWF4kVQ7L8WsAFpGBke
+	 CxNCobEMTydC0Sa+L/9USnXj+6HItfnLo/5t608I6BjUG1ZkjHebgKmnRKVsIaipfk3L0
+	 aLOJhcc4aZ3WU+VamFbpKv9P3V00vOv8aZiCouR7lv/9vK6PUwyRtW4nKupPiX/zshT2g
+	 xPv+xRIQmZqHO2Dm1fBFq0bNrjGMSS6Ur0xH1Cs4fv3idVnha8aW/k6YJC2COqlZafA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DId4H7es;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jqjN6U0w;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 302E3606A331
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6FC4606A323
 	for <linux-rdma@vger.kernel.org>; Fri, 13 Nov 2026 05:05:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DId4H7es
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECE2F1F000C5;
-	Fri, 13 Nov 2026 05:05:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jqjN6U0w
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 704EA1F000C4;
+	Fri, 13 Nov 2026 05:05:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1794546317;
-	bh=+yLww650GX89ddmDlgj1XG/R9JuWJ+hvlRgt/HxEzAU=;
+	bh=VV5NkUtKHSOKkIc9N2qJR+fEYMSQq5H0M4IhHZy5ySI=;
 	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=DId4H7esz4vpXTK9MdaTKgrlnJu2Veh2h5KwG2KaZ0RAqvC8Or2MtrIfb9yPymCZd
-	 9WHF3R/BxUdv7JVR/86ItuV9D3xOTyfBqljlKOmCHImuHpUeK9zavmRO8J2ghI+cbp
-	 XzzKE2YzQpPz0KTaNE3RTw372XCzFv9QpTcFpqIsGBJqXE+tl4YkAklqfK7OFI0X1z
-	 16A83rszrx8xZLuKuZv+yivmGt8kNm442ZT5qEkHM3lm4PdKYE3+V+VdhB7wsNkupx
-	 Ubhefm9omxoDz5LcVAyVC0tIwdJJu9i63PcOajI5DfiAx97cCKEl29W+h6E9PIBqi9
-	 pQZ/J50M0YkcA==
-Message-ID: <sashiko-outbox-212200@kernel.org>
+	b=jqjN6U0w1G+bIO0dI8uRPa5dWoACiyjKVaUboFZgH0tnQ1yYB9ngugwBuykS/H6/K
+	 CKhuZakwwZAMFk78Uub4h/ZVda0VoOonQ07bkgUrPSBupNSwuCt/u9iaQQkgcmkM4d
+	 z0THeSdV2EfN6t3LUdGlsvotVs6jBg/3JpkblZUw8duDUCT4YE497Mn8Uo8OgyPQCN
+	 yc+RVj6fZCYKoEQvyTPMs0LU8CjGnmdi+N727S2dld1lSkc/NZ8upPiG+rUNVDbRxl
+	 kssL3hvncb3zpFico0yHxJnSsZt1hqpOXc7qlv69ca5FoT7Tn3qD3gX7tCZDkHsk7t
+	 DrPjT89S5C3YA==
+Message-ID: <sashiko-outbox-212201@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v12 11/12] net/rds: give cm_id->context a
- reference on its connection
+Subject: Re: [PATCH net-next v12 12/12] net/rds: drop rds_conn_count in
+ favor of t_conn_count
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Allison Henderson" <achender@kernel.org>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261113044355.2932029-12-achender@kernel.org>
+In-Reply-To: <20261113044355.2932029-13-achender@kernel.org>
 References: <20261113044355.2932029-1-achender@kernel.org>
- <20261113044355.2932029-12-achender@kernel.org>
+ <20261113044355.2932029-13-achender@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 13 Nov 2026 05:05:16 +0000
+Date: Fri, 13 Nov 2026 05:05:17 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,24 +60,25 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> rds_rdma_cm_event_handler_cmn() picks the connection up from
-> cm_id->context and holds c_cm_lock - a mutex that lives in the
-> connection's path array - across the transport callbacks, but the
-> context pointer owns no reference.  What keeps the connection alive
-> under the handler is ordering: rds_ib_conn_path_shutdown() destroys the
-> id, and rdma_destroy_id() waits for a running handler, before the
-> destroy drops the connection's initial reference, so no event is
-> handled on a connection that is being freed.  Before this series that
-> ordering was broken from inside the handler, since rds_conn_destroy()
-> freed synchronously and the one callback that destroyed its
-> connection, rds_ib_cm_connect_complete() on a protocol version below
-> 3.1, left the handler's mutex_unlock() running on freed memory;
-> commit f97d8c7bab78 ("rds: ib: use rds_conn_drop() on protocol version
-> mismatch") has since switched that path to rds_conn_drop(), which also
-> removed the deadlock that destroy took on c_cm_lock.
-> [ ... ]
-> rds_ib_add_conn() refusing a device that rds_ib_dev_shutdown() has
-> marked.
+> The patch "net/rds: wait for connections to be freed on transport
+> unload", earlier in this series, gave each transport its own
+> connection count in t_conn_count, incremented and decremented at
+> exactly the points where the global rds_conn_count is.  That leaves
+> rds_conn_count with a single remaining consumer: the seed of the
+> per-path workqueue names in __rds_conn_create().
+>=20
+> Switch the name seed to t_conn_count, as UEK does, and remove
+> rds_conn_count.  The numbering becomes per-transport instead of
+> global, so connections of different transports can now receive the
+> same seed; workqueue names carry no uniqueness requirement, and the
+> seed was already reused as the count rose and fell.  Removing the
+> counter also removes the rds_conn_lock round-trip that
+> rds_conn_destroy_fini() took solely to decrement it.  (The free path
+> still sleeps in destroy_workqueue(), so the last reference has to be
+> dropped from process context as before; only that one lock goes.)
+>=20
+> Based on the Oracle UEK commit "net/rds: Each RDS transport
+> should keep its own connection count".
 >=20
 > Assisted-by: Claude-Code:claude-fable-5
 > Signed-off-by: Allison Henderson <achender@kernel.org>
@@ -86,5 +87,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261113044355.2932=
-029-1-achender@kernel.org?part=3D11
+029-1-achender@kernel.org?part=3D12
 
