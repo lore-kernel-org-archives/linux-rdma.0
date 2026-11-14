@@ -1,109 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.249
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794681624;
-	b=WdcVGDuW0pyLHoFkIXF98xHJiYiyOqjeESYqJHP5bdSZUoUrZ87FH1HbwjbxnEF+bG74
-	 Cktzcn6KY5P7/1qUBU9EBZMsLYCmgZ7YXcUriYTL6Jk6pp1lYowX1j6bLJdI+yyNTrvpm
-	 GrvelwDpNxYgKc5iMGQfh8W9MeXBp4kGQ1bcxnT2jK0v/0A8cOvuVJ3b0TBmxs/PZ4yOM
-	 MMsArVcuXu4QzaxXxpQEagNWFmmjEReBO10tCU7D8FiIvbgNY3T3pKSB+Zp/2TYUJVvf2
-	 VHuf4XaVvhCIp4H84jB+nxQ3EQuD+/EgQa/gDDOCW20h07n/0O/uXXjbF+HmEOCXo9Q==
+	t=1794683150;
+	b=OF+x/mf0RGEWNFrr8ekZai40jlovd2pKYlGxE8HdFnP03wzsQ2k3jrOZEW2CH7oPD+HM
+	 liKC3ym8yNYwbOPPSSDc/5M+vq9SIJrsja1brkk/4FcB9IZ66OOY4zK4jrEeNJQA+584F
+	 g1pVE2VGNdEDpzCcgVypUj9Md3/OXEfdQOJiIfwamY36euSWAn/pVTLmtPm1xPiQCKbom
+	 ke2dOHjbCUbFlJXTqO7pqh5a8yt192Mwz/5Ja+tDqJwiEdr1w9rLEKvP+etgO0AjClQGs
+	 iYvXmJPjvBthMvJU+xzG2fLZA+eBQzAPC/TUZ3EDlmWP/qtbQJJzGA/1D6jIuaAK0Fg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794681624;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Content-Type:Date:Message-Id:Cc:Subject:From:To:In-Reply-To:
-	 References:Content-Transfer-Encoding:MIME-Version;
-	bh=RDeoDvuqMX5CXuZ8DatSTgljbUzCp6t2qFD5+t+XaFE=;
-	b=zEWcv7zUyXVuihOJtshdUYDzNkF1wTApjLr846DHpfGoxtOJ80Rq2QLz+A/+V4l+vYHq
-	 IDEg3IH+CGVhn+Y3WPAhc19sXIkNtspmV6Ro21KjAAYl4l8wJcut0iow4fDCzrmeCKOsa
-	 PMUOBm6Cp1ZvaGcPZWxctFjPTZBgp0bMQzcp4v65W8PFmTaOJC31ujLXhII/EHzeNpXRx
-	 UATG7beNfJOU0Cm5L3fMUDHUGToPd7lfxeFJSj9Q2MNREJFd3K1W0RLxKG05swz38Mwy8
-	 XmSa1p+Ly3lMPqvvJDGE32brAlBbwQkZ5hXuRteA5as0jlXTPcZYeVAPpLiWL2OPwgw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794683150;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=e7GiEdV+M4w33yXVYVq40C8MJ64RngQUxjIK2ouCYGk=;
+	b=ONCydGcPjxq13CysN9jhyheSCGcgQ9MkXygMSUSjWtP+dVTJiEbZmqRD6ZPedaVB6vYN
+	 7NzsrBVbnraBOcMi7kj5RFsaYIRmeUvwr3dOj7aqBzvPC4g5gR60cO+z51syRAhtm9JhJ
+	 5rroLJNS9kUxxrT2oWANx51Meyl9xogMDF1kHi6xwMaC1fxa0FVmENQPV/r5L6sGyly1m
+	 AVrkwICkp783FJOThmOwg4TuTuqdzBc7fLMR6ZUB3zp09BJinQIY2fxJfgKTrsX+zrpoX
+	 TxhvKqhjOBNBCq0nfd/O0xGPUb2QIjdCHe6St3L8OTOI7+W4wsOYmf41VXEwpXuTP+A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=OKQvH0XB;
-	arc=none smtp.remote-ip=209.85.210.172
-Received: from mail-pf1-f172.google.com (mail-pf1-f172.google.com [209.85.210.172])
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=bZrpjGce;
+	arc=none smtp.remote-ip=95.215.58.249
+Received: from mta1.migadu.com (out-249.mta1.migadu.com [95.215.58.249])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 924D0606A330
-	for <linux-rdma@vger.kernel.org>; Sat, 14 Nov 2026 18:40:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 924D0606A330
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DFB7606A330
+	for <linux-rdma@vger.kernel.org>; Sat, 14 Nov 2026 19:05:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3DFB7606A330
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=OKQvH0XB
-Received: by mail-pf1-f172.google.com with SMTP id d2e1a72fcca58-8a06e79e152so1007867b3a.0
-        for <linux-rdma@vger.kernel.org>; Sat, 14 Nov 2026 10:40:23 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794681623; x=1795286423; darn=vger.kernel.org;
-        h=mime-version:content-transfer-encoding:references:in-reply-to:to
-         :from:subject:cc:message-id:date:content-type:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=RDeoDvuqMX5CXuZ8DatSTgljbUzCp6t2qFD5+t+XaFE=;
-        b=OKQvH0XBu++VojD/u+INoAqGc3Ax0Cm7sYdvZeGr3L8gqCisEOw5EBV3aKep+umVWn
-         an/nnKbxKy6DYbjRYvgu/fZ2SPbcgI9KPEl1Trd1mckq3R53F/E6Eaq3wvQbeeuu9l0M
-         0r3nMj/ruEGEiipnr4mvv1s9NXN36nHgwxKsBDsYSprDn+XISlJ2s9UsbYlL1fZ36+YW
-         A/Qnm1iUNoYEqgY3KOs/GSb9tQtZyGLrV2AnfoR1Y7B/pv/QjEJyAnpnTilMgTc+fpPP
-         l+S5oKVA1wky3qlKOje4o9/IM6XIqLEcmeKmB1OmFo+lhyEmEARsV93Mfdv+LzfBQJk1
-         QToA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794681623; x=1795286423;
-        h=mime-version:content-transfer-encoding:references:in-reply-to:to
-         :from:subject:cc:message-id:date:content-type:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=RDeoDvuqMX5CXuZ8DatSTgljbUzCp6t2qFD5+t+XaFE=;
-        b=SOkZhjgUbwYavqY6uKkhKR0lyqLBlaVNSwIrmZu8IaW8f3bxyU9aLFHtTx/PdM2lRi
-         m8yo9eO61Wno7KYvuLsXLorwFkPl9GUA5mzP8ko7GXjGhzGOQvAVdwkXIKvi2YPV5Xh8
-         sm3gbT3Zc0rhY6EsgfK/tDv1xyJyZNa3Z72lYwx5LbCaod6iWtR7AiD8mDR1hd3JUJxb
-         NsxcxjsnYz+PajSmFbY7lkaZd3tWOuKPCSDSNvk4inqzR7iUke07HZYvDXJ0qVXFq73x
-         +Wpql3PXDc0+53EncSfaDHVAQwBPEnQymPHgVQCpkkxTJZiUjnKj6sYBuyRjuI/GvmGP
-         zD1g==
-X-Forwarded-Encrypted: i=1; AL+hErHd73reTyYvsOiQhqNpZoQHK5h2wUedcz7Moouci9RbvQzAc1S+6h+z2Sdl8kIvvdAUxFNNENdXaiRt@vger.kernel.org
-X-Gm-Message-State: APuU4Z8ZUb4rRROwQd7PW6CYo51lT5R2yg9xXKWys9hHtFbBjwjOCWnD
-	AW9vFqKftn/DKGWjzTZt0asooS8RBp090ID//CrG6Dc2/xRywD1KwVdw
-X-Gm-Gg: AYBFou1RWT2FoVBUrE9u/ZFOK96Vk4vqbVdBpiFpbewHJxzSxsiirdzTsEd7trvGcaK
-	t6ZLK34wLdhN56QzrY5LWMjLjCwm02IsIV/uFhLXPNPVbHmm5Yp+fL9I0esifPPKho3y6kW94uj
-	PKq6CDBa8iSUg2Xfzl6wRDXgQLsOu6uyiBndiDOUhf2ykUzvLuFbTLZC6ZTmQVgnPbSmP3NEGgw
-	unwJJ8uNN9nxit4pYUXpJgjfW+jzmt7WZ0TWu9hebS8brQaoyckCj5zfEDNta2USNKNR4VYJisY
-	mqmrXtR4g43GlQLil3khY684kw413OI1axiOc1dlB/1yvh6rDLtMmp1NHyyAeGgWrymrJOl5WlE
-	A7R6U5Qq2vjpJePxjaUBWQpE0QxjxzgsrykmGUpeI4bhVevd+LGtVXDprWtO5elltfbH5g3F7BQ
-	rBdVzFlUCUWNJGYShtoUiqUaSRmtGhRk4zn+mTlD48gz2cYJQOxp0A4ip1k0kO2UdJ2DY+J5vrn
-	PYqZ0p3b4RFjj1hVsiaSe6xSVFeDIsI9CBrWdQQXyxOI+oTXObBprANdkb7Oc3J7MQbJwc1da/U
-	Uvxtv0O0UJJ9/hbIMwh+U8DQVBv6ksmaIwypKv7buxC3PSlPPIV4sfCQBqpobBIj3GAzyQQazdG
-	xecQKWcFVLM4aqHHN0VBxiXmjg2ktinjvb/Y=
-X-Received: by 2002:a05:6a00:2346:b0:89f:ed3b:df97 with SMTP id d2e1a72fcca58-8beb7150117mr5498543b3a.51.1794681622656;
-        Sat, 14 Nov 2026 10:40:22 -0800 (PST)
-Received: from localhost ([153.61.198.245])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8bed263649esm2256214b3a.45.2026.11.14.10.40.20
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 14 Nov 2026 10:40:21 -0800 (PST)
-Content-Type: text/plain; charset=UTF-8
-Date: Sat, 14 Nov 2026 18:40:20 +0000
-Message-Id: <DMV5JEF4P0Z8.3K0HQK7SWX2S@gmail.com>
-Cc: <davem@davemloft.net>, <edumazet@kernel.org>, <kuba@kernel.org>,
- <pabeni@redhat.com>, <horms@kernel.org>, <andrew+netdev@lunn.ch>,
- <dsahern@kernel.org>, <idosch@nvidia.com>, <ncardwell@google.com>,
- <kuniyu@google.com>, <richardbgobert@gmail.com>, <willemb@google.com>,
- <ecree.xilinx@gmail.com>, <linux-net-drivers@amd.com>, <saeedm@nvidia.com>,
- <tariqt@nvidia.com>, <mbloch@nvidia.com>, <leon@kernel.org>,
- <linux-rdma@vger.kernel.org>, <daniel@iogearbox.net>,
- <john.fastabend@gmail.com>, <sdf@fomichev.me>, <martin.lau@linux.dev>,
- <andrii@kernel.org>, <eddyz87@gmail.com>, <memxor@gmail.com>,
- <song@kernel.org>, <yonghong.song@linux.dev>, <jolsa@kernel.org>,
- <emil@etsalapatis.com>, <ihor.solodrai@linux.dev>, <corbet@lwn.net>,
- <rdunlap@infradead.org>, <skhan@linuxfoundation.org>, <shuah@kernel.org>,
- <bpf@vger.kernel.org>, <linux-doc@vger.kernel.org>,
- <linux-kselftest@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH net v2 0/2] net: keep the TCP fixed-ID flags on the
- header they describe
-From: "Alexei Starovoitov" <alexei.starovoitov@gmail.com>
-To: "Julius Bairaktaris" <julius@bairaktaris.de>, <netdev@vger.kernel.org>
-In-Reply-To: <cover.1794139176.git.julius@bairaktaris.de>
-References: <cover.1794139176.git.julius@bairaktaris.de>
-Content-Transfer-Encoding: 8bit
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=bZrpjGce
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=6Lbt2fLwe0vyCFAL3T0HWQHDAyyClHtPtKKASVzf5Oo=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1794683147; v=1; x=1795287947;
+ b=bZrpjGceXtb+LOnuMBd0iwDlUQkjwmNZZGDXuqnSoNG6yuhIWra8xVH9saKlIy9o2RbHRfCj
+ DZEgrRVGcgPYX7FfXntBQZ9U1ygMIYTHRPTwKwrraj3VFSXHaTGuwtTpIYiGNArdHk06AMaoqm1
+ A8cKnMiupq70BWYOmNemxUaA=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 4775a52cce20f54a;
+	Sat, 14 Nov 2026 19:05:45 +0000
+X-Mizu-Trace-ID: 4775a52cce20f54a
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <e432178a-6e73-4096-9f59-5c5d2bc9d682@linux.dev>
+Date: Sat, 14 Nov 2026 11:05:39 -0800
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -113,10 +58,134 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] RDMA/rxe: Do not re-execute completed local ops after a
+ retry
+To: Mohamed Khalfella <mkhalfella@purestorage.com>,
+ Zhu Yanjun <zyjzyj2000@gmail.com>,
+ "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ stable@vger.kernel.org
+References: <20261113230831.2682071-1-mkhalfella@purestorage.com>
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <20261113230831.2682071-1-mkhalfella@purestorage.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Sat, Nov 14, 2026 at 10:27 AM Julius Bairaktaris <julius@bairaktaris.de> wrote:
-> Patch 1 lets SKB_GSO_TCP_FIXEDID describe the innermost header again and
-> replaces the inner flag with SKB_GSO_TCP_FIXEDID_OUTER, as Alexei
-> suggested in review of v1. Patch 2 adds a selftest.
 
-Thx. lgtm.
+在 2026/11/13 15:08, Mohamed Khalfella 写道:
+> Local operations (IB_WR_REG_MR, IB_WR_LOCAL_INV, IB_WR_BIND_MW) are
+> executed inline by rxe_requester() through rxe_do_local_ops(), which
+> marks the wqe wqe_state_done and advances qp->req.wqe_index past it.
+> Unlike wire operations, nothing is posted to the network and no ack is
+> expected.
+>
+> The completer only consumes wqes from the head of the send queue, in
+> order. A done local op wqe therefore stays in the queue until every
+> older wqe has completed, so it can sit behind a SEND or RDMA WRITE that
+> is still waiting for an ack. With nvme-rdma, which posts REG_MR + SEND
+> for every I/O, the queue regularly looks like:
+>
+>    SEND(A) pending, REG_MR(B) done, SEND(B) pending, REG_MR(C) done ...
+>
+> When a retransmit timeout fires or a NAK arrives, req_retry() rewinds
+> qp->req.wqe_index to the consumer so that every unacked wqe is resent.
+> Its loop skips wqe_state_done entries when resetting DMA state, but
+> rxe_requester() itself has no such check. After the rewind it walks
+> forward through the queue, reaches REG_MR(B), sees WR_LOCAL_OP_MASK and
+> calls rxe_do_local_ops() on it a second time.
+>
+> rxe_reg_fast_mr() rejects the repeated registration because the MR is
+> already RXE_MR_STATE_VALID, not FREE. The wqe is given
+> IB_WC_LOC_QP_OP_ERR and the QP is moved to the error state. The
+> completer then flushes the entire send queue with IB_WC_WR_FLUSH_ERR,
+> including the wqe that failed, so the consumer never sees the real
+> error status. nvme-rdma logs only "SEND ... failed with status WR
+> flushed (5)" and tears down the controller.
+>
+> Any packet loss that triggers a retry while a later request is queued
+> is enough to hit this. On a soft-RoCE setup with a few hundred lost
+> frames per run every controller reconnect traced back to the same
+> rxe_dbg_mr() line:
+>
+>    rxe1: mr#776 rxe_reg_fast_mr:  mr->lkey = 0x3084c not free
+>
+> Skip local op wqes that are already done when the requester reaches
+> them again after a rewind. Advance wqe_index past them exactly as a
+> successful execution would and continue with the next wqe. The MR keeps
+> its registered state and the completer still reports the wqe in order
+> with its original status. Only local ops can be in wqe_state_done ahead
+> of the consumer on an RC QP, since wire operations stay pending until
+> acked, so the check cannot match anything else.
+>
+> Fixes: 001345339f4c ("RDMA/rxe: Separate HW and SW l/rkeys")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Mohamed Khalfella <mkhalfella@purestorage.com>
+> ---
+>   drivers/infiniband/sw/rxe/rxe_req.c | 14 ++++++++++++++
+>   1 file changed, 14 insertions(+)
+>
+> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+> index 4f353abd76f5..fdb55366d668 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_req.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
+> @@ -723,6 +723,20 @@ int rxe_requester(struct rxe_qp *qp)
+>   		goto err;
+>   	}
+>   
+> +	/*
+> +	 * A retry rewinds wqe_index to the send queue consumer. Local
+> +	 * operations that were already executed may still sit in the
+> +	 * queue behind an unacked wqe waiting for in-order completion.
+> +	 * Re-executing them fails (e.g. REG_MR on an MR that is no
+> +	 * longer free) and would move the QP to the error state, so
+> +	 * skip them instead.
+> +	 */
+> +	if ((wqe->mask & WR_LOCAL_OP_MASK) &&
+> +	    wqe->state == wqe_state_done) {
+> +		qp->req.wqe_index = queue_next_index(q, qp->req.wqe_index);
+> +		goto done;
+> +	}
+
+I understand the need for this check to prevent already-completed local 
+operations from
+
+being re-executed after a retry rewinds the WQE index.
+
+However, this check is currently placed in the common `rxe_requester()` 
+path, so it is evaluated
+
+for every WQE, including normal SEND and RDMA WRITE operations.
+
+Since this condition is only relevant when a retry causes the requester 
+to revisit an already-completed
+
+local operation, it is expected to be very rare in the normal execution 
+path.
+
+Could we move this check into the existing `WR_LOCAL_OP_MASK` handling 
+path, or at least mark
+
+the condition with `unlikely()`?
+
+I would prefer moving it into the local operation handling path, if the 
+control flow allows it, so that normal wire
+
+operations do not pay the cost of an additional state check.
+
+This would keep the fix while minimizing its impact on the common fast path.
+
+Thanks a lot.
+
+Yanjun.Zhu
+
+> +
+>   	if (rxe_wqe_is_fenced(qp, wqe)) {
+>   		qp->req.wait_fence = 1;
+>   		goto exit;
+
+-- 
+Best Regards,
+Yanjun.Zhu
+
