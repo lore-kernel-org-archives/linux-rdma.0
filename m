@@ -1,79 +1,79 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
 	t=1794683369;
-	b=03IjXrtYQbAz2gQcXSHnLY+JKQdcyZ1tOQAuSLZhDukCGvwyAbx0QAf96FNrz9t2NGdu
-	 I4RMCm4NHv4JALJa28M+c6AWrpSVQW4Wl3peqct0Gs7ygMgEfQ3o9EhGufspAa7mPJyPR
-	 IqBPb52iQwn+flILmQRzpmrj1ADK7MUslknyi4IyNbobmuWHxEdwQJhty0C25c05PnwPO
-	 9LPzL/sC21Gn3qE9nHzkjlr5D41ve2xrvCW41hG2Eg0Am27K/cFhCJCY3CC95Invpy1uw
-	 HvuT8YErYeg+Z/7pevqba7UE4jFTHEqQCGVxkyMfkka6YMO5trwdHaqs7TM60GwR1hg==
+	b=xMWQOUoBEdxT9HCIjukw8LdjbHgcK4TDeOFQmoC1h0KqG9pz5kfbsXvaJFbjqKYZYG0h
+	 6aZiKnEbTEJNWIgp+ZDWz+OPAfYpXiUnKqaDh/l5TFJYRUsTeXMmUGcy00DyHjMGIJ2D6
+	 u6BtTMPFfuVAycUCAA4S030Tz3mJs2Qi250/3f5MHw2z4d6ytDyY7LqSPlEdaHRsojivO
+	 bNvsQGD3rhaH9cikGxmxrM3ZZLu5BZ4sUbbbSZtEzZet/xV8diSzvHIRTxgl1e24rosjm
+	 1hiKVNS+L60n3uLko1c8VEyIGT8TjN9KXnFrPRvicU5nBd6TBULkKqw7F0ApaZtKNuw==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794683369;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=s+aiMjctAiHJQXwqtY6POx3oc38E/xM+Ptz2zRA6gls=;
-	b=J2W87GAOEXQLtdHU7MeEO3CfYCW0H3/F7J58BeJ8M1ytM30RV6oicmpDphkGfTpO4QVt
-	 A5yciTnKDQO3pHF0cCKlYCmOQOkPnO+s7Wt9aAiWBGDOreIjWSBOfo8kM2pBZbFdFpZk+
-	 oAvXjnFF0mITPwhFoTiXQeOL7v6+nkrEvl/v0Jg/ikoNWYfITFYzcq/MiS9dA7v14TvEF
-	 466A+ngSscOI4I0kKG4CSWNyQuzhXzbS9ytK48MJpOUpq3ma9PHJD4sE8O/NtXI5j/BMj
-	 Cwm2bCGz3og/6a2vUykznf7FMDOmQ8Q69P8Noa18VIPr1TxqBUWJfRwtty1w/MytqOA==
+	bh=DgpYO/VSAfAhMfvdbl5shO5wtKU1LiPu1ETvfgfLye0=;
+	b=wKdBCKedzm5iVnPKpIOjcbHEuBGgOUL4aADU+3+zFqFY+HcA7XFByaMwhCJ4VrpQykuY
+	 EddwYAREd3P8z6hEFC/CXDIpv3gI8z56BGxodTbYddhVWSCf2xZDf7DwQyl40Tp7EGlxL
+	 cTNH3ujuiEXQ+d8qezSfBlKJaDOdPmyMwVanETKzYsMvf7Q/bBwaLbpwNNGChP8l0T1tz
+	 ABrzqhrhqBO/erQ49J56MOBiuMANapasdQtwtTMMeYLt/zZy1iyLmEjK61C2fAeB5i5D+
+	 rXuYF8CRx+1kVZkbd1gftle95cVQldj2JWEOtENdcoRXkF3wFmNLia8yBjJGhGOjQ5Q==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=T34TNpTX;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=b5o62hjG;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D22A3606A336;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EE0B606A327;
 	Sat, 14 Nov 2026 19:09:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=T34TNpTX
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=b5o62hjG
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
 	t=1794683369;
-	b=1ybSYnPwKGp/VTd+HUQUL91nFn9NNJm4b+at1J1F3+Ov3LmsaNtlEh322bI7//pmsSEA
-	 wzZkLu6f7/zngAs9whLdtKg2OXfZ6MZbn31BkO24TTsXnimK81lrU0/LTFmV1qn8rZ7ui
-	 r0ouUQTuOsjozTnxQ2KqaZFzUqUVwVeaspq92LoMnDvSrtRq6I5DVm9I5M4AcGVbMxFww
-	 6oMvWOA8nanFQwveS2Jr6Y5/hR+RERHn0yRyberWEo/cCIeJ1OPyU0u2dmewqoWa4FCGz
-	 smwHQVFxLRP+fV1hFMEkhFvOT5LyO80s3uev+bj4H8q8HFG1MD0WoTcU7ZzOt59RYHg==
+	b=v0+FXH3ujV66egQAqsg3Ets65w10eAN/1pfKA8X1r5vfj6A3ONgqVBmCoAlGHw3e3Atg
+	 uFHZr3Pg+sY83zugZ7ec94jMUtFpEbMgKRS4nxYbvYN3Krb/QrgsfXtTtGFh2jPo61c+X
+	 O2uD+HwhRVHypG4b86tOxcY9BGfsHmxJGso9/j3I17gstK7RQRY5OsjYcqKchq6bVDXLu
+	 V+PG0eoBB4DdYVKqBHHUoB6hiVX6434dLiwHh6kWXxsuLBkdKeNyzQMDQvn8rreFSSb9K
+	 B/axO1GggyZBHSwOGIchorFad0xUxQEdOhroze6rdRyNFlOR7+JR3JhE9h5eeV4Ro8Q==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
 	c=relaxed/relaxed; t=1794683369;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=s+aiMjctAiHJQXwqtY6POx3oc38E/xM+Ptz2zRA6gls=;
-	b=wHtKaVHpetdquvO6wlsOjMHg93S2j6XA0hlX/xFyVn0kDBEwQw5r7vE/iSBfJeKeY0Yq
-	 b2LUs2/6KKDgPE6IFyk8Rz80pQn18Ib7vlOSZIzAvT12uOkmCTlqW9+nz4sr+7w1wyvA6
-	 jZRbL5ZG32FztX17w9DIS2wo9iVoyLaBtluv0jguEm82zvSK7EL/nmVlcfvblwaplGnUv
-	 v5kGdgZd8ftSj46nBxx95jmvQbD9ADjuvb/jAkwwBIeo947INHjLVFU8reMBkKgWG3iCt
-	 ABLuB+XlNnE/HQ5W0Xs8ebI13HlNB1uG0r8hACUmVqwe3Km7SI6tyuFOVSTLhENCIZg==
+	bh=DgpYO/VSAfAhMfvdbl5shO5wtKU1LiPu1ETvfgfLye0=;
+	b=1Gv9EJKkWMqM13+HQorYOCHUAOEOIDYAbLy7tcB9Zrjpt4p0hp1oJd75KqCRiwKdhfH3
+	 ZJcCUqPqHvOjCGPPSoBXu4DwHjnFrFkHES2moa5VIMoRLaaXvW+4mGRwcfrDIyWC+k5eu
+	 X5d/wsGdPlWkQTNYEBByKuxw9tnrbbga4u3dTVIoSADlKPmE243XpSzMaarP9WUtTJtqh
+	 WLIIL9QJGTW2WJluegBgpPpvnp/yZkMV62d8f31YHBK6B5qPyMPvgYl4cPU7jCUCHiBYO
+	 0ANsLP64TT0QJ4YpSq6YCt4qj+AMKGorFponkKOu2Nj3HLogen7LSbkXN+RclgNgqew==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id C6C351F000C6;
+	by smtp.kernel.org (Postfix) with ESMTPS id B3C801F000C4;
 	Sat, 14 Nov 2026 19:09:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1794683369;
-	bh=s+aiMjctAiHJQXwqtY6POx3oc38E/xM+Ptz2zRA6gls=;
+	bh=DgpYO/VSAfAhMfvdbl5shO5wtKU1LiPu1ETvfgfLye0=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=T34TNpTX7VfS3wYkQy1Hren/C66m1Lquj/uY8bqi3XvSdCoRqCBSbD0lec7WcKSXG
-	 7eTyJRVsHQU9PK64C8J+No2U2kJ9A+i7xssTKwjbyMB3tV6v+SOBblYj9qbe8kUwMs
-	 K2sGkogeGPvi+xdOs+KG/tJ0CbtTmTZh2Salh3Mtt+SJf9zzTt/st1npw2VCMtuQbd
-	 IhXL8jz0MGI6u2KUzjnBDTmWTsCuKAD4K41Ry044jBwjVWBjX0sNcfd44y9VlE5/ps
-	 4lCGS72SYxyukbEfOmul5bfnSPSBiL5gjqMLT01K158nT/aiHcm7bNR8mDZrr+7Vjb
-	 SvteUw3flJ4jQ==
+	b=b5o62hjGuh5zTpsuAztcENuS/XaJ7Asc2pOomM2eqLRH/loCPnPjM48CvMuutVuhN
+	 YNBv04w1ca0yKZPMIv6JLxnlKXVuKuqdIID9xKg2cupzRrGhg4LyYRNVs7SIMtkb/5
+	 abRL6DsSZ6JQiqMD0HfYn9fXBCtAgcSbKBYUO6BG3AEd7gMZvGH/hR4ZZTb7ZiYLGZ
+	 FV1hGeRv3BFmcfpw/SJfnZuvI+ofHT6alNJDXV4xD8VfvmuG2vbcVxC6sP4fQ6opsL
+	 UZdJDN0SOPGjtRMH4rv2pmzszIXwpie90Hurvp1yCFRUALOKav7viGENLvaWaHokuc
+	 w6NAwlV948hMg==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 5352749E72;
+	by lkml.kernel.org (Postfix) with ESMTP id 3D7BF49E36;
 	Sat, 14 Nov 2026 19:09:28 +0000 (UTC)
 From: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
-Date: Sat, 14 Nov 2026 14:09:29 -0500
-Subject: [PATCH net v2 2/2] net/smc: do not reuse the DMB of a nocopy
- device
+Date: Sat, 14 Nov 2026 14:09:28 -0500
+Subject: [PATCH net v2 1/2] dibs: loopback: reset the client id when the
+ owner unregisters a DMB
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -84,7 +84,7 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261114-b4-disp-4e6374c2-v2-2-3b7050bddef7@proton.me>
+Message-Id: <20261114-b4-disp-4e6374c2-v2-1-3b7050bddef7@proton.me>
 References: <20261114-b4-disp-4e6374c2-v2-0-3b7050bddef7@proton.me>
 In-Reply-To: <20261114-b4-disp-4e6374c2-v2-0-3b7050bddef7@proton.me>
 To: Dust Li <dust.li@linux.alibaba.com>, 
@@ -100,11 +100,11 @@ Cc: Hidayath Khan <hidayath@linux.ibm.com>, linux-kernel@vger.kernel.org,
  Wen Gu <guwen@linux.alibaba.com>, linux-s390@vger.kernel.org, 
  Wenjia Zhang <wenjia@linux.ibm.com>, Julian Ruess <julianr@linux.ibm.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1794683367; l=2946;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1794683367; l=2169;
  i=hexlabsecurity@proton.me; s=default; h=from:subject:message-id;
- bh=uSm6fhhRSfpsta/rzRA93yjdtBG1K7WKe2FGd/O7Mb0=;
- b=2azoCofFqckc4LR3zOLCrZEl8/IZsQpGG/vIJbCUOKmSdLHCQW6Gdjk61r/P6uOjCDn0SFKVO
- Ncsb1ElCVCsBD2DKCa0Fby6mLrP9k5+iV6LwvxEZbAdKCR2XL42ioJ1
+ bh=KBghDMOoyAS0OHozRJLfnD9xGKdfuhieCEeZH/+0AEo=;
+ b=/9l8QPQYZLAIou3waAEOmy+zpFjlJVw19f5ZDrxH/n1Pdo4KNR8nNujFrK+VzFgABmShbGPew
+ W6a1rVU+4TLC7ExKV491fm+hkAuA4Or/R3n7Sqkr50NmdSy6nTUKyVp
 X-Developer-Key: i=hexlabsecurity@proton.me; a=ed25519;
  pk=xw1AhCtQdvuoQc+bOQIYy9o8G++cp4/VniI2G/tc3G8=
 X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/default with
@@ -115,80 +115,60 @@ Content-Transfer-Encoding: 7bit
 
 From: Bryam Vargas <hexlabsecurity@proton.me>
 
-With DMB nocopy (the dibs loopback device) the peer writes into the RMB
-through its own attachment, and it can attach late. smc_buf_unuse() puts
-the DMB back in the link group's pool with its token still registered
-while the old peer can still write to it: the next connection that takes
-it gets the old peer's CDCs, and a peer that attaches after the other
-end gave up lands in another connection's DMB.
+dibs_lo_unregister_dmb() resets the DMB's dmb_clientid_arr[] entry only
+on the last put. If an attacher still holds the DMB, as when an SMC link
+group is freed while a peer is still attached, the entry stays set after
+the attacher's dibs_lo_detach_dmb() frees the DMB.
+dibs_unregister_client() then warns at rmmod smc and returns -EBUSY,
+which smc_ism_exit() ignores: smc stays in clients[] and dibs->subs[],
+and a later dibs_dev_add() or dibs_dev_del() (rmmod dibs, ISM hotplug)
+calls into the unloaded module.
 
-Unregister a nocopy DMB when the connection ends instead of pooling it,
-including when smc_conn_free() finds the link group off its list and
-skips smc_buf_unuse(). The next connection gets a new DMB and token, a
-peer still attached keeps the old DMB until it detaches, and a later
-attach fails. Clear conn->rmb_desc, which a retried connect() would
-otherwise use after the free. Devices without nocopy keep their pool.
+Reset the entry when the owner unregisters, before its put, as
+ism_unregister_dmb() does. The index stays allocated until the last put,
+and the attacher's writes no longer raise an interrupt for a client that
+gave the DMB up.
 
-Fixes: ae2be35cbed2 ("net/smc: {at|de}tach sndbuf to peer DMB if supported")
+Fixes: cc21191b584c ("dibs: Move data path to dibs layer")
 Cc: stable@vger.kernel.org
 Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
 ---
- net/smc/smc_core.c | 28 ++++++++++++++++++++++++++--
- 1 file changed, 26 insertions(+), 2 deletions(-)
+ drivers/dibs/dibs_loopback.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index a3164201c142..6a673ce74937 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -1243,6 +1243,22 @@ static void smcd_buf_detach(struct smc_connection *conn)
- 	kfree(buf_desc);
+diff --git a/drivers/dibs/dibs_loopback.c b/drivers/dibs/dibs_loopback.c
+index 44a2e74c2efc..566e61a013d0 100644
+--- a/drivers/dibs/dibs_loopback.c
++++ b/drivers/dibs/dibs_loopback.c
+@@ -138,6 +138,13 @@ static int dibs_lo_unregister_dmb(struct dibs_dev *dibs, struct dibs_dmb *dmb)
+ 
+ 	ldev = dibs->drv_priv;
+ 
++	/* Reset before the owner's put: after it, an attacher's detach can
++	 * free the index for a new DMB.
++	 */
++	spin_lock_irqsave(&dibs->lock, flags);
++	dibs->dmb_clientid_arr[dmb->idx] = NO_DIBS_CLIENT;
++	spin_unlock_irqrestore(&dibs->lock, flags);
++
+ 	/* find dmb from hash table */
+ 	write_lock_bh(&ldev->dmb_ht_lock);
+ 	hash_for_each_possible(ldev->dmb_ht, tmp_node, list, dmb->dmb_tok) {
+@@ -155,13 +162,8 @@ static int dibs_lo_unregister_dmb(struct dibs_dev *dibs, struct dibs_dmb *dmb)
+ 		hash_del(&dmb_node->list);
+ 	write_unlock_bh(&ldev->dmb_ht_lock);
+ 
+-	if (last) {
+-		spin_lock_irqsave(&dibs->lock, flags);
+-		dibs->dmb_clientid_arr[dmb_node->sba_idx] = NO_DIBS_CLIENT;
+-		spin_unlock_irqrestore(&dibs->lock, flags);
+-
++	if (last)
+ 		dibs_lo_free_dmb(ldev, dmb_node);
+-	}
+ 	return 0;
  }
  
-+/* With DMB nocopy the peer writes into the RMB through its own
-+ * attachment, which can outlive this connection: unregister the DMB
-+ * instead of pooling it, so the next connection gets a new one.
-+ */
-+static void smcd_rmb_drop(struct smc_connection *conn,
-+			  struct smc_link_group *lgr)
-+{
-+	struct smc_buf_desc *rmb_desc = conn->rmb_desc;
-+
-+	down_write(&lgr->rmbs_lock);
-+	smc_lgr_buf_list_del(lgr, true, rmb_desc);
-+	up_write(&lgr->rmbs_lock);
-+	WRITE_ONCE(conn->rmb_desc, NULL);
-+	smc_buf_free(lgr, true, rmb_desc);
-+}
-+
- static void smc_buf_unuse(struct smc_connection *conn,
- 			  struct smc_link_group *lgr)
- {
-@@ -1266,8 +1282,13 @@ static void smc_buf_unuse(struct smc_connection *conn,
- 			smcr_buf_unuse(conn->rmb_desc, true, lgr);
- 		} else {
- 			bufsize += sizeof(struct smcd_cdc_msg);
--			memzero_explicit(conn->rmb_desc->cpu_addr, bufsize);
--			WRITE_ONCE(conn->rmb_desc->used, 0);
-+			if (smc_ism_support_dmb_nocopy(lgr->smcd)) {
-+				smcd_rmb_drop(conn, lgr);
-+			} else {
-+				memzero_explicit(conn->rmb_desc->cpu_addr,
-+						 bufsize);
-+				WRITE_ONCE(conn->rmb_desc->used, 0);
-+			}
- 		}
- 		SMC_STAT_RMB_SIZE(smc, is_smcd, true, false, bufsize);
- 	}
-@@ -1306,6 +1327,9 @@ void smc_conn_free(struct smc_connection *conn)
- 	 */
- 	if (!list_empty(&lgr->list))
- 		smc_buf_unuse(conn, lgr); /* allow buffer reuse */
-+	else if (lgr->is_smcd && conn->rmb_desc &&
-+		 smc_ism_support_dmb_nocopy(lgr->smcd))
-+		smcd_rmb_drop(conn, lgr);
- 	smc_lgr_unregister_conn(conn);
- 
- 	if (!lgr->conns_num)
 
 -- 
 2.56.0
