@@ -1,76 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=111.22.67.139
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794668750;
-	b=AXGEdQc/TB+/X9qNk9umyizrRzPp1V9s3rZAsf6NykgDn73fneYTZezuQUkvqJoDJT0O
-	 t5tEzFZSt623IwndTWQK5BPkBQkIJMaPgU5UHJQlEc4fbu78QPZhMlRfXPlVqZO6X1Agd
-	 cwhc73ipBestA8GqrALy2BGgiZonLm2m/u/N4NjSSho7RNZRJC/ZxXkJXZKu5hgqgb+PL
-	 Ueh3enjHvh2PPEmuc0TsnVCDVj/zAN3LzvtsIpvFA9Gt8POYNK0Ft6NUa5Dcbo1qbtvU9
-	 PPRHcgzADsQCl1TeKOBN/xPOSKqxHFnGhdFJ9JVBMJ481EZFVQoIaSJFtlEzjfmuiog==
+	t=1794669697;
+	b=Y+n9aDM4ocQ65exMMwzlEu4Eni+dgZVmE5jWxFVDJFbwqUA6WDmpTJMwvCiPJvrbFk3H
+	 cc79yq2315SREZ2Jpuxj+3phYQ0u/JE+BolBJotR1GMsVsGiNbw7QkRs+NsCDdgPQxW9t
+	 X5UMYu7fyhv/dCgY1SuDRmb0VajVO8TTM5+J6ZqsGaevWx3ASc8Bn8J4rP37S2j3U2W+E
+	 PB7mxrR0CwTXE4nomA3lyrE89t97vEy2oWzzS3o9cdz1/N0pERXf4vvezyyosNF6ODjAe
+	 hFQP/I6Jakgy/uq7Rw1iyJABrWXmzfMoxl+qLBcDNvsrpK6XV2FQ4cCxUO3TwzLpLRg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794668750;
-	h=DMARC-Filter:DKIM-Signature:X-RM-TagInfo:X-RM-SPAM-FLAG:Received:
-	 X-RM-TRANSID:X-RM-TagInfo:X-RM-SPAM-FLAG:Received:X-RM-TRANSID:From:
-	 To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=MknYh1wdceisoj5BD7eTiAMi//3cMI6ldwjYjtC94HY=;
-	b=4TD8zLwPZkJwO6ZHbxWFTQIfm8vFbG8Sk2ONVivbzOgc/MkJabqUEgbZOMe8t57BQ07M
-	 1g5RU6sbadwFSW/hbOnOudFu3311fwbtI7bXKBrJfi3Eetw96+hvmDKSpVKmdj56DqwRN
-	 3DRisI0FmwJ/44tK2oq7lYzUOH1HZrVrfD1905Z3lEcs53rbHXnsGRbf7a1iJW3NjGk4g
-	 +AYKrUd7NE8O+28/5xCuZ8u5LjDAanrIwAtZeoqK2W1lbWHedytLhBtZx4EupSA9X+RDc
-	 FDIXyyvSTqcAsSG5QoiToH9rYcVWeP5KpGaH6f4R8O1A3Pxfiq3ACzF+p0sZFQwVvhA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794669697;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=G4DjAwGkLxUQakHv0AbLRFI6cASkGdH5y6xKN2hH/70=;
+	b=h4r65FR/gisJzsra1aDlJvBhh3aCwl83ij2pIOKiYndMPL5STkTshq9qulwEtlwamD8U
+	 21sJxjyuRw72vy0UZ27UVLwajUdsH62FRHAR/tQAYNd6qWU6Su+IWmXvoIWhWMLMCY4Me
+	 NsQbWJtx+wXckGFPET6PKrwcBqOfiM5Sq2+ZYMp/X1SSlPAbVFspooFX5Ng1QBtlCUz3G
+	 6gfAK0XP+agFtxzdwjcsMEjxvXRW1fSL9klxu6uu3QlcgCZmJRFEXGrqzb016HTPHbV0Z
+	 bXMSBVihg9w9J4cxGUlfUPpxoUIxvwpyJgbUKpKquT3JGC1Zq2CDGOSJRDFRLtskuZA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=cmss.chinamobile.com;
-	spf=pass smtp.mailfrom=cmss.chinamobile.com;
-	dkim=pass header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.a=rsa-sha256 header.s=default header.b=ojjO05m+;
-	arc=none smtp.remote-ip=111.22.67.139
-Received: from cmccmta6.chinamobile.com (cmccmta6.chinamobile.com [111.22.67.139])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9D322606A32D;
-	Sat, 14 Nov 2026 15:05:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9D322606A32D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmss.chinamobile.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cmss.chinamobile.com
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BZo8vs3K;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 923B3606A32D
+	for <linux-rdma@vger.kernel.org>; Sat, 14 Nov 2026 15:21:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.a=rsa-sha256 header.s=default header.b=ojjO05m+
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=cmss.chinamobile.com; s=default; l=0;
-	h=from:subject:message-id:to:cc:mime-version;
-	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
-	b=ojjO05m+amjySMBH98i9bWYiy6rc2mTAuL2hLCRak0cXVZ2n4cgEnpzHDQ348gF7rbyK5y2/1Q6sW
-	 weyHEtvG0BtFtS+PYna2Ci2GkK2kEIlgVqIFuN+eZFU3WR8BYi78GRhzhkgMC3megwS6dyU1whm3u3
-	 qyuv8LyhtfTPc85E=
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM-FLAG:00000000
-Received:from spf.mail.chinamobile.com (unknown[10.188.0.87])
-	by rmmx-syy-dmz-app05-12005 (RichMail) with SMTP id 2ee56af878c6dde-ef5bc;
-	Sat, 14 Nov 2026 23:05:45 +0800 (CST)
-X-RM-TRANSID:2ee56af878c6dde-ef5bc
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM-FLAG:00000000
-Received:from FHD-W7400297 (unknown[10.55.1.70])
-	by rmsmtp-syy-appsvr03-12003 (RichMail) with SMTP id 2ee36af878c6a22-46641;
-	Sat, 14 Nov 2026 23:05:45 +0800 (CST)
-X-RM-TRANSID:2ee36af878c6a22-46641
-From: Aibing Chen <chenaibing@cmss.chinamobile.com>
-To: jgg@ziepe.ca,
-	leon@kernel.org,
-	achender@kernel.org
-Cc: davem@davemloft.net,
-	edumazet@kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	horms@kernel.org,
-	linux-rdma@vger.kernel.org,
-	netdev@vger.kernel.org,
-	rds-devel@oss.oracle.com,
-	linux-kernel@vger.kernel.org,
-	hdanton@sina.com,
-	hackerowskiy@gmail.com,
-	syzbot+ccdb5058c3df2d94811c@syzkaller.appspotmail.com,
-	Aibing Chen <chenaibing@cmss.chinamobile.com>
-Subject: [PATCH] RDMA/cma: add rdma_destroy_id_wq() and use it from RDS
-Date: Sat, 14 Nov 2026 23:05:41 +0800
-Message-ID: <20261114150541.1908-1-chenaibing@cmss.chinamobile.com>
-X-Mailer: git-send-email 2.50.1.windows.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BZo8vs3K
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E8C11F000C5;
+	Sat, 14 Nov 2026 15:21:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794669697;
+	bh=G4DjAwGkLxUQakHv0AbLRFI6cASkGdH5y6xKN2hH/70=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=BZo8vs3KQLdETR49iOS31pxZIIah01+whHiY5jE1ytrU8D9M1vRSyB/sqKEXbwPaX
+	 Cdrxd6fwlWVOySpPJ6IDIUNt5SXIbprUJlwi2h0pW/vnsmqz8rNyjkG+Eis5VM/fYL
+	 jpzcCpAS0tyF0zBBs7h4cSOoc758MN+Lmfr7boJrIwrKO8gr3UduU4yMT7nkC8H0hk
+	 tHfWkOgcgFwFm3JOXfmtjqy0FM2TZZXBrw1ScdAQmWEyXfPCf4FPi9WM3WzfnpxxU8
+	 D+ejfmGpLIkLlMaxvZ7VrGspK7npIzOV10xmJGME5IljVUejyJ2/kBCvNTqPHojWf0
+	 fOfDNLxYx4n8w==
+Message-ID: <sashiko-outbox-214696@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net V2] net/mlx5e: rep, Fix races between devcom PAIR
+ event and uplink close
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Tariq Toukan" <tariqt@nvidia.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261112182403.3646298-1-tariqt@nvidia.com>
+References: <20261112182403.3646298-1-tariqt@nvidia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Sat, 14 Nov 2026 15:21:36 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -79,119 +59,109 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-syzbot reported a possible circular locking dependency between
-rds_trans_sem and the RDMA CM handler mutex:
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue to consider:
+- [Medium] net/mlx5e: esw->devcom UAF race with
+  mlx5_esw_offloads_devcom_cleanup()
+--
 
-  CPU0 (bind path)                    CPU1 (CM callback path)
-  ----                                ----
-  down_read(&rds_trans_sem)           mutex_lock(&handler_mutex)
-  rds_ib_laddr_check()                cma_ib_req_handler()
-    rdma_destroy_id()                   rds_ib_cm_handle_connect()
-      mutex_lock(&handler_mutex)          rds_conn_create()
-                                            rds_trans_get_preferred()
-                                              down_read(&rds_trans_sem)
+commit 7323974cbd0d255bb995fa9d0fba3a2187d60aad
+Author: Shay Drory <shayd@nvidia.com>
 
-rds_ib_laddr_check_cm() destroys the CM id from inside
-rds_trans_get_preferred()'s read-side critical section, while CM
-callbacks create RDS connections (taking the same read lock) from
-under handler_mutex.
+net/mlx5e: rep, Fix races between devcom PAIR event and uplink close
 
-Break the cycle by destroying the CM id asynchronously: add
-rdma_destroy_id_wq(), which queues the destruction on cma_wq, and
-switch rds_ib_laddr_check_cm() to it.  The destroy work is embedded
-in struct rdma_id_private, which keeps the id alive until the work
-runs; rds does not touch cm_id after the destroy call.
+This commit adds mlx5_devcom_comp_read_lock() and
+mlx5_devcom_comp_read_unlock() and holds the devcom component read
+semaphore across mlx5e_sqs2vport_start() and mlx5e_sqs2vport_stop() to
+serialize against devcom PAIR and UNPAIR events.
 
-This formalizes the approach proposed and syzbot-tested by Hillf
-Danton; Eduard Zateev additionally verified the fix on a real QEMU
-system (KASAN + lockdep + RDMA_RXE, active and passive RDS
-connections established without any lockdep output).
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/n=
+et/ethernet/mellanox/mlx5/core/en_rep.c
+> index a50a42581528a..962c70b9b5661 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+> @@ -506,10 +506,11 @@ static int mlx5e_sqs2vport_start(struct mlx5_eswitc=
+h *esw,
+>  				 struct mlx5_eswitch_rep *rep,
+>  				 u32 *sqns_array, int sqns_num)
+>  {
+> +	struct mlx5_devcom_comp_dev *devcom =3D esw->devcom;
+>  	struct mlx5_flow_handle *flow_rule;
+>  	struct mlx5e_rep_priv *rpriv;
+>  	struct mlx5e_rep_sq *rep_sq;
+> -	bool devcom_locked =3D false;
+> +	bool peers_ready;
+>  	int err;
+>  	int i;
+> =20
+> @@ -518,9 +519,8 @@ static int mlx5e_sqs2vport_start(struct mlx5_eswitch =
+*esw,
+> =20
+>  	rpriv =3D mlx5e_rep_to_rep_priv(rep);
+> =20
+> -	if (mlx5_devcom_comp_is_ready(esw->devcom) &&
+> -	    mlx5_devcom_for_each_peer_begin(esw->devcom))
+> -		devcom_locked =3D true;
+> +	mlx5_devcom_comp_read_lock(devcom);
+> +	peers_ready =3D mlx5_devcom_comp_is_ready(devcom);
 
-Reported-by: syzbot+ccdb5058c3df2d94811c@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=ccdb5058c3df2d94811c
-Suggested-by: Hillf Danton <hdanton@sina.com>
-Tested-by: syzbot+ccdb5058c3df2d94811c@syzkaller.appspotmail.com
-Tested-by: Eduard Zateev <hackerowskiy@gmail.com>
-Signed-off-by: Aibing Chen <chenaibing@cmss.chinamobile.com>
----
- drivers/infiniband/core/cma.c      | 19 +++++++++++++++++++
- drivers/infiniband/core/cma_priv.h |  1 +
- include/rdma/rdma_cm.h             |  1 +
- net/rds/ib.c                       |  2 +-
- 4 files changed, 22 insertions(+), 1 deletion(-)
+[ ... ]
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 337a49d1a..d10aaf51e 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -2126,6 +2126,25 @@ void rdma_destroy_id(struct rdma_cm_id *id)
- }
- EXPORT_SYMBOL(rdma_destroy_id);
- 
-+static void destroy_id_work(struct work_struct *work)
-+{
-+	struct rdma_id_private *id_priv =
-+		container_of(work, struct rdma_id_private, destroy_work);
-+
-+	mutex_lock(&id_priv->handler_mutex);
-+	destroy_id_handler_unlock(id_priv);
-+}
-+
-+void rdma_destroy_id_wq(struct rdma_cm_id *id)
-+{
-+	struct rdma_id_private *id_priv =
-+		container_of(id, struct rdma_id_private, id);
-+
-+	INIT_WORK(&id_priv->destroy_work, destroy_id_work);
-+	queue_work(cma_wq, &id_priv->destroy_work);
-+}
-+EXPORT_SYMBOL(rdma_destroy_id_wq);
-+
- static int cma_rep_recv(struct rdma_id_private *id_priv)
- {
- 	int ret;
-diff --git a/drivers/infiniband/core/cma_priv.h b/drivers/infiniband/core/cma_priv.h
-index 04332eb82..95ff8bbd4 100644
---- a/drivers/infiniband/core/cma_priv.h
-+++ b/drivers/infiniband/core/cma_priv.h
-@@ -110,6 +110,7 @@ struct rdma_id_private {
- 	 */
- 	struct rdma_restrack_entry     res;
- 	struct rdma_ucm_ece ece;
-+	struct work_struct destroy_work;
- };
- 
- #if IS_ENABLED(CONFIG_INFINIBAND_ADDR_TRANS_CONFIGFS)
-diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
-index d639ff889..ac1c1d917 100644
---- a/include/rdma/rdma_cm.h
-+++ b/include/rdma/rdma_cm.h
-@@ -167,6 +167,7 @@ struct rdma_cm_id *rdma_create_user_id(rdma_cm_event_handler event_handler,
-   * asynchronous operations associated with the id.
-   */
- void rdma_destroy_id(struct rdma_cm_id *id);
-+void rdma_destroy_id_wq(struct rdma_cm_id *id);
- 
- /**
-  * rdma_restrict_node_type - Restrict an RDMA identifier to specific
-diff --git a/net/rds/ib.c b/net/rds/ib.c
-index 4ea9838d0..1290747cd 100644
---- a/net/rds/ib.c
-+++ b/net/rds/ib.c
-@@ -484,7 +484,7 @@ static int rds_ib_laddr_check_cm(struct net *net, const struct in6_addr *addr,
- 		 cm_id->device ? cm_id->device->node_type : -1);
- 
- out:
--	rdma_destroy_id(cm_id);
-+	rdma_destroy_id_wq(cm_id);
- 
- 	return ret;
- }
--- 
-2.50.1.windows.1
+> @@ -630,8 +627,12 @@ mlx5e_remove_sqs_fwd_rules(struct mlx5e_priv *priv)
+>  	struct mlx5_eswitch *esw =3D priv->mdev->priv.eswitch;
+>  	struct mlx5e_rep_priv *rpriv =3D priv->ppriv;
+>  	struct mlx5_eswitch_rep *rep =3D rpriv->rep;
+> +	struct mlx5_devcom_comp_dev *devcom;
+> =20
+> +	devcom =3D esw->devcom;
+> +	mlx5_devcom_comp_read_lock(devcom);
+>  	mlx5e_sqs2vport_stop(esw, rep);
+> +	mlx5_devcom_comp_read_unlock(devcom);
+>  }
 
+[Severity: Medium]
+Can mlx5e_remove_sqs_fwd_rules() and mlx5e_sqs2vport_start() race with
+mlx5_esw_offloads_devcom_cleanup() and dereference a freed esw->devcom?
 
+esw_offloads_disable() tears down esw->devcom while esw->mode is still
+MLX5_ESWITCH_OFFLOADS and before the VF and uplink representor netdevs
+are unloaded:
 
+drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c:esw_offloads_dis=
+able() {
+    ...
+	mlx5_esw_offloads_devcom_cleanup(esw);
+	mlx5_eswitch_disable_pf_vf_vports(esw);
+	mlx5_esw_offloads_rep_unload(esw, MLX5_VPORT_UPLINK);
+    ...
+}
+
+In mlx5_esw_offloads_devcom_cleanup(), mlx5_devcom_unregister_component()
+frees esw->devcom (and devcom->comp when the last peer unregisters)
+before clearing esw->devcom =3D NULL.  esw_offloads_disable() holds
+devl_lock and esw->offloads.reps_lock, while representor netdev callbacks
+(such as mlx5e_close() or mlx5e_open()) hold only rtnl_lock/netdev_lock
+and priv->state_lock:
+
+CPU0                                    CPU1
+esw_offloads_disable()                  mlx5e_close()
+  mlx5_esw_offloads_devcom_cleanup()      ...
+                                          mlx5e_remove_sqs_fwd_rules()
+                                            devcom =3D esw->devcom;
+    mlx5_devcom_unregister_component()
+      devcom_free_comp_dev(devcom)
+        kfree(devcom)
+                                            mlx5_devcom_comp_read_lock(devc=
+om)
+                                              down_read(&devcom->comp->sem)
+                                              <-- use-after-free
+    esw->devcom =3D NULL;
+
+mlx5e_sqs2vport_start() has the same race because it now calls
+mlx5_devcom_comp_read_lock(devcom) unconditionally without checking
+comp->ready first.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261112182403.3646=
+298-1-tariqt@nvidia.com?part=3D1
