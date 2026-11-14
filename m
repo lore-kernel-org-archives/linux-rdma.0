@@ -1,59 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794664655;
-	b=H1oeZbpfV4P7GOrtpuk73yYWm4slIhU18n2w7CRDYbD0V1qLYYTKTpkQr4Suc/tgS8C1
-	 9U8X8RCiy+fEZn6BkiBhPdDpsOPR+5X1/O0LQyPc9y82WPYBukyw9qnewr0LAj59W/51X
-	 MjXoqS0SfNOTBLHDVm/NfnEi6/qMC5GcF+nBWiDyn8QyrUWnvUmN3ykkA1gvsAF+gaNQ/
-	 7Od+ELLAaFPQ/b1UkHMy+sdR1uL7NN8Gma2Mvnp3VXs5amyvlY+aGR6UnUQgHE7UksQQw
-	 CbxZYGsaOQUjAvK0hDOYlFcri6CMVijKpnK3i5m0Lwyp14EHy/bOSSvMwy2HPqRKrLA==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794664655;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=GBG9nadfxLM37oSVYTr8sHdFX+MWrjDr+WcgPcdUHR4=;
-	b=TB93kqL7wdIxhTKRsQi2jueY3rabpE2yobvcG29doM2g/LcvTeW0zRQE21Ya5N/Fo/Av
-	 lD3QSty49UkBEvMJt930bogpZb0XAZ/HB0c7VSKIyf99ukgCZJRWkWVTBR72UGgkZau51
-	 wRSZmjbWkRpf/fvmwu7Lpm8R8zVyeM/HDi9q25/vCoEoPO3Q4yqr+DdnEFBKvvDkbmmoa
-	 dPna+bjJpV+bCNXLzlLhBShq4jPGd+YsvdWoCqFAthd4TM/aLBwkXjLhNAycDsDvP6kfB
-	 9HNf5VL4Y9Cqac8ST7+CUEJz9Mn2KWyIcaOtZcFQSugql0UJGChwVCP9YN88jKBwHIA==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="YHGxtW/h";
-	arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1794665699;
+	b=M7vr4gyPutrTsTlYsceULCQe3Irq/6b4Ogzvuy0qM87Qapt+fUQVD1NHdCTugSyk1WsA
+	 d7gJrxzB8Oi2J5KmijtHMCo/1SEloZhz/z3bJ1DupZHtcKn8Peo1CYecChZGw0LEJLhGj
+	 GE5dvU5PazKACAzetEOMsz/HGMhdctrGPC9Qix1A7/H+cQs6P7/DaAm2mvPntNhy6V+IG
+	 qojtT5VnNzCkdTSqgpodz8uY/gPB1aJijDuivKi+pbkxXVuUzkEQeFD9F2bqaI/dw70aF
+	 4BWOINxACJZ9wr9nE+9NtZIdIyAeqKXZv7+TOTK+cpgDAIFt8pTuE6muAliBWSRI/rQ==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794665699;
+	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
+	 Content-Type:Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=G4u5AhIOFg3Un7/OVQVhcKducbdMvClYNxtPBHy/Mz8=;
+	b=sEuU+jJJn0Oc7TmwbmdQWL1/wFJIwOROre9o/noRGqBjAQ/RWjayleGV7wFAzPbGoQiK
+	 H/1RCrKeCumsW090xPo7Ji7NDy6M5fet15Qqqnt95l8loYH0CR4eLFPHyDg/ieRZmiXcS
+	 bOyU0wP7dkFAJtT0TmX0pmdkY8rCoRwRw9auQMwrYbCeoDQtvDEbkD5nxJ9c4HEJsITr6
+	 fVPOnm5OJgxPOdfJ9SZYI5ppEwf+KBEvIq3ObDpqDboLXPyH5Qn9u+v0e3HeZ3KZmODNq
+	 x58t2/l2xUBUHXo6+SRQ+1Zc8LHIWyoeljZdXDKJ1C3rM/XmCaLnlF2y6smG8giz5og==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="hVrZ/rGO";
+	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FC72606A334;
-	Sat, 14 Nov 2026 13:57:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F85E606A327;
+	Sat, 14 Nov 2026 14:14:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YHGxtW/h
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AB991F000C4;
-	Sat, 14 Nov 2026 13:57:34 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hVrZ/rGO
+Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
+ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
+	t=1794665699;
+	b=RvjmogUU3g74TpbeFcqom0zbCVG3TzvQ9Iw2LdjpiS1XOLDYqrvrwCx7tYxI2ZesHdL4
+	 WVwKA7MU1iUq7IuFqk3EvIuOOHmhGeiEfLxLYw6fa/palMSFFv3eM8qu81H2JNUH8ZXuz
+	 lKMGiAFBIhPInKv9mJlUjMz+0boxtybX/LfcgLGlVgs3/hLtStg4IBNHm1gOm8NMQ4gk1
+	 t5lO756i75ViDcind1tXnmVgrUVs5TikMSiThLXqgkFR0jrwSeCV7pCXicE0C+2zyro2q
+	 9UO7YFHHzcIuD1zQnQvCe7DYc2Ch4GdEJs/pJGOegS+i1gMdHREpa3PXHbfZyCSGZqg==
+ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
+	c=relaxed/relaxed; t=1794665699;
+	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
+	 Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=G4u5AhIOFg3Un7/OVQVhcKducbdMvClYNxtPBHy/Mz8=;
+	b=iz/ge9ybdGVyeJt70tfC4QYFyn9WqD9vIwIsKgIBquHrhd6uKCscsldbmIx9tOhNSeus
+	 uo25VkuyITZVfvzQMHSqPtVXWbJt8/MH7VN0Uv+gOUenYX/iYYZs1XgZuy0ajsUSHUSUO
+	 R3X4HZoSwF0m9aOWdHxBOpWHHbX1DDsk2OninsBIwvLdGvs0J0j1n2nsantP3Il57HKHu
+	 rlSbTkW8+mHXCzAIviAsbtXj7Eb1amOpdvEpuZCC3XTxMkHH6QYQTsE9a0ycvgS6uUDYG
+	 TF53FzUgWt3exG88UDNnDuA/xx2XZp/wVe+RB+ogt0xB29S17eSVQGmA1tF+M7QBDrg==
+ARC-Authentication-Results: i=1; smtp.kernel.org; 
+	arc=none smtp.remote-ip=100.80.115.77
+Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.kernel.org (Postfix) with ESMTPS id 5B0DB1F000C4;
+	Sat, 14 Nov 2026 14:14:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794664654;
-	bh=GBG9nadfxLM37oSVYTr8sHdFX+MWrjDr+WcgPcdUHR4=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=YHGxtW/hLtBwV4nSAK7WIvP6n1I3uzth9VyWfN9qwwQ1irdX+FNKqL4O1T5gVUod+
-	 FeJgnwWhto/ClaFsllKj7WcgRylQWiov6kosyUrh+xa23vANMzNmTHzYkwz8x1Xokl
-	 ZBtVe+7E+zloXOKKhQ7aycpqSq81SJHoOGBW3uwWzJH40wBvk3n5xCyF4gv2M9UeVn
-	 AqQacVnwKfS8ITPzpYtp9pR/l9Lgei7uIp1zuJfvf4MjXLY9Lk5yXOQRrokF8okw6O
-	 rEAJ/c2PWhSjwV0jzjhjcJ+4yNxUQjD4554hyBhxzFpmW+64vMEZ7QZny8vKKArJxj
-	 ZyEdDZ3x35Img==
-Message-ID: <sashiko-outbox-214598@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net 2/2] net/smc: do not reuse the DMB of a nocopy
- device
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Bryam Vargas" <hexlabsecurity@proton.me>
-Cc: linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, "Heiko Carstens" <hca@linux.ibm.com>, "Vasily
- Gorbik" <gor@linux.ibm.com>, "Alexander Gordeev" <agordeev@linux.ibm.com>, "Christian
- Borntraeger" <borntraeger@linux.ibm.com>
-In-Reply-To: <20261113-b4-disp-19244662-v1-2-39b256b70ca7@proton.me>
-References: <20261113-b4-disp-19244662-v1-0-39b256b70ca7@proton.me>
- <20261113-b4-disp-19244662-v1-2-39b256b70ca7@proton.me>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Sat, 14 Nov 2026 13:57:33 +0000
+	s=k20260515; t=1794665698;
+	bh=G4u5AhIOFg3Un7/OVQVhcKducbdMvClYNxtPBHy/Mz8=;
+	h=From:Date:Subject:To:Cc:Reply-To;
+	b=hVrZ/rGO3odB2su7yszr8y9pYB3O5fkkH6BnS1a8frqlgG1e6wpck42mn/s7IFZnM
+	 WlwVnCJVjRVLrN0fkai0ez2ltB16WTXLJg5vxTMfBNoaZcOnQ/NVVJKEB7mXq3Lm4x
+	 M+akdMp+bkgOHLSNAM2avjj134+t930xXgIYcPrMVsVVdm2l6zejyT00d1seEYdmNW
+	 pg9WLRd46Zf4QI4j759AcmsWTV2WhTnPK0Iqylp7rxhjmvvRJtlhIy1uQ7qXgiT8WG
+	 FBhyBLR5kUwJUqHUAiFaZKtfP4pEs7IJCRprXj7ASv8RyVYoZZEZHEIyQgt2SqwVoy
+	 TPP7CukSQJCUA==
+Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
+	by lkml.kernel.org (Postfix) with ESMTP id CA43649DC2;
+	Sat, 14 Nov 2026 14:14:57 +0000 (UTC)
+From: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
+Date: Sat, 14 Nov 2026 09:14:58 -0500
+Subject: [PATCH net] net/smc: set the lkey of every SGE in
+ smcr_tx_rdma_writes()
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -62,98 +82,104 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <20261114-b4-disp-dd99cd41-v1-1-009e1c022346@proton.me>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yWMQQqDMBAAvyJ77oIbEyH9SumhZte6PaSStaUg/
+ t1ojzMws4JJUTG4NisU+arpO1egSwNpeuSnoHJlcK3ricjj4JHVZmSOMbEndL4fKcRAoWOo2Vx
+ k1N+5vEGWBe5/aZ/hJWk5ZrBtO8eVIEx5AAAA
+X-Change-ID: 20261114-b4-disp-dd99cd41-246f1595153d
+To: Eric Dumazet <edumazet@kernel.org>, 
+ Mahanta Jambigi <mjambigi@linux.ibm.com>, Paolo Abeni <pabeni@redhat.com>, 
+ Jakub Kicinski <kuba@kernel.org>, "D. Wythe" <alibuda@linux.alibaba.com>, 
+ Sidraya Jayagond <sidraya@linux.ibm.com>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Dust Li <dust.li@linux.alibaba.com>
+Cc: Simon Horman <horms@kernel.org>, Tony Lu <tonylu@linux.alibaba.com>, 
+ linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, 
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ Wen Gu <guwen@linux.alibaba.com>
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1794665697; l=3051;
+ i=hexlabsecurity@proton.me; s=default; h=from:subject:message-id;
+ bh=dkZIYkWO+afWCtaRXB6rlTNCb1w2kuhU8KVl6AzBpmo=;
+ b=Fm8nUYS5YgF6A3OcDnR5fkM8Orc+GUr95QOvYntRgXnITsnFV4EDHR4MiR8VzCWTYThWu/cjf
+ Zs0fz8/hNPpB+OWQnISb0UUVBidefyMvTCFi4cHl1aZbeW+xNJm+A35
+X-Developer-Key: i=hexlabsecurity@proton.me; a=ed25519;
+ pk=xw1AhCtQdvuoQc+bOQIYy9o8G++cp4/VniI2G/tc3G8=
+X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/default with
+ auth_id=893
+X-Original-From: Bryam Vargas <hexlabsecurity@proton.me>
+Reply-To: hexlabsecurity@proton.me
+Content-Transfer-Encoding: 7bit
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue to consider:
-- [High] net/smc: UAF of conn->rmb_desc when lgr is terminating in
-  smc_conn_free()
---
+From: Bryam Vargas <hexlabsecurity@proton.me>
 
-commit 1d775feb06a42c02b472b41cc9bc4f7bca488d91
-Author: Bryam Vargas <hexlabsecurity@proton.me>
+smcr_tx_rdma_writes() sets the lkey of an SGE only for a virtually
+contiguous send buffer; for a physically contiguous one it leaves the
+lkey the work request slot already holds. With net.smc.smcr_buf_type=2
+a send buffer falls back to vzalloc() when alloc_pages() fails, so one
+link carries both kinds, and a slot last used by a virtually contiguous
+buffer posts the DMA address of a physically contiguous one under the
+earlier buffer's MR lkey. That write fails, the link goes down and,
+with no link to switch to, the link group is terminated with all of
+its connections.
 
-net/smc: do not reuse the DMB of a nocopy device
+Set the lkey on both branches: the MR's for a virtually contiguous
+buffer, local_dma_lkey otherwise.
 
-This commit adds smcd_rmb_drop() and calls it from smc_buf_unuse() to
-unregister and free the RMB DMB of a nocopy SMC-D device and clear
-conn->rmb_desc instead of returning the buffer to the link group pool.
+Fixes: b8d199451c99 ("net/smc: Allow virtually contiguous sndbufs or RMBs for SMC-R")
+Cc: stable@vger.kernel.org
+Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
+---
+Repro on SMC-Rv2 with soft-RoCE (rxe) over a veth pair between two
+namespaces, one link, 64 KiB send buffers; smc.ko built from the
+base-commit below, with and without the patch, on a v7.4-rc2 KASAN
+kernel. smcr_buf_type=2 is set in init_net, where the rxe devices are.
+A test-only knob in smc.ko fails alloc_pages() for the server's first
+send buffer, so connection A gets a virtually contiguous send buffer
+and connection B a physically contiguous one. The server sends 1 MiB on
+A, then 1 MiB on B, in 16 KiB writes.
 
-> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-> index a3164201c1420..88855d9f66173 100644
-> --- a/net/smc/smc_core.c
-> +++ b/net/smc/smc_core.c
-> @@ -1243,6 +1243,22 @@ static void smcd_buf_detach(struct smc_connection =
-*conn)
->  	kfree(buf_desc);
->  }
-> =20
-> +/* With DMB nocopy the peer writes into the RMB through its own
-> + * attachment, which can outlive this connection: unregister the DMB
-> + * instead of pooling it, so the next connection gets a new one.
-> + */
-> +static void smcd_rmb_drop(struct smc_connection *conn,
-> +			  struct smc_link_group *lgr)
-> +{
-> +	struct smc_buf_desc *rmb_desc =3D conn->rmb_desc;
-> +
-> +	down_write(&lgr->rmbs_lock);
-> +	smc_lgr_buf_list_del(lgr, true, rmb_desc);
-> +	up_write(&lgr->rmbs_lock);
-> +	WRITE_ONCE(conn->rmb_desc, NULL);
-> +	smc_buf_free(lgr, true, rmb_desc);
-> +}
-> +
->  static void smc_buf_unuse(struct smc_connection *conn,
->  			  struct smc_link_group *lgr)
->  {
-> @@ -1266,8 +1282,13 @@ static void smc_buf_unuse(struct smc_connection *c=
-onn,
->  			smcr_buf_unuse(conn->rmb_desc, true, lgr);
->  		} else {
->  			bufsize +=3D sizeof(struct smcd_cdc_msg);
-> -			memzero_explicit(conn->rmb_desc->cpu_addr, bufsize);
-> -			WRITE_ONCE(conn->rmb_desc->used, 0);
-> +			if (smc_ism_support_dmb_nocopy(lgr->smcd)) {
-> +				smcd_rmb_drop(conn, lgr);
-> +			} else {
-> +				memzero_explicit(conn->rmb_desc->cpu_addr,
-> +						 bufsize);
-> +				WRITE_ONCE(conn->rmb_desc->used, 0);
-> +			}
->  		}
->  		SMC_STAT_RMB_SIZE(smc, is_smcd, true, false, bufsize);
->  	}
+Unpatched, B's first RDMA write is posted with the lkey of A's MR
+(recorded by test code added to smc.ko). None of its 16384 bytes reach
+the peer, though send() returned 16384. The write and the CDC message
+behind it both complete with IB_WC_WR_FLUSH_ERR. By reading rxe (not
+measured), the requester rejects the write, puts the QP in the error
+state and flushes the send queue. The link goes down and the link group
+is terminated, so A is aborted too: its next send() fails with EPIPE.
+Patched, both streams arrive intact and the link stays up. Both builds
+also deliver both streams intact with smcr_buf_type=0, with
+smcr_buf_type=1, and with smcr_buf_type=2 without the knob. No KASAN
+splat in any run.
+---
+ net/smc/smc_tx.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-[Severity: High]
-Can conn->rmb_desc still be used after free if lgr is already terminating
-when smc_conn_free() runs?
+diff --git a/net/smc/smc_tx.c b/net/smc/smc_tx.c
+index 0f0c6df3bf2c..2c8bcaccad83 100644
+--- a/net/smc/smc_tx.c
++++ b/net/smc/smc_tx.c
+@@ -393,9 +393,9 @@ static int smcr_tx_rdma_writes(struct smc_connection *conn, size_t len,
+ 			sge[srcchunk].addr = conn->sndbuf_desc->is_vm ?
+ 				(virt_addr + src_off) : (base_addr + src_off);
+ 			sge[srcchunk].length = src_len;
+-			if (conn->sndbuf_desc->is_vm)
+-				sge[srcchunk].lkey =
+-					conn->sndbuf_desc->mr[link->link_idx]->lkey;
++			sge[srcchunk].lkey = conn->sndbuf_desc->is_vm ?
++				conn->sndbuf_desc->mr[link->link_idx]->lkey :
++				link->roce_pd->local_dma_lkey;
+ 			num_sges++;
+ 
+ 			src_off += src_len;
 
-smcd_rmb_drop() is only called from smc_buf_unuse(), which smc_conn_free()
-skips when lgr->list is empty or the connection was already unregistered:
+---
+base-commit: ead6fa9a0ab194f02a2f36d634b193e9c5f9a1c6
+change-id: 20261114-b4-disp-dd99cd41-246f1595153d
 
-net/smc/smc_core.c:smc_conn_free() {
-	...
-	if (!smc_conn_lgr_valid(conn))
-		goto lgr_put;
-	...
-	if (!list_empty(&lgr->list))
-		smc_buf_unuse(conn, lgr); /* allow buffer reuse */
-	smc_lgr_unregister_conn(conn);
-	...
-}
+Best regards,
+--  
+Bryam Vargas <hexlabsecurity@proton.me>
 
-If a handshake fails after smc_clc_wait_msg() calls
-smc_lgr_terminate_sched() (which unlinks lgr->list), smc_conn_abort() ->
-smc_conn_free() skips smc_buf_unuse(), so conn->rmb_desc is not cleared to
-NULL before __smc_lgr_free() frees the buffer.  If connect() is then
-retried on the same socket and fails in smc_buf_create() after
-smc_conn_create() attaches to a new link group, smc_conn_free()
-dereferences and double-frees the dangling conn->rmb_desc.
 
-Skipping smcd_rmb_drop() on those paths also leaves the ended connection's
-nocopy DMB registered in lgr->rmbs until every remaining socket in the
-terminating link group is closed.
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261113-b4-disp-19=
-244662-v1-0-39b256b70ca7@proton.me?part=3D2
