@@ -1,13 +1,13 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.46.29
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.53.1
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794650065;
-	b=eo0kuxiALY3tDY6pKzPzo2uA9KozDIMnDezPVnw9fIf45NAhaGn5uc/yATCPYBEZBInf
-	 7tEHvogVTzP3GclVv0bNYGJ106yvyJ2RkZUkw+zWv1iwVjsiSt/5mztra0685lRjOe3rj
-	 w+nI0JFL8k7ItZ4kieT0NvKK9f0n1reB6jxcmwuzq/JzdTo0oTiSb716DUDRYRSp3wDNX
-	 ed6WpLnrXAC4lXEo/krDjZ12Np9xfBSgNdGjHiaQ6phaTADuw+Ewz4A8/vKh1ALNBfCme
-	 5a78gT9Emfe9p825p0AiZhqKossve8ey43TthzZOSTDxlbLqIhuCnWl6nBsxh9xpfjA==
+	t=1794650073;
+	b=b4WGh3/N0zxv433f0jo45yrh3Otb9KTAcfJmp7/H8XXAXeDJmjhMUqMcLve7TCFHNikX
+	 3LNH7u+792i4SZpR9qdquj/HTRp8HAYZMNgmE9nkgKTWRMVJ4UKBlajCvSswhTzNUBTy8
+	 1KDATWD1DJ3ORLLi7nN3Zcfqhdf83pDVtg4EdueDcGr08THF3k0NcrERJV1iMK9Nrqkql
+	 twtnWznEgSMuoDkAfL7mSStTcvtQY+wE1hDLkfjTS/vqyXD0MmDKr9WwgnehXPpQyMD9A
+	 oAiMch3CZVbHv8X9sBlNE1nQSaPf9FFHOed0U1dehyab9vtL5W+vvRco3Wagv+FHO/A==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794650065;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794650073;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
 	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
 	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
@@ -24,59 +24,58 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
 	 X-MS-Exchange-CrossTenant-UserPrincipalName:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=38ZQTxfKQ5kRv0ZrqbPEVD7lZCKftZ471Tj80sbWrXk=;
-	b=d35zdet6//emJqsOevl1f307hWDCJu9n3ieblj2cZVBGXT47S8FQpmLvym1cgono1jhc
-	 D3cX6cdZyc7Lcsp0zmwIXLUiy7/DJXoupy3S/y8y2kItnfwECq0qUMHmJKTgCyKpcFI+2
-	 m1CfAcIH0s8awqUWDpRtH/6p3LCVh2/rfgtWm/j9QL98rGsGXllJa6LLj6iCllXtkiN34
-	 9stYkxr+nMEDLwGVmV1E7vkjTPat8OyDM+0BVc8nmQxQu2t1u6f1YNN4bCI5/RRG+CIbX
-	 jImawysPa/fT0kp+n8ySX4XPopqnTs9W1l5kcUfjRjIY4U3hBfylGS5v6rqD3VXNqLA==
+	bh=2uXQVVKdQfs1IL3b6TVhdN1rIhYZNujEZe1A/xOoZiU=;
+	b=wzfMcEyz7diyuZHwGUwm78qa7JWF//NSTgm9m763ilUIlD2q0AFOWc9ddN1idb4KCUlI
+	 RLEs+auh83DNZ9BmVCpLoxIq6T/qPqLpHjtpr5q/uzSqd1lj+uVwewP4//irOhXD4FTZI
+	 mEujzp+xiDmzIPHqTrzQ5J50MEkaNMXiOueHIDDN3Zwft58FyJIEhMUp4WCgNnB4lZ2fX
+	 ES1xHA7RVP7QfrmCichrjXtc3M9G7C2e4JlGT9LOZ5/m3YDFrHwNF2Db8CppelCDfFrXV
+	 3witXHvltnBgIptO0GN+7+QBqlpoynXTmx6MQ9ibrQNoq42NQFkcUC//0MKq0LeRWfQ==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=CvifQxZP;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.46.29
-Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010029.outbound.protection.outlook.com [52.101.46.29])
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=kMlFfs0K;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.53.1
+Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012001.outbound.protection.outlook.com [52.101.53.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71526606A32D;
-	Sat, 14 Nov 2026 09:54:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 71526606A32D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F41BC606A336;
+	Sat, 14 Nov 2026 09:54:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F41BC606A336
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=CvifQxZP
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=kMlFfs0K
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=JkNwc81PQIvMAeypLB1fKiLBQb6p7LYPon8T3dpLP97VEvBA0S5Y/S/NoYFyFczi6lAFeDEoW+ahbM8WK8rzamO5PspjEKRBclzoMCjRwheH7WHXxqMd26WG4mTAgB8v1e4SAJRRVnX3iRDJ2T3OSlVtrVBRqfuJdWOK+awVV8fBRFxVjfsugMSi4hjavjC1nPDlckgHlLR8L8OwBULwlK21gRUohrS+r1zNvbuBvrZ7toE/EhaX6IuAUkbKfJzNiOwaeKn4KXS/n5s8jl85euMlbWRaPxe6XjtE3SXzxhi7ncOMBK1X6UV5kx/obRP5diqV1IauXqVlGqVAQk+rgA==
+ b=UWNynKa228cRpQibsqv4UKEZb2H8a30+c+bRZ0XBXnpXY/kCuM5p8aVUQ0fMexr5WY7Z5sH40uKY1eXi3Tkn0u4sadpbs2MlHb0CQwrW8mraB3brmahqCpVyPzBts31L9ce3JfRrmMJxh5pkAEugSE9IcLSfZloypnFeqJAlvtDt84Z8yw38oseS0PHdc65EjLItbPPj4X7ScnkZ9hUeuGzaVSB+Jd2mIYcrZvP3w+9afC+7e6jgxCo2BVvWvUpl7ZadTwnwIabct54u95st1zsuYHsbs6ixL0MxhLW6quKtE5gpdJYceVS3lNzl70wJy6knboxCfB+8l5u7+w/lJA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=38ZQTxfKQ5kRv0ZrqbPEVD7lZCKftZ471Tj80sbWrXk=;
- b=vexxbO/uU2A+AMsOdMNV7gTPKiYiWzof5I3DGPI9LTDKM7cvjU0AAy7NcNoQ3O9iTni5JLd4N0MeHiazduWOByktOqw7ypJ3PpW8bDcR7w6jiIHbAHJyWBAJb02tiaNQdhc6MhELCqjUmUzMCKrM9gUbec6W3bkeXjLBXS3f1cF1l42OaX0nckpg8t70n9sl468ci89N3CRF0O2h1lXGL+1tXL9uhlTwizgi3A3UeV4TV8zHT/L1UscFTDc7NfZoJP1kvlKKCKDxZdgXhfAz/c35JkvTAPFVSiWAFhBTQ3Hea40xXsJb9gL6tUFtF0avxETRiDwq71yq5grxYxCxqg==
+ bh=2uXQVVKdQfs1IL3b6TVhdN1rIhYZNujEZe1A/xOoZiU=;
+ b=UQAGgo3CQC35UXZO9rQLZiDt2f0Y4nji8GTuej8PaVDVmGVoQ0DEgjUN9QsLwzIlGheP7Vojqy22gt3oFkHMnIf8YT4KI1J0peIGH2hW+GRQ36wSPe9LpwXhFiSYYO0hfLAyzjCfLOZlX7a1Wjq2EpWf4MGNnYvmjO9wMhYCAiapWDv21rtXLZa9xS22YlxF4UarBRbOx9ydO3xjW1ss0544ji3vSB5y3D3bsInBUZEWd9/jPAMLPQ4ShZDwLgKNTrbDHy6tlzZK3BSrrkWwITpUYsvZjZUnwZgoTDK/e0wgDV0T6n8mwqdk+/qvCpu23GJd3EGrnR75i0Sg7xGm9Q==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=38ZQTxfKQ5kRv0ZrqbPEVD7lZCKftZ471Tj80sbWrXk=;
- b=CvifQxZPpZCj7saJZA+XQEENuPOG5kWRiYka+UF9dYsgeAfRXWPEB1F6WparvybVj5zVAeyIPWUhZxcrgxOFkdHd9pHceyfCpwc+iqBQX/makfzQ1ukInlRd40bKaFcRaa88s8OKmHma8TLonW6x+DN5tozK0X8+c4wMxa42sX87EiyqWK6q+uWyTR+kC4WVks5xW4FTa12FHEwxFHGKFOTk2xr0fnY+WIAbfWuHKUnBEKDXrl8ZWRPhDawijviTmDLuIoEH8wBnX0rMD6DK8J2Iv+i9AEDO9enPxVqnlMXEpFZfgBkD45lGZHcxFBngMvrRzPa/IDRmR/mYeXEpBA==
+ bh=2uXQVVKdQfs1IL3b6TVhdN1rIhYZNujEZe1A/xOoZiU=;
+ b=kMlFfs0KeHd2b44qUCBvOtlz5JUPgylWYqWvsXVc/io2H57HOP/mbadZbogEE9BsAeMTeIaaHlbBZd3APXMcReIsWCNnLfLz0RnqdpevARJ/oIRxQaIDjNFYlmvSJgyTXJ7uFdQ19fk015c9Z1tckV6J3Ap4TUo5SYE5ATnLmMpBc4bXxyS0PRTNdP4nGyTNvp4tgzywTVmRznit7MtQlgBVVw+wbIYfpTKUA/OdvQoETjbTmhN6q22mYWS1efjvHuCrF3y1HOXEN+3XzaMuZIRl0ApvI8s9S46IiVYGwmrmMRgd2tB3L8Mj84ReqzBdrXLSdHriTqhbYTEQSHH2cg==
 Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from CHAPR12MB999248.namprd12.prod.outlook.com
  (2603:10b6:610:2ff::22) by CYYPR12MB8730.namprd12.prod.outlook.com
  (2603:10b6:930:c1::15) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.10; Sat, 14 Nov
- 2026 09:54:22 +0000
+ 2026 09:54:29 +0000
 Received: from CHAPR12MB999248.namprd12.prod.outlook.com
  ([fe80::4972:8062:d74e:b205]) by CHAPR12MB999248.namprd12.prod.outlook.com
  ([fe80::4972:8062:d74e:b205%6]) with mapi id 15.21.0615.009; Sat, 14 Nov 2026
- 09:54:22 +0000
-Message-ID: <318f00d0-e635-4be9-b40a-aa84ae713085@nvidia.com>
-Date: Sat, 14 Nov 2026 11:54:12 +0200
+ 09:54:29 +0000
+Message-ID: <7b464808-2c49-4b30-83d5-5997bd22aa4f@nvidia.com>
+Date: Sat, 14 Nov 2026 11:54:23 +0200
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next V2 12/13] net/mlx5e: Disable data direct on data
- direct device unbind
+Subject: Re: [PATCH net-next V2 11/13] net: add netdev_unbind_dma_dev() helper
 To: netdev-bot+sashiko@kernel.org, tariqt@nvidia.com
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
  kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
@@ -87,11 +86,11 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
  mfleming@cloudflare.com, almasrymina@google.com, razor@blackwall.org,
  saeedm@nvidia.com, horms@kernel.org, sdf@fomichev.me, sdf.kernel@gmail.com,
  witu@nvidia.com
-References: <20261110183826.2927274-13-tariqt@nvidia.com>
- <179447641740.2199510.285792504757822678@kernel.org>
+References: <20261110183826.2927274-12-tariqt@nvidia.com>
+ <179447641496.2199510.9115038837644205059@kernel.org>
 Content-Language: en-US
 From: Dragos Tatulea <dtatulea@nvidia.com>
-In-Reply-To: <179447641740.2199510.285792504757822678@kernel.org>
+In-Reply-To: <179447641496.2199510.9115038837644205059@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-ClientProxiedBy: MM0P280CA0074.SWEP280.PROD.OUTLOOK.COM
@@ -108,73 +107,73 @@ Precedence: list
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: CHAPR12MB999248:EE_|CYYPR12MB8730:EE_
-X-MS-Office365-Filtering-Correlation-Id: 2b1e3486-eb8f-4b6a-0e42-08df4235420b
+X-MS-Office365-Filtering-Correlation-Id: ec33a1c5-338b-4fed-35b4-08df4235464d
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|366016|23010399003|7416014|18002099003|22082099003|10067099003|4143699003|261026140227099003|261021135927099003|261102123227099003|261009223027099003|261026121527099003|5023799004|11063799006|261021121427099003|261022105027099003|261028144727099003|56012099006;
+	BCL:0;ARA:13230040|1800799024|376014|366016|23010399003|7416014|6133799003|18002099003|22082099003|10067099003|261022075727099003|4143699003|261026140227099003|261021135927099003|261102123227099003|261009223027099003|261026121527099003|5023799004|11063799006|261021121427099003|261022105027099003|261028144727099003|56012099006|261102130727099003;
 X-Microsoft-Antispam-Message-Info:
-	HM+J8bGK09MCahAjH7309EljzVaH9qA+1rLhORch7zWefpEO9O05oLWPzNkAVwtD9463DUKTWCrPhSSlOMheDDUf+OPxOxOSw0gWWToOaAHSR258tR1elcKBvPmn6NFmraza1Sim2TsAI4HGNbb/F/MN/Vz0MRlKZtn5Mkm0TzaXC1y1X3eVB7MV4Z3zVeF54v/dSLvCw+3+wtsFnuTyk+9qI6rhfE0UFKpvbzx6BTXFHyXa6P8ZnWLqbgxbNTw5TOH39ViK5VsJlzVjIyuoa6zq401xYwVcEy5bAb3vOcK1zbzXKlG8qT5tw2dtoEfgoxFyxnJA6Hy9OivaEc4fxj8dRdo+kgGJtIr0sPsOAHaIT9usjHcZgwDOrQbNsChg31hYyP+0mv55oPaRreluslLkNYU/KSfkmRYWhtfch7LA/12auzrc6n+oXXhg1bhlvvtfTZwYQGhHpTjh5Yc5g6czeK0sHbZdSrcrXKXkaw/e1eJrcCewVzYQRBM6j28R/OG8NWM6R5Bn3xLRSyqdFfMaPOPptIb0FZi5brcRs3YWBwEBms+8Nc93JfgyyCPE13BRaWhl2t1BvaHxOVAK9E4QyDo9NDpSo2n+T2Zg4lvVR5rCwlsXUCvjwF3tbIfq1C8l1HodeUhCnDLxYToScsxUcMP4qMrxWZzdHrkwrrw=
+	nlC0BEFppcJ4qZjSLbCvqNg1wv+q2Rel7JBtHYHZHv9cYB6oUexd1l56FSwSu3Mc9lRsWwd/MXEnaLSjlzBSj9yBLdQZRV2GLpMB5PLlyu2UgYzLHDHJHkhfcQIDCpW/bEaTY941Q31tOpZjYXJ4c3A0KDiP0y5L5z3FjVsGdIZi8j+7ucU6rKgirovaHAatdo1sTJgNE4Howsjl851TjWKQbjMLy6lNS6f0iNsdvoMM16tnYvIUHrUyScsrmyFcv8ailGfCJayA7yLuA71f146kfPihHPO0K8Qa20KE4f7/jv3pUc08z38/1LUkMFdY3UX0WMdVFxJwVDdCERrwgMzfzyZdKKNGNRpj4H0NkopzXACzGtw2h43a8eWnokewTMivaLo4k9NCXZ74mwdkhNJmex9V+IsEXBgC4GbpExdoyOrYAmL8xsbmBGuw/9/VJpGgc/SYDVJLVnXn2HEsaitAupbEHCi/1Y9ZpOhHmirz2q4a69C/zYPxHKFk8s9ZWmI74jR6NUXfuQCRjjh3mf8UiS6aW0An+2XZKXUpx7g/uv89BJqjg77Va+CdSiJu/mXvxZcPMhdlMt4kqvu/rIZVRInt1m/w23B4vLpz81+uoWB4NxSaK4pyezza4KnfI7CnBYbBzBIICoO4vmFJRUwv0jcHexVQOc7wJHPfYz0=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CHAPR12MB999248.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(366016)(23010399003)(7416014)(18002099003)(22082099003)(10067099003)(4143699003)(261026140227099003)(261021135927099003)(261102123227099003)(261009223027099003)(261026121527099003)(5023799004)(11063799006)(261021121427099003)(261022105027099003)(261028144727099003)(56012099006);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CHAPR12MB999248.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(366016)(23010399003)(7416014)(6133799003)(18002099003)(22082099003)(10067099003)(261022075727099003)(4143699003)(261026140227099003)(261021135927099003)(261102123227099003)(261009223027099003)(261026121527099003)(5023799004)(11063799006)(261021121427099003)(261022105027099003)(261028144727099003)(56012099006)(261102130727099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?Wk5kblRmdEo5NzNLVklTTWxYMHBkYjV1SFFKb1Bvcm5nRXVFdnlEbDdsaVdh?=
- =?utf-8?B?VTJpVm5pWVk1Y3BvdkI3VjllcGpsaDkvRFF3aC83S29hRjAyeUJwVDRJNWhy?=
- =?utf-8?B?U25pSG1WcXB4WWQ0WGFEdTNSbEt1RTk0TWxKUlJxVWZNYXFSczRQK0Jxd3Zv?=
- =?utf-8?B?SUkwT2F4ME9Qd1h3Mm4wcWNZbk5yQ1BUU0NrZmlYWFdwcUZQL3FtbVlXY1c5?=
- =?utf-8?B?QThFRkJDMHpVUnlZMEZFL1lVQWdtRUx1dVpqaElLRVpqc2x4eGQ3V0VtbC9V?=
- =?utf-8?B?dld0eDBiK0pOTVRXd2NXV3dvNnhqOFFoeGQvcVd5S3UvbzdqVkEwZDVjVUtq?=
- =?utf-8?B?Zm43dDlZUFZkRjJBZ1NKV3pjZlk3MGlpZDBsdjJCbnFMTFpQMVJNVmErODRa?=
- =?utf-8?B?U2FBZCtQSGlmL2ttTEN1czNGenhQUWVSK2ZuYk9GWmJHYlFrbGE2VVR4WjVm?=
- =?utf-8?B?blA0TmtBcmgwWC8rYTEwOHh1eWMyOXlpTkt4cFRnWU9ydGYvMVkrRzFqUW9C?=
- =?utf-8?B?UTBnaGprWHRzVnhzU3djYUtqeVU1bnFEeDAxU2xsNEUxTlRuWksrUGltbi9O?=
- =?utf-8?B?cFpmeFlzZDk2eVQrWUxVOUVTRmMvUVdOK2lTTi9qT0xnV2tHTU5INURDb2J4?=
- =?utf-8?B?YmRGQzdZZE84RTJwTFF2U0hjZktiMnc5dUtYMEFiMEFnWVUzMXVJcGpIdjAz?=
- =?utf-8?B?REVkSU9JNDRoVk5mQzNzNEhnTGlPcGZhT3N3VkVSRkZJcTJKMmsrdWJycGNO?=
- =?utf-8?B?NWNoZUQ5bUJHVTNqZlg4QjJ3eXQ3b1p4Ukw5bjM4NEJqcjBhZFA3c2pkcU9k?=
- =?utf-8?B?TkV1WlN2RjBtZ1lOOENCdWpROFpSeTRtOFFNV29sM1Jqc3RRUGdHMjY4cUtC?=
- =?utf-8?B?SnM4RW45ZXhTYm5kS1ducnJLYk1mM1FCZENPMWV4endnMzBjK0JJU0w2d1Jy?=
- =?utf-8?B?VWtwdVN0QmZZKzZqd2o3YzZLL09kUUN3czM0VUt0ZWJFbnhHd20rT20vVEw1?=
- =?utf-8?B?UjdJcmtvT2JpVkU3OGFkWkVoUWttRGo4eW5iY2cyQ0Z2RkwwYUI1VGZscndP?=
- =?utf-8?B?MGRNalFUWnZBanVrU3VMT2w3ZFpFWEplVTB6dkd3Rjc1V0FiYzgyVkJXaS92?=
- =?utf-8?B?aS9GbVAwNHRMRFQyUUNZbHd0b2NLbXFGZlRkTFBxdGJGRjNiZUhiRE5VQmdM?=
- =?utf-8?B?QkVJcnZwMGlVYnRNRnRyQisxN2E0aEUyT0FWemZuOGxjVXRXVW9CUGpPYVNN?=
- =?utf-8?B?ZlgrUWYxOTRuQ2haV3BVTVU5V1hDa2xwc0l1V2tzanFOT0dnbDJubVYvUVJy?=
- =?utf-8?B?THQrZHVCdkVVdUJUZVA2dDFMMXN1YWRsUlY0QUJZaUtiTFBlcER3Z2hJOXh0?=
- =?utf-8?B?dng5eUhOUXZ3Lzg2VS9YSTVOWTN4ZjFxdUUyV2NENTI2eElGcnprVFI3Z2dt?=
- =?utf-8?B?NXlrb2FqcmVWN0ZzU3gza3JEUGFyeDFRaytNS0k3NVhyaUwxR3J3bnJBSkly?=
- =?utf-8?B?TnJ5UWI4eDhaQWFZS2pyNDFvMTI3ZzZzVCtySEI4MW1wMVBUMDJvZzRSUi8r?=
- =?utf-8?B?LzRadWFtMTdKREVackp6aXFFZG5DK1A2aWg4QUVNcS9UbE1Ick5JajdmTyt4?=
- =?utf-8?B?S3dYSmlHU0xHYUZTRG1WdFhjQjJoR01PTnQ3TnJFOWcxNUMyeXdocHBIOFdM?=
- =?utf-8?B?N1JmQWFRSEtRQ0VZb1dSRjNZdmcyMnNHam96cmFBMzhNdGtpakorWitHYmdF?=
- =?utf-8?B?QnRTZjY0dDJjRDZjUmpZRVlFRXlFSTRnYk9YcTRpSjBRbDdoRU9sbDFrQnMz?=
- =?utf-8?B?eFd3azZHbW4zTTFaTVNMc2MrU1lKK3IzbDVDTHNHZWU4bXVYNU1RUGhMdVFu?=
- =?utf-8?B?c2RHTHBEOE9ydXZkYk5BVWY4TVJpUDN0YzBaV3psVjNQc1BMTENPVkZDSmJn?=
- =?utf-8?B?ZGVtdjJ0S3B3VzJGQUJ6MWZXVFd3ODhGNGg1bkVGcm51Q1NIUllwdjRNWE12?=
- =?utf-8?B?cW9hRm8zdUpMczJ4Yzg0b1k2R2Z0Y3UxcEFTUEJyalZhMU90WmVsaXZUK2pQ?=
- =?utf-8?B?dEdXOFJQWmZkaURJWEJaT0lEeHJ6a3JkUk5kaFVkb2FYUU8yalRmb1lxQ0Jn?=
- =?utf-8?B?SFo2YUhidy82NVVZVStIbDFTVGVGbmdXREQxYVRGZXh4dXFsTVlvL01USThl?=
- =?utf-8?B?K2U3VWN5ejl1cCtGV3lKdzFHeXRLS2hrZ3d6Vlk4dWFKR043Qk9jbS94aGtu?=
- =?utf-8?B?ZWpPTkFKM3VmQ0J3QVJLREw0disxMkFpTTdMSGZIRnJOemM4dHUvSVJOVHpa?=
- =?utf-8?B?ZjJreGtWVENIM0lvRWxRYUQ1d1FsdW5pandlM0l3aCtEclFKRGJIdz09?=
+	=?utf-8?B?c0xXbVBoZTRNM3JxbzBvbjdsNlBreFphMWR6ZFBvK1ZvUURtZSt5Qmx6Ni9q?=
+ =?utf-8?B?WS9LTHRIcTBwMlhRbElYaEFCR2pzTk8xYXRDdzNwc2ZsaVlxRit1bjR4MHJq?=
+ =?utf-8?B?OCtQUnppbHV3M29xWWZxY0VTWGN5b3E5MjRpekY1emNTTWk2QVkzM1RqK05X?=
+ =?utf-8?B?M2FKUzlxdTZCZGZOdHRuNVdGUGVpVFY0NW1kK0NPbVNNczc3QXJKcitpZ3ND?=
+ =?utf-8?B?VVlkRi9wcG84a21paW9sR0pJTkhuT2FCTXhsSzBvb1RaVGhBQjVjT2R1VmZE?=
+ =?utf-8?B?RUsxRzJLOHlMZVZjcWl5L1hDTnI2Rnd2U29acm1IOUpzVGlEZnN1S3VnMldk?=
+ =?utf-8?B?aVIyMnVwM2wrclh3OUw3eHZDZ0FtcEhwSGRvZUxoR2Z1L3lHUmt5ajdVV0M5?=
+ =?utf-8?B?aDZQMysrWTFjSXluSG5IMEFxOElaSXd1dXRXU0lwdjlMU3lwVFFnWlVxejFm?=
+ =?utf-8?B?U0FQZnlwYkw5eENUK0IvVVNiMFZkcWpNVUtsV04zQVNuYkhpZmVCVWxadDhQ?=
+ =?utf-8?B?NjZMWXhzcU1OR3JaUEVKS1RRVkc2bktDM0x2LzBDaHdFTUhhVWVDZ1czOFRU?=
+ =?utf-8?B?aktjb1ZRVUNKb05RNGthRm1FUGErNUMxY0p1NWg1ZE1zYTJiUkUwZGpQUTVI?=
+ =?utf-8?B?QTB4d3lDSjNPQzQya0swOWNVVE00aXhwRUxvd0o5WWx1ekFFeGhTeVA4Sldm?=
+ =?utf-8?B?OEduMGhwZVFLVzg5ODJIVlh2QmJ3dFVMMzNRUWcwemNnc1pONWdiUzd0emVV?=
+ =?utf-8?B?N0RwRkJiWFllVUt6RFcrRkVtNWt1cllMKytkamIxaWs1SnEwTjVKOEx3WWFR?=
+ =?utf-8?B?eEpHdkJiVExsNEg2SldLV3RKS2grL0NBZ0JGQjU2ekxqT0lZVWlxRXNuTklY?=
+ =?utf-8?B?UDFySVlIQm1pcnR0eXZHU0ZaUUJLbEtCenZDdWtMdkpEdXk0emxzc0JzZTFU?=
+ =?utf-8?B?U0oyQ280NTRtYkFUR1hxOTRjVUZQbjRWMS9MbTh6dzhMWHl5TTUyUXNTNVVZ?=
+ =?utf-8?B?TXNnYkUyam02bnJWV1VBL3FWOVhGaTRJUUU5bmlGb2trYlVlMXFxT0ptLzBZ?=
+ =?utf-8?B?cXRvdERGZS83UHRMY1hlSlNkVmtrQUZsYStXV2N4bU5xT3NBUDZNZjJLaFVs?=
+ =?utf-8?B?U3ZIZ3p1eHk4V001UjdIaUVWSXUyVHhCMzA2U0Q4TjZtWDRkNzBRYWNLblIr?=
+ =?utf-8?B?MzVGeG1FTHM3NE5ONEZmT0svNlQwNmdST0QrK0xZOWVpeVJhSVoyUmIzbWdl?=
+ =?utf-8?B?TGpwcHhKdnBHci9kVnRWUnVZdWtBcVB6SEo0WWp4TUFSc2I5TXBnSCtxMXhv?=
+ =?utf-8?B?S0FtOVN1TWtOdFpVcE4xOFU3U3BrbEhuR1c5MHRqSzBIRlJERDdqWHZkVWgy?=
+ =?utf-8?B?TmVGekJYRzJsS0x5ZXBNbnd3cnNoQldDSVJKMHBvTkVWMWgwNU9mdW9TTHZU?=
+ =?utf-8?B?RmxGQ2Nlc1hBTllaZHh6ZVZzN3NPY2M1ejF1WWpjdEs5dTViTUEwMUFKUElo?=
+ =?utf-8?B?akQzLzhOQzd0V0djQitId0ZUVi8zclpVelE3NnFjdk1HeStDb3NLc0FFMFEy?=
+ =?utf-8?B?cmM4cjVGUTluWDE5UWZKTk5xN0tLeGRydllzQ2plQnZxZld2OFJKNnJVbzVy?=
+ =?utf-8?B?WHlCZzBiZTVJbmdCenI4WGh2UU5CcGw3VEpNTVdRK1FNbW5xN283aFVUZXA2?=
+ =?utf-8?B?MEEyRTR1cmQrWHlXZjdrMWorYllqbklsQ28rajhLVThXZEhJRTY0aFVZQSto?=
+ =?utf-8?B?L2VYN3dLZ1FqZFB6M21DTDBCSkVXTklSRU9PaC9mMkU1YlQ3dHZuMEIzRW5v?=
+ =?utf-8?B?RjRLeDkvT2NzbjlNNU5EQjJUK2V2bEZOWjYvV2hNMXAwVklMeWRDcDFZcWVZ?=
+ =?utf-8?B?RmM5MTIyaDdqRzluMEZTZTdIeUhmNE9GVkM3MGlwSTdzZHlibGk0d3lOcEpE?=
+ =?utf-8?B?WkZRbnBiWjBVdExkUm5VNkpNbFU0bVFIRmZ3WDFXQjZtV3FJMEFvWUFacVRV?=
+ =?utf-8?B?UGN1Z21hOGJSZHFPaEZ5OHJKaXIvQjRoVHVuUEg2MDhwRWpFSzZkdGdaMy8r?=
+ =?utf-8?B?YTEwblE4b0cyNndTcGM0MDM3alpzWFlmOFFjQmhtMkR3WUI4VzdaN1g4M0dG?=
+ =?utf-8?B?dXptWnRvWWxSVDNIUDlGTW9JY0tRNVh4elpWODh5SjZUdXhycGtlNWNCUFBC?=
+ =?utf-8?B?VjR5QVFZM01MeUtlT3E3RGl2ZStrWkRYQTdSaTdJU0E3dytqSHZBZ3Q2VEtV?=
+ =?utf-8?B?RHc0UkFES0J0d0tlU0U5K0VEUEt0b0JBK0dzRjVCVlJlc3pENnhRU0p3NzUz?=
+ =?utf-8?B?N0dGODJDNjI4Nm1LZ2pyUG84MjhsN1MyNHR4UXNjRXNBekZTeTNHZz09?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2b1e3486-eb8f-4b6a-0e42-08df4235420b
+X-MS-Exchange-CrossTenant-Network-Message-Id: ec33a1c5-338b-4fed-35b4-08df4235464d
 X-MS-Exchange-CrossTenant-AuthSource: CHAPR12MB999248.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Nov 2026 09:54:22.0937
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Nov 2026 09:54:29.1990
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Q4LNKtwuQ79+eBLrqm2D+p2zBXFX2P5k57mlPczS+Kka8M8lZ4L4XeuCb4qHXlyGuVOYcPD+RXM2l3KOLYcrGA==
+X-MS-Exchange-CrossTenant-UserPrincipalName: DegVeawdzkmZ+ADbevY/4CLCwc4IMclzoBZUR2Hu1YyDIYTFqacaKtJRGvqYF5N0MLsINeCvWqkp67cptpRE6g==
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: CYYPR12MB8730
 
 On 12.11.26 10:40, netdev-bot+sashiko@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 4 potential
+> Thank you for your contribution! Sashiko AI review found 7 potential
 > issue(s) to consider.
 > 
-> Critical: 0 · High: 0 · Medium: 2 · Low: 2
+> Critical: 0 · High: 1 · Medium: 2 · Low: 4
 > 
 > If you believe none of the issues are legitimate, please reply to each
 > issue of Medium severity or higher and explain why the AI is wrong.
@@ -182,237 +181,391 @@ On 12.11.26 10:40, netdev-bot+sashiko@kernel.org wrote:
 > know by including "pw-bot: cr" as a separate line at the end of your reply
 > (one such reply per series is enough).
 > 
-> - [Medium] The suspend teardown and the notifier teardown leave the
->   data_direct private flag in different states.
-> - [Medium] mlx5e_data_direct_event() can run against a netdev that
->   mlx5e_nic_disable() or mlx5e_nic_enable() is in the middle of…
-> - [Low] Socket-direct gap: both new paths only look at priv->mdev's data-
->   direct device, while mlx5e_queue_get_dma_dev() picks the DMA device…
-> - [Low] Notifier payload contract: mlx5_data_direct_do_unbind() now
->   passes reg->dd.dev as the UNBIND payload.
+> - [High] netdev_unbind_dma_dev() (net/core/netdev_queues.c:84) refuses
+>   only when the netdev is both running and present (`netif_running(dev)…
+> - [Medium] The two halves of netdev_unbind_dma_dev() use different rules
+>   for which mappings belong to @dma_dev.
+> - [Medium] __netif_mp_close_rxq() (net/core/netdev_rx_queue.c:291)
+>   quietly accepts an already-uninstalled provider only when…
+> - [Low] The commit message says "A detached netdev also works because ...
+>   new bindings can't be added", but the core does not enforce this for…
+> - [Low] Several in-tree comments that list binding lifecycle rules were
+>   not updated for the new site that clears and unmaps bindings, and the…
+> - [Low] netdev_unbind_dma_dev() treats a NULL result from
+>   __netdev_queue_get_dma_dev() as "this queue maps against the departing…
+> - [Low] net_devmem_unbind_dma_dev() (devmem.c:575-596) clears
+>   NET_DEVMEM_BINDING_LIVE to "hide the binding from TX lookups while it…
 > 
 > --
 > 
-> net/mlx5e: Disable data direct on data direct device unbind
+> net: add netdev_unbind_dma_dev() helper
 > 
-> When the data direct device is unbound, the notifier handler now stops the
-> netdev, releases the providers bound to that DMA device and clears the
-> data_direct private flag. The suspend path also releases those providers,
-> because the notifier is not registered while the device is suspended.
+> This adds an exported helper for a closed or detached netdev. It
+> uninstalls the memory providers of RX queues mapped against a departing
+> DMA device and unmaps the devmem bindings that use that device. It is
+> meant for mlx5 data direct, where the DMA device is not the netdev's own
+> PCI device.
 > 
->> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/data_direct.c b/drivers/net/ethernet/mellanox/mlx5/core/data_direct.c
->> index 7db94b8a5b79c..246a03f44afd3 100644
->> --- a/drivers/net/ethernet/mellanox/mlx5/core/data_direct.c
->> +++ b/drivers/net/ethernet/mellanox/mlx5/core/data_direct.c
->> @@ -198,9 +198,11 @@ static void mlx5_data_direct_bind(struct mlx5_data_direct_registration *reg,
->>  static void
->>  mlx5_data_direct_do_unbind(struct mlx5_data_direct_registration *reg)
->>  {
->> +	struct mlx5_data_direct_dev *dev = reg->dd.dev;
->> +
->>  	WRITE_ONCE(reg->dd.dev, NULL);
->>  	blocking_notifier_call_chain(&reg->users, MLX5_DATA_DIRECT_UNBIND,
->> -				     NULL);
->> +				     dev);
+>> diff --git a/net/core/devmem.c b/net/core/devmem.c
+>> index dd3987bbd9f6c..bc8ae12b2318a 100644
+>> --- a/net/core/devmem.c
+>> +++ b/net/core/devmem.c
+>> @@ -556,6 +556,48 @@ bool netdev_has_dmabuf_binding(struct net_device *dev, struct device *dma_dev)
 >>  }
+>>  EXPORT_SYMBOL_GPL(netdev_has_dmabuf_binding);
+>>  
+>> +/* Unmap the bindings of a closed @dev that use @dma_dev, the way netdev
+>> + * unregister does. Senders that raced the detach drop their skbs at xmit.
+>> + */
+>> +void net_devmem_unbind_dma_dev(struct net_device *dev, struct device *dma_dev)
+>> +{
+>> +	struct net_devmem_dmabuf_binding *binding;
+>> +	unsigned long xa_idx;
+>> +	bool match, live;
+>> +
+>> +	netdev_assert_locked(dev);
+>> +
+>> +	xa_lock(&net_devmem_dmabuf_bindings);
+>> +	xa_for_each(&net_devmem_dmabuf_bindings, xa_idx, binding) {
+>> +		if (READ_ONCE(binding->dev) != dev)
+>> +			continue;
+>> +
+>> +		/* Hide the binding from TX lookups while it is checked. */
+>> +		live = xa_get_mark(&net_devmem_dmabuf_bindings, xa_idx,
+>> +				   NET_DEVMEM_BINDING_LIVE);
+>> +		if (live)
+>> +			__xa_clear_mark(&net_devmem_dmabuf_bindings, xa_idx,
+>> +					NET_DEVMEM_BINDING_LIVE);
+>> +		xa_unlock(&net_devmem_dmabuf_bindings);
 > 
 > [Severity: Low]
-> This isn't a bug, but the UNBIND payload is now an implicit contract. It is
-> not documented next to enum mlx5_data_direct_event in
-> include/linux/mlx5/data_direct.h.
+> Does clearing the mark here actually hide the binding from TX lookups?
+> net_devmem_lookup_dmabuf() runs under rcu_read_lock() and does:
 > 
-> reg->dd.dev can be NULL here when mlx5_data_direct_cleanup() calls this for
-> a registration that was never bound. mlx5e_data_direct_event() dereferences
-> dd_dev->device without a NULL check.
->
-This can't happen. So I won't touch this.
+>     binding = xa_find(&net_devmem_dmabuf_bindings, &xa_idx, id,
+>                       NET_DEVMEM_BINDING_LIVE);
+> 
+> net_devmem_unbind_dmabuf() needs a grace period after clearing the mark
+> for exactly this reason:
+> 
+>     /* Ensure no tx net_devmem_lookup_dmabuf() are in flight after the
+>      * mark is cleared.
+>      */
+>     synchronize_net();
+> 
+> There is no synchronize_net() here. A lookup already in flight can still
+> find a matching binding and take a reference. The safety of matching
+> bindings then rests only on clearing binding->dev and the check at xmit
+> time.
+> 
+> There is also a side effect for bindings that don't match. A binding on
+> @dev that doesn't use @dma_dev is invisible while xa_lock is dropped. A
+> concurrent SO_DEVMEM_TX sendmsg on it could get a spurious -EINVAL.
+> 
+> The mark is cleared on entry and restored on exit to guard this region,
+> rather than to express state. Is the clear and restore needed at all?
+> 
+v3 doesn't to the mark restore trick anymore.
 
->> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
->> index ebd41f24330d0..63d91ef0dda80 100644
->> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
->> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
->> @@ -6170,9 +6170,53 @@ static int mlx5e_data_direct_event(struct notifier_block *nb,
-> 
-> [ ... ]
-> 
->> +	if (action != MLX5_DATA_DIRECT_UNBIND)
->> +		return NOTIFY_DONE;
 >> +
->> +	rtnl_lock();
->> +	netdev_lock(netdev);
->> +
->> +	mutex_lock(&priv->state_lock);
->> +	enabled = MLX5E_GET_PFLAG(&priv->channels.params,
->> +				  MLX5E_PFLAG_DATA_DIRECT);
->> +	mutex_unlock(&priv->state_lock);
->> +	if (!enabled)
->> +		goto out;
->> +
->> +	reopen = netif_running(netdev);
->> +	netif_close(netdev);
+>> +		mutex_lock(&binding->lock);
+>> +		match = net_devmem_binding_mapped_to(binding, dma_dev);
+>> +		mutex_unlock(&binding->lock);
+>> +		if (match)
+>> +			net_devmem_dmabuf_binding_unmap(binding);
 > 
 > [Severity: Medium]
-> Can this handler run against a netdev that mlx5e_nic_disable() has already
-> detached? Nothing checks netif_device_present() before netif_close().
+> The commit message calls this half "devmem TX", and the comment says it
+> works "the way netdev unregister does". However, nothing here filters on
+> binding->direction or LIVE. net_devmem_dev_unregister() skips LIVE RX
+> bindings:
 > 
-> On the disable side, mlx5_data_direct_do_unbind() sets dd.dev to NULL. The
-> handler then blocks in rtnl_lock() while mlx5e_nic_disable() holds rtnl and
-> runs:
+>     if (binding->direction == DMA_FROM_DEVICE) {
+>         if (READ_ONCE(binding->dev) != dev ||
+>             xa_get_mark(..., NET_DEVMEM_BINDING_LIVE))
+>             continue;
 > 
-> 	if (netif_running(priv->netdev))
-> 		mlx5e_close(priv->netdev);
-> 	netif_device_detach(priv->netdev);
-> 	...
-> 	mlx5e_data_direct_unbind_dev(priv);
-> 	netdev_unlock(priv->netdev);
-> 	rtnl_unlock();
+> The two halves of netdev_unbind_dma_dev() also pick mappings by
+> different rules. The RX loop uses the driver's current per-queue report
+> and skips leased queues. Here, net_devmem_binding_mapped_to() treats a
+> NULL @dma_dev as a wildcard:
 > 
-> 	mlx5e_nic_set_rx_mode(priv);
+>     return binding->attachment &&
+>            (!dma_dev || binding->attachment->dev == dma_dev);
 > 
-> 	mlx5_data_direct_unregister(mdev, &priv->data_direct_nb);
+> Take an RX binding whose queue the RX loop skipped but which matches
+> here. That can happen with a NULL @dma_dev, with a driver that already
+> reports a different device, or on the leased-queue path. Such a binding
+> is unmapped and gets binding->dev cleared while rxq->mp_params and
+> binding->bound_rxqs still point to it. mp_dmabuf_devmem_uninstall()
+> avoids this by clearing dev only once bound_rxqs is empty.
 > 
-> mlx5e_data_direct_unbind_dev() finds mlx5_data_direct_get_dev() == NULL and
-> returns without doing anything. mlx5e_close() is the ndo-level call, so
-> IFF_UP and __LINK_STATE_START stay set.
+> A later netlink socket close then reaches net_devmem_unbind_dmabuf()
+> with a NULL binding->dev:
 > 
-> Once rtnl is dropped, the handler continues with the pflag still set and
-> reopen = true. netif_close()->__dev_close_many() clears IFF_UP and
-> __LINK_STATE_START and sends NETDEV_GOING_DOWN/NETDEV_DOWN. Then
-> netif_open()->__dev_open() fails with -ENODEV because the device is
-> detached.
+>     if (netif_mp_close_rxq(binding->dev, rxq_idx, &mp_params))
 > 
-> The profile can be enabled again later, on resume or for the uplink rep
-> profile after an eswitch mode change. At that point mlx5e_nic_enable()
-> checks:
+> Wouldn't netif_mp_close_rxq() then dereference dev->real_num_rx_queues
+> through NULL? If the netdev is reopened first, the page pool would be
+> built from the provider that is still installed, over an sgt that has
+> already been unmapped.
 > 
-> 	if (netif_running(netdev))
-> 		mlx5e_open(netdev);
+> This doesn't look reachable from the in-tree mlx5 caller. But the helper
+> is exported, and netdev_has_dmabuf_binding() documents a NULL dma_dev as
+> "any". Should this half filter on DMA_TO_DEVICE, or should a NULL
+> @dma_dev be rejected?
 > 
-> That check is now false. Does the interface then stay administratively
-> down?
-> 
-> The enable side has a similar window. mlx5e_nic_enable() registers the
-> notifier before it takes rtnl and before netif_device_attach(). An unbind
-> handled in that window would do the same close and failed open on a netdev
-> that is still detached.
-> 
-> Is a netif_device_present() check needed here, or some other handling for
-> the detached case?
-> 
-Since this is low risk, I accepted this as a potential issue that the
-user could fix by bringing the interface up again.
-
-But after the necessary suspend/resume fix there is an easy way to fix this.
+Ack. Will fix in v3 to filter by DMA_TO_DEVICE and rename
+net_devmem_unbind_dma_dev() to net_devmem_unbind_tx_dma_dev().
 
 >> +
->> +	err = netdev_unbind_dma_dev(netdev, dd_dev->device);
->> +	if (WARN_ON_ONCE(err)) {
->> +		netdev_err(netdev, "Failed to unbind dma device, won't reopen netdev, err=%d\n",
->> +			   err);
->> +		goto out;
->> +	}
->> +
->> +	mutex_lock(&priv->state_lock);
->> +	new_params = priv->channels.params;
->> +	MLX5E_SET_PFLAG(&new_params, MLX5E_PFLAG_DATA_DIRECT, false);
->> +	mlx5e_safe_switch_params(priv, &new_params, NULL, NULL, false);
->> +	mutex_unlock(&priv->state_lock);
->> +
->> +	netdev_info(netdev, "data_direct device unbound, disabled data_direct\n");
->>  
->> -	if (action == MLX5_DATA_DIRECT_UNBIND)
->> -		mlx5_core_dbg(priv->mdev, "data direct device unbound\n");
->> +	if (reopen) {
->> +		err = netif_open(netdev, NULL);
->> +		if (err)
->> +			netdev_err(netdev, "Failed to reopen after data_direct unbind, err=%d\n",
->> +				   err);
->> +	}
-> 
-> [ ... ]
-> 
->> @@ -6407,6 +6451,24 @@ static int mlx5e_nic_enable(struct mlx5e_priv *priv)
->>  	return err;
->>  }
->>  
->> +static void mlx5e_data_direct_unbind_dev(struct mlx5e_priv *priv)
->> +{
->> +	struct mlx5_data_direct_dev *dd_dev;
->> +	bool enabled;
->> +
->> +	dd_dev = mlx5_data_direct_get_dev(priv->mdev->data_direct);
+>> +		xa_lock(&net_devmem_dmabuf_bindings);
+>> +		if (match) {
+>> +			WRITE_ONCE(binding->vdev, NULL);
+>> +			WRITE_ONCE(binding->dev, NULL);
 > 
 > [Severity: Low]
-> This helper and the notifier only look at priv->mdev's data direct device.
-> mlx5e_queue_get_dma_dev() picks the DMA device per channel:
+> This isn't a bug, but some comments about the binding lifecycle don't
+> cover this new site.
 > 
-> 	dma_dev = mlx5e_get_dma_dev(ch->mdev, dd);
+> The net_devmem_lock_dev() kernel-doc lists where binding->dev is
+> cleared:
 > 
-> Here ch->mdev comes from mlx5_sd_ch_ix_get_dev(). With socket direct, would
-> providers and dmabuf bindings mapped to a secondary PF's data direct device
-> stay in place?
+>  * NULL while holding netdev_lock(dev) (in mp_dmabuf_devmem_uninstall(),
+>  * net_devmem_unbind_dmabuf(), or net_devmem_dev_unregister() during
 > 
-> This appears to be resolved later in the series. The patch "net/mlx5e:
-> Enable the data direct netdev feature" makes set_pflag_data_direct() return
-> -EOPNOTSUPP when mlx5_get_sd(mdev) is non-NULL, and at this commit the flag
-> can't be enabled at all.
+> In struct net_devmem_dmabuf_binding, the vdev comment says "cleared with
+> WRITE_ONCE() on unregistration". The ref comment says "TX bindings are
+> also unmapped earlier if their device is unregistered". Both of these now
+> also happen when the DMA device goes away.
 > 
-Right. So no need to change anything here.
+> The new netdev_unbind_dma_dev() kernel-doc says it uninstalls queues
+> "that map against @dma_dev". It also uninstalls queues for which the
+> driver reports no DMA device at all.
+> 
+> Should these comments be updated?
+> 
+Ok. Will update.
 
->> +	if (!dd_dev)
->> +		return;
->> +
->> +	mutex_lock(&priv->state_lock);
->> +	enabled = MLX5E_GET_PFLAG(&priv->channels.params,
->> +				  MLX5E_PFLAG_DATA_DIRECT);
->> +	mutex_unlock(&priv->state_lock);
->> +	if (enabled)
->> +		WARN_ON_ONCE(netdev_unbind_dma_dev(priv->netdev,
->> +						   dd_dev->device));
+>> +		} else if (live) {
+>> +			__xa_set_mark(&net_devmem_dmabuf_bindings, xa_idx,
+>> +				      NET_DEVMEM_BINDING_LIVE);
+>> +		}
+>> +	}
+>> +	xa_unlock(&net_devmem_dmabuf_bindings);
 >> +}
 > 
+> [ ... ]
+> 
+>> diff --git a/net/core/netdev_queues.c b/net/core/netdev_queues.c
+>> index 27cb6397bdd4e..71cc7bfc087dd 100644
+>> --- a/net/core/netdev_queues.c
+>> +++ b/net/core/netdev_queues.c
+> 
+> [ ... ]
+> 
+>> @@ -58,6 +60,55 @@ struct device *netdev_queue_get_dma_dev(struct net_device *dev,
+>>  	return dma_dev;
+>>  }
+>>  
+>> +/**
+>> + * netdev_unbind_dma_dev() - drop the memory providers of a departing DMA device
+>> + * @dev:	net_device, closed or detached by the caller
+>> + * @dma_dev:	DMA device the driver is about to lose
+> 
+> [Severity: Low]
+> The commit message says:
+> 
+>   A detached netdev also works because the driver has already torn down
+>   the queues and new bindings can't be added.
+> 
+> Is that enforced for io_uring zcrx? The devmem netlink bind paths check
+> netif_device_present(). zcrx_register_netdev() only needs
+> netdev_queue_get_dma_dev() to return non-NULL before it calls
+> netif_mp_open_rxq(). Neither netif_mp_open_rxq() nor
+> __netif_mp_open_rxq() checks whether the device is present.
+> 
+> So once this returns and the instance lock is dropped, the only thing
+> stopping a new zcrx area from being mapped against the departing device
+> is the driver's ndo_queue_get_dma_dev() no longer reporting it. mlx5
+> does stop reporting it: channels->num is 0 when closed, and dd.dev is
+> cleared before the notifier runs.
+> 
+> The kernel-doc only says "net_device, closed or detached by the caller".
+> Should it also state that the driver must stop reporting @dma_dev?
+>
+Driver does have to stop reporting the unbound dma_dev. Will add
+to doc.
+
+>> + *
+>> + * Uninstalls the memory provider of every RX queue of @dev that maps
+>> + * against @dma_dev. Unmaps the devmem bindings of @dev that use @dma_dev.
+>> + * The bindings stay allocated until their users release them.
+> 
+> [ ... ]
+> 
+>> + * Return: 0 on success, -EBUSY if @dev is running and present.
+>> + */
+>> +int netdev_unbind_dma_dev(struct net_device *dev, struct device *dma_dev)
+>> +{
+>> +	unsigned int i;
+>> +
+>> +	netdev_assert_locked(dev);
+>> +
+>> +	if (netif_running(dev) && netif_device_present(dev))
+>> +		return -EBUSY;
+> 
+> [Severity: High]
+> Can a netdev that is running but detached get past this check while
+> validated devmem TX skbs are still sitting in a qdisc?
+> 
+> The commit message says:
+> 
+>   The netdev must be closed or detached so that the hardware no longer
+>   accesses the mappings and the qdiscs hold no validated skbs.
+> 
+> netif_device_detach() only clears __LINK_STATE_PRESENT and stops the TX
+> queues. Only dev_close()->dev_deactivate()->qdisc_reset() empties the
+> qdiscs.
+> 
+> The mlx5 caller later in this series seems to reach exactly this state
+> in mlx5e_nic_disable():
+> 
+>     if (netif_running(priv->netdev))
+>         mlx5e_close(priv->netdev);
+>     netif_device_detach(priv->netdev);
+>     ...
+>     mlx5e_data_direct_unbind_dev(priv);
+> 
+> mlx5e_close() is the ndo_stop, so __LINK_STATE_START stays set. The
+> check above then passes because the device is not present.
+> 
+> Consider this sequence:
+> 
+> sch_direct_xmit()
+>   validate_xmit_skb_list()
+>     validate_xmit_unreadable_skb()   <- binding->dev still set, passes
+>                                      mlx5e_close() stops the txq
+>   dev_requeue_skb(skb, q)            <- skb parked in q->gso_skb
+> 
+> netdev_unbind_dma_dev()
+>   net_devmem_unbind_dma_dev()
+>     net_devmem_dmabuf_binding_unmap()
+>       dma_buf_unmap_attachment()
+>       dma_buf_unpin()
+> 
+> On resume, mlx5e_open() and netif_device_attach() wake the queue.
+> dequeue_skb() then returns the gso_skb with:
+> 
+>     /* skb in gso_skb were already validated */
+>     *validate = false;
+> 
+> The binding->dev check in validate_xmit_unreadable_skb() never runs
+> again for that skb. Would the NIC then be given net_iov DMA addresses
+> that are no longer mapped for the DMA device?
+> 
+> The comment above net_devmem_unbind_dma_dev() says "Senders that raced
+> the detach drop their skbs at xmit". That doesn't seem to hold for these
+> requeued skbs.
+> 
+> For RX, the check relies on an unenforced convention that a detached
+> driver has already torn down its RX rings. mlx5 meets it because it
+> closes before detaching. A caller that only detaches would have its
+> dmabuf and zcrx mappings revoked while RX descriptors still point at
+> them. Should the exported helper enforce or document this?
+> 
+I did this to prevent another issue in mlx5e: mlx5e_suspend() disables
+the data direct notifier so if the data direct device is unbound after
+suspend, the DMA dev ptr would be left dangling. So I wanted to call
+netdev_unbind_dma_dev() during suspend. Seems like this is not
+the right way.
+
+I will add one more mlx5 patch that closes the netdev on suspend
+if it is in use. It will be ugly, but I can't see a better way.
+
+>> +
+>> +	for (i = 0; i < dev->real_num_rx_queues; i++) {
+>> +		struct netdev_rx_queue *rxq = __netif_get_rx_queue(dev, i);
+>> +		struct pp_memory_provider_params p = rxq->mp_params;
+>> +		struct device *queue_dev;
+>> +
+>> +		if (!p.mp_ops)
+>> +			continue;
+>> +
+>> +		queue_dev = __netdev_queue_get_dma_dev(dev, i);
+>> +		if (queue_dev && queue_dev != dma_dev)
+>> +			continue;
+> 
+> [Severity: Low]
+> Here a NULL from __netdev_queue_get_dma_dev() counts as a match. Is that
+> intended for a closed netdev?
+> 
+> mlx5e_queue_get_dma_dev() returns NULL whenever:
+> 
+>     /* Allow only opened channels. */
+>     if (queue_index < 0 || queue_index >= channels->num)
+>         goto out;
+> 
+> mlx5e_close_channels() sets chs->num = 0. So in the closed state this
+> helper requires, the @dma_dev filter appears to do nothing for the only
+> in-tree caller. Every RX queue with a provider is uninstalled, whichever
+> device it is actually mapped to.
+> 
+> If a driver's queues can map against more than one device, wouldn't
+> providers on a device that isn't going away be torn down as well?
+Yes, that is the point.
+
+> A leased queue with a provider would also get past this filter and hit
+> the WARN_ON_ONCE(rxq->lease). The TX half filters on
+> binding->attachment->dev instead.
+>
+I chose to keep leased queues as unsupported to keep this series
+reasonably sized.
+
+>> +
+>> +		if (WARN_ON_ONCE(rxq->lease))
+>> +			continue;
+>> +
+>> +		memset(&rxq->mp_params, 0, sizeof(rxq->mp_params));
+>> +		__netif_mp_uninstall_rxq(rxq, &p);
+> 
 > [Severity: Medium]
-> mlx5e_data_direct_event() clears the flag, but this helper only releases the
-> providers. MLX5E_PFLAG_DATA_DIRECT stays set in priv->channels.params. Can
-> that leave a stale flag after resume?
+> Can this race with io_close_queue() in io_uring/zcrx.c and trigger the
+> WARN_ON_ONCE() in __netif_mp_close_rxq()?
 > 
-> On PCI PM suspend the path is:
+> __netif_mp_close_rxq() only accepts an already-uninstalled provider on
+> the unregister path:
 > 
-> mlx5_suspend()
->   mlx5_unload_one(dev, true)
->     mlx5e_suspend()
->       mlx5e_detach_netdev()
->         mlx5e_nic_disable()
->           mlx5e_data_direct_unbind_dev()
+>     if (dev->reg_state > NETREG_REGISTERED &&
+>         !rxq->mp_params.mp_ops)
+>         return 0;
 > 
-> While the device is suspended, mlx5_unload()->mlx5_data_direct_cleanup()
-> frees the registration, and the mlx5e notifier is unregistered.
+>     if (WARN_ON_ONCE(rxq->mp_params.mp_ops != old_p->mp_ops ||
 > 
-> The data direct PCI function could go away in that window. The commit
-> message says such an unbind "would go unnoticed". In that case
-> mlx5_data_direct_init() finds no matching device on resume, and dd.dev
-> stays NULL.
+> Here mp_params is cleared on a device that is still registered. One
+> possible sequence:
 > 
-> mlx5e_attach_netdev() and mlx5e_nic_enable() keep the old params.
-> mlx5e_nic_enable() registers the notifier again without checking the flag
-> against mlx5_data_direct_get_dev().
+> io_close_queue()
+>   copies ifq->netdev, sets ifq->netdev = NULL under pp_lock
+>   netdev_lock(netdev)   <- blocks, held by the unbind caller
+>                                   netdev_unbind_dma_dev()
+>                                     memset(&rxq->mp_params, 0, ...)
+>                                     __netif_mp_uninstall_rxq()
+>                                       io_pp_uninstall()
+>                                         io_zcrx_unmap_areas()
+>                                         io_zcrx_drop_netdev()
+>                                         (ifq->if_rxq left unchanged)
+>   if (ifq->if_rxq != -1)
+>       netif_mp_close_rxq(netdev, ifq->if_rxq, &p);
+>         __netif_mp_close_rxq()
+>           reg_state == NETREG_REGISTERED, mp_ops == NULL
+>           WARN_ON_ONCE(...) -> -EINVAL
 > 
-> That has three effects:
+> The areas are already unmapped, so cleanup still completes. Would a
+> zcrx teardown that races with a data direct unbind or a suspend produce
+> a WARN splat (fatal with panic_on_warn) plus a spurious -EINVAL?
 > 
-> - ethtool reports data_direct as on with no device behind it.
-> - mlx5e_queue_get_dma_dev()->mlx5e_get_dma_dev() returns NULL for every
->   queue. Devmem and io_uring zcrx binds then fail instead of falling back
->   to the PF DMA device.
-> - mlx5e_alloc_txqsq() keeps creating SQs with MLX5E_SQ_STATE_DATA_DIRECT
->   and the crossing mkey.
-> 
-> The commit message says "To prevent further use disable the private flag",
-> but the flag is not cleared on this path. Should the suspend path clear it
-> too, or should mlx5e_nic_enable() check it again?
-> 
-Although there is a small possibility that the private flag remains set,
-data-direct won't be enabled because the channel open code also checks
-for the presence of the data-direct device.
+Ack. I will add a patch in io_pp_uninstall() to set ifq->if_rxq to -1.
 
 Thanks,
 Dragos
