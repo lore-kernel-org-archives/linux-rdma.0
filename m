@@ -1,79 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794629683;
-	b=A3LMkjGlhx4hJ1x6bMf8I01i2lSiglBD/4Pt1lfnWLWq8IWjksS2oT9VeFTo0Egb/7jA
-	 zQje98OlAF9kYSzVgrRwU94L+xdMmShNVdBzzXdmxvlCohdpgLf1+M5PWbL9z6OwLGwu0
-	 SQKHDq7kmgEMGCfOI8tA9n/7xU4NCKd4TD5v3WnneROUP6agB/TWUM5Y3WHkItZz5RqSu
-	 7WoI2CBlwex3x2mPfa4tGV+AmUEmzZ8ePHIJjgJstucpB1fKjDeiz/nFty2472wXMEprD
-	 7XNrutxaBieGvArVKO9GBALBk4RGcHrKe2wlQyKSw3dyApf3hWFh8axOW8lDo7wyVbg==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794629683;
-	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
-	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
-	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=cO6oAOXIgzMpetBE3e7i5weblbBDQaW8Yu+sv7kIn3I=;
-	b=w/Ju8uhK9iEP2zZ0VYXHkX3JQY0Lwe3rZvmj/N84QhjWaG7061vi0UKbbYKMfkgt3dvI
-	 M9WcGy0Alx0uPn5UMLOVWwBWtRAtNKQGizu8HqkZPYA07RPczVqCCTFk+SPtMIBdBE0iZ
-	 9MoV0qBsoderiA7qhoXWsJ4OOTA33ai09kFSEMZCXK9k1+TkU38ffgcABb57L9Oc+4xda
-	 QL7MMDFycV0LsRwm4G4coEg24EnBENueMGtIeXKmu6bP57xvdHnXPOkUf7vTDqeuJjjsU
-	 b5yEBf5R/Mha0X07MH54rRtBSmjYkdbAGSbxOP+fmLAfJHkjpTj4ULj9QBHSrz6e1kw==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EPzxDc45;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1794637303;
+	b=VItC6vPSW3mPr1PkcUt0L7xJqLyjh5A4FP+gNumtQ5ZT1UHaAWTBBRZguvA4+clM0Aq1
+	 FBaW5WPsRyiQk2AA3wjCc4kzwlkHHceASnzVCuWNsfPIjKQpolaH6GRU0u7hALXdqY6ou
+	 EuI3k6aGvXW1USDJ8QSap6R6TnLLqdwZMDTS76Owo8McFAfBJ2909QL691/3SBxk+Bl08
+	 NAeZqLJdBoSv05Okc0Zzfqlt+kkDpxUP8192gZp9iAEtSlHkDh/u0cBYfT3xxaOksI5vd
+	 ZbucO5U7DwIi4PfIinZfS3fNV5od1nxLPl6Zc+LBht0vtnZcNMjUNqu3d7QJGY3MTSQ==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794637303;
+	h=Received:DKIM-Signature:Message-ID:Subject:From:To:Cc:Date:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:
+	 User-Agent:MIME-Version;
+	bh=5viyWZGS4n9c+qBE/aLwmO7/aPYsv3JV1TvkOfw09wU=;
+	b=zqMDuN8WUyi94W1T5GtQYa8J5Vxt0Xe54w1WDCuejx83X7/u3x/WBH/zFjNbD/cEJRrN
+	 EgloWN1HmlRi8uVLLa8lHNEwZpTfAg9BA568j7ADCAX4Ovt++TbEmNYkPSekxAuQPGFFs
+	 MrhWnFsVRWeUPqw+NqDxmdl3kLX406OmU+5NpbN5/XMst6yAqPdExfGIZ84M/nXvyrPh5
+	 u8fDCZpj68Q0mMepd01JNIwIkYbjSWAGpXtKS4Km0bSVYedFrkFJWL6sr99li8qAqj1Sv
+	 moQzArFWcdw4NAhyKdruOFHO2bIzT16QwGARUP8o8XxbocEtJyCbBet0AUOs1TFqOrQ==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XC+gEUcA;
+	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83AE5606A8A4;
-	Sat, 14 Nov 2026 04:14:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB996606A323;
+	Sat, 14 Nov 2026 06:21:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EPzxDc45
-Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
-ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1794629683;
-	b=cLSPLILHkA40YqWTIAIZJ1cqCnCYdpqNQTHdKsD64nzb+D0nGBQy6QD6ypZmvuabkXt8
-	 5mWRpSwnPEgsTYE6/5rGGJXACERtyfEoC64KeZjkKIj8G+6zscaauLyCZ5W2g+LRyYbfH
-	 YH+dkarZyGoXzxrc7qfFgf4tRT+t7AWNN07vvDu8K0RLTy5D1RBy8dva9XiWJyWoo0gDg
-	 G2nTe+lWO11s6ddmXmBsyEJkIuZv5mFas87vMOXIq5j7Eadw7luZINfuicT6T8B8jhfVc
-	 Jpee3lo734jK+0ZuAuDWJ1MTBZ3WB1j74XtoRG+KVXQK8BXnGieUqG1D6O6zrGrt/eQ==
-ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1794629683;
-	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
-	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
-	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=cO6oAOXIgzMpetBE3e7i5weblbBDQaW8Yu+sv7kIn3I=;
-	b=ZqMq1vP10hUW+Iotni6tjKGzTeQWPKKOccDTnAv92eUwSiUkPzzbEMnBTC3Xp1mg8UaM
-	 Vd9RD19Ipr7HC50lNUMCL0cbX9EpL0QN5QLLuHWuLIMA7G5RHAzBaMOEoVJPytYuu35xL
-	 80FXda+5bdZtpp1V+7+/3oZ6aNd81vdSPxpyuvH4ZVwSALy7/RTKf3234VFaZCw/2sh3V
-	 60gOypBmFRTN+pF4g1imekZZSNdoNdP6QKM2TJ9GlSA7qVtKl79HEyrdWgns94APLv67P
-	 yWSBOeae7OE7qgTi6Mqyc4s5z6lVE3cuCiC4AsUW63MsJtG2FCwpG3b53ZHaiZtl/cA==
-ARC-Authentication-Results: i=1; smtp.kernel.org; 
-	arc=none smtp.remote-ip=100.80.115.77
-Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id C31001F000C7;
-	Sat, 14 Nov 2026 04:14:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XC+gEUcA
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C70BB1F000C6;
+	Sat, 14 Nov 2026 06:21:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794629683;
-	bh=cO6oAOXIgzMpetBE3e7i5weblbBDQaW8Yu+sv7kIn3I=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=EPzxDc45vExe9fyNulgEEgJaLgFjaUCVptyzJGfMWRXpitnmIZftrlWLH2o7gk1cn
-	 5To57l0cfihECi786oqxYgAS8BSx58Y2Lhq0lYQd4ELl1Zch9m2rxtLsxj8VQfVhR5
-	 PSH36J+wUzSpP5xHuH1oS44OsiB1a9JFjB9xtGpXmf5QGqwROf0QKcMohmlTD/w1qn
-	 sR2NMReqTWLH77SCv8buoYqpFnDQnnvN+W7C+MOIcNh98UofBKAAJrc7cEAaIvySNK
-	 YHTJ4d8UpEqpvm7xhwBdY+s8JRqMIvrEf81IlyAUWoDOCVfSF4jtH6gkDcIaBDYqX5
-	 rIAli3nMRuOdg==
-Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 503BF49C81;
-	Sat, 14 Nov 2026 04:14:41 +0000 (UTC)
-From: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
-Date: Fri, 13 Nov 2026 23:14:42 -0500
-Subject: [PATCH net 3/4] net/smc: fix the failover catch-up across the
- cursor wrap rollover
+	s=k20260515; t=1794637303;
+	bh=5viyWZGS4n9c+qBE/aLwmO7/aPYsv3JV1TvkOfw09wU=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=XC+gEUcAgljdNI9CNr8OtTIIYyToLb8c8i5IyPkEDFiavefdyg34PlOH+1wjjojvv
+	 pimJRi4fB56RNROND/9Jf/LHpWVAuSuCMF3SQ3CJuypchnc65mPCxhtJhHVWkGxGnY
+	 fYwzcvLt20eqdJIs1oBdQeGGur9aUundQ0BrADhe/9ZRBzseTZAj5AtuPvSfb4CPXG
+	 DohCPtZD/jgQu9X5Z7/eMofYsJ+yeQtNkcz4RSzAsP9e7S9eknpX+kn240Tdx06a45
+	 1WJi7gDjgJCvtQqsVyvaw2x5fD4ZCUCyEnoYcNn9sNa0FjANoxlocXPGLMsK+8QcKE
+	 lf94vcPVQ3L9A==
+Message-ID: <7874eba61c2ec79221496cbc43c253f9e023fa4b.camel@kernel.org>
+Subject: Re: [PATCH net] net/rds: tcp: bound the message length announced by
+ the peer
+From: Allison Henderson <achender@kernel.org>
+To: weidongw@illinois.edu
+Cc: "David S. Miller" <davem@davemloft.net>, Eric Dumazet
+ <edumazet@kernel.org>,  Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
+ <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
+ rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org,
+ stable@vger.kernel.org,  Zijie Zhao <zijie4@illinois.edu>
+Date: Fri, 13 Nov 2026 23:21:42 -0700
+In-Reply-To: <20261111-h047-send-v1-1-2727a38dbfcd@illinois.edu>
+References: <20261111-h047-send-v1-1-2727a38dbfcd@illinois.edu>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.52.3-0ubuntu1.1 
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -83,137 +66,112 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261113-b4-disp-1a9ab9b0-v1-3-4a7c8d85d849@proton.me>
-References: <20261113-b4-disp-1a9ab9b0-v1-0-4a7c8d85d849@proton.me>
-In-Reply-To: <20261113-b4-disp-1a9ab9b0-v1-0-4a7c8d85d849@proton.me>
-To: Dust Li <dust.li@linux.alibaba.com>, 
- Mahanta Jambigi <mjambigi@linux.ibm.com>, 
- "D. Wythe" <alibuda@linux.alibaba.com>, Jakub Kicinski <kuba@kernel.org>, 
- Eric Dumazet <edumazet@kernel.org>, "David S. Miller" <davem@davemloft.net>, 
- Paolo Abeni <pabeni@redhat.com>, Sidraya Jayagond <sidraya@linux.ibm.com>
-Cc: Guangguan Wang <guangguan.wang@linux.alibaba.com>, 
- Tony Lu <tonylu@linux.alibaba.com>, netdev@vger.kernel.org, 
- Wenjia Zhang <wenjia@linux.ibm.com>, Ursula Braun <ubraun@linux.ibm.com>, 
- Hidayath Khan <hidayath@linux.ibm.com>, linux-s390@vger.kernel.org, 
- linux-kernel@vger.kernel.org, Simon Horman <horms@kernel.org>, 
- Wen Gu <guwen@linux.alibaba.com>, Stefan Raspl <raspl@linux.ibm.com>, 
- linux-rdma@vger.kernel.org
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1794629679; l=4137;
- i=hexlabsecurity@proton.me; s=default; h=from:subject:message-id;
- bh=MVHarJC77cCCLJEzqiGRuVpi6O8XQzj00ArzQHD908I=;
- b=F74AfkgSmjHIJIkI11G6+klEgg5afXLKUyZ+MgiafeDZN5uFBsKxa2QREh+gp2N2FTyRZcd3/
- sEaJOr5FktXDaaM12ytCJMfZ4oOK01LFbHkVs6yBy5KhEbQS6xLAT2A
-X-Developer-Key: i=hexlabsecurity@proton.me; a=ed25519;
- pk=xw1AhCtQdvuoQc+bOQIYy9o8G++cp4/VniI2G/tc3G8=
-X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/default with
- auth_id=893
-X-Original-From: Bryam Vargas <hexlabsecurity@proton.me>
-Reply-To: hexlabsecurity@proton.me
-Content-Transfer-Encoding: 7bit
 
-From: Bryam Vargas <hexlabsecurity@proton.me>
+On Wed, 2026-11-11 at 14:27 -0600, Weidong Wang via B4 Relay wrote:
+> From: Weidong Wang <weidongw@illinois.edu>
+>=20
+> rds_tcp_data_recv() takes the payload length of an incoming message from
+> the peer's header and queues pskb_extract() clones of the received data
+> on the incoming message until that many bytes have arrived. Nothing
+> checks the length, so a peer that announces h_len =3D 0xffffffff and keep=
+s
+> sending makes the receiver hold up to 4 GiB per connection. The clones
+> are no longer on the socket's receive queue, so they are not charged to
+> the socket and TCP keeps the receive window open.
+>=20
+> Senders are limited to RDS_MAX_MSG_SIZE in rds_sendmsg(). Apply the same
+> limit on receive and drop the connection when a header exceeds it. That
+> limit has been enforced on send since v4.11; a peer running an older
+> kernel could still send larger messages over TCP, and such connections
+> are now dropped.
+>=20
+> The issue was discovered by an AI code review agent (an LLM-based
+> bug-finding tool developed by Zijie Zhao and the submitter) and
+> confirmed by triggering it on an unmodified kernel, without error
+> injection, on x86_64 under QEMU: a plain TCP client in a second network
+> namespace connects to the rds_tcp listener (port 16385), sends one RDS
+> header with h_len =3D 0xffffffff and then 1 GiB of payload. The receiver
+> held about 1.1 GiB until the connection was closed; the same 1 GiB sent
+> as 1 MiB messages held about 60 MiB.
+>=20
+> With this patch the connection is dropped right after the header and
+> nothing is held, while the 1 MiB messages are processed as before. The
+> RDS selftest (tools/testing/selftests/net/rds, rds_run.sh -T tcp, also
+> with -l 10 -c 10 -u 10) passes with the patch applied.
+>=20
+> The reproducer, fix and changelog were drafted with AI assistance
+> (Claude), then reviewed and tested by the submitter.
+>=20
+> Fixes: 70041088e3b9 ("RDS: Add TCP transport to RDS")
+> Cc: stable@vger.kernel.org
+> Cc: Zijie Zhao <zijie4@illinois.edu>
+> Signed-off-by: Weidong Wang <weidongw@illinois.edu>
 
-smc_switch_cursor() orders the peer's consumer cursor against
-local_tx_ctrl_fin with smc_curs_comp(), which misorders them across the
-65535 -> 0 rollover of the u16 wrap. A consumer cursor behind reads as
-ahead: the catch-up can credit sndbuf_space for bytes never sent and
-tell the peer they are in its RMB, so the next send() can copy past the
-end of the send buffer. One ahead reads as behind and the catch-up is
-skipped. With a send buffer larger than the peer's RMB, the catch-up can
-also be short once the peer is more than one RMB past local_tx_ctrl_fin,
-and the connection then stalls.
+Hi Weidong,
 
-Use the signed cursor distance, advance the RMB cursors across any
-number of wraps, and bound the catch-up by the bytes sent, which a
-peer's consumer cursor cannot legitimately pass.
+Thanks for the catch.  This patch looks fine to me.
+Reviewed-by: Allison Henderson <achender@kernel.org>
 
-Fixes: c6f02ebeea3a ("net/smc: switch connections to alternate link")
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261029-b4-disp-33001ace-v8-0-f9bb96e17827%40proton.me?part=4
-Cc: stable@vger.kernel.org
-Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
----
- net/smc/smc_cdc.h  | 10 ++++++++++
- net/smc/smc_core.c | 22 ++++++++++++++--------
- 2 files changed, 24 insertions(+), 8 deletions(-)
+Thanks!
+Allison
 
-diff --git a/net/smc/smc_cdc.h b/net/smc/smc_cdc.h
-index 597acb2e123f..4b586a20dfc2 100644
---- a/net/smc/smc_cdc.h
-+++ b/net/smc/smc_cdc.h
-@@ -97,6 +97,16 @@ static inline void smc_curs_add(int size, union smc_host_cursor *curs,
- 	}
- }
- 
-+/* smc_curs_add() for a value that may span more than one ring */
-+static inline void smc_curs_advance(unsigned int size,
-+				    union smc_host_cursor *curs, u32 value)
-+{
-+	u32 count = curs->count + value;
-+
-+	curs->wrap += count / size;
-+	curs->count = count % size;
-+}
-+
- /* Copy cursor src into tgt */
- static inline void smc_curs_copy(union smc_host_cursor *tgt,
- 				 union smc_host_cursor *src,
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index fb9f6a4eb683..76a577a20e4a 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -1054,22 +1054,28 @@ static int smc_switch_cursor(struct smc_sock *smc, struct smc_cdc_tx_pend *pend,
- 			     struct smc_wr_buf *wr_buf)
- {
- 	struct smc_connection *conn = &smc->conn;
--	union smc_host_cursor cons, fin;
-+	union smc_host_cursor cons, fin, sent;
- 	int rc = 0;
--	int diff;
-+	s64 diff;
- 
- 	conn->tx_switch_gen++;	/* completions of earlier sends: no credit */
-+	smc_curs_copy(&sent, &conn->tx_curs_sent, conn);
- 	smc_curs_copy(&conn->tx_curs_sent, &conn->tx_curs_fin, conn);
- 	smc_curs_copy(&fin, &conn->local_tx_ctrl_fin, conn);
- 	/* set prod cursor to old state, enforce tx_rdma_writes() */
- 	smc_curs_copy(&conn->local_tx_ctrl.prod, &fin, conn);
- 	smc_curs_copy(&cons, &conn->local_rx_ctrl.cons, conn);
- 
--	if (smc_curs_comp(conn->peer_rmbe_size, &cons, &fin) < 0) {
-+	/* not past what was sent, whatever cons says; that also keeps
-+	 * diff within one send buffer for smc_curs_add()
-+	 */
-+	diff = min(smc_curs_sdiff(conn->peer_rmbe_size, &fin, &cons),
-+		   smc_curs_sdiff(conn->sndbuf_desc->len,
-+				  &conn->tx_curs_fin, &sent));
-+	if (diff > 0) {
- 		/* cons cursor advanced more than fin, and prod was set
- 		 * fin above, so now prod is smaller than cons. Fix that.
- 		 */
--		diff = smc_curs_diff(conn->peer_rmbe_size, &fin, &cons);
- 		smc_curs_add(conn->sndbuf_desc->len,
- 			     &conn->tx_curs_sent, diff);
- 		smc_curs_add(conn->sndbuf_desc->len,
-@@ -1079,10 +1085,10 @@ static int smc_switch_cursor(struct smc_sock *smc, struct smc_cdc_tx_pend *pend,
- 		atomic_add(diff, &conn->sndbuf_space);
- 		smp_mb__after_atomic();
- 
--		smc_curs_add(conn->peer_rmbe_size,
--			     &conn->local_tx_ctrl.prod, diff);
--		smc_curs_add(conn->peer_rmbe_size,
--			     &conn->local_tx_ctrl_fin, diff);
-+		smc_curs_advance(conn->peer_rmbe_size,
-+				 &conn->local_tx_ctrl.prod, diff);
-+		smc_curs_advance(conn->peer_rmbe_size,
-+				 &conn->local_tx_ctrl_fin, diff);
- 	}
- 	/* recalculate, value is used by tx_rdma_writes() */
- 	atomic_set(&smc->conn.peer_rmbe_space, smc_write_space(conn));
-
--- 
-2.56.0
-
+> ---
+> Tested on v7.4-rc1 (05441d697f7f) and on net (ae89f2724e), x86_64,
+> KASAN, QEMU/KVM, 3 GiB guest. Setup: rds_tcp listener in the initial
+> netns (10.0.0.2); a plain TCP client (no AF_RDS) in a second netns
+> (10.0.0.1) over a veth pair.
+>=20
+>                    1 GiB after one header     1 GiB as 1 MiB
+>                    with h_len =3D 0xffffffff    messages (control)
+>   unpatched        ~1.1 GiB held until close  ~60 MiB
+>   patched          connection reset after     ~60 MiB, processed
+>                    the header, nothing held   as before
+>=20
+> selftests/net/rds: rds_run.sh -T tcp and rds_run.sh -T tcp -l 10 -c 10
+> -u 10 pass on both trees with the patch. No KASAN/UBSAN reports;
+> checkpatch clean.
+>=20
+> The limit is per connection; a peer with several source addresses gets
+> one connection per address. The reproducer is not attached (AI-found
+> issue, see security-bugs.rst) and can be shared on request.
+> ---
+>  net/rds/tcp_recv.c | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+>=20
+> diff --git a/net/rds/tcp_recv.c b/net/rds/tcp_recv.c
+> index ffe843ca2..29db73df8 100644
+> --- a/net/rds/tcp_recv.c
+> +++ b/net/rds/tcp_recv.c
+> @@ -213,6 +213,20 @@ static int rds_tcp_data_recv(read_descriptor_t *desc=
+, struct sk_buff *skb,
+>  			}
+>  		}
+> =20
+> +		/*
+> +		 * The payload is queued on tinc until the whole message has
+> +		 * arrived, so a peer must not announce more than a sender is
+> +		 * allowed to send. Check on every pass, not only when the
+> +		 * header completes: the drop is asynchronous and more data
+> +		 * can arrive before the connection is shut down.
+> +		 */
+> +		if (!tc->t_tinc_hdr_rem &&
+> +		    tc->t_tinc_data_rem > RDS_MAX_MSG_SIZE) {
+> +			rds_conn_path_drop(cp, false);
+> +			desc->error =3D -EPROTO;
+> +			goto out;
+> +		}
+> +
+>  		if (left && tc->t_tinc_data_rem) {
+>  			to_copy =3D min(tc->t_tinc_data_rem, left);
+> =20
+>=20
+> ---
+> base-commit: 05441d697f7f9a927264f4058cbbc6a03dfcac9d
+> change-id: 20261110-h047-send-52025d442823
+>=20
+> Best regards,
+> -- =20
+> Weidong Wang <weidongw@illinois.edu>
+>=20
+>=20
 
