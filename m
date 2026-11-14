@@ -1,54 +1,80 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.249
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794683150;
-	b=OF+x/mf0RGEWNFrr8ekZai40jlovd2pKYlGxE8HdFnP03wzsQ2k3jrOZEW2CH7oPD+HM
-	 liKC3ym8yNYwbOPPSSDc/5M+vq9SIJrsja1brkk/4FcB9IZ66OOY4zK4jrEeNJQA+584F
-	 g1pVE2VGNdEDpzCcgVypUj9Md3/OXEfdQOJiIfwamY36euSWAn/pVTLmtPm1xPiQCKbom
-	 ke2dOHjbCUbFlJXTqO7pqh5a8yt192Mwz/5Ja+tDqJwiEdr1w9rLEKvP+etgO0AjClQGs
-	 iYvXmJPjvBthMvJU+xzG2fLZA+eBQzAPC/TUZ3EDlmWP/qtbQJJzGA/1D6jIuaAK0Fg==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794683150;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=e7GiEdV+M4w33yXVYVq40C8MJ64RngQUxjIK2ouCYGk=;
-	b=ONCydGcPjxq13CysN9jhyheSCGcgQ9MkXygMSUSjWtP+dVTJiEbZmqRD6ZPedaVB6vYN
-	 7NzsrBVbnraBOcMi7kj5RFsaYIRmeUvwr3dOj7aqBzvPC4g5gR60cO+z51syRAhtm9JhJ
-	 5rroLJNS9kUxxrT2oWANx51Meyl9xogMDF1kHi6xwMaC1fxa0FVmENQPV/r5L6sGyly1m
-	 AVrkwICkp783FJOThmOwg4TuTuqdzBc7fLMR6ZUB3zp09BJinQIY2fxJfgKTrsX+zrpoX
-	 TxhvKqhjOBNBCq0nfd/O0xGPUb2QIjdCHe6St3L8OTOI7+W4wsOYmf41VXEwpXuTP+A==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=bZrpjGce;
-	arc=none smtp.remote-ip=95.215.58.249
-Received: from mta1.migadu.com (out-249.mta1.migadu.com [95.215.58.249])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1794683369;
+	b=eMNFo9J1klZ0K1GmGI0Jz752MFGMOtlyt4eZG0QGn5KgEHslqCvBXWc0QAq1AHC2HPGy
+	 U3KVzdqlr0x/P9ec6qVDkOhGXDIIK2nj8Qn5Pj3AC3P1YmGcAsJVZbD+p80MLC7vLXHGS
+	 vmYk5/sMUo/I9KZdD7tbXj4ESj1+zHWpbLXmxJr57y7kS3rTFAxwznTbVTaX2zASJ/H03
+	 hmShsMVJ0Ps/D08TMd4nSIEuiU30+bRInj3UxczsIAJw8yYBlDkbL/f40fOXB4EqHwTie
+	 wYoZLSvNPpkvrXB6OK2mBy5BHLQAOgjDjN2PbR25Av1NkMQIxC7wVAr1+BOTOEy7XkQ==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794683369;
+	h=Received:DKIM-Signature:Received:From:Subject:Date:Message-Id:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding:X-B4-Tracking:
+	 X-Change-ID:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key:
+	 X-Endpoint-Received:X-Original-From:Reply-To;
+	bh=atR/sBUvEX9u2OIbJcUD2tUMga9UZkt5JTKJTf67tmY=;
+	b=GqESMnWo6HlSlOzhqGnD+ANF2Z/9FnFta1zNJLPhVQrQ8WH3VJ8zKNXAd4AgfZHu2Owj
+	 ci5DFncU+nWULXoZKmh2j3Pu9kv43LfAVxPQK3PGoWb/DyAoJ8fAU3t6vgUPUWRzV6SJj
+	 zjFbH6141Qo4AvqADlJj/0QwcjmJDYPC8ODdfmSVk8BAyytWtB7uI3u68HYdXUq6RHIpA
+	 TATMu7Ygj7HfDpwSqOppw05aFaOaCcx6hNcQ+vI9hIUTx1TGkOrhqvE2Ur9IkaH4CMtpU
+	 UfuYLWI1SqPvB4warBmg3NM//yK5ygqFh7vKfLB9V0Nb2FVrJlzDkoP2Vy7xjchauzQ==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f0pOCtuX;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EED5606A329;
+	Sat, 14 Nov 2026 19:09:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=f0pOCtuX
+Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
+ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
+	t=1794683369;
+	b=lInKLXpQTh9PdhHet5NQpI+i/VstnXhzrGblHyR1czptOXMykqhOsbndzys6X/jA7I/g
+	 XWgszxfA0HtJDYBEe7bYlznvV7AbB0V4YLdO27QfloVaryUKG6CY5ugh2qL5psSHFhLpL
+	 9kAE2F8msLHoYaGGUurUpHlHOoXCVHI0mEmky1xoxnH30e9daratugK/N7HrgN72zM+rR
+	 Ip+TY08LrsUy1I3+1XROS31XrO7mFiD4VQpAdjbB/tlNgOKtjT+oyNMDWp+fZeF7pWlol
+	 a1iv0VOIk7K1XfJQYxA72Fzmrs6l+PXw90/nYggYtuGmADpgzDfIZ44jFdX62R3RphA==
+ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
+	c=relaxed/relaxed; t=1794683369;
+	h=DKIM-Signature:Received:From:Subject:Date:Message-Id:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding:X-B4-Tracking:X-Change-ID:To:
+	 Cc:X-Mailer:X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To;
+	bh=atR/sBUvEX9u2OIbJcUD2tUMga9UZkt5JTKJTf67tmY=;
+	b=bRmO4r2LGAg3T1JLZwO7uI/9yHJe1aH3bXT+aJiELoIkgf4dZw6OrKV4KNqRG6/aRqsD
+	 gUP0820Q6/Seg/e2XZpLEG+G2T76lPkMxaXIwRYB7yucA51B/LdCiC46xdvm/FkHYdLU7
+	 fZr8M7r3eAf96A50h9TMu8PFNhLnww0v80A8GepPHMqlBIzzSlUV6OVAP3R8nbpMeetmM
+	 o5kMUYaICk1I/MPuwYe/NLv46EZgA2VJscLfkc3hS/bmGqpXCa2OBa75rKt11uhh6wpCS
+	 8Ytv+OjccAA1LFU8aa1WYIlg5EZe3SW6AAJh5O6ILLhoM41EGJFypjzpYx8U3w62gkw==
+ARC-Authentication-Results: i=1; smtp.kernel.org; 
+	arc=none smtp.remote-ip=100.80.115.77
+Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DFB7606A330
-	for <linux-rdma@vger.kernel.org>; Sat, 14 Nov 2026 19:05:48 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3DFB7606A330
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=bZrpjGce
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=6Lbt2fLwe0vyCFAL3T0HWQHDAyyClHtPtKKASVzf5Oo=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1794683147; v=1; x=1795287947;
- b=bZrpjGceXtb+LOnuMBd0iwDlUQkjwmNZZGDXuqnSoNG6yuhIWra8xVH9saKlIy9o2RbHRfCj
- DZEgrRVGcgPYX7FfXntBQZ9U1ygMIYTHRPTwKwrraj3VFSXHaTGuwtTpIYiGNArdHk06AMaoqm1
- A8cKnMiupq70BWYOmNemxUaA=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 4775a52cce20f54a;
-	Sat, 14 Nov 2026 19:05:45 +0000
-X-Mizu-Trace-ID: 4775a52cce20f54a
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <e432178a-6e73-4096-9f59-5c5d2bc9d682@linux.dev>
-Date: Sat, 14 Nov 2026 11:05:39 -0800
+	by smtp.kernel.org (Postfix) with ESMTPS id B40761F000C5;
+	Sat, 14 Nov 2026 19:09:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794683369;
+	bh=atR/sBUvEX9u2OIbJcUD2tUMga9UZkt5JTKJTf67tmY=;
+	h=From:Subject:Date:To:Cc:Reply-To;
+	b=f0pOCtuXMHHdJn0tbNl3tGY32xFNOwjTKVB6q9gSRmCe5yMl/4a5AjXd18qz1U3lH
+	 nTJ0ZUs+7+qN66E/HmTCDRZSthFXeYiGSL46JuGhzcBbnU2rfaOxb7ESXiH9QxTvHI
+	 4830s4Y7I+0o6LaBsTEXTpPN+pgsTcpUZb3kbnWY5iCqmZu5DAujsqEOH2SiHqBu5r
+	 n9uGHtZwJJTTTrgtO/ocCakIXArG9srqII0MRy8iF/7sMNImU8QpBczh6L+/e59nZ1
+	 RREKcbaRii6UtYlLX7DouJKtBWPpbsSsOb/dRXkOrmF7V1yGokAHARpZG70qIReR3e
+	 GHTE3SHMMUmeA==
+Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
+	by lkml.kernel.org (Postfix) with ESMTP id 12CB249E6E;
+	Sat, 14 Nov 2026 19:09:28 +0000 (UTC)
+From: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
+Subject: [PATCH net v2 0/2] net/smc: do not reuse the DMB of a nocopy
+ device
+Date: Sat, 14 Nov 2026 14:09:27 -0500
+Message-Id: <20261114-b4-disp-4e6374c2-v2-0-3b7050bddef7@proton.me>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,134 +84,154 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] RDMA/rxe: Do not re-execute completed local ops after a
- retry
-To: Mohamed Khalfella <mkhalfella@purestorage.com>,
- Zhu Yanjun <zyjzyj2000@gmail.com>,
- "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- stable@vger.kernel.org
-References: <20261113230831.2682071-1-mkhalfella@purestorage.com>
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <20261113230831.2682071-1-mkhalfella@purestorage.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yWMwQrCMBAFf6Xs2YVmEyv4K+LBJq+6HmLJtkUI/
+ XejHmdgppKhKIzOXaWCTU1fuYEcOoqPW76DNTUm6WVwzgUeAye1mQMGfwpR2KfeCxCTO07Usrl
+ g0vdveaGMha5/aev4RFy+M9r3D6neCDV5AAAA
+X-Change-ID: 20261114-b4-disp-4e6374c2-3d032eecd15f
+To: Dust Li <dust.li@linux.alibaba.com>, 
+ "David S. Miller" <davem@davemloft.net>, 
+ Mahanta Jambigi <mjambigi@linux.ibm.com>, 
+ Alexandra Winter <wintera@linux.ibm.com>, Paolo Abeni <pabeni@redhat.com>, 
+ Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
+ Sidraya Jayagond <sidraya@linux.ibm.com>, 
+ "D. Wythe" <alibuda@linux.alibaba.com>
+Cc: Hidayath Khan <hidayath@linux.ibm.com>, linux-kernel@vger.kernel.org, 
+ linux-rdma@vger.kernel.org, netdev@vger.kernel.org, 
+ Simon Horman <horms@kernel.org>, Tony Lu <tonylu@linux.alibaba.com>, 
+ Wen Gu <guwen@linux.alibaba.com>, linux-s390@vger.kernel.org, 
+ Wenjia Zhang <wenjia@linux.ibm.com>, Julian Ruess <julianr@linux.ibm.com>
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1794683367; l=6465;
+ i=hexlabsecurity@proton.me; s=default; h=from:subject:message-id;
+ bh=509iPFA4GJ+RaeEwKENn31V4LNoHRq/QTNjToALIfUE=;
+ b=YBB6grVOgMyZsyohLk4Gyya2y1a3wRWJEYNDUFk8WxENQW5lO0FoBpR5zJADnP5Q4VHjXSIYu
+ kwlSau7kwMsCROYDIKlpzE/vEnJ9QyppVE+7fPBjzvhH78enbymuskE
+X-Developer-Key: i=hexlabsecurity@proton.me; a=ed25519;
+ pk=xw1AhCtQdvuoQc+bOQIYy9o8G++cp4/VniI2G/tc3G8=
+X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/default with
+ auth_id=893
+X-Original-From: Bryam Vargas <hexlabsecurity@proton.me>
+Reply-To: hexlabsecurity@proton.me
 
+With DMB nocopy (the dibs loopback device) a peer writes into the other
+end's RMB through its own attachment. smc_buf_unuse() puts that DMB back
+in the link group's pool with its token still registered, IOW the old
+peer can still send its CDCs to it. The next connection that takes the
+DMB gets those CDCs, and a peer that attaches after the other end gave
+up lands in another connection's DMB. 2/2 stops pooling DMBs on nocopy
+devices. This is the reused-DMB case that the v6 cover of the CDC
+receive ordering series [1] lists as not fixed; Sashiko flagged it on
+v5 2/2 [2].
 
-在 2026/11/13 15:08, Mohamed Khalfella 写道:
-> Local operations (IB_WR_REG_MR, IB_WR_LOCAL_INV, IB_WR_BIND_MW) are
-> executed inline by rxe_requester() through rxe_do_local_ops(), which
-> marks the wqe wqe_state_done and advances qp->req.wqe_index past it.
-> Unlike wire operations, nothing is posted to the network and no ack is
-> expected.
->
-> The completer only consumes wqes from the head of the send queue, in
-> order. A done local op wqe therefore stays in the queue until every
-> older wqe has completed, so it can sit behind a SEND or RDMA WRITE that
-> is still waiting for an ack. With nvme-rdma, which posts REG_MR + SEND
-> for every I/O, the queue regularly looks like:
->
->    SEND(A) pending, REG_MR(B) done, SEND(B) pending, REG_MR(C) done ...
->
-> When a retransmit timeout fires or a NAK arrives, req_retry() rewinds
-> qp->req.wqe_index to the consumer so that every unacked wqe is resent.
-> Its loop skips wqe_state_done entries when resetting DMA state, but
-> rxe_requester() itself has no such check. After the rewind it walks
-> forward through the queue, reaches REG_MR(B), sees WR_LOCAL_OP_MASK and
-> calls rxe_do_local_ops() on it a second time.
->
-> rxe_reg_fast_mr() rejects the repeated registration because the MR is
-> already RXE_MR_STATE_VALID, not FREE. The wqe is given
-> IB_WC_LOC_QP_OP_ERR and the QP is moved to the error state. The
-> completer then flushes the entire send queue with IB_WC_WR_FLUSH_ERR,
-> including the wqe that failed, so the consumer never sees the real
-> error status. nvme-rdma logs only "SEND ... failed with status WR
-> flushed (5)" and tears down the controller.
->
-> Any packet loss that triggers a retry while a later request is queued
-> is enough to hit this. On a soft-RoCE setup with a few hundred lost
-> frames per run every controller reconnect traced back to the same
-> rxe_dbg_mr() line:
->
->    rxe1: mr#776 rxe_reg_fast_mr:  mr->lkey = 0x3084c not free
->
-> Skip local op wqes that are already done when the requester reaches
-> them again after a rewind. Advance wqe_index past them exactly as a
-> successful execution would and continue with the next wqe. The MR keeps
-> its registered state and the completer still reports the wqe in order
-> with its original status. Only local ops can be in wqe_state_done ahead
-> of the consumer on an RC QP, since wire operations stay pending until
-> acked, so the check cannot match anything else.
->
-> Fixes: 001345339f4c ("RDMA/rxe: Separate HW and SW l/rkeys")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Mohamed Khalfella <mkhalfella@purestorage.com>
-> ---
->   drivers/infiniband/sw/rxe/rxe_req.c | 14 ++++++++++++++
->   1 file changed, 14 insertions(+)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-> index 4f353abd76f5..fdb55366d668 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_req.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-> @@ -723,6 +723,20 @@ int rxe_requester(struct rxe_qp *qp)
->   		goto err;
->   	}
->   
-> +	/*
-> +	 * A retry rewinds wqe_index to the send queue consumer. Local
-> +	 * operations that were already executed may still sit in the
-> +	 * queue behind an unacked wqe waiting for in-order completion.
-> +	 * Re-executing them fails (e.g. REG_MR on an MR that is no
-> +	 * longer free) and would move the QP to the error state, so
-> +	 * skip them instead.
-> +	 */
-> +	if ((wqe->mask & WR_LOCAL_OP_MASK) &&
-> +	    wqe->state == wqe_state_done) {
-> +		qp->req.wqe_index = queue_next_index(q, qp->req.wqe_index);
-> +		goto done;
-> +	}
+2/2 depends on 1/2, a dibs loopback fix: when the owner unregisters a
+DMB that a peer still holds, its dmb_clientid_arr[] entry is never
+reset, and rmmod smc then warns in dibs_unregister_client() and leaves
+smc registered as a dibs client. On net that needs a link group freed
+while a peer still holds one of its DMBs; with 2/2 alone, each of the 20
+connections of the rmmod test below left an entry set.
 
-I understand the need for this check to prevent already-completed local 
-operations from
+Tested in an x86 KVM guest on a v7.4-rc2 KASAN kernel, with net/smc and
+drivers/dibs from the base below built as modules, with and without the
+series. The modules had test counters, and some tests set a test-only
+knob (a hold, a shorter link group free delay, an injected failure or a
+forced terminate), named below. Each test has a control that passes on
+both, and each part of the series has a test that fails without it. No
+KASAN report or WARN with the series.
 
-being re-executed after a retry rewinds the WQE index.
+- A DMB reused while the old peer is still attached, 8 rounds: 4 with
+  the new server end held before its attach by a knob, 4 with no knob,
+  the new client's connect() at SCHED_IDLE on a busy CPU instead. On net
+  the old peer's CDCs reach the new connection every time: it reads EOF
+  while its own client is open, and its send space goes past its buffer
+  size. With the series it gets a new DMB and token and sees none of
+  them, and with 1/2 the old peer's CDCs raise no interrupt.
+- Late attach, after an earlier connection set up the link groups: the
+  client held 8 s by a knob after the CLC accept, past the server's 6 s
+  wait for the confirm. On net it attaches to a DMB another connection
+  already took, and after close() it stays orphaned in PEERCLOSEWAIT1,
+  keeping smc in use. With the series the attach fails with -EINVAL and
+  the client falls back to TCP.
+- rmmod smc after 20 sequential connections, the 600 s link group free
+  delay cut to 3 s by a knob: with 2/2 alone it warns, with 118 entries
+  still set after the other tests of the same boot; with the series it
+  unloads clean, and smc loads and connects again. On net, after the
+  same tests, rmmod smc fails with "Module smc is in use" (the orphan
+  above). In a separate boot, with the same knob, net warns too when a
+  link group is freed while a peer still holds one of its DMBs; 1/2
+  alone fixes that.
+- 2/2 without the conn->rmb_desc clear: KASAN slab-use-after-free in
+  smc_ism_unset_conn() when the client retries the handshake on the same
+  socket. It took two injected failures, the CLC confirm send of the
+  first attempt and the RMB allocation of the second. Clean with the
+  series.
+- The same retry with the first attempt's link group terminated by a
+  knob before that attempt is aborted: smc_conn_free() then skips
+  smc_buf_unuse(), and with v1's 2/2 the pointer stays set. Five KASAN
+  reports, the first again in smc_ism_unset_conn(), then a GPF in
+  smc_conn_free(), and close() hangs. Clean with v2.
+- A connection closed while its link group is being terminated (a knob
+  terminates the link group and holds its terminate work before the
+  kill loop): v2 unregisters its DMB when the connection is freed, v1
+  when the link group is freed. rmmod smc is clean after both.
+- 6000 connect/close cycles, more than the device's 5000 DMBs, with 120
+  peers kept open and the same 3 s delay: one DMB per connection end, no
+  fallback and no -ENOSPC.
 
-However, this check is currently placed in the common `rxe_requester()` 
-path, so it is evaluated
+Cost, one run of 2000 connect/echo/close cycles per RMB size on the same
+KASAN kernel, so relative only: 3.6% fewer cycles/s with 64 KiB RMBs
+(4251 to 4098), 2.9% fewer with 1 MiB (3328 to 3232); handshake median
+107 to 113 us and 112 to 167 us; a 1 GiB stream with 64 KiB RMBs 4759 to
+4750 MB/s. Each connection end now registers its own DMB instead of
+taking a pooled one. Not measured: under memory pressure that allocation
+can fail, and the connection then gets a smaller DMB or falls back to
+TCP, as a first connection does today.
 
-for every WQE, including normal SEND and RDMA WRITE operations.
+ISM pools its DMBs the same way and an old ISM peer also writes its CDCs
+by token, so AFAICT the reuse applies there too. This series does not
+change ISM, and I have not tested it.
 
-Since this condition is only relevant when a retry causes the requester 
-to revisit an already-completed
+With the series a loopback peer that is still attached is not told the
+DMB is gone, as on net; its writes land in the old DMB, which nobody
+reads and which is freed when that peer closes.
 
-local operation, it is expected to be very rare in the normal execution 
-path.
+A client that retries the handshake on the same socket keeps
+conn->rmb_desc and conn->sndbuf_desc from its first attempt; v6 2/3 of
+[1] clears them. 2/2 clears the pointer to the DMB it frees, now also
+when smc_conn_free() finds the link group off its list, so its own free
+does not depend on that series. A connection that the termination
+already killed keeps its DMB until the link group is freed, as on net;
+by inspection that socket cannot start a new handshake.
 
-Could we move this check into the existing `WR_LOCAL_OP_MASK` handling 
-path, or at least mark
+Test patch and logs on request.
 
-the condition with `unlikely()`?
+v2:
+ - 2/2: also unregister the DMB and clear conn->rmb_desc when
+   smc_conn_free() finds the link group off its list and skips
+   smc_buf_unuse(); v1 left the pointer set there, which Sashiko
+   found [3].
+ - 1/2: unchanged.
+v1: https://lore.kernel.org/all/20261113-b4-disp-19244662-v1-0-39b256b70ca7@proton.me/
 
-I would prefer moving it into the local operation handling path, if the 
-control flow allows it, so that normal wire
+[1] https://lore.kernel.org/all/20261112-b4-disp-1c8d3a53-v6-0-36a38ae35021@proton.me/
+[2] https://lore.kernel.org/all/179241208501.3135.14193534440423847161@kernel.org/
+[3] https://lore.kernel.org/all/sashiko-outbox-214598@kernel.org/
 
-operations do not pay the cost of an additional state check.
+---
+Bryam Vargas (2):
+      dibs: loopback: reset the client id when the owner unregisters a DMB
+      net/smc: do not reuse the DMB of a nocopy device
 
-This would keep the fix while minimizing its impact on the common fast path.
+ drivers/dibs/dibs_loopback.c | 14 ++++++++------
+ net/smc/smc_core.c           | 28 ++++++++++++++++++++++++++--
+ 2 files changed, 34 insertions(+), 8 deletions(-)
+---
+base-commit: ead6fa9a0ab194f02a2f36d634b193e9c5f9a1c6
+change-id: 20261114-b4-disp-4e6374c2-3d032eecd15f
 
-Thanks a lot.
+Best regards,
+--  
+Bryam Vargas <hexlabsecurity@proton.me>
 
-Yanjun.Zhu
-
-> +
->   	if (rxe_wqe_is_fenced(qp, wqe)) {
->   		qp->req.wait_fence = 1;
->   		goto exit;
-
--- 
-Best Regards,
-Yanjun.Zhu
 
