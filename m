@@ -1,56 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794669697;
-	b=Y+n9aDM4ocQ65exMMwzlEu4Eni+dgZVmE5jWxFVDJFbwqUA6WDmpTJMwvCiPJvrbFk3H
-	 cc79yq2315SREZ2Jpuxj+3phYQ0u/JE+BolBJotR1GMsVsGiNbw7QkRs+NsCDdgPQxW9t
-	 X5UMYu7fyhv/dCgY1SuDRmb0VajVO8TTM5+J6ZqsGaevWx3ASc8Bn8J4rP37S2j3U2W+E
-	 PB7mxrR0CwTXE4nomA3lyrE89t97vEy2oWzzS3o9cdz1/N0pERXf4vvezyyosNF6ODjAe
-	 hFQP/I6Jakgy/uq7Rw1iyJABrWXmzfMoxl+qLBcDNvsrpK6XV2FQ4cCxUO3TwzLpLRg==
+	t=1794672563;
+	b=faeNdxZTxLNqcP9ghoAHauxNB4RvnhkDryAkzSp93f57mFCThLtjC1o+Mkq8Vj8vCOJK
+	 gKo53cmnU5Oy7fkCklgIG7SRa8m8dge693BIRRzeN0zcMrIylSHfcRTvuVLhkIq+jnOkr
+	 SfEE0uhHpGt/i+IHGfqptPX/ImpaZRproEAtVHCF3UHb3ql+CmrP9UOYuSSBp3rLTpL2x
+	 48togeWlrgwzv5zHJZHZCzGCj1GYIoMS/qoZSF5N2jtX/Q4a18e0bCWPKhLyRutAVLM1+
+	 VIzto3p0Yul5ABGgf3haVKVzwdZOupzsXhPStgw+1qffGWeQ73pbV3ZmxWydh7r4GOQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794669697;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794672563;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=G4DjAwGkLxUQakHv0AbLRFI6cASkGdH5y6xKN2hH/70=;
-	b=h4r65FR/gisJzsra1aDlJvBhh3aCwl83ij2pIOKiYndMPL5STkTshq9qulwEtlwamD8U
-	 21sJxjyuRw72vy0UZ27UVLwajUdsH62FRHAR/tQAYNd6qWU6Su+IWmXvoIWhWMLMCY4Me
-	 NsQbWJtx+wXckGFPET6PKrwcBqOfiM5Sq2+ZYMp/X1SSlPAbVFspooFX5Ng1QBtlCUz3G
-	 6gfAK0XP+agFtxzdwjcsMEjxvXRW1fSL9klxu6uu3QlcgCZmJRFEXGrqzb016HTPHbV0Z
-	 bXMSBVihg9w9J4cxGUlfUPpxoUIxvwpyJgbUKpKquT3JGC1Zq2CDGOSJRDFRLtskuZA==
+	bh=g2mwoviM3gWZDsBgYq6cZVNpjcLJdB0d4Fk6H1RcDHY=;
+	b=1VLsdIhksdezJzQN6VHCPj3uDBtnw3WpgVoYgdsqA7zAZcY7vi0cSKJD5MFLWozbMIp6
+	 53cHsu0ZwXaoXMl1gwQnlDLZET8hyktwXLdlIw8Znx6Rc5HieCrawjcMymC1o1saTeQCw
+	 iCbdkZQreULoRMREeYEGmyqpJKJ55rcEFJQH7uVZv1StCT6VdMkKva9LC+UibQeMVRf/W
+	 D5Z/BJf+5eNt/42YYwqqKy2WAFnW7w1X/UZxH74o1vuZ8x3asWAv6Lugc7V7cOLosWuVI
+	 fUR/MsjeRoy1WIxEjnaq5tbY1O6THs4yw3zBpd539w+4kUHgSZmsXbuokYi5AOX4Fgw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BZo8vs3K;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Bg6k+3qH;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 923B3606A32D
-	for <linux-rdma@vger.kernel.org>; Sat, 14 Nov 2026 15:21:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BBC1606A323;
+	Sat, 14 Nov 2026 16:09:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BZo8vs3K
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E8C11F000C5;
-	Sat, 14 Nov 2026 15:21:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Bg6k+3qH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 823BE1F000C4;
+	Sat, 14 Nov 2026 16:09:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794669697;
-	bh=G4DjAwGkLxUQakHv0AbLRFI6cASkGdH5y6xKN2hH/70=;
+	s=k20260515; t=1794672562;
+	bh=g2mwoviM3gWZDsBgYq6cZVNpjcLJdB0d4Fk6H1RcDHY=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=BZo8vs3KQLdETR49iOS31pxZIIah01+whHiY5jE1ytrU8D9M1vRSyB/sqKEXbwPaX
-	 Cdrxd6fwlWVOySpPJ6IDIUNt5SXIbprUJlwi2h0pW/vnsmqz8rNyjkG+Eis5VM/fYL
-	 jpzcCpAS0tyF0zBBs7h4cSOoc758MN+Lmfr7boJrIwrKO8gr3UduU4yMT7nkC8H0hk
-	 tHfWkOgcgFwFm3JOXfmtjqy0FM2TZZXBrw1ScdAQmWEyXfPCf4FPi9WM3WzfnpxxU8
-	 D+ejfmGpLIkLlMaxvZ7VrGspK7npIzOV10xmJGME5IljVUejyJ2/kBCvNTqPHojWf0
-	 fOfDNLxYx4n8w==
-Message-ID: <sashiko-outbox-214696@kernel.org>
+	b=Bg6k+3qHXBlLMrYh4GUg3XfgETcgAtGlji0dQqvLgA6j3n5MFqgfVDEP+n5bD/EJk
+	 8V8feVaVyqAMNBde/Hl0keLqm2WtO/yqfxAjNbgtGV6CUutaPwVBOrz2bAdxD158f1
+	 UOzxUuwdDRyYBpLv1dhQcAKeURpFwCXJ6oa10GG0kGJAW1Tby9vRNNQ6DfUc60mHJ8
+	 7H/lOKluSRBaFzh5oLKJ29wrlGRyAq6MsWk8ca7pfSoMJvAubSJVxsDJe1TgE5t5gM
+	 r80zeltItkwuqHKMASZEOTKS28d0jge440Jlwnxz215llHPiOwyS3i/i9E1KZe4XIQ
+	 ofDy67AOvWqGA==
+Message-ID: <sashiko-outbox-214737@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net V2] net/mlx5e: rep, Fix races between devcom PAIR
- event and uplink close
+Subject: Re: [PATCH v3 1/2] overflow: Add offsetofend() variant of
+ struct_offset()
 Reply-To: sashiko-reviews@lists.linux.dev
-To: "Tariq Toukan" <tariqt@nvidia.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261112182403.3646298-1-tariqt@nvidia.com>
-References: <20261112182403.3646298-1-tariqt@nvidia.com>
+To: "Bence Csokas" <bence.csokas@arm.com>
+Cc: dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org, linux-scsi@vger.kernel.org, media-ci@linuxtv.org
+In-Reply-To: <20261113-offsetof-v3-1-714df7053893@arm.com>
+References: <20261113-offsetof-v3-0-714df7053893@arm.com>
+ <20261113-offsetof-v3-1-714df7053893@arm.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Sat, 14 Nov 2026 15:21:36 +0000
+Date: Sat, 14 Nov 2026 16:09:22 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,108 +61,76 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue to consider:
-- [Medium] net/mlx5e: esw->devcom UAF race with
-  mlx5_esw_offloads_devcom_cleanup()
+Thank you for your contribution! Sashiko AI review found 2 potential
+issues to consider:
+- [Low] coccinelle: struct_offsetof.cocci lacks virtual mode
+  declarations and guards
+- [Low] coccinelle: struct_offsetof.cocci lacks tools/ and overflow.h
+  exclusions
 --
 
-commit 7323974cbd0d255bb995fa9d0fba3a2187d60aad
-Author: Shay Drory <shayd@nvidia.com>
+commit c626ce371da764dd2d49c4588f1e87be178e9327
+Author: Bence Csokas <bence.csokas@arm.com>
 
-net/mlx5e: rep, Fix races between devcom PAIR event and uplink close
+overflow: Add offsetofend() variant of struct_offset()
 
-This commit adds mlx5_devcom_comp_read_lock() and
-mlx5_devcom_comp_read_unlock() and holds the devcom component read
-semaphore across mlx5e_sqs2vport_start() and mlx5e_sqs2vport_stop() to
-serialize against devcom PAIR and UNPAIR events.
+This commit adds a struct_offsetofend() helper macro to
+include/linux/overflow.h and a Coccinelle semantic patch to convert
+offsetof() and offsetofend() calls using typeof(*ptr).
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/n=
-et/ethernet/mellanox/mlx5/core/en_rep.c
-> index a50a42581528a..962c70b9b5661 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-> @@ -506,10 +506,11 @@ static int mlx5e_sqs2vport_start(struct mlx5_eswitc=
-h *esw,
->  				 struct mlx5_eswitch_rep *rep,
->  				 u32 *sqns_array, int sqns_num)
->  {
-> +	struct mlx5_devcom_comp_dev *devcom =3D esw->devcom;
->  	struct mlx5_flow_handle *flow_rule;
->  	struct mlx5e_rep_priv *rpriv;
->  	struct mlx5e_rep_sq *rep_sq;
-> -	bool devcom_locked =3D false;
-> +	bool peers_ready;
->  	int err;
->  	int i;
-> =20
-> @@ -518,9 +519,8 @@ static int mlx5e_sqs2vport_start(struct mlx5_eswitch =
-*esw,
-> =20
->  	rpriv =3D mlx5e_rep_to_rep_priv(rep);
-> =20
-> -	if (mlx5_devcom_comp_is_ready(esw->devcom) &&
-> -	    mlx5_devcom_for_each_peer_begin(esw->devcom))
-> -		devcom_locked =3D true;
-> +	mlx5_devcom_comp_read_lock(devcom);
-> +	peers_ready =3D mlx5_devcom_comp_is_ready(devcom);
+> diff --git a/scripts/coccinelle/api/struct_offsetof.cocci b/scripts/cocci=
+nelle/api/struct_offsetof.cocci
+> new file mode 100644
+> index 0000000000000..6cbc5596d673d
+> --- /dev/null
+> +++ b/scripts/coccinelle/api/struct_offsetof.cocci
+> @@ -0,0 +1,14 @@
+> +// SPDX-License-Identifier: GPL-2.0-only
+> +/// Use struct_offsetof() family of macros
+> +///
+> +// Confidence: High
+> +@@
+> +expression ptr, member;
+> +@@
+> +- offsetof(typeof(*ptr), member)
+> ++ struct_offset(ptr, member)
 
-[ ... ]
+[Severity: Low]
+Does struct_offsetof.cocci need virtual mode declarations and mode guards
+on its rules?
 
-> @@ -630,8 +627,12 @@ mlx5e_remove_sqs_fwd_rules(struct mlx5e_priv *priv)
->  	struct mlx5_eswitch *esw =3D priv->mdev->priv.eswitch;
->  	struct mlx5e_rep_priv *rpriv =3D priv->ppriv;
->  	struct mlx5_eswitch_rep *rep =3D rpriv->rep;
-> +	struct mlx5_devcom_comp_dev *devcom;
-> =20
-> +	devcom =3D esw->devcom;
-> +	mlx5_devcom_comp_read_lock(devcom);
->  	mlx5e_sqs2vport_stop(esw, rep);
-> +	mlx5_devcom_comp_read_unlock(devcom);
->  }
+scripts/coccicheck checks each script for "virtual $MODE" before running
+spatch, so without declarations such as "virtual patch", make coccicheck
+skips this file with a warning in every mode.  When invoked directly with
+COCCI=3Dscripts/coccinelle/api/struct_offsetof.cocci, the unguarded patch
+rules also produce no output in the default report mode and emit raw
+replacement diffs in context mode.
 
-[Severity: Medium]
-Can mlx5e_remove_sqs_fwd_rules() and mlx5e_sqs2vport_start() race with
-mlx5_esw_offloads_devcom_cleanup() and dereference a freed esw->devcom?
+> +@@
+> +expression ptr, member;
+> +@@
+> +- offsetofend(typeof(*ptr), member)
+> ++ struct_offsetofend(ptr, member)
 
-esw_offloads_disable() tears down esw->devcom while esw->mode is still
-MLX5_ESWITCH_OFFLOADS and before the VF and uplink representor netdevs
-are unloaded:
+[Severity: Low]
+Will applying these rules across the tree break builds under tools/ or
+rewrite the macro definitions in include/linux/overflow.h?
 
-drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c:esw_offloads_dis=
-able() {
-    ...
-	mlx5_esw_offloads_devcom_cleanup(esw);
-	mlx5_eswitch_disable_pf_vf_vports(esw);
-	mlx5_esw_offloads_rep_unload(esw, MLX5_VPORT_UPLINK);
-    ...
-}
+tools/include/linux/overflow.h does not define struct_offset() or
+struct_offsetofend(), so converting matches in files such as
+tools/perf/util/header.c and
+tools/testing/selftests/bpf/progs/test_cls_redirect.c introduces calls to
+undeclared macros unless tools/ and samples/ are excluded via rule
+dependencies like other scripts in scripts/coccinelle/api/.  Running spatch
+with --include-headers or on include/linux/overflow.h also rewrites the
+struct_offset() and struct_offsetofend() definitions themselves into
+recursive self-references.
 
-In mlx5_esw_offloads_devcom_cleanup(), mlx5_devcom_unregister_component()
-frees esw->devcom (and devcom->comp when the last peer unregisters)
-before clearing esw->devcom =3D NULL.  esw_offloads_disable() holds
-devl_lock and esw->offloads.reps_lock, while representor netdev callbacks
-(such as mlx5e_close() or mlx5e_open()) hold only rtnl_lock/netdev_lock
-and priv->state_lock:
-
-CPU0                                    CPU1
-esw_offloads_disable()                  mlx5e_close()
-  mlx5_esw_offloads_devcom_cleanup()      ...
-                                          mlx5e_remove_sqs_fwd_rules()
-                                            devcom =3D esw->devcom;
-    mlx5_devcom_unregister_component()
-      devcom_free_comp_dev(devcom)
-        kfree(devcom)
-                                            mlx5_devcom_comp_read_lock(devc=
-om)
-                                              down_read(&devcom->comp->sem)
-                                              <-- use-after-free
-    esw->devcom =3D NULL;
-
-mlx5e_sqs2vport_start() has the same race because it now calls
-mlx5_devcom_comp_read_lock(devcom) unconditionally without checking
-comp->ready first.
+In addition, matching typeof(*ptr) instead of typeof(*(ptr)) leaves
+redundant parentheses on parenthesized expressions such as
+offsetof(typeof(*(reg)), iobase_addr) in drivers/scsi/qla2xxx/qla_tmpl.c,
+and the "///" header comment names a nonexistent struct_offsetof() macro.
 
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261112182403.3646=
-298-1-tariqt@nvidia.com?part=3D1
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261113-offsetof-v=
+3-0-714df7053893@arm.com?part=3D1
