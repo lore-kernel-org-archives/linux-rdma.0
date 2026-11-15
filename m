@@ -1,82 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794746072;
-	b=kCvfNQEtMo4bwSB5KJ/B2IrJRMGSltY7CE5c2tiUg9d9PovNFbVMB8l+vnFkf/Ac4UCc
-	 DN6/o5UySlx+Z8hPMVKMtVWK+Eq195g2/ECiPwKCJx5kTc6Vq2lfoveFXtDHKHxJ+D0a/
-	 03I+QPMfXQFFPqB6VHtZMtdUCYpGy1mkzmj39qpZ+9goivahCaKhXWoJUdCitFyFXkbfa
-	 KPSEQqU+oYL0wWvVm1hnZ1N8L5AAIlu4WdU9IreNTFCNOkWCskBVUoCA0zG6jvPIIlpr6
-	 sg4YZv3Di3SvM0H+Vbqt1lklM6ojovaktJMtlmRpdACrM4dUjt/BvLfozcb6iDGq5tg==
+	t=1794746528;
+	b=bBy6chNA0xg9kl3ISMl1P/33xAOC80DIVysabHuDiEG7MsYi7gCPoDBifugo7Fx23m84
+	 PWg+JtJpJjNCQ9XMNJGCszYgffReqybeCgl7/AdmGbUR3oH4RzUs5HiGyWj20/16DgvuG
+	 UBteC6tRag/kaqdCal4s/VmuRL1g8RqJIgj/4TxrG6xZXcksOwf/AnScvqkGgxe5oxNyM
+	 eFWdOZU+7sXhPmaln9KUWwSkRvnVIlmKEeGgLjC30PoBznvC6cVsVyGmOVBl+PnMc0xzR
+	 g6zmDnxLz5Nln+JlOyfbkMrICt+JvJ8AbeOmXfaQGbm+CoVi6lntvWuEO9xbz4luCMw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794746072;
-	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:Content-Type:
-	 MIME-Version:Content-Transfer-Encoding:X-Spam-Status:
-	 X-Spam-Checker-Version;
-	bh=Id9vGSlrDL1t4zwGiCOP4s5P1oMz9WDj7RNi2TTJ84g=;
-	b=LzgVY7O8xQvRN6WOzjxW5RSX0ONwY9myOCXDJn7CNh0HAVXfOSbor5VlEx0I+4ZSRn75
-	 9rAWJzOyLKcxR+YP2OGQgLZ7BCsV6joelyDSIswZ/qXjTKWXEmP5CJ04ZloAgXK74bLRk
-	 +Z/8ejZE9MM0Lfn22In/Ii5F/MliHR9kUIHYFEI2xTU8tCCklJZbsxWuqtLVZl+GvBWnX
-	 HJjG9gokp8pTjNVZblXmcAWAz3Z5xR3KUMCmWrz4BYp/t2F+2st004YxIxYWa5v1jBW0X
-	 E5bm/lgp8lfqhifo1YxQla52YZ71XXepQDWz3CueM7ZaBlUnnwwMg88zTY5ECLDojGg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794746528;
+	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
+	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Mailer;
+	bh=KfwOhbMRwZYcD/b3lsAKsMTdrdUiFKnowzL9PLDU2gA=;
+	b=eWTEgTnS4cJe/zGHrIvYk3hQavrhFCyL2jpb3gpxpRKVKxIFfcoQfCvvpbBLiepdLzZs
+	 SSS7nt8589GMjrDiJ6+0ianvJewV+Ut9AZGizxkAQRIjGgcpcsRYQSMrL+BTb9di1pMoA
+	 641rtbVu8It8+5NxJOmR/agVjULC3XjWTjIBmz7E6ZnsMo2CErJ26eK5NPZ4uKfuREf3v
+	 M+nmxHA2UnGreexwJO0wY9dS7FzBUqdx9naOOsq92tDWBkp0u1FN0HVxN6asSkgkI+Q2o
+	 dAzSk2dZ1BdCeUR2iLb4csxw0qTnUcxFrCnSEdCZIluSRX2JV7og3uq7FlqyFN9YaGA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.microsoft.com;
-	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=PODBvZRz;
-	arc=none smtp.remote-ip=13.77.154.182
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3D4A8606A31D;
-	Sun, 15 Nov 2026 12:34:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3D4A8606A31D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Oo5c/auL";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6326606A31D
+	for <linux-rdma@vger.kernel.org>; Sun, 15 Nov 2026 12:42:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=PODBvZRz
-Received: from weh-cvm-dev-vm.y50bckvjo0hefgfnzfztsfttff.phxx.internal.cloudapp.net (unknown [20.169.55.37])
-	by linux.microsoft.com (Postfix) with ESMTPSA id A542220B7167;
-	Sun, 15 Nov 2026 04:34:19 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A542220B7167
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1794746060;
-	bh=Id9vGSlrDL1t4zwGiCOP4s5P1oMz9WDj7RNi2TTJ84g=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=PODBvZRzHERt9jxgzknYwqnmqDvJ/Xbszs8JdXm4J8+O80okHH/xGYKaTRzRp7IyR
-	 MmF2+acGDujDsSFt9gTeo8cSZwghh5y5ni4Sr74RKnc325d/3Q2OpRCkNQQ9DaYcKJ
-	 wWF7ArpfgpSLKEUT32IT75sClCBvk0vo9CnwOsOo=
-From: Wei Hu <weh@linux.microsoft.com>
-To: netdev-bot+sashiko@kernel.org
-Cc: longli@kernel.org,
-	kotaranov@microsoft.com,
-	kuba@kernel.org,
-	davem@davemloft.net,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	andrew+netdev@lunn.ch,
-	jgg@ziepe.ca,
-	leon@kernel.org,
-	haiyangz@microsoft.com,
-	wei.liu@kernel.org,
-	decui@microsoft.com,
-	shradhagupta@linux.microsoft.com,
-	horms@kernel.org,
-	ernis@linux.microsoft.com,
-	stephen@networkplumber.org,
-	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-hyperv@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	gargaditya@linux.microsoft.com,
-	kees+treewide@kernel.org,
-	kees@kernel.org,
-	mawasthi@linux.microsoft.com,
-	weh@microsoft.com,
-	edumazet@kernel.org
-Subject: Re: [PATCH net-next v10 1/4] net: mana: prepare HWC ownership for safe reinitialization
-Date: Sun, 15 Nov 2026 12:34:10 +0000
-Message-ID: <179457550417.109246.13409427822482979137.hwc-v10-all-reviews-p1@linux.microsoft.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <179455239601.2199510.13335902064048081755@kernel.org>
-References: <df083dc6ad8a8958398e04afe66ca2c5f4bfb040.1794208055.git.weh@linux.microsoft.com>  <179455239601.2199510.13335902064048081755@kernel.org>
-Content-Type: text/plain; charset="us-ascii"
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Oo5c/auL
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B45491F000C4;
+	Sun, 15 Nov 2026 12:42:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794746528;
+	bh=KfwOhbMRwZYcD/b3lsAKsMTdrdUiFKnowzL9PLDU2gA=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=Oo5c/auLrhvTTGDaUPipd5Bv7KbqVKB/fUcTPcH/jGOLkj+lRJHjJuvRm6mFW8mPL
+	 aP8+Z0R19/dp0DOCghDKCo/jLog+1lYctJZ3dGBmuU8kSbM0efLPPlZQPwFOEI6Fxx
+	 +l5x2yiNFGEKZ5EQE6mLGtMssF7bE3YKrRmHczKAaRzhfNdTRphavzowghpEZ5ja7N
+	 9Ux6sPWpuQBg6r54SnbCoCF6ttCqcXAn/Jn+j0kcHYVErbOZ7K1mYwy1ELF4xWysNh
+	 hEHQSBhmX0TMOiSiIoLcJ/rtnmJiYMJDjA+1OX0QwqbRUGtyCuOlgDigAaRF1lStNA
+	 Aa0rGnjaNVNCQ==
+From: Leon Romanovsky <leon@kernel.org>
+To: jgg@ziepe.ca, linux-rdma@vger.kernel.org, 
+ Michael Gur <michaelgur@nvidia.com>
+Cc: Edward Srouji <edwards@nvidia.com>, Yishai Hadas <yishaih@nvidia.com>
+In-Reply-To: <20261102223325.2115128-1-michaelgur@nvidia.com>
+References: <20261102223325.2115128-1-michaelgur@nvidia.com>
+Subject: Re: [PATCH rdma-next v2 00/15] RDMA: Support HW requiring relaxed
+ ordering and add Unordered access flag
+Message-Id: <179474652540.1251023.6081466559373397899.b4-ty@kernel.org>
+Date: Sun, 15 Nov 2026 07:42:05 -0500
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -86,103 +59,57 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-Thanks for the review.=0D
-=0D
-Below are my responses, including the small follow-ups planned for v11.=0D
-=0D
-> mana_hwc_establish_channel() passes &hwc->setup_active as submitted. What=
-=0D
-> happens when the PF explicitly rejects ESTABLISH_HWC?=0D
-=0D
-setup_active records that the PF may own the queues, not that ESTABLISH=0D
-succeeded. A nonzero status indicates failure, but I do not have a protocol=
-=0D
-guarantee that a rejected ESTABLISH leaves no partially installed mappings.=
-=0D
-Also, -EPROTO covers malformed replies as well as a reported failure.=0D
-=0D
-I plan to leave this unchanged. Clearing ownership on that error would=0D
-allow freeing or reusing DMA without an acknowledged teardown or another=0D
-proven quiescence point. Distinguishing a validated rejection would only=0D
-justify that change if the PF guarantees transactional rollback.=0D
-=0D
-> Is there anything that bounds this leak? On the PCI probe path, a failure=
-=0D
-> with -ETIMEDOUT or -EPROTO frees gc via mana_gd_free_context() at free_gc=
-.=0D
-=0D
-The leak is real. Final disposal loses the allocation metadata, and it is=0D
-not bounded to one bundle across repeated fresh failed probes.=0D
-=0D
-Retention is intentional when DESTROY_HWC has not been acknowledged:=0D
-freeing the allocations could expose reused pages to outstanding PF DMA.=0D
-I do not have a confirmed PF-side quiescence guarantee for these paths=0D
-merely from the calls that disable bus mastering.=0D
-=0D
-I do not plan to add unconditional DMA freeing in this respin. A bounded=0D
-recovery or reclamation policy is a worthwhile separate improvement, but=0D
-it needs a verified quiescence contract. This is a safety trade-off, not a=
-=0D
-claim that the allocation loss is harmless.=0D
-=0D
-> What happens to a retained context across a device reset? Only an=0D
-> acknowledged DESTROY_HWC in mana_smc_teardown_hwc_locked() clears=0D
-> setup_active, but a reset discards the PF-side HWC state anyway.=0D
-=0D
-The final premise is not established by the cited mana_serv_reset() path.=0D
-That path suspends, waits, and resumes; it does not itself execute or=0D
-confirm a hardware reset on every invocation. An all-ones aperture or the=0D
-service delay also does not acknowledge that all old PF mappings are gone.=
-=0D
-=0D
-I therefore plan to keep ownership tracking unchanged rather than clear=0D
-setup_active or switch reset_vf on this assumption. A confirmed reset that=
-=0D
-invalidates those mappings could provide a reclamation point, but that=0D
-requires the corresponding PF/SMC reset contract.=0D
-=0D
-> The commit is described as preparation for dynamic HWC sizing. Several of=
-=0D
-> the changes, though, look like fixes for bugs that can be hit in the curr=
-ent=0D
-> driver:=0D
-=0D
-Agreed that the existing failure-path and malformed-init bugs should be=0D
-identified explicitly. I will clarify that in the commit description and=0D
-include applicable, verified Fixes metadata. A stable backport needs the=0D
-dependency-complete fix subset, not an automatic backport of the whole=0D
-feature stack. I do not plan to restructure the series solely for this=0D
-Low finding.=0D
-=0D
-> Two cases that used to WARN are now dropped silently: a completion for a =
-CQ=0D
-> id at or above max_num_cqs, and an empty cq_table slot. The commit messag=
-e=0D
-> does not mention this.=0D
-=0D
-I will document the intended quiet drops and correct the stale WARN=0D
-reference in mana_destroy_txq(). That is a small description/comment=0D
-correction; I will not restore WARNs for these cases during teardown.=0D
-=0D
-> Does this comment match the teardown order? In mana_hwc_destroy_channel()=
-=0D
-> the table is withdrawn and freed before the HWC EQ is fenced:=0D
-=0D
-The comment is misleading. Pointer withdrawal and the RCU grace period=0D
-protect the table before the later EQ fencing. I will correct the comment=0D
-to describe that ordering, without changing the teardown sequence.=0D
-=0D
-> This is a pre-existing issue and was not introduced by this patch. Now th=
-at=0D
-> the RCU protection of cq_table is documented here, though, mana_ib does n=
-ot=0D
-> seem to follow it.=0D
-=0D
-The independent RDMA CQ callback publication/lifetime issue is=0D
-pre-existing. We will address it separately. The comment clarification=0D
-above is not a claim that the separate RDMA lifetime issue is fixed.=0D
-=0D
-Regards,=0D
-Wei=0D
+
+On Tue, 03 Nov 2026 00:32:53 +0200, Michael Gur wrote:
+> This series prepares the mlx5 stack for hardware that restricts strong-
+> ordered memory accesses, i.e. HW whose fabric doesn't guarantee memory
+> operation ordering. The HW may choose to reject creation of an mkey that
+> doesn't request relaxed ordering, so every mkey the driver creates -
+> internal and user-facing - has to be handled accordingly.
+> 
+> The previously added 'ConnectX-10 NVLink-C2C' PCI device is such a device,
+> as will be any future PCIe Gen7 UIO devices.
+> 
+> [...]
+
+Applied, thanks!
+
+[01/15] RDMA/mlx5: Allow optional access flags in DM registration
+        https://git.kernel.org/rdma/rdma/c/254ddd3eee1089
+[02/15] RDMA/mlx5: Allow optional access flags in DEVX UMEM registration
+        https://git.kernel.org/rdma/rdma/c/7f69ff741d5045
+[03/15] RDMA/core: Allow optional access flags in dmabuf reg ioctl
+        https://git.kernel.org/rdma/rdma/c/756809c5538b16
+[04/15] RDMA/core: Allow optional access flags in reg mr ioctl
+        https://git.kernel.org/rdma/rdma/c/59f62a8d8d32f7
+[05/15] mlx5: Rename IFC bits of relaxed ordering fields
+        https://git.kernel.org/rdma/rdma/c/82bf8589c13bca
+[06/15] net/mlx5: Add IFC bits for new ordering caps
+        https://git.kernel.org/rdma/rdma/c/c512ebca3d30fc
+[07/15] mlx5: Consolidate mkey ordering setting into a single core helper
+        https://git.kernel.org/rdma/rdma/c/876e3ff1f0212c
+[08/15] net/mlx5: Enable relaxed ordering on resource dump mkey
+        https://git.kernel.org/rdma/rdma/c/6238ad7df1404d
+[09/15] net/mlx5: Enable relaxed ordering on FW tracer mkey
+        https://git.kernel.org/rdma/rdma/c/58f869ca743065
+[10/15] vfio/mlx5: Enable relaxed ordering on the live migration data mkey
+        https://git.kernel.org/rdma/rdma/c/b66642ff406eb5
+[11/15] RDMA/mlx5: Enable relaxed ordering on ODP null mkey
+        https://git.kernel.org/rdma/rdma/c/c3d03c36dbc38e
+[12/15] RDMA/mlx5: Converge UMR access-flag cap checks
+        https://git.kernel.org/rdma/rdma/c/f170699b8a279a
+[13/15] RDMA/uverbs: Add new Unordered MR access flag
+        https://git.kernel.org/rdma/rdma/c/59e0ab9ac05401
+[14/15] RDMA/mlx5: Support new Unordered access flag
+        https://git.kernel.org/rdma/rdma/c/e41579a849937c
+[15/15] RDMA/mlx5: Enforce relaxed ordering when HW requires it
+        https://git.kernel.org/rdma/rdma/c/ed876261d0cdcd
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
+
