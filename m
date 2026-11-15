@@ -1,56 +1,52 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.27.60.169
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794729948;
-	b=GvKNqb3lt+z1j26aee1HOEtAyec4supOkwvq6BLXSN9bBdw85r/6Z8uiTHV9r69EdL6U
-	 +ad6xNL9ebWPbgI5ZAOgX8A5cCltWM5NonIytOIankF5bmvdNnzbTiyH7wLgiqM3rfBeV
-	 lr6gHUIS0lgwJW43CO2rARByocT0goEven5bBlYtafaG0MnwddlgSjoMUKhJhkg08tUqz
-	 eq6n+awAkWNPQ1IXioeR6LrVcPIJCHUmTQnfi47SZW7bISSKq0Yh8kcvskOhf4aMFZ+ch
-	 vRUe3fep+olHoV9QKADumIAEI8w2Sc3CiHRoOFUD4EqfR2DoHInvpMrybDjWmVaQBXA==
+	t=1794732484;
+	b=MC9vsDtKng6s4PWGe2W1GHMP/Ym1nFMv9D17wM5EpE4sbjW/7pC475ZMAQNB1kBmis+p
+	 OJMbj4ceSj/oqLL6pS+fEjVxD8DwVwkNlC+ePKe0IzvxMyivqDnA1Gv8BG/wT30yEHeAR
+	 Xwr3t8khXnu09aQXS/+7Ky3k+0YQW9lWe/+mYaPIA6/Nqx/rG/ycWpgJjH2uXVzz05EiZ
+	 tuH6fxVJDupYTbimFk7sbghZ7tWavhUiFs/95AJcmATeepl3J+hKfryrpbr4oHFScpu8T
+	 dQZ96GnHuEo5cf11OAsFP9lkYRBM75J5JewyHURdXKWpH7pAY1llCCaKqlfUbzt4rHA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794729948;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=uLOINwQifbl7NdcmlKi1XwmwvGhRqaI2ZvtD86rQsQo=;
-	b=1+ioWq6THsG1iG9tKciMg0Rp3dcwXim0rDdtB2+X8Xi8sCbfY4kdgDC/h/fjL6SsMVBi
-	 qmD83BDtdxk9/Eq7uLDS1V5A1+89e6je7zC40lmhRt+oEaly75BSm2+VZoTcJMl5sl9qM
-	 I5x+lpGK2KXY1SoC84G3IhYe+5qYoBnCLWXqbW6k5H9MbqkHB57aa7gOqmUaV2M+M8zjG
-	 KydbVR8SOngGZGeZUC+Wll/CL5Vnw65VgPZmOY3jLmGh0ggzF5vJOMtLYLykhOQnfI7bb
-	 nl83kh+z8h3YCvCllbJE9pT6mcWlPuS8E2us0Tx+28B6z6ymwwSWyqiqRhZT//OlKpA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794732484;
+	h=DMARC-Filter:DKIM-Signature:Received:Message-ID:Date:MIME-Version:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=uPPg0EzF0XkV3FTMCRiVAvj2KrnUFtGRJ3oRND3vRZM=;
+	b=JOGkSSfRdrWLgYMPVu+PbwFa819we/aVTE5bwkh3/UmIkt8AY+4lexzgOv030lpjBIwr
+	 1ll/8AdO4q2n+9PruHm/FmkWWi3GghgO+To/BXFGsQaUOGwgEXVEDNiU+Lhk04GVlK8z4
+	 r/MDvt1tHL4EQ3lmHE5QgbO0OJeDHu7l5pDluQjnEhj8JP42LmlINTc50Gg9/1M0J3ute
+	 KlKC34hpBExyatQBSvxOk6uEw5Zx4DdPSTHZqjMH1tPxYWI9fTMVcyQAdKeLEo8maX36W
+	 3OZ0LDh62kp7HzmuyVE0wV0RwHbakD7QA7QXNAaLQgpgItt9KV2/a/2D/lv7v5qTgOQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TCj2aRKx;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=corp.free.fr;
+	spf=pass smtp.mailfrom=corp.free.fr;
+	dkim=pass header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b="hGMo/JPZ";
+	arc=none smtp.remote-ip=212.27.60.169
+Received: from rcs.proxad.net (rcs.proxad.net [212.27.60.169])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57A79606A329
-	for <linux-rdma@vger.kernel.org>; Sun, 15 Nov 2026 08:05:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD277606A327;
+	Sun, 15 Nov 2026 08:48:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DD277606A327
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=corp.free.fr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=corp.free.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TCj2aRKx
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C95491F000C4;
-	Sun, 15 Nov 2026 08:05:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794729947;
-	bh=uLOINwQifbl7NdcmlKi1XwmwvGhRqaI2ZvtD86rQsQo=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=TCj2aRKxLqJHgssqOlScXQ9gGVEx1UljEdxHxax4fbMppoLQYTev0uSp8N+pUVDuy
-	 VrwoHQgeHHIuLtqLykCMiO7PdYp5Xfxb5lApvdRXTRl8L9seOGLUSCkTu1seWJ2FV6
-	 CgTY57LKGdm5Bn4gnBt38uGifHfYGv4qhxmWwJL5kLdvTOSvocawu8wjy9OcmCpfoS
-	 8s6Vz+FTFih/hfO7J5vy1Kv2ZTr+U/RxoUEQuQVfILXvH8puM/j7hj61h3AI4rdEGC
-	 uyd89llEJELhy3RGGsyR4oUisPe5PuD7p79sCxaTFSc8kyYnGIdousgibBeQqQqwhA
-	 jC25ErfreNuRQ==
-Message-ID: <sashiko-outbox-215281@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] RDMA/mlx4: Use the right list member in
- push_deleteing_req()
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Ziheng Wei" <zihengw03@163.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261115080226.910258-1-zihengw03@163.com>
-References: <20261115080226.910258-1-zihengw03@163.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Sun, 15 Nov 2026 08:05:46 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=hGMo/JPZ
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=corp.free.fr; s=rcs;
+	t=1794732474; bh=5uvVqzK9P8/E9voTDvHAYhseKqu/N7Z++XtENzAy8bU=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=hGMo/JPZdze1z9fdRrRQZlUK+MI+GtaZzrBmpYzilOo88fi2nMw3VWkS0dfWsM2yO
+	 GhPpv7EwlHuzVdlwmWl2s1dyApHzgR/qpEP2v2320Uobbiibp3Q+rUfWyFqepcgGsZ
+	 LU6xxj4Mj2Z015MxYgwF/CiyXA8aqholFHvkzKRztYcrn8hcga6nhU8R3LSl226RdI
+	 5hwdeU2FF9v+TIV8c8Dvea/2M7NAl1PCyTT404YipVKxdgX8uT/0fjKojXIyBlIxtg
+	 DZmLyGufJ7QqQDv4nTa4zej3Mz7GuV/Hz116Oo6XMAe66bB73zIqTtqY+rJ9xe19wu
+	 b1hJq0mhsH2+g==
+Received: from [0.0.0.0] (unknown [213.228.1.188])
+	by rcs.proxad.net (Postfix) with ESMTPSA id 0584944C0202;
+	Sun, 15 Nov 2026 09:47:52 +0100 (CET)
+Message-ID: <8c5a16d1-5307-450f-9f83-911c871321c5@corp.free.fr>
+Date: Sun, 15 Nov 2026 09:47:52 +0100
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,42 +55,100 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next 02/10] cxgb4: flower: refuse a tunnel key wider
+ than the VNI
+To: netdev-bot+sashiko@kernel.org
+Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
+ jhs@mojatatu.com, jiri@resnulli.us, andrew+netdev@lunn.ch,
+ davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org,
+ pabeni@redhat.com, horms@kernel.org, michael.chan@broadcom.com,
+ pavan.chebbi@broadcom.com, bharat@chelsio.com, donald.hunter@gmail.com,
+ corbet@lwn.net, skhan@linuxfoundation.org, rdunlap@infradead.org,
+ dsahern@kernel.org, idosch@nvidia.com, shuah@kernel.org,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-doc@vger.kernel.org, linux-kselftest@vger.kernel.org,
+ oss-drivers@corigine.com
+References: <20261109131039.959438-3-acassen@corp.free.fr>
+ <179442431962.2199510.14986379471426017@kernel.org>
+Content-Language: en-US
+From: Alexandre Cassen <acassen@corp.free.fr>
+In-Reply-To: <179442431962.2199510.14986379471426017@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> push_deleteing_req() looks up the last pending request from
-> group->func[slave].pending, but recovers the enclosing struct with the
-> group_list member instead of func_list.
->=20
-> A struct mcast_req is queued on two lists at once by queue_req():
-> group_list links it into group->pending_list and func_list links it
-> into group->func[].pending. The two list_head members are adjacent but
-> not at the same offset, so list_entry() on a node taken from
-> func[].pending yields a pointer 16 bytes past the start of the object.
->=20
-> The following pend_req->clean then reads past the end of the
-> allocation. On x86_64, sizeof(struct mcast_req) is 312 bytes and clean
-> is at offset 304; the shifted pointer reads it at offset 320.
->=20
-> The entry stays on the list when clear_pending_reqs() fails to cancel
-> group->timeout_work for the first request, which sets clear to 0 and
-> leaves the request queued. push_deleteing_req() is then called right
-> afterwards from clean_vf_mcast() and reads the bogus clean field, which
-> decides whether the new delete request is dropped.
->=20
-> Use func_list to recover the request.
->=20
-> Found by LLM-assisted source review. Not tested on SR-IOV hardware.
-> With a test module that calls clean_vf_mcast() on a fabricated group,
-> push_deleteing_req() read a marker value placed right after the
-> pending request and dropped the new delete request.
->=20
-> Fixes: b9c5d6a64358 ("IB/mlx4: Add multicast group (MCG) paravirtualizati=
-on for SR-IOV")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Ziheng Wei <zihengw03@163.com>
+On 11/11/26 20:11, netdev-bot+sashiko@kernel.org wrote:
+> [Severity: Low]
+> The commit message says the truncation can already be hit today. Should
+> this carry a Fixes: tag, and possibly go through net?
 
-Sashiko has reviewed this patch and found no issues.
+v2 adds the tag, with matching ones on the nfp and mlx5 patches. The 
+series stays on net-next. The bug needs a key that no VNI can carry, the 
+rest of the series depends on these checks.
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261115080226.9102=
-58-1-zihengw03@163.com?part=3D1
+
+> [Severity: Medium]
+> Does this check cover the case the commit message describes? It only
+> looks at match.key->keyid. The hazard named in the changelog is a mask
+> that only covers bits above 23.
+
+No. v2 also refuses a mask that leaves no VNI bit.
+
+
+> [Severity: Medium]
+> This is a pre-existing issue and was not introduced by this patch. It
+> causes the same symptom the commit message names ("The rule would match
+> any traffic its other keys allow"), but it depends on the firmware
+> configuration.
+> 
+> validate_filter() in cxgb4_filter.c checks encap_vld only against fconf
+> VNIC_ID_F and the chip version:
+> 
+> 	    unsupported(fconf, VNIC_ID_F, fs->val.encap_vld,
+> 			fs->mask.encap_vld) ||
+>      ...
+> 	if (fs->val.encap_vld &&
+> 	    CHELSIO_CHIP_VERSION(adapter->params.chip) < CHELSIO_T6)
+> 		return -EOPNOTSUPP;
+> 
+> It never checks that iconf (TP_INGRESS_CONFIG) has USE_ENC_IDX_F set.
+> 
+> In __cxgb4_set_filter(), the VNI is programmed only in the USE_ENC_IDX_F
+> branch:
+> 
+> 	iconf = adapter->params.tp.ingress_config;
+> 	if (iconf & VNIC_F) {
+> 		f->fs.val.ovlan = (fs->val.pf << 13) | fs->val.vf;
+> 		f->fs.mask.ovlan = (fs->mask.pf << 13) | fs->mask.vf;
+> 		f->fs.val.ovlan_vld = fs->val.pfvf_vld;
+> 		f->fs.mask.ovlan_vld = fs->mask.pfvf_vld;
+> 	} else if (iconf & USE_ENC_IDX_F) {
+> 		if (f->fs.val.encap_vld) {
+> 			...
+> 			ret = t4_alloc_encap_mac_filt(adapter, pi->viid,
+> 			...
+> 
+> If iconf has VNIC_F, ovlan_vld is overwritten with pfvf_vld, which is 0
+> for a flower rule. If iconf has neither bit, nothing is programmed.
+> 
+> set_filter_wr() has no VNI field, so tunnel information reaches hardware
+> only through ovlan/ovlan_vld. In both cases the FW_FILTER_WR is sent
+> without any VNI constraint.
+> 
+> On a T6 with such a firmware config, could a rule like "flower skip_sw
+> enc_key_id 5 action drop" be reported as offloaded with a VNI match, but
+> drop all ingress traffic on the port that matches its other keys?
+> 
+> Flower doesn't reach the hash filter path for these rules, since
+> is_filter_exact_match() returns false when fs->mask.encap_vld is set.
+> 
+> One possible fix would be for validate_filter() to reject encap_vld
+> unless (iconf & USE_ENC_IDX_F).
+
+
+This predates the series. I can't test cxgb4 or its firmware 
+configurations, I leave it to the cxgb4 maintainers.
+
+pw-bot: cr
 
