@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794749565;
-	b=ZYdwxG7woeTrTBy2rB5+9Lpsh7iShXaEgZKcO+oPnfcqd52t4FA1PnhV1Yjfj6PO4+Y7
-	 9PxNFHnIBi5UaJSCHtgB6f4oDwPE3CLCyHMzzhmU63T7RHLIiX25U2Zjjr5E0+bBx8nnG
-	 q5zHVcbzuej072EAwkphhMYljiSGaH0FWC6Y0Fuk4j/L2ck0zzNRoH22lCem5E9CRzbd9
-	 ARJTVn5q2x+II/mcanK602gyOmXQN24Bms1qkPM6bqyexqrE05DYjS690xWyw+IY/nR4k
-	 aleI8gTKg8ZuLd9668I/vSuur7fX38tw4qFnyXvGBltY8b4D4tyI64wqBOTjGF+CMMw==
+	b=wbNJx6QsxxBpt+GuVoFCoo5/qq93HE+Pnno51i1OO1Q1VRUt03CqNKPsc6VNWxRdXcov
+	 DLt/eUFf2WYlNtzRQ3UoWl/gx8gnB8rcON+GtdL9ytb1h/kEccXiSVKRzYePd8dblyxaI
+	 3UuPBuzbdSBFCUknhOfhweEDnq/tXCWfwPSFFZ7NC7WalmBirGVvZichijx6TIbplP+3B
+	 i8sgicNNa4xiBCSKFEhkRqjcHSln8aafAWrCx/ACUZHqhm+fukxZm0Ny0RVnDpzjESbZR
+	 BGW/mvoTWKxeTXxdiFgvTlgbFLo8zCInzzDfzkNgxv6JQ6Txufgd0yJj/boAUMa59ew==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794749565;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=ltL7SSQgFr74Q7X3XXYiZSAYkydzYow6DVjRiLxzT68=;
-	b=ao3TDlhWUrK1EZJ6ynZAFPwWSUBeusQtWm5pC6wKFx5IVfC/W7W/TCUPWxDRO8tRQ0Gv
-	 bSOAFKNKE7/oX+wYmRLgAcJqliQiMhjQaPwOTrPtynciTiV0Io39W8F+RmU6p9kYhCdgw
-	 CivBZbTtwRajwpb/mn2q0YyHScI7bxu1WRdDx4IQXPYwSeRx4kr9GuHsM91IqnX9iJFZY
-	 mNJPUC422H/yH73iycPB8gzzzXsefw/ecgXqm32DPgzwHw2i3xJDyOQQ0IO/WjKOCbOFj
-	 6d7zNfqvu9fHPXqq2uBD2Q6Yeps33Agxy5GErRlEK4Xog5pHFZF9FGVFAmabIiiVvzw==
+	bh=EJQ4CZW6XmCq709SJmqKZLYHdqap7mstK/Uro8YWrmM=;
+	b=m+1TstSVNEYWuJEbycx3i0SQ6evaHMAdLtVKB5phErYAwXCRLnqae5wM6F9sdr3QV94c
+	 VVIC99YgOuOnrUQoBzowr4U7qaFrF0P7xPiYczaiFtmfd67lbhtp5eb7IynyryrtyY92o
+	 K355Pj6eEIfWQmUeA872KAPJM/4eRrMmiv/rl7ljlPcPFhHgttIRlqxf8bDWV39Vq6VQY
+	 h6MXyYz3lPkn9/psyY0w+jVrwBmAd+yusKgtjd8GxlE/dVUYr1vstK65RuCaFsN1ylw4y
+	 glomjnWZWgB7A3q6kkmhLaLCyGSaQCy1B05unLsNOOWJnjAB0jAEPiUwoLe02zvhEBw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=c1I6CeFL;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oqxif4Qb;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 168F5606A323
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B71CF606A886
 	for <linux-rdma@vger.kernel.org>; Sun, 15 Nov 2026 13:32:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=c1I6CeFL
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFAE71F000CC;
-	Sun, 15 Nov 2026 13:32:44 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oqxif4Qb
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BFF71F000CD;
+	Sun, 15 Nov 2026 13:32:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794749564;
-	bh=ltL7SSQgFr74Q7X3XXYiZSAYkydzYow6DVjRiLxzT68=;
+	s=k20260515; t=1794749565;
+	bh=EJQ4CZW6XmCq709SJmqKZLYHdqap7mstK/Uro8YWrmM=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=c1I6CeFLoc7THosidwTP2BQOk0vPN5R619bL4bTXU25I9GSIrLQONGj+vclhoexc3
-	 zhbZLijSrxym5K6HtzWUk1AlN5wOD1jMI9eNAL7LP0BENaKeMyd5JW8oV+/akjzFBA
-	 gVXsnpWvQIzWPhQ/JIXVKGbMc0bWuUwW/cXuYRIP7tX0BDzWnPF9Ks+I5O6VBE005G
-	 L2tz5x8NtBhA1RoJSoPutbzAJU4wdG5ZWfewgRENMqebS+D47FVzMDjlehcX9xeNwh
-	 Au1EiGqgnW3SUhPpJaaybQ+1YNgCJS8wMgDoY/HReKJfl1kqow0aB5HULu2IPa6obC
-	 jaT9gRavXBaKw==
-Message-ID: <sashiko-outbox-215532@kernel.org>
+	b=oqxif4QbxsmBBQ8Z/0hK5RkLUhWB5DMpdUCmr84FK/CzyZ9SvWB+Ayjhh10WspQm+
+	 emKE259WgTWVNukXbNFaLBSadcBhvzaG9OCuW3IiuHyY+KyCLVjuOQ8u73rJkdpH5n
+	 z0VqcSKGCVFxO/5HYHuvEDLACUGoigYh4YhGcEatZasR7+bGMo4ovvDxciblm5ZGCk
+	 DbjxltlmIPxvXVvfzuBZM/eLTA94H+HXp1ddNpK+Ttoa2iXwrigsnHg1CTvMD2TRU7
+	 vVKzrM6hfm84Bk6Om6AEOI7Mkf57NjDsPmBmibm5CZwIkTTXiWalpvWvCY4VzM0LZL
+	 66la9rsgqakTQ==
+Message-ID: <sashiko-outbox-215533@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2 net-next 4/5] net/rds/tcp.c: move sysctl-only code
- under CONFIG_SYSCTL
+Subject: Re: [PATCH v2 net-next 5/5] net/rds: remove dead sysctl
+ declarations
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Oleg Nesterov" <oleg@redhat.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <avmywjLAQO-9fhw5@redhat.com>
-References: <avmywjLAQO-9fhw5@redhat.com>
+In-Reply-To: <avmyxTOuUkKnOaM5@redhat.com>
+References: <avmyxTOuUkKnOaM5@redhat.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Sun, 15 Nov 2026 13:32:44 +0000
+Date: Sun, 15 Nov 2026 13:32:45 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,13 +60,8 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> Collect all code used only when CONFIG_SYSCTL=3Dy into a single block and
-> wrap it in #ifdef CONFIG_SYSCTL. rds_tcp_init_net_sysctl no longer needs
-> the IS_ENABLED() check.
->=20
-> Add the corresponding init/exit stubs for the CONFIG_SYSCTL=3Dn case.
->=20
-> Also #ifdef the rds_tcp_sysctl and ctl_table fields in struct rds_tcp_net.
+> Several sysctl variables are declared in ib.h and rds.h but are never
+> defined or used; git-grep finds nothing.
 >=20
 > Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 
@@ -74,5 +69,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/avmymGvelu00X5EH@re=
-dhat.com?part=3D4
+dhat.com?part=3D5
 
