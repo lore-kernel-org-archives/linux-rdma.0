@@ -1,61 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794751588;
-	b=EyI0aXk3Zvel8EmqHnc1VkOC9Ddbc/4oO5w2xXHFq8Va8uhOmg7Dwr3lmX7oOkie+0ET
-	 5ypTjW+lQnKypnKqLYOW+rx6QIZxD9dORlUQu311jGOLzgeh3MLAaQDxnG/LoFuUvaTC+
-	 eYIHKLcQLzo2e1MpiaXy2mzYd+ZA4QsL9JpimQzo3rHzZyBiApoKDJq49sYlRrzjinTkC
-	 gRnqpCCLYrUnJ8YN37ioeDTG9l1pX/2qCuD6xTO1VOqEkAHBvtyrsIHXZioMdI94F59gr
-	 fOcV6nA1G31QGVzv70maCghbsOg5gokhoah9Zzz7flF2JdXqkkcJ/yVYIE3LKmfpKXA==
+	t=1794751910;
+	b=qxzFHByR/0BUq/AJkabTXDcmkynOlZNblyaS2/nIPotHHtndRheZ29P5u4glElXl9tRX
+	 0px3IsO7s81tVI9MVgaK0P3vF/SLggPwKHwCxF/V1i9KhBc9J/dNoLLSpouyrTdETJ4JR
+	 ah5Q0Wi3xnfjpG2tHh26F4x0EarHeF3W99xe5BBT/bO8zEwq8J/vFlMCxTE0mfgsUJQvT
+	 pGLJTtRW1EM20OWUxtVfIzz0o+58nx99jlhBGt85Q3nSz2MPe46NRSINn7JqodVX7+RyX
+	 CFE8AmZ4UlS/RVqqJmH2bb8ip5+GMxAF8pexaWWxqGH8/3QeyBBJoUswKHOSERosZVA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794751588;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=Pw6ELLof8sXq1rGGaq/DDPI7LyWqO6k2g8iDxpoOW4k=;
-	b=aiU0SPP/YHith1RP21CEEWy5K2EOUHgOPlOXuq+kMFo9ScCeF4pYu5q+H2j4Ar3jn8Xn
-	 SHuNARDcoVXG8Gjfcr4/bc6W/g+DGj+CO5cu1JZT7DTEVUW4antPOjaHtRx9IuH5k9QeT
-	 Z9XdokYjYeBCCrHMc3t1R6Djw1YRbtWnADTeCQD30KXhsc85IgBtNsWY6BucVku68JCj4
-	 Yr3jii/EZ/nj0WEHQPreWvKmYHXHy7Zp3o9//RWOEnKCdCA+wCuVzUT9uEcPBY7Gn6gyE
-	 HQB8VN5PLYH99Jw4+A/vbm7F8vQq8faNPZuEv3pWtyE57WcozJSHbu+IYtE37LbNqeQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794751910;
+	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
+	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Mailer;
+	bh=U7MX+kDR6pYMu3DhkO8X+PWV1Rqk1KS0v8+bh7F7baA=;
+	b=J253WRXRml+xCbA+rk30r6fKEMWG4eHuNQezpCcj00F80TBq86tNPNtKN3WfDC+ymXE/
+	 TsHGJKVMccWNsJXs7IeoWZg2nVT4up9FMyXBK0d+XFs+BE4AcoMzctGQjvr2PDt/RucD7
+	 vcfbHhLsRGM/pWtsAHqZznLCBznAzpzmsamcQ+GbJ3iQk72olMz743rYbpukdTfqr5pG4
+	 Vf9XQbOHCgbFAx+tOCf/JHmaJiO0AgGRtEtTtpAQZ0J28PS0tFVSNRXmQrALImV1FHY9x
+	 UIBWhqXHSRWyFlq2SzZ3USv8An7rQ0alFlx7RYJdar8Wjk9fa2/jDfwG07Gj9x3M3+g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=O+iT5rMc;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=h62m3uRZ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8041606A32C;
-	Sun, 15 Nov 2026 14:06:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02646606A327;
+	Sun, 15 Nov 2026 14:11:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=O+iT5rMc
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2D331F000C4;
-	Sun, 15 Nov 2026 14:06:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=h62m3uRZ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B6B81F000C4;
+	Sun, 15 Nov 2026 14:11:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794751588;
-	bh=Pw6ELLof8sXq1rGGaq/DDPI7LyWqO6k2g8iDxpoOW4k=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=O+iT5rMcq8IDu1WnLz6Ns8IvESGfuXg4dLg0WX1nCCgR+TdO+YhE0wdkTQhZ04qAi
-	 S1npAWF7syolLd+vdRJB0xkhK+efTUkGld+IO9zwCWA9WWMRHymT0NVtrqLKwutBOe
-	 wcySn0Y5Cni2h5vQGfECL7XAsKmqyyjx3yxrGaFNbM7+aAt9ey4Kwvydre3rF0HWxc
-	 8wGdhw3/8aYarFLuRJrIFQTRip/WaT05OG2ZJzg7j778/ZDORJt9eAP4Tiq173syb+
-	 VvsWq3hmqkcobI4iKQB2riIpZvWKJma9vgU9rPoUeiUVXjBjZISFmvAJOEhk48RXMv
-	 bPoGc2atEpP6A==
-Date: Sun, 15 Nov 2026 16:06:24 +0200
+	s=k20260515; t=1794751909;
+	bh=U7MX+kDR6pYMu3DhkO8X+PWV1Rqk1KS0v8+bh7F7baA=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=h62m3uRZ1aP0h63BTfodrlOmYEeppLvUnG3pNkDgelLYS48GA5fo98Aq10khRQXJS
+	 3IGsr6gWoia6NwBzpfLwKIOb3nXe9sRvReN8lv3OeVklR3RA9hSZKNWwvuNZ4ROUvP
+	 2ndJXv3sV4qbMWbK7bs9pFX4Hm9e9rE3rZD1Y5VXMFsXnBsvdWZVt5DjWMjJFLAQTx
+	 cAZQeCT8HrUhVv2CnbHYZqfgWio2mnPvkO+/Fs07f3GrletxAzswR2y/3Ou5u9fgGx
+	 A9x13q0esYrDPsJ+57YIZGWEo/U03HP5HpHs9RL/znFp+ZblWXIdXWSawF1vWv01sV
+	 i9ffui+mzTUlQ==
 From: Leon Romanovsky <leon@kernel.org>
-To: Edward Srouji <edwards@nvidia.com>
-Cc: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
-	Mark Bloch <mbloch@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, Yishai Hadas <yishaih@mellanox.com>,
-	linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Mark Bloch <markb@mellanox.com>,
-	Michael Gur <michaelgur@nvidia.com>,
-	Patrisious Haddad <phaddad@nvidia.com>
-Subject: Re: [PATCH rdma-next 0/5] RDMA/mlx5: Add NIC_RX_CLASS steering
- domain for RDMA classification
-Message-ID: <20261115140624.GF42525@unreal>
-References: <20261103-rdma-rx-classifier-v1-0-1ad6c8cfe936@nvidia.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Yishai Hadas <yishaih@nvidia.com>, 
+ Yishai Hadas <yishaih@mellanox.com>, Edward Srouji <edwards@nvidia.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ Sashiko <sashiko-bot@kernel.org>, Uri Dar <udar@nvidia.com>, 
+ stable@vger.kernel.org, Michael Gur <michaelgur@nvidia.com>
+In-Reply-To: <20261111-devx-umem-mailbox-overflow-v2-0-1e7ca8237b58@nvidia.com>
+References: <20261111-devx-umem-mailbox-overflow-v2-0-1e7ca8237b58@nvidia.com>
+Subject: Re: [PATCH rdma-next v2 0/3] RDMA: Fix DEVX UMEM mailbox size
+ overflow
+Message-Id: <179475190675.1328244.9297005857885925212.b4-ty@kernel.org>
+Date: Sun, 15 Nov 2026 09:11:46 -0500
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -65,57 +61,34 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261103-rdma-rx-classifier-v1-0-1ad6c8cfe936@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-On Tue, Nov 03, 2026 at 08:12:48PM +0200, Edward Srouji wrote:
-> mlx5 devices recognise RDMA traffic on receive with a fixed classifier: UDP
-> destination port 4791. Packets that match are handed to the RDMA receive path
-> (NIC_RX_RDMA); everything else continues down the normal NIC RX path.
-> 
-> RDMA transports that identify their packet differently don't reach the
-> RDMA receive path as they use a different packet format entirely.
-> 
-> This series adds NIC_RX_CLASS, a new per-vport receive steering domain placed
-> ahead of NIC_RX/NIC_RX_RDMA. It gives a privileged RDMA transport manager a
-> programmable classification stage that supports matching on arbitrary header
-> fields and marking the packet as RDMA.
-> 
-> NIC_RX_CLASS reuses the model used by RDMA_TRANSPORT_RX/TX domains:
-> - one root namespace per vport, owned by the eswitch manager;
-> - targeted from userspace by `ib_port`, as with the existing per-vport
->   domains;
-> - gated by `rdma_transport_manager`, and by
->   `rdma_transport_manager_other_eswitch` for the cross-eswitch (LAG /
->   socket-direct) case;
-> - restricted to callers holding the same UCAP that per-port matchers already
->   require, so an unprivileged process cannot program another vport's
->   classification.
-> 
-> A rule in this domain takes no destination: it matches, attaches a
-> modify-header action to mark the packet as RDMA and explicitly allows it
-> onward. ALLOW is the only terminal action the domain accepts; a flow counter
-> may be attached alongside it.
-> 
-> Patch 1 adds the IFC bits, patch 2 fixes ALLOW handling in the FTE merge
-> logic, patch 3 unifies the per-vport root namespace init/cleanup helpers,
-> and patch 4 adds the NIC_RX_CLASS domain itself. Patch 5 exposes the new
-> domain and the ALLOW action to userspace.
-> 
-> Patches 1-4 are mlx5_core changes and are targeted at the shared mlx5-next
-> branch, prefixed accordingly; patch 5 depends on them and is targeted at
-> rdma-next.
-> 
-> Signed-off-by: Edward Srouji <edwards@nvidia.com>
-> ---
-> Michael Gur (5):
->       net/mlx5: Add NIC_RX_CLASS IFC bits
->       net/mlx5: fs, treat ALLOW as a conflicting action upon merge
->       net/mlx5: fs, refactor RDMA transport manager root namespace init/cleanup
->       net/mlx5: fs, add NIC_RX_CLASS steering domain support
->       RDMA/mlx5: Expose NIC_RX_CLASS flow table type to userspace
 
-I applied this to mlx5-next and rdma-next.
+On Wed, 11 Nov 2026 15:57:01 +0200, Edward Srouji wrote:
+> Registering a DEVX UMEM builds a CREATE_UMEM mailbox whose size grows
+> with the number of MTTs, i.e. with the user-supplied length and
+> pgsz_bitmap. The size is stored in a u32, so a UMEM of about 2TB with
+> 4KB pages wraps it, the mailbox is under-allocated and
+> mlx5_ib_populate_pas() writes past its end.
+> 
+> Patch 1 fixes a pre-existing issue in the same path, reported by Sashiko
+> on v1: devx_umem_find_best_pgsize() can return a page size that is not
+> in the user's pgsz_bitmap.
+> 
+> [...]
 
-Thanks
+Applied, thanks!
+
+[1/3] RDMA/mlx5: Respect pgsz_bitmap when reducing the DEVX UMEM page size
+      https://git.kernel.org/rdma/rdma/c/80bac9f85a8c58
+[2/3] RDMA/mlx5: Fix DEVX UMEM mailbox size truncation
+      https://git.kernel.org/rdma/rdma/c/bbd8ba74c5a37e
+[3/3] RDMA/core: Don't warn on oversized bundle allocations
+      https://git.kernel.org/rdma/rdma/c/204a89c69f3bd4
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
+
