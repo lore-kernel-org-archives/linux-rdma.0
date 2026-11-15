@@ -1,96 +1,101 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.176
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.180
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794701799;
-	b=AwESVKE2Ag8155pCmAfVZtaM1xf/nOaWW482q94hIHpHGvPHmdzkJox1qfQYPFKyYeQz
-	 /pZIsHQVX8h7jq85WuUQKEHOaHS3f+q13BqOpdYvBLbDrpwm7/8tHvNHexwOsJ2cPzeP4
-	 bi4436qsWm8LKNlXUGs4zSDb9tECnSYM/0vaPP7GTbK7d91p28e6RXTfuH1bJyqlixUSv
-	 5zUEC5xgrQIhOCw5N3OGVcgbPB3aPjIHm/lq5v81eyBSqtAHRtV2zrcBt/bKgOLgiZl+f
-	 19s1sVQVyLRSxy0vlxU3LtFm2Th9acnnp2w8pEA6zPF6yPyJwPIRVXT/JBhD/tBWr+g==
+	t=1794701934;
+	b=ywVVLwlkBNEX11sz/BN+ewi2AfwItAuvt5pxYKyHF+U8EizVnip466t3bebbzE9XBw4j
+	 Uwi5+cLGtKefwoY0odV3JtMqrTDK1HfsEZc/3doQ1T7DkC1UG60xPqW52TL8zxlMZHYfn
+	 n7DnK976n79j9/zjxNC5AbY6bj8aWrl7FQsPfdnHjco4QUXYYjVCAl9NLu/XV67S3VQMV
+	 UWHdLiLxQTKJHTel06u1RV+RktyncPuiWLxxznDIuOayWtoe0PeFSseQKEaDSqmzG7tsD
+	 3J8cgUQIpF9SyZYKBqx3Umhw6Hcn7AuK66OY92j/tQZJSq1hpvQOke/P13g+rmUjJcQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794701799;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794701934;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To;
-	bh=VEBzE1knwqMxBYVeqkNmuJaFWfXuXmCAgemIUauhHa0=;
-	b=maR2FJpsOHRCcfAja0VI9A0/gTtAVrdcYO160TQGcOjlLupvYhRzEuVHLI1TYw9gCPfT
-	 1O3Dr18q74W6oNOf0zxyHaF7o32yFWrm7QFiQwKwjvr3OvhOAihU33GC+4TD9T1dVXnYr
-	 XKVdOJfTiQei5yOVN7L1XLQdRyteVwSSgBOgQqvRV1ESv0BCxpjaA5PHzzKLB5kYYMYje
-	 aKmM5IX6sPKR5ZG6Ojd6sCKeUV3Tx22KZyrfeRLwIDbJRdC4w6fFFAQzI8fv0l3es86NE
-	 18VMLIIwDsvCLJ7DMz8vH7fV9H+UzE3vEDOLW/wiCUvfGiogIetnm7S2Ien0Wi/07HQ==
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To;
+	bh=JejavGOhT29+kYZxPl7g8FlCzMWntZ9rMxIL0KrRCgg=;
+	b=VBdS+fUgAOdiO+M8kyhE6Gt08qQaTzcgM3n3YH4Y/8Gxj5NlcicN5tzbPHq+VF/JJbR5
+	 BZjMz4ZQs2iVt7m+KBxsDJ39MYzE8JEM2rdmW1Te6F3sQ04VqZVzezu2nVHGDQ3OjcHAP
+	 7BpSQDlvjaBVYrn8exLtKqypFJch7bsr1HutC5FSGcdaWRensxrrTPObrZu3Qy89gQyVh
+	 4GZ2lchKtRhTvJcwvwn8NqfL0FwNgjAcfv6EPXjb8rQsEJcy5DzuRx+atnqF0ox7F8jFJ
+	 /iF3KGsq96sgzPoTS5XBdZUsVZws8/Xz7zusAQM1N2gyPYJiNaK2HQ/SWKca4Od7Llg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=ziepe.ca;
 	spf=pass smtp.mailfrom=ziepe.ca;
-	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=izAWa80e;
-	arc=none smtp.remote-ip=209.85.160.176
-Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
+	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=CLZiqkUi;
+	arc=none smtp.remote-ip=209.85.222.180
+Received: from mail-qk1-f180.google.com (mail-qk1-f180.google.com [209.85.222.180])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C17DB606A323
-	for <linux-rdma@vger.kernel.org>; Sun, 15 Nov 2026 00:16:38 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C17DB606A323
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA1F4606A32D
+	for <linux-rdma@vger.kernel.org>; Sun, 15 Nov 2026 00:18:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DA1F4606A32D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=izAWa80e
-Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-55ade1de0b4so32920961cf.3
-        for <linux-rdma@vger.kernel.org>; Sat, 14 Nov 2026 16:16:38 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=CLZiqkUi
+Received: by mail-qk1-f180.google.com with SMTP id af79cd13be357-943e8d35f74so287664085a.0
+        for <linux-rdma@vger.kernel.org>; Sat, 14 Nov 2026 16:18:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1794701797; x=1795306597; darn=vger.kernel.org;
+        d=ziepe.ca; s=google; t=1794701933; x=1795306733; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=VEBzE1knwqMxBYVeqkNmuJaFWfXuXmCAgemIUauhHa0=;
-        b=izAWa80emUNgO47E34Ip0dphvGCCx6mqhJZZLPZQrzTx1vrjgkrya+suDkNBT+2MP/
-         JhDUKGVelW+Dsz3PWo61oqpgNO2TgdCdAesi+hFSYJUOJEzAjVbwkykQAuf3hryFwFGc
-         SrfKLupg4gbamE6TbtnPdLfNp7T/p4IIyKSgCGFNosdb4dpQ/0PG3ahElS6rO8fk909a
-         DnjZBRoMyDUxyZ7bOtzFTS3Ku2NxklCvwvy246oLeoiRuQwti2g32uBa7nSZMoXOQ65Y
-         9PvBWt9wTF/DEaF6JReif4w8yfR65PI56WiJXVxJIZ1FRPAbHNzG8RydAJzz+EBISp7I
-         HYAA==
+        bh=JejavGOhT29+kYZxPl7g8FlCzMWntZ9rMxIL0KrRCgg=;
+        b=CLZiqkUiy/GqoMK+wOyDEYP2H1dJ227AZJ9Z8XC3+j1I4tBq57Tz++CXSvWNkYlb1I
+         VH2/IrtUDdGMYYvSoMK49waU3rQ192zmkKPi5Wg9y4HR5rwHpUHO1D5pTrHi/mjEW9ct
+         GjKEr6kPgjPz7Ih1wSoqksm3BM/X1CgQs/Nd7pC9tQm3Eg//Y544Zu37OsmxUkHS3zwG
+         v6YsLfw9Z91eCnVaMbOCLeTv8KXuhpzuciXLUppvC8Iecs9A3aeapVStAQ1VxeYMJ7qc
+         l1ArYTSfSCx9dF6vfeVBrF9tsGfoKDta0ay7l7p2DzlbvCgV7rpqxyL6obw1+5WQeRbb
+         OTkg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794701797; x=1795306597;
+        d=1e100.net; s=20260707; t=1794701933; x=1795306733;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=VEBzE1knwqMxBYVeqkNmuJaFWfXuXmCAgemIUauhHa0=;
-        b=w3DJ7sGeqUirHY67VnaHg56ceq2bQsCELkM21UFWVqsw8WyacdEP56Ft3l/ByGzLYq
-         lMR0ozX2FKEmSJhO1kOOqPcWZo46bs7/J4+IphvuNV75Q1tApF8njYLVly9iDCMOVftj
-         3tgrCih3dppGAOPuabg+dYnToCHnL7gs9vo4ysPhUv2cbzmh99oKvLeDUxMqYv5Ha97E
-         EDPx7kzSVS0CSKZd1kXaZzTNBs8V4ymruObT5NFXezt6HvAbtGpNm8rcYLNp8wr2vo10
-         sdo6/t4mJllH3kYFnekVB3wXIGh3+T79kvbK71O5mMF6CLTGsOgvUjPFMtvvUc8fVAXc
-         IzLg==
-X-Gm-Message-State: APuU4Z94geQOTmeGAqUONaElJHUyRV81ZNLTBWTKOodKlqofGjVtLFiI
-	MboJtaMxkZqGnyYcJyUuxqQJJsDdxZ5eN3+mFTczps7ox2hVfmCSOQIR1LzeIz+G/gg=
-X-Gm-Gg: AYBFou2P2Qr0PXswGQLP3OJxUXJk0hyr6WKq8X3f/vLmuR+zcVaHIK8VA6BZ0YeHWXN
-	VRvLB7VKi0nxLqA3gUFwCLXDem/riYzoU16CLNxbpg+RX+x8pssT7gFiywPXZLOli1EUaArXsw6
-	CDEHV9Bhh8/A+8OQtwqZ61Em8dcVVG1peghFP0gWtxBQoJBxFBPk313anDAMWXe1ywSAVGi/Iw6
-	yQSMYZyRxVWBeLTHrvMOi1qy+u0V53f3BAjICWTybD03GwkU7whuqqd2W+uuLmaAunBi/x6G8jU
-	wcy2uDhncB2fl2Zm3gpvh2CdoJKBitC8Xg5I7V0A6wu2fas3u1EDq/o7OqSOiL9wJ0UrJSvg9Pd
-	CnX4Hfh2qgm7/P5ajO7v4QC00f0MM8JlmeOuxIMQ9pUi2ep7/Np3e8btmiQjRyoYjvpqodUcIsQ
-	mMZfUIsGnjJ3cOvf2zO0Mth7HEVvv7EJ+HAAS5inWMBP9wOc6iMkoy8taweifdnQr4sjPcbAvnf
-	aqlNXUmWk+vgrU2A/hCVwKvBobGqX3Gjp4svn8t0yykcXgzTa3tXrRlF2ZKKDIY3SRQPNFTrud9
-	3TfB2Q==
-X-Received: by 2002:a05:622a:191b:b0:535:a5fc:3b58 with SMTP id d75a77b69052e-55ac8b9ba4dmr103255151cf.68.1794701797437;
-        Sat, 14 Nov 2026 16:16:37 -0800 (PST)
+        bh=JejavGOhT29+kYZxPl7g8FlCzMWntZ9rMxIL0KrRCgg=;
+        b=wfrIfyu1cbJitMPiasJNzTdicgxHaO2OcfF+PevLUAGKuxHabIc3HaD5vKZONtVijh
+         ten7rSG8Z+Ey2FLJWn3GviNyrkN7vL5X+bWb0TvqYuTEYBwnnNl/AYehjO4EAqTERu+/
+         EmiekcPyh8tzzUKlQzbqc02xk5bIgCWP8eG7CgmHdC6aK9AOWYUfzkBhL+tONw1oDyKK
+         jBeHbSe/Q8POLlX4+1To8x8MnICgANUm+Cq9c4mxpsPEIaC3ZMp/ymH5mhbp+gjEomlR
+         MlJxv6JUQX2HSepm+G8OCwfPMHogi2XP2d+435/uMQVTG6I+c1kHoli8PdDM5yAXtqFD
+         UBwg==
+X-Forwarded-Encrypted: i=1; AL+hErF/5gru8E8+TyFvamyQhr8Vbe25gvJGMLlod4Df45+J1dKb2qBT+x7khscaA1xxdHQEyGL6adF9z3s9@vger.kernel.org
+X-Gm-Message-State: APuU4Z8AXFkxQK/FrQVZTHJo5/dy52VngYdUUbfi8++PDQdTxg8e2dUn
+	KKfgjizfkGstRY0mdHDFMaDGgAqHTgvV4k8p3UIU9VKTQmsI7ZJFG7SzyeJDEBNIuis=
+X-Gm-Gg: AYBFou2rGi4GV36JGuLtso/BO6qm9BM/ZvIxiDyKKEBt5Ti6DWDjB9Q6kIiqP1SR2ci
+	Y4uzmhSJLlp2KvHYipLINoCebPV1i75l4zI35Ei3319Fw0yig5TgKs5rFFA9Zr9LlEEfhRmv7dt
+	+Tv5q/C/tMyu0dRxIQaM9erfQ72rFmcjkvJG9cajujMzIV/H5S04xCS+ETCMD7v5YHqDL8eBKrT
+	I0YsbKhd+0TBYHicez/4c5cM5fOdpUJGJhtkKjMVNsRQ60fU/MjLgRomfNrRnwsav4ost+7hr0R
+	OyV1ZUrCmNtmlA27wsamm/hUoo86iQgUd0aFGOyzYEr1+PUZ7194dVCR5ot7/JzmCkeCFtbwNb9
+	mSpp/SEA9X0AftI9+K6YH3R+obrZdk4svNRx8vTRbKDZjVIlTl1TDfCoDBCN5WvfD11wL+IMYdP
+	/P19bdFmYdCRE/1TLwJpaZBiAC6Sqbq+OCsLLfr2i4g4wmEeZALnWe7d41dtC89ubwk1dtEyeeq
+	UWHi4IZ48zd1QETQZCZOvCP6ljiSIcahU86jBgTVThWb35rTR+HQFDONKbJeKsXzgYDVOD7MsQn
+	X/xOjw==
+X-Received: by 2002:a05:620a:2b96:b0:93e:5fbf:a41c with SMTP id af79cd13be357-9494bbb7e8dmr1069300885a.16.1794701932860;
+        Sat, 14 Nov 2026 16:18:52 -0800 (PST)
 Received: from ziepe.ca ([142.166.156.71])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-55ad1b11d9csm50567131cf.28.2026.11.14.16.16.34
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-9494c8f92bbsm512903785a.40.2026.11.14.16.18.51
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 14 Nov 2026 16:16:35 -0800 (PST)
+        Sat, 14 Nov 2026 16:18:52 -0800 (PST)
 Received: from jgg by wakko with local (Exim 4.97)
 	(envelope-from <jgg@ziepe.ca>)
-	id 1xSNv7-00000005EDn-1Vc8;
-	Sat, 14 Nov 2026 20:16:33 -0400
-Date: Sat, 14 Nov 2026 20:16:33 -0400
+	id 1xSNxL-00000005ESx-1JsN;
+	Sat, 14 Nov 2026 20:18:51 -0400
+Date: Sat, 14 Nov 2026 20:18:51 -0400
 From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Yuehong Wu <wuyuehong@cmss.chinamobile.com>
-Cc: linux-rdma@vger.kernel.org, Leon Romanovsky <leon@kernel.org>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 rdma-rc] RDMA/ucma: free a queued CONNECT_REQUEST with
- its new context
-Message-ID: <20261115001633.GG2532299@ziepe.ca>
-References: <20261112-ucma-conn-req-ctx-v2-1-yuehongwu@cmss.chinamobile.com>
+To: Aibing Chen <chenaibing@cmss.chinamobile.com>
+Cc: leon@kernel.org, achender@kernel.org, davem@davemloft.net,
+	edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
+	horms@kernel.org, linux-rdma@vger.kernel.org,
+	netdev@vger.kernel.org, rds-devel@oss.oracle.com,
+	linux-kernel@vger.kernel.org, hdanton@sina.com,
+	hackerowskiy@gmail.com,
+	syzbot+ccdb5058c3df2d94811c@syzkaller.appspotmail.com
+Subject: Re: [PATCH] RDMA/cma: add rdma_destroy_id_wq() and use it from RDS
+Message-ID: <20261115001851.GH2532299@ziepe.ca>
+References: <20261114150541.1908-1-chenaibing@cmss.chinamobile.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -102,40 +107,33 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261112-ucma-conn-req-ctx-v2-1-yuehongwu@cmss.chinamobile.com>
+In-Reply-To: <20261114150541.1908-1-chenaibing@cmss.chinamobile.com>
 
-On Thu, Nov 12, 2026 at 09:42:00AM +0800, Yuehong Wu wrote:
-> --- a/drivers/infiniband/core/ucma.c
-> +++ b/drivers/infiniband/core/ucma.c
-> @@ -534,8 +534,25 @@ static int ucma_cleanup_ctx_events(struct ucma_context *ctx)
->  	/* Cleanup events not yet reported to the user.*/
->  	mutex_lock(&ctx->file->mut);
->  	list_for_each_entry_safe(uevent, tmp, &ctx->file->event_list, list) {
-> -		if (uevent->ctx != ctx)
-> +		/*
-> +		 * A CONNECT_REQUEST that has not been delivered to user
-> +		 * space is queued on the listening context but stores a
-> +		 * pointer to the new connection context.  The new context is
-> +		 * live in ctx_table before the event is queued, so it can be
-> +		 * destroyed before the event is fetched; the event can then
-> +		 * no longer be acted upon.  Drop it instead of leaving a
-> +		 * dangling conn_req_ctx in the event list.
-> +		 */
-> +		if (uevent->ctx != ctx) {
-> +			if (uevent->resp.event == RDMA_CM_EVENT_CONNECT_REQUEST &&
-> +			    uevent->conn_req_ctx == ctx) {
-> +				list_del(&uevent->list);
-> +				/* Return the slot taken for this request. */
-> +				atomic_inc(&uevent->ctx->backlog);
-> +				kfree(uevent);
-> +			}
+On Sat, Nov 14, 2026 at 11:05:41PM +0800, Aibing Chen wrote:
+> syzbot reported a possible circular locking dependency between
+> rds_trans_sem and the RDMA CM handler mutex:
+> 
+>   CPU0 (bind path)                    CPU1 (CM callback path)
+>   ----                                ----
+>   down_read(&rds_trans_sem)           mutex_lock(&handler_mutex)
+>   rds_ib_laddr_check()                cma_ib_req_handler()
+>     rdma_destroy_id()                   rds_ib_cm_handle_connect()
+>       mutex_lock(&handler_mutex)          rds_conn_create()
+>                                             rds_trans_get_preferred()
+>                                               down_read(&rds_trans_sem)
+> 
+> rds_ib_laddr_check_cm() destroys the CM id from inside
+> rds_trans_get_preferred()'s read-side critical section, while CM
+> callbacks create RDS connections (taking the same read lock) from
+> under handler_mutex.
+> 
+> Break the cycle by destroying the CM id asynchronously: add
+> rdma_destroy_id_wq(), which queues the destruction on cma_wq, and
+> switch rds_ib_laddr_check_cm() to it.  The destroy work is embedded
+> in struct rdma_id_private, which keeps the id alive until the work
+> runs; rds does not touch cm_id after the destroy call.
 
-The seems like it defeats the cleanup process, or moves the race
-around.
-
-I would expect the solution to this problem to hold some kind of
-reference while the uevent is alive.
-
-Or perhaps blocking ucma_destory_id while the event still exists.
+This doesn't seem like it should be the core codes problem? Why can't
+rds do the workqueue?
 
 Jason
