@@ -1,75 +1,74 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.129.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794749131;
-	b=YO8CWQstg8Nmh9W3Up4mdJ2w5gIM5vE2W6foh2r5VcIrL2V6HMDr0S8/EUPTC+HX7czX
-	 EbgZmUh1poUJ5az6IvdGkniTBvZruTk/5DM/Zqmcc/fkvRLsWpKLi/SroeOZ6z2hyOyqw
-	 LUL8nTR/ObKtzen8yrS0GnGjEb52Q1wFetVUiey/9bGyQkfg6w8zX4jeO3OI3h78rqO8z
-	 tK4Cxl9x80MAKV2kispCruTtU45OjGHvyAk52wD1/IyoQa0znp01n5whCs5nEhcN89qd/
-	 KzxfrrFttwdaPeSmpqk/qWNAQJBEJgBl9Ktlx1A4tbUwInx/GKhP0l71Zwe0+nFNesg==
+	t=1794749136;
+	b=Huo4q8sZuzNhq9iEshOw3XNbZaVEJDNQ5ygHYl6IyiA2Aq1BXXIua7Y8BzVXL8bBE7c6
+	 sQkKzy5BRNkDqEa5Gz/UV5ZzLGxYnfwnJxwf+g8Hzu9usVT33kznFh1nVwBt5+xQTQWh1
+	 tMeSTvzMmnbM9BN7arTvO5arq9Z+yz+ag/4ZSd4yMtL3ODtE2sdtyg0HVHKwxABTKBb/I
+	 eoFqfmjapmtafgaPnk++8JXGy06ClUYmuAmT1zUarEzG6g7IJYTJsP01aZBgSt4Xk/t7T
+	 zZjC2lfCXafs+KiQgFAGM959gOxhr/wEQhyF6So7/36X8RA6AEHkUZxRFeyoqY5yHkA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794749131;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794749136;
 	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
 	 X-Mimecast-MFC-AGG-ID:Received:Received:Received:Date:From:To:Cc:
 	 Subject:Message-ID:MIME-Version:Content-Type:Content-Disposition:
 	 In-Reply-To:X-Scanned-By;
-	bh=mpsNKtp41glLKZwU90iCfdt+UrBVV2orIvZTwj/O78g=;
-	b=KiMKoqFLzHuOzaCkAURg41W4D2xYRlqzA5VfDRS4gz25j6gTgfIHW+S56ttBhPBr5ovP
-	 kahOmvQTY0R8qzFGKLGKWxPtc8G8R13zLZ2hI5vMcq1SxvD1XY+xxN0EnGJwHsIHd57LD
-	 rm3+yGq0hRhb2QO2G/xOferPV0Sqd34hv1vs56KkbCyiqBe43xCk3VNQjrE5Z3l6Iceoq
-	 hjrTne89evPsEbpqQEG3TOXgLPHOOpFDZixcmzF325Ecxb0IPt1DKPpHbnqhBFFboP2j6
-	 59axhvs+PlOg0cilIz4glQ7LzL7b6I9EN0DKXhFD/OLmjUGHC9qNrEHLogwSaGfn7bw==
+	bh=3yaLh8HZvDvcHsFzqRw29DroL2qOToEPrETKS7oqVCA=;
+	b=xuiLI+f1tPEWd+vGcQ+PqElS0gqs3LrIaS7L9k6MP4PI9LVuJhhdSmc2HleTRA/cs2y+
+	 tbeeYNOq1Q7mcbqevGNq2NEqDNmwjO0PDifDeq7MTYCEyTBKipUpfCx/o0iN+joxb4J1J
+	 v1yPs8TO6efTXnlxTkpTJdeP5ZyGVcCYqtheCSvKUCpLuT9dfERUsROUQ9sSPZvn63gRn
+	 6eSF0oa04nZfE/b6gZjvTEVEut5e21yEBdC79pUzBhzBdtMOFRUWTS9l1DbFpZnEJ0s74
+	 AVdL0LKXcmjodWQbVcqbH7jSPOC5OC9GLcJRs9/y5WbGPsR8WWXbq02evxE49Dag8Dw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=redhat.com;
 	spf=pass smtp.mailfrom=redhat.com;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=ekkv8fJB;
-	arc=none smtp.remote-ip=170.10.133.124
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=HKSwtZAp;
+	arc=none smtp.remote-ip=170.10.129.124
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43FD6606A31D
-	for <linux-rdma@vger.kernel.org>; Sun, 15 Nov 2026 13:25:31 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 43FD6606A31D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93DCC606A31F
+	for <linux-rdma@vger.kernel.org>; Sun, 15 Nov 2026 13:25:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 93DCC606A31F
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=ekkv8fJB
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=HKSwtZAp
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1794749130;
+	s=mimecast20190719; t=1794749134;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to; bh=mpsNKtp41glLKZwU90iCfdt+UrBVV2orIvZTwj/O78g=;
-	b=ekkv8fJBvup4DdA1Bk/SXstODrAf1Ot3Y6hF6iNhos2vlJyO4GAZTTLW3/sa9paLL9aJIw
-	QiGfMc/lHvNsH9q5D8xU9tzj7lt1S25cjzcVlQNVIAZyks//aP+2ojdqqtKQtH7I2AtcMY
-	+ewSkAhrqX1R7t8q46XlrHMrr/iUAxA=
-Received: from mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
+	 in-reply-to:in-reply-to; bh=3yaLh8HZvDvcHsFzqRw29DroL2qOToEPrETKS7oqVCA=;
+	b=HKSwtZApNUqFexSn/JJGJEKf4U/ChWqX7/D/I9D4VN4rBhp0p8tUJfxnayCbMhqT7Q2Fby
+	W6MLA5drT4j38K+8wtmbBcqfigQuKScJGl4D8W+iJQeEd/C622dk1h2koFDA9pWldpbp3s
+	9SeSYcpqmtT6Y/D8A2qNKE4a3KSgGYU=
+Received: from mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
  relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-26-DpzIh-X-OFaRiv-eh1aY3A-1; Sun,
- 15 Nov 2026 08:25:26 -0500
-X-MC-Unique: DpzIh-X-OFaRiv-eh1aY3A-1
-X-Mimecast-MFC-AGG-ID: DpzIh-X-OFaRiv-eh1aY3A_1794749125
-Received: from mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.93])
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-261-sBKeRBPbNeiXKeoQscWcBA-1; Sun,
+ 15 Nov 2026 08:25:30 -0500
+X-MC-Unique: sBKeRBPbNeiXKeoQscWcBA-1
+X-Mimecast-MFC-AGG-ID: sBKeRBPbNeiXKeoQscWcBA_1794749129
+Received: from mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.17])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 6D8301800556;
-	Sun, 15 Nov 2026 13:25:25 +0000 (UTC)
+	by mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id E4D041956042;
+	Sun, 15 Nov 2026 13:25:28 +0000 (UTC)
 Received: from onestero-thinkpadp1gen7.tpbc.csb (headnet04.pony-001.prod.iad2.dc.redhat.com [10.2.32.116])
-	by mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with SMTP id 5556818004FF;
-	Sun, 15 Nov 2026 13:25:23 +0000 (UTC)
+	by mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with SMTP id D36691956087;
+	Sun, 15 Nov 2026 13:25:26 +0000 (UTC)
 Received: by onestero-thinkpadp1gen7.tpbc.csb (nbSMTP-1.00) for uid 13628
-	oleg@redhat.com; Sun, 15 Nov 2026 14:25:25 +0100 (CET)
-Date: Sun, 15 Nov 2026 14:25:22 +0100
+	oleg@redhat.com; Sun, 15 Nov 2026 14:25:28 +0100 (CET)
+Date: Sun, 15 Nov 2026 14:25:25 +0100
 From: Oleg Nesterov <oleg@redhat.com>
 To: Allison Henderson <achender@kernel.org>,
 	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
 Cc: Joel Granados <joel.granados@kernel.org>, edumazet@google.com,
 	horms@kernel.org, netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org
-Subject: [PATCH v2 net-next 4/5] net/rds/tcp.c: move sysctl-only code under
- CONFIG_SYSCTL
-Message-ID: <avmywjLAQO-9fhw5@redhat.com>
+Subject: [PATCH v2 net-next 5/5] net/rds: remove dead sysctl declarations
+Message-ID: <avmyxTOuUkKnOaM5@redhat.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -82,213 +81,52 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <avmymGvelu00X5EH@redhat.com>
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.93
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.17
 
-Collect all code used only when CONFIG_SYSCTL=y into a single block and
-wrap it in #ifdef CONFIG_SYSCTL. rds_tcp_init_net_sysctl no longer needs
-the IS_ENABLED() check.
-
-Add the corresponding init/exit stubs for the CONFIG_SYSCTL=n case.
-
-Also #ifdef the rds_tcp_sysctl and ctl_table fields in struct rds_tcp_net.
+Several sysctl variables are declared in ib.h and rds.h but are never
+defined or used; git-grep finds nothing.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Reviewed-by: Allison Henderson <achender@kernel.org>
 Tested-by: Allison Henderson <achender@kernel.org>
 ---
- net/rds/tcp.c | 139 ++++++++++++++++++++++++++------------------------
- net/rds/tcp.h |   2 +
- 2 files changed, 74 insertions(+), 67 deletions(-)
+ net/rds/ib.h  | 1 -
+ net/rds/rds.h | 5 -----
+ 2 files changed, 6 deletions(-)
 
-diff --git a/net/rds/tcp.c b/net/rds/tcp.c
-index d6c542371611..9f18c4f4a406 100644
---- a/net/rds/tcp.c
-+++ b/net/rds/tcp.c
-@@ -53,13 +53,71 @@ static atomic_t rds_tcp_unloading = ATOMIC_INIT(0);
+diff --git a/net/rds/ib.h b/net/rds/ib.h
+index 1901226368c9..a7f0005c5a0f 100644
+--- a/net/rds/ib.h
++++ b/net/rds/ib.h
+@@ -448,7 +448,6 @@ void rds_ib_sysctl_exit(void);
+ extern unsigned long rds_ib_sysctl_max_send_wr;
+ extern unsigned long rds_ib_sysctl_max_recv_wr;
+ extern unsigned long rds_ib_sysctl_max_unsig_wrs;
+-extern unsigned long rds_ib_sysctl_max_unsig_bytes;
+ extern unsigned long rds_ib_sysctl_max_recv_allocation;
+ extern unsigned int rds_ib_sysctl_flow_control;
  
- static struct kmem_cache *rds_tcp_conn_slab;
+diff --git a/net/rds/rds.h b/net/rds/rds.h
+index e3937c1ff3a1..2d061b16966e 100644
+--- a/net/rds/rds.h
++++ b/net/rds/rds.h
+@@ -1027,16 +1027,11 @@ void rds_stats_info_copy(struct rds_info_iterator *iter,
+ /* sysctl.c */
+ int rds_sysctl_init(void);
+ void rds_sysctl_exit(void);
+-extern unsigned long rds_sysctl_sndbuf_min;
+-extern unsigned long rds_sysctl_sndbuf_default;
+-extern unsigned long rds_sysctl_sndbuf_max;
+ extern unsigned long rds_sysctl_reconnect_min_jiffies;
+ extern unsigned long rds_sysctl_reconnect_max_jiffies;
+ extern unsigned int  rds_sysctl_max_unacked_packets;
+ extern unsigned int  rds_sysctl_max_unacked_bytes;
+ extern unsigned int  rds_sysctl_ping_enable;
+-extern unsigned long rds_sysctl_trace_flags;
+-extern unsigned int  rds_sysctl_trace_level;
  
-+#ifdef CONFIG_SYSCTL
-+static int rds_tcp_min_sndbuf = SOCK_MIN_SNDBUF;
-+static int rds_tcp_min_rcvbuf = SOCK_MIN_RCVBUF;
-+
-+/* when sysctl is used to modify some kernel socket parameters,this
-+ * function  resets the RDS connections in that netns  so that we can
-+ * restart with new parameters.  The assumption is that such reset
-+ * events are few and far-between.
-+ */
-+static void rds_tcp_sysctl_reset(struct net *net)
-+{
-+	struct rds_tcp_connection *tc, *_tc;
-+
-+	spin_lock_irq(&rds_tcp_conn_lock);
-+	list_for_each_entry_safe(tc, _tc, &rds_tcp_conn_list, t_tcp_node) {
-+		struct net *c_net = read_pnet(&tc->t_cpath->cp_conn->c_net);
-+
-+		if (net != c_net || !tc->t_sock)
-+			continue;
-+
-+		/* reconnect with new parameters */
-+		rds_conn_path_drop(tc->t_cpath, false);
-+	}
-+	spin_unlock_irq(&rds_tcp_conn_lock);
-+}
-+
-+static int rds_tcp_skbuf_handler(struct rds_tcp_net *rtn,
-+				 const struct ctl_table *ctl, int write,
-+				 void *buffer, size_t *lenp, loff_t *fpos)
-+{
-+	int err;
-+
-+	err = proc_dointvec_minmax(ctl, write, buffer, lenp, fpos);
-+	if (err < 0) {
-+		pr_warn("Invalid input. Must be >= %d\n",
-+			*(int *)(ctl->extra1));
-+		return err;
-+	}
-+
-+	if (write && rtn->rds_tcp_listen_sock && rtn->rds_tcp_listen_sock->sk) {
-+		struct net *net = sock_net(rtn->rds_tcp_listen_sock->sk);
-+
-+		rds_tcp_sysctl_reset(net);
-+	}
-+
-+	return 0;
-+}
-+
- static int rds_tcp_sndbuf_handler(const struct ctl_table *ctl, int write,
--				  void *buffer, size_t *lenp, loff_t *fpos);
-+				  void *buffer, size_t *lenp, loff_t *fpos)
-+{
-+	struct rds_tcp_net *rtn = container_of(ctl->data, struct rds_tcp_net,
-+					       sndbuf_size);
-+
-+	return rds_tcp_skbuf_handler(rtn, ctl, write, buffer, lenp, fpos);
-+}
-+
- static int rds_tcp_rcvbuf_handler(const struct ctl_table *ctl, int write,
--				  void *buffer, size_t *lenp, loff_t *fpos);
-+				  void *buffer, size_t *lenp, loff_t *fpos)
-+{
-+	struct rds_tcp_net *rtn = container_of(ctl->data, struct rds_tcp_net,
-+					       rcvbuf_size);
- 
--static int rds_tcp_min_sndbuf = SOCK_MIN_SNDBUF;
--static int rds_tcp_min_rcvbuf = SOCK_MIN_RCVBUF;
-+	return rds_tcp_skbuf_handler(rtn, ctl, write, buffer, lenp, fpos);
-+}
- 
- static struct ctl_table rds_tcp_sysctl_table[] = {
- #define	RDS_TCP_SNDBUF	0
-@@ -105,7 +163,7 @@ static __net_init int rds_tcp_init_net_sysctl(struct net *net)
- 	tbl[RDS_TCP_RCVBUF].data = &rtn->rcvbuf_size;
- 	rtn->rds_tcp_sysctl = register_net_sysctl_sz(net, "net/rds/tcp", tbl,
- 						     ARRAY_SIZE(rds_tcp_sysctl_table));
--	if (!rtn->rds_tcp_sysctl && IS_ENABLED(CONFIG_SYSCTL)) {
-+	if (!rtn->rds_tcp_sysctl) {
- 		pr_warn("could not register sysctl\n");
- 		if (net != &init_net)
- 			kfree(tbl);
-@@ -127,6 +185,15 @@ static void __net_exit rds_tcp_exit_net_sysctl(struct net *net)
- 	if (net != &init_net)
- 		kfree(rtn->ctl_table);
- }
-+#else
-+static inline int rds_tcp_init_net_sysctl(struct net *net)
-+{
-+	return 0;
-+}
-+static inline void rds_tcp_exit_net_sysctl(struct net *net)
-+{
-+}
-+#endif
- 
- u32 rds_tcp_write_seq(struct rds_tcp_connection *tc)
- {
-@@ -744,68 +811,6 @@ void *rds_tcp_listen_sock_def_readable(struct net *net)
- 	return lsock->sk->sk_user_data;
- }
- 
--/* when sysctl is used to modify some kernel socket parameters,this
-- * function  resets the RDS connections in that netns  so that we can
-- * restart with new parameters.  The assumption is that such reset
-- * events are few and far-between.
-- */
--static void rds_tcp_sysctl_reset(struct net *net)
--{
--	struct rds_tcp_connection *tc, *_tc;
--
--	spin_lock_irq(&rds_tcp_conn_lock);
--	list_for_each_entry_safe(tc, _tc, &rds_tcp_conn_list, t_tcp_node) {
--		struct net *c_net = read_pnet(&tc->t_cpath->cp_conn->c_net);
--
--		if (net != c_net || !tc->t_sock)
--			continue;
--
--		/* reconnect with new parameters */
--		rds_conn_path_drop(tc->t_cpath, false);
--	}
--	spin_unlock_irq(&rds_tcp_conn_lock);
--}
--
--static int rds_tcp_skbuf_handler(struct rds_tcp_net *rtn,
--				 const struct ctl_table *ctl, int write,
--				 void *buffer, size_t *lenp, loff_t *fpos)
--{
--	int err;
--
--	err = proc_dointvec_minmax(ctl, write, buffer, lenp, fpos);
--	if (err < 0) {
--		pr_warn("Invalid input. Must be >= %d\n",
--			*(int *)(ctl->extra1));
--		return err;
--	}
--
--	if (write && rtn->rds_tcp_listen_sock && rtn->rds_tcp_listen_sock->sk) {
--		struct net *net = sock_net(rtn->rds_tcp_listen_sock->sk);
--
--		rds_tcp_sysctl_reset(net);
--	}
--
--	return 0;
--}
--
--static int rds_tcp_sndbuf_handler(const struct ctl_table *ctl, int write,
--				  void *buffer, size_t *lenp, loff_t *fpos)
--{
--	struct rds_tcp_net *rtn = container_of(ctl->data, struct rds_tcp_net,
--					       sndbuf_size);
--
--	return rds_tcp_skbuf_handler(rtn, ctl, write, buffer, lenp, fpos);
--}
--
--static int rds_tcp_rcvbuf_handler(const struct ctl_table *ctl, int write,
--				  void *buffer, size_t *lenp, loff_t *fpos)
--{
--	struct rds_tcp_net *rtn = container_of(ctl->data, struct rds_tcp_net,
--					       rcvbuf_size);
--
--	return rds_tcp_skbuf_handler(rtn, ctl, write, buffer, lenp, fpos);
--}
--
- static void rds_tcp_exit(void)
- {
- 	rds_tcp_set_unloading();
-diff --git a/net/rds/tcp.h b/net/rds/tcp.h
-index 39c86347188c..12b58d76c089 100644
---- a/net/rds/tcp.h
-+++ b/net/rds/tcp.h
-@@ -13,8 +13,10 @@ struct rds_tcp_net {
- 	struct socket		*rds_tcp_listen_sock;
- 	struct socket		*rds_tcp_accepted_sock;
- 	struct work_struct	rds_tcp_accept_w;
-+#ifdef CONFIG_SYSCTL
- 	struct ctl_table_header	*rds_tcp_sysctl;
- 	const struct ctl_table	*ctl_table;
-+#endif
- 	int			sndbuf_size;
- 	int			rcvbuf_size;
- };
+ /* threads.c */
+ int rds_threads_init(void);
 -- 
 2.55.0
 
