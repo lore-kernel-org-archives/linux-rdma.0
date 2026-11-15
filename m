@@ -1,55 +1,75 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.129.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794747157;
-	b=g0slNXA94xb3clbjNZphMlHuFVZEdIvbEHqzXsfspllT2rwwdQPuIbSlnOFT9eVHengq
-	 tWKcXIhP3B0X1AqsPsviihlWDHxUSlkGPLdpXMgWutsY5BQwSfc5uZhfQTCowXC4AJY8s
-	 SAdc1iIO6cO0NMs+SqAYqna66X9wSHPNoek3ljBElTQlXFVRc64Q0wwbQTh7IJ1O7jpwu
-	 0ztEnxxkSXuYyTscmqIhtXgsbyrfw4IuSIX+CQ6dqOei/V5uoJx8/L7zJB1tVRzaK0yNN
-	 fhwxQJrl6Pc/s8nU70Liu4DrkYcumaJLZa8DJhiNA6ODPnsPi7bUZusWRgcSR4Cam1A==
+	t=1794749089;
+	b=q/r8J8+5vE5E7D0kSQLhOB+nrFq2Bo5sRG5tYuVI0YbJ5rU+VmVWoCNj71WRlZb1ymnp
+	 HNB0iM04uyn/qfOGKPdrlzyZL+XWgdixa607NvxPew8lrbCo82voAITBUBOerR7Z2YbbL
+	 rDu4UpJR2QatRRd2/WoNTgKmebjrpzFrbtEb3j4Oy1NCcVW235nfU5n9MKfiqBmEXIYAH
+	 jF6DTwas8iQyMLPYlX0ttv7rprrBdbq8DggDwU7YqJW5fTLMJ5ABQC8GWUltUTkkraSg0
+	 PDFDrA3ypIFEXp64K1Geib+wWN3KVMjNYhWeCDLq82mrhiL5tID+0is833YN7T26v6A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794747157;
-	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
-	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Mailer;
-	bh=EF14ylpOObr6PPjxpjs1ziBYXFSJlaR5tN+CHwL2L0Q=;
-	b=N7wLyBrxsOMINwMzIRPlC3TA/6Zbj2aMSr/nSEGgy1nETYU+zV+3omG2uoHrMe5XmF10
-	 TYfwFhzOMOg2gQGkOiVPlrXxPmFi9JvI4eYPLCf4702MPnDvvtTRSRU+0TsS30y8eeLkM
-	 RtLPxFyzfVaSwghljcbk7U2L9Kl2ePQudjB8bv+EX8JAk255jteFvA3wJHpVhuRGntHPY
-	 lWRSRUBh52ZTPCzcZfp5IIxg8JG1MqNRXY0KIWMPTE3UwQlvaNDSPGZJsI9z/+EPAJHLh
-	 GKvrwyp3T/4rVcKMIZYq4GjsJi9XCviXBDFidW2O2YGvQZdR8J+DlPbucKNmfvG3Tjw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794749089;
+	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
+	 X-Mimecast-MFC-AGG-ID:Received:Received:Received:Date:From:To:Cc:
+	 Subject:Message-ID:MIME-Version:Content-Type:Content-Disposition:
+	 X-Scanned-By;
+	bh=VTcvXdmY523c7IwXtXWkhth4SRtYhV4Dr8uIsB5kB5E=;
+	b=X3JHY5eDbOVnoi/Bfw3MjXbuvcl3UD3lTqjLNzcp4GSs1HcDfRMtKLuDDyNpo32kyjLJ
+	 0NP1KQ1PP8yTIdYN2yybTDoZCHL4YQzidl1WN0c6oy8NHcp+xHODC0MVjWRLf78xp7JQI
+	 nljsVBfMPuXfJks28IzlpHfE6M3Y4wlUhLhuzzSChbyWkgDq3WZ2M574GlsKJ8nARhbqK
+	 TZYVE5In/UalucO8J1AnaTHbEp5AoGQ40kevYfHe2Sn+Xzk7vNlDpMPWlZlqjBsbBd/lJ
+	 gvQ5RCYoIuRO15g69+B2HqgVVt6NdyK/XtZpMBTaDFCYlfvBa+o2QOcEehegYakWktQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FvWHgOWt;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=redhat.com;
+	spf=pass smtp.mailfrom=redhat.com;
+	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=Y1t3YpIL;
+	arc=none smtp.remote-ip=170.10.129.124
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9C08606A31E
-	for <linux-rdma@vger.kernel.org>; Sun, 15 Nov 2026 12:52:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A917A606A31A
+	for <linux-rdma@vger.kernel.org>; Sun, 15 Nov 2026 13:24:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A917A606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FvWHgOWt
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F8831F000C4;
-	Sun, 15 Nov 2026 12:52:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794747157;
-	bh=EF14ylpOObr6PPjxpjs1ziBYXFSJlaR5tN+CHwL2L0Q=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=FvWHgOWt/jm0Hdoos5s2Of5BU8sKHSj+htnr9ubkagL41lzyEp5+zfFawY3+TPxMz
-	 p3P+pVefKbl9OkhyI+ZuoEIxpm/7kNmp72aZFCgUqdbFGdogX9hg0DWC/Miwqe/cRn
-	 n7aAw2NPvje8WiEZwSwqhpbiRhTOil2zVTYsvxuCLgZSuKo1urCDIzApOd1nSivUv6
-	 o3iS0Kj6HAnM/jAjLulMKHit17AtjxkANE0Lybo2yW6/6Pt8BYi4ELfSOKx/nXGZ9e
-	 E5GGx2tVhjXHOLQaIYPuvSVyAkkrOdDCTd/43o3DiT814dvOME1xz2g4Mhvc9jhCy8
-	 nJFDBfJj3jePA==
-From: Leon Romanovsky <leon@kernel.org>
-To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, 
- Jacob Moroni <jmoroni@google.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261109202525.2937295-1-jmoroni@google.com>
-References: <20261109202525.2937295-1-jmoroni@google.com>
-Subject: Re: [PATCH rdma-next 1/2] RDMA/irdma: Fix potential UAF during SRQ
- limit AE handling
-Message-Id: <179474715512.1305858.15747650114156355759.b4-ty@kernel.org>
-Date: Sun, 15 Nov 2026 07:52:35 -0500
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=Y1t3YpIL
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1794749087;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type;
+	bh=VTcvXdmY523c7IwXtXWkhth4SRtYhV4Dr8uIsB5kB5E=;
+	b=Y1t3YpILvTC/OLaMf0Q2akFnN6vr1IYIirxlbt9oq8wwznAkQZttHCB9HUfc76i59B0FM4
+	Bs5HVeM+H98ZSf05Rp7ENBsmluWhlTQqQCViQHF3eFQZHzwZ4nCqODTQBQ0mywdKOO/HaX
+	02P2p1O/Afrail3m3azbMXiBMlb99qw=
+Received: from mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-625-NFyHoO_NMJK367sy937hKA-1; Sun,
+ 15 Nov 2026 08:24:46 -0500
+X-MC-Unique: NFyHoO_NMJK367sy937hKA-1
+X-Mimecast-MFC-AGG-ID: NFyHoO_NMJK367sy937hKA_1794749084
+Received: from mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.4])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 9642319560A7;
+	Sun, 15 Nov 2026 13:24:44 +0000 (UTC)
+Received: from onestero-thinkpadp1gen7.tpbc.csb (headnet04.pony-001.prod.iad2.dc.redhat.com [10.2.32.116])
+	by mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with SMTP id 567FB30001B9;
+	Sun, 15 Nov 2026 13:24:42 +0000 (UTC)
+Received: by onestero-thinkpadp1gen7.tpbc.csb (nbSMTP-1.00) for uid 13628
+	oleg@redhat.com; Sun, 15 Nov 2026 14:24:44 +0100 (CET)
+Date: Sun, 15 Nov 2026 14:24:40 +0100
+From: Oleg Nesterov <oleg@redhat.com>
+To: Allison Henderson <achender@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
+Cc: Joel Granados <joel.granados@kernel.org>, edumazet@google.com,
+	horms@kernel.org, netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org
+Subject: [PATCH v2 net-next 0/5] net/rds: move sysctl-only code under
+ CONFIG_SYSCTL
+Message-ID: <avmymGvelu00X5EH@redhat.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,31 +79,25 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.4
 
+Compile tested with CONFIG_RDS CONFIG_RDS_RDMA CONFIG_RDS_TCP CONFIG_RDS_DEBUG,
+the kernel builds with or without CONFIG_SYSCTL.
 
-On Mon, 09 Nov 2026 20:25:24 +0000, Jacob Moroni wrote:
-> Previously, the raw SRQ pointer was used for the AE cookie
-> without any mechanism to ensure that the SRQ object was valid
-> and remained valid while processing the AE.
-> 
-> This could lead to a UAF if the SRQ happens to get destroyed
-> before the AE handler has a chance to process the AE (and any
-> other AEs in the queue in front of it...). It also means that
-> a bogus cookie from HW could cause a wild dereference.
-> 
-> [...]
+v2: rebased on net-next/main, added the acks from Allison (thanks!)
 
-Applied, thanks!
+Oleg.
+---
 
-[1/2] RDMA/irdma: Fix potential UAF during SRQ limit AE handling
-      https://git.kernel.org/rdma/rdma/c/ca28a5ce3559f8
-[2/2] RDMA/irdma: Drop unused SRQ table from resource memory
-      https://git.kernel.org/rdma/rdma/c/c890a62746d086
-
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+ net/rds/ib.h        |   1 -
+ net/rds/ib_sysctl.c |  33 +++++---
+ net/rds/rds.h       |   5 --
+ net/rds/sysctl.c    |  26 ++++--
+ net/rds/tcp.c       | 230 ++++++++++++++++++++++++++++------------------------
+ net/rds/tcp.h       |   2 +
+ 6 files changed, 168 insertions(+), 129 deletions(-)
+---
+base-commit: 6964ff21c5d8b75649211a52dbfd92753e605649
 
