@@ -1,53 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794750689;
-	b=M4GrgkOcKmTzSAognyRneIc0SvwLqRoB9GDTo9kgjOKolWfc5n4lVtyn8/8qwmrISoUR
-	 m01ykCl+x4WLZx0hH/fW02ApR/SD4gAx9Icw/H/t7RVcXAQ+chrv7fn2Mf4Ib0whlUhi2
-	 16ayWkHzSTYbzA3OxytZCM8DmMXZuNE++CmuPN9T5aDm4s/1T+QlGOdPmouH+3X9c/QPI
-	 2tcwJM01aW1jjrJjHAzroV8RmS/2vYtUw7aKKOsVMfoQ7h1LlR3R6EcdAeyS3i0ds8arR
-	 rMtXEZLHFmy7xkGsNK8Z5w9G3lcKAToRpjVRXJVbz8SxcQe2OMPhT8Dok30HvwS3ltQ==
+	t=1794750928;
+	b=Xsd8cDxY3N2yIoCh0PPZttYIeBAjqVQuX8rUsGYofUjROpBJPf8EMgKNm2CawCfjIOEU
+	 PF1aGqocVTBgq5DTiE4llkR6ChckUUpTIfU0dYQRPEXtrSlHO9y+hsaCC+zhmkAPvwOhF
+	 IqqI4ApZj35ZkbH4+/qkaZAgi3PxXuFRJqq0R6KyI5H7t6urbdd5dh02G43KDSwP0IBfG
+	 buAexEB2E3Hvfn7OgiP3YEPIREEP8k9HDkU0ggbZfpBpjUPRHWNnzVE/y3pOD1ZZOkDlp
+	 bdX/4cxRnTh8dYEqP4JEiJUX/4bPHtNvjeNpFYXMuO4oWl+sHgVUheBOHQaRsA+pYvA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794750689;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794750928;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=2f/XyUW0oOhGaKE1DlyYgsVR8D2NP5OeQR1z9DlMLFk=;
-	b=yPga3QAq35GjCpEKW82HpAB+fT8LUQAc1DiKfW0H8BdsidMqQftUfSCE1cPcOPBj1OAh
-	 T/FOqwghwGvpGzumMm8KmwyuPfXAzqV85O6O0j/EF0z9V37YNb9UhS2TJih8zon7qSqEF
-	 7dJVylh7fFKK4HHM+1P6wcXQG3XqRs6VpBOQY1CNnSoTJir8bDjDhboQXPw0SGrpEanau
-	 i86n0yVHHf6TGmt6hThcRjWFpICdnCG5XjJiaEI+sHSEbTg+qvCQ9w/TwG/5Ma9FRudrt
-	 YopORH0l1d2qvGnBXGZyiWllbep025zkQiXIYZCLXUlnXCA5wy7m6RfKmfhLT7NCo3g==
+	bh=gTdXHNZ4m9+z2N/yHS6M3KqqT5Mkw+ISeKzUL028u7E=;
+	b=hZ341wPp+Zep5YUQze1+OQwj6hb7OIF2o3IeIt8nlF7AFw4/9K+sEHyijCSqTevPHq0/
+	 tL24ItVsA3eESF7bfE6f5O1sHBnGgXZpY2CR9hL/U4+KWSgFTJZED9/JrLKiocRZP73Zq
+	 xgGIbhvLZTJhqRT5bBi1CEkmidYIYEXIu/iyBKhUKvWzJgG98MDTm8UGq0o76ulihkoBU
+	 JxJ7dsHBQ67sKwvnOI+leXjGiXp/Gx47jHfITw523QVDtY5WfXyWcfAGD9F09zQjm+Q9f
+	 BFzbGzuQYtuxaapbCQeMTfnFu/jPbY2xmw8SUIgYLhl8zHdxR6gJ1U6j2dl5oodxrNw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lD3XwZC1;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="gb/lKqh2";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3B26606A31A;
-	Sun, 15 Nov 2026 13:51:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8380606A31D;
+	Sun, 15 Nov 2026 13:55:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lD3XwZC1
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4E671F000C4;
-	Sun, 15 Nov 2026 13:51:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gb/lKqh2
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3A031F000C4;
+	Sun, 15 Nov 2026 13:55:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794750688;
-	bh=2f/XyUW0oOhGaKE1DlyYgsVR8D2NP5OeQR1z9DlMLFk=;
+	s=k20260515; t=1794750928;
+	bh=gTdXHNZ4m9+z2N/yHS6M3KqqT5Mkw+ISeKzUL028u7E=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=lD3XwZC1dIsekgv2Ix3LkYPoKVHdbTFRizPAb/500M+htFfXbkvahH+8MvKfNkKfM
-	 oFGR1VVxXzuXCQ5B7CNJs36qSwDQIqtSBg5qgIgT3ZkWeFGjdU61nhDm3y7lokgonU
-	 SIQk0h+zzH51ewwrEP/S9d2id2WNW68iO+REkwV/vaA10fGFAZccuYnhpDBqz8FHqR
-	 gg3FS7JVbqdl8POUypsOpJ5LIv6euGkMldGwzfUCt+ca81PAwIMEkoL+6iNV6SeLRJ
-	 yrZxpDi3M0+5t4JUON6dZbev4PlchTB4bf7ldpHiX/Ru50MS9Cfo+ZN9Tb5NYER3x9
-	 WodcIGccUo6vA==
-Date: Sun, 15 Nov 2026 15:51:23 +0200
+	b=gb/lKqh2L35xsor89doADEe3ugsBZ7/24E8ckzBkiPRLI6QlxOGihR9ftj1DNFMVU
+	 2o5D2GonamWzibAEiKXY6OxNs8F3/iCwGMGrFLGCk8jZqq82rUXEkuh46+x2RP0r2d
+	 fbBQ3d/7hYZZsvxbw1/0Xn7zgbzK17QiMgrLBecHDh7D5Pife/whBW3tZ/aomEsVcu
+	 Xg9BpsFm4j/rl4EFw7SbtRHSCQtQYaUwlVoQLbQaC8AFpsVWNs1ZtGkzJs711pFpmB
+	 f+6mzp+yKeBMdlFlddDD9y9HuT9wJRX9NqMJqSN6hkgcKTYOBgNO6n/npqyvbozV+K
+	 wcbuU/o9nvfkA==
+Date: Sun, 15 Nov 2026 15:55:24 +0200
 From: Leon Romanovsky <leon@kernel.org>
-To: Jaeyeong Lee <lee@jaeyeong.cc>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Artemy Kovalyov <artemyko@mellanox.com>,
-	Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH] RDMA/mlx5: Fix UAF after DEVX DCT create failure
-Message-ID: <20261115135123.GD42525@unreal>
-References: <20261111105346.3220427-1-lee@jaeyeong.cc>
+To: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] IB/hfi1: Fix potential leaks in IPoIB TX queue
+ initialization
+Message-ID: <20261115135524.GE42525@unreal>
+References: <20261111-e5624093d6-rdma-hfi1@mail.sdu.edu.cn>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,89 +60,51 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261111105346.3220427-1-lee@jaeyeong.cc>
+In-Reply-To: <20261111-e5624093d6-rdma-hfi1@mail.sdu.edu.cn>
 
-On Wed, Nov 11, 2026 at 10:53:54AM +0000, Jaeyeong Lee wrote:
-> The DEVX object create handler destroys and frees a hardware object itself
-> when copying the command output or setting up an indirect mkey fails.
-> 
-> For DCT objects, mlx5_core_destroy_dct() can fail while leaving the DCT in
-> qp_table.dct_xa. The error is ignored and the enclosing devx_obj is freed.
-> A later DCT_DRAINED event then loads the stale xarray entry and calls
-> complete() on freed memory.
-> 
-> Mark the uobject as holding a valid hardware object immediately after the
-> DEVX object is initialized. Let the uverbs abort path invoke
-> devx_obj_cleanup() for subsequent failures. If hardware destruction fails,
-> rdma_alloc_abort_uobject() commits the uobject instead of freeing it. This
-> keeps the object alive for cleanup at file close.
-> 
-> A KASAN QEMU reproducer that forces DRAIN_DCT to fail and delivers a
-> DCT_DRAINED event reports:
-> 
->   BUG: KASAN: slab-use-after-free in _raw_spin_lock_irqsave
->   complete
->   rsc_event_notifier
+On Wed, Nov 11, 2026 at 08:23:19PM +0800, Guangshuo Li wrote:
+> When an SDMA header allocation fails, rollback skips the current TX
+> queue. Its ring and already allocated headers are leaked. Free the
+> partially initialized ring before unwinding the completed queues.
 
-Please resubmit the patch with the full dmesg output and a clear explanation of
-what it fixes.
+free_tx_ring already performs that, see "for (j = 0; j < tx_ring_size; j++)"
+loop.
 
 Thanks
 
 > 
-> The issue was found with a static analysis tool. OpenAI Codex assisted with
-> reproducer validation and patch preparation.
+> This issue was found by our static analysis tool under development.
 > 
-> Fixes: c5ae1954c47d3 ("IB/mlx5: Use mlx5 core to create/destroy a DEVX DCT")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Jaeyeong Lee <lee@jaeyeong.cc>
+> Fixes: c874ad879c2f ("IB/hifi1: add a null check of kzalloc_node in hfi1_ipoib_txreq_init")
+> Signed-off-by: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>
 > ---
->  drivers/infiniband/hw/mlx5/devx.c | 14 +++-----------
->  1 file changed, 3 insertions(+), 11 deletions(-)
+>  drivers/infiniband/hw/hfi1/ipoib_tx.c | 6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-> index fc6f793dcc658..037c2b6ff9714 100644
-> --- a/drivers/infiniband/hw/mlx5/devx.c
-> +++ b/drivers/infiniband/hw/mlx5/devx.c
-> @@ -1535,7 +1535,6 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
->  	struct mlx5_ib_ucontext *c = rdma_udata_to_drv_context(
->  		&attrs->driver_udata, struct mlx5_ib_ucontext, ibucontext);
->  	struct mlx5_ib_dev *dev = to_mdev(c->ibucontext.device);
-> -	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)];
->  	struct devx_obj *obj;
->  	u16 obj_type = 0;
->  	int err, err2 = 0;
-> @@ -1613,10 +1612,11 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
->  	devx_obj_build_destroy_cmd(cmd_in, cmd_out, obj->dinbox, &obj->dinlen,
->  				   &obj_id);
->  	WARN_ON(obj->dinlen > MLX5_MAX_DESTROY_INBOX_SIZE_DW * sizeof(u32));
-> +	uverbs_finalize_uobj_create(attrs, MLX5_IB_ATTR_DEVX_OBJ_CREATE_HANDLE);
+> diff --git a/drivers/infiniband/hw/hfi1/ipoib_tx.c b/drivers/infiniband/hw/hfi1/ipoib_tx.c
+> index 8b9cc55db59d..2e9225b558b4 100644
+> --- a/drivers/infiniband/hw/hfi1/ipoib_tx.c
+> +++ b/drivers/infiniband/hw/hfi1/ipoib_tx.c
+> @@ -743,7 +743,7 @@ int hfi1_ipoib_txreq_init(struct hfi1_ipoib_dev_priv *priv)
+>  				kzalloc_node(sizeof(*tx->sdma_hdr),
+>  					     GFP_KERNEL, priv->dd->node);
+>  			if (!hfi1_txreq_from_idx(tx_ring, j)->sdma_hdr)
+> -				goto free_txqs;
+> +				goto free_tx_ring;
+>  		}
 >  
->  	err = uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_OBJ_CREATE_CMD_OUT, cmd_out, cmd_out_len);
->  	if (err)
-> -		goto obj_destroy;
-> +		return err;
+>  		netif_napi_add_tx(dev, &txq->napi, hfi1_ipoib_poll_tx_ring);
+> @@ -751,6 +751,10 @@ int hfi1_ipoib_txreq_init(struct hfi1_ipoib_dev_priv *priv)
 >  
->  	if (opcode == MLX5_CMD_OP_CREATE_GENERAL_OBJECT)
->  		obj_type = MLX5_GET(general_obj_in_cmd_hdr, cmd_in, obj_type);
-> @@ -1625,18 +1625,10 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
->  	if (obj->flags & DEVX_OBJ_FLAGS_INDIRECT_MKEY) {
->  		err = devx_handle_mkey_indirect(obj, dev, cmd_in, cmd_out);
->  		if (err)
-> -			goto obj_destroy;
-> +			return err;
->  	}
 >  	return 0;
 >  
-> -obj_destroy:
-> -	if (obj->flags & DEVX_OBJ_FLAGS_DCT)
-> -		mlx5_core_destroy_dct(obj->ib_dev, &obj->core_dct);
-> -	else if (obj->flags & DEVX_OBJ_FLAGS_CQ)
-> -		mlx5_core_destroy_cq(obj->ib_dev->mdev, &obj->core_cq);
-> -	else
-> -		mlx5_cmd_exec(obj->ib_dev->mdev, obj->dinbox, obj->dinlen, out,
-> -			      sizeof(out));
->  obj_free:
->  	kfree(obj);
->  	return err2 ?: err;
+> +free_tx_ring:
+> +	while (j--)
+> +		kfree(hfi1_txreq_from_idx(tx_ring, j)->sdma_hdr);
+> +	kvfree(tx_ring->items);
+>  free_txqs:
+>  	for (i--; i >= 0; i--) {
+>  		struct hfi1_ipoib_txq *txq = &priv->txqs[i];
+> 
+> base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
 > 
