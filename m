@@ -1,69 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794766641;
-	b=cXJPVKvrG85cz2Zsr2onVv+UMhCuPHWwwEYMdHQrUjw4oatpH5VaEenANGesjt+1E0s7
-	 qzWiUPFnxpJJIsYtTSqs4I2l3/XEOsU6wnBt2VpB7s4CIfdShSPtmGehv0QFcTG55E1Kw
-	 lwRS/TzuzBEJoEwb9YkDRJaq/z4klXdquiydPic3Aoe2+NAR0iAP6+OHpme4LVUTNVQew
-	 IMRBz6I98ZfFHEwJaroPnidAgiXdJHN4j8tHloTsYM+4dEXzfEFi/RcTh0za/VyeToYEZ
-	 aGOwFlGmTcTmC0qJtzJl3YEK8eUGN2FDW1medULYPBeyM9XJx1NIS93wcytwEO4sT8g==
+	t=1794767281;
+	b=4tTUzbU25rcgO5jA4VprlCOcD/FWaT8H0vTNyNdoisN1AeZywBCQWbpCcsZwcfS3Azg8
+	 AB/gAHZGzyKySCSGkev2dDX04YOmEgMFveoyjji/YdFRz1iI496o2/RJ7QtO1F0V5Tfp9
+	 4AC0b7yEOIJ8qB2jUlGyP4w9gjMGNHXdJ2xsCF4q39SArCI3ml3yJqsOpikQaEn3ecd9w
+	 EZqpURYILDfu/fFOdVfAoakuKvgnC591rBszLQGYpHj7MVgKtHutLwne39DShU8Iur0hY
+	 5eoWtnyNBYOfE28+6h6yUH2ErGMvz8R9QSH3h8pK6TQ+wYnZLLYKEQJcGbv/wrnkh/g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794766641;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 In-Reply-To:References:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=D24zbDDsqNVQzu18iGUhiBUb7/SO1VZtJ75iu6RuGD4=;
-	b=ojqyydzV76Te7ottF4FBfXkokvoe5Jbemzte6aXRpxQbpP+IJsnksRvbKgrdk0D2Kis0
-	 RdArL2wmuazG2kYv6IN4Q2o9/+W2kl3RUJzKDMiH0v8HvVMeXeD2irB8fl/5dLobP4YyN
-	 ACTUDgN9eqcZfki1QRnmhggyq8jWZqG/jKF/K1molHgSRw6LAy13SbB2DuuQDJULHsRJg
-	 gWucRE/tWxi8+PVpOuGEhi3KdgRCf3z9z9IdJ6YJ327CGBKn1iLbwbK8eFOP5GApndPjP
-	 qbh/U1lZXwKq0AaOMGkEvQVTyf8Ajc1NLFXjyd/2Tvbajp/WKQq9TE0VozevNyrnzPQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794767281;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=X8C3ik5YqnoOC+Rr/OycYD4ixkVNff9wdCpJqvmBguE=;
+	b=hzfHCwA+NrAqRxLL3P/TG8vu5f2jGbwJrl2g/dPVKFpkA+Ysa2PrutE1E7yv7Y3T/Fla
+	 g6EoewPjlvfpsS9VB9ivzTEHXp3ASbCkvq4xzyZNKKRQFZ/99ciE2V70pY2I2u3+AxwZ0
+	 7//EUkQO8uMQevWO1uT6sNU9PZ5sJ1T8VuYM/9bEnqRLKRaHebIbCfWhlGPFevsA0gSFs
+	 DlJETPpzAhwSHpyh3NXlnyOUDZU4cg3Hlp8ovR+hhuPw1pyoOUyI5Q+22nueV9AaWqBAZ
+	 BYAYzqR6TYsQkjAcPCai0lCUTcANFUADRut25Ah151zgd8EHLM8VBYeYYeY5YG6bnug==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ayv95JZ2;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AcaMIpJt;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97F4D606A31A;
-	Sun, 15 Nov 2026 18:17:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42BCE606A31E
+	for <linux-rdma@vger.kernel.org>; Sun, 15 Nov 2026 18:28:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ayv95JZ2
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1F411F000C4;
-	Sun, 15 Nov 2026 18:17:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AcaMIpJt
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B56F41F000C4;
+	Sun, 15 Nov 2026 18:28:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794766641;
-	bh=D24zbDDsqNVQzu18iGUhiBUb7/SO1VZtJ75iu6RuGD4=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=Ayv95JZ2N/2DYsVaxiuyF5C5PzLf+fUE/kFWhb2rwxpNJZbBcCxHk40PCXMuhWRcE
-	 YrWycUv1ORYlv3JIAGDHXL4z6F5ir63hrZL5cCKARgvqww83mbra1Ezo+usCn+qrLO
-	 uSdnSbLD5oDz0mW+VUmfflZUgMIBoH6VHVhJgNe2hZw64DxO8inaXNhqOve6xDqV1s
-	 oeZsQrRuV8oZ6xT0JK7GK0yM5F2iiLCStr/H7rVS0X+1K5Y2C2hWKJ7ZExUh4HHjrl
-	 fFxFRRJGf9KX3fzWiWc+1Bb2mHa58pax2WZf2uPSCfO7UMXQAsqmAFDbqvRf+wZXEp
-	 lY2r48oFtuDhg==
-Date: Sun, 15 Nov 2026 10:17:20 -0800
-From: Jakub Kicinski <kuba@kernel.org>
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
- <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>, Bobby Eshleman
- <bobbyeshleman@meta.com>, Carolina Jubran <cjubran@nvidia.com>, Cosmin
- Ratiu <cratiu@nvidia.com>, Daniel Borkmann <daniel@iogearbox.net>, David
- Wei <dw@davidwei.uk>, Dragos Tatulea <dtatulea@nvidia.com>, Erfan
- Sharafzadeh <erfansh@meta.com>, Gal Pressman <gal@nvidia.com>, Jacob Keller
- <Jacob.e.keller@intel.com>, Kaifeng Wang <kaifengw@google.com>, Leon
- Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
- <linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>, Matt Fleming
- <mfleming@cloudflare.com>, Mina Almasry <almasrymina@google.com>, Nikolay
- Aleksandrov <razor@blackwall.org>, "Saeed Mahameed" <saeedm@nvidia.com>,
- Simon Horman <horms@kernel.org>, "Stanislav Fomichev" <sdf@fomichev.me>,
- Stanislav Fomichev <sdf.kernel@gmail.com>, William Tu <witu@nvidia.com>,
- Bobby Eshleman <bobbyeshleman@gmail.com>
-Subject: Re: [PATCH net-next V2 10/13] net: devmem: add
- netdev_has_dmabuf_binding() helper
-Message-ID: <20261115101720.5fffb5eb@kernel.org>
-In-Reply-To: <20261110183826.2927274-11-tariqt@nvidia.com>
-References: <20261110183826.2927274-1-tariqt@nvidia.com>
-	<20261110183826.2927274-11-tariqt@nvidia.com>
+	s=k20260515; t=1794767280;
+	bh=X8C3ik5YqnoOC+Rr/OycYD4ixkVNff9wdCpJqvmBguE=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=AcaMIpJtGZVLwPDa0JYetzDhkkOEFADWFIa2XzCdjxFUwE/bSsnUyF4CL4m6RdMZw
+	 dxKC3M5T3A6Z2xcQwPkKlIL9zKz3HS4WvIsEcmpVdM+H+7ZC3QMo/FHGzGx64tiKc4
+	 iwrgQDF+wiUlB8Qe8wj7ubX9Ft9AnXqIIez86bZnC0axpLMM0aDfZxXDG6UfKiYVC+
+	 EYq5dBuZ2lwnOHdHSZqUAKvCxSjHKmX6PlxWhqzzEmQgOhN6XMLcCnyk1yByPPu2li
+	 /pu4eJgWQd4mcg+HitOa8dFyflF9j2JXqhXRwbZDC54uHq18SosKFIN3bF80sBrqZs
+	 O9mfepB5nlZiQ==
+Message-ID: <sashiko-outbox-215717@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net v2 1/2] net: keep the TCP fixed-ID flags on the
+ header they describe
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Julius Bairaktaris" <julius@bairaktaris.de>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <f7d096c63c6a0b7a23a4dcea9a3de0915a48ac56.1794139176.git.julius@bairaktaris.de>
+References: <cover.1794139176.git.julius@bairaktaris.de>
+ <f7d096c63c6a0b7a23a4dcea9a3de0915a48ac56.1794139176.git.julius@bairaktaris.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Sun, 15 Nov 2026 18:28:00 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -72,12 +60,35 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Tue, 10 Nov 2026 20:38:23 +0200 Tariq Toukan wrote:
->  include/net/netmem.h | 24 ++++++++++++++++++++++++
+> Commit 3271f19bf7b9 ("net: gso: restore ids of outer ip headers
+> correctly") made SKB_GSO_TCP_FIXEDID describe the outermost IPv4 header
+> and added SKB_GSO_TCP_FIXEDID_INNER for the inner header of an
+> encapsulated packet. Every path that adds or removes a header then has to
+> move the flags, and none does. A TCP stream that GRO merged with fixed
+> IDs and that is forwarded into an IPIP tunnel, or into an ESP tunnel mode
+> SA with crypto offload, is segmented with one outer ID for all segments
+> and with incrementing inner IDs. Decapsulation leaves the state of the
+> removed outer header on the new outer one, and the inner header of a GRE
+> or UDP tunnel, which segmentation reads at encap_level 0, gets the state
+> of the outer header.
+>=20
+> Let SKB_GSO_TCP_FIXEDID describe the innermost IPv4 header again, as it
+> did before that commit, and replace SKB_GSO_TCP_FIXEDID_INNER with
+> SKB_GSO_TCP_FIXEDID_OUTER for the outer header of an encapsulated
+> packet. A new outer header then has no flag and gets incrementing IDs,
+> so encapsulation needs no change, and decapsulation clears the outer
+> flag in iptunnel_pull_offloads() and bpf_skb_net_shrink(). Convert mlx5
+> and sfc, the two drivers that use the inner flag.
+>=20
+> Fixes: 3271f19bf7b9 ("net: gso: restore ids of outer ip headers correctly=
+")
+> Suggested-by: Alexei Starovoitov <alexei.starovoitov@gmail.com>
+> Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
 
-I haven't done a proper review but this jumps out - does the new helper
-really belong to netmem.h ?
+Sashiko has reviewed this patch and found no issues.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/cover.1794139176.gi=
+t.julius@bairaktaris.de?part=3D1
+
