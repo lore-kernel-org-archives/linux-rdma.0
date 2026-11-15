@@ -1,58 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.3
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794729771;
-	b=0GY5srDU2RS4hZEx+zAff5XIS5fsQCr8FpmSFcALlvRmAtMB8FducKH8HSxWw6VWHWda
-	 m1Whzs+yUnqGvasQ+/XymEylflvLenbRbP8fOg6CntDg3EZbbwg1ExjWzHNBE34Lj92gZ
-	 p5pe79cozAInWXKPT/5nry8wcttNvabCi15Oqw0ORUGhijw0mBFrZqGIo2RjaLWe/GOpN
-	 94VFyPpneLCv8XnGZGtyxxlcRcH5lozNKi/rS2eLPkqTKaPiJhGsefGt5oxBaP8knc3Kd
-	 +dRt/y0GF/Ag3SwpjErLsY9Ez0Eoouh/r+5JfrPf8CGz1ArZ3NfI94LlwGxEYDEb1uA==
+	t=1794729948;
+	b=GvKNqb3lt+z1j26aee1HOEtAyec4supOkwvq6BLXSN9bBdw85r/6Z8uiTHV9r69EdL6U
+	 +ad6xNL9ebWPbgI5ZAOgX8A5cCltWM5NonIytOIankF5bmvdNnzbTiyH7wLgiqM3rfBeV
+	 lr6gHUIS0lgwJW43CO2rARByocT0goEven5bBlYtafaG0MnwddlgSjoMUKhJhkg08tUqz
+	 eq6n+awAkWNPQ1IXioeR6LrVcPIJCHUmTQnfi47SZW7bISSKq0Yh8kcvskOhf4aMFZ+ch
+	 vRUe3fep+olHoV9QKADumIAEI8w2Sc3CiHRoOFUD4EqfR2DoHInvpMrybDjWmVaQBXA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794729771;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-CM-TRANSID:X-Coremail-Antispam:X-CM-SenderInfo;
-	bh=j5fg8H94L595RJoWrSWVnHYtwYSDGByDB36QOftv6iE=;
-	b=WCtYlHcUObuEmhFJa59BhqTwQtutzOFV19eB0yUkHP3/zds5MuGkJJ1rqEaUPy2YBjS3
-	 2E1aFqrkKgoo3tXck9Fx3JH9h7riiosumwcx/a/lW6aobtelpU/cBEN1s1U7KC008hdCf
-	 jg8q1AEHsFD5NVNvfMY/h7gQ43TVUMhSJtleKCpT9aQTx5btWjaXi61u63ECgeqzV2Kap
-	 6jRiYjYnQ8BlZnoLX5qRT7cT4M/s4e3xi69bjKTjZs3hzMUdv4jJLXz49CEmLTvmMdjCB
-	 gPQbb6YLTQn6Ax/slzgRb5k+oI7zDUfEUIrHvhHjzYnyMrkT7exitw17EylGJ/oE/uQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794729948;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=uLOINwQifbl7NdcmlKi1XwmwvGhRqaI2ZvtD86rQsQo=;
+	b=1+ioWq6THsG1iG9tKciMg0Rp3dcwXim0rDdtB2+X8Xi8sCbfY4kdgDC/h/fjL6SsMVBi
+	 qmD83BDtdxk9/Eq7uLDS1V5A1+89e6je7zC40lmhRt+oEaly75BSm2+VZoTcJMl5sl9qM
+	 I5x+lpGK2KXY1SoC84G3IhYe+5qYoBnCLWXqbW6k5H9MbqkHB57aa7gOqmUaV2M+M8zjG
+	 KydbVR8SOngGZGeZUC+Wll/CL5Vnw65VgPZmOY3jLmGh0ggzF5vJOMtLYLykhOQnfI7bb
+	 nl83kh+z8h3YCvCllbJE9pT6mcWlPuS8E2us0Tx+28B6z6ymwwSWyqiqRhZT//OlKpA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=163.com;
-	spf=pass smtp.mailfrom=163.com;
-	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b="Gqm/KVFF";
-	arc=none smtp.remote-ip=117.135.210.3
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.3])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TCj2aRKx;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC21B606A329;
-	Sun, 15 Nov 2026 08:02:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BC21B606A329
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57A79606A329
+	for <linux-rdma@vger.kernel.org>; Sun, 15 Nov 2026 08:05:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=Gqm/KVFF
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=j5
-	fg8H94L595RJoWrSWVnHYtwYSDGByDB36QOftv6iE=; b=Gqm/KVFFkVhIV6u6V8
-	ofco9XR4/T2DFInxk1jkHPkzEuY2KbIbhdP9n3D2juLBcJoW+R2lkWN4R9NuxQqw
-	ahH9RejWO6fx0ursRavObCfUCjwq8hK/1LfHLKmUkK8hMM+IQkTmiEoanASdrrb5
-	dbLRdhpmOaNb48HMyFKXCx8dM=
-Received: from user-VMware-Virtual-Platform.localdomain (unknown [])
-	by gzga-smtp-mtada-g1-1 (Coremail) with SMTP id _____wD3X7wUZ_lqo3Y3HQ--.40037S2;
-	Sun, 15 Nov 2026 16:02:28 +0800 (CST)
-From: Ziheng Wei <zihengw03@163.com>
-To: Yishai Hadas <yishaih@nvidia.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: [PATCH] RDMA/mlx4: Use the right list member in push_deleteing_req()
-Date: Sun, 15 Nov 2026 16:02:26 +0800
-Message-ID: <20261115080226.910258-1-zihengw03@163.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TCj2aRKx
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C95491F000C4;
+	Sun, 15 Nov 2026 08:05:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794729947;
+	bh=uLOINwQifbl7NdcmlKi1XwmwvGhRqaI2ZvtD86rQsQo=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=TCj2aRKxLqJHgssqOlScXQ9gGVEx1UljEdxHxax4fbMppoLQYTev0uSp8N+pUVDuy
+	 VrwoHQgeHHIuLtqLykCMiO7PdYp5Xfxb5lApvdRXTRl8L9seOGLUSCkTu1seWJ2FV6
+	 CgTY57LKGdm5Bn4gnBt38uGifHfYGv4qhxmWwJL5kLdvTOSvocawu8wjy9OcmCpfoS
+	 8s6Vz+FTFih/hfO7J5vy1Kv2ZTr+U/RxoUEQuQVfILXvH8puM/j7hj61h3AI4rdEGC
+	 uyd89llEJELhy3RGGsyR4oUisPe5PuD7p79sCxaTFSc8kyYnGIdousgibBeQqQqwhA
+	 jC25ErfreNuRQ==
+Message-ID: <sashiko-outbox-215281@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] RDMA/mlx4: Use the right list member in
+ push_deleteing_req()
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Ziheng Wei" <zihengw03@163.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261115080226.910258-1-zihengw03@163.com>
+References: <20261115080226.910258-1-zihengw03@163.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Sun, 15 Nov 2026 08:05:46 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,69 +59,42 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wD3X7wUZ_lqo3Y3HQ--.40037S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW7CryUJr4UKF47GrWUArWfGrg_yoW5Jryfpr
-	Z0yw15Cr1DGF4093WUWayFqay8Zas5Za4jkFWkKr1DCrnxXr40qF9rGa4Y9as8Arykuw17
-	tF1Y9rsrurW7ur7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jMlk3UUUUU=
-X-CM-SenderInfo: p2lkv0ljzqjqqrwthudrp/xtbC7RT3SGr5ZxSs7gAA3k
 
-push_deleteing_req() looks up the last pending request from
-group->func[slave].pending, but recovers the enclosing struct with the
-group_list member instead of func_list.
+> push_deleteing_req() looks up the last pending request from
+> group->func[slave].pending, but recovers the enclosing struct with the
+> group_list member instead of func_list.
+>=20
+> A struct mcast_req is queued on two lists at once by queue_req():
+> group_list links it into group->pending_list and func_list links it
+> into group->func[].pending. The two list_head members are adjacent but
+> not at the same offset, so list_entry() on a node taken from
+> func[].pending yields a pointer 16 bytes past the start of the object.
+>=20
+> The following pend_req->clean then reads past the end of the
+> allocation. On x86_64, sizeof(struct mcast_req) is 312 bytes and clean
+> is at offset 304; the shifted pointer reads it at offset 320.
+>=20
+> The entry stays on the list when clear_pending_reqs() fails to cancel
+> group->timeout_work for the first request, which sets clear to 0 and
+> leaves the request queued. push_deleteing_req() is then called right
+> afterwards from clean_vf_mcast() and reads the bogus clean field, which
+> decides whether the new delete request is dropped.
+>=20
+> Use func_list to recover the request.
+>=20
+> Found by LLM-assisted source review. Not tested on SR-IOV hardware.
+> With a test module that calls clean_vf_mcast() on a fabricated group,
+> push_deleteing_req() read a marker value placed right after the
+> pending request and dropped the new delete request.
+>=20
+> Fixes: b9c5d6a64358 ("IB/mlx4: Add multicast group (MCG) paravirtualizati=
+on for SR-IOV")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Ziheng Wei <zihengw03@163.com>
 
-A struct mcast_req is queued on two lists at once by queue_req():
-group_list links it into group->pending_list and func_list links it
-into group->func[].pending. The two list_head members are adjacent but
-not at the same offset, so list_entry() on a node taken from
-func[].pending yields a pointer 16 bytes past the start of the object.
+Sashiko has reviewed this patch and found no issues.
 
-The following pend_req->clean then reads past the end of the
-allocation. On x86_64, sizeof(struct mcast_req) is 312 bytes and clean
-is at offset 304; the shifted pointer reads it at offset 320.
-
-The entry stays on the list when clear_pending_reqs() fails to cancel
-group->timeout_work for the first request, which sets clear to 0 and
-leaves the request queued. push_deleteing_req() is then called right
-afterwards from clean_vf_mcast() and reads the bogus clean field, which
-decides whether the new delete request is dropped.
-
-Use func_list to recover the request.
-
-Found by LLM-assisted source review. Not tested on SR-IOV hardware.
-With a test module that calls clean_vf_mcast() on a fabricated group,
-push_deleteing_req() read a marker value placed right after the
-pending request and dropped the new delete request.
-
-Fixes: b9c5d6a64358 ("IB/mlx4: Add multicast group (MCG) paravirtualization for SR-IOV")
-Cc: stable@vger.kernel.org
-Signed-off-by: Ziheng Wei <zihengw03@163.com>
----
-
-Notes:
-    The changelog was drafted with an AI assistant from my analysis;
-    I have reviewed the code, the fix and the text.
-
- drivers/infiniband/hw/mlx4/mcg.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
-index bba178ffe..8705724c8 100644
---- a/drivers/infiniband/hw/mlx4/mcg.c
-+++ b/drivers/infiniband/hw/mlx4/mcg.c
-@@ -1216,7 +1216,7 @@ static int push_deleteing_req(struct mcast_group *group, int slave)
- 		return -ENOMEM;
- 
- 	if (!list_empty(&group->func[slave].pending)) {
--		pend_req = list_entry(group->func[slave].pending.prev, struct mcast_req, group_list);
-+		pend_req = list_entry(group->func[slave].pending.prev, struct mcast_req, func_list);
- 		if (pend_req->clean) {
- 			kfree(req);
- 			return 0;
-
-base-commit: 97d73c8251226cf27cc6656b4c542869bb8c69fa
--- 
-2.43.0
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261115080226.9102=
+58-1-zihengw03@163.com?part=3D1
 
