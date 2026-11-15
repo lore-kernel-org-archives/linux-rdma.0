@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794746073;
-	b=l+VlWVBkFEqJF1N/ADT8cSOVP4Me8j1KVj7/hXmWVFkrMExTHmC7BtvHV/an3LlcFiP1
-	 awsKP0Rhr41r4HWwirAI8bD+6W6aJpwX3iKKKCgOj2FaPPBrvxpOkBPxbH/EpXcce84Q/
-	 fHrJ1uBR3jkdQonKphdovMBn8S3CrdY4LBdr2ysRdDe8eTJqdBDTJV0hr19PvPpADy5dG
-	 ATe5UPT+nAMPeD8OVyOFeX7XbuUgIgMFlhXFTmXosRebvcjJ9ZSSgnZ0yBf7lin9iXBpG
-	 bOWMQ07NOnL1WzdJbnxCpOSnBEw1KZDTLcq8kLbf9CF8fhiP/PYebDzzDQzK5psBCQg==
+	t=1794746075;
+	b=otUPC2XiZHKyk5G/0bmbLmFhiEc/rQQfHHm6gykAk+hQ7I5UB03fYpC3Vocp/W5pF2lk
+	 7mdaiHidDSG6grdLnJqbS/OFcFTCkk76f8QGQzJKQNC+kH/UkOrRl/Q2KIVNPSv8PoX2D
+	 ZTU8PU49JG8/s3SV7EwPFzRdW8PKA2viu+KYGqmvxDN+KkJTdxXkbTeBmJVYxqjjDIxs6
+	 lWWHNEj9pTBCikfDASnXYMyBuZeZXXiOIxin8KM7IUuG20do4xGgy8KZmhaMXh5XMwDAD
+	 lCq1V2KQAe1kxds1MCci/oIYu6j2M72impVMD7zD6nL3bGF4NyYspYfoVjy07kL8c5Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794746073;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794746075;
 	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:Content-Type:
 	 MIME-Version:Content-Transfer-Encoding:X-Spam-Status:
 	 X-Spam-Checker-Version;
-	bh=5d99x9Z7iGP/XoNMh8Cda41fFbLCQQN+rYDaKXQczIY=;
-	b=W1attjA1WUeGsVveaRLy7ixfBV7x1x9oEkEt8Eg8XbxtJqMV+3YRW1OrCg/CBrJcrMNS
-	 tQygWdj4HHy8pnmF35z3V+hS8kqjCqvbxwqoH5IA7RzhJ5OvnyR3n86K3z4f6H9290hF9
-	 CPR+Lgixampph19SGhzv3atPu/s+fOAY8L8An+UD/x/PsE+OLxbsEhDP14IxRzO7i00UQ
-	 jmQeTcnsUQNlj4qorJadFGQJtc0lahDCLLfPL+u8ApbQRlGBrYgY731qLxV7H42RFv80f
-	 kcUKAmF0jHAgw/xWQ/CxLcHQtIa4PKTAtT/45amCK6MDbLAJebE815+uGJjDPxaxDEg==
+	bh=+jQashNltLw+ocyr/YXlLyfk8PT4+1WyovCrrhhY0HE=;
+	b=Wog7KUv+HYlfMr4KtcEmd3zomUTa/o/EyOr8ckzJ6t14hSYlKf6k/nnU2cKmvEag+NZ1
+	 QOvBur9lee+C/GHrMfcluI4elkKG4+rHk6rbEoO5iRsBOZZgaMKd8WdDjjWRjwUiHndj5
+	 /HR2g5FFYhw+rbIjftQyedC7XcmyjvFp3A5CyDAyZDgJE/FIhtDSxuTkNxHsxVBNxpERM
+	 d+Pi1Sk/ReyMItqEHoaWeAHq0SQx1ECXaiYcBJ0w8kTtSEcnh/4O3G3QHoXy0d0TO+BvV
+	 2DDzao18pbhCW3fybLuM4dfUhepYgfLDoU01PeTmhSDY/SlTlmzTMNG4rfUSOp78FVw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.microsoft.com;
 	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=RdsDG4jx;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=Jcg2I8RT;
 	arc=none smtp.remote-ip=13.77.154.182
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2BB8F606A32E;
-	Sun, 15 Nov 2026 12:34:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2BB8F606A32E
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 274FE606A33E;
+	Sun, 15 Nov 2026 12:34:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 274FE606A33E
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=RdsDG4jx
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=Jcg2I8RT
 Received: from weh-cvm-dev-vm.y50bckvjo0hefgfnzfztsfttff.phxx.internal.cloudapp.net (unknown [20.169.55.37])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 5440920B7169;
-	Sun, 15 Nov 2026 04:34:21 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 5440920B7169
+	by linux.microsoft.com (Postfix) with ESMTPSA id C9E9920B716A;
+	Sun, 15 Nov 2026 04:34:22 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C9E9920B716A
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1794746062;
-	bh=5d99x9Z7iGP/XoNMh8Cda41fFbLCQQN+rYDaKXQczIY=;
+	s=default; t=1794746063;
+	bh=+jQashNltLw+ocyr/YXlLyfk8PT4+1WyovCrrhhY0HE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=RdsDG4jxnOTbRCcRLKn8KqNbjJNqcL7K8pXNK/914kpDO8n8yeqxYHuWtNeJbLBUq
-	 DKTedkh6++WOqmHvLYlX0r6oycUAo72qMSzKNx1zb+ZrFuMCYrvEmX9MFTvJsakBD1
-	 WBDB//+dnecoe92lyu/QgI3LR5oZ3YEAvQPsC7xo=
+	b=Jcg2I8RT/dkvAEPu5VhkEOoaPZShgncM+vQhjXobgG2uvnnuhbhXe6B0UYHNfIS11
+	 ZzhN07diyfTMPjD4WBCrutuzXH7ybeqDtIOPQU9w1P6shDm0/y4ziciFrEzL58w67o
+	 k/G2q/IrBvgAUb8VyYLyh9qaCi4a7eQxBPAFLnSY=
 From: Wei Hu <weh@linux.microsoft.com>
 To: netdev-bot+sashiko@kernel.org
 Cc: longli@kernel.org,
@@ -70,12 +70,12 @@ Cc: longli@kernel.org,
 	mawasthi@linux.microsoft.com,
 	weh@microsoft.com,
 	edumazet@kernel.org
-Subject: Re: [PATCH net-next v10 2/4] net: mana: give each HWC message slot its own completion state
-Date: Sun, 15 Nov 2026 12:34:11 +0000
-Message-ID: <179457550419.109246.17805974147168949918.hwc-v10-all-reviews-p2@linux.microsoft.com>
+Subject: Re: [PATCH net-next v10 3/4] net: mana: support concurrent HWC requests
+Date: Sun, 15 Nov 2026 12:34:12 +0000
+Message-ID: <179457550421.109246.13016810300207001034.hwc-v10-all-reviews-p3@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <179455239815.2199510.4673285259543925635@kernel.org>
-References: <d3c71452bb2938a5c1fcfebb32d44827eaea94e9.1794208055.git.weh@linux.microsoft.com>  <179455239815.2199510.4673285259543925635@kernel.org>
+In-Reply-To: <179455240021.2199510.18244084352437360589@kernel.org>
+References: <2ae0e8b22569dc23178d0ea42178808ad92cb6db.1794208055.git.weh@linux.microsoft.com>  <179455240021.2199510.18244084352437360589@kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -90,61 +90,91 @@ Content-Transfer-Encoding: quoted-printable
 
 Thanks for the review.=0D
 =0D
-I will include the small metadata follow-up below in v11. The four Medium=0D
-findings are pre-existing and will be addressed separately. Where later=0D
-patches already provide protection in the completed feature series, I=0D
-have noted that distinction below.=0D
+I will respin the series as v11 to address the admission/teardown=0D
+interaction below.=0D
 =0D
-> These changes fix bugs that can already be hit in the baseline, but the=0D
-> commit has no Fixes: tag and no stable note. Should it have them?=0D
+> Can this reject teardown commands without ever posting them to the=0D
+> device?=0D
 =0D
-Agreed. I verified the original-driver commit ca9c54d2d6a5 and will add=0D
-the applicable Fixes metadata. I will explicitly describe the stale=0D
-caller-storage and stale-completion bugs, and make the dependency on the=0D
-following quarantine patch clear for backporters.=0D
+Agreed. With no available slot, abandonment or cancellation can return=0D
+-ETIMEDOUT before SQ posting, while existing destructive callers can still=
 =0D
-Patch 2 alone does not solve response correlation or TX-buffer reuse after=
+free the associated memory. Their error handling predates this series, but=
 =0D
-a timeout. The backport guidance will say so; I am not proposing automatic=
+the new quarantine-related no-post condition must be reconciled with it.=0D
 =0D
-stable pickup of the complete feature stack.=0D
+I will address this in the next revision while preserving the lifetime=0D
+protection for timed-out IDs and buffers. Releasing a quarantined slot=0D
+merely to submit another command would reintroduce the late-response and=0D
+pending-DMA hazards.=0D
 =0D
-> This isn't a bug introduced by this patch, but can a late response for a=
+The rejection is not permanent for every later command: a late response=0D
+can release a quarantined slot, and free slots remain usable. However,=0D
+that does not remove the unavailable-channel teardown concern. The=0D
+source-extracted tests reproduce the no-post/free control flow; they do=0D
+not establish that physical DMA corruption occurred.=0D
 =0D
-> request that timed out still reach the next request that reuses the same=
+> Only -EBUSY keeps a caller waiting here. mana_hwc_try_get_msg_index()=0D
+> turns a full bitmap into -ETIMEDOUT whenever abandoned_msgs is non-zero,=
 =0D
-> msg_id?=0D
+> however many of the occupied slots are actually abandoned.=0D
 =0D
-This is pre-existing. We will address it separately for the baseline.=0D
-As the review notes, patch 3 already keeps the ID quarantined in the=0D
-completed series. That protection will be preserved in the respin.=0D
+This mixed-pool case is real. One abandoned slot does not imply that the=0D
+other occupied slots cannot complete normally.=0D
 =0D
-> This isn't a bug introduced by this patch, but can this memcpy() read pas=
-t=0D
-> the end of the RX slot?=0D
+I will cover it in the same admission revision, so partial abandonment=0D
+alone does not rule out progress from those other slots. Cancellation,=0D
+channel stop, and exhaustion of usable capacity still need to wake or=0D
+terminate waiters without reusing quarantined IDs. I will not treat an=0D
+abandoned-count comparison alone as a verified fix.=0D
 =0D
-This is pre-existing. We will address it separately for the baseline.=0D
-Patch 4 already checks the requested response size against the effective=0D
-RX limit and slot capacity before admission in the completed series.=0D
-This is not a claim that standalone patch 2 fixes the bound.=0D
+The revision will include focused regression cases for unavailable-channel=
 =0D
-> This is a pre-existing issue, but is the TX DMA buffer for this msg_id sa=
-fe=0D
-> to reuse at this point?=0D
+teardown, mixed healthy/abandoned occupancy, full quarantine, cancellation,=
 =0D
-The early TX-buffer reuse is pre-existing. We will address it separately=0D
-for the baseline. In the completed feature series, patch 3 retains the=0D
-slot and its TX buffer while the response-side ownership is outstanding.=0D
-The respin will not undo that quarantine to make admission succeed.=0D
+and late-response recovery.=0D
 =0D
-> This isn't a bug introduced by this patch, but the caller of this=0D
-> function, mana_hwc_rx_event_handler(), drops the RX buffer when the devic=
-e=0D
-> sends an out-of-range msg_id:=0D
+> This isn't a bug, but the quarantine here also fixes a real misdelivery.=
 =0D
-The missing RX-buffer repost is pre-existing and remains outside this=0D
-series' changes. We will address it separately, rather than silently=0D
-folding an unrelated RX recovery fix into this respin.=0D
+=0D
+Agreed. I will name the original wrong-command response/misdelivery bug=0D
+explicitly and include the verified Fixes lineage and backport dependency=0D
+guidance. This is a commit-description/metadata follow-up; it does not=0D
+require an additional quarantine mechanism.=0D
+=0D
+> Will this also hide live-channel failures during setup?=0D
+=0D
+The specific "test_eq failed" diagnostic is suppressed for the private=0D
+bootstrap context. The final patch's outer HWC test still logs a generic=0D
+failure, so setup failure is not wholly silent.=0D
+=0D
+Keeping the specific diagnostic is a small, useful fix. I will preserve it=
+=0D
+using the explicitly passed setup context, without publishing the HWC=0D
+early or weakening the intended suppression after runtime unpublication.=0D
+=0D
+> Should gc->hwc_drain_waitq be initialized once in mana_gd_probe() and=0D
+> mana_cdx_gd_probe(), next to spin_lock_init(&gc->hwc_lock)? It belongs to=
+=0D
+> gdma_context, but here it is re-initialized on every channel creation,=0D
+> including each mana_gd_resume()->mana_gd_setup().=0D
+=0D
+Agreed. I will move this initialization to gdma_context creation beside=0D
+hwc_lock in both PCI and CDX probe paths. The per-context waitqueue should=
+=0D
+not be reinitialized by each channel constructor. This is a small=0D
+placement fix, not a broader device-lifecycle serialization change.=0D
+=0D
+> This is a pre-existing issue, but the new comment claims an exclusion=0D
+> that nothing seems to enforce. Is anything keeping hwc alive between=0D
+> this read and the later mana_hwc_timeout_read() and=0D
+> mana_hwc_timeout_update() calls?=0D
+=0D
+The wider raw-reader/setup/PM/service lifetime and serialization issue is=0D
+pre-existing. We will address it separately. Moving the per-context=0D
+waitqueue initialization does not claim to resolve those wider races.=0D
 =0D
 Regards,=0D
 Wei=0D
+=0D
+pw-bot: cr=0D
