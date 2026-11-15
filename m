@@ -1,53 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794747099;
-	b=JBbAihyVriMHUCISSd+VKBjvkrU2VdHx3l0PRpm1pWf2mLTZ8P+e7B+3GJP90HprViM1
-	 lbdq3Wy8f9TxFlaxas0sOigTXRrEGztHMi3iv613BIuHklCMFi7YZCMSA79tGDLzb4Eiv
-	 dwl/405w2JthdyWkuZtIi5aPFnii1Bu6ZUIfCMv2h8xO+XiqIH0xPVGs/xJ2W7bSqsxyj
-	 /2ptYjteRFq7TPqPNS6s+qRb1/0HsCJMswE+Wdv1S3vfJrIlDyh4zfIa23THKvBXvvr9V
-	 aFQuNq9EjuJMS+Rzhot+31m+5VOa128BaKHwNZulvn0V/6zzD3YzN0BNuyi2PQ4HJSA==
+	t=1794747133;
+	b=bgLgu8EOdVRQK+Ve3s27SQfdv7kOtiIOa/g382ZC94h3iP2IKrNdAt5tAKHX3ACwsZz/
+	 JxckA/Z0V8ZTcqW25h2WwgtkDv9837z/ZYe8H+VsOXLnYvFvyFA/5/FZ9KHI1qu7i2DeA
+	 f/E2XzEy/mCot2KFpMVSR2+Mjwnkfwk9DcV5TudepBwqe3kUX8PnIk5U/T6SaGTymJvsk
+	 jS4y9BXLbcQ/2RRTPqFrZ0DBQEtXq52ylsq/s0WZ5f7j1A8iXtVRMVVZS244yyfw4hRu8
+	 FS3ZZGib5QmuzentqVALdFVlTsmVLn0su5qPtSO+Opk/xlpTgXUhmmtesmz7IrrVHDw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794747099;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=qPBjkdBDzlUtD5nQuCT9K+06zNKQ+/uPG+/Vo8m+ws8=;
-	b=CtVSwofLDTguxiW9Kry1Zq9gXBvRFalU620kDJQ0grt9qXuqpi/07iM6yurSpyGGyRFI
-	 2vAipGZlebiCqgilDEQr9me3uZI240a9ddPwpYP1DoeaWMjjfPUAM+YjjYLkFwFrADFlJ
-	 70EgVgS1iWV78X2jEk8ujoOZz9cYbn/hXAtxPxCb/riZDO9f7DizfBEGPHzLVjhVx0+tm
-	 FAEi42OnVU8UkBAcl8P7GotVoQKNGyvDSLLittQS79GaazfyFmoT9RCzhViAwzHoWwEuT
-	 xzqQVmpLs3APn9YfeBwQM3sCbji+c7yo+2eYD0VGvnFLdDej0J4go9pUZsMaboU+rGw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794747133;
+	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
+	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Mailer;
+	bh=KParxGsc7XRf1tM5678gFtw4cILsa1rzhE0kGfy39CY=;
+	b=VGG3rxc3ZhDaKanPHTKF4IZQdtXmSqTShZj/Uu3/H1IhVSIk9UJbKB7qPTHyTmRlVLko
+	 QGsBKQaHUbn/xo/+/UZtcGMYG3NCzLGJFabpzez0Jxl8PKn0jk8f2G1JqfcgYm9lgDcyh
+	 iyThAdVhDngAEtp0+kjHosq9oO+gGtIrqnU7ss+MSPOHw6H4UiTbwgHJsxCRoo+K28OTd
+	 +1FkpW8Ew1GKTgaRG36l86d3p8dHoWw10ox8AvtOhGh0s/QYucMvXMuH3x8EDQXBCJtCR
+	 6iUz4umoE5EoLQPiekJGIi9t7ZqfIdsW41e57qacAHPNGqguE4T2ekbdZfmRfvrw26w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=MeSNLrVZ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=S+kj1pyJ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8197606A31F
-	for <linux-rdma@vger.kernel.org>; Sun, 15 Nov 2026 12:51:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EE90606A31A;
+	Sun, 15 Nov 2026 12:52:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=MeSNLrVZ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58FCF1F000C8;
-	Sun, 15 Nov 2026 12:51:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=S+kj1pyJ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 508DD1F000C4;
+	Sun, 15 Nov 2026 12:52:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794747099;
-	bh=qPBjkdBDzlUtD5nQuCT9K+06zNKQ+/uPG+/Vo8m+ws8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=MeSNLrVZUye2l8S+k3lWdEMk+p7Rd0hbw3y2mpdd7XT9dzB+Zw8k+giE3vtKLacvx
-	 7jDPf2OOc7I4GUH53NAw0QWPkezhNqaYMFqnZxMqzO7c2yb34J4xna6SDs8H//HiBm
-	 /z+tc10WvEpqF6FIbCy/wcxAK2NFGC0rPXq8yn4GHrSTxFipOsxB3mngJZX1n4HTPo
-	 ddmGfw4DUcfIvVuFJsqkCuKpvF/LGPUYRhwabqzYbe45+pX3EU+FbwRxa49ygxRGQg
-	 XrvHS21mIOxymxge+lLPYQ8+SAopQj4MhF9+nAP97quD/fsFD73BCuAANZSuIFb3FP
-	 l7JSpLcYvMWPw==
-Date: Sun, 15 Nov 2026 14:51:33 +0200
+	s=k20260515; t=1794747132;
+	bh=KParxGsc7XRf1tM5678gFtw4cILsa1rzhE0kGfy39CY=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=S+kj1pyJzfBBW6hbKdfqruu/v61PhCNuJ+vgYrJkiWd7msnFgARmlXfbIVQ0OxYcG
+	 +KVTNTNUvkj+KitytSnTu3DP8dv68hRbh4hT6hUbrh+xABUIHUdgSMh5df7CyYMnM+
+	 pzO+xAXJzmSJ8aAl1n1mY3rZEP7L1xndbFwcrQa4DqjCm2i1EFRFcJcOLvpFenlLdh
+	 W3vS5s3+1lDR+ZA+Fb8qvy5atIUobJ2qycf+SHqlGlkbQ7Tn10tpFeo7hbEiQNIXG/
+	 r9+mB8JfAMbLtRKGgUUVSGuSx2hzC+f2N16Dr4ImjyaPqbXwHnwqhe3fLUPONBWob3
+	 J82sSPAWavx7w==
 From: Leon Romanovsky <leon@kernel.org>
-To: Stephen Bates <sbates@raithlin.com>
-Cc: linux-rdma@vger.kernel.org, sshaul@nvidia.com, stephen.bates@amd.com,
-	abhijit.gangurde@amd.com, nikhil.agarwal@amd.com,
-	Claude <noreply@anthropic.com>
-Subject: Re: [PATCH v3] perftest: add a ROCm build to CI
-Message-ID: <20261115125133.GA42525@unreal>
-References: <20261106224821.126399-1-sbates@raithlin.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>, 
+ Junyoung Jang <graypanda.inzag@gmail.com>
+Cc: Jeffin Philip <jeffinphilip14@gmail.com>, linux-rdma@vger.kernel.org, 
+ linux-kernel@vger.kernel.org
+In-Reply-To: <20261109200330.2361828-1-graypanda.inzag@gmail.com>
+References: <20261109200330.2361828-1-graypanda.inzag@gmail.com>
+Subject: Re: [PATCH] RDMA/iwpm: fix memory leak in iwpm_add_remote_info()
+Message-Id: <179474713016.1305087.6552754506457256588.b4-ty@kernel.org>
+Date: Sun, 15 Nov 2026 07:52:10 -0500
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -57,150 +59,35 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261106224821.126399-1-sbates@raithlin.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-On Fri, Nov 06, 2026 at 04:48:21PM -0600, Stephen Bates wrote:
-> CI builds only the CUDA configuration. The two existing workflows pass no
-> --enable-rocm, so src/rocm_memory.c and everything behind HAVE_ROCM and
-> HAVE_ROCM_DMABUF is never compiled on a pull request, and a change that
-> breaks the ROCm backend goes green.
-> 
-> Add an Ubuntu 24.04 job building --enable-rocm --enable-rocm-dmabuf,
-> alongside the two CUDA jobs and triggered the same way. It runs in AMD's
-> slim ROCm image rather than installing ROCm on the runner. The -full and
-> -complete tags, and an apt install of the amdrocm-core metapackages, all
-> pull the whole ML stack: Composable Kernel alone is over 2 GB, before
-> rocSHMEM, MIOpen and the BLAS and FFT libraries. A compile check touches
-> none of it. rocm/dev-ubuntu-24.04:7.2.4 is about 1.1 GB against 8.3 GB
-> for the smallest 10.1 image, and still ships hipcc and the HIP and HSA
-> headers needed to compile the ROCm backend.
-> 
-> 7.2.4 rather than 10.1 because AMD publishes slim tags only through 7.2.x;
-> every 10.x tag is -full. What this job needs is a toolchain that compiles
-> the sources, which that image provides. Moving to a newer ROCm is a
-> one-line change to the container tag if a slim 10.x image appears, or if
-> something here starts depending on a newer HIP API.
-> 
-> This is a single host-only build; there are no HIP kernel sources in the
-> project yet, so there is nothing to compile for a specific device target.
-> When device code and --with-rocm-arch support are introduced this job can
-> gain an architecture matrix at that point.
-> 
-> Like the CUDA jobs this builds and installs only. There is no RDMA device
-> in a runner, and the project has no test suite.
-> 
-> Verified by running this workflow in a fork of the repository. The job
-> passed: configure accepts every option, and make and make install succeed
-> warning-free.
-> 
-> Link: https://github.com/linux-rdma/perftest/pull/418
-> 
-> Co-Authored-By: Claude <noreply@anthropic.com>
-> Signed-off-by: Stephen Bates <sbates@raithlin.com>
 
-Stephen,
+On Tue, 10 Nov 2026 05:03:28 +0900, Junyoung Jang wrote:
+> NETLINK_RDMA accepts requests addressed to kernel port ID 0 from a local
+> unprivileged socket. The IWCM RDMA_NL_IWPM_REMOTE_INFO callback has no
+> RDMA_NL_ADMIN_PERM flag, and RDMA netlink routes this IWCM opcode to its
+> dump callback even without NLM_F_DUMP.
+> 
+> iwpm_remote_info_cb() parses the six required attributes and only checks
+> that the local and mapped-local sockaddr_storage families match and that
+> the remote and mapped-remote families match. Four family-255 addresses
+> pass those checks. The callback allocates an iwpm_remote_info object
+> with GFP_ATOMIC and passes it to iwpm_add_remote_info(). There,
+> get_reminfo_hash_bucket() accepts only AF_INET and AF_INET6, so the
+> family-255 lookup returns NULL. The object is neither linked into
+> iwpm_reminfo_bucket nor freed, and the callback returns -EINVAL after
+> this allocation side effect.
+> 
+> [...]
 
-Thanks for bringing this to the mailing list. It brought to my attention that
-the perftest repository had been neglected.
+Applied, thanks!
 
-Please open a PR against the perftest repository, and I'll start cleaning
-things up there.
+[1/1] RDMA/iwpm: fix memory leak in iwpm_add_remote_info()
+      https://git.kernel.org/rdma/rdma/c/4b14bd5d913b16
 
-Thanks
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
 
-> ---
-> 
-> Changes since v2:
->   Drop the architecture matrix; collapse to a single host-only build job.
->   Update the commit message to match what the workflow actually does.
->   An architecture matrix will be added when HIP kernel sources and
->   --with-rocm-arch support are introduced.
->  .github/workflows/ubuntu24_04_rocm7_2.yaml | 72 ++++++++++++++++++++++
->  1 file changed, 72 insertions(+)
->  create mode 100644 .github/workflows/ubuntu24_04_rocm7_2.yaml
-> 
-> diff --git a/.github/workflows/ubuntu24_04_rocm7_2.yaml b/.github/workflows/ubuntu24_04_rocm7_2.yaml
-> new file mode 100644
-> index 0000000..e8f3ea5
-> --- /dev/null
-> +++ b/.github/workflows/ubuntu24_04_rocm7_2.yaml
-> @@ -0,0 +1,72 @@
-> +name: Build and Test perftest on Ubuntu 24.04 with ROCm
-> +
-> +on:
-> +  push:
-> +    branches:
-> +      - master
-> +  pull_request:
-> +    branches:
-> +      - master
-> +  workflow_dispatch:
-> +
-> +jobs:
-> +  build:
-> +    runs-on: ubuntu-24.04
-> +
-> +    # AMD's slim ROCm image. The -full and -complete tags carry the whole ML
-> +    # stack -- Composable Kernel alone is over 2 GB -- which a compile check
-> +    # never touches. This one is about 1.1 GB and still ships hipcc and the
-> +    # HIP and HSA headers needed to compile the ROCm backend.
-> +    container: rocm/dev-ubuntu-24.04:7.2.4
-> +
-> +    name: ROCm
-> +
-> +    steps:
-> +      - name: Checkout repository
-> +        uses: actions/checkout@v4
-> +
-> +      # The job runs as root inside the container, so no sudo here.
-> +      - name: Install build dependencies
-> +        run: |
-> +          export DEBIAN_FRONTEND=noninteractive
-> +          apt-get update
-> +          apt-get install -y \
-> +            build-essential \
-> +            autoconf \
-> +            automake \
-> +            libtool \
-> +            pkg-config \
-> +            libibverbs-dev \
-> +            librdmacm-dev \
-> +            libibumad-dev \
-> +            libpci-dev
-> +
-> +      - name: Locate ROCm
-> +        run: |
-> +          # The image ships /opt/rocm as a symlink to a versioned prefix.
-> +          # configure needs the include path, so resolve it rather than
-> +          # assuming either spelling.
-> +          ROCM_PATH=$(ls -d /opt/rocm* 2>/dev/null | sort -V | tail -1)
-> +          if [ -z "$ROCM_PATH" ]; then
-> +            echo "No ROCm installation found under /opt" >&2
-> +            ls -la /opt || true
-> +            exit 1
-> +          fi
-> +          echo "Using ROCm at $ROCM_PATH"
-> +          "$ROCM_PATH/bin/hipcc" --version | head -2 || hipcc --version | head -2
-> +          echo "ROCM_PATH=$ROCM_PATH" >> $GITHUB_ENV
-> +          echo "$ROCM_PATH/bin" >> $GITHUB_PATH
-> +
-> +      - name: Run autogen.sh
-> +        run: ./autogen.sh
-> +
-> +      - name: Configure the build
-> +        run: |
-> +          ./configure --enable-rocm --enable-rocm-dmabuf \
-> +                      --with-rocm="$ROCM_PATH"
-> +
-> +      - name: Build perftest
-> +        run: make
-> +
-> +      - name: Install perftest
-> +        run: make install
-> -- 
-> 2.53.0
-> 
-> 
-> 
