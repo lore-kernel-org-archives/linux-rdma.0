@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794712706;
-	b=EPXmDfNH8ZWCqwjjpaeYDLLIhvSE3hdUTIEO/xxzyHAwo+fTYW4AxBBwTzXDbHcHPw9M
-	 U3LzJYvFgM/nBxL0a76skFpudEILdzKeiG5tD48cImbsEVkll7vGAlqzPYl6w/gVeSXdp
-	 iaJUQgvqLkOyWUiAhxxf7eKf1WRBbHc4ag4daWOO1lDNIpNmX7r3nnJ78IPrI/2zYzU7O
-	 4KdAEPT2yclZcBTyRF0W37GZa5nijSjNdFNEQSM99e4gTww20jqgbi88ZrN+yS8LjDhiv
-	 lA6ZS6EcWPqwVksbXsVS/5adA5eh5xjZ8t8H8Ej3edMALPaJhwT+/VGTELLL8JKrPbw==
+	t=1794712711;
+	b=hgS+IDOlJXL5Hix7t9EoF09ACEKUpv3GbSxk5lRnyBt2jdfXHRIjJGwbGhBojMHqEWGD
+	 3ITyf5Fr6RMWP3PD2Z/usNMQS3m2BLPNUByrJawVgJID4R1GTADThukM0bT/SCIgA5C5h
+	 DoSle/i6vfxeVEns3XYgGS9/YFa/kAPXNkHcqoXMMer+7CgtXpTQjZiM3Yawxmh7t+R4Q
+	 6jkDxlEJt7L3xeBL4fDQz/L/YN4hy9dse0OHwloXR7KNu0VSnpkidn4SSq5fbFjd2le7H
+	 YAdog5xnTEhVV3+BgUxpPM9oQZcOYG7ihU0u5GmnEs0JIoXmYjTaSFxQ2gaUzudrM5g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794712706;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794712711;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=6OJItO86YHqK6IuVI+yOVo6RQNTPReeurz6DnFYn0M8=;
-	b=wUQgbRshyMvatfklmh3vhUgKgJiokqN89M5uMsQMSAbLqiCsunB1mQktJamY8qFnvC4u
-	 R2EyIbGPrqDbDW248+1xL/Qmie5tYM9zhCI6Qp4l8go+b++6sZQJG8Pimor7aP/GJ7UP8
-	 /cZAkj1Kj/LYpIMYVfxO7A0N4xfV9N0aJaWT+2P6qww0+DwGBWSABT//+UOnZcfmvliiH
-	 RJPmkS+vQYoS5aZq2nOwCSJQbiJeKyXPOP4P/jHKqS2/uzVR7e858dyuFVTfGd23ZTZiH
-	 GYyWQoqNc37wvmrM8TV/Skshn/+/nICRZsWIVwU0slUw3w5ybvrGZDe4kP2F6Sb+0AA==
+	bh=NaBBC8TVav3SriqgseLu10PdzgsqTGxGU+07qISdAEI=;
+	b=wHK915eVcfpR3p+nzQ9q9T1yPNVpG7FS+rk4N5T2nCgwk75hlzcqVevbijDsJewwlgqX
+	 0PI4YD7RKEhpmBIBXKgyyxG437NJWX7of4Vl+/VNt7WDrjpXjFZcqxAj91OOKbywKzUQJ
+	 6Ao8xSR7ZufFCEh6hJSfQATvGd8lixwvlO93TekU8/qS/LQARfoyepE+F6cA0KoSdKHJH
+	 jSGE54vmQCmDE23KGxx0u2A9QBFZRDXg3vA2wjZqKq7a0Hf1qhZ8myqdhy80KhgvSpWAw
+	 F+Qpx4hbQpb5GuCrOz0AUlW63sv58GzM8kV64ER+vvXzhbfMlnHPj5nONbcbZu3SBEQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="oti/1q4t";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dLQBFP2F;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57D5B60A3828;
-	Sun, 15 Nov 2026 03:18:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC8BF606A897;
+	Sun, 15 Nov 2026 03:18:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oti/1q4t
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E31DD1F000D0;
-	Sun, 15 Nov 2026 03:18:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dLQBFP2F
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49B481F000C5;
+	Sun, 15 Nov 2026 03:18:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794712706;
-	bh=6OJItO86YHqK6IuVI+yOVo6RQNTPReeurz6DnFYn0M8=;
+	s=k20260515; t=1794712711;
+	bh=NaBBC8TVav3SriqgseLu10PdzgsqTGxGU+07qISdAEI=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=oti/1q4tTwhoDk4l7ss369GSpqDHEe/XD9M00RV6f6p56AmSVDy+FJiL98iB1k6NG
-	 YiH8u/36qoO1XtSYrcWHjw3u864kjIbsYjSkrPzb4lZNq+mfK9gyIeR72bV0XhJQW2
-	 RJ8ATr/xUeC8/ZXyza1PlnxjZ05MXbnzLFgmrv7KArYMz2gABT7gLiy4W/SOgGV2Xw
-	 dZd/7zXZzdyTBDupC43daMpGZncDOPwjrleaQ4I7Xv8i+aaVV9uaI6FnEVRSQDEvey
-	 EpKSrAWPxF0xHGfupvvXd7GRfZQnqxLKSD862dQe/uT/DbTt/SymElz4/G1DZ8NNZc
-	 v0nCcxPaaFpbQ==
-Subject:
- Re: [PATCH net-next v1 09/15] net/sched: add act_psp for psp transport mode
+	b=dLQBFP2Fjo571CIuWkJQKywIpqWUt5KJwH9SHqGkuC4Up3dRv1/PCH5Ir635cYSoL
+	 TkF+D+OB/gATihebRlEIw3wo5+vSU+jKTNx6wU/d+ZBIbFrr8T9nMRbqb/ZqzLaQIM
+	 wc8FWcKrfH4CqsyExAqHjrhpK4sf/jX1/kUqdXdj5zQArqaTAojLVL0Rnae5MB4yxq
+	 ncQORahGse0YnSpFo+2kjgHe5jTFgweL+CT5lYCqex0nBG0FfzLEd28nqRf3ZUOc28
+	 oKkJQkFB7WrLoC8MdC815IRRnvEILv2eB+Lv2ZKDhG1O/5d5Phh/aLpNeDo8l6S9k7
+	 99xJHOTG95qtg==
+Subject: Re: [PATCH net-next v1 14/15] selftests: tc-testing: add tests for
+ the psp action
 From: netdev-bot+sashiko@kernel.org
 To: toddfreed@meta.com
 Cc: netdev@vger.kernel.org, davem@davemloft.net, andrew+netdev@lunn.ch,
@@ -52,11 +52,11 @@ Cc: netdev@vger.kernel.org, davem@davemloft.net, andrew+netdev@lunn.ch,
  linux-kselftest@vger.kernel.org, linux-rdma@vger.kernel.org,
  martin.lau@linux.dev, pabeni@redhat.com, saeedm@nvidia.com, horms@kernel.org,
  tariqt@nvidia.com, weiwan@google.com, willemdebruijn.kernel@gmail.com
-Date: Sun, 15 Nov 2026 03:18:24 +0000
-Message-ID: <179471270451.2199510.14795764193886368841@kernel.org>
-In-Reply-To: <20261111005533.6436-10-toddfreed@meta.com>
-References: <20261111005533.6436-10-toddfreed@meta.com>
-X-sashiko-severity: Medium
+Date: Sun, 15 Nov 2026 03:18:29 +0000
+Message-ID: <179471270988.2199510.16269189548996714226@kernel.org>
+In-Reply-To: <20261111005533.6436-15-toddfreed@meta.com>
+References: <20261111005533.6436-15-toddfreed@meta.com>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -69,214 +69,123 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 3 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 2
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] ENCAP in tcf_psp_act() relies on two marks staying together:
-  the METADATA_PSP dst, which requests encryption, and skb->decrypted,…
-- [Low] The act_psp.c file header ("In software, egress only: like tunnel
-  mode, encap on ingress is hardware offload only"), the comment in the…
-- [Low] The block comment above sk_validate_xmit_skb() in net/core/dev.c
-  still says "If the skb belongs to an HW offloaded socket, apply the…
+- [Low] Tests 2d50 ("Add psp action without encap or decap"), cab5 ("Add
+  psp encap action without assoc, with index") and 0c17 ("Reject psp…
+- [Low] Tests a744 ("Add flower psp_spi filter with psp decap") and 4e1f
+  ("Add flower psp_spi, psp_ver and psp_dev filter with psp decap") in…
 
 --
 
-net/sched: add act_psp for psp transport mode
+selftests: tc-testing: add tests for the psp action
 
-This adds a tc action, act_psp. Its encap mode attaches a PSP Tx
-association to egress packets as a METADATA_PSP dst and sets
-skb->decrypted, so the PSP device encrypts them on transmit. Its decap
-mode removes the PSP Rx state from packets the device decrypted, and
-sk_validate_xmit_skb() now drops METADATA_PSP packets whose socket has its
-own validator.
+This adds tdc tests for the psp tc action. They add, replace, delete and
+flush decap actions, and check that invalid encap/decap configurations are
+rejected. It also adds flower filter tests for psp_spi, psp_ver and
+psp_dev, and enables CONFIG_INET_PSP and CONFIG_NET_ACT_PSP in the
+tc-testing config.
 
-> diff --git a/net/core/dev.c b/net/core/dev.c
-> index 2cca5f0d302f8..353c0409b3c03 100644
-> --- a/net/core/dev.c
-> +++ b/net/core/dev.c
-> @@ -4154,13 +4154,22 @@ static struct sk_buff *sk_validate_xmit_skb(struct sk_buff *skb,
-
-[ ... ]
-
->  	if (sk_validate) {
-> -		skb = sk_validate(sk, dev, skb);
-> +		/* act_psp doesn't give an association to the packets of a
-> +		 * socket with its own offload, but the socket can gain one
-> +		 * while such a packet is queued
-> +		 */
-> +		if (unlikely(skb_psp_md(skb))) {
-> +			kfree_skb_reason(skb, SKB_DROP_REASON_PSP_OUTPUT);
-> +			skb = NULL;
-> +		} else {
-> +			skb = sk_validate(sk, dev, skb);
-> +		}
-
-[Severity: Low]
-This isn't a bug, but the block comment above sk_validate_xmit_skb()
-still says:
-
-  /* Validate an skb for device encryption offload. If the skb belongs to an HW
-   * offloaded socket, apply the socket's callback. Otherwise, an skb which
-   * carries a PSP association is checked again against dev: ...
-
-With this new branch, an skb whose socket has a validator and which also
-carries a METADATA_PSP dst is freed with SKB_DROP_REASON_PSP_OUTPUT. The
-socket's callback never runs for it.
-
-Should the function comment be updated to cover this case?
-
-[ ... ]
-
-> diff --git a/net/sched/act_psp.c b/net/sched/act_psp.c
+> diff --git a/tools/testing/selftests/tc-testing/tc-tests/actions/psp.json b/tools/testing/selftests/tc-testing/tc-tests/actions/psp.json
 > new file mode 100644
-> index 0000000000000..4ff54203c9f51
+> index 0000000000000..990e8bd1ce9a0
 > --- /dev/null
-> +++ b/net/sched/act_psp.c
+> +++ b/tools/testing/selftests/tc-testing/tc-tests/actions/psp.json
+> @@ -0,0 +1,459 @@
 
 [ ... ]
 
-> +static int tcf_psp_act(struct sk_buff *skb, const struct tc_action *a,
-> +		       struct tcf_result *res)
-> +{
+> +    {
+> +        "id": "2d50",
+> +        "name": "Add psp action without encap or decap",
 
 [ ... ]
 
-> +	switch (params->psp_action) {
-> +	case TCA_PSP_ACT_ENCAP:
-> +		/* Encap on ingress is hardware offload only, like tunnel
-> +		 * mode: the packet would go through the stack with nothing
-> +		 * but its dst, which routing, netfilter or a redirect may
-> +		 * replace, to keep it from leaving in clear text
-> +		 */
-> +		if (unlikely(skb_at_tc_ingress(skb)))
-> +			return tcf_psp_drop(p, skb, SKB_DROP_REASON_PSP_OUTPUT);
+> +        "cmdUnderTest": "$TC actions add action psp index 12",
+> +        "expExitCode": "255",
+> +        "verifyCmd": "$TC actions list action psp",
+> +        "matchPattern": "action order [0-9]+: psp",
+> +        "matchCount": "0",
 
 [Severity: Low]
-Is there a hardware offload path for this action?
+Does this test reach the kernel check it is named after?
 
-This comment, the file header ("In software, egress only: like tunnel
-mode, encap on ingress is hardware offload only"), the commit message and
-Documentation/networking/psp.rst all say ingress encap is available through
-hardware offload.
+The test passes if the command exits with 255 and no psp action is listed
+afterwards. tc actions add also exits with 255 when tc's own parser refuses
+the arguments, before any netlink request is sent. In iproute2,
+tc_action_modify() returns -1 for a parse_action() failure and for an
+rtnl_talk() failure alike.
 
-act_psp_ops doesn't set .offload_act_setup, so tc_setup_offload_act()
-rejects the action:
+If the psp parser in tc requires encap or decap, this test would pass
+without ever reaching this check:
 
-net/sched/cls_api.c:tc_setup_offload_act() {
-	if (act->ops->offload_act_setup) {
-		return act->ops->offload_act_setup(act, entry, index_inc, true,
-						   extack);
-	} else {
-		NL_SET_ERR_MSG(extack, "Action does not support offload");
-		return -EOPNOTSUPP;
-	}
+net/sched/act_psp.c:tcf_psp_init() {
+    ...
+	if (NL_REQ_ATTR_CHECK(extack, nla, tb, TCA_PSP_ACTION)) {
+		NL_SET_ERR_MSG(extack, "Missing PSP action, encap or decap");
+    ...
 }
 
-include/net/flow_offload.h has no PSP flow_action_id either. The PSP
-tunnel mode that "like tunnel mode" refers to isn't in the tree yet; the
-commit message says a later series adds it.
+The same question applies to two other tests:
 
-So skip_sw rules are rejected. Software rules install without error,
-because tcf_psp_init() has no direction check, and then every matching
-ingress packet is dropped with SKB_DROP_REASON_PSP_OUTPUT.
+- cab5 ("Add psp encap action without assoc, with index") and the
+  "Missing PSP association ID" check in the encap case.
+- 0c17 ("Reject psp decap action with an assoc") and the "decap takes no
+  PSP association" check in the decap case.
 
-Could the comments, commit message and psp.rst say that ingress encap is
-not supported, rather than hardware offload only?
+In each case the test would still pass if the kernel branch were removed.
 
-> +		/* PSP on a tunnel isn't supported: the encap would overwrite
-> +		 * the inner headers which the device's tunnel offloads use
-> +		 */
+The flower tests b58d and 2f96 avoid this by expecting exit code 2.
+tc filter add returns 2 only on an rtnl_talk() error and returns 1 on a
+parse failure. The action tests have no such check.
+
+Would it make sense to match the extack text instead? For example, a
+verifyCmd could rerun the command with stderr captured and grep for the
+kernel message.
 
 [ ... ]
 
-> +		skb_dst_drop(skb);
-> +		skb_dst_set(skb, dst_clone(&params->md->dst));
-> +		/* Must be encrypted: sk_validate_xmit_skb() drops it unless
-> +		 * it still carries the association when it is transmitted
-> +		 */
-> +		skb->decrypted = 1;
+> +    {
+> +        "id": "a744",
+> +        "name": "Add flower psp_spi filter with psp decap",
 
-[Severity: Medium]
-Can the METADATA_PSP dst and skb->decrypted get separated after this
-point?
+[ ... ]
 
-The commit message relies on skb->decrypted as the backstop: "on egress,
-encap sets skb->decrypted, so that sk_validate_xmit_skb() drops the packet
-if it loses the METADATA_PSP dst on the way". The egress to ingress guards
-in mirred and bpf also check only the decrypted bit:
+> +        "dependsOn": "$TC filter add flower help 2>&1 | grep -q psp_spi",
 
-net/sched/act_mirred.c:tcf_mirred_to_dev() {
-	if (unlikely(want_ingress && !at_ingress && skb_is_decrypted(skb)))
-		goto err_cant_do;
-}
+[ ... ]
 
-ip_copy_metadata() copies the dst but not the decrypted bit, so fragments
-built by ip_do_fragment() end up with decrypted == 0:
+> +        "cmdUnderTest": "$TC filter add dev $DEV1 ingress protocol ip pref 1 flower psp_spi 0x1234 action psp decap",
+> +        "expExitCode": "0",
 
-net/ipv4/ip_output.c:ip_copy_metadata() {
-	...
-	skb_dst_drop(to);
-	skb_dst_copy(to, from);
-	...
-	skb_ext_copy(to, from);
-	...
-}
+[Severity: Low]
+Should this dependsOn also check for the psp action?
 
-One path where this happens, on a non-PSP netdev's clsact egress:
+The command uses "action psp decap", but the probe only checks that flower
+knows psp_spi. The action tests earlier in this file probe for the action
+like this:
 
-  act_ct (defrag, sets tc_skb_cb(skb)->mru)
-  -> psp encap (the reassembled packet is not a fragment, so it is accepted)
-  -> mirred egress redirect to the PSP netdev
+    $TC actions add action psp help 2>&1 | grep -q decap
 
-tcf_dev_queue_xmit()
-  sch_frag_xmit_hook()
-    sch_fragment()
-      ip_do_fragment(net, skb->sk, skb, sch_frag_xmit)
+run_one_test() in tdc.py uses only the probe's return code to decide
+whether to skip a test. Suppose tc has the flower psp_* keys but not the
+psp action. This test would then run instead of being skipped. tc would
+fall back to its noact parser, reject the action, and the test would be
+reported as a failure.
 
-sch_frag_xmit() then puts the original dst back on each fragment:
+The commit message says:
 
-	__skb_dst_copy(skb, data->dst);
+    The tests need a tc with the psp action and the flower psp_* keys; they
+    skip without it (dependsOn).
 
-As a result, every fragment carries the association but has
-decrypted == 0.
+Test 4e1f ("Add flower psp_spi, psp_ver and psp_dev filter with psp decap")
+has the same issue.
 
-In the direct case the PSP driver drops the fragments. Suppose a later step
-on the target's egress replaces the dst, for example tunnel_key set plus a
-redirect to a tunnel device. sk_validate_xmit_skb() then sees neither the
-md dst nor the decrypted mark, and the packet goes out in clear text. A
-redirect to ingress would also pass the skb_is_decrypted() check above.
-
-The TCA_PSP_ACT_DECAP branch below can split the two marks as well. It
-clears skb->decrypted whenever SKB_EXT_PSP is present, without checking for
-an attached METADATA_PSP dst.
-
-Would it make sense to do one or more of the following?
-
-- also test skb_psp_md() in the mirred/bpf guards and in the cleartext
-  backstop
-- propagate decrypted in ip_copy_metadata() and ip6_copy_metadata()
-- have decap refuse packets that carry a METADATA_PSP dst
-
-> +		break;
-> +	case TCA_PSP_ACT_DECAP:
-> +		/* Only a packet the device decrypted: on transmit,
-> +		 * skb->decrypted means "device, please encrypt", which decap
-> +		 * must not undo.
-> +		 */
-> +		if (!skb_ext_find(skb, SKB_EXT_PSP))
-> +			break;
-> +		skb_ext_del(skb, SKB_EXT_PSP);
-> +		skb->decrypted = 0;
-> +		break;
-> +	}
+Could both probes be chained with && for these two tests?
 
 [ ... ]
 
