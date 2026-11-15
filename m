@@ -1,55 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794747133;
-	b=bgLgu8EOdVRQK+Ve3s27SQfdv7kOtiIOa/g382ZC94h3iP2IKrNdAt5tAKHX3ACwsZz/
-	 JxckA/Z0V8ZTcqW25h2WwgtkDv9837z/ZYe8H+VsOXLnYvFvyFA/5/FZ9KHI1qu7i2DeA
-	 f/E2XzEy/mCot2KFpMVSR2+Mjwnkfwk9DcV5TudepBwqe3kUX8PnIk5U/T6SaGTymJvsk
-	 jS4y9BXLbcQ/2RRTPqFrZ0DBQEtXq52ylsq/s0WZ5f7j1A8iXtVRMVVZS244yyfw4hRu8
-	 FS3ZZGib5QmuzentqVALdFVlTsmVLn0su5qPtSO+Opk/xlpTgXUhmmtesmz7IrrVHDw==
+	t=1794747157;
+	b=g0slNXA94xb3clbjNZphMlHuFVZEdIvbEHqzXsfspllT2rwwdQPuIbSlnOFT9eVHengq
+	 tWKcXIhP3B0X1AqsPsviihlWDHxUSlkGPLdpXMgWutsY5BQwSfc5uZhfQTCowXC4AJY8s
+	 SAdc1iIO6cO0NMs+SqAYqna66X9wSHPNoek3ljBElTQlXFVRc64Q0wwbQTh7IJ1O7jpwu
+	 0ztEnxxkSXuYyTscmqIhtXgsbyrfw4IuSIX+CQ6dqOei/V5uoJx8/L7zJB1tVRzaK0yNN
+	 fhwxQJrl6Pc/s8nU70Liu4DrkYcumaJLZa8DJhiNA6ODPnsPi7bUZusWRgcSR4Cam1A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794747133;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794747157;
 	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
 	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
 	 X-Mailer;
-	bh=KParxGsc7XRf1tM5678gFtw4cILsa1rzhE0kGfy39CY=;
-	b=VGG3rxc3ZhDaKanPHTKF4IZQdtXmSqTShZj/Uu3/H1IhVSIk9UJbKB7qPTHyTmRlVLko
-	 QGsBKQaHUbn/xo/+/UZtcGMYG3NCzLGJFabpzez0Jxl8PKn0jk8f2G1JqfcgYm9lgDcyh
-	 iyThAdVhDngAEtp0+kjHosq9oO+gGtIrqnU7ss+MSPOHw6H4UiTbwgHJsxCRoo+K28OTd
-	 +1FkpW8Ew1GKTgaRG36l86d3p8dHoWw10ox8AvtOhGh0s/QYucMvXMuH3x8EDQXBCJtCR
-	 6iUz4umoE5EoLQPiekJGIi9t7ZqfIdsW41e57qacAHPNGqguE4T2ekbdZfmRfvrw26w==
+	bh=EF14ylpOObr6PPjxpjs1ziBYXFSJlaR5tN+CHwL2L0Q=;
+	b=N7wLyBrxsOMINwMzIRPlC3TA/6Zbj2aMSr/nSEGgy1nETYU+zV+3omG2uoHrMe5XmF10
+	 TYfwFhzOMOg2gQGkOiVPlrXxPmFi9JvI4eYPLCf4702MPnDvvtTRSRU+0TsS30y8eeLkM
+	 RtLPxFyzfVaSwghljcbk7U2L9Kl2ePQudjB8bv+EX8JAk255jteFvA3wJHpVhuRGntHPY
+	 lWRSRUBh52ZTPCzcZfp5IIxg8JG1MqNRXY0KIWMPTE3UwQlvaNDSPGZJsI9z/+EPAJHLh
+	 GKvrwyp3T/4rVcKMIZYq4GjsJi9XCviXBDFidW2O2YGvQZdR8J+DlPbucKNmfvG3Tjw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=S+kj1pyJ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FvWHgOWt;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EE90606A31A;
-	Sun, 15 Nov 2026 12:52:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9C08606A31E
+	for <linux-rdma@vger.kernel.org>; Sun, 15 Nov 2026 12:52:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=S+kj1pyJ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 508DD1F000C4;
-	Sun, 15 Nov 2026 12:52:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FvWHgOWt
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F8831F000C4;
+	Sun, 15 Nov 2026 12:52:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794747132;
-	bh=KParxGsc7XRf1tM5678gFtw4cILsa1rzhE0kGfy39CY=;
+	s=k20260515; t=1794747157;
+	bh=EF14ylpOObr6PPjxpjs1ziBYXFSJlaR5tN+CHwL2L0Q=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=S+kj1pyJzfBBW6hbKdfqruu/v61PhCNuJ+vgYrJkiWd7msnFgARmlXfbIVQ0OxYcG
-	 +KVTNTNUvkj+KitytSnTu3DP8dv68hRbh4hT6hUbrh+xABUIHUdgSMh5df7CyYMnM+
-	 pzO+xAXJzmSJ8aAl1n1mY3rZEP7L1xndbFwcrQa4DqjCm2i1EFRFcJcOLvpFenlLdh
-	 W3vS5s3+1lDR+ZA+Fb8qvy5atIUobJ2qycf+SHqlGlkbQ7Tn10tpFeo7hbEiQNIXG/
-	 r9+mB8JfAMbLtRKGgUUVSGuSx2hzC+f2N16Dr4ImjyaPqbXwHnwqhe3fLUPONBWob3
-	 J82sSPAWavx7w==
+	b=FvWHgOWt/jm0Hdoos5s2Of5BU8sKHSj+htnr9ubkagL41lzyEp5+zfFawY3+TPxMz
+	 p3P+pVefKbl9OkhyI+ZuoEIxpm/7kNmp72aZFCgUqdbFGdogX9hg0DWC/Miwqe/cRn
+	 n7aAw2NPvje8WiEZwSwqhpbiRhTOil2zVTYsvxuCLgZSuKo1urCDIzApOd1nSivUv6
+	 o3iS0Kj6HAnM/jAjLulMKHit17AtjxkANE0Lybo2yW6/6Pt8BYi4ELfSOKx/nXGZ9e
+	 E5GGx2tVhjXHOLQaIYPuvSVyAkkrOdDCTd/43o3DiT814dvOME1xz2g4Mhvc9jhCy8
+	 nJFDBfJj3jePA==
 From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>, 
- Junyoung Jang <graypanda.inzag@gmail.com>
-Cc: Jeffin Philip <jeffinphilip14@gmail.com>, linux-rdma@vger.kernel.org, 
- linux-kernel@vger.kernel.org
-In-Reply-To: <20261109200330.2361828-1-graypanda.inzag@gmail.com>
-References: <20261109200330.2361828-1-graypanda.inzag@gmail.com>
-Subject: Re: [PATCH] RDMA/iwpm: fix memory leak in iwpm_add_remote_info()
-Message-Id: <179474713016.1305087.6552754506457256588.b4-ty@kernel.org>
-Date: Sun, 15 Nov 2026 07:52:10 -0500
+To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, 
+ Jacob Moroni <jmoroni@google.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261109202525.2937295-1-jmoroni@google.com>
+References: <20261109202525.2937295-1-jmoroni@google.com>
+Subject: Re: [PATCH rdma-next 1/2] RDMA/irdma: Fix potential UAF during SRQ
+ limit AE handling
+Message-Id: <179474715512.1305858.15747650114156355759.b4-ty@kernel.org>
+Date: Sun, 15 Nov 2026 07:52:35 -0500
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -64,28 +64,24 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Tue, 10 Nov 2026 05:03:28 +0900, Junyoung Jang wrote:
-> NETLINK_RDMA accepts requests addressed to kernel port ID 0 from a local
-> unprivileged socket. The IWCM RDMA_NL_IWPM_REMOTE_INFO callback has no
-> RDMA_NL_ADMIN_PERM flag, and RDMA netlink routes this IWCM opcode to its
-> dump callback even without NLM_F_DUMP.
+On Mon, 09 Nov 2026 20:25:24 +0000, Jacob Moroni wrote:
+> Previously, the raw SRQ pointer was used for the AE cookie
+> without any mechanism to ensure that the SRQ object was valid
+> and remained valid while processing the AE.
 > 
-> iwpm_remote_info_cb() parses the six required attributes and only checks
-> that the local and mapped-local sockaddr_storage families match and that
-> the remote and mapped-remote families match. Four family-255 addresses
-> pass those checks. The callback allocates an iwpm_remote_info object
-> with GFP_ATOMIC and passes it to iwpm_add_remote_info(). There,
-> get_reminfo_hash_bucket() accepts only AF_INET and AF_INET6, so the
-> family-255 lookup returns NULL. The object is neither linked into
-> iwpm_reminfo_bucket nor freed, and the callback returns -EINVAL after
-> this allocation side effect.
+> This could lead to a UAF if the SRQ happens to get destroyed
+> before the AE handler has a chance to process the AE (and any
+> other AEs in the queue in front of it...). It also means that
+> a bogus cookie from HW could cause a wild dereference.
 > 
 > [...]
 
 Applied, thanks!
 
-[1/1] RDMA/iwpm: fix memory leak in iwpm_add_remote_info()
-      https://git.kernel.org/rdma/rdma/c/4b14bd5d913b16
+[1/2] RDMA/irdma: Fix potential UAF during SRQ limit AE handling
+      https://git.kernel.org/rdma/rdma/c/ca28a5ce3559f8
+[2/2] RDMA/irdma: Drop unused SRQ table from resource memory
+      https://git.kernel.org/rdma/rdma/c/c890a62746d086
 
 Best regards,
 -- 
