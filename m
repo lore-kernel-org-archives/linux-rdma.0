@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794712708;
-	b=Rue/wZyvjVb4KeeDT6IOgeDrYCxtG8oAY77z1lCynCbK2jg555lmg35Sm+reI6FsPejX
-	 OA+biqQa/G4CXb3BfnpLBBVTkVUE1x+HUiq7dB4xG6fhCRuSPRtk/gKLJyp3KbCdU+zbe
-	 z6RJ5U5cccnAU5346CJV2dPcf9AEYD7HIcKQ18fllpyYpBNqI2jXslRqoU/7rQjrMyUa2
-	 qkBoJlbYeIB/lpdcRMHKoVQPgAJADIfZHxuzbjee5R9+NBtJAD4GE+0tq59r3/3ZN6MVj
-	 MdB+YQKOKIQGMztlgXj5hOV6uLIiiMUBOMS2C7drYo1iEFAv0pS5cn1hqMtyD5Wt/JQ==
+	t=1794712710;
+	b=SG3Mwj2GoERnO9UWrdAKlxBYMIQ9nbpgmEI5583gC8Op5ru/2TyTsYqeVKZTgUJN3bcR
+	 LcePwUbblFEbxtiZtsrdmc/o74AS+90Roh/Z/fRyqLwKwTw3lLS8B5LQTUNoWRldTXz5i
+	 kxSZTLTHO7vDcCsTiC9Rh6v+YNCdePw+1GbF+D8Y0Wn574o2iTNiElvMxHEBenIezV6XM
+	 AcDmFT8B/INmzdRxiSKgGEHZaPHLNH7luKIs/Mj++n83N/NfPZdgn6ckee8NhvXEQh6aM
+	 qSD3bS/Le4sZNbQJCBB1nino4v4We5AncBmBydj+G8x8Xm+Lo1gYlCw5DmHQzSp5bUQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794712708;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794712710;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=6xELBp+yLa1rDoNGymklB/N3IouGpSartu+yBIKoLYM=;
-	b=VBhcc3ZBMqPMBysPDzOryOwO5buF4EFs/S2k8cdodpgAtifZR0/1gqPXgUXXEiExyy0R
-	 NwVW41XRL/hm98R6ZzrAgHh48DF8XJL0x6ZF0HPOkXXyP4F6ixT4xOVz7bDhrcbVDLCN+
-	 WHHkj2Mty628V/kKO3iuszuYbXJLoaO466IrWOBG0z+hZvOwC6l+tn1WH4S5829tErJ/g
-	 ZKHot0JX/SP0LV7hlyAtiBZo5sNkGe9RXVpzi/o+ZlCX+B/BJLkl7O49O/eAUiZzHJq34
-	 hMsSe2p/ysQTPDZUb1aweV7s1XCGshkj5ExU3MWrhlCgmaFv5DiYBT13kEnZArJllAA==
+	bh=Xqkmq+KJ2/HtU3nnCQ54j5ML6laUMMrM5zulVXs75RE=;
+	b=m3aOTNMuIpjdOxTR9Ibdeo28m3dbvKtnYvNVLP06IftrbCMMVid3AB5xChKKjZL3kMx+
+	 bpPxIekqHufADT6G+tEKREW5s5LYk3gyJz/uvN5T1n1PBVfYt++T7eAHTCXdYsBznZ2Ng
+	 xHZXxLy6sqrcJT2hPLAqsdPTF2+RFg9oK1rMlk7ufybOCkXR993eCabVSQkvz+E4D1qfi
+	 qhzTEDYS27s+PabR38TcwHMbx5KzTN5amj5AeW+qjK4e+uzLRJjsFG2x6hZWW+GbyM8xg
+	 hdtgTTnhr3vy9+M3SOtTVYgP2nd9y3+7H5RzhRdw6EG3Ygb1ey6a3HmrAe+YoQDevfg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XE+TbmoL;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=olyVM2U2;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49A6660A5BCA;
-	Sun, 15 Nov 2026 03:18:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 012CB606A891;
+	Sun, 15 Nov 2026 03:18:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XE+TbmoL
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADC411F00925;
-	Sun, 15 Nov 2026 03:18:26 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=olyVM2U2
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AB2A1F000D0;
+	Sun, 15 Nov 2026 03:18:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794712707;
-	bh=6xELBp+yLa1rDoNGymklB/N3IouGpSartu+yBIKoLYM=;
+	s=k20260515; t=1794712709;
+	bh=Xqkmq+KJ2/HtU3nnCQ54j5ML6laUMMrM5zulVXs75RE=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=XE+TbmoLDF9UzbfJoVAvGRVHMKoZ+DrsTGtNSz6uXvziuagHeJEKFqg4bAJNQ7zSW
-	 iJaIpBsWtgEVlRpGLnJ6aMJd9uE+A6Vlff74BcEwIuxUrWrEaypz1JtaByQiqC0Kn4
-	 GVHuN5PgL/pW7Aw5E9WIHzE8C5pShtsKnhHUumSZHuV6Rh6TSAHc3HjnQQg4f55wQB
-	 ykLOsgCxq6lrS4aDUJYkuv0Ka4iDj5x0iGMya6CDArD0NSp7D6qpyOumiUnJB1KAJu
-	 oSDQCYIQQ+7Jv0KVwr4N+o57kNmnyWhCOg/jR93mzO7Co/2ysBSfn7wDdCJUoPAyHp
-	 auJUiVAT7v5lg==
-Subject: Re: [PATCH net-next v1 10/15] net/sched: flower: add psp_spi,
- psp_ver, and psp_dev matches
+	b=olyVM2U2Aghqs20/HIhJGzxuOPZytZp20BXK6kDJZG7fEqVSYDHQfu9aHJgTG0O3S
+	 tjTfvrSoLJW1mGGIRFh7fLTGgkUnB/u4EUzkL1RuPSaXzzt6cOPRF8jseKIfQ3sMv9
+	 JzQ+3e7tVwVW4ToyOU+pWm9q1vF7uya1N0OIlLqlnYQeNXIa1uO2UNvTcIwZ0+Szmo
+	 H3cJdRxlG8MHbSfZqFn6OBLryQX2l6kqMfItgEtybaVIvNEvUZv6hJ58G9B/kuBVaZ
+	 MwWjTgAKVLl6TCtRlHRz1DxmjD0n63YI2y27hpyipZT90m7wT0VHA+0LSyvt/m/mOb
+	 3jBWkkhpVdXtQ==
+Subject: Re: [PATCH net-next v1 13/15] selftests: tc-testing: run dependsOn
+ probes outside the test namespace
 From: netdev-bot+sashiko@kernel.org
 To: toddfreed@meta.com
 Cc: netdev@vger.kernel.org, davem@davemloft.net, andrew+netdev@lunn.ch,
@@ -52,11 +52,11 @@ Cc: netdev@vger.kernel.org, davem@davemloft.net, andrew+netdev@lunn.ch,
  linux-kselftest@vger.kernel.org, linux-rdma@vger.kernel.org,
  martin.lau@linux.dev, pabeni@redhat.com, saeedm@nvidia.com, horms@kernel.org,
  tariqt@nvidia.com, weiwan@google.com, willemdebruijn.kernel@gmail.com
-Date: Sun, 15 Nov 2026 03:18:26 +0000
-Message-ID: <179471270629.2199510.9480561958902023552@kernel.org>
-In-Reply-To: <20261111005533.6436-11-toddfreed@meta.com>
-References: <20261111005533.6436-11-toddfreed@meta.com>
-X-sashiko-severity: Medium
+Date: Sun, 15 Nov 2026 03:18:28 +0000
+Message-ID: <179471270808.2199510.6514314455565065109@kernel.org>
+In-Reply-To: <20261111005533.6436-14-toddfreed@meta.com>
+References: <20261111005533.6436-14-toddfreed@meta.com>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -69,129 +69,102 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 0
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] The commit message misstates what a PSP flower rule matches
-  once two key rotations have passed, and it overstates its claim that…
+- [Low] The patch fixes a real regression but has no Fixes: tag.
+- [Low] run_one_test() now passes a new stage string, 'probe', to every
+  plugin's adjust_command(stage, command) hook.
 
 --
 
-net/sched: flower: add psp_spi, psp_ver, and psp_dev matches
+selftests: tc-testing: run dependsOn probes outside the test namespace
 
-This adds a flow dissector key that is filled from the SKB_EXT_PSP Rx
-state of decrypted packets. It also adds flower matches on the SPI (with
-a mask), the PSP version and the PSP device ID. The goal is to let a tc
-rule select the packets of a single Rx association, for example to apply
-psp decap.
+This changes run_one_test() in tdc.py so the dependsOn probe is passed to
+exec_cmd() with a new 'probe' stage instead of 'execute'. With that stage,
+nsPlugin does not put "ip netns exec" in front of the probe, so the probe
+runs in the base namespace and the probe-gated tests are no longer always
+skipped.
 
-> diff --git a/net/core/flow_dissector.c b/net/core/flow_dissector.c
-> index 1be6c739e3c71..95d3fa3b1568e 100644
-> --- a/net/core/flow_dissector.c
-> +++ b/net/core/flow_dissector.c
+> diff --git a/tools/testing/selftests/tc-testing/tdc.py b/tools/testing/selftests/tc-testing/tdc.py
+> index 511d66c36a2a0..541caf984519f 100755
+> --- a/tools/testing/selftests/tc-testing/tdc.py
+> +++ b/tools/testing/selftests/tc-testing/tdc.py
+> @@ -399,7 +399,7 @@ def run_one_test(pm, args, index, tidx):
+>      if 'dependsOn' in tidx:
+>          if (args.verbose > 0):
+>              print('probe command for test skip')
+> -        (p, procout) = exec_cmd(tidx, args, pm, 'execute', tidx['dependsOn'])
+> +        (p, procout) = exec_cmd(tidx, args, pm, 'probe', tidx['dependsOn'])
 
-[ ... ]
+[Severity: Low]
 
-> @@ -511,6 +512,32 @@ void skb_flow_dissect_hash(const struct sk_buff *skb,
->  }
->  EXPORT_SYMBOL(skb_flow_dissect_hash);
->  
-> +void skb_flow_dissect_psp(const struct sk_buff *skb,
-> +			  struct flow_dissector *flow_dissector,
-> +			  void *target_container)
-> +{
-> +#if IS_ENABLED(CONFIG_INET_PSP)
-> +	struct flow_dissector_key_psp *key;
-> +	struct psp_skb_ext *pse;
-> +
-> +	if (!dissector_uses_key(flow_dissector, FLOW_DISSECTOR_KEY_PSP))
-> +		return;
-> +
-> +	pse = skb_ext_find(skb, SKB_EXT_PSP);
-> +	if (!pse)
-> +		return;
-> +
-> +	key = skb_flow_dissector_target(flow_dissector,
-> +					FLOW_DISSECTOR_KEY_PSP,
-> +					target_container);
-> +	key->spi = pse->spi;
-> +	key->dev_id = pse->dev_id;
-> +	key->version = pse->version;
-> +	key->present = 1;
+Should this patch have a Fixes: tag?
 
-[Severity: Medium]
-Does the commit message describe the right failure mode for rules that
-are still installed after two key rotations?
+The probe block came from commit 7f3f86402609 ("selftests: tc-testing: add
+"depends_on" property to skip tests"). At that time nsPlugin used one
+shared netns that was created ahead of time, so the probe worked.
 
-The commit message says:
+Commit 98cfbe4234a4 ("selftests/tc-testing: localize test resources")
+moved tests to per-test tcut-<random> namespaces. It also wrote the
+'execute' stage call shown above. In run_one_test(), the probe still runs
+before the per-test suffix is added:
 
-  Together these matches tie a rule to one association, ...
+    NAMES['NS'] = '{}-{}'.format(NAMES['NS'], tidx['random'])
 
-and:
+It also runs before pm.call_pre_case() creates the namespace. As a result,
+nsPlugin's adjust_command() wraps the probe in a netns exec for the bare
+"tcut" name, and no namespace with that name is ever created.
 
-  this means that a rule matching packets that correspond to an rx
-  association which is stale (two rotations have passed), can still match.
+Because of this, the mirred dependsOn probes added later in dcfaf1f758ee
+("selftests/tc-testing: require an up to date iproute2 for blockcast
+tests") could never pass.
 
-After two rotations the device key for the original association is gone.
-Its packets then fail to decrypt and never get SKB_EXT_PSP, so the stale
-association itself can no longer match.
+Would this tag fit?
 
-The SPI value can be handed out again, though. In netdevsim, for example:
+Fixes: 98cfbe4234a4 ("selftests/tc-testing: localize test resources")
 
-drivers/net/netdevsim/psp.c:nsim_key_rotate() {
-    ...
-	if (ns->psp.spi & PSP_SPI_KEY_PHASE)
-		ns->psp.spi = 0;
-	else
-		ns->psp.spi = PSP_SPI_KEY_PHASE;
-    ...
-}
+[Severity: Low]
 
-and nsim_rx_spi_alloc() then does:
+This passes a new stage string, 'probe', to the adjust_command() hook of
+every plugin. Should the in-tree docs list it?
 
-	assoc->spi = cpu_to_be32(++ns->psp.spi);
+The stage list in tools/testing/selftests/tc-testing/README reads:
 
-So a new rx-spi-alloc, possibly for a different peer, can get 0x80000001
-again. skb_flow_dissect_psp() only copies spi, dev_id and version. Given
-that, wouldn't the example rule from the commit message:
+  The stages are identified by the following strings:
 
-  psp_spi 0x80000001 psp_ver 0 psp_dev 1 action psp decap
+    - pre  (pre-suite)
+    - setup
+    - command
+    - verify
+    - teardown
+    - post (post-suite)
 
-strip PSP state from the traffic of a different, live association? With
-a mirred action instead of decap, it would forward that traffic.
+creating-plugins/AddingPlugins.txt also leaves 'probe' out of both its
+phase list and its "The stages are represented by the following strings"
+list. The commented stage-dispatch template in TdcPlugin.adjust_command()
+has no 'probe' branch either.
 
-The socket path avoids this because psp_pse_matches_pas() also compares
-the generation:
+The dependsOn description in creating-testcases/AddingTestCases.txt only
+says:
 
-	return pse && pas->rx.spi == pse->spi &&
-	       pas->generation == pse->generation &&
-	       pas->version == pse->version &&
-	       pas->dev_id == pse->dev_id;
+  dependsOn:    Same as 'skip', but the value is executed as a command. The test
+                is skipped when the command returns non-zero.
 
-Adding generation to the key would not fully fix this either. The mlx5
-Rx path always passes generation = 0 to psp_dev_rcv(). So it looks like
-(spi, version, dev) cannot identify a single association beyond two
-rotations on any driver.
+Probes now run in the base namespace, outside the test netns. A future
+dependsOn command that uses per-test devices such as $DEV0, $DEV1 or
+$DUMMY would fail, and its test would just be skipped. Could this be noted
+in the dependsOn description?
 
-The "Socket-less associations" text that a later patch in this series
-adds to Documentation/networking/psp.rst has the same gap. It only says
-userspace should replace such rules before two rotations, and it repeats
-that the matches tie a decap rule to one Rx association. No later patch
-in the series adds a generation match or any enforcement.
+The fix also depends on plugins passing unknown stages through unchanged.
+nsPlugin and valgrindPlugin both do that today.
 
-Could the commit message and the documentation say that a stale rule can
-end up matching a different association that reused the SPI, rather
-than the stale association itself?
-
-[ ... ]
+The existing lists were already out of date ('command' rather than
+'execute'). The missing 'probe' entry and the base-namespace behaviour of
+dependsOn are new with this patch.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261111005533.6436-1-toddfreed%40meta.com
