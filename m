@@ -1,101 +1,64 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.180
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794701934;
-	b=ywVVLwlkBNEX11sz/BN+ewi2AfwItAuvt5pxYKyHF+U8EizVnip466t3bebbzE9XBw4j
-	 Uwi5+cLGtKefwoY0odV3JtMqrTDK1HfsEZc/3doQ1T7DkC1UG60xPqW52TL8zxlMZHYfn
-	 n7DnK976n79j9/zjxNC5AbY6bj8aWrl7FQsPfdnHjco4QUXYYjVCAl9NLu/XV67S3VQMV
-	 UWHdLiLxQTKJHTel06u1RV+RktyncPuiWLxxznDIuOayWtoe0PeFSseQKEaDSqmzG7tsD
-	 3J8cgUQIpF9SyZYKBqx3Umhw6Hcn7AuK66OY92j/tQZJSq1hpvQOke/P13g+rmUjJcQ==
+	t=1794712697;
+	b=29edEMgNlNGYtWuXXmVbPV8FM1uZk2j9sFrSgPhB8MGd0Pq6p6y7R1hit81fC2aoyLdQ
+	 bLR2AmEWEBK5+X0piA1vzHgQy0DdGocCOA3suiPrJPP/nqXTn3mB7E31+5EH2N7ESi95D
+	 RqVEyt47hsWlsGlZFtyzGK8a0uXFCf3cmpDuGV3fT/PB+LLgg7JpXXiLnByCaSs2cUbtN
+	 /2F5Swu0GMHU1JP7sTejF4RPd+isKuhSRbi55Lv8Xennha9cHSQk9oX2lbDC5QCtDWgzx
+	 Rh8mEWdwlvQPGgjBUmEYRhI1FFDGDLOcWGQnqw+3Xznfia59fFSdsyYmEGGOdEI91Cg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794701934;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=JejavGOhT29+kYZxPl7g8FlCzMWntZ9rMxIL0KrRCgg=;
-	b=VBdS+fUgAOdiO+M8kyhE6Gt08qQaTzcgM3n3YH4Y/8Gxj5NlcicN5tzbPHq+VF/JJbR5
-	 BZjMz4ZQs2iVt7m+KBxsDJ39MYzE8JEM2rdmW1Te6F3sQ04VqZVzezu2nVHGDQ3OjcHAP
-	 7BpSQDlvjaBVYrn8exLtKqypFJch7bsr1HutC5FSGcdaWRensxrrTPObrZu3Qy89gQyVh
-	 4GZ2lchKtRhTvJcwvwn8NqfL0FwNgjAcfv6EPXjb8rQsEJcy5DzuRx+atnqF0ox7F8jFJ
-	 /iF3KGsq96sgzPoTS5XBdZUsVZws8/Xz7zusAQM1N2gyPYJiNaK2HQ/SWKca4Od7Llg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794712697;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=RHK+oDroh+BWIdQDKlDOU+2VRgKkyUtO9u0OdXOwLJs=;
+	b=LgMMv5u1cUfGuW/MbKwCZh1EYLnBIg9ZuXqtIVridXGX12pcrrbX4u/NGh1zKF18Mb8k
+	 alsLkkUFkmePrxd+KJB8OC1pdx1jaEBvhGNKhzjzWKhosdxahuj052m6jQnGnLASa4RvU
+	 TUzoZA29DqHdWNl9RxIVEvIcvkKpFPRICxQRNp32qddWrbz3uA6Ri9oQeXh/40X0meIm4
+	 vk3bW6sI/v5VMslyxi8IkJrAVR+GiiHrXOiyb568CUpE6Y3k2HpAJnpo+t6sV01M4Jeli
+	 Mo54X5y7GwaOzXn7i6/BAmYYNivp0h6jsVsarMJKDUTyI3b7f58Ql1B+z9HJIZXRKvQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=ziepe.ca;
-	spf=pass smtp.mailfrom=ziepe.ca;
-	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=CLZiqkUi;
-	arc=none smtp.remote-ip=209.85.222.180
-Received: from mail-qk1-f180.google.com (mail-qk1-f180.google.com [209.85.222.180])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=guf6ZVDm;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA1F4606A32D
-	for <linux-rdma@vger.kernel.org>; Sun, 15 Nov 2026 00:18:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DA1F4606A32D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4663606A889;
+	Sun, 15 Nov 2026 03:18:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=CLZiqkUi
-Received: by mail-qk1-f180.google.com with SMTP id af79cd13be357-943e8d35f74so287664085a.0
-        for <linux-rdma@vger.kernel.org>; Sat, 14 Nov 2026 16:18:53 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1794701933; x=1795306733; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=JejavGOhT29+kYZxPl7g8FlCzMWntZ9rMxIL0KrRCgg=;
-        b=CLZiqkUiy/GqoMK+wOyDEYP2H1dJ227AZJ9Z8XC3+j1I4tBq57Tz++CXSvWNkYlb1I
-         VH2/IrtUDdGMYYvSoMK49waU3rQ192zmkKPi5Wg9y4HR5rwHpUHO1D5pTrHi/mjEW9ct
-         GjKEr6kPgjPz7Ih1wSoqksm3BM/X1CgQs/Nd7pC9tQm3Eg//Y544Zu37OsmxUkHS3zwG
-         v6YsLfw9Z91eCnVaMbOCLeTv8KXuhpzuciXLUppvC8Iecs9A3aeapVStAQ1VxeYMJ7qc
-         l1ArYTSfSCx9dF6vfeVBrF9tsGfoKDta0ay7l7p2DzlbvCgV7rpqxyL6obw1+5WQeRbb
-         OTkg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794701933; x=1795306733;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=JejavGOhT29+kYZxPl7g8FlCzMWntZ9rMxIL0KrRCgg=;
-        b=wfrIfyu1cbJitMPiasJNzTdicgxHaO2OcfF+PevLUAGKuxHabIc3HaD5vKZONtVijh
-         ten7rSG8Z+Ey2FLJWn3GviNyrkN7vL5X+bWb0TvqYuTEYBwnnNl/AYehjO4EAqTERu+/
-         EmiekcPyh8tzzUKlQzbqc02xk5bIgCWP8eG7CgmHdC6aK9AOWYUfzkBhL+tONw1oDyKK
-         jBeHbSe/Q8POLlX4+1To8x8MnICgANUm+Cq9c4mxpsPEIaC3ZMp/ymH5mhbp+gjEomlR
-         MlJxv6JUQX2HSepm+G8OCwfPMHogi2XP2d+435/uMQVTG6I+c1kHoli8PdDM5yAXtqFD
-         UBwg==
-X-Forwarded-Encrypted: i=1; AL+hErF/5gru8E8+TyFvamyQhr8Vbe25gvJGMLlod4Df45+J1dKb2qBT+x7khscaA1xxdHQEyGL6adF9z3s9@vger.kernel.org
-X-Gm-Message-State: APuU4Z8AXFkxQK/FrQVZTHJo5/dy52VngYdUUbfi8++PDQdTxg8e2dUn
-	KKfgjizfkGstRY0mdHDFMaDGgAqHTgvV4k8p3UIU9VKTQmsI7ZJFG7SzyeJDEBNIuis=
-X-Gm-Gg: AYBFou2rGi4GV36JGuLtso/BO6qm9BM/ZvIxiDyKKEBt5Ti6DWDjB9Q6kIiqP1SR2ci
-	Y4uzmhSJLlp2KvHYipLINoCebPV1i75l4zI35Ei3319Fw0yig5TgKs5rFFA9Zr9LlEEfhRmv7dt
-	+Tv5q/C/tMyu0dRxIQaM9erfQ72rFmcjkvJG9cajujMzIV/H5S04xCS+ETCMD7v5YHqDL8eBKrT
-	I0YsbKhd+0TBYHicez/4c5cM5fOdpUJGJhtkKjMVNsRQ60fU/MjLgRomfNrRnwsav4ost+7hr0R
-	OyV1ZUrCmNtmlA27wsamm/hUoo86iQgUd0aFGOyzYEr1+PUZ7194dVCR5ot7/JzmCkeCFtbwNb9
-	mSpp/SEA9X0AftI9+K6YH3R+obrZdk4svNRx8vTRbKDZjVIlTl1TDfCoDBCN5WvfD11wL+IMYdP
-	/P19bdFmYdCRE/1TLwJpaZBiAC6Sqbq+OCsLLfr2i4g4wmEeZALnWe7d41dtC89ubwk1dtEyeeq
-	UWHi4IZ48zd1QETQZCZOvCP6ljiSIcahU86jBgTVThWb35rTR+HQFDONKbJeKsXzgYDVOD7MsQn
-	X/xOjw==
-X-Received: by 2002:a05:620a:2b96:b0:93e:5fbf:a41c with SMTP id af79cd13be357-9494bbb7e8dmr1069300885a.16.1794701932860;
-        Sat, 14 Nov 2026 16:18:52 -0800 (PST)
-Received: from ziepe.ca ([142.166.156.71])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9494c8f92bbsm512903785a.40.2026.11.14.16.18.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 14 Nov 2026 16:18:52 -0800 (PST)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1xSNxL-00000005ESx-1JsN;
-	Sat, 14 Nov 2026 20:18:51 -0400
-Date: Sat, 14 Nov 2026 20:18:51 -0400
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Aibing Chen <chenaibing@cmss.chinamobile.com>
-Cc: leon@kernel.org, achender@kernel.org, davem@davemloft.net,
-	edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
-	horms@kernel.org, linux-rdma@vger.kernel.org,
-	netdev@vger.kernel.org, rds-devel@oss.oracle.com,
-	linux-kernel@vger.kernel.org, hdanton@sina.com,
-	hackerowskiy@gmail.com,
-	syzbot+ccdb5058c3df2d94811c@syzkaller.appspotmail.com
-Subject: Re: [PATCH] RDMA/cma: add rdma_destroy_id_wq() and use it from RDS
-Message-ID: <20261115001851.GH2532299@ziepe.ca>
-References: <20261114150541.1908-1-chenaibing@cmss.chinamobile.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=guf6ZVDm
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76E1D1F000C4;
+	Sun, 15 Nov 2026 03:18:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794712696;
+	bh=RHK+oDroh+BWIdQDKlDOU+2VRgKkyUtO9u0OdXOwLJs=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=guf6ZVDmwaky8SEJp57VkXtN6Ss2A0cMWAFtCpeJkNgcuac1a0hgIhGyT7sas1KCS
+	 1tXHkr0a09hmP/DodxQD7dfLH6N69ho5Wro6/JB0OeDs396wIrERLXi6qHFWZZ6Qjc
+	 LoAel+Pp780j4ZGXc/H6v4iWnGWrvKjc0zcfsStIVQqKSZsfK2fHoWAbR5rsCifQSX
+	 vSZ6ovuAVU3mnVw1UtlXD3ViRNRDkNQV0UCdX6rLp+bcyVAKdbnpzhgU9Lq++VvkyB
+	 AQ+EJIpRrTQ4Yk7HRxxPCodwE5kA2GBr1TP7qwyx9U/YFsb2IE51b0x6VqyTapRsBY
+	 r7Jze/vdNp5/g==
+Subject: Re: [PATCH net-next v1 04/15] psp: add support for socket-less psp
+ associations
+From: netdev-bot+sashiko@kernel.org
+To: toddfreed@meta.com
+Cc: netdev@vger.kernel.org, davem@davemloft.net, andrew+netdev@lunn.ch,
+ bjorn@kernel.org, bpf@vger.kernel.org, daniel@iogearbox.net,
+ daniel.zahka@gmail.com, donald.hunter@gmail.com, edumazet@kernel.org,
+ kuba@kernel.org, jhs@mojatatu.com, jiri@resnulli.us, john.fastabend@gmail.com,
+ linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-kselftest@vger.kernel.org, linux-rdma@vger.kernel.org,
+ martin.lau@linux.dev, pabeni@redhat.com, saeedm@nvidia.com, horms@kernel.org,
+ tariqt@nvidia.com, weiwan@google.com, willemdebruijn.kernel@gmail.com
+Date: Sun, 15 Nov 2026 03:18:15 +0000
+Message-ID: <179471269504.2199510.18115986956046547098@kernel.org>
+In-Reply-To: <20261111005533.6436-5-toddfreed@meta.com>
+References: <20261111005533.6436-5-toddfreed@meta.com>
+X-sashiko-severity: Medium
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -105,35 +68,72 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261114150541.1908-1-chenaibing@cmss.chinamobile.com>
 
-On Sat, Nov 14, 2026 at 11:05:41PM +0800, Aibing Chen wrote:
-> syzbot reported a possible circular locking dependency between
-> rds_trans_sem and the RDMA CM handler mutex:
-> 
->   CPU0 (bind path)                    CPU1 (CM callback path)
->   ----                                ----
->   down_read(&rds_trans_sem)           mutex_lock(&handler_mutex)
->   rds_ib_laddr_check()                cma_ib_req_handler()
->     rdma_destroy_id()                   rds_ib_cm_handle_connect()
->       mutex_lock(&handler_mutex)          rds_conn_create()
->                                             rds_trans_get_preferred()
->                                               down_read(&rds_trans_sem)
-> 
-> rds_ib_laddr_check_cm() destroys the CM id from inside
-> rds_trans_get_preferred()'s read-side critical section, while CM
-> callbacks create RDS connections (taking the same read lock) from
-> under handler_mutex.
-> 
-> Break the cycle by destroying the CM id asynchronously: add
-> rdma_destroy_id_wq(), which queues the destruction on cma_wq, and
-> switch rds_ib_laddr_check_cm() to it.  The destroy work is embedded
-> in struct rdma_id_private, which keeps the id alive until the work
-> runs; rds does not touch cm_id after the destroy call.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-This doesn't seem like it should be the core codes problem? Why can't
-rds do the workqueue?
+Critical: 0 · High: 0 · Medium: 1 · Low: 0
 
-Jason
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] The commit message misdescribes how keys are handled by the
+  new socket-less association API.
+
+--
+
+psp: add support for socket-less psp associations
+
+This commit adds a registry of PSP associations that are not bound to a
+socket. Each one is either an Rx or a Tx association and is referenced
+by an ID. It also adds the rx-spi-alloc, assoc-add, assoc-del and
+assoc-get netlink commands, which are admin-only, to manage these
+associations.
+
+> key material enters through netlink and is never reported back. no key
+> is stored for rx associations, and users reference associations by id
+> and never handle keys
+
+[Severity: Medium]
+Is this paragraph accurate? The code in this patch seems to do the
+opposite in two places.
+
+psp_nl_rx_spi_alloc_doit() in net/psp/psp_nl.c returns the
+device-derived Rx key to user space:
+
+net/psp/psp_nl.c:psp_nl_rx_spi_alloc_doit() {
+    ...
+	if (nla_put_u32(rsp, PSP_A_ASSOC_ID, pas->id) ||
+	    nla_put_u32(rsp, PSP_A_ASSOC_DEV_ID, psd->id) ||
+	    psp_nl_put_key(rsp, PSP_A_ASSOC_RX_KEY, version, &key)) {
+    ...
+}
+
+psp_nl_put_key() emits PSP_A_KEYS_KEY with key_sz raw key bytes. The
+rx-spi-alloc doc in psp.yaml says the same thing: the key "must be
+passed to the peer out of band".
+
+psp_nl_assoc_add_doit() also requires user space to supply the raw Tx
+key bytes:
+
+net/psp/psp_nl.c:psp_nl_assoc_add_doit() {
+    ...
+	err = psp_nl_parse_key(info, PSP_A_ASSOC_TX_KEY, &key, key_sz);
+    ...
+}
+
+So user space does handle keys, and rx-spi-alloc does report key
+material back.
+
+The code only seems to guarantee two narrower things. No Rx key is
+stored in the association, and assoc-get reports only the SPI.
+
+Could the commit message describe that more precisely? For example:
+"the Rx key is returned once, by rx-spi-alloc, and is never stored or
+reported by assoc-get".
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261111005533.6436-1-toddfreed%40meta.com
