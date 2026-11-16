@@ -1,53 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794830157;
-	b=UzWIlVPrfDYLpMBGkwls3WQuzq1Bj2OU8Xv3N2/31pqLMEuaS4jtFs8TJV41r6kQkmrd
-	 IaJLFXCpKIFUmLibJPZ6DSmjVzBWSO6Wj7kMv4J324w6yt2gf1Exd8rx3Ad3HcickIa7E
-	 9SppOu8yEHBUVQ5N9X/47fKo/GFpmIpYEn4rQeD/IW14EWZkxuDdbMQW8XtzVlRr6do8x
-	 RHlviNjqcTKNj7HuNh7QKKOO1vFDQ+gJ8vK1bQUK31dL2biaKstr5q3JmhDfksSsU0jMJ
-	 IKVTwVbX3H4ai32g6TDFdPpAMhZHtMD20lC34kQVawF5c0grt+hRiZ3yEcsl2pLgWeg==
+	t=1794830989;
+	b=NWtxw2yvN1pX1vGlOBuJVgWuYA3QDiFN8i0AdXmMXGSW8ks4BqmLS6SwKtBAkCM8MhTu
+	 qmqJ/yr5xYTymifZwwjPEIGSZuSEil25vleih2lOEWcwJoilwBBtbXAOF2H/W/jUe+bnx
+	 HsNgIJp9I3RuCySPaoRIWpnHf8UPJscu9sox16qdv/mJ8v6KCfp9NeLVtu0/5N9Q/8bla
+	 xTFZbLhiLSz78He62rkVDLGhhCbZ/CmlqhI1I7wclSTJhArmfMvTmkwqYy0jvhysinVzj
+	 8FOglDV/cJEI38v5O650QVtqoVqqi+NolCnF3z1PDuRCsqZ8u1fhll5GmBBCoTFQq5A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794830157;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=64fdSmC+itpUqVCIpnFMnNpeeM+0Kk4P4QNxg3UZAZg=;
-	b=XY4NontOYvajkW0+ETNv+orax5MqeEJNpSS6YM+UArWKDdztCY0JLvNIjvQWH/hUql5D
-	 d+RQVsPKmSQgHVxL+oAQ0XUvqKaP+FhMzLBFZuEQgWR6Sg32IZlu0Tw0ROxywv4Onx2c9
-	 +OTnquryLBNm5pM8YQVDqVahxi9dIDEwAobLnpyBjQ6MUK/fTrfOvrCqZYIxD8HGAdXjc
-	 DF/BpPHmTxIOaIUOuxzkM6p6mEfy9vea5ETKM6jQbScgEQV0k/sYMaJ39AYFchpCWnQHh
-	 RyZ05oJ9FSpQbgXU3ba4XjXLjAFFKGETmc1T5vkSnfLpgXSV0sx3u/hnifXU0Mkx8Ww==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794830989;
+	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
+	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Mailer;
+	bh=Fg2Cyl3OB9tAf+LGvQDahZZf2WtHr0QESzXY6AOus4s=;
+	b=aXoETc3jmPtDyfKZIPUAkUBRUwrkO4hVKcwv6o8WuUonb0sJJFAelhH5cYIy5Smyadyz
+	 vg5Oh1DwuEn9MNcQMQ3+8zLDXNODY/uHxmdy5haHKcJXKrbipCWlyNm+1q4bmaIE4SqMX
+	 eTbx3e2UEkRJJqGe5kNYpY6swuY6PUP99sPx27zVS7a//TMJJ53NLxAVUiQb541Lq0wwY
+	 ANETZcSZolniGP+m3qTlXJd1XqNW2vcXCSCXMBLtLHQexp2obItLGN7YkjOlaRxaP0sYk
+	 YGmk43Gm8Q+HPL4I/vsXi6CpG1RK4lgdFZeKCfjCbxo1nku4YW4BIeOoYTQjky3Jw/g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=csJRLdRu;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="k+O/mtgV";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59AE4606A323;
-	Mon, 16 Nov 2026 11:55:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 751B6606A323;
+	Mon, 16 Nov 2026 12:09:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=csJRLdRu
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87AA51F000C4;
-	Mon, 16 Nov 2026 11:55:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=k+O/mtgV
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2ABF1F000C4;
+	Mon, 16 Nov 2026 12:09:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794830157;
-	bh=64fdSmC+itpUqVCIpnFMnNpeeM+0Kk4P4QNxg3UZAZg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=csJRLdRubG+yNTVHO8RrwXPIEcRujHZEquxnXrq5jdGltmCsesAIlg26Pm1kV2pAS
-	 X5GuwhtZjl5ts9CkqufuN4BO9f7c/l6vOZmHHCkPYqMbVRBzUIyVS3n+WXJg1Fsfep
-	 qafsRuxHFqovN998tELNWIdVOKYyRuw//h6KApmmfz5EJl1qfgKmN7cJBEwrmd96Zj
-	 ZR9UPCo1YtT8tq+th9psrCc39gbR69YX1MZSc5LbTOKM69bzEDsdYd44SvrukWugjY
-	 nuWPSavX1rmnVE58Z8AqUvXqpTsL2PA/xKzlpURHXS0jK6gMcqxkS3Fy2U6bf4O2m3
-	 w58XB92QGg4mA==
-Date: Mon, 16 Nov 2026 13:55:53 +0200
+	s=k20260515; t=1794830989;
+	bh=Fg2Cyl3OB9tAf+LGvQDahZZf2WtHr0QESzXY6AOus4s=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=k+O/mtgV+wVoINW9AEgi39fd7DxoZetiwUUfB9vVH43UPSfBBXjsEv9blwMdYF87k
+	 w+dwNIIArl7y2sziSvbaE8Cop3wWOU5cBzcv/PN9d08YwIWY3yrdPsgu9Z13OwX80z
+	 xOMVVupvxYJN1LSBxEO3ZGqWd7Hao//YIQpT02LJkBg/YkcY9tVswvj7Q+fuoRNhYr
+	 bydvLI4/XSJs3gfwEolG2p/84qVCs/FVnH7lAT73IP/I5mHMGG1go6zr4sGsGMTMW/
+	 F0DVxGH/0WuJK+G88HayBxhx9yKXx9FdGU9O3tmlBqTJ1k1xjY+PSy0e9CM1GNqVzN
+	 4xTdZo8kJFocQ==
 From: Leon Romanovsky <leon@kernel.org>
-To: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>
-Cc: Selvin Xavier <selvin.xavier@broadcom.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] RDMA/ocrdma: Fix potential EQ table leak
-Message-ID: <20261116115553.GJ11319@unreal>
-References: <20261112-88a3a7ff32-rdma-ocrdma@mail.sdu.edu.cn>
+To: kotaranov@microsoft.com, snsanghvi@microsoft.com, longli@microsoft.com, 
+ jgg@ziepe.ca, Konstantin Taranov <kotaranov@linux.microsoft.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20261112084716.1483342-1-kotaranov@linux.microsoft.com>
+References: <20261112084716.1483342-1-kotaranov@linux.microsoft.com>
+Subject: Re: [PATCH rdma-next v11 0/9] RDMA/mana_ib: Add kernel RC and fast
+ registration support
+Message-Id: <179483098623.1357294.2203280978008836098.b4-ty@kernel.org>
+Date: Mon, 16 Nov 2026 07:09:46 -0500
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -57,41 +59,45 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261112-88a3a7ff32-rdma-ocrdma@mail.sdu.edu.cn>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-On Thu, Nov 12, 2026 at 09:59:12PM +0800, Guangshuo Li wrote:
-> EQ teardown destroys the individual queues but leaves their dynamically
-> allocated table behind. Free the table after all EQs have been destroyed
-> and reset its pointer and count.
-> 
-> This issue was found by our static analysis tool under development.
-> 
-> Fixes: fe2caefcdf58 ("RDMA/ocrdma: Add driver for Emulex OneConnect IBoE RDMA adapter")
-> Signed-off-by: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>
-> ---
->  drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> index 006ef2e6b5f3..4a977281a85b 100644
-> --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> @@ -518,6 +518,9 @@ static void ocrdma_destroy_eqs(struct ocrdma_dev *dev)
->  
->  	for (i = 0; i < dev->eq_cnt; i++)
->  		ocrdma_destroy_eq(dev, &dev->eq_tbl[i]);
-> +	kfree(dev->eq_tbl);
-> +	dev->eq_tbl = NULL;
-> +	dev->eq_cnt = 0;
 
-These two lines are unnecessary because dev->eq_tbl is not reused.
-
-Thanks
-
->  }
->  
->  static int ocrdma_mbx_mq_cq_create(struct ocrdma_dev *dev,
+On Thu, 12 Nov 2026 00:47:07 -0800, Konstantin Taranov wrote:
+> Add kernel RC QPs and fast-registration MRs to the MANA RDMA driver
+> for kernel consumers such as NVMe/RDMA and NFS/RDMA.
 > 
-> base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
+> Implement QP creation and state management, work request posting,
+> completion processing, and error handling. Use the RDMA core's generic
+> queue drains for kernel RC QPs, with software-flush notification in the
+> posting paths. Kernel RC QPs require extended-WQE and power-of-two-SQ
+> hardware support.
+> 
+> [...]
+
+Applied, thanks!
+
+[1/9] RDMA/mana_ib: Allocate and map fast-registration MRs
+      https://git.kernel.org/rdma/rdma/c/424f395f5dc735
+[2/9] RDMA/mana: Create and destroy kernel RC QPs
+      https://git.kernel.org/rdma/rdma/c/7855337ed8f9fa
+[3/9] net/mana: Extend GDMA encoding for new RDMA WQEs
+      https://git.kernel.org/rdma/rdma/c/08435b61f00ee2
+[4/9] RDMA/mana_ib: Maintain kernel RC QP state
+      https://git.kernel.org/rdma/rdma/c/6237f2517f4b20
+[5/9] RDMA/mana_ib: Post receive WRs on kernel RC QPs
+      https://git.kernel.org/rdma/rdma/c/56e3714bd9cdde
+[6/9] RDMA/mana_ib: Post send and memory-management WRs on RC QPs
+      https://git.kernel.org/rdma/rdma/c/056987a66d2c8c
+[7/9] RDMA/mana_ib: Poll RC completions using PSN and FSN progress
+      https://git.kernel.org/rdma/rdma/c/0f33f8d321bf00
+[8/9] RDMA/mana_ib: Flush and notify CQs when kernel QPs enter ERR
+      https://git.kernel.org/rdma/rdma/c/673631f569550a
+[9/9] RDMA/mana_ib: Handle error CQEs for kernel QPs
+      https://git.kernel.org/rdma/rdma/c/76da3c7497c394
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
+
