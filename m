@@ -1,53 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794835330;
-	b=nbU6CjHw0S59HhURWGNzDsCaIGtf1ZuSr/83+5ciKoqRkY7TV5vMEUv+zH6SXaldQUwd
-	 cNXpSDS+TWVPqo5bJlSUSPQ6IeH7jnP4PPZAQufN5/RjjDlfAul9rd16UeI65e/y4pygx
-	 2DL10yIGXFj/heaiogp9G0lgzSKILkgp8xVFQshCW8O0BlbomkCciHwV/1wj7MBneR+ii
-	 Wui/OS51mflydA05f99PyV3S7PIYms1maf+RwXZA7sYGCQI7mD+m0W8q5SOfKxzcXANpZ
-	 RAFTNXo/guCLYElapSRKxI8Y0/mig5m7u4q117kOmkKVAHWYzN+s4nDAtd8aN7rfCAA==
+	t=1794835379;
+	b=wvpMMYKG/tLrJZdjgplB8Z+ZoXNHvaVISNnRdN5+Vl+d3lSWcag7KoVNy/hU2Qum/e5Z
+	 nU7liq3zSCA2mGZC4KXdN6V/9nAdZY3gWTjSL+fjQrpCMksyXim/79dyCXSc9VEZCp38i
+	 GGIol1/P45tFbVKpKC2+hft4/+trIct63T3isGijI78D1j6TNM+smMnTve6maHoWF2ws+
+	 ixhIRTRxEgwQ6chyblMRq3g4vhliN4BxXS2EAepontWiHeai1EkRq0PJtZU41i7ECCXZo
+	 L8DH6YHfAiHH/M/PSRfQZ72WlwsLBstZgkAZob+t5aCaESDoaPAYHitU29DmOcuU3gA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794835330;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=knm4G4gK01CY59iwSKeed9szB97/Ep0vOE3ggzYBduc=;
-	b=TbAiBMF5GZlAH6rXJt4o2oqPSgHdQga7OwM1/woc1CxYBBpsmTU3SXaYUuB3XthiRlDq
-	 xEYKycdePhP6WGgHvWLgMjygiUQxBtNxy3Q8nLIqekIiekJuin01NPNauJikoyAP5o75f
-	 sBeW0Az4Bp3sQrQi9KPa+OuqLE5HKENNUqE9H7ASflEMZIC/raQfjddWiyongnT4kcUkz
-	 bon8LupbsRSX5LNiFCR1BkQzM70Wb1KdnfxhG9sKZV/3H3K+bfCXAMVD7uA3R33D8H/+H
-	 zdPTRNEQxZrZ8JhSnoJEjFloknmEQbER7aoYpHNfXAI51mt9Lg0PthNKRhkxHtg9Jsg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794835379;
+	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
+	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Mailer;
+	bh=IrY8B6W083i/Dm7Wsv8iM+bQiSqQWGRKHvn92iMpLHk=;
+	b=w9MVIYO1n9KXYB2u/rOFRerhbaU2titUnRvpO4QyURVjP5fKi0kOSa89RpQaYLgUQmWb
+	 5QE1sIuRvVm7bC4vBt2wwpSYr03DC/REOQf3ZQpO+wSApkgyPkPlAhwpWgzH7qwfTKxh4
+	 EMFsckwEge2EE+yXUWRyEfXziY9f2mMeIMXCM5sOQQOGyrzilI4PrEwfDoQQ6AE8mU9Yx
+	 O+2f45pUobwapyNSakNFreT01RHjrcKc4vYqvGh1YPALJNMrWkEUbeIOJMgGOsCyDsFmM
+	 V1lbDU72k2l9HGvVRJiq/7nMU6oe/VSFj3U+LkTrIRCLspgJ+BT+HXfwLEblN9shu3A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JeBTCDuc;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=V1Jqv5jn;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73AAB606A329;
-	Mon, 16 Nov 2026 13:22:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC6D5606A332;
+	Mon, 16 Nov 2026 13:22:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JeBTCDuc
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61AED1F000C4;
-	Mon, 16 Nov 2026 13:22:09 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=V1Jqv5jn
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F25231F000D2;
+	Mon, 16 Nov 2026 13:22:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794835330;
-	bh=knm4G4gK01CY59iwSKeed9szB97/Ep0vOE3ggzYBduc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=JeBTCDuctffnLKDP3Vu9toIePLQpnOu889BO/bAZtGRRCOFuhaNipuoKNs8Mxxbhd
-	 reRKnkO7ANWMPvsfKB6txBxr1BMTbYQBwypnPHvNgp6m2TzWj/g1I4OIT9r4ebSgEP
-	 4zwS7zXPCLH12GXNlR5E8kf8cLl3e0L8pMwOYa1Pa/muA41+//c4sPGV5W8ecBfq7U
-	 ILSeMcXff6FKbEno/G3rLVmJ4BKzA5Mnlj2vbkbtQl9rMkJksw2d8Q+kqLYPLtwf1q
-	 3tRL4BciO4X05X+bHA0SYTjSec4LpftGVtiWp4xBA+2b5WLspqV0GhhfoT61rDpmXC
-	 xqNpowK4L4bLg==
-Date: Mon, 16 Nov 2026 15:22:05 +0200
+	s=k20260515; t=1794835378;
+	bh=IrY8B6W083i/Dm7Wsv8iM+bQiSqQWGRKHvn92iMpLHk=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=V1Jqv5jnDyW7yStsD84xry+1QpoBJOh7VxExphWNswrBNejqEYmWDctemcnVkvYby
+	 TwjHcGtaiomAZVlGYoWhn15jHQzyerDJW6+WR3o99fZY/rkmO70MVSpPYZXWDphX1/
+	 asqlEM4NiVFWAq6liX+rzLkL0p6gXVA2u/IhqgpGQ9+1a0n8HFYdE0DSXCs7MDjrRL
+	 Vgqd/nyaM0Cldv2Vnyu/Yl4Y4PBwvh5pIeyiLQ4e58Mn9oEJ6TpiycoJ3MA5F3cEio
+	 rHp8TRchb4pnG0xiIw/jH9Y8hsAbvto8mX8T8vJgeubSHSJHuqVswnabWxHg92wyLY
+	 yyUXgy2sRkPNA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Hungyu Lin <dennylin0707@gmail.com>
-Cc: jgg@ziepe.ca, maorg@nvidia.com, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
+Cc: jgg@ziepe.ca, maorg@nvidia.com, linux-rdma@vger.kernel.org, 
+ linux-kernel@vger.kernel.org
+In-Reply-To: <20261115104342.56112-1-dennylin0707@gmail.com>
+References: <20261115104342.56112-1-dennylin0707@gmail.com>
 Subject: Re: [PATCH] RDMA/mlx5: Check the DM type before mapping a MEMIC
  operation
-Message-ID: <20261116132205.GM11319@unreal>
-References: <20261115104342.56112-1-dennylin0707@gmail.com>
+Message-Id: <179483537573.1367860.690111618603841164.b4-ty@kernel.org>
+Date: Mon, 16 Nov 2026 08:22:55 -0500
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -57,11 +59,12 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261115104342.56112-1-dennylin0707@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-On Sun, Nov 15, 2026 at 10:43:42AM +0000, Hungyu Lin wrote:
+
+On Sun, 15 Nov 2026 10:43:42 +0000, Hungyu Lin wrote:
 > MLX5_IB_METHOD_DM_MAP_OP_ADDR accepts a handle to any DM object and
 > converts it with to_memic() without checking the DM type. The handle can
 > refer to a SW ICM object, which is a struct mlx5_ib_dm_icm and is
@@ -71,54 +74,14 @@ On Sun, Nov 15, 2026 at 10:43:42AM +0000, Hungyu Lin wrote:
 > all located past the end of the mlx5_ib_dm_icm allocation, so it locks
 > and modifies memory that belongs to other slab objects.
 > 
-> Return -EOPNOTSUPP for DM objects that are not MEMIC, as
-> MLX5_IB_METHOD_DM_QUERY already does.
-> 
-> Fixes: cea85fa5dbc2 ("RDMA/mlx5: Add support in MEMIC operations")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
-> ---
->  drivers/infiniband/hw/mlx5/dm.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/dm.c b/drivers/infiniband/hw/mlx5/dm.c
-> index 7a6fe4fea3e2..16e42fd6c802 100644
-> --- a/drivers/infiniband/hw/mlx5/dm.c
-> +++ b/drivers/infiniband/hw/mlx5/dm.c
-> @@ -213,6 +213,9 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_ADDR)(
->  	int err;
->  	u8 op;
->  
-> +	if (dm->base.type != MLX5_IB_UAPI_DM_TYPE_MEMIC)
-> +		return -EOPNOTSUPP;
-> +
->  	err = uverbs_copy_from(&op, attrs, MLX5_IB_ATTR_DM_MAP_OP_ADDR_REQ_OP);
->  	if (err)
->  		return err;
+> [...]
 
-I applied this patch with the following change:
+Applied, thanks!
 
-diff --git a/drivers/infiniband/hw/mlx5/dm.c b/drivers/infiniband/hw/mlx5/dm.c
-index 6a1971b9627b1..7d1e642a8d4c9 100644
---- a/drivers/infiniband/hw/mlx5/dm.c
-+++ b/drivers/infiniband/hw/mlx5/dm.c
-@@ -208,12 +208,13 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_ADDR)(
-                attrs, MLX5_IB_ATTR_DM_MAP_OP_ADDR_REQ_HANDLE);
-        struct mlx5_ib_dev *dev = to_mdev(uobj->context->device);
-        struct ib_dm *ibdm = uobj->object;
-+       struct mlx5_ib_dm *mdm = to_mdm(ibdm);
-        struct mlx5_ib_dm_memic *dm = to_memic(ibdm);
-        struct mlx5_ib_dm_op_entry *op_entry;
-        int err;
-        u8 op;
+[1/1] RDMA/mlx5: Check the DM type before mapping a MEMIC operation
+      https://git.kernel.org/rdma/rdma/c/ea97d0a83f4ed6
 
--       if (dm->base.type != MLX5_IB_UAPI_DM_TYPE_MEMIC)
-+       if (mdm->base.type != MLX5_IB_UAPI_DM_TYPE_MEMIC)
-                return -EOPNOTSUPP;
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
 
-        err = uverbs_copy_from(&op, attrs, MLX5_IB_ATTR_DM_MAP_OP_ADDR_REQ_OP);
-
-Thanks
-
-> -- 
-> 2.43.0
