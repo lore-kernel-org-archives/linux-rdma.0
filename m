@@ -1,70 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.7
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=220.197.31.3
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794834319;
-	b=jNQ8hVv9/QgqDgGPlLOJ+bKYDfWGud0ApeAb8sy8AMWS5cW+T3Cf/9a2TExzwNmcrDWC
-	 Io80gUEceaSyLzT9RcdkQ8X1UHjJjOTB+sCUrETF5jc7veRNDIB7IYiu2BN33cfNkP2z2
-	 v5SU7jsz9+Eceli/E1wVUuMzIVWUHqN8BkR9c61i84mU1C4rZ+L/DYO5CtrUiNSdutqf0
-	 eZRMYY+uoRsjSDLdWOEQyOhB02CtbldyE2WVtwUI5ZOTd/uwgYXYZ0Ys8qcav5+tfC6O5
-	 V5fgrkMH1N/SJwLmguXM4xIAwLc8gF8zNkt/DzVuO7f7ReZgMJLwehiJp4IGoTmIuWQ==
+	t=1794834607;
+	b=kJsusB2oc+Hx0NrTqA8aq67XP1xkKV8tgfN05aRqM24BxzpebFkjm1q8yon+SvuLT1a2
+	 ggMnvTl5hojBzfMihFH5p+QJdoJATHdQgC/IY2RIohhU8bk6y3ihq53X8FzKgn88Rn7lk
+	 BhSmI3ZyIFb7GaiotlXjUF3cKJJItVBobcA60mqrLGmwhBeI7VL9B/wPoJC+H0mMRqnhj
+	 J7BdO5Mwiu6vvSQUXsD3c2XbUunEwh+cy6gZyL4ooJOARqlP+bLfCzDHlGhWzMYsEYZWB
+	 C8QF8ZwnHAJ2B/CGyUyevkza+HKz7qgVvPmmKhEUEilXmXoxZ8CJd9hDgkgSUHKtt2A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794834319;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794834607;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-CM-TRANSID:X-Coremail-Antispam:
-	 X-CM-SenderInfo;
-	bh=e5d7G5fQH0I1PriZkyL6VwsluxywSSfe7HXVYmJzQx0=;
-	b=i2ATKWohWBRqi5ZAHY3bg+iPyuRd3i8r29bVqRF0Nalbq8ScawUWk/zgwN5AkV42yZvB
-	 Pvi0dkXAaUB/nfOIrQu5WbLApg+kp9sFn74bIjm0PL4EuLcUWXCB5txkPeMecCdFdeWeO
-	 Qi7KUsBjW+srA/kEN1p3s14HHlM1iNV7dYARppddsUc07ACCkuXZfcPZqtwayLdh3LXpq
-	 1hiOlaq4poZBbDZA44RrPZcXxEiHr4ZgBkBgtZUHT4GlyK0IzQpZIisllmlw4ofiWDvlY
-	 QcP3+f/P1A4dXjHSUNGq2wDezAfKgyo9nKDyl6NtftYYq/R0aBMAQ0B7tZkevvif0LA==
+	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-CM-TRANSID:X-Coremail-Antispam:X-CM-SenderInfo;
+	bh=b68FNTlzlmlqrTbHaH7Dck2gPJT6FeXJ2H/HqfqMPDg=;
+	b=bKiZuj87UXRKtrCDS8eF1w28t6qY5Btuf0zEKG5sBQS/V6OrsVU9WA2ByyJzcCW8X/ye
+	 Q7eIVC5nuoximYDPDEwV+cFEjSloUBafnHuwCRxHwY6N7KaT1D7aZ5a/3PAOfO+FToaE3
+	 CHfUEXWcymEqtBkUIYxWoiSeaYHytKLD5quYEn51YBmowRG5sdcRY7IPoecTc3Ql3Hh56
+	 NwVqVAom7RX0ijZ3OHxgo0ihT3dhm9IBGTMd2OPA743Orz9SC8DcRmBwpEvUC1vdYr51f
+	 K860MgOmhhOsoB3HTPdB0IYsO0mRLG02bliVQaagGjHfBNu8N4N9Ii0ErskpzrWfZOA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=126.com;
-	spf=pass smtp.mailfrom=126.com;
-	dkim=pass header.d=126.com header.i=@126.com header.a=rsa-sha256 header.s=s110527 header.b=bvDASxuK;
-	arc=none smtp.remote-ip=117.135.210.7
-Received: from m16.mail.126.com (m16.mail.126.com [117.135.210.7])
+	dmarc=pass header.from=163.com;
+	spf=pass smtp.mailfrom=163.com;
+	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=fFxSLqLE;
+	arc=none smtp.remote-ip=220.197.31.3
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.3])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C522606A33D;
-	Mon, 16 Nov 2026 13:05:14 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4C522606A33D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=126.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=126.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDC53606A323;
+	Mon, 16 Nov 2026 13:10:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BDC53606A323
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=126.com header.i=@126.com header.a=rsa-sha256 header.s=s110527 header.b=bvDASxuK
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=e5
-	d7G5fQH0I1PriZkyL6VwsluxywSSfe7HXVYmJzQx0=; b=bvDASxuKqIfuA+y0Lw
-	NZ2Y5Zq+0Ma66gOjLM1lPa2d433jiXRYixdB5LFW7QGfkRBy08I1jXHkvNgmt/8u
-	csjd/Ljkzh1c6+HQokIjt6cm5Ff0/9YnsdOsDXrxK2l5MsIzgKdljIbDQZp+0ZGl
-	IEy9e77J5x9ONUG9zecCkC15I=
-Received: from localhost.localdomain (unknown [])
-	by gzsmtp5 (Coremail) with SMTP id QCkvCgD3HwFW__pqIFseDg--.45028S5;
-	Mon, 16 Nov 2026 21:04:26 +0800 (CST)
-From: Jinvas <jinvas@126.com>
-To: saeedm@nvidia.com,
-	tariqt@nvidia.com,
-	mbloch@nvidia.com,
-	leonro@nvidia.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	jinvas@126.com
-Cc: netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=fFxSLqLE
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-ID:MIME-Version; bh=b6
+	8FNTlzlmlqrTbHaH7Dck2gPJT6FeXJ2H/HqfqMPDg=; b=fFxSLqLEjF7k4sjK0S
+	24Tek8u5UiCtcOU5zaM8W856vS1Jc8XJI+cYyQkP4EiaENEX5qq117wYRcLrzrwN
+	m7KP+0i4OTIhtnohhc2+WmHdJD5tMH7cVcRQazh5pY7xQmKqK61perXAbqnQucKX
+	cXxZ32572K6vfsRM1tsAKCvFc=
+Received: from user-VMware-Virtual-Platform.localdomain (unknown [])
+	by gzga-smtp-mtada-g1-2 (Coremail) with SMTP id _____wD3f_WVAPtqHE8VIA--.30076S2;
+	Mon, 16 Nov 2026 21:09:41 +0800 (CST)
+From: Ziheng Wei <zihengw03@163.com>
+To: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	horms@kernel.org,
-	alexious@zju.edu.cn
-Subject: [PATCH net v2 1/1] net/mlx5e: fix NULL pointer dereference in arfs_create_groups()
-Date: Mon, 16 Nov 2026 21:04:06 +0800
-Message-Id: <20261116130406.1171-2-jinvas@126.com>
-X-Mailer: git-send-email 2.28.0.windows.1
-In-Reply-To: <20261116130406.1171-1-jinvas@126.com>
-References: <20261116130406.1171-1-jinvas@126.com>
+	stable@vger.kernel.org
+Subject: [PATCH] RDMA/hfi1: free CPU to SDMA map nodes after an RCU grace period
+Date: Mon, 16 Nov 2026 21:09:40 +0800
+Message-ID: <20261116130940.1629295-1-zihengw03@163.com>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -75,73 +63,149 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:QCkvCgD3HwFW__pqIFseDg--.45028S5
-X-Coremail-Antispam: 1Uf129KBjvJXoWxXrW3Ww1Utr1fJFW5XFWrKrg_yoW5Jw4DpF
-	sxGryDKF1DJ3WxJa1kZ3y0q3s3Ca18JayrC3WSk3y3twnxJr1F9FWru343CFy7CF4rJasF
-	qw15Zw17AF9xGa7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zRGjgsUUUUU=
-X-CM-SenderInfo: xmlq4tbv6rjloofrz/xtbBshpvBmr6-1r6aAAA3m
+X-CM-TRANSID:_____wD3f_WVAPtqHE8VIA--.30076S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxWrWxWr47CFy5Wr43tr45trb_yoWrZw4kpF
+	Z5Ka4Ykws2yF1ruwn3Jrs7AFyfWFn3Xa17Wa4DuF4fCrn5Xws3tr10kFy7Wrn8GFy8Arn5
+	Xrn0gw1rCry8JrDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jt8nOUUUUU=
+X-CM-SenderInfo: p2lkv0ljzqjqqrwthudrp/xtbC7hW+D2r7AJUGkAAA3Y
 
-arfs_create_groups() creates up to two flow groups in ft->g[], and
-increments ft->num_groups for each group that was created successfully.
-If creating the second group fails, the error path frees ft->g and sets
-it to NULL, but leaves ft->num_groups at 1.
+sdma_select_user_engine() looks up the per-CPU sdma_rht_node in
+dd->sdma_rht under rcu_read_lock() and reads rht_node->map[vl],
+map->mask and map->sde[].  sdma_set_cpu_to_sde_map(), called when the
+cpu_list sysfs attribute of an SDMA engine is written, removes a node
+whose maps have become empty with rhashtable_remove_fast() and then
+kfree()s the maps and the node right away.  There is no RCU grace
+period between the removal and the free, so a user SDMA submission on
+that CPU can read the node and the map after they have been freed.  If
+the memory has been reused, the map pointer and the engine pointer read
+from it are arbitrary, and the caller goes on to use that engine.
 
-The only caller, arfs_create_table(), calls mlx5e_destroy_flow_table() on
-the error path, which calls mlx5e_destroy_groups(). The latter walks
-ft->g[] from ft->num_groups - 1 down to 0 and dereferences ft->g[0].
-Since ft->g was freed and set to NULL, this is a NULL pointer
-dereference, and the kernel oopses.
+Writing cpu_list requires CAP_SYS_ADMIN.  The reader is reachable by any
+user that can open /dev/hfi1_N, when the task submitting user SDMA
+requests is pinned to a single CPU.  So this needs an administrator to
+change the SDMA engine CPU lists while jobs are running.
 
-The same error path also leaks the flow group that was created
-successfully before the failure, since ft->g is freed without the group
-being destroyed.
+The debugfs dump in sdma_seqfile_dump_cpu_list() has the same problem,
+and in addition does not hold the RCU read lock at all while walking
+the node, because rhashtable_lookup_fast() drops it before returning.
 
-Freeing ft->g here was added by commit 3c6d5189246f ("net/mlx5e: fix a
-double-free in arfs_create_groups"). Before that commit, the group
-failure path did not touch ft->g at all, so the caller destroyed the
-flow groups that had been created and then freed the array. That
-commit fixed a double free in the allocation failure path by freeing
-ft->g here as well, and in doing so changed the group failure path
-too.
+Free the node and its maps from an RCU callback, as is already done for
+dd->sdma_map, and do the debugfs lookup and walk inside an RCU read-side
+critical section.  hfi1_free_devdata() calls rcu_barrier() before
+sdma_clean(), so no callback can still be pending when the hash table
+is destroyed.
 
-Rather than also resetting ft->num_groups, leave the free of ft->g to
-the caller: mlx5e_destroy_flow_table() frees ft->g exactly once, and
-also destroys the flow groups that were created. This fixes the NULL
-pointer dereference and the leak, while keeping the double free fixed.
+Found by LLM-assisted static analysis.  Not reproduced, as I have no
+Omni-Path hardware; build tested only.
 
-This also makes the error handling of this function consistent with the
-rest of the driver, e.g. mlx5e_create_l2_table().
-
-Fixes: 3c6d5189246f ("net/mlx5e: fix a double-free in arfs_create_groups")
-Signed-off-by: Jinvas <jinvas@126.com>
+Fixes: 0cb2aa690c7e ("IB/hfi1: Add sysfs interface for affinity setup")
+Fixes: af3674d62d34 ("IB/hfi1: Add new debugfs sdma_cpu_list file")
+Cc: stable@vger.kernel.org
+Signed-off-by: Ziheng Wei <zihengw03@163.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c b/drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c
-index c5e62d7..7888d38 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c
-@@ -267,7 +267,7 @@ static int arfs_create_groups(struct mlx5e_flow_table *ft,
- 	in = kvzalloc(inlen, GFP_KERNEL);
- 	if (!in) {
- 		err = -ENOMEM;
--		goto err_free_g;
-+		goto err_free_in;
- 	}
+Notes:
+    The changelog was drafted with an AI assistant from my analysis;
+    I have reviewed the code, the fix and the text.
+
+ drivers/infiniband/hw/hfi1/sdma.c | 45 ++++++++++++++++++-------------
+ 1 file changed, 27 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
+index a71fc8f2d..bf9e362f1 100644
+--- a/drivers/infiniband/hw/hfi1/sdma.c
++++ b/drivers/infiniband/hw/hfi1/sdma.c
+@@ -801,6 +801,7 @@ struct sdma_rht_node {
+ 	unsigned long cpu_id;
+ 	struct sdma_rht_map_elem *map[HFI1_MAX_VLS_SUPPORTED];
+ 	struct rhash_head node;
++	struct rcu_head rcu;
+ };
  
- 	mc = MLX5_ADDR_OF(create_flow_group_in, in, match_criteria);
-@@ -338,9 +338,6 @@ err_clean_group:
- 	ft->g[ft->num_groups] = NULL;
- err_free_in:
- 	kvfree(in);
--err_free_g:
--	kfree(ft->g);
--	ft->g = NULL;
- 	return err;
+ #define NR_CPUS_HINT 192
+@@ -886,6 +887,22 @@ static void sdma_cleanup_sde_map(struct sdma_rht_map_elem *map,
+ 	}
  }
  
++static void sdma_rht_free(void *ptr, void *arg)
++{
++	struct sdma_rht_node *rht_node = ptr;
++	int i;
++
++	for (i = 0; i < HFI1_MAX_VLS_SUPPORTED; i++)
++		kfree(rht_node->map[i]);
++
++	kfree(rht_node);
++}
++
++static void sdma_rht_free_rcu(struct rcu_head *head)
++{
++	sdma_rht_free(container_of(head, struct sdma_rht_node, rcu), NULL);
++}
++
+ /*
+  * Prevents concurrent reads and writes of the sdma engine cpu_mask
+  */
+@@ -1027,10 +1044,11 @@ ssize_t sdma_set_cpu_to_sde_map(struct sdma_engine *sde, const char *buf,
+ 							     sdma_rht_params);
+ 				WARN_ON(ret);
+ 
+-				for (i = 0; i < HFI1_MAX_VLS_SUPPORTED; i++)
+-					kfree(rht_node->map[i]);
+-
+-				kfree(rht_node);
++				/*
++				 * sdma_select_user_engine() may still be
++				 * using the node under rcu_read_lock().
++				 */
++				call_rcu(&rht_node->rcu, sdma_rht_free_rcu);
+ 			}
+ 		}
+ 	}
+@@ -1055,17 +1073,6 @@ ssize_t sdma_get_cpu_to_sde_map(struct sdma_engine *sde, char *buf)
+ 	return strnlen(buf, PAGE_SIZE);
+ }
+ 
+-static void sdma_rht_free(void *ptr, void *arg)
+-{
+-	struct sdma_rht_node *rht_node = ptr;
+-	int i;
+-
+-	for (i = 0; i < HFI1_MAX_VLS_SUPPORTED; i++)
+-		kfree(rht_node->map[i]);
+-
+-	kfree(rht_node);
+-}
+-
+ /**
+  * sdma_seqfile_dump_cpu_list() - debugfs dump the cpu to sdma mappings
+  * @s: seq file
+@@ -1081,10 +1088,10 @@ void sdma_seqfile_dump_cpu_list(struct seq_file *s,
+ 	struct sdma_rht_node *rht_node;
+ 	int i, j;
+ 
+-	rht_node = rhashtable_lookup_fast(dd->sdma_rht, &cpuid,
+-					  sdma_rht_params);
++	rcu_read_lock();
++	rht_node = rhashtable_lookup(dd->sdma_rht, &cpuid, sdma_rht_params);
+ 	if (!rht_node)
+-		return;
++		goto out;
+ 
+ 	seq_printf(s, "cpu%3lu: ", cpuid);
+ 	for (i = 0; i < HFI1_MAX_VLS_SUPPORTED; i++) {
+@@ -1107,6 +1114,8 @@ void sdma_seqfile_dump_cpu_list(struct seq_file *s,
+ 	}
+ 
+ 	seq_puts(s, "\n");
++out:
++	rcu_read_unlock();
+ }
+ 
+ /*
+
+base-commit: 97d73c8251226cf27cc6656b4c542869bb8c69fa
 -- 
-2.28.0.windows.1
+2.43.0
 
