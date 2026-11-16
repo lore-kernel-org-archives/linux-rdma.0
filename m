@@ -1,54 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794828198;
-	b=1gK4xs3oGlt9w7Zk1TBWyRbffUrCFj7RyU7PEaaO14C3jJ9zIxT2s7TER+caxwVGkapm
-	 h4/8wikVCrAfUIEIs+I9PPsLp3KfZPEIFbxcGzowsJ98ZN8ztgiyYX4NI9Xliakb/sFxJ
-	 u3eGJQsmkB4GJ/4PHdY25KYuiDFk48uEQuyALgeen3Vwd5brvzHF7lWtNeooF9I5YDyyA
-	 n+RxNmyMx+0E6/DXlvLayZ/U49xWU9AgSGLJM/d/CPo+mJtdDRGwNsSKAv+OYnBuuBwI4
-	 2cyLCJ5fqKd/BHvv6LrqRaJzFbhcM/ZsofzE4mPNtI28lIniu6RjANdGshNcNkdAJoQ==
+	t=1794828557;
+	b=Lg7JTJ899yzCTMNNUspX+GDvT96SY7kaFNJSLTf7/n9XEVSDhPbetsOzYWnF/2IH93Wh
+	 R0ju6cQ31PyMP55dm1fbA4jjoUmz/k8Y3NxszNEsjxuL8t2DkM/XfTCsYJA2Do8HxZzdo
+	 /TtT1iRAlbVdYWuRihV9e1Fz72hs4b2/wmxnOlLL0CZo2ikETyJVpb04hze9VCA7sfldE
+	 CdWZyRfMOMw4tqAML+tYcKitPNY2BOpKlT9tXad5NAt5Vu6+/T8q2Y4MJ2mYw3wWQr4eo
+	 0LrO03YVAEkTOYCyG30MFhoF/937e2D7ebXtWJjUMCQHtKZzPRneLe6XLyelqtudmcQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794828198;
-	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
-	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Mailer;
-	bh=D2JUi7+QBgAAYJ3O8YDZlYlAorOdmrhtfQfGz28MkE4=;
-	b=Chv3pWZpc7cNIFJaXzc9KqnWur8HcuWipo9pPp81418gNFSF6/EU+gq0Zrza8Ib9HiRD
-	 TCjYzwzCRAE7Tor9wT5CvrSpsr/EXe4vqUPeBdTrxGLVSGN8VgSmmjfdPfufiHRuj21PD
-	 V1haA62OaSNQOvC8PEuUY5gIKLy4JrnyEpETq1EhDQGyKPBhZ61CZ48KOGUfDd1Jv1DLG
-	 VExY8Uslt236O7IIgj8VUeqdCq8dgu7jJCQ+34d2pMRGUaE04vvh1f7LyKtcLCPex8ZRV
-	 B0a2rbqowT02/rseHZBvWJAa6bX+8Ku2Jp6NafNBg3fG5mAJi/VS8nqZUfMOWXGD8Dg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794828557;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=CPrNGh3HPvcoWKq+BJHlqOI3IhwVyoSnFuAXHxF/5tA=;
+	b=gS/ZckRwKLJJvpXTUkPBh/HoBlwoU3TKf/9pSDqfcmIXuGZQg8Tzx1t8ZXKF4oM0TntE
+	 jXA+EaLepqocIQN8RTP/bHQGeeoAoGcFheQEmyrb4EuiRzzKdnIgzxNjFqbS82MW77oZC
+	 nBnW2oXyZGKo+MhUkjtpDwYlEweLub0UvUvRs/5OnS7/lMnFnqnyidHxKio4WHQY4PVBa
+	 sMu0hQlQZQSUJgH5Y0O6HnH2fhbJq0UGR4QnXmqIzk9owVi/vkbK3HJArVrEPRqm3oXc7
+	 qxcmqtS9zCwndST12bEGi71OtmZnmjcgLW3oGLqoHQQyraIkAzzt+O2EjxoVoCBe4cQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cXcUc8aI;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="B/EHUMOw";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 243F8606A338;
-	Mon, 16 Nov 2026 11:23:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5788606A337
+	for <linux-rdma@vger.kernel.org>; Mon, 16 Nov 2026 11:29:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cXcUc8aI
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 564041F000C4;
-	Mon, 16 Nov 2026 11:23:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=B/EHUMOw
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E86121F000C4;
+	Mon, 16 Nov 2026 11:29:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794828198;
-	bh=D2JUi7+QBgAAYJ3O8YDZlYlAorOdmrhtfQfGz28MkE4=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=cXcUc8aI6mmyyE11t4NtpOs2LYlsDkWA98/4VToyDgqq0WFdVIfMB767cYeHdTweW
-	 xH2c0C0vbaoXjhRdE7Jo2UgtMQ4RJJ3IHX1GqyGyZlvm9j37UQu/6zdJeao7SgOdQE
-	 bQjmLvpuixtCtWsaR+YRbLtzqdnCbK87UAzzpQVWtVJ/rV5MS2Wpe7B+lA2WaiQMSO
-	 wq21lwa9fE1XDgcTkUDO3U1J4G1ROa5kKQF+t6ZbWAzX2j4Bj+VnWOS511b6t7fVaZ
-	 15VmFoikbRZ0+9JEbLFPOUcswbpnpc15GyqQpxL/NzfsZD/zYflunT39ipp8lY8qye
-	 JuhMROxoYiHWA==
+	s=k20260515; t=1794828556;
+	bh=CPrNGh3HPvcoWKq+BJHlqOI3IhwVyoSnFuAXHxF/5tA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=B/EHUMOw8XZ2AGUVIZ8HvtCwUw3zcj+ZQ1n/VJ7Mx9DlDO4FX22HttFrsYLHyVW7j
+	 83xUBxNbJejhzhzNg5Ca96ck7FXH38Dv2IjBEu9llHHKoSw5FxqPB4nOpvKdhlXBdd
+	 V1kotL3/5QKyWx3Rz9XaH11f9ORZE9wjaOoQrIrKl3OupADDdbwRPEz3qxhSFuX/cH
+	 PpkbKYXmnVHRD/4c2qrru00ydOZZziWn1UBlNhMDWM3CuuWzgR5ImkZPYIdm53rLdv
+	 ZuZbHC8wfk5Ly4b42aPS7GFAMJMMn2wDOiPXBjQ9bqs4aa82b+dCkTuEh/1Kj2T8YR
+	 8WbkYVYF+cp4Q==
+Date: Mon, 16 Nov 2026 13:29:13 +0200
 From: Leon Romanovsky <leon@kernel.org>
-To: Zhu Jun <zhujun2@cmss.chinamobile.com>
-Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <20261112023108.118187-1-zhujun2@cmss.chinamobile.com>
-References: <20261112023108.118187-1-zhujun2@cmss.chinamobile.com>
-Subject: Re: [PATCH] RDMA/mlx5: Return ENOMEM when allocating a MEMIC
- operation fails
-Message-Id: <179482819488.1349482.5089909196004517387.b4-ty@kernel.org>
-Date: Mon, 16 Nov 2026 06:23:14 -0500
+To: Ilia Kolominsky <ikolomin@amazon.com>
+Cc: jgg@nvidia.com, linux-rdma@vger.kernel.org, sleybo@amazon.com,
+	matua@amazon.com, gal.pressman@linux.dev
+Subject: Re: [PATCH for-next 0/3] RDMA/efa: Add Completion Actions support
+Message-ID: <20261116112913.GI11319@unreal>
+References: <20261109081349.27316-1-ikolomin@amazon.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,28 +56,18 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261109081349.27316-1-ikolomin@amazon.com>
 
+On Mon, Nov 09, 2026 at 08:13:46AM +0000, Ilia Kolominsky wrote:
+> EFA Completion actions let an application observe work request
+> completions without polling a completion queue: when a work request
+> completes, locally or at the remote side, the device performs an action
+> that the work request names, such as writing a value to a user buffer.
 
-On Thu, 12 Nov 2026 10:31:08 +0800, Zhu Jun wrote:
-> When a MEMIC operation is not already mapped, map_existing_op() leaves
-> err set to -ENOENT. If allocating the new operation entry then fails, the
-> handler returns that stale lookup error instead of -ENOMEM.
-> 
-> Set err to -ENOMEM before allocating the operation entry.
-> 
-> OpenAI Codex assisted with analysis and patch preparation.
-> 
-> [...]
+Why are these verbs EFA-specific? This looks like extension of already
+generic UVERBS_METHOD_COMP_CNTR_* code and probably should be general too.
 
-Applied, thanks!
-
-[1/1] RDMA/mlx5: Return ENOMEM when allocating a MEMIC operation fails
-      https://git.kernel.org/rdma/rdma/c/94d14d008d5570
-
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+Thanks
 
