@@ -1,82 +1,82 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=35.162.73.231
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.163.158.5
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794842825;
-	b=V5YMATIE2p1UpXPM5dw/ScFL/NxIjU6Aq6ATtdGr2ougCWsETW2yYwlohaZegJFFGcL0
-	 qaKjnapF92szszIgMojPes1KMEL1DA77pVJgzpz1EhgI80RAlfVNgz8bSAyPy75pqDfGz
-	 ITvzRhBnOWqyh4LWYBqgt+/+oHkCf8+7knweMG2QjbacBhUCLqyzqZb/pS7TZs278zFLo
-	 C+ixxuvejGjkVweRTkt1T4bDMiqvi4u6pQRbUc9Xiieds+18EF60jWq8U6WI0fa0kZwzu
-	 zNU98J0yOAzC1YPBfGV1llOlmzbDYCVGjEibdp5aGJ7AJ0IOrlUSThiqika7HGwvg9A==
+	t=1794842901;
+	b=bbxOuFeb/cvFh+hmdl0KHt0UnvdqFI1xUi4B+2Yptcpw9QT3yb9fExhg5tMJ2HiguYwC
+	 6HCC/5KpUzuetU24VUI3dxDR7pXuISSBWFw1DA8n8o+X5/NV1/4GSZPcjbrD0L3ShPhRQ
+	 zPDnUWS2pKHhp9QMv3t5nf0lnCw/FtIpHQGBRqHjifimLIr22oMdjbqSTzItyQ5CJfO+y
+	 VQ2rL4RCNm9nugwcoPajtS8iHcva50jogFifKUbCp3ylAK7a7cwLo1mWdA9rAb9KLuRoW
+	 MCOMzL0keT9W97WIc0JE5zso6nHqhZLYmdNaLq4AQbnCHRZB0437Gb8tC7LEhvFFEyQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794842825;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:Received:Received:X-Farcaster-Flow-ID:Received:Received:
-	 Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To:User-Agent:
-	 X-Originating-IP:X-ClientProxiedBy;
-	bh=jQ5moJAwspIDmVnleLy8zTs3Qhh1IMj9licNWg4LnQQ=;
-	b=lVsa0olsNJKRhFUGyr3Kb1Xgr3vK4QHer2vT41VSArKIxkY0Mk2sekEwlNDZ/oMzgxVo
-	 rDsDRsvAGhQ5ToVr7nF7Uw7WV+UbOzr/SVt2K00oNpztCb6QJUDVEQp2NSBDp6tM8X8c/
-	 dCfZBUACqCi/W+j/AZ4oZfAeLBWSTn0ji296U2zedUVpApSfumjBe2G/mZ5ZBWsASSS8A
-	 WvdS/8U2Vpn1OSeA1iDAFxIdRfl8WlExH149HzVtygiWeh8iArXO00eMiiX97wFIpyMUf
-	 HrBhq5tz7hV6p6B92Qc63R5HclNKqyviqsA3hicpBCe4l6Hf14wNLrQDgDC6glg+Ivg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794842901;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
+	 Received:Received:Received:Received:Message-ID:Date:MIME-Version:
+	 User-Agent:From:Subject:To:Cc:References:Content-Language:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-TM-AS-GCONF:
+	 X-Proofpoint-Reinject:X-Proofpoint-Spam-Info:X-Proofpoint-GUID:
+	 X-Proofpoint-ORIG-GUID:X-Authority-Analysis:
+	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Virus-Version:
+	 X-Proofpoint-Spam-Details;
+	bh=VUxoL+hkMuqSpkoWW3gH+I8KuNofLq4r+vKUcWDgU4I=;
+	b=3FtRcnumhbUHPsWtV/W4bKOojZR8X0ygjz6ZGAN4+gVV/yKCPHJWj6rwp/rknj7S9F8U
+	 Zk/0CKmQaXFqJAp8go3cXIIEcZOGKtcj2uk2CkBt3r6laUXhKgprz+oAXqxElwFv9VKgr
+	 S3y5eDoHItnBVOiAS92LYZ33Tgd8fUvytmjOIfIIT+LpiXeQzltsBNU7LpkWPJJU3nEcW
+	 6iFdePevPrBZm8FfNZGfzbGa2jQ96MouG7vKjn5MY10qH4oShDwzmlIVjWTydp4o+JqHV
+	 8JOZmYNIMzoAzHlQWLVIwdbAh0Z1vyG1LPpXRA2Hs8U8QDY73pCYfTGaePM1NPzN9Jw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=amazon.com;
-	spf=pass smtp.mailfrom=amazon.com;
-	dkim=pass header.d=amazon.com header.i=@amazon.com header.a=rsa-sha256 header.s=amazoncorp2 header.b=RoYn+LGw;
-	arc=none smtp.remote-ip=35.162.73.231
-Received: from pdx-out-012.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-012.esa.us-west-2.outbound.mail-perimeter.amazon.com [35.162.73.231])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=linux.ibm.com;
+	spf=pass smtp.mailfrom=linux.ibm.com;
+	dkim=pass header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b=lrd3cWTt;
+	arc=none smtp.remote-ip=148.163.158.5
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28893606A88A;
-	Mon, 16 Nov 2026 15:27:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 28893606A88A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EC9F606A331;
+	Mon, 16 Nov 2026 15:28:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6EC9F606A331
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=amazon.com header.i=@amazon.com header.a=rsa-sha256 header.s=amazoncorp2 header.b=RoYn+LGw
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1794842825; x=1826378825;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=jQ5moJAwspIDmVnleLy8zTs3Qhh1IMj9licNWg4LnQQ=;
-  b=RoYn+LGwI8x7VDQWBqE/GNlCFbbC6JXTyMd872rVhR7U1cPmSlHVZoLN
-   /2wbrnc54+22BxA2/7D+GUQ2lFw5cw30rD2uCQkGpzeJr2wJbJQGFU7J6
-   CgNC4Il8QRApkLaNFHZ5vXoCvMkqqSoBUtfzC8iR1p4Z+R6md1pr3VbEk
-   exQNZhjQMEfSvtd4XA/IpbXbC087UD8FHrSZRQWPGvmNwyZHEf2lSCvZr
-   mDJ4GkPIlZYDr2gVD89SQZvP1q2H1o71s3hSJ7iY51Hay/1aeuZVs4dNu
-   xefRC2/8jD9uFwdppl9M2BKPqnfxD8miDLI+lv437e+H0K1foY1Bkp+HN
-   Q==;
-X-CSE-ConnectionGUID: h+nwA85wQxOElU/OXk1dqA==
-X-CSE-MsgGUID: upn+/RpeR+uulnF/EqUqLA==
-X-IronPort-AV: E=Sophos;i="6.27,216,1787011200"; 
-   d="scan'208";a="34092392"
-Received: from ip-10-5-0-115.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.0.115])
-  by internal-pdx-out-012.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2026 15:27:02 +0000
-Received: from EX19MTAUWC002.ant.amazon.com [205.251.233.111:7890]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.10.61:2525] with esmtp (Farcaster)
- id 86de6ce6-fd91-408d-b03e-71a42f531eb3; Mon, 16 Nov 2026 15:27:01 +0000 (UTC)
-X-Farcaster-Flow-ID: 86de6ce6-fd91-408d-b03e-71a42f531eb3
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWC002.ant.amazon.com (10.250.64.143) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.56;
- Mon, 16 Nov 2026 15:27:01 +0000
-Received: from dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com
- (10.253.103.172) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.56; Mon, 16 Nov 2026
- 15:27:00 +0000
-Date: Mon, 16 Nov 2026 15:26:52 +0000
-From: Michael Margolin <mrgolin@amazon.com>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-CC: Eric Davis <eric.davis@broadcom.com>, Leon Romanovsky <leon@kernel.org>,
-	<linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH rdma-next v3 00/13] RDMA/core: Ultra Ethernet transport
- verbs
-Message-ID: <20261116152652.GA8275@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
-References: <20261109-uet-ib-core-v3-0-3e7e7ffed2e9@broadcom.com>
- <20261116143656.GA34010@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
- <20261116144830.GN2532299@ziepe.ca>
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b=lrd3cWTt
+Received: from pps.filterd (m0353725.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AGDuOqI2214172;
+	Mon, 16 Nov 2026 15:28:07 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=VUxoL+
+	hkMuqSpkoWW3gH+I8KuNofLq4r+vKUcWDgU4I=; b=lrd3cWTtW0CXO/4mmn7OcG
+	4NY8RsD+A0Knga30x+EUHjTod+7LaCfDm4uWJsdeoRjl3zEiRTID3haY6zEadipU
+	bz9q7t3oBrKO1/7e/rIsaizUmoKr3zGEGrbzdJ9ZL4cMHn7BxY+8aL7xNbAjuojq
+	kge7ju0pQsnCQN25GEYfCiw+Tmb03f2Py9FrwYuZkqoOVSzFziqptvJ257576Qfx
+	4KejQiDcA+34kbWZ0srUidNx/LWwIkAq8mQHGR+UypW+4EdoPTecmTnav5o4LsOo
+	nnCJIa9EA+DjfDKStV1bt+AZn/362WAESG5tlfGGXqGOGkv+aLXRYj7Eb7qEKquA
+	==
+Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4hxe2d5vdg-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Mon, 16 Nov 2026 15:28:06 +0000 (GMT)
+Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma13.dal12v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 6AGF5tng1877673;
+	Mon, 16 Nov 2026 15:28:06 GMT
+Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
+	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 4hy46fyvkj-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 16 Nov 2026 15:28:06 +0000 (GMT)
+Received: from smtpav05.fra02v.mail.ibm.com (smtpav05.fra02v.mail.ibm.com [10.20.54.104])
+	by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 6AGFRpVZ39518540
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 16 Nov 2026 15:27:51 GMT
+Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 7EFB220043;
+	Mon, 16 Nov 2026 15:27:51 +0000 (GMT)
+Received: from smtpav05.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 3671520040;
+	Mon, 16 Nov 2026 15:27:51 +0000 (GMT)
+Received: from [9.68.31.53] (unknown [9.68.31.53])
+	by smtpav05.fra02v.mail.ibm.com (Postfix) with ESMTP;
+	Mon, 16 Nov 2026 15:27:51 +0000 (GMT)
+Message-ID: <f23d9c47-b254-484f-b0c4-d1053d337c64@linux.ibm.com>
+Date: Mon, 16 Nov 2026 16:27:51 +0100
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -86,57 +86,67 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-In-Reply-To: <20261116144830.GN2532299@ziepe.ca>
-User-Agent: Mutt/1.5.21 (2010-09-15)
-X-ClientProxiedBy: EX19D031UWC002.ant.amazon.com (10.13.139.212) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
+User-Agent: Mozilla Thunderbird
+From: Alexandra Winter <wintera@linux.ibm.com>
+Subject: Re: [PATCH net 0/2] net/smc: do not reuse the DMB of a nocopy device
+To: hexlabsecurity@proton.me, Mahanta Jambigi <mjambigi@linux.ibm.com>,
+        "D. Wythe" <alibuda@linux.alibaba.com>,
+        "David S. Miller"
+ <davem@davemloft.net>,
+        Dust Li <dust.li@linux.alibaba.com>, Jakub Kicinski <kuba@kernel.org>,
+        Sidraya Jayagond <sidraya@linux.ibm.com>,
+        Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Hidayath Khan <hidayath@linux.ibm.com>,
+        Julian Ruess <julianr@linux.ibm.com>,
+        Wenjia Zhang <wenjia@linux.ibm.com>, linux-rdma@vger.kernel.org,
+        Wen Gu <guwen@linux.alibaba.com>, Tony Lu <tonylu@linux.alibaba.com>,
+        netdev@vger.kernel.org, Simon Horman <horms@kernel.org>,
+        linux-s390@vger.kernel.org
+References: <20261113-b4-disp-19244662-v1-0-39b256b70ca7@proton.me>
+Content-Language: en-US
+In-Reply-To: <20261113-b4-disp-19244662-v1-0-39b256b70ca7@proton.me>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE2MDA2MSBTYWx0ZWRfX7GFluGf7knYh
+ ZkPNObjdlfA1qABHvN1snafOV/8xcqexBUH2iZUFTBiSwYUFVP5gvCLy6pK2l6a4huNlFj98+hb
+ 1CcGlyuQNEpuPF/B12XRe3+G3mcMNgY=
+X-Proofpoint-GUID: SZSbvN9P7F-mQt7A9Kks8pxZMBkQxRl7
+X-Proofpoint-ORIG-GUID: XZPaD2B7ZnPkgiM-p9UwiVPLnXQIlSXs
+X-Authority-Analysis: v=2.4 cv=IruL47/g c=1 sm=1 tr=0 ts=6afb2107 cx=c_pps
+ a=AfN7/Ok6k8XGzOShvHwTGQ==:117 a=AfN7/Ok6k8XGzOShvHwTGQ==:17
+ a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=V8glGbnc2Ofi9Qvn3v5h:22 a=VIMLV4syELct9QTXEHIA:9
+ a=QEXdDO2ut3YA:10
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE2MDA2MSBTYWx0ZWRfXw1d4V5UKaK1u
+ 5yO8cNEBno8o4gMBlV+NVP8sBOOY+YHGhRQw4P02jKZxdzkroqYp09Oi7pJw0TBvnZn10JHVPe3
+ fAjOozB1Jpe+1iFe3NwjYnVcjU4HaLwpTs4xODY4qQrYsQcJ9MUIRXC5xaPUa8wWjGNyBdLmJco
+ AoC9XxeKUc+glPwayHvu72W1KdTE9k4MEcL32PipbW4wGoEPsJvO9Tx9aZNI0CHOGNK+bqrAABI
+ OOD+iBH43RJDeWUxUAL76+ipy6PImXrQzMtrNxSxcjSfSUSEIJqUotKLKFpcfwu8z+FFr5LTUwj
+ zxR2QMAP6PUUibDeNHMVfrw8K/It+QbwmsBD1jp2mRfkGDM2h5I1MLCFARxBy5x55fE0p67LUPO
+ /8wzn5aTnlyhM/nmJ2pbpJQWuvvszIrFZ5MrxhUce8L5Xvt3h5yCkjIfMELo7oferL56rEn34Bg
+ YqRY6jnZzTQ1WFqTCNQ==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-11-16_04,2026-11-16_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 impostorscore=0 adultscore=0 suspectscore=0 bulkscore=0
+ malwarescore=0 phishscore=0 lowpriorityscore=0 clxscore=1015 spamscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2611040001 definitions=main-2611160061
 
-On Mon, Nov 16, 2026 at 10:48:30AM -0400, Jason Gunthorpe wrote:
-> On Mon, Nov 16, 2026 at 02:36:56PM +0000, Michael Margolin wrote:
-> > On Mon, Nov 09, 2026 at 08:00:33PM -0800, Eric Davis wrote:
-> > > Ultra Ethernet defines a reliable unconnected transport. A queue pair
-> > > sends to any peer in its job without a connection, incoming traffic is
-> > > demultiplexed on a JobID rather than on a connection, and what a device
-> > > orders is far weaker than IB or RoCE and varies between devices. None of
-> > > that has a home in the current uverbs ABI.
-> > > 
-> > > This series adds the generic half. The objects, methods, and attributes
-> > > any UET device implements. No driver is part of it, though two already
-> > > exist against this ABI. A reference device model that implements all of
-> > > it, and HPE's Slingshot driver implementing a large subset. That is the
-> > > argument for ib_core carrying this. What is device specific should come
-> > > from private interfaces per vendor.
-> > 
-> > Hey Eric,
-> > 
-> > Thanks for posting this. EFA's SRD is also a reliable unconnected
-> > transport (one QP reaches any peer, delivery isn't ordered), so we
-> > looked at the series as a possible second implementor of IB_QPT_RU
-> > that isn't a UET device. Other vendors might also want to support
-> > this interface in the future.
+
+
+On 13.11.26 14:57, Bryam Vargas via B4 Relay wrote:
+[...]
 > 
-> I'm not sure about this. If you have exactly UET programming
-> semantics, including the job, then sure.
-> 
-> But squeezing some EFA specific thing that doesn't follow the spec
-> isn't a good way to build the APIs.. Persumably EFA has its own
-> job-like mechanism for security that is different?
-> 
+> ISM pools its DMBs the same way and an old ISM peer also writes its CDCs
+> by token, so AFAICT the reuse applies there too. This series does not
+> change ISM, and I have not tested it.
 
-I see your point about trying to fit an API to a different use case it's
-not meant for, but I don't think this is the case here. EFA doesn't have
-a job-like mechanism, isolation is handled by the network, so jobs just
-don't apply there.
+ISM does not provide an attach operation. So nobody will write into a
+receive buffer dmb after dmb_unregister.
 
-As I see it, RU can be (and this series gets quite close to this) just
-another QP type multiple vendors can support, with UET specifics like
-jobs being optional on top. I think that treating it this way during
-interface definition improves it.
-
-Michael
-
-> Jason
 
 
