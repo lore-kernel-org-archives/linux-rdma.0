@@ -1,63 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794837300;
-	b=aZTj0FSwdKIu7maeSK74Y716q1PUAAbHV0e06B04ljE0/a0oiL0B8FUCC74951auV2lE
-	 8mA7s7jlAwbqhJKiLGJP4sZn+SzfoNdyD7zEJD0N6P/OFMlzKelwBR6tYyRS6dGiDmT1m
-	 dQTYRMIKZVrGSgbpdcyUOI/XtryUm4LIFcIHQMS3g6zzi27kOvpIT4P8hm4KcfYiSXN7f
-	 TqdqIRVOuOO6dQZAsaeD0o3hrbFB45Qrv//PViLU+XgeD6bz5kb7fcOGS/vcMYBFDhRpe
-	 ggknCtYsMOKLA+O6HQBCr+hewngM+XETNB5nMB6hmKLaCxiuEk1rMXEvP3xlcjqrOYQ==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794837300;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=QFu8Ujh/cTsZqGkdnK/upGMSOxvB/uMyMwCper4UbWY=;
-	b=wy4e+DpbAjZ2RLPJhNnBOdpAVP6+YTxZgnoqJD8bHUNynMCUHqewdZhsw3nyoq08oFAM
-	 T6eqhjySHUeBEQOGXTmeqVW0Cs6WG+iujwCmBq+yhD4GyAXZPnursxGX7/A2iqFAmQgDB
-	 VS3OfNXcp7ZJXHrQVJ3jHJXCrlp7CLXplqFyncD/zCiCsdX3lb+VFHA5q+btWeYvATq3y
-	 gUB0JZAEkVZuCBeuxDs4UY6w9kiehTQeq5eguAn5p48a5I0SF008vvYDA4huS752M71dX
-	 Aq2BvMHPBNHwEvqbq2JnkTGxoDpDBFDXnWHxQHkXLh7viOurmUlJQsBUn2D4PGScnSA==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SWuapJb4;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.198.70
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1794838477;
+	b=3nI2ES6IEuGkd/qGRDQtqNyMuyviec4wLmbVzaRVJcLiiRBQkGUa4aV1b1WYr8AN+d2y
+	 CIIebne6iFN7DYY0HQDlZ6DmAbTv5aS/1T8ZGMi8D4XI3krMdqDlSGZhelG3RztZE11ct
+	 r/3DrCAVLZOPEsL3YHHZO6gf0kt00nv/4f83WUwkJP5d6Hlmfd0KUqMndrKbTGoz2cCiS
+	 cRoB3GgYFvVu4eV1c1rJ50ebhhNtLFa5U118cnwX4I2UPakfU+73VdaLYxGnE0meTNVM1
+	 6qLCUPOL7NMcSbFvomOmQiwbyoqZLLKJkMDAlLHYwsrQaFyS3KWyfF3xv0NsD9DiO3A==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794838477;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:
+	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
+	 Received:Message-ID:Date:MIME-Version:User-Agent:Subject:To:CC:
+	 References:Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy:
+	 X-EOPAttributedMessage:X-MS-PublicTrafficType:
+	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
+	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
+	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+	 X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-Id:
+	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=5AaHEkxuOI4o8yf7EemD7QQqchrC4omjU6j/7lOvsNk=;
+	b=HfDIMFPBv2R192G8nNC9Op69CPCOmAo2Sgmy3Dj+j8iOVjgPt3elC9EehPknaKw+MOJ8
+	 55VRR0nQ/I8W1Q00Mv+jYGN3ca8eUqEAGLKyKyS9uxIYDA9gEgC/ik7T97UfAcPh2E90k
+	 oY2vEdttpQ1sWa3Kb5vxFc/UhpPVXhQKhtK9Ju7DoZn7V9piLBPC7a7DCSMEWNSkBzEmQ
+	 G28TRWTjBqhUyqk67xN26atOVQgPoMrVXcPIYUtx+Pee3kzs+rAnQAKZgvFpyC2HtUpJq
+	 3k9+T+wh/1ZE4ARK4iSmC/eIrRCucLM5sNPoE3nYFQco+t3TMDp8BP9533grnCOCw+Q==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=uQNZJkqc;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.198.70
+Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010070.outbound.protection.outlook.com [40.93.198.70])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E9B8606A891;
-	Mon, 16 Nov 2026 13:54:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EE9B606A329;
+	Mon, 16 Nov 2026 14:14:36 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9EE9B606A329
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SWuapJb4
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD48C1F000C8;
-	Mon, 16 Nov 2026 13:54:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794837299;
-	bh=QFu8Ujh/cTsZqGkdnK/upGMSOxvB/uMyMwCper4UbWY=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=SWuapJb4vNuXxhh/NLQozt2oDDvs3tqsSKfMebV+h+jeE7bZGbp5AleKIDT22A0Gh
-	 3mlwofPCt9me3uUwtyzjuVt7q0yaXZ8p7xP7UXJkC8BcFR3FbTRPRD49VuPUGL78t5
-	 5s12WunQc0FGYhSHiCVRSzmLoZg1dftER9Tn9Yqw8l7TXK5yMOUZXuc3FGTBaRLlDD
-	 jHNU9sr7NPp0GsCPcF2+CHqmBfeQQa2Hsq+6APIjJklRaXh3Ow5DVjBU6m2LvD8F44
-	 2HhtknTGX9zw89wbfxivNzHkiEgVWhRX8us2k7sEB6YT50y5zqPPW7nPWOlY9+Za4v
-	 /w16MquByzcaw==
-Subject: Re: [PATCH net-next] net: mana: Add CQE polling as first-level TX
- timeout recovery
-From: netdev-bot+sashiko@kernel.org
-To: sahilchandna@linux.microsoft.com
-Cc: haiyangz@microsoft.com, wei.liu@kernel.org, decui@microsoft.com,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, pabeni@redhat.com, weh@microsoft.com,
- kotaranov@microsoft.com, horms@kernel.org, ernis@linux.microsoft.com,
- gargaditya@linux.microsoft.com, leitao@debian.org,
- linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-Date: Mon, 16 Nov 2026 13:54:58 +0000
-Message-ID: <179483729831.3136.3233216496914201382@kernel.org>
-In-Reply-To: <20261112105752.978446-1-sahilchandna@linux.microsoft.com>
-References: <20261112105752.978446-1-sahilchandna@linux.microsoft.com>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=uQNZJkqc
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Cwi1KJnzjALmnufRRh82qgdgHKcbJbuENN/+IL7TLY1Iq9odzxxB1eJ83u63GjCAvVvw+deIxLSACOLEVjnR4Rim6cUzJqWC3i9ZBe3m9GYn8z48+fj11kufpFa/gVeKp/X6NtDcyioBQs8MKIeKtIve3mA5PJYrmyla4EQSPX71N/flfGIaC2BcxVcz2M2hdiWqMAG2599WPaBfOT038Xz0lox8815+wCnYaYqw6B5fZhimkGPprHfALWKAj6Zo8K+XTQXcf2glDRNUCSL3M0339yuGRn1gLaPAveaooPxJSTUJ6QLvb8HH/IBMqHIJt3imSktGaHXn3RPnXfLQVw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=5AaHEkxuOI4o8yf7EemD7QQqchrC4omjU6j/7lOvsNk=;
+ b=rSC9SDB5hcYo99qcKPhijewUl9G96+jeKogrPgCMy3MmHAMQKDvdheLDIQFh3HbkNFds+aG02fs0guE34JG23cKIt/pjjq+6QEPak2AMGtMcrORoaZHN1JPShp5ICABoNFDL9bQmQ8T/VeTNv2n9KVfCBXmZanwNMZQmnqQcKhKwJzmWVgkYjYCnsE2qNaqGX0BLiWHnYc1QLWDPOkyyuyqm/DVUcY3TSuQ4dTiy8MULYrSKTkrG2rse/iCzmwfOgmkPvoTNlZXCiBFMHTg5vAqGxQLB1+PpB3o3pSX0xqgoHgbTQ4xm3Iq8KVONG6ZLPWRbcENEfP/wb80OTw3FKA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=5AaHEkxuOI4o8yf7EemD7QQqchrC4omjU6j/7lOvsNk=;
+ b=uQNZJkqcwShsOoKiESFrHTKISXXS9PHm4XsVAJRmlYMHGGIyy80PRCRbpTisO1Dt0FAyY528TlzmFiQ7f5IFCE9tpBGlnkb+ZYW4VDpzq8ClIyRrLpHWne4ZOgvM0OcqB2ybX0SjFFmqI1nTlYwJ38VF/BATunItfdttqqoWGQ45yuWBuhBrZWqJMj/PZ/HR0bF/d9SWnzrY6HSc9+o/YPPeDcJnSkFm1aziBOxcs8pl34E1joyUE3o9LOG3uYw4XQiKqzIj1ZiOIX3cuJaXibEP51NVnKLrVuhRVeHWpz29RJAQhhRG55b8dKRuX3/KCmltZXkq/wggO6qbbkUn8g==
+Received: from SJ0PR03CA0294.namprd03.prod.outlook.com (2603:10b6:a03:39e::29)
+ by SA3PR12MB095375.namprd12.prod.outlook.com (2603:10b6:806:514::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.14; Mon, 16 Nov
+ 2026 14:13:32 +0000
+Received: from CO1PEPF00018860.namprd02.prod.outlook.com
+ (2603:10b6:a03:39e:cafe::6) by SJ0PR03CA0294.outlook.office365.com
+ (2603:10b6:a03:39e::29) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.14 via Frontend Transport; Mon,
+ 16 Nov 2026 14:13:31 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ CO1PEPF00018860.mail.protection.outlook.com (10.167.249.249) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.615.4 via Frontend Transport; Mon, 16 Nov 2026 14:13:31 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Mon, 16 Nov
+ 2026 06:13:03 -0800
+Received: from [10.125.206.246] (10.126.231.37) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Mon, 16 Nov
+ 2026 06:12:58 -0800
+Message-ID: <759c8f05-a018-4040-a791-fef794eb6933@nvidia.com>
+Date: Mon, 16 Nov 2026 16:12:55 +0200
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -67,201 +104,91 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH V1 rdma-next 08/24] RDMA/mlx5: Derive
+ mlx5_ib_adversarial_mode global from mlx5_core adversarial API
+To: Leon Romanovsky <leon@kernel.org>
+CC: <jgg@ziepe.ca>, <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<saeedm@nvidia.com>, <tariqt@nvidia.com>, <mbloch@nvidia.com>,
+	<kuba@kernel.org>, <pabeni@redhat.com>, <edumazet@kernel.org>,
+	<davem@davemloft.net>, <andrew+netdev@lunn.ch>, <dtatulea@nvidia.com>,
+	<moshe@nvidia.com>, <maorg@nvidia.com>
+References: <20261110134320.34408-1-yishaih@nvidia.com>
+ <20261110134320.34408-9-yishaih@nvidia.com> <20261116085701.GA11319@unreal>
+Content-Language: en-US
+From: Yishai Hadas <yishaih@nvidia.com>
+In-Reply-To: <20261116085701.GA11319@unreal>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: rnnvmail202.nvidia.com (10.129.68.7) To
+ rnnvmail201.nvidia.com (10.129.68.8)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CO1PEPF00018860:EE_|SA3PR12MB095375:EE_
+X-MS-Office365-Filtering-Correlation-Id: 621ea53c-c155-4826-4dcd-08df43ebcb63
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|1800799024|23010399003|82310400026|36860700016|10067099003|4143699003|11063799006|56012099006|261026121527099003|261026140227099003|261028144727099003|261022105027099003|261021121427099003|261102123227099003|261009223027099003|22082099003|18002099003|6133799003;
+X-Microsoft-Antispam-Message-Info:
+	3jwDvTZKoumajzLgYD4byG44Ak0B+kyMOuiT/pUuJksTPRNN+UOgfDdiMuO14V0KWfKYqMrtVe8T1F7NPmoNqStWgI1EBCx4oI1XaQjrqG4BgBcDtX2ZPvFkF+Z5/XL5PM4rKB5lFXG3XYiWh9y4x2OhQuPzNxT/jrr8PmmldJHGpS0BVSknAVA3SxL6UXbWMbvSqOekamLNVebjM0AMLIwFRuv0w/cgVpT/1XIvTLiUynOW0Mmv7nQ2U2jrSOURYpRk5a4bJk1kjdRNYezf5HmlfJqM2D2Bo6epoGtMmzHwNBGL7ZxZSsYSDEwEWpFBeicvN9EAIFDRxQ1masTeqxWAFo+lXdMNXPViwdnkgEoimUIJ4HAM+ocjx4j1PDNuWR7U1/wE77qI+L6Y/RFjUnoLx6BKzr+iarfNbvzvXWdJf9GCMgYdfCnY6egaDrHVQ+SMCgdXKNZAm5OwAJiC1+6SfCb/A2rGtYYZH8498Si2KUmgPGE8ad2w/bV7VGd7QpS8w+pzncoZdf5ryMKVzJqHM+U5Qmcdr5QHcUmZ1DMCbStoeBIPY7kcDhj7ShX1hhGUnMcp3yLGR6ftbCKo0olUI40mR64wQiwk8JqiOdVqtEgdwbZBpKuDQuBxbk7Fs+SHxrcJqp8E+1WyL8jtIlUAeKV+FRSRajXD0YYDS2UYx8rFbTUgJbA1eQrCaJ7RKLFcp5ZRaQpxGe9I38aBIw==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(1800799024)(23010399003)(82310400026)(36860700016)(10067099003)(4143699003)(11063799006)(56012099006)(261026121527099003)(261026140227099003)(261028144727099003)(261022105027099003)(261021121427099003)(261102123227099003)(261009223027099003)(22082099003)(18002099003)(6133799003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	cKwi+dBkX5LR4sqGwUJCaVziaKlVfDAJXHYZaCLw3ELfD3VQydgMEiUI+5G+697ry4idvh1Rod2YY4DPPMxQlpD1OR1QkjS1013CxUaa6AFmqudDn+dZdSbl+dAfPtmNjjuuK7m3ZwAgbDx9gSQkC1KWQ0uZ7ipL4dxEYMzqa2OKaHPpvyswqDaRo2CLSnuAGIE3zLKAG11Zd8lvTDaVegeOiv+B9QlD14oIdmKUboSDlbkJRLeZ40SsIoFfF4PweS+ogipfpN5MFkL3wlNPOoqni7g3kqJKTrOFKOriSjBpxHpl2KKsMXDAnrpnuxCAAfgCpDXQrZZyRXdK5N9EczTb8RiWWmU4TX7o2VXHneUo6wX5kn5HVttkDOa2MNxBEKcwCsKbrNuq5OpyI219PWPWe8ZUSYiczHGqkSgVfN8tTheM3pZQqIXTt1z4TpbL
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Nov 2026 14:13:31.7593
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 621ea53c-c155-4826-4dcd-08df43ebcb63
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CO1PEPF00018860.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA3PR12MB095375
 
-Thank you for your contribution! Sashiko AI review found 4 potential
-issue(s) to consider.
+On 16/11/2026 10:57, Leon Romanovsky wrote:
+> On Tue, Nov 10, 2026 at 03:43:04PM +0200, Yishai Hadas wrote:
+>> Cache mlx5_is_adversarial() in a driver-wide mlx5_ib_adversarial_mode
+>> in mlx5_ib_init(), shared through mlx5_ib.h. The mode is the same for
+>> all devices, so a global avoids reading it through every mlx5_ib_dev
+>> and keeps the checks at the call sites simple.
+> 
+> This patch and description makes no sense. The mlx5_is_adversarial() is
+> simple static pre-compiled branch "cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT)".
+> 
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 3
+cc_platform_has() is a function call, not a static branch. The wrapper 
+keeps the policy of when mlx5 runs in adversarial mode in one place,
+used by both mlx5_core and mlx5_ib. Anyway, in V2 mlx5_ib calls it once
+per device at init, see below.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+>>
+>> Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
+>> ---
+>>   drivers/infiniband/hw/mlx5/main.c    | 3 +++
+>>   drivers/infiniband/hw/mlx5/mlx5_ib.h | 1 +
+>>   2 files changed, 4 insertions(+)
+>>
+>> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+>> index 65455aedd559..f4f2ad80e76c 100644
+>> --- a/drivers/infiniband/hw/mlx5/main.c
+>> +++ b/drivers/infiniband/hw/mlx5/main.c
+>> @@ -76,6 +76,7 @@ enum {
+>>   	MLX5_ATOMIC_SIZE_QP_8BYTES = 1 << 3,
+>>   };
+>>   
+>> +bool mlx5_ib_adversarial_mode;
+> 
+> It is not kernel style to throw random global values to cache existing
+> in-kernel API functions.
+> 
 
-- [Medium] Level 1 of the new recovery only calls napi_schedule() on the
-  TX CQ that stalled, in mana_tx_timeout()…
-- [Low] The commit message says the patch makes TX timeout recovery
-  'three-tiered' and lists 'Level 3: device reset(FLR)' as the step…
-- [Low] apc->last_tx_timeout is cleared in only one place: the post-
-  attach tail of mana_per_port_queue_reset_work_handler()…
-- [Low] The new comment in mana_tx_timeout() (mana_en.c:990-996) says
-  escalation happens because 'the earlier CQE poll did not help and…
+OK. In V2 there is no global flag in mlx5_ib anymore. This patch is
+replaced by one that sets ib_device::adversarial_mode once per device,
+and the checks read that field. Patch #24, which set it at the end of
+the series, is folded into it.
 
---
-
-net: mana: Add CQE polling as first-level TX timeout recovery
-
-This commit changes mana_tx_timeout() so that the first TX timeout, or
-one arriving more than 2 minutes after the previous one, schedules NAPI on
-the stalled queue's TX CQ instead of resetting the port. A further timeout
-on any queue within 2 minutes escalates to the existing per-port
-detach/attach reset, and a new tx_cqe_poll_recovery ethtool counter tracks
-the CQE poll attempts.
-
-> This makes the TX timeout recovery three-tiered:
->
->   Level 1: CQE poll via napi_schedule() (this patch)
->   Level 2: Port queue reset (detach/attach)
->   Level 3: device reset(FLR)
-
-[Severity: Low]
-Is the Level 3 step accurate for the TX timeout path? When
-mana_pre_alloc_rxbufs(), mana_detach() or mana_attach() fails in
-mana_per_port_queue_reset_work_handler(), the handler only logs:
-
-	err = mana_attach(ndev);
-	if (err)
-		netdev_err(ndev, "mana_attach failed: %d\n", err);
-
-It doesn't call mana_schedule_serv_work() or set GC_IN_SERVICE. In
-mana_en.c, mana_schedule_serv_work() is only called from
-mana_gf_stats_work_handler() on an HWC timeout. gdma_main.c calls it for
-hardware service EQEs.
-
-So when a port reset fails or doesn't help, the next timeout triggers
-another port reset, or after 2 minutes goes back to Level 1. It never
-reaches an FLR.
-
-Could the commit message describe the FLR as a separate existing
-mechanism, rather than as the third tier of this escalation?
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> index e6d494df22e4d..0d8c8b8fbc83f 100644
-> --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-> +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-> @@ -336,6 +336,9 @@ static void mana_per_port_queue_reset_work_handler(struct work_struct *work)
->  	if (err)
->  		netdev_err(ndev, "mana_attach failed: %d\n", err);
->  
-> +	/* Let the next TX timeout try a CQE poll recovery first */
-> +	WRITE_ONCE(apc->last_tx_timeout, 0);
-> +
-
-[Severity: Low]
-Is this the only place last_tx_timeout gets cleared? The other paths
-that tear down and rebuild the TX queues don't touch it. These include
-mana_close()/mana_open(), the other mana_detach()/mana_attach() callers
-(channel, MTU and XDP changes), and the service/FLR resume through
-mana_probe().
-
-Suppose a Level 1 CQE poll ran at T0 and one of those paths then rebuilt
-the queues. A TX timeout on the new queues before
-T0 + MANA_TX_TIMEOUT_RESET_THRESHOLD still sees a recent, non-zero last
-in mana_tx_timeout():
-
-	if (last &&
-	    time_after(last, jiffies - MANA_TX_TIMEOUT_RESET_THRESHOLD)) {
-		queue_work(ac->per_port_queue_reset_wq, &apc->queue_reset_work);
-		return;
-	}
-
-It would then go straight to a port reset, without a CQE poll on queues
-that were never polled.
-
-Should the timestamp also be cleared when queues are rebuilt outside this
-worker, for example in mana_open() or mana_attach()?
-
->  dealloc_pre_rxbufs:
->  	mana_pre_dealloc_rxbufs(apc);
->  clear_flag:
-
-[ ... ]
-
-> @@ -980,11 +984,30 @@ static void mana_tx_timeout(struct net_device *netdev, unsigned int txqueue)
->  	if (test_bit(GC_IN_SERVICE, &gc->flags))
->  		return;
->  
-> -	/* Note: If there are pending queue reset work for this port(apc),
-> -	 * subsequent request queued up from here are ignored. This is because
-> -	 * we are using the same work instance per port(apc).
-> +	if (!apc->port_is_up)
-> +		return;
-> +
-> +	/* If the previous timeout fired less than
-> +	 * MANA_TX_TIMEOUT_RESET_THRESHOLD ago, the earlier CQE poll did not
-> +	 * help and queue stalled again	: escalate to a port reset.
-
-[Severity: Low]
-This isn't a bug, but there's a stray tab between "again" and the colon.
-
-The comment also suggests the same queue stalled again. However,
-last_tx_timeout is a single per-port field in struct mana_port_context,
-so a timeout on any queue within the threshold escalates. That includes
-a queue that never had a CQE poll.
-
-For example, queue A might be polled, and queue B might time out about
-15 seconds later (watchdog_timeo). B then goes straight to a port reset.
-
-Could the comment say that a timeout on any queue of the port escalates?
-
-> +	 * Note: If there is pending queue reset work for this port (apc),
-> +	 * subsequent requests queued up from here are ignored, because the
-> +	 * same work instance is used per port (apc).
->  	 */
-> -	queue_work(ac->per_port_queue_reset_wq, &apc->queue_reset_work);
-> +	if (last &&
-> +	    time_after(last, jiffies - MANA_TX_TIMEOUT_RESET_THRESHOLD)) {
-> +		queue_work(ac->per_port_queue_reset_wq, &apc->queue_reset_work);
-> +		return;
-> +	}
-> +
-> +	/* First timeout, or the previous one was long ago: try to recover by
-> +	 * polling the TX CQ for completions before escalating to a reset.
-> +	 */
-> +	if (txqueue < apc->num_queues && apc->tx_qp && apc->tx_qp[txqueue]) {
-> +		WRITE_ONCE(apc->last_tx_timeout, jiffies);
-> +		apc->eth_stats.tx_cqe_poll_recovery++;
-> +		napi_schedule(&apc->tx_qp[txqueue]->tx_cq.napi);
-
-[Severity: Medium]
-Does this recover the case where the MSI-X interrupt for the queue's EQ
-was lost? This only schedules NAPI on the TX CQ, and the NAPI path
-re-arms only the CQ in mana_cq_handler():
-
-	if (w < cq->budget) {
-		mana_gd_ring_cq(gdma_queue, SET_ARM_BIT);
-
-The only EQ re-arm is at the end of mana_gd_process_eq_events(), which
-runs from the EQ interrupt:
-
-	mana_gd_ring_doorbell(gc, eq->gdma_dev->doorbell, eq->type, eq->id,
-			      head, SET_ARM_BIT, 0);
-
-The TX CQ and the RX CQ of queue i share the same parent EQ:
-
-mana_create_txq():
-		spec.cq.parent_eq = apc->eqs[i].eq;
-
-mana_create_rxq() (called with &apc->eqs[i]):
-	spec.cq.parent_eq = eq->eq;
-
-Suppose the EQ interrupt was lost and the EQ stays un-armed. TX would
-make progress briefly. New TX CQEs would then post EQEs into an un-armed
-EQ, no interrupt would fire, and TX would stall again. This path never
-polls the RX CQ on the same EQ, so RX on queue i would stay stalled.
-
-Before this patch, the first watchdog firing did a detach/attach, which
-rebuilt and re-armed the EQ. Now escalation only happens if the next TX
-timeout arrives within 2 minutes.
-
-With light TX load on that queue, timeouts could be more than 2 minutes
-apart. Each one would then be handled as another Level 1 poll, and RX on
-queue i might never recover.
-
-The driver code doesn't show the exact hardware semantics of the GDMA EQ
-arm bit, so this depends on whether an interrupt consumes the arm state.
-
-Does the commit message claim of "recovering missed-interrupt scenarios
-without queue reset" apply only to CQ-level misses? Or should Level 1
-also handle the EQ and the RX CQ that shares it?
-
-> +	}
->  }
->  
->  static int mana_shaper_set(struct net_shaper_binding *binding,
-
-[ ... ]
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261112105752.978446-1-sahilchandna%40linux.microsoft.com
+Yishai
