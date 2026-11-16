@@ -1,110 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.85.23
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794858792;
-	b=Fv19kK8Y0MG2oFBQvcqiZZlCp2cIqBxh/TzSGpM01hOAVNAsdLPO7I637o/Av4xf9SyZ
-	 fwLfWhdzn3y/RF0a6Ia9pBlJniK87yyW8Ek4PMkfRh7H8+8BnsXArYhzygmokmYYEmqoB
-	 utXl6zyLSS5qRlgiAxxSIxdlwkq9a+BDZiSVoectiZr/aSwOUPjk0tx0V7RvzJAEvEuDo
-	 KarSWemHYWVbNklqZSG+YdQmBVTM+QSoKC8WBM16JpoSzhpays4lm75y4EMgyKceyEdr/
-	 S7ZEdityIbDD/kR4fQgBzSW9PcUZ/BIu+4h4hQkR5w5+FwEQzb9qM0tzbdVNtcV8ggQ==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794858792;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:
-	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
-	 Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:In-Reply-To:
-	 References:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Originating-IP:X-ClientProxiedBy:X-EOPAttributedMessage:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-Id:
-	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=mQ/09x4uq9jU1vzfAj5TzUhFLr0s3VBByYeEdcOjjRo=;
-	b=CLDbPUlvJaRiIk8JtOcS79L0B5eVjMo2g8e10aNlaj2X9S45keIENKM+abYGH1asDa0H
-	 /6lF8rLEg3d1UkIDDmtmJV/jCIOhJeFymQNIVHEF5BbCttJXWFVZHtz1emAgLdtcuOoD0
-	 R8pKOe10KlEvt40oGr9Ouf1ZbRuEKJlL12U1bpQs807coZsiK+3mz4d/tf7h/K1/kq8Ht
-	 u7vTNLbRL1nnQgBjFN1ssPe2bsD1cj2kx6i/dTcFaYEHxmfvGuz6sY7O1OswxTqqb41jE
-	 6p8FGMUc0HEA8EBCX2DIba9f9mz9Ok8Hb0H34P2GbypsNtc6sG0wzgPKu/oVwTePcyg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=CHasZVEI;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.85.23
-Received: from BYAPR05CU005.outbound.protection.outlook.com (mail-westusazon11010023.outbound.protection.outlook.com [52.101.85.23])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.19
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1794862656;
+	b=5To2/LPnVTt5D5jBnsO3ucdov/xYBjse8nw3L8zIKYt92BCinYYVaYozXqPPPlTdGJ7y
+	 iyRBtJfghP6ZxV9roQJvmrswYhb2Hz+xjLtcX/iBU+X0s4iyVMR8PU1vs87HiIu9lSiJX
+	 GS8kPbSUl5iW98VJHHR312cFMcBONPPNlib9EbRWW6jNRQvWF39ADndEum9IuaxKaeIX4
+	 1G/aK5JW+M13PCEVZLeqQIGk8yfTzH2Mhn2T0hH+Pl0Par6ozIKgjfMZy5Y1vIMojAGkY
+	 waKhYMFpRjRoMlz1bU/QelRbPx++X53GPLerr6zpHe6RaRzszgKbUaDUMvMNBcreCTA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794862656;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:User-Agent;
+	bh=dG88cZRLJLTaY4FMSKozm6dz3m8ZUOV5eTjcR6QnV5M=;
+	b=jVnaB//vWT8Xo91KILYYT4erihaJVNASV6VzBktg7Ci+sEOyf2qmKTSqgKu2XV65364Y
+	 YOdA7PX86/nBVoTxoUhBeJ9WhFNU8vafMgt/dNMfsGIh1FMYtLJw0lotR31iAjjPO34MD
+	 h+P5FmSLHYvJiS3rDOgHj7nT+9m1jG8gZnpU3W0SIdOHiaV3K4efLJdcl9Fxk02CTrtSp
+	 wKulBszXrMxw2ooFuHH6702nhwY9Y8MLSX+OlNkbQjWcanMKFOTbuJ0fb8lEApC9Lj/FH
+	 FzMwhmn95pC+rAUHBRmvi/5VCP+8/KYHfO1x+aXAhbaLi53e6TBYi0KbyrzXBQhtiXg==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=gs80n0b0;
+	arc=none smtp.remote-ip=198.175.65.19
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE951606A31C;
-	Mon, 16 Nov 2026 19:53:11 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BE951606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64A05606A31C
+	for <linux-rdma@vger.kernel.org>; Mon, 16 Nov 2026 20:57:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 64A05606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=CHasZVEI
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=BUEF2ZYxlJ/475yJY9rfchZowFH+dUyqA+XwPomFOk8QK3jLpYHqoGPL2Z1pvp1/wWPg4kWV4gST1uU5WRw+APUMFYHL5ZaLyWttKRHJ7rP1rEAD2Fvb1qW+aW//9k7W5QPsWPfu7RhG7Blx3TZgPy6PP2Z4+8xBocIYet9vUn68W/CMp25xhGtgVyzg+8AZ9I2iRT7Lyd67toeuJ031dFwP5rIFirPMovlJj83vbcRTFAZ+DfL09Ykvv8J1t4vCvrqaPtuCPGX5xFiqGwlTiGYxW3jGUarqHkUSscavoe7+ZNMJMv897f45gMEybxDu/NH2l9y6hoMnqbZvSFbOvA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=mQ/09x4uq9jU1vzfAj5TzUhFLr0s3VBByYeEdcOjjRo=;
- b=PNitRy54CuEymbQYqyx5Xo9W5bNJ73VB5ZbRyFLkXIplGXuD7k9er16I5lINM7E/qpX+EtE4vFxWV33DQkblCZPt0Z/cmWNSWe84DLrvNaU88h8hLA3Scr4Iq90HShJxXoTcUP6o8/SeNkvVWtm35t7OolX04DjslggJyQw3oYJAza0JPhAOEGTqEqhmLQUM0weJ8TqgdUxx5qE0v98gz7TRF1Ew2MTEVquBkYQQSti6L1WIQZ5TKJDywiQadG0vGOGg8zlOIYBzXcEmgOz+v4cIfvroboPKWWIXsDo+cYL/XuNUzRuuRmcC8n8UeeS7PcUu5GkdKKIbn3fk5yrhpw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=mQ/09x4uq9jU1vzfAj5TzUhFLr0s3VBByYeEdcOjjRo=;
- b=CHasZVEILKVZOsH8hvTL7TOHYOwQ5lO3fuK/Mxemt8B3liZth9slgkqxJM9gvaR5gS+YVDlEVx0p3+qdhyLaRCjzIpq4t5VQNPu6tQyl0xJnjIdbippNYHsXLutNX5dvYDCzA34HEpPYfSZcVx+1H/y4SeuQoCBJz691+xNCkop8GF5FEnxPUlUT2jz+RxwCbPIkPqrwlCFu6WLSStrG200PexLvAJSQ/Ll/K8WNaMEO+SRDk34VxYF2a1g/g7NhStJVJ85iyrymNoDqJZEp2v72bXBxZuF6i5+Athz7/X08ucgxw6SIjZrmrf5DbkZmZkdFsRnc6UVPTu0NBmpTNw==
-Received: from DS7PR05CA0101.namprd05.prod.outlook.com (2603:10b6:8:56::21) by
- IA1PR12MB8261.namprd12.prod.outlook.com (2603:10b6:208:3f7::7) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.10; Mon, 16 Nov 2026 19:53:02 +0000
-Received: from BN3PEPF00022BC2.namprd05.prod.outlook.com
- (2603:10b6:8:56:cafe::4d) by DS7PR05CA0101.outlook.office365.com
- (2603:10b6:8:56::21) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.639.4 via Frontend Transport; Mon, 16
- Nov 2026 19:53:02 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- BN3PEPF00022BC2.mail.protection.outlook.com (10.167.248.213) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Mon, 16 Nov 2026 19:53:01 +0000
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.56; Mon, 16 Nov
- 2026 11:52:31 -0800
-Received: from nps-server-23.mtl.nbulabs.nvidia.com (10.126.231.37) by
- rnnvmail201.nvidia.com (10.129.68.8) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.56; Mon, 16 Nov 2026 11:52:26 -0800
-From: Shay Drory <shayd@nvidia.com>
-To: <netdev-bot+sashiko@kernel.org>
-CC: Shay Drory <shayd@nvidia.com>, <tariqt@nvidia.com>,
-	<andrew+netdev@lunn.ch>, <davem@davemloft.net>, <edumazet@kernel.org>,
-	<kuba@kernel.org>, <netdev@vger.kernel.org>, <pabeni@redhat.com>,
-	<gal@nvidia.com>, <leon@kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, <mbloch@nvidia.com>, <markzhang@nvidia.com>,
-	<moshe@nvidia.com>, <saeedm@nvidia.com>
-Subject: Re: [PATCH net V2] net/mlx5e: rep, Fix races between devcom PAIR event and uplink close
-Date: Mon, 16 Nov 2026 21:52:18 +0200
-Message-ID: <20261116195218.1120811-1-shayd@nvidia.com>
-X-Mailer: git-send-email 2.38.1
-In-Reply-To: <179485349648.3136.17669005426251956349@kernel.org>
-References: <20261112182403.3646298-1-tariqt@nvidia.com> <179485349648.3136.17669005426251956349@kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=gs80n0b0
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1794862655; x=1826398655;
+  h=date:from:to:cc:subject:message-id;
+  bh=fXq1ZBsWhaA6wNiweHqUbHtPHSiwX4OFEHfVWj642zM=;
+  b=gs80n0b0nL8D3lT85R7EgY8ia7oKrJ6sbpcnYPt6YM6Zr73nypu2AxFM
+   EaQr71+aPvt/+hgNILhHXtGVykpFZNDofLiybo7bdr0YQsdSq0XAVH7tZ
+   17LxvKXMax18n3CLPD4ZbbEavmftVE9QGAmjyyGF01VK2o8fMQbWYZjh9
+   K7uolik1JdBYsjucFx47bGPDUQCqNjmnaYydId7zH5+YsMwqV++6mIYUJ
+   x5aO2zu3ObnyuRhG1xqZmrad/BlYkA05b9M97HfR0bqpqOfRk0vLLk8rQ
+   1pdK4/NOiAjH433ETzcnZVJRRkt0ErdUS1TbW+kMbY0nPNAZ+XHOe5dFN
+   g==;
+X-CSE-ConnectionGUID: RuvByTuZRbuSAcqGGu4vNw==
+X-CSE-MsgGUID: 1QXoOoG0Sp+erENt0ShqGw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11968"; a="3652325"
+X-IronPort-AV: E=Sophos;i="6.27,217,1787036400"; 
+   d="scan'208";a="3652325"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2026 12:57:35 -0800
+X-CSE-ConnectionGUID: jWOsmnCWSyyclo7+wILxZA==
+X-CSE-MsgGUID: 1oYEn6EGQw+2KsLk44L9mw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,217,1787036400"; 
+   d="scan'208";a="9893375"
+Received: from igk-lkp-server01.igk.intel.com (HELO 1073a420ae3a) ([10.211.93.152])
+  by fmviesa008.fm.intel.com with ESMTP; 16 Nov 2026 12:57:31 -0800
+Received: from kbuild by 1073a420ae3a with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xT3lY-000000002oM-1UPR;
+	Mon, 16 Nov 2026 20:57:28 +0000
+Date: Mon, 16 Nov 2026 21:56:30 +0100
+From: kernel test robot <lkp@intel.com>
+To: Hungyu Lin <dennylin0707@gmail.com>
+Cc: oe-kbuild-all@lists.linux.dev, Doug Ledford <dledford@redhat.com>,
+ Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org,
+ Leon Romanovsky <leon@kernel.org>
+Subject: [rdma:wip/leon-for-next 33/37]
+ drivers/infiniband/hw/mlx5/dm.c:217:11: error: no member named 'base' in
+ 'struct mlx5_ib_dm'
+Message-ID: <202611162132.pYyZA0UN-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -113,173 +82,107 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
- rnnvmail201.nvidia.com (10.129.68.8)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN3PEPF00022BC2:EE_|IA1PR12MB8261:EE_
-X-MS-Office365-Filtering-Correlation-Id: 25b27f35-12b7-4c5e-df93-08df441b38f3
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|36860700016|23010399003|376014|7416014|1800799024|22082099003|18002099003|261009223027099003|5023799004|11063799006|56012099006|10067099003|4143699003|261021123027099003|261026121527099003|261026140227099003|261028144727099003|261021121427099003|261022105027099003|261102123227099003;
-X-Microsoft-Antispam-Message-Info:
-	4R3mGvZrsTqyoSSCZrHwEmfADOJW2AEe6Lnvl0Z9i2maBoO1GWb5CFPvCnlW8iN99ZbmBxxzUC8aW1GEudqd4O1YywCG5C9st0ZCn2J6ccFoLH5F0TxVObqtwLmHs/JJvX7p8MD9etdfGP45vuVSvw19wYApJKUG3LFeQRwRZ3gDuATApScJKy2X4MMz7px3lZDn4opjwTaqUDAGQOuTmDyklwqFzVDAgWdu9WWlEHTOHFJBzo3k1oImUUfBMSf1uUmIEIENys5796YxuftN3DKD35CCIFZiiIPc4UPjMRcmHJ6XIW7Fi7EgE6Lbj/yZwPsN5yY/Xk0C7KZ0GYiPemJ3I4nvnnzqOL4N6wDc+qhjW5L6mft5MhUviOZgRUhLSwmw/flyxK1Ft81gKVkRXLGQHff4bUv7ltQNVrxgsmXIM0sDlyTD46+WQ2OVW8h+IUTUVLXTOF9NiwLj7rjZDemzMYFRjf5uxe5L6rjbkh+0dSx7KojtlhJEJUKzjhCF/YA4yKKlX6kzZ4wIeTC3Of8cnbeu1+HvPfjdagbZvZLKnowuytJQLWBoktvIXBWA9Ez3Wm39qKXv7zemBlwIOrZTxHbpxQiv22SjznpK+0SwzYOU50N87G7P45mcnqcPpFky1fNJIYpbLnwW7yYEy0+ens+E7osXMBXji7lLMrWvsKYgIhldWiYEVNB6LhYYG8ySWJ1ESw05YQuYaVAndA==
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(36860700016)(23010399003)(376014)(7416014)(1800799024)(22082099003)(18002099003)(261009223027099003)(5023799004)(11063799006)(56012099006)(10067099003)(4143699003)(261021123027099003)(261026121527099003)(261026140227099003)(261028144727099003)(261021121427099003)(261022105027099003)(261102123227099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	AVkbOWeqa8GySnNwa49vCntAQfmCQVWCbBL6qDLgLw1LxdIdF1S5pzLWpjg8lOIICuPGdmUimSGXgvLIee5wD3ikQZ6d/pS9Yh/cRwXsYwHXXMxuyiaokglWJql50NctYwwEJ97Z/rGwfzZ05gWBxY+6BzJobJJLpEqoCjqjlw+sRkICvgV1OZT8B/P8b9YpPkU0VJ3RMeos/voziDu1fIYQJFWvQ0c6pv37TG3AyC6BBArqqofobTcxNox5syrLLcdBEo7FHSd9LZDwUrK+8EcdODWQQM9iWYc3zPiqQQdidrwf11S3f6uHdICx2fTd9xeGbcIFCChOE1wXHaf0J/J6PcwRxeVnkJL7dRG1KW4qx7cxjwXIGQ3qdT1jd1e/jAsKHx8f/TrOpFHWadqN+JnP8+fvzYuUrhwKha0CdNB/sfqahbMtyYeBf7tyLJyP
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Nov 2026 19:53:01.8547
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 25b27f35-12b7-4c5e-df93-08df441b38f3
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BN3PEPF00022BC2.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB8261
 
-On 16/11/2026 20:24, netdev-bot+sashiko@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 1 potential
-> issue(s) to consider.
->
-> Critical: 0 · High: 1 · Medium: 0 · Low: 0
->
-> If you believe none of the issues are legitimate, please reply to each
-> issue of Medium severity or higher and explain why the AI is wrong.
-> If any of them are legitimate and you plan to respin, please let patchwork
-> know by including "pw-bot: cr" as a separate line at the end of your reply
-> (one such reply per series is enough).
->
-> - [High] The new locking only works if the unsynchronized read of
->   `esw->devcom` returns a valid pointer.
->
-> --
->
-> net/mlx5e: rep, Fix races between devcom PAIR event and uplink close
->
-> This commit adds mlx5_devcom_comp_read_lock/unlock(), which take the
-> devcom component semaphore for read whether or not comp->ready is set.
-> It holds that lock across mlx5e_sqs2vport_start() and
-> mlx5e_sqs2vport_stop() so that both are serialized against the
-> ESW_OFFLOADS PAIR/UNPAIR handler.
->
->> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
->> index a50a42581528a..962c70b9b5661 100644
->> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
->> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
->
-> [ ... ]
->
->> @@ -630,8 +627,12 @@ mlx5e_remove_sqs_fwd_rules(struct mlx5e_priv *priv)
->>  	struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
->>  	struct mlx5e_rep_priv *rpriv = priv->ppriv;
->>  	struct mlx5_eswitch_rep *rep = rpriv->rep;
->> +	struct mlx5_devcom_comp_dev *devcom;
->>
->> +	devcom = esw->devcom;
->> +	mlx5_devcom_comp_read_lock(devcom);
->> +	mlx5e_sqs2vport_stop(esw, rep);
->> +	mlx5_devcom_comp_read_unlock(devcom);
->>  }
->
-> [Severity: High]
->
-> Are the races still reachable if esw->devcom is NULL or stale when it is
-> read here and in mlx5e_sqs2vport_start()?
->
-> The load of esw->devcom is a plain unsynchronized read. The store side
-> has no WRITE_ONCE() and the load side has no READ_ONCE().
-> mlx5_devcom_comp_read_lock() also does nothing when passed NULL.
->
-> In esw_offloads_enable(), the uplink and VF reps are loaded and their
-> netdevs registered before mlx5_esw_offloads_devcom_init() runs. That
-> function publishes the pointer and sends the PAIR event right away:
->
-> drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c:mlx5_esw_offloads_devcom_init() {
->     ...
-> 	esw->devcom = mlx5_devcom_register_component(esw->dev->priv.devc,
-> 						     MLX5_DEVCOM_ESW_OFFLOADS,
-> 						     attr,
-> 						     mlx5_esw_offloads_devcom_event,
-> 						     esw);
-> 	if (!esw->devcom)
-> 		return;
->
-> 	err = mlx5_devcom_send_event(esw->devcom,
-> 				     ESW_OFFLOADS_DEVCOM_PAIR,
->     ...
-> }
->
-> The PAIR handler runs with comp->sem held for write. It goes through
-> mlx5_esw_offloads_devcom_event()->mlx5_esw_offloads_pair()->
-> mlx5e_vport_rep_event_pair(), which walks rpriv->vport_sqs_list for
-> every loaded rep and calls xa_insert() on rep_sq->sq_peer.
->
-> A rep ndo_open or ndo_stop holds rtnl and priv->state_lock. The
-> devlink-locked enable path holds neither across this window. If the rep
-> reads esw->devcom before the store above, two things can happen:
->
->   - mlx5e_sqs2vport_start() snapshots devcom == NULL, so it takes no lock
->     and sees peers_ready == false. It then does list_add() into
->     rpriv->vport_sqs_list while the PAIR handler is walking that list.
->     SQs added after the walk also never get their peer send-to-vport
->     rules.
->
->   - mlx5e_remove_sqs_fwd_rules() calls mlx5e_sqs2vport_stop() without
->     the lock. That can list_del() and kfree() a rep_sq and its sq_peer
->     entries while mlx5e_vport_rep_event_pair() is still using them.
->
-> These are the two races the commit message describes as fixed.
->
-> On teardown, esw_offloads_disable() calls the devcom cleanup while the
-> VF rep netdevs are still registered:
->
-> 	mlx5_esw_offloads_devcom_cleanup(esw);
-> 	mlx5_eswitch_disable_pf_vf_vports(esw);
-> 	mlx5_esw_offloads_rep_unload(esw, MLX5_VPORT_UPLINK);
->
-> mlx5_esw_offloads_devcom_cleanup() frees the comp_dev before it clears
-> the pointer:
->
-> 	mlx5_devcom_unregister_component(esw->devcom);
-> 	xa_destroy(&esw->paired);
-> 	xa_destroy(&esw->fdb_table.offloads.peer_miss_rules);
-> 	esw->devcom = NULL;
->
-> Inside mlx5_devcom_unregister_component(), devcom_free_comp_dev() does:
->
-> 	down_write(&comp->sem);
-> 	list_del(&devcom->list);
-> 	WRITE_ONCE(comp->nr_devs, comp->nr_devs - 1);
-> 	up_write(&comp->sem);
->
-> 	kref_put(&devcom->devc->ref, mlx5_devcom_dev_release);
-> 	kfree(devcom);
-> 	kref_put(&comp->ref, mlx5_devcom_comp_release);
->
-> The write lock only excludes readers that already hold comp->sem.
->
-> Could a concurrent VF rep ndo_stop load the old esw->devcom in
-> mlx5e_remove_sqs_fwd_rules() and then call down_read(&devcom->comp->sem)
-> after the kfree()? The stop path did not touch esw->devcom before this
-> patch, so this use-after-free would be new on the close path.
->
-> Would it work better to serialize publishing and clearing esw->devcom
-> against rep start/stop, instead of locking whatever pointer happens to be
-> read at that moment?
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
+head:   586be88310461aaded66e16c5579e384dde494b5
+commit: ea97d0a83f4ed62c6f5716e27a260e21febbc79f [33/37] RDMA/mlx5: Check the DM type before mapping a MEMIC operation
+config: loongarch-allmodconfig (https://download.01.org/0day-ci/archive/20261116/202611162132.pYyZA0UN-lkp@intel.com/config)
+compiler: clang version 19.1.7 (https://github.com/llvm/llvm-project cd708029e0b2869e80abe31ddb175f7c35361f90)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261116/202611162132.pYyZA0UN-lkp@intel.com/reproduce)
 
-The esw->devcom NULL/stale reads are a devcom lifecycle issue, not
-specific to this patch, and will be addressed in a separate patch.
-This patch fixes the PAIR/UNPAIR vs. rep start/stop race on an
-established devcom.
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202611162132.pYyZA0UN-lkp@intel.com/
 
->
-> --
-> Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261112182403.3646298-1-tariqt%40nvidia.com
+All errors (new ones prefixed by >>):
+
+>> drivers/infiniband/hw/mlx5/dm.c:217:11: error: no member named 'base' in 'struct mlx5_ib_dm'
+     217 |         if (mdm->base.type != MLX5_IB_UAPI_DM_TYPE_MEMIC)
+         |             ~~~  ^
+   1 error generated.
+
+
+vim +217 drivers/infiniband/hw/mlx5/dm.c
+
+   203	
+   204	static int UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_ADDR)(
+   205		struct uverbs_attr_bundle *attrs)
+   206	{
+   207		struct ib_uobject *uobj = uverbs_attr_get_uobject(
+   208			attrs, MLX5_IB_ATTR_DM_MAP_OP_ADDR_REQ_HANDLE);
+   209		struct mlx5_ib_dev *dev = to_mdev(uobj->context->device);
+   210		struct ib_dm *ibdm = uobj->object;
+   211		struct mlx5_ib_dm *mdm = to_mdm(ibdm);
+   212		struct mlx5_ib_dm_memic *dm = to_memic(ibdm);
+   213		struct mlx5_ib_dm_op_entry *op_entry;
+   214		int err;
+   215		u8 op;
+   216	
+ > 217		if (mdm->base.type != MLX5_IB_UAPI_DM_TYPE_MEMIC)
+   218			return -EOPNOTSUPP;
+   219	
+   220		err = uverbs_copy_from(&op, attrs, MLX5_IB_ATTR_DM_MAP_OP_ADDR_REQ_OP);
+   221		if (err)
+   222			return err;
+   223	
+   224		if (op >= BITS_PER_TYPE(u32))
+   225			return -EOPNOTSUPP;
+   226	
+   227		if (!(MLX5_CAP_DEV_MEM(dev->mdev, memic_operations) & BIT(op)))
+   228			return -EOPNOTSUPP;
+   229	
+   230		mutex_lock(&dm->ops_xa_lock);
+   231		err = map_existing_op(dm, op, attrs);
+   232		if (!err || err != -ENOENT)
+   233			goto err_unlock;
+   234	
+   235		op_entry = kzalloc_obj(*op_entry);
+   236		if (!op_entry) {
+   237			err = -ENOMEM;
+   238			goto err_unlock;
+   239		}
+   240	
+   241		err = mlx5_cmd_alloc_memic_op(&dev->dm, dm->base.dev_addr, op,
+   242					      &op_entry->op_addr);
+   243		if (err) {
+   244			kfree(op_entry);
+   245			goto err_unlock;
+   246		}
+   247		op_entry->op = op;
+   248		op_entry->dm = dm;
+   249	
+   250		err = add_dm_mmap_entry(uobj->context, &op_entry->mentry,
+   251					MLX5_IB_MMAP_TYPE_MEMIC_OP, dm->base.size,
+   252					op_entry->op_addr & PAGE_MASK);
+   253		if (err) {
+   254			mlx5_cmd_dealloc_memic_op(&dev->dm, dm->base.dev_addr, op);
+   255			kfree(op_entry);
+   256			goto err_unlock;
+   257		}
+   258		/* From this point, entry will be freed by mmap_free */
+   259		kref_get(&dm->ref);
+   260	
+   261		err = copy_op_to_user(op_entry, attrs);
+   262		if (err)
+   263			goto err_remove;
+   264	
+   265		err = xa_insert(&dm->ops, op, op_entry, GFP_KERNEL);
+   266		if (err)
+   267			goto err_remove;
+   268		mutex_unlock(&dm->ops_xa_lock);
+   269	
+   270		return 0;
+   271	
+   272	err_remove:
+   273		rdma_user_mmap_entry_remove(&op_entry->mentry.rdma_entry);
+   274	err_unlock:
+   275		mutex_unlock(&dm->ops_xa_lock);
+   276	
+   277		return err;
+   278	}
+   279	
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
