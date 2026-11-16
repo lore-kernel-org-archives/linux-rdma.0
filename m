@@ -1,57 +1,72 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.178
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794827185;
-	b=F2z7/z1Rfh479F6u8MqzXxnAp+lCsoVA73hmwKaUxLINoNlX8siaoup75GYdABCVLzkl
-	 7gdjCb1wEE4HwqJ40sVDr7AIUg5gknUXmJeThofiPzKIQsHqk5hz/1yi44B60FR//dfgJ
-	 0N/9jG5faHH9A7P3Z3zeaHO8Wg3bU9RYOmsooVlk9owF5gD98oO+FFzhfT7cg+stNpBMF
-	 zuMfRyqUtvPf4oAifuRs+YNCTeNMztjl1HIp+jt9jFepSk0h00UA+aJbaUSF5m5NZYyYs
-	 lquFGUIu+5yr/epWXyGQaWVYv/o2JTkRhHUOpXQPUPSwx5FgHK58eBS4OOSfPz/FRHw==
+	t=1794827341;
+	b=zFvKXxX+XryTeIgh29D9tXgg5xm26sg4ijZzAF4dy6KLsrXWcnmBZ82GhDEn5OePj8Yg
+	 3Cl/p9FGKDmQcL4niiu8ss89bd9rR46kZ9zUcuiD/duqiwREsgemAqD9WHXngXQmv5YpV
+	 qFVrxrbhYD1Z4ACB7NATfUZX/ODCKp+576D8TjUs0J/JGaXq3Zo25m6DQbqwDanRWsDAi
+	 BYPogkhPqILXX4cIh+tJvqFIwjYxbD6FbWYW75fNsULgCS/jlsRAiUN5OQN9JXAqzC7WV
+	 kldJAmQv/2NLDPZ3SgujQzqiXAGMYxD2mbAiIesPHbpvT9m+BjiIEetQxXgsQ9N42DQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794827185;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:
-	 Content-Transfer-Encoding:In-Reply-To;
-	bh=bf/qERKTQweevSc8C6yvUdfbvod8V6ngryzEVo6Iqds=;
-	b=ZQNg/MSGTwryJbVUgVLkNf/1JH8YqmYccCZX8Jx8tGXdPBJXjWyRGV2/RHrTu/14wIh2
-	 Yxv7W7uE9yWcs2KZ1YlnMLQTL/gMaykyY3iXBoi6EpWCvIKy3xKuRmZuw5c3KMrrjltBQ
-	 FV7HDy5Wbj5udoWmX5I/t2LUAV0p4tTr/zH9iawNkwqNVw4LFLMCT9NgKZyNGJnpgvpXB
-	 nBgl/EYWjOHIn8F6zpcTfSwSY8+YOcVhBKJd48Fhb24qQYAhcFsx9M6B1YxLlWoWKtJk5
-	 eIPMP0FXM008ctrkKQbTygrkA3bXIvBMqfQFVYlFEtEPq0vugM6j+4WpasF7JjRdIlg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794827341;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Cc:Subject:Date:Message-ID:
+	 X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=KqerhnwBI1JBT+I/Q+CK9wueSEu/yOxUM4/aR1pL9/4=;
+	b=oQj91ankIBA2JRnqqLTVVX35GgxJ3AkUp9DpRvjwinqYrlU4kWehvk5aCALhBZjwbxNp
+	 L2cSIgxyM4GN2t/hOc9m/+NWUQSU/wQhX+xDvcjRiJuHTrpUZDLqRnonr0Q73OtWiS058
+	 fQPfkPQzUSgAuRxi1fNG8/GXFNH4zttNCpr4wkiUkJUErc6enp1sJlWT/TZWEt1XnPKB3
+	 er71zsK/KfOORbFB2HVjmOJe/j0QRwQEzpvBSgiXACaDMURYErLEguupsrt/E/rUSMICo
+	 eo6AlIbp4ndKWyW7575eSUwk8ZrQEGH9B2WX6J3361R7LcBmBuVcixw8mrWhOITPNCg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kNBUFEUe;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=Nnavr7Bu;
+	arc=none smtp.remote-ip=95.215.58.178
+Received: from mta1.migadu.com (out-178.mta1.migadu.com [95.215.58.178])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FF6E606A8A7;
-	Mon, 16 Nov 2026 11:06:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A9DB606C131
+	for <linux-rdma@vger.kernel.org>; Mon, 16 Nov 2026 11:09:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0A9DB606C131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kNBUFEUe
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1B991F000C5;
-	Mon, 16 Nov 2026 11:06:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794827185;
-	bh=bf/qERKTQweevSc8C6yvUdfbvod8V6ngryzEVo6Iqds=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=kNBUFEUezqyzGlIN4rmtHrloqOiGw0Vsb8niqHycdaMtSmiUEHrff4PN5giC4vZKM
-	 dXm4vv+5olTThih9md+zRAhwU6ICeALF/vKeA9p56pb2tl+IUlf7TRro67DxcYSycL
-	 l0fvDFbm2GpoMD/y9PeAtcwgxCZjoFczWMEFkGHqaTqH/QjikVHKwKbvbNRB94LVU+
-	 x07He+rugp/coI5yksENdLCU1Bs0gQO7C959Yuydz2B621daNnTG3jQZRth9xbHiMD
-	 wbmMFygs/pgMgz7yex34U8cDbQ6TR0vJ5V6YX7wch57BDKF0mBbQcrH5743sFd5Mae
-	 KDDyJRu+Vs3pA==
-Date: Mon, 16 Nov 2026 13:06:20 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Eric Davis <eric.davis@broadcom.com>
-Cc: sashiko-reviews@lists.linux.dev, linux-rdma@vger.kernel.org,
-	Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next v3 11/13] RDMA/core: extended memory
- registration
-Message-ID: <20261116110620.GG11319@unreal>
-References: <20261109-uet-ib-core-v3-0-3e7e7ffed2e9@broadcom.com>
- <20261109-uet-ib-core-v3-11-3e7e7ffed2e9@broadcom.com>
- <sashiko-outbox-206354@kernel.org>
- <CAMouMYLdU_5yphFCviPKUUieMDzo+ozVyAs+CJXTkh-0Zq0bYg@mail.gmail.com>
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=Nnavr7Bu
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=0wNJRlzmtN6gE1mGMKSGKWSrbcdB/Xjxt9Wa0wbIgoc=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1794827339; v=1; x=1795432139;
+ b=Nnavr7Buog7p0eniQTvhGrTRzvvMGJeuTD/wddna9hCuKLbqnPDZFqj+EaE35AYzKjnMkiwX
+ NJ4RsaYUaKlp514vZW33bb01KMnqLbyy05mmodZLPRsMJBojcoyd7JwVOmEYqk3iLJRMmHimlvi
+ K7YvMHscBnnatpiMqZFRPosI=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id d994638ce96c12ee;
+	Mon, 16 Nov 2026 11:08:58 +0000
+X-Mizu-Trace-ID: d994638ce96c12ee
+X-Migadu-Flow: FLOW_OUT
+From: Xuanqiang Luo <xuanqiang.luo@linux.dev>
+To: netdev@vger.kernel.org
+Cc: horms@kernel.org,
+	saeedm@nvidia.com,
+	leon@kernel.org,
+	tariqt@nvidia.com,
+	mbloch@nvidia.com,
+	borisp@nvidia.com,
+	witu@nvidia.com,
+	andrew+netdev@lunn.ch,
+	davem@davemloft.net,
+	edumazet@kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Xuanqiang Luo <luoxuanqiang@kylinos.cn>
+Subject: [PATCH net-next] net/mlx5e: kTLS, Simplify error unwind in mlx5e_ktls_set_feature_rx()
+Date: Mon, 16 Nov 2026 20:08:30 +0900
+Message-ID: <20261116110830.2850785-1-xuanqiang.luo@linux.dev>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,33 +76,66 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAMouMYLdU_5yphFCviPKUUieMDzo+ozVyAs+CJXTkh-0Zq0bYg@mail.gmail.com>
 
-On Wed, Nov 11, 2026 at 08:46:32AM -0800, Eric Davis wrote:
-> On Mon, Nov 9, 2026 at 9:55 PM <sashiko-bot@kernel.org> wrote:
-> > Does ib_mr_init_core_refs() leave mr->dm, mr->dmah, and mr->sig_attrs
-> > uninitialized when a driver returns a non-zeroed struct ib_mr?
-> 
-> Those three are not new. The REG_MR and REG_DMABUF_MR handlers never
-> set dm or sig_attrs, and set dmah only when one is given, so core
-> already relies on a zeroed ib_mr from the driver for them. The helper
-> covers the fields this series adds, which the extended paths and rereg
-> read back. Its comment claims more than that; if there is another
-> revision, it will say what the helper clears.
+From: Xuanqiang Luo <luoxuanqiang@kylinos.cn>
 
-You are adding fields that should be NULL, there is no need to set them
-and sashiko is right there.
+mlx5e_ktls_set_feature_rx() has become harder to follow: the error
+handling is nested in the conditions and the main flow is conditional.
 
-Thanks
+Handle the error cases in conditionals, keep the main flow
+unconditional, and destroy the accel TCP flow tables in a single
+place. Use goto to unlock on the early return.
 
-> 
-> > --
-> > Sashiko AI review · https://sashiko.dev/#/patchset/20261109-uet-ib-core-v3-0-3e7e7ffed2e9@broadcom.com?part=11
-> 
-> Thanks,
-> - eric
+No functional change intended.
 
+Suggested-by: Simon Horman <horms@kernel.org>
+Link: https://lore.kernel.org/all/20261029134019.GG257209@horms.kernel.org/
+Signed-off-by: Xuanqiang Luo <luoxuanqiang@kylinos.cn>
+---
+Only compile-tested on top of net-next 7ccc5e05043b (arm64, W=1). I do
+not have a crypto-enabled ConnectX NIC to run it on.
+
+ .../mellanox/mlx5/core/en_accel/ktls.c        | 23 +++++++++++--------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c
+index 3cc1213c2f68..0f5dcd1b822e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c
+@@ -137,19 +137,22 @@ int mlx5e_ktls_set_feature_rx(struct net_device *netdev, bool enable)
+ 	mutex_lock(&priv->state_lock);
+ 	if (enable) {
+ 		err = mlx5e_accel_fs_tcp_create(priv->fs);
+-		if (!err && !priv->ktls_rx_was_enabled) {
+-			priv->ktls_rx_was_enabled = true;
+-			err = mlx5e_safe_reopen_channels(priv);
+-			if (err) {
+-				priv->ktls_rx_was_enabled = false;
+-				mlx5e_accel_fs_tcp_destroy(priv->fs);
+-			}
++		if (err || priv->ktls_rx_was_enabled)
++			goto out_unlock;
++
++		priv->ktls_rx_was_enabled = true;
++		err = mlx5e_safe_reopen_channels(priv);
++		if (err) {
++			priv->ktls_rx_was_enabled = false;
++			enable = false;
+ 		}
+-	} else {
+-		mlx5e_accel_fs_tcp_destroy(priv->fs);
+ 	}
+-	mutex_unlock(&priv->state_lock);
+ 
++	if (!enable)
++		mlx5e_accel_fs_tcp_destroy(priv->fs);
++
++out_unlock:
++	mutex_unlock(&priv->state_lock);
+ 	return err;
+ }
+ 
+-- 
+2.43.0
 
