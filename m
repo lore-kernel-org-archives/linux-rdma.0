@@ -1,63 +1,72 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=111.22.67.151
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794811667;
-	b=lryrLHQ/4VLXLQGlSDkDAChYDoh4qwofaZWdM81XqzjcvRkswLxldJI2X/TPwuBMkz6a
-	 i3Z+92zLzvcbbIIa8tqxS2nFXdxSUDdMcox/vyTPBXfdIWthPzSI1xBz4APN+KxbexhAR
-	 Uagl5ud8Ho5AAYRf2ekCBKSryncH6fP+WgXhXICBWFMVFjdg/as3qZpw8XRzMPlm219bF
-	 1wGPaNioen63hYWMJXVXUTeUDyus64jd+Zlxv06wpZ+GagqANRwFyxl5fvHgZtZu4IkaU
-	 rw9MUyz3vXw3y/v1+Tm1vdJGCjDmGCg+1znAQyfgRTxum/WWzpYSsO/3tw57K9RqTsA==
+	t=1794815674;
+	b=DreGxcKrqXzW+krDJe84oHSxx9VXuwIBTL1fO2Vqv+7oABbBYMwfky4z9apYrGUJ07rz
+	 Yu9Ac2Dpi4AeN3Cp0Q+eRoJqfz4yT4kGp7fnyrKEhUwl+xUHbvYEc6tID4KJsJDyPPvvS
+	 t1cQiH2Ypiz28riD2742kV6lUJyzMp2K52AoZ2tPxraFn1fUH9KURmZ4D6V2zz5ggIKVr
+	 IGWhJDBk5va16AVVsObEI0sb5CBTA2iQazEMmJP38KaLkBMn5m5G0zJlzz1fzXQqeNXW9
+	 ZU48xzavMAayxgycASnHMhzAkjug/KoTX/9QttzjD+QJwDQmyW8/I+2IANnZXEUzhqQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794811667;
-	h=Received:DKIM-Signature:Message-ID:Subject:From:To:Cc:Date:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:
-	 User-Agent:MIME-Version;
-	bh=HvhOTGquWWqSov5pWXvbVX0ZD7JwTIftmYtwAtViYDg=;
-	b=A6wC2MoLRQ3pbiZtQU7pIyLOXnDM8KpkK/HLjrlRsiC+gaDeU0ofx8Eq97sHMtgWIndf
-	 L7SYRlHXTRyuG7qysYbuXFJfy/pczkMI4LNjw18SWwlKzsLJcxVWpkFRpOI8FihmE9ejV
-	 4/sTrF/AcvjeSiK/TQltqAJhZLuKE7KTD2F+9ZZYRNLNZPcmXOnEq6t1IGhdAr9SQOQ6a
-	 thEs2IhkG5lTfQVDLyMsmojFFMxCXMzX45WAPTyefalKdq34tpM/+zT0kuEuhPy2CikoI
-	 yRVUyUUzbMQaLruUpOq6plJ4u0TEKVtAl6n6gMwO7WTpNTQowOGTykrZeAbizg1Qncg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794815674;
+	h=DMARC-Filter:DKIM-Signature:X-RM-TagInfo:X-RM-SPAM-FLAG:Received:
+	 X-RM-TRANSID:X-RM-TagInfo:X-RM-SPAM-FLAG:Received:X-RM-TRANSID:From:
+	 To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=oMNfobqpRSVZ/RPyQdQw1yQT2pAF5tFb5iwD71xAuiI=;
+	b=vms9Vk6pPcNB0FvfWGrfNNz57Gr5+2nrXC5NfJYOaN/I2NwLfA48dgQoK/iObEUcYMKs
+	 +H+94jWQEjtQwHSszhP0hUewBlNcV0P/sGlhZeweJBzuZWId7OpStGJdRNj734DkSypZ8
+	 aHt+mfdc4V+MYYwRcsqiM5OSGRocQ8kNaI5suwRL7unhzLO0PEa6SkWbl1hc8cMA2RPqT
+	 l/Z1oibHwIrb5lgt1+2Q/qt5P0gXxPCgmtH4zbp42hqIxC5CXVx5X0gymCgliq2HkQemU
+	 XcUUnCZrmNBGnoDgR0BoopsG6FHUVwO9J1GA6FJgnb0rmc3HMInKZnkdJZus3Yt+z9Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="YA3/xBe4";
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41398606A336;
-	Mon, 16 Nov 2026 06:47:47 +0000 (UTC)
+	dmarc=pass header.from=cmss.chinamobile.com;
+	spf=pass smtp.mailfrom=cmss.chinamobile.com;
+	dkim=pass header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.a=rsa-sha256 header.s=default header.b=ygIuYZdH;
+	arc=none smtp.remote-ip=111.22.67.151
+Received: from cmccmta8.chinamobile.com (cmccmta8.chinamobile.com [111.22.67.151])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C95BA606A31C;
+	Mon, 16 Nov 2026 07:54:29 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C95BA606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmss.chinamobile.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cmss.chinamobile.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YA3/xBe4
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 422551F000C9;
-	Mon, 16 Nov 2026 06:47:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794811666;
-	bh=HvhOTGquWWqSov5pWXvbVX0ZD7JwTIftmYtwAtViYDg=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=YA3/xBe4Lj9/kfUygUC3XXgFgC9Fp8RySOpvpRRPiavvanCMy4QNyPcZ+FrI4ZzA9
-	 aQaCgI5tnP3MJa0mKqY53TyHeFwcWx8J71UaCST0fNn22im6xaB2pqkddMeEMUIuow
-	 XJ2XvnFf5D8y28ltSyRmU28zQM/f0aOPTkITGirBzvjdJIBLoWQCIGLLH3KnoUh4K6
-	 uITV2JWsvWH2kcMxIq+XyDOzJrfrW0jvm+PmuwmZiNeoJQrlG7HylLrfgXN5OKrZFd
-	 15RO+2SqoFhTI0Bwy7+u8S7dYmVaNxusiDZKa7i8M6HWGDhig70nvESGRoxTCZHxWa
-	 2oAvOAV6WequA==
-Message-ID: <cee2fea9e09d50d33a9786260edbb295179fc1e9.camel@kernel.org>
-Subject: Re: [PATCH] RDMA/cma: add rdma_destroy_id_wq() and use it from RDS
-From: Allison Henderson <achender@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Aibing Chen
-	 <chenaibing@cmss.chinamobile.com>
-Cc: leon@kernel.org, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org,  pabeni@redhat.com, horms@kernel.org,
- linux-rdma@vger.kernel.org,  netdev@vger.kernel.org,
- rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org,  hdanton@sina.com,
- hackerowskiy@gmail.com, 
- syzbot+ccdb5058c3df2d94811c@syzkaller.appspotmail.com
-Date: Sun, 15 Nov 2026 23:47:45 -0700
-In-Reply-To: <20261115001851.GH2532299@ziepe.ca>
+	dkim=pass (1024-bit key, unprotected) header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.a=rsa-sha256 header.s=default header.b=ygIuYZdH
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=cmss.chinamobile.com; s=default; l=0;
+	h=from:subject:message-id:to:cc:mime-version;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=ygIuYZdHre9g7Kx26GzdcSbX8KuksBbQqPckqqz+sTy3Bv60SCTj7WKcgIgqmirbFWnYiPqzSrSMg
+	 11vXUSr3XDnOhzozaGq0EPQWZWCROd3j+HvA5TCw8MMf7R7g+ghhq4mJT6br4MSCjKrP4gdXUcWULS
+	 BuwXqC6MZSTt9kcc=
+X-RM-TagInfo: emlType=0                                       
+X-RM-SPAM-FLAG:00000000
+Received:from spf.mail.chinamobile.com (unknown[10.188.0.87])
+	by rmmx-syy-dmz-app06-12006 (RichMail) with SMTP id 2ee66afab6b03fc-ca3c8;
+	Mon, 16 Nov 2026 15:54:26 +0800 (CST)
+X-RM-TRANSID:2ee66afab6b03fc-ca3c8
+X-RM-TagInfo: emlType=0                                       
+X-RM-SPAM-FLAG:00000000
+Received:from FHD-W7400297 (unknown[10.55.1.70])
+	by rmsmtp-syy-appsvr02-12002 (RichMail) with SMTP id 2ee26afab6b0a9e-83d33;
+	Mon, 16 Nov 2026 15:54:26 +0800 (CST)
+X-RM-TRANSID:2ee26afab6b0a9e-83d33
+From: Aibing Chen <chenaibing@cmss.chinamobile.com>
+To: Allison Henderson <achender@kernel.org>
+Cc: "David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	rds-devel@oss.oracle.com,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net v2] net/rds: defer CM id destruction to a workqueue
+Date: Mon, 16 Nov 2026 15:54:23 +0800
+Message-ID: <20261116075423.782-1-chenaibing@cmss.chinamobile.com>
+X-Mailer: git-send-email 2.50.1.windows.1
+In-Reply-To: <20261114150541.1908-1-chenaibing@cmss.chinamobile.com>
 References: <20261114150541.1908-1-chenaibing@cmss.chinamobile.com>
-	 <20261115001851.GH2532299@ziepe.ca>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.52.3-0ubuntu1.1 
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -67,61 +76,116 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Sat, 2026-11-14 at 20:18 -0400, Jason Gunthorpe wrote:
-> On Sat, Nov 14, 2026 at 11:05:41PM +0800, Aibing Chen wrote:
-> > syzbot reported a possible circular locking dependency between
-> > rds_trans_sem and the RDMA CM handler mutex:
-> >=20
-> >   CPU0 (bind path)                    CPU1 (CM callback path)
-> >   ----                                ----
-> >   down_read(&rds_trans_sem)           mutex_lock(&handler_mutex)
-> >   rds_ib_laddr_check()                cma_ib_req_handler()
-> >     rdma_destroy_id()                   rds_ib_cm_handle_connect()
-> >       mutex_lock(&handler_mutex)          rds_conn_create()
-> >                                             rds_trans_get_preferred()
-> >                                               down_read(&rds_trans_sem)
-> >=20
-> > rds_ib_laddr_check_cm() destroys the CM id from inside
-> > rds_trans_get_preferred()'s read-side critical section, while CM
-> > callbacks create RDS connections (taking the same read lock) from
-> > under handler_mutex.
-> >=20
-> > Break the cycle by destroying the CM id asynchronously: add
-> > rdma_destroy_id_wq(), which queues the destruction on cma_wq, and
-> > switch rds_ib_laddr_check_cm() to it.  The destroy work is embedded
-> > in struct rdma_id_private, which keeps the id alive until the work
-> > runs; rds does not touch cm_id after the destroy call.
->=20
-> This doesn't seem like it should be the core codes problem? Why can't
-> rds do the workqueue?
->=20
-> Jason
+rds_ib_laddr_check_cm() destroys the RDMA CM id it created while
+rds_trans_get_preferred() holds rds_trans_sem for reading.  The bind
+path then takes rds_trans_sem and afterwards handler_mutex in
+rdma_destroy_id(), while the CM callback path takes handler_mutex in
+cma_ib_req_handler() and afterwards rds_trans_sem through
+rds_conn_create().  lockdep reports the resulting cycle.
 
-Hi Aibing,
+Queue the destruction on rds_wq instead, so that rds_trans_sem is
+released before handler_mutex is taken.  The work item allocated here
+owns the cm_id until rdma_destroy_id() has run; if the allocation fails,
+the id is destroyed synchronously as before.
 
-Aibing, thanks for chasing this down.  I think Jason is right, this
-should probably be in the rds side.  This solution doesnt quite cover
-all the locking issues though.  rds_conn_create calls
-rds_trans_get_preferred() which falls through to rds_ib_laddr_check_cm()
-when not local.  And then we get a rdma_destroy_id while the listen id's
-handler_mutex is still held.
+rds_ib_exit() flushes rds_wq after rds_trans_unregister() so that no
+queued destroy runs after the module text is gone.
 
-I think a better way to do this might be to create a new work item and
-then deffer the rdma_destroy_id to be completed later by a worker.  The
-work item would just hold the cm_id queued on rds_wq, and then the handler
-just calls rdma_destroy_id() and frees itself.  alloc the new work item at
-the top of rds_ib_laddr_check_cm and then queue the new work item in place =
-of
-the rdma_destroy_id.  You'll also need to add another flush_workqueue(rds_w=
-q)
-after rds_trans_unregister() in rds_ib_exit().
+Reported-by: syzbot+ccdb5058c3df2d94811c@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=ccdb5058c3df2d94811c
+Suggested-by: Hillf Danton <hdanton@sina.com>
+Suggested-by: Jason Gunthorpe <jgg@ziepe.ca>
+Suggested-by: Allison Henderson <achender@kernel.org>
+Fixes: ec16227e1414 ("RDS/IB: Infiniband transport")
+Cc: stable@vger.kernel.org
+Signed-off-by: Aibing Chen <chenaibing@cmss.chinamobile.com>
+---
+v2:
+- move the workqueue from RDMA core into RDS, as suggested in review.
+- flush rds_wq in rds_ib_exit() so a queued destroy cannot run after
+  the module text is freed.
+- add the Fixes tag, drop the Tested-by tags.
 
-Other nits:  this patch should have a fixes tag, and target the net tree
-like this: "[PATCH net v2] net/rds ...".  And I think the fixes tag is:
-ec16227e1414 ("RDS/IB: Infiniband transport").  Drop the tested-by until it
-is tested by syzbot and/or Eduard, and be sure to update your change log
-below the dashed line.
+ net/rds/ib.c | 37 ++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 36 insertions(+), 1 deletion(-)
 
-Thanks for working on this!
-Allion
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index 4ea9838d0..66af4a72a 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -391,6 +391,20 @@ static void rds6_ib_ic_info(struct socket *sock, unsigned int len,
+ }
+ #endif
+ 
++struct rds_ib_destroy_work {
++	struct work_struct work;
++	struct rdma_cm_id *cm_id;
++};
++
++static void rds_ib_destroy_id_work(struct work_struct *work)
++{
++	struct rds_ib_destroy_work *w =
++		container_of(work, struct rds_ib_destroy_work, work);
++
++	rdma_destroy_id(w->cm_id);
++	kfree(w);
++}
++
+ /*
+  * Early RDS/IB was built to only bind to an address if there is an IPoIB
+  * device with that address set.
+@@ -411,6 +425,7 @@ static int rds_ib_laddr_check_cm(struct net *net, const struct in6_addr *addr,
+ #endif
+ 	struct sockaddr_in sin;
+ 	struct sockaddr *sa;
++	struct rds_ib_destroy_work *w;
+ 	bool isv4;
+ 
+ 	isv4 = ipv6_addr_v4mapped(addr);
+@@ -419,6 +434,15 @@ static int rds_ib_laddr_check_cm(struct net *net, const struct in6_addr *addr,
+ 			       NULL, RDMA_PS_TCP, IB_QPT_RC);
+ 	if (IS_ERR(cm_id))
+ 		return PTR_ERR(cm_id);
++
++	/*
++	 * The id is destroyed from rds_wq: rds_trans_get_preferred() calls this
++	 * function with rds_trans_sem held for reading, and rdma_destroy_id()
++	 * takes handler_mutex, which the CM callback path acquires before
++	 * taking rds_trans_sem.  If the allocation fails, fall back to the
++	 * synchronous destroy.
++	 */
++	w = kzalloc_obj(*w, GFP_KERNEL);
+ 	ret = rdma_restrict_node_type(cm_id, RDMA_NODE_IB_CA);
+ 	if (ret)
+ 		goto out;
+@@ -484,7 +508,13 @@ static int rds_ib_laddr_check_cm(struct net *net, const struct in6_addr *addr,
+ 		 cm_id->device ? cm_id->device->node_type : -1);
+ 
+ out:
+-	rdma_destroy_id(cm_id);
++	if (w) {
++		INIT_WORK(&w->work, rds_ib_destroy_id_work);
++		w->cm_id = cm_id;
++		queue_work(rds_wq, &w->work);
++	} else {
++		rdma_destroy_id(cm_id);
++	}
+ 
+ 	return ret;
+ }
+@@ -542,6 +572,11 @@ void rds_ib_exit(void)
+ 	rds_ib_sysctl_exit();
+ 	rds_ib_recv_exit();
+ 	rds_trans_unregister(&rds_ib_transport);
++	/*
++	 * rds_ib_laddr_check_cm() may have queued rdma_destroy_id() on rds_wq;
++	 * wait for it before the module text goes away.
++	 */
++	flush_workqueue(rds_wq);
+ 	rds_ib_mr_exit();
+ }
+ 
+
+
