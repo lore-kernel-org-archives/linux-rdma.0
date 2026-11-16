@@ -1,84 +1,117 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.224.51
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794833874;
-	b=S46GgYubdeJyU8AglyQPadzNYVkPq4gwppZYjOwc1m6fD/pVNYhpISt1ela1Kv1iBO/t
-	 2AAu1KfE3oS1M3BtEKsgFuAaIxm2+Y2mUK7M+oRwdd4merUzJR0L9yhegiyLRFuO52PDX
-	 E50UUhlwbROkavYMrkf0QPMIMh3UgebI/lN8TynisxsrPlbQyXgZS5IUqp99w5KTHnLEe
-	 dPYn95YNs8h8o/dOM7enWM09CsLVhaoPfTV+InJligle/3zoOekjOQ+b46e1/BvrNF8mU
-	 9iA9rR1QM3FGAzliThjfRaSskploY9L53exH/IwsVyyDq+Mq7kQ6taG6iLHindHkWJQ==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794833874;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Mime-Version:Content-Transfer-Encoding:Content-Type:Date:Message-Id:
-	 From:To:Cc:Subject:X-Mailer:References:In-Reply-To;
-	bh=b54vzCQbDLyQCU94ux+/8U6SB77amlsLWgVzT1nnN+Q=;
-	b=sYWTD6FXPFUV/6MRUi4x3sf79ANv0A5Dz9vchRwDf7uGfTvn+i8OEOBgbDeS2Ed6aCXO
-	 4qiue2SReyaXa+D2a6ldIrAxQhC0qv/GJWMmVYP4pRdNPNvHSxiOC+lAksAgynS0Y4wjW
-	 /c59vf2oSgvuBME17M3+0RsK4RLuVl1Npzikhz6bzXO/5kMi2NXmMue2wu4BIFIGbXH4M
-	 Ol3H0B8+WJ9AYx/AKgJgENJpH++HZPxaF1NjzzhVswi8Qu2HcdCAv/1Wdmh2+w/rWg7N/
-	 AoYHfDAHDWsMLtxrTzX9DN2raIFta/ZWwfNT7wgq1xdEGu18e8axEHKO6K5EHFs0CEQ==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=qkR61oGU;
-	arc=none smtp.remote-ip=74.125.224.51
-Received: from mail-yx1-f51.google.com (mail-yx1-f51.google.com [74.125.224.51])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.43.59
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1794833884;
+	b=VUE73ktSY/SqQwYUjopjzjjDC4hzy2cckBn2/DJ1auDG/mlisLuMSBi3iCvJi45pvCZx
+	 kHsq9JR4r1z42119/aMvfOWKa6w5/gl4StS21LH0nIkPO+s8En/YUuE0dkCRZCYUHYmZQ
+	 VLg56C3w8mfw9W584BHRPD+axv4nGQ+uSO/NqT4mepS+Mf0Oxjkva/3KaGr/S9D7AwBPR
+	 G3HvEGItFHJYwVslsSmCfsIzbcwafbl+sE6cGtzMlvGrwwL3W2olOPKtuxpBCD4C79bn6
+	 iV0SfUkrqWGIIXCbgQxeg5OukNvb+FLe5xxAfBFYMM8VjPZCk9d+vznU4pQjbzk/V9Q==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794833884;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
+	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=hYciQj3SKQaeterWqoO2WWlbcMQ4WfWLOXZDSmdLoMU=;
+	b=g6dWiRtkVa3lIN+cxtBn9oiglns7JTlG3Z86hX7BYXBAcJd9XQa5fTx8zCrjlDCoVROP
+	 v+BdjU4wWBkjnj62iH8+SBwX6KNkvJE9QYveylWtK6rQeNzqo/OicXKmyk92UHxxvjici
+	 Ao3KRB/njHbn+CU9KaG/ALY2YJFdjdHB5WgqZJLPgO/iLznIO0U9ykv7V18ZLQpzc0H9I
+	 DVZLsEAj0MAgHrvN24k2Wgt5bg3GbM5JPuXJ+2zvbkPDU0BJUnFqxJZL29KIKKHVfooLD
+	 p5kPZ2lQpGFA1YtiZBZXstXbXYMNqM38+Cl5uetEuJvzJn+I7RnGk0rILSYx1rXEj+Q==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=amd.com;
+	spf=fail smtp.mailfrom=amd.com;
+	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=LTB7ktJB;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.43.59
+Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012059.outbound.protection.outlook.com [52.101.43.59])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5FC6606A32C
-	for <linux-rdma@vger.kernel.org>; Mon, 16 Nov 2026 12:57:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A5FC6606A32C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F20BE606A335;
+	Mon, 16 Nov 2026 12:58:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F20BE606A335
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=qkR61oGU
-Received: by mail-yx1-f51.google.com with SMTP id 956f58d0204a3-67c58f18765so2578547d50.1
-        for <linux-rdma@vger.kernel.org>; Mon, 16 Nov 2026 04:57:53 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794833873; x=1795438673; darn=vger.kernel.org;
-        h=in-reply-to:references:subject:cc:to:from:message-id:date
-         :content-type:content-transfer-encoding:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=b54vzCQbDLyQCU94ux+/8U6SB77amlsLWgVzT1nnN+Q=;
-        b=qkR61oGUGfWXyq02W5NwpkdI7xWJvKjPbo4T6TzYJHy/q20X+owb18EINtxXGyeyiz
-         WrKGwDAePfVSPKmczk8CMIjBDXvpP7neyJi8+raNPzQY4aWlk4sR4R4bSnDg1kNeDTJg
-         gkvV0d20Pq9Hq4QzLU6ez1JIjSqR9wrT7XIckcZtEuZ/yXHnHFP9LuduXvnvLRMqLW/2
-         ZrkbNd8LTokrh1WbtXAOtCMMWxpX3EGTQlgoevge4vxCismIVePbFx2YyBRQI8pRbr7P
-         PxxEQwlclmc3AgwQO7qS9CbbyhI8KezTBFTDpgU+0vn2BvN1F/phbPcTZ/PLgsWJjyOJ
-         mtXg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794833873; x=1795438673;
-        h=in-reply-to:references:subject:cc:to:from:message-id:date
-         :content-type:content-transfer-encoding:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=b54vzCQbDLyQCU94ux+/8U6SB77amlsLWgVzT1nnN+Q=;
-        b=KIGTBMNIwpxfBmgVDjFWbuxgDVTBbMouX7ExnK6sakYlc29C//O7VrRsRodupzR0zi
-         fcoZblkWVqoShSsX+Nr3O06cPdi2YcEuiWJ6fwc3MoihxrOCvXilik2IAj6sDZ+4O7la
-         1Ak/7uz7dr1Bp8IrfHU3Lm+uA5sBxJQCDWX8lerdwZ7qz+hv9haMx2ClsihHP16+6bge
-         aZW1/V0VZQ2lKhd0WfESYHOIU5gy3qm37q7skzr1Aiu6PFm33wTWTvZQMNn+7aamZJTR
-         9SVLYrXS6AKLYGU2kjJNpQ/J5C4+hwd0qhFXbzbQhxxBg7paYPXaiMEyUKmCnddlUpCh
-         9XEQ==
-X-Forwarded-Encrypted: i=1; AL+hErFjnIqQybKSggGlX/wzp1jmlVwCaqPssTBb0kEnL1uXxgn/DxkBQzOJRfb6Ew1IF1Eb6Z/wQb9r1GvS@vger.kernel.org
-X-Gm-Message-State: APuU4Z/0UKzVl0PHvGcrqQyY81dKGPfmQA+RJctJkgmDf8NHByZwkR6o
-	eTWIrByaummJ0FrU5RnxAyn2xTY0mBu9YhFfyG0rnqg6cOiamTdt5nIQ
-X-Gm-Gg: AZFdTZckqXQH42kWah7POnwPXBSdYSNAyPtAs+tA9khLnchpgEyq/s6Obg194aE34W2
-	7KHgqU9EB2ET1zmci4HJsYX2SU+WGEy8JUPI714bgN7ncoBvE6vWpRy8vElcvSx4cyCkr0RFCfM
-	7zykDay//ifL0Iuz4xq9wuJLxu++juUM+543iHXxsJ8Zk0e+TTfy1IRZz+wxUgroNcsQw+wkirE
-	QG4HWCSAseh/7g7gNM6BVam5DIWLhcL+hKQq8QbXHB55cylLtFYXVy8TYEc8GyB2o0lvTwJsdFh
-	NVnfFLsgfDLxqxqVRNOJG0KU/N5GAFQ2zAvkyULNSoDLu3Zba+sCwnaQgq7szcRjVSnDk5rpdcf
-	wu9KZYwGVwKT6Wh99JQ5gBD4tcxyCx3UlBaBtTG1ue35qxEsyPwcgMksSlGbMgUgEZhkN+YAa24
-	VBZML1msrew3d0kBJVNW34c6WITjOZucRCMeUijVFJArT1ywXM6PW9dxVxyzzTTeKiApc+X2W36
-	q3q1Rwky3oyQf0p5IKa9zWyRJ6KmEvdfXntIwNXLtQ9JaGSPXAW8AKYK09CrWK7QCRPSlPpJ8qF
-	1KlfC45MQysyd6bLPFmKEg3IoFZR9MY9DA==
-X-Received: by 2002:a05:690e:4504:10b0:67c:70cf:c90e with SMTP id 956f58d0204a3-67d8965ab34mr3362885d50.39.1794833872447;
-        Mon, 16 Nov 2026 04:57:52 -0800 (PST)
-Received: from localhost ([2600:4040:9399:4000:e553:72e5:7d37:c7ef])
-        by smtp.gmail.com with ESMTPSA id 956f58d0204a3-67d8a55ab71sm9886911d50.4.2026.11.16.04.57.50
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 16 Nov 2026 04:57:51 -0800 (PST)
+	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=LTB7ktJB
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=UM3/DMFJ2RQXohHDT6VLfgkwG7ONDcUg2nM6lOH4Madcj5TaHqs6Lo1TWrngKCMDVDISSF3lbu/ER7NK3M2xkF8XoALznWnFtXP7nBrdL2oFwsJi4THDLQKr2xXlhqGUfCtgqb3ULpUQynSxnlsCOnVaPqf35HT/HCKysjpvVThZJqYifJsz4FsDhmKlRSxlPbFUK9Spp497x2PevQ+QPGxhHDlYNP50EhpIIYQqt43KTRoJs/V/HXwQVOaRqvQBkb8P1zxD5tn/cS2bkBguzWfjKHTo/HK6PI2pnd7sqBM9mycTESNofr3fbzQfXuAECG5RAtdvbkcdHSXpi12Tgw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=hYciQj3SKQaeterWqoO2WWlbcMQ4WfWLOXZDSmdLoMU=;
+ b=ORO0edwr1w5WJblaP1SB8KvO5w+3o0w2ae6cRK+6Fegk78ElL6qDZ1g3ZaKF+Aci79ZfcfQfVATx7k4O9mqsdm0qhGjA8LWUOWQyK2kj1AGOc3cN4uFD2Q9+AJ4CwldxHuEkGyXcf+DTfJagxWPvqW86sczTMniPlleHlh7ACFDXD6KPPNw6Hl8xdut7UK6J/qUPXsznQAShgdLNbBweulPRyWWYJciIcpLjTgnYkzAUQZolY/N/J0OUeA8fy4gNawpZri6FZtvD/U7Hdpx+Rldtg4+UEdE9NemPi8XI3nAfln/RYcLUdV7yCKES8Zrs/SEPR9dF+bAd9Zxfk9M/oA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=hYciQj3SKQaeterWqoO2WWlbcMQ4WfWLOXZDSmdLoMU=;
+ b=LTB7ktJBRH3xPIPnGuhmu8fwcys9kRSflGfBdrbI86SRU1rbhEoRmuXCP4ICCXiODMWXPX8TbQjSidKnKPxkxjF8lVc4HRy2tFEiIjpU19kZlR+jhwyBAmIIK8Uojh8q+S7D203niKBkPZpFi0ibRFQONl0TtKlOgbxApCtcWZ0=
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from PH7PR12MB5685.namprd12.prod.outlook.com (2603:10b6:510:13c::22)
+ by IA1PR12MB6068.namprd12.prod.outlook.com (2603:10b6:208:3ec::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.14; Mon, 16 Nov
+ 2026 12:57:59 +0000
+Received: from PH7PR12MB5685.namprd12.prod.outlook.com
+ ([fe80::ce69:cfae:774d:a65c]) by PH7PR12MB5685.namprd12.prod.outlook.com
+ ([fe80::ce69:cfae:774d:a65c%3]) with mapi id 15.21.0615.013; Mon, 16 Nov 2026
+ 12:57:58 +0000
+Message-ID: <8768b2e1-e944-46a0-8508-84a9ff491412@amd.com>
+Date: Mon, 16 Nov 2026 13:57:39 +0100
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 06/23] dma-buf: Let the exporter select mapping type at
+ pin/map
+To: Alistair Popple <apopple@nvidia.com>
+Cc: Karl Mehltretter <kmehltretter@gmail.com>,
+ Sumit Semwal <sumit.semwal@linaro.org>,
+ =?UTF-8?Q?Thomas_Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
+ Simona Vetter <simona.vetter@ffwll.ch>,
+ Matthew Brost <matthew.brost@intel.com>,
+ Vivek Kasireddy <vivek.kasireddy@intel.com>,
+ Dongwon Kim <dongwon.kim@intel.com>, Kevin Tian <kevin.tian@intel.com>,
+ Xu Yilun <yilun.xu@linux.intel.com>, Baolu Lu <baolu.lu@linux.intel.com>,
+ Felix Kuehling <felix.kuehling@amd.com>,
+ Alex Deucher <alexander.deucher@amd.com>, dri-devel@lists.freedesktop.org,
+ intel-xe@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
+ linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+ linux-rdma@vger.kernel.org, iommu@lists.linux.dev,
+ Keith Busch <kbusch@kernel.org>, Jens Axboe <axboe@kernel.dk>,
+ Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>,
+ linux-nvme@lists.infradead.org, "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+ Mina Almasry <almasrymina@google.com>, netdev@vger.kernel.org,
+ Alexey Kardashevskiy <aik@amd.com>, zhipingz@meta.com, treding@nvidia.com,
+ jhubbard@nvidia.com, Jason Gunthorpe <jgg@ziepe.ca>,
+ Leon Romanovsky <leon@kernel.org>
+References: <20261105-dma_mapping_type_v4-v2-0-78b8dc9ae80a@nvidia.com>
+ <20261105-dma_mapping_type_v4-v2-6-78b8dc9ae80a@nvidia.com>
+ <au7mBMbRC8q6NILj@gmail.com> <avE0QsqV5RZoaWc3@nvdebian.thelocal>
+ <de268b0f-19fd-4e05-a8d2-e0f436aaedfc@amd.com>
+ <avqgQ1k8zx0_N4rM@nvdebian.thelocal>
+Content-Language: en-US
+From: =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
+In-Reply-To: <avqgQ1k8zx0_N4rM@nvdebian.thelocal>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: BN9PR03CA0601.namprd03.prod.outlook.com
+ (2603:10b6:408:106::6) To PH7PR12MB5685.namprd12.prod.outlook.com
+ (2603:10b6:510:13c::22)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -87,166 +120,188 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Mon, 16 Nov 2026 07:57:50 -0500
-Message-Id: <DMWNI97J4UZH.QK9260QE63ZJ@gmail.com>
-From: "Daniel Zahka" <daniel.zahka@gmail.com>
-To: "Todd Freed" <toddfreed@meta.com>, <netdev@vger.kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>, "Andrew Lunn"
- <andrew+netdev@lunn.ch>, =?utf-8?q?Bj=C3=B6rn_T=C3=B6pel?=
- <bjorn@kernel.org>, "Boris Pismenny" <borisp@nvidia.com>, "Cosmin Ratiu"
- <cratiu@nvidia.com>, "Daniel Zahka" <daniel.zahka@gmail.com>, "David Ahern"
- <dsahern@kernel.org>, "Dragos Tatulea" <dtatulea@nvidia.com>, "Eric
- Dumazet" <edumazet@kernel.org>, "Ido Schimmel" <idosch@nvidia.com>, "Jakub
- Kicinski" <kuba@kernel.org>, "John Fastabend" <john.fastabend@gmail.com>,
- "Leon Romanovsky" <leon@kernel.org>, <linux-kernel@vger.kernel.org>,
- <linux-kselftest@vger.kernel.org>, <linux-rdma@vger.kernel.org>, "Mark
- Bloch" <mbloch@nvidia.com>, "Paolo Abeni" <pabeni@redhat.com>, "Raed Salem"
- <raeds@nvidia.com>, "Rahul Rameshbabu" <rrameshbabu@nvidia.com>, "Sabrina
- Dubroca" <sd@queasysnail.net>, "Saeed Mahameed" <saeedm@nvidia.com>, "Shuah
- Khan" <shuah@kernel.org>, "Simon Horman" <horms@kernel.org>, "Tariq Toukan"
- <tariqt@nvidia.com>, "Wei Wang" <weiwan@google.com>, "Willem de Bruijn"
- <willemdebruijn.kernel@gmail.com>
-Subject: Re: [PATCH net v5 0/8] psp, tls: don't send offloaded contents in
- cleartext
-X-Mailer: aerc 0.21.0-threadmapfix
-References: <20261111001831.3710881-1-toddfreed@meta.com>
-In-Reply-To: <20261111001831.3710881-1-toddfreed@meta.com>
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH7PR12MB5685:EE_|IA1PR12MB6068:EE_
+X-MS-Office365-Filtering-Correlation-Id: 0f7a7d3c-22b2-41c0-c9c3-08df43e13d2f
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|1800799024|366016|376014|7416014|261102123227099003|261028144727099003|261102130727099003|261022075727099003|261022105027099003|261021135927099003|261021121427099003|261026121527099003|261026140227099003|11063799006|4143699003|56012099006|10067099003|18002099003|22082099003|261009223027099003|3023799007;
+X-Microsoft-Antispam-Message-Info:
+	bUTXmXzBj5NAF6d8lYILsVTGtOpLbAzFmBibZuErWbvGHLguWWBeENOpI8rI3KbLe7AiT+NhD4Qf4q2SzRNrLoy6psqhAaly1rm3Cr/GNRXSNJb1cE9p1lM99vkXwQuazlVegKr852pc1m/vaS4V0V/DX8deEGXX7vH/2thFMrlmVdWn5bc8P0VQSOMzGXkZvDG+ffkRGR56fmygr8itz4O3Dg0AQiue7tkI8nctqgQMk9/vFd1qvRoGiPuZds4VPNVgNrY36h2QYizxegEpDZbhmXtBmP/oJpcVKY58rUHulQgm38jV3nHftrGEnmsapNbS/81vaM9RfjT9qG9uyiFwhpn6C34I5dABhPRqu481u1P48ezqj+uEN8N86lNw4BwFCWfie71jlEwH+wvohdKe4lv1B7oHPusPQuZTmOzAeNp66utau0sNrmHMgncllMAemnYSGQn0tBnosDPV8pqLPZuePIMO5bXyF4pLHZD9u/ifB0uWxNUXHIM7PNJJTZGtnzO+waXAIaTwQlUSMRcozA1wCgKxDqUe5seddBXjOMP413nJZVne+CdCxIOwepDuwwmmeJ2pgXhUMipHDOz3BKrBi/nNgQm4dJKq1vqjyusxMiGQGZCrtK1Jn3xBsDNVPO+aN28YYZcYctEq3hwZWJvce7CRiFZpDMdiqCE=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR12MB5685.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(366016)(376014)(7416014)(261102123227099003)(261028144727099003)(261102130727099003)(261022075727099003)(261022105027099003)(261021135927099003)(261021121427099003)(261026121527099003)(261026140227099003)(11063799006)(4143699003)(56012099006)(10067099003)(18002099003)(22082099003)(261009223027099003)(3023799007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?VVp5cGJtYW5vblhHdFlacDd1anZnYk9ta2JoRkRBWTlCV29zTGVxL2VHcS9j?=
+ =?utf-8?B?QjVsaGJOM2JZUzJ4cWR4Z2V5YlA1ZDZucy9EWjhHUWFEcU1JR1RWWFJ3bmpH?=
+ =?utf-8?B?VmZDZHJBMDBsWmQwOEhOVHM4eHVuYmFPeHdGZFZLcS9qWDFPdUh4QmZmZmxa?=
+ =?utf-8?B?S0ZsMkdSZGpuR0dCc0w5dXVOTk1yRHZVaytJQW9RUHFXUkZiMWdQdzFDamxR?=
+ =?utf-8?B?RTBYYUxobENpQW15ODRtWk9KSXRhaEZzZHp1ZEgwa0Q5V2h0d1FGaHF0bStS?=
+ =?utf-8?B?dGhNOEtDNU0vK0NUdmNneGhmazh0cTdmMjFZZUJIR0RnRWJlQlN3ckFlODEv?=
+ =?utf-8?B?NFllTUIvak41dEN3SGxvc3VOTFFmVjBqa2lJcjZiUTlqeVdIUHBrYWVsTUtx?=
+ =?utf-8?B?bTBpNkN2Nm1WY0wxZm92SitHbXRibzJvRjI1TGw0NGJzQmo2VE92ZXpDU1kw?=
+ =?utf-8?B?OFo0ZjBnUDhJNVhhNjhYUTA1VDExZStJRUZleFhsNmN1QUdKYVlpMFYxWGEz?=
+ =?utf-8?B?TlZQbjB5SmZkVWZlMC9TZUk3Uml3d0lnc2Foa0d3TjRFNEE0QmVjVWM1MVJZ?=
+ =?utf-8?B?cU9EWHhLUXpvVDA3RWl3TjV1RWkzbC9tSXNzcU5qNzZCNlE5SjJzcmZ4dUlS?=
+ =?utf-8?B?Szd0SFNRWTFhc1FYOTZiVlFURW93SGgza1hyMllTa1VGb3NhVEhYYy85SC9w?=
+ =?utf-8?B?MUJCTDNYNENWMkZieXFLTVZ1cE1kdk9Eem9ZKzNveU5MbjBLOVBoYklBVVYr?=
+ =?utf-8?B?bTUraGExTGE2SHhKSG1YSFp6U2ViUTBpcUd0dkR6NHRzT29YVk5iWGhTV1Js?=
+ =?utf-8?B?WEFMVFZ2bFI2WTZRdFdtUE1FVDYxV29RNTZDUTNEclRLQ1cwUTVtb0RBQ3Fx?=
+ =?utf-8?B?T1llNld2M3Q2RWthQ1cvTXlpamhGZWIrTkdzeXBVTTh6MitHcWlsdjNVT1lu?=
+ =?utf-8?B?VTVEa1pSZzEvZWR2WllKNmVGdllURC9mTloydm1zY3pCZ3JaZEl2VjRydlRP?=
+ =?utf-8?B?b1BGb1dyTEFlNGtDWWpITnEyMTVpQ21GZko0b2xhK2M5NWhBV2ZjcjdlTXlh?=
+ =?utf-8?B?U2ZVREFhN0lsOGoxWHpJcEx2R0lxMnJyNGZybjM2dXdnQUtLRWllYlhvdGl2?=
+ =?utf-8?B?Q2U2N1VZKytLN3FPZ2pTeW1aMTg0R2NKcm1DdEtpZUlGVjl6RnFwYVZLdXVM?=
+ =?utf-8?B?dnRpL0NTUjkxbVRzOFZ0SkE1dmtFeHp5SFJZQkVwaXZHaE5Rbk1kNW9VWnFM?=
+ =?utf-8?B?QkZvNG9NQU9ITkg4MVFSb3NsYXRNNHZUYUJGZ0pQQzVzMktmT0dVdlVLQUI0?=
+ =?utf-8?B?bzdvMEFDRWk3VHpFandRbG5kKzIvUlBLRU5hOXc4R0VuRFNMWk5UOU9WTXVm?=
+ =?utf-8?B?OG1aWk95Um00VktwVGU3QXN6Mjg2MDdPUFlMRUpBeHdNZkNvY0JoRW9tdmI4?=
+ =?utf-8?B?TTc0SUMzZ09ERVJyS2F2b1JjdjdGR3NSbGpjS0dNSU9WczdMd3RZajZFTWF0?=
+ =?utf-8?B?OHFHeG43TmxpbnpqZGJ2S1M4U253MnJqRU5lekNlSW9DSGgwUHFTMjFXdER3?=
+ =?utf-8?B?YjFlcnc0MTJ6Ly9OSklpYWVETThaT3luT1BQcU1xa1Q2ZGRDc3gyV2tHWXFS?=
+ =?utf-8?B?L3hkWWV1NkJsNGhtcnhUR2xQU3FzcVJZZ0pJdXM0TEhhaGY3L3dPdTI2aGYx?=
+ =?utf-8?B?SVhuMnZrV3BUY0g0MGRIZFZVd2kzUnM1ZldIcFFobm9QdGFsTVJjUmxiU2NF?=
+ =?utf-8?B?Yzk5WUIrd3M1UkowcEtpOHRxeWwyRm1lVVBTM1l0bDhmUUpLV0NGdHcrTEVM?=
+ =?utf-8?B?M2ZaZzJ2dW5ybDhRYUo1c2g4b3FXeXNrNmd3N1c5dFlQWnRDcC9QeGdsZjhq?=
+ =?utf-8?B?YkxUc09LTGNmcFdSVis5cnNTR1YxeVdaSGhLc0lIVGdzclFjVVNJbG5XR2E2?=
+ =?utf-8?B?aUJobHJUU01DQTJrVVA2d0J2TmZ5TXJ1ZXFvRnhvanp0OGoxUDZrYm9PMFIx?=
+ =?utf-8?B?Y3c5SXQrdVN0TzRsYkczeVhxT1U2RXJ4Si9mbFhLOHdaVHJpR3FPSFVScmhj?=
+ =?utf-8?B?cXp1QWZFYTVUZTdRcHlPLzlRVXJsZE5EY1hXaGVyNDNTS2xFU2xDa09uTnFT?=
+ =?utf-8?B?Tk93YTBZRWorbENqVFFrWGo4Qm94L0hicG1Tb1B1RWNGaThRWkpWWXlsRjVH?=
+ =?utf-8?B?SUhRS0JJT0R0MmVQV05KRy9JSndRWU8rVVpuWjdOOGpraGFCam8ya2FHa01a?=
+ =?utf-8?B?WjRpRW1yRW5ySCs2TmFzblRoVjlkSlRHdjJ0RlJheXdsVzE0UmtNN29nYzFq?=
+ =?utf-8?Q?47fBIFgJbCbjZaw8sE?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0f7a7d3c-22b2-41c0-c9c3-08df43e13d2f
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR12MB5685.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Nov 2026 12:57:58.5489
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: NfsjKpikeXvk0eFUXeC36vVisqiFEDJ62gQvE1j6B7OvZ7a0iG3co00NSvADw4lX
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6068
 
-On Tue Nov 10, 2026 at 7:18 PM EST, Todd Freed wrote:
-> While working on adding support for socket-less psp associations, I
-> noticed the case of ipv6 extension headers was not being handled
-> properly for psp packets. It will be relevant with that series, because
-> it adds udp support, for which the psp nexthdr needs to look at the
-> inner packet.
->
-> That led me to various other ways where packets on the crypto offload
-> path could be transmitted unencrypted.
->
-> Since the psp/tls association encodes intent to send encrypted packets,
-> but these various cases circumvent that, sending these as fixes.
->
-> The cases are,
->
->  1/ ipv6 extension headers (patch 2; patch 1 makes mlx5e flush its tx
->     queue when the resulting drop happens),
->  2/ fragments (patch 3),
->  3/ icmp errors (patch 4),
->  4/ icmpv6 errors (patch 5),
->
-> Cases 2, 3 and 4 are relevant for ktls as well as psp.
->
-> patch 8 fixes an mlx5e bug in tso checksum calculation for psp packets
-> when the l3 dest is an intermediate hop (ipv4 source routing). It's not
-> about preventing unencrypted tx, so could be considered separate.
->
-> netfilter refragments bridged packets and builds reject replies itself,
-> outside these paths. A separate series to nf-next, which follows this
-> one, applies the same rules there.
->
-> Testing:
->
-> all hardware testing was done on connectx-7 (fw 28.48), between two x86
-> hosts, plus netdevsim.
->
->  - drivers/net psp.py: on netdevsim, all 36 tests pass. on mlx5, 30
->    pass, 4 skip (gmac versions the device doesn't support), and 2 xfail
->    (netdevsim only).
->
->  - tso checksum seed: a psp tcp socket with an ipv4 loose source route,
->    the peer checking tcp checksums in software. hundreds of checksum
->    errors before the fix, none after.
->
->  - fragments, with tls offload and psp:
->    - ipv4 (route mtu above the device mtu, IP_PMTUDISC_OMIT): without
->      the fix, some fragments after the first go out in cleartext. with
->      it they're dropped.
->    - ipv6, through an ipvs dr service with a local client: without the
->      fix, fragments after the first go out in cleartext, and the peer
->      reassembles them. with it they're dropped.
->
->  - icmp and icmpv6 errors, on netdevsim psp, with an nft reject rule
->    (icmpx port-unreachable):
->    - in an input chain, of received decrypted packets: without the fix,
->      the errors go out on the wire, quoting the decrypted packets. with
->      it, no error reaches the wire.
->    - in an output chain, of a psp socket's packets: the error is
->      delivered to the local socket, with and without the fix.
->    - a PKT_TOOBIG from ip6_fragment() about a psp socket's packets is
->      delivered to the socket, with and without the fix.
->
-> v5:
->  - new patch 1: mlx5e rings the tx doorbell when an accel offload drops
->    a packet, and checks the stop room after the nop it posts (Sashiko)
->  - ipv6 extension headers: drop them in psp_dev_encapsulate() again,
->    instead of in mlx5e. it's the helper which can't encapsulate them,
->    for every driver (netdevsim sent them malformed). unlike the routing
->    header rejection in v2, this isn't a device limitation
+On 11/16/26 07:27, Alistair Popple wrote:
+> On 2026-11-09 at 21:59 +1100, Christian König <christian.koenig@amd.com> wrote...
+>> On 11/9/26 03:58, Alistair Popple wrote:
+>>> On 2026-11-07 at 19:57 +1100, Karl Mehltretter <kmehltretter@gmail.com> wrote...
+>>>> On Thu, Nov 05, 2026 at 05:40:41PM +0100, Alistair Popple wrote:
+>>>>> + * A pin or map that fails after dma_buf_mapping_select() may reopen the
+>>>>> + * choice only if it was the one that made it. A selection that predates the
+>>>>> + * call belongs to a live pin or mapping and must survive, otherwise the next
+>>>>> + * pin or map would reselect under it without an invalidate.
+>>>>> + */
+>>>>> +void dma_buf_mapping_unselect(struct dma_buf_attachment *attach,
+>>>>> +			      bool was_selected)
+>>>>> +{
+>>>>> +	dma_resv_assert_held(attach->dmabuf->resv);
+>>>>> +
+>>>>> +	if (was_selected)
+>>>>> +		return;
+>>>>> +
+>>>>> +	attach->selected = false;
+>>>>> +	attach->selected_idx = 0;
+>>>>> +}
+>>>>> +
+>>>>
+>>>> After dma_buf_invalidate_mappings(), attach->selected is false while
+>>>> attach->selected_idx still holds that mapping's entry for a pending
+>>>> unmap. 
+>>>>
+>>>> If a pin/map fails before that unmap runs, was_selected is false and
+>>>> dma_buf_mapping_unselect() resets attach->selected_idx to 0.
+>>>>
+>>>> A subsequent dma_buf_unmap_sgt() then uses matches[0].
+>>>
+>>> Actually there's a bigger issue here. The contract at the moment states that
+>>> mapping type may change after invalidation. However that doesn't account for the
+>>> fact mappings can outlive the invalidation.
+>>>
+>>> This could be dealt with by switching everything over to the generic
+>>> dma_buf_mapping_map/unmap() path, but that requires an allocation per mapping
+>>> just to track the mapping type.
+>>
+>> You need an allocation per mapping anyway to identify the mapping anyway.
+>>
+>> We currently abuse the sg_table for that, but essentially the idea of having a structure/object to represent the mapping needs to stay around as far as I can see.
+> 
+> Oh right, I see that now.
+> 
+> Do you think it makes sense to convert all exporters to return a mapping type
+> specific struct (eg. dma_buf_sgt_mapping) rather than the sgt directly?
 
-Can you elaborate on this? You're saying encapsulating with the
-extension headers present was working for mlx5, but not netdevsim?
+No, we essentially want to get away from the whole sgt approach.
 
->  - don't fragment decrypted skbs in ip6_fragment() either
->  - icmp and icmpv6: send no error at all about a received decrypted skb,
->    instead of quoting up to the tcp header for tls offload.
->  - icmpv6: decide whether an error about a locally originated skb goes
->    to a local address from the error's route (RTF_LOCAL), like icmp
->    (RTCF_LOCAL), instead of the address list (Sashiko)
->  - selftests: the extension header test runs on netdevsim too, and
->    removes the socket option before closing. the fragment test uses the
->    source address of the route, and turns off tcp_mtu_probing
->
-> v4: https://lore.kernel.org/netdev/20261103001143.246081-1-toddfreed@meta=
-.com
->  - back to dropping ipv6 packets with extension headers, but moved into
->    mlx5e instead of psp_dev_encapsulate()
->  - drop the psp core changes to rx and tx ipv6 extension headers
->  - new patch 2 to drop decrypted skbs instead of fragmenting
->  - new patches 3 and 4 to prevent quoting just-decrypted packet contents
->    in icmp errors, v4 and v6 respectively (Jakub, Bjorn, Sashiko)
->  - new selftest: ipv4 fragments of a psp tcp socket
->
-> v3: https://lore.kernel.org/netdev/20261023234640.1459291-1-toddfreed@met=
-a.com
->  - new patch 1 to fix tso checksum seed calculation in mlx5e (Daniel)
->  - accept routing headers and reject ah (Daniel)
->  - split the psp_dev_rcv() change into its own patch (Daniel)
->  - return -EINVAL instead of -1 (Daniel)
->  - selftest: one variant per extension header type (Daniel)
->
-> v2: https://lore.kernel.org/netdev/20261022223014.556388-1-toddfreed@meta=
-.com
->  - walk the extension headers instead of dropping (Daniel)
->  - reject fragment headers (Bjorn, Daniel)
->  - reject routing headers
->  - psp_dev_rcv() handle the rx case as well
->
-> v1: https://lore.kernel.org/netdev/20261021210200.788191-1-toddfreed@meta=
-.com
->
-> Todd Freed (8):
->   net/mlx5e: ring the tx doorbell when an accel offload drops a packet
->   psp: don't encapsulate ipv6 packets with extension headers
->   net: don't fragment decrypted skbs
->   ipv4: icmp: don't quote decrypted payload in icmp errors
->   ipv6: icmpv6: don't quote decrypted payload in icmpv6 errors
->   selftests: drv-net: psp: test ipv6 tcp socket with extension headers
->   selftests: drv-net: psp: test that ipv4 psp packets aren't fragmented
->   net/mlx5e: psp: tso: replace only the length in checksum seed
->
->  .../mellanox/mlx5/core/en_accel/psp_rxtx.c    |  21 +-
->  .../net/ethernet/mellanox/mlx5/core/en_tx.c   |   8 +-
->  net/ipv4/icmp.c                               |  12 +
->  net/ipv4/ip_output.c                          |   8 +
->  net/ipv6/icmp.c                               |  16 ++
->  net/ipv6/ip6_output.c                         |   9 +
->  net/psp/psp_main.c                            |  21 +-
->  tools/testing/selftests/drivers/net/config    |   1 +
->  tools/testing/selftests/drivers/net/psp.py    | 249 +++++++++++++++++-
->  9 files changed, 327 insertions(+), 18 deletions(-)
->
->
-> base-commit: 8012eec76b7e6c0d9fb338fe8e3db6ca1b419da4
+The whole purpose of DMA-buf was to exchange DMA addresses between drivers and sgt is problematic for that job because it mixed both the input as well as the output of the DMA mapping operation into one structure.
+
+What we need is the functionality to either say map the buffer at this specific address in that address space (IOMMU domain, internal address space whatever) or just to return DMA addresses plus the information in which address space those addresses are valid.
+
+Regards,
+Christian.
+
+> Ie. change map_dma_buf() callbacks to return *dma_buf_sgt_mapping instead of
+> *sg_table and convert exporters to allocate that instead of a *sg_table.
+> 
+> I've taken a look at doing that and whilst it touches all the exporters the
+> changes are fairly mechanical in nature, with only two or three annoying
+> exporters that have slightly different patterns (one of which is buggy).
+> 
+>  - Alistair
+> 
+>> Regards,
+>> Christian.
+>>
+>>>
+>>> The alternate is we update the contract to say mapping type cannot change until
+>>> after all importers have unmapped. Enforcing this would require tracking the
+>>> number of live mappings/pins per-attachment, but I think this is the better
+>>> solution so will add that for the next version.
+>>>
+>>>>>  int dma_buf_pin(struct dma_buf_attachment *attach)
+>>>>>  {
+>>>>>  	struct dma_buf *dmabuf = attach->dmabuf;
+>>>>> +	bool selected = attach->selected;
+>>>>>  	int ret = 0;
+>>>>>  
+>>>>>  	WARN_ON(!attach->importer_ops);
+>>>>>  
+>>>>>  	dma_resv_assert_held(dmabuf->resv);
+>>>>>  
+>>>>> -	if (dmabuf->ops->pin)
+>>>>> +	ret = dma_buf_mapping_select(attach);
+>>>>> +	if (ret)
+>>>>> +		return ret;
+>>>>> +
+>>>>> +	if (dmabuf->ops->pin) {
+>>>>>  		ret = dmabuf->ops->pin(attach);
+>>>>> +		if (ret)
+>>>>> +			dma_buf_mapping_unselect(attach, selected);
+>>>>> +	}
+>>>>
+>>>> dma_buf_mapping_select() sets attach->selected = true before ops->pin()
+>>>> and the map callbacks run.
+>>>>
+>>>> In patches 14/15, xe/amdgpu migrate a VRAM buffer to system memory
+>>>> during pin and map when the attachment does not accept P2P.
+>>>>
+>>>> That migration calls dma_buf_invalidate_mappings() and clears
+>>>> attach->selected on every attachment, also the one being pinned/mapped. 
+>>>>
+>>>> When the callback succeeds, the attachment stays pinned or mapped with
+>>>> attach->selected == false.
+>>>>
+>>>> A later map/pin on the same attachment can then reselect without an
+>>>> invalidation.
+>>>
+>>> Argh. Thanks. Will fix.
+>>>
+>>>  - Alistair
+>>>
+>>>> Thanks,
+>>>> Karl
+>>
 
