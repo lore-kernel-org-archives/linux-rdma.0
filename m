@@ -1,47 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794870950;
-	b=S1h7iWAkx1W8u+ax7P/QBr+QAXw1/kjBlWOnUk2Qkkbz4f/FoiVbeMXfz3rFcCQoyoVT
-	 XG/4yAQTgyW4Ry3jvS9l/hLcpssnqYfberYYlv2hplpAjHS0M7ZRZx/opEJyFqUcRCvrd
-	 jrziQZuCJUydi/7k2L2GMd/L/rHRdtMfyJ4ZYmiCVoao+r1tPjBdVC6cNln239AXDRRAJ
-	 qUpN/iiBEo9LAUAV8wqijk7ok3bHhICHc+mDkJtd7kLFM7RP6TTwoFLylfAge0JWEINP0
-	 11wcuokYXc6ggQiftHkOcnnKWlgDAgcVS5Xc26HhIEuMCcx73ffw4UaPEQO+mUS+6ag==
+	t=1794870956;
+	b=QyF7MILIP70E5qi2bfs9hCKRS6r3K7mjQYOZxlu+zLPsiQp+RBGKQhZu7/IyKrKNKK7M
+	 qSdGkmBr6rW+N0STvMlGrsZPj4xvkICxrOc45h74eY3fWoTJxrRDVbxJcXjXiruI4dfnU
+	 9DfIK6iF0aY7aL8/AsJ/bB2FpYK3xzEDHB9ui0mX1xn/lQtu8xhW4UK2Wc8rUoxGnnpN/
+	 yHd6iZzpLth/qwvjSnsnVsHe0J5fBCIcWYc3Pf3PMvBNwckOUFldK8MP7BTv6PwU4F6OH
+	 1Ho3ZnyXBad0TXD/aDSSGfn4MvnUGTfDqkjjmoG5Ec3y2q0FTpyd0IwC3wdiHtMJBZQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794870950;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794870956;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=lRSp/KC43fGl85hMws3gLKnBnmqSKLCoF94lqJrfAqE=;
-	b=UqWSM7gyg2waIU7+SzTVb3zujt6JrZbkzN+OQwx2a//4v43pqlE4/g9szvKpaCmZjDQ0
-	 efs71javJmsYTmWW01C7p0pXBWtPXCYHut+nSLm4/I+ApiwxD6K9a6viALxM25haJryTx
-	 lqhqpZ72tPtoSb73XShZ3tftACpnn0EOy2LHM3gIp+v14fLp0nddoxfmWplJDMPw4M6O2
-	 0vXs+h2MLcHZwS0pu/HoNCNDAZTqtV1PALYpC2y+HvGEOcjpLPi3N2qRMdm52WeCQ6P3H
-	 iHhtCDPvUXhaOFFDMnDAGBcD+DgQ8X2GGnyU14saYTlC35UAbxuzJMQq2S4UBd4MVNA==
+	bh=grGi9MDFa2ndr+WLT5GQOibMFXvsdaKosOQN2//MZ0Y=;
+	b=sTpZtbuItfrw+2IHGK/keiNg+rVDGxdFtjwKUeNH7Q+FROX3VQOKDXadBGCsOXRyxMCy
+	 I4vlT9YhXeJmw9kjLDf3E79QWCQgbURWzomVxCLFKdIr8XhFYoo8fH+n5ApZiBQNa2xnA
+	 1cV312oustqhoXxph4m0ZYhZLdbJ08yMwHFmMfmFui+lgGqblvuBGVm28MFF5p6vbjDNr
+	 Fdmz85BzZb9zb83uDAlMWKVUrCvVWZaKRhBjL8eN99VXpH6dtGlJ4bL7ysQCp0sYReiUW
+	 EtSJIvE+LOfdHeFCWzWlh37ALZs6wi7FpcbYYkyrvO4430E7HfHs/lvAK3fqfp/Lhlw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HS+icqbZ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LmpQqCUj;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92B22606A31C
-	for <linux-rdma@vger.kernel.org>; Mon, 16 Nov 2026 23:15:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74CD5606A31C
+	for <linux-rdma@vger.kernel.org>; Mon, 16 Nov 2026 23:15:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HS+icqbZ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA7DC1F000C4;
-	Mon, 16 Nov 2026 23:15:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LmpQqCUj
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8A8B1F000C7;
+	Mon, 16 Nov 2026 23:15:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794870950;
-	bh=lRSp/KC43fGl85hMws3gLKnBnmqSKLCoF94lqJrfAqE=;
+	s=k20260515; t=1794870956;
+	bh=grGi9MDFa2ndr+WLT5GQOibMFXvsdaKosOQN2//MZ0Y=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=HS+icqbZIwAvtzuceRLVtpGNxVXXidAEZwW1IgkoWdrqefKgKmafv6my/m1BetmXq
-	 imfVa37wyQPRUWWdHlNgjGFkiGaZO00LWnsnsMMyyZl4umJirEyZcmJB3OQ1TCnGkl
-	 U2aPOhqbzZK8LWqf0N6fFXFbiH29M/suvX63zbgyqOjLfn1vhqTrXkU+9L4O2p4hPY
-	 tDmjpkjsYW1g1ZcbiUABR9oJn/rCBMAeRF/VWha3yz4if00nMEnPwlhoNEYRqPO0eq
-	 te8C8N0VvI2dr24iC8W0rmVZ2gpGnoDNcO7WcnR75uUficH5kM+drNW2eiBq1cU0Tm
-	 JEgvU+aTNfPpg==
-Message-ID: <sashiko-outbox-217866@kernel.org>
+	b=LmpQqCUjKYiEcsETYyv8u0vwyxYn4lK7pM6j+tZ8AuGUJy4Rr1G2dEQe2bv90pnFu
+	 zSRaaGo+t1IjgZ3ickHcqApDRFYWhFblsJNsMaWB48X1XF7zBmQprhUdwE67ADkRfj
+	 N/ajjnLovPa7OEFAIFNmbhpuMwOZEPe1nf7bOfy1y444naRENQFgv/dG97XfvEkvRm
+	 JBUS8ANGrDmfV+zaJmKaoMg8swbphPo1nbveD6+NoBTLCLtqwcjQwzPcWd/8zROTxb
+	 wfJ7zAdvc6nUKSC0UZ6aMrnwFRP+6LVmAkMZA18+urDD9npW3bwwvLsJ+WFJH3khKW
+	 yIDDXvdUsLOTQ==
+Message-ID: <sashiko-outbox-217868@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v1 5/7] mm: kasan: skip KASAN for GFP_HIGHUSER
+Subject: Re: [PATCH v1 7/7] mm/kasan/kunit: add page_alloc_highuser_kasan
+ test
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Jeff Xu" <jeffxu@chromium.org>, "Andrew Morton" <akpm@linux-foundation.org>, "David
  Hildenbrand" <david@kernel.org>, "Vlastimil Babka" <vbabka@kernel.org>, "Johannes
@@ -65,12 +66,12 @@ Cc: "Lorenzo Stoakes" <ljs@kernel.org>, "Liam R . Howlett" <liam@infradead.org>,
  Henderson" <achender@kernel.org>, "David S . Miller" <davem@davemloft.net>, "Eric
  Dumazet" <edumazet@kernel.org>, "Jakub Kicinski" <kuba@kernel.org>, "Paolo
  Abeni" <pabeni@redhat.com>, "Simon Horman" <horms@kernel.org>, kasan-dev@googlegroups.com, kexec@lists.infradead.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-In-Reply-To: <20261116230627.3537051-6-jeffxu@chromium.org>
+In-Reply-To: <20261116230627.3537051-8-jeffxu@chromium.org>
 References: <20261116230627.3537051-1-jeffxu@chromium.org>
- <20261116230627.3537051-6-jeffxu@chromium.org>
+ <20261116230627.3537051-8-jeffxu@chromium.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 16 Nov 2026 23:15:36 +0000
+Date: Mon, 16 Nov 2026 23:15:53 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -80,26 +81,20 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> Move __GFP_SKIP_KASAN from GFP_HIGHUSER_MOVABLE to GFP_HIGHUSER so that
-> both GFP_HIGHUSER and GFP_HIGHUSER_MOVABLE allocations skip KASAN
-> unpoisoning on allocation and poisoning on free in HW_TAGS mode.
+> Add a KUnit test (page_alloc_highuser_kasan) to verify that, unlike
+> GFP_HIGHUSER, page allocations using GFP_HIGHUSER_KASAN under
+> CONFIG_KASAN_HW_TAGS:
+> 1. Get a KASAN tag in page_kasan_tag() across all sub-pages of a
+>    high-order allocation, and the same tag in the pointer returned by
+>    page_address(), and
+> 2. Are poisoned on free, so that a use-after-free through the stale
+>    pointer is reported.
 >=20
-> Previously, commit c275c5c6d50a ("kasan: disable freed user page
-> poisoning with HW tags"), commit 70c248aca9e7 ("mm: kasan: Skip
-> unpoisoning of user pages"), and commit 0a54864f8dfb ("kasan: remove
-> PG_skip_kasan_poison flag") added __GFP_SKIP_KASAN to
-> GFP_HIGHUSER_MOVABLE because user pages are not intended to be used as
-> directly addressable kernel data structures, and the lower likelihood of
-> catching a kernel linear-map bug on user payload pages does not justify
-> tagging all 256 16-byte MTE granules per 4 KB page on every allocation
-> and free.
+> The test fails if __GFP_SKIP_KASAN is added to GFP_HIGHUSER_KASAN.
 >=20
-> GFP_HIGHUSER shares the same kernel-accessibility contract in
-> [ ... ]
+> Tested on arm64 with CONFIG_KASAN_HW_TAGS under QEMU (virt,mte=3Don) with
+> kasan.mode=3Dsync, async and asymm.
 >=20
-> Link: https://lore.kernel.org/r/20260519-panthor-kasan-v2-1-b7384458f076@=
-gmail.com/ [1]
-> Link: https://lore.kernel.org/r/20260521105148.5497c281@fedora/ [2]
 > Assisted-by: LLM
 > Signed-off-by: Jeff Xu <jeffxu@chromium.org>
 
@@ -107,5 +102,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261116230627.3537=
-051-1-jeffxu@chromium.org?part=3D5
+051-1-jeffxu@chromium.org?part=3D7
 
