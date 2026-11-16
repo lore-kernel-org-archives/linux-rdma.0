@@ -1,53 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794836371;
-	b=McYTGRg2bVAIhb0vpAww0Y+kPzYvAQJRjLsiGTiphcPipF/N+3o8ZoURL8/GAP0MH20K
-	 /4dnPDZIC6hMVZNk1bBJNUTPdBLjfOcjU0hvcUDsyZuCl6SyPFmxKlw9pZY06y9n4pwmD
-	 vJ95KhGQGVCEPrm1dmnZQhoH18JtXi5DfDSrEzaQs4HVOCiNHS56nKBVINlpZ9O5gs6+Q
-	 mqDLy5CyPk163SCsi1kulEqYug+RS3J1BzYc/8rzeM9jUj7XP0B9Z9Vq92PXsg67LMnyS
-	 bSOApMV0ux4fHw3OPT+HegkgxqlqdLgN36oIGpPyghVjrNbSHocPXOwIV2c3iEP6iDA==
+	t=1794837234;
+	b=NIrMgJwrgnGYzZqpnzfbELhgz/uxMk/33wOLI04Uz5WR8P21TQC7Vnw8zdGiRSEMV73y
+	 PcAb1cEpC+x8JWo5pSXrwi92wVk7sEwQFxvpJlm+2oQdhHG46GEWCNUNn4gfqgaX+AXu1
+	 IMhLp9jyBOudwz9P2wZQ5VzNh0zISLZDkErcWwZ/SGQlp6mjLpshtEzXUGc1r5Bm54rHr
+	 GfIQUktFyIl9NR8dCFjwpESY/UbUGU1Z+DNfqCbrxhDtoDED7eEfys7uprDk4quzkpD+0
+	 Pl58d1uT7Gort94Er1qbNCwloSi4CvUrX3D5Plf8WC21ciPQYOJHkI+d8u70vm8cbxA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794836371;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794837234;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=xUMcU6InNjFuagAC4oUc1Sj3n5LV6evCKxL3yNMP3sY=;
-	b=ZPtu9O33Jzh6jVdBt0Ug/2Fu/7xanF9MRPoHc8MRWz9NlGFZOmWrTSpHmEP+M0bbzIEf
-	 gp9ctokpLYdd1QJ/8fhP+Zm/BIUEA4ohfMF2jLlwJvxMxu5BAdyu4fFAWfVt2y7qr8FDY
-	 5f3wseQQTNlLpf4irA9g03OjI2B9uP/r5lzLbC36iD1uyZujLGrfr2qbDEOoTIfNjGy53
-	 B1CrzLnl0wNi6dMcXm9gO0u7A2gyUH3cVmwzXoq1v/Ic8oSzx+S3HX1OwbleqniHweI7Q
-	 YIQH4mQk8Jovk6aQCjFBPDn3QuBBnCqyzJs3q28DJIlT329I0dmdDTXQaFp9hIM3cgg==
+	bh=DDlc2ipa3lyHVuvf17z6/jobZjt8tJOUrFDDN7JBUPg=;
+	b=sD4zL/W9AtCVQf24z01hZ4KO9DZq4gj/TAOTUMan3LVXSx9dWIK0p/eWHNwGKo79PbTt
+	 yCm/b0AP6Jhz9BV+GYWqzozQz+TY4ckhHCxujJvAndwwZSexZsU2yCE4ilLTjvL6o673B
+	 ypn13rCSh1u7ipl4nksEyokmDjx4FRZqe3dS2Gvzu6WMbURVbMtVcmWmg3zC8wmESM2gh
+	 rdy3DqKf0mUKLqsYJwQzvL94yHEBfLWshereZNptyagu3uLNXWSaqhwcQ2EY3TdG0NXKg
+	 X2YYQofIIOv0iQ119MN3s4hPz1hFRyE4qak18894tYYZK8XsHl39A0qXn3e8pqmEnqA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HGYGTo6b;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=orxncKwf;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F429606A323;
-	Mon, 16 Nov 2026 13:39:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB3ED606A323;
+	Mon, 16 Nov 2026 13:53:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HGYGTo6b
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FD2E1F000C4;
-	Mon, 16 Nov 2026 13:39:29 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=orxncKwf
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAFC61F000C5;
+	Mon, 16 Nov 2026 13:53:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794836370;
-	bh=xUMcU6InNjFuagAC4oUc1Sj3n5LV6evCKxL3yNMP3sY=;
+	s=k20260515; t=1794837234;
+	bh=DDlc2ipa3lyHVuvf17z6/jobZjt8tJOUrFDDN7JBUPg=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=HGYGTo6bLWHgaeUm4xUr4uQoOMOqG0TNe7SFpqCFWSfw7NtmTYz/eWN02udZrzpkF
-	 qmF5ZeX/0oMTKjS0bhLrvf5ClGfObUoOjtk+DeCJAy3ijnUtTYgGe1ESCFaOS/5vrs
-	 Z++NE7sSon351PJqtsJZ1MUKZno2gYcYIzlnPjf8BFqSzizP4wbcT96D9qJw1OFum3
-	 CdJ9A3SASdhw1baMAt5YEEOkdMW49utOsAnrJQcLaSQGw+Euw1es20J54DFRnllpAY
-	 rwzvlOnMCC3P1GDLiv0l+uk74CJR6HAKiKFmkc6+SwqlPmvSXCl7MD6Z4nJMRfmlxv
-	 HvmGx1xcXOaYw==
-Date: Mon, 16 Nov 2026 15:39:27 +0200
+	b=orxncKwfJxb1Poi7aCW5qJLpiLznZFOZgYLbZKVwjOPt4pjzKtV4/RPv17w7WVzsC
+	 pZzX6H4QbeTLyWW6bkEgohhqwdIBMQ+sorzsiImhuW3QddKTMEzankDmeMMO2sCiyw
+	 G0a+efSqS+IyJGClThreYHl6e+fhE7inB5fBdVwHyPR6Yloltlgnizjtad869qD1Cr
+	 2D0VB7omtzwxeGBcJbJpBnP6mdcIrCVjmVOl1xvHXBCvuI9fOLl3+aukiVubuUQqW8
+	 pP6hZy6c6zn6o5+1MZTY2Ycv9GY9Ii/+aYQVXkBcI9PEnfWgiRNk9qdeDfTJJ3o5OO
+	 7JFuImKAgsDCQ==
+Date: Mon, 16 Nov 2026 15:53:50 +0200
 From: Leon Romanovsky <leon@kernel.org>
-To: Hungyu Lin <dennylin0707@gmail.com>
-Cc: jgg@ziepe.ca, yishaih@nvidia.com, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] RDMA/mlx5: Validate the DEVX command length before
- setting umem valid bits
-Message-ID: <20261116133927.GO11319@unreal>
-References: <20261115164658.88420-1-dennylin0707@gmail.com>
+To: Abhijit Gangurde <abhijit.gangurde@amd.com>
+Cc: sashiko-reviews@lists.linux.dev, linux-rdma@vger.kernel.org
+Subject: Re: [for-next 3/4] RDMA/ionic: allocate a PD-scoped DMA MR
+Message-ID: <20261116135350.GP11319@unreal>
+References: <20261107150249.1576835-1-abhijit.gangurde@amd.com>
+ <20261107150249.1576835-4-abhijit.gangurde@amd.com>
+ <sashiko-outbox-203825@kernel.org>
+ <2770c6d3-f595-5d6b-afec-dfa8fee30697@amd.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,36 +60,51 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261115164658.88420-1-dennylin0707@gmail.com>
+In-Reply-To: <2770c6d3-f595-5d6b-afec-dfa8fee30697@amd.com>
 
-On Sun, Nov 15, 2026 at 04:46:58PM +0000, Hungyu Lin wrote:
-> devx_set_umem_valid() sets the umem valid bits in the command supplied
-> by user space, at offsets that depend on the opcode. The DEVX object
-> create and modify methods only require the command to be as long as
-> general_obj_in_cmd_hdr, which is 16 bytes, so when the command is
-> shorter than the layout of its opcode the bits are written past the end
-> of the command buffer. For MLX5_CMD_OP_CREATE_QP the modified words are
-> 232 and 268 bytes into the command.
+On Mon, Nov 16, 2026 at 02:47:15PM +0530, Abhijit Gangurde wrote:
 > 
-> The command buffer is allocated with uverbs_alloc(), so the write lands
-> either past the internal buffer of the bundle, which normally lives on
-> the stack of ib_uverbs_cmd_verbs(), or past a separate allocation.
+> On 11/8/26 20:34, sashiko-bot@kernel.org wrote:
+> > Thank you for your contribution! Sashiko AI review found 1 potential
+> > issue to consider:
+> > - [High] RDMA/ionic: build failure in ionic_fill_lif_cfg() due to
+> >    missing rdma.cap
+> > --
+> > 
+> > commit 71ee46b9e5e60e185b9553d17b2722a569d100ad
+> > Author: Gregor Dick <gregor.dick@amd.com>
+> > 
+> > RDMA/ionic: allocate a PD-scoped DMA MR
+> > 
+> > This commit allocates a PD-scoped DMA MR via CREATE_MR with
+> > IONIC_MRF_DMA_MR when the firmware advertises IONIC_GEN_CAP_DMA_MR.
+> > 
+> > [ ... ]
+> > 
+> > > diff --git a/drivers/infiniband/hw/ionic/ionic_lif_cfg.c b/drivers/infiniband/hw/ionic/ionic_lif_cfg.c
+> > > index 66cee57442e7a..dcf54856603d4 100644
+> > > --- a/drivers/infiniband/hw/ionic/ionic_lif_cfg.c
+> > > +++ b/drivers/infiniband/hw/ionic/ionic_lif_cfg.c
+> > > @@ -95,6 +95,7 @@ void ionic_fill_lif_cfg(struct ionic_lif *lif, struct ionic_lif_cfg *cfg)
+> > >   	cfg->rq_expdb =
+> > >   	    !!(lif->qtype_info[IONIC_QTYPE_RXQ].features & IONIC_QIDENT_F_EXPDB);
+> > >   	cfg->alloc_qid_cap = ident->rdma.alloc_qid_cap;
+> > > +	cfg->cap = le64_to_cpu(ident->rdma.cap);
+> > >   }
+> > [Severity: High]
+> > Does this break the build when CONFIG_INFINIBAND_IONIC is enabled?
+> > The rdma struct inside union ionic_lif_identity in
+> > drivers/net/ethernet/pensando/ionic/ionic_if.h has no cap member.
 > 
-> Fail with -EINVAL when the command does not cover the layout that is
-> modified, as devx_handle_mkey_create() already does for
-> MLX5_CMD_OP_CREATE_MKEY.
-> 
-> Fixes: ba1a057da2f1 ("IB/mlx5: Set valid umem bit on DEVX")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
-> ---
->  drivers/infiniband/hw/mlx5/devx.c | 44 ++++++++++++++++++++++++++++++++-------
->  1 file changed, 37 insertions(+), 7 deletions(-)
+> Patch 1/4 adds __le64 cap to ionic_lif_identity.rdma (replacing reserved
+> bytes). Patch 3/4 uses that field, so the build succeeds when the series is
+> applied in order. This appears to be a series context false positive(?)
 
-Thanks for the report. We are aware of this issue and are working on a fix.
-
-Unfortunately, the proposed solution would require DEVX userspace applications
-to provide a size that is already known to the kernel, preventing us from
-extending these structures in the future.
+I don't know, maybe because net patch was involved.
 
 Thanks
+
+> 
+> Abhijit
+> 
+> 
