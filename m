@@ -1,55 +1,53 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794834887;
-	b=2aUXQgz6Z5MTtMoF28SOoYIhzLhHSR940Loy1lnFuhODv3aCBQXi1A/fU86dm0vPO9pA
-	 YY4OnFz+vQyfJ4HIdseaEGRPWp+ebReE0IlVYU4gSvvIywUxjobw937ss0WcYdqtNJtqn
-	 Sa/Uo7wPczDUReqBQzSIAWz/I0CMA1mjTt6MEhSJH1oVa+3Jk44u1Me349sQajocr4jhp
-	 wTcz6BZn9XYSMXSgw8aPPvgPko1Dnpn+Ph+03Gtebi1LYsVgn22cCKiyLsjdHG75PltqH
-	 cAdv288vQoJQrdPWLhcjNvGm7Pg5ksghd2pBbo9HEwr9dlCfF9e4j40SeeRNjAh+ZJw==
+	t=1794835330;
+	b=nbU6CjHw0S59HhURWGNzDsCaIGtf1ZuSr/83+5ciKoqRkY7TV5vMEUv+zH6SXaldQUwd
+	 cNXpSDS+TWVPqo5bJlSUSPQ6IeH7jnP4PPZAQufN5/RjjDlfAul9rd16UeI65e/y4pygx
+	 2DL10yIGXFj/heaiogp9G0lgzSKILkgp8xVFQshCW8O0BlbomkCciHwV/1wj7MBneR+ii
+	 Wui/OS51mflydA05f99PyV3S7PIYms1maf+RwXZA7sYGCQI7mD+m0W8q5SOfKxzcXANpZ
+	 RAFTNXo/guCLYElapSRKxI8Y0/mig5m7u4q117kOmkKVAHWYzN+s4nDAtd8aN7rfCAA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794834887;
-	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
-	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Mailer;
-	bh=3hirdn1ro0djCVlQQKXkvf5JdzfsLtqB3OGNT1PcbsM=;
-	b=Uyz3CqR6kpHPsFbsmnXSNhthSzDOrYOrwv/D38jkUqMn0trte5cBsxBYxAgxFxmnszXl
-	 9nXHKp1ESgAV7JS6kNJiRS047r1ugciuh1AI/1dMedxvcWhjOIVdoCCOLraoi00oSFKDK
-	 diRlkjY6PXxDABn6ddh9A7O3fyCqkwp5OslAZPwHdiMnenA9Lub9dZlN5ANTh//6fP31M
-	 e63d2s70GBpJniCy44cx0XBEp/he5XtkfRrNGFw+nzXe4MReJVuJgTG1Nzlpm8W2FEXXS
-	 F+Yc7OZNJNnVHJ82AXjWKhIaUk9keBhMU1Sp/FpTapyYOaAZDV/zWrPNdLrJkTUZUTg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794835330;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=knm4G4gK01CY59iwSKeed9szB97/Ep0vOE3ggzYBduc=;
+	b=TbAiBMF5GZlAH6rXJt4o2oqPSgHdQga7OwM1/woc1CxYBBpsmTU3SXaYUuB3XthiRlDq
+	 xEYKycdePhP6WGgHvWLgMjygiUQxBtNxy3Q8nLIqekIiekJuin01NPNauJikoyAP5o75f
+	 sBeW0Az4Bp3sQrQi9KPa+OuqLE5HKENNUqE9H7ASflEMZIC/raQfjddWiyongnT4kcUkz
+	 bon8LupbsRSX5LNiFCR1BkQzM70Wb1KdnfxhG9sKZV/3H3K+bfCXAMVD7uA3R33D8H/+H
+	 zdPTRNEQxZrZ8JhSnoJEjFloknmEQbER7aoYpHNfXAI51mt9Lg0PthNKRhkxHtg9Jsg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LDxTYuKI;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JeBTCDuc;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DA36606A31C;
-	Mon, 16 Nov 2026 13:14:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73AAB606A329;
+	Mon, 16 Nov 2026 13:22:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=LDxTYuKI
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D3621F000C4;
-	Mon, 16 Nov 2026 13:14:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JeBTCDuc
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61AED1F000C4;
+	Mon, 16 Nov 2026 13:22:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794834887;
-	bh=3hirdn1ro0djCVlQQKXkvf5JdzfsLtqB3OGNT1PcbsM=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=LDxTYuKIAdZ7MbnpCOdCv5k8aVqa1Z8DqAVuHldzPx95hY4mBut5Aynr1A3sc7XRb
-	 LzM0j7n0N/lhox/PNP+GyCjiL06svJe7CPRhzTYAqsfivuy8AC9w+Mr0y7sd4nD51M
-	 sPFpjtnro7blkgNPgtulRvSIzRLByxRWYwa//jmxqcv9p8+1BAjPfmXgqJ3V6DA+PU
-	 l68mmt6JmZ/Nwd6uYWdYDyG/qQoMrbHhCZ1PR9AyAoEwi27nPaJIYS0wCIl6fe2pnN
-	 RofDqqLBVspBM/w5MsmHzciHLdEwkk8WODba/TUBpUiUZceQenTkhSkS+dPk+mmyK2
-	 KFSYzh+DKT3Gw==
+	s=k20260515; t=1794835330;
+	bh=knm4G4gK01CY59iwSKeed9szB97/Ep0vOE3ggzYBduc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=JeBTCDuctffnLKDP3Vu9toIePLQpnOu889BO/bAZtGRRCOFuhaNipuoKNs8Mxxbhd
+	 reRKnkO7ANWMPvsfKB6txBxr1BMTbYQBwypnPHvNgp6m2TzWj/g1I4OIT9r4ebSgEP
+	 4zwS7zXPCLH12GXNlR5E8kf8cLl3e0L8pMwOYa1Pa/muA41+//c4sPGV5W8ecBfq7U
+	 ILSeMcXff6FKbEno/G3rLVmJ4BKzA5Mnlj2vbkbtQl9rMkJksw2d8Q+kqLYPLtwf1q
+	 3tRL4BciO4X05X+bHA0SYTjSec4LpftGVtiWp4xBA+2b5WLspqV0GhhfoT61rDpmXC
+	 xqNpowK4L4bLg==
+Date: Mon, 16 Nov 2026 15:22:05 +0200
 From: Leon Romanovsky <leon@kernel.org>
 To: Hungyu Lin <dennylin0707@gmail.com>
-Cc: jgg@ziepe.ca, raeds@nvidia.com, yishaih@nvidia.com, 
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <20261115085025.53203-1-dennylin0707@gmail.com>
-References: <20261115085025.53203-1-dennylin0707@gmail.com>
-Subject: Re: [PATCH] RDMA/mlx5: Fix cntrs_max_index overflow when binding
- flow counters
-Message-Id: <179483488424.1365560.10721404495022974325.b4-ty@kernel.org>
-Date: Mon, 16 Nov 2026 08:14:44 -0500
+Cc: jgg@ziepe.ca, maorg@nvidia.com, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] RDMA/mlx5: Check the DM type before mapping a MEMIC
+ operation
+Message-ID: <20261116132205.GM11319@unreal>
+References: <20261115104342.56112-1-dennylin0707@gmail.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,28 +57,68 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261115104342.56112-1-dennylin0707@gmail.com>
 
-
-On Sun, 15 Nov 2026 08:50:25 +0000, Hungyu Lin wrote:
-> counters_set_description() stores the highest counter index supplied by
-> the user plus one in cntrs_max_index. Both are u32, so an index of
-> U32_MAX wraps cntrs_max_index to zero, and the entries after it can only
-> raise it to their own index plus one.
+On Sun, Nov 15, 2026 at 10:43:42AM +0000, Hungyu Lin wrote:
+> MLX5_IB_METHOD_DM_MAP_OP_ADDR accepts a handle to any DM object and
+> converts it with to_memic() without checking the DM type. The handle can
+> refer to a SW ICM object, which is a struct mlx5_ib_dm_icm and is
+> smaller than struct mlx5_ib_dm_memic.
 > 
-> mlx5_ib_read_counters() uses cntrs_max_index to check that every bound
-> index fits in the output buffer before it runs
+> The handler then uses the ops_xa_lock, ops and ref members, which are
+> all located past the end of the mlx5_ib_dm_icm allocation, so it locks
+> and modifies memory that belongs to other slab objects.
 > 
-> [...]
+> Return -EOPNOTSUPP for DM objects that are not MEMIC, as
+> MLX5_IB_METHOD_DM_QUERY already does.
+> 
+> Fixes: cea85fa5dbc2 ("RDMA/mlx5: Add support in MEMIC operations")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
+> ---
+>  drivers/infiniband/hw/mlx5/dm.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/infiniband/hw/mlx5/dm.c b/drivers/infiniband/hw/mlx5/dm.c
+> index 7a6fe4fea3e2..16e42fd6c802 100644
+> --- a/drivers/infiniband/hw/mlx5/dm.c
+> +++ b/drivers/infiniband/hw/mlx5/dm.c
+> @@ -213,6 +213,9 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_ADDR)(
+>  	int err;
+>  	u8 op;
+>  
+> +	if (dm->base.type != MLX5_IB_UAPI_DM_TYPE_MEMIC)
+> +		return -EOPNOTSUPP;
+> +
+>  	err = uverbs_copy_from(&op, attrs, MLX5_IB_ATTR_DM_MAP_OP_ADDR_REQ_OP);
+>  	if (err)
+>  		return err;
 
-Applied, thanks!
+I applied this patch with the following change:
 
-[1/1] RDMA/mlx5: Fix cntrs_max_index overflow when binding flow counters
-      https://git.kernel.org/rdma/rdma/c/4583abff319acf
+diff --git a/drivers/infiniband/hw/mlx5/dm.c b/drivers/infiniband/hw/mlx5/dm.c
+index 6a1971b9627b1..7d1e642a8d4c9 100644
+--- a/drivers/infiniband/hw/mlx5/dm.c
++++ b/drivers/infiniband/hw/mlx5/dm.c
+@@ -208,12 +208,13 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_ADDR)(
+                attrs, MLX5_IB_ATTR_DM_MAP_OP_ADDR_REQ_HANDLE);
+        struct mlx5_ib_dev *dev = to_mdev(uobj->context->device);
+        struct ib_dm *ibdm = uobj->object;
++       struct mlx5_ib_dm *mdm = to_mdm(ibdm);
+        struct mlx5_ib_dm_memic *dm = to_memic(ibdm);
+        struct mlx5_ib_dm_op_entry *op_entry;
+        int err;
+        u8 op;
 
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+-       if (dm->base.type != MLX5_IB_UAPI_DM_TYPE_MEMIC)
++       if (mdm->base.type != MLX5_IB_UAPI_DM_TYPE_MEMIC)
+                return -EOPNOTSUPP;
 
+        err = uverbs_copy_from(&op, attrs, MLX5_IB_ATTR_DM_MAP_OP_ADDR_REQ_OP);
+
+Thanks
+
+> -- 
+> 2.43.0
