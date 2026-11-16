@@ -1,107 +1,142 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=67.231.153.30
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794870031;
-	b=eJ7s1p7c77b4qUcpTAQgBTZXaTOIiTxvQz6vWwSN/QtFl3/qRT7h5odhbRDv+eJmZsOo
-	 oH4a2/qnBhSUlHcuyWQeW3YHYUXDjINlcZZWEh65STA1ZdxtNPGTPNSi0u0H7cqsxYBpe
-	 toulpwKocf4g0e53IrPdtxAAwVhAnz7t5xkuGMuseqn0kWi7KVGWn+JrIr2IJDzQ76p5N
-	 Z17rz4lQYxhqLQk9O525TJaxObZAYDLsQIkbc0vWndLWIbpWqdvrFrRwq1jqQSx6G3R2M
-	 p3CZgCi4J86OOGBhcF2blf9dLmafiVEKktrhp8Cf48JkStsmSeWlHWObLbzm5vDePag==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794870031;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 X-Google-DKIM-Signature:X-Forwarded-Encrypted:X-Gm-Message-State:
-	 X-Gm-Gg:X-Received:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gm-Features:Message-ID:Subject:To:Cc:Content-Type:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-GUID:
-	 X-Proofpoint-Spam-Info:X-Authority-Analysis:X-Proofpoint-ORIG-GUID:
-	 X-Proofpoint-Virus-Version;
-	bh=BCHVgfl79qsgOh8V2QC+/phw3otd9S0rQogMC77mTS4=;
-	b=Y/7XPUlNPQBWyKGcTGwfAidObvjzFscuOPrDPV23re2yMv4owpcY9zZBsjx12HB0gI4H
-	 95rzz4gfmgJlBa68A7mqa7jWlzMWHlMn92LW8VIWcQ84h6NNUSrz8fZ7xjqrIWXRySUkx
-	 rYq74ZBNEYgbW73oBs0V8zogb+6As85XSRkGH6px8SrNPsd5wRlE1ZzMqXQINmbsun4l2
-	 jiyHHyftDQSuS/lleb+W6U3AjoeG4iSzGVLroDIDBQ2dD7Llnw18VGXj8tYPPKXR5r5pY
-	 wbL2dYvgmKbbbZ7i0+Zt8HK7KwGEd7UMlxMsxrnh5sBCd4jSczimK6qRWXL8jAc6tmg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=meta.com;
-	spf=pass smtp.mailfrom=meta.com;
-	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=bqSqU6yF;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=67.231.153.30
-Received: from mx0b-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.45
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1794870407;
+	b=K6ppRyVHsmekU/ATxn7ylnw3g1wdxfRLjpVAJ3PQNN+sYSLSoFzWuLjqQ4QMJ2GdzSiE
+	 6t4GpsQeAiuKOlqWwkQqcFsCnzXOpSlVLMHMZdNNf1zIlgCCcAQmaW5YIQwCKO9vOmViF
+	 RJlv2H5IzClabl0YhqjnW+bmFiCvcvyPQ+tJ/0tszqjW1lYO0Pc58gZaV1tQy1J3CAa1q
+	 T/VjV1D/pAyZ6tk/1mn2a/eGDvQKufEab9C8Fkc/Qm8sNyh1OsfSQi3NFDZNbcoPu+WyP
+	 jxSlxxs/YhAu8liVdal4TbKm62o/FXEWhxFyEuo1SzeaQpj+W0mKvHZ6EoP7QbqRFYA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794870407;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=TIKThpPDZ4NJSXYRfFfOL841Z/zWYVoqxjZupCxQAek=;
+	b=HZdEJdb0fZK4TRrk92Qc5538E5fug9HSNFlhMQYNKEIvKWsna0TEFSqAWQvP88SOKVOL
+	 swmEnvUWE8Tw9NDnSu9KSxKIBT7JeU8VGV9lnw49tBKKNheU4Nmqptu9xXKwl5yyCERue
+	 2qBrh6mYKbP3ky3Bpsb45z7hiP2IpNzWArxbn+Ywl0dlvOscO3Ctrzi7nO9s/ZId+3iiP
+	 NIhVXPfhuPFy36AoqURKNIUmQ+sIv711AzrAgtY34sGXwSh6k4PLVwpVL68g/KYEx5jkq
+	 n/kPxTYBgpQRH/UuV64KJ2tcHLexkwrJA6cF0D/u+2x4zrfc00hkUT47YKIX+6kLung==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=chromium.org;
+	spf=pass smtp.mailfrom=chromium.org;
+	dkim=pass header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=nB6j1neL;
+	arc=none smtp.remote-ip=209.85.216.45
+Received: from mail-pj1-f45.google.com (mail-pj1-f45.google.com [209.85.216.45])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 550F3606A329
-	for <linux-rdma@vger.kernel.org>; Mon, 16 Nov 2026 23:00:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 550F3606A329
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 639E5606A33A
+	for <linux-rdma@vger.kernel.org>; Mon, 16 Nov 2026 23:06:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 639E5606A33A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=bqSqU6yF
-Received: from pps.filterd (m0528006.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AGM2Hfj2324162
-	for <linux-rdma@vger.kernel.org>; Mon, 16 Nov 2026 15:00:29 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pps82601-s2048-2026-q3; bh=BCHVgfl79qs
-	gOh8V2QC+/phw3otd9S0rQogMC77mTS4=; b=bqSqU6yF6qU3K0lBCnujplBnoj6
-	Qk04NCwjHPY89A0kUMgZtt+BMSnHZZMbjJQjUfXSzYh5Rl2q6WmEZGiohyprZ/uK
-	0Kqe7TUQiVFp6yOTrdaSP049p3IvIPaw7y+dJL7qKbHtdYYUSqQmeTFpAB8X+3f+
-	ET32GeE3PKZduCdi6ipMtFApojz8LlJYmXdq4PzaYQuCXxVbRdGTC88PNbebbR9S
-	b9GjBWYtvzkNTkjsDZ+lSj12/5ZbOh0dwt9I0ENG3loyFGBqOnytPf5rM0td7IZu
-	iME6ei8GOC9CAZDOvKPUffcdZVdcE2zIxNWapMTB+2v4zIUjWcdL9vCjSOA==
-Received: from mail-pf1-f197.google.com (mail-pf1-f197.google.com [209.85.210.197])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4hy95pa5ft-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-rdma@vger.kernel.org>; Mon, 16 Nov 2026 15:00:29 -0800 (PST)
-Received: by mail-pf1-f197.google.com with SMTP id d2e1a72fcca58-8b7cc3f8a4aso2505542b3a.3
-        for <linux-rdma@vger.kernel.org>; Mon, 16 Nov 2026 15:00:29 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794870028; cv=none;
-        d=google.com; s=arc-20260327;
-        b=itPUPCbEjLav1siLul7a+yQVxpW6CSS3rq1NIt2uNJbBqQ3PCIl7KMnx+AIcor1ltI
-         kikuaDyUFoD1B3k63EiE6vw6VTWkpeJUJ02tXYs4vVWExwO/WSCRhK+VzDfaQF/lGgwF
-         7GG3OEvmIm8bJmiieztvw0FJrpi6Xyq6mz86wDKmsLfrg8AbV8mZ4IWvtmJY4KDBBIJK
-         1+p7PaVW/x3SHSjfG+uJ2br4qieWc3CIfSxxyDF1vf4UyrKar1DvChyYVS9br9UIVoSM
-         CzYEpXoKG2nN9EYPLFvU5xx2D9IaoX3CZ/656iRr5Eo0hVBaP5uf6osUzhDGBBqYbIE+
-         +ISw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version;
-        bh=BCHVgfl79qsgOh8V2QC+/phw3otd9S0rQogMC77mTS4=;
-        fh=xyM8kJLVZKxzSU+2izcLNzE1c6FuYHQinGM5Dl21DEE=;
-        b=muZHxen4oooQFiSZTvIcAlb6XusoDPLGhFJ2NJEnBOjX85dOwmesJBCqIBP5c1ACmE
-         p63e1w3I+Ha0iwvRPmjoj+pfekVRgxpPVjZv7fZ8n7ZgrysvVSMF6Z+H2Wpfqhz8bp+f
-         JwrX8yADQ+mmLYV1eAR59LC/DyiFr0zDfRV/MLbF9RG15bK3nG19vIRtO8/Xgxt/jzQX
-         mv6Iug0uuvwoBAqqy6vBgQPSas3up/nhhMYusrGwm0fxsCJfy61e5kCtT4xmGbfHkx/x
-         Y4ACSJ9lBu2n8sFWq0x4GqYZXIm0KsITivNBDSYdbAXsdLqvtJSpvnkd+CQRCZ0wMQyg
-         gNkQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=nB6j1neL
+Received: by mail-pj1-f45.google.com with SMTP id 98e67ed59e1d1-3b18bae2d56so594557a91.1
+        for <linux-rdma@vger.kernel.org>; Mon, 16 Nov 2026 15:06:46 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1794870405; x=1795475205; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=TIKThpPDZ4NJSXYRfFfOL841Z/zWYVoqxjZupCxQAek=;
+        b=nB6j1neLP6BTtlE9eLU58Dg5+zZMn4yWSoSY1E5fQMLVTWZoksrY3sjPGHmbYPREpg
+         ytJ+72GHTehAS6Wr+r8k22lsqzsa628Lo4lNDr8CXApne874lOtsHkT8m5QllOm67Lh2
+         7S6cydkvakpwx9YFJkw3cPcJyo2mAAFXh34Cw=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794870028; x=1795474828;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=BCHVgfl79qsgOh8V2QC+/phw3otd9S0rQogMC77mTS4=;
-        b=pQ8vz6LifiQeWr+GjByrM7ylqBgzgGlohSfZuiCIh0j3jqoc40Iz3zfUXPbIE6hCXi
-         uP20PWe/YGnqBu/YeKV3TG6r/QLgGXja/GvHgkOpQNr7txyEWXobE7ablpVmNfxtc4Hh
-         h6csf/LL748HOfCjCvQWSqGhVWLRMBmPECCcDScdkRc/VR2NW/vuMdW2nq0WFkOLE4Tj
-         1znM1DKVYXA5wiG6VaUnySIEPAcfRoV/023Xek+FHhrNGR3EE6eHftHvZM6vUaqI4eJL
-         a9aLr/YiKgPvDfeEl57nhK11cqEr45MsKKAjy98cH0fO+XHIG4t+rQEmMkO8xplKVhFs
-         ImFg==
-X-Forwarded-Encrypted: i=1; AL+hErEO8Ed+kPpw/TDVHIQ4vfaoCXBTYtv/ws5Q0VrIxMYZMdXF5P7NOaadQhIPJxoy6qIB3kCfGEHMcNNt@vger.kernel.org
-X-Gm-Message-State: APuU4Z+LcSA7gA28YaxLJ+IjxzxHdQozns3Ue3sonhx+C6CsScMx1lcD
-	deqrGlngckBSJLdGfEeRfuBaxDiQCmM/fhwaC1P04kphIrulFuovAWJNCAZWdqu8GnXc3JC1j7K
-	DWmwFlwOk+YgfZ0f5NdX/vRu/nzUIipFLvZ2i9CJdg0B4xbW181zkgGduA2eyF0uBl4Mip/QzZa
-	wW6icCmCG875qj5bWojshScc+crfmtPZCZ/IUM
-X-Gm-Gg: AYBFou27OqQwMGid8atPIXXkJcNMLOANUfnOQN+gzEtWzfKEuWfmv6+0mQYFM0ZBEnT
-	map4FwjXOifuEv6vvObPE6BkecUB3KxmzSQ64P09s/j2nXzg8VNdK8qCYcM18/4AzuhAa6KFmeE
-	bwFpKRg4f7Op3EDr8qbDi5BXwn3ukr93/hBEHbnY/wjHQiUsPF7Y3jLJ8d5jLtZBu/ZqXc3jh6f
-	BAGGQvWf3WR49nRafEFwOpwV6GEhO7rAEwikEWNjl5HTww4qqc=
-X-Received: by 2002:a05:6a00:2d1e:b0:881:be70:4490 with SMTP id d2e1a72fcca58-8beb6193d24mr11011935b3a.28.1794870028047;
-        Mon, 16 Nov 2026 15:00:28 -0800 (PST)
-X-Received: by 2002:a05:6a00:2d1e:b0:881:be70:4490 with SMTP id
- d2e1a72fcca58-8beb6193d24mr11011901b3a.28.1794870027525; Mon, 16 Nov 2026
- 15:00:27 -0800 (PST)
+        d=1e100.net; s=20260707; t=1794870405; x=1795475205;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=TIKThpPDZ4NJSXYRfFfOL841Z/zWYVoqxjZupCxQAek=;
+        b=cteLPq3+dW+obYATu3aWOSWnaJf2Ow07UqsmzGAMJthfO4rLIuinWM1DCcuJxHF0jt
+         eud47cRH7FfTIkUnQRf0f8Icm8e+OU6BZaf4SsApaP6kc4qVJUyml8W/SqlhuV6zMtPd
+         /6xR35I6UdhRiY7vfYP9M+aSMEE0MH2FRqJyFOqRqjf3qBOnKtlKTCGYYzApftrUqeMm
+         FfIz6FOPqshVjN8MaC2TWs+vGVRNscCz3lTmVSD3YIXjAxrnaoKfZwu36+ue/U4zLLhC
+         fQBeUaiDkG/8Iqjwq7fJYbgIp0S/2442MCVMOmF9i1cgUsBbhGcEsyP4Uh0d4hYtgVHe
+         0fxA==
+X-Forwarded-Encrypted: i=1; AL+hErHK+TfsIJX9uUbV2i1hQ8tq/AUh0bAIPUnCg8lk0ywGzaEmLwT5AKgpmRneTJJFyI6XLPr+ruKunPO0@vger.kernel.org
+X-Gm-Message-State: APuU4Z9EjPLyNdr4Cr0VLxN6zi7Xz1pgJHRnfZSjAF6FYcPlbwH03hDN
+	BBtJDsV0V9PvSY99dRy+IP41hgSl2xUb7AsYC6Gm755zpLngPFj30T8uHi1EJA2aTA==
+X-Gm-Gg: AZFdTZcH+wlOziu4KQZbcWX8QOvGYy5+NdZHTqrZwGau2A/EydYQeTqX18XpD0sJCod
+	YI5TOSM3lwNM/ZpMdNFm89OIASYgsQDR7p5at/cjdYiqPw6eVpNxeVwCicnrKLTcyGBj8ZhTQoA
+	FVSDNkTJX5/LiYfXzMHpJOmLSQhHPGiO6O2qSyK6DqYc4Gnpjn4sfOpQZJBYlhfGRZn/0HpDIGx
+	FmAMa8yP8L2Ow5UMusdgsmqOaFqfaphSPoSBg+P/4m9POkbJ7QgK8suoAl8jpcfGiceegziwVaj
+	DP1D50YyH6sqQS/7k4Fx30GTqptb4/EQtZRKa4VK55707ikya8OwNynDrhH3sGE/XEUS9PahhRP
+	b3Zplt1WdXFqGMWIfOlwV41KCa36MaAGxhZWwO8mEFFwoWQy1vXBN2uwuJyY/vAN8nrKyd95yR+
+	zA2bPhplVUWObvvur+brjVqoCTUObZicUeBjtGSmaqoE4d4HYZItn7LOyzJ8KOmTSA0Wq6nqS2+
+	/e0VcJ4mTVz7QXVMZsMoWmtjctXZXB8Ye5bax4VWPUyyxR1PLsx2Ndbhrz3u24HB2CghW8fPn8X
+	aB1rVGxiU0WxL1q//LjqBhn5w3zpI2skH9Z46LGlC+d9wvA6i1sK87Ozstt6ba/eTW3psriEjcG
+	3I9Vm2DLbTnTDCXNO
+X-Received: by 2002:a17:90b:5546:b0:3a0:238b:db4d with SMTP id 98e67ed59e1d1-3b1b0a49be1mr17581397a91.5.1794870405500;
+        Mon, 16 Nov 2026 15:06:45 -0800 (PST)
+Received: from localhost (221.247.125.34.bc.googleusercontent.com. [34.125.247.221])
+        by smtp.gmail.com with UTF8SMTPSA id 98e67ed59e1d1-3b1b3b110c0sm9530818a91.3.2026.11.16.15.06.43
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 16 Nov 2026 15:06:45 -0800 (PST)
+From: Jeff Xu <jeffxu@chromium.org>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	David Hildenbrand <david@kernel.org>,
+	Vlastimil Babka <vbabka@kernel.org>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Jeff Xu <jeffxu@chromium.org>,
+	Lorenzo Stoakes <ljs@kernel.org>,
+	"Liam R . Howlett" <liam@infradead.org>,
+	Mike Rapoport <rppt@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>,
+	Brendan Jackman <brendan.jackman@linux.dev>,
+	Zi Yan <ziy@nvidia.com>,
+	Alexander Potapenko <glider@google.com>,
+	Andrey Konovalov <andreyknvl@gmail.com>,
+	Dmitry Vyukov <dvyukov@google.com>,
+	Vincenzo Frascino <vincenzo.frascino@arm.com>,
+	Marco Elver <elver@google.com>,
+	Boris Brezillon <boris.brezillon@collabora.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Chia-I Wu <olvaffe@gmail.com>,
+	Dev Jain <dev.jain@arm.com>,
+	Evgenii Stepanov <eugenis@google.com>,
+	Ian Rickards <ian.rickards@arm.com>,
+	Jann Horn <jannh@google.com>,
+	Jeff Vander Stoep <jeffv@google.com>,
+	Jeff Xu <jeffxu@google.com>,
+	Kees Cook <kees@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Peter Collingbourne <peter@pcc.me.uk>,
+	=?UTF-8?q?Pierre-Cl=C3=A9ment=20Tosi?= <ptosi@google.com>,
+	Ryan Roberts <ryan.roberts@arm.com>,
+	Tomasz Figa <tfiga@chromium.org>,
+	Will Deacon <will@kernel.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Jan Kara <jack@suse.cz>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Baoquan He <baoquan.he@linux.dev>,
+	Pasha Tatashin <pasha.tatashin@soleen.com>,
+	Pratyush Yadav <pratyush@kernel.org>,
+	Allison Henderson <achender@kernel.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	linux-mm@kvack.org,
+	kasan-dev@googlegroups.com,
+	linux-arm-kernel@lists.infradead.org,
+	linux-fsdevel@vger.kernel.org,
+	fuse-devel@lists.linux.dev,
+	kexec@lists.infradead.org,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	rds-devel@oss.oracle.com,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v1 0/7] mm: kasan: skip KASAN for GFP_HIGHUSER
+Date: Mon, 16 Nov 2026 15:06:20 -0800
+Message-ID: <20261116230627.3537051-1-jeffxu@chromium.org>
+X-Mailer: git-send-email 2.56.0.679.gc527c65306-goog
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -111,70 +146,126 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261111001831.3710881-5-toddfreed@meta.com> <179472727079.2199510.11728930190494845454@kernel.org>
-In-Reply-To: <179472727079.2199510.11728930190494845454@kernel.org>
-From: Todd Bert Freed <toddfreed@meta.com>
-Date: Mon, 16 Nov 2026 15:00:15 -0800
-X-Gm-Features: AclHuK8U0c5vpo9LrE-LUBEl9Mos_YCScdKBQ9e4Pj3NM_Kna-AkoWmo3RzMn5g
-Message-ID: <CADh2yMz==oX8OMx+dqNXort+h4vUFF6LHLWmaZJMTzoW0f+Jvw@mail.gmail.com>
-Subject: Re: [PATCH net v5 4/8] ipv4: icmp: don't quote decrypted payload in
- icmp errors
-To: netdev-bot+sashiko@kernel.org
-Cc: netdev@vger.kernel.org, davem@davemloft.net, andrew+netdev@lunn.ch,
-        bjorn@kernel.org, borisp@nvidia.com, cratiu@nvidia.com,
-        daniel.zahka@gmail.com, dsahern@kernel.org, dtatulea@nvidia.com,
-        edumazet@kernel.org, idosch@nvidia.com, kuba@kernel.org,
-        john.fastabend@gmail.com, leon@kernel.org,
-        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        linux-rdma@vger.kernel.org, mbloch@nvidia.com, pabeni@redhat.com,
-        raeds@nvidia.com, rrameshbabu@nvidia.com, sd@queasysnail.net,
-        saeedm@nvidia.com, shuah@kernel.org, horms@kernel.org,
-        tariqt@nvidia.com, weiwan@google.com, willemdebruijn.kernel@gmail.com
-Content-Type: text/plain; charset="UTF-8"
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE2MDA5MSBTYWx0ZWRfX/35vgZyVQtle
- HQIr9oq94mKRDQQhad3v8t4H8Bxlnn/Mc1DcDV+lQMXLIGZ8cmlByu8Zs72XRQevK6wMino9cQB
- 17JdvBcQVjqGm/WIbV5Mij639B7trKOsAn8UbcqV7xOHO9UBoh5nrmTKImRxBORlPEmJzcpzj40
- d/AxQXUVmzDUv0R1ILA7RjSv3sXz3fplcl10mIbOvYlKAWI6lLLvbA4fW981Nl83IyEApwNA93Y
- VpmwUtTJNFHs79iDWTxt2fG/GNzxeFOutYhiPTW8cJXGOtnmaly+hYO9Vg0gOXr3D8FskObWQlA
- ngQBpW2NVnzJGC5P6PHdjkchVfvtyMgrIH8Nv8N+OG5KeQMXbhbfAprPfFwF9kj0Sawf513mpc+
- eGB0hVHqBOUJi4kvScfU18HRdxTFtQ+R8VAqkhNMheuqqK6oRtlTXHRQ+GS8owL+9YJPXnnyc47
- VUlTD3rT9NyazSdl4QQ==
-X-Proofpoint-GUID: KL2r-SgApjdtkh77tI2N3Jx4LV-v1FpP
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE2MDA5MSBTYWx0ZWRfX5yAD6L1csX5B
- LL7JtF/OxQE3U8A0wp5aru74kR7HlRZMfoejzAUSHJNlmrmfRK6yjiuWp0OmZDsm4dLb6QT1fCe
- QomROOMXiKY7rS6YOaM2vICVa6fMk/w=
-X-Authority-Analysis: v=2.4 cv=Yuea1IYX c=1 sm=1 tr=0 ts=6afb8b0d cx=c_pps
- a=rEQLjTOiSrHUhVqRoksmgQ==:117 a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22 a=kkcUborcUVj0H7zxAXTl:22
- a=voM4FWlXAAAA:8 a=-ThzyT3jwNi3vWZZJl0A:9 a=QEXdDO2ut3YA:10
- a=2VI0MkxyNR6bbpdq8BZq:22 a=IC2XNlieTeVoXbcui8wp:22
-X-Proofpoint-ORIG-GUID: KL2r-SgApjdtkh77tI2N3Jx4LV-v1FpP
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-16_06,2026-11-16_01,2025-10-01_01
+Content-Transfer-Encoding: 8bit
 
-> [Severity: High]
-> Does this check cover every reject path the commit message names? The
-> commit message says:
->
->     a reject rule (iptables REJECT, nft reject) sends its icmp error with
->     icmp_send(), through nf_send_unreach(). so now, a received packet which
->     the device decrypted, and which hits a reject rule in the INPUT or
->     FORWARD chain, is now dropped without a reply, like a drop rule.
->
-> That is true for iptables REJECT and for the nft ip and inet families.
-> The nft netdev and bridge families are different. They build their own
-> ICMP error and never reach __icmp_send():
+Hi all,
 
-This is true and I will improve the commit message in v6 to explain
-this more clearly.
+Currently, GFP_HIGHUSER_MOVABLE includes __GFP_SKIP_KASAN (commits
+c275c5c6d50a, 70c248aca9e7, and 0a54864f8dfb), allowing movable
+userspace page allocations to skip KASAN page unpoisoning on allocation
+and poisoning on free under CONFIG_KASAN_HW_TAGS (ARM64 MTE). However,
+GFP_HIGHUSER does not include __GFP_SKIP_KASAN, even though it shares
+the same kernel-accessibility contract in include/linux/gfp_types.h
+("for userspace allocations that may be mapped to userspace, do not need
+to be directly accessible by the kernel but that cannot move once in
+use") and differs only by !__GFP_MOVABLE.
 
-> Should the check also go into nf_reject_skb_v4_unreach() and
-> nf_reject_skb_v6_unreach(), or into their callers?
+Moving __GFP_SKIP_KASAN to GFP_HIGHUSER addresses the performance issue
+below (following up on the earlier drm/panthor discussion [1, 2]). The
+swap issue from that discussion is not addressed by this series:
 
-These paths are covered by the netfilter-next series "netfilter: don't
-send decrypted skbs in clear text"
+1. Performance: For every 4 KB page without __GFP_SKIP_KASAN,
+   mte_set_mem_tag_range() tags all 256 16-byte MTE granules (via
+   STG/STZG and DC GVA/GZVA) on allocation and again on free. In
+   graphics and UI workloads, DMA-BUF (system_heap) and DRM/GPU
+   (shmem/TTM) buffers use GFP_HIGHUSER; while steady-state rendering
+   reuses buffers, window resizes, surface transitions, and app launches
+   synchronously allocate and free tens to hundreds of megabytes (~32 MB
+   per 4K RGBA frame) on UI/compositor/render threads. That takes a
+   significant share of the 8.3 ms (120 Hz) / 16.7 ms (60 Hz) frame
+   budget and thrashes CPU data/MTE tag caches (especially on
+   cold-cache free). On Armv9.2-A, skipping KASAN cuts ~32 MB DMA-BUF
+   alloc+free latency by ~80% (~98% faster close()) and improves the
+   OpenGL score of an app-loading benchmark by 15-23%.
 
-https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=533037
+2. False-positive KASAN report after shmem swap-in readahead [1] (not
+   addressed here): when a shmem page is swapped in,
+   swap_cluster_readahead() also reads the neighboring swap slots and
+   allocates their swap-cache folios with the gfp mask of that shmem
+   mapping. A neighboring slot can hold an unrelated page that
+   userspace maps with PROT_MTE. If the mask lacks __GFP_SKIP_KASAN,
+   that page's folio gets a KASAN tag in page->flags. When its owner
+   faults it in, arch_swap_restore() writes the saved userspace tags to
+   the memory, but page->flags keeps the KASAN tag. Later kernel
+   accesses through page_address() then use a tag that does not match
+   the memory and are reported by KASAN.
 
--Todd
+   This series does not fix the readahead path. It only removes one
+   way to hit it: shmem mappings that use GFP_HIGHUSER (e.g.
+   drm_gem_shmem_helper / panthor) now pass __GFP_SKIP_KASAN to
+   readahead, so the neighboring folios no longer get a KASAN tag.
+   Shmem mappings with other gfp masks that lack __GFP_SKIP_KASAN
+   (e.g. GFP_KERNEL) can still trigger the report. That issue should
+   be followed up separately, for example in [1].
+
+What changes for users of GFP_HIGHUSER pages under CONFIG_KASAN_HW_TAGS
+(other KASAN modes are not affected):
+
+- Access through vmap(): nothing changes. Those pointers already carry
+  the match-all tag and are not checked today.
+- Access through kmap_local_page() or page_address() (for example
+  ramfs): accesses are no longer checked by KASAN, as is already the
+  case for GFP_HIGHUSER_MOVABLE pages.
+- Buffers that the kernel itself fills (pipe, FUSE, kexec, RDS) keep
+  KASAN checking by using the new GFP_HIGHUSER_KASAN (patches 1-4).
+
+GFP_KERNEL, GFP_USER, slab and vmalloc() allocations are not affected.
+
+Patch 1 adds GFP_HIGHUSER_KASAN, and Patches 2-4 use it for the pipe
+buffer pages of pipe and FUSE, kexec segment pages and RDS message
+pages, with no functional change. Patch 5 then moves __GFP_SKIP_KASAN
+from GFP_HIGHUSER_MOVABLE to GFP_HIGHUSER. Patch 6 adds a KUnit test
+(page_alloc_skip_kasan) verifying the __GFP_SKIP_KASAN page allocation
+contract under CONFIG_KASAN_HW_TAGS, and Patch 7 adds one for
+GFP_HIGHUSER_KASAN (page_alloc_highuser_kasan).
+
+The conversions come first so that these buffers keep their KASAN
+checking at every commit of the series.
+
+Testing: on arm64 with CONFIG_KASAN_HW_TAGS under QEMU (virt,mte=on),
+every commit builds and boots, and the KASAN KUnit suite was run with
+kasan.mode=sync, async and asymm. The two new tests pass, and each
+fails when the property it checks is broken on purpose. vmalloc_oob
+and kasan_strings (async and asymm) fail there with or without this
+series, and a few other tests fail intermittently under QEMU. The
+changed files also build on arm64 with generic and software tag-based
+KASAN and without KASAN, and on x86_64 with generic KASAN and without.
+The FUSE, kexec and RDS changes are build tested only, and the KUnit
+tests were not run on real hardware.
+
+Tooling: an AI coding assistant was used under the author's direction
+to audit GFP_HIGHUSER callers, draft GFP_HIGHUSER_KASAN (patch 1),
+the subsystem conversions (patches 2-4), the page_alloc_highuser_kasan
+test (patch 7), and the revised skip-test helper (patch 6), and revise
+patch 5's changelog and this cover letter. It also scripted and ran the
+builds and QEMU KUnit tests above.
+
+Feedback and thoughts -- particularly on whether any other bare
+GFP_HIGHUSER caller using kmap_local_page() would prefer opting back
+into KASAN via GFP_HIGHUSER_KASAN -- are very welcome.
+
+Link: https://lore.kernel.org/r/20260519-panthor-kasan-v2-1-b7384458f076@gmail.com/ [1]
+Link: https://lore.kernel.org/r/20260521105148.5497c281@fedora/ [2]
+
+Jeff Xu (7):
+  mm: add GFP_HIGHUSER_KASAN
+  pipe, fuse: use GFP_HIGHUSER_KASAN for pipe buffer pages
+  kexec: use GFP_HIGHUSER_KASAN for segment pages
+  net/rds: use GFP_HIGHUSER_KASAN for message pages
+  mm: kasan: skip KASAN for GFP_HIGHUSER
+  mm/kasan/kunit: add page_alloc_skip_kasan test
+  mm/kasan/kunit: add page_alloc_highuser_kasan test
+
+ fs/fuse/dev.c             |  2 +-
+ fs/pipe.c                 |  4 +--
+ include/linux/gfp_types.h | 15 ++++++--
+ kernel/kexec_core.c       |  2 +-
+ mm/kasan/kasan_test_c.c   | 72 +++++++++++++++++++++++++++++++++++++++
+ net/rds/ib_recv.c         |  2 +-
+ net/rds/message.c         |  2 +-
+ 7 files changed, 91 insertions(+), 8 deletions(-)
+
+
+base-commit: 4b028d0cedf95f66b8c5294fde2d7d698bf830da
+-- 
+2.56.0.611.g1030f0b940-goog
