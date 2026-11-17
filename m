@@ -1,78 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794918106;
-	b=ceV0KWrS+OMmFoD3soPAYdltwRw25o7BFUiuzFDnsGPfkIFr6ZPIyyiNxmrLya9XPPhq
-	 5MNJyfV33REJlFI61Pood7hu9uuxECugp7lbz9LJH0SVZgScXRNg651iXNcEhpggmEG6r
-	 Njr8ARiESibZmM4JpxK/7ZMwwrLlN5dcf7yPmrrvSiHdGIcixboNozQZgqbrU9SgIL8xS
-	 KYgwOh8unVedIe6YATktYjHDstZfWk1hEdVWxwhQqDb4WrRMsLEPQEexB94Xg2humXdnE
-	 nQBG6NWEvblRvln57YOOXGLbjX3TL/BT6ijY6Bpkl3wwY4qU5nU5KL+FdI2FAEiT8JA==
+	t=1794920009;
+	b=4+KWeoK2CAtmV56aaHYGi4Tt+2e+/EY1NUnA7ryuhUcEjM/mUYudm1b7j9bdaih3TaMH
+	 ysTbm//s8Z7jM5+y2Mg3IQLy8v0SpV6YctwaL5kO4wWuXGBLqrbBIe+FykI3M8Y6gLSOt
+	 kpXgzae82eJXxPzEaULzSmyQguYX6TIVNNrmf2FzjeNJxhXl/CZLHLhEIKBDeOFNjKjRE
+	 nWmxjJyEVYKBYhEKnw9KhKErFlRRbemuxCyWxVN2eCcxQ/jjKORzSEILcJpbmRoDKb6Ek
+	 TPJ4xozG7TOwVqWKCe9hQy6hTF73e9z9feXSr6yTbshWYMv2pQiX4SoO5iaUPZXH8FA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794918106;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794920009;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=GttENf4AQLKGgaT2xtnMonfh7k3XNqVVFPtXzQMChjU=;
-	b=zBE8wifi8n5zIWcipjjvGOZtocXnOCb2Bi1g99ZyjMJl1YQRLviSTlIvY8cvBKMoHvJo
-	 bCxmWDLVYv5+Ht2+E7FNde/0hQRnFSCS6sA39rVjFSgXn/t1FXfuZcXijeKL97CAhjLh8
-	 JoSUelX5XJSpkQ6Wa53tLsojrCsF5PqqaFrVoPtr48ljTgpoqR7XccI9FZ2YDJxuBwg37
-	 dKZ/JMUBb28itFCVAn55TPR/CAzh6nexI3vfF7jq5vVrfFnS9PmLLCX+VHoRwCz50U2nh
-	 VrYqp0gXgTr3PD9uUDvcuLEiB6UZoHdP8zHaSZIV5aHFq5iI3vCpoV5tTw6UlA4Jr6Q==
+	bh=t3dRoJQydQmoIfLEL2raJ08udX4rjgQu0oxWPVzl5eU=;
+	b=JXsol7+VMkXYQF/ziB3rxLevxTxouv0OV/PzaWfJ4rF3pIgB+LEHzgXwAhZiysjJ+MFh
+	 CrD9c/lQ6V3CmTjUShpPiMe/6xyNw6Q9/AGr1jgGhue8K9nZ4nyUmGdO1BNWyFpKJT309
+	 EDZrNtY6GKAccOU6+emG0xGK/8gJYQPnuNEylBi6+sqcmVpf7XdkGrabmBhVu7ms4mo+s
+	 IEKwGxtRHimJGiZbypi5wFAfc15u5P2nFV+rwsT55bpQtZgZWOhspVnBtk8D9OsC/pJyN
+	 dNIQlEmTatIteZEDu+/C6S+GhkgatXtLm+Ny7xYWOhl1tZlJp9EUIqIAtE3J90fW2Wg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=C8lhV+Z6;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=O6LpKvy7;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 455F8606A31C;
-	Tue, 17 Nov 2026 12:21:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFAD0606A31C
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 12:53:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=C8lhV+Z6
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 023021F000C9;
-	Tue, 17 Nov 2026 12:21:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=O6LpKvy7
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E02FC1F000C4;
+	Tue, 17 Nov 2026 12:53:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794918105;
-	bh=GttENf4AQLKGgaT2xtnMonfh7k3XNqVVFPtXzQMChjU=;
+	s=k20260515; t=1794920009;
+	bh=t3dRoJQydQmoIfLEL2raJ08udX4rjgQu0oxWPVzl5eU=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=C8lhV+Z6SJ8XgHd/J2EKI1U6pcb4wnoZF8dID2gB43wsYDa8pyqcBqXoFMBN0xEPN
-	 iDxWYqie8JE0pWF2f1kyXnCQ6L5jOHuyZy6Tob4n2/xEewU+wXTHgFe8AXq06KvIs5
-	 DaKLlL4gqZ6+qRwK1mKZ/oot5DCjLn7s3MFzjm1k/2LnjoEDqxFy9MeMqgtd9sG1U4
-	 fQ+kCnZ+V0Jbj9XU6dxdgPvt0chSQtjPt0YC28YBiFO312AJ3WmUWkDdu9jidpWQkp
-	 kL1OZE7zrbXx1g+ZVCa5SBXHy/BmdjHWUII37KVWw/6mK+HD8vNfHhCkVxfVbbv1A4
-	 ZC6mh0URIBSIg==
-Date: Tue, 17 Nov 2026 12:21:28 +0000
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-To: "David Hildenbrand (Arm)" <david@kernel.org>
-Cc: Jeff Xu <jeffxu@chromium.org>, 
-	Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@kernel.org>, 
-	Johannes Weiner <hannes@cmpxchg.org>, Andrey Ryabinin <ryabinin.a.a@gmail.com>, 
-	"Liam R . Howlett" <liam@infradead.org>, Mike Rapoport <rppt@kernel.org>, 
-	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, 
-	Brendan Jackman <brendan.jackman@linux.dev>, Zi Yan <ziy@nvidia.com>, Alexander Potapenko <glider@google.com>, 
-	Andrey Konovalov <andreyknvl@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, 
-	Vincenzo Frascino <vincenzo.frascino@arm.com>, Marco Elver <elver@google.com>, 
-	Boris Brezillon <boris.brezillon@collabora.com>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Chia-I Wu <olvaffe@gmail.com>, Dev Jain <dev.jain@arm.com>, 
-	Evgenii Stepanov <eugenis@google.com>, Ian Rickards <ian.rickards@arm.com>, 
-	Jann Horn <jannh@google.com>, Jeff Vander Stoep <jeffv@google.com>, 
-	Jeff Xu <jeffxu@google.com>, Kees Cook <kees@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
-	Peter Collingbourne <peter@pcc.me.uk>, =?utf-8?Q?Pierre-Cl=C3=A9ment?= Tosi <ptosi@google.com>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Tomasz Figa <tfiga@chromium.org>, Will Deacon <will@kernel.org>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Baoquan He <baoquan.he@linux.dev>, 
-	Pasha Tatashin <pasha.tatashin@soleen.com>, Pratyush Yadav <pratyush@kernel.org>, 
-	Allison Henderson <achender@kernel.org>, "David S . Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, linux-mm@kvack.org, 
-	kasan-dev@googlegroups.com, linux-arm-kernel@lists.infradead.org, 
-	linux-fsdevel@vger.kernel.org, fuse-devel@lists.linux.dev, kexec@lists.infradead.org, 
-	netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, 
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v1 5/7] mm: kasan: skip KASAN for GFP_HIGHUSER
-Message-ID: <avxFYRBid_VUp6vo@gremlin>
-References: <20261116230627.3537051-1-jeffxu@chromium.org>
- <20261116230627.3537051-6-jeffxu@chromium.org>
- <avwp1ZpVudiT1Gux@gremlin>
- <85ce1f24-8b49-4cd3-a9f7-02d1be69708e@kernel.org>
+	b=O6LpKvy7LvQ+91exAqfFdRkoMFs9fsrkpIsG/P0mhevSJv80Gp7DwmgYt50nYVqNI
+	 21dGxVpdssqD+OMTQ1RbuDYZlDSLrYxf6cKSZSjRYA37I6ndeCUdx0Afk6P6hMeAxq
+	 gnEOhjGcK7Gwt/hNZIVwZjK6Pjw/ExglCvKMeU7PEO+rG/ZFkolWouY/7OLN6NVTFz
+	 pKI47qGCTvL9XlzbCECWTAI22lTVVeojnaJXFRHLsLmx10vImKOnXqGB+NKnTprEg8
+	 JiGid99fJL1Nh8Kg/kJlWbcNWL6dfBjAXWNmKJ1TrNTDhrc5v96AU7VfyPWgQzvSyz
+	 3cTRtAngZav5g==
+Date: Tue, 17 Nov 2026 14:53:25 +0200
+From: Leon Romanovsky <leon@kernel.org>
+To: Michael Margolin <mrgolin@amazon.com>
+Cc: Ilia Kolominsky <ikolomin@amazon.com>, jgg@nvidia.com,
+	linux-rdma@vger.kernel.org, sleybo@amazon.com, matua@amazon.com,
+	gal.pressman@linux.dev
+Subject: Re: [PATCH for-next 0/3] RDMA/efa: Add Completion Actions support
+Message-ID: <20261117125325.GE124972@unreal>
+References: <20261109081349.27316-1-ikolomin@amazon.com>
+ <20261116112913.GI11319@unreal>
+ <20261117081850.GA18565@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -84,17 +61,36 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <85ce1f24-8b49-4cd3-a9f7-02d1be69708e@kernel.org>
+In-Reply-To: <20261117081850.GA18565@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
 
-On Tue, Nov 17, 2026 at 01:06:54PM +0100, David Hildenbrand (Arm) wrote:
-> On 11/17/26 11:21, Lorenzo Stoakes (ARM) wrote:
-> > This commit message is just inscrutable. It's like reading Finnegan's Wake :)
-> > LLMs are obscenely terrible at this stuff unfortunately.
->
-> I truly wonder how some can decide to submit something like that with their name
-> under it :)
+On Tue, Nov 17, 2026 at 08:18:50AM +0000, Michael Margolin wrote:
+> On Mon, Nov 16, 2026 at 01:29:13PM +0200, Leon Romanovsky wrote:
+> > On Mon, Nov 09, 2026 at 08:13:46AM +0000, Ilia Kolominsky wrote:
+> > > EFA Completion actions let an application observe work request
+> > > completions without polling a completion queue: when a work request
+> > > completes, locally or at the remote side, the device performs an action
+> > > that the work request names, such as writing a value to a user buffer.
+> > 
+> > Why are these verbs EFA-specific? This looks like extension of already
+> > generic UVERBS_METHOD_COMP_CNTR_* code and probably should be general too.
+> 
+> It is indeed an extension of Completion Counters, and later we plan to
+> connect the two by allowing a Completion Counter to be used as a
+> Completion Action, but unlike counters, actions mostly matter for
+> unordered transports where a completion count alone doesn't tell the
+> application which requests have completed, so it needs an efficient way
+> to track completion of specific requests.
+> 
+> Do you think these semantics can be useful for other providers at this
+> stage, or can we start with an EFA-specific interface and add a common
+> ABI later if required?
 
-Have you seen mseal? ;)
+I think the idea and implementation is general enough to be picked by
+anyone who will decide to implement it later. Let's do it in common ABI,
+please.
 
---
-Cheers, Lorenzo
+Thanks
+
+> 
+> Michael
+> 
