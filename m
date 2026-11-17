@@ -1,97 +1,107 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.209.40
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794953786;
-	b=mGS4FOnpgjURFjBHdvq5VivoSxTnbd4bGfS0lguhIA3mo5frMyga2VLbhk0bf7c+1EUt
-	 UHu7624dczcaM6BcNgjpdohBcdbczQ8XKfJPDGmLBoh5q3D0qH/sHgu5AdcbsBG35xZtu
-	 FzRb4xDbATilHnZZBD+UQ3ae7VFR5OwaCUADWnp8ESGnu1A9NeW2rYssBihLmDmakTf/m
-	 A5/aEFi+ZfE5lKaYTLOgYrAalW63J4QqbEnwW5KjpRWE50yT/3+IxX4in+3peFbhCSOp0
-	 FXhTUZxcNUm3EHVC6HH9cqHNDLtgB+8MDlfhOr6f2EOtKZq4+l3jYN3LIIhrNmB+qKA==
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.remote-ip=67.231.153.30
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=fail;
+	t=1794953838;
+	b=plkh2fjWyEdzAQ8cRlHsDsoLIBBzbzIwXqtk1fz981lci2ms0bRf+y+HsVmOWDic4y5j
+	 0TrelLiqmneF/JgZ9J8hNkTePc97pNCLOgcJaZUbEaoAiZj4u/2HKwA8qyTuAkVW9ecoh
+	 GDODyCR0LbbZoT37nBI0kMvHAS5kl5NC7dXLkqwjF92qG7jN7ZwHFUwVBItO+0gxy5F+t
+	 Mk6JELujrKCRByQ+VsRT07PhaPogO8WU4xuAswu+H93SNc2MMkR8xCrg6OmSTAy1IIiqr
+	 S/hvGkm5KSVY/aqJ1OdRGVlSUZr6sHaJFAsLNkXe+gM71q2QGWfFi4N5rxzkrT3WrMw==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794953786;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=vPBwrsdWDY9Sr6YPCiHlRLO45FDuJXi9lhZx2LhDu+A=;
-	b=ilaqMPijEzl4owtOuzwpCuRVrWO6eLXoaZo+mlgpZ4FS10hWeHs/8NtHus1bbSjzMWBd
-	 LxoQp82BPQ6ANBzcqP1TqgBkadcI3QxjXRvj6q6lMdvkyJlGKx44Iv1c0JBb0AjxJts2F
-	 YazBc1TnTPP8uEenQffv67u7nLINiURHfO1yP6hGwnTYnn8Cv7yEqH09MxOC3oWKxd5YW
-	 QLdul9ZvsMmX/tavwsd3y2coKfWBA/z5HPGE1paYFMDk9iy5y2QzDc+B0XNOoEHQaE+/r
-	 s2dbk5s5EEMHNOtZMOA7rq+XVyM5rEFLL8msfrQpsUHoC7UTH3ji8QUSLDpcCP4Tt8w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794953838;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
+	 X-Google-DKIM-Signature:X-Forwarded-Encrypted:X-Gm-Message-State:
+	 X-Gm-Gg:X-Received:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gm-Features:Message-ID:Subject:To:Cc:Content-Type:
+	 X-Proofpoint-Spam-Details-Enc:X-Authority-Analysis:X-Proofpoint-GUID:
+	 X-Proofpoint-ORIG-GUID:X-Proofpoint-Spam-Info:
+	 X-Proofpoint-Virus-Version;
+	bh=naIMYO16Tb2J0b8QTmQ8uSWyAJ0zbIqQUrNZeGUwwtw=;
+	b=xRs8DQLuwjle/Z0EG+/dOnxplOdxkZKm6AadnzaOZX4MvDALnE//MbzwUhuvBi+45jtT
+	 CVuLG8BrYpHXjuw0xrFNELt1aRNM1t1zpAELDnLqzJOwIkZ6B8nJG7eUjCzLimEpMCbYO
+	 Nax/u/6mlNBPBRmX6VXYrMQ9viIu9HA0/0aM1q0bwEZKi+OC9lOaeYorD0mN/Iz8L/Va1
+	 mVNwTOqJ7B2dCYmH18pQ/Rh25JC0gif6f6W65Wgi/x1X7ppky7pVN+G+r/PMZb7jzhtjY
+	 Ct3D3Ma3nrq54Kwx3YfU4dWL9Ifi/RFwDV0jGn2hXKqeFc3UPUPTb3qtUcacx99SVMQ==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=YAs36xfE;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.209.40
-Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012040.outbound.protection.outlook.com [40.107.209.40])
+	dmarc=pass header.from=meta.com;
+	spf=pass smtp.mailfrom=meta.com;
+	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=EvkMrAlm;
+	arc=fail smtp.remote-ip=67.231.153.30
+Received: from mx0a-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66F80606A32A;
-	Tue, 17 Nov 2026 22:16:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 66F80606A32A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46741606A337
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 22:17:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 46741606A337
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=YAs36xfE
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=v5cA/rrxhhr7Xfb7lgK1YLCb2UKtZ7fS6xmAKFZjxYgZPMUVRqvP+/ayusW5Ehh3W/OCN/ta4h4e08rWXQyZEVPuzIJls2vbu4geH4Nd1nvgUR3FWURampZXdTTH3cx3+P5JADkNGqDhM64Nf/PfgducbYfvx3ZK/pBJt1Mjz2XHZ3qSQ9kxAuM9Ad5mMa95En4yRaqx/3nF+MQileoEN76gXYRsbgH8Eh7kL/sPi7RlSJrRoOFLMBnpbLAm0QWPSCs0ZTMMAvvdkY8Zi8A9zCmaaZWfP2h2p0ytTocJB5qnGaS62Ck1ZSn6oJiCisNdTpp2xPTpxuG8rjbXf/WoZg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=vPBwrsdWDY9Sr6YPCiHlRLO45FDuJXi9lhZx2LhDu+A=;
- b=QVvUR2WNabE5IPOOBA1iWD7CCW/Kz0W5xrgpRUNqnvgkn995l9350ev1X24Op3Kb/2PN5v5s1pf+nFCFeDbclQNcpWe8Tvppe8wydK40RTjA+oIegS1GgkcNZgCCbd7IE+/UZa8pj2ZNobhpTRaMW8SNC00t91qFYhuAvyYRb1sY6bWQFC9ZB11WDQTUP0s4YJwV51PtYMn1rlWOLKeCE8REIEOGpU0D09mq2PCPJ8U8bk0/D+fUeDbTXr2EI+eg2y1m7e1OH1ORsCtb5jMgihUGCymb3MYiz7r6/+QvnsDtHQkpiTOWOk11dolVAPxN8/IKX6XKwESnxCMxEaB+dg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=vPBwrsdWDY9Sr6YPCiHlRLO45FDuJXi9lhZx2LhDu+A=;
- b=YAs36xfEILLYmGbcaX5kz5NsDP5CdJueY2+LLGY2ZEpJtBlJGAOy5pCQG3Ss+Vb57HrVMbc+4YqWiMo0xYcoPw6FuB8Nn9jucA67hi7eIajvGJWv08/V4R5X4Z3+XeaBqxwFgze57+dU20APTkiK+M+f2ETjSC0NGl1C5lk63pqIXBLdIOR8QCYUcoCP2qtc05u6GTUt8xvQ/6h1LsOgcTRH4TxLy0CgjQ6SoduAPtC0gQE4VJ56O+rP4HqaipxPlQd5LXzDJ4McJlTrmPB4SKe1I807XH7AgWQYP552/vrbpJwQYZ77wjJ2XWTmJk+FhLF7nORr1koo6EE9+pXGwQ==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from SA0PR12MB4367.namprd12.prod.outlook.com (2603:10b6:806:94::13)
- by CH1PPFC596BECF8.namprd12.prod.outlook.com (2603:10b6:61f:fc00::621) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.14; Tue, 17 Nov
- 2026 22:14:57 +0000
-Received: from SA0PR12MB4367.namprd12.prod.outlook.com
- ([fe80::2815:8a95:1a44:be1c]) by SA0PR12MB4367.namprd12.prod.outlook.com
- ([fe80::2815:8a95:1a44:be1c%6]) with mapi id 15.21.0615.013; Tue, 17 Nov 2026
- 22:14:57 +0000
-Message-ID: <194e1103-0d28-45d4-986a-819955e11268@nvidia.com>
-Date: Wed, 18 Nov 2026 00:14:54 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next] net: mlx5: Allow police as the last action of a
- TC rule
-To: Mohsin Bashir <mohsin.bashr@gmail.com>, netdev@vger.kernel.org
-Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com,
- cjubran@nvidia.com, andrew+netdev@lunn.ch, davem@davemloft.net,
- edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, idosch@nvidia.com
-References: <20261117031337.4126403-1-mohsin.bashr@gmail.com>
- <82d9959a-8176-4433-94a4-ff72445306ca@nvidia.com>
- <09ae2064-38ff-4d25-83e5-0ac4c3eb1658@gmail.com>
-Content-Language: en-US
-From: Mark Bloch <mbloch@nvidia.com>
-In-Reply-To: <09ae2064-38ff-4d25-83e5-0ac4c3eb1658@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: TL2P290CA0007.ISRP290.PROD.OUTLOOK.COM (2603:1096:950:2::9)
- To SA0PR12MB4367.namprd12.prod.outlook.com (2603:10b6:806:94::13)
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=EvkMrAlm
+Received: from pps.filterd (m0089730.ppops.net [127.0.0.1])
+	by m0089730.ppops.net (8.18.1.11/8.18.1.11) with ESMTP id 6AHM1tYD104850
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:17:17 -0800
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=pps82601-s2048-2026-q3; bh=naIMYO16Tb2
+	J0b8QTmQ8uSWyAJ0zbIqQUrNZeGUwwtw=; b=EvkMrAlmrDK8ub69Xg7pAjpcfhg
+	bZmfLUAoEXVsHI582DX2XvH/l6wGABdG9omOSqhVscA/IEoGuPA0CuKpLQIwkQrd
+	hBEyFCYOGEXtjyA8x3b0g3YTHTx/sHwE+cQmDTvaKvteMtyAtX6dmBfQkCozkLZf
+	p22cxMmQsz7yD32uSvOi3HsnxIikFWp62dCypEtCz6SeWEqW8jjr10TkF5/Z4PeJ
+	/8L+8tNnAtQ73AhwuAwiHeC+vacHLSuhs6/KyihzjSuZu88a3UB0O+P7RJ2pM+Pq
+	VMyvbB/nLDYMAxlh+5ivYxFI1VuB1MRuJ0Byb/cV3VEMNBGlBCxo+Gavfxw==
+Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com [209.85.221.69])
+	by m0089730.ppops.net (PPS) with ESMTPS id 4j0p7y686h-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:17:17 -0800 (PST)
+Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-4a68703d177so61077f8f.2
+        for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:17:16 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794953836; cv=none;
+        d=google.com; s=arc-20260327;
+        b=Xt1cu/H9/8fgX/tDEK7e71spbbeGm7Eb076T52E4OrqHVny/UybIf+iKVrpI5InS1t
+         CBTd3zyhC9ZDTY3YakWUfzS4rSDNgEcyUZ952CGeccH2t5+Dqo2dpM/P0ng7Oh9Av1M0
+         ddLzExN+EecDpBTzpJipIjivhQ9JPqa4iWokFtR7UfhyyWKhmzKAbnBMs6UwX1FMlnJF
+         ypf3wCLC4DLkjxgP2LJ1l+R/RN9GF+53uTYGRezhBoG3R4q27jJWIzSuIWsh854QVpqw
+         ViKVakKhfqr+4zzXpj2D/telqoY12HdgfGu1b55n+cxC6IwLhD4F+2OJrSGsztQeScxS
+         UiWQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version;
+        bh=naIMYO16Tb2J0b8QTmQ8uSWyAJ0zbIqQUrNZeGUwwtw=;
+        fh=pi//1imfeTnoJiDzqdI4cxbO/6+5GLhnUFM7pA8Sr1I=;
+        b=Mzq0SRR9IpbrKWBTFyR02gcwVZ4AfVUL489dbiqKT9HK2y1dayK3IqBsyzQ8ei6cG9
+         h0MZ3e0GJhMGmzcBq7VW5uVLIA6O2LE+2tz/yIhCmcMk561pe3jicopwJ28/RqgNJGja
+         dG3OIfffgkjsligtKsKGHs54Rq8ITKfBFCfnsGDLe3JHxB1hccLuUP8x1ZwvprzH3VNw
+         WjmXJdpASjgJVS5dfybS1R3op8NRzJhyow8UitXXbBAKYLow+Og7o3KteHUjJW7WtBJg
+         1SVCYoiFNQ0a6dFZBeM4yIfFHna/YTXNbG6eEqGzVuexgl5UPtdtXjaRFaxSfuQGJ2ME
+         XjBQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794953836; x=1795558636;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=naIMYO16Tb2J0b8QTmQ8uSWyAJ0zbIqQUrNZeGUwwtw=;
+        b=e4A1z4NKeKSJpIaOF+lcpMtkrdU7DTM1kLJJimGUEnCVm20QHWvTaBkV2ySwl98zhP
+         V3oAUkgoQjRPtor1tdXSe3EsFT5b5YFe9ZXndau+lR4CJiFJ5/CuWGROeJYvp6CMv8VX
+         kOpC5lrNx6FVNSLvWy07uPPO/o9GKL3Uuy6jro5yhdR0TFxkss0axR7nSn5I/UtiA6Ip
+         tG10B+MTHo9CMuS1GG/5PpS6nD4yZ2EKsfMDsJIOPrR0a+YomhzOFgOfhN006ZOJnsOU
+         AFVdJJrCYY2yunqt44E9s1JkphtKFA5qp4U5WWmJX2T2dfe9DF9yzdT9VpqDKhyZMbx4
+         +iKQ==
+X-Forwarded-Encrypted: i=1; AL+hErFwZ9k2KSj4ERDtzlOa8bhcspadSdaNG/K8t6Qmv97XiBOqIuAGeSgBX9bKjXyh2AvGx/dBP6rG5/C8@vger.kernel.org
+X-Gm-Message-State: APuU4Z8TkIiZqHhTAUaJ/o4IUKWbcfsMbpoiLMRz6hxzPOlWAffaNGg6
+	594wt5Ma6PEndgf7XvgPW2f2XkEd4RS42InOlVyrQoayiRhBgudbR5LomnijsVf6QaL4k3oM6lK
+	VFUIqHh+XEBOVR0j7Ofv4cI7UoTH041QPqcyp4iUK067NiOctDDUAPV/mnvplhK8yUZqGRWV0Np
+	Xz4L+Vk9TLIAQ0R3Y0rJbgXnhiL7iIG5IFixvE
+X-Gm-Gg: AZFdTZd0oXtHzAEQDSZ76dJrDcYYt2IM9AKMz4IzANp7RMP6Yaq5bfAeIWGmHcP9Rx8
+	Zi6HtAc8BluSSWdUZX0LNe3MIXFfzSGeOA8iYyW24OgOzCr39nNX25rszwC+beGP1FTEKnFO+0B
+	I+kfS6vlvNgadGe7DA3KxMuhi5/Uuz0OfYIcPFet5EjcBNCu9vxnyR481zsL5BYwAh9jWD5VXBK
+	ebUH1WVmoEvIebFNfKnj0QKBmKVhj12zhkB7908vmrPgWeNNpQ=
+X-Received: by 2002:a05:6000:603:b0:48e:5eac:7e48 with SMTP id ffacd0b85a97d-4a63d2cf7f1mr1645594f8f.22.1794953836018;
+        Tue, 17 Nov 2026 14:17:16 -0800 (PST)
+X-Received: by 2002:a05:6000:603:b0:48e:5eac:7e48 with SMTP id
+ ffacd0b85a97d-4a63d2cf7f1mr1645531f8f.22.1794953835465; Tue, 17 Nov 2026
+ 14:17:15 -0800 (PST)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -101,215 +111,59 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA0PR12MB4367:EE_|CH1PPFC596BECF8:EE_
-X-MS-Office365-Filtering-Correlation-Id: 3242d154-a5b2-49d2-e8bb-08df44f836bb
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|1800799024|7416014|376014|23010399003|10067099003|4143699003|56012099006|11063799006|261021123027099003|261021121427099003|261009223027099003|261102123227099003|261026121527099003|261026140227099003|261022105027099003|261028144727099003|6133799003|22082099003|18002099003|3023799007;
-X-Microsoft-Antispam-Message-Info:
-	1dheKLuv4GCP4LPWVW9p9slGezcV80y2M+aLbt8mSeA8+rkYHj0f9owqXxiMJHoWG4eYeSQET0eyx4AIhM46MIau6h8zsidWws0GOMHvYXaAcZ6HBS5sHoPY69ZO4ARGLhz2yaUQvXc04KUYP7Yi1u3UeWBXUPWFE94sA6Vd1OI8R0pnGnkTnaQkZ+DSeeTNMAw6wzD63raCxCdC8HwgVm0zXHy2Xd0jGrnZHBWAlX99peHAipAnGKrr94JA0oO/E0dek7sHQq/kX3hq7R8rlsn/x9UhX7KK5lAPJzvQgUFaWQ3v5brTbj2TpdRm+iCwgDjN+lvszKmiPIJkVP7aaUzpX7Vk4eJvJD8owI4XY9lGnNMc53lXR9Gfla7Zf3My6RfsFE+R+drplTjThDz2fUdasjumsN3J29sGLjq+taOB7ajbj5ysmC8TwZLS1PW1TM9QMVZiWmPv1siYG1+4bMj52L0p7MDE1pO/jQaAZVUZ1PLUxSob5YrUkUS+sfDdJiT4bswyHDlvUyyk+SWpGt/rcMaZoe2ingjNHWBXTM24O7Wxazenxkz0BRzFqj4Q+jqULB5O8+T3YP1xv1jKoNYuP5OUFQ3e4KF6VNeHXNugHVq6YFVUfI8XpUPDtiT882484T/lAHlagT2xkZyfwVfglPYimqFqZBLaaVPQZqU=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA0PR12MB4367.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(7416014)(376014)(23010399003)(10067099003)(4143699003)(56012099006)(11063799006)(261021123027099003)(261021121427099003)(261009223027099003)(261102123227099003)(261026121527099003)(261026140227099003)(261022105027099003)(261028144727099003)(6133799003)(22082099003)(18002099003)(3023799007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?UkNPbmlwaFZrOTg0bVlKa3BpTTlhLzFOblRKU1ZlMkkxY2wxcFJCUlZOQlJW?=
- =?utf-8?B?SFhuenkyeEtQc1g2ak00b09lT3VBanVCcUk5WUJIbjNEQnpJTStRQjBvSnNl?=
- =?utf-8?B?U3lPNXhFT2ZvYnZKZTNoMmhYSzJrOWkwNzZ3RjkzQkdzU0NtbmpNSFhTNWdk?=
- =?utf-8?B?b1ZsekdWRDhiYi9VNzdUQVJQa0FuL1ltNGttbm5hTS91YmVhY2JCM3lidjJQ?=
- =?utf-8?B?YUZLSko1QjAyMS9nRVo5cEhHOWpjNzlBZkNUNmwxRDJFMFJ5Nm9wOUtUM0JS?=
- =?utf-8?B?bEJoNGloRm12MTMyc3hubFNTZVpMdmN5VjRPSnQzdE0vUFlSNzV0UU5pM0tl?=
- =?utf-8?B?a2s0Mk1vQ3dIaGpNS2c1SFN4QzJPYitySURwVWlWTXVEVDA1SGdBSmJtZ3ow?=
- =?utf-8?B?TlhDNWp4M0Z4eHdQZlNPdzdRTmF6TmxreGdZdTdEcE5scFFxZW9BdkdVbEVS?=
- =?utf-8?B?MThuMHorMXJMSmFTQWl1aUs3eFZFb2VmYXlTc05DVmRhQTRuS29qZXJNTUNB?=
- =?utf-8?B?N3YyN2FBb3EvRWNxK0VOVmZjSitNQnVkbXowSjJaeTBsTVByTkZ4R21oUXNI?=
- =?utf-8?B?SE8wY0NOclZDZ2F4Y0dDV0loUzB0dnNxSGFwWDJMTGQ0ZFVWS2IwUXY1Nmhk?=
- =?utf-8?B?WEt5bUo3b1ZlSFYzZEw0eXUzajc3RVJlcFh5eFZsODdHSVhKVjh5Rnk2SEFK?=
- =?utf-8?B?WGk3ZDRKVSt3YzNEb0FXK0JpVVg1UVo2R1lIWU1rbldUZE9KdUU3YTM5RFRF?=
- =?utf-8?B?dWxRQ3REV2UvZVF2OGw3RllHeHBwTGFPMk9VUFVWTm04cGltN3NHOXIrMElo?=
- =?utf-8?B?ZDBPVkd6aU1odHlFWmNlak14ejg4b1hJdUJ2c1ZzSWp3ZEJKTmpPQW51SVI4?=
- =?utf-8?B?MVJJam9qQVBwNDJVby9RUHAweVY0MHBmL0VRbUxnWUZJeE5XQlEvdkNueDVO?=
- =?utf-8?B?WkVjdjEyUjBxMVVYekJ3dGxsQ2daRjI1STFkS3RuVVZsZ3NHYXp3ZXlDL1dp?=
- =?utf-8?B?TnlpNVpjemZHSW1nYm1UNDR4WldpbCtHYkl1eFVEaGRIcGVKNW1HUlJWQXhJ?=
- =?utf-8?B?bTRPQlNzTnhWOG5naGFMWlhtb0txK1BtN3diMnBjZzZVY24vb2Y1cVhqL0gv?=
- =?utf-8?B?cXR1VVZTNHJHSGcwNGxya1BlOFVoT0JoQkZuL2dhc3NMVFVrTWJRMWhlWFVH?=
- =?utf-8?B?VThrcllOQ2t1Z01WSzh2NGJJVEdNZjVPQzQvYUczQjgvc25XMjVXYS9nbEhZ?=
- =?utf-8?B?eDNzQVArNEc2M1JObTlrSnVrNVk1ZmFsRlJnWHpaNGp5R2FVakMycjNtSVlI?=
- =?utf-8?B?SGhHckxxTkpmM0VkbWlNV2ZaZG43N3VCZXhwdVBmLzMzdWRQTGVIdnI5WlBz?=
- =?utf-8?B?OTFXekh5cjROVGxyanhOMGd4Rkd1Y29aSTI4L05ISU9tOG9CVzY1SmhTNTE1?=
- =?utf-8?B?RXJ1RXNheFlIYkJURVFlR3pra3FIVzJFS1hOZmN4RnBEUktyMVkrWFI0Z0VO?=
- =?utf-8?B?eWs0RC85WTcyME9HMHlkZmdqbEhWMzNYdGxNZ1h4cGViaVdXRUwxYjJDcmZs?=
- =?utf-8?B?VnZsWGNEbkJ0ZXpzVnJISWtqRllHSHl0cEJ3RTFUWCtHakxpbjBWOENZZEtV?=
- =?utf-8?B?U2pJcjFNbjdKYzZJQ0FpS1REcDhWMTRDZHNCZGNmQUVlT3BaK1ltL0RGbmJt?=
- =?utf-8?B?RkNoaDJJNWVkbm42WXlGRFhONHVmcE9QSER3WWlpSUNCd1B3d3BmTUtXakZX?=
- =?utf-8?B?L0hjQjdJK2F0MFVhR0pOOVNTNTl1OXJCdkU2cGl0WVpOcURjMjc4aW5hTUJu?=
- =?utf-8?B?ZUQxdTU5NVVCSGFHVzdmVVZHZnhObnN3cnI2YTVtU3VFTlpHKyt2djRTamk4?=
- =?utf-8?B?SDc2K2pwSEhwZVZVK1pnVFA4YXRJa3U4UHlaK0dlaTRQMVVtSHlUUWNyVWtY?=
- =?utf-8?B?UjlYK2RhUU52ZkZKWmVEVWRTeFpSa2JtMUQvVFpUSTFrMGhjMDBFdGZsU0NV?=
- =?utf-8?B?N09LaUo1OVo0TFptWGJEckxPZ1h2Q3Q2NkJTdWlzVFlPRzdXTE9iQ0gzaXlm?=
- =?utf-8?B?QnRVME44R2FkcFB3WGhiQnJiNys3RVpFVUQ0emp3czFrNlVSdW0rYU9xbFBj?=
- =?utf-8?B?SWRkVDZyYjUzaUVMNTZsNi9SUDg1Yzh0VWdUSmF6SVNXZ1RVY0VUUDNRY2JH?=
- =?utf-8?B?c2Zwcmc0QU1DbkZuTGV5U0laNDkxclYwN1lQRWkyMDZRVGhOclpDRGlBWFUx?=
- =?utf-8?B?WXVzbCtGdmtzYUJ5TUxhTHo0VG5nTFh1cThsdzNnbmt3MU1CRHdRWjVPd2t0?=
- =?utf-8?B?aGhkSkYwT3ErdnFCWFhyUmJaUXVBQTRlUjk0M2xJSkE5akZlbTh1QT09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3242d154-a5b2-49d2-e8bb-08df44f836bb
-X-MS-Exchange-CrossTenant-AuthSource: SA0PR12MB4367.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Nov 2026 22:14:57.2149
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 30xEZPU5ro17f0KD8/lYmF9PCOMnVUnmxJLbaqLyHvFbnDRt1Y8+/85kFPoPBifSCGMP5gcf6UgeU95cRmbdZg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH1PPFC596BECF8
+References: <20261111005533.6436-3-toddfreed@meta.com> <179471269307.2199510.1215468778950936295@kernel.org>
+In-Reply-To: <179471269307.2199510.1215468778950936295@kernel.org>
+From: Todd Bert Freed <toddfreed@meta.com>
+Date: Tue, 17 Nov 2026 14:17:02 -0800
+X-Gm-Features: Aa3M54r5Hu3045uljd3xO655IC2ADA2xeFtOm9g-Da5bBZKD676NvfeHASL2RN4
+Message-ID: <CADh2yMznmWWJsh4ArEhrm2n9fG8i7o3u-kjLrvs_dwsBPiFvtw@mail.gmail.com>
+Subject: Re: [PATCH net-next v1 02/15] psp: take the psp nexthdr from the
+ packet on encap
+To: netdev-bot+sashiko@kernel.org
+Cc: netdev@vger.kernel.org, davem@davemloft.net, andrew+netdev@lunn.ch,
+        bjorn@kernel.org, bpf@vger.kernel.org, daniel@iogearbox.net,
+        daniel.zahka@gmail.com, donald.hunter@gmail.com, edumazet@kernel.org,
+        kuba@kernel.org, jhs@mojatatu.com, jiri@resnulli.us,
+        john.fastabend@gmail.com, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        linux-rdma@vger.kernel.org, martin.lau@linux.dev, pabeni@redhat.com,
+        saeedm@nvidia.com, horms@kernel.org, tariqt@nvidia.com,
+        weiwan@google.com, willemdebruijn.kernel@gmail.com
+Content-Type: text/plain; charset="UTF-8"
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE3MDA4OCBTYWx0ZWRfX0xeUPNIczJQG
+ wdwi9Z5fvT0D40DhfbQoiGDBuHuLSnHGbcS1l05oykHljeU8wRoncAeZHjypQcWfgM8doSFf19r
+ aDCWg3NCkkK7OX7/6UVp/DRnQiSDRUUMDOq4UlBi9UfjiWx53vjngiY8RDC6xU0z8NIoLrToAr5
+ bmpPjK4m6dcag7KPhOh72zKOX6TOez34K34SRwjZyFqEb5wd2eiin7eFUuhemYIFtRelm1dPjzR
+ 7xIMdi8vU5fY4NVxT3DZM4WrwswXmoVEqpyHTew7UuWm1WADKqTrXQyZLefsfTAo+RG/Tr3o3rD
+ dN4UfdqqsFLpCNZ8zntOm0OTIyEHudjKYTiHHjszzmBinP8dm0HpMzTNT3Z51OlgFTIYNPTCHWp
+ Ku/REfppOiVdN041udUQ0R2sn3MsdLiqhQ3osGsX4XB023ci8vNleEMUNb6dmhIlLYV5r62e0Cw
+ CmZGwktVxKj9EcTKvIQ==
+X-Authority-Analysis: v=2.4 cv=bJyDs/+Z c=1 sm=1 tr=0 ts=6afcd26d cx=c_pps
+ a=CsXZvLRfiTx/ye2xXAwb9g==:117 a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22 a=855S8uPTkML1Oy45N9_h:22
+ a=-eSvoOO0VIkvbIxHXOgA:9 a=QEXdDO2ut3YA:10
+X-Proofpoint-GUID: mc64OLzmP2zAUgnb4JMjkgAr03gFyLNU
+X-Proofpoint-ORIG-GUID: mc64OLzmP2zAUgnb4JMjkgAr03gFyLNU
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE3MDA4OCBTYWx0ZWRfX1kMNvQIgi9/k
+ axpsZJ6Riw7mvyxt0PS4uYMH29QE1OVhen48RDg0wd4uBdSpd2vKiBRGicgHd2r/HpkC3qBzuVE
+ 2U7Tq4Fu+Uia0VAsfGPr0FAlFuMF4g4=
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-11-17_04,2026-11-16_01,2025-10-01_01
 
-
-
-On 17/11/2026 23:52, Mohsin Bashir wrote:
-> 
-> 
-> On 11/17/26 11:18 AM, Mark Bloch wrote:
->> On 17/11/2026 5:13, Mohsin Bashir wrote:
->>> From: Mohsin Bashir <hmohsin@meta.com>
->>>
->>> In switchdev mode, mlx5 offloads police only when other actions follow
->>> it. TC needs no extra action for a police-only rule to work. The mlx5
->>> driver makes every police rule forward to the post meter table, but for
->>> a rate police it adds that forward only after verify_attr_actions() has
->>> checked the rule, so the check rejects it. The ok result of police is
->>> also handled as pipe. In TC, ok accepts the packet and ends the action
->>> list, whereas mlx5 goes on with the actions after police.
->>>
->>> Support police as the only action of a rule. Set the forward while
->>> parsing police, as is already done for police with mtu, and forward
->>> an ok result to the end of the TC chains, as the driver does when it
->>> offloads the gact ok action. The upcoming selftest series also relies on
->>> such rules for TC offload validation.
->>>
->>> The patch was tested on a ConnectX-7 in switchdev mode with the command
->>> below, and it was verified that the rule is offloaded and limits the
->>> matching traffic to the configured rate, using the hardware drop counter.
->>>
->>>    tc filter add dev eth0 ingress pref 100 protocol ipv6 flower skip_sw \
->>>      ip_proto udp dst_port 5201 \
->>>      action police rate 100mbit burst 1m conform-exceed drop/ok
->>>
->>> Cc: Carolina Jubran <cjubran@nvidia.com>
->>> Signed-off-by: Mohsin Bashir <hmohsin@meta.com>
->>> ---
->>>   drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c | 3 ++-
->>>   drivers/net/ethernet/mellanox/mlx5/core/en_tc.c            | 3 +++
->>>   2 files changed, 5 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c
->>> index 1bd1c94fb977..52295f5d644c 100644
->>> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c
->>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c
->>> @@ -94,13 +94,14 @@ tc_act_parse_police(struct mlx5e_tc_act_parse_state *parse_state,
->>>                 MLX5_FLOW_STEERING_CAP_MATCH_RANGES))
->>>               return -EOPNOTSUPP;
->>>   -        attr->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
->>>           attr->flags |= MLX5_ATTR_FLAG_MTU;
->>>       } else {
->>>           attr->action |= MLX5_FLOW_CONTEXT_ACTION_EXECUTE_ASO;
->>>           attr->exe_aso_type = MLX5_EXE_ASO_FLOW_METER;
->>>       }
->>>   +    attr->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
->>
->> This makes every police that is the lact action pass verify_attr_actions()
->> not only ok case described.
->>
->> what happens with:
->> "police ... conform-exceed drop/pipe"
->> with this not writes to FTEID_TO_REG so what happens once a packet
->> reaches the port action table?
->>
->> also what about:
->> tc filter add dev eth0 ingress pref 100 protocol ipv6 flower skip_sw \
->>      ip_proto udp dst_port 5201 \
->>      action police rate 100mbit burst 1m conform-exceed drop/pipe \
->>      action police rate 100mbit burst 1m conform-exceed drop/pipe
->>
->> won't this create a loop?
->>
-> 
-> Thanks for reviewing Mark.
-> 
-> Ahh! I missed the loop case. I had a patch to handle pipe on the last police but I dropped it, since my testing showed the post_act table still passed the packets up. Let me respin and send pipe and jump on the last police to the end of the TC chains. Would that work in your opinion?
-
-Yes for PIPE.
-
-For JUMP, we need to check the target. tcf_action_exec() counts from
-the start of the action list, so even the last police can jump back
-to itself or an earlier action. If we can't offload that, we should
-probably reject it.
-
-That's how I read tcf_action_exec(), but please correct me if I'm
-missing something as I'm not really a tc expert.
-
-> 
->>> +
->>>       return 0;
->>>   }
->>>   diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
->>> index 1d35c97aea0b..8685e41487f3 100644
->>> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
->>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
->>> @@ -3892,6 +3892,9 @@ alloc_branch_attr(struct mlx5e_tc_flow *flow,
->>>           attr->action |= MLX5_FLOW_CONTEXT_ACTION_DROP;
->>>           break;
->>>       case FLOW_ACTION_ACCEPT:
->>> +        attr->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
->>> +        attr->flags |= MLX5_ATTR_FLAG_ACCEPT;
->>> +        break;
->>>       case FLOW_ACTION_PIPE:
->>>           err = set_branch_dest_ft(flow->priv, attr);
->>>           if (err)
->>
->> This also changes rules where police is not the last action.
->> The conform result defaults to ok when it is not given.
->>
->> action police rate 100mbit burst 1m conform-exceed drop \
->>          action mirred egress redirect dev eth2
->>
->>
->> won't with this change the conforming packets go to the tc end table
->> and not to the redirect dev?
->> The rule is still reported as offloaded and installs the redirect
->> which can't reached now.
->>
-> 
-> Maybe I am missing something here, but when the conform action is not given, doesn't it default to ok? For example, if we have
->   action police rate 100mbit burst 1m conform-exceed drop action drop
-> shouldn't conforming packets still be pushed up rather than dropped by the following action, making the action drop (or the action mirred) dead code?
+> [Severity: Medium]
 >
+> psp_dev_encapsulate() now accepts non-TCP packets. Is the outer UDP
+> source port selection in psp_write_headers() still correct when skb->sk
+> is a UDP socket?
+>
+> ...
+>
+> Should the sk->sk_hash path be limited to TCP sockets, with other sockets
+> falling back to udp_flow_src_port()?
 
-Yes, agreed, the following action is dead code in software too,
-a separated cleanup patch maybe?
+Yep. v2 will only use sk_hash for TCP.
 
-What about packets that reach the rep? I don't see anything in
-the ACCEPT path that tells software TC the packet has already been
-processed. For example:
+pw-bot: cr
 
-tc filter add dev eth2 ingress pref 100 protocol ipv6 flower skip_sw \
-    ip_proto udp dst_port 5201 \
-    action police rate 100mbit burst 1m conform-exceed drop/ok
-
-tc filter add dev eth2 ingress pref 200 protocol ipv6 flower skip_hw \
-    ip_proto udp dst_port 5201 \
-    action drop
-
-Wouldn't a conforming packet reach software, skip the first rule and
-get dropped by the second, despite already being accepted in hardware?
-
-Can you test this? The existing gact ok path might have the same issue.
-
-Mark
-
-
->> Mark
->>
-> 
-
+-Todd
