@@ -1,63 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.9
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794877587;
-	b=H6ELadEiP7aY0NabySqX0ZhE8hpf1aZTIR89o3Xpl7nUr1sFFHphQdDvrpmJn6TiUJfu
-	 cs9152FHzBIEhGotR7IbCYMTXpWMUrlWT0TXAOMy+jDPYIkPBqYQmYZk2kHhFCgwifyyC
-	 ToMFdK/6NRKf8cdZlQ9kL8BxJUWTxvLLRFmXDTimVgmar14IzX6NZOT525zFruy5rnvjT
-	 hIwLkRkyr3tkrt8xRP9yRmwOYoh/EtJzG7Y1XvAy3vBg/ntjnRPu2dEUY1X2OpCneKiWC
-	 6SgsG6Lyd8Txcn2EnyEbSgP/Pm3EHhkh9RJ2ICijkG4sxzyEErLWnoPjuIiONGDYBUg==
+	t=1794879622;
+	b=d2Be1wEY93cwSYEOXfLfOTGHRPz8TDDIqw0rJ68xFsLFP9/GDCH8LqruJ1FpLcoVg8rT
+	 T48e5VPCKcQqAFFdHHKZ2mlQUgw83fvoA9Z9DGhsSN9WRUgYoRaScHN7TC4KBZYFPuRJ2
+	 e9/9PhE76MPbLXJhzfNbXHi4d5aHlLo89BukPNOGvf33pnueIbpLkB+IIG66cE75ONEKj
+	 ddwwLbfhwYUxOd01dSOPrsgJXhrNSzFg/QMADdnkqRvWNGD+8ZRRZlDOKxIRWssCmVBNT
+	 IJS/WVElWrpQ6Rr8EYioSe9tIwV+yd37m3fiwqW+VmtuGq/u80piuu3rBDTRtnGKPWA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794877587;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=Sb9h9j6lPynfBYh6n95WwXR9U5v9/0qOxm69owQ23yI=;
-	b=0M+td1tRIWhnv4ddREK9nW2t+Yb5AqIfVJjvsYiXKTC6tzQeOpxcyzlIfPP34BVPuwFS
-	 KXO09tnzbzGZRbq1X8YRrnVEeN4WRhpvJAORPUbBX9LJqAwFkxEiYgJWcnSx24R8FkOiY
-	 +mYCKCEtc2eGCfiUviP6aplatQi4iHyjVWRD18phThQTns5nfcfZIXrj1blgmKFQqp1J/
-	 bgMyK+95Gs+2x1lvUOL13PvlwbMV3NVhkunj7t7ltlW7yXNTqQBXvf23FxGN9rt/9/0Nw
-	 J3iHNjctMSF+BRIT0aFBrFgZy433DV59WyEQO9qEVPxokERn9iL7+up5ATF/cwK4BpQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794879622;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:User-Agent;
+	bh=OFl6UDFI76eLpaveKeAUCdPmHxT1stKaGqJ/+zkltfM=;
+	b=k2orERculm1VmMHxpgAqclU6TXFhFF1YmIGf9PrAQowZozJxSWKzsYKM/ABc+vkjULFE
+	 H2JJG58+LoG2jONGvvTdIhgg1AxEi7BqEX/8FSzSdk9c21+VMJXmjY5Z0FbJ7yseTMgST
+	 D9nhIA4l24l2YTAQaUn4Ml1ry4VqKhLcW+jglIttdJF8R6YowEQIzkMf1JWqrP9tNSxJ2
+	 eiWWk7h7CgpJvS7g/7nhu6z/kg4zAWv/XZgVtD9l+0NCqL3DJ2QFsFURcMYmd/yncYI5N
+	 YWla0eJwneepWGgt76UtLeD02ZkOUiv/R2RZcKzl7g2mhG0z5HiNY257zpwZz2bSRcw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="bXD/oVvm";
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=HJVL0gTM;
+	arc=none smtp.remote-ip=198.175.65.9
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99838606A882;
-	Tue, 17 Nov 2026 01:06:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F121C606A331
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 01:40:20 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F121C606A331
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bXD/oVvm
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 673BA1F000C4;
-	Tue, 17 Nov 2026 01:06:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794877587;
-	bh=Sb9h9j6lPynfBYh6n95WwXR9U5v9/0qOxm69owQ23yI=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=bXD/oVvmhB9L9jp9ytgzC5qCGW3Ey2wz/1tlFoUdSEZdp392eY/YVWA2THUHjXD6X
-	 6DR/Xn82HT3L/gpCKMlwIECGkbyM6iT7fLpWHVyGzmNxSis3DkACfVJGFo0yQv7A/6
-	 stawLvWsg5OSgW+oBxtBEO1PVSw/WP+oNWrUfaMz6J6J3tEc6l6qsV7geJLOaiczY7
-	 NuqFnqMAp781RfUJ2Wr001B20qqeiLbWM6/7sLdgOlflQMvE1RJe//lEAgVOO+sLeW
-	 AxcRSrqH6EYwLBaTV2k1Ly4jTRtFL8EOmsP5eCwP8AB13FilQ67ya177JeNAIidSPZ
-	 ZjVgPIXdjKwDQ==
-Subject: Re: [PATCH net v6 3/3] net/smc: skip the DMB nocopy accounting until
- the send buffer is set
-From: netdev-bot+sashiko@kernel.org
-To: hexlabsecurity@proton.me
-Cc: mjambigi@linux.ibm.com, kuba@kernel.org, dust.li@linux.alibaba.com,
- davem@davemloft.net, edumazet@kernel.org, sidraya@linux.ibm.com,
- pabeni@redhat.com, alibuda@linux.alibaba.com, hwippel@linux.ibm.com,
- linux-kernel@vger.kernel.org, wenjia@linux.ibm.com, netdev@vger.kernel.org,
- hidayath@linux.ibm.com, ubraun@linux.ibm.com, tonylu@linux.alibaba.com,
- linux-rdma@vger.kernel.org, guwen@linux.alibaba.com,
- linux-s390@vger.kernel.org, horms@kernel.org
-Date: Tue, 17 Nov 2026 01:06:25 +0000
-Message-ID: <179487758596.3136.12928828467382443502@kernel.org>
-In-Reply-To: <20261112-b4-disp-1c8d3a53-v6-3-36a38ae35021@proton.me>
-References: <20261112-b4-disp-1c8d3a53-v6-3-36a38ae35021@proton.me>
-X-sashiko-severity: High
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=HJVL0gTM
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1794879621; x=1826415621;
+  h=date:from:to:cc:subject:message-id;
+  bh=K0shpxN2IOlpd2Zd68utRZSuPHrcNeNdIeDrpWfM6ZQ=;
+  b=HJVL0gTMBMGx8Y/mwXqfO8GwExGgCqT2VrlKvaMmwlOMVsP5sapeuGaw
+   T/ryo/27QXgWEZnQZWX2WHIWhvsVxx9EHLLkTy5v17TUNBPx7pIyXZEsb
+   bhTPpbst5zHWIw4fj9BbE5isHqjfZQRg/Mxu1R2lvYATwRciGkzEaWVLn
+   VJO/zFJ5j9KX+DiCTc6ioYWqrrgPaGpnEYrhXQyVD0LjYAeAW4kmHikkh
+   iyiLyX8vdz8AnhcOxippLqWEehVF0xwKESsKNWpZfCUGDSpLmL57R0huI
+   9V8iBowSNHg1d+UwKxe9Se4GuObYFDmQN9c51dgGE9Vtcn3cnt4bUp6Ot
+   A==;
+X-CSE-ConnectionGUID: QHzCwOLCTputB0grfPBA+w==
+X-CSE-MsgGUID: KFGbngX2SGC1BLVhz486yA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11968"; a="3486139"
+X-IronPort-AV: E=Sophos;i="6.27,217,1787036400"; 
+   d="scan'208";a="3486139"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2026 17:40:20 -0800
+X-CSE-ConnectionGUID: jCHT0acrQdKLjN3s88SGWA==
+X-CSE-MsgGUID: 0MUluONsRv2GI0QcXI9eOQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,217,1787036400"; 
+   d="scan'208";a="9684044"
+Received: from igk-lkp-server01.igk.intel.com (HELO 1073a420ae3a) ([10.211.93.152])
+  by orviesa006.jf.intel.com with ESMTP; 16 Nov 2026 17:40:19 -0800
+Received: from kbuild by 1073a420ae3a with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xT8BE-000000002uw-1Qj8;
+	Tue, 17 Nov 2026 01:40:16 +0000
+Date: Tue, 17 Nov 2026 02:39:40 +0100
+From: kernel test robot <lkp@intel.com>
+To: Hungyu Lin <dennylin0707@gmail.com>
+Cc: oe-kbuild-all@lists.linux.dev, Doug Ledford <dledford@redhat.com>,
+ Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org,
+ Leon Romanovsky <leon@kernel.org>
+Subject: [rdma:wip/leon-for-next 33/37]
+ drivers/infiniband/hw/mlx5/dm.c:217:16: error: 'struct mlx5_ib_dm' has no
+ member named 'base'
+Message-ID: <202611170202.VKw86FKB-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -66,214 +82,107 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
+head:   586be88310461aaded66e16c5579e384dde494b5
+commit: ea97d0a83f4ed62c6f5716e27a260e21febbc79f [33/37] RDMA/mlx5: Check the DM type before mapping a MEMIC operation
+config: mips-allmodconfig (https://download.01.org/0day-ci/archive/20261117/202611170202.VKw86FKB-lkp@intel.com/config)
+compiler: mips-linux-gcc (GCC) 16.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261117/202611170202.VKw86FKB-lkp@intel.com/reproduce)
 
-Critical: 0 · High: 1 · Medium: 1 · Low: 0
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202611170202.VKw86FKB-lkp@intel.com/
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+All errors (new ones prefixed by >>):
 
-- [High] The new NULL check only covers the time before
-  smcd_buf_attach().
-- [Medium] The patch stops the NULL dereference, but it keeps processing
-  a CDC that, by the patch's own new comment, can come from the old peer…
+   drivers/infiniband/hw/mlx5/dm.c: In function 'mlx5_ib_handler_MLX5_IB_METHOD_DM_MAP_OP_ADDR':
+>> drivers/infiniband/hw/mlx5/dm.c:217:16: error: 'struct mlx5_ib_dm' has no member named 'base'
+     217 |         if (mdm->base.type != MLX5_IB_UAPI_DM_TYPE_MEMIC)
+         |                ^~
 
---
 
-net/smc: skip the DMB nocopy accounting until the send buffer is set
+vim +217 drivers/infiniband/hw/mlx5/dm.c
 
-This patch changes smcd_buf_attach() to publish conn->sndbuf_desc with a
-release store once sndbuf_space has been set. While sndbuf_desc is still
-NULL, smc_cdc_msg_recv_action() now skips the SMC-D DMB nocopy accounting.
-The aim is to avoid a NULL dereference when the old peer of a reused DMB
-sends a consumer update before the new connection has attached its send
-buffer.
-
-> diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
-> index b3bcc206efe3e..4a4a279b405b1 100644
-> --- a/net/smc/smc_cdc.c
-> +++ b/net/smc/smc_cdc.c
-
-[ ... ]
-
-> @@ -357,12 +358,19 @@ static void smc_cdc_msg_recv_action(struct smc_sock *smc,
->  		 * peer RMB, then update tx_curs_fin and sndbuf_space
->  		 * here since peer has already consumed the data.
->  		 */
-> +		sndbuf_desc = NULL;
->  		if (conn->lgr->is_smcd &&
->  		    smc_ism_support_dmb_nocopy(conn->lgr->smcd)) {
-> +			/* NULL until smcd_buf_attach(), but the old peer of
-> +			 * a reused DMB can already signal us.
-> +			 */
-> +			sndbuf_desc = smp_load_acquire(&conn->sndbuf_desc);
-> +		}
-> +		if (sndbuf_desc) {
-
-[Severity: Medium]
-The NULL dereference is gone. But the new comment says this CDC can come
-from the old peer of a reused DMB, so should it be processed at all?
-
-smcd_cdc_rx_tsklet() passes the CDC here without checking its seqno, token
-or source. smcd_cdc_msg_to_host() then overwrites local_rx_ctrl.prod, cons,
-prod_flags and conn_state_flags unconditionally:
-
-net/smc/smc_cdc.h:smcd_cdc_msg_to_host() {
-    ...
-	smc_curs_copy(&local->cons, &temp, conn);
-	local->prod_flags = peer->cons.prod_flags;
-	local->conn_state_flags = peer->cons.conn_state_flags;
-}
-
-Only the tx_curs_fin/sndbuf_space sync is skipped here. The connection may
-still be in its CLC handshake, and the rest of smc_cdc_msg_recv_action()
-still runs on the stale data:
-
-- diff_cons is added to peer_rmbe_space
-- diff_prod is added to bytes_to_rcv, and sk_data_ready() is called
-- stale peer_conn_abort, peer_conn_closed or peer_done_writing flags set
-  sk_err = ECONNRESET, RCV_SHUTDOWN and SOCK_DONE, and queue close_work
-
-For an abort, smc_close_passive_abort_received() then moves the socket
-from SMC_INIT to SMC_PROCESSABORT.
-
-Can stale flags from an unrelated connection reset or close a connection
-that is still in its handshake?
-
-This also leaves a cursor mismatch behind. local_rx_ctrl.cons ends up at
-the stale value X, while tx_curs_fin stays at {0,0}.
-smcd_conn_save_peer_info() resets peer_rmbe_space but not
-local_rx_ctrl.cons:
-
-net/smc/af_smc.c:smcd_conn_save_peer_info() {
-    ...
-	atomic_set(&smc->conn.peer_rmbe_space, smc->conn.peer_rmbe_size);
-    ...
-}
-
-The first real CDC from the new peer (cons Y) is then diffed against X:
-
-- Same wrap and Y.count <= X.count: diff_cons is 0, and peer_rmbe_space
-  stays below its real value from then on.
-- Different wraps: peer_rmbe_space is credited past peer_rmbe_size, which
-  breaks 0 <= peer_rmbe_space <= peer_rmbe_size.
-
-In both cases peer_rmbe_space can no longer equal peer_rmbe_size. So this
-check later in the function never fires:
-
-	if (diff_cons && conn->urg_tx_pend &&
-	    atomic_read(&conn->peer_rmbe_space) == conn->peer_rmbe_size) {
-
-Would a MSG_OOB sender then block in smc_tx_sendmsg()->smc_tx_wait() until
-a timeout or a signal?
-
-The commit message says:
-
-    The update's cursors and flags are still applied to the new
-    connection, as those of a CDC that leaves the consumer cursor alone
-    already are.
-
-Is that comparison accurate? A CDC that leaves the consumer cursor alone
-does not create a cons/tx_curs_fin mismatch.
-
-A CDC that moves the consumer cursor before smcd_buf_attach() cannot come
-from the real peer. That is the reasoning behind "Nothing of ours can have
-been consumed before the attach".
-
-Would it be better to drop such a CDC, or to stop reusing a DMB that a
-previous peer can still signal, instead of applying part of it?
-
->  			/* Calculate consumed data and
->  			 * increment free send buffer space.
->  			 */
-> -			diff_tx = smc_curs_diff(conn->sndbuf_desc->len,
-> +			diff_tx = smc_curs_diff(sndbuf_desc->len,
->  						&conn->tx_curs_fin,
->  						&conn->local_rx_ctrl.cons);
->  			/* increase local sndbuf space and fin_curs */
-
-> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-> index 9ef9019bc4974..982cfc79ee1cc 100644
-> --- a/net/smc/smc_core.c
-> +++ b/net/smc/smc_core.c
-> @@ -2654,9 +2654,10 @@ int smcd_buf_attach(struct smc_sock *smc)
->  	buf_desc->cpu_addr =
->  		(u8 *)buf_desc->cpu_addr + sizeof(struct smcd_cdc_msg);
->  	buf_desc->len -= sizeof(struct smcd_cdc_msg);
-> -	conn->sndbuf_desc = buf_desc;
-> -	conn->sndbuf_desc->used = 1;
-> -	atomic_set(&conn->sndbuf_space, conn->sndbuf_desc->len);
-> +	buf_desc->used = 1;
-> +	atomic_set(&conn->sndbuf_space, buf_desc->len);
-> +	/* Set last; pairs with the acquire in smc_cdc_msg_recv_action() */
-> +	smp_store_release(&conn->sndbuf_desc, buf_desc);
-
-[Severity: High]
-Does this only close the window before attach? The old peer that still
-holds the reused DMB token can keep signalling after this store.
-
-Once sndbuf_desc is published, the new "if (sndbuf_desc)" branch in
-smc_cdc_msg_recv_action() runs on the foreign consumer cursor:
-
-	diff_tx = smc_curs_diff(sndbuf_desc->len,
-				&conn->tx_curs_fin,
-				&conn->local_rx_ctrl.cons);
-	...
-	atomic_add(diff_tx, &conn->sndbuf_space);
-
-Right after attach, tx_curs_fin is {0,0} and sndbuf_space is len. A stale
-cons X with X.wrap != 0 gives diff_tx = len + X.count, so sndbuf_space
-becomes 2 * len + X.count.
-
-Can sndbuf_space grow past sndbuf_desc->len this way? peer_rmbe_space
-would be over-credited in the same way.
-
-smc_tx_sendmsg() sizes its copy only from sndbuf_space:
-
-net/smc/smc_tx.c:smc_tx_sendmsg() {
-    ...
-	copylen = min_t(size_t, send_remaining, writespace);
-    ...
-	chunk_len = copylen - chunk_len; /* remainder */
-    ...
-}
-
-With prep.count == 0, the second chunk is len + X.count bytes, written at
-offset 0.
-
-Would memcpy_from_msg() then write X.count bytes of user data past the end
-of the attached peer DMB? With CONFIG_HARDENED_USERCOPY this would hit a
-usercopy_abort() BUG instead.
-
-Smaller inflations would overwrite data that has not been consumed yet, and
-tx_curs_fin would be left at the foreign baseline.
-
-The underlying problem seems to be that a DMB is handed to a new
-connection while a previous peer is still attached. smc_buf_unuse() only
-does this:
-
-	WRITE_ONCE(conn->rmb_desc->used, 0);
-
-The token stays registered. __smc_buf_create()->smc_ism_set_conn() maps the
-sba_idx to the new connection, so dibs_lo_move_data() delivers the old
-peer's signals there.
-
-One way to reach this: smc_listen_decline() calls smc_conn_abort() after
-the client has already run smcd_buf_attach() and moved to SMC_ACTIVE.
-
-Would it be better to stop reusing the DMB while a peer is attached, or to
-drop signals that do not come from the current peer, instead of making the
-receive path tolerate a NULL sndbuf_desc?
-
->  	return 0;
->  
->  free:
+   203	
+   204	static int UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_ADDR)(
+   205		struct uverbs_attr_bundle *attrs)
+   206	{
+   207		struct ib_uobject *uobj = uverbs_attr_get_uobject(
+   208			attrs, MLX5_IB_ATTR_DM_MAP_OP_ADDR_REQ_HANDLE);
+   209		struct mlx5_ib_dev *dev = to_mdev(uobj->context->device);
+   210		struct ib_dm *ibdm = uobj->object;
+   211		struct mlx5_ib_dm *mdm = to_mdm(ibdm);
+   212		struct mlx5_ib_dm_memic *dm = to_memic(ibdm);
+   213		struct mlx5_ib_dm_op_entry *op_entry;
+   214		int err;
+   215		u8 op;
+   216	
+ > 217		if (mdm->base.type != MLX5_IB_UAPI_DM_TYPE_MEMIC)
+   218			return -EOPNOTSUPP;
+   219	
+   220		err = uverbs_copy_from(&op, attrs, MLX5_IB_ATTR_DM_MAP_OP_ADDR_REQ_OP);
+   221		if (err)
+   222			return err;
+   223	
+   224		if (op >= BITS_PER_TYPE(u32))
+   225			return -EOPNOTSUPP;
+   226	
+   227		if (!(MLX5_CAP_DEV_MEM(dev->mdev, memic_operations) & BIT(op)))
+   228			return -EOPNOTSUPP;
+   229	
+   230		mutex_lock(&dm->ops_xa_lock);
+   231		err = map_existing_op(dm, op, attrs);
+   232		if (!err || err != -ENOENT)
+   233			goto err_unlock;
+   234	
+   235		op_entry = kzalloc_obj(*op_entry);
+   236		if (!op_entry) {
+   237			err = -ENOMEM;
+   238			goto err_unlock;
+   239		}
+   240	
+   241		err = mlx5_cmd_alloc_memic_op(&dev->dm, dm->base.dev_addr, op,
+   242					      &op_entry->op_addr);
+   243		if (err) {
+   244			kfree(op_entry);
+   245			goto err_unlock;
+   246		}
+   247		op_entry->op = op;
+   248		op_entry->dm = dm;
+   249	
+   250		err = add_dm_mmap_entry(uobj->context, &op_entry->mentry,
+   251					MLX5_IB_MMAP_TYPE_MEMIC_OP, dm->base.size,
+   252					op_entry->op_addr & PAGE_MASK);
+   253		if (err) {
+   254			mlx5_cmd_dealloc_memic_op(&dev->dm, dm->base.dev_addr, op);
+   255			kfree(op_entry);
+   256			goto err_unlock;
+   257		}
+   258		/* From this point, entry will be freed by mmap_free */
+   259		kref_get(&dm->ref);
+   260	
+   261		err = copy_op_to_user(op_entry, attrs);
+   262		if (err)
+   263			goto err_remove;
+   264	
+   265		err = xa_insert(&dm->ops, op, op_entry, GFP_KERNEL);
+   266		if (err)
+   267			goto err_remove;
+   268		mutex_unlock(&dm->ops_xa_lock);
+   269	
+   270		return 0;
+   271	
+   272	err_remove:
+   273		rdma_user_mmap_entry_remove(&op_entry->mentry.rdma_entry);
+   274	err_unlock:
+   275		mutex_unlock(&dm->ops_xa_lock);
+   276	
+   277		return err;
+   278	}
+   279	
 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261112-b4-disp-1c8d3a53-v6-0-36a38ae35021%40proton.me
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
