@@ -1,62 +1,62 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=67.231.153.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794947603;
-	b=RFeBQ+IT+/YjI6WMbda2dCi314/HOMuRfhlpxrqZmWPB863n5g9NI2RJdMcACY228LnZ
-	 D9Kg1f81eRTthzIXe2wXHicbvXEgiwX3xR7btxErW3QZh5SlI0G7qFx7gZBJOP57cWD1C
-	 aTfl0B3m/KCpdD02xG8sSJffgZftkVK08GSsXjEX5RcfUHKr54NvzFrrcV2GzUg68xzE4
-	 Whrgb8hph3eYr3hL8F2Fdhc7pS6z/uaGpkfqkZXgHDtrkIVaOUdcx9Y7TO+bYzESui0t7
-	 2RR0wm/AbfywFP2FqfOoef+cHraub8DeTKbtuJt7isx0PZfA5ZP3o3PrM5wTUcg5BCg==
+	t=1794947607;
+	b=hpoHCGShIERzUqsKI91kRHxm578tWU+N396jwgVQfggbVqEYyCwrSGdmfVEHofKQf+iA
+	 NMVLuNOxJKEVifCMwCaGnENhqqmgBYf3n+3+yzwXRTdUI0jvRLvpRLytoZhMA0hooQEvp
+	 PbzLtwf8jhhfaEJ80Xd2ToQBRRxcBqMsrZ5vvnPPH7QmY4Ungv4aB4agIJ08rpVtTt5GU
+	 YXM+EsEVoB+ZggJi8ghyfbTEXeMiDaD/NCA8U4YN9RhKtZQ+C3Tfcha1f4+k1PBkUSQgT
+	 heKqLKoTmUP/vSokr9WpDC033s/CHeS21hwo8cXkQiPYEwXNhFiDowR+NWitmxu4RPQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794947603;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794947607;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:From:To:CC:
 	 Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:Content-Type:X-Originating-IP:
-	 X-Proofpoint-GUID:X-Proofpoint-ORIG-GUID:X-Authority-Analysis:
-	 X-Proofpoint-Spam-Info:X-Proofpoint-Spam-Details-Enc:
+	 X-Proofpoint-ORIG-GUID:X-Authority-Analysis:X-Proofpoint-GUID:
+	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Spam-Info:
 	 X-Proofpoint-Virus-Version;
-	bh=Glt4fRn151D30stLS+CFcAhAPmeUJdhpgqjiPf78iY8=;
-	b=VMiKwOD4Znjyy5CVdcIdrilF5QttIASRd7ZxN/1TojfH37oBaPlC7qtUwtSJM3ZtIyl8
-	 z9RttctFDf5AzvgTCBae/7JiJO0TEY2Y6LL57NftJxR8SI0wDymVt2h98XppBAZQBuZv/
-	 ndcwDCfaPg2P2akE7h1iq1kzL8/I1qzZt/sNgQyBzk4HXFUltUqKZKCD6C2TFjKohH8TX
-	 U0amH3ISqJDpNGRm8DHNtcCc2MsOty3MPAZYGlCQ3EOs78jOCyJdruKfbZbEqBfW2oKrU
-	 Wnp2nAiiaoreoqvAcS5yQPgffrfHSVmhq8tHq8SFhOkmen6+jqj1XDZymrcYI947iUw==
+	bh=ltJA9djPiDGmbqOIDOCvgyBxMIZpbHwdIGl8VFOEXRs=;
+	b=IIs7ip01Hrxl6WIaW5zalRWGQU3rw7eREJnf3YTKcrXtg/clEAeDTY6NrBhq9xUH6Rqh
+	 jjxSLBKa61xu4AQg3FWnDX13u3jZPsZwGIx/wLHI2C3Ke66U0H9uQDMFSR6HOaYNOb/K4
+	 k3ymjcn8+y/g7lWE3Ufeyz+ypYfQH4zLM8CaGiyoJ7lUcZB2z/HVLR4Rvr8yUYtDTkB90
+	 RhHQCswPOjJoNGW3tv/5F4u4YVQ2uVx8Sf0V5NMgxtmEV2k2JQUoEL3IXupr5KxnftGpa
+	 zr5H4gg7FCGJ7N0NXd+Qd1ned/hsmGAKonA8dygXjrZWm/6Xfcx2ys9GkiRiVIvRO5g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=meta.com;
 	spf=pass smtp.mailfrom=meta.com;
-	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=KQe4f52t;
+	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=DTrS7jFo;
 	arc=none smtp.remote-ip=67.231.153.30
 Received: from mx0b-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F8EF606A32A;
-	Tue, 17 Nov 2026 20:33:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1F8EF606A32A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FA3C606A89B;
+	Tue, 17 Nov 2026 20:33:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4FA3C606A89B
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=KQe4f52t
-Received: from pps.filterd (m0528004.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AHJKHvi1701466;
-	Tue, 17 Nov 2026 12:33:08 -0800
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=DTrS7jFo
+Received: from pps.filterd (m0148460.ppops.net [127.0.0.1])
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AHJ9Tc31359758;
+	Tue, 17 Nov 2026 12:33:14 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to; s=
-	pps82601-s2048-2026-q3; bh=Glt4fRn151D30stLS+CFcAhAPmeUJdhpgqjiP
-	f78iY8=; b=KQe4f52tpPcCYit8JfauSvoCSIMscjGbeCQ+E0UccrihM9h2Y6nBl
-	ZisGOO2dP37tm3VaMdE6DGThrS/xDXAH/SuXAFrK5xnjS8Wzb70OoHhGMOJTXcN8
-	NKbVJGRHQlPmCdqr2sM7kKx6OENyLHlNCwJ+qmsUzb3giYe20s4VgjlXcT6Huh+O
-	yHiYsfuvyjCWNpzKyPuSHB+HnZmYrHAqBO0Chl7TRpf8DAq89mBj3w1gY8Q3G58P
-	+mtdEskC562RDDaffzqa5+zIwv/iLMvmrRlptSU9ecz3EaZR6irC+A2xDxvDfkAt
-	PTLi8vs1ggviyiQh+DjWeFUvhHQor6wPg==
+	pps82601-s2048-2026-q3; bh=ltJA9djPiDGmbqOIDOCvgyBxMIZpbHwdIGl8V
+	FOEXRs=; b=DTrS7jFoHB0W8BxKVekX3F7HylpYWAbXKmLa9vCXM+KjntGPDvrBc
+	xx2ShGal42bQ50OMct/EOQGVIoEeX+pXzHfhHsTjZVgmGhGqfTqFfXRdQU4NdfrD
+	dSRhLYpx9YKVEgBfZbrI/nl955QKtUiMQzc0rzEOELhXQs75ObW++7UzygWzJj2d
+	2jfgevLeDoPfCYmExZPYHKixSYUCROlELY58+Z1fi9zk72sL5jlKxk3ewTsNSzL9
+	4uMG5wZTWL9yAMSNHlfJPO1C9EKpWZl5QkPmVE2S9CWHb/LPpX4oEuq3np2j9WEc
+	ZSbXcOyct5huWHC3+howc3U1FeMs/pb6Q==
 Received: from maileast.thefacebook.com ([163.114.135.16])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j0w0brvfq-2
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j0rk6m7ce-2
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Tue, 17 Nov 2026 12:33:06 -0800 (PST)
-Received: from localhost (2620:10d:c0a8:1b::2d) by mail.thefacebook.com
+	Tue, 17 Nov 2026 12:33:09 -0800 (PST)
+Received: from localhost (2620:10d:c0a8:1c::1b) by mail.thefacebook.com
  (2620:10d:c0a9:6f::8fd4) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.56; Tue, 17 Nov
- 2026 20:31:45 +0000
+ 2026 20:31:43 +0000
 From: Todd Freed <toddfreed@meta.com>
 To: <netdev@vger.kernel.org>
 CC: "David S. Miller" <davem@davemloft.net>,
@@ -93,9 +93,9 @@ CC: "David S. Miller" <davem@davemloft.net>,
         Willem de Bruijn
 	<willemdebruijn.kernel@gmail.com>,
         <stable@vger.kernel.org>
-Subject: [PATCH net v6 3/8] net: don't fragment decrypted skbs
-Date: Tue, 17 Nov 2026 12:31:32 -0800
-Message-ID: <20261117203137.804424-4-toddfreed@meta.com>
+Subject: [PATCH net v6 1/8] net/mlx5e: ring the tx doorbell when an accel offload drops a packet
+Date: Tue, 17 Nov 2026 12:31:30 -0800
+Message-ID: <20261117203137.804424-2-toddfreed@meta.com>
 X-Mailer: git-send-email 2.53.1
 In-Reply-To: <20261117203137.804424-1-toddfreed@meta.com>
 References: <20261117203137.804424-1-toddfreed@meta.com>
@@ -110,109 +110,80 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-GUID: m5b4mS4mUgFck7tBQ_dsz7h3gGo3G68I
-X-Proofpoint-ORIG-GUID: m5b4mS4mUgFck7tBQ_dsz7h3gGo3G68I
-X-Authority-Analysis: v=2.4 cv=NM1AaE6g c=1 sm=1 tr=0 ts=6afcba03 cx=c_pps
+X-Proofpoint-ORIG-GUID: Xx1OceeYUAaMX6TozBv1SHRo-1O9Odug
+X-Authority-Analysis: v=2.4 cv=Q7xHcI2a c=1 sm=1 tr=0 ts=6afcba07 cx=c_pps
  a=MfjaFnPeirRr97d5FC5oHw==:117 a=MfjaFnPeirRr97d5FC5oHw==:17
  a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
- a=GbPsI2Ihf5RTnMjR_gZv:22 a=VwQbUJbxAAAA:8 a=VabnemYjAAAA:8
- a=4WmOrS_ozlDB0nbKRI0A:9 a=gKebqoRLp9LExxC7YDUY:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE3MDA4MSBTYWx0ZWRfXxO9qZ1TD+Emc
- W3OkIA38ubYC9YgfKf2qS6cFr8vsL+oJp5X67QgZZP/BbMD+Zo0n6RSzHYe9LLHG6Y5ZznCwj08
- S5MKrnKDU1wlLcaO4UwMsBNEe4j7NYQ=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE3MDA4MSBTYWx0ZWRfX/tHTEz1R4T4D
- 9EP7nVTtkH/7+c0XYQgL2FVtYYYrckEGy9GzUI8KcOhXQiSdYsqlcURdjh35rsZvrVyA9BHxXtg
- OQHNL+VkE8DOTZtBhpphTpSWBSCnMByGqNm0w1kgba5APPqVifSklsg3j1rQKI1yoerBbpBldhp
- ucxcNBYDjhJGj+AzCnKqnTbe5aWtG4y1FlJ2nAXjUSBZERPvZoe7IPtm/UHEGDXamv4jdsOOkSD
- E6R2dtjY5EKNEJXe69n2eSO7i3tDCLEbCyldPpWY4kVSd2225skdW0FOXPDIdam3XtecjfNkVoS
- jLUNgPNUPZi/ptxbEq7kuPrkAdlkJa4dI8v69mNu6QXWXu1CBd2TAXl0df8PtZGr5s2ZfVhWJwc
- hmi7We6MlsGj9wsmyWG8nvQmdB+5xfgDwhb3DOsyX3WMCXsRUrzOLEttmGv81q11pZgUlsWehwU
- KV6+VeheugztOznCaRQ==
+ a=JnKecZnUtZousrUlYMGU:22 a=VwQbUJbxAAAA:8 a=VabnemYjAAAA:8
+ a=sFFrJGLWhHAlujGt_t4A:9 a=gKebqoRLp9LExxC7YDUY:22
+X-Proofpoint-GUID: Xx1OceeYUAaMX6TozBv1SHRo-1O9Odug
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE3MDA4MiBTYWx0ZWRfX/xM6JMi8FdeF
+ 9Okgz8+FPQjYBLZk/VE+qTJZwIvtYDL8Hs6haIyhXbVwUG8bAEL/4xgbrkU6VM1QHJO/RIPRFOt
+ gm6ImVl5IBiNvOe6Vcj2tjTxrtOGsaEoCB5QeMJ2IOhMEZbQQdVqaaZs/0k6FN3ZQnwrZkbKPgN
+ HT8FhCixMTrqn8oDnLWrOGC8tLt9hro1V+dKpbVa2nAA/npF1Y+YZoIKE4u3jK/+AWYdVF2cIr+
+ ALyBM1vil4CjCZPOuyl6DsCKWu0sSvk+SMVpyOpsuk/Wm1Kip+ioKHlDlwp5CKkD2bUr3kwljgn
+ qwgCy3DZnfp8jhYK3NiH5aOU31RkEVKr5EdyGhljDJqzWSdiVEjaJ/IdAVQRrPHSRAIkNcY1c/8
+ x+ICaCLpydugixruY4UEq6FWRI6NQu0J78RaygP2oE/ANF30RkyRP0hPrvLxb0sPA7ZhiKqXtDw
+ bmYW/qy8PBDCpscku+Q==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE3MDA4MiBTYWx0ZWRfX+RcSobzMjjHc
+ rzsS+uIMkJX3BiY+GYlChVaWUQKpc3RclRFgpPYhxHd72vQ/MKIsmxT1x3zr6jHVroLIagXUmSg
+ WdLGJpHZsKB/+nzbTfWADYzaErGGirw=
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
  definitions=2026-11-17_04,2026-11-16_01,2025-10-01_01
 
-on transmit, skb->decrypted means the device must encrypt the skb.
-if it can't do that, then the packet should be dropped, not transmitted
-in the clear.
+when mlx5e_accel_tx_begin() drops the skb, e.g. because psp can't
+encapsulate it, mlx5e_xmit() returns without posting anything. the skbs
+before it in a bulk dequeue may have been posted with xmit_more, which
+defers the doorbell to the next one, and an mpwqe session may be open.
+the device then doesn't see them until the next transmit on that sq, and
+since the queue isn't stopped, the tx watchdog doesn't fire.
 
-ip_do_fragment() and ip6_fragment() on a decrypted skb produce
-fragments which have skb->decrypted unset, and can be sent out
-unencrypted.
+flush the sq on this drop like the dma error paths do: close the mpwqe
+session, post a nop and ring the doorbell.
 
-tx of individually encrypted fragments would not work anyway, because
-encrypting needs the L4 header, which non-initial fragments do not have.
+mlx5e_tx_flush() doesn't check whether the nop leaves less than
+stop_room in the sq. for the dma error paths that is rare, but a run of
+offload drops would post nops without stopping the queue, and could
+overrun wqes in flight. so check it in mlx5e_tx_flush(), like the other
+producers do. the completion of the nop wakes the queue again.
 
-ktls could encrypt in sw before fragmenting. that would not work for psp
-offload which does not have a software fallback path.
+the next patch makes the psp drop reachable from user space, with an
+ipv6 extension header set on a psp socket.
 
-tcp sizes segments to the mtu, so psp and ktls socket packets normally
-won't reach this path. an ipv4 tcp socket can be made to send fragments
-by setting a route mtu above the device mtu and disabling pmtud on the
-socket (IP_PMTUDISC_OMIT). the selftest later in the series does this.
-
-emitting fragments from an ipv6 tcp socket requires more steps, but is
-also possible. the test setup here uses ipvs, which sets ignore_df on
-forwarded packets. in ip6_fragment(), check skb->decrypted after the
-too-big checks, so that a local socket still gets PKT_TOOBIG for path
-mtu discovery.
-
-tested with tls tx offload on mlx5 (connectx-7), over ipv4. without
-this patch some fragments after the first go out in cleartext, with it
-they're dropped (IpFragFails) and the connection stalls.
-
-tested over ipv6, with tls tx offload and psp on mlx5 (connectx-7),
-through an ipvs dr service with a local client. without this patch,
-fragments after the first go out in cleartext, and the peer reassembles
-them; with it they're dropped (Ip6FragFails).
-
-Fixes: e8f69799810c ("net/tls: Add generic NIC offload infrastructure")
-Fixes: 659a2899a57d ("tcp: add datapath logic for PSP with inline key exchange")
+Fixes: 2ac9cfe78223 ("net/mlx5e: IPSec, Add Innova IPSec offload TX data path")
 Cc: stable@vger.kernel.org
 Signed-off-by: Todd Freed <toddfreed@meta.com>
 ---
- net/ipv4/ip_output.c  | 8 ++++++++
- net/ipv6/ip6_output.c | 9 +++++++++
- 2 files changed, 17 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/en_tx.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
-index d42d776af273..94a40e7ed534 100644
---- a/net/ipv4/ip_output.c
-+++ b/net/ipv4/ip_output.c
-@@ -770,6 +770,14 @@ int ip_do_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 	struct ip_frag_state state;
- 	int err = 0;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+index 14479da98f42..006bf976def1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+@@ -365,6 +365,7 @@ static void mlx5e_tx_flush(struct mlx5e_txqsq *sq)
+ 	};
  
-+	/* PSP and TLS offload need the packet's L4 header, which non-initial
-+	 * fragments do not have.
-+	 */
-+	if (unlikely(skb_is_decrypted(skb))) {
-+		err = -EMSGSIZE;
-+		goto fail;
-+	}
-+
- 	/* for offloaded checksums cleanup checksum before fragmentation */
- 	if (skb->ip_summed == CHECKSUM_PARTIAL) {
- 		err = ip_check_csum_start(skb);
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index cb648c839431..5b19683f08e0 100644
---- a/net/ipv6/ip6_output.c
-+++ b/net/ipv6/ip6_output.c
-@@ -929,6 +929,15 @@ int ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 			mtu = IPV6_MIN_MTU;
+ 	wqe = mlx5e_post_nop(&sq->wq, sq->sqn, &sq->pc);
++	mlx5e_tx_check_stop(sq);
+ 	mlx5e_notify_hw(&sq->wq, sq->pc, sq->uar_map, &wqe->ctrl);
+ }
+ 
+@@ -672,8 +673,13 @@ netdev_tx_t mlx5e_xmit(struct sk_buff *skb, struct net_device *dev)
  	}
  
-+	/* PSP and TLS offload need the packet's L4 header, which non-initial
-+	 * fragments do not have. Checked after the too-big checks above,
-+	 * so that PMTUD for a local socket works.
-+	 */
-+	if (unlikely(skb_is_decrypted(skb))) {
-+		err = -EMSGSIZE;
-+		goto fail;
+ 	/* May send SKBs and WQEs. */
+-	if (unlikely(!mlx5e_accel_tx_begin(dev, sq, skb, &accel)))
++	if (unlikely(!mlx5e_accel_tx_begin(dev, sq, skb, &accel))) {
++		/* The skb was dropped: ring the doorbell which the previous
++		 * ones may have deferred to it
++		 */
++		mlx5e_tx_flush(sq);
+ 		return NETDEV_TX_OK;
 +	}
-+
- 	if (np) {
- 		u32 frag_size = READ_ONCE(np->frag_size);
+ 
+ 	mlx5e_sq_xmit_prepare(sq, skb, &accel, &attr);
  
 -- 
 2.53.1-Meta
