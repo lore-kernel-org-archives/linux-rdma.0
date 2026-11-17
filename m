@@ -1,91 +1,77 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.167.46
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.8
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794925189;
-	b=R4gWd0TsHF2JFuo7DC/05VZSkcwIinFBisFiOMOFKN1mAg7FZNRu01apq3WTGBVyopnZ
-	 SitJTLLfDfGQa+XqD5EQ3M/EBi19v8Zb31yoykYAqAOAo1E/M0NGaZ+/j4//LxYOBTasL
-	 oC+KDLZf+Zh1OR4l6TJBAg+lCQ8ztj2TvWqXdqG9+0wabYoMQZkcK/epbKWWjMQGtCcRw
-	 B7EDY1Ncx7IpjeuNnYrFbB5Ece6ob7i4GkQTxeQNivw4EKtBo4D00DX4HjYVp7DpJ48cp
-	 6j0yJ3qE6TzB3c5coLpEBW/Nu1mUUSGVXOWIrxE7J9SnxGCtddv/SrG4vtzPdoGIfSw==
+	t=1794925411;
+	b=mRaTSW70c6teA0ST8jgGR+whgjnLauX9ckonBgxJlpdecOfzFdZw2ZzYorfMS6obmcR2
+	 z6DZZ/Ljcc8a73AwNd/eXmD8VUstYCd6/E5fK6rWULm6eE7AHdmyQISW//YRu4JcZ6cbu
+	 OkS1R5D9HS/6R5+cAAHVzKCPHWIfsDLHBov1rCEsiwl3jkT3wVdAIAYO//Wqx+4cjTqah
+	 eP4r0quQHuiL/4yidDnPH/6RDBhdY2rQNdwGcwkcVq9hAKxrk8rrUrHSLcUmADmup7i1G
+	 8/s5Dp5xb1QUohz46VXlY6aayTbU2lMPJiquTc7uk1RVl34aEegJIbPWpB1lta2zOxg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794925189;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:X-Forwarded-Encrypted:X-Received:MIME-Version:References:
-	 In-Reply-To:From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=4FXZ9QjPMWSPXHYn/FS5PKL+JaPOXiDC39K9maTGAmk=;
-	b=hOohN4++i9R0WieWK3EwtwfIZZ+qsNMdnG213lVuco9O5kt9BP9VU4OMeGeKCkHUJFv/
-	 UIWwk1U6NIuYwEFsrRv8pMOsu/MRyoMrivjybUZ7M/k7NqH4cTV5Ayv+6AeI3DJhk02ni
-	 xgirSLMDHMTL7N8atshjrcdayn3PG42tVrqOKtPISbzzJqr1giy1yQTVZ5RgK0eCI59u8
-	 CwKG2ifKsIYqoKtUZ7kxNOLqUxi8vVzDvJDTgfqkH0GT6vP0CcV9KeBZUxjJ30Bpq3BjF
-	 WgoIXtPv26xO3BNapSCmLs5h7LxgVsd6/nnOfJydr22cImHH26SH8Ud8HvU/pD0Xkbg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794925411;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:User-Agent;
+	bh=z8aXfBn6bc/EKFW0N93dlGnimrT67sr2Qn1QH/Wnfyw=;
+	b=I1SrXGxoKFX3xoCxUnRC3K3OwSMc0+y6u6EGhX7stNa3TH9OnN4PETiw3KUErH1B28TJ
+	 Sq4ZMShb4KuFOu3C7BFvzriynV+n+cnJi4Py1y5leu5rOssPSkuQtKkrAlcm5/tEriG4k
+	 jbMbbC+J8LjfEWiAqx7n1Q+H3YcD5v4qlJi7H68QgIHFeqbxk0rSi/mK8XbPwrGs2ulJl
+	 VLqtckX+UvXRkyHxLeUHs037viTe1MME2ZVGk160bcTy/Tx1ynaTaFuSw1oQvg1SbjE1p
+	 F+lRK2UzW/YehcDjHseblGZQU2E+z6R1DFESvwQtyL3a1qWYH4l4D5EX2U+m+EWjxzg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=chromium.org;
-	spf=pass smtp.mailfrom=chromium.org;
-	dkim=pass header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=CfhREIjf;
-	arc=none smtp.remote-ip=209.85.167.46
-Received: from mail-lf1-f46.google.com (mail-lf1-f46.google.com [209.85.167.46])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=dhGE4K+8;
+	arc=none smtp.remote-ip=192.198.163.8
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FE02606A31C
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:19:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3FE02606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFC86606A886
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:23:29 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DFC86606A886
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=CfhREIjf
-Received: by mail-lf1-f46.google.com with SMTP id 2adb3069b0e04-5be3cff0f6cso3198600e87.0
-        for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 06:19:48 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1794925187; x=1795529987; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=4FXZ9QjPMWSPXHYn/FS5PKL+JaPOXiDC39K9maTGAmk=;
-        b=CfhREIjfWwbThKrSrBvauIPZHeC8nO5+8Ne7IIvHJ9J4ybZv/nGd5mZ8Y9Jh6jkuTT
-         XH2Hv9akK66GETdTs0lc8KvhZkiDCRDiFSiO9qWojOmqQL/DQ6HunnzoZr6xg6RTHolM
-         fyxRSOodhHNIEn/7PatCLSj2M2LHzFpnpg4EI=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794925187; x=1795529987;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=4FXZ9QjPMWSPXHYn/FS5PKL+JaPOXiDC39K9maTGAmk=;
-        b=fVmWHT+TaKwrVARN7Lk8Ve5MhLNIfCurdhWO7Zzs0TSTkgmePLCZoHHNn1Zeq1x8Nm
-         b+4CfS2fWWQBGGs1BdQRGVj4Pk8xAm8mAZs1awFyvPXMf3m4urFtPt6duI2mdlxufoLc
-         yo0jBLaOcYek86OJ8/Cs3vNh6ukJKtN6JPW6HmXb9S6SITHWncer5Mbmb4W38VkoPEuh
-         b8Q51id4Ee4oKqbb6rMbH6oM7HUH9uA1VguQNb0cSdIlURcDZMjoOKkITrzD2JIL4wS0
-         lcJJtrFjJqQiGTNqy6RaLrIJZes08QVuo4GqMmiNNiXGzJG5AJqcsxRhA7dnlY5jqzPT
-         mgGQ==
-X-Forwarded-Encrypted: i=1; AL+hErEwMTW2/sZi99aSUBfJF3ZoYn6jx3P+HnEDmQTG20J9nxtewu5U9SXOmz54NXktXkML6tk+Z1fey9wK@vger.kernel.org
-X-Gm-Message-State: APuU4Z+54RNKlbk854pKlG1zExBAQxUNGq+y5s4zl2GhFN3MldzvsBDX
-	JEvU8PkoZKANzIXm+NwZXB6dDlTcbULIfpSSpNCHahkn9us9b3I2kfXBjgF328F88V+4C10vJgM
-	hsxYcs60AlEiZlw==
-X-Gm-Gg: AYBFou1BPrR8yR8YvG/Zn6z3OPzgn7dt0+dWRT/FJP3LkToCHABdCmgoQDiGkLt4FGl
-	/iTvKcTuipX0TwJW0Bcc0Cs26jW3j3aFiKorUGR9f7mIQ4X02AOtSPoZs6PWN+ozsV2vMu4YitE
-	tdYM/U+VcBXBPpsyj8pKrreJtE5f94NnqwoHOr/2eb2jvFwfvqwHQ+ah++c5OsluyInoCGm46Jw
-	7wRwKX96bjnlN3t4pou2w4/ZFNT4MiwCcdPBjgYpscs7r0HrUhMC9i+nLOF2mCXl5+nv3QOU0we
-	+JZIVzboi2z2ahlrG0cN8o97Q3VoAPoZ/WSeEWoqpU4MlMsjfN7c+/LQfGkkDdwLAnnLR5D8Mb1
-	rfaAv7ompqQmMK15cSNHodq1w+3K+Nhll2vTybM3t6olzwiMrr7RdXejdZAsJTAm3ibb/1wpgXS
-	csuFpiXpzRcZaYrPSBoge/GogXXPz6QzChpTI1hlCnuPMnb+LcBBIJbss20OuZb958lcSdXXcGB
-	UvAz1BrFXCPFIOapySkt/PDiDWiy++VXZ7gcgZpCSlHhbwWONOv28ox1k4ROSpYLumROhl8la4X
-	fy/g3Gw5GsjAGT1W/ipaE+M7gLnQOnaHK8fhygPENhtUh3Za09f7SvMXfFm9XLHW8LI8pB0C2zg
-	ctVZ1dpqfBA==
-X-Received: by 2002:a05:6512:239f:b0:5c1:4793:bf2e with SMTP id 2adb3069b0e04-5c1709e5366mr5525963e87.44.1794925187208;
-        Tue, 17 Nov 2026 06:19:47 -0800 (PST)
-Received: from mail-lf1-f44.google.com (mail-lf1-f44.google.com. [209.85.167.44])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5c171356581sm3987779e87.66.2026.11.17.06.19.47
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 17 Nov 2026 06:19:47 -0800 (PST)
-Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-5c14bc5a743so9565e87.0
-        for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 06:19:47 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErG+2DvgDfYailGVlJYJJJ0ol80/198VF5tF27rNZ+Bj70hL7c43XAD4EmIyEMaV8LZeoacPiBj05/5I@vger.kernel.org
-X-Received: by 2002:a05:6402:a511:10b0:6b5:5d24:5d90 with SMTP id
- 4fb4d7f45d1cf-6b85b4c22d8mr72630a12.3.1794924698252; Tue, 17 Nov 2026
- 06:11:38 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=dhGE4K+8
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1794925409; x=1826461409;
+  h=date:from:to:cc:subject:message-id;
+  bh=QsDQ61Ym8YVVQZWdMGi2Wz189LkEXbXOug4+S6Pk8mE=;
+  b=dhGE4K+8Xa4cL+9LX8lwQtQmkSulLmWCfDWyf/IGveBlK15ZvdAzhJWf
+   icvrixOftGdYuNApd1ArrNDznrvp1RQUymigJP6xmYhICQ055/ZnKPGOZ
+   nSV9FHfgoEMho321Reemhoe6PRuF/lg2qgoC83yIYBvZHb3uQ2yaGZ6xP
+   nfHxh6frZlT7gsP1sgLIBjzinVJVUG9ubLsXAYe1ik9vxm8GAaK3XaA9r
+   zCQPh/rnI192FG4UFBLKclnyln3fcNT2qgTcQfVpgg53VcUnCauO2NdEw
+   iE0mEUHIny4/IjHYWyFsTvRa5O6jyNO1Y8P8UGu8kr+uyvEKKE19LQsV6
+   A==;
+X-CSE-ConnectionGUID: pi0dl2ToQDax2yq6o1DiXQ==
+X-CSE-MsgGUID: h8UxeCRvQXOMlH9AE8WwSQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11969"; a="3591229"
+X-IronPort-AV: E=Sophos;i="6.27,218,1787036400"; 
+   d="scan'208";a="3591229"
+Received: from fmviesa013.fm.intel.com ([10.60.135.153])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2026 06:23:29 -0800
+X-CSE-ConnectionGUID: zTzfRHMZSDG7ZgsMt6QxdA==
+X-CSE-MsgGUID: LAH9QcG2SVarJZFlb+pFNQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,218,1787036400"; 
+   d="scan'208";a="11782693"
+Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
+  by fmviesa013.fm.intel.com with ESMTP; 17 Nov 2026 06:23:27 -0800
+Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xTK5l-00000001BmK-03Nv;
+	Tue, 17 Nov 2026 14:23:25 +0000
+Date: Tue, 17 Nov 2026 22:22:32 +0800
+From: kernel test robot <lkp@intel.com>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>,
+ Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org
+Subject: [rdma:wip:leon-for-rc] BUILD SUCCESS
+ e7732ec135b501e87ab060d992b3b5f2ec4396c9
+Message-ID: <20261117222232.uTSdC3Z7-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -94,141 +80,251 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-References: <20261116230627.3537051-1-jeffxu@chromium.org> <2066d131-f999-4747-beb8-520d5e0ce1db@kernel.org>
-In-Reply-To: <2066d131-f999-4747-beb8-520d5e0ce1db@kernel.org>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Tue, 17 Nov 2026 23:11:19 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5DzTmyeVQxNdhdy8pPi+ts1cCgbztVJiMoNBeJWBzjdQQ@mail.gmail.com>
-X-Gm-Features: AclHuK8ZMC6yRFY7VxkKfsQMYV8BNfasB49bEPdk_bBjeXaAi9-9aO4mXcafXvg
-Message-ID: <CAAFQd5DzTmyeVQxNdhdy8pPi+ts1cCgbztVJiMoNBeJWBzjdQQ@mail.gmail.com>
-Subject: Re: [PATCH v1 0/7] mm: kasan: skip KASAN for GFP_HIGHUSER
-To: "David Hildenbrand (Arm)" <david@kernel.org>
-Cc: Jeff Xu <jeffxu@chromium.org>, Andrew Morton <akpm@linux-foundation.org>, 
-	Vlastimil Babka <vbabka@kernel.org>, Johannes Weiner <hannes@cmpxchg.org>, 
-	Andrey Ryabinin <ryabinin.a.a@gmail.com>, Lorenzo Stoakes <ljs@kernel.org>, 
-	"Liam R . Howlett" <liam@infradead.org>, Mike Rapoport <rppt@kernel.org>, 
-	Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, 
-	Brendan Jackman <brendan.jackman@linux.dev>, Zi Yan <ziy@nvidia.com>, 
-	Alexander Potapenko <glider@google.com>, Andrey Konovalov <andreyknvl@gmail.com>, 
-	Dmitry Vyukov <dvyukov@google.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, 
-	Marco Elver <elver@google.com>, Boris Brezillon <boris.brezillon@collabora.com>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Chia-I Wu <olvaffe@gmail.com>, Dev Jain <dev.jain@arm.com>, 
-	Evgenii Stepanov <eugenis@google.com>, Ian Rickards <ian.rickards@arm.com>, Jann Horn <jannh@google.com>, 
-	Jeff Vander Stoep <jeffv@google.com>, Jeff Xu <jeffxu@google.com>, Kees Cook <kees@kernel.org>, 
-	Mark Rutland <mark.rutland@arm.com>, Peter Collingbourne <peter@pcc.me.uk>, 
-	=?UTF-8?Q?Pierre=2DCl=C3=A9ment_Tosi?= <ptosi@google.com>, 
-	Ryan Roberts <ryan.roberts@arm.com>, Will Deacon <will@kernel.org>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Miklos Szeredi <miklos@szeredi.hu>, Baoquan He <baoquan.he@linux.dev>, 
-	Pasha Tatashin <pasha.tatashin@soleen.com>, Pratyush Yadav <pratyush@kernel.org>, 
-	Allison Henderson <achender@kernel.org>, "David S . Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Simon Horman <horms@kernel.org>, linux-mm@kvack.org, kasan-dev@googlegroups.com, 
-	linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, 
-	fuse-devel@lists.linux.dev, kexec@lists.infradead.org, netdev@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 17, 2026 at 7:10=E2=80=AFPM David Hildenbrand (Arm)
-<david@kernel.org> wrote:
->
-> On 11/17/26 00:06, Jeff Xu wrote:
-> > Hi all,
-> >
-> > Currently, GFP_HIGHUSER_MOVABLE includes __GFP_SKIP_KASAN (commits
-> > c275c5c6d50a, 70c248aca9e7, and 0a54864f8dfb), allowing movable
-> > userspace page allocations to skip KASAN page unpoisoning on allocation
-> > and poisoning on free under CONFIG_KASAN_HW_TAGS (ARM64 MTE). However,
-> > GFP_HIGHUSER does not include __GFP_SKIP_KASAN, even though it shares
-> > the same kernel-accessibility contract in include/linux/gfp_types.h
-> > ("for userspace allocations that may be mapped to userspace, do not nee=
-d
-> > to be directly accessible by the kernel but that cannot move once in
-> > use") and differs only by !__GFP_MOVABLE.
-> >
-> > Moving __GFP_SKIP_KASAN to GFP_HIGHUSER addresses the performance issue
-> > below (following up on the earlier drm/panthor discussion [1, 2]). The
-> > swap issue from that discussion is not addressed by this series:
-> >
-> > 1. Performance: For every 4 KB page without __GFP_SKIP_KASAN,
-> >    mte_set_mem_tag_range() tags all 256 16-byte MTE granules (via
-> >    STG/STZG and DC GVA/GZVA) on allocation and again on free. In
-> >    graphics and UI workloads, DMA-BUF (system_heap) and DRM/GPU
-> >    (shmem/TTM) buffers use GFP_HIGHUSER; while steady-state rendering
-> >    reuses buffers, window resizes, surface transitions, and app launche=
-s
-> >    synchronously allocate and free tens to hundreds of megabytes (~32 M=
-B
-> >    per 4K RGBA frame) on UI/compositor/render threads. That takes a
-> >    significant share of the 8.3 ms (120 Hz) / 16.7 ms (60 Hz) frame
-> >    budget and thrashes CPU data/MTE tag caches (especially on
-> >    cold-cache free). On Armv9.2-A, skipping KASAN cuts ~32 MB DMA-BUF
-> >    alloc+free latency by ~80% (~98% faster close()) and improves the
-> >    OpenGL score of an app-loading benchmark by 15-23%.
-> >
-> > 2. False-positive KASAN report after shmem swap-in readahead [1] (not
-> >    addressed here): when a shmem page is swapped in,
-> >    swap_cluster_readahead() also reads the neighboring swap slots and
-> >    allocates their swap-cache folios with the gfp mask of that shmem
-> >    mapping. A neighboring slot can hold an unrelated page that
-> >    userspace maps with PROT_MTE. If the mask lacks __GFP_SKIP_KASAN,
-> >    that page's folio gets a KASAN tag in page->flags. When its owner
-> >    faults it in, arch_swap_restore() writes the saved userspace tags to
-> >    the memory, but page->flags keeps the KASAN tag. Later kernel
-> >    accesses through page_address() then use a tag that does not match
-> >    the memory and are reported by KASAN.
-> >
-> >    This series does not fix the readahead path. It only removes one
-> >    way to hit it: shmem mappings that use GFP_HIGHUSER (e.g.
-> >    drm_gem_shmem_helper / panthor) now pass __GFP_SKIP_KASAN to
-> >    readahead, so the neighboring folios no longer get a KASAN tag.
-> >    Shmem mappings with other gfp masks that lack __GFP_SKIP_KASAN
-> >    (e.g. GFP_KERNEL) can still trigger the report. That issue should
-> >    be followed up separately, for example in [1].
-> >
-> > What changes for users of GFP_HIGHUSER pages under CONFIG_KASAN_HW_TAGS
-> > (other KASAN modes are not affected):
-> >
-> > - Access through vmap(): nothing changes. Those pointers already carry
-> >   the match-all tag and are not checked today.
-> > - Access through kmap_local_page() or page_address() (for example
-> >   ramfs): accesses are no longer checked by KASAN, as is already the
-> >   case for GFP_HIGHUSER_MOVABLE pages.
-> > - Buffers that the kernel itself fills (pipe, FUSE, kexec, RDS) keep
-> >   KASAN checking by using the new GFP_HIGHUSER_KASAN (patches 1-4).
-> >
-> > GFP_KERNEL, GFP_USER, slab and vmalloc() allocations are not affected.
-> >
-> > Patch 1 adds GFP_HIGHUSER_KASAN
->
-> I really don't want us to spread KASAN-related GFP flags in the kernel.
->
-> There must be a proper way to abstract this.
->
-> Why is GFP_HIGHUSER not sufficient? We were already told that this is mem=
-ory to
-> be mapped into user space. Placing data structure on it and handing out p=
-ointers
-> to that would already be a bit questionable.
->
-> So what are the ways to avoid GFP_HIGHUSER_KASAN?
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-rc
+branch HEAD: e7732ec135b501e87ab060d992b3b5f2ec4396c9  RDMA/mlx5: Skip vport context query on FW without ib_virt support
 
-I think the idea behind GFP_HIGHUSER_KASAN is to make it possible to
-skip KASAN for GFP_HIGHUSER by default (for most of its users), but
-keep it for some of the users which today use GFP_HIGHUSER for their
-memory allocations, but could benefit from the added security. As per
-the other patches in the series:
+elapsed time: 1410m
 
-  pipe, fuse: use GFP_HIGHUSER_KASAN for pipe buffer pages
-  kexec: use GFP_HIGHUSER_KASAN for segment pages
-  net/rds: use GFP_HIGHUSER_KASAN for message pages
+configs tested: 231
+configs skipped: 9
 
-That said, I'm not familiar with any of the code mentioned by those
-patches, so I can't really tell how much they would benefit from KASAN
-or if their choice of GFP_HIGHUSER to begin with is correct.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Best,
-Tomasz
+tested configs:
+alpha                              allnoconfig    gcc-16.2.0
+alpha                             allyesconfig    gcc-16.2.0
+alpha                                defconfig    clang-24
+alpha                                defconfig    gcc-16.2.0
+arc                               allmodconfig    clang-24
+arc                               allmodconfig    gcc-16.2.0
+arc                                allnoconfig    gcc-16.2.0
+arc                               allyesconfig    clang-24
+arc                                  defconfig    gcc-16.2.0
+arc                          haps_hs_defconfig    gcc-16.2.0
+arc                      nsimosci_hs_defconfig    gcc-16.2.0
+arc                   randconfig-1000-20261117    gcc-13.5.0
+arc                   randconfig-1001-20261117    gcc-13.5.0
+arc                            tb10x_defconfig    clang-24
+arm                               alldefconfig    gcc-16.2.0
+arm                                allnoconfig    gcc-16.2.0
+arm                               allyesconfig    clang-24
+arm                          axm55xx_defconfig    clang-24
+arm                                  defconfig    gcc-16.2.0
+arm                       footbridge_defconfig    gcc-16.2.0
+arm                       jornada720_defconfig    clang-24
+arm                         neponset_defconfig    gcc-16.2.0
+arm                          nhk8815_defconfig    clang-24
+arm                          orion5x_defconfig    gcc-16.2.0
+arm                   randconfig-1000-20261117    gcc-13.5.0
+arm                   randconfig-1001-20261117    gcc-13.5.0
+arm                   randconfig-1002-20261117    gcc-13.5.0
+arm                   randconfig-1003-20261117    gcc-13.5.0
+arm                            spitz_defconfig    clang-24
+arm                         vexpress_defconfig    gcc-16.2.0
+arm64                             alldefconfig    gcc-16.2.0
+arm64                             allmodconfig    clang-24
+arm64                              allnoconfig    gcc-16.2.0
+arm64                                defconfig    gcc-16.2.0
+arm64                 randconfig-1000-20261117    gcc-16.2.0
+arm64                 randconfig-1001-20261117    gcc-16.2.0
+arm64                 randconfig-1002-20261117    gcc-16.2.0
+arm64                 randconfig-1003-20261117    gcc-16.2.0
+csky                              alldefconfig    clang-24
+csky                              allmodconfig    gcc-16.2.0
+csky                               allnoconfig    gcc-16.2.0
+csky                                 defconfig    gcc-16.2.0
+csky                  randconfig-1000-20261117    gcc-16.2.0
+csky                  randconfig-1001-20261117    gcc-16.2.0
+hexagon                           allmodconfig    gcc-16.2.0
+hexagon                            allnoconfig    gcc-16.2.0
+hexagon                              defconfig    gcc-16.2.0
+hexagon               randconfig-1000-20261117    clang-17
+hexagon               randconfig-1001-20261117    clang-17
+i386                              allmodconfig    clang-22
+i386                               allnoconfig    gcc-16.2.0
+i386                              allyesconfig    clang-22
+i386        buildonly-randconfig-1000-20261117    clang-22
+i386        buildonly-randconfig-1001-20261117    clang-22
+i386        buildonly-randconfig-1002-20261117    clang-22
+i386        buildonly-randconfig-1003-20261117    clang-22
+i386        buildonly-randconfig-1004-20261117    clang-22
+i386        buildonly-randconfig-1005-20261117    clang-22
+i386                                 defconfig    gcc-16.2.0
+i386                  randconfig-1000-20261117    gcc-14
+i386                  randconfig-1001-20261117    gcc-14
+i386                  randconfig-1002-20261117    gcc-14
+i386                  randconfig-1003-20261117    gcc-14
+i386                  randconfig-1004-20261117    gcc-14
+i386                  randconfig-1005-20261117    gcc-14
+i386                  randconfig-1006-20261117    gcc-14
+i386                  randconfig-1007-20261117    clang-22
+i386                  randconfig-1008-20261117    clang-22
+i386                  randconfig-1009-20261117    clang-22
+i386                  randconfig-1010-20261117    clang-22
+i386                  randconfig-1011-20261117    clang-22
+i386                  randconfig-1012-20261117    clang-22
+i386                  randconfig-1013-20261117    clang-22
+loongarch                         allmodconfig    clang-24
+loongarch                          allnoconfig    gcc-16.2.0
+loongarch                            defconfig    clang-24
+loongarch                 loongson32_defconfig    clang-24
+loongarch             randconfig-1000-20261117    clang-17
+loongarch             randconfig-1001-20261117    clang-17
+m68k                              allmodconfig    gcc-16.2.0
+m68k                               allnoconfig    gcc-16.2.0
+m68k                              allyesconfig    clang-24
+m68k                              allyesconfig    gcc-16.2.0
+m68k                           amiga_defconfig    gcc-16.2.0
+m68k                                 defconfig    clang-24
+m68k                        m5235evb_defconfig    gcc-16.2.0
+m68k                             q40_defconfig    clang-24
+microblaze                         allnoconfig    gcc-16.2.0
+microblaze                        allyesconfig    gcc-16.2.0
+microblaze                           defconfig    clang-24
+mips                              allmodconfig    gcc-16.2.0
+mips                               allnoconfig    gcc-16.2.0
+mips                              allyesconfig    gcc-16.2.0
+mips                          bigsur_defconfig    gcc-16.2.0
+mips                      cu1830-neo_defconfig    gcc-16.2.0
+mips                           eyeq6_defconfig    clang-24
+mips                      eyeq6lplus_defconfig    gcc-16.2.0
+mips                      loongson2k_defconfig    gcc-16.2.0
+mips                       maltaaprp_defconfig    clang-24
+mips                       pic32mzda_defconfig    gcc-16.2.0
+mips                          rt305x_defconfig    clang-24
+mips                            xway_defconfig    gcc-16.2.0
+nios2                             allmodconfig    clang-20
+nios2                              allnoconfig    clang-24
+nios2                                defconfig    clang-24
+nios2                 randconfig-1000-20261117    clang-17
+nios2                 randconfig-1001-20261117    clang-17
+openrisc                          allmodconfig    clang-20
+openrisc                           allnoconfig    clang-24
+openrisc                             defconfig    gcc-16.2.0
+parisc                            allmodconfig    gcc-16.2.0
+parisc                             allnoconfig    clang-24
+parisc                            allyesconfig    clang-17
+parisc                               defconfig    gcc-16.2.0
+parisc                 generic-64bit_defconfig    clang-24
+parisc                randconfig-1000-20261117    gcc-9.5.0
+parisc                randconfig-1001-20261117    gcc-9.5.0
+parisc64                             defconfig    clang-24
+powerpc                     adder875_defconfig    clang-24
+powerpc                           allmodconfig    gcc-16.2.0
+powerpc                            allnoconfig    clang-24
+powerpc                      asp8347_defconfig    clang-24
+powerpc                       bamboo_defconfig    clang-24
+powerpc                  canyonlands_defconfig    clang-24
+powerpc                       cm5200_defconfig    clang-24
+powerpc                       ep88xc_defconfig    clang-24
+powerpc                        holly_defconfig    clang-24
+powerpc                  mpc8313_rdb_defconfig    gcc-16.2.0
+powerpc                mpc834x_itxgp_defconfig    clang-24
+powerpc                  mpc836x_rdk_defconfig    clang-24
+powerpc                      mpc83xx_defconfig    gcc-16.2.0
+powerpc                       pasemi_defconfig    gcc-16.2.0
+powerpc                       pcm030_defconfig    clang-24
+powerpc                       pmac32_defconfig    clang-24
+powerpc                      powernv_defconfig    gcc-16.2.0
+powerpc                        ppc64_defconfig    gcc-16.2.0
+powerpc               randconfig-1000-20261117    gcc-9.5.0
+powerpc               randconfig-1001-20261117    gcc-9.5.0
+powerpc                      skiroot_defconfig    clang-24
+powerpc                          wii_defconfig    gcc-16.2.0
+powerpc64             randconfig-1000-20261117    gcc-9.5.0
+powerpc64             randconfig-1001-20261117    gcc-9.5.0
+riscv                             alldefconfig    clang-24
+riscv                             allmodconfig    clang-24
+riscv                              allnoconfig    clang-24
+riscv                             allyesconfig    clang-24
+riscv                                defconfig    gcc-16.2.0
+riscv                 randconfig-1000-20261117    clang-24
+riscv                 randconfig-1001-20261117    clang-24
+s390                              allmodconfig    clang-17
+s390                               allnoconfig    clang-24
+s390                              allyesconfig    gcc-16.2.0
+s390                                 defconfig    gcc-16.2.0
+s390                                 defconfig    gcc-16.2.0
+s390                  randconfig-1000-20261117    clang-24
+s390                  randconfig-1001-20261117    clang-24
+s390                        zfcpdump_defconfig    gcc-16.2.0
+sh                                allmodconfig    gcc-16.2.0
+sh                                 allnoconfig    clang-24
+sh                                allyesconfig    clang-17
+sh                                   defconfig    gcc-14
+sh                              espt_defconfig    gcc-16.2.0
+sh                    randconfig-1000-20261117    clang-24
+sh                    randconfig-1001-20261117    clang-24
+sh                           sdk7780_defconfig    gcc-16.2.0
+sh                            se7750_defconfig    clang-24
+sh                            sh2007_defconfig    clang-24
+sh                      sh7710voipgw_defconfig    gcc-16.2.0
+sparc                              allnoconfig    clang-24
+sparc                                defconfig    gcc-16.2.0
+sparc                 randconfig-1000-20261117    gcc-15.3.0
+sparc                 randconfig-1001-20261117    gcc-15.3.0
+sparc                        sparc32_defconfig    gcc-16.2.0
+sparc                        sparc64_defconfig    clang-24
+sparc64                           allmodconfig    clang-20
+sparc64                              defconfig    gcc-14
+sparc64               randconfig-1000-20261117    gcc-15.3.0
+sparc64               randconfig-1001-20261117    gcc-15.3.0
+um                                alldefconfig    clang-24
+um                                allmodconfig    clang-17
+um                                 allnoconfig    clang-24
+um                                allyesconfig    gcc-16.2.0
+um                                   defconfig    gcc-14
+um                              i386_defconfig    clang-24
+um                              i386_defconfig    gcc-14
+um                    randconfig-1000-20261117    gcc-15.3.0
+um                    randconfig-1001-20261117    gcc-15.3.0
+um                            x86_64_defconfig    gcc-14
+x86_64                            allmodconfig    clang-22
+x86_64                             allnoconfig    clang-24
+x86_64                            allyesconfig    clang-22
+x86_64      buildonly-randconfig-1000-20261117    gcc-13
+x86_64      buildonly-randconfig-1001-20261117    gcc-13
+x86_64      buildonly-randconfig-1002-20261117    gcc-13
+x86_64      buildonly-randconfig-1003-20261117    gcc-13
+x86_64      buildonly-randconfig-1004-20261117    gcc-13
+x86_64      buildonly-randconfig-1005-20261117    gcc-13
+x86_64                               defconfig    gcc-14
+x86_64                                   kexec    clang-22
+x86_64                randconfig-1000-20261117    clang-22
+x86_64                randconfig-1001-20261117    clang-22
+x86_64                randconfig-1002-20261117    clang-22
+x86_64                randconfig-1003-20261117    clang-22
+x86_64                randconfig-1004-20261117    clang-22
+x86_64                randconfig-1005-20261117    clang-22
+x86_64                randconfig-1006-20261117    gcc-14
+x86_64                randconfig-1007-20261117    gcc-14
+x86_64                randconfig-1008-20261117    gcc-14
+x86_64                randconfig-1009-20261117    gcc-14
+x86_64                randconfig-1010-20261117    gcc-14
+x86_64                randconfig-1011-20261117    gcc-14
+x86_64                randconfig-1012-20261117    gcc-14
+x86_64                randconfig-1013-20261117    gcc-14
+x86_64                randconfig-1014-20261117    gcc-14
+x86_64                randconfig-1015-20261117    gcc-14
+x86_64                randconfig-1016-20261117    gcc-14
+x86_64                randconfig-1017-20261117    gcc-14
+x86_64                                rhel-9.4    clang-22
+x86_64                            rhel-9.4-bpf    gcc-14
+x86_64                           rhel-9.4-func    clang-22
+x86_64                     rhel-9.4-kselftests    clang-22
+x86_64                          rhel-9.4-kunit    gcc-14
+x86_64                            rhel-9.4-ltp    gcc-14
+x86_64                           rhel-9.4-rust    clang-22
+xtensa                             allnoconfig    clang-24
+xtensa                            allyesconfig    clang-20
+xtensa                           iss_defconfig    gcc-16.2.0
+xtensa                randconfig-1000-20261117    gcc-15.3.0
+xtensa                randconfig-1001-20261117    gcc-15.3.0
+xtensa                          virt_defconfig    gcc-16.2.0
+xtensa                     xip_kc705_defconfig    gcc-16.2.0
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
