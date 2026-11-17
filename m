@@ -1,49 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794883806;
-	b=WaMsTWEkzwCRV/zYvq/v6SA9CdKmSXCM7ORH1JqkPNqcg/lgb9iIeqNhW4+sA0F1XOr/
-	 6xsQM3bi3a8vMTf9/2shPP19jqChP/ER68HyD+JM+L/EdQGslupLo6ghnIXhYWeMuXneG
-	 g33BGn8DGZnxjbw5G9dZx7z7ifahKOgXL6qvjH4syBebeUKdvFknBq9WDiJH8THB34Yrg
-	 SjiZD3AA0tfTDopjYXmGVG/KJBviKMqGelHKTwN5mi25KA7Go6uErP7JMe522klek6HcA
-	 ETEV3ildm70YveZPQcpxctROB0ItDSc9wFCrIvC67CGu2zjgo/wadsGBnc3noqBRdzA==
+	t=1794884508;
+	b=osqkIlXP9Erm1ZuipdSnXAt1+9oPTFReSheKlQ/d/I2qH6tWjDNoZXjPSxQwt2urb68+
+	 WhS2XMtmz2Bsuho7S5wgoWFVYWDGfqkzn+8Vbxf1HbJ1MtdtBNdhelTj7tvvSNCCX9bFp
+	 f2Us52e4jLhQ9UvcZmlFVEr76CzW6/pDiZyggyXL3WTcJrz/b6VItTeL/rEDQ2r36fDwX
+	 gk5UxS9LYt7+pBpqSUt5q39W8mlcDOFbhHEAjYthCsXF2VxdK0mMzTO/cOQrvdGosiYQ2
+	 3p8AHNrktaCCPqPfc3CwlqSIOz7rJVcIsi4gEme14CUNPrIcpADVZFe/0Z+06w1GINQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794883806;
-	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
-	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc;
-	bh=BL7jfL5RepDVHTpf571CMSvkP8AAhB1asrmNRQjeQpw=;
-	b=Gz76EYJRTj78gO3WnqGbrUGtLMfMRyOPGF8kDRsRSjY9ptdhFcvzlci+hV+PrU6TEJPS
-	 9suKnD5WqFBhsVH/1MqtSuTNLb5bkruThSmGfYes6zpiIG3HYDETFpn+KOPnACElJj8rn
-	 G8xwQ/z5PBqOKfK/QHU0m4sU0KFWv7UuLCYsxRTJHQI5kYFprtPwHGnppmmQ4dCZOXWr2
-	 MaSDxOwgg7crJmc6laBprbZuGKaJ5+suFxB7yV0ZWEJ4AtpL06QoSFHVl8pbhLuCdPele
-	 3u/kytSrqIwjw7T9VESTJMdLv3FAwIbsM37To4Kbz6REFuOE9Nxj1JwcSA+0zGVsoZg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794884508;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=jXAykFlTjw10HuvOwMLw3fL0YkHKBn5qyBXPqoe3tLQ=;
+	b=B37GUAMqzovXT4WhPE0OuB4Lx9Y5tLfEdL6IZ5PWGawYMjH817LvnIUbaORTZ1sxqDtf
+	 eGKcDochxO/ZaCsFctArsyAK+SpHD2I4BqFxqQA4Pl+LKdVLI1THlNFutdSyjaE8Ore9X
+	 53YWGUhVT9S09jWcB4Y/V0HOD38l4o3xRoWKl6G4kkqkvdC0wt2u09mDV5jNUPNoC8fKg
+	 CKs8A+ZHCPalYmlQonSQIJ4XHLXps5nkOcppEX2YxDwmiKn98O5E+w7stke9yLmIGD3hJ
+	 VuHAozqbqE7fU1vsESAFUeMJdKcch+5j15VyepYyZO+zwGJddS6LbV5fMw4eFGdPfUg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DKQL61tv;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BqGQdNbN;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B95CA606A31C;
-	Tue, 17 Nov 2026 02:50:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12C3C606A31C
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 03:01:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DKQL61tv
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82E481F000C4;
-	Tue, 17 Nov 2026 02:50:06 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BqGQdNbN
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80F051F000C4;
+	Tue, 17 Nov 2026 03:01:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794883806;
-	bh=BL7jfL5RepDVHTpf571CMSvkP8AAhB1asrmNRQjeQpw=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=DKQL61tve8PT9P9rXUR2i9O4iq9u5aphdt2xxWVTKpGJWj6bIwjtJ6SuDijXsvTdA
-	 XH10lPmrY+dhQk5tQUOqSwyzIPiVcMOoZ74PMGSiLKM0FwtxPztrqaNezJ5iGY3pvu
-	 fcjbABlaeIa+rZIZqddY+Kax/rTsofLR/I8OZ9YhGEdAEpjyAXNQ+CdlWJrfV9gTHq
-	 zRlOGPOSWmpW3ZA7h4IGHIyBayE2a4LFL4JtDiYh1sicGLPCc/uBOSgfut81tP72VL
-	 rQXazmDB+i+DQM+mDoDPexFIhYIWHBr+4nRdnZa0NAbeOirQwN+XGFbv6DD2SqFF7z
-	 TmHvJdKevj4Aw==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 773F8391B088;
-	Tue, 17 Nov 2026 02:50:06 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20260515; t=1794884507;
+	bh=jXAykFlTjw10HuvOwMLw3fL0YkHKBn5qyBXPqoe3tLQ=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=BqGQdNbNNbsuf/IsSEbE7S5Q7B6GxYtQM+VLpEpEi9yFw6Tt0MMt6ePGH55Co1pku
+	 TaiB1VDOAbFbuLfa0me5aXqPz3I86vuWvMwR5QXMUOUoL968jzbzoY/9sb+7gBZjd9
+	 Vzj9KxuGSW6xEyhXyLJiZIMwBzYRu5E4FJQisClCT9rz3BOCRuIgGzV+MFdBrtgUKH
+	 lzIPzaDOpZ4lf/NyTzl/7LSTROepV51y0p5TByyJ8br6dWTpw4uwBnZi9pio+37ox2
+	 lqwsQcvVhqRaIhh0ZVrXz3QAKCAcKsHDUdVZcxaL93gPBGeUr8tk2lIzcHacxNzYEc
+	 VhiJZicGlRvpQ==
+Message-ID: <sashiko-outbox-218110@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH 6.6.y] RDMA/erdma: Use IRQ-safe XArray helpers for QP
+ and CQ tables
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Cheng Xu" <chengyou@linux.alibaba.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261117022839.23186-1-chengyou@linux.alibaba.com>
+References: <20261117022839.23186-1-chengyou@linux.alibaba.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Tue, 17 Nov 2026 03:01:47 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -52,45 +59,32 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net] net/mlx5: IFC,
- enlarge active_port field to support 8 port LAG
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <179488380528.305876.11658073225104873930.git-patchwork-notify@kernel.org>
-Date: Tue, 17 Nov 2026 02:50:05 +0000
-References: <20261112182940.3655773-1-tariqt@nvidia.com>
-In-Reply-To: <20261112182940.3655773-1-tariqt@nvidia.com>
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
- agoldberger@nvidia.com, gal@nvidia.com, leon@kernel.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, mbloch@nvidia.com,
- saeedm@nvidia.com, shayd@nvidia.com, horms@kernel.org
 
-Hello:
+> [ Upstream commit 00baeade709fb66da647e8327e8398bb532e30f7 ]
+>=20
+> Locked QP and CQ lookups from EQ interrupts can deadlock with
+> create-path XArray updates. If an interrupt arrives while the create
+> path holds the plain xa_lock, the lookup spins forever trying to
+> acquire the same lock.
+>=20
+> Use IRQ-safe XArray helpers for all QP and CQ create-path updates,
+> including the GSI QP store and error paths. Initialize both arrays with
+> XA_FLAGS_LOCK_IRQ so sleeping allocations preserve interrupt state.
+>=20
+> [ The GSI QP create path is not present in 6.6.y, so omit that hunk. ]
+>=20
+> Fixes: 98df2aee1459 ("RDMA/erdma: Hold CQ references when processing EQ e=
+vents")
+> Fixes: a52eeff32024 ("RDMA/erdma: Hold QP references for AE and CM proces=
+sing")
+> Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
+> Link: https://patch.msgid.link/20260828030344.88021-1-chengyou@linux.alib=
+aba.com
+> Signed-off-by: Leon Romanovsky <leon@kernel.org>
 
-This patch was applied to netdev/net.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+Sashiko has reviewed this patch and found no issues.
 
-On Thu, 12 Nov 2026 20:29:40 +0200 you wrote:
-> From: Shay Drory <shayd@nvidia.com>
-> 
-> active_port is a bitmask with a bit per LAG port. The cited commit
-> enabled 8 port LAG, but active_port remained 4 bits wide.
-> 
-> Enlarge active_port to 8 bits, as defined in the PRM.
-> 
-> [...]
-
-Here is the summary with links:
-  - [net] net/mlx5: IFC, enlarge active_port field to support 8 port LAG
-    https://git.kernel.org/netdev/net/c/a2239d5dbbda
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261117022839.2318=
+6-1-chengyou@linux.alibaba.com?part=3D1
 
