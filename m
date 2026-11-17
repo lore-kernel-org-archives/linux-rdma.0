@@ -1,57 +1,77 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.17
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794932179;
-	b=3RMfywrWMhF+cZ4nuincUjJZjoByBb4K8qd0Kzkeu4uXrtAXRW8f4nELwi19GIgyjYVV
-	 nZeg5PxvQkZNy6osJAo2riXP8OPY6pVUHFpquCR/kp6JCCFcbkfGmOfda5RSaIr3Ve+Fl
-	 wVTm6e58EAP/vOG75ujFLzTPbkknWHCBJrPYLSD4leF8NB/o9fSao8rkAsCf3mwMzRgQQ
-	 U51sE/tJPRUBdWSDaczQMKj96XbsuuuiGSW6H8m0wiSG1MRmGsfL2du1Xaj3Bx264rgov
-	 YfTk9mejxxbeqOQprY2jEAusGLEp42+zaioCbRfw2ofvFit5YfB/wDuSQ9BLuVDFMJw==
+	t=1794932933;
+	b=RJpOGtryyqHMWKnvIux71RzUazCY+aLtIkSlm7Msr/XDHzZNdcUs1DgTwNd/mtVAnmzt
+	 MpFPDhzTGxJ+sCwdyqStNOBEPz+05Q96ihFpquikaYEi30RubVdzhNPqFpwGM05EB8LGZ
+	 62H9GM5dgdmq/36DlESi7ja4DX06DrNKVdFfytbIfhGMn/f/NL9uKNDRUBojYj0Lj4pOg
+	 I1aqgHsQX+GxXmeGH9nKXXoPr4yYAcgIl6vpGXPQ80eJRIwGn5EVaDF1NPqGQ7vXvNpru
+	 QvmdPbQjLlMYA20rKYMUUMCpwMOguSIAJsCs9Vry6yBmFq3DjRFGr4oDotry8Exh7nA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794932179;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=wrAINhqY27MsXWDikCsCpm9YycL8gCmtdeanxMq33Dc=;
-	b=3hr2LtNQ5hz0zKzvRul9YGV8SP1b81UjAYUsbh+3EQe8+aT56EOd5ns8nYP+tm51rfdW
-	 EGqSS8FACptxxj1Ll5BP/5S713DPFaRlG552RU3dznjaozdKRhsgN/U3HsOCiN+/st5C8
-	 bXx7sQBDAOcdDniheGWR0yCZIHkvBrmoKgV9HtSREGxmo/o6uL4sNlBqL9to1j3yX2f+K
-	 +42rakatkRBv2KouzV9V0C93X2AKhySvn6AfPaAEf0lHfe55Qe4Odo9VOeW8B2NP/HeoN
-	 VfvIP1/XFC6tQYe7TThlpcdudvNbiGFYaJqjHuSMBYgJ/TnAos4yI4Ewhgeo9WCPmiw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794932933;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:User-Agent;
+	bh=aRzzgfWfSvK9ZmrQDI05ghDsAV44Gh7D8UcpNBpE68A=;
+	b=GCYPoH2roqr5bVOxXzVF4Pe+xgt28cagtLCev13G3aEuXTEdfT7d6+GSrmuQuMMSbAsF
+	 jyf+mnPyRfpB/mzlxwaQq/DhhQu/NDV8nDUJPPWS4pA7eev7j+sOtho3aBxGKSfSZZN1b
+	 jkdSxEDRaPQUPNYUNCjWQYpxPYGkeGLEw2kxsjFz6fg8QhsOsfMHWrHAi4sZ6lkViQUMb
+	 TNtgMUrWsi5NCbo06ZmEg6EscVi00PihnDq5pfBWsJlP3zQHEopUe0ja54uogwRTCzuAh
+	 xlG6F/fiIoA3mhoCYUuZpHQpfAfdAi93HDD9QZe6DgTmh/+vonm2B0AVK96p5+Uomvw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZjTKe+5U;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b="R/tyrjB8";
+	arc=none smtp.remote-ip=198.175.65.17
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C4DC606A31C
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 16:16:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4837606A32A
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 16:28:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D4837606A32A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZjTKe+5U
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1955F1F000CA;
-	Tue, 17 Nov 2026 16:16:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794932179;
-	bh=wrAINhqY27MsXWDikCsCpm9YycL8gCmtdeanxMq33Dc=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=ZjTKe+5UjtwRZK0T+fo9pdlePaZdkBIlsZwcTcfNczv5GDYzwjoOy1B/KgYUHnqsd
-	 K5ZvBVIUi3LJiCnljF3rqYZats40V2hNV2RhUYzeWhLzezzuNBRRRxkNTop6n7cxsI
-	 5eZ8NZ0/qMFFelr0kqFXFoqJJjgYlBf3FfnLPMQWqj2Wqg5UtkXoNDbAszwGxdWdVZ
-	 T/CqAAt6zNT2jCuzuuhKSPFEGBf1fFpMJw40TjNIaSJbhpXrsp4k7EWgemtGKXooID
-	 GJ4Cgz5IMRZFHrgFJA/U2W3v+yPFQkMRO2GBx0S/ETyt8rtpv90NhSDmjpYhInYokr
-	 1blHtStOeT4Rg==
-Message-ID: <sashiko-outbox-219152@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v2 5/5] net/mlx4: flush pending doorbell when
- dropping a TX skb
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Joe Damato" <joe@dama.to>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261117155353.2250540-6-joe@dama.to>
-References: <20261117155353.2250540-1-joe@dama.to>
- <20261117155353.2250540-6-joe@dama.to>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 17 Nov 2026 16:16:18 +0000
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=R/tyrjB8
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1794932933; x=1826468933;
+  h=date:from:to:cc:subject:message-id;
+  bh=7LmW6IeX3jc2UDla3JQb2dIDihWwNXpQE9nYWyZ8xTA=;
+  b=R/tyrjB8UKA7FfA4UC+EgYc5gDZKMXr2OaWKvDexIJdM1HTbDHtaaxxl
+   xscYq5i+fgrlITk4V7Pe3wiFpL48qnYdI+czK03/x5e9F1491VANuL0y6
+   i+sFsVCwJ3VFZPlaeno/zhIiS04G03dvKfyb9pWR6hrq7Mv3dQs73zlqT
+   91OHP6ZEyXuDMQ1eWZkl4TV0d78Qq/HxNlX5B4ewRtNn+QPbsj/UP27Wb
+   r/pm16xa9qzXTJNWJ8j95JiJS/EL48IOWop0teJVksaf1RUimSV6INfBR
+   3FeSgb6iTeRJrqU12mIK11f4w9KrQVESGXzCLqnOd7tF8o7nQgziiIsf9
+   g==;
+X-CSE-ConnectionGUID: qVyUbrafQ2ew91ZzeOkl6g==
+X-CSE-MsgGUID: tqhSSULrQqqD1pLIhQ2KqA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11969"; a="3729495"
+X-IronPort-AV: E=Sophos;i="6.27,218,1787036400"; 
+   d="scan'208";a="3729495"
+Received: from orviesa008.jf.intel.com ([10.64.159.148])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2026 08:28:52 -0800
+X-CSE-ConnectionGUID: APj31Y8FQAO36QW0Ddp9LA==
+X-CSE-MsgGUID: 9c/mxcStTk2g3UT5cAxAYQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,218,1787036400"; 
+   d="scan'208";a="9657272"
+Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
+  by orviesa008.jf.intel.com with ESMTP; 17 Nov 2026 08:28:51 -0800
+Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xTM36-00000001C0b-2gJ0;
+	Tue, 17 Nov 2026 16:28:48 +0000
+Date: Wed, 18 Nov 2026 00:28:18 +0800
+From: kernel test robot <lkp@intel.com>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>,
+ Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org
+Subject: [rdma:wip:leon-for-next] BUILD REGRESSION
+ 586be88310461aaded66e16c5579e384dde494b5
+Message-ID: <20261118002818.qdRbNTPq-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,21 +81,83 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> If mlx4_en_xmit drops an skb (for example because DMA mapping fails) and
-> that skb happens to be the last one in the batch, the doorbell for the
-> WQEs posted earlier in the batch isn't written.
->=20
-> The queue stays awake, though, so those WQEs are eventually announced to
-> the HW after the next TX, but that depends on traffic and could induce
-> latency.
->=20
-> Avoid all of that by writing the pending doorbell in the drop path.
->=20
-> Signed-off-by: Joe Damato <joe@dama.to>
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
+branch HEAD: 586be88310461aaded66e16c5579e384dde494b5  RDMA/ionic: use the v2 atomic send WQE layout
 
-Sashiko has reviewed this patch and found no issues.
+Error/Warning (recently discovered and may have been fixed):
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261117155353.2250=
-540-1-joe@dama.to?part=3D5
+    https://lore.kernel.org/oe-kbuild-all/202611162132.pYyZA0UN-lkp@intel.com
 
+    drivers/infiniband/hw/mlx5/dm.c:217:11: error: no member named 'base' in 'struct mlx5_ib_dm'
+
+Error/Warning ids grouped by kconfigs:
+
+recent_errors
+|-- loongarch-allmodconfig
+|   `-- drivers-infiniband-hw-mlx5-dm.c:error:no-member-named-base-in-struct-mlx5_ib_dm
+`-- loongarch-allyesconfig
+    `-- drivers-infiniband-hw-mlx5-dm.c:error:no-member-named-base-in-struct-mlx5_ib_dm
+
+elapsed time: 1535m
+
+configs tested: 53
+configs skipped: 0
+
+tested configs:
+alpha       randconfig-2000-20261116    gcc-8.5.0
+alpha       randconfig-2001-20261116    gcc-15.3.0
+alpha       randconfig-2200-20261116    gcc-15.3.0 smatch
+arc         randconfig-2200-20261116    gcc-15.3.0 smatch
+arm         randconfig-2000-20261116    gcc-15.3.0
+arm         randconfig-2001-20261116    clang-24
+arm         randconfig-2002-20261116    gcc-8.5.0
+arm64       randconfig-2000-20261116    gcc-8.5.0
+arm64       randconfig-2001-20261116    clang-18
+arm64       randconfig-2002-20261116    gcc-14.4.0
+hexagon     randconfig-2200-20261116    clang-17   smatch
+i386        randconfig-2200-20261116    gcc-14     smatch
+loongarch   randconfig-2000-20261116    clang-24
+loongarch   randconfig-2001-20261116    clang-24
+loongarch   randconfig-2200-20261116    clang-19   smatch
+m68k        randconfig-2000-20261116    gcc-12.5.0
+m68k        randconfig-2001-20261116    gcc-10.5.0
+microblaze  randconfig-2000-20261116    gcc-8.5.0
+microblaze  randconfig-2001-20261116    gcc-15.3.0
+nios2       randconfig-2000-20261116    gcc-11.5.0
+nios2       randconfig-2001-20261116    gcc-11.5.0
+nios2       randconfig-2200-20261116    gcc-11.5.0 smatch
+openrisc    randconfig-2200-20261116    gcc-15.3.0 smatch
+parisc      randconfig-2000-20261116    gcc-15.3.0
+parisc      randconfig-2001-20261116    gcc-9.5.0
+riscv       randconfig-2000-20261116    gcc-8.5.0
+riscv       randconfig-2001-20261116    clang-24
+riscv       randconfig-2002-20261116    gcc-16.2.0
+riscv       randconfig-2003-20261116    clang-20
+riscv       randconfig-2004-20261116    clang-24
+riscv       randconfig-2005-20261116    clang-18
+riscv       randconfig-2200-20261116    clang-24   smatch
+s390        randconfig-2000-20261116    clang-17
+s390        randconfig-2001-20261116    clang-24
+s390        randconfig-2002-20261116    gcc-12.5.0
+s390        randconfig-2003-20261116    gcc-8.5.0
+s390        randconfig-2004-20261116    gcc-12.5.0
+s390        randconfig-2005-20261116    clang-17
+s390        randconfig-2200-20261116    gcc-10.5.0 smatch
+sparc       randconfig-2000-20261116    gcc-16.2.0
+sparc       randconfig-2001-20261116    gcc-15.3.0
+sparc64     randconfig-2000-20261116    clang-20
+sparc64     randconfig-2001-20261116    clang-20
+sparc64     randconfig-2200-20261116    gcc-8.5.0  smatch
+um          randconfig-2000-20261116    gcc-14
+um          randconfig-2001-20261116    gcc-14
+um          randconfig-2200-20261116    gcc-14     smatch
+x86_64      randconfig-2000-20261116    gcc-13
+x86_64      randconfig-2001-20261116    gcc-14
+x86_64      randconfig-2002-20261116    clang-22
+x86_64      randconfig-2003-20261116    clang-22
+x86_64      randconfig-2004-20261116    gcc-14
+x86_64      randconfig-2005-20261116    clang-22
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
