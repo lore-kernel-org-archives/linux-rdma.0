@@ -1,107 +1,107 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=67.231.145.42
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794955619;
-	b=TVQjOdPAsOTjemTmHMAqUStv0uj40ir6OOqV2akWIKhfqWtQWEs0nPhx6BY3/R7nRkje
-	 v42NrTmkuYrExy8Ddo4vvJWwxKyC2J9Ubo+zRGsMvzSRfcHqPqwFeLPz7XVlPpI9MuxSv
-	 WKonVfEU1+9W0Xmpwm2+qWnuZ6PXmLqQdtReiyOt9iYxrh3dVgKCPs1gUBEUZ2TC1QGfu
-	 jDIIjHqh2e3MGiBovJS2pwb4PkT4ajdvne23N0MVNJeW0sSnsHsSY98MjxXXU2LJbkBwt
-	 odIvKEwv19hJAVhldia0UUY1/asQfiSmqquxII+RYmqDuAlAVGwOswLahk+uAJndnkQ==
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.remote-ip=67.231.145.42
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=fail;
+	t=1794956107;
+	b=xYKWd9I1dy8koo6dnaFLIEJI/wJoEsAix4vyczj+ScvvdLylH7CAumEdvUDZ/tbWBzSY
+	 d4sjMCmN9IlFC2csJTaR+4YMFqBBm0jWxrGotgPo7dlFb1cPImFiS6x4ajklaMdYxph1w
+	 Mlwzo/0gEcyVAxdQWDhjqowAo9UJKMDAHfLnV8m/Rzwn/wxDNRFoEUabV8tsq7C2di0Qn
+	 dbwchDdM0mw4+gttoKlowImu9HAiEmJTthk7pWymqyCONX1DC+XBzyb7MJpYDQbUQif7s
+	 ADsXIwiaiodC8E+7WNHb51mwVl2bcyhx/ua9AUJ4FWjfR0exmJBKyj6MyMsLg98xhIQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794955619;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794956107;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
 	 X-Google-DKIM-Signature:X-Forwarded-Encrypted:X-Gm-Message-State:
 	 X-Gm-Gg:X-Received:X-Received:MIME-Version:References:In-Reply-To:
 	 From:Date:X-Gm-Features:Message-ID:Subject:To:Cc:Content-Type:
+	 X-Proofpoint-Spam-Info:X-Proofpoint-ORIG-GUID:X-Authority-Analysis:
 	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-GUID:
-	 X-Proofpoint-ORIG-GUID:X-Authority-Analysis:X-Proofpoint-Spam-Info:
 	 X-Proofpoint-Virus-Version;
-	bh=KSC81XL1+EQpdKzjuyxfAuAaB+et2a6UKZ6CLWHqjqw=;
-	b=w73n0hRdAfUi22tr0eZWORDp3pRpdVXIKd5USvjQQNHfz9ysjDiSI82rFRwSAij+jH64
-	 p/LliNDh0GRe3zHLSa/vbsI6DfDUNQpV9T3EK+Jog3SN+sEOe3HvNkxcmoOB5WCXo0eQ6
-	 fZ+3UeJavpPddxACa3dXBFIRRghv3khQomDNZQDKvzXXaZGRHsgKTTSmnqlxZUtBfrrd9
-	 13Vp2JnAZfmpm98qXeXumLk9WGKI9eKjlJDy1r1we7VB2ut9TZctwZqDJo55cdJHxZt3e
-	 z5h7YXuM99wIZwqkLv1UCtIMOBIpu+VAvK+JwOYoKhF+VXz8VaGNgrDuJkrD9DFvbMg==
+	bh=XTWULvHY5M+9jFlLZATjLnhYmcapf/iX/XpM8N+MwzI=;
+	b=GwWZ04QtQa1OKxKQA39+LK85ukQ2vjxCcfsgaAmcPTVfhVvF0O+P5HXOArMky03O1WB5
+	 l/byExNRiSWGVoAOSZwdN0vYvJgix687beXO1hkb6aiPjxJAoB/HtsfMiWGFgxhtEOPx/
+	 /qmSYHvPps8vsvjevq4AJLFzIhfR5eObHJIqlHRd1sHULn6xcbBQctwavKjTsYuT2iNCC
+	 b4fAdmXWDRbV0saa9d+3LP3LJdQK2cZViYRac1N/ueQuPdD86QlQM+06mHDGbei7/mehA
+	 jBWMWyjU8+vTreIF5P8nT3n7A2Eq+sqRYyX6B0XjN7bTWvkzP4YzvczrVfG8NIFOwNQ==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=meta.com;
 	spf=pass smtp.mailfrom=meta.com;
-	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=OpD+6PDM;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=67.231.145.42
+	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=NPDWNUn6;
+	arc=fail smtp.remote-ip=67.231.145.42
 Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44C02606A31C
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 22:46:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 44C02606A31C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A212A606A330
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 22:55:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A212A606A330
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=OpD+6PDM
-Received: from pps.filterd (m0528009.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AHMfexW2298500
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:46:58 -0800
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=NPDWNUn6
+Received: from pps.filterd (m0528008.ppops.net [127.0.0.1])
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AHMfcIN1537444
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:55:06 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
 	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pps82601-s2048-2026-q3; bh=KSC81XL1+EQ
-	pdKzjuyxfAuAaB+et2a6UKZ6CLWHqjqw=; b=OpD+6PDMlyRVIQ4gUsxd1pQRiiY
-	2xNljoVElEeEhFUiOG5Uk44VLPG4O4uXpXj0+j4jeDetx+c0P8e+noxSYq2lCh5W
-	KHejIzt/I4UdTJmzw+Fg/nSj7cB1QTMx/l3bO+xrP+TSeATVVrDxWTZVHibCW5U+
-	hjOQG+u9uC1e2kybz2OaCsXrkrsDWl9/U/SGRqGmJY0vG7rKiLXndtlvel7lQl55
-	sdjYVggRIUMT42oLfV5wteJXfkuV+1P3ib3Fp4ylW8JJJGpvlzjjnP6mzY9S0HdJ
-	AQ9e8xf/1KwJnz4XcYTaX6HmGdSH8UZ30qmpl1eTP9PIAKGbfG22H6j3L9Q==
-Received: from mail-pj1-f71.google.com (mail-pj1-f71.google.com [209.85.216.71])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j0yu5r3dk-1
+	:references:subject:to; s=pps82601-s2048-2026-q3; bh=XTWULvHY5M+
+	9jFlLZATjLnhYmcapf/iX/XpM8N+MwzI=; b=NPDWNUn628COc0atYZ/CbMaWxG+
+	0TNGfxRCGsv1WrYANoIZaC+tKoYjD5X8kNmyXR8dpBZayuNDuuUCja+hWrjMqbQc
+	XxkpdvsWiVArTT9UJfikfZbnelRb/DRpVlYgtxXFa3XtPyVF0540TWjYmvrsqO+P
+	R+hi3LRmruY6Y/3r56HGQKoFy0CaepMpMmZG4klMBviT1U+1fEaeySnvKUF8n+Z1
+	Wfi1IZWcGzocGnaz/SNYLQqLT3qgJR8XlBsQ+qKgyEYQQVpJE2NW3vnlCVKHFSdC
+	M3nFonl+TButab+DN9Vmtl2UIUTzMNzzvKDIVO34G60V2AXaydz6Pdka2IA==
+Received: from mail-pg1-f198.google.com (mail-pg1-f198.google.com [209.85.215.198])
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j0yu5r5ux-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:46:58 -0800 (PST)
-Received: by mail-pj1-f71.google.com with SMTP id 98e67ed59e1d1-3b17b31c3beso226839a91.2
-        for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:46:58 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794955617; cv=none;
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:55:05 -0800 (PST)
+Received: by mail-pg1-f198.google.com with SMTP id 41be03b00d2f7-cdb8931aeeaso184183a12.1
+        for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:55:05 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794956105; cv=none;
         d=google.com; s=arc-20260327;
-        b=GYmX+KpwhQYPSoSI3wbqLioOOP35AUUmX8331ddk7cRW8AJUs3kIazvipv3cvaPGE0
-         UVFduD9KrzN9zP+aCY9fe4ikdpqRrrdVFFj9x0RfhjE067xhBj1PyNjVI/o5gNHVuniZ
-         NTPKd1OE8eHfESXRjY5X240UHT59bL1yEENK3dbekTwNRdCNUsJ1taQ6wiLNHFEQZ3g7
-         cHfyeAfrd0T5OVXi8HFarVWVRA/beX8pKhM5nR2PIi9Is+07ZwrcuY9OLvgdLRC8y6ZD
-         QiEAqdSQCGz+lLoh0rqGh4bfHE311GpNlFpiACeL0OTNa6DIrr1cXwi0bPFDsaXdYke/
-         xXpQ==
+        b=cXs+pcOLQuC62QMKQOXtY81jYl/ChhSG8k2sKLqhWqhyKNqrpuN6PgJZjQnj/UxnDT
+         w7PcjuWhYaN9FRCJld8BFtWZxGqkxltegwOvMXURlJ7p8eE9g5fPlIK1lAFSzxSCQIvX
+         TO2khMXbXjEY8xCI4bjYxjo2r5HQtAgkPrHQsx9zl6wr4t55OMtPa5BmueSmO9m7VTyW
+         i+nWESSdCr7NZn88/NWprbIRsCQB7HHWphZ+Xvjuwwu/Yvo/3WRnrDF0yj7QynWd7x4/
+         p3X7Qh5ld7ge7om51ioO7cJFfrgyOAFPhIYJYEsC4OXurJSevX9ZmY1q5fWKb70YTiJV
+         d3lA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version;
-        bh=KSC81XL1+EQpdKzjuyxfAuAaB+et2a6UKZ6CLWHqjqw=;
-        fh=zR4uiuMNPjZ2yqhE0we6613VcLdBPJQOlYgJ8EWjjqs=;
-        b=VbiDN9LDuHF6bljqbSGINFnpKRBLpImc1KNhg4SAGq4tj+RseZ8Wmf59NozoJ+pkUe
-         uka995HiVxLPkeF8zxTQ//pELB/1wzKrkebKpHKPT1IxRrLs4I2ACX1iPRnkLKYYa0kP
-         JeH7hlh1uCmgLqQVZjuS4FD47MoMQK65dwXqvRUKcwB+ExtGv0JpORVtoTZ/cBY5c0IA
-         +C48RBSjSLIqnHVjA62mtXr1AYdkfpTIvG3JSDZ7+ekkp4+XBqLC9Rhq26uyJT6GMHLU
-         4WjmR+JOs3kaCx0S8j/z59zYatP331uoV2Eby1PFrQmmhs2XkAbP2dw0b1AHatwVzsPx
-         HzhA==;
+        bh=XTWULvHY5M+9jFlLZATjLnhYmcapf/iX/XpM8N+MwzI=;
+        fh=pbZCQEPXz1q3AOpyVYzQZa7yE5I2EPVRaHUBorFsLFA=;
+        b=X7JZLEjS1E+XBP75R/OP/v09WCSpebVoag5GBa4/+WTMRB5/CH267KrC5d6Z2Sw4j8
+         nm8KETsY/SkCAZK/CxlgDOu3Q2zW4hZ3lv8XmzKElJWE4KkmUNZ9x/2w+BP4IWICBfPw
+         2WlaNVxK31z5Im7SGqi+hXcX2bt6rapOJ1YLId+ZT2L127wbWtv7HoQY20YBYPiMCzLY
+         CCoCS7eif4xJFOpx95gncIrvkeVlN4l6MykWvD7Cyp80csj1mSftg2zZ3SthAVZllTcS
+         M+CUr7+IOcIv1NCmmBrmZOoRdn7PXhL3Xute+hmiQ1y0ukiounSDw64QCA7FfWXJDBdt
+         O2iw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794955617; x=1795560417;
+        d=1e100.net; s=20260707; t=1794956105; x=1795560905;
         h=content-type:cc:to:subject:message-id:date:from:in-reply-to
          :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to:content-type;
-        bh=KSC81XL1+EQpdKzjuyxfAuAaB+et2a6UKZ6CLWHqjqw=;
-        b=y21X83gCvgbrcBKQDatHchQZg71o/nkYRLmGAjorv9+gPqx3Yp6HgiJx8X3yremYdg
-         CMxrhCZ9Kp1dxcnq7q4gj5GRRjljlNkaJe3J7ZFE8DhNEpwWxQlgpwQyv4HEX6y54fgR
-         j10ayHiXUgs4vO6CHlBVz6iQ301fLMoMwc0sxMAZ6G6IfvJroHgByNu7+DNMw+Cv45II
-         Jmnd78LVfbDO5X1hiIRVgLvmb/NEBY/mXZunijI2eX0q8TprwtGlo6UdnQq60v3YovXH
-         GbyujZHtGIYXHY8vxD8bZXJNVqK1I9MnBIBWhk+nnc7tk5fv/veV+o3dEDbmwSIsXM0z
-         d38w==
-X-Forwarded-Encrypted: i=1; AL+hErEKGdirwwaN0PCDGogJ+Sv5rhhbS9/7mjQUqEpnOMMbFhqCU8Na+XBjK12/Z/y1w4NRoJG1KoDTp+VT@vger.kernel.org
-X-Gm-Message-State: APuU4Z/Y09k4/IGIta1ov4H9WbVfTHca1pSYfh2l/v4xN/qpgMdVsZss
-	ZDdwROIga6jBy1XB4FpwLPbOkL0+GnI04N6iXFKMh/cFHWYEZubYGXY1qdeZkFm0wgzlh85X4wy
-	GCjmAk5ZFbphyvSaNqilANxaLQ9mortXlfo60Ucd1paKlYlqe6hyDecGheGBvu37BYdLc0p+oAS
-	VahYawcgbiYZCddR0JTuuk3o0y3Pill7z69LgI
-X-Gm-Gg: AZFdTZeUhXKCYHhw2PgxNavQFb/mMuLU0Jz7yJoUElmhuj2b34AxTvLToQxjpJ8eftR
-	bphBMnYt8iGSvmaZFm7sDMqaJ1jow5Fxc1qdU+mO2WtTnJHiDh8dDAY5Atp4TPiNqU/msNM11Sp
-	J2J1tOtQpjApHlBtbYaslfVI8Sd0dMFt3zHlbXpwNtHelxDqRflx5ixQh75Am9+DUvCjdWnZXHd
-	MSDoNNgsPgBlh33+csKas7Igzaim6MXToNNvma/aOEYmh6RAZs=
-X-Received: by 2002:a17:90b:2fc8:b0:3b3:c3b9:7de6 with SMTP id 98e67ed59e1d1-3b3d07a212dmr710203a91.13.1794955617405;
-        Tue, 17 Nov 2026 14:46:57 -0800 (PST)
-X-Received: by 2002:a17:90b:2fc8:b0:3b3:c3b9:7de6 with SMTP id
- 98e67ed59e1d1-3b3d07a212dmr710167a91.13.1794955616819; Tue, 17 Nov 2026
- 14:46:56 -0800 (PST)
+        bh=XTWULvHY5M+9jFlLZATjLnhYmcapf/iX/XpM8N+MwzI=;
+        b=LriTmEovmBctYOA2sH+2YMy5L5aPc6Eied/JhCDIAzqlKv1ON8UbRvcyfdz5eyRhfz
+         yAKoW2SDCdf9Pqm6JIsxhMTOFz0swREiKFWR5KZhzN7RxZDAxM6iD7YcVIDjbfiMj7Ki
+         t/HSqlxmCvommPsTugn636OwdCCHXJLRe7pkIvavktouUwOQ0CiQpiVzHhkdf+cmTOQE
+         RxsWdH2mquHjec23o8SIMSXayAUL3lTyiFAZMp2QPyQccAcHZe23492neVY6xXek870K
+         VaRrEeyQb/yXaef/6ZEUMKkoXmL6F7jFTAjx8qXBNPqvFvay5EWlY1OzxHvEnyvYYW25
+         V+2Q==
+X-Forwarded-Encrypted: i=1; AL+hErHJeadqMnyOu4e85a7R0Sp6g5hXyzKHSgggHWeB86qMm+XvbSzcUJwsAF/wdIcvfvbowkl6DR2kHrH0@vger.kernel.org
+X-Gm-Message-State: APuU4Z+DCTaYWIqclBvEUV80KFPgR4Tp9ubzTv6orwpFpIxFtFzPpntP
+	scJDGk69G2L/QnVXR2DV32rgelD+3C+dqB1aqJqQhvogQd6G6R/hnmqJ8titnY1YYddIvM2iUVL
+	tGks4ey/CacLwZ1xRyDMVkvVU4Kl91MctpWmkDtAQVO82NAuIyFXfeNsglsReaAhio72zDaSbVA
+	6I78iYfSJC6yOp8GJhE1vlPQ0zhJBzHrHRTsIA
+X-Gm-Gg: AZFdTZfEojCxZml109Q5FXN1CVDej/FAz29trTse5uCqW49dphbcWA3ftfHSZYk1zgj
+	fd+gLpRkeM6XXJ3NmH/SEfIjlAw2vdb12xDNzBUlIARGEmyBJjr9GxMj+1szkmxFd76yxawP8bk
+	Ulr7eNB3FHgl1DNDKDSDAR1f879pOt/FZZbuU++aZ3CIq3dFpOi/eeeZlVLn+gGfUlmkicgdffY
+	ZsoVnkPIvfVYwpLUepoEgbWQSVzOOzmr8RXVxHxwBomUr1G/os=
+X-Received: by 2002:a17:90b:5390:b0:3ab:2d17:51c5 with SMTP id 98e67ed59e1d1-3b3d0640f3bmr891169a91.6.1794956105267;
+        Tue, 17 Nov 2026 14:55:05 -0800 (PST)
+X-Received: by 2002:a17:90b:5390:b0:3ab:2d17:51c5 with SMTP id
+ 98e67ed59e1d1-3b3d0640f3bmr891106a91.6.1794956104611; Tue, 17 Nov 2026
+ 14:55:04 -0800 (PST)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -111,14 +111,14 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261111005533.6436-10-toddfreed@meta.com> <179471270451.2199510.14795764193886368841@kernel.org>
-In-Reply-To: <179471270451.2199510.14795764193886368841@kernel.org>
+References: <20261111005533.6436-11-toddfreed@meta.com> <179471270629.2199510.9480561958902023552@kernel.org>
+In-Reply-To: <179471270629.2199510.9480561958902023552@kernel.org>
 From: Todd Bert Freed <toddfreed@meta.com>
-Date: Tue, 17 Nov 2026 14:46:45 -0800
-X-Gm-Features: AclHuK_60Rb9y_3QFrgeQGfRKqUkPpfoiUhcDbbJP8UTYE_KV9Woof2OdSMKaMY
-Message-ID: <CADh2yMwGN64zEVedBhYbMDcsyPjSJ90tyPz7evJ6x7B9pAk3TQ@mail.gmail.com>
-Subject: Re: [PATCH net-next v1 09/15] net/sched: add act_psp for psp
- transport mode
+Date: Tue, 17 Nov 2026 14:54:52 -0800
+X-Gm-Features: Aa3M54pEdqPp10DAjnIjgsYaaHWMRisY79HeZKYFQbRbnu5DENxcJuo9y0o8SvU
+Message-ID: <CADh2yMxPrJZNtVdCgQWkHsKBk0cnAZ-0RiVaCMquQNSH8K32Mw@mail.gmail.com>
+Subject: Re: [PATCH net-next v1 10/15] net/sched: flower: add psp_spi,
+ psp_ver, and psp_dev matches
 To: netdev-bot+sashiko@kernel.org
 Cc: netdev@vger.kernel.org, davem@davemloft.net, andrew+netdev@lunn.ch,
         bjorn@kernel.org, bpf@vger.kernel.org, daniel@iogearbox.net,
@@ -130,77 +130,52 @@ Cc: netdev@vger.kernel.org, davem@davemloft.net, andrew+netdev@lunn.ch,
         saeedm@nvidia.com, horms@kernel.org, tariqt@nvidia.com,
         weiwan@google.com, willemdebruijn.kernel@gmail.com
 Content-Type: text/plain; charset="UTF-8"
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE3MDA5MCBTYWx0ZWRfX9V9yhJV1OAL3
- a0GuzinAzudh4UbTlPy01rUNqVvGfqMUmJALSjvgAcGTQi5YcSApz9+1y6lXyqee3uXeV8mGFZI
- YpEzGS8fOssBav4AmEMxMszCHIzxd/WkkUWz3OQmWSzf1IGgykRt1x0ia7qToTn5TxM4b4yYwjC
- /cvjUCVrH+vjEhFIf4dihUIv6ZYMaN/yP/3jOWKVaKOTrc5yhH3hv55gFf8FExXg9Np84s67eU0
- LAhNqrzKWARunGe8q31bvuxySPQTX13ta1YQN5A15qgdWN4xw2NqKDWWQPrEIaRkFGY1GpXQKYH
- U7PX+D+E2+RtZG47tY7r01ZBcYb+m197UfMws+o5lSUeLtd6maFh50bmU3UL2lYpmXNoxx4gOsQ
- LEfdN41eZ0rhao/YHQHArg5tE+OIggf2DaRt3V6MCdzNEJnTgofHLYf8tMZxEXXSFw9K3c02hFL
- YbDj1GkUrF9ie+A7Ddg==
-X-Proofpoint-GUID: L4cfP1w8sT7lchT8VEoo7u5kIbI0y-h6
-X-Proofpoint-ORIG-GUID: L4cfP1w8sT7lchT8VEoo7u5kIbI0y-h6
-X-Authority-Analysis: v=2.4 cv=dbgVTnXe c=1 sm=1 tr=0 ts=6afcd962 cx=c_pps
- a=UNFcQwm+pnOIJct1K4W+Mw==:117 a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22 a=U_y8lYiYyhHBU5rMqhb2:22
- a=VwQbUJbxAAAA:8 a=VabnemYjAAAA:8 a=DHOIGP5XwAi4GC-hQCcA:9 a=QEXdDO2ut3YA:10
- a=uKXjsCUrEbL0IQVhDsJ9:22 a=gKebqoRLp9LExxC7YDUY:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE3MDA5MCBTYWx0ZWRfX0srk7vSQpMKc
- j5cmiTQFAR09AOmtWySIbyxwd4JCBb2fuY590c4zbNR9VLKhpKB7DIQsJq5De9IiXRPqqrbC4Uh
- GkAc9gx8iDk3kX2+rMQjAeYFdVdjxtg=
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE3MDA5MSBTYWx0ZWRfX/mqAcrL1HB7+
+ gxlKYOlRUDFuBqAjwwED9FdEHXyhbmp8ewYpYWRBnewT0CNLH81qVyJxL9Moe7x6YSQOoH6vvwt
+ ENV9HX7HFBPk4ndd7UGEN6Vh3cLqQjM=
+X-Proofpoint-ORIG-GUID: n-jez63BiCGEN2NSj7fG35g9DWRnskbp
+X-Authority-Analysis: v=2.4 cv=JeApPkKV c=1 sm=1 tr=0 ts=6afcdb49 cx=c_pps
+ a=Qgeoaf8Lrialg5Z894R3/Q==:117 a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22 a=_1IyUuN4QrATX339ibzo:22
+ a=e8l9bKk9WhIOE85pT1MA:9 a=QEXdDO2ut3YA:10 a=x9snwWr2DeNwDh03kgHS:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE3MDA5MSBTYWx0ZWRfX+CrW1vprQ0ck
+ 7XIenlpWV2po9/xc5CBJ1RuHJysOIVo0dTN93Yjk1oVsqqLZuLe+F2AUGlCMBXrRQgVYHl7FoH6
+ jwmpzs7y5oqumzLvAK3bGeygvWO2FnGnpB/+8BOEQApbELj0nsIUawxWkfLiJNMP0os2tggqTE6
+ /eakJQY68xQ9+Uuqb8os+ew0xg/TbdiLDXOiL9AkMN5Lsr6YkoTpzFDV3UT8nKQoANuZxv/e348
+ vhsx8ZxhzoAWM3MgjDxSCTEGHu72cgyK12/zmnv+OTjXW5y3Mtn53+GAnZi/zh+gi+SI+RPs2r+
+ ZumiyproK/lhrYgieUjTT7IoPm+Z8ictXuW+Lmh0XdGSzEzWeoNdLsYIY0bdeHZQ6p2tI5pxlrm
+ 2t80ijKZGkuZ1gSOcqcsqZ+ahIPOGjLEptt460YM9nruA+yy0QHRluRIifvvj3/2vCCGKZfiF1E
+ Ky+SLAK1v2JZLHAftGw==
+X-Proofpoint-GUID: n-jez63BiCGEN2NSj7fG35g9DWRnskbp
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
  definitions=2026-11-17_05,2026-11-16_01,2025-10-01_01
 
 > [Severity: Medium]
-> Can the METADATA_PSP dst and skb->decrypted get separated after this
-> point?
+> Does the commit message describe the right failure mode for rules that
+> are still installed after two key rotations?
 >
-> The commit message relies on skb->decrypted as the backstop: "on egress,
-> encap sets skb->decrypted, so that sk_validate_xmit_skb() drops the packet
-> if it loses the METADATA_PSP dst on the way". The egress to ingress guards
-> in mirred and bpf also check only the decrypted bit:
+> The commit message says:
 >
-> One path where this happens, on a non-PSP netdev's clsact egress:
+>   Together these matches tie a rule to one association, ...
 >
->   act_ct (defrag, sets tc_skb_cb(skb)->mru)
->   -> psp encap (the reassembled packet is not a fragment, so it is accepted)
->   -> mirred egress redirect to the PSP netdev
+> and:
 >
-> tcf_dev_queue_xmit()
->   sch_frag_xmit_hook()
->     sch_fragment()
->       ip_do_fragment(net, skb->sk, skb, sch_frag_xmit)
+>   this means that a rule matching packets that correspond to an rx
+>   association which is stale (two rotations have passed), can still match.
 >
-> sch_frag_xmit() then puts the original dst back on each fragment:
+> The "Socket-less associations" text that a later patch in this series
+> adds to Documentation/networking/psp.rst has the same gap. It only says
+> userspace should replace such rules before two rotations, and it repeats
+> that the matches tie a decap rule to one Rx association. No later patch
+> in the series adds a generation match or any enforcement.
 >
->         __skb_dst_copy(skb, data->dst);
->
-> As a result, every fragment carries the association but has
-> decrypted == 0.
+> Could the commit message and the documentation say that a stale rule can
+> end up matching a different association that reused the SPI, rather
+> than the stale association itself?
 
-The fragment path is handled by "net: don't fragment decrypted skbs" in the
-net series,
-
-https://lore.kernel.org/netdev/20261117203137.804424-4-toddfreed@meta.com
-
-This causes the skbs to simply be dropped instead of being fragmented.
-
-> Would it make sense to do one or more of the following?
->
-> - propagate decrypted in ip_copy_metadata() and ip6_copy_metadata()
-
-Conceptually it makes sense. But because of the fix above, that would be
-dead code. Furthermore, they still couldn't be sent. skbs which are to be
-encrypted on tx (ktls, psp) need the L4 header, and non-initial fragments
-do not have it.
-
-> - also test skb_psp_md() in the mirred/bpf guards and in the cleartext
->   backstop
->
-> - have decap refuse packets that carry a METADATA_PSP dst
-
-In both cases, these guards would be dead code.There's no way for these
-to happen once the fragment path is closed.
+In v2, there are no Rx associations. It will be more clear that matches tie a
+rule to a SPI not to an association. And the reliance on userspace to replace
+rules before that SPI could be re-used, will be further highlighted.
 
 -Todd
