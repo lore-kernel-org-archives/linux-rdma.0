@@ -1,13 +1,13 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.20
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.200.70
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794935509;
-	b=muN4+Fp83ov4aXPVN+fEv4tKOyeNdsZ8PSEENPZaeK55WZJEygzKcmEuiXVXG6EnVwPN
-	 6tI+ViI+bZH2+3TBjivr0SGXl3S6ajhje3QXE8Psz2xaTngl3gseI8plxuRuTwZ/4gRbZ
-	 Qncj3uKW3bCDK2hl6Eful19MEWf03bXVpPtrGm175eiioYjZ8gcphLJgS9XaLcwwWuKh8
-	 FEXCLNKmxOsSZeAVX4qgwXfhSEOzoet7eDlYxyGjIQLqF/50Ky0YMa6z4eUZvMItq8nD1
-	 i7dHAjH5UuaExunmHh04bL/Zv/y/yyXRTV5FcY582vuWKu21/6NH1OSwqojS74542qQ==
+	t=1794935511;
+	b=WwmZ1VB8ak8LEsQiLORzU8JNd+rKDNTfKjUc//nZgQO6P2SfL1L7dts39POf1ieXHOtc
+	 k7QCZ5aHUCZMd6vIg47HxyDvgxIsX+7R/ekZut/piPIIe8uU5uGle5ms0fLe3k5uj5aIn
+	 FF65+4g8st3UsJUkUbMGRxjfex9kdXL+F3ttOzN0xmqlThCiA/LxFdgPueZVH0ndFjI1e
+	 kyRUGKXVXl2+Na0Mmlx1Xnhql2orpYH0B82ZZzzElNF9eW0pexPULCUeXoQPWXrHNbn8I
+	 KUez8Kt7cxdVpi0QjO+I26VCLTb27BkjGR0S++9hWluQz9v5GoasdlLq8LzuqzFUHlg==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794935509;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794935511;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:
 	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
 	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
@@ -26,35 +26,35 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=X+cdTVGIH4N+STSOWXoTFT4qZPSeCoVaGhbKUWA7GSg=;
-	b=bnAz6UDDm/wpoY8xYYIZYM0GgeJfbQFhqjvj8t0WAE6Sb/JIMP55AoUokv3AZMlGjjBn
-	 gZuC4b+oXav/lJykVVxbqlh/R2NzWWMNSFNA+CDoSqQmYsqJWFoF+yi8+j4eRMJAFz5MO
-	 Q0c4e1rqUAHN2+KIJtjpM5rvhgczoBCQ+BedYZKbPCi7XmD/d97cW5/naQTiGeoB0z54c
-	 m3CQFvJMxnqJLwFzKS+ORwb0QecLOF2vb4Z4ri43bzJGx2ny8P6L+Mel4SwkZh5HSGj3O
-	 ZZ59hKo9fUZ2oObJXQb5nfeoY7KIbM/wCEhfYhOyDtbmvvca3bbmcP8i+SLRqF/r08w==
+	bh=T9mNLay2BCwKHr6bn9M76oEfW+D3lVuybhHz2U8w9UY=;
+	b=NKTpIN8zPsLnz5DnnTojuQh5UvJqjmzBeXKoYZOSHzWtCQ59xk0j7sa5CpU9q2U6LyFN
+	 ko5w8zl65HoAC0/9GRMjeDY/Cipsy+8ljQ4NC3kmF4cyGKxnKFV+jEU33zKBwwUKAAbWQ
+	 c5l9UzG2th0j8K2cQ7NqHAXclHY1C7IGpS7EMu98yBSgrpcXg8MO0Q9gLKdnPM/OMjZbC
+	 7IrqKcRg9UGEA5U0U0q716Nfzfm7aDdnOYlm8qVWSmZyjA3F9ozIq0BcDZFIOjS4MNbIF
+	 cZ/uvf1B8K0ne0cHHpkCz038KrIUxLFe/7sBwgtjCZb9P/hy2bemgeTExh8fuabgqmA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=iCVwbFEy;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.20
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013020.outbound.protection.outlook.com [40.93.201.20])
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=txNqPMgf;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.200.70
+Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11012070.outbound.protection.outlook.com [40.107.200.70])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77B89606A31C;
-	Tue, 17 Nov 2026 17:11:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 77B89606A31C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 780E2606A885;
+	Tue, 17 Nov 2026 17:11:51 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 780E2606A885
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=iCVwbFEy
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=txNqPMgf
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=OgYqbezCQXQKZExpqg4J6D8fgvyFYjfBHEGdCm5ZpSin/ebUyhMYSonIN+rw3JEDL6Nv/QyU9rNNnwooMGthZWvk5cvtU+pgyiKZqSB9Sy+i1zJJP6ySyAGBrWJTOcoaaTzCDpKvErVqcKHsyAqtv3URyKfQ1dTefoV9xv0fqRvpJZk1e2cFpswmPs22sMpHooysAyoG8tiDkT497W1ypRDUdtH/4D+pjHlPbND5jcJfYhF5gUgQ4eXbFZZj+Cs9NtsNO30RSi8mc8s4Jc5PeI0LZNYWASEpwohnnVfZQvA1cFw2SQtRJ2R88bxgRlEKkbXINgLXxbKbTZZ0KVxmBA==
+ b=aW2semzVQ8N/wPSBEHUloXF1J17h9JNtWT+PdwPy6KdeB6YEi2FaHHtm1w9CMwSo2lXOuRaLhDHkepeGnJw8S44Eq1LD5guCYlQ1qsTdEfz3z/Xr/WgvcsUGKmefdTetGvQIg7Mma1N5FFUQWgSoJzJap6mANnW3OdkSB8GF4ITqdi51A5FBxeyK/LQjcaE04BQxsEKIgUcJ3FesOWBpRHhdwG1MwQKBJYD2Dr6rVYYqnLeP9xRjovXR0SCM182X6jwqFXQRVuFwHcrctJO8ASjMbfeA5FaCppuVPHTS+4VhGWFKNdx8R6GISMrUgBBGbB/SGnidk/Ec1xN5S2umYQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=X+cdTVGIH4N+STSOWXoTFT4qZPSeCoVaGhbKUWA7GSg=;
- b=B5n3iVvq1Of5+S4DcqadOw8BuAJwwAcMTKbxogr2+q3O/oRY+18UbHPGBpEZ0SAdfmUY/upL6x3zGgRSoV3c/KwwJR1FU9Mv2KhGHCcGYbLYjKVZdSZLOvnhFk/kcf/qE8vVtZ5dCYQ+DoxbKBlaAVBHZrSicQhAgnhyKaxphfIHjbVSv5CeWwWjo6Scz2WXS71SB8ZtSRfqRQ/0GefP9xC5Ek665MyaBmzMO64/LhzUzSp5zpAz0HWOysEHwjQnApK1tEXLU+HqWe/paj2YIxdsb+6OdXzdvDv5TXm52SbQV615DQr4yx/XrPYLWB3eHRkbwRkTqaLC97QhUFc6TQ==
+ bh=T9mNLay2BCwKHr6bn9M76oEfW+D3lVuybhHz2U8w9UY=;
+ b=BOHy51nsQmhiZcW5pSSNWjeRXy18bK3bEEQuGFGtJT3sky9OegrutFIcH+ceLjZpNS3b3cOiZjQWdlJGR1Qw+9VRNWWIjzrhcalZAzgdvk4WPmj7iHuq6yTip51Pf42/Lf7TOM5mH7Ls8egWWkTk1Uno+i3oj66lOxVa1uYYRyy7Ol/pmu3op6nuDrgTsB5eU1yZMI5WQ0lU1Tn4pN7nPsAFe3O02AhYgcfhELyOgvTmhGiQxhB1wnhwpfaH/CxMMn/xEOVecw9fd+EfUuOZud46rJDxxBTJuYpmwm6i++imaJtvUPvX5qb/8dtdzjBVgfkNqYVSFvztYEAH5f9z1w==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.118.233) smtp.rcpttodomain=ziepe.ca smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -62,18 +62,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=X+cdTVGIH4N+STSOWXoTFT4qZPSeCoVaGhbKUWA7GSg=;
- b=iCVwbFEyZKqqUh1GcCeMyxyYDt8GC0pR2cvx+cvfR3NnDwmuCyYz3QGYHf+ksRmzH8Ahb2cfy2TxS6I5EfUj2GusQEiW6Oy5fyy9Ik4cAy0PrSywyafsFVccsdFr9V+CTkGuj2xW5eC3D3RSxArFCSLwhEPWw8VSJ8hgWVZIH+rU2XGOHdYgLJTn2sZb/dDb8c3HYLu4rF2sYvhAO0/6JWgD93LF0cm9u+EaLtasJGF0eh5UOWJFRPwpyutxndJMSRAb6ADdjb7zV2UQgdFdzBAnVLWauOH2FV6VeytECys3N4foebZCjZprwc5OYjoWV0QaAWoWa8MdZQt2VObR3A==
-Received: from PH7P222CA0024.NAMP222.PROD.OUTLOOK.COM (2603:10b6:510:33a::24)
- by SJ1PR12MB6364.namprd12.prod.outlook.com (2603:10b6:a03:452::6) with
+ bh=T9mNLay2BCwKHr6bn9M76oEfW+D3lVuybhHz2U8w9UY=;
+ b=txNqPMgf6NMbq0xzDUPG6AOXEP1RfHVTedviAK26D97KseU3ZCCJvabgN2G7/QsyIoxqe+bAwQ6jc0XZ7V+9aWgBBAWIPMbrJ5jodEBH2HeNd+5ofKgFm7yvHXk4wPn0Xsdyy02VZwS9NeMLpavnhytmzqqNXiLqxxKIanMSKr4KKIMIe4eLxl8TF+j7hvqbTYuf9mNrpbT2dFZoP14A6fXFzT2Ydp+TN+KKcr19hIoXHqsVBEpEASWUFp7HENouvGyuoOWX/66mCCo5qTbbmYhzyS0zDuAYREvpSUnrebRmt5PdzIqru97QT1AILc7YuoNKg5zBp2bh1yGYrDK19w==
+Received: from PH8P223CA0003.NAMP223.PROD.OUTLOOK.COM (2603:10b6:510:2db::15)
+ by CH9PR12MB070576.namprd12.prod.outlook.com (2603:10b6:610:353::10) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.14; Tue, 17 Nov
- 2026 17:11:39 +0000
-Received: from MWH0EPF000A6730.namprd04.prod.outlook.com
- (2603:10b6:510:33a:cafe::83) by PH7P222CA0024.outlook.office365.com
- (2603:10b6:510:33a::24) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.9 via Frontend Transport; Tue, 17
- Nov 2026 17:11:39 +0000
+ 2026 17:11:46 +0000
+Received: from MWH0EPF000A672F.namprd04.prod.outlook.com
+ (2603:10b6:510:2db:cafe::2a) by PH8P223CA0003.outlook.office365.com
+ (2603:10b6:510:2db::15) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.14 via Frontend Transport; Tue,
+ 17 Nov 2026 17:11:46 +0000
 X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
  is 216.228.118.233) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -81,20 +81,20 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.118.233 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.118.233) by
- MWH0EPF000A6730.mail.protection.outlook.com (10.167.249.22) with Microsoft
+ MWH0EPF000A672F.mail.protection.outlook.com (10.167.249.21) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Tue, 17 Nov 2026 17:11:39 +0000
-Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
+ 15.21.615.4 via Frontend Transport; Tue, 17 Nov 2026 17:11:46 +0000
+Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
  (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.57; Tue, 17 Nov
- 2026 09:10:54 -0800
+ 2026 09:11:12 -0800
 Received: from drhqmail202.nvidia.com (10.126.190.181) by
- drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
+ drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.57; Tue, 17 Nov 2026 09:10:53 -0800
+ 15.2.2562.57; Tue, 17 Nov 2026 09:11:12 -0800
 Received: from vdi.nvidia.com (10.127.8.12) by mail.nvidia.com
  (10.126.190.181) with Microsoft SMTP Server id 15.2.2562.57 via Frontend
- Transport; Tue, 17 Nov 2026 09:10:49 -0800
+ Transport; Tue, 17 Nov 2026 09:11:08 -0800
 From: Yishai Hadas <yishaih@nvidia.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
@@ -102,9 +102,9 @@ CC: <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
 	<kuba@kernel.org>, <pabeni@redhat.com>, <edumazet@kernel.org>,
 	<davem@davemloft.net>, <andrew+netdev@lunn.ch>, <dtatulea@nvidia.com>,
 	<moshe@nvidia.com>, <yishaih@nvidia.com>, <maorg@nvidia.com>
-Subject: [PATCH V2 rdma-next 15/21] RDMA/mlx5: Ignore completion events for a kernel CQ that is not ready
-Date: Tue, 17 Nov 2026 19:09:08 +0200
-Message-ID: <20261117170914.27410-16-yishaih@nvidia.com>
+Subject: [PATCH V2 rdma-next 19/21] RDMA/mlx5: Clamp log_max_* shifts in QP and WQ limit checks
+Date: Tue, 17 Nov 2026 19:09:12 +0200
+Message-ID: <20261117170914.27410-20-yishaih@nvidia.com>
 X-Mailer: git-send-email 2.18.1
 In-Reply-To: <20261117170914.27410-1-yishaih@nvidia.com>
 References: <20261117170914.27410-1-yishaih@nvidia.com>
@@ -121,121 +121,138 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000A6730:EE_|SJ1PR12MB6364:EE_
-X-MS-Office365-Filtering-Correlation-Id: e0965e4c-8235-4f6f-2f59-08df44cdd81e
+X-MS-TrafficTypeDiagnostic: MWH0EPF000A672F:EE_|CH9PR12MB070576:EE_
+X-MS-Office365-Filtering-Correlation-Id: ecae7477-eafa-48ca-ba2c-08df44cddc14
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|36860700016|82310400026|1800799024|376014|22082099003|18002099003|261009223027099003|11063799006|56012099006|261028144727099003|261102123227099003|261021123027099003|261022105027099003|261026140227099003|261026121527099003|261021135927099003|261021121427099003|10067099003;
+	BCL:0;ARA:13230040|1800799024|82310400026|376014|36860700016|23010399003|18002099003|22082099003|261009223027099003|56012099006|11063799006|261102123227099003|261028144727099003|261026140227099003|261026121527099003|261021121427099003|261022075727099003|261022105027099003|261021123027099003|261021135927099003|10067099003;
 X-Microsoft-Antispam-Message-Info:
-	E5w+78j5fUaNpTr7hrc4GAS+tiLcIEMvKoxT4IzRBK5uEbxogJCvVck68mA/IZphDz3oL5f970KJ2Fuf8tuPxi2V7fCbmBuDdPGwsmuNnMlNFqfjGVXRJQXpE1PulNG5b6yc0H+KnT1C32BzkYCQHoVL8Fdq+vOQajUDk4cqke4qvv223KzWIDstY7/SwLecSMCL2+cSr1kd5LC4havoFdAhX3xS+Sf5z7wowZP97Sn+CLeiHRToj5u+qTHl5aI+mhc/XSalhHSYeKzvfFVSTQrL5RI+qtnMvDCjtbCBS/GBf3cOH5wUTnFAKCEh0D6qwmlRtvBSCKuxFb1s9Jzn6k8NGZ60c6mklNL5hCpfD2Et/nHfJMmxykG94CKPN6pvhkfqMjXpTInBXGUiBwet7In0i1vnCInHLk+QwFh2TyHrVU7FvdaOI5xOgNZTonWKXzFP4nd5oItpTFTWaG62kk46S2I9GQC44KQw2NSmYbHpt2suxJ4rXZqE8yGf2LOvLT7Cr+bo6BAoxkjwlj1V0zlWVs0XXohljSZRNwicBm5lCSFwN1ArOvgOvEFfLUzzxTUds38BjsE4eIgkP85MXNLrhW+KI6jNtqSv395Kq0SvCKzBsFgC3xblLBHn80qjC5wsmf6TQwsl1tzIpF0HsN5cs4QAKk455aVZX9Nx+cNW5N/UnJkhJJZ0ymAERdpK6GAiKCJEGUQLBIe2Iv4tWQ==
+	nF1Cu9tjKox98upFuxaULv8EmMKSJ4Op/1F2kjngK1z8+Vz8Ze1d+9xtDrIyQKThHFFSRGGMBCq5LCv/HM0T8gMOoz+FK8m9W/tYkimwCe9aM5vcJ4a445B40piq8E3xgfHA/OMrYOBSeizKGDb8MFmXQiK6tnGVbkNe9TuVxTleqaDU8TCdO/5gR+RsURQlzTew8vOvVjLrDsu0/a3S6ljtJiwOKuUTugYiZYDGQ/yTtyjRvlKIxz6N3WswrTGrVkHaLC9tj3UA1at3ea5DviC6yZeFQmfhNUWzsHZgSI1ywvT5mNiecoi1T/1B/8tO7eDZvXY39oIbHviJCl4JRzQqWtsX5xp+3KjG30BZG/syhFuZ0p4D6hDwVnK5A3YgU3YeYIPOfWhJ0ZZyE03UUkU+sVkD4m2MuHpCcUOg69VJ/FSY04E63HrabLV22BAXqfAR4N3EWQsYtjD6uOHnJLkMLjcW9qtnepHkfoQNsTxNYrzKygxuhdFfeKRcrWPg06yn57/bZAJXtka+f2HIg2lRH399RhEZwMnhBCkhX1zcmzUUOYYiVpYT9HDGwT7UaC+QGmBLTYz6WF1mtFWA7XArVgzCDweeX0yloergd27lzpZSgF+KjMSc1YOxJbcxtqKWeZRpMDJbRNfi05/hTBvoJkCs7UpvondSxqZiRmMJC0dccVDdbyZpdP/8qQzzdg9FfsynrW5FXKs1T1U2Cg==
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(36860700016)(82310400026)(1800799024)(376014)(22082099003)(18002099003)(261009223027099003)(11063799006)(56012099006)(261028144727099003)(261102123227099003)(261021123027099003)(261022105027099003)(261026140227099003)(261026121527099003)(261021135927099003)(261021121427099003)(10067099003);DIR:OUT;SFP:1101;
+	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(82310400026)(376014)(36860700016)(23010399003)(18002099003)(22082099003)(261009223027099003)(56012099006)(11063799006)(261102123227099003)(261028144727099003)(261026140227099003)(261026121527099003)(261021121427099003)(261022075727099003)(261022105027099003)(261021123027099003)(261021135927099003)(10067099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	es47vw+rm/RV/90VGRccPHwBZ0oaLaVwc32qLjPN9ShrI/28MCgW92F8gdiOBDlt8ynAYCGsRVMNxMiI8D2zR+KwKvXHy2ijDnATZLcrt8OTcBqZLu+DLJS6h5mLchprmsgOdpW81c4lUa/iJKFgY0pVfo/SYt/vAxqPLNrh6oDux1To+tUf5ueiK2UruDAooPc2xi37SmxzAPPU1kl+INNMh7H168mv02pJxp3eSyDsY7Ez9wDERKLH8Xn8N+KmsIeFu9MHgr9cr4CQkfFd8a4KjIEDzDZtjIlfqkBgeU4udGoXoi8hmg6nzS2wuQxBpqmo2il2OzLE1A3iDYIUb+u0DJqeRwbiKkd6N7IyrHJFssqUZDU3mq4Xb2OgviYxTSQD6lxLIkoIl6WcWSPtKuwr4S+Hgdo+za3f8OUGYzSGqs5zVAWyataPGUheZtLR
+	bPfgY3GHjTaRAImj4F9Mv0Qou4ZycArPv33MTZriVxoteOjwxgde+Hi+2GmSj3FBbbnDWb5BeLeWO1Iy3D6Ihfp1sH4pcyv2szBIeLzPg1ost+N2EjfPzHxk+UUhP0lYAlI5Dn7omG37hyxHyifX6MkoOQ8lxKep+GPotkp71iT+8XTzxr7+8Pu61lCmWg4oc+d6agUBiES/LEVUVwXYYx8yN6++ugooKoiygWunUjjDelLX10Gs9evWg2tSY6mhU//pcgCzBARDAz5Ov/dy7YkHkHDXDGEomq1h/6obavRnStw+F/GnAZgqVpLUE/JRxXeptyhyPKExpSRqH5adY/F/5f3vTdyQax2UNFLgLIqvTX64EGRxoEUtMzR1sov6fkX02Zt/Cy2X0NTTWateAeTzfI5JtHA48cSW0LrpjsZf/EPtg6cRj4JpYDYQTB7U
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Nov 2026 17:11:39.3812
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Nov 2026 17:11:46.0271
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: e0965e4c-8235-4f6f-2f59-08df44cdd81e
+X-MS-Exchange-CrossTenant-Network-Message-Id: ecae7477-eafa-48ca-ba2c-08df44cddc14
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	MWH0EPF000A6730.namprd04.prod.outlook.com
+	MWH0EPF000A672F.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ1PR12MB6364
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH9PR12MB070576
 
-A kernel CQ can be reached from the completion interrupt before it is
-set up: __ib_alloc_cq() sets its poll context and handler only after
-ops.create_cq(), and devr->c0 has no handler, as it is never armed.
+Several QP and WQ size checks in qp.c compute their limit as
+1 << cap, where cap is a log_max_* FW capability. An untrusted NIC can
+report 31 or more, which makes the shift undefined.
 
-A trusted NIC raises no event for a CQ that is not armed, but a hostile
-NIC in adversarial mode can. For devr->c0 that ends in a NULL call. For
-a CQ from __ib_alloc_cq(), on a weakly ordered CPU, the interrupt can
-see the handler but not the poll context, and crash in irq_poll.
-
-In adversarial mode, give kernel CQs their own event callback, which
-ignores events until the first arm, the point where the core has
-finished setting up the CQ. mlx5_ib_arm_cq() marks the CQ ready with a
-release before the doorbell, and the callback checks it with an
-acquire.
+Use MLX5_CAP_GEN_LOGSZ_U32() for these limits, as done for
+log_max_cq_sz.
 
 Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/cq.c      | 31 +++++++++++++++++++++++++++-
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 ++
- 2 files changed, 32 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/qp.c | 36 +++++++++++++++------------------
+ 1 file changed, 16 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index a5197318d96f..831bdf238319 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -49,6 +49,24 @@ static void mlx5_ib_cq_comp(struct mlx5_core_cq *cq, struct mlx5_eqe *eqe)
- 	ibcq->comp_handler(ibcq, ibcq->cq_context);
- }
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 05e8e75d734f..d784a35675d5 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -447,7 +447,7 @@ static int set_rq_size(struct mlx5_ib_dev *dev, struct ib_qp_cap *cap,
+ 	int wq_size;
  
-+/*
-+ * A hostile NIC can raise an event for a kernel CQ before the core arms it,
-+ * when its poll context and handler may not be visible yet. Ignore events
-+ * until the core finished setting up the CQ.
-+ */
-+static void mlx5_ib_kernel_cq_comp(struct mlx5_core_cq *cq,
-+				   struct mlx5_eqe *eqe)
-+{
-+	/*
-+	 * Only the first events can find it unset. Pairs with the release in
-+	 * mlx5_ib_arm_cq().
-+	 */
-+	if (!smp_load_acquire(&to_mibcq(cq)->ready))
-+		return;
-+
-+	mlx5_ib_cq_comp(cq, eqe);
-+}
-+
- static void mlx5_ib_cq_event(struct mlx5_core_cq *mcq, enum mlx5_event type)
+ 	/* Sanity check RQ size before proceeding */
+-	if (cap->max_recv_wr > (1 << MLX5_CAP_GEN(dev->mdev, log_max_qp_sz)))
++	if (cap->max_recv_wr > MLX5_CAP_GEN_LOGSZ_U32(dev->mdev, log_max_qp_sz))
+ 		return -EINVAL;
+ 
+ 	if (!has_rq) {
+@@ -621,11 +621,11 @@ static int calc_sq_size(struct mlx5_ib_dev *dev, struct ib_qp_init_attr *attr,
+ 
+ 	wq_size = roundup_pow_of_two(attr->cap.max_send_wr * wqe_size);
+ 	qp->sq.wqe_cnt = wq_size / MLX5_SEND_WQE_BB;
+-	if (qp->sq.wqe_cnt > (1 << MLX5_CAP_GEN(dev->mdev, log_max_qp_sz))) {
+-		mlx5_ib_dbg(dev, "send queue size (%d * %d / %d -> %d) exceeds limits(%d)\n",
++	if (qp->sq.wqe_cnt > MLX5_CAP_GEN_LOGSZ_U32(dev->mdev, log_max_qp_sz)) {
++		mlx5_ib_dbg(dev, "send queue size (%d * %d / %d -> %d) exceeds limits(%u)\n",
+ 			    attr->cap.max_send_wr, wqe_size, MLX5_SEND_WQE_BB,
+ 			    qp->sq.wqe_cnt,
+-			    1 << MLX5_CAP_GEN(dev->mdev, log_max_qp_sz));
++			    MLX5_CAP_GEN_LOGSZ_U32(dev->mdev, log_max_qp_sz));
+ 		return -ENOMEM;
+ 	}
+ 	qp->sq.wqe_shift = ilog2(MLX5_SEND_WQE_BB);
+@@ -663,10 +663,10 @@ static int set_user_buf_size(struct mlx5_ib_dev *dev,
+ 
+ 	qp->sq.wqe_cnt = ucmd->sq_wqe_count;
+ 
+-	if (qp->sq.wqe_cnt > (1 << MLX5_CAP_GEN(dev->mdev, log_max_qp_sz))) {
+-		mlx5_ib_warn(dev, "wqe_cnt %d, max_wqes %d\n",
++	if (qp->sq.wqe_cnt > MLX5_CAP_GEN_LOGSZ_U32(dev->mdev, log_max_qp_sz)) {
++		mlx5_ib_warn(dev, "wqe_cnt %d, max_wqes %u\n",
+ 			     qp->sq.wqe_cnt,
+-			     1 << MLX5_CAP_GEN(dev->mdev, log_max_qp_sz));
++			     MLX5_CAP_GEN_LOGSZ_U32(dev->mdev, log_max_qp_sz));
+ 		return -EINVAL;
+ 	}
+ 
+@@ -2155,7 +2155,7 @@ static int create_dci(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	    ucmd->rq_wqe_count != qp->rq.wqe_cnt)
+ 		return -EINVAL;
+ 
+-	if (ucmd->sq_wqe_count > (1 << MLX5_CAP_GEN(mdev, log_max_qp_sz)))
++	if (ucmd->sq_wqe_count > MLX5_CAP_GEN_LOGSZ_U32(mdev, log_max_qp_sz))
+ 		return -EINVAL;
+ 
+ 	ts_format = get_qp_ts_format(dev, to_mcq(init_attr->send_cq),
+@@ -2322,7 +2322,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	    ucmd->rq_wqe_count != qp->rq.wqe_cnt)
+ 		return -EINVAL;
+ 
+-	if (ucmd->sq_wqe_count > (1 << MLX5_CAP_GEN(mdev, log_max_qp_sz)))
++	if (ucmd->sq_wqe_count > MLX5_CAP_GEN_LOGSZ_U32(mdev, log_max_qp_sz))
+ 		return -EINVAL;
+ 
+ 	if (init_attr->qp_type != IB_QPT_RAW_PACKET) {
+@@ -4809,19 +4809,15 @@ static bool mlx5_ib_modify_qp_allowed(struct mlx5_ib_dev *dev,
+ static int validate_rd_atomic(struct mlx5_ib_dev *dev, struct ib_qp_attr *attr,
+ 			      int attr_mask, enum ib_qp_type qp_type)
  {
- 	struct mlx5_ib_cq *cq = container_of(mcq, struct mlx5_ib_cq, mcq);
-@@ -853,6 +871,16 @@ int mlx5_ib_arm_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags)
- 		ret = 1;
- 	spin_unlock_irqrestore(&cq->lock, irq_flags);
+-	int log_max_ra_res;
+-	int log_max_ra_req;
++	u32 log_max_ra_res;
++	u32 log_max_ra_req;
  
-+	/*
-+	 * The core arms a kernel CQ only after its poll context and handler
-+	 * are set. Mark it ready before the doorbell, so an event raised
-+	 * right after it is not dropped.
-+	 */
-+	if (ibcq->device->adversarial_mode && !cq->ready) {
-+		/* Pairs with the acquire in mlx5_ib_kernel_cq_comp() */
-+		smp_store_release(&cq->ready, true);
-+	}
-+
- 	mlx5_cq_arm(&cq->mcq,
- 		    (flags & IB_CQ_SOLICITED_MASK) == IB_CQ_SOLICITED ?
- 		    MLX5_CQ_DB_REQ_NOT_SOL : MLX5_CQ_DB_REQ_NOT,
-@@ -1284,7 +1312,8 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	MLX5_SET(cqc, cqc, c_eqn_or_apu_element, eqn);
- 	MLX5_SET64(cqc, cqc, dbr_addr, cq->db.dma);
+ 	if (qp_type == MLX5_IB_QPT_DCI) {
+-		log_max_ra_res = 1 << MLX5_CAP_GEN(dev->mdev,
+-						   log_max_ra_res_dc);
+-		log_max_ra_req = 1 << MLX5_CAP_GEN(dev->mdev,
+-						   log_max_ra_req_dc);
++		log_max_ra_res = MLX5_CAP_GEN_LOGSZ_U32(dev->mdev, log_max_ra_res_dc);
++		log_max_ra_req = MLX5_CAP_GEN_LOGSZ_U32(dev->mdev, log_max_ra_req_dc);
+ 	} else {
+-		log_max_ra_res = 1 << MLX5_CAP_GEN(dev->mdev,
+-						   log_max_ra_res_qp);
+-		log_max_ra_req = 1 << MLX5_CAP_GEN(dev->mdev,
+-						   log_max_ra_req_qp);
++		log_max_ra_res = MLX5_CAP_GEN_LOGSZ_U32(dev->mdev, log_max_ra_res_qp);
++		log_max_ra_req = MLX5_CAP_GEN_LOGSZ_U32(dev->mdev, log_max_ra_req_qp);
+ 	}
  
--	cq->mcq.comp = mlx5_ib_cq_comp;
-+	cq->mcq.comp = dev->ib_dev.adversarial_mode ? mlx5_ib_kernel_cq_comp :
-+						  mlx5_ib_cq_comp;
+ 	if (attr_mask & IB_QP_MAX_QP_RD_ATOMIC &&
+@@ -5511,7 +5507,7 @@ static int set_user_rq_size(struct mlx5_ib_dev *dev,
+ 			    struct mlx5_ib_rwq *rwq)
+ {
+ 	/* Sanity check RQ size before proceeding */
+-	if (wq_init_attr->max_wr > (1 << MLX5_CAP_GEN(dev->mdev, log_max_wq_sz)))
++	if (wq_init_attr->max_wr > MLX5_CAP_GEN_LOGSZ_U32(dev->mdev, log_max_wq_sz))
+ 		return -EINVAL;
  
- 	err = mlx5_core_create_cq(dev->mdev, &cq->mcq, cqb, inlen, out,
- 				  sizeof(out));
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 5b7a3e3b456d..84aad754435e 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -592,6 +592,8 @@ struct mlx5_ib_cq {
- 	enum ib_cq_notify_flags notify_flags;
- 	struct work_struct	notify_work;
- 	u16			private_flags; /* Use mlx5_ib_cq_pr_flags */
-+	/* adversarial_mode: kernel CQ events are handled only once set */
-+	bool			ready;
- 	/* adversarial_mode: polled by the verifying UMR poller */
- 	bool			umr_verify;
- };
+ 	if (!ucmd->rq_wqe_count)
 -- 
 2.18.1
 
