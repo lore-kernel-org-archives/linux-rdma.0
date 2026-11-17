@@ -1,54 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794904508;
-	b=I07n80fR8kg2O9PLvgeQqeMPxgG6enWJ7GRtbO1HQZvvel5cZdb+2DnvgWI0J3uah8VM
-	 /l7+hmf03S0T3Pfn/tuzgIAXqTNOURBrFozUb4i47BZR7lO7nSGHItgaAtJyOMCXFYhDx
-	 6CieWnt0G6+KyKe9scJ2PWZjh0E9XPaRsKjHX4u+hrR2zuO5NzAg467NJ46WzBfrHrmRc
-	 Fmu6v1+dgXy2OIhwWQDWTfA9EHZngVR8nu7c/cf7ZNlmM7RKQ+3ClTIw0Zzi3bhL1Nyyb
-	 /UsHVr0lcBfQ/nEwGTHRWYISFaQqkhjawjfk8VXNKY4h7M6NtRVR1jq0WmNr+ehoByQ==
+	t=1794904521;
+	b=od+r8xu0ipOaoioqQmr99edxgcDJEEUmUJwkz8M7ScAw1hsQEwbYtx8jYUYOSdTpS8XD
+	 xOle5Q2rnYxB2KZnMmuTW9Ono8HZwif2F+FFfoNL2u4k35//pCl60mlYpHDIyIOff0E9W
+	 18pNFmNA5w+fslH9KRlL4X3pblNdNu+3OUjfAb0VVsW/INpFXQ/UsiSP6YqSUmfQv3eNy
+	 VnZHwSJRiWiQFdOBJyma85v2hXo2MKTB63/7RKeeUB0lrBjW3f1E6pyGKsoBOgk9siHIF
+	 aCOV5337VKI+xzJS3YRlWZXAMZZabPh5D/SDIoPY5d5NT9vdln0LzWVb0bbyzVH+3vw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794904508;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=9KAZFpOa4tylOS5Nw5xzUePTPvnbB87FGC6zFO/XDbM=;
-	b=bsdaw499CN3E9n/ayTeBbL/LGvbr4Gp9T7zHN87859r5VRjB8967oVCmEHyOCnK+eZGn
-	 8zg2WyMsTsIrDhJZWj/D4o+s/skkZkBh1q6linrsZm2XYqijjY3WxFxsAsCLTKHALPM8v
-	 ee6ppase9MtNPkwD5rrhgUL1lxmGkv4AnEd7PbxbDMxbomt3ACLc13DZCgilRCIvfWGA+
-	 SaEeJ8bnGvow2ZMB/UJr4OOgvHPrjNdBRtvI71OKkYbJ4mGfxsWiUy9EizNohVHJC4WHr
-	 4wZHqmkpX5M1Qg6VSNAzGSH5a7JewVPY/ZUBCcOh5MtDpqmgAG98S28EtByXNJEK6jA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794904521;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=rFi9I5t2exAzyHDuda6uvYh1L6vcjp/5ii4dTULm/YM=;
+	b=yIt1NZa7ZCvo7UXVQqH5EdL+JVML5y0fwJxjpELchnenK9f3mqJkdwdJVeRPu4qIYKXn
+	 A11hzq4vRKxx31UX3HFJuWaYQ7XglTkQ440G0JTAlKz0uFnqfCLpEH+dRWBiu9tEgQPDz
+	 I7qDUwraKowIPOfiWkDYLXL64u3Tfze+et2BrH/YpqPAZcxDlDLKPiQCLSWfm27FTQ+js
+	 hfDumUF4cBhnNI+cNyj8DoABYGj3XwR5tc4cdpE7moZJOHL3G1WUzP/w7nw9Ml4WFOIqz
+	 VE+sGcOhic5gKGsxmsi/s3a9yzzsD24kFS3ChsEAsVq3tu9hAT2gLg0GSS20HD7Fc4g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=n55I3HJr;
-	arc=none smtp.remote-ip=91.218.175.18
-Received: from mta0.migadu.com (out-18.mta0.migadu.com [91.218.175.18])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TLBowRMY;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82D3E606A88E
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 08:35:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 82D3E606A88E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B614D606A89F;
+	Tue, 17 Nov 2026 08:35:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=n55I3HJr
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=hC1qvaPQfrqhp9FLOrn21Z0mMkfjkKTnJp1S1GHAOrY=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1794904500; v=1; x=1795509300;
- b=n55I3HJr2fMsajjR5X2DWFC3tDjhbtZnHlI/N4gevn5V11c2y7J0wzzBJoxsvX88VG2n1Bvg
- ZMKh4Fu+RqGVAlIalIWQ9Nj03Z0/sllq0P6mzVRhYZ1sZairwcAS0L2JzoVT9DXGP2eMM8N13nY
- JulW+PXb6aUQA6LoD88pPRhI=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 055bea7900dda262;
-	Tue, 17 Nov 2026 08:35:00 +0000
-X-Mizu-Trace-ID: 055bea7900dda262
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <51c8a888-c0e7-4045-8395-380cda03ee2c@linux.dev>
-Date: Tue, 17 Nov 2026 17:34:45 +0900
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TLBowRMY
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E91161F000CB;
+	Tue, 17 Nov 2026 08:35:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794904521;
+	bh=rFi9I5t2exAzyHDuda6uvYh1L6vcjp/5ii4dTULm/YM=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=TLBowRMYC//cKiaOx0eCzhWAxcp8lpAcRXZ+PsisfFJ5tOQ7gAWpkK0OHFKfX0gRQ
+	 RLg61gvu5c2uz5s2My6MjvYEQdSKBzdgT6hR5m1bQmt+0dHvVxyiDNFgrsHIWhS1LJ
+	 xKi6Ak/Di9XhwebzfWzDFF4vUPBVxHuwW799Z3OGHD5gedWkIPdG0f+dzJ6/BsTdls
+	 4up63DCafsvs6G0k28eDsQwc370IrQzk1ioVDkppsXq7OqAcanVzLXsC2cIT5vd008
+	 5RTCVHGG+Z/GLZ4HUMDPKy4zOqG+VnugCWuli6nFe6lve4wgcTGlK4Cq5hjpghbUH2
+	 XgMZd1rldxXiA==
+Subject: Re: [PATCH net v2] net/rds: defer CM id destruction to a workqueue
+From: netdev-bot+sashiko@kernel.org
+To: chenaibing@cmss.chinamobile.com
+Cc: achender@kernel.org, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
+ linux-kernel@vger.kernel.org
+Date: Tue, 17 Nov 2026 08:35:20 +0000
+Message-ID: <179490452051.3136.18322831263977968329@kernel.org>
+In-Reply-To: <20261116075423.782-1-chenaibing@cmss.chinamobile.com>
+References: <20261116075423.782-1-chenaibing@cmss.chinamobile.com>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,122 +63,149 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next] net/mlx5e: kTLS, Simplify error unwind in
- mlx5e_ktls_set_feature_rx()
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: horms@kernel.org, saeedm@nvidia.com, leon@kernel.org, mbloch@nvidia.com,
- borisp@nvidia.com, witu@nvidia.com, andrew+netdev@lunn.ch,
- davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org,
- pabeni@redhat.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- Xuanqiang Luo <luoxuanqiang@kylinos.cn>, netdev@vger.kernel.org
-References: <20261116110830.2850785-1-xuanqiang.luo@linux.dev>
- <b0f73ee2-fdff-4b5f-b8d0-43cd293d3058@nvidia.com>
-From: Xuanqiang Luo <xuanqiang.luo@linux.dev>
-In-Reply-To: <b0f73ee2-fdff-4b5f-b8d0-43cd293d3058@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
 
-On 2026/11/17 at 6:27 Tariq Toukan wrote:
-> 
-> 
-> On 16/11/2026 13:08, Xuanqiang Luo wrote:
->> From: Xuanqiang Luo <luoxuanqiang@kylinos.cn>
->>
->> mlx5e_ktls_set_feature_rx() has become harder to follow: the error
->> handling is nested in the conditions and the main flow is conditional.
->>
->> Handle the error cases in conditionals, keep the main flow
->> unconditional, and destroy the accel TCP flow tables in a single
->> place. Use goto to unlock on the early return.
->>
->> No functional change intended.
->>
-> 
-> Thanks for following up on this.
-> The change is correct, I see no functional change.
-> 
-> However, we can simplify the code further.
-> See below suggestion where code is flat, the same size, and leaves the 
-> enable argument alone.
-> 
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-Thanks, that's cleaner.
+Critical: 0 · High: 1 · Medium: 1 · Low: 0
 
-I'll send v2 with this form.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-Thanks!
-Xuanqiang
+- [High] The lock cycle this patch is meant to fix can still happen.
+- [Medium] After this patch, each probe RDMA CM id created by
+  rds_ib_laddr_check_cm() stays alive after bind() returns, until…
 
->> Suggested-by: Simon Horman <horms@kernel.org>
->> Link: https://lore.kernel.org/ 
->> all/20261029134019.GG257209@horms.kernel.org/
->> Signed-off-by: Xuanqiang Luo <luoxuanqiang@kylinos.cn>
->> ---
->> Only compile-tested on top of net-next 7ccc5e05043b (arm64, W=1). I do
->> not have a crypto-enabled ConnectX NIC to run it on.
->>
->>   .../mellanox/mlx5/core/en_accel/ktls.c        | 23 +++++++++++--------
->>   1 file changed, 13 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c 
->> b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c
->> index 3cc1213c2f68..0f5dcd1b822e 100644
->> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c
->> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls.c
->> @@ -137,19 +137,22 @@ int mlx5e_ktls_set_feature_rx(struct net_device 
->> *netdev, bool enable)
->>       mutex_lock(&priv->state_lock);
->>       if (enable) {
->>           err = mlx5e_accel_fs_tcp_create(priv->fs);
->> -        if (!err && !priv->ktls_rx_was_enabled) {
->> -            priv->ktls_rx_was_enabled = true;
->> -            err = mlx5e_safe_reopen_channels(priv);
->> -            if (err) {
->> -                priv->ktls_rx_was_enabled = false;
->> -                mlx5e_accel_fs_tcp_destroy(priv->fs);
->> -            }
->> +        if (err || priv->ktls_rx_was_enabled)
->> +            goto out_unlock;
->> +
->> +        priv->ktls_rx_was_enabled = true;
->> +        err = mlx5e_safe_reopen_channels(priv);
->> +        if (err) {
->> +            priv->ktls_rx_was_enabled = false;
->> +            enable = false;
->>           }
->> -    } else {
->> -        mlx5e_accel_fs_tcp_destroy(priv->fs);
->>       }
->> -    mutex_unlock(&priv->state_lock);
->> +    if (!enable)
->> +        mlx5e_accel_fs_tcp_destroy(priv->fs);
->> +
->> +out_unlock:
->> +    mutex_unlock(&priv->state_lock);
->>       return err;
->>   }
-> 
-> Suggestion:
-> 
->      mutex_lock(&priv->state_lock);
->      if (!enable) {
->          mlx5e_accel_fs_tcp_destroy(priv->fs);
->          goto out_unlock;
->      }
-> 
->      err = mlx5e_accel_fs_tcp_create(priv->fs);
->      if (err || priv->ktls_rx_was_enabled)
->          goto out_unlock;
-> 
->      priv->ktls_rx_was_enabled = true;
->      err = mlx5e_safe_reopen_channels(priv);
->      if (err) {
->          priv->ktls_rx_was_enabled = false;
->          mlx5e_accel_fs_tcp_destroy(priv->fs);
->      }
-> 
-> out_unlock:
->      mutex_unlock(&priv->state_lock);
->      return err;
+--
 
+net/rds: defer CM id destruction to a workqueue
+
+The patch moves rdma_destroy_id() on the probe cm_id in
+rds_ib_laddr_check_cm() onto rds_wq. The goal is to break the lockdep
+cycle between rds_trans_sem and handler_mutex. If the work item cannot
+be allocated, the id is still destroyed synchronously, and rds_ib_exit()
+now flushes rds_wq.
+
+Closes: https://syzkaller.appspot.com/bug?extid=ccdb5058c3df2d94811c
+
+> diff --git a/net/rds/ib.c b/net/rds/ib.c
+> index 4ea9838d090c3..66af4a72a5595 100644
+> --- a/net/rds/ib.c
+> +++ b/net/rds/ib.c
+
+[ ... ]
+
+> @@ -419,6 +434,15 @@ static int rds_ib_laddr_check_cm(struct net *net, const struct in6_addr *addr,
+>  			       NULL, RDMA_PS_TCP, IB_QPT_RC);
+>  	if (IS_ERR(cm_id))
+>  		return PTR_ERR(cm_id);
+> +
+> +	/*
+> +	 * The id is destroyed from rds_wq: rds_trans_get_preferred() calls this
+> +	 * function with rds_trans_sem held for reading, and rdma_destroy_id()
+> +	 * takes handler_mutex, which the CM callback path acquires before
+> +	 * taking rds_trans_sem.  If the allocation fails, fall back to the
+> +	 * synchronous destroy.
+> +	 */
+> +	w = kzalloc_obj(*w, GFP_KERNEL);
+
+[Severity: High]
+If kzalloc_obj() fails here, the out: label calls rdma_destroy_id()
+directly. Doesn't that still run inside the down_read(&rds_trans_sem)
+section of rds_trans_get_preferred()?
+
+rds_bind()
+  rds_trans_get_preferred()
+    down_read(&rds_trans_sem)
+    rds_ib_laddr_check()
+      rds_ib_laddr_check_cm()
+        kzalloc_obj() fails
+        rdma_destroy_id()
+          mutex_lock(&id_priv->handler_mutex)
+
+That is the same rds_trans_sem -> handler_mutex dependency that lockdep
+reported. The other half of the cycle is handler_mutex -> rds_trans_sem,
+taken via cma_ib_req_handler() -> rds_conn_create(). If a writer such as
+rds_trans_register() or rds_trans_unregister() is queued on the rwsem,
+this can also hang.
+
+The commit message says:
+
+    if the allocation fails, the id is destroyed synchronously as before.
+
+"As before" is the behaviour that produced the original report. The
+allocation failure is also easy to trigger with failslab, which is what
+syzbot uses.
+
+Could the work item be allocated before rdma_create_id(), with -ENOMEM
+returned if that fails? rds_trans_get_preferred() already treats any
+non-zero laddr_check() result as "not this transport". rds_bind()
+already maps that to -EADDRNOTAVAIL or -ENOPROTOOPT, so no new error
+handling should be needed.
+
+>  	ret = rdma_restrict_node_type(cm_id, RDMA_NODE_IB_CA);
+>  	if (ret)
+>  		goto out;
+> @@ -484,7 +508,13 @@ static int rds_ib_laddr_check_cm(struct net *net, const struct in6_addr *addr,
+>  		 cm_id->device ? cm_id->device->node_type : -1);
+>  
+>  out:
+> -	rdma_destroy_id(cm_id);
+> +	if (w) {
+> +		INIT_WORK(&w->work, rds_ib_destroy_id_work);
+> +		w->cm_id = cm_id;
+> +		queue_work(rds_wq, &w->work);
+
+[Severity: Medium]
+With the destroy deferred, each probe cm_id stays alive after bind()
+returns, until rds_ib_destroy_id_work() runs. What limits how many of
+these can be pending?
+
+rds_threads_init() creates rds_wq with
+create_singlethread_workqueue("krdsd"). That makes it an ordered queue
+with one worker, shared with the connection, shutdown and free work for
+all of RDS.
+
+An unprivileged user can call bind() on AF_RDS sockets in a loop. The
+call reaches laddr_check() either through rs_transport (set via
+SO_RDS_TRANSPORT) or through rds_trans_get_preferred().
+
+A failed bind leaves the socket unbound. Each attempt with an IPv6
+address, or with an IPv4 address not yet in rds_ibdev->ipaddr_list,
+queues another item. Producers on several CPUs feed one consumer. That
+consumer also contends on the global cma lock mutex and sits behind any
+slow RDS work.
+
+Each pending item holds the rdma_id_private and the
+struct rds_ib_destroy_work. The latter is allocated with GFP_KERNEL and
+no __GFP_ACCOUNT, so it is not charged to the caller's memcg.
+
+If rdma_bind_addr_dst() got far enough, the item also holds two more
+things:
+- a cma_dev reference from cma_acquire_dev_by_src_ip()
+- an ephemeral port in the shared RDMA_PS_TCP space from cma_get_port()
+
+Before this patch, all of these were released before the syscall
+returned.
+
+Could a backlog here pin memory, use up ephemeral RDMA_PS_TCP ports
+needed by other in-kernel users (NVMe-oF/RDMA, iSER, NFS/RDMA), and
+delay IB device removal? cma_process_remove() waits here until every
+pending destroy has run:
+
+	wait_for_completion(&cma_dev->comp);
+
+> +	} else {
+> +		rdma_destroy_id(cm_id);
+> +	}
+>  
+>  	return ret;
+>  }
+
+[ ... ]
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261116075423.782-1-chenaibing%40cmss.chinamobile.com
