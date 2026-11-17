@@ -1,56 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794925641;
-	b=ZAoVwMXGMoy/tlZnPTnvp3szn/8NShK7b7khCouJXRbTIJL9LNHLAmKNKyItVwLlxEbF
-	 PwLQfSdpCERczP+0YXOkwetn5VDgWSc0YTTVkTLgYzAnOX9QuZ8/PD0h15GlQR2jeHv9m
-	 vssXHFhnIwYw5p7PhBxVuuIQGo3vDhAfcm/xfFntJpeA9JtxAiYvUKjn/TWRmmncTBbRI
-	 Zr1ZOZT8BxFC06H3B+lBf5pQ7I+bhYgaW3wj88MGrQsqK9TcdSm+Urw5O0LZ4EpU83rCC
-	 dF2qv8peQgNsUULJr2wX53EOUYCLqhuOcYxRUkTv4cTtm4pRidg+dg8FG8c1faOYXxg==
+	t=1794928807;
+	b=wZtzaN3Hz+ceQ1iKpspW3j99vHWDLEw+1x0x+hW4Pm5AbQ4yqKqX4GZWrD0RUg/jeeV0
+	 FU4QjLUgPWoAQZojI13Xb2llfHK1xSvxEL4BYfLOW/Q98NKr+Z8pqadi6rclLqD7GKrE1
+	 niRpS+7J1K+8HUcckY3PKUS9ON7cojv0xwee0FE0VDcFeaq3TVHBuQMiMnOre7FzqUwMQ
+	 g1zIFtrbQCNKDKH9Sk1QnkiL8hIgzZRziPcta20MUrdgHsedW9h45kVx8vdsVSLWJAtJQ
+	 v7VzTU7axO8xHk0Kj6c4Y/c5lBKH6DSH7VYd7EVeFIaI+1bBGDhN/eH51/M6tfFY0LA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794925641;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=fI9qzV3+i/V6fO8Fng3kpti3i6R+DxMIEsf83E11Qgc=;
-	b=Q4lDKcmA+xPq2J8+kFsQrscnPhitNXGbm5EidHVj7MvMeidfVTeaJMbptSZMacE2dRJ2
-	 NDDFAlyxfNVrmfvIQHQLyqVzHnFON38F4GaSk1b/gsT2v+XMrhl7R2tRY+5Dbo9ayUSya
-	 8G4S3sk2yLv3i0oQlmqWFz664ml8aJCbwz/wl5y1eXgqKgB19qkNMAFdmBzGomTg4X2Uw
-	 JAwxKm/YtI/r1fZOF4JYw/ySnepP7yAjvXNK5D3645szOue2s5dqTyh3hd0Zjh0LHmnln
-	 KPCquOKsncypVuTYQwDWzFAW1yye1XtSGXXZeGiF6+nc8tNwoAeAxv38iCtc7br9lLA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794928807;
+	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
+	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc;
+	bh=PkIFmFtwbAtscvXm7vxYpdbkMg7D4KGy35orKtrMaio=;
+	b=GUJgfal/BJQ8iiN/KvK5+/NTlpxVf4tcwNTmM+U7vih5g/PzukkkDJEPditA0Cj7luBb
+	 7FWu1mfp/YltirNdZGG2kecyEYZcRxLA6EPGY7FJkjT2yIeMJM/EnMcFuOVn/NQpu6vaQ
+	 T332Vl2FLZ4QhIFBKbZ52Pjca4NfMlGPcrkjSzzpATwjDn+BJLUeQgs2YMz+eyMHnRjiF
+	 T7jU+HP7Dva1ymeHZQzltSAn30U6qHajBGKa2Zdt8W9NJWxrDKH91uxYadDXOcNi8V8Of
+	 KmllDO/BYW+Pa8e+iPWtbtINmubYdU6qOIRCUqVLAjUC5BY0eMGvd4cWmbO/YMeby2Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Y6RLNLbD;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Pj7UCWr9;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FF08606A329
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:27:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E881606A883;
+	Tue, 17 Nov 2026 15:20:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Y6RLNLbD
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E0971F000C6;
-	Tue, 17 Nov 2026 14:27:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Pj7UCWr9
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 072C21F000C5;
+	Tue, 17 Nov 2026 15:20:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794925641;
-	bh=fI9qzV3+i/V6fO8Fng3kpti3i6R+DxMIEsf83E11Qgc=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Y6RLNLbD+DDF6RrxcUdz2RoYCODwOK3s3iSqGY2JHb2mwP+jDnRdBJLavefAlUJBd
-	 oSLK7wqbHLLQbdQGNR92FK5GRD0s+4CpOSp0IKq+gJ8ocGSBRPBJmgXat5tsXehhEL
-	 B0C3vbbaPETupChboNfWV6Etf83vGdgLBnGvsKhBwCqHYjz8AIW3gROypnrR/55+YG
-	 +IBkNSkg6oXr18QAp9F/qiNo8qvjC6d45Be+IIqVtwQDwr0y9l4vNx2TtvYM3DmOfg
-	 ObYxYwWvSzNMyLb1s49EfmPyjJNUh7hLVo1KIAwYwdh/TLmR8Oy8SWYfvPeENzFi2n
-	 BgoPMkeebjeoQ==
-Message-ID: <sashiko-outbox-218963@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] RDMA/iwcm: Require CAP_NET_ADMIN for iWARP port mapper
- netlink messages
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Suyuan Wang" <shyckless@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261117-iwpm-perm-v1-1-11f1b87d6fb3@gmail.com>
-References: <20261117-iwpm-perm-v1-1-11f1b87d6fb3@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 17 Nov 2026 14:27:20 +0000
+	s=k20260515; t=1794928807;
+	bh=PkIFmFtwbAtscvXm7vxYpdbkMg7D4KGy35orKtrMaio=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=Pj7UCWr9KAlzoDzlHno3oeDebGjaWoV8m9NmEnzzFB9TKXWRXrqk3FHj0rCnthdHr
+	 ViMzg+2PxPfXVm88Il1xCgB8EZzrkk7zNNZod18rlLLefZ+oxHaNabyoV6vfPqISfi
+	 020Aj8eV6JLx6CVuxPeJ8xQRM5BsTiOsPYvDadfc94fotZ4WYxIkDZoA/FTAB5px/z
+	 ckajyEDQ3m973eYF8YFqZvEK3FNxU6sL3eSa4l2paN8gm3rRMdVzPkSBb7zZfN0wwz
+	 UFlpM+mis/sGF5YRiE7Nyg6tpONgct0EilQWnk2HW8KhIba5P7YnaEpNVu1FSywEGx
+	 iT5UGK74Mdt9w==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id F1586392705E;
+	Tue, 17 Nov 2026 15:20:06 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,32 +52,45 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net V2] net/mlx5e: rep,
+ Fix races between devcom PAIR event and uplink close
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <179492880552.651948.8613852135284978672.git-patchwork-notify@kernel.org>
+Date: Tue, 17 Nov 2026 15:20:05 +0000
+References: <20261112182403.3646298-1-tariqt@nvidia.com>
+In-Reply-To: <20261112182403.3646298-1-tariqt@nvidia.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com, gal@nvidia.com,
+ leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ mbloch@nvidia.com, markzhang@nvidia.com, moshe@nvidia.com, saeedm@nvidia.com,
+ shayd@nvidia.com
 
-> From: Suyuan Wang <stevewong@hust.edu.cn>
->=20
-> The RDMA_NL_IWCM callbacks process replies and notifications from the
-> port mapper daemon, iwpmd, but none of them sets RDMA_NL_ADMIN_PERM:
->=20
->     [RDMA_NL_IWPM_REG_PID] =3D {.dump =3D iwpm_register_pid_cb},
->     [RDMA_NL_IWPM_ADD_MAPPING] =3D {.dump =3D iwpm_add_mapping_cb},
->     ...
->=20
-> so rdma_nl_rcv_msg() accepts them from any process in init_net.
->=20
-> iwpm_hello_cb() and iwpm_mapping_info_cb() set iwpm_user_pid to the
-> sender's port ID and mark the client IWPM_REG_INCOMPL, without matching
-> any pending kernel request. An unprivileged process can thus make
-> itself the daemon that the kernel sends port mapper requests to. The
-> [ ... ]
-> Fixes: b493d91d333e ("iwcm: common code for port mapper")
-> Cc: stable@vger.kernel.org
-> Co-developed-by: Kaixuan Li <kaixuan.li@ntu.edu.sg>
-> Signed-off-by: Kaixuan Li <kaixuan.li@ntu.edu.sg>
-> Signed-off-by: Suyuan Wang <stevewong@hust.edu.cn>
+Hello:
 
-Sashiko has reviewed this patch and found no issues.
+This patch was applied to netdev/net.git (main)
+by Paolo Abeni <pabeni@redhat.com>:
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261117-iwpm-perm-=
-v1-1-11f1b87d6fb3@gmail.com?part=3D1
+On Thu, 12 Nov 2026 20:24:03 +0200 you wrote:
+> From: Shay Drory <shayd@nvidia.com>
+> 
+> mlx5e_sqs2vport_stop() frees each rep_sq and its per-peer send-to-vport
+> rules (rep_sq->sq_peer) while holding only the uplink's priv->state_lock
+> (it runs from the ndo_stop -> mlx5e_deactivate_priv_channels ->
+> mlx5e_rep_deactivate_channels path).
+> 
+> [...]
+
+Here is the summary with links:
+  - [net,V2] net/mlx5e: rep, Fix races between devcom PAIR event and uplink close
+    https://git.kernel.org/netdev/net/c/5e9b2ad9b838
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
