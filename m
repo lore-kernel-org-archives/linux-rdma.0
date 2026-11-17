@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794948580;
-	b=GGtv4AP5kw3VNA2oxL+aVJhGVSZnH3BTjLYscQUz5Kq1ibPhI/DzM5K2GDYqHYx04qhc
-	 Ch7OlinD6+fecRuQnq9d5csZD6y7P6hjVL+AJCKFRH1RFPhCIdJW34aLqNoAuYtGGZJE3
-	 aiAHUhC/hO611WcvUKUp9N2HfGUI0rC7DVm3p/q1bbk/rKMQh3Ubf2x8rW8tTZNgUHNPb
-	 wgxGUWrpsGYlzcELiwrX7Y7ueUE9Luk65cr5g6YCPV5HdCOSENHzKOMFg/PcFdeC4EbjN
-	 /SxVEKnNey3i3B18u4803yYAEgEYHIRMouMT1CYQ02HmDVg5cYi6eQ/EhzwhxFc2Aqw==
+	t=1794948581;
+	b=I0C+9uPR8sO+5zsaUrpNkf2VMtnALnZlTSbvNDyerFlvbCX++jWorLe/qg+AfDEi9mEF
+	 8ZmoVoSakL4IUORYGdJGE8B3ZgDeRaxNJ8XSrqjBd8juE9fTAS0tbO8muewEK4g1UvXib
+	 lYvw138RaJagGl6q5G7LaDSqiIx8Qj+gliNShrvflz9aUH3Mj5RQQfGBrK6ttuxtvjenV
+	 KjxmPsMFw5vtdXNW/yxrBcgctkGQhJp9jaxhHroN9i2860D6JAEjv+26pNQMFY9065P4c
+	 H5TWt5uaeT0CtBJTOv5AFsHVXmhqUmAcU5kztm2h7JRaJkl1kkJU9sCm6jTlURKnUQw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794948580;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794948581;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=ZokjEEJU4CFdQBDfhHCPXZksCWOPUXTy6mSLT/IaKL4=;
-	b=kc6OsqQx6yifxkzRaVnD0DprTHd9mTJw7iHP1dvRuev0rc9jD42qDaT6vz1iZc7+xcKP
-	 Gqh5gYXBHAcR9gn//igki1OXV/3AD9BE26+ouIrZMZR149mt7/kjtkkTcgYevVjLXfoKr
-	 YTYbrbMLV1DMvUeW5yd+fBNaraEhKKy6uuMXTgAG5Zte7Iyk/i4xwq5qqw3Bd6B16wSbK
-	 J9bdIIrXAlCIwf3LQnNm21H2iOIP3DRawOTeQ/p+wAbj+n8CAprzan0yYL3Cf/W2QaQTL
-	 H5BoCgLnfLbHvB8I/QirWUZINWWdJ9gOkyByKNEIBiOVvIqtx0Stl5hYy/6/9o6ZEkA==
+	bh=O/BP+yz0dhCCat8G7c06cwLjiq3FdjhEj37h8uCPj8g=;
+	b=Iu85QZqfyzskNooZLrBgqYFg6/Su4yLJG9Bw72dGgZhpl5sWw1HSy0whJw2Lz/bxEQ5K
+	 GHVVHFjJcD0yc/81oIn5QNCFfc880u98D2p5jO1bU4gMq5HXx6QJjd/rR9eM1qD2mfmCz
+	 t82y9zWPPM69AHFUU4jPSf+Cud8E+pYm0we3u5efyzzIBnVHvUf4bGHbkZ+tFvRRjVavV
+	 UVfcFNyRgGYArWPfcM+M4eLJdK/9FaL2DyIa8OVqVdRlDX5Bn49UlrEh74hQ+uRlf+jMV
+	 JeGjnxLDcyLayBKcXoGMuSIqH2gwW+fstAPRO4ojTMDGYUOyuWthkmTQoCuZCFXoE9Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nGLzLS8p;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=I3sS9kTh;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83248606A32F
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 20:49:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5618F606A32F
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 20:49:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nGLzLS8p
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FC881F000C4;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=I3sS9kTh
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D63E31F000C5;
 	Tue, 17 Nov 2026 20:49:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794948580;
-	bh=ZokjEEJU4CFdQBDfhHCPXZksCWOPUXTy6mSLT/IaKL4=;
+	s=k20260515; t=1794948581;
+	bh=O/BP+yz0dhCCat8G7c06cwLjiq3FdjhEj37h8uCPj8g=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=nGLzLS8pv0x4n3rnpUQwPzc2HDBkeT58xTuLXIMTxh3rujdZuBDbwBXJAaSJF0HV1
-	 64wfvd7ljMl0BY8spqUBciMDwNHVYfBBXnA7IhLe/BAGyjmqcpwm216meEpyZTwWSX
-	 VSYeqZC0C9mJ2s63RQnPrE65uT+8I7kaLzkK/ZmujA4R+tf41CdrzQNspfDIe/SPAL
-	 vqMstKjkLTOo8ws0iROj9/9dEgu/Q5z964//1MrqMUOQKtkfXZoU/qd0WWzJTXyTv0
-	 FWEAMJ+Pn5mXjsBrvamMgE2UEL62DdN8NXr0t4Np90BC+h73S7Y8vGrqLEJdUT1Hmh
-	 IAqcAS/tQO+eQ==
-Message-ID: <sashiko-outbox-219652@kernel.org>
+	b=I3sS9kThSCUuEeDqsx2dl+5EkOrz9dTPiJ6a8GSI2vpDyeVc1SM1TqUdngIZy/lZ9
+	 /XvNwBNZA8RRWB09bULmV0MwbOa1DXso/sbRi3ixoeEMNJCLapWwsUvwsIVN9V/tud
+	 DgQoAWBEDD6j+ViMMTDU+ykVC6ODbGAD8vbyKaNPYagMdcYiziL0SBB6LblKdO0lY3
+	 74z7FFmsaN3ET/m/ZIpNvBjjxIeqoTTbG2Vsgg4HMKzCdMXc/rEFw49jUKG0gvMjSs
+	 Jsk6VhtZ0H4/uKNqRty0yjPZPgstnLVQ/WgS1QbQ5/dH/SuIF8IJ84G+L0ZG3LVu/G
+	 carutJ3oVK6tw==
+Message-ID: <sashiko-outbox-219653@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net v6 5/8] ipv6: icmpv6: don't quote decrypted payload
- in icmpv6 errors
+Subject: Re: [PATCH net v6 6/8] selftests: drv-net: psp: test ipv6 tcp
+ socket with extension headers
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Todd Freed" <toddfreed@meta.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261117203137.804424-6-toddfreed@meta.com>
+In-Reply-To: <20261117203137.804424-7-toddfreed@meta.com>
 References: <20261117203137.804424-1-toddfreed@meta.com>
- <20261117203137.804424-6-toddfreed@meta.com>
+ <20261117203137.804424-7-toddfreed@meta.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Tue, 17 Nov 2026 20:49:39 +0000
+Date: Tue, 17 Nov 2026 20:49:40 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,40 +61,31 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> an icmpv6 error quotes as much of the invoking packet as fits in the
-> minimum ipv6 mtu. if the device had decrypted the packet (as indicated
-> by skb->decrypted) then the icmpv6 error is sending part of it back out
-> onto the network in cleartext.
+> send on a psp tcp socket in three phases, checking the device's
+> tx-packets and what the peer received after each:
 >=20
-> as in the previous patch for icmp, don't send an error about a received
-> decrypted skb at all: psp also encrypts the l4 header, and telling it
-> apart from ktls rx device offload would rely on SKB_EXT_PSP not being
-> lost on the way. linux receivers would drop an error whose quote stops
-> before the l4 header anyway (icmpv6_notify()). this covers ip6tables
-> REJECT and nft reject in the ip6 and inet families; the netdev and
-> bridge families are left to the nf-next patch, as for icmp.
+>  1/ no socket options. the data is sent, counted, and received.
 >=20
-> on tx, skb->decrypted is also set. an error about a locally originated
-> skb (skb_iif is 0) is sent in full as before, if its route goes to a
-> local address (RTF_LOCAL), like RTCF_LOCAL in the previous patch.
+>  2/ an extension header set on the socket. the packets are dropped,
+>     tx-packets is unchanged, and nothing reaches the peer. the data
+>     stays queued.
 >=20
-> an error about a received decrypted skb is dropped before the rate
-> limit, so that it doesn't use up the peer's and the global icmpv6
-> credit. the check of a locally originated skb needs the route of the
-> error, which is looked up after the rate limit.
+>  3/ option removed. the queued data, then new data, is sent, counted,
+>     and received.
 >=20
-> Reported-by: Sashiko <sashiko-bot@kernel.org>
-> Closes: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/2026102323464=
-0.1459291-1-toddfreed%40meta.com
-> Suggested-by: Jakub Kicinski <kuba@kernel.org>
-> Suggested-by: Bj=C3=B6rn T=C3=B6pel <bjorn@kernel.org>
-> Fixes: 784abe24c903 ("net: Add decrypted field to skb")
-> Cc: stable@vger.kernel.org
+> the test has three variants: a destination options header
+> (IPV6_DSTOPTS) and a hop-by-hop options header (IPV6_HOPOPTS), each
+> holding one padn option, and a segment routing header (IPV6_RTHDR).
+> [ ... ]
+>   tcpdump -i <dev> -nn -A 'ip6 and src host <sender> and not tcp'
+>=20
+> shows them as udp, with the test's payload readable.
+>=20
 > Signed-off-by: Todd Freed <toddfreed@meta.com>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261117203137.8044=
-24-1-toddfreed@meta.com?part=3D5
+24-1-toddfreed@meta.com?part=3D6
 
