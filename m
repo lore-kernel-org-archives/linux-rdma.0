@@ -1,54 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794911807;
-	b=Gau8UjmnGcOLwZ6+0HukDISH9RuX95t/9DD/iLwfKQdL2RFLtgg6gc5NAcO7G48cc09v
-	 dEzOWVWOC9xczvolGNMR9hhvn7wsOkEW5Z0QnqI6U/uqws3ITgvvcxolzp0Ppqf732p/J
-	 uY3ypMiB4dRlfp6g5yKTY1EiRWtml6UoG0mbK9qEND4w2hMmIpEQFWtFEYpxfcMaKguoq
-	 deuTnkFdcbguUDsCgq4hTI9OWUXyHj3GCs/x7rlaS3F0gh604tx8OR2qL4OXbpcITSdJZ
-	 XIko1Ws1dWbRlOMoNx1W47ZD/e08WFw/Sq2lumpJ7b4DXvAINN3R+mcg4QD0ipfbBtA==
+	t=1794911809;
+	b=vT6Ye2FNm9NeqgTuK0Eg6rqoHGOAlgTQF0ogmTmQy2KvV4CXTEB+ODBhu+i/FqfSaSsT
+	 HEqPfCL4bffq4aHDoUExvuMgxLchizr6Elb+lMQOj0MSIODd5FEAoXnt4XWVTM3nzUhd+
+	 c+A0BM7FmQxNrr6fIy2MaKmThMv5IKE3ynIv+ZsXAxsYtYaME1dF2zIN1NKOL7iCd67yW
+	 XW5ht2jHqatZAWRKX73DlhXRamY58e+k+FR4CmgaCs3yGVqpu4F8szYojdhVtup003hQ5
+	 0dkhNFVX+EW4Se6I6OkxwXYKpgml994MQoE3hDwWnT5vrY0Tfn2iVox34ehMTxCXHkQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794911807;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794911809;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=/bppDg3RBbvOL1WvwxNeto/+jI6ToplfCDuhJuCq3uo=;
-	b=BAWlFIp9lzhyz2l7KNvitoVC8N+u/rq/Ksx0rtNKoW81O4SgxKxgxSCeYjubwl5LvhqX
-	 4IP5T1VG8jOV6ISlJ+uVkMuYlW2/Z9oyqUb+CfMzeqNhHeMEi86EXF3dDk9cmEbIy/y8F
-	 qduBNKNSLfLlSx+YlMYT1/yWVp4AuLFUekEs5OsUph1RK221NihcVix6aKmyw4L+JTVLj
-	 r7MT76r9/uLuXmNvbYaPXFprW1ZMyzsRR9WNtXLGGbSrDXnGZqFJrGrvKHjWFz7a0rY1y
-	 n36zCQPlKuHeAEutqHbcotlgRvtSGtSM+UV8WkDzqRvnWz3Vmq4Um0IjNxifs16nFgA==
+	bh=iBnuApGa0H/kamaREAuOazDIpUug8u3UAV10ktYG6V8=;
+	b=YyX2+mm5ueTJKwWF+qTnG7nmtQZBvTZHYmLUXbeWXcEe/XbqXyfgMoQGHtRs9SYliCAS
+	 sXUWlSG56czXPrD0D6kMYKisxqqKl5iIdzHuwPka8UKuxx4sWkbh7WXumBSVLcxU+orEN
+	 mS3Ff1MwHPvnGFhvvHgRgQTQNLRb/dWmTQUihCzIO6xzLqMCAMpQMi/RA4kjMhzKnd2qc
+	 8oO9VNeqDcZPiNPOO6j3XTvNovRm9gTdGBYZXlInQoOmxQFOzmg+M92A9JT0VkIUq0VhE
+	 wYbOJzUpKkmd+0SB6QYUxKEodbDh4nnpilWzJwexpoCLSIr9qp3PEOiYkCaQXzcfMkA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=n1viOvN2;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aBa73N1o;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3B9F606A8B9
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 10:36:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 936C6606A88E
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 10:36:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=n1viOvN2
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 989AE1F000C8;
-	Tue, 17 Nov 2026 10:36:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aBa73N1o
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A7FD1F000C8;
+	Tue, 17 Nov 2026 10:36:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794911806;
-	bh=/bppDg3RBbvOL1WvwxNeto/+jI6ToplfCDuhJuCq3uo=;
+	s=k20260515; t=1794911809;
+	bh=iBnuApGa0H/kamaREAuOazDIpUug8u3UAV10ktYG6V8=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=n1viOvN2Q3lhhlAIR1/EGpx3fidDoeBnrY2oH4GDlLPIfUmrZuh4wK7CuWY0jQC2B
-	 cbjqkgusjO5zJRZtk7Kk6UpbswWbgvt8qCjL7APLBvGuz+Omd0lUwVTxryxsaOS/Fd
-	 M7eh5BlyQNXVkvw5nPv8VaUqsPab5exovbsXJERwPfFYQ8pWBJX7tul1pJeu7ohlxd
-	 qvSCrXEJSD5593T97Jzc+2IZeeyWL5z8gjZFzWhPoJVaBtoz1EQL6KXamE57ZdyCtl
-	 BeN/8Ges6i59X4SNryE4RhmTRHocAIrrUgtLy7VALqAjZQtGxTd/0BeGGr1LX/roxU
-	 OiDPeygyoDc/g==
-Message-ID: <sashiko-outbox-218635@kernel.org>
+	b=aBa73N1oWf1XbP7PlyoQx6X62GS41hyVtEUM8UYG9toAiKKhkehsxPRIObSFVFeVG
+	 SiOubSi2ldsoSPcekkRJMo/XXwDoS4d9MJKQ+2TVvwyW9sA7PRVVnoCNumsNPeA5Ze
+	 vOyi4flJ7R5o/okbvZrIjcLIje6uRocNnEakbEP8xzbXsTHDI6UwtqgJ668EChXTwY
+	 Rsgdq6Jks4/Mh/xi93i1nmiJ2lpm1+DGvTSwsKrSJhNaVRpeOA6m5d4bT/tQfzp0MY
+	 8noiT494rpo3Te5y3z9cpDeqcG3Fh9/xbH0p/YuKPN3ep58H3gIh/d1WNow6Ywo+Af
+	 Yd16IivqEAd3g==
+Message-ID: <sashiko-outbox-218636@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next V2 07/10] net/mlx5: LAG, resolve affinity
- indices only in queue-affinity mode
+Subject: Re: [PATCH net-next V2 08/10] net/mlx5: LAG: replace fixed
+ MLX5_MAX_PORTS arrays with dynamic allocation
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261116103010.1129666-8-tariqt@nvidia.com>
+In-Reply-To: <20261116103010.1129666-9-tariqt@nvidia.com>
 References: <20261116103010.1129666-1-tariqt@nvidia.com>
- <20261116103010.1129666-8-tariqt@nvidia.com>
+ <20261116103010.1129666-9-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Tue, 17 Nov 2026 10:36:46 +0000
@@ -63,11 +63,20 @@ Precedence: list
 
 > From: Shay Drory <shayd@nvidia.com>
 >=20
-> mlx5_cmd_create_lag() resolved the first two members up front via
-> mlx5_lag_get_dev_index_by_seq() and returned -EINVAL if either failed,
-> but only the queue-affinity mode uses them.
+> Converts two fixed-size arrays sized to MLX5_MAX_PORTS into
+> dynamically allocated pointers:
 >=20
-> Move the lookup into that case.
+> - lag_mpesw.pf_metadata in mpesw.c/mpesw.h, sized by ldev->max_fns
+> - mdev array in mlx5_lag_query_cong_counters(), sized by ldev->ports
+>=20
+> The cong-counters array is sized by ldev->ports, which is fixed at ldev
+> allocation, rather than by the LAG mode, so a mode change between the
+> allocation and filling the array cannot overflow it. The query loop is
+> bounded by the number of entries actually filled. A virt LAG is not
+> aggregated and queries only the given device, as its members are not
+> LAG ports.
+>=20
+> Thus, removes the hard dependency on MLX5_MAX_PORTS.
 >=20
 > Signed-off-by: Shay Drory <shayd@nvidia.com>
 > Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
@@ -78,5 +87,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261116103010.1129=
-666-1-tariqt@nvidia.com?part=3D7
+666-1-tariqt@nvidia.com?part=3D8
 
