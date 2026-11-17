@@ -1,107 +1,107 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=67.231.153.30
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=67.231.145.42
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794954607;
-	b=oDeHKF2XZHqxtXfqWxTXrOi5bDELOu6tU3oN00SBURORwnVTJm/7oYFqis42dVxlOLDM
-	 /KE4LqMJ6/nICamIqnsESMrScY4bDttZanLy08b71XaYk2xpNJfqTAGDbQNVhXtExvHdK
-	 qRqSNvMj7QG+IFr57gGvY7HQyZxvtJ95xIdrygW61uYfoIwbHzFvWoHCQn1F/NvwSGtDW
-	 JjcoppOLcQAI7WseQq+c4AC7626wesSSlaN+J+kw7L17WgF6QiRHdgCb0FDq0HcpCVfWw
-	 +75UB15NZrR1wexeCB+kRBNIRPzn6jZ62HsG2F6x8igyJeMm780HEwV6baLVwxG2Vnw==
+	t=1794955619;
+	b=TVQjOdPAsOTjemTmHMAqUStv0uj40ir6OOqV2akWIKhfqWtQWEs0nPhx6BY3/R7nRkje
+	 v42NrTmkuYrExy8Ddo4vvJWwxKyC2J9Ubo+zRGsMvzSRfcHqPqwFeLPz7XVlPpI9MuxSv
+	 WKonVfEU1+9W0Xmpwm2+qWnuZ6PXmLqQdtReiyOt9iYxrh3dVgKCPs1gUBEUZ2TC1QGfu
+	 jDIIjHqh2e3MGiBovJS2pwb4PkT4ajdvne23N0MVNJeW0sSnsHsSY98MjxXXU2LJbkBwt
+	 odIvKEwv19hJAVhldia0UUY1/asQfiSmqquxII+RYmqDuAlAVGwOswLahk+uAJndnkQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794954607;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794955619;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
 	 X-Google-DKIM-Signature:X-Forwarded-Encrypted:X-Gm-Message-State:
 	 X-Gm-Gg:X-Received:X-Received:MIME-Version:References:In-Reply-To:
 	 From:Date:X-Gm-Features:Message-ID:Subject:To:Cc:Content-Type:
-	 X-Proofpoint-ORIG-GUID:X-Authority-Analysis:X-Proofpoint-GUID:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Spam-Info:
+	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-GUID:
+	 X-Proofpoint-ORIG-GUID:X-Authority-Analysis:X-Proofpoint-Spam-Info:
 	 X-Proofpoint-Virus-Version;
-	bh=KyDWO0/aXgj9Rt69ltOENPsFV1jksEPL0QStiZFNoLw=;
-	b=3PVGFDw8rfWkCv1VnmULgeQrFgMcYaCzLd7HwS/XCJFuVwyArHECkhAq6Fwt+y+uuGW+
-	 g8clIbpqk36Gd/MoT8xOEnmy6P7GWBKRlGDh5CSdmwBttzt1Z2xctF07tVKFRCPxldDCE
-	 ouu86U0ohxjhGwDfqwDJlCzU/wKhAj5/3oAOrBzf2EGB1CdMrJhryRHekT6vskq78xd9W
-	 fBLQySnavT9OKFo2iVq/piVkxkCMZr2eaoIaFeFqgUktou90Vo6/++vjOiW2wmC/80FEi
-	 ME8fxZdWS+sSuol27d2T4xUEQA+AiW3d6FTGADsT473I3PWl11WfdvYrMF6gpVWNFCw==
+	bh=KSC81XL1+EQpdKzjuyxfAuAaB+et2a6UKZ6CLWHqjqw=;
+	b=w73n0hRdAfUi22tr0eZWORDp3pRpdVXIKd5USvjQQNHfz9ysjDiSI82rFRwSAij+jH64
+	 p/LliNDh0GRe3zHLSa/vbsI6DfDUNQpV9T3EK+Jog3SN+sEOe3HvNkxcmoOB5WCXo0eQ6
+	 fZ+3UeJavpPddxACa3dXBFIRRghv3khQomDNZQDKvzXXaZGRHsgKTTSmnqlxZUtBfrrd9
+	 13Vp2JnAZfmpm98qXeXumLk9WGKI9eKjlJDy1r1we7VB2ut9TZctwZqDJo55cdJHxZt3e
+	 z5h7YXuM99wIZwqkLv1UCtIMOBIpu+VAvK+JwOYoKhF+VXz8VaGNgrDuJkrD9DFvbMg==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=meta.com;
 	spf=pass smtp.mailfrom=meta.com;
-	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=bOfEnIBU;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=67.231.153.30
-Received: from mx0b-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
+	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=OpD+6PDM;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=67.231.145.42
+Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5580606A334
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 22:30:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D5580606A334
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44C02606A31C
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 22:46:59 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 44C02606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=bOfEnIBU
-Received: from pps.filterd (m0148460.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AHM20Rb1750235
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:30:06 -0800
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=OpD+6PDM
+Received: from pps.filterd (m0528009.ppops.net [127.0.0.1])
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AHMfexW2298500
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:46:58 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
 	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pps82601-s2048-2026-q3; bh=KyDWO0/aXgj
-	9Rt69ltOENPsFV1jksEPL0QStiZFNoLw=; b=bOfEnIBUXJ7bXz2NrfMubG5jwGR
-	6jN9LTRddaVvweRF6J6poXO1rNj6AwMta2gKHOV3hwyI88N0Ig55OW1IcebZwrtv
-	mc6yE82eh5XbzOd8B2PGTR28CGWx1oj9Ay/mzcEzSVSMkGfaG4LYgl+dpJWjuvvD
-	V1ZmON0tX1Osf2Lm0wPDir0fCLzcZuRoYUsO1Iy4vMbA9POOA+6JH40mOWi3TCsm
-	dRTW56gk4loflTT37NNmVrKcvR2hIuxQKe3hfu01wDEigH9osq5WP3LFJMTv0UCJ
-	vUJBimgVSMDyiDFY/PodREJjfSxqnIOleJ/qCq82tGOD/cfLXNpVqmZmpEg==
-Received: from mail-pg1-f200.google.com (mail-pg1-f200.google.com [209.85.215.200])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j0rk6nfkr-1
+	:references:subject:to; s=pps82601-s2048-2026-q3; bh=KSC81XL1+EQ
+	pdKzjuyxfAuAaB+et2a6UKZ6CLWHqjqw=; b=OpD+6PDMlyRVIQ4gUsxd1pQRiiY
+	2xNljoVElEeEhFUiOG5Uk44VLPG4O4uXpXj0+j4jeDetx+c0P8e+noxSYq2lCh5W
+	KHejIzt/I4UdTJmzw+Fg/nSj7cB1QTMx/l3bO+xrP+TSeATVVrDxWTZVHibCW5U+
+	hjOQG+u9uC1e2kybz2OaCsXrkrsDWl9/U/SGRqGmJY0vG7rKiLXndtlvel7lQl55
+	sdjYVggRIUMT42oLfV5wteJXfkuV+1P3ib3Fp4ylW8JJJGpvlzjjnP6mzY9S0HdJ
+	AQ9e8xf/1KwJnz4XcYTaX6HmGdSH8UZ30qmpl1eTP9PIAKGbfG22H6j3L9Q==
+Received: from mail-pj1-f71.google.com (mail-pj1-f71.google.com [209.85.216.71])
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j0yu5r3dk-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:30:05 -0800 (PST)
-Received: by mail-pg1-f200.google.com with SMTP id 41be03b00d2f7-cdb8e8bccdeso157979a12.0
-        for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:30:05 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794954604; cv=none;
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:46:58 -0800 (PST)
+Received: by mail-pj1-f71.google.com with SMTP id 98e67ed59e1d1-3b17b31c3beso226839a91.2
+        for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 14:46:58 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794955617; cv=none;
         d=google.com; s=arc-20260327;
-        b=TNZjwm2rNtkEJ7oVrZsNN1rrtykq4zCHq7+YsEtdC5nLNG29eHbbsHAHpbqZsQ3Ce7
-         Y+cOZI2IkkV19G8N7rgG/x3E2Lf5DQS8dF/5XVbMOzUCg4/i+8y60qWhm7DVyeHrb9Dq
-         gH/8BlKE7O/U72IEH+wh67OjDuZ16k6kSOnqvwxuuD51kAZnSyQBqrC2SbzVtN6JHpEo
-         IhRcIt38SUX65cwpWeoolvgSsrzxsp6EwFz4yNmWJwYGHiL6vgdclODNfyWijhBZWtp5
-         diODDGQj8egOg4Lq6TzI4DGvvEKuVpwXOgqsZ0wZhyLuskiFHWPIfZ0jS5nuQernKPF9
-         ftBQ==
+        b=GYmX+KpwhQYPSoSI3wbqLioOOP35AUUmX8331ddk7cRW8AJUs3kIazvipv3cvaPGE0
+         UVFduD9KrzN9zP+aCY9fe4ikdpqRrrdVFFj9x0RfhjE067xhBj1PyNjVI/o5gNHVuniZ
+         NTPKd1OE8eHfESXRjY5X240UHT59bL1yEENK3dbekTwNRdCNUsJ1taQ6wiLNHFEQZ3g7
+         cHfyeAfrd0T5OVXi8HFarVWVRA/beX8pKhM5nR2PIi9Is+07ZwrcuY9OLvgdLRC8y6ZD
+         QiEAqdSQCGz+lLoh0rqGh4bfHE311GpNlFpiACeL0OTNa6DIrr1cXwi0bPFDsaXdYke/
+         xXpQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version;
-        bh=KyDWO0/aXgj9Rt69ltOENPsFV1jksEPL0QStiZFNoLw=;
-        fh=DfDVD7QARqZAQXUZ97QL0OW4SWFC6eUJCntNHHBmdTY=;
-        b=atYf9HZ8K3ptbqz9M1uLIcpteapS++mkXip7EbTnC35BMraAkDoEhNkSg1WVX4oy8x
-         vm0xvjgk/OuoPR/lVjmKs8zGEQqLEnreWn8iwNu+3ImnIPzZAcZ2o6KUvIh2ZHTEEGgt
-         Q8a5y+GcnuchTuQxY4KTkBDdg7/fCXUlINM07bW+148B4RwQW6C6tBEbtI2jgBTVe/R8
-         bxA/8xnmzxBwQPl+/ksexgG61jMNhgIpgDxsyONzB8b3uRyBe5sRYgX6pfbpeoLnJNkE
-         5T5WEEM9OkA81/3M6E3G6XKpG51jHE3nuImo4+97MtZwmVYIGMna8QH35lCWEoDToKWq
-         CsCQ==;
+        bh=KSC81XL1+EQpdKzjuyxfAuAaB+et2a6UKZ6CLWHqjqw=;
+        fh=zR4uiuMNPjZ2yqhE0we6613VcLdBPJQOlYgJ8EWjjqs=;
+        b=VbiDN9LDuHF6bljqbSGINFnpKRBLpImc1KNhg4SAGq4tj+RseZ8Wmf59NozoJ+pkUe
+         uka995HiVxLPkeF8zxTQ//pELB/1wzKrkebKpHKPT1IxRrLs4I2ACX1iPRnkLKYYa0kP
+         JeH7hlh1uCmgLqQVZjuS4FD47MoMQK65dwXqvRUKcwB+ExtGv0JpORVtoTZ/cBY5c0IA
+         +C48RBSjSLIqnHVjA62mtXr1AYdkfpTIvG3JSDZ7+ekkp4+XBqLC9Rhq26uyJT6GMHLU
+         4WjmR+JOs3kaCx0S8j/z59zYatP331uoV2Eby1PFrQmmhs2XkAbP2dw0b1AHatwVzsPx
+         HzhA==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794954604; x=1795559404;
+        d=1e100.net; s=20260707; t=1794955617; x=1795560417;
         h=content-type:cc:to:subject:message-id:date:from:in-reply-to
          :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to:content-type;
-        bh=KyDWO0/aXgj9Rt69ltOENPsFV1jksEPL0QStiZFNoLw=;
-        b=RrkiRYWnWS35t3ncgUpzxuMhZc9ElNm7sK59eZTMeAN2gg09FwkzbMPHktIBYFqwdQ
-         OucA1fRuMaLF6SfTfwVcuUQrRb+W5tr1EnDO49J9lChX5yGK30v45u96eiqbWwB/SmXv
-         2cdrTE6KKonrj9xoEwY2HUvvZALsCdxwXCfpTWWFIlMMN03gn9EPvNy/I7SHpnQ9xC3u
-         GRqrHne6qRl+bCEMDGE3wmDxqFdl8vmMKSsiQp/sJeOOqAvQ6mo1ZnrJzIdOfIYg52S2
-         barW328NzeYByeZPvRy683oj0KQmOR+kSKEaatPRGMA1Rvw9S3G/c94V4fEZt5W03Ces
-         gm3Q==
-X-Forwarded-Encrypted: i=1; AL+hErGDAJ1KbY9qUDKb0Ur/YXgld8WDiEj3PQ+0h62zqNECG9oIsjeFjVHIsTuz6UlUcdN1X78a7EDeAEqc@vger.kernel.org
-X-Gm-Message-State: APuU4Z/kucWgmahoE8YBu/lOGsNnvYzxreWsvQoutd6U0EtnqEKG533u
-	BJO/xkPtxENW+fm6qRavtGmvB10cKffa53XeKUvyK7JBf3uCXYwnhK9r19i2zXRwIaFeNAkYNCO
-	pKeqezY/HicGEzdkw1UryWD1M2OnSx+cGUZRlkCgNgwxZV60lyCrqfUepjBL4ywHa/5RkddgeUp
-	DbyoEKjKRKpNrtow8YJmOiXV38D6p9J+Ag5UKB
-X-Gm-Gg: AZFdTZeY75H6lXD5VKIxhxvd/i7PpvXDXEFeNweXNCTRJFy2pZZzwBuvoApG/+xQxuA
-	vmsY0Tf7yZjx6CUWY/AzDX3aHlL/UxuSJQ61e4vmCdzffBX3Eh8sJCi7FyR8g0I/eQasg0YxQKK
-	no33JWtGZF64rt3uC8r6iR+K0b7+VvcLfwzbUW9P73YNiI7sxuqGcOYLgeaHhgNi6+3GtridXgX
-	Gav5VJX2WpQAkcHKuXqynlvB2c6z5GqwQWJiRPQ+FrTk82+81Y=
-X-Received: by 2002:a17:90b:2fcc:b0:3b0:b64e:1e34 with SMTP id 98e67ed59e1d1-3b3d07d93eemr814948a91.51.1794954604503;
-        Tue, 17 Nov 2026 14:30:04 -0800 (PST)
-X-Received: by 2002:a17:90b:2fcc:b0:3b0:b64e:1e34 with SMTP id
- 98e67ed59e1d1-3b3d07d93eemr814926a91.51.1794954604046; Tue, 17 Nov 2026
- 14:30:04 -0800 (PST)
+        bh=KSC81XL1+EQpdKzjuyxfAuAaB+et2a6UKZ6CLWHqjqw=;
+        b=y21X83gCvgbrcBKQDatHchQZg71o/nkYRLmGAjorv9+gPqx3Yp6HgiJx8X3yremYdg
+         CMxrhCZ9Kp1dxcnq7q4gj5GRRjljlNkaJe3J7ZFE8DhNEpwWxQlgpwQyv4HEX6y54fgR
+         j10ayHiXUgs4vO6CHlBVz6iQ301fLMoMwc0sxMAZ6G6IfvJroHgByNu7+DNMw+Cv45II
+         Jmnd78LVfbDO5X1hiIRVgLvmb/NEBY/mXZunijI2eX0q8TprwtGlo6UdnQq60v3YovXH
+         GbyujZHtGIYXHY8vxD8bZXJNVqK1I9MnBIBWhk+nnc7tk5fv/veV+o3dEDbmwSIsXM0z
+         d38w==
+X-Forwarded-Encrypted: i=1; AL+hErEKGdirwwaN0PCDGogJ+Sv5rhhbS9/7mjQUqEpnOMMbFhqCU8Na+XBjK12/Z/y1w4NRoJG1KoDTp+VT@vger.kernel.org
+X-Gm-Message-State: APuU4Z/Y09k4/IGIta1ov4H9WbVfTHca1pSYfh2l/v4xN/qpgMdVsZss
+	ZDdwROIga6jBy1XB4FpwLPbOkL0+GnI04N6iXFKMh/cFHWYEZubYGXY1qdeZkFm0wgzlh85X4wy
+	GCjmAk5ZFbphyvSaNqilANxaLQ9mortXlfo60Ucd1paKlYlqe6hyDecGheGBvu37BYdLc0p+oAS
+	VahYawcgbiYZCddR0JTuuk3o0y3Pill7z69LgI
+X-Gm-Gg: AZFdTZeUhXKCYHhw2PgxNavQFb/mMuLU0Jz7yJoUElmhuj2b34AxTvLToQxjpJ8eftR
+	bphBMnYt8iGSvmaZFm7sDMqaJ1jow5Fxc1qdU+mO2WtTnJHiDh8dDAY5Atp4TPiNqU/msNM11Sp
+	J2J1tOtQpjApHlBtbYaslfVI8Sd0dMFt3zHlbXpwNtHelxDqRflx5ixQh75Am9+DUvCjdWnZXHd
+	MSDoNNgsPgBlh33+csKas7Igzaim6MXToNNvma/aOEYmh6RAZs=
+X-Received: by 2002:a17:90b:2fc8:b0:3b3:c3b9:7de6 with SMTP id 98e67ed59e1d1-3b3d07a212dmr710203a91.13.1794955617405;
+        Tue, 17 Nov 2026 14:46:57 -0800 (PST)
+X-Received: by 2002:a17:90b:2fc8:b0:3b3:c3b9:7de6 with SMTP id
+ 98e67ed59e1d1-3b3d07a212dmr710167a91.13.1794955616819; Tue, 17 Nov 2026
+ 14:46:56 -0800 (PST)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -111,14 +111,14 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261111005533.6436-8-toddfreed@meta.com> <179471270091.2199510.4320994626979041884@kernel.org>
-In-Reply-To: <179471270091.2199510.4320994626979041884@kernel.org>
+References: <20261111005533.6436-10-toddfreed@meta.com> <179471270451.2199510.14795764193886368841@kernel.org>
+In-Reply-To: <179471270451.2199510.14795764193886368841@kernel.org>
 From: Todd Bert Freed <toddfreed@meta.com>
-Date: Tue, 17 Nov 2026 14:29:53 -0800
-X-Gm-Features: AclHuK8ozq1AL-AsYPXNzCLCrFAtXWz49sr600reWw55cTUb-tnGMH92_LvEb0k
-Message-ID: <CADh2yMwoR3ZJUwCSbUuY85qPN=c-TKqb6BZeB87q=B24tTTaRw@mail.gmail.com>
-Subject: Re: [PATCH net-next v1 07/15] bpf: don't redirect decrypted skbs from
- egress to ingress
+Date: Tue, 17 Nov 2026 14:46:45 -0800
+X-Gm-Features: AclHuK_60Rb9y_3QFrgeQGfRKqUkPpfoiUhcDbbJP8UTYE_KV9Woof2OdSMKaMY
+Message-ID: <CADh2yMwGN64zEVedBhYbMDcsyPjSJ90tyPz7evJ6x7B9pAk3TQ@mail.gmail.com>
+Subject: Re: [PATCH net-next v1 09/15] net/sched: add act_psp for psp
+ transport mode
 To: netdev-bot+sashiko@kernel.org
 Cc: netdev@vger.kernel.org, davem@davemloft.net, andrew+netdev@lunn.ch,
         bjorn@kernel.org, bpf@vger.kernel.org, daniel@iogearbox.net,
@@ -130,45 +130,77 @@ Cc: netdev@vger.kernel.org, davem@davemloft.net, andrew+netdev@lunn.ch,
         saeedm@nvidia.com, horms@kernel.org, tariqt@nvidia.com,
         weiwan@google.com, willemdebruijn.kernel@gmail.com
 Content-Type: text/plain; charset="UTF-8"
-X-Proofpoint-ORIG-GUID: vymqJ7wNy8maFbGedVsngZRJ38Y-q03m
-X-Authority-Analysis: v=2.4 cv=Q7xHcI2a c=1 sm=1 tr=0 ts=6afcd56d cx=c_pps
- a=oF/VQ+ItUULfLr/lQ2/icg==:117 a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22 a=JnKecZnUtZousrUlYMGU:22
- a=DLdrzcY1xBZ9M_96H7gA:9 a=QEXdDO2ut3YA:10 a=3WC7DwWrALyhR5TkjVHa:22
-X-Proofpoint-GUID: vymqJ7wNy8maFbGedVsngZRJ38Y-q03m
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE3MDA4OSBTYWx0ZWRfX6sEURjRyzwEj
- +WVS0TsUBUyZvxfYRivs7Rzm73YjiGJO9oLAtEBtm+57i/patGjnWGVDIkYL44OOrjGsypn7nEs
- zIQ9XM6VUyL72daSqLnvn8Uc/FUB/HRdgG/7edYpjWolSfyaTxffayQIdklnLyPWPofoYSQw1uD
- PVOQD7rRbRxkkVWuuTPY/kms/tTg+eBINhaYsBIn+ZrlO81I7UMf+AXn2jH0MMTq4GbEc1zR8h8
- uC6FGLAOhHQdHkXwCM6cMPaXvEYYgvgV3GCt0kpeIIyvNpiC6xCtKVj0wNHl+YoAXyZpks3S0Dy
- mmbq27+GeXwF5ceS5WS+zo/7dgp9ad1JORXnde9bXxGfEB2OCCcbVx4tYLJlLj1cm9L+47mWWwW
- rhMxmENItYIrOa/aUNlvMeRjWRHU7lRc3PjIajK7UsXe+h7+Pk2SHZ3jhGiEjMXOkuMlvTcQCjS
- 1FPz2sQA4A9osQdGWLg==
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE3MDA4OSBTYWx0ZWRfX2V+PrGjA1bBT
- sqL5EWFP/0xVmj+iKlJycNoJ0Q7DQryPzIfVWIaZtT5Ojb+0Kx+B27V1i5zYl4gzI0EtSCeuECb
- yFGREN5ggJoIvReQaVJGw0DvXCHfH4Q=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE3MDA5MCBTYWx0ZWRfX9V9yhJV1OAL3
+ a0GuzinAzudh4UbTlPy01rUNqVvGfqMUmJALSjvgAcGTQi5YcSApz9+1y6lXyqee3uXeV8mGFZI
+ YpEzGS8fOssBav4AmEMxMszCHIzxd/WkkUWz3OQmWSzf1IGgykRt1x0ia7qToTn5TxM4b4yYwjC
+ /cvjUCVrH+vjEhFIf4dihUIv6ZYMaN/yP/3jOWKVaKOTrc5yhH3hv55gFf8FExXg9Np84s67eU0
+ LAhNqrzKWARunGe8q31bvuxySPQTX13ta1YQN5A15qgdWN4xw2NqKDWWQPrEIaRkFGY1GpXQKYH
+ U7PX+D+E2+RtZG47tY7r01ZBcYb+m197UfMws+o5lSUeLtd6maFh50bmU3UL2lYpmXNoxx4gOsQ
+ LEfdN41eZ0rhao/YHQHArg5tE+OIggf2DaRt3V6MCdzNEJnTgofHLYf8tMZxEXXSFw9K3c02hFL
+ YbDj1GkUrF9ie+A7Ddg==
+X-Proofpoint-GUID: L4cfP1w8sT7lchT8VEoo7u5kIbI0y-h6
+X-Proofpoint-ORIG-GUID: L4cfP1w8sT7lchT8VEoo7u5kIbI0y-h6
+X-Authority-Analysis: v=2.4 cv=dbgVTnXe c=1 sm=1 tr=0 ts=6afcd962 cx=c_pps
+ a=UNFcQwm+pnOIJct1K4W+Mw==:117 a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22 a=U_y8lYiYyhHBU5rMqhb2:22
+ a=VwQbUJbxAAAA:8 a=VabnemYjAAAA:8 a=DHOIGP5XwAi4GC-hQCcA:9 a=QEXdDO2ut3YA:10
+ a=uKXjsCUrEbL0IQVhDsJ9:22 a=gKebqoRLp9LExxC7YDUY:22
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE3MDA5MCBTYWx0ZWRfX0srk7vSQpMKc
+ j5cmiTQFAR09AOmtWySIbyxwd4JCBb2fuY590c4zbNR9VLKhpKB7DIQsJq5De9IiXRPqqrbC4Uh
+ GkAc9gx8iDk3kX2+rMQjAeYFdVdjxtg=
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-17_04,2026-11-16_01,2025-10-01_01
+ definitions=2026-11-17_05,2026-11-16_01,2025-10-01_01
 
 > [Severity: Medium]
-> Is skb_at_tc_ingress() a reliable direction signal for every caller of
-> __bpf_redirect()?
+> Can the METADATA_PSP dst and skb->decrypted get separated after this
+> point?
 >
-> tcf_mirred_act() only checks this inside a tc hook, where tc_at_ingress
-> is always current. But __bpf_redirect() is also reached from LWT xmit
-> programs. lwt_xmit_func_proto() gives those programs bpf_redirect() and
-> bpf_clone_redirect(), and BPF_F_INGRESS is an accepted flag:
+> The commit message relies on skb->decrypted as the backstop: "on egress,
+> encap sets skb->decrypted, so that sk_validate_xmit_skb() drops the packet
+> if it loses the METADATA_PSP dst on the way". The egress to ingress guards
+> in mirred and bpf also check only the decrypted bit:
 >
-> ...
+> One path where this happens, on a non-PSP netdev's clsact egress:
 >
-> Without a tc ingress hook on the host-side veth, the same packet and the
-> same program get -EINVAL, and the packet is dropped.
+>   act_ct (defrag, sets tc_skb_cb(skb)->mru)
+>   -> psp encap (the reassembled packet is not a fragment, so it is accepted)
+>   -> mirred egress redirect to the PSP netdev
+>
+> tcf_dev_queue_xmit()
+>   sch_frag_xmit_hook()
+>     sch_fragment()
+>       ip_do_fragment(net, skb->sk, skb, sch_frag_xmit)
+>
+> sch_frag_xmit() then puts the original dst back on each fragment:
+>
+>         __skb_dst_copy(skb, data->dst);
+>
+> As a result, every fragment carries the association but has
+> decrypted == 0.
 
-Real finding.
+The fragment path is handled by "net: don't fragment decrypted skbs" in the
+net series,
 
-This patch was re-posted as a Fix to net as patch2 in the series
-"net: don't redirect decrypted skbs to ingress, psp time-wait validator".
-This path is addressed there by calling tcx_set_ingress(false) in bpf_xmit().
+https://lore.kernel.org/netdev/20261117203137.804424-4-toddfreed@meta.com
+
+This causes the skbs to simply be dropped instead of being fragmented.
+
+> Would it make sense to do one or more of the following?
+>
+> - propagate decrypted in ip_copy_metadata() and ip6_copy_metadata()
+
+Conceptually it makes sense. But because of the fix above, that would be
+dead code. Furthermore, they still couldn't be sent. skbs which are to be
+encrypted on tx (ktls, psp) need the L4 header, and non-initial fragments
+do not have it.
+
+> - also test skb_psp_md() in the mirred/bpf guards and in the cleartext
+>   backstop
+>
+> - have decap refuse packets that carry a METADATA_PSP dst
+
+In both cases, these guards would be dead code.There's no way for these
+to happen once the fragment path is closed.
 
 -Todd
