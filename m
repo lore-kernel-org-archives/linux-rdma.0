@@ -1,79 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.9
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=115.124.30.130
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794879622;
-	b=d2Be1wEY93cwSYEOXfLfOTGHRPz8TDDIqw0rJ68xFsLFP9/GDCH8LqruJ1FpLcoVg8rT
-	 T48e5VPCKcQqAFFdHHKZ2mlQUgw83fvoA9Z9DGhsSN9WRUgYoRaScHN7TC4KBZYFPuRJ2
-	 e9/9PhE76MPbLXJhzfNbXHi4d5aHlLo89BukPNOGvf33pnueIbpLkB+IIG66cE75ONEKj
-	 ddwwLbfhwYUxOd01dSOPrsgJXhrNSzFg/QMADdnkqRvWNGD+8ZRRZlDOKxIRWssCmVBNT
-	 IJS/WVElWrpQ6Rr8EYioSe9tIwV+yd37m3fiwqW+VmtuGq/u80piuu3rBDTRtnGKPWA==
+	t=1794882525;
+	b=oPhq7lat2huKZy/0WU4G4uezQy7Ke0YPw+EQ+dv57IVV1KXUtV07GsCRoS1SRxaQqYLS
+	 wYBGI5ODmrcURkqLKcrIYrJKaCCG7JokGdCdr+wP8vorviswt+lAuewbVYkMt9YLqUvcj
+	 u6GPi84HotsMZLUR46DWJGQflEEGXkfIS5aopw/ucQisBW7VpH5zfcQ/2HEm8bd6ZGinP
+	 zEgoYsldQ0MKMR+RBmxZowxrYfyRHjZtDz3PB9WgAgC/v/8/NddLQSRNjg4pXLzJhVvKL
+	 EWeIezGO8hI5JxA5iUe7ZnPU4rZw57AT1nzKJca0m3YSynRcP1pIFmphc/AJLOJyW8w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794879622;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:User-Agent;
-	bh=OFl6UDFI76eLpaveKeAUCdPmHxT1stKaGqJ/+zkltfM=;
-	b=k2orERculm1VmMHxpgAqclU6TXFhFF1YmIGf9PrAQowZozJxSWKzsYKM/ABc+vkjULFE
-	 H2JJG58+LoG2jONGvvTdIhgg1AxEi7BqEX/8FSzSdk9c21+VMJXmjY5Z0FbJ7yseTMgST
-	 D9nhIA4l24l2YTAQaUn4Ml1ry4VqKhLcW+jglIttdJF8R6YowEQIzkMf1JWqrP9tNSxJ2
-	 eiWWk7h7CgpJvS7g/7nhu6z/kg4zAWv/XZgVtD9l+0NCqL3DJ2QFsFURcMYmd/yncYI5N
-	 YWla0eJwneepWGgt76UtLeD02ZkOUiv/R2RZcKzl7g2mhG0z5HiNY257zpwZz2bSRcw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794882525;
+	h=DMARC-Filter:DKIM-Signature:X-Alimail-AntiSpam:Received:From:To:Cc:
+	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=m7e4fyf2Q5mCywaw7nen7QHcArrTjTdu8X+U3sZLG8E=;
+	b=swnntYvAEYCP5CjikceVZsap/zvuWSZqy2694HsHDpG3tmSzuoQwqBDkdzs7CT3SmaEa
+	 M/udRWjbcmhcSSYfsj+xrrsKwRc3oTgn4agZiiloQ9AO87u95M84N/fADk9PtPxK7orVK
+	 5xUfBHJdpPQfhR9XZofeF92SPm+RmLxK+t/ywduD8zJceGCrvBFj7ehASor0ir7cwI5SV
+	 Cc8bmOdOS3QHz8fG3rHDavJnB8kZrVGZXoysrFvr7TCmfSzQ9U+ncN6Xw1oDps26GJN9N
+	 f21Y81uuxMBJrYfIj+trWWCwFf+ToImtQCwyxuylHCoHfvkFqxEFBxzjVHJDsw46JoA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=HJVL0gTM;
-	arc=none smtp.remote-ip=198.175.65.9
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=linux.alibaba.com;
+	spf=pass smtp.mailfrom=linux.alibaba.com;
+	dkim=pass header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=iHWDBmMW;
+	arc=none smtp.remote-ip=115.124.30.130
+Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F121C606A331
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 01:40:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F121C606A331
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4E2B606A339;
+	Tue, 17 Nov 2026 02:28:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B4E2B606A339
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=HJVL0gTM
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794879621; x=1826415621;
-  h=date:from:to:cc:subject:message-id;
-  bh=K0shpxN2IOlpd2Zd68utRZSuPHrcNeNdIeDrpWfM6ZQ=;
-  b=HJVL0gTMBMGx8Y/mwXqfO8GwExGgCqT2VrlKvaMmwlOMVsP5sapeuGaw
-   T/ryo/27QXgWEZnQZWX2WHIWhvsVxx9EHLLkTy5v17TUNBPx7pIyXZEsb
-   bhTPpbst5zHWIw4fj9BbE5isHqjfZQRg/Mxu1R2lvYATwRciGkzEaWVLn
-   VJO/zFJ5j9KX+DiCTc6ioYWqrrgPaGpnEYrhXQyVD0LjYAeAW4kmHikkh
-   iyiLyX8vdz8AnhcOxippLqWEehVF0xwKESsKNWpZfCUGDSpLmL57R0huI
-   9V8iBowSNHg1d+UwKxe9Se4GuObYFDmQN9c51dgGE9Vtcn3cnt4bUp6Ot
-   A==;
-X-CSE-ConnectionGUID: QHzCwOLCTputB0grfPBA+w==
-X-CSE-MsgGUID: KFGbngX2SGC1BLVhz486yA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11968"; a="3486139"
-X-IronPort-AV: E=Sophos;i="6.27,217,1787036400"; 
-   d="scan'208";a="3486139"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2026 17:40:20 -0800
-X-CSE-ConnectionGUID: jCHT0acrQdKLjN3s88SGWA==
-X-CSE-MsgGUID: 0MUluONsRv2GI0QcXI9eOQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,217,1787036400"; 
-   d="scan'208";a="9684044"
-Received: from igk-lkp-server01.igk.intel.com (HELO 1073a420ae3a) ([10.211.93.152])
-  by orviesa006.jf.intel.com with ESMTP; 16 Nov 2026 17:40:19 -0800
-Received: from kbuild by 1073a420ae3a with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xT8BE-000000002uw-1Qj8;
-	Tue, 17 Nov 2026 01:40:16 +0000
-Date: Tue, 17 Nov 2026 02:39:40 +0100
-From: kernel test robot <lkp@intel.com>
-To: Hungyu Lin <dennylin0707@gmail.com>
-Cc: oe-kbuild-all@lists.linux.dev, Doug Ledford <dledford@redhat.com>,
- Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org,
- Leon Romanovsky <leon@kernel.org>
-Subject: [rdma:wip/leon-for-next 33/37]
- drivers/infiniband/hw/mlx5/dm.c:217:16: error: 'struct mlx5_ib_dm' has no
- member named 'base'
-Message-ID: <202611170202.VKw86FKB-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key, unprotected) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=iHWDBmMW
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1794882520; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=m7e4fyf2Q5mCywaw7nen7QHcArrTjTdu8X+U3sZLG8E=;
+	b=iHWDBmMWqxtZUiXXN5MCDh32ysya6VqOcYP1g2stFhK7qQhD5l6rMzRsaKqLCxAUAwBWmk7PPKgw2uz84eyaYa7TSdqwsoIuscyXpFYYRJA6PTfuW2R4oh7WhA4fsxGUKgmrSBIAixmChN5gr3tPLQeAg0RVDuTq0ws3n/MTRTM=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R221e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam011083073210;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=6;SR=0;TI=SMTPD_---0XEwnD1-_1794882519;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0XEwnD1-_1794882519 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Tue, 17 Nov 2026 10:28:40 +0800
+From: Cheng Xu <chengyou@linux.alibaba.com>
+To: stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	leon@kernel.org,
+	jgg@ziepe.ca,
+	kaishen@linux.alibaba.com
+Subject: [PATCH 6.6.y] RDMA/erdma: Use IRQ-safe XArray helpers for QP and CQ tables
+Date: Tue, 17 Nov 2026 10:28:39 +0800
+Message-ID: <20261117022839.23186-1-chengyou@linux.alibaba.com>
+X-Mailer: git-send-email 2.54.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -82,107 +61,95 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
-head:   586be88310461aaded66e16c5579e384dde494b5
-commit: ea97d0a83f4ed62c6f5716e27a260e21febbc79f [33/37] RDMA/mlx5: Check the DM type before mapping a MEMIC operation
-config: mips-allmodconfig (https://download.01.org/0day-ci/archive/20261117/202611170202.VKw86FKB-lkp@intel.com/config)
-compiler: mips-linux-gcc (GCC) 16.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261117/202611170202.VKw86FKB-lkp@intel.com/reproduce)
+[ Upstream commit 00baeade709fb66da647e8327e8398bb532e30f7 ]
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202611170202.VKw86FKB-lkp@intel.com/
+Locked QP and CQ lookups from EQ interrupts can deadlock with
+create-path XArray updates. If an interrupt arrives while the create
+path holds the plain xa_lock, the lookup spins forever trying to
+acquire the same lock.
 
-All errors (new ones prefixed by >>):
+Use IRQ-safe XArray helpers for all QP and CQ create-path updates,
+including the GSI QP store and error paths. Initialize both arrays with
+XA_FLAGS_LOCK_IRQ so sleeping allocations preserve interrupt state.
 
-   drivers/infiniband/hw/mlx5/dm.c: In function 'mlx5_ib_handler_MLX5_IB_METHOD_DM_MAP_OP_ADDR':
->> drivers/infiniband/hw/mlx5/dm.c:217:16: error: 'struct mlx5_ib_dm' has no member named 'base'
-     217 |         if (mdm->base.type != MLX5_IB_UAPI_DM_TYPE_MEMIC)
-         |                ^~
+[ The GSI QP create path is not present in 6.6.y, so omit that hunk. ]
 
+Fixes: 98df2aee1459 ("RDMA/erdma: Hold CQ references when processing EQ events")
+Fixes: a52eeff32024 ("RDMA/erdma: Hold QP references for AE and CM processing")
+Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
+Link: https://patch.msgid.link/20260828030344.88021-1-chengyou@linux.alibaba.com
+Signed-off-by: Leon Romanovsky <leon@kernel.org>
+---
+ drivers/infiniband/hw/erdma/erdma_main.c  |  4 ++--
+ drivers/infiniband/hw/erdma/erdma_verbs.c | 16 ++++++++--------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-vim +217 drivers/infiniband/hw/mlx5/dm.c
-
-   203	
-   204	static int UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_ADDR)(
-   205		struct uverbs_attr_bundle *attrs)
-   206	{
-   207		struct ib_uobject *uobj = uverbs_attr_get_uobject(
-   208			attrs, MLX5_IB_ATTR_DM_MAP_OP_ADDR_REQ_HANDLE);
-   209		struct mlx5_ib_dev *dev = to_mdev(uobj->context->device);
-   210		struct ib_dm *ibdm = uobj->object;
-   211		struct mlx5_ib_dm *mdm = to_mdm(ibdm);
-   212		struct mlx5_ib_dm_memic *dm = to_memic(ibdm);
-   213		struct mlx5_ib_dm_op_entry *op_entry;
-   214		int err;
-   215		u8 op;
-   216	
- > 217		if (mdm->base.type != MLX5_IB_UAPI_DM_TYPE_MEMIC)
-   218			return -EOPNOTSUPP;
-   219	
-   220		err = uverbs_copy_from(&op, attrs, MLX5_IB_ATTR_DM_MAP_OP_ADDR_REQ_OP);
-   221		if (err)
-   222			return err;
-   223	
-   224		if (op >= BITS_PER_TYPE(u32))
-   225			return -EOPNOTSUPP;
-   226	
-   227		if (!(MLX5_CAP_DEV_MEM(dev->mdev, memic_operations) & BIT(op)))
-   228			return -EOPNOTSUPP;
-   229	
-   230		mutex_lock(&dm->ops_xa_lock);
-   231		err = map_existing_op(dm, op, attrs);
-   232		if (!err || err != -ENOENT)
-   233			goto err_unlock;
-   234	
-   235		op_entry = kzalloc_obj(*op_entry);
-   236		if (!op_entry) {
-   237			err = -ENOMEM;
-   238			goto err_unlock;
-   239		}
-   240	
-   241		err = mlx5_cmd_alloc_memic_op(&dev->dm, dm->base.dev_addr, op,
-   242					      &op_entry->op_addr);
-   243		if (err) {
-   244			kfree(op_entry);
-   245			goto err_unlock;
-   246		}
-   247		op_entry->op = op;
-   248		op_entry->dm = dm;
-   249	
-   250		err = add_dm_mmap_entry(uobj->context, &op_entry->mentry,
-   251					MLX5_IB_MMAP_TYPE_MEMIC_OP, dm->base.size,
-   252					op_entry->op_addr & PAGE_MASK);
-   253		if (err) {
-   254			mlx5_cmd_dealloc_memic_op(&dev->dm, dm->base.dev_addr, op);
-   255			kfree(op_entry);
-   256			goto err_unlock;
-   257		}
-   258		/* From this point, entry will be freed by mmap_free */
-   259		kref_get(&dm->ref);
-   260	
-   261		err = copy_op_to_user(op_entry, attrs);
-   262		if (err)
-   263			goto err_remove;
-   264	
-   265		err = xa_insert(&dm->ops, op, op_entry, GFP_KERNEL);
-   266		if (err)
-   267			goto err_remove;
-   268		mutex_unlock(&dm->ops_xa_lock);
-   269	
-   270		return 0;
-   271	
-   272	err_remove:
-   273		rdma_user_mmap_entry_remove(&op_entry->mentry.rdma_entry);
-   274	err_unlock:
-   275		mutex_unlock(&dm->ops_xa_lock);
-   276	
-   277		return err;
-   278	}
-   279	
-
+diff --git a/drivers/infiniband/hw/erdma/erdma_main.c b/drivers/infiniband/hw/erdma/erdma_main.c
+index 0880c79a978c..6dc6c7f4fb2e 100644
+--- a/drivers/infiniband/hw/erdma/erdma_main.c
++++ b/drivers/infiniband/hw/erdma/erdma_main.c
+@@ -519,8 +519,8 @@ static int erdma_ib_device_add(struct pci_dev *pdev)
+ 	INIT_LIST_HEAD(&dev->cep_list);
+ 
+ 	spin_lock_init(&dev->lock);
+-	xa_init_flags(&dev->qp_xa, XA_FLAGS_ALLOC1);
+-	xa_init_flags(&dev->cq_xa, XA_FLAGS_ALLOC1);
++	xa_init_flags(&dev->qp_xa, XA_FLAGS_ALLOC1 | XA_FLAGS_LOCK_IRQ);
++	xa_init_flags(&dev->cq_xa, XA_FLAGS_ALLOC1 | XA_FLAGS_LOCK_IRQ);
+ 	dev->next_alloc_cqn = 1;
+ 	dev->next_alloc_qpn = 1;
+ 
+diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
+index a9b2d0890570..94b3d4aea123 100644
+--- a/drivers/infiniband/hw/erdma/erdma_verbs.c
++++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
+@@ -945,9 +945,9 @@ int erdma_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attrs,
+ 	kref_init(&qp->ref);
+ 	init_completion(&qp->safe_free);
+ 
+-	ret = xa_alloc_cyclic(&dev->qp_xa, &qp->ibqp.qp_num, qp,
+-			      XA_LIMIT(1, dev->attrs.max_qp - 1),
+-			      &dev->next_alloc_qpn, GFP_KERNEL);
++	ret = xa_alloc_cyclic_irq(&dev->qp_xa, &qp->ibqp.qp_num, qp,
++				  XA_LIMIT(1, dev->attrs.max_qp - 1),
++				  &dev->next_alloc_qpn, GFP_KERNEL);
+ 	if (ret < 0) {
+ 		ret = -ENOMEM;
+ 		goto err_out;
+@@ -1003,7 +1003,7 @@ int erdma_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attrs,
+ 	else
+ 		free_kernel_qp(qp);
+ err_out_xa:
+-	xa_erase(&dev->qp_xa, QP_ID(qp));
++	xa_erase_irq(&dev->qp_xa, QP_ID(qp));
+ err_out:
+ 	return ret;
+ }
+@@ -1682,9 +1682,9 @@ int erdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	refcount_set(&cq->refcount, 1);
+ 	init_completion(&cq->free);
+ 
+-	ret = xa_alloc_cyclic(&dev->cq_xa, &cq->cqn, cq,
+-			      XA_LIMIT(1, dev->attrs.max_cq - 1),
+-			      &dev->next_alloc_cqn, GFP_KERNEL);
++	ret = xa_alloc_cyclic_irq(&dev->cq_xa, &cq->cqn, cq,
++				  XA_LIMIT(1, dev->attrs.max_cq - 1),
++				  &dev->next_alloc_cqn, GFP_KERNEL);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1731,7 +1731,7 @@ int erdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	}
+ 
+ err_out_xa:
+-	xa_erase(&dev->cq_xa, cq->cqn);
++	xa_erase_irq(&dev->cq_xa, cq->cqn);
+ 
+ 	return ret;
+ }
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.31.1
+
