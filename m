@@ -1,54 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794911810;
-	b=uXg33OGa5x32KIXKntSgpmwc8w/46iqmHcqlPPy+9IenLL4mDm0906fsYIU6AetI2sip
-	 Gu1THS78oinInIVHI3VgalXPNIbJAZI3wTbfCBPzKyatg/3gLjgReUTU44SL1sePT8P8Y
-	 vUwHC1ad/TQQWviC+K+sfNBBMxOwAiqc0axlxRuMdPMDta5TO6/I+/P6MvhXJ1ezg2+X3
-	 bGmZV4dYloNVcMUcu2wz+EodULVdosTQjlwfuiDCHR041c0JfeU42/zXhw44G0u2qOZud
-	 a2WnZfLWyhdDvbN0Em1WTYKkYWIbHpo+RRMcIMKpZCbhyNAL/C1LrtPnD7jleaaW46g==
+	b=O2VUs8SXbp/SyUqFJ4aLZLWPjLKMIXMHCsL4AkzxsByl4fuXMNxHiF9xl3X2zTkGlCis
+	 P6p0ZVxs2xAI+kX7XOK9TWvQWUEbby2HoL3Vqz/J2mDfPxId/V7BPyl+MMy79TdaPjulS
+	 8iP3z6XJKv5krvG3Xl+Yk/NJhGEI3bkPiu5F4s867OlWdwXQ34SXJ44dMDLYfq3r6bGsd
+	 CfnW50CBgSFoY/VWElB3C4SpweOcbRaLGYZLX7TVt78xbKNXjfcPnKCLxLKBnH1vF5WqV
+	 JGCoG6LjCTlxNyPC/KxvIIvi81XH57JjOwAoqdQCNnE5i/Pw1/4cL/XElX/HZdv1u/A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794911810;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=BBg2sbiU24qVPYRye6dSkqZ1KoxtZ/uqwvqBMCvfnKY=;
-	b=0fyqbo43ASK1jMgU3IhSDOvjrLXqJk3pkAaYzFs+GwPza6NnAyX3zBT54oEfXHp+gkgN
-	 h1qKCWx/+3jkLzCturZTJkNkpxGCMkN4qkltH+3iIqeGg6GhDB2xS+1a90eg+20kys+mh
-	 YlBZXxOb5BzQ++GNdZUewu/DLvpdhwCZoDrGrBuajbcwuWdK5ul+D0bcG0XNYXMN7X0y6
-	 S+wTb9RGt1EUpG0b4vI8ddfdFHOCQSpSh8r0O0q55+gZVugi64yeoyagNbHlYBT8B/ptv
-	 FzSTHTTBw+8FqyXVwWXJWRfvj1WJJz81y40SHWt7ttHXeiklrZG8QkDOeG0cajFfHlw==
+	bh=E4Tm21a+iGTOKS7qmWj9DtPit7iUKA8ZqwcqyN6LmW8=;
+	b=HJ20hnYs6gzUhcfe+j1CzEYy/j/axiSCsVFdNzPehgmyxt6sDeAzYiziAcBlUZWEhRrb
+	 HWkOW0xm1rYM/bvyfV9DoHB520AXcqCxzyXTZ1xjP22j+oYP29rZ/pbpdnId9KBdkNQrq
+	 E8hJe21BkCAkg+crMhLUV9XBMq1B/6STlaQx7BtpZRUfazVZr5ER34U/Z9SAlQ+5wdpiE
+	 A/cQVHzp5W7TrpkaL+HaFkN1JS2O9vzlyxzKJXVYKXc9D3w5+0aBx7x514WzgEl42cO6r
+	 LWZ5AxhgcvFSjeYxgpQ3m05HBEQs/UovKGxM2SpVTU+4soY4ud3PvCM8dPvfLu1WjIQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OGwbpp5W;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BZ9nUsDR;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3D9C60A2601
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 10:36:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADAAB60A260B
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 10:36:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OGwbpp5W
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2CD51F000C6;
-	Tue, 17 Nov 2026 10:36:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BZ9nUsDR
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B97A1F000C6;
+	Tue, 17 Nov 2026 10:36:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794911809;
-	bh=BBg2sbiU24qVPYRye6dSkqZ1KoxtZ/uqwvqBMCvfnKY=;
+	s=k20260515; t=1794911810;
+	bh=E4Tm21a+iGTOKS7qmWj9DtPit7iUKA8ZqwcqyN6LmW8=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=OGwbpp5WBRa+i8y3T1wAKCFhqMoZUc+7MogrUw11NimREjn6cTYi1kwhQt5KQe32k
-	 XHoX+kbfqiFbMW3EKS2DFEclRJLO/xq5xUGyZ+/YNb7DVU0bucw8TGpV5+N05Q0xIL
-	 ZqnGWbuLsZoB71hXKhQuw3O8disFcMay3mv7hK/Yw4CmmINiKaP3EX6gp9szTu3QvC
-	 8sJA4mm0EKf/jhZn3x9RnMi7MGYpNQ18lGVRcd+/D55ZQ4QVJ086J7MG8qeJg9DMNm
-	 kPhWwD56W2zTETUUg3poVEJwb7tPI1+7eorXL8sqitTzavv0aXqF4nTH4qLxhjQJi9
-	 DBGjotGnFtciw==
-Message-ID: <sashiko-outbox-218637@kernel.org>
+	b=BZ9nUsDR1x7GUFLK3CBXDEWjWt0o7jDIJ1wviqs4pTOIQooig7S3UFDodkN90M0AW
+	 2ejexHBrhIDS53NzeecMS+fO7RrVRXcMhbzd92MgEPtQKLNuMRqoE+7X5/V3x/6GP2
+	 7nSnwm1N6tOR+JxjgOYqSEfPNbTpqLVpdbKuqSTDEA/qAZ9M883aNNmiWOAb90jMka
+	 7mZVqZGYHWASlBqg9YXYiYGO/YwnvXsp/j+DJFswsfJXY7OfdxxWcfEvviU6N5daLd
+	 3B50C5AjgnTNYHoqrstFShoHKJYbu3UDxkY7wSCrsVlin0qkyZYIerxkhMXHeCRTRr
+	 5NBjcSz6nt4gg==
+Message-ID: <sashiko-outbox-218638@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next V2 09/10] net/mlx5: LAG, drop MLX5_MAX_PORTS
- scratch array from device rescan
+Subject: Re: [PATCH net-next V2 10/10] net/mlx5: LAG, do not add a device to
+ an already-active virt LAG
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261116103010.1129666-10-tariqt@nvidia.com>
+In-Reply-To: <20261116103010.1129666-11-tariqt@nvidia.com>
 References: <20261116103010.1129666-1-tariqt@nvidia.com>
- <20261116103010.1129666-10-tariqt@nvidia.com>
+ <20261116103010.1129666-11-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Tue, 17 Nov 2026 10:36:49 +0000
@@ -63,13 +63,23 @@ Precedence: list
 
 > From: Shay Drory <shayd@nvidia.com>
 >=20
-> mlx5_lag_rescan_devices_locked_filter() collected the participating LAG
-> members into a fixed-size devs[MLX5_MAX_PORTS] array only to iterate
-> over it a second time for the rescan calls. Drop the scratch array and
-> re-walk the members directly with mlx5_lag_for_each().
+> mlx5_ldev_add_mdev() would add a newly probed device to the LAG even
+> when the LAG is already active, mutating membership while getters may be
+> iterating it and while the active mapping assumes a fixed member set.
 >=20
-> This removes another dependency on the compile-time MLX5_MAX_PORTS bound
-> with no functional change.
+> A LAG of VFs/SFs is the only one whose members come independently of
+> its activation. Reject the join of a virt LAG capable function when the
+> group's virt LAG is active. The device stays out of the LAG until it
+> is reprobed and the LAG is disabled.
+>=20
+> The other join paths cannot reach an active LAG. A LAG of PFs is
+> activated only once all the PFs of the card are members, so there is no
+> further PF that could join it, and SD secondaries join at load, before
+> MPESW can be enabled. Hence the check is limited to virt LAG capable
+> functions, and it is a no-op for existing configurations.
+>=20
+> In addition, do not register the eswitch devcom component of such a
+> device, so it does not pair with the eswitches of the LAG members.
 >=20
 > Signed-off-by: Shay Drory <shayd@nvidia.com>
 > Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
@@ -80,5 +90,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261116103010.1129=
-666-1-tariqt@nvidia.com?part=3D9
+666-1-tariqt@nvidia.com?part=3D10
 
