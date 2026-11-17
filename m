@@ -1,66 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794931423;
-	b=qS1NovOHMY99Lbzk/WuYfiO5FwZgfS5EaguVMCAUv5n2kT9VSPAiDRPZW41HKVaLgIkB
-	 Py8e0DxwcMp14tEYPpjQVNAJHVbzaR83f8ygsfxOGdnbaECry4kTbLIksnAMsMkZEpmxS
-	 npUSq8yaVDR6pKWpOUmDa/eLhS8Np1JnFGesC8/XGVb5Aqeaz/8Yg0eBUWtjT5/Q2pxzO
-	 1f9QDpd4Pgc/RttpVMjSR1E9PcsZJpISSZ+QZJY9zCAGfNdUWmy6du+egvHHKRcm8NDSl
-	 mdEwndwOXLdp0BYZ0ECGCSDyFAqMrcm4lxXxc7osRew6RjcGv1AOiePwKrorHm2iLFA==
+	t=1794932176;
+	b=x9MV6PKdlbTxgDB5OUfX3pzEpBDekoTPb06ZNqyZkK1ozgt18zV4DqHc4SMGhOWHO8jv
+	 ufYi7OsITnB4OtcPkk8u9vX1KjqlBvVR5Uc74PFVIimbHG5Naui7hfRAicYrAztKNxB2b
+	 asvYGKl4ApeSb+LUnu8HhzONq/gJp/csUIk6Zm0S1TDxPZTQfdXZ+6gqUkXsQPd8Wvae0
+	 HY77eWBaClkBAPM3E2XO6z0QrHa58xcXIU/azaAmd2SauR1kF4/dvrrwzLS7NUdLBdBjg
+	 H5MvUSHGTp1QJEbOaB/l3xInWkXwVldvOKLsMzPauCQtgdzRIdxfL6Jb1G5WHosXCWg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794931423;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
-	 In-Reply-To:References:Auto-Submitted:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=Ld9+YyGfs/W/wYUchYl+G0tuTdeNOsMW/DqiAiz5bT8=;
-	b=soRTBQ1klYd+QxJbchJ96k8NRRCq654IPIVhh+Gw9bzoglz0QDNgBbjffi6mcnpNwlxx
-	 WoDFPLiAHr+qAScrjV8j46AYVXQUQA5vcNYJdQ5rszBt343CLFnEqCYJqn0YSYqC4H7yS
-	 WsnSnbTIqUfXAiJbEeuJw60oMZyVMVGr6UWSIZeWziwwYGPip6WkxAaQjpAWFic5qsk9v
-	 udoG+5oOzaLem+Ui1bTYvR/6EpTLACUauTUmYEC4WnXbZdnDXCTeHM0uCOad2bmZ4aPSW
-	 Lewlwqijou0HBxGpxWAxnACayjRmbUKdt4e65Xj9c6QZB3GN/3x6Cek0L7cMw9SWLMQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794932176;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=XJIpSlrcSw4/DATVT2Pci+/JSpoMR8aOJK/sjGG0dgc=;
+	b=BqXaNHWD96ARqVrK29GCPSTq0pjNtPGjPZbutzFWJ07tuT8y+XGr/yoV2wu8bAODnCah
+	 uLE7xIXEF60JKv57AxdrD+/H9qkU+dFbWaUZNNem38lkelgXveB4RLnBav+EAnOVn0B94
+	 /yOpa5OaZXm8N8Ex0BMbjcXZkiiF22D7hI9AozKq3cw8tASFmOiOdyXB6vRP/Xt2CUcIa
+	 M3huvuQrSkjOWTsnOgqRxW/qmwSnlHinxhOSRKXRxtSCeDqV2C8g7aR/EH9OZ99BFWQ2A
+	 GxHetUK0X2dUOA8u94z1LCEJI8YDvR1NG8wAs7tislBRU+Z81k1hj2gyO8sn2L6s0FA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lQJn1vWA;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="m/LmYuZ/";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36E43606A31C;
-	Tue, 17 Nov 2026 16:03:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2113606A32C
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 16:16:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lQJn1vWA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A914B1F000C5;
-	Tue, 17 Nov 2026 16:03:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=m/LmYuZ/
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8674E1F000C5;
+	Tue, 17 Nov 2026 16:16:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794931423;
-	bh=Ld9+YyGfs/W/wYUchYl+G0tuTdeNOsMW/DqiAiz5bT8=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=lQJn1vWANzv+sPIfw2hf5sx/UjpCexnoEys8FIe8H1v8DwNVlmkSvXMCIYCmV3rIh
-	 pWjlAYtusYS7vUx7AdpjxFihIIyNIYlpMhT7x+HgFT3RE4XA7SGIWls5wdZpQp++Mz
-	 mJZpRct77cXJlxebJc/SIeIXnVyNw47tLroqXFskePvd9lV90/ZcuDLW0ZOsniMiE8
-	 l8T4Mb64By9+R1XeYIaccO3yRDrfFsaby581+DJ00f4BjmiPcJlKBqA7l/Tlon4C81
-	 RAhDqYW8921dUHUHElCxYLZzqZ7aG+jx4U4kpcaW/zozgYRYV0k94/frHCwuSO7AF7
-	 VKKXQ16JE3Qrg==
-From: netdev-bot+sinfo@kernel.org
-To: Wei Hu <weh@linux.microsoft.com>
-Cc: longli@kernel.org, kotaranov@microsoft.com, kuba@kernel.org,
- davem@davemloft.net, pabeni@redhat.com, edumazet@google.com,
- andrew+netdev@lunn.ch, jgg@ziepe.ca, leon@kernel.org, haiyangz@microsoft.com,
- wei.liu@kernel.org, decui@microsoft.com, shradhagupta@linux.microsoft.com,
- horms@kernel.org, ernis@linux.microsoft.com, stephen@networkplumber.org,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
- gargaditya@linux.microsoft.com, kees+treewide@kernel.org, kees@kernel.org,
- mawasthi@linux.microsoft.com, weh@microsoft.com, edumazet@kernel.org,
- shacharr@microsoft.com
-Subject: Re: [PATCH net-next v11 0/4] net: mana: concurrent HWC requests and
- dynamic queue depth
-Date: Tue, 17 Nov 2026 16:03:41 +0000
-Message-ID: <179493142123.3291.5899879378261297163@kernel.org>
-In-Reply-To: <cover.1794751992.git.weh@linux.microsoft.com>
-References: <cover.1794751992.git.weh@linux.microsoft.com>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	s=k20260515; t=1794932176;
+	bh=XJIpSlrcSw4/DATVT2Pci+/JSpoMR8aOJK/sjGG0dgc=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=m/LmYuZ/QmhIpFWlo2KiiMqTEbotxzBWdPNV0kB9NM3+zY9MX5jOPmHWSHT0eWKYu
+	 OwYu+euicM0AtljEJ3Dg/XKwLdJjsAA722ChZ/qNPOZTmQ9IQVnn9gD6NTeuZUQi+A
+	 Q8BShi2BBlCf54ih5LvSvLUX81HL2rUCtilI9YDVDAU7D91zDANTFL4Bem19kV70mj
+	 p92/15GYwOTNE59p1/9frjztcfB/jthMQgUz72MxIIcB5LogdAxGPBhbu+O0+QYXXv
+	 XK6mIog/627qDMDCLdVxrrF7/X7fKYn/GEcCc0XXIk12z8tUuT6eKT8WMC+lqwIPm9
+	 mSgmGb0MLK1Zw==
+Message-ID: <sashiko-outbox-219148@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net-next v2 1/5] net/mlx4: factor VLAN parsing into
+ mlx4_en_prep_vlan()
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Joe Damato" <joe@dama.to>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261117155353.2250540-2-joe@dama.to>
+References: <20261117155353.2250540-1-joe@dama.to>
+ <20261117155353.2250540-2-joe@dama.to>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Tue, 17 Nov 2026 16:16:16 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -69,31 +60,16 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
 
-Hi!
+> Extract the code which converts an skb VLAN tag into WQE fields into a
+> small helper. This helper will be used by a follow-up series implementing
+> software USO, to avoid code duplication.
+>=20
+> Signed-off-by: Joe Damato <joe@dama.to>
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+Sashiko has reviewed this patch and found no issues.
 
- - How the issue was discovered, e.g. hit in production, hit during
-   development, syzbot report, manual code inspection, LLM or static
-   analysis tool scan.
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261117155353.2250=
+540-1-joe@dama.to?part=3D1
 
- - Whether the issue was actually triggered, or is only theoretical
-   (e.g. found by LLM and not proven at runtime). If it was triggered
-   please include the symptoms, like the stack trace or kernel messages.
-
- - What hardware the change was tested on. For driver fixes please
-   mention the device (and if relevant firmware version) used for
-   testing, or say that the change was not tested on real hardware.
-
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account.
-
-*IMPORTANT*: If you do repost (for other reasons) - please include
-the relevant info in the cover letter or commit messages.
--- 
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
