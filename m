@@ -1,110 +1,81 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.11
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794914470;
-	b=EaNX6VWu0KKSBedp391my5TsRm+qJIMhpMsXxAspSA1aAmQXFzpo4tDgRnCsvocOnKtO
-	 00m2FQc5LJOpWatjbLXtIecgQ9NCAXc2sxMLD2f3p7OLEWUazu2lRydIz/ItsdvCmEMj8
-	 7nqmV8evpRZNYwE09bZO4subtZUi4o2vJ7zY83Ob9z1wVN9HOEUaDC4cfQPURzczsOzYU
-	 hTb2/0hvoAqijwo53z+lWtn2PM+pjhjGYiahw6SJZkCiVcxH7dUExINykRbpqKTVpgkzI
-	 KOS4fXyD0jYz0N4S9fY2ttp2xIg64X5ddal6oyy7P/+bV+NYyRh3YcDCFykQy/HjNjA==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794914470;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=Gd7FYFo8njyH0x+Kz+cwp33Q26sxyxVBUrukt5YkBqI=;
-	b=z+7MCleSxKj4C2QpRoirYCBQov3gwoz4Gq59ltXwCv9Yi9+e1C8hvzjuUAji6cgjDqGe
-	 N0a0CVQY/yJ77fy4mTBTAXatsvh9uTu/Ip24tKbqrYBrNxOLxJDxV8ASQbzR2oC/PrVrb
-	 DU5/i1xrlRiRrzsQrZr/zwMOtP/vooT5rGjo40Kc5fgrPl2AXIUzP8rRXtXvSvaeuSJN/
-	 VCb1eEWsklqY6pmjsWyxt0nudDC0jfP6KfYKW8WZIZoThqcTvHEALwAlwVYi/PYVHZR0U
-	 cw1nU3nTl31s4vjdu7KwS9f+XoH+137yTsWYUaT5GssjF0m4uPU2BygEqt49Rwcg63g==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=ewCY9S2k;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.11
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013011.outbound.protection.outlook.com [40.93.201.11])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=216.71.153.141
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1794915092;
+	b=OtP86cTjIsiSQFpsM8GkmY5vh5mRhyNnfIV0kE8pgT//cP2UKv1kNG5O2RIsRNe13ZqT
+	 uNSZ/47ouP9lFYjuF9kvliTeSaEdInUgJSriQEyjrP4COT/N1IGZmbdb4NfXL3GTDLalC
+	 yp3UcsoAAsQQ6YlQXSK5g8XsZ076xCcWvBaQttPFsyJxzuFbX8Bz6MMD2VPdVGlaSfe8S
+	 kxMUTkpLoOAO4q6DD4VOSX3XHoviaKlf8mqS5K/TyWmvfZNOU6/eX2c0QkHkKHiZbsunI
+	 +wLrnmSeny8XkhoKIAmY2G0EjuJoCIqcWkStl4ZvkF1GqztuV8+CKPWOTrkyLVT03Ug==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794915092;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:Received:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 IronPort-SDR:Received:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 WDCIronportException:Received:From:To:Cc:Subject:Date:Message-ID:
+	 X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=lAbvIquq6eN3EU/HV67PNZGDW00wmyx7R71DbgJixRo=;
+	b=yf6u9aBMmFHHv8wTgdjTqePq9+ezQvbP5flzdj9yCH04aBC+PSFso/+GMwVVsUh9C3no
+	 fWlaHnMvIZn3WqBg+LyZWw4LVDcCkzzKN1zmQD1Y9K7GWybQ+2VLPiAuZbmxqZ2U1SkHq
+	 Z5cM2MWWRJSdZb4fRQ6nhAatnlbM9j5xkMrNNHV2bk5JEUqkBgSdGVq1jaRObCWQazPzF
+	 0HNwFdRvEpkVREnWeyhOtUpfcug2zkNqx68F4+NauG14Z3tQ4u178wXlsTkTIOGWGzqoA
+	 qz2px3VIbudA6ihyxPyQVak2CtxWNGY86DT9IYcA4p0M9hbjh9MBoiu1wd/Coshq5WA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=wdc.com;
+	spf=fail smtp.mailfrom=wdc.com;
+	dkim=pass header.d=wdc.com header.i=@wdc.com header.a=rsa-sha256 header.s=dkim.wdc.com header.b=EAgm+sqY;
+	arc=none smtp.remote-ip=216.71.153.141
+Received: from esa3.hgst.iphmx.com (esa3.hgst.iphmx.com [216.71.153.141])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DABB606A32A;
-	Tue, 17 Nov 2026 11:21:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3DABB606A32A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EBBA606A323
+	for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 11:31:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2EBBA606A323
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wdc.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=wdc.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=ewCY9S2k
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=jnKAMZcxMG72ALcqNlsi/ykCvnd71lg1ogH3hIRd27WdDhHXRjtcBHgj3D8IgRq461aFnmNuFrpWuF58RUNrOSmaUEILM8xI5oxMcLlkHB0IBzWx7+dhdD7hkViAM7OUeBjH5b0jXT1IIwOAnuquFMocZ6SfzSZMC5+YzohbFO5OqYMDIayo9Fz+hvLboPx5vw0fL7yrKN1065ya5Bn1YO7MsqyMsYWjsmYbEmJF5X6GGdOrVezNHGTF/Ai+4PPfb8GpeOIQy9Pbc1D32cKOpefZeIC+oVG2AoNKbuz35hjJlfq7rqxlxLvShTEmGFzp1C8/+YVBKckuL1iCPRkbCA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Gd7FYFo8njyH0x+Kz+cwp33Q26sxyxVBUrukt5YkBqI=;
- b=A/MUYJrDmmT3eozj5dyxjWTn6h4x8lvhN82DuOQqMr4rAAQwdzvk5+H9Jw4KOvuHeWce+fxtlJHaLrGksqnsaF+uQc1qgFhN8RKJALr4PYTDr/lfwnwL/yXgL1eMpqby4VVRUIX5X/IezGDBr1PiC76BtiivIdj41FJLvBm+BhV6wjYIySGYpOwVYTsd9Gp6TRFylEbZpI94ERSe+6MGlxkuJR/rXja9HWgIayor07nU6EBcR8d6DEeP4jLScrMEt0q24rok5ykiiFOzijtEp9tHY6C7MDulcKQGlhBS1rzrKDnzCr/38EVShQrsm9Cm3kHnecQ77CKpaL/vDFOPrQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Gd7FYFo8njyH0x+Kz+cwp33Q26sxyxVBUrukt5YkBqI=;
- b=ewCY9S2kGwUPXSrP8uzLKv395NqqM0CtvGszwFHh0016RwhydTqryYkGKQp7NHp3n9VOfNpzJ3D3bDDkaw1Z6X9YoVpG5s5i4Wqru1VGxSkrBU/hbv/V2Nl5oTrNdxKWLSHYtjHP1HK8YencR+5vOmlrLYR20HBU9844UjMXdUYFauRJdi0IHtPyai4dkAIgY3JykIO2PSvZFFutVm+gZWj1NVUpzDCmKiZKostUPqAZtAaf514rkynEd/ZJtZVPmxq+5gZFT/+3dgpO48VdzyUootzhxy5B3sO4yYkhetx53CZQvNkLc0MzkU8sqBNrOQ+eDFHlMOzTdvYR6xBiSw==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from CHAPR12MB999248.namprd12.prod.outlook.com
- (2603:10b6:610:2ff::22) by IA1PR12MB6308.namprd12.prod.outlook.com
- (2603:10b6:208:3e4::14) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.13; Tue, 17 Nov
- 2026 11:21:04 +0000
-Received: from CHAPR12MB999248.namprd12.prod.outlook.com
- ([fe80::4972:8062:d74e:b205]) by CHAPR12MB999248.namprd12.prod.outlook.com
- ([fe80::4972:8062:d74e:b205%6]) with mapi id 15.21.0615.009; Tue, 17 Nov 2026
- 11:21:03 +0000
-Message-ID: <e4ae51c0-8041-4ad2-811f-cfe8fa1a092b@nvidia.com>
-Date: Tue, 17 Nov 2026 12:20:56 +0100
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next V2 10/13] net: devmem: add
- netdev_has_dmabuf_binding() helper
-To: Jakub Kicinski <kuba@kernel.org>, Tariq Toukan <tariqt@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
- netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
- Bobby Eshleman <bobbyeshleman@meta.com>, Carolina Jubran
- <cjubran@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>,
- Daniel Borkmann <daniel@iogearbox.net>, David Wei <dw@davidwei.uk>,
- Erfan Sharafzadeh <erfansh@meta.com>, Gal Pressman <gal@nvidia.com>,
- Jacob Keller <Jacob.e.keller@intel.com>, Kaifeng Wang <kaifengw@google.com>,
- Leon Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>,
- linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
- Matt Fleming <mfleming@cloudflare.com>, Mina Almasry
- <almasrymina@google.com>, Nikolay Aleksandrov <razor@blackwall.org>,
- Saeed Mahameed <saeedm@nvidia.com>, Simon Horman <horms@kernel.org>,
- Stanislav Fomichev <sdf@fomichev.me>,
- Stanislav Fomichev <sdf.kernel@gmail.com>, William Tu <witu@nvidia.com>,
- Bobby Eshleman <bobbyeshleman@gmail.com>
-References: <20261110183826.2927274-1-tariqt@nvidia.com>
- <20261110183826.2927274-11-tariqt@nvidia.com>
- <20261115101720.5fffb5eb@kernel.org>
-Content-Language: en-US
-From: Dragos Tatulea <dtatulea@nvidia.com>
-In-Reply-To: <20261115101720.5fffb5eb@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: FR0P281CA0011.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:15::16) To CHAPR12MB999248.namprd12.prod.outlook.com
- (2603:10b6:610:2ff::22)
+	dkim=pass (2048-bit key, unprotected) header.d=wdc.com header.i=@wdc.com header.a=rsa-sha256 header.s=dkim.wdc.com header.b=EAgm+sqY
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=wdc.com; i=@wdc.com; q=dns/txt; s=dkim.wdc.com;
+  t=1794915101; x=1826451101;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=2axHprejUkEX2g/CWgFDV7gmso5xZUAiGQ78yKq+d4k=;
+  b=EAgm+sqYQc/en3+pRXQZ4pHmrBLM6ChIIdhsnmcwhgwnBh2Fm8XPu2LJ
+   o3OTCssq8UuDIzPQ07sY7/gAjhUdnfliyUujlrCECE5PDG3NmMH8rS5b6
+   NGfhcgBozYdeqWo3qGfBcxrBsKeCphYgIiwooVeVPXt7FoOQzMDATE82j
+   tU7EEuhGkMcdln7kohMAbvkLMx+lOREoshfesK/CtaUOV3025YmDGKMSA
+   J+lHq9PrZtTnKmo+SWb5jiz1CWFWxcxRDXTMcuEKXXh+ShmCfCnXIem2x
+   oKIGbF30n5dJ/6If1i8PgXGQueNJKCctJ6fsiWRJEi+jo5fTlyFJn3bI0
+   A==;
+X-CSE-ConnectionGUID: Eq2s1ZfhTA+b4Cz3vySueg==
+X-CSE-MsgGUID: HluR7SO0RCKpsACPZvl9lg==
+X-IronPort-AV: E=Sophos;i="6.27,218,1786982400"; 
+   d="scan'208";a="161093533"
+Received: from h199-255-45-15.hgst.com (HELO uls-op-esad3-o.wdc.com) ([199.255.45.15])
+  by ob1.hgst.iphmx.com with ESMTP; 17 Nov 2026 19:31:40 +0800
+X-CSE-ConnectionGUID: OLG7+D07RxyKfzdybnDJ+g==
+X-CSE-MsgGUID: FoNZVljlSD+qdUB3loofyQ==
+IronPort-SDR: 6afc3b13_LR4dFHuZg/LUmNsDjHSihzdrU1Qwbj+TLSRsytjkVou3U+W
+ XQP7I1TipLV72gzdhnI8K1aVulbxNay++hrZK8w==
+Received: from uls-op-esai1-o.wdc.com ([10.248.3.45])
+  by uls-op-esad3-o.wdc.com with ESMTP/TLS/ECDHE-RSA-AES128-GCM-SHA256; 17 Nov 2026 03:31:31 -0800
+X-CSE-ConnectionGUID: HJciZE7ZS8iLUQoo1ESQyw==
+X-CSE-MsgGUID: lAPvm1lySd6fs36D2ne1ng==
+WDCIronportException: Internal
+Received: from unknown (HELO shindev.ssa.fujisawa.hgst.com) ([10.149.67.30])
+  by uls-op-esai1-o.wdc.com with ESMTP; 17 Nov 2026 03:31:30 -0800
+From: Shin'ichiro Kawasaki <shinichiro.kawasaki@wdc.com>
+To: linux-rdma@vger.kernel.org
+Cc: linux-nvme@lists.infradead.org,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>,
+	Keith Busch <kbusch@kernel.org>,
+	Surabhi Gogte <sgogte@purestorage.com>,
+	Shin'ichiro Kawasaki <shinichiro.kawasaki@wdc.com>
+Subject: [PATCH v2] RDMA/cma: Use a separate lockdep class for the listening cm_id
+Date: Tue, 17 Nov 2026 20:31:29 +0900
+Message-ID: <20261117113129.746490-1-shinichiro.kawasaki@wdc.com>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -114,78 +85,105 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CHAPR12MB999248:EE_|IA1PR12MB6308:EE_
-X-MS-Office365-Filtering-Correlation-Id: 31303060-aed2-414f-d89c-08df449cddc0
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|1800799024|376014|7416014|23010399003|10067099003|11063799006|4143699003|56012099006|261026121527099003|261009223027099003|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	SDM/n/e2Sq9KHg2sdZc/HzKanfiMPCuGXlqcWQa7v+52ArgtDRWFuhBtoSuJlkjgQYRAZct5j+jNQZmPB1xuJL7KEhyazREtrSIMkn/SsSTeT3ymAFeCaKEv49BZBQK3am1WB/BQ6SA3pKKLs5r/rSONwkxMJDUnYZIde3XnWWZOpa7bjyp+wjqdUrwVBVQi5p8O2tEWyouqZoWh4QNaZr6JDH/GcoihKdsNCpLnbK3JOgrxFf6xBfgr0nxIx6xlyp4P+dlutlnspoOQk8b1nNaHgA245vFhZ7tQx/2WUBA1uUKIednFkGPLjDuI//YyVi72sAi34QlUFzHabkLmNbxrGvsL4KPiYdwWbMh0X+NlvpNJnP9QBAhLKQBD+/bNAn9ZLzb4rUc9W3+AuAN/jXKrD6BdlwYuG7cxpYPEetUQ/ZrqWAoOqNfHohOKA0kaw4nXM7m4N7JHugVlo8JYizA+gSxoG+z6qQdzQl0kzOSu4UX2wLHIa2tNnFg9YfmaityGWaTd3AfghoVF/pK0mnxB28DHN+zaY5ArPsek2TFew2M/K5LEHUlnRbnQaDMbDB7oEyowJzSDzJfgr0YWrEJ4lDZ4DIDxYJBN7xrsGeGNoClwRnAaycS5JTRHBugireOIoxNJvsSW80Ws4wS+NYY8heRJY64NMWa5Px1gOys=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CHAPR12MB999248.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(7416014)(23010399003)(10067099003)(11063799006)(4143699003)(56012099006)(261026121527099003)(261009223027099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?SCtxOUsvNVEya2Jsb1o5Q3A1TFdId045Wk9nYkhVN2hiRVhxYy9BTEwzWktN?=
- =?utf-8?B?a2MxZTg5K0lkVlNoQ0RTeGVidlU2TjllbzRVYWIyc1lnd0hxa05USm9JYVhv?=
- =?utf-8?B?czFheGVGMFBsT0cyenBwZ04ycDVtQ1VDelNYL1FIMTB0a1Q2dzJBdTJhdHV5?=
- =?utf-8?B?VzhGdldrZEs5R0d2Rm1FVWp1RmVRUE5vT3ZneElKQUhnT1FaVXA3QWJ6WmZt?=
- =?utf-8?B?S0U5Z1huMmthdElGbWxZUjNGV3FPY3JERTFaNFMrenhzVHJabHloZjVCSEJB?=
- =?utf-8?B?QWx3QXkvQ1gwYWIxZHhla1FCT0FWeVQ2dVd3dStUMkJRczZENjZaSldFS0dR?=
- =?utf-8?B?eHd6aGlUaTZZanNxWE5Kb3pmRlBLL3Q0bXR1UnNPNDBCWVZMM3RPd2xVWUY0?=
- =?utf-8?B?TjNnMGNpYXA5Y29yaDdlaGFma0xZN1QvRTdHbXRzR2V2eUJYRCttOFZONEJz?=
- =?utf-8?B?V21oeFQ5dEZRSGNCSmFraHhSeTVjL0NsZzhUUlQ1Uzl6aEYxc3IvbU5CZ3Rx?=
- =?utf-8?B?NndmdnB6eld4VEFBZkJNNmNZa1Y2d0QvZ21YVStFVGlEVHF2Wis3dWhCekY4?=
- =?utf-8?B?OWtBRGs5RTV3L0pxUjhSbFYwbC81NFYzb3g0dXpJRTdkZldWalRMNFJLT0h1?=
- =?utf-8?B?TCs3b3ZGQjJqUXlrdFhsVE45emxuVEtNS0ZqUlJjQlJSYkgxbGhHeEkxZ1JK?=
- =?utf-8?B?enhDMjIyMEgxVFN5ZHVaSHZjLzNGUWpRZngrcE4vcSsvV05QREwvZEFHYlZZ?=
- =?utf-8?B?Y3NIZ0FyVlU3c3RCQlA2Yk10ZWZFRHRkNXkyUHdyZG5YV2M0YWpiTXBFeXRt?=
- =?utf-8?B?cUpTUmR4WXZxamxzTzBLemhvVWQwdUJad0RZdnJwd29iaGh4NGtlbGRPZmt5?=
- =?utf-8?B?a0lBL2tFQ2dxdDJEZFpBSldJODZPZXk0cUtUMnlNdWdiNlRsK2FnUis5R1M4?=
- =?utf-8?B?cGYrb1RmYVhmMUQ3ZUs2eWV4cFNZL2RjTDMwOWVib1Q2bk9MbTMyNm9tUVNZ?=
- =?utf-8?B?a3FLSjlFR3IxM3dYdjllWlBTMnBmeUhDaEF1T3JxQ0tWcXkzT3o3eDdjOFp6?=
- =?utf-8?B?eWpkTjlES0FkNktCcEhWSStiUEpQNFpFQm54UG9ZajZzclhnNTNIS2txdUQx?=
- =?utf-8?B?Vyt1ejNjcEtISHEzbFU0ZHJqZW14MjRvT3VHT3lSQlcyUXhvaUNTSkZxL283?=
- =?utf-8?B?cnJHVGVVazFzOUppRG9CUExmWWgxZHpDVHZEUlhoTUpKeUtwY1dCcHR1UzFy?=
- =?utf-8?B?M0ZJeExIQVVZWFZLci9tNHNGbTZrRjFHYzlucCswQlY0U0pMOEpOTkY0MFFq?=
- =?utf-8?B?dDhhU2FIRDVKZDRWYjlmdjRKOXRIOVpMcm1BM2t0M0MzN0tuWVJtb21SNVk5?=
- =?utf-8?B?L2d1eENxUk9xUTlYTHdFT0FMTVh6ZkJOeEp0YzA3VjlUV1FTSG51NmJxbmR0?=
- =?utf-8?B?SDQrM3dpQjZXR0lFL2pQT3l3VHBZZCs2blMzV1l1Z0tSSHhsTHYzblBJRTNk?=
- =?utf-8?B?Y3hDa1VvOWtEQzlLRk5BREFPdTk0aTloOE9RdzhyeXBuQVdKS3BhZ0JFY1I1?=
- =?utf-8?B?dWQ0WUM0eVViSHhHcUhkVmtzLy83UVNMQ2NHcTZZQnVLR1VDeDhSRFNkM1d3?=
- =?utf-8?B?aHF6TDN2cjAyQWIzRVJ4RSsrSzRMY2ZjYkNjdFJ6ZmlkSGVIQlRLTmc2K0lT?=
- =?utf-8?B?SzZsV3hna3BlaHlPZkt2dGRFK2piK2d0RUNhSmNiT2txeWlwc0RLclprNm00?=
- =?utf-8?B?bTU0TTQyTm1iWDY2QThlUDNvUm1wdTQxbTNWQTRwa0xvT2UwNVl0eE9KNDNE?=
- =?utf-8?B?VmszQW4ySklvVWdiemluNkMzeUxDTHVrRjJGQSt2UysyZ0w0TEJXWkFTcHh5?=
- =?utf-8?B?ajJtNnNXZWQxV1dKOWM5cXcya3hvdVg0SDEvWEU2aC9VS2QxT29yWHZiV0RQ?=
- =?utf-8?B?Qjl6anRKQ2YvNmNkaUJxRElyb0VxY3JjWG5NY2cxa0phQ2xSRHpHSTMyYWZI?=
- =?utf-8?B?eCtiMnJhU2tKZTM0RWYrVDl4UElxcG1DeXp0MDVEczI2UWtxaFNCejhVWm80?=
- =?utf-8?B?bXE5SlI2emZsNGVnVUtNOU9wNXhKVDh5YlA1UFZKWStOaUt6bUJzbUFDNWJ6?=
- =?utf-8?B?bVpwNE5MWGZYOFc4MnJkZ1BIUURoQ2ZKSXlSd2dmSThKeVh6ZU5FU2x2WGVM?=
- =?utf-8?B?UUUxeGg4alAvWFdMRVc0eHdYNDA3bW1tU0w0cWVWNGl3UnY2NnFnOWRyNGlU?=
- =?utf-8?B?aFFSbHFHbUhFRDJSdUxWejZHcTRoOGxQWDNwc1RFMU85cHRMWlJTaHNMSHQw?=
- =?utf-8?B?a1JUQVNwTkE2U21hNi9URVZibW12NllDUlRQT3Vwb0JGWXhPak93QT09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 31303060-aed2-414f-d89c-08df449cddc0
-X-MS-Exchange-CrossTenant-AuthSource: CHAPR12MB999248.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Nov 2026 11:21:03.8324
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: ShHiG5AcJPsfySS9sf0FFnE2Hoi4OqrcGw/GlyukQLRPyCPpsfl2YcW2eU2SztNd+Gdy7qb3UdZAYUMuWhfu7Q==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6308
+Content-Transfer-Encoding: 8bit
 
-On 15.11.26 19:17, Jakub Kicinski wrote:
-> On Tue, 10 Nov 2026 20:38:23 +0200 Tariq Toukan wrote:
->>  include/net/netmem.h | 24 ++++++++++++++++++++++++
-> 
-> I haven't done a proper review but this jumps out - does the new helper
-> really belong to netmem.h ?
-Hmmm... no. It should be in include/net/netdev_queues.h, just like
-net_devmem_unbind_dma_dev().
+Since commit 2a8513091d2f ("nvme-rdma: parallelize I/O queue allocation
+and startup"), the host can send commands on an I/O queue before the
+target has seen RDMA_CM_EVENT_ESTABLISHED for that queue. nvmet-rdma
+keeps such commands on queue->rsp_wait_list and executes them from
+nvmet_rdma_cm_handler() when the ESTABLISHED event arrives, that is,
+with the handler_mutex of the queue's cm_id held. Executing a connect
+command takes nvmet_config_sem, which creates a handler_mutex ->
+nvmet_config_sem dependency. This is the reverse of the order in
+nvmet_port_subsys_drop_link(), which holds nvmet_config_sem and calls
+rdma_destroy_id() on the port's listening cm_id via
+nvmet_disable_port(). Lockdep reports the warning below when blktests
+nvme/004 or nvme/031 is run repeatedly with the rdma transport and the
+rxe driver:
 
-Thanks,
-Dragos
+    WARNING: possible circular locking dependency detected
+    rm/7346 is trying to acquire lock:
+     (&id_priv->handler_mutex){+.+.}-{4:4}, at: rdma_destroy_id+0x17/0x20 [rdma_cm]
+    but task is already holding lock:
+     (nvmet_config_sem){++++}-{4:4}, at: nvmet_port_subsys_drop_link+0x52/0x340 [nvmet]
+
+    -> #1 (nvmet_config_sem){++++}-{4:4}:
+           down_read+0xa6/0x530
+           nvmet_find_get_subsys+0x1f4/0x630 [nvmet]
+           nvmet_ctrl_find_get+0xaa/0x320 [nvmet]
+           nvmet_execute_io_connect+0x1e0/0x480 [nvmet]
+           nvmet_rdma_execute_command+0x18e/0x480 [nvmet_rdma]
+           nvmet_rdma_handle_command+0x428/0xb30 [nvmet_rdma]
+           nvmet_rdma_cm_handler+0x8a8/0x30f0 [nvmet_rdma]
+           cma_cm_event_handler+0xb0/0x3c0 [rdma_cm]
+           cma_ib_handler+0x28a/0x9b0 [rdma_cm]
+           cm_process_work+0x4b/0x3e0 [ib_cm]
+           cm_work_handler+0x2485/0xac10 [ib_cm]
+
+    -> #0 (&id_priv->handler_mutex){+.+.}-{4:4}:
+           rdma_destroy_id+0x17/0x20 [rdma_cm]
+           nvmet_rdma_disable_port+0x44/0x300 [nvmet_rdma]
+           nvmet_rdma_remove_port+0x42/0x60 [nvmet_rdma]
+           nvmet_disable_port+0x120/0x1f0 [nvmet]
+           nvmet_port_subsys_drop_link+0x261/0x340 [nvmet]
+           configfs_unlink+0x36d/0x790
+           vfs_unlink+0x278/0xb40
+           filename_unlinkat+0x31d/0x670
+           __x64_sys_unlinkat+0xae/0x100
+
+    other info that might help us debug this:
+
+     Possible unsafe locking scenario:
+
+           CPU0                    CPU1
+           ----                    ----
+      lock(nvmet_config_sem);
+                                   lock(&id_priv->handler_mutex);
+                                   lock(nvmet_config_sem);
+      lock(&id_priv->handler_mutex);
+
+     *** DEADLOCK ***
+
+However, the two handler_mutex instances belong to different cm_ids. The
+one held during command execution belongs to a connected queue's cm_id,
+while the one taken by rdma_destroy_id() belongs to the listening cm_id.
+nvmet-rdma does not take nvmet_config_sem while handling events of the
+listening cm_id, so this is not a real deadlock. Lockdep cannot
+distinguish the two because all handler_mutex instances share a single
+lock class.
+
+To avoid the false-positive WARN, assign a separate lockdep class to the
+handler_mutex of a listening cm_id at the start of rdma_listen().
+
+Link: https://lore.kernel.org/linux-nvme/at36um4zrsfOr3kh@shinmob/
+Fixes: 2a8513091d2f ("nvme-rdma: parallelize I/O queue allocation and startup")
+Signed-off-by: Shin'ichiro Kawasaki <shinichiro.kawasaki@wdc.com>
+---
+* Changes from RFC v1
+- Instead of the new helper function, do the reclassfication in rdma_listen()
+- Link to RFC v1: https://lore.kernel.org/linux-rdma/20261108120154.148824-1-shinichiro.kawasaki@wdc.com/
+
+ drivers/infiniband/core/cma.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 337a49d1acf7..b3678ddc79a4 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -3949,6 +3949,13 @@ int rdma_listen(struct rdma_cm_id *id, int backlog)
+ 		container_of(id, struct rdma_id_private, id);
+ 	int ret;
+ 
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++	static struct lock_class_key cma_listen_handler_mutex_key;
++
++	lockdep_set_class(&id_priv->handler_mutex,
++			  &cma_listen_handler_mutex_key);
++#endif
++
+ 	if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_BOUND, RDMA_CM_LISTEN)) {
+ 		struct sockaddr_in any_in = {
+ 			.sin_family = AF_INET,
+-- 
+2.56.0
+
