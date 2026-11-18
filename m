@@ -1,99 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.176
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795036591;
-	b=mwgVM3T13cG3YYdWo4oNPoB4KGeE3BFgxdkLVWohOWthMsIgbobS3NaDcMDDLrT5igZh
-	 T2Kx4NBLg0w3+Rkz7/S14CC3dgqJiuiHmZTUImaAQcjQbfWjYTfv/vbNf8Z3yCRwXFL5R
-	 0dXuRoiYaHleV5H9PrNZJhl/WxxCv4xWwNHwKWdOmsa1Y7I5ySNO7bI6UORVoqIoWKGxc
-	 CnBWXqgTseIcILhSyNgsU1i5GOo5CXOMbs+0ivu6zmbn8KUFrLh7Zy3O0Pw8Wqqe8pPBq
-	 zs5hwHApQNpyDH7QfTXT4GctxnCUypa9Yzf0olwhxqyp5hcJhGrYMRhMI9LH97V0S6g==
+	t=1795037011;
+	b=cAGl+lSwTavgFLz0dX8oa/zqI+MVFGM/UMipShnfjUlwic2oLdH7qFDNdezdG6KCknQa
+	 Qg0Tv+AzKwsPNzHv58XRWaZ3Elgw8yKWZhPRJR47UbSeuYTxZbERSobMtGU5hK8HP74nh
+	 g0nhPCOVaF+k8O49y/dQrRHfqTd5cXxsMyzUvQ3Uej1rV3IJYYiaCtLjKYDg0zpZp8RYX
+	 HcTUNu1tL8uWX9Xr1Chc2Q+Pfc2sSQc3LiuXYrtJDJwXbmHMah8M5sC4CoVE/Cs+688IE
+	 T1McmyZXTme3cylWdlS42zPrSnwhwtv/oQsG60Jl798mWKLx9qkFS6yG/9O8vk7lBNA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795036591;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=y/YHJ2V7TLyLaA0CfPasf19cYxUxIPcmQV6VRFoc+cI=;
-	b=QocjJSre0P7hZSDZgN3K9cGoGQmmjq1Kqug/eL8PmMHjMevgH5sszGRMcM6CyaW9FyEv
-	 4sJw2URONB5BgqIjkExx1fERn8o9AQTRiU2sjZzhyh7k+8ruywSd/sPcXixE/Hz3/VChd
-	 DDmOkDjnCk+6rG1p2pbS9qfHiirnHat6ptVthFWtzIzEasDvfDeC0SS5/ooWSyBeNxRMG
-	 jPRELBk8lI1r28BK5/fnPx7CfUXfB3S5S9V8igIlrrZeXNPfNI2nfpkGs2GFDZ7UtJgu9
-	 Oak3+PBCS/rRhdlxODeUj70ZYSkSDOjH9PN4f+5BZ9xcmdVIG2IkEosx4bbXHkTQ7Kg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795037011;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=uEjXQ89Bg0272bIZVhZrdaYATf93HZP86cl2KFYwYHw=;
+	b=L+Vrkf9bOHZ+4sscUKsNm70iDoHzdYdEwc1CNuD/BHRSQvsQrpEwgu8mjLl/Epnuc5YJ
+	 5g1gFaKFhb6v0wnWt65Sp3z/tyObtvoE9JXIl5K7dIYoBvwCpVdkUiGH6+8ear8ap7Bzj
+	 J6O/WgX/RhWtNhoHvVRyOuAmRk5TLsSqXs6Pu/6E5Z2yuMYIpBXi7tYMeIT1ytxbUsZ3a
+	 5OjAF6A30H8mgiZ+nGyzRG697HRIiysOypLusxqCtNAHav1Q0H7NXt1uZRC18kjnei03w
+	 SzZahEMveF8zA9ZN3lYckUx6kVoiEJkFNDcj/MEcQUSEr8VTiqr/AzJW9hf2FwwTMJA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=fail header.from=isslab.korea.ac.kr;
-	spf=none smtp.mailfrom=isslab.korea.ac.kr;
-	dkim=pass header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=tAKIDOon;
-	arc=none smtp.remote-ip=209.85.210.176
-Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nvakCHYr;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A94D606A338
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 21:16:31 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4A94D606A338
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 009EC606A325
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 21:23:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=tAKIDOon
-Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-8b32bc605d9so932939b3a.2
-        for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 13:16:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=isslab-korea-ac-kr.20260707.gappssmtp.com; s=20260707; t=1795036591; x=1795641391; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=y/YHJ2V7TLyLaA0CfPasf19cYxUxIPcmQV6VRFoc+cI=;
-        b=tAKIDOonM/7tAl+OKNOFPyXrRjlTvzxrmWiMXNZVhliT++H88DRZp4VsIUQSlAau47
-         6Spe9kGkx/9/L36JcBVgrovt+2ZIS4Cr6mD4O+TqZXkb+Fs8d3BHkVFjNRYauw6KUOLW
-         pdZMZkVm1dlo/rRzE7QAqZrltbbI/Gm+XgjCCSuf3kb6HHmDw61HbQhBPAfAaLim7kcd
-         KHhTUjMGyljf1cYXetfpnx+xFF8C6Hzq5WQIa6scbKxA9JGH3dzX3M6mnJbWax5CbQgl
-         rVV82iAcZE4+QNEKxL/Fr+9TjwXagcNwTZIGgDnvPrebuhix9W35IoBv55MqzEQgj6nh
-         xwsg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795036591; x=1795641391;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=y/YHJ2V7TLyLaA0CfPasf19cYxUxIPcmQV6VRFoc+cI=;
-        b=vkRmQAoBM199ZMRSEQ9cM+sLHGypeKyZlW8BUkF92WXI9/f0SrBXGf6R54uYTIbWD5
-         ybaTQEFD4QXc95YSoTuqqCaD9V79tC4Rl+SgNd7p5+UBHM6ASNkTiq5TyKqbu5z5FHY1
-         4Wc6QqQYZGeC+Srkf69hmmJPFjPt2Z036GzDxpsZIvKRPoCML4xvyvYpIhvI/CKBViVF
-         XlcdvcOwhnZH+uKSjXzAFjX/fXVuT57E65PUs+L8jLOkDk10w9tm+0ZuBU6Of0ycsy/b
-         wgnxIOfYwRHvXuOXX7yPvsWYjdAj09gK9zJs/ki4gEoutJv6njC2gweayqx8yEjN44HL
-         gUYw==
-X-Gm-Message-State: APuU4Z8Q/stjZ+Zj5jqBYLkIz5/G7NHgAExf7u3BSjTaZVy8pr6ABJX1
-	DpZe68b9TRSTUmxwoTb//wPI7wgTu3sYZa4YyqEMtEjlp7Ex4tFEhdEsQIkDB7TXAtE=
-X-Gm-Gg: AZFdTZc2Of8BvkwMfAzfcmTdLDZoHPL17Y7YTF0NAgZO+/qUWbJtcuAYQN0CJ+BhwIc
-	0T3jcXLMSvAYnBcrGjc9BM5KKJe2FI8tk6j4ROIBsg+WQ3rX9X/5BqIVa+kiD0/FWE9vdQxlFWF
-	eKqdZgAx1eYz3SKALD9tChQgEqEcIJOrG5lU88Ny41tf4p5B8sSygVpMtFlotxV85U3impMzzsH
-	Muu/Gzsa1J/su1RQcWH2fKW5788yz5DLHgDhLH0WjQiNZeZ+qfq3WF6nomZuyfcbJrZa5AAO+3q
-	C6CPmRHI7vkPgCdWG3E2ahw02ojBPZWA2A0m3Zi0D988fyEdKkE/jclv/XkpXquWX+eV+/nDtFf
-	o4IoI8abGHX8r0qbSEm3y8ctPlsTYP8aMSw6cVyLd4qebVFW+oNV1Fe9w3UzLpzody5CwM8wXeD
-	2EoTT80VI6HOPdG3BekoT6Ec+vgHFlccQDnRXbwQgcsWAZJ9mzWcrfhTb+YQUELkWMQRYi6jF8H
-	x6yG2JRq6oklDcbc5ZLV0VdhRXJGw5N/IohW2P7Znp+5yNtqT3ELmywHg5Y7I1gHhKMduMFM68l
-	QwIou03X8RjqwDE7dQeayPpjbMS7y+bhCvnEJaLlk3xTUP2uAB3/TZ/4Ui3XH5sExQPoGbEeMu2
-	+XZtFm1h+/ZhlO/SKElugsd1STaNwoDzx42Isrw==
-X-Received: by 2002:a17:90b:5307:b0:3a8:545a:9e87 with SMTP id 98e67ed59e1d1-3b3d0759881mr3709135a91.15.1795036590739;
-        Wed, 18 Nov 2026 13:16:30 -0800 (PST)
-Received: from yhlee-960QFG.Davolink ([2406:5900:1044:110c:e78e:f7f0:2120:34e7])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b3f706dd83sm914903a91.14.2026.11.18.13.16.28
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 18 Nov 2026 13:16:30 -0800 (PST)
-From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
-To: sagi@grimberg.me,
-	jgg@ziepe.ca,
-	leon@kernel.org,
-	mkp@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	target-devel@vger.kernel.org,
-	linux-scsi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 0/4] isert: the commands the target core allocates itself
-Date: Thu, 19 Nov 2026 06:16:23 +0900
-Message-ID: <20261118211623.2526894-1-yhlee@isslab.korea.ac.kr>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261118113905.2361969-1-yhlee@isslab.korea.ac.kr>
-References: <20261118113905.2361969-1-yhlee@isslab.korea.ac.kr>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nvakCHYr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D12C1F000C5;
+	Wed, 18 Nov 2026 21:23:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795037010;
+	bh=uEjXQ89Bg0272bIZVhZrdaYATf93HZP86cl2KFYwYHw=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=nvakCHYrVuKmriReM/P/Nifcop3zvOy0FyyCr2oV5AeF+jFVxw3vTQ9Cuz8swImQj
+	 /yPaiwYb7PplHcW0pvsYic+zvT/3dHgzfJj1Wa54FmZ3Nq44b74XOrYQPSZu1qF6/K
+	 bx5359Qwhh0QXhAYl0UnJ868awNFEFaIGeTI03MsrFArQdHgcn34Tnea8Dkkxb27RF
+	 O1WlXJ6iItfW+qB31LZWBoWwvGXB3LtzfTXCpagN39ndOj5ALECPtngdQwCE2aGdU7
+	 N07Ndx63CNaeWoJvRCu64qbuOjdvTJ36dv2RdY6hcvgwIvVfsmweVhoEKYqVVrL6YK
+	 JPYJcR0G7vfag==
+Message-ID: <sashiko-outbox-221990@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH v3 3/4] IB/isert: finish a Reject the target core
+ allocated itself
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Yehyeong Lee" <yhlee@isslab.korea.ac.kr>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261118211503.2526705-4-yhlee@isslab.korea.ac.kr>
+References: <20261118211503.2526705-1-yhlee@isslab.korea.ac.kr>
+ <20261118211503.2526705-4-yhlee@isslab.korea.ac.kr>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Wed, 18 Nov 2026 21:23:30 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -102,12 +60,33 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 
-This is superseded by v3:
-  https://lore.kernel.org/all/20261118211503.2526705-1-yhlee@isslab.korea.ac.kr/
+> iscsit_add_reject() builds the Reject from a command of its own, with
+> iscsit_allocate_cmd(), and iscsit_allocate_cmd() zeroes sizeof(struct
+> iscsit_cmd) plus the transport's priv_size.  For iSER that zeroes struct
+> isert_cmd too, so conn, iscsit_cmd and rx_desc are all NULL where
+> isert_allocate_cmd() would have filled them in.  The command then reaches
+> the tx thread like any other, and two things go wrong with it.
+>=20
+> isert_put_reject() hands the NULL descriptor to isert_post_recv(), which
+> dereferences it.  One PDU after login is enough:
+> iscsit_check_dataout_hdr() answers a Data-Out whose DataSegmentLength
+> exceeds conn_ops->MaxXmitDataSegmentLength that way, and it does so
+> before it looks the ITT up, so there is no SCSI command involved.  With
+> TargetRecvDataSegmentLength negotiated down to 512 and one Data-Out
+> declaring and carrying 1024 bytes, 5 boots out of 5:
+>=20
+> [ ... ]
+>=20
+> Link: https://lore.kernel.org/all/20220311175713.2344960-2-djeffery@redha=
+t.com/
+> Fixes: 4366b19ca5eb ("iser-target: Change the recv buffers posting logic")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
 
-Best regards,
-Yehyeong Lee
+Sashiko has reviewed this patch and found no issues.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261118211503.2526=
+705-1-yhlee@isslab.korea.ac.kr?part=3D3
+
