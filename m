@@ -1,99 +1,76 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.65
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795001192;
-	b=DVCKIttckzPsY4LR2Qny1EogqC31fUuhW4Zp/e5FnpXFbG2YR5BWAyelZydGpbpyvxlh
-	 ZuOig62qqDwKBlhJcmam3TNLUWd1oISdnWdwJaoS5LXLGl0u7ybW8CSJ1iJBLuAx2ZsfG
-	 g3w5beRTb3XZ4hxlmoNr8f0EvGdMITyiUu6c1LWUeWHtb3ecfBual3MMyqkqSSuZazvDX
-	 L5qOV07DZRzxkvyc9H9+9JB9X3iBo8aicqWF6/dp0gtbISViOcfunANq6/NSl34YZTO68
-	 NEJnbU3yhpkBKpJlTFHrM/0R8/o8bDrlwWhB1x6bpUpHHUp6pbO0r8yc16mlUpttEAg==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795001192;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=OcEcSBm6DzCdkI2h76AbUUhQcprcTFWiNpi0Jlvp5sQ=;
-	b=iAltY3jvrT/Brltw3EzXaH71OIia8j4DpDZhVMGu+5NHLpgl5AcY5rUMVW1o4NILtCUi
-	 iX53XkSiXvS7x2yPovN+iqRrrvRy+o++mcAosvMbZ4Fdkukxg2EYJGfLFqOq2D5GerCnS
-	 9Ctpmp8QgewRup2sDtsX99idX8Uzx6KHNDVZUVBlIGkHRUAHvMO+kSa2rP+b6FQRUDsLq
-	 lU4uuTpjzvdYjvQMvMxxzjcNDVh+8iZbMjP0zyvu8QkM62mAeTp42hqF7wM2aw00GMORW
-	 1QVJBkwl9V2g3uMx3KvR2y02Z4Ijmj4fizwuC5oVbXixFQraNKPsNu/F5v2PO7o5/CA==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=N+LdF8C+;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.65
-Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013065.outbound.protection.outlook.com [40.107.201.65])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=203.254.224.33
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795001479;
+	b=IKgtAMerRJKN4fzU6ZAQgv6M/itBPEP7pbieb6G0Yd8NocRgWz5qHhVpjL8SxiL119IT
+	 7keeMoutI4RRfsljdp9NAfetOXL1UBBPWH49YaiU359omp44AlLppvJh7SVjoUG5Dw2jW
+	 ErGBdJ45dtsCFEapaJ4Xsmiw7shpDzzejTjPQtnZYRJsGYDZ+IxGWNpYkGZ38oZXNuhrI
+	 n4Xh+xpSNMdm6RJtVR/sQk9AZ+mHgvmWDWytxkq+dqKVXQCSPAR3frdTmaCPP4gMPPVHf
+	 pjFXLZH0235FLnmbMw98g+VW28SnZgNSKS3clWkyDkXxa1NKE2tG1QmAbSUr/WDaELA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795001479;
+	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:Received:Received:
+	 Received:Received:From:To:Cc:Subject:Date:Message-Id:X-Mailer:
+	 In-Reply-To:MIME-Version:Content-Transfer-Encoding:X-CMS-MailID:
+	 X-Msg-Generator:Content-Type:X-Sendblock-Type:CMS-TYPE:cpgsPolicy:
+	 X-CFilter-Loop:X-CMS-RootMailID:References;
+	bh=T3daSxkgAGvb1vCXOWepnq81pQTvWxCWULJCs5IHq+c=;
+	b=CLxOCd9u71xzNDEA4NR8OjN4JrCphQzpZ8x/Buzfy/7xQ1uIQV2g3pEim9mU6lkyj4nB
+	 kESgVd42nADVYAWr7hGe0ieCojt7IcZ4ukizOwIaXk9xVBuGF9hPCCRkQC3qOc55Cj76x
+	 2bAuEe3aVzX3CZOd1O65PNRqGz62kr6oQqoPLCcl2D+SOvzyRq4X5RKwtW0RYg8zzQx2g
+	 kPGT/ijTPQT2wiRYNv4hMDfwfl0dPkc/xPvJlQwznFHj7zOTJyqrnLU7mWanHkHL1P3xR
+	 NddJkfWob5JzNhw1A8MhjZ3bNuFfoOAFi7OxYkXF/CgjG0ybueXIsvgVCFhGrz2urPA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=samsung.com;
+	spf=pass smtp.mailfrom=samsung.com;
+	dkim=pass header.d=samsung.com header.i=@samsung.com header.a=rsa-sha256 header.s=mail20170921 header.b=i+Wvcaq0;
+	arc=none smtp.remote-ip=203.254.224.33
+Received: from mailout3.samsung.com (mailout3.samsung.com [203.254.224.33])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E82A8606A31C;
-	Wed, 18 Nov 2026 11:26:31 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E82A8606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E832606A31C
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 11:31:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7E832606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=N+LdF8C+
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=DcoKtRcM8tssgYosEiSSW4IQf6ddP3KyURhNR2/bqkJ8ocRXblZjvYamQ591eTzcp5E95jfbGQ23Bx1R8JxWgS/p77hfTb02Tl43I7xRGu1QsC/gz3U30HCiwvOuCdb22AFXa6BwTVQ4NYLfq3YNx1jGtwWFGsTeGDSKg9HoNNYt2yKh0B5LfXHZNXFwWe6TgM7vh0qayheA6S62X9Q/SDHzXAIUTWa3ozUlMtjLZCplpuW2J3Z00nj6wJJygafA3L0HJ2icZh9yV7nL3rd/wkCQplwpakj8E1dQgXktT+Rw53Dii2GkPy+C8+8Bi1obM4HsKOVMdzAofwoZhuGLsw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=OcEcSBm6DzCdkI2h76AbUUhQcprcTFWiNpi0Jlvp5sQ=;
- b=d6mmCveSHV5kuyB24IWfebWGJL1ht3AoEIQOY/1zK5s16jOuHhnJIP4BK/krkv03RY2aeRWCXnINlznOAVCv887X5k/o+wQqJ7yBrR3hUZSf75nQDraBwToTtEGRAicmB3DgvwqYy/+eLfpuKw2nIjQBRB+C6r2+FwCXdC5tIJbHbgE4GPbTtcICwdM23FtRQ9+rLt6IFuXRJtDb2BpbLkQWG2xjStg7Ig4BP6S3fAzPtvSfauSarQBNZkvDz2yK92foANovrETw14Uu20LfxhIZAkQuj9G+pqOCJToc+QbRTCgrrmUZEk0gA8xolH5On7OEKCHBpvVSVXzWzBHu3A==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=OcEcSBm6DzCdkI2h76AbUUhQcprcTFWiNpi0Jlvp5sQ=;
- b=N+LdF8C+WMi1n3tXAgJIG4xDXkanK2JfkrYf3G8qbSrexP0oGOYIoLZv69D2RWyxDbIsPgfn/Q1zbKSwp3SkkU4ofGjCadYlakSLQrEbcOXG33sQTK/vdc2BIK3KFkWgYLHfYwexWsxEmekrCi3Y16JeN38QVRfzHoiwxvzt9mkoN1on+h/+eR0Jx/wd0htsGVMkMB3gh6TkYSBq81TQvQBjAZWC0SmRBsi7i17O2nHHr5F8OHCGanod2y9aDLq4agBmjEANIr9rvUlMPzc/36X9UWOVj0eQDJ1uwAv5uaRpD0tZv4C1oJ/xm0E1XBmtGdmyaU5iwULuetRuZaxV0w==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from IA4PR12MB932075.namprd12.prod.outlook.com
- (2603:10b6:207:12d::15) by PH7PR12MB8426.namprd12.prod.outlook.com
- (2603:10b6:510:241::20) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.14; Wed, 18 Nov
- 2026 11:26:28 +0000
-Received: from IA4PR12MB932075.namprd12.prod.outlook.com
- ([fe80::5a6f:1f74:6ccb:cf2f]) by IA4PR12MB932075.namprd12.prod.outlook.com
- ([fe80::5a6f:1f74:6ccb:cf2f%5]) with mapi id 15.21.0615.013; Wed, 18 Nov 2026
- 11:26:28 +0000
-Message-ID: <2c11ca60-b1c7-45be-94dd-b0fb648109e1@nvidia.com>
-Date: Wed, 18 Nov 2026 13:26:15 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net] net/mlx5e: Hold sync_lock while resetting VXLAN ports
-To: Changyul Lee <lcy8047@gmail.com>, Saeed Mahameed <saeedm@nvidia.com>,
- Leon Romanovsky <leon@kernel.org>, Tariq Toukan <tariqt@nvidia.com>,
- Mark Bloch <mbloch@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S . Miller" <davem@davemloft.net>, Eric Dumazet
- <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Moshe Shemesh <moshe@nvidia.com>,
- Aya Levin <ayal@nvidia.com>, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20261113040323.2090829-1-lcy8047@gmail.com>
-Content-Language: en-US
-From: Tariq Toukan <tariqt@nvidia.com>
-In-Reply-To: <20261113040323.2090829-1-lcy8047@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: TL2P290CA0026.ISRP290.PROD.OUTLOOK.COM
- (2603:1096:950:3::13) To IA4PR12MB932075.namprd12.prod.outlook.com
- (2603:10b6:207:12d::15)
+	dkim=pass (1024-bit key, unprotected) header.d=samsung.com header.i=@samsung.com header.a=rsa-sha256 header.s=mail20170921 header.b=i+Wvcaq0
+Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
+	by mailout3.samsung.com (KnoxPortal) with ESMTP id 20261118113116epoutp03a3af2feb3b85161600ed80e43d0e6247~pIFUGZTGi1562915629epoutp03T
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 11:31:16 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20261118113116epoutp03a3af2feb3b85161600ed80e43d0e6247~pIFUGZTGi1562915629epoutp03T
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1795001476;
+	bh=T3daSxkgAGvb1vCXOWepnq81pQTvWxCWULJCs5IHq+c=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=i+Wvcaq0maZisIyleHnNlUbx7BHgEVfwALhuZUS9Qkxfs7FL+8LKGfXOOFBbKuR88
+	 sy66GIN+fz88wQnUa9iVkIpMF6/NqZqTnCQI2F560UPFPKMjBl9vEADOkst262pMxu
+	 /f3+0sqJdvZQDjVSwTvm4/RJG9uLakPKUQGHFsms=
+Received: from epsnrtp03.localdomain (unknown [182.195.42.155]) by
+	epcas5p3.samsung.com (KnoxPortal) with ESMTPS id
+	20261118113115epcas5p34bb7d4ceb03b480da96e2740ac7efa9b~pIFThexG92136821368epcas5p3v;
+	Wed, 18 Nov 2026 11:31:15 +0000 (GMT)
+Received: from epcas5p3.samsung.com (unknown [182.195.38.88]) by
+	epsnrtp03.localdomain (Postfix) with ESMTP id 4jTzv62Mxsz3hhT3; Wed, 18 Nov
+	2026 11:31:14 +0000 (GMT)
+Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
+	epcas5p1.samsung.com (KnoxPortal) with ESMTPA id
+	20261118103450epcas5p1163c0878f3f2da3357146301143047a0~pHUDfJ_xg0474604746epcas5p1r;
+	Wed, 18 Nov 2026 10:34:50 +0000 (GMT)
+Received: from localhost.localdomain (unknown [107.99.41.245]) by
+	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
+	20261118103448epsmtip26199ebf8f9dc8da5d1948b0397c1f9e7~pHUBZ54Ny0245402454epsmtip2J;
+	Wed, 18 Nov 2026 10:34:48 +0000 (GMT)
+From: Anuj Gupta <anuj20.g@samsung.com>
+To: kbusch@kernel.org, axboe@kernel.dk, hch@lst.de, sagi@grimberg.me,
+	jgg@ziepe.ca, leon@kernel.org, asml.silence@gmail.com
+Cc: nj.shetty@samsung.com, joshi.k@samsung.com, anuj1072538@gmail.com,
+	linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, Anuj Gupta
+	<anuj20.g@samsung.com>
+Subject: [RFC 1/4] nvme: move dma-buf I/O context handling to nvme-core
+Date: Wed, 18 Nov 2026 16:03:24 +0530
+Message-Id: <20261118103327.1788667-2-anuj20.g@samsung.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20261118103327.1788667-1-anuj20.g@samsung.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -103,93 +80,175 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: IA4PR12MB932075:EE_|PH7PR12MB8426:EE_
-X-MS-Office365-Filtering-Correlation-Id: 6deb7689-8323-4ef7-90cd-08df4566c998
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|7416014|23010399003|366016|22082099003|18002099003|261009223027099003|11063799006|56012099006|261102123227099003|261028144727099003|261026140227099003|261021121427099003|261022105027099003|261021135927099003|261021123027099003|10067099003;
-X-Microsoft-Antispam-Message-Info:
-	XE+INUDSHjUvxn8n5o8sWpuAilDP56S7ITfk/uYB8ytk3Ii/v4aYsCRBbalj/DBMzhkuOsYuh7zkJ5rNPhDpxOWQ1AfviTZI27EJbhbhLE9Ti1Rp+UtIJXDsKNsz9OKe9ObXkkEI8GDgH5TVK90f4adwdnfogZM4dmV/PoOqlP6NvV9abcOYkhGeVGH2rOmxBmrxl0TW4/Ngxt/UBIHCnOmIRZEWMnnLutHlQGkJmr2t1qoBDlXkHAQw3i/cE9fEoLHmHpo0W2Oi8y65VsLYRv+/pJhTc+VcgSBo0wlLWm8+EI1cFXje05CancmfMCWATnNrApe/xgWDbFZHzS+3J8h1lyxzp0HktXG/Gf7UZytasLmFKmurElUW7ouQDTybMNKE/vHleiYIIkVx7AAUNj0YHNzEw5G+Nk+x9OsoqCqjfWA5swxBCK8Atn8OG1Na++TqLbqm7nisbbssm96TvMr5TVAtp8hd1hAu6ntwnM0cjLKzhfCDJXottGxGyIKgsHnDQwsJyGY47RYrJXyt2fvzpp4Y9uMbdXI35Xq7pZ5ppoQJyfumSIz2XzHkf2yyWvWWusUpNB2wiN5LvFJrYZrMmvZo9xhBqyIUib3b3olfT+PNgAikdrr65D9+2cvXIh79hCLOzfSwgM8Bm6VCDal9zpCtfi54fhxFUVtOzDA=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA4PR12MB932075.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(23010399003)(366016)(22082099003)(18002099003)(261009223027099003)(11063799006)(56012099006)(261102123227099003)(261028144727099003)(261026140227099003)(261021121427099003)(261022105027099003)(261021135927099003)(261021123027099003)(10067099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?RUR6M0Nrc3REWlJaSkxPdTJKV21sUFdEZytyM0NBYmNRdVRIUWVTVTFwdk5B?=
- =?utf-8?B?aTVjTjNxOHpBc1B5UzZUb3o1ZFBjaVdYVkc3aERvRmU5NjduRUJCRjR2RVk2?=
- =?utf-8?B?QVlkVCtscml6Uk5qdi9sVVJWRUtBSEh0SVJ6VEpXZTJGSXc3RTJJWGw2N3BK?=
- =?utf-8?B?VEl1Y0lQQjdQaUFNUU4yOXBtY3U0eWhISTd1enlqYWZMeGVmSGlJa0IvRXJB?=
- =?utf-8?B?K0RyMVU5THNuL0VNK3RwR0d4SkNvdHFaR2FXUFhicjdlc3FHWWNyVlp0cS90?=
- =?utf-8?B?UXRyY0lHeGY0aHJMZnN6S3J1aVBQd0F3ZkltSTM2cWJEd2JPcUNFbWpTZTA5?=
- =?utf-8?B?dS9nWFkvREJUdlpSZnVQUDZEa3NuTXRXbHAvVmZpUDltRFVBcmt1SC9JdTBv?=
- =?utf-8?B?d3FRRCtEZHpISFVZQnJTWU8rVnk0THZyVHF1YnVBL1ZVam1sVnlSTWEwbmNv?=
- =?utf-8?B?N0tMUTBMNDJnWExBMnNqd3Q2QW5lL1FXUzdSdGlIL3gvRXIydjgvR0NkcjYw?=
- =?utf-8?B?bVErYWliY3Zsbkxsalovbkx3N253MFJ4NXVqTzRjV0MrKzVWa24rSHM4WlMv?=
- =?utf-8?B?NE5XUzN1UVI0VnhVOVc2dGNpVEcvZlY2UjUvcDdsSmZOYUFDekl2ZGZEWlBJ?=
- =?utf-8?B?MWFYYXNTSWIwVTYwajdveTd1czZwanFvRTZDY0Y3TXk0VkFtN0V6TkwybVdq?=
- =?utf-8?B?cEc3WEgyeVgrSEQreVhmMU9qcXJsa0ZQRFpUSGN3dHFDUDdKTzNLLy91THV1?=
- =?utf-8?B?R2puQXRJVEJkdDcvYTBwL0hxYm5mSU54cU1qNnJ0bktMTHR6S1ppYjA5NVhm?=
- =?utf-8?B?NE04WnpxL3ZudlNvbmNLcGg5TkRoZnB0ZW5kNElCMk4vbG9ScGlmSGhXdXJU?=
- =?utf-8?B?NVh0bjdjbGJCWktpdVpXbnNCL3RUTVBvVU9pNFhWdWVzdElwTUd3bjlYazhu?=
- =?utf-8?B?dEdBazhzWHM4WWVuQ3VQNmRmdXhUZGM4MUt2MWMyQ2xGTUpvUkhuWktOcG1w?=
- =?utf-8?B?T2dBcGhhSkgxRVVsNWtmTkgxaXBPQ0NYTzh5WG0zV3FuZXpRdm1mdXlCUytN?=
- =?utf-8?B?UTdGb3lLc2ttYnF2RTUzYklXWlZKWDZpcFBCNW5aMWgyTHZsVzluN1loOTd4?=
- =?utf-8?B?OUpNZXRkM1kvRTlDZ1NOV1lpNGVCSGtSV3VtM2ZVR3dnYjNUM1hQcUpMZ2Vw?=
- =?utf-8?B?QmdQSkVTem1oYjlpM2J3RFFrZFNRak9DR2poL3lHYXJNbnJidGpYRGVqa3JN?=
- =?utf-8?B?MkJVQVBsTEFsZEFXTy9mK0xoY3VFOVZkbjBaYTJ6YlplQkxWZGZHOWRiMjBR?=
- =?utf-8?B?ZjIwdFFVYXdDL0czeDVmUXdRdTd5WEtCL0h3M1YvZG5ZTjBjTzNnZFhRWWVK?=
- =?utf-8?B?UHhlRmlDK2l3N0d4aXNuWjE5ZXAyM0RrbHdYam5KTWI3TEZCNU9pcWgrcDdQ?=
- =?utf-8?B?NU9hc3g1S3cySGEzdHlybm5JSFVrNWJkTVRsRXZhQlg5M3VTMkd6Q2Yxc09P?=
- =?utf-8?B?dEZhZHBtM1VoY0FxYnJHUklCa1NhVmRSQVdMT09KSnRWT3ZYNFJhWmRjb0tF?=
- =?utf-8?B?NjFKY3RuVzlWaHNyeC9YWE14WS9ZampmMDFONXhDazIxV0MrNlc1Mnh1WXhk?=
- =?utf-8?B?bUlzc1J5a3czYmdpYTJyUnBYbks3SzJWcmZoTFZrYWgyaW1ZKzJCWGs0Vjgx?=
- =?utf-8?B?cE84MlhCanVZS1p6NGFPYno3am5VdFhqbFNwaXJ2bTl6RjFoSEU5VDZ3ZG5y?=
- =?utf-8?B?b3l3VlBjWmk1MER3dXd4YUxFYmZob2VkN040MThxL01VZkF3QnM4eTZESFFh?=
- =?utf-8?B?dzNMRklnOUhiQm1qWjNtalNJUVAxeDdOVFJsZGpnM09XeEoxVk5xNDNjdnUx?=
- =?utf-8?B?RWxiaWd2SjA2K3NqQXNWS3BKMUxhMWFmMC9JVmhLdmhiVG1OdWdKdk1qY3l4?=
- =?utf-8?B?WmozZk1oVFBUdzcwZlBYa2wzYks1VU1PQ215RHZETC9pNWtrYVNyZVBqWmpQ?=
- =?utf-8?B?MDRaUjc0UmRaYUUwRXR6Kzh1NzRwTmdhNDlURHQ1aWNxL0hsODJlWGYzaUUy?=
- =?utf-8?B?enBCRWMzNVZUMlBIVUt4N0RYVWcwRDVjbU1TTm8xWk1BVEw2SXYvMElDNkd3?=
- =?utf-8?B?SjA4VGRTTnJsekNwQWdkVGI3eEJ0cFphTUhMbFBxcTBEdkxzdVZkaWZZOFVF?=
- =?utf-8?B?TDgyL09nNGlWTEw4a3E4R3IxYTdHbTBBOU1CbmsxOHpqOC9xMlY1RHhUaWZM?=
- =?utf-8?B?TUpNaGNDaCsya1JwRGVaTk9maVNBeWZDTm1tcjJNOElsRTQ4emVPMFYzN0gx?=
- =?utf-8?B?cDFUc21yK2V4N0tnNFk3Y0NMZ0hBUC9Rcy9oL3hZRmVmTVJSNTZjQT09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6deb7689-8323-4ef7-90cd-08df4566c998
-X-MS-Exchange-CrossTenant-AuthSource: IA4PR12MB932075.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Nov 2026 11:26:28.1877
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: AaeJMGuj1fRFLnROcmun8vbInhSuJPEdYUo31nAZ9SAHo8Ov+tlrB/fHsPdA3lYV2Obf3WKxTu8hk0uc+viGEw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB8426
+Content-Transfer-Encoding: 8bit
+X-CMS-MailID: 20261118103450epcas5p1163c0878f3f2da3357146301143047a0
+X-Msg-Generator: CA
+Content-Type: text/plain; charset="utf-8"
+X-Sendblock-Type: REQ_APPROVE
+CMS-TYPE: 105P
+cpgsPolicy: CPGSC10-542,Y
+X-CFilter-Loop: Reflected
+X-CMS-RootMailID: 20261118103450epcas5p1163c0878f3f2da3357146301143047a0
+References: <20261118103327.1788667-1-anuj20.g@samsung.com>
+	<CGME20261118103450epcas5p1163c0878f3f2da3357146301143047a0@epcas5p1.samsung.com>
 
+From: Nitesh Shetty <nj.shetty@samsung.com>
 
+The dma-buf I/O context handling in pci-dmabuf.c is not specific to
+PCI. Move it to nvme-core so it can be shared by other transports.
 
-On 13/11/2026 6:03, Changyul Lee wrote:
-> mlx5_vxlan_reset_to_default() walks vxlan->htable without sync_lock
-> and calls mlx5_vxlan_del_port() for each user port. mlx5e_nic_disable()
-> and mlx5e_uplink_rep_disable() call it after rtnl_unlock(), so the
-> udp_tunnel_nic work can run mlx5e_vxlan_unset_port() at the same time.
-> If that removes and frees the entry saved as the next one in
-> hash_for_each_safe(), the walk then reads freed memory.
-> 
-> Hold sync_lock over the whole walk, and add __mlx5_vxlan_del_port() for
-> callers that already hold it.
-> 
-> Fixes: c5eb51adf06b ("net/mlx5e: Fix VXLAN synchronization after function reload")
-> Signed-off-by: Changyul Lee <lcy8047@gmail.com>
-> ---
-> Found with a static analysis tool we are developing.
-> 
-> Compile-tested only, with x86_64_defconfig plus MLX5_CORE_EN and W=1.
-> 
->   .../ethernet/mellanox/mlx5/core/lib/vxlan.c   | 24 ++++++++++++-------
->   1 file changed, 15 insertions(+), 9 deletions(-)
-> 
-Reviewed-by: Tariq Toukan <tariqt@nvidia.com>
+Keep the PCI-specific PRP and SGL construction in pci.c.
 
-Thanks.
+No functional change.
+
+Signed-off-by: Nitesh Shetty <nj.shetty@samsung.com>
+Signed-off-by: Anuj Gupta <anuj20.g@samsung.com>
+---
+ drivers/nvme/host/Makefile                   |  2 +-
+ drivers/nvme/host/{pci-dmabuf.c => dmabuf.c} | 12 ++++++++----
+ drivers/nvme/host/{pci-dmabuf.h => dmabuf.h} | 12 ++++++------
+ drivers/nvme/host/pci.c                      |  5 ++---
+ 4 files changed, 17 insertions(+), 14 deletions(-)
+ rename drivers/nvme/host/{pci-dmabuf.c => dmabuf.c} (92%)
+ rename drivers/nvme/host/{pci-dmabuf.h => dmabuf.h} (85%)
+
+diff --git a/drivers/nvme/host/Makefile b/drivers/nvme/host/Makefile
+index 8288b986d713..5082a2788b31 100644
+--- a/drivers/nvme/host/Makefile
++++ b/drivers/nvme/host/Makefile
+@@ -19,9 +19,9 @@ nvme-core-$(CONFIG_BLK_DEV_ZONED)	+= zns.o
+ nvme-core-$(CONFIG_FAULT_INJECTION_DEBUG_FS)	+= fault_inject.o
+ nvme-core-$(CONFIG_NVME_HWMON)		+= hwmon.o
+ nvme-core-$(CONFIG_NVME_HOST_AUTH)	+= auth.o
++nvme-core-$(CONFIG_DMA_SHARED_BUFFER)	+= dmabuf.o
+ 
+ nvme-y					+= pci.o
+-nvme-$(CONFIG_DMA_SHARED_BUFFER)	+= pci-dmabuf.o
+ 
+ nvme-fabrics-y				+= fabrics.o
+ 
+diff --git a/drivers/nvme/host/pci-dmabuf.c b/drivers/nvme/host/dmabuf.c
+similarity index 92%
+rename from drivers/nvme/host/pci-dmabuf.c
+rename to drivers/nvme/host/dmabuf.c
+index 161e4ffa6919..1f9104a5d75e 100644
+--- a/drivers/nvme/host/pci-dmabuf.c
++++ b/drivers/nvme/host/dmabuf.c
+@@ -1,12 +1,12 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ /*
+- * Code for supporting dma-buf I/O maps in the NVMe driver.
++ * Code for supporting dma-buf I/O maps in the NVMe host drivers.
+  * Copyright (C) 2026 Pavel Begunkov <asml.silence@gmail.com>
+  */
+ 
+ #include <linux/dma-resv.h>
+ 
+-#include "pci-dmabuf.h"
++#include "dmabuf.h"
+ 
+ static void nvme_dmabuf_invalidate_mappings(struct dma_buf_attachment *attach)
+ {
+@@ -104,7 +104,7 @@ static void nvme_dma_buf_io_release(struct dma_buf_io_ctx *base_ctx)
+ 	kfree(ctx);
+ }
+ 
+-void __nvme_pci_remove_dmabuf(struct nvme_dma_buf_list *list)
++void __nvme_remove_dmabufs(struct nvme_dma_buf_list *list)
+ {
+ 	struct nvme_dma_buf_io_ctx *ctx, *tmp;
+ 
+@@ -117,8 +117,9 @@ void __nvme_pci_remove_dmabuf(struct nvme_dma_buf_list *list)
+ 	}
+ 	mutex_unlock(&list->lock);
+ }
++EXPORT_SYMBOL_GPL(__nvme_remove_dmabufs);
+ 
+-const struct dma_buf_io_ops nvme_dma_buf_io_ops = {
++static const struct dma_buf_io_ops nvme_dma_buf_io_ops = {
+ 	.map		= nvme_dma_buf_io_map,
+ 	.unmap		= nvme_dma_buf_io_unmap,
+ 	.release	= nvme_dma_buf_io_release,
+@@ -167,3 +168,6 @@ int __nvme_init_dma_buf_io_ctx(struct nvme_ctrl *ctrl,
+ 	mutex_unlock(&buf_list->lock);
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(__nvme_init_dma_buf_io_ctx);
++
++MODULE_IMPORT_NS("DMA_BUF");
+diff --git a/drivers/nvme/host/pci-dmabuf.h b/drivers/nvme/host/dmabuf.h
+similarity index 85%
+rename from drivers/nvme/host/pci-dmabuf.h
+rename to drivers/nvme/host/dmabuf.h
+index b3c9fd485878..08a5b8e5d771 100644
+--- a/drivers/nvme/host/pci-dmabuf.h
++++ b/drivers/nvme/host/dmabuf.h
+@@ -3,8 +3,8 @@
+  * Copyright (C) 2026 Pavel Begunkov <asml.silence@gmail.com>
+  */
+ 
+-#ifndef _NVME_PCI_DMABUF_H
+-#define _NVME_PCI_DMABUF_H
++#ifndef _NVME_DMABUF_H
++#define _NVME_DMABUF_H
+ 
+ #include <linux/dma-buf-io.h>
+ 
+@@ -44,15 +44,15 @@ static inline struct nvme_dmabuf_map *nvme_req_to_map(struct request *req)
+ 	return to_nvme_dmabuf_map(map);
+ }
+ 
+-void __nvme_pci_remove_dmabuf(struct nvme_dma_buf_list *list);
++void __nvme_remove_dmabufs(struct nvme_dma_buf_list *list);
+ int __nvme_init_dma_buf_io_ctx(struct nvme_ctrl *ctrl,
+ 		struct nvme_dma_buf_list *buf_list,
+ 		struct dma_buf_io_ctx *ctx);
+ 
+-static inline void nvme_pci_remove_dmabuf(struct nvme_dma_buf_list *list)
++static inline void nvme_remove_dmabufs(struct nvme_dma_buf_list *list)
+ {
+ 	if (IS_ENABLED(CONFIG_DMA_SHARED_BUFFER))
+-		__nvme_pci_remove_dmabuf(list);
++		__nvme_remove_dmabufs(list);
+ }
+ 
+ static inline int nvme_init_dma_buf_io_ctx(struct nvme_ctrl *ctrl,
+@@ -72,4 +72,4 @@ static inline void nvme_init_buf_list(struct nvme_dma_buf_list *buf_list)
+ }
+ 
+ 
+-#endif /* _NVME_PCI_DMABUF_H */
+\ No newline at end of file
++#endif /* _NVME_DMABUF_H */
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index 076603df01ab..1af356abde0b 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -30,7 +30,7 @@
+ 
+ #include "trace.h"
+ #include "nvme.h"
+-#include "pci-dmabuf.h"
++#include "dmabuf.h"
+ 
+ #define SQ_SIZE(q)	((q)->q_depth << (q)->sqes)
+ #define CQ_SIZE(q)	((q)->q_depth * sizeof(struct nvme_completion))
+@@ -4129,7 +4129,7 @@ static void nvme_remove(struct pci_dev *pdev)
+ 	nvme_stop_ctrl(&dev->ctrl);
+ 	nvme_remove_namespaces(&dev->ctrl);
+ 	nvme_dev_disable(dev, true);
+-	nvme_pci_remove_dmabuf(&dev->dmabufs);
++	nvme_remove_dmabufs(&dev->dmabufs);
+ 	nvme_free_host_mem(dev);
+ 	nvme_dev_remove_admin(dev);
+ 	nvme_dbbuf_dma_free(dev);
+@@ -4571,6 +4571,5 @@ MODULE_AUTHOR("Matthew Wilcox <willy@linux.intel.com>");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION("1.0");
+ MODULE_DESCRIPTION("NVMe host PCIe transport driver");
+-MODULE_IMPORT_NS("DMA_BUF");
+ module_init(nvme_init);
+ module_exit(nvme_exit);
+-- 
+2.25.1
+
