@@ -1,54 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794994192;
-	b=W7wZuJ6IFHhbkh0vhCCX0mT4VaxvPacJLBgKCKPzPP2BX+t3bo66rWNQ5VuU2kJfOuop
-	 /jRcXgpeA6opcphjg8uzL3z6fIHv99wBaS/ktJIoTxkUnH7irQXsExNZ6heTDELA8LS/L
-	 /hohQUGqKrOggOz+juMV3P2HS0+ldh54jK0MpaEYF4679f598tApWw9GcZuImscMzmtKV
-	 n2NshPeqhqEbHLE4D/cqDOsgBI4W81XUsDxvHRFmSOkfPy+vEUjx5gpSad6v0R1OIZKwc
-	 dlRxeDjadMV7HZGxwMlC4PLKuyXql3hUZe/c9smLrxcHYfvwgVgJAsh0/QTj8NU2abA==
+	t=1794994193;
+	b=1PNorny6aHf2/2sz7CBaCYHdbSmZDzuJnwaxWCSrBOKWx6OCfIntnmVvoiH9eL+XSQbd
+	 KmMXd04WG5G7LlppLOmAF2F7Us8IKi6mHEvBK/hbvBcpDArl+xx8EcAtsrFN3gT83dDlB
+	 9xLyplGKzmAjlrzJmaHB4yVNot9gBgpAGfuZnyPZiL4eoKbd3ydtJpApzbQ+9GTQfO/L+
+	 SPfY57QQDmMN8k2qKAERhwqChqMTOw1WQ/STTbQeZF4Fe107VfDEV1VhI4CURbY3kGkyc
+	 Y4GVPmDzeiXxlG2h9ktYM3PuTd/gOKgL31Vrk2YEUTUwxn/1pm6yw8z9tDAlhjjezdg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794994192;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794994193;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=3FmT4x0AGQiXOoUB+tu9FoT5HCiqQaxWcSHtrZ6+7nQ=;
-	b=Uyj1bNvvuFnJVyWbA3FWB6n66Dt9ne9/HTpekyCPtVOUcky3tEar8YkmugM/q5vzfZ8d
-	 B5Run2M55RMtZxj3xCI7baoWiklACnx+3ZeMm2xCPJYMPhKH9lGB5mfvzqbU4bF28UzY/
-	 Eb1f3JF2PCImFr8kCJGZ6Cs+AGP2TAz3V03/vMFfwYCUj001yKFvDPmdEL+jlKTLmp1Wc
-	 BZ7b31gHXLUk6lH1btoBgS2OGkLygU5AqyqiOal30tY7VRGNVa+zsMtjpnQjeN75tza76
-	 opMQX2Ez8NW+bYi3LpGbhILWUq3dzH0A8MqemFAqhoN7Cbm7eQPnL/SXGU4SMWuwyXQ==
+	bh=FOQol5O1U6GhJ1VYtI8ylsy4SJ5t3hT2iiBF+lR6fU8=;
+	b=n1zL44REpaVb/Yw/0NvEjPxB2826c5N1W3Yp6DteVoiQRPNAQ561lLMvyBWndXQMXhWO
+	 UwQXdbua6cguYCRnntE03PRzePGkWu44PfmW3alSvAjMPnLEahxOLVAIFWm77vpCLlcbA
+	 A+L17+C/6N0XazgkTLuOicLSgRyalP1n6z05QSlWzbEIy7+/91EROUMnSJLwUVIEmZDsp
+	 yn0gciB7FSDRvDJmgIvODtR/vHqQHS8/DAKwTupDEIAVmVn5R8/tpg/Th7LWY1HABEyI3
+	 xwFHe5Rn9iBad2c23czSmyBHr30oAlwEO6bOls2PDMFLDcnHsmbZPWGAZT+hkVh2XeA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VAMLpWCZ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=M3D3WWrL;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14125606A32A
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 09:29:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FD0E606A31C
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 09:29:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VAMLpWCZ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A75B11F000C4;
-	Wed, 18 Nov 2026 09:29:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=M3D3WWrL
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E95C81F000C6;
+	Wed, 18 Nov 2026 09:29:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794994191;
-	bh=3FmT4x0AGQiXOoUB+tu9FoT5HCiqQaxWcSHtrZ6+7nQ=;
+	s=k20260515; t=1794994193;
+	bh=FOQol5O1U6GhJ1VYtI8ylsy4SJ5t3hT2iiBF+lR6fU8=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=VAMLpWCZLTqAsm+pY3S2yo3OcBvfwv0Po5gzt/cQ1BVojbYM5pGumVTmCueu+4+lk
-	 6L1SjQhKHJEx2LuLKk4SnHUtlPqiqJqwdG4i0PhQsbV3fZZsnGyYT162CwB4kGjvq2
-	 KAF5RmM1gV3PUTVypIYvbBLnEVsAWaFyPtBGOt0+Cy/6ORUXmvSxjTSzjT6aEp+VFI
-	 QVv2rO8nS6bDec/lw5lXZ1MMhVXzID/bEWXkFuNWO5XBKVnn/0htjQwLmjCLm/CUBE
-	 wCN+p2HZ/eZYXiHh5kcaSEz33/qMFQpOC8a3WT/fR1QwF2hlQiiL7QezTZRS3q1k8i
-	 WqKKMNj1LlQJA==
-Message-ID: <sashiko-outbox-220565@kernel.org>
+	b=M3D3WWrLQXTkQN77VKhrUJllA5EsYHtxrzJbD9WogHofrDWQOnYkCrj2Sozbh/u2y
+	 DHhOG6yP6PZrspdCL+kDQfG/1vT1t9PyAlfniz1v4IVMmvZtzv9rEmMydqxfu2yzUX
+	 aWS2aY1ynwJ0PoVTY00ctONbY68GK4FKn3PHoZOycuADuBO/Ba3ow9wdSA098aDMR/
+	 83XIra0fLNjIfrcQ3rC1rqAZGk5lPtOqO768KpqjZ9seYIA/g1xx8VKbvP6CcNmlLS
+	 mGjOg7yDiORuVARteVrB+56Oka8UDZI64TEkA9HrWOzGdm0tpywQpVTc3k11uEZexC
+	 +eauFVdbCgPNw==
+Message-ID: <sashiko-outbox-220566@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v2 04/10] net/mlx5e: TC, refuse a tunnel key
- wider than the VNI
+Subject: Re: [PATCH net-next v2 05/10] net/mlx5e: TC, reject a partial
+ tunnel key with tunnel mapping
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Alexandre Cassen" <acassen@corp.free.fr>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261117092915.255194-5-acassen@corp.free.fr>
+In-Reply-To: <20261117092915.255194-6-acassen@corp.free.fr>
 References: <20261117092915.255194-1-acassen@corp.free.fr>
- <20261117092915.255194-5-acassen@corp.free.fr>
+ <20261117092915.255194-6-acassen@corp.free.fr>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Wed, 18 Nov 2026 09:29:51 +0000
@@ -61,26 +61,22 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> VXLAN and GENEVE flows truncate the key and the mask of enc_key_id to a 24
-> bit VNI. An exact key above bit 23 already selects the wrong VNI. Flower
-> is about to accept partial masks. A mask that only covers bits above 23
-> would then match any VNI. Refuse a key that no VNI can match. GRE keeps
-> its 32 bit key.
+> Tunnel mapping stores the matched tunnel key. The metadata of a packet
+> missing in hardware after a goto chain or a sample is restored from it.
+> A partial enc_key_id mask would restore a wrong tunnel id. Flower is about
+> to accept such masks.
+>=20
+> Tunnel options with a partial class or type are already rejected here.
+> Rules without tunnel mapping keep working.
 >=20
 > Found by an AI code review agent while auditing the users of enc_key_id.
-> Confirmed by code inspection. The wrong match was not triggered. Tested
-> on ConnectX-7 with firmware 28.48.1000 in switchdev mode on VXLAN, GENEVE
-> and gretap devices.
+> Tested on ConnectX-7 with firmware 28.48.1000 in switchdev mode.
 >=20
-> Fixes: bbd00f7e2349 ("net/mlx5e: Add TC tunnel release action for SRIOV o=
-ffloads")
-> Fixes: 9272e3df3023 ("net/mlx5e: Geneve, Add support for encap/decap flow=
-s offload")
 > Signed-off-by: Alexandre Cassen <acassen@corp.free.fr>
 
 Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261117092915.2551=
-94-1-acassen@corp.free.fr?part=3D4
+94-1-acassen@corp.free.fr?part=3D5
 
