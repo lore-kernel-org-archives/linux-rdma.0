@@ -1,54 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795010656;
-	b=i1ps/JDpJ7LoHj725TO3XogdhVc2RwLJwB+E/cBB87dbVN6+dJQmnYk0lLgrZBghFydS
-	 r90yLUpyvrQ8TglKtgz2DbTzre1gHL4M694FdmplkqZ7s2ds0QzDNGwDMpPXDPxRtSG2V
-	 WcYjFbJPuKKU4AU4zkKAHT0LWAcQp8Ek5aVsAEco9JA6IR9hS+PKqVwcSHQC2clKl79dL
-	 t8yaAs3bUGTdgn0cYpEzqlaqNO5S6DbfXYB139iXsoUc3s6loD0WoAVOwDWtP53sCMBzD
-	 cz02dF1eHjLiia06a6BPAxzkV8D2Wxz9yqk/TyNtO0WixBrzYfXpYwhOzc8P9Kld1iQ==
+	t=1795010657;
+	b=OHwAB95YYUwvOBmmN+f/oCiVcf290Tkq076KgcPrpANbKakM+n9tDonc9jTPEn0j8I/j
+	 787o1ukWCrxzebjF+xvtvdmQS+aoI/q/kkRBsKgWXwoMUV7ThR0z3mgElTYt93dxNUkSv
+	 50Hjk6F/t1K1stOaGx7Bq9FFDcDyIQcYJrJXH/FWmxp93s3qVjm2IdVeIOuGMaSfyQXBp
+	 GEI1WFkkgQoGEcGe10Yr9ZxTOHb7MZFDbBfPtzez57OAQo5Nnf99UTp+rH2bfkfI8jOoR
+	 GKAkygcEA/djd/7FBfTgaVIkVfsQTQoNgUiO8B+hN62FjFCfrsvbDc2Q9es3xx8BNKQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795010656;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795010657;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=jLD1R8Sgpu70Uw6pLiBvwiaKLm/oclmkfKXXKIlxoIc=;
-	b=1ggHAuW+tes0oIFobfPnfylcBMFc7N3W85yp9kTbod7ZNa0QOinqx4XNbdLLrnneKKj0
-	 5nZHgkSrAhxF/ghFiv1ucYEak10rwGvdlKvRDRIfeW2HHRfMmoHLyOQ6z1FVC8wS8d8dw
-	 gmZbyxKSF8MbIqviop95w12qMWtiKZttGi/ScA48OPjZoyRuvNFmzsvtgNhhYwxabBiXM
-	 trze/WV0PbgeY4fIorxJw/VKEwR2LG9hZJv6QLql5WqtoQfc2pc93yvA+KKq8/wE6iGO+
-	 kMTbs4o9wsLcOFiiiDjRoa55tEmCR9Bd+Dd0qE9hdPiEOt3u65TgUGWM59vxKoiRoXw==
+	bh=EXO5FBGuL+QzwnmTsSj6hOqoyeNKUOP7Gvpwg4eb29g=;
+	b=j3vpsPf2IpMS0GswxKMdSmGaf93yjhqzGmnsIIGYE4miY8pktKPKI6fpy8k5MLY8mqYm
+	 cMUXpTuxE5DJKng2YJJ7KQj3bu9ptoBFSvvYbRdUDYyCbRyci5v5F3rxjilsNqNZHxhzv
+	 xvFkjkf5Dj8NWRUCs2LeC8TZ0yDk2HhhryyyIZqe5Xg+Q9lyu4xykIhTfGhz3xu5ejo3H
+	 hZ6EkvYJ2UIxcwenmk5BSR/2T17NJEyILNLNV7iExH/M1fAdGK1407jEzmyLqoXHjQLCp
+	 hsd78ZRD2Kbekh+lbwWKnqirJYNSiBrrBcPgYAJDcpb6Zrb8UJaRZabiHZLE2oZdtUQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FUCigQcU;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="MyMjRn/5";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDC4C606A338
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 14:04:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 792B5606A33E
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 14:04:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FUCigQcU
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DE731F000C4;
-	Wed, 18 Nov 2026 14:04:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=MyMjRn/5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D8FD1F000C4;
+	Wed, 18 Nov 2026 14:04:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795010656;
-	bh=jLD1R8Sgpu70Uw6pLiBvwiaKLm/oclmkfKXXKIlxoIc=;
+	s=k20260515; t=1795010657;
+	bh=EXO5FBGuL+QzwnmTsSj6hOqoyeNKUOP7Gvpwg4eb29g=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=FUCigQcUH9vqg20FZLi0nMgji7QCrIM/qbCUA5I8zUKPEooyZeS5fMifkx4RP4M4g
-	 n7Ollva4cy1DWEdfQD5bhuBn8ftk9/kj/ZqDNVSlMGeU0oVQIAreOBLNNdVwlTX9Nw
-	 Wsa6p2fjyFT5kZQeeYF5+uqsS+H7ANyM3G6t5twj+wohtj8qvdYmnXfRkBelOqSAbZ
-	 y/KbGLf4kAtNnZbuuDKwdklHVXuj8JGFRXGa1CCYPszxqr4K2dMRZr7NQ5tWw6ZdMv
-	 j2OKhFDnvtoFm3x9gHjb7sCEut0YC5U7i9BPN3Oidguz0f2UCW3bNwoVFzn3jRuVzv
-	 9e4jzcy/LXWiQ==
-Message-ID: <sashiko-outbox-221133@kernel.org>
+	b=MyMjRn/5dUWm8N3S9+r/rTm93ZEMW2mruy1BAZcMeiC5djtgI8qJezx0Qgt1N6ppv
+	 pTwfHIlkNIyTBLTmviDb1O1w7PJKJwM8RTnlFaA/0fpaLE18O54fRpW8TlvsCPYLv5
+	 HM3WRm7lufV9mWl/X7JJl9CT3bFJjKJs4ne0jijfwswi+e+sUKjzeAvGB/jyZ1az7D
+	 5rxLUhwHY/i/ro4+royOc3c18WuH3osnBGp5q0KD8hwTNmUqxxj/x1vi6+yP7ioZwM
+	 +B0I37T99omfESj325Pw7wAxcsto9GJQwzSLB4vocN09ryPi8qwZm/ewWsG8uNBEi5
+	 SnPeBRgORXojQ==
+Message-ID: <sashiko-outbox-221134@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next 04/11] RDMA/mlx5: Select the core device
- through PD for QP commands
+Subject: Re: [PATCH rdma-next 05/11] RDMA/mlx5: Cache the MR core device and
+ resolve the MW's via its PD
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Edward Srouji" <edwards@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261117-mlx5-sd-prep-v1-4-8efd124c7895@nvidia.com>
+In-Reply-To: <20261117-mlx5-sd-prep-v1-5-8efd124c7895@nvidia.com>
 References: <20261117-mlx5-sd-prep-v1-0-8efd124c7895@nvidia.com>
- <20261117-mlx5-sd-prep-v1-4-8efd124c7895@nvidia.com>
+ <20261117-mlx5-sd-prep-v1-5-8efd124c7895@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Wed, 18 Nov 2026 14:04:16 +0000
@@ -62,118 +62,82 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
 Thank you for your contribution! Sashiko AI review found no new issues
-in this patch, but noticed 2 related pre-existing issues it does not
+in this patch, but noticed 1 related pre-existing issue it does not
 introduce:
-- [Critical] RDMA/mlx5: unhandled error in destroy_raw_packet_qp_rq()
-  causes use-after-free [1]
-- [High] RDMA/mlx5: unchecked to_ib_qp_state() return in query_qp_attr()
-  [2]
+- [High] RDMA/mlx5: unlocked state check in mlx5r_umr_post_send() misses
+  error flush [1]
 --
 
-commit c8de8977935b4bc94238c72869a744ae61d62546
+commit 6252ceba1b31eba36693680458665fa14b71227b
 Author: Akiva Goldberger <agoldberger@nvidia.com>
 
-RDMA/mlx5: Select the core device through PD for QP commands
+RDMA/mlx5: Cache the MR core device and resolve the MW's via its PD
 
-This commit introduces qp_to_mdev() to resolve the core device from a QP's
-associated PD and updates QP, RQ, SQ, and DCT command helpers to obtain the
-core device from the PD or caller.
+This commit caches the mlx5_core_dev pointer in struct mlx5_ib_mr and adds
+mr_to_mdev() and mw_to_mdev() helpers so MR and MW operations resolve the
+core device from the resource instead of dev->mdev.
 
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5=
-/qp.c
-> index da4e9a52d2f9b..2196e06f593e1 100644
-> --- a/drivers/infiniband/hw/mlx5/qp.c
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-
-[ ... ]
-
-> @@ -1526,17 +1525,16 @@ static int create_raw_packet_qp_rq(struct mlx5_ib=
-_dev *dev,
->  	pas =3D (__be64 *)MLX5_ADDR_OF(wq, wq, pas);
->  	mlx5_ib_populate_pas(umem, page_size, pas, 0);
-> =20
-> -	err =3D mlx5_core_create_rq_tracked(dev, in, inlen, &rq->base.mqp);
-> +	err =3D mlx5_core_create_rq_tracked(pd, in, inlen, &rq->base.mqp);
-> =20
->  	kvfree(in);
-> =20
->  	return err;
->  }
-> =20
-> -static void destroy_raw_packet_qp_rq(struct mlx5_ib_dev *dev,
-> -				     struct mlx5_ib_rq *rq)
-> +static void destroy_raw_packet_qp_rq(struct ib_pd *pd, struct mlx5_ib_rq=
- *rq)
->  {
-> -	mlx5_core_destroy_rq_tracked(dev, &rq->base.mqp);
-> +	mlx5_core_destroy_rq_tracked(pd, &rq->base.mqp);
->  }
-
-[Severity: Critical]
-This problem wasn't introduced by this patch, but can ignoring the return
-value of mlx5_core_destroy_rq_tracked() in destroy_raw_packet_qp_rq()
-[1] cause a use-after-free?
-
-When the firmware DESTROY_RQ command fails, mlx5_core_destroy_rq_tracked()
-re-enables the resource and leaves &rq->base.mqp in dev->qp_table.tree:
-
-drivers/infiniband/hw/mlx5/qpc.c:mlx5_core_destroy_rq_tracked() {
-	...
-	modify_resource_common_state(dev, rq, true);
-	ret =3D destroy_rq_tracked(pd_to_mdev(pd), rq->qpn, rq->uid);
-	if (ret) {
-		modify_resource_common_state(dev, rq, false);
-		return ret;
-	}
-	destroy_resource_common(dev, rq);
-	return 0;
-}
-
-Because destroy_raw_packet_qp_rq() drops that error, raw packet QP teardown
-completes and frees the enclosing mlx5_ib_qp.  If an asynchronous firmware
-event later arrives for the undestroyed RQ, rsc_event_notifier() looks up
-the dangling pointer in the radix tree and calls qp->event() on freed
-memory.
+> diff --git a/drivers/infiniband/hw/mlx5/umr.c b/drivers/infiniband/hw/mlx=
+5/umr.c
+> index f030885505df5..f9485591130d3 100644
+> --- a/drivers/infiniband/hw/mlx5/umr.c
+> +++ b/drivers/infiniband/hw/mlx5/umr.c
 
 [ ... ]
 
-> @@ -5122,8 +5123,8 @@ static int query_qp_attr(struct mlx5_ib_dev *dev, s=
-truct mlx5_ib_qp *qp,
->  	if (!outb)
->  		return -ENOMEM;
-> =20
-> -	err =3D mlx5_core_qp_query(dev, &qp->trans_qp.base.mqp, outb, outlen,
-> -				 false);
-> +	err =3D mlx5_core_qp_query(qp_to_mdev(qp), &qp->trans_qp.base.mqp, outb,
-> +				 outlen, false);
->  	if (err)
->  		goto out;
+> @@ -243,8 +243,7 @@ static int mlx5r_umr_post_send(struct ib_qp *ibqp, u3=
+2 mkey, struct ib_cqe *cqe,
+>  		with_data ? sizeof(struct mlx5r_umr_wqe) :
+>  			    sizeof(struct mlx5r_umr_wqe) -
+>  				    sizeof(struct mlx5_wqe_data_seg);
+> -	struct mlx5_ib_dev *dev =3D to_dev(ibqp->device);
+> -	struct mlx5_core_dev *mdev =3D dev->mdev;
+> +	struct mlx5_core_dev *mdev =3D qp_to_mdev(ibqp);
+>  	struct mlx5_ib_qp *qp =3D to_mqp(ibqp);
+>  	struct mlx5_wqe_ctrl_seg *ctrl;
+>  	union {
 
 [Severity: High]
-This problem wasn't introduced by this patch, but can query_qp_attr() store
-an invalid state in qp->state [2] and cause an out-of-bounds read
-in ib_modify_qp_is_ok()?
+This problem wasn't introduced by this patch, but can checking mdev->state
+outside qp->sq.lock in mlx5r_umr_post_send() [1] cause
+mlx5r_umr_post_send_wait() to hang forever in wait_for_completion()?
 
-Just below this call, query_qp_attr() assigns to_ib_qp_state() directly to
- the u8 field qp->state:
+mlx5_ib_handle_internal_error() walks ibdev->qp_list under mqp->sq.lock and
+arms send_mcq for software flushing only when mqp->sq.tail !=3D mqp->sq.hea=
+d.
+Because mlx5r_umr_post_send() checks mdev->state before taking qp->sq.lock,
+it can queue a WQE after the error handler has already checked the SQ:
 
-drivers/infiniband/hw/mlx5/qp.c:query_qp_attr() {
-	...
-	qpc =3D MLX5_ADDR_OF(query_qp_out, outb, qpc);
+CPU0                                  CPU1
+mlx5r_umr_post_send_wait()
+  down(&umrc->sem)
+  mlx5r_umr_post_send()
+    if (mdev->state =3D=3D
+        MLX5_DEVICE_STATE_INTERNAL_ERROR)
+                                      enter_error_state()
+                                        mdev->state =3D
+                                          MLX5_DEVICE_STATE_INTERNAL_ERROR
+                                        mlx5_ib_handle_internal_error()
+                                          spin_lock(&mqp->sq.lock)
+                                          if (mqp->sq.tail !=3D mqp->sq.hea=
+d)
+                                            /* arm send_mcq for SW flush */
+                                          spin_unlock(&mqp->sq.lock)
+    spin_lock_irqsave(&qp->sq.lock, flags)
+    mlx5r_finish_wqe(...)
+    mlx5r_ring_db(...)
+    spin_unlock_irqrestore(&qp->sq.lock, flags)
+  wait_for_completion(&umr_context.done)  <-- hangs forever holding umrc->s=
+em
 
-	qp->state =3D to_ib_qp_state(MLX5_GET(qpc, qpc, state));
-	...
-}
+With hardware completions stopped and software flushing already past this Q=
+P,
+umr_context.done is never completed, blocking subsequent UMR operations and
+device teardown on umrc->sem.  Checking mdev->state under qp->sq.lock (as
+mlx5_ib_post_send() does) avoids this race.
 
-For any hardware QPC state not handled in to_ib_qp_state() (such as
-MLX5_QP_STATE_SUSPENDED), to_ib_qp_state() returns -1, which truncates to
-255 in qp->state.  A subsequent mlx5_ib_modify_qp() call without
-IB_QP_CUR_STATE in attr_mask passes cur_state =3D qp->state (255) to
-ib_modify_qp_is_ok(), indexing past the 7x7 qp_state_table[] array.
-
-[1] https://sashiko.dev/#/bug/linux-314256a0-4860-4700-943f-7cc6aed26289
-[2] https://sashiko.dev/#/bug/linux-05b234dc-14ed-449f-97cf-d7b4682a7a8d
+[1] https://sashiko.dev/#/bug/linux-d43f2378-f2de-4246-8c9d-53b5f5f256a1
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261117-mlx5-sd-pr=
-ep-v1-0-8efd124c7895@nvidia.com?part=3D4
+ep-v1-0-8efd124c7895@nvidia.com?part=3D5
