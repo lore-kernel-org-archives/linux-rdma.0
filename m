@@ -1,107 +1,94 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=67.231.153.30
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795029316;
-	b=BukKRpQ2V+I+TE4WUTWn27N9vGg5TeiRUkmlimC4Ecx2RJeOKIXCQ6S5a2MdfMmiRYTc
-	 /dJWUMx4rKREc8MhbkGBuIr5hIxTDo/t4CbnT9LMSkVvXNKgzBA8u5xXuMKox2vYZpN4I
-	 G6QTDyVXIQKRSMeQw74mP761Mrh03hqH6uoU1bXxU199iUL91Mrrr51EUZJ5L4YrBvmhJ
-	 FiaxF9DwX0F7UV2puSshblGE8tR76u05FimqTM/EqlpV90b8Ce8/ff59NlnK48yTV9wBO
-	 2p6iN2Yi0Tjhu4+xBwGFlvAKLHuYTs9oPVZAYLP1e36aEEDLLiQjsx6sDk5NARUShEg==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795029316;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 X-Google-DKIM-Signature:X-Forwarded-Encrypted:X-Gm-Message-State:
-	 X-Gm-Gg:X-Received:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gm-Features:Message-ID:Subject:To:Cc:Content-Type:
-	 X-Proofpoint-ORIG-GUID:X-Proofpoint-Spam-Info:X-Proofpoint-GUID:
-	 X-Authority-Analysis:X-Proofpoint-Spam-Details-Enc:
-	 X-Proofpoint-Virus-Version;
-	bh=+xA+qBnR4DhGTpzy0NbqbmSwtcknsJxtpzKOLUxHJh8=;
-	b=I2cTaIhW+15JuutI+Neupg3MFlpo8PVhQ2PW6W58Zu1zcYD23jEcaITe4IqW8lDu7B6R
-	 dxH3W0zGzLRTaOiPwUcp5C2wbtTndU7sNcecGcn7UaLyND2ETTwUCP0mmwkulezO6Ak6Q
-	 ZxBCcCmhefmAm+YILwA77zdON/NO/wS4f3xumbQIS4c5Inwo3/+W9haoS6D/178C44NnW
-	 SpQShdtAhbAELPU990JrSGg9j/+jIEaZz6BfbBkUzGNCNtJkX60E36G3ezTTzbFq97Qtv
-	 BofnVTcYYM2yeNpy+FBxmQ6PFe8glhKUh8MFkkFSDA+Tiwm2SbxKjsr8BVp5Hm1Tb3Q==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=meta.com;
-	spf=pass smtp.mailfrom=meta.com;
-	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=CI0coo5M;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=67.231.153.30
-Received: from mx0b-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.42
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795036514;
+	b=evkxiVzkyI/R4tD8QGy1o4ZAxLNUf4V/ben/H55FuXTwmWwmAsg9r7A4V0sgUS+NL8aM
+	 +k75ZtGD1Hb+cp/zioMzH8nIRhTZVHC4ksamxCAjeKFn074B1+lzJRq2+wa6WJgAKeAPx
+	 biz7BEgb6vEyEEPsd/CYSPQSQSQIq8AckElA9G5AJzV0qZAhUZYXVSxyuotRcPt23oVfv
+	 fLmaShCF/NOskh0lq5aZPkUkqG1EaZjaxcDCrMtiagKYsV3Bogun9os9WUR64FcRiPoTz
+	 P/Neqcw2s59pj3J1FOVv0UBdH3jCgehIeIFDRnt5jfv/+UkMySLr4lxY/Uq/nf9qLTQ==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795036514;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=dQMT0iyssFp+SUjt/H/xp3SSQ9EubviEVTCBFM7XGyI=;
+	b=u17ZGo5tfaA6q4eOg+ASesCBPQEAO9IFBrGVPw10nT/dJ9tHQOJVubf3+//vwXMCUH1J
+	 btspzqLtrO9yD4efyW5S/LsZaYoy6vzj4sSCc1WVyYLZSgdlhCJIO2Fh/U1iAzJollVGE
+	 W45FpQiQiwkkqLA2dt0MGMPqCdWbGJqzBTzy9w9B1lrxL8rc4OQvVGRmihF/wxacns5y5
+	 4Uy6qnpIsaOWTod7qc9ir21SYx62DXkmtL23Z26U6BMVqXYzHN7Q0+/ZqoKsoDZQgnY+x
+	 MfA9T1sfX095t0qmHtYxsJlLiq+7QgGZl64MiOPAuaPYtUujSGI8PqXtipYr31EVfjQ==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=fail header.from=isslab.korea.ac.kr;
+	spf=none smtp.mailfrom=isslab.korea.ac.kr;
+	dkim=pass header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=l6T+ewem;
+	arc=none smtp.remote-ip=209.85.216.42
+Received: from mail-pj1-f42.google.com (mail-pj1-f42.google.com [209.85.216.42])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41000606A334
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 19:15:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 41000606A334
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11423606A31C
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 21:15:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 11423606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=CI0coo5M
-Received: from pps.filterd (m0109332.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AIHGJuP154243
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 11:15:15 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pps82601-s2048-2026-q3; bh=+xA+qBnR4Dh
-	GTpzy0NbqbmSwtcknsJxtpzKOLUxHJh8=; b=CI0coo5MCl6PeMetoQwNQwkRIbu
-	JiJgmxit9cRt2nDJWrdAARftxPhoMHNyIVJskaAed9S2yJwVu7Ra0ZkweQuyB5yF
-	guA6b+B7Ror/Ay/Qt7H0gVuOq2ynwudmNifTkBxQAYnk71ts4xr1AaSkk4W+eOa8
-	idyTtCCV0m4sS5SbBYGeYAKxD77vl1xiK52a0aXDUovzXZHhLZIrtRdrfVhCe76Q
-	12cyZpAXp16EprTl+WZPucOgkRXsuml9kXyb/gOq3sIF+GsDHZrnxqsx5q2OGKk9
-	Lta3g/1SFu0Ht7eUlEGwKj9v2nyojzUDtpEBFE/6gMcWgBLoOUalALEMPcw==
-Received: from mail-pf1-f198.google.com (mail-pf1-f198.google.com [209.85.210.198])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j0yu808a1-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 11:15:15 -0800 (PST)
-Received: by mail-pf1-f198.google.com with SMTP id d2e1a72fcca58-8b7cc3f8a4aso1026461b3a.3
-        for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 11:15:15 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1795029314; cv=none;
-        d=google.com; s=arc-20260327;
-        b=LM2hZGxsyNzhXc6738JIJGNuGtTRjRCoUVljXJXU+zOcQquibPRvklIWSdx/b8C8xT
-         KE3wmmRK1XsZg5jRIKFU4QXjiKsidvwnKSogTYCxuRHLDcmIsqiGkZ0MUDq6BVFwQJ67
-         306himYN4ue4F57UQeXffI9upcWzNYpjIzIDyIfgcfzQGy4q6zIyA/AIJJ5UL2MR5fo7
-         GXPG6JNFX0/8kVARbvT4Vj6gcTKAOEkDBSNpDaKwJcQ+oZQ+Q1Jl5HNvtmqtc182G+CS
-         84jSa4TxJU6UQ3uZa2ugMk/UfWsVO6Th+JvanFD5R0DxGUXmIcA15VJQMvndg2bQjnp+
-         qbDQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version;
-        bh=+xA+qBnR4DhGTpzy0NbqbmSwtcknsJxtpzKOLUxHJh8=;
-        fh=xkc+HWZXCznach4agIJmuFj6F57q+ukwxEDw7+ZRkMA=;
-        b=dPtNaAGqbfnMyCri6x10ePogOEn76FF8HomjRDw4AIp9o6DW32B/Np9856jgIMyGZx
-         0LjhLQVBkAEFiDJM964Z1IRsgwi8uvvIs0Ac7LelDXla8XULKMdmovXHv4gYdRootSMA
-         qiz8kdYCQtCrO7f1SFSGwl00y8r+cMWT6V595n8PtCVi+n73MC2+dA6wvxudl79fcsqh
-         RRSA0GaIfVb2vnkSSCqTfz/Uo6d6BxJnTOWOUF4IrfexKl2mODHCukPcdgl5mnbXUg5D
-         YbnIX0QiVsWD8GTS/+7S5rPcY0nl/KcFFZUQIZ5KHVSgSbKu1fN12UeXMo+2KdeKj0V8
-         SsyQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=l6T+ewem
+Received: by mail-pj1-f42.google.com with SMTP id 98e67ed59e1d1-3acb11973c3so1282600a91.3
+        for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 13:15:12 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=isslab-korea-ac-kr.20260707.gappssmtp.com; s=20260707; t=1795036512; x=1795641312; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=dQMT0iyssFp+SUjt/H/xp3SSQ9EubviEVTCBFM7XGyI=;
+        b=l6T+ewemSmDIS+zZRpl4QLm5f5I/r/IbXU1O4DXr7tZh37GKF3Zb2MidXPEXo3uVFg
+         khkrntIWjj2H2V0/siMSFJNCw6o5Tb8i8bR0mT7rt/vTosaPAArJkQ2CYur0ZITzgV9Y
+         a8hauKyywE+NAYkCRm3mbHjTIk178Srd/1L0RUP0jmgrju9VaZhWPW3a6w50TJhe3yzR
+         BWTsPvIwYBcgDOdRiqC0fCbY9ON3zIszvZFRT8cggNIZIBPuutR4JCkpucZdfrpzTR9e
+         jR9owf5tXFbwOnKQnqREWXqIEkxGt8SleZt9AaoiqRdjTD1Lh1fKPr15AREYf3UEGNEx
+         VPmg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795029314; x=1795634114;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=+xA+qBnR4DhGTpzy0NbqbmSwtcknsJxtpzKOLUxHJh8=;
-        b=bDZUCtqFF6/ovwYTsyeItwGdL0E4ky7Qb7oPjIuvvwJA8gZwEFffx+9/IJmRlUtn4B
-         QCWnOvxsJLSFeH9I9ydFTnqFAYNjoo1AUuDA9xj93ErfiQlSb6LtSKxzakKto5W8UjWm
-         5kb0JH0n9WKd+8s/0ZY88szXjjDmSMazghSgUbbjmO9ix2rB+/8zUexV1X4TO8YfuhiV
-         47hB6fTd8l7O87of9hp6ICFwH+Y+uGjKZZnMK09Lm+ySUSdEYMljkCXhoIAZN5ouHc1N
-         zPnqm3u3hQlEk0ew7Jcccv/t4FUY8g4MUzAeSAvbaEmGPZsjACSu/f685qphs/GY8I8W
-         KitA==
-X-Forwarded-Encrypted: i=1; AL+hErEqxs4+ZE8TR4VM+weA1ReqpItpde65P2vP5PsrO3USPl1Hkq/5Ril1yuvrq4JWhtlijNJ2/7uwsVVs@vger.kernel.org
-X-Gm-Message-State: APuU4Z/PYSzuhReAdKvd51Rs5EvCJ0ARJ99SsoJ+ke1Eh/T6pKehlAhz
-	7hyFpTEvnUpEKFihjx5Papm4WuteVv3MGLLYKA+eHXiXG71qlP0mzvifVgfDXg7/Qe7cW0BMWfs
-	0wzEKUjhkLkQwXnbMYZhBF2TQsMJmgcdXh4TTdK27t4BRdh+fO+cuIXCgEeBuDxe+UwvbwFk46/
-	sfux8YZX5GoAal4SPVr48RJSMrAs7YAaIDG7ZX
-X-Gm-Gg: AYBFou3Rm0IcbnorNyB1ElsjQBrQZdqs4vGy6Aadk6qGbPXS7F4eTVlgV+LVSB5vBUr
-	1ZXopw16JqRwhkJuKk9eyrzwRlfMuBIgyfoHWEKDbtlXq7aJ6DOvVrl5Wu+HDejLZx70hRXV0Ra
-	olLQDvsk4PeuBzv5kGcB9n5Cn0oMXEU2B1KHbkga2kWUMeI/w62UTS0D3R4u0OwkTDJ6EiBOJvq
-	67UU5mFfDy1bEXqKEivrm9qUsQFzhiU
-X-Received: by 2002:a05:6a00:32c7:b0:880:e4a7:b1aa with SMTP id d2e1a72fcca58-8c5d46deeffmr3344619b3a.55.1795029313737;
-        Wed, 18 Nov 2026 11:15:13 -0800 (PST)
-X-Received: by 2002:a05:6a00:32c7:b0:880:e4a7:b1aa with SMTP id
- d2e1a72fcca58-8c5d46deeffmr3344573b3a.55.1795029313133; Wed, 18 Nov 2026
- 11:15:13 -0800 (PST)
+        d=1e100.net; s=20260707; t=1795036512; x=1795641312;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=dQMT0iyssFp+SUjt/H/xp3SSQ9EubviEVTCBFM7XGyI=;
+        b=sE/mkJG/v7557oVz3NuOv3Xy2cQXWKe+GvPeKou9wqo5rVPks6jP1zSn5OHyMaOb5e
+         frKhnhag63oa+KLHi/H3w0yv2OtVKtcm2vc88fzdzGh5ZLjFyfdrGijf3SoI5Qm/093D
+         4MZdigInuZgSmzODtftwymLQKX7lVKmozg69bgLAnHLgke37Zx9mj7cfyDPrTRX/YXC4
+         a4zrsDq86BokEWjxn64/eojEe7jSWItj1UTYWOSMdXQmnmRmBHIsYRjHCZApp6yUc2OL
+         IA9cOATfrZLcYi7uaWZGM77g4r7ez3Rd+0LkvuhmH5C0ddHyamjOx6nGVtD/m61J9Y01
+         xaNg==
+X-Gm-Message-State: APuU4Z8J4jy6U1pyzV01DKO/iKDNIP0JJtLLZepk/PhLWt4egmRKDxOC
+	9H2HJJFtdEmOKS8LF79/MTOyVO4Qn3D31R24lc07e5sIhi2ih6gWZMqKXyL5MAXSqkQ=
+X-Gm-Gg: AZFdTZecBGujv5fyEZD+QMkhcrEvcEn/kOudC+axnV0u241LpI+Des1cuuLlSShZmQq
+	oAEQxL9vEV95DhkKMX+vuO3gPko7B0Cmo3jdgM0J+htCMWywPeDzkw2Rglturoi1n4fWVvD1KuE
+	kEAtXblWskV7hZTrBvn9+ID/5zujTKSglBJpKfDtuy2MEGbglgUOAd3LDs7HnT9psucXdoRkbff
+	tmmilxqhThmMXywasZTyEwdDnoWgakkAdF+2JXr3ZerF557ptDqCbsSkM3pW+mN9DrTMLSp3cc/
+	badiHXrLXDLCv7GSXS31EgKSEEmqoY8uPamWss/1I0ODZP3NiOBRtqsu2bPlIFifunZCZTqip3W
+	2G+tQcjFMge6EuBjuA54K+B+J8ebbDOWLLpWpwCTARtr+sNHZBsda2xV2COCSipIu54eS1EcyCi
+	GaYtQKNAyuPtwO5tYMShs7zAUyPPbgmo/YvBy+27piAIWHqB7W6ErEpJmktvE1fgZCpV49tF9Z4
+	nXZjdZiQ+nP1kuvpcOAJDmJEZcm0KpWJckWjQeJMnNWgLf1KfSxYa6BRTidouFjMZP4oHPmga9S
+	6lBWoa6s7ob2K5fmHu0Q2EZk4ib+S7tCpr9OjXIgMK0Ua/5+vwmtj+RtBW9tb8vsKXXFKlWbGt9
+	X6dHELdAfbrvRF1LMqByPSx9vNb1LvQweQ8GPxA==
+X-Received: by 2002:a17:90b:5348:b0:39e:6a80:b799 with SMTP id 98e67ed59e1d1-3b3d07aa794mr4044192a91.41.1795036511842;
+        Wed, 18 Nov 2026 13:15:11 -0800 (PST)
+Received: from yhlee-960QFG.Davolink ([2406:5900:1044:110c:e78e:f7f0:2120:34e7])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b3d5689adasm2611719a91.1.2026.11.18.13.15.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 18 Nov 2026 13:15:11 -0800 (PST)
+From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+To: sagi@grimberg.me,
+	jgg@ziepe.ca,
+	leon@kernel.org,
+	mkp@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	target-devel@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v3 0/4] isert: the commands the target core allocates itself
+Date: Thu, 19 Nov 2026 06:14:59 +0900
+Message-ID: <20261118211503.2526705-1-yhlee@isslab.korea.ac.kr>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -111,80 +98,81 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261111005533.6436-1-toddfreed@meta.com> <20261111005533.6436-8-toddfreed@meta.com>
- <ea8a18e0-12cc-48e0-903e-325a8ece5a0f@iogearbox.net> <CADh2yMxffQ3cywT3aNg3SkVfog5CFnUSp34F1esyun-xUBVa9g@mail.gmail.com>
- <4d271539-b2f5-4fb9-a4dd-32becd02ce5e@iogearbox.net>
-In-Reply-To: <4d271539-b2f5-4fb9-a4dd-32becd02ce5e@iogearbox.net>
-From: Todd Bert Freed <toddfreed@meta.com>
-Date: Wed, 18 Nov 2026 11:15:02 -0800
-X-Gm-Features: AclHuK-4R9Nf7O3FLY7hrUyXB1KdmwvUFFQk3aRrICEDQQcjmr2v5AAMDg1nX5s
-Message-ID: <CADh2yMyo1VCNKC58oJiOLJ2NtGqAFQfxLY3iNbP5mtQhaFsR0g@mail.gmail.com>
-Subject: Re: [PATCH net-next v1 07/15] bpf: don't redirect decrypted skbs from
- egress to ingress
-To: Daniel Borkmann <daniel@iogearbox.net>
-Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
-        Andrew Lunn <andrew+netdev@lunn.ch>,
-        =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>,
-        bpf@vger.kernel.org, Daniel Zahka <daniel.zahka@gmail.com>,
-        Donald Hunter <donald.hunter@gmail.com>,
-        Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
-        Jamal Hadi Salim <jhs@mojatatu.com>, Jiri Pirko <jiri@resnulli.us>,
-        John Fastabend <john.fastabend@gmail.com>, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Martin KaFai Lau <martin.lau@linux.dev>,
-        Paolo Abeni <pabeni@redhat.com>, Saeed Mahameed <saeedm@nvidia.com>,
-        Simon Horman <horms@kernel.org>, Tariq Toukan <tariqt@nvidia.com>,
-        Wei Wang <weiwan@google.com>,
-        Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Proofpoint-ORIG-GUID: 3pmjaJCOun-G9WeZn_lBewyYVX-YVucK
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE4MDA3NSBTYWx0ZWRfX1HAy0OhfaltT
- 3ujnSw5pRGExUUW6Uv5QSQbeDob4GRb+nAh3w3JyBRr+0/be4UioO0App6/xUSpSe+oSDXsddCK
- 48XDQyqadVBfx2R0s10PiuImtuVb+NY=
-X-Proofpoint-GUID: 3pmjaJCOun-G9WeZn_lBewyYVX-YVucK
-X-Authority-Analysis: v=2.4 cv=MvDHeGae c=1 sm=1 tr=0 ts=6afdf943 cx=c_pps
- a=m5Vt/hrsBiPMCU0y4gIsQw==:117 a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22 a=xtH7KyWI9dI7BmFOsl-x:22
- a=DIuMb9_t4Eg30DVr1XQA:9 a=QEXdDO2ut3YA:10 a=IoOABgeZipijB_acs4fv:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE4MDA3NSBTYWx0ZWRfX6GyFVmtOkXHP
- pa+KSpp9KZKFesM9/a9nAC0X2vnOBqn4IPsYpcJQjmWP0dJ1Zx3vZygvU+bJ59aR0gEoOnDnoi0
- 6XbHvlA/fMMjZUntkZXJRHHK1amcZkWcaXtVOIRNf0oXd17rwova499gJgUE4K6kqlBr9yHREaY
- JgQhNQPtjpvRySRdYx4EzRVkcWc19Uv5HFgbPtMfb+QS+Q8fTwO3BNpZBu0qB5Xe4bP+Ym3Q5vy
- LUoGLKi8/eW0Gd0ILHlyPsOjeXRxTjaWMP1QG441EG+zokSelsFtMNhvqH1gVTKAJJ7B3G46R3G
- 4/aSm64KaA6pmYu5hOYwU+I5QxbeZSX0HnSTxZwNPefQcOu6VHxN6F6e05MY1K4boqBqMXWfPJl
- Uil0k4S5U6LUtiuY9nospt0RDX7byX6wrEhtbFGe0exn2GGw1rqDU4Zsrmme77QEnCjikHhP1yD
- xWauaY8YeApUCTDqNwQ==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-18_05,2026-11-16_01,2025-10-01_01
+Content-Transfer-Encoding: 8bit
 
-> But why under skb_do_redirect? I meant just here:
->
-> diff --git a/net/core/filter.c b/net/core/filter.c
-> index 532405988fd9..ba112111de22 100644
-> --- a/net/core/filter.c
-> +++ b/net/core/filter.c
-> @@ -2471,6 +2471,8 @@ BPF_CALL_3(bpf_clone_redirect, struct sk_buff *, skb, u32, ifindex, u64, flags)
->
->          if (unlikely(flags & (~(BPF_F_INGRESS) | BPF_F_REDIRECT_INTERNAL)))
->                  return -EINVAL;
-> +       if (...cond...)
-> +               return -EOPNOTSUPP;
+Link: https://lore.kernel.org/all/20261118113905.2361969-1-yhlee@isslab.korea.ac.kr/ (v2)
+Link: https://lore.kernel.org/all/20261116101108.1650132-1-yhlee@isslab.korea.ac.kr/ (v1)
 
-Yep we are on the same page for this one.
+Changes since v2: 1/4 is replaced.  Comparing the opcode inside
+iscsit_find_cmd_from_ttt() stopped a Reject being taken for a NOP-In, but
+not two NOP-Outs being given the same real NOP-In, which queues it for
+removal twice.  1/4 now gives the NOP-Out path its own lookup that takes
+the command under conn->cmd_lock and clears its tag, so only the first
+answer gets it, and it leaves iscsit_find_cmd_from_ttt() and its Data ACK
+SNACK caller alone.  2/4 to 4/4 are unchanged.
 
->          /* BPF test infra's convert___skb_to_skb() can create type-less
->           * GSO packets. gso_features_check() will detect this as a bad
-> @@ -2563,6 +2565,8 @@ BPF_CALL_2(bpf_redirect, u32, ifindex, u64, flags)
->          if (unlikely(!bpf_net_ctx_get() ||
->                       (flags & (~(BPF_F_INGRESS) | BPF_F_REDIRECT_INTERNAL))))
->                  return TC_ACT_SHOT;
-> +       if (...cond...)
-> +               return TC_ACT_SHOT;
+Answering the review of v1 1/2 needs two patches in the target core, so v3
+has four.  1/4 and 2/4 are drivers/target/iscsi and 3/4 and 4/4 are
+drivers/infiniband/ulp/isert, but 3/4 depends on 1/4: it lets a Reject the
+core allocated reach the wire, and without 1/4 first that turns a NULL
+dereference in the base tree into a double free.
 
-bpf_redirect() does not see the skb, so it can't check skb->decrypted.
-After the program has returned TC_ACT_REDIRECT and
-skb_do_redirect() is called, is the earliest point at which the policy
-can be enforced.
+1/4 is not about iSER.  iscsit_find_cmd_from_ttt() matches a command by
+targ_xfer_tag alone and leaves it on conn_cmd_list, so a NOP-Out with a
+reserved ITT and TTT 0 is given the Reject the core allocated, which
+carries TTT 0 and is still waiting to be sent, and a second NOP-Out with
+the same TTT is given it again - either shape ends in a double release.
+Both are reachable on plain iscsi_tcp one PDU after login.
 
--Todd
+2/4 keeps the unsolicited NOP-In off iSER.  The transport check in
+iscsi_post_login_start_timers() runs once, at login, and
+iscsit_process_nop_out() and iscsit_na_nopin_timeout() arm the nopin timer
+again on a connection that is already logged in, so it moves into
+__iscsit_start_nopin_timer(), which all three go through.  Gating it is the
+fix rather than only the dereference because isert releases a command on
+its Send completion, so the answer to a NOP-In cannot be matched to it.
+
+3/4 is v1's 1/2 with the fix generalised.  struct isert_cmd is all zero for
+a command the core allocated, so the back pointers are filled in where the
+core hands one over, in isert_immediate_queue() and isert_response_queue(),
+which also covers the ISTATE_REMOVE the review pointed at.
+
+4/4 is v1's 2/2, unchanged.
+
+Measured with KASAN, one fresh boot per cell, arms alternating.  On an
+iSER portal over soft-RoCE, 3 boots per cell on the finished series and 2
+on the intermediate stages:
+
+                                 base    1/4     1-2/4   1-4/4
+  Reject + NOP-Out, TTT 0        Oops    Oops    Oops    clean
+  the same two PDUs paced        Oops    Oops    Oops    clean
+  nopin_timeout 0 then 3         Oops     -       -      clean
+  200 Data-Outs, nonexistent ITT 128      -       -      200
+  one Data-Out over TRDSL        Oops     -       -      clean
+  login/WRITE/READ/logout         -       -       -      10/10
+
+No cell at any stage produced a double free, and the finished series is
+KASAN-clean.  Where a cell oopsed, the use-after-free reports that follow
+come from the teardown of the killed thread and are the same set at base.
+
+On plain iscsi_tcp: two NOP-Outs answering one real NOP-In are both taken
+on base and the second is refused with 1/4, 5 cells each; 20 Data-Out and
+NOP-Out(TTT 0) pairs in one write give 19 or 20 KASAN reports per cell on
+base and 0 with 1/4, and one legitimate answer still works on both; 3
+cells each.
+
+Yehyeong Lee (4):
+  scsi: target: iscsi: retire an unsolicited NOP-In only once
+  scsi: target: iscsi: do not arm the nopin timer on an iSER connection
+  IB/isert: finish a Reject the target core allocated itself
+  IB/isert: do not leak the receive descriptor of a dropped Data-Out
+
+ drivers/infiniband/ulp/isert/ib_isert.c   | 41 +++++++++++++++++------
+ drivers/target/iscsi/iscsi_target.c       | 34 +++++++++++++++++--
+ drivers/target/iscsi/iscsi_target_login.c |  5 ---
+ drivers/target/iscsi/iscsi_target_util.c  | 10 ++++++
+ 4 files changed, 72 insertions(+), 18 deletions(-)
+
+-- 
+2.43.0
+
