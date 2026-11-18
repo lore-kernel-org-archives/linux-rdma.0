@@ -1,57 +1,96 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795037356;
-	b=hC32is/NKyTrJQo1vIvqRsMv3zEhTdQZHKZgNaOZ6brNto0OLfPNJCO28LeZbcta17Id
-	 vJGGAqN7EN4Bod0sWpHusc2RNuE3Bfl7l3oEBsgzol5TZD8LnzgIy2iU+UitTgWkVIBGE
-	 dHndaykhjbzCSJ6L5uyeBlDS8Ix1P+kcTJTKSBOappTVJUJM5T65tSZFGM0u28atLN7Pz
-	 7fdh9nxKWbUUhOa2Pgyr8DRuaEFA4Bf+AHDYxmzKOkNw3TkqNnlwym3TGixDb1S5uWQDj
-	 77iH54wihetRq+t9VcCDN7oMzQcAu4nl05USuhzHh4fNwjugpubz0j7/KAglfdvV+pA==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795037356;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=C3QlfZ+wK6lyf08+qEikLrmLhlgppq+P5MHxH0U5RZk=;
-	b=n8vIUdWPprXsx/87Twn/DKbFaDKdfQAf0YMOLM+gXBB/kvcUVaHITSRcflwmEVgOxeVB
-	 GewoyNPh+SwogwUUtYwHxS1+G8Kt4UAbRUmbH6GMnIYm62KOFS42x/7Cyb6gXx2MaPqMJ
-	 o7agA7ByGGSu54/tCeiRAJXg5u3sPVlEtFKSj8DcDGBXrF1q6e6HVNTsAMOAjpsES/VLQ
-	 ZLLAGbRbltbdb2GHWlfG+tj0nMUj/tWU1Y5NQe1mDd5cGoRLtBUzzRtaklutbCDO8NtPg
-	 b/OkTbL52flpUW/P4QOCt7JET9GJ368o+aPYWGLSeCY/FF3jvwEcXmtO2MLTtTLfYFw==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=F7O+ZVcp;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.53.28
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795039107;
+	b=yBZq2DbNfp8vc8yJHWRwZRG0RnCE4loc5HGSbow8vk8c08DbgiekF0ixwjRLr/aukzEI
+	 jPSaLdn6LW/TNBm5BbuIWAL9Gd3NEiq3/Y2CrTGkBtn+KD3Xbfqbg6FFvcCzGC3/2f59R
+	 4UwpPFZCdDIs51e0EepQ0fJsIW9fG8YTwBbwe1Gib86XdLQEIbiCYco99EF0PFkshOGwV
+	 XgKWi/TXdsxyQsfIMYL9Z867rKzbZkzKzIJllcQpvLuE/3V4Zx8XgBZZIdp3CADhw5JDL
+	 t4QiT8HIKY+hLr1BemIdGCCLf+VcwQ3jvmGDfbhec4zh2XXaUB4aTSuOU63M0bpWdTg==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795039107;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:
+	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
+	 From:Date:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 Message-ID:X-B4-Tracking:X-Change-ID:To:CC:X-Mailer:X-Originating-IP:
+	 X-ClientProxiedBy:X-EOPAttributedMessage:X-MS-PublicTrafficType:
+	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
+	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
+	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+	 X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-Id:
+	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=PJNYM50ryvR86Ur8YM1WyRrqZqveLVJTeWTW8/IQAfM=;
+	b=3Lw8aiGk+8JTFIABHVN0mtieZmICFJTYhX6nkDTvVfNa9xwZE/vlEWq6U+RjQbSe+ZbN
+	 P5XqtDbXCoykOw22GaQknKPMcMZ887rbRHC+aqLlvvZK4qI5qopFe9gqpaKem+r0D0G6J
+	 z0Uq7nq08vrHa+RvvEm3mUQgmbHrJ/L/pGPzIbjb7KKzgMhq1apQPUTfwhqPdqQlNXz2U
+	 zgdA/69IUg1tcAISbOVqQtIAsqYmOgHUfvaiKVzBti8VFo9M9YVJDcxcclJN3rEUX1ZWu
+	 wtvSkNx5RSU3U/2IeZ4ChCcG+yN701KaSDw/2zRg0phcQPWbVJuOUEuBMadz2K6rPqQ==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=amd.com;
+	spf=fail smtp.mailfrom=amd.com;
+	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=hk6tFRlx;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.53.28
+Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012028.outbound.protection.outlook.com [52.101.53.28])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 964B3606A32C;
-	Wed, 18 Nov 2026 21:29:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4821606A31C;
+	Wed, 18 Nov 2026 21:58:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D4821606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=F7O+ZVcp
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E7E51F000C5;
-	Wed, 18 Nov 2026 21:29:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795037356;
-	bh=C3QlfZ+wK6lyf08+qEikLrmLhlgppq+P5MHxH0U5RZk=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=F7O+ZVcpmI9iu4q6m73SUnLlUP3NfDFnG6TJII5WnCwlbsdHYGLDY35+Fgt3viUHs
-	 n9uyQiCK0Aj4nfetbTf6c+JI3/5RW/ll0GdBZwM0FVApu5qPJCbHdIPxxReEwY1MdE
-	 rrz+ZKxlFjI+0jE33OYIddRQ5a0Oj8Ox+qVYGvjN5QlOwyzIh8WL7iuRen1WUGyO47
-	 b4ZgHLAu7B09GL5gcGQSXmb0Hb9yjGxT2spX624lydhm89v8lnUMS8HpF+vZzFmx3H
-	 QyUp/unRT2S2aEm8y/J6T2ifwWJ3qmnC59xdnwtXQilaNtMi9Ps9dKm4ORuy4iHsxC
-	 yZsTBGo+8b3hQ==
-Message-ID: <sashiko-outbox-221994@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v3 1/4] scsi: target: iscsi: retire an unsolicited
- NOP-In only once
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Yehyeong Lee" <yhlee@isslab.korea.ac.kr>
-Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, linux-scsi@vger.kernel.org
-In-Reply-To: <20261118211503.2526705-2-yhlee@isslab.korea.ac.kr>
-References: <20261118211503.2526705-1-yhlee@isslab.korea.ac.kr>
- <20261118211503.2526705-2-yhlee@isslab.korea.ac.kr>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 18 Nov 2026 21:29:15 +0000
+	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=hk6tFRlx
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=MJF1rhu9ePVvBLoUAVOf/qcS/oIT+tJ/u3VruoWN0aeMcigJKDcl6iE9xdF3q8LkS9lMntt2NGetKyGgAQx+6bAQ+XZgPOMHVNewj2yPgVOpEboGDMFY9eXNDbygjzk1AZATh35z1+0/ZRPbNNf7UYePPLK2CpFQ431TTCoDyjnGTP2TtV2mb87Yh8IyHnZO1TlQXdrxhlClLP67echJPDE5iXMS67BcJOU77W8uTxWzhSlk91790jK/g259MD6LQ2iQOibkWSSw/i8G6G+rVP05T3nqlEwPqQXEbg4h1i7R2me7x9uYaPxLiykWMkAwX6TtR963BXXsi4gYyHO1rw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=PJNYM50ryvR86Ur8YM1WyRrqZqveLVJTeWTW8/IQAfM=;
+ b=uTmwMNCum0RplAv++lKrO9HKhBzTJSctI0ZZbdAfVh7Ha7Rn9OykshzAx7Gw25dWY/N6i96D3YJWm2/O+UujAvw2C9yw8tTkijm0u07307alLArx47ioHleo65RmnDDNlNe/DGyVdwVAQknl2NN5UGqd8CJKpujGxVe/VA0EpH8k7RY/OTdZg+rTp8358Ph/P5zy/V/ADwub87bcG03oS896fN9RQdRw8IdiWyDgs5O32igMgoDXpxJ+EcPS+bNMXBJuKXde87t7C2+Gw6bxG5zrh10Az4F8pB59ig4hulioCo1MMFsGgPNYaEkv0bTnxon3Qc4V7bGz1BN/h+G5Zg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
+ dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
+ header.from=amd.com; dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=PJNYM50ryvR86Ur8YM1WyRrqZqveLVJTeWTW8/IQAfM=;
+ b=hk6tFRlxyZ4e71rOlFi111uDzXEggxjVR/H/WS0Uc0JFZ4L1sJo4zULqgLY8LPXIMUUPYPc7hmJ4rKy9nmxirGTeBRX49PcS45SI1r7p6v5C0p8NWJW3GZ/N2S/0GNvFzAD4093e41wiFZU7lamHpdiUkHUwt2sqrYbNs9xCWlo=
+Received: from PH7PR17CA0036.namprd17.prod.outlook.com (2603:10b6:510:323::20)
+ by DS0PR12MB6536.namprd12.prod.outlook.com (2603:10b6:8:d3::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.14; Wed, 18 Nov
+ 2026 21:58:20 +0000
+Received: from MW3PEPF00001653.namprd21.prod.outlook.com
+ (2603:10b6:510:323:cafe::39) by PH7PR17CA0036.outlook.office365.com
+ (2603:10b6:510:323::20) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.13 via Frontend Transport; Wed,
+ 18 Nov 2026 21:58:20 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 165.204.84.17) smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
+Received: from satlexmb07.amd.com (165.204.84.17) by
+ MW3PEPF00001653.mail.protection.outlook.com (10.167.249.197) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.615.2 via Frontend Transport; Wed, 18 Nov 2026 21:58:20 +0000
+Received: from [10.11.96.223] (10.180.168.240) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.57; Wed, 18 Nov
+ 2026 15:58:19 -0600
+From: "Nikhil P. Rao" <nikhil.rao@amd.com>
+Date: Wed, 18 Nov 2026 21:57:52 +0000
+Subject: [PATCH rdma-rc] RDMA/ionic: Wait the device command timeout for
+ admin queue commands
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,103 +99,82 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <20261118-b4-ionic-rdma-admin-timeout-v1-1-39536999a3e4@amd.com>
+X-B4-Tracking: v=1; b=H4sIAF8f/moC/yWMywrCMBAAf6Xs2QUTg69fkR7SzUZXSCqbVAql/
+ 95Yj8MMs0BhFS5w7xZQ/kqRMTcwhw7o5fOTUUJjsEd7NsZccXDYEiHUkDz6kCRjlcTjVPFEdIv
+ OR7buAu3wUY4y7/cH7L0S9H9RpuHNVH9vWNcNKDd264gAAAA=
+X-Change-ID: 20261118-b4-ionic-rdma-admin-timeout-3cc9f4afe247
+To: Abhijit Gangurde <abhijit.gangurde@amd.com>, Allen Hubbe
+	<allen.hubbe@amd.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky
+	<leon@kernel.org>, Andrew Boyer <andrew.boyer@amd.com>
+CC: <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>, "Nikhil P.
+ Rao" <nikhil.rao@amd.com>
+X-Mailer: b4 0.15.2
+X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
+ (10.181.42.216)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MW3PEPF00001653:EE_|DS0PR12MB6536:EE_
+X-MS-Office365-Filtering-Correlation-Id: a7165426-dd4f-4978-71e2-08df45bf0eff
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|82310400026|36860700016|1800799024|376014|23010399003|18002099003|261009223027099003|11063799006|261026121527099003|261026140227099003|56012099006|261021123027099003|261021135927099003|261022105027099003|261021121427099003|261028144727099003|10067099003|261102123227099003;
+X-Microsoft-Antispam-Message-Info:
+	iUlMywNnA7LOsUNSQOT65EBEylScnRscyL6bz2Efv3WKDxBGitEOJwVLwah3jZWbz7WhN5bMzdkewREzjRIO74Da1k/X4Sb+JVLUXT74uiCRuO/GreR5LkOETVJ56tIVHAFfl6954K2OOoT1eCw4YSsvjLqswHpgioOAmU7cMfyUAELuE3k6jTlgluDTB/E0S5D27F8Sn8tWcyUW9nf0V15Iw7QLrE5Oh34Wzgfb76jj2nc1OhhmLaPRUsDOB0Didl5zFL34VaWpxuO8DJkqWVnDM7EAhl74LN0DOHwrTC3JvQJxv2vwaKcOWgFxnFzOb+FUrG2ZwyDm0tKUtk/xt1zi6bVfTSNSaAeNGApQvIHWTn6i9FtdGKa9Jx/vBnYPffpDrwXSwAVoOYjUpS8t1k7ZTr7K9fSgX1b3i7zspdQhcE9bO0hvIfgeyWaO5ANTf+ou0Xpv/5CbVpEDcFA2xWCKbTEk+NuzVJ/Nq0qcpx95SmuMseOYqEPN1UPkgjapnpfLU4H4aaWh5cACeTCQjaSnfMlYYerSXWolKie2In9vkps/TU5AlmnZwN5SVXzt4IYKOTxzpW70BfFzrktmmuI/oHxYTaK7O9ORC6OyV5QFYnSMHLfdtcecxHx5/ygAGBtR8q4RWBUT0nlBdfBaNzueccwokyrufAxOXz4XRNMfEB+J7eJWPsxSFV/TGgXq6ITHxC+S8nEOhmkaJH+8pA==
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(36860700016)(1800799024)(376014)(23010399003)(18002099003)(261009223027099003)(11063799006)(261026121527099003)(261026140227099003)(56012099006)(261021123027099003)(261021135927099003)(261022105027099003)(261021121427099003)(261028144727099003)(10067099003)(261102123227099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	IsnkZvOKOXYV1XPVnqa5DE5osYjZLm94iEPS67sT6ipa/7y8+fSspQ1wK5ybrdpg03eVANXocEi9+Kj1ucIv6dw8GXuZ/0YUWBq2XXB6hXqyIAlahTs88gtQLACBCMCHay4viC5pH+MQ4wmr4g0TRzLoodwdypXIJbuVTV/68CzpVeAdTT/Ji29qFdRRgUW2SrU11Q77/FP7risMEcfV87m+CpglWFPc04DF21ZNF1EWDy//YRq8tgotJ3ZsXVrMKYPcwfP3NLYZ/ejr3X/eb2Lt4CMGuBlVUF5yRY4savm0oakdNEFUfEM4ylyhY17vKNDwFBDs9cMypcuwF1CerLPV24cMCEwLQuTQ3mZpToGGFuMU+1DK8NCZUm8U3lOVUkXPRX1Ie2q9I5YRf/4ld2Thhhg+Y6Mh4ra6U8XxzpgabyzS7RFOja1fs8YRZxSe
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Nov 2026 21:58:20.1791
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: a7165426-dd4f-4978-71e2-08df45bf0eff
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	MW3PEPF00001653.namprd21.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB6536
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue to consider:
-- [High] scsi: target: iscsi: race on unsent NOP-In in
-  iscsit_take_nopin_from_ttt()
---
+Commit ec8ee714736e ("ionic: stretch heartbeat detection") notes that
+firmware can take more than 2 seconds to service a device or admin
+queue request, and is only expected to complete it within the ionic
+command timeout of 5 seconds. The RDMA admin queue watchdog gives up
+after 2 seconds, and a timeout resets the RDMA LIF, after which every
+verb fails with -ENODEV. Wait 5 seconds, as ionic does for its own
+admin queue.
 
-commit 079f94c5aa78a5118ce1f2b2658476b66fcf7998
-Author: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
+Fixes: f3bdbd42702c ("RDMA/ionic: Create device queues to support admin operations")
+Signed-off-by: Nikhil P. Rao <nikhil.rao@amd.com>
+---
+ drivers/infiniband/hw/ionic/ionic_admin.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-scsi: target: iscsi: retire an unsolicited NOP-In only once
+diff --git a/drivers/infiniband/hw/ionic/ionic_admin.c b/drivers/infiniband/hw/ionic/ionic_admin.c
+index 0ccd869ad8e6..859893568538 100644
+--- a/drivers/infiniband/hw/ionic/ionic_admin.c
++++ b/drivers/infiniband/hw/ionic/ionic_admin.c
+@@ -19,7 +19,7 @@
+ #define IONIC_ADMIN_BUSY_RETRY_MS	1
+ 
+ /* admin queue will be considered failed if a command takes longer */
+-#define IONIC_ADMIN_TIMEOUT	(HZ * 2)
++#define IONIC_ADMIN_TIMEOUT	(HZ * 5)
+ #define IONIC_ADMIN_WARN	(HZ / 8)
+ 
+ /* will poll for admin cq to tolerate and report from missed event */
 
-This commit introduces iscsit_take_nopin_from_ttt() to match unsolicited
-NOP-In commands by opcode and TTT under conn->cmd_lock and clear their tag
-so a NOP-In cannot be queued for removal more than once.
+---
+base-commit: e7732ec135b501e87ab060d992b3b5f2ec4396c9
+change-id: 20261118-b4-ionic-rdma-admin-timeout-3cc9f4afe247
 
-Link: https://lore.kernel.org/all/1437516477-30554-4-git-send-email-sbaugh@=
-catern.com/
+Best regards,
+--  
+Nikhil P. Rao <nikhil.rao@amd.com>
 
-> diff --git a/drivers/target/iscsi/iscsi_target.c b/drivers/target/iscsi/i=
-scsi_target.c
-> index 124ff269b8e75..b0dd3e84e68e0 100644
-> --- a/drivers/target/iscsi/iscsi_target.c
-> +++ b/drivers/target/iscsi/iscsi_target.c
-> @@ -1783,6 +1783,33 @@ int iscsit_setup_nop_out(struct iscsit_conn *conn,=
- struct iscsit_cmd *cmd,
->  }
->  EXPORT_SYMBOL(iscsit_setup_nop_out);
-> =20
-> +/*
-> + * Take the NOP-In under cmd_lock, which the tx thread holds when it unl=
-inks
-> + * and frees the command, and clear its tag so only the first answer get=
-s it.
-> + */
-> +static struct iscsit_cmd *iscsit_take_nopin_from_ttt(struct iscsit_conn =
-*conn,
-> +						     u32 targ_xfer_tag)
-> +{
-> +	struct iscsit_cmd *cmd;
-> +
-> +	spin_lock_bh(&conn->cmd_lock);
-> +	list_for_each_entry(cmd, &conn->conn_cmd_list, i_conn_node) {
-> +		if (cmd->iscsi_opcode !=3D ISCSI_OP_NOOP_IN ||
-> +		    cmd->targ_xfer_tag !=3D targ_xfer_tag)
-> +			continue;
-> +
-> +		cmd->targ_xfer_tag =3D 0xFFFFFFFF;
-> +		cmd->i_state =3D ISTATE_REMOVE;
-> +		spin_unlock_bh(&conn->cmd_lock);
-> +		return cmd;
-> +	}
-
-[Severity: High]
-Can iscsit_take_nopin_from_ttt() claim an unsolicited NOP-In before
-iscsit_add_nopin() has queued it or before the TX thread has built and
-sent it?
-
-session_get_next_ttt() assigns sequential TTTs, and iscsit_add_nopin()
-drops conn->cmd_lock after adding cmd to conn->conn_cmd_list, before
-starting nopin_response_timer and queuing ISTATE_SEND_NOPIN_WANT_RESPONSE:
-
-<softirq>                              rx_thread / tx_thread
-iscsit_handle_nopin_timeout()
-  iscsit_add_nopin()
-    spin_lock_bh(&conn->cmd_lock)
-    list_add_tail(..., &conn->conn_cmd_list)
-    spin_unlock_bh(&conn->cmd_lock)
-                                       iscsit_process_nop_out()
-                                         iscsit_take_nopin_from_ttt()
-                                           cmd->targ_xfer_tag =3D 0xFFFFFFFF
-                                         iscsit_stop_nopin_response_timer()
-                                         iscsit_add_cmd_to_immediate_queue(
-                                           ..., ISTATE_REMOVE)
-    iscsit_start_nopin_response_timer()
-    iscsit_add_cmd_to_immediate_queue(
-      ..., ISTATE_SEND_NOPIN_WANT_RESPONSE)
-                                       iscsit_immediate_queue()
-                                         case ISTATE_REMOVE:
-                                           iscsit_free_cmd(cmd, false)
-                                         case ISTATE_SEND_NOPIN_WANT_RESPON=
-SE:
-                                           iscsit_send_unsolicited_nopin(cm=
-d)
-                                             <-- use-after-free
-
-Because iscsit_free_cmd(cmd, false) does not purge remaining immediate
-queue entries for cmd, the subsequent ISTATE_SEND_NOPIN_WANT_RESPONSE
-entry runs on a freed (and potentially reallocated) command slot while
-leaving nopin_response_timer running.
-
-Even when ISTATE_SEND_NOPIN_WANT_RESPONSE is queued before the NOP-Out is
-processed, if iscsit_take_nopin_from_ttt() runs before the TX thread
-executes iscsit_build_nopin_rsp(), overwriting cmd->targ_xfer_tag with
-0xFFFFFFFF causes the outgoing unsolicited NOP-In PDU to be transmitted
-with hdr->ttt set to 0xFFFFFFFF.
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261118211503.2526=
-705-1-yhlee@isslab.korea.ac.kr?part=3D1
