@@ -1,90 +1,90 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.42
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.44
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794965346;
-	b=tiSzBrzjyemHw9pO5p5Txx4YV9G5PRx9EIvN58mbxG23JyteWkL+kFF/SW4WiEd/PKLe
-	 LE32ZIud2IpVOgsXirKJAG2f2b4Kgp1M1lz1mfQnBL3TTHsPafMQiBdWPDqAwV1V33MHx
-	 eLC7SBzwTmOg6P9c2OnRUFj2SQO4O3ZifRNbY3nmqkvu1An2wFT28eziTP/w2HY22N5yp
-	 SRaxKI9romVGiJTXaF5Mreo4thyzJTH0IFuXC0U7+cxwkfpADJiqn/oJ62kVg/TE7CJPP
-	 CiYZV/cBgZ93IEbEQKaH2O87OQX90q/GPkP5c56RdRI+wi+IqamebHyVvwLtho6+FVA==
+	t=1794965374;
+	b=dIUOHa+qXjYtpVvzW7qmemirhPsMOfj8tGFsAx8ITnp0NX3T+i+4ceXf+9R9gpSzvoNT
+	 GJcUXVVJrlnaI8KNJ4hEi9BDdFbbXmv9SZ9EfAZhVQSTLKZP9IHRyjKeFq9NYRjYCYpzU
+	 XYDT7R80dqr/3F/XoHQYX7xijUcOIYzndvbbZogDW9XAJwI8GybyYHdyhHPAfx2clZ2lJ
+	 B2otZKDsNuEvU8uHhja3aaDj4yoHxX8JaDDowTAo8KzbDYVvTxYaJuRf4C2FX+7y5caMg
+	 cv6AVseXid73x//3H3IlzPHs5Fjq+2ViV+TlG94uCAe+zuNWijTm25f86q/nCwvq3bA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794965346;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794965374;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
 	 MIME-Version:Content-Type:Content-Transfer-Encoding;
-	bh=9QrBc0w3KV6ChVNAVMzB1hWL9AMrXve7Stq4IEHc3B0=;
-	b=YtWQ0gDLb6W0T2kaUG2Ux+DsvrwCEcp6MB/j4vDcgo4BdEZR0NiM/FRzL81U85j+IX++
-	 LiomufVsMbho5AgPfzkk9QE/H3EZO//4Ed4Qk1O/mNx+K+au2akS2VipZiuujy4tMkMoN
-	 TfShiWr1MRbRrT7OQl832izmPToXHOydAZnCxS3G6O5fBb35+LbibFJs/vnnmkh+EvKa7
-	 TFFwA7HF1Cp1qMrQf0VvkYoBtnejSTRAGuUm3u/TDrsaibjCuvdB0+LZp1YjYwQpPDqmt
-	 jXJMeVcsZT/ZP4iOYRZG5MhpjPCIWISI7RUqk8C2Yg7qkF9bngqhjmpxbGSYKpw/TrQ==
+	bh=w3JSCXNwcogBu1PJnd6LhkuPj4w6tsB9fs1YwGA31yI=;
+	b=YblRpi16/gx7PoLmZEh/81LoWJuuYUrp82cJNx2yZYeTFVNANskX9lzox5U8668gZ+Fk
+	 VmFlTwlPxE0RIIlXb+JfCq+T59T16ceBQllys42lIG22QdwfDJc6z0GSC5JnN8I7Cu/Jh
+	 H17nMbsKarshBVn0Qd2WHljktqrmzBoxH6AYtGgDHI8Z5xtai0F7MoPzPlIG6WFQJAwRi
+	 9+WVJabpTV1uGEPYtT2XPqQroBwkdmehtziMfuqlV0eFCuSGkCZJCEviDOWWlkvUcdhgj
+	 Cd5FiNhe1yCBRPZoxovyBjDxr0e+7Lv/+54iDoiRy7Cj4pMPuf4dwMUHucqw0KfnGKA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=chromium.org;
 	spf=pass smtp.mailfrom=chromium.org;
-	dkim=pass header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=H1AWSx2s;
-	arc=none smtp.remote-ip=209.85.216.42
-Received: from mail-pj1-f42.google.com (mail-pj1-f42.google.com [209.85.216.42])
+	dkim=pass header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=O9DHBRIP;
+	arc=none smtp.remote-ip=209.85.216.44
+Received: from mail-pj1-f44.google.com (mail-pj1-f44.google.com [209.85.216.44])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3E41606A32A
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 01:29:05 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E3E41606A32A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B24A606A32C
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 01:29:34 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5B24A606A32C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=H1AWSx2s
-Received: by mail-pj1-f42.google.com with SMTP id 98e67ed59e1d1-3b0b133f64fso39496a91.3
-        for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 17:29:05 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=O9DHBRIP
+Received: by mail-pj1-f44.google.com with SMTP id 98e67ed59e1d1-3b3b522ef8dso29771a91.3
+        for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 17:29:34 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1794965345; x=1795570145; darn=vger.kernel.org;
+        d=chromium.org; s=google; t=1794965374; x=1795570174; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:mime-version:references
          :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=9QrBc0w3KV6ChVNAVMzB1hWL9AMrXve7Stq4IEHc3B0=;
-        b=H1AWSx2s6yA5CZ4Kphq2OZbv2w2xBgnzcUeDJNakKtwKJr6At3ZCbGY3hZkAUsj/yp
-         b5eUHT+IBOFEmxJxWhffm3Hlml2THIgqdS86xaG1IYJpNQXva7wATT2dVNqb6auf9kHq
-         Hf8xzqkAwAP9npo0A8KFtaAQ+dIAC/LDfvn9w=
+        bh=w3JSCXNwcogBu1PJnd6LhkuPj4w6tsB9fs1YwGA31yI=;
+        b=O9DHBRIPmjIqt6AhONYCYYyAxWEJ+jwHuEmk99wwjzt2Nc0YnZQ+dKRQk4BcX4Tx3/
+         EAwCsCIjOfij+kfDzFdvTyjQb7+AGv+8efMSQO+env5URswiaB4hGUmHq/mLnQ/2rVeR
+         InpfSAF+62jlzeryXe/PJ2gNlX/ew/8siqlyY=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794965345; x=1795570145;
+        d=1e100.net; s=20260707; t=1794965374; x=1795570174;
         h=content-transfer-encoding:content-type:mime-version:references
          :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=9QrBc0w3KV6ChVNAVMzB1hWL9AMrXve7Stq4IEHc3B0=;
-        b=UFsXBHtKoGnOpbdvIQn+owdHUYOSAWDdNKXEDQLSrE/dXHNjHs+o6ERnSfQucW4Ts1
-         0DCnQRRvmElBnHpxaZZazYolithu2M3F9CoO5oOjrb2dNkJ19waKSgquH/GXMmVtmmiW
-         g5JlaOaEeT/5RqoRZm3adDHoysJXH1oEh92aG5haXUsrG86BWVOmOujuA6tkKVNrzQkB
-         Ng5RKF6FFPB/3k2eU9H7yedHaCZGMYduYpsdZMqPwfTS5J8ZM8WEOwdebHvy+JXhQTAY
-         EpxAMSiG8vWLgJJD9IEiKKubeiXFbHMjNhX6wXJUiqT8qqcuaCcyjixTb7NZ/G9i73SI
-         JOCQ==
-X-Forwarded-Encrypted: i=1; AL+hErElNjt9mgqMaip58nLsXPR//nAyNdxMLVdmR42nVmI9YPsWj8MAthgWOFfUY8orEYDy6BAthjFsDABg@vger.kernel.org
-X-Gm-Message-State: APuU4Z+VHnhCPmh8FjUR6tkA3rSUtS5OqDV/jp8apY8isYu7RX8TOkdy
-	9TSt4DBDoAMHPnmuqArPopM2xh3E1KRExQq7B0acJH6rMSOuccP85IIxbyoN0BaW8Q==
-X-Gm-Gg: AZFdTZcIZE8QBa6e3tGv3KAWMuExfWdLPBJgbWvuIVF73FJZ5y/hKyZ/i6lLha2AsCh
-	WuC3rJNgNsItt4+HE3bPQJ25hEeZyyRYBWcx0KHL8oJtTr1YJxTcOknByh7rZvqqkztWLeLz5Uk
-	wKOAVYM0QktKqyRxNb9B7355nxBkTSfhVbLjIDFEOUA3sINkku5lDYW+0oYxCWMA52dgl9k26k4
-	7UfMriytj7sq8fan3JHDtqd/ftMzp80XuI9cOfQeeQRv8roRKzFiCGp/GhbKwh6+4v3uS6fLWcH
-	FzrXKW/yQKbj9MiqgGuQixX8zQR8FoFSbMtHGZvlV15dakR00IkgfdVteqX2PSvmuOH8e4atsRv
-	0na4hyxsA44N6qkoFg8YK9wB2yGohI2DJx8hRjtZZC1qEVH8vZ+MwC2a4p55N76v9180Z5PIvZZ
-	Wd/vebxVt6AudVgKkd1xtExP/kP49hCWDZwRa0WuuIGpQeVheb1/yauBzJfZIM3CrkqbCkxrGH1
-	bkx98mGOz+lmS7t2oLIEiDI72GYmkdAId/yrjLjZ5TlIB5zrJOZFOW9HN7Nq5tKTWtbWKBkVGcq
-	wGHxL591ZOdSjABXY7KOFOScmn1vpTA0JHF74IvtXK7GR8aRBxHCGlSiGEtldH55YMltRnQ=
-X-Received: by 2002:a17:90b:5390:b0:3ac:a11a:7c88 with SMTP id 98e67ed59e1d1-3b3d07af9f8mr1892178a91.3.1794965345247;
-        Tue, 17 Nov 2026 17:29:05 -0800 (PST)
+        bh=w3JSCXNwcogBu1PJnd6LhkuPj4w6tsB9fs1YwGA31yI=;
+        b=kMjz2GGxYcwr6r+nmmlegBW+gU0aCktMuLc27UbaXwufmE/aykJRHd2zwS7IAZcxuI
+         eEMzx0+6tAhSfdDrU/42QDJ9Vd9hYD5ROZPKat+zqTspHSiSfggj6HcaN6sp/KwGvr3s
+         3Ds+G7NsaQH6NAd+swTHsBaRTV1Gl8OnhO2aObhNqsi4/TqRV6S/kZ5odAbWyEzLqWBO
+         iofUYom2JyeMSv44UOZHKm5gDXauRuuPuQrvNJaOJhfzad8b6fCly7KfpZsLjZEFMUSI
+         MCfTMvoq0rND5aDz26hSASL0IWQi+/j6c1m84pZ6kNYzt3ctMqMxkxCwg9ZD6Givy55J
+         0Tvg==
+X-Forwarded-Encrypted: i=1; AL+hErHclxQgv2F62CC0qhmiFltz2kkOpxBVcAwFDmC2Emfxi8J2SpmRQj/4ZhMW/mLDxSZLNm88D+bPrBsd@vger.kernel.org
+X-Gm-Message-State: APuU4Z8Cflf7NOxZHStg/fqWNjkA0BN4YrPxq5Fisb3ggG0EO55djTTD
+	ux+LGsVoIXXrmeJThPteTANwS7SZLE//yuSd8WDYVihOXkLjBCwxMz9UwCubx/GGKQ==
+X-Gm-Gg: AZFdTZeor3d4lMI0B3ZrwpIpjEV6l2pfHJ6kneNVmjIwhGkjG369GpBzIJa4Nz6eIQi
+	EdGOEIccSqYZECzeV4C4znYNrW20Si+k6wItrQHxXNIw4OdoJD8PCvGtB988WVroRleXmFL4H5Q
+	eb1HpH5kf1WUMjuwEQR4Qe4atrbQSydA715qzD/FbMbBtChlyYwpXtA/JblUXtUGnb0evpygsHl
+	7B9ukAKq5tKI9aM3miIL9qSFbwMH+XBrl8D4FDIvRA6k56ftE9OFrXXK8oVxUwAYj1CliLvQyna
+	r1LmrCxGzR4gTAZL1qutHwSMVkskb58amsHLbFBTrCv5imNW6DuDcKZAdmdQGQxZrPsw1wvLTlU
+	vxEXRbcclq7VlAU7yQCGMIHw0XxpadgbSSkSEUB3SifauZSxKeSiD2mG0APg2xXoLzarLWet40O
+	1Mqs5bGBxHAN/q/VJCDk0NCYOlXcOyHnIiIEzO+CayWA7lHuFVEMTCa8qqMtjz4aFFbyX2jCGN3
+	Q8rw0kqBRz1puVHlsLeDlqFQMtATaH7TfgP9mW/gBwR6QXDanaKYJRC6dyfwaw9pUW9CWAYkvQF
+	BdMabSrz7Gl5gSG0/jmry/HWTrga1VxaUxuBfIFiL71D9Hts0NsKfsI3IAgLcNxtCNykfL3+Hfc
+	JxU4gsP6PUYRin7QB
+X-Received: by 2002:a17:903:3bd0:b0:2ef:eadc:5c98 with SMTP id d9443c01a7336-2eff6f86b0emr15976975ad.0.1794965373725;
+        Tue, 17 Nov 2026 17:29:33 -0800 (PST)
 Received: from localhost (221.247.125.34.bc.googleusercontent.com. [34.125.247.221])
-        by smtp.gmail.com with UTF8SMTPSA id 41be03b00d2f7-cde3b98c75bsm243073a12.10.2026.11.17.17.29.03
+        by smtp.gmail.com with UTF8SMTPSA id d9443c01a7336-2eff5ed09b4sm4409835ad.9.2026.11.17.17.29.31
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 17 Nov 2026 17:29:04 -0800 (PST)
+        Tue, 17 Nov 2026 17:29:33 -0800 (PST)
 From: Jeff Xu <jeffxu@chromium.org>
-To: David Hildenbrand <david@kernel.org>,
-	Tomasz Figa <tfiga@chromium.org>
+To: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Jeff Xu <jeffxu@chromium.org>,
 	Andrew Morton <akpm@linux-foundation.org>,
+	David Hildenbrand <david@kernel.org>,
 	Vlastimil Babka <vbabka@kernel.org>,
 	Johannes Weiner <hannes@cmpxchg.org>,
 	Andrey Ryabinin <ryabinin.a.a@gmail.com>,
-	Lorenzo Stoakes <ljs@kernel.org>,
 	"Liam R . Howlett" <liam@infradead.org>,
 	Mike Rapoport <rppt@kernel.org>,
 	Suren Baghdasaryan <surenb@google.com>,
@@ -110,6 +110,7 @@ Cc: Jeff Xu <jeffxu@chromium.org>,
 	Peter Collingbourne <peter@pcc.me.uk>,
 	=?UTF-8?q?Pierre-Cl=C3=A9ment=20Tosi?= <ptosi@google.com>,
 	Ryan Roberts <ryan.roberts@arm.com>,
+	Tomasz Figa <tfiga@chromium.org>,
 	Will Deacon <will@kernel.org>,
 	Alexander Viro <viro@zeniv.linux.org.uk>,
 	Christian Brauner <brauner@kernel.org>,
@@ -134,12 +135,12 @@ Cc: Jeff Xu <jeffxu@chromium.org>,
 	linux-rdma@vger.kernel.org,
 	rds-devel@oss.oracle.com,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v1 0/7] mm: kasan: skip KASAN for GFP_HIGHUSER
-Date: Tue, 17 Nov 2026 17:28:58 -0800
-Message-ID: <20261118012858.289236-1-jeffxu@chromium.org>
+Subject: Re: [PATCH v1 5/7] mm: kasan: skip KASAN for GFP_HIGHUSER
+Date: Tue, 17 Nov 2026 17:29:29 -0800
+Message-ID: <20261118012929.290499-1-jeffxu@chromium.org>
 X-Mailer: git-send-email 2.56.1.703.gf848ed807c-goog
-In-Reply-To: <CAAFQd5DzTmyeVQxNdhdy8pPi+ts1cCgbztVJiMoNBeJWBzjdQQ@mail.gmail.com>
-References: <20261116230627.3537051-1-jeffxu@chromium.org> <2066d131-f999-4747-beb8-520d5e0ce1db@kernel.org> <CAAFQd5DzTmyeVQxNdhdy8pPi+ts1cCgbztVJiMoNBeJWBzjdQQ@mail.gmail.com>
+In-Reply-To: <avwp1ZpVudiT1Gux@gremlin>
+References: <20261116230627.3537051-1-jeffxu@chromium.org> <20261116230627.3537051-6-jeffxu@chromium.org> <avwp1ZpVudiT1Gux@gremlin>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -152,64 +153,24 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-On Tue, Nov 17, 2026 at 11:11 PM Tomasz Figa <tfiga@chromium.org> wrote:
+On Tue, Nov 17, 2026 at 10:21 AM Lorenzo Stoakes (ARM) <ljs@kernel.org> wrote:
 >
-> On Tue, Nov 17, 2026 at 7:10 PM David Hildenbrand (Arm)
-> <david@kernel.org> wrote:
-> >
-> > I really don't want us to spread KASAN-related GFP flags in the kernel.
-> >
-> > There must be a proper way to abstract this.
-> >
-> > Why is GFP_HIGHUSER not sufficient? We were already told that this is memory to
-> > be mapped into user space. Placing data structure on it and handing out pointers
-> > to that would already be a bit questionable.
-> >
-> > So what are the ways to avoid GFP_HIGHUSER_KASAN?
+> This commit message is just inscrutable. It's like reading Finnegan's Wake :)
+> LLMs are obscenely terrible at this stuff unfortunately.
 >
-> I think the idea behind GFP_HIGHUSER_KASAN is to make it possible to
-> skip KASAN for GFP_HIGHUSER by default (for most of its users), but
-> keep it for some of the users which today use GFP_HIGHUSER for their
-> memory allocations, but could benefit from the added security. As per
-> the other patches in the series:
+> You seem to have rewritten commit messages for the other patches, could you do
+> the same for this one? Thanks.
 >
->   pipe, fuse: use GFP_HIGHUSER_KASAN for pipe buffer pages
->   kexec: use GFP_HIGHUSER_KASAN for segment pages
->   net/rds: use GFP_HIGHUSER_KASAN for message pages
+> > Link: https://lore.kernel.org/r/20260519-panthor-kasan-v2-1-b7384458f076@gmail.com/ [1]
+> > Link: https://lore.kernel.org/r/20260521105148.5497c281@fedora/ [2]
+> > Assisted-by: LLM
 >
-> That said, I'm not familiar with any of the code mentioned by those
-> patches, so I can't really tell how much they would benefit from KASAN
-> or if their choice of GFP_HIGHUSER to begin with is correct.
+> This tag isn't used any longer! Thanks for acking LLM usage though, we prefer
+> you disclose it but in the commit message or the cover letter etc.
 
-Thanks David and Tomasz for the feedback.
+Fair point -- looking at patch 5 again, it is way too wordy. I will
+rewrite it concisely from scratch for v2, and drop the Assisted-by:
+tags (keeping the note in the cover letter).
 
-Tomasz is right about why I added GFP_HIGHUSER_KASAN in v1: out of
-caution, I audited existing GFP_HIGHUSER callers to find any that never
-map the pages to userspace and instead fill/drain them in the kernel via
-kmap_local_page() (pipe, FUSE, kexec, rds). Since this series intends to
-improve KASAN performance while preserving its security aspects, and the
-performance impact on pipe/FUSE/kexec/rds was negligible in my testing,
-v1 was optimized for minimum behavioral change.
-
-Looking closer at both of your questions, I agree that the security
-benefit of keeping those 4 under KASAN is minimal -- e.g., only linear
-overflows out of the pipe/FUSE/kexec/rds page, since none of them store
-kernel structures or pointers. That is the exact same trade-off we
-already make for GFP_HIGHUSER_MOVABLE.
-
-To avoid introducing GFP_HIGHUSER_KASAN, I see two options:
-
-1) Simply keep those 4 cases under GFP_HIGHUSER (drop patches 1-4 and
-   7), reducing the series to just the GFP_HIGHUSER change and its KUnit
-   test.
-
-2) Switch those 4 callers to GFP_USER. Since CONFIG_KASAN_HW_TAGS is
-   64-bit arm64 only (!CONFIG_HIGHMEM), GFP_USER is identical to today's
-   GFP_HIGHUSER on arm64 and all other 64-bit builds (and if 32-bit
-   CONFIG_HIGHMEM=y builds still need ZONE_HIGHMEM, that could be gated
-   on CONFIG_HIGHMEM, though that feels ugly at call sites).
-
-(1) seems much cleaner to me. David, would (1) work for you?
-
-Thanks,
+Thanks for the review!
 Jeff
