@@ -1,54 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1795010655;
-	b=YxLbRV/lHhbSy7dIFqU6i8R0RB5M7JRsNeGOY5Opgz7h8yRTc12yYBECo5hUSqDKv7o+
-	 lm6AQ8RorrxfgxPFMNPVRLXPAgJzOEtgT02wuKwzukpOn0sWM0yXs865ZvoLSIl6H7vpE
-	 C6CI86vO7btOXljwEkP9c8Alk/nbteczj295u935vSWtIJj/P3sTwDNdXlq+rRqmuS/zW
-	 5hVras92lEpJRyTkJ9IQkVLu6ZsLWoNZbZRDFzgN286/Tiq5hljDWJhyjSMCtZOoRXw4L
-	 5WLOzAcZzHjm2md/2P2WW9pivutcGhgImHQPGkzjNoWlsGmHt62x51+6A7FQxOcU+fw==
+	b=iR6p+agEAA591PHK1LliSDdnCg0YvqAUpT7YVgGPR5r/Ejh5zrWgnlpTrpOuIg/UEV3Y
+	 zGso37VA3K487+oAS2Qc1+1ziqroQq0wYRugPpsAta4kz/wNpeTVq0srKLRKN3/QutX+q
+	 j0y5g5jI83GU49n1WJUHFHstQGaA+JwBH/zJy/SoN7pbtFrZIenJ/29PJyEV+Gbh6NvMY
+	 xH176aKza8i4N6JHXMb6o3r2x1N2A5D27B5cnHcIw61e14e2MRHp3fdbqC5Iinv5ETN+A
+	 RE87CI+uq1SQ3k968sWU8sMsIuO7YQyIedJTV8H47g/qg7f3o7XvDN1w9X29mchUWyw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1795010655;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=EQOQZFrkvwo1zsHF/5mHhzSx5Q7iG+U/S/puwp3Egu8=;
-	b=nTujE9xtlYm4hAzirbffPcVXJLERcPGPh2r6L9ipUNI2lhjlCDcXVex9K/In9o2Te9aD
-	 Y5wgkHAswY5Ta72AZdObbks9PuwcA2wAnK1AAnxC02cuUVRbV1QzZye77tNQdiU/qYbD5
-	 p9c9LtjPB/P/72ZkcFOWrKOAZgLAyvLiUIsH3PBKe8cj/pt3NfBPVlQncUlau1lqau92v
-	 nycuklNJfpymmff+2fs6oH+roVpOVn2ALf6UEnMsc0uo0QEZjLMwWdUUAH3tb3/iRKd3j
-	 IXgXG6u+OgeKccBz2KDIS7dGs1KVwsE6oVd2179lNJM8uRh1Lz/51JTliIRWpafxSKg==
+	bh=qPVgI8ZVMDlAfUPQiN1oWgOkHQvlDlwSn0I9jyPSlGA=;
+	b=M52w8WnHUyoKCYjHnm81s1UUszcd/+wGEDmSlREC8vste8HAzdEbHxWMrNGpbFmQ1tbT
+	 qFJsPNYmfP1+yS2za79xQ7CZH/OwYcyGJq4ajVO46mreeIDfsjaTUpPm57X9N4Oyp1VM9
+	 F6hc6uVigcVyl7YPmvJYcS3IViSCdUPYOWsfjw8gc9IWjdUsd44U3jRX3dmOZtjY94T52
+	 3E5DpmySOCztVfqjoCUdj4fNgLhpiTm46xGheQkStW40bAVPISFmTf0r2uANvkaf90yGQ
+	 39WrSmUbXJJJLhOS85lIM6d4XaHsuGdY0+mcvRiM30r8C04jyr2geuIHbg6m3sUq6nw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YrV2fjNT;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=eVTW6trL;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87E01606A320
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 14:04:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98580606A325
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 14:04:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YrV2fjNT
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A65F61F000C4;
-	Wed, 18 Nov 2026 14:04:14 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=eVTW6trL
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49D861F000C5;
+	Wed, 18 Nov 2026 14:04:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795010654;
-	bh=EQOQZFrkvwo1zsHF/5mHhzSx5Q7iG+U/S/puwp3Egu8=;
+	s=k20260515; t=1795010655;
+	bh=qPVgI8ZVMDlAfUPQiN1oWgOkHQvlDlwSn0I9jyPSlGA=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=YrV2fjNTAvpiNz6XONrxESFJQdHVIkRzd6cjyv/n0olc7tdYqbQdnDdkcBL3gHW9o
-	 cEr6N/sGmVTwLIyESuwdl+1pXEyhoGddzyPYTz+HV00HEM2XpODfQ+WYwPXnPienUQ
-	 bpdPLESBxd+ZGK7FlnI5P6CNZ0VbfDYBTV2LZnbtwsnhLAw6JOrwBgpbb2LgijtYdY
-	 Y+KbimiNyOWXxoRVOVSDgP+LKiZJ7VizXfwornP8i2HL0evg1tGLHF/nxslP76PctL
-	 DHn9aUCwNKpwZwLyDk6XqW6WjVJM3cuE7HTfFM7zTvFspgsxkRkljQj5EqWKHJ7aJp
-	 3k3jV5ST2jBng==
-Message-ID: <sashiko-outbox-221130@kernel.org>
+	b=eVTW6trLsrRyFrDvLCgmiqOAxYKUxb48ZLSVCtThnFs/YNtNW8+ADqo8cOPRybWsD
+	 F1+o7yKaIEVxoDsZIU/K0wNVrOpd9ViJo8TlfWzcukv9od8ey30d0v9P5ZDjNQ0AOW
+	 nTFSp+UeEHYvDxHqtgvUTblu2ULpx1xFUqUsXkeUHbRzV98oKKIkSQelk44ugjLyOT
+	 foakh/o2YTr9XR6QAwOCqda2mh+FW80WtZJ74YFqUYXi9DMYtN9Aj9nPtZiC8A9Do0
+	 /Ya3GbFv4aKVPpAHBsDsMzfCHnSEy6Y9bBz3sZHzWMSs4UmkGJj0Nj5/Qt4ud6Mp9I
+	 q2TNxQEujr2Lw==
+Message-ID: <sashiko-outbox-221131@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next 01/11] RDMA/mlx5: Enforce dev/mdev naming for
- device pointers
+Subject: Re: [PATCH rdma-next 02/11] RDMA/mlx5: Rename to_mdev() helpers
+ that return an IB device
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Edward Srouji" <edwards@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261117-mlx5-sd-prep-v1-1-8efd124c7895@nvidia.com>
+In-Reply-To: <20261117-mlx5-sd-prep-v1-2-8efd124c7895@nvidia.com>
 References: <20261117-mlx5-sd-prep-v1-0-8efd124c7895@nvidia.com>
- <20261117-mlx5-sd-prep-v1-1-8efd124c7895@nvidia.com>
+ <20261117-mlx5-sd-prep-v1-2-8efd124c7895@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Wed, 18 Nov 2026 14:04:14 +0000
@@ -64,104 +64,133 @@ Precedence: list
 Thank you for your contribution! Sashiko AI review found no new issues
 in this patch, but noticed 2 related pre-existing issues it does not
 introduce:
-- [Medium] RDMA/mlx5: out-of-bounds read in devx_get_obj_id() on short
-  commands [1]
-- [High] RDMA/mlx5: deadlock in mlx5_poll_one() [2]
+- [High] RDMA/mlx5: memory leak of implicit child MRs in
+  mlx5_ib_free_odp_mr() [1]
+- [High] RDMA/mlx5: NULL pointer dereference in mlx5_ib_wq_event() [2]
 --
 
-commit 3bdcdff9fe049e25d51894257ec6c6716c3a9770
+commit 19b81e90add2578f27e3e1241ff81dd5b9fdd061
 Author: Akiva Goldberger <agoldberger@nvidia.com>
 
-RDMA/mlx5: Enforce dev/mdev naming for device pointers
+RDMA/mlx5: Rename to_mdev() helpers that return an IB device
 
-This commit renames variables, parameters, and struct fields across mlx5_ib=
- so
-that dev exclusively refers to struct mlx5_ib_dev pointers and mdev
-exclusively refers to struct mlx5_core_dev pointers.
+This commit renames to_mdev(), mr_to_mdev(), and mlx5_udata_to_mdev() to
+to_dev(), mr_to_dev(), and udata_to_dev() across the mlx5_ib driver to match
+their struct mlx5_ib_dev return type.
 
-> diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/ml=
-x5/devx.c
-> index fc6f793dcc658..7e84dd15ac1f9 100644
-> --- a/drivers/infiniband/hw/mlx5/devx.c
-> +++ b/drivers/infiniband/hw/mlx5/devx.c
+> diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx=
+5/odp.c
+> index 0b1b63d36e4bc..a4318b11cd81b 100644
+> --- a/drivers/infiniband/hw/mlx5/odp.c
+> +++ b/drivers/infiniband/hw/mlx5/odp.c
 
 [ ... ]
 
-> @@ -1652,7 +1652,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_M=
-ODIFY)(
->  							  MLX5_IB_ATTR_DEVX_OBJ_MODIFY_HANDLE);
->  	struct mlx5_ib_ucontext *c =3D rdma_udata_to_drv_context(
->  		&attrs->driver_udata, struct mlx5_ib_ucontext, ibucontext);
-> -	struct mlx5_ib_dev *mdev =3D to_mdev(c->ibucontext.device);
-> +	struct mlx5_ib_dev *dev =3D to_mdev(c->ibucontext.device);
->  	void *cmd_out;
->  	int err, err2;
->  	int uid;
-> @@ -1677,7 +1677,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_M=
-ODIFY)(
->  	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
->  	devx_set_umem_valid(cmd_in);
+> @@ -680,10 +680,10 @@ void mlx5_ib_free_odp_mr(struct mlx5_ib_mr *mr)
+>  	}
 > =20
-> -	err =3D mlx5_cmd_do(mdev->mdev, cmd_in,
-> +	err =3D mlx5_cmd_do(dev->mdev, cmd_in,
->  			  uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_IN),
->  			  cmd_out, cmd_out_len);
-
-[Severity: Medium]
-This problem wasn't introduced by this patch, but can devx_get_obj_id() read
-past the end of cmd_in [1] when called from
-MLX5_IB_METHOD_DEVX_OBJ_MODIFY, MLX5_IB_METHOD_DEVX_OBJ_QUERY, or
-MLX5_IB_METHOD_DEVX_OBJ_ASYNC_QUERY?
-
-The uverbs attribute spec only enforces a 16-byte minimum
-(general_obj_in_cmd_hdr) on cmd_in, and these handlers call
-devx_is_valid_obj_id() -> devx_get_obj_id() without checking that the buffer
-is large enough for the opcode-specific object ID field.  For an opcode such
-as MLX5_CMD_OP_MODIFY_FLOW_TABLE, reading table_id in modify_flow_table_in =
-at
-byte offset 20 performs a 4-byte out-of-bounds read when userspace supplies=
- a
-16-byte cmd_in.
-
-[ ... ]
-
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/ml=
-x5/main.c
-> index 65455aedd559b..1ecd79929f8cf 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-
-[ ... ]
-
-> @@ -4483,7 +4483,7 @@ static int mlx5_ib_stage_init_init(struct mlx5_ib_d=
-ev *dev)
->  	atomic_set(&dev->mkey_var, 0);
+>  	if (mr->null_mmkey.key) {
+> -		xa_erase(&mr_to_mdev(mr)->odp_mkeys,
+> +		xa_erase(&mr_to_dev(mr)->odp_mkeys,
+>  			 mlx5_base_mkey(mr->null_mmkey.key));
 > =20
->  	spin_lock_init(&dev->dm.lock);
-> -	dev->dm.dev =3D mdev;
-> +	dev->dm.mdev =3D mdev;
+> -		mlx5_core_destroy_mkey(mr_to_mdev(mr)->mdev,
+> +		mlx5_core_destroy_mkey(mr_to_dev(mr)->mdev,
+>  				       mr->null_mmkey.key);
+>  	}
+>  }
 
 [Severity: High]
-This problem wasn't introduced by this patch, but can dev->sig_mrs deadlock
-in mlx5_poll_one() [2] because mlx5_ib_stage_init_init() initializes
-it with xa_init() instead of xa_init_flags(..., XA_FLAGS_LOCK_IRQ)?
+This problem wasn't introduced by this patch, but can mlx5_ib_free_odp_mr()
+leak implicit child MRs [1] when a page fault races with teardown?
 
-Process-context callers such as mlx5_alloc_integrity_descs() and
-__mlx5_ib_dereg_mr() take xa_lock on dev->sig_mrs via xa_store() or
-xa_erase() with local interrupts enabled, while mlx5_poll_one() takes the
-same xa_lock from CQ interrupt context on a MLX5_CQE_SIG_ERR completion:
+mlx5_ib_free_odp_mr() drains mr->implicit_children before removing
+mr->null_mmkey.key from dev->odp_mkeys:
 
-mlx5_alloc_integrity_descs()
-  xa_store(&dev->sig_mrs, ...)
-    spin_lock(&xa->xa_lock)
-    <hardirq>
-      ...
-        mlx5_poll_one()
-          xa_lock(&dev->sig_mrs)  <-- spins forever
+drivers/infiniband/hw/mlx5/odp.c:mlx5_ib_free_odp_mr() {
+	...
+	xa_for_each(&mr->implicit_children, idx, mtt) {
+		xa_erase(&mr->implicit_children, idx);
+		mlx5_ib_dereg_mr(&mtt->ibmr, NULL);
+	}
 
-[1] https://sashiko.dev/#/bug/linux-2b4a0b34-fea8-4d2a-87be-350c461b8f4f
-[2] https://sashiko.dev/#/bug/linux-4a13b647-d8f7-45a3-8a1e-c17db57fefbb
+	if (mr->null_mmkey.key) {
+		xa_erase(&mr_to_dev(mr)->odp_mkeys,
+			 mlx5_base_mkey(mr->null_mmkey.key));
+	...
+}
+
+Because null_mmkey remains in odp_mkeys while the loop runs, a concurrent
+page fault can still look it up and insert a new child MR after the loop
+finishes:
+
+CPU0                              CPU1
+mlx5_ib_free_odp_mr()
+  xa_for_each(&mr->implicit_children, ...)
+    xa_erase(...)
+                                  pagefault_single_data_segment()
+                                    find_odp_mkey() -> null_mmkey
+                                    pagefault_implicit_mr()
+                                      implicit_get_child_mr()
+                                        __xa_cmpxchg(&imr->implicit_childre=
+n, ...)
+  xa_erase(&dev->odp_mkeys, ...)
+
+The newly inserted child MR and its xarray nodes are then leaked when the
+parent MR is freed.  Erasing null_mmkey from odp_mkeys and waiting for
+in-flight faults to complete before draining implicit_children would avoid
+this.
+
+[ ... ]
+
+> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5=
+/qp.c
+> index e4f18f7567d67..da4e9a52d2f9b 100644
+> --- a/drivers/infiniband/hw/mlx5/qp.c
+> +++ b/drivers/infiniband/hw/mlx5/qp.c
+
+[ ... ]
+
+> @@ -5331,7 +5331,7 @@ static void mlx5_ib_wq_event(struct mlx5_core_qp *c=
+ore_qp, int type)
+>  {
+>  	struct mlx5_ib_rwq *rwq =3D to_mibrwq(core_qp);
+> -	struct mlx5_ib_dev *dev =3D to_mdev(rwq->ibwq.device);
+> +	struct mlx5_ib_dev *dev =3D to_dev(rwq->ibwq.device);
+>  	struct ib_event event;
+> =20
+>  	if (rwq->ibwq.event_handler) {
+
+[Severity: High]
+This problem wasn't introduced by this patch, but can an asynchronous WQ
+event trigger a NULL pointer dereference [2] in mlx5_ib_wq_event()
+before the RDMA core finishes initializing rwq->ibwq?
+
+In UVERBS_HANDLER(UVERBS_METHOD_WQ_CREATE), the core sets wq->device and
+wq->uobject only after ops.create_wq() returns, whereas mlx5_ib_create_wq()
+sets rwq->ibwq.event_handler and activates the hardware RQ before returning:
+
+CPU0                              CPU1
+UVERBS_HANDLER(UVERBS_METHOD_WQ_CREATE)
+  mlx5_ib_create_wq()
+    create_rq()
+      mlx5_core_create_rq_tracked()
+    rwq->ibwq.event_handler =3D ...
+    return &rwq->ibwq;
+                                  mlx5_ib_wq_event()
+                                    dev =3D to_dev(rwq->ibwq.device);
+                                    ib_uverbs_wq_event_handler()
+                                      wq->uobject->uevent  <-- NULL deref
+  wq->device =3D pd->device;
+  wq->uobject =3D obj;
+
+If an event fires in this window, rwq->ibwq.device is still NULL (crashing
+in mlx5_ib_warn() on unexpected events) and ib_uverbs_wq_event_handler()
+dereferences a NULL wq->uobject.
+
+[1] https://sashiko.dev/#/bug/linux-f9cb6026-426e-45f3-b251-f749672898fb
+[2] https://sashiko.dev/#/bug/linux-63691fc3-b762-467d-89ea-1bf281490cc3
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261117-mlx5-sd-pr=
-ep-v1-0-8efd124c7895@nvidia.com?part=3D1
+ep-v1-0-8efd124c7895@nvidia.com?part=3D2
