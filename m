@@ -1,56 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=115.124.30.99
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794971640;
-	b=aBt5LfX0ISyNflFB59aGhYrR1iITqHgmufOlYEfuqah4NrTGzDMkrour1pNP/+e7Bxy7
-	 gJPmelO8ucSDhnsk7RNvq2Az+CcO985LcfR3PCgJoCHoEGwxmxMx0NKKx1E7ntDgK6jW0
-	 +e16sbvDAAivObpKuhvwdJBkn6Vqo+ZEKTnKfi36aGaLQi5wfiBOWrjjd2eOy91sngI2v
-	 R1uSqvilZzPvkbtKuaMd2653vbnzTmZ2Bp5tD+0aQLmLC7Fc5VAryKH9Uffru6REunVFp
-	 kbXTeU4A4nZ2ePdlg2damI8A5wOmIcFNXBWe1TGOlE7FgkewANEITfHHSqTI4rCfcdw==
+	t=1794972550;
+	b=CECC0pmvezTNi+km+Ku1bo35mZ9A1+Y9F3LP2skbcTFE8t0xEFKiJykO7lnUxwrptvvd
+	 Y92tyMEuS7ejewqJLatG5KJiorRPyUxbV0MZkRU1EcdLTARNrkpOWcB/b3En1OspsjP6e
+	 mLUNEZL7kSQ3qcu6Tyd5G20ANc6LVBHuDz130uwqAwO1hNYOPR8wfuuSUoDqsrsXFmJu8
+	 LKjrEHNw7dSTYgqLXlPFVD5HiUzZSqfw+9E99yT54I2pByFLsYlXMPnDkjtg4iG/rDoEo
+	 4eQhm9PjvhbC3eSw70NHMuxuvo8H4iYI5sz6ieWFqEUgclZNUUvrcm7RAX0gA9Zq88g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794971640;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=RNU+u23gu7czF0MbHvSk7T2zdyyOH07naq3hsBiJQJU=;
-	b=3Di+mxcfihq/iQCmNhyj+lou2Vjx1qKVt0MGo6r4AhxXhNAujBYw5wO8r3rHShggxoBB
-	 wWqnESutv+DyGAfWiIVlrPpGKDFPYsBCVF1FaiNw53wzWohdH+1ZJjMuTpfPYudKjVrU6
-	 XGcIDawpnoHwaBqt2AtU7q1g7x3Hguvmshdu8i9v+JvD3YY2y4DsrMcY0AQEGVJYbcQhu
-	 sHBM28RLr6+KVqrH2iQVBWZjYClnqiJqNHIEKTcBcq5fTI2sj4LuwOkr9VUcCBnc1YSIj
-	 1XUIj87Espl4og0GOTrX+OZbrMRoQXjM6nTut5HPD4It/886JXLFqfNmcZpSFh8TkTw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794972550;
+	h=DMARC-Filter:DKIM-Signature:X-Alimail-AntiSpam:Received:From:To:Cc:
+	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=m2mZFT+nmsHC4e18rOld5LaDIQ7XhMiI0zI/EQz6jAo=;
+	b=48mtc2cH+mWl1bHGp3QkWrtLRfhy1XaCh+VCAQ30hZW8twGbfGOQdvrCUDFIiE37c9uB
+	 rGM9FbsbzvsLWLlV7H/5TQhC8sNShqzXXCZX7QUIP/00rnCLhivqPPjpKo7pJf8+fWgRM
+	 +PNzE3AOQPUp7oruhFilMaw7H2F275hBVpQVlsXVtqk0NidnOBRQqp459ucJLBWCkTINJ
+	 jN55zDZ8zQZMLq09Xy7t7SmBuu78A2Pu14xoWbpEiNgBHg/cwzSMiiCa6+k/UUuTk/Qk2
+	 rM23glix5mvaPiIHz1vsVr0jmRhbtMXTWiB/DHV/Wi9zYYB0pyFun6/C7KV0SQFmb0g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=INC5f06C;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=linux.alibaba.com;
+	spf=pass smtp.mailfrom=linux.alibaba.com;
+	dkim=pass header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=QMl635K3;
+	arc=none smtp.remote-ip=115.124.30.99
+Received: from out30-99.freemail.mail.aliyun.com (out30-99.freemail.mail.aliyun.com [115.124.30.99])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D65D606A31C
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 03:14:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADB79606A31C;
+	Wed, 18 Nov 2026 03:29:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org ADB79606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=INC5f06C
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD3891F000C4;
-	Wed, 18 Nov 2026 03:13:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794971639;
-	bh=RNU+u23gu7czF0MbHvSk7T2zdyyOH07naq3hsBiJQJU=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=INC5f06Cuf20l0Pbm/kyBjfkifq9pDV53BOWLttQUW3R7/7AcnMLZsgSdqIqCdIq6
-	 RxC7qfswM4swRUxcoA2BcInydbjIfXS5jyVDUmihUOSrydLEhulzdizSmJQ3hgnTep
-	 1ucn1YLh//d3F0qRS1WhunuFXQ4mvMLUN0tPl/Kz7aZJrSe+ySlXBR79F16XwxsgTF
-	 CsU/p1uZUXP9SztQ0RLoZEiTmre9U5BWyRX+48Y/9X3O7SNms8QViEhZCtsU4Hr+i3
-	 wa4COJbyuu6II50Bs3M2qv0TneVkEq6BjFMB2lIgMBMKQsi6D8BQVS0IFXkmmd93M9
-	 rPqAhMoks2xyw==
-Message-ID: <sashiko-outbox-220007@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next] net: mlx5: Allow police as the last action of
- a TC rule
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Mohsin Bashir" <mohsin.bashr@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261117031337.4126403-1-mohsin.bashr@gmail.com>
-References: <20261117031337.4126403-1-mohsin.bashr@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 18 Nov 2026 03:13:59 +0000
+	dkim=pass (1024-bit key, unprotected) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=QMl635K3
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1794972539; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=m2mZFT+nmsHC4e18rOld5LaDIQ7XhMiI0zI/EQz6jAo=;
+	b=QMl635K32i1/C1h25Xj6Nh9Ou7kJuoy9iAVcILqzxyxER99G4l87n3I0J1P0CESZmOFBjTyP6O15qr/J+C0zyjTaD7hQt3g79NXMFZ906KzKA+w2g/lyrPLfJB4HsS5raFxjHvwz2B4jlrYjlH+mOKArV/QIt9LcvPc3iSvNLDU=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R621e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037033178;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0XF.GjIm_1794972538;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0XF.GjIm_1794972538 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Wed, 18 Nov 2026 11:28:58 +0800
+From: Cheng Xu <chengyou@linux.alibaba.com>
+To: stable@vger.kernel.org
+Cc: leon@kernel.org,
+	jgg@ziepe.ca,
+	kaishen@linux.alibaba.com,
+	linux-rdma@vger.kernel.org
+Subject: [PATCH 6.1.y] RDMA/erdma: Use IRQ-safe XArray helpers for QP and CQ tables
+Date: Wed, 18 Nov 2026 11:28:58 +0800
+Message-ID: <20261118032858.92963-1-chengyou@linux.alibaba.com>
+X-Mailer: git-send-email 2.54.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,96 +60,95 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue to consider:
-- [High] net/mlx5e: broken post_act steering when last police action
-  uses pipe or jump
-It also noticed 1 related pre-existing issue this patch does not
-introduce:
-- [Medium] net/mlx5e: memory leak of parse_attr on error path in
-  alloc_branch_attr() [1]
---
+[ Upstream commit 00baeade709fb66da647e8327e8398bb532e30f7 ]
 
-commit bbe05fcd328438a7e5968a8a2b44d3bf4fffd2eb
-Author: Mohsin Bashir <hmohsin@meta.com>
+Locked QP and CQ lookups from EQ interrupts can deadlock with
+create-path XArray updates. If an interrupt arrives while the create
+path holds the plain xa_lock, the lookup spins forever trying to
+acquire the same lock.
 
-net: mlx5: Allow police as the last action of a TC rule
+Use IRQ-safe XArray helpers for all QP and CQ create-path updates,
+including the GSI QP store and error paths. Initialize both arrays with
+XA_FLAGS_LOCK_IRQ so sleeping allocations preserve interrupt state.
 
-This commit sets MLX5_FLOW_CONTEXT_ACTION_FWD_DEST while parsing rate
-police actions and updates alloc_branch_attr() to set MLX5_ATTR_FLAG_ACCEPT
-for FLOW_ACTION_ACCEPT so police can be offloaded as the last action in a
-TC rule.
+[ The GSI QP create path is not present in 6.1.y, so omit that hunk. ]
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c b=
-/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c
-> index 1bd1c94fb9776..52295f5d644c5 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c
-> @@ -94,13 +94,14 @@ tc_act_parse_police(struct mlx5e_tc_act_parse_state *=
-parse_state,
->  		      MLX5_FLOW_STEERING_CAP_MATCH_RANGES))
->  			return -EOPNOTSUPP;
-> =20
-> -		attr->action |=3D MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
->  		attr->flags |=3D MLX5_ATTR_FLAG_MTU;
->  	} else {
->  		attr->action |=3D MLX5_FLOW_CONTEXT_ACTION_EXECUTE_ASO;
->  		attr->exe_aso_type =3D MLX5_EXE_ASO_FLOW_METER;
->  	}
-> =20
-> +	attr->action |=3D MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
-> +
->  	return 0;
->  }
-> =20
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/ne=
-t/ethernet/mellanox/mlx5/core/en_tc.c
-> index 1d35c97aea0bc..8685e41487f39 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> @@ -3892,6 +3892,9 @@ alloc_branch_attr(struct mlx5e_tc_flow *flow,
->  		attr->action |=3D MLX5_FLOW_CONTEXT_ACTION_DROP;
->  		break;
->  	case FLOW_ACTION_ACCEPT:
-> +		attr->action |=3D MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
-> +		attr->flags |=3D MLX5_ATTR_FLAG_ACCEPT;
-> +		break;
->  	case FLOW_ACTION_PIPE:
->  		err =3D set_branch_dest_ft(flow->priv, attr);
->  		if (err)
+Fixes: 98df2aee1459 ("RDMA/erdma: Hold CQ references when processing EQ events")
+Fixes: a52eeff32024 ("RDMA/erdma: Hold QP references for AE and CM processing")
+Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
+Link: https://patch.msgid.link/20260828030344.88021-1-chengyou@linux.alibaba.com
+Signed-off-by: Leon Romanovsky <leon@kernel.org>
+---
+ drivers/infiniband/hw/erdma/erdma_main.c  |  4 ++--
+ drivers/infiniband/hw/erdma/erdma_verbs.c | 16 ++++++++--------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-[Severity: High]
-What happens when a rule ends with a police action whose branch control is
-FLOW_ACTION_PIPE (the iproute2 default for notexceed when configuring
-"action police rate ... drop") or FLOW_ACTION_JUMP?
+diff --git a/drivers/infiniband/hw/erdma/erdma_main.c b/drivers/infiniband/hw/erdma/erdma_main.c
+index 49d931921741..ca93686b0378 100644
+--- a/drivers/infiniband/hw/erdma/erdma_main.c
++++ b/drivers/infiniband/hw/erdma/erdma_main.c
+@@ -500,8 +500,8 @@ static int erdma_ib_device_add(struct pci_dev *pdev)
+ 	INIT_LIST_HEAD(&dev->cep_list);
+ 
+ 	spin_lock_init(&dev->lock);
+-	xa_init_flags(&dev->qp_xa, XA_FLAGS_ALLOC1);
+-	xa_init_flags(&dev->cq_xa, XA_FLAGS_ALLOC1);
++	xa_init_flags(&dev->qp_xa, XA_FLAGS_ALLOC1 | XA_FLAGS_LOCK_IRQ);
++	xa_init_flags(&dev->cq_xa, XA_FLAGS_ALLOC1 | XA_FLAGS_LOCK_IRQ);
+ 	dev->next_alloc_cqn = 1;
+ 	dev->next_alloc_qpn = 1;
+ 
+diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
+index 2ddc56335b9a..b848828287d1 100644
+--- a/drivers/infiniband/hw/erdma/erdma_verbs.c
++++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
+@@ -693,9 +693,9 @@ int erdma_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attrs,
+ 	kref_init(&qp->ref);
+ 	init_completion(&qp->safe_free);
+ 
+-	ret = xa_alloc_cyclic(&dev->qp_xa, &qp->ibqp.qp_num, qp,
+-			      XA_LIMIT(1, dev->attrs.max_qp - 1),
+-			      &dev->next_alloc_qpn, GFP_KERNEL);
++	ret = xa_alloc_cyclic_irq(&dev->qp_xa, &qp->ibqp.qp_num, qp,
++				  XA_LIMIT(1, dev->attrs.max_qp - 1),
++				  &dev->next_alloc_qpn, GFP_KERNEL);
+ 	if (ret < 0) {
+ 		ret = -ENOMEM;
+ 		goto err_out;
+@@ -750,7 +750,7 @@ int erdma_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attrs,
+ 	else
+ 		free_kernel_qp(qp);
+ err_out_xa:
+-	xa_erase(&dev->qp_xa, QP_ID(qp));
++	xa_erase_irq(&dev->qp_xa, QP_ID(qp));
+ err_out:
+ 	return ret;
+ }
+@@ -1433,9 +1433,9 @@ int erdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	refcount_set(&cq->refcount, 1);
+ 	init_completion(&cq->free);
+ 
+-	ret = xa_alloc_cyclic(&dev->cq_xa, &cq->cqn, cq,
+-			      XA_LIMIT(1, dev->attrs.max_cq - 1),
+-			      &dev->next_alloc_cqn, GFP_KERNEL);
++	ret = xa_alloc_cyclic_irq(&dev->cq_xa, &cq->cqn, cq,
++				  XA_LIMIT(1, dev->attrs.max_cq - 1),
++				  &dev->next_alloc_cqn, GFP_KERNEL);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1482,7 +1482,7 @@ int erdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	}
+ 
+ err_out_xa:
+-	xa_erase(&dev->cq_xa, cq->cqn);
++	xa_erase_irq(&dev->cq_xa, cq->cqn);
+ 
+ 	return ret;
+ }
+-- 
+2.31.1
 
-Setting MLX5_FLOW_CONTEXT_ACTION_FWD_DEST in tc_act_parse_police() lets a
-trailing rate police action pass verify_attr_actions(), while
-alloc_branch_attr() still sets branch_attr->dest_ft to post_act->ft for
-FLOW_ACTION_PIPE and FLOW_ACTION_JUMP.  However, parse_tc_actions() only
-splits the flow to allocate a subsequent post_act attribute when
-i < flow_action->num_entries - 1, so next_attr is NULL in
-alloc_flow_post_acts() and mlx5e_tc_act_set_next_post_act() never writes a
-new FTEID_TO_REG or installs a target post_act rule.
-
-Packets taking the pipe branch will miss in post_act->ft to the slow path
-instead of reaching the end of the TC chains, or if an earlier multi-table
-action preceded the final police action, FTEID_TO_REG still holds the final
-police attribute's own post_act_handle->id and steers packets back into the
-same police rule in a loop.
-
-[Severity: Medium]
-This problem wasn't introduced by this patch, but does the out_err path in
-alloc_branch_attr() leak (*cond_attr)->parse_attr [1]?
-
-mlx5e_clone_flow_attr_for_post_act() allocates both *cond_attr and a
-separate (*cond_attr)->parse_attr via kvzalloc_obj(), but out_err only
-calls kfree(*cond_attr) instead of a helper like free_branch_attr() when
-set_branch_dest_ft() or branch validation fails.
-
-[1] https://sashiko.dev/#/bug/linux-ad0e9c08-1f2f-44c7-a3a1-f3f69e4acf76
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261117031337.4126=
-403-1-mohsin.bashr@gmail.com?part=3D1
