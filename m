@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795037147;
-	b=cZlHN6Jo0D43+8yxAKorTaBnumj1itPki05CTT3Rm+aKC6/Fsa8K8jZ8Zgib+jq+6UAt
-	 rGsZ7IpzToweqnQuiYggq1+zu781hgD1VJTrZDEtE+JaHc4pXO2rVq+usycDseX6BRVgv
-	 BGj+08w0QrUvZqqNk2W0C90RcxbouA0fx2PibzXKAi1v8HGugSlGp5jRBImCGgNtYwx+y
-	 Lj2UT+yyRFpErD3FsbA5FocZNH5/5EDuU/0LXL5K9ffRXYHN5M2ZKew7VUTf9XK7H0Sl4
-	 LHUsU3UX+XnDWkxTksal0rS5klV3whxE701/zyuf7S1f3k8g84eYUGLhEeTqXaqGjDQ==
+	t=1795037336;
+	b=DHttt6q3Lqw9uzrQppkzQ9xcw0PETfBl0qCqbNF0f/Arcr6K1aZD+xCbVJcsowF/lSQz
+	 oz1NkiBN2tTdbNmvvHm8gAENRR2MXQ03MDAejlH4ABMf4sihwTynNMp8aV4ozvBeFUj1J
+	 qZAnjRdr8yw4Q9KC93NAFTysSw9geq/YtbgGwXn7wQkfUC6vfJDFizJG5ocPJIQXH/hXi
+	 E/xaKHcFliejJjg3HziXGZOzyf7je9D2PsT4FKxib8wI94pHLy3nV7oXCfANwXw8qxbUk
+	 6H5CRk3x/p2pU7cUFf8XYCJ9UfmKOXqHFjxqMuawaq9V2lrC1prvxGy7ZVsqu3pY9fA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795037147;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795037336;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=WYV1vSNXyy4Ok53hU/8uusFYHaER/kUAGaeY7j14qxU=;
-	b=r2TjDWvB0fmay+Lp5rpz7QdNsCH+QE6Ut8dVNsMOY4O6yaEGyICnAGpeYiiGROPKLcdL
-	 SFgJrlqTabBJJlHinJlRnJEFcETs4/QH8w83baO5+4CxGlNTpVE6vCOhny9Ygcvd40gqo
-	 1KLxj3ir/9jlxxwP9FF1dHqeIjyIq3cfYnmCL/ZpOvy8x4c3wGZ2Qmf4Ar76NlaWCq4GD
-	 NrUTJq9+mLm5keharLKPzKnSXiNZcew5gu6dv4LcZSjYSIpufKlHUGcrRfiVZ7dQy1Wdq
-	 WucRFK6B3ClsFOhKH/vY4vfV8UIeY/khNOpbp4ZJuIgC5zG94bYJYWYUpWdsgVT36bg==
+	bh=C/2hVtjVJHJeJOWQOjIqe/m+q7nagRZXiNpaDJyN05Y=;
+	b=OOuSvy/aTqcdbbm3RJhSflEEtLeLEkAAsbqJlCAh4fvJO48zKE0jb8QYBQ/t7AtFdvOz
+	 zDWqmLbdBhvOGqAYuPjrbZIba38ZpSCSDxEIB5Ji6hBi6DyqerDBtYHQfoxFyNICC9hT3
+	 4GOwKRle5iGDxCEFiwTHWv7H+pkzNMQqWRYfbZuTy2PdPjCyw/vLLyEi1Lfsb9GvInFHH
+	 StQc8qNYcilclbCTw5fH2O0E4cTLPGtIY0jjDf1bD9BLhET9Pe+5EbL+0C/umP0fr7xm7
+	 ofrlNUT3KPlL6JNlq8K0AhulWip7YTR3DMziajiPXa37YsqRq0gcOwlTKJKkGBCXk4g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oC4n1mVB;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hqkEksgL;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F080D60A260A
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 21:25:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0329360A382E
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 21:28:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oC4n1mVB
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68F211F000C9;
-	Wed, 18 Nov 2026 21:25:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hqkEksgL
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7093C1F000CF;
+	Wed, 18 Nov 2026 21:28:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795037146;
-	bh=WYV1vSNXyy4Ok53hU/8uusFYHaER/kUAGaeY7j14qxU=;
+	s=k20260515; t=1795037335;
+	bh=C/2hVtjVJHJeJOWQOjIqe/m+q7nagRZXiNpaDJyN05Y=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=oC4n1mVBMRYWNmlm/jF5dHMpq23OqlXNxO/rn1e/vsCg/QCur4CqkiTfM53HWiA5c
-	 Rh/agMvQAEiiqkWhQv/e4Aqy3ZMW8Qe0p4Pz0sFVRKqBWOfgJ/T8T1u3qloJw4Lmgz
-	 f94hyZFqUZD/OoIsvpXr7VakEkwWejCdQiARo2fkMO8fpSyaVVHUV4CNdHscVBzEgA
-	 wWEOSi4FVwgM8PYLuZwoSbgKPSNb/mZl4SM/pP+2EyZYOX6X6iIvOuB7icV5jrO+nN
-	 zRoL3IlDrbjheilf0HUPWq7T/dtHbcnw058SvQ7g56wamxoDiAPjLDHdM6ege3bmUm
-	 Et3jOGfx74XOQ==
-Message-ID: <sashiko-outbox-221991@kernel.org>
+	b=hqkEksgLHSIodfWKffid4F8HBZaEhqrMcDeBYXFxceZkdTLkf8a500zOVFx4YAKSQ
+	 i9Utkr6NC4MVREx4l6v+QnZqqAOBT74FNXMPDF/HIlvNDWu6IhOAfEijDtjfeCv2eR
+	 sKwq2NjYPVL6wSt1RwJgsHTYK6Fuy7KMFaaqY0VoKBpTD2w37gfCsYiwCt1zyloohy
+	 dOTPcEor0pKWxHLI2Lujx4pDLrVEf1J7k679MiSUxrpX4vOe0Q6JPl6iHitMbx0zgs
+	 9JHJJzvDFB/6nx2CJd+0oXkShe9a8kKE85HEKirYMW7242l1P0hREz9r0/XH1279Hy
+	 SUqcpRoO3OxHw==
+Message-ID: <sashiko-outbox-221993@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v3 2/4] scsi: target: iscsi: do not arm the nopin timer
- on an iSER connection
+Subject: Re: [PATCH v3 4/4] IB/isert: do not leak the receive descriptor of
+ a dropped Data-Out
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Yehyeong Lee" <yhlee@isslab.korea.ac.kr>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261118211503.2526705-3-yhlee@isslab.korea.ac.kr>
+In-Reply-To: <20261118211503.2526705-5-yhlee@isslab.korea.ac.kr>
 References: <20261118211503.2526705-1-yhlee@isslab.korea.ac.kr>
- <20261118211503.2526705-3-yhlee@isslab.korea.ac.kr>
+ <20261118211503.2526705-5-yhlee@isslab.korea.ac.kr>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 18 Nov 2026 21:25:45 +0000
+Date: Wed, 18 Nov 2026 21:28:55 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,27 +61,31 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> iscsi_post_login_start_timers() does not arm the nopin timer for
-> ISCSI_INFINIBAND, under a FIXME that says unsolicited NOP-In is not
-> supported there.  It is the only place that looks at the transport, and it
-> runs once, at login.  Two other sites arm the same timer for a connection
-> that is already logged in: iscsit_process_nop_out() after a NOP-Out
-> response, and iscsit_na_nopin_timeout() for every logged-in connection of
-> an ACL whose nopin_timeout is written from 0 to a non-zero value.
+> isert_handle_iscsi_dataout() works on the command it finds by ITT, which
+> holds the descriptor of the SCSI Command PDU and not of this Data-Out,
+> which is why the function posts its own descriptor explicitly when it
+> succeeds.  None of its other returns do, and isert_recv_done() ignores
+> what the handler returned, so each such Data-Out costs one of the
+> ISERT_QP_MAX_RECV_DTOS buffers.  That includes the returns where
+> iscsit_check_dataout_hdr() answers 0 without a command at all: 200
+> Data-Outs carrying an ITT that matches no command stop the connection
+> after exactly 128 of them, with no response to a NOP-Out sent afterwards
+> and nothing logged beyond the per-PDU "Unable to locate ITT" message;
+> with this patch all 200 are taken and the NOP-Out is answered, in 5 boots
+> out of 5.
 >=20
-> So an iSER connection does get unsolicited NOP-Ins, and iscsit_add_nopin()
-> builds them from a command of its own.  Writing nopin_timeout 0 and then 3
-> on the ACL of a logged-in iSER session kills the target on unmodified
-> mainline: struct isert_cmd is all zero for such a command, and
-> isert_put_nopin() hands the NULL receive descriptor to isert_post_recv(),
-> which dereferences it.  That part is a bug in isert and is fixed two
-> patches on.
-> [ ... ]
+> So give isert_handle_iscsi_dataout()'s other returns the same post its
+> success path already does.
 >=20
-> Link: https://lore.kernel.org/all/20220311175713.2344960-1-djeffery@redha=
-t.com/
-> Fixes: b8d26b3be8b3 ("iser-target: Add iSCSI Extensions for RDMA (iSER) t=
-arget driver")
+> That one function only.  Everywhere else a handler returns non-zero, the
+> command isert allocated still holds that descriptor and the response
+> posts it from isert_post_response(), so re-posting from
+> isert_recv_done() would post the same descriptor twice; the second post
+> is skipped only while the descriptor has not been refilled, which is not
+> something the receive path can promise.  iscsit_handle_logout_cmd() even
+> returns 1 for an ordinary logout.
+>=20
+> Fixes: 4366b19ca5eb ("iser-target: Change the recv buffers posting logic")
 > Cc: stable@vger.kernel.org
 > Signed-off-by: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
 
@@ -89,5 +93,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261118211503.2526=
-705-1-yhlee@isslab.korea.ac.kr?part=3D2
+705-1-yhlee@isslab.korea.ac.kr?part=3D4
 
