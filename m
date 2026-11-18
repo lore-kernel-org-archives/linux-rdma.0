@@ -1,47 +1,99 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794995204;
-	b=U91er+ucZBcAOwtvuGxk3foI1ZqeN02N2xWOlpOplV1mWEFbRoFaAfXB5YIBymgUUX6W
-	 CV8/Lkuc0uxdhWsYzQXIFZL7G6ayD2V4CXz0NX+A4JR7t3iVKbdwHAWh38HHwiaNKCJo7
-	 iHO5L70p7tyBRuTHMyoQiV7XA53aQgkxRaBebxYZOlLN+G1vf2HTCN3Jqqt9Ff92DDhfx
-	 b3G092TkBx5U+NNsngK7GMBm/Csd/gk5PAkWqSBtNIJCyvqi/LO0HwlG4bzVqg7Y5pf4I
-	 hyOGtfEUgQUTlNsFsjw5tDIQ6CCkvX8Tenww4o1pZx6bFUqKnlLo+jt6+2LyQ3F/EXw==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794995204;
-	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:From:Content-Language:Autocrypt:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=CtaieybfS6BQtpEqYoffKr95cQJaQPqI7rmHn30lmpg=;
-	b=mg0J7lnPNL6Z51SCOPTACweg0G4aQLWH1RXRU/PRrOFQIBDL85auSM5ENa6rLIGNT8aT
-	 lKclzH7qoNz+4Lm6B8Si32HlLj2R++a2tExzBbByVvSZZHlQNFaZFPR4wpXwZSz4czbSJ
-	 aMfCNSvcKLIm97jz3z5x/6FNoxqGvmCeWScHH0nOBEmv00mbCtpfQvwboiHA9rbX3k2h3
-	 ZjZfC6/eU1+5wKTFsIHByNFmNP/6d1sHn4+Y4fkxVM6oD8JOa94V9vagyEgQHgwxQkKId
-	 7KHmcQ6KFEJ67/Ee0pWgWGNMVzte1FCqQLGc4llT9Cc39v/1IVKCSXNkuZzrTs1hWGw==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RQYGohhW;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.195.2
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1794995354;
+	b=3ngCAFSNEnvllCOAE+pONn//pKIRHnKB9PWxd113YXrV+qOW2D5PW8OnW237eFMu/ZzH
+	 hqpZoIrUTfkXDLOUxAxJD/egulaMY0E1FqHAUQuSM3sF1u5keicS4Z8MmoRtDzmrFAAT0
+	 DWKBOheYDvPi+yloS7jk/oMuoI3TVwkAV47sm5ACDA4AS+OaPIsAjSGgGh8jXOYFd+K2n
+	 WHHSdn6bmZ3/XCju5Fx6AjpDRbkVfOrH5zKa8lJJ88ek8gvkt82IZQvCZh7BV2sVomXKR
+	 uSKLcnBkO5DTe+TmF7L3nSf3o+CMk0AdJjAfFS1kKIj6NKiF5Nw7MwXJ0YVPk/RRwaQ==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794995354;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
+	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=+o4wJf08bRx+9Ccjqy4Y3NjCioCSaFkm/ayZnQtFCds=;
+	b=oR+zj/XQUA3SN2qcyTCFhjhjAexM/kuDssfxZhei12dELc2uRviF3E4MG714OXnyDD84
+	 DWVyc9KPO7MAOi6DfmP2sc3tamaSCjJ9MDAZ+ZmTtfzIgNlfiQNpl+Ocm1BhVrmJPSPwQ
+	 nNP3NGa3LmXFwLYkvHhEeVD+YUcFhxqyvH2Flbj9jre+UXoGiv7OYPgs2/sj7csRPIYuK
+	 cgP7SFfC5e6gdn8y+GFrGiwWzvK9IZfnrwQXf3TcIzuPnE+ikZSwnXb0piHRmTdVHwHCZ
+	 RUzxxDMnNKN/AEG84cfEhGRD3DNxRdDbe+X+2gzIFyfQpHdPgXAK42TLQp5xooVtXrg==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=L7aA8aCd;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.195.2
+Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012002.outbound.protection.outlook.com [40.93.195.2])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E79A606A32F;
-	Wed, 18 Nov 2026 09:46:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD890606A31C;
+	Wed, 18 Nov 2026 09:49:13 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BD890606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RQYGohhW
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA1101F000C4;
-	Wed, 18 Nov 2026 09:46:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794995203;
-	bh=CtaieybfS6BQtpEqYoffKr95cQJaQPqI7rmHn30lmpg=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=RQYGohhWWhAMmEGxIAzOYr6Fx+D3c8etuGKHMFcbyKBYk19gb0PmTU3vg4xr2/6an
-	 SJ/qop6o7easXoypEONyiMJCk8cgR+yJjAnGlWhqyYJ/ziD1aNlj2ESpXtYiDNRwlj
-	 e5B2ZdNugULbszT5sBs7bvHePzJ8bmuqz1BjALmVdtQaVhFWk40mYXG3RtN1ZfLaG8
-	 CO7RPHtrPQW3mS0ouvPJuJjTBrscheUKbE+yzjJIA5+EdbTjFPpS41EOhTYuSfpYXk
-	 m2o215lUT4PGALLB0rFVQlxsiCFea6eOd2CBZHCy/6uKXDd0NHCR7gWa9XW+UGFy9f
-	 mZGW3Ic1lhhTw==
-Message-ID: <332f315d-ea27-488a-9a3c-28cdfdcd5f27@kernel.org>
-Date: Wed, 18 Nov 2026 10:46:24 +0100
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=L7aA8aCd
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=MGwHFtFlzDsNfabP3pJyvgiaWkTMOgLgnp57XKjRAxsu9QgyLU7588pYyb1gf4tdndn6T+Eo4uHXj34KkddfBU5UOmmQjw8fgHdstX+BVNqDPXUv3QyXR973/WLeiK9PKhXNhgyQ3c8UmIFh+bzqNP0pFFGrwMXtHiaPQMt2SFVCQixI4PSZxj0hn7KA4mgLzfrKoZAtMqU2zoT2G1rIu8BQn95YRHX6aCRokXxvJvrx8bwJ0r5ClEmqRxBgwre3Yn+MyZ7U90QHR4dbZpOW0SIOzz5pCraW7bJT0jPPZgNycpMIQPXeoxm9pnm7JfvR/S/bodyw9V5xR2bKbmB4Yw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=+o4wJf08bRx+9Ccjqy4Y3NjCioCSaFkm/ayZnQtFCds=;
+ b=KgyDAKsBI7B4h51b1GJIgs7/cRtZbUrlplDwcDOenwi6FtC03I4QTTCD0dnqmT4Y7E7tZPvZicCNAu0x9mCWBjHG7eTJ478RlbF3qiVqojoBvJ1IZrGaCWmRt7Cd/nSSWVyHVtlbffegCnrgr/Vk5ydJ/dIwFdUE4uDu8QpL3asCjQ1bMx5lp1iCXchaL2VW2oWNWKGVDNo4HezsUvO6kVntNozzl4Y/oreX3M5Mu6qGEe+d20xEDZijtpJ45I8fIGSl7kTP3AD+fnQoUADRBgKBUkVgw4cLp90tGgqjUS2iEUWmZk/PhOgO8H2zdAzu3NLCI0VArQHpicxVRJ+L1Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=+o4wJf08bRx+9Ccjqy4Y3NjCioCSaFkm/ayZnQtFCds=;
+ b=L7aA8aCdSZl2MK7GWnXrWLn4EFFyp7537Ftp32uhv1je1StsoMYo5Ge70ZiJhqbqwYhTKaZGAQMoPTE3Ad05shz1GPlXLIQusTH08FT+Hk0By+RleeVmsMWaDNEgZ05gHRsVqHbJF/oe0hy5eWayIKkVq7yppVGwPGdZ+zE27tAnrjA3NZiJ5M4SsAmSMu81oYqfRRPAGr9fTX0trZDh36now2r2DP8Aw3MEmZPv22LAZDrSE+7jQLLqLwfEdDvEW8ZEgHxbZvUJLkJSV4II2XQyrGzucE7S5lFFxXz+Zkqbr1gvitRyZrXv9TySk+hJptyJD6VIBVYbN8j3lhi/tg==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from SAVPR12MB999143.namprd12.prod.outlook.com
+ (2603:10b6:806:4e5::21) by SJ0PR12MB6685.namprd12.prod.outlook.com
+ (2603:10b6:a03:478::17) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.14; Wed, 18 Nov
+ 2026 09:49:09 +0000
+Received: from SAVPR12MB999143.namprd12.prod.outlook.com
+ ([fe80::219e:6553:2ec0:3761]) by SAVPR12MB999143.namprd12.prod.outlook.com
+ ([fe80::219e:6553:2ec0:3761%4]) with mapi id 15.21.0615.013; Wed, 18 Nov 2026
+ 09:49:09 +0000
+Message-ID: <96a5ce67-89c8-4010-bfc4-4553e1aefe87@nvidia.com>
+Date: Wed, 18 Nov 2026 17:49:01 +0800
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net] net/mlx5e: IPsec, Fix RX mapped ID leak when adding a
+ rule fails
+To: Changyul Lee <lcy8047@gmail.com>, Saeed Mahameed <saeedm@nvidia.com>,
+ Leon Romanovsky <leon@kernel.org>, Tariq Toukan <tariqt@nvidia.com>,
+ Mark Bloch <mbloch@nvidia.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+References: <20261118051247.3885308-1-lcy8047@gmail.com>
+Content-Language: en-US
+From: Jianbo Liu <jianbol@nvidia.com>
+In-Reply-To: <20261118051247.3885308-1-lcy8047@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: SI3PR02CA0014.apcprd02.prod.outlook.com
+ (2603:1096:4:295::6) To SAVPR12MB999143.namprd12.prod.outlook.com
+ (2603:10b6:806:4e5::21)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -51,165 +103,112 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1 0/7] mm: kasan: skip KASAN for GFP_HIGHUSER
-To: Jeff Xu <jeffxu@chromium.org>, Tomasz Figa <tfiga@chromium.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Vlastimil Babka <vbabka@kernel.org>, Johannes Weiner <hannes@cmpxchg.org>,
- Andrey Ryabinin <ryabinin.a.a@gmail.com>, Lorenzo Stoakes <ljs@kernel.org>,
- "Liam R . Howlett" <liam@infradead.org>, Mike Rapoport <rppt@kernel.org>,
- Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
- Brendan Jackman <brendan.jackman@linux.dev>, Zi Yan <ziy@nvidia.com>,
- Alexander Potapenko <glider@google.com>,
- Andrey Konovalov <andreyknvl@gmail.com>, Dmitry Vyukov <dvyukov@google.com>,
- Vincenzo Frascino <vincenzo.frascino@arm.com>, Marco Elver
- <elver@google.com>, Boris Brezillon <boris.brezillon@collabora.com>,
- Catalin Marinas <catalin.marinas@arm.com>, Chia-I Wu <olvaffe@gmail.com>,
- Dev Jain <dev.jain@arm.com>, Evgenii Stepanov <eugenis@google.com>,
- Ian Rickards <ian.rickards@arm.com>, Jann Horn <jannh@google.com>,
- Jeff Vander Stoep <jeffv@google.com>, Jeff Xu <jeffxu@google.com>,
- Kees Cook <kees@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
- Peter Collingbourne <peter@pcc.me.uk>, =?UTF-8?Q?Pierre-Cl=C3=A9ment_Tosi?=
- <ptosi@google.com>, Ryan Roberts <ryan.roberts@arm.com>,
- Will Deacon <will@kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
- Miklos Szeredi <miklos@szeredi.hu>, Baoquan He <baoquan.he@linux.dev>,
- Pasha Tatashin <pasha.tatashin@soleen.com>,
- Pratyush Yadav <pratyush@kernel.org>, Allison Henderson
- <achender@kernel.org>, "David S . Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
- linux-mm@kvack.org, kasan-dev@googlegroups.com,
- linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org,
- fuse-devel@lists.linux.dev, kexec@lists.infradead.org,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org,
- Ryan Roberts <ryan.roberts@arm.com>
-References: <20261116230627.3537051-1-jeffxu@chromium.org>
- <2066d131-f999-4747-beb8-520d5e0ce1db@kernel.org>
- <CAAFQd5DzTmyeVQxNdhdy8pPi+ts1cCgbztVJiMoNBeJWBzjdQQ@mail.gmail.com>
- <20261118012858.289236-1-jeffxu@chromium.org>
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=david@kernel.org; keydata=
- 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
- qIws/H2t
-In-Reply-To: <20261118012858.289236-1-jeffxu@chromium.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-On 11/18/26 02:28, Jeff Xu wrote:
-> On Tue, Nov 17, 2026 at 11:11 PM Tomasz Figa <tfiga@chromium.org> wrote:
->>
->> On Tue, Nov 17, 2026 at 7:10 PM David Hildenbrand (Arm)
->> <david@kernel.org> wrote:
->>>
->>> I really don't want us to spread KASAN-related GFP flags in the kernel.
->>>
->>> There must be a proper way to abstract this.
->>>
->>> Why is GFP_HIGHUSER not sufficient? We were already told that this is memory to
->>> be mapped into user space. Placing data structure on it and handing out pointers
->>> to that would already be a bit questionable.
->>>
->>> So what are the ways to avoid GFP_HIGHUSER_KASAN?
->>
->> I think the idea behind GFP_HIGHUSER_KASAN is to make it possible to
->> skip KASAN for GFP_HIGHUSER by default (for most of its users), but
->> keep it for some of the users which today use GFP_HIGHUSER for their
->> memory allocations, but could benefit from the added security. As per
->> the other patches in the series:
->>
->>   pipe, fuse: use GFP_HIGHUSER_KASAN for pipe buffer pages
->>   kexec: use GFP_HIGHUSER_KASAN for segment pages
->>   net/rds: use GFP_HIGHUSER_KASAN for message pages
->>
->> That said, I'm not familiar with any of the code mentioned by those
->> patches, so I can't really tell how much they would benefit from KASAN
->> or if their choice of GFP_HIGHUSER to begin with is correct.
-> 
-> Thanks David and Tomasz for the feedback.
-> 
-> Tomasz is right about why I added GFP_HIGHUSER_KASAN in v1: out of
-> caution, I audited existing GFP_HIGHUSER callers to find any that never
-> map the pages to userspace and instead fill/drain them in the kernel via
-> kmap_local_page() (pipe, FUSE, kexec, rds). Since this series intends to
-> improve KASAN performance while preserving its security aspects, and the
-> performance impact on pipe/FUSE/kexec/rds was negligible in my testing,
-> v1 was optimized for minimum behavioral change.
-> 
-> Looking closer at both of your questions, I agree that the security
-> benefit of keeping those 4 under KASAN is minimal -- e.g., only linear
-> overflows out of the pipe/FUSE/kexec/rds page, since none of them store
-> kernel structures or pointers. That is the exact same trade-off we
-> already make for GFP_HIGHUSER_MOVABLE.
-
-Yes, that's my understanding as well.
-
-> 
-> To avoid introducing GFP_HIGHUSER_KASAN, I see two options:
-> 
-> 1) Simply keep those 4 cases under GFP_HIGHUSER (drop patches 1-4 and
->    7), reducing the series to just the GFP_HIGHUSER change and its KUnit
->    test.
-
-That's what I would look into first.
-
-> 
-> 2) Switch those 4 callers to GFP_USER. Since CONFIG_KASAN_HW_TAGS is
->    64-bit arm64 only (!CONFIG_HIGHMEM), GFP_USER is identical to today's
->    GFP_HIGHUSER on arm64 and all other 64-bit builds (and if 32-bit
->    CONFIG_HIGHMEM=y builds still need ZONE_HIGHMEM, that could be gated
->    on CONFIG_HIGHMEM, though that feels ugly at call sites).
-> 
-> (1) seems much cleaner to me. David, would (1) work for you?
-
-Agreed, (2) looks more hacky and I don't see the value of doing it like that
-just yet.
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SAVPR12MB999143:EE_|SJ0PR12MB6685:EE_
+X-MS-Office365-Filtering-Correlation-Id: aa357831-02d5-457a-2f95-08df45593124
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|366016|1800799024|376014|7416014|23010399003|56012099006|261026121527099003|11063799006|10067099003|261009223027099003|261026140227099003|261022105027099003|261028144727099003|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	LTChM0lx1Enm4q51U/JO212Fp9oOPe5isrHfxbL5tPDAqVyrooZXpZGbw8CjogZUIdiGb4k/Mcw+ni7EdkJbtLzne1HMRdjX3pBqj3dHUSQzvNNz4Lkg3V+SkZhUSwM+AGCxS5luLNJYVBCkQEXDNZeJjLj5Z17KGZeTGZrBEe8AAVXt05cf6XyyW1JOkrnTU1YeaNma3+YeaFO9XOM6AuKE6A1d18bGaW1TeMNsX8k30LLrGnGOE7sorXnmv+UjwNq0xyFPfpjwfxoDgz2bPACibZ99YdSDouENghRU5VtFZEuZ21LWJZqBOtvW0+yLQbDy1uXycyFJNeJ5C4fr6UG5ilVHlpBE2cGGPRUJcx4Kk6XchUGe5pU9vl+/QOkhc9UU7oNu3iroj13MYnwPXcHNd00gJqJ7InN3TWWkO6kupYlUaEQi5yF5fzsIxw6asCw6/zq/jZ1sNOPeNb+hUAG16pokaA8Th7/o1Kdb9uvnhIw88vGpkRWYdo//pa6Uz4Irr68pMPNuBYzpHKootwDjSz+vXhzy38qsBENRraBh8gv0gJuxOuiAtXKR/LywL1jJ5eIppvJQSGEjkcorZi76KHED1w6MbK69bmK2ivll8yCBvCaz0AudpcRBZur7Q3MB+i1Ba0TQHwPSV/gpzh4VlbqsD36jP3NyDBDPlKA=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SAVPR12MB999143.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(7416014)(23010399003)(56012099006)(261026121527099003)(11063799006)(10067099003)(261009223027099003)(261026140227099003)(261022105027099003)(261028144727099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?aUVQZ2lnQ0RGUmoyYlN4bTEvaDVXVE5JaUpGM25OZk95L1NrYlE2ZWhqby9R?=
+ =?utf-8?B?K05tS1FWR2duWjM5V3BESWpnU2FEUUdEalh4V2hEVXpncnZ1SFlhT0ZxVXlD?=
+ =?utf-8?B?ZnBBcnh4TnM3LzFxeWNQb1dQZXgyVEFJK0JKQS8wdEZYSlpqc0xWUUVtNEt2?=
+ =?utf-8?B?QkpNaGt2WmRlZ1BuOHh1MisrYXcwaUF0cGtHR0lSQUlYVjAwRUxxcld6V3dS?=
+ =?utf-8?B?US9hemJabEhqMEl5MTBlRHptUm5XUDJ3dmw1NVJRM3EyTU83ZFYwWHBDUU10?=
+ =?utf-8?B?OTFmZ0N0NGsrMzBmWUdNbGMvWUpxbUg3OWYvQ0lkZ1gwNnpuTStBS2RBblNG?=
+ =?utf-8?B?Q1R1eW1Bb3luK0doWCs0c29BZTJRNXFUd3J0Q2JLT3d0RHN2TGdNcFBtSXBB?=
+ =?utf-8?B?UGNZbUZPVWkwSkFMNVRzbmxpdEo2VTl6eDdZZVFuRGFKS2VvcEQrc2E3Ykt0?=
+ =?utf-8?B?SWZ5S0tOSG5yUSt6QmhGdXVXK2xpdDdrclh0Z2djWEJLMkFMbWlhR0U4RHRp?=
+ =?utf-8?B?M3U2Ri9BQnFUMnd5a0hpeERYSUY0TmRTMlJuQitTVzhuc2F5eExmTkRaTVhm?=
+ =?utf-8?B?aXpDeklDa0RSSC9wUmFRYkV3U210Z3ROb3JRd0ozeDQ3UkxnZG81WHoyVitt?=
+ =?utf-8?B?NmcwdVNweEZMRnZCVzNkTVBiTi82aElOOVpCY2lHSWRnSXpYRnF4WEVFVU9M?=
+ =?utf-8?B?TUU5ZzNTWmN6c0paT2s0VUVaakZ3a0Uxb0xockN0N1U1bkZYYjJ4c0pQTHdM?=
+ =?utf-8?B?SW1Qa0hJbkZVYnV3MXdUSnpNK1lHSXM2L0lYVVRxVTg0WUJtaDlScFdrcSt1?=
+ =?utf-8?B?b0lQQTQzY2VLRGVENGh6c2VDWHIzRVVpb1RLT21RZDhFcjI2WlBoSVB2YlNW?=
+ =?utf-8?B?UUQvNDV4WE81cmM1V0Fka0xEUDd6d0ZxeEhGeEIxOTBHYmNaWnUyRUJRSFpT?=
+ =?utf-8?B?TEZKSmlxcmd6RVk0RnpBUHRJTzI2V0VnUlA1eDVISlAvNmxPK3hxNHhPdWE4?=
+ =?utf-8?B?OHdGWFpHbWJUSnU0cXdKSHlrRWhrWk5rYUF1MlYrMWY5OFN2aWMxTXR3WnFK?=
+ =?utf-8?B?SzI3UkEvM2xxdWV5aTdMZVp3UXZoMThod1pmSnFhRUNNbTdpVG1CMVRCUnhh?=
+ =?utf-8?B?U1Qza0RBQ3JpSGkzTWNYZW84Y1ZPT2xvMkpUb0FsUlpMNVo4Wmw5eVlldkV3?=
+ =?utf-8?B?RU1LcE9QNGxFeTUzRVU5TnZITzQxdUk3WjgyekxsNUdUK1FoQTZLWmhtdEti?=
+ =?utf-8?B?NVo3bU1naEVxWEJVcVpBQVZmYkxuWEtqbkNzKzhHMUEreE95VmRsek5aTlBT?=
+ =?utf-8?B?SEV6OTBtRWhTRWhZUnNuM2xjWktGSWNicUZEV2luNE5PTmxFS2wzWU1nbDYw?=
+ =?utf-8?B?NUs2MUtMb0tOZWhaQWkvbHBVWnRVM3lBZU85TzBnNUR6ZGJSUXFDTTFzMHJm?=
+ =?utf-8?B?ZHlQQW45b0F2NDR4aDhZVUpsU0VsTHBXRURzUHVmTFNvWXd2NHREL0s3L1Rw?=
+ =?utf-8?B?Y3UwdERQeHlOckhXS3dSRFNEc3NUZlNIdkRnOEhGYlhRSGQ3MENkWmVBSzJ4?=
+ =?utf-8?B?MUd1bjZUdWZCcmFveVk0b2pweHdtV3RMcG9KY0tLSDVjZUJUeTk3akdQTmJG?=
+ =?utf-8?B?ZlluYm1vZjYya3Z5Si9NcEV4RzgvVEZaZml4ME5UY0pVazIvYWdDZ2tXeXJt?=
+ =?utf-8?B?blhQbFBJMkZ1UUI2ckxweEkvNURSMUNINVlOY0hzSTFocEtwUXpZMjhocXE2?=
+ =?utf-8?B?NUI0L081QTRQd1RJQllyU2UrTkJ2OHNiVlBqNGRud2ZUTTNrTTBNZ1VXTXZu?=
+ =?utf-8?B?UkdtRWRkVVhDblFtOFNMMEFDMURJSjlEUnRyU2I0dTUrVzhGUGtHaExuZjY1?=
+ =?utf-8?B?SHhqZ0xwUU1SaThXU291NEFYOXExaVhTNmRpYThzNHorSk12WmtvTk94eWNq?=
+ =?utf-8?B?dlhNNkFLTURIN2MzWDBET05HdjAvMzQvQ01GK1cweDh0ZnZxZjlMK1JvRVY4?=
+ =?utf-8?B?dXBubW43Rk1yQm9nVGY1VWdnTDcxYTROZ3phOXpSbldmRXBpcExvZ0cvNEE3?=
+ =?utf-8?B?ZC9GQThpS20zazlPYnlCNThoeEU4MTh2bGZITDZML1NCSnNYTWV0RDB1dE1Q?=
+ =?utf-8?B?dHNVMkVlMWhtZ3BnaHFDb1I1ZWdJT1c4S2E1bFVYVzFBNitEc0l5QkV4b0Qv?=
+ =?utf-8?B?S0M4NlhIcjR0WVFuS0tpbWNaaEh3Y2M2TEFZbUNUa0xsQ1N0bzg3a3oySzMv?=
+ =?utf-8?B?cndvVkNLQTg2MEVyVWJ4bkpmRVZSY1c5TXY2M2NROUFWdTlOQ2syZTJ1MjE2?=
+ =?utf-8?B?NVZEcDdmcHgrVEVTTnlvWG1TVFBDbkV2UlNqaURVeTJ5QVEwd1VSUT09?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: aa357831-02d5-457a-2f95-08df45593124
+X-MS-Exchange-CrossTenant-AuthSource: SAVPR12MB999143.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Nov 2026 09:49:09.0064
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: JnHvhuQ6zB2TxnS9EPEgTieX5ErOwYVEdKYnlnfVhj2JU5I2Hu+JldtjTdCTs9u1iIUbLSLeZnTBtMg5XbNKMA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB6685
 
 
--- 
-Cheers,
 
-David
+On 11/18/2026 1:12 PM, Changyul Lee wrote:
+> In switchdev mode, rx_add_rule() calls
+> mlx5_esw_ipsec_rx_setup_modify_header(), which allocates a mapped ID for
+> the SA in ipsec->ipsec_obj_id_map. If a later step fails, the error path
+> frees the modify header but leaves the ID in the XArray, and
+> mlx5e_xfrm_add_state() then frees the SA entry. Each failed inbound
+> packet offload SA leaks one of the 2047 IDs. Once they are used up, no
+> new inbound SA can be offloaded until the IPsec context is cleaned up.
+
+Thanks for the patch. The leak is real.
+
+[...]
+
+> @@ -2161,8 +2161,10 @@ static int rx_add_rule(struct mlx5e_ipsec_sa_entry *sa_entry)
+>   	if (flow_act.pkt_reformat)
+>   		mlx5_packet_reformat_dealloc(mdev, flow_act.pkt_reformat);
+>   err_pkt_reformat:
+> -	if (flow_act.modify_hdr)
+> +	if (flow_act.modify_hdr) {
+>   		mlx5_modify_header_dealloc(mdev, flow_act.modify_hdr);
+> +		mlx5_esw_ipsec_rx_id_mapping_remove(sa_entry);
+> +	}
+>   err_mod_header:
+We have a fix for this in our queue. It releases the ID under the same
+condition that maps it, so the eswitch helper is only called for an SA
+on the eswitch tables:
+
+  err_pkt_reformat:
+         if (flow_act.modify_hdr)
+                 mlx5_modify_header_dealloc(mdev, flow_act.modify_hdr);
++       if (!attrs->drop && rx == ipsec->rx_esw)
++               mlx5_esw_ipsec_rx_id_mapping_remove(sa_entry);
+  err_mod_header:
+
+I prefer this form. Do you want to send a v2 with it? Then I will add
+my Reviewed-by. If not, we will send our patch ourselves.
+
+We tested it on ConnectX-7 in switchdev mode with fault injection on
+one RX SA add: 46 of the 2047 IDs were lost without the fix, none with
+it.
+
+Thanks,
+Jianbo
