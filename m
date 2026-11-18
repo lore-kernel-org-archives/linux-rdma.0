@@ -1,54 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795010660;
-	b=Necax5p9t6TtL6oSupF+bEezEEGhF7sTyJ6sRv8iuF1FLhEC8nACyj0W6QiUiXtoUuPn
-	 PI+jxpiYYAq1NDMtHlME8x539/G9eyMqD/OsXZEptFqJuwMsKtLubR1rY6W1BlE0Bg9UJ
-	 0TROgs6VbUY4qn5BZtJdBWHEycFVE5+KfEsaXJGXdQErZYW2dLvtI4VRqx5k2mZoSaHaq
-	 aNZIqTeq5Ny/DkpYSLkiTSuqWsW95Iv0bX4E7aim2orev5wiNGwDnASnXonEffKxCj1aa
-	 JN8abvOwKtngyWvsef5q0PFKisLr1s/Dqp0w7k1jRepTbpZkjCdXbvsSWc2fj0wWRXA==
+	t=1795010661;
+	b=wDxbtSQJFXL3SlXI6O8Pm8yENfRJJ8sI7hL5VPUmKmzXNH9KtaXWOPikchqfuhRymK/6
+	 mI2RzuMDo//0w8AbfSItpoalU/SKuwnub4dnQ8Tvhrou5xe3yw+r5XwBIFne6gGjBk5tC
+	 Bwl6AjMnNJy4SiTwI/7CkjnakbHCjgvp6DIoBhdG67x6SVQ6nwKtg+8lBrvC/YAwKu5Q4
+	 0i/g9urOqRmcuSGr5/AcnrINmb6wtVJphJgQIknw6uFAb/a+ArQxBW7OZex0755EIA2V1
+	 ZAdYl9wSPEaM9CDrkf2/ip4L7MLyhC6RqljqQtyd7cM/Ro3JfmHGRpRAMOj47ayJeKw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795010660;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795010661;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=shXRrZZ+z8RmoRjV2T58bybCfyc9jEyGGkHMRa3H6Y0=;
-	b=xDHsqBC81/POQpoLHUmxm/NKsQuqSnmy39vWBBgFCP3IDxzSThIdv/LZuIMUzr9eOo0Z
-	 8h1NpTQya4Ue7CjwT5T7ybcmpXvn+1msxCu/PJP+W/FOOMTfbe4Nwxhc5e1jKwqtiFl1W
-	 Q3iDf4g2i5yZ2kL41aaBmyBdXRYVAZmG2gb8zvHvimpID9vof4KGnqzZEfJgBm5sYZhaQ
-	 9hpc41/jLu4NkN/+pQ7DP8OqiaUxm/ip70ykc1NZPc98PGJkXkH0PPGqa/ruAMP1Aqg/2
-	 v87oNR/JgSrU2XeFWsC4u9euHs4JNVCbzQKiW32u8uBiIVo2v3kiLkNz2zewMS18kLw==
+	bh=5ue/GPdsiI3jraTpSgHkStd9UPfcpGI+X6xulhMBRk0=;
+	b=kY04wVGKSK7F42HGerKIoUw3zBputwjBLeSADMmA+xi/ublRCi0mzBtVng7T7xJRmeXT
+	 jiRHppu0rwFHfG/vvezNGMwlnjdti8XCrLyb2dkjfeYNjNjUk0JChZtGkCkpolOBxFzb8
+	 YIfdh1hmt17tPG3BQ/bRhHZsgvP96igfgjDueeJVF5txrvBIAaPf6wIu2/nkiZ41iOjKI
+	 PMqnJKXAEolT8qluDHDZkcYgoIjjslPgCEWyw+fQm/k5l7+6Te++7fwqMkU2TuSgXWCKr
+	 Of6Pf4QZuvjAWC+JoO0PxE9x53vSKQG6OdYOHeH8Mzd0SgfbrlAovc6VGx0kIA/M1MQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YeLJGya1;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Z6nWWd/g";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C84D8606A325
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 14:04:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 615B9606A33F
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 14:04:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YeLJGya1
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 658791F000C5;
-	Wed, 18 Nov 2026 14:04:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Z6nWWd/g
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 152431F000C4;
+	Wed, 18 Nov 2026 14:04:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795010660;
-	bh=shXRrZZ+z8RmoRjV2T58bybCfyc9jEyGGkHMRa3H6Y0=;
+	s=k20260515; t=1795010661;
+	bh=5ue/GPdsiI3jraTpSgHkStd9UPfcpGI+X6xulhMBRk0=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=YeLJGya13w5jvZSk4tryT/3FPaYGHoZ63MwnDndcsRiSw0JwUV7fVOoeLfh6SyhEP
-	 DXhlv1SGi5V7YL5XaJasYIUb56Mby3e0odO8v/polFyXdYYsUBUD6hZTJEWmb/Pteg
-	 fAIjL9173rdOxZ2+3X21Tt1olXImd1AXsADxuHH6j9278IWfqWtrHg6AX2xsNTEzo1
-	 31QE7ACPCPKPkVUicb9kfzrYlOQKybcjni+t0m5xsIKfPom5fx/DlICRjRBqpgpIze
-	 757984kVuTFAuJXqsFVmxVHDSsl3pPvKHu5aUucf8C4Rs+M3Hco/dgaSB1kh8SSwD8
-	 pAMs71BfAFrzQ==
-Message-ID: <sashiko-outbox-221139@kernel.org>
+	b=Z6nWWd/gYLjXjHegIfLKNUzekJ/7qo7WJQyTLNtPSS+Xqg1ywUnoDmsTrT8nb8hM9
+	 k9SwN7b/zZ3BdXjeS2LQiGEqXgedE77bSRT5HIr6hLQEBEON79TCzptGGH5JJaDY5K
+	 fHiIVRsY+YfCyAqx7UD5o0Ufp9j3IDNIqAcEQApTCj5I4n65AVtQ0U8B4af3To6nbd
+	 8kXyDXT9jrM9VB/9eVBrsZ7EakA6Pnxsqq3/oUW4rp0h+5HLZcSyiaxXHZZ1+3PnwB
+	 mkOmHayTSIMLHvOp7QyCT+N/unKS+IlXyWVZbRZeAtuSBNbHsMm0tWhnsMDNFYgIL5
+	 nARyFZu50bAwg==
+Message-ID: <sashiko-outbox-221140@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next 10/11] RDMA/mlx5: Resolve the bfreg UAR-index
- core device from the ucontext
+Subject: Re: [PATCH rdma-next 11/11] RDMA/mlx5: Resolve UAR and mmap core
+ devices via the ucontext
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Edward Srouji" <edwards@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261117-mlx5-sd-prep-v1-10-8efd124c7895@nvidia.com>
+In-Reply-To: <20261117-mlx5-sd-prep-v1-11-8efd124c7895@nvidia.com>
 References: <20261117-mlx5-sd-prep-v1-0-8efd124c7895@nvidia.com>
- <20261117-mlx5-sd-prep-v1-10-8efd124c7895@nvidia.com>
+ <20261117-mlx5-sd-prep-v1-11-8efd124c7895@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Date: Wed, 18 Nov 2026 14:04:20 +0000
@@ -63,10 +63,9 @@ Precedence: list
 
 > From: Akiva Goldberger <agoldberger@nvidia.com>
 >=20
-> bfregn_to_uar_index() and its get_uars_per_sys_page() helper took an
-> mlx5_ib_dev only to reach dev->mdev. A bfreg is allocated on the owning
-> ucontext's core device, so take a struct mlx5_core_dev and have the QP and
-> DEVX callers resolve it from the ucontext via uctx_to_mdev().
+> The ucontext is tied to one core device, so resolve the core device from
+> the ucontext instead of mlx5_ib_dev::mdev across the UAR allocation,
+> transport domain, ucontext response and mmap paths.
 >=20
 > No functional change.
 >=20
@@ -78,5 +77,5 @@ Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261117-mlx5-sd-pr=
-ep-v1-0-8efd124c7895@nvidia.com?part=3D10
+ep-v1-0-8efd124c7895@nvidia.com?part=3D11
 
