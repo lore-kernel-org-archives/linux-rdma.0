@@ -1,49 +1,64 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795045805;
-	b=hsUebw4qWkmqag/e946P5pgMvUf5d01YQNzwy1ry5JEJc0rcS0dOwcl64cORFq5yXcec
-	 HEKTGuIwvZ4Vi2Dr3HWHh0R7Gijf9cumLfxPlpMWUTV1N9i0KSZ3wtPzFqsLkqCkyPpjK
-	 0pnIKd6nBn2t6jXXUmawIWJqq6P2IINc4D46lVjwfFogJuiiR6LG1jlqJBS7EiRnDonsX
-	 UZyy2iialR5zXPoNKxb0qZtdkjQGjRHB1ib2cHLNmnsMqyfY4nl78zB4L95y7lKBX1noT
-	 TopGJ0Zej10J8eL4szcTvoiVHQiAmM9QREP6A0ZORzm3cqPjdum++Oh6NusOMaYNs8w==
+	t=1795046058;
+	b=TEVf4NB7IHGJTUxfiq4gXc4U4qjqibXBHiPxG7/6Fdr6mYwOoa4Y/PBFVtLJRZL5GMBx
+	 vBPcLA5TygpwI5hYV9EiNsGvY/mBsxbylUQUPrCWP5dZddKj9Etm98MtXfBsSmgQniwjF
+	 8A6+H8ozn9dOGuDI0VZGxxJiClhsrMi5dtO54fxW74G0DJ6hxV1aB0AUGQJxY7MD7Yat+
+	 oorbuLTSmIgrjMSaeow7RYIC5/J6bZexFttcLTMpZlxSvKM1yJFDbvG33XGtcXPu89j1J
+	 QJb7bOer+5dez/m1rBrmZVWWxF/YUaf2WX+kZMacyZz7U4q2em2wSuxxFmHxQSTs5Pw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795045805;
-	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
-	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc;
-	bh=oJOFhz1pCpUgpYgypKdG2orjy9gPvBXNHNe+8O6151I=;
-	b=3ZHHbcw1/+sQvg1AWwXON6iAGg1KaCqMRf++SdEBroVSbcHMtAuhaRGtH3hL8IhcC7t5
-	 Dx9Z1YsflpQYjxnxkB1IkDCz3AP8gM3/EwLQYkFEgMBboUJQF/W0P0yp1GgEpE5VfbZmu
-	 6ANPC7NaDqXZEduHGo9MffTVtM7wCCQfjbPA26sErboLwB3kG+qogFn2erq67vnsRJEhB
-	 08UT5Fkq+s3T9qjdH9+ACRkq3ToYfw2DyoDsufh9YzDEIU/zulTTeAJMbZBZajU7SomNJ
-	 /P/ewVnIRts/2FYNh7nqCl5pzD1MXMgFab6F0e0QJi1TW4/yNr5beTi6phP0x3vcUjw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795046058;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=C3YpwYz9Ogx6umnciIxcL7ODZ/4uA+WWQLJVz+8MopA=;
+	b=c0wYy1gBULeJXXFASlceCvpb14zebatbNpUKNjfsqtGmEmfQbgJiR2KQpAeyPH7Xfghx
+	 Zjs36uvsDaswQ/GHwKeu7m9hLrdjJbZrm1pxmxce/aEkzuPY/NFOeHx2VHodgS7Elupvd
+	 YRoV3sT/oUMeJwc5Rwf/9wuREHWGOEqUEEUbT+yoOjisIYbG+xAXdbyAm0TVMI4PDzdZD
+	 CGfq5WHR5cxMz7e+2Oov936ReCZaoy241tBx08EMXDPdEZxNPBUiYI5UTNqKs0YL6EA/t
+	 tWYwKwttKtk1+EJmDfc1aEk6quSq97XfBRSqKT6Oh3++6HAA6ZZKO46UsRd6Wf/FqMg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="GyK/+mzi";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="X12h/dA5";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5D6F606A325;
-	Wed, 18 Nov 2026 23:50:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED8FA606A31C;
+	Wed, 18 Nov 2026 23:54:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GyK/+mzi
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 800E61F000C4;
-	Wed, 18 Nov 2026 23:50:05 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=X12h/dA5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA4851F000C4;
+	Wed, 18 Nov 2026 23:54:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795045805;
-	bh=oJOFhz1pCpUgpYgypKdG2orjy9gPvBXNHNe+8O6151I=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=GyK/+mziuBGZPKhrL7mj1hYkE5nElViBmqmG07hgjp7/L2EDCGFqtZEAI6z3YyQ3P
-	 w1EfM21LWD7rdaOa3kLsqhMBeby9gDtRTtTtZq9a3tlXUOryOxNHLkYfeBeS+dA80W
-	 /YuJBbAbw5uGDMOyiwA4dNl9Nimn9CmQ93P0lr+B1K3TjD4Vwea4X2gjnhEb/ujTxu
-	 XNULxnZQqwUyFEUEXWPf6hjOOyXRWspojJPe15i/Tes1OjRVJiuj0mbk7xX3HE0dwv
-	 hWW7rJCi/XFDsVLotQaIDrcjapaimj0KDnOyaT2J7nPeG4QnVlcAppGVuzqEsZ3wAM
-	 QCUQAfd2zGbWg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 7735B3808210;
-	Wed, 18 Nov 2026 23:50:05 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20260515; t=1795046057;
+	bh=C3YpwYz9Ogx6umnciIxcL7ODZ/4uA+WWQLJVz+8MopA=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=X12h/dA5ascEyGb+a0dUAUBMzImtp7CsQkd2dh9aE/gxSJByju4n50hH+U91ALmEY
+	 G42Qe3KxTxec+zqrpimHpvhtaF/PvYjJ7R4abScwtOqPOUIfk6V5FvMt3LK8zu8yB7
+	 5VLx+HeWaTz7+JSulB9UCznyDVC3c5+4Hk+ibVOG9VY4UQ1stDU4ZaxviQPQxNjVIX
+	 q2yuq/2GVSsrY9w8QUzTKjpG4G3edis3cuUjMzlYvO0idNqE6wuOjYXzR7nRMhM/ki
+	 H1E0izh2Sq/69x+vluu8z52532A2unsGPfOf7CoDIQwpu1Sy8723dXet0TB1IaUGEq
+	 T2WrOSE8p4XNQ==
+Date: Wed, 18 Nov 2026 15:54:16 -0800
+From: Jakub Kicinski <kuba@kernel.org>
+To: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
+Cc: hexlabsecurity@proton.me, Mahanta Jambigi <mjambigi@linux.ibm.com>, Dust
+ Li <dust.li@linux.alibaba.com>, Eric Dumazet <edumazet@kernel.org>, Paolo
+ Abeni <pabeni@redhat.com>, "David S. Miller" <davem@davemloft.net>, "D.
+ Wythe" <alibuda@linux.alibaba.com>, Sidraya Jayagond
+ <sidraya@linux.ibm.com>, Ursula Braun <ubraun@linux.ibm.com>, Wenjia Zhang
+ <wenjia@linux.ibm.com>, Stefan Raspl <raspl@linux.ibm.com>,
+ linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org, Wen Gu
+ <guwen@linux.alibaba.com>, Tony Lu <tonylu@linux.alibaba.com>, Simon Horman
+ <horms@kernel.org>, Guangguan Wang <guangguan.wang@linux.alibaba.com>,
+ linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Hidayath Khan
+ <hidayath@linux.ibm.com>
+Subject: Re: [PATCH net v9 0/6] net/smc: bound wire-controlled CDC cursors
+ against the local buffers
+Message-ID: <20261118155416.057f62ed@kernel.org>
+In-Reply-To: <20261112-b4-disp-0287c16e-v9-0-e5e8fa688177@proton.me>
+References: <20261112-b4-disp-0287c16e-v9-0-e5e8fa688177@proton.me>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -53,43 +68,16 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net] net/mlx5e: Hold sync_lock while resetting VXLAN ports
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <179504580428.2624320.5569351185904692837.git-patchwork-notify@kernel.org>
-Date: Wed, 18 Nov 2026 23:50:04 +0000
-References: <20261113040323.2090829-1-lcy8047@gmail.com>
-In-Reply-To: <20261113040323.2090829-1-lcy8047@gmail.com>
-To: Changyul Lee <lcy8047@gmail.com>
-Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, pabeni@redhat.com, moshe@nvidia.com, ayal@nvidia.com,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Hello:
+On Thu, 12 Nov 2026 07:59:34 -0500 Bryam Vargas via B4 Relay wrote:
+> Subject: [PATCH net v9 0/6] net/smc: bound wire-controlled CDC cursors against the local buffers
 
-This patch was applied to netdev/net.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
-
-On Thu, 12 Nov 2026 23:03:23 -0500 you wrote:
-> mlx5_vxlan_reset_to_default() walks vxlan->htable without sync_lock
-> and calls mlx5_vxlan_del_port() for each user port. mlx5e_nic_disable()
-> and mlx5e_uplink_rep_disable() call it after rtnl_unlock(), so the
-> udp_tunnel_nic work can run mlx5e_vxlan_unset_port() at the same time.
-> If that removes and frees the entry saved as the next one in
-> hash_for_each_safe(), the walk then reads freed memory.
-> 
-> [...]
-
-Here is the summary with links:
-  - [net] net/mlx5e: Hold sync_lock while resetting VXLAN ports
-    https://git.kernel.org/netdev/net/c/d61480a622be
-
-You are awesome, thank you!
+Please slow down, as a newcomer you're not supposed to have more than 8
+patches outsending for review per tree. You are also supposed to answer
+the AI feedback, and mark the patches as no longer applicable if you
+plan to respin. Which I expect you will here given multiple high
+severity issues
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+pw-bot: cr
