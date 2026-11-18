@@ -1,75 +1,76 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=203.254.224.24
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=203.254.224.34
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795001481;
-	b=BD0EufwvQIa2znqj3hUf9ONwAAQ+M7fRpCKZgnrSEUn51nyrYXhZO/C5FWai2z/xIkKW
-	 eumrslzbdlJzm59cDxLzsRYBLJW+dtVnHjYO6vFfe0PrGMexlvCfrQzryBapuQxZd+j/b
-	 vSAXqWBB0+ZcGywio4eDFrArp0uP0GPFj7oX6sUVfoY9coSVZYJtgs3MDWUK1mpCn9rnT
-	 ArMfj+rBLLqk+uo8rmywcqyOTUXJ2LgfFUV1p48J0d3gdTno5OYXD6mB3HzxFnU9V/HnB
-	 lPLgkSxZ/I6rSkwLCFB2H9cj6nACiXWAuYWAUt2kK+1uXUMWLEYsn4a1OQXLtuh8mIg==
+	t=1795001485;
+	b=WCmp0EK887T/FAy5QrKmnWDc57lAdWsMLjszuABa7DUe3yHKdDpHMZBbSFrQYF4q8fGA
+	 OMdYr7uidZtxODGW4+myspRyqWeX3S6iHXiRBkPHx1Zaxxfj6Cx2uzzSQat6HEYvBIEPv
+	 4h/OWO0qsDNwZqAdIZYndlWG5TE74ctF65WriKp0aoCmbtS2p+gRICmx8jxyo9qm3qMay
+	 7H9kmYOGRtyDZGnJjlOA3JkU+ajULDvdju9VcYuRlyUQk+nSjO6ECybJQlx9hXgSgILLa
+	 6z17r/TsERDVgTecTb6lojHpwvomfekUE0szFcn5VL3N/GM4HzU+vMTMUsmSW3o5bcA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795001481;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795001485;
 	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:Received:Received:
 	 Received:Received:From:To:Cc:Subject:Date:Message-Id:X-Mailer:
-	 MIME-Version:Content-Transfer-Encoding:X-CMS-MailID:X-Msg-Generator:
-	 Content-Type:X-Sendblock-Type:CMS-TYPE:cpgsPolicy:X-CFilter-Loop:
-	 X-CMS-RootMailID:References;
-	bh=3bKETn2tfT+VfzHpVzyvlFK7iO6ILBCK0F6DzWCM8Rc=;
-	b=zxOrhBTgpf5Mw0n56vHIEAjANOJ85QhByJQ6zu1bK43WwQqV2LfjBsCtWDEUm/2H+UHI
-	 SNcSR2DEzjNPJVqnGDMA/9R1kpnTjOmX6c6z1FYvhz3/LW/WxaeZoWqy0wE0HWa/WK8by
-	 u6TdkWobSwmmKiQZvv5dlgvwZJq8umZLVTbwYGxtlPshh5Um1JiZp342oVFqIvGtoc+GT
-	 tD7Onp/JASgAVBJgt4sMttI1+AVnLxvEalGx14XS86GlEG+RKyoHMnzlevbOeTbU4o9uW
-	 7ock13OiGoyQ6gbleSiHbicT2IVVdGrIzUi35KQAeaCFDIOXTfNxlUHKYKcFRinkNlg==
+	 In-Reply-To:MIME-Version:Content-Transfer-Encoding:X-CMS-MailID:
+	 X-Msg-Generator:Content-Type:X-Sendblock-Type:CMS-TYPE:cpgsPolicy:
+	 X-CFilter-Loop:X-CMS-RootMailID:References;
+	bh=awg5QPU7vXvHHD0f/e3t9xfqcZ9CWW58r3v94L1vXwg=;
+	b=z4QIAGX8rpD37+zlhAYkpUVB8MKdfUl6m+oBsg2n1Cc3gENe2VBo2VakbuEJ4Q9il5L7
+	 LKp1TA7FWG1//8s+VbQfjOVRO3IvIg+0hVS0q4KATEyLos8QvHkQFRdy3ATH80gGv36zM
+	 GbWwS+gyInjVdFyULuc7L53QUorFX+TcUIW35347SGIJU3vvGOx1dgwQGY2y/gikeQQtk
+	 pivWLmzvLcLkF+47g6IYryStsd2qC7nN+m+B/4Lw0ck5v0p8gL2V7Ca5KOwk7Eqm8Ojov
+	 0GufgaKcuT+kFOvsmszu+14LJKGPNK+P5VN4tDaRRZlWU5bcPVLOkXukfkHz3/11zPg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=samsung.com;
 	spf=pass smtp.mailfrom=samsung.com;
-	dkim=pass header.d=samsung.com header.i=@samsung.com header.a=rsa-sha256 header.s=mail20170921 header.b="Zb/w6mgL";
-	arc=none smtp.remote-ip=203.254.224.24
-Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
+	dkim=pass header.d=samsung.com header.i=@samsung.com header.a=rsa-sha256 header.s=mail20170921 header.b=rb2g+MjX;
+	arc=none smtp.remote-ip=203.254.224.34
+Received: from mailout4.samsung.com (mailout4.samsung.com [203.254.224.34])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D4C6606A331
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 11:31:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7D4C6606A331
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64CF1606A32A
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 11:31:24 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 64CF1606A32A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.a=rsa-sha256 header.s=mail20170921 header.b=Zb/w6mgL
-Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
-	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20261118113112epoutp01453314e574f64216e285c0110b94905f~pIFRIxI1b1340313403epoutp01S
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 11:31:12 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20261118113112epoutp01453314e574f64216e285c0110b94905f~pIFRIxI1b1340313403epoutp01S
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.a=rsa-sha256 header.s=mail20170921 header.b=rb2g+MjX
+Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
+	by mailout4.samsung.com (KnoxPortal) with ESMTP id 20261118113122epoutp042a817580847583927f0d4f0edf802cce~pIFZ-PfvW0935609356epoutp04_
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 11:31:22 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout4.samsung.com 20261118113122epoutp042a817580847583927f0d4f0edf802cce~pIFZ-PfvW0935609356epoutp04_
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1795001472;
-	bh=3bKETn2tfT+VfzHpVzyvlFK7iO6ILBCK0F6DzWCM8Rc=;
-	h=From:To:Cc:Subject:Date:References:From;
-	b=Zb/w6mgLGo+l81rmhCdgEFNx4/tKjOxwPE/VFDT4CF3G0EnA9S0pRyWTDLkN0s1YX
-	 tPUSM7WoZhR21C7XYQ1CSipxB2LP69pZa/bPt86hx7knkrn8IVMpqCGM4sh4/Mh2jD
-	 QAvqsxhiVsQVRfDQA6IGJUltGjO9cODPXa2BHlCc=
-Received: from epsnrtp01.localdomain (unknown [182.195.42.153]) by
-	epcas5p1.samsung.com (KnoxPortal) with ESMTPS id
-	20261118113112epcas5p165b10951a7c61e1233a0d7a04fe7de40~pIFQsdVpR0773307733epcas5p1r;
-	Wed, 18 Nov 2026 11:31:12 +0000 (GMT)
-Received: from epcas5p3.samsung.com (unknown [182.195.38.91]) by
-	epsnrtp01.localdomain (Postfix) with ESMTP id 4jTzv334Dgz6B9mD; Wed, 18 Nov
-	2026 11:31:11 +0000 (GMT)
+	s=mail20170921; t=1795001482;
+	bh=awg5QPU7vXvHHD0f/e3t9xfqcZ9CWW58r3v94L1vXwg=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=rb2g+MjXrypvPTEP4CwC0my0BbPfSdDP4nVFUqm8wCVBqi4JuboNg0xy+wjnzC96G
+	 RIt1tHks83QeKe2nhWTh2maNfZYB4cnGTSgAeYk1IWrN8EjggJBJF6h9qz/rUPNXAu
+	 gsXEY17BqM/rC1TBb1q0+D06r/9UoMpLX/iXUqiU=
+Received: from epsnrtp02.localdomain (unknown [182.195.42.154]) by
+	epcas5p4.samsung.com (KnoxPortal) with ESMTPS id
+	20261118113121epcas5p436c075dc5f0f036052b0d07e616aef20~pIFY0R88h2687826878epcas5p4j;
+	Wed, 18 Nov 2026 11:31:21 +0000 (GMT)
+Received: from epcas5p3.samsung.com (unknown [182.195.38.86]) by
+	epsnrtp02.localdomain (Postfix) with ESMTP id 4jTzvD2n9tz2SSKX; Wed, 18 Nov
+	2026 11:31:20 +0000 (GMT)
 Received: from epsmtip2.samsung.com (unknown [182.195.34.31]) by
-	epcas5p4.samsung.com (KnoxPortal) with ESMTPA id
-	20261118103434epcas5p4ddef3806fafdb60f309fe882e354881c~pHT0IHpTs1275112751epcas5p4e;
-	Wed, 18 Nov 2026 10:34:34 +0000 (GMT)
+	epcas5p2.samsung.com (KnoxPortal) with ESMTPA id
+	20261118103455epcas5p22384b4ed044dbf65efe94d6a910e4325~pHUHfd2FN0491304913epcas5p2a;
+	Wed, 18 Nov 2026 10:34:55 +0000 (GMT)
 Received: from localhost.localdomain (unknown [107.99.41.245]) by
 	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
-	20261118103432epsmtip222a7237d25cab0527f14e37decda0c44~pHTycbO4V0208902089epsmtip20;
-	Wed, 18 Nov 2026 10:34:32 +0000 (GMT)
+	20261118103453epsmtip2fc6fdb19580aa329f96b44b3ceeef734~pHUF1-VdB0208902089epsmtip2E;
+	Wed, 18 Nov 2026 10:34:53 +0000 (GMT)
 From: Anuj Gupta <anuj20.g@samsung.com>
 To: kbusch@kernel.org, axboe@kernel.dk, hch@lst.de, sagi@grimberg.me,
 	jgg@ziepe.ca, leon@kernel.org, asml.silence@gmail.com
 Cc: nj.shetty@samsung.com, joshi.k@samsung.com, anuj1072538@gmail.com,
 	linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, Anuj Gupta
 	<anuj20.g@samsung.com>
-Subject: [RFC 0/4] nvme-rdma: dma-buf backed I/O
-Date: Wed, 18 Nov 2026 16:03:23 +0530
-Message-Id: <20261118103327.1788667-1-anuj20.g@samsung.com>
+Subject: [RFC 3/4] RDMA/core: Add ib_dma_buf_dynamic_attach()
+Date: Wed, 18 Nov 2026 16:03:26 +0530
+Message-Id: <20261118103327.1788667-4-anuj20.g@samsung.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20261118103327.1788667-1-anuj20.g@samsung.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -80,52 +81,92 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CMS-MailID: 20261118103434epcas5p4ddef3806fafdb60f309fe882e354881c
+X-CMS-MailID: 20261118103455epcas5p22384b4ed044dbf65efe94d6a910e4325
 X-Msg-Generator: CA
 Content-Type: text/plain; charset="utf-8"
 X-Sendblock-Type: REQ_APPROVE
 CMS-TYPE: 105P
 cpgsPolicy: CPGSC10-542,Y
 X-CFilter-Loop: Reflected
-X-CMS-RootMailID: 20261118103434epcas5p4ddef3806fafdb60f309fe882e354881c
-References: <CGME20261118103434epcas5p4ddef3806fafdb60f309fe882e354881c@epcas5p4.samsung.com>
+X-CMS-RootMailID: 20261118103455epcas5p22384b4ed044dbf65efe94d6a910e4325
+References: <20261118103327.1788667-1-anuj20.g@samsung.com>
+	<CGME20261118103455epcas5p22384b4ed044dbf65efe94d6a910e4325@epcas5p2.samsung.com>
 
-Hi all,
+ULPs must not use the DMA device of an ib_device directly, but a ULP
+importing a dma-buf has to attach it to that device.
 
-This series adds dma-buf support for NVMe over Fabrics using RDMA.
+Add a helper that attaches a dma-buf to the DMA device of an ib_device.
+Devices using virtual DMA, such as rxe and siw, have no DMA device and
+are rejected with -EOPNOTSUPP.
 
-Patch 1 moves the NVMe dma-buf I/O context handling from nvme-pci to
-nvme-core.
+Signed-off-by: Nitesh Shetty <nj.shetty@samsung.com>
+Signed-off-by: Anuj Gupta <anuj20.g@samsung.com>
+---
+ drivers/infiniband/core/verbs.c | 28 ++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h         |  7 +++++++
+ 2 files changed, 35 insertions(+)
 
-Patch 2 lets transports create and provide the dma-buf attachment.
-
-Patch 3 adds an RDMA helper for attaching a dma-buf to the device used
-for DMA.
-
-Patch 4 adds dma-buf backed I/O support to nvme-rdma.
-
-The series has been lightly tested with the liburing rw-dmabuf test
-over NVMe/RDMA using Mellanox ConnectX-3 Pro adapters.
-
-Anuj Gupta (1):
-  RDMA/core: Add ib_dma_buf_dynamic_attach()
-
-Nitesh Shetty (3):
-  nvme: move dma-buf I/O context handling to nvme-core
-  nvme: let transports provide the dma-buf attachment
-  nvme-rdma: support dma-buf backed requests
-
- drivers/infiniband/core/verbs.c              |  28 +++
- drivers/nvme/host/Makefile                   |   2 +-
- drivers/nvme/host/{pci-dmabuf.c => dmabuf.c} |  93 ++++++++--
- drivers/nvme/host/{pci-dmabuf.h => dmabuf.h} |  46 ++++-
- drivers/nvme/host/pci.c                      |  14 +-
- drivers/nvme/host/rdma.c                     | 182 ++++++++++++++++++-
- include/rdma/ib_verbs.h                      |   7 +
- 7 files changed, 334 insertions(+), 38 deletions(-)
- rename drivers/nvme/host/{pci-dmabuf.c => dmabuf.c} (58%)
- rename drivers/nvme/host/{pci-dmabuf.h => dmabuf.h} (51%)
-
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index c4eb1de44155..eb3036d6f7e1 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -38,6 +38,7 @@
+ 
+ #include <linux/errno.h>
+ #include <linux/err.h>
++#include <linux/dma-buf.h>
+ #include <linux/export.h>
+ #include <linux/string.h>
+ #include <linux/slab.h>
+@@ -3217,3 +3218,30 @@ void rdma_free_hw_stats_struct(struct rdma_hw_stats *stats)
+ 	kfree(stats);
+ }
+ EXPORT_SYMBOL(rdma_free_hw_stats_struct);
++
++/**
++ * ib_dma_buf_dynamic_attach - attach a dma-buf for DMA by an RDMA device
++ * @dev: RDMA device that will access the dma-buf
++ * @dmabuf: dma-buf to attach
++ * @importer_ops: importer callbacks, see dma_buf_dynamic_attach()
++ * @importer_priv: importer private data, see dma_buf_dynamic_attach()
++ *
++ * Attach @dmabuf to the device that does DMA for @dev. Devices using
++ * virtual DMA have no such device and are not supported.
++ *
++ * Return: the attachment, or an ERR_PTR() on failure.
++ */
++struct dma_buf_attachment *
++ib_dma_buf_dynamic_attach(struct ib_device *dev, struct dma_buf *dmabuf,
++			  const struct dma_buf_attach_ops *importer_ops,
++			  void *importer_priv)
++{
++	if (ib_uses_virt_dma(dev))
++		return ERR_PTR(-EOPNOTSUPP);
++
++	return dma_buf_dynamic_attach(dmabuf, dev->dma_device, importer_ops,
++				      importer_priv);
++}
++EXPORT_SYMBOL_GPL(ib_dma_buf_dynamic_attach);
++
++MODULE_IMPORT_NS("DMA_BUF");
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index d6eaa3fee66e..c287bee1dd09 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -4323,6 +4323,13 @@ static inline bool ib_dma_pci_p2p_dma_supported(struct ib_device *dev)
+ 	return dma_pci_p2pdma_supported(dev->dma_device);
+ }
+ 
++struct dma_buf;
++struct dma_buf_attach_ops;
++struct dma_buf_attachment *
++ib_dma_buf_dynamic_attach(struct ib_device *dev, struct dma_buf *dmabuf,
++			  const struct dma_buf_attach_ops *importer_ops,
++			  void *importer_priv);
++
+ /**
+  * ib_virt_dma_to_ptr - Convert a dma_addr to a kernel pointer
+  * @dma_addr: The DMA address
 -- 
 2.25.1
 
