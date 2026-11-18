@@ -1,64 +1,92 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=213.133.104.62
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.48
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795006729;
-	b=Co9dTaOVCfqnULECVAvXSgk1DvCydVj/gT33bNQKNclW7utGkg8LZQaT9Vs9wN3Uu6yQ
-	 QjTS+EGs7XE8E8UkHcFqJj3lx04GfvTEAXtHmPt9MSOBFSp1z0cfvYpJMmLcb7sUBM8wR
-	 bKvO1rFtnhFYVe/xIc3YWAxP2S6N4WaWK3JHwgzFH6PJgrn/uI+IkGRcJLRrXuLsEaAQ2
-	 IKvtL1T8JaY7NVYvDs/YwpzkUCiH5W/eASYLgrVVs4meEHITMpwN2Fg/HZpn3ApDTa+xh
-	 CoF01U4IVUiDQJcqsa0/vlSYRkg8qogFl9EdmyQR5A676ydEDxxOy6cxpEOU9FpYDCA==
+	t=1795006755;
+	b=qe20TJLo/d046NGj3S24SnjI4uJVBms+wJAomQjPfqqhgVF8P4p18vhxspzMGzHqQk3y
+	 b9XkbpwXqa0+gxcUafe2YawnAn7I/2DDIfHGu3tz4mpkQclT6MZw5iHnI/BhyC3urKgWa
+	 lFlx3Ucvpzr/dNpZWqZyjymMl0YAWqyuEJKnKNGbS8ajLN7a0cj7RkjXYPSKP6iq34Cw7
+	 RQFQVv4OF86BfNZzZelnK48zG+ZWS3nGL7wvq68Z+DbiQC7WTYWRe4NHmy/7axrFTi0xN
+	 R3vILUstdfbI762+QoOrdiVioK3paYTWP9lzj+TLu9Ax5OuLOjttvAVBZXL5idLybiA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795006729;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
-	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-	 X-Virus-Scanned;
-	bh=zmvoEpqpabGUDsHZXTw1VbdurVjwfR2E9sHZpTo3HYM=;
-	b=WKmPttozYCo1Wp7TV45T+E+PUvBptnxDcEEZphLzFlEk94mVYS3OWdUfm0v3jZ3KGxqq
-	 XG+t5FUXYHAkMtALlo0fBpOiPSNgLAFPCcznsUsSaJjEsFhu4XJvDDHXHtqQzGuRs0pfz
-	 MRopzYTXSeLgNCzFXNAYgccrHtwkvvkAFc8GAfWqlj3+eFFGT6z3eLQ6bzxlMZEg6EYI+
-	 FQE7X8wHKneW3Xi+cmgxrR6ckZyYypWxQAjNkGYieUvVx8u6x0okegxVP6wVRYF0gLGCB
-	 1ylGJ/4IimIWkIF5gxurNrEhQ41yzzpzfANicabmJnfAWN3QRv9oep5JQFWkM/LUcNw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795006755;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=xV6SX5EGiGjtkdhAIi5UEb7NqFrGHjtbz3buhHPyzGY=;
+	b=Qs+eVJAaXHLFDkji/dmWIlMmVFm28RRgh2AjXGL/s8lzjWcUPWrmbCkIhIvUnxMmSvQ+
+	 jRVH5SNYRd4tfQT9WLmngNBkytMvsshoXVdbzrD8H+q8OY2BzIo//gswRUEU5/hsjsYLY
+	 VKFo2EMV4n+agY8mUU8IgBaP1Hyc8M9hoyIJyB3pSp3TqrUhisR+sJEligiqwnlR3p4Hg
+	 7mN7My2f+t3NdUDniXZAjmGtBLDSqcoCYB/cjD7qBqDHr7YXHiiRkB5+RH00Ub9gH+srm
+	 7B450cr2UJTTj3k/BpQmoBCpR8jLwwn9FXpOfM/Uoml1i1uYUkRBzfdS9fBKb3uwang==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=iogearbox.net;
-	spf=pass smtp.mailfrom=iogearbox.net;
-	dkim=pass header.d=iogearbox.net header.i=@iogearbox.net header.a=rsa-sha256 header.s=default2302 header.b=IMyNwftp;
-	arc=none smtp.remote-ip=213.133.104.62
-Received: from www62.your-server.de (www62.your-server.de [213.133.104.62])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=WiS4Pj7W;
+	arc=none smtp.remote-ip=209.85.221.48
+Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2101F606A31C;
-	Wed, 18 Nov 2026 12:58:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2101F606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=iogearbox.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iogearbox.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4A25606A325
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 12:59:14 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C4A25606A325
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=iogearbox.net header.i=@iogearbox.net header.a=rsa-sha256 header.s=default2302 header.b=IMyNwftp
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=iogearbox.net; s=default2302; h=Content-Transfer-Encoding:Content-Type:
-	In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
-	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=zmvoEpqpabGUDsHZXTw1VbdurVjwfR2E9sHZpTo3HYM=; b=IMyNwftpJQEBaOtzIEomo/t7jA
-	vkVKeXPQoA7pYiC+2twrNnhLQd0YAs50KQTXzTqZiThLSUfCT1V4bIO7I5nMCrTp/q3y126Ybxpxc
-	ZMTMSnsF6ALNVgk7NgX+3RbTNP3WiPz2npr/YzHgA0+l3ke+Z609hcLwKu4Iy6BGCSTtfB/AFrSI5
-	hIh/fW5DPOyJSsCCTwsSeNRzviEHBJ8FA6IHpNfLZKc4EZ+EkVuYyRoYck4Yse4V6JB0cLquUNXpE
-	UZduZCDYsp+NWVFgNswnfYTezTQ6PBxc45a+Ic7sGpfxKmSVwd7Hwh/XuxD3cn3RHh5IxdTd8AdxK
-	TchBa8SQ==;
-Received: from sslproxy01.your-server.de ([78.46.139.224])
-	by www62.your-server.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.96.2)
-	(envelope-from <daniel@iogearbox.net>)
-	id 1xTfF7-000KaM-0J;
-	Wed, 18 Nov 2026 13:58:29 +0100
-Received: from localhost ([127.0.0.1])
-	by sslproxy01.your-server.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.96)
-	(envelope-from <daniel@iogearbox.net>)
-	id 1xTfF6-000PVf-0a;
-	Wed, 18 Nov 2026 13:58:27 +0100
-Message-ID: <ea8a18e0-12cc-48e0-903e-325a8ece5a0f@iogearbox.net>
-Date: Wed, 18 Nov 2026 13:58:26 +0100
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=WiS4Pj7W
+Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-491d1f66968so60853f8f.0
+        for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 04:59:14 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1795006753; x=1795611553; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=xV6SX5EGiGjtkdhAIi5UEb7NqFrGHjtbz3buhHPyzGY=;
+        b=WiS4Pj7Wv+udGYtZHm2LbkFKbZxxeUir4cmqmN4Xc15StELrxcZz3IqJs9sBNj1SV5
+         k+JsdyNDD7mmer6LwnNzCJ3NsbdOf94o0qxo6Jc9pcyEJxeM5ioUqrcFA9vqxibZ0J2o
+         a7fn2brMmX5EJEf4p5W7FM20vCGWwKxy5u12x1de9Dx12pyk16Ew2l7IRN90alNrrW7K
+         EUlrHC2tA3rFXnXyA4pIUg2kOVwu85EY4pAkVe/87CeDgVgdAEt+bOdy9v/fG/gbIJpV
+         cB4c3VveUMYyMN2Ca1sfohiAL6ct+gK3Dy0MNkOh6656BTTW14/qA4sNDzBdoShj6nCx
+         mXzw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795006753; x=1795611553;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=xV6SX5EGiGjtkdhAIi5UEb7NqFrGHjtbz3buhHPyzGY=;
+        b=Yl6tFOdkMNQQhuRk28dmnUuon24cgH7fc8pDWOf9DaNZ5P5ulwRalgwWyHV3smz5ZD
+         1fIuiFUC0JsPq6ATiWT2psjNo5rkbr41d35uDeXY/GZIubq05yqOCbXX4APCkaKl7Gt5
+         pT52OjSovz7fh6EpXxqD6C3hRJy3KvXLjPkWS3CBq8uJ190PjpH/FSiFfTsYPwyciw6g
+         X/VTs80+5YZkyOE2tmVEudmEgF9fTkMOztivK8XJ8W0RgEnu+xNSu8dvbbRwKPo45nPa
+         JhqBN2m7i8pvUFOPBXZLSgz6JwBsa1YOVdQD+oilPkjN0+gyTxsgRHX0iUMD7KvUV94p
+         b8Vw==
+X-Gm-Message-State: APuU4Z/ibP/WVtJF0mZ6oemD/fRrUPojR/qT8ZV97W5uh0O8tRjHa6ch
+	0LHgL0mUrTFQswJfpPJJtvApMUyZ78vSJN2aYPDQ9kwiV+totUDfetmZ
+X-Gm-Gg: AZFdTZcV0D6FDNFZsIx484kSV4Q4OCxizrn6ocRof+kH44bJKGUioBAjBYBbGL3t/An
+	RFlhCGfSZAbYVmNBpLowjzB/kXiS3iVJLn93iiB40zrVIwKE8yFdDddp106aqi67CVEKbUoXioW
+	9I5IWsOVUzAXUgtymVhA3dYHxlYVi8pnEL1z2jp3DMzLaW1mtDxYb5upi2i17iWNqi/eTdjnyG/
+	93ORrb6F7L9NmdiTfSTtXl1elxXQMqEpivd/dH/EuqcuC4vGKa+K3SZs5pVYhBweq5yDXRLDT/X
+	1V9HnapNedqwJ4ZTEO4qvxL+jhZCca62oP83NaCWqFGeWT9KLYQm0eDAopkauUmrM2F3KHmEeQb
+	RB8kX7HjWU9VWRGmGP9sB8VDuqtdLaWLKEKs+6V/CPck1u8kKGeGOCOOwR6eRoCj2btbb/gZMnb
+	GatVSqMq974n3IrtpvvxaLZZ68iyZAmejsf6COC7p1NLwR9nsne0dBjV7ISfUCHNB19NE+E+890
+	LPb8tP9BslSYuOcDfdr0rmt4UQXMDrqtRsCV8ewTAN8s2yzdG0HpZg3S+sk/ONBWivI4ptI/xem
+	4yby/TbOHuSCXs5YBZN4rPNjUOLgQkcXX7Woc3AwPyKqSee7XSyVXi8EC5SKJKhS2vC2GEKo+YM
+	Os53T
+X-Received: by 2002:a05:6000:1a8d:b0:48e:f10:ceb8 with SMTP id ffacd0b85a97d-4a63833975emr5859543f8f.11.1795006753058;
+        Wed, 18 Nov 2026 04:59:13 -0800 (PST)
+Received: from SurHub.localdomain ([196.188.113.38])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4a655db6d45sm4609457f8f.33.2026.11.18.04.59.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 18 Nov 2026 04:59:12 -0800 (PST)
+From: Abdifatah Suruur <suruurism@gmail.com>
+To: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Cc: linux-rdma@vger.kernel.org,
+	Jason Gunthorpe <jgg@nvidia.com>,
+	Leon Romanovsky <leonro@nvidia.com>,
+	Abdifatah Suruur <suruurism@gmail.com>,
+	stable@vger.kernel.org
+Subject: [PATCH] IB/hfi1: clear VM_MAYWRITE on read-only STATUS mmap
+Date: Wed, 18 Nov 2026 15:58:48 +0300
+Message-ID: <20261118125848.26160-1-suruurism@gmail.com>
+X-Mailer: git-send-email 2.53.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -68,83 +96,29 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v1 07/15] bpf: don't redirect decrypted skbs from
- egress to ingress
-To: Todd Freed <toddfreed@meta.com>, netdev@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>,
- Andrew Lunn <andrew+netdev@lunn.ch>, =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?=
- <bjorn@kernel.org>, bpf@vger.kernel.org,
- Daniel Zahka <daniel.zahka@gmail.com>,
- Donald Hunter <donald.hunter@gmail.com>, Eric Dumazet <edumazet@kernel.org>,
- Jakub Kicinski <kuba@kernel.org>, Jamal Hadi Salim <jhs@mojatatu.com>,
- Jiri Pirko <jiri@resnulli.us>, John Fastabend <john.fastabend@gmail.com>,
- linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-kselftest@vger.kernel.org, linux-rdma@vger.kernel.org,
- Martin KaFai Lau <martin.lau@linux.dev>, Paolo Abeni <pabeni@redhat.com>,
- Saeed Mahameed <saeedm@nvidia.com>, Simon Horman <horms@kernel.org>,
- Tariq Toukan <tariqt@nvidia.com>, Wei Wang <weiwan@google.com>,
- Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-References: <20261111005533.6436-1-toddfreed@meta.com>
- <20261111005533.6436-8-toddfreed@meta.com>
-Content-Language: en-US
-From: Daniel Borkmann <daniel@iogearbox.net>
-In-Reply-To: <20261111005533.6436-8-toddfreed@meta.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Virus-Scanned: Clear (ClamAV 1.4.6/28187/Wed Nov 18 07:28:39 2026)
+Content-Transfer-Encoding: 8bit
 
-On 11/11/26 1:55 AM, Todd Freed wrote:
-> on transmit, skb->decrypted means the device must encrypt the packet.
-> For example, a packet of a ktls or psp offload socket, or, with the tc
-> psp action added later in this series, one which psp encap attached a
-> tx association to.
-> 
-> on receive, skb->decrypted means the device decrypted the packet.
-> 
-> bpf_redirect() and bpf_clone_redirect() with BPF_F_INGRESS send the
-> packet to a device's receive path with the bit still set, where it
-> indicates the packet was decrypted by the device.
-> 
-> this is less of a problem with socket offloads, whose packets are by
-> definition generated locally; more of a problem with socket-less psp,
-> which can also apply to forwarded traffic.
-> 
-> in addition, the redirect drops the dst (skb_scrub_packet()), which for
-> socket-less psp carries the tx association.
-> 
-> drop decrypted skbs which bpf redirects from egress to ingress. this
-> matches the behavior of mirred, since the previous patch.
-> 
-> Signed-off-by: Todd Freed <toddfreed@meta.com>
-> ---
->   net/core/filter.c | 9 +++++++++
->   1 file changed, 9 insertions(+)
-> 
-> diff --git a/net/core/filter.c b/net/core/filter.c
-> index aca8160b26a1..a178a9dd3007 100644
-> --- a/net/core/filter.c
-> +++ b/net/core/filter.c
-> @@ -2226,6 +2226,15 @@ static int __bpf_redirect_common(struct sk_buff *skb, struct net_device *dev,
->   static int __bpf_redirect(struct sk_buff *skb, struct net_device *dev,
->   			  u32 flags)
->   {
-> +	/* On transmit, decrypted asks the device to encrypt the packet. Sent
-> +	 * to ingress, the packet would read as decrypted by the device.
-> +	 */
-> +	if (unlikely((flags & BPF_F_INGRESS) && !skb_at_tc_ingress(skb) &&
-> +		     skb_is_decrypted(skb))) {
-> +		kfree_skb(skb);
-> +		return -EINVAL;
+hfi1_file_mmap() rejects a writable mapping of the device status page,
+but leaves VM_MAYWRITE set in the VMA flags. Userspace can map the page
+read-only and then upgrade it to writable with mprotect(), bypassing
+the check and writing to a device-owned status page.
 
-This check should rather live in the bpf_redirect (and friends) helper e.g. after
-we check for invalid params, etc, rather than here which feels off. Also, it would
-probably make sense to refactor this condition into a small inline helper so you
-don't have to open code it multiple times.
+Clear VM_MAYWRITE on this path, as the RTAIL and SUBCTXT_EGRBUF cases in
+the same function already do.
 
-> +	}
-> +
->   	if (dev_is_mac_header_xmit(dev))
->   		return __bpf_redirect_common(skb, dev, flags);
->   	else
+Cc: stable@vger.kernel.org
+Signed-off-by: Abdifatah Suruur <suruurism@gmail.com>
 
+---
+diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
+index 680364fda856f..779dbe32c69da 100644
+--- a/drivers/infiniband/hw/hfi1/file_ops.c
++++ b/drivers/infiniband/hw/hfi1/file_ops.c
+@@ -492,6 +492,7 @@ static int hfi1_file_mmap(struct file *fp, struct vm_area_struct *vma)
+ 			ret = -EPERM;
+ 			goto done;
+ 		}
++		flags &= ~VM_MAYWRITE;
+ 		memaddr = kvirt_to_phys((void *)dd->status);
+ 		memlen = PAGE_SIZE;
+ 		break;
