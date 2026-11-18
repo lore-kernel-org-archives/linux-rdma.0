@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795010659;
-	b=Ozy+NZnn7G0nBBFRIwBFNh4Accsw88HQXdizevgkgQXB7jrKi2vIhdxxLHkae/FzMOya
-	 bS4pQ6eeQOzLkQnQgmODI7bgC0ekH1hQS+huGGqaXpJkgyeluPZKWGMf2PDN+g03xaREF
-	 Pj31kqxkDi2509tWsCQU5pvGXjanvpHb26igzw8Slju2vWOYEABi8dRQTPUcgyqnWUadh
-	 BfQbFq0f2pbSuo4BKDf6XVVGZT6rLe+CAAEf/vnqkNGrn9XZ8xUAdtuwEjLB1/akJT/9O
-	 Acu/yagLz/aWsaY813E5u0VqPR6LYSR0o5Z+D71GzDqG/KAkcw+Hd3CAUrUaos9rncw==
+	t=1795010660;
+	b=Wa+XJMAE0hScwdi0gnfHM9hHTjnH9p4oNniPa+4l4LUPMVLTXCDEGhJ2UkE61GvN760A
+	 nc+/yxgbaRIN2Tpg/JjCPAEvLKU/b9tpFC7qK/DSrO18XIXgF+1VC3xSDys+CvD3rJXSk
+	 Uu3jGUTc2biW6XkQFAknsQfP6CUsIneZ8/GL5lUq9Lokd/JCqzfGHWz1vIICJq32iMHjy
+	 wSUsJ60M+iTOsGvVErfl76Cw6s40cgDd0ilTbyEe+QANdL16AOfJZyT8MnD6IAkzlhYsr
+	 c0Li2H6N2eATPcLVwNgVrNYPQFpywkAm7PNNFIZrhLTSz7jLGr1RBHSZHJlgV3dv4TA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795010659;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795010660;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=Fim8nxfTb3qSZvg9mWR4HSyNJ4mWCnKXvqbcqVmGWNE=;
-	b=JstQzPxKs1+poVsf52WqQMYk/lf+eE5P7vHu8RDmS6I24PQlyYladDTZRAA4UI7Qf7NR
-	 LAgdxfp8XFI1GnztwfoO9zLAaIcJLVRx924/UQZJ3S2bskevU3IDV0DyuBk2tm7FfrYP6
-	 25a/bTTw3SzXW4Nh8Z103hoK57xnsSorVedKdp6Ii4cv+4U6CXf93r4nvSDXXrDA9Vjlu
-	 EHgWrp+q6rtwEBelwn8RcgtMzpLdDdbHeWJ2H7tLwuvXibZUyJzeoL4xkgfZepJehoGLu
-	 MwmWWGqxrDAAAyo7kVyBTuM+MjQfIPRMbcA+8FT/oHZQrIysY+3YSKHxuLSSiKaBSEQ==
+	bh=wkcauF0EHSR/vv0Xq5OKyHa8Ec9HyG7IUnRKFvRcF1o=;
+	b=o5ZplGWBzYGjVdnCuPgQhpuOtXzBSMZeWU17OiHsstIojCFCP1MBLel7e5jeYY8Op0Wb
+	 A5icmhT+5JmWM1Q9nCZkP+ZW5MmnZ4E3+y2LW0ardnMrr9avwS3753zwxuZKr8oqkghMt
+	 zR3zzPC3DFicHSF35fk3dpjZnvU4OOpd/nAMNkKMFVHDTX23ry5QJEfxLamT+B028voZb
+	 dT6a1xTP3LME680GzLpsDMy+nLJID/IptRr48uhR+lw9morL+JraZ6G0gzU3swaQNq3A3
+	 RdTAhh7sfaTTyX+Zl6VoLT7Qwf47itc16V09mlBcyh9EIvcZ4a6hAvKzec7LFwAgIcg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AkiADMls;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UnMH8QEz;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F498606A331
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 14:04:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EBEF606A325
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 14:04:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AkiADMls
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14D161F000C4;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UnMH8QEz
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B85331F000C4;
 	Wed, 18 Nov 2026 14:04:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1795010659;
-	bh=Fim8nxfTb3qSZvg9mWR4HSyNJ4mWCnKXvqbcqVmGWNE=;
+	bh=wkcauF0EHSR/vv0Xq5OKyHa8Ec9HyG7IUnRKFvRcF1o=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=AkiADMlsMqKhUVR/ot3aqgotycQzzAHnLOdn9cHf9arYaVoKxzxBO4ceOvhQkdqX2
-	 nYtVVJnxxNtjXGwz+6lLVanMj2EIlnnPC6E4i8B03Z3agK1dfp2QJ84D36eAPvWaVr
-	 QmO7nVjB/AUq3q0DFDTBP4QKTP54g0AcLT0bf0kqDh7NCQ5avRoh5KpgcHoTaSivlV
-	 OItGs+FyLjZ+uOqrrzNg/OAvbtH43C5mzxs5JgDHh4cheXamrQO2sMQzlhFj/yeJDs
-	 NTtDkHkegcBdRt66YLENaQZCypLgKYhXJQtPNpL/iFvs1W0gv28M9Db83pFaCnpYZ6
-	 ycDwB18bpvMAg==
-Message-ID: <sashiko-outbox-221137@kernel.org>
+	b=UnMH8QEzd5LqHaceg8Jg1uWuC22cN4Fvj8ZM11alE8oMwNk1Bro7XohYr3P5uDG03
+	 n5zrvw5YVqTMIMZwHjbVNmTDNWVT+32IQ6ul7ir0cY6xpQBJRVNhgFycEW7BThuBrq
+	 yCmUXG3WOYyK9E9xfWkBfy2HL6RO/nge9ZV95d3Wd9kETs1gs6jtobJGmSuMYgf6da
+	 3r7zQ3T81PNGt2YM+agTDfB8pIDGBeMyPDoGGTKPZ93ejMKmmGIu6mnxFmqEGuobjp
+	 6U/93af0cNUJzoFlGPhF9NaCNU/BGLA9svnU5eSMlkH2wO080pFMDnNfaHLw2ZoGAr
+	 nOk6XCJAw3j2w==
+Message-ID: <sashiko-outbox-221138@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next 08/11] RDMA/mlx5: Resolve core device from
- ucontext for DEVX resources
+Subject: Re: [PATCH rdma-next 09/11] RDMA/mlx5: Cache the CQ core device and
+ resolve it via cq_to_mdev()
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Edward Srouji" <edwards@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261117-mlx5-sd-prep-v1-8-8efd124c7895@nvidia.com>
+In-Reply-To: <20261117-mlx5-sd-prep-v1-9-8efd124c7895@nvidia.com>
 References: <20261117-mlx5-sd-prep-v1-0-8efd124c7895@nvidia.com>
- <20261117-mlx5-sd-prep-v1-8-8efd124c7895@nvidia.com>
+ <20261117-mlx5-sd-prep-v1-9-8efd124c7895@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 18 Nov 2026 14:04:18 +0000
+Date: Wed, 18 Nov 2026 14:04:19 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -64,61 +64,63 @@ Precedence: list
 Thank you for your contribution! Sashiko AI review found no new issues
 in this patch, but noticed 1 related pre-existing issue it does not
 introduce:
-- [High] RDMA/mlx5: type confusion in
-  UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_ADDR)() [1]
+- [Critical] RDMA/mlx5: hardcoded CQE size breaks kernel CQ resize in
+  mlx5_ib_resize_cq() [1]
 --
 
-commit 9b620675534530ff6a87e491bd8226b49883a88b
+commit f7f9b358d0115bb8244e5cdf7d781d650dc
 Author: Akiva Goldberger <agoldberger@nvidia.com>
 
-RDMA/mlx5: Resolve core device from ucontext for DEVX resources
+RDMA/mlx5: Cache the CQ core device and resolve it via cq_to_mdev()
 
-This commit introduces a uctx_to_mdev() helper to resolve the mlx5_core_dev
-from the user context for DEVX resources and removes redundant mdev
-pointers from struct devx_umem and struct mlx5_ib_pp.
+This commit caches the mlx5_core_dev pointer in struct mlx5_ib_cq at CQ
+creation time and introduces the cq_to_mdev() helper to resolve it instead
+of going through dev->mdev.
+
+> diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5=
+/cq.c
+> index b28ce05fab8f3..5eaf50fe7f540 100644
+> --- a/drivers/infiniband/hw/mlx5/cq.c
+> +++ b/drivers/infiniband/hw/mlx5/cq.c
 
 [ ... ]
 
-> diff --git a/drivers/infiniband/hw/mlx5/dm.c b/drivers/infiniband/hw/mlx5=
-/dm.c
-> index fbb46d821865b..31a7c0f72b40f 100644
-> --- a/drivers/infiniband/hw/mlx5/dm.c
-> +++ b/drivers/infiniband/hw/mlx5/dm.c
-> @@ -209,6 +209,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_AD=
-DR)(
->  {
->  	struct ib_uobject *uobj =3D uverbs_attr_get_uobject(
->  		attrs, MLX5_IB_ATTR_DM_MAP_OP_ADDR_REQ_HANDLE);
-> +	struct mlx5_ib_ucontext *c =3D to_mucontext(uobj->context);
->  	struct mlx5_ib_dev *dev =3D to_dev(uobj->context->device);
->  	struct ib_dm *ibdm =3D uobj->object;
->  	struct mlx5_ib_dm_memic *dm =3D to_memic(ibdm);
-> @@ -223,7 +224,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_AD=
-DR)(
->  	if (op >=3D BITS_PER_TYPE(u32))
->  		return -EOPNOTSUPP;
+> @@ -1394,7 +1398,7 @@ int mlx5_ib_resize_cq(struct ib_cq *ibcq, unsigned =
+int entries,
+>  		struct mlx5_frag_buf *frag_buf;
 > =20
-> -	if (!(MLX5_CAP_DEV_MEM(dev->mdev, memic_operations) & BIT(op)))
-> +	if (!(MLX5_CAP_DEV_MEM(uctx_to_mdev(c), memic_operations) & BIT(op)))
->  		return -EOPNOTSUPP;
-> =20
->  	mutex_lock(&dm->ops_xa_lock);
+>  		cqe_size =3D 64;
+> -		err =3D resize_kernel(dev, cq, entries, cqe_size);
+> +		err =3D resize_kernel(cq, entries, cqe_size);
+>  		if (err)
+>  			goto ex;
+>  		frag_buf =3D &cq->resize_buf->frag_buf;
 
-[Severity: High]
-This problem wasn't introduced by this patch, but can
-UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_ADDR)() cause type confusion when
-called on a non-MEMIC DM handle [1]?
+[Severity: Critical]
+This problem wasn't introduced by this patch, but does hardcoding
+cqe_size =3D 64 here break kernel CQ resize on systems with a 128-byte
+cache line size [1]?
 
-The handler casts ibdm to struct mlx5_ib_dm_memic via to_memic() without
-verifying that to_mdm(ibdm)->type is MLX5_IB_UAPI_DM_TYPE_MEMIC.  When
-userspace allocates a software ICM object such as
-MLX5_IB_UAPI_DM_TYPE_STEERING_SW_ICM, handle_alloc_dm_sw_icm() allocates
-the smaller struct mlx5_ib_dm_icm instead, so accessing dm->ops_xa_lock,
-dm->ops, and dm->ref writes past the end of the allocation and corrupts
-adjacent slab memory.
+mlx5_ib_create_cq() initializes kernel CQs with a 128-byte CQE size when
+cache_line_size() =3D=3D 128.  Allocating the resize buffer with cqe_size =
+=3D 64
+causes copy_resize_cqes() to reject the mismatch with -EINVAL after
+mlx5_core_modify_cq() has already modified the CQ in hardware, leaving the
+software and hardware CQ state out of sync:
 
-[1] https://sashiko.dev/#/bug/linux-56314797-6963-404a-8cb9-efc7a99eb571
+drivers/infiniband/hw/mlx5/cq.c:copy_resize_cqes() {
+    ...
+	ssize =3D cq->buf.cqe_size;
+	dsize =3D cq->resize_buf->cqe_size;
+	if (ssize !=3D dsize) {
+		mlx5_ib_warn(dev, "resize from different cqe size is not supported\n");
+		return -EINVAL;
+	}
+    ...
+}
+
+[1] https://sashiko.dev/#/bug/linux-a14c4506-9ca5-444f-8be1-7990d9e001b0
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261117-mlx5-sd-pr=
-ep-v1-0-8efd124c7895@nvidia.com?part=3D8
+ep-v1-0-8efd124c7895@nvidia.com?part=3D9
