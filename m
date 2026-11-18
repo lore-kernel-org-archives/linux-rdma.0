@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1795022032;
-	b=NWRVKTrMTVbDCdsA0HqqjT07zv7Rge7qEoQStIk5g1A0gjxTczrJcQOIibvkpI/r18lI
-	 d8u+GxGbyOdS0KOylpsK6istI0poe6dvcouTBas+P816umQ8oRWjnVh32TZn77cJFY4sq
-	 YZVy6nmy15qpbNKh61aV2BLj/uNLa0w6fG3IFxaYr76GHeN4czWD1eDeq3Pqb+86Ns+nj
-	 ExWhQxyTYVWf6lSto7/iagnOSnImIOE+YE0RaFMdUeh8v4xxWHzvg2wlFKuQnToFN709y
-	 h3ixJeImBoXbY31AmzBylQbsFOufVIgMbG5UIXvWdre1o+RMR2G2f0wPOUq9wHLAN7A==
+	b=IzYaxZOre6iVU9zJYov0ltp9dFrfhkM+CZ53bnUpPvnabh0qplXsa/9kMUon6w67ZMaY
+	 sGBUyud5qEFds3dQbzkDb/WkINdn0TKy/tGAHrgW27iazWUMEz9g6aLhPXzEWyo4RV8/G
+	 cn7KjXsSJCQfTYKGMu+HH8Pn34RxHtTZV3K3i/fBBP9zxeCL27SiQ5K2T5igHiXRJoTTv
+	 NYc0uk8DdmIfADE/vk6t3zwAwPcH0fMP/F05xBPZAJebQEzzrvD4l7sN/dWkazhgacYzE
+	 bXgjHxxqySUKY6xJ5GyaY3Jp0FuIUZeYm/pbU/+hdZCrElR5Zkq9G/uzmSe5Lwq+xNA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1795022032;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=bK3Y53hTTpnmVOpgF3zHKHnKFqO4NmXQ/iWdVDleRY0=;
-	b=ohOpXtL8Y6W4EnXjf9jU387gz5ijDVrmZBxj1yAYwJNcs/QJAtX4bISZpaL4JkayGsgM
-	 o7kIBfxh3NYxThii44w65LxanKWm0Y+5fcZ6+MV+CgoxoGpM7t0CZaFBt5QOHRxk6dBfk
-	 XLewbbCABqJshMh9S+P0bVmAUtWn3UB+kpmJ2M4iuPlfv2Tu+8mlwl/qCO8lYKpnnbycF
-	 Yzj1MmBEWMLMLHtZgThNqp4HMX+Z9lq3rKN7DcQuq9lQoEqtXA9/z2cfORehE82HgvAWM
-	 Wo/IQgABS0TLybT8gDDGb7xSKU5lkApi8fsLZbBZsb7Z+mk6/taijIUcc+OqOp7afrg==
+	bh=LcVU98PipCTReQ9k2cl39M2aKcPu9KqveMAzmNqSEhQ=;
+	b=W52DkcNtUuePaXz3aFCJ59kzJiK/ZJBqGU3uMAUPNhtEeYYmyPkdaftDAUdwxnaDqIES
+	 /uKOwirp0i+n7/6GtKN6sdQakyapUaki4TWkIvjWOUfBh87N3BESMKkijXuc59d44jhSt
+	 02qlJ1eiFb6B/Dj1JdInTaOmDd9aUwwL85pG+2kS94Mh9Hm9UhVXcWK9m5009mkvMPnHX
+	 L9cCAATQMeYDBsX3g4pE3thdDoVg0hUJGJzD26FApV3tteXi1ztqgaTfdWaJ6ZROEzE20
+	 vLXy6ghjS8ARfpEn/4kmCVWgmlm0r8AxpWp80Rdt9IZuQHKHfZhq8vUJLFxT3a6Nyfg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="JZFs2/jc";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dmhGaQmz;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26E0060A260B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAC4260A2613
 	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 17:13:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JZFs2/jc
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D313C1F000C5;
-	Wed, 18 Nov 2026 17:13:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dmhGaQmz
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B7AA1F000C7;
+	Wed, 18 Nov 2026 17:13:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1795022032;
-	bh=bK3Y53hTTpnmVOpgF3zHKHnKFqO4NmXQ/iWdVDleRY0=;
+	bh=LcVU98PipCTReQ9k2cl39M2aKcPu9KqveMAzmNqSEhQ=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=JZFs2/jcWxlfEfvr54KKA8HhyLHOccEVjHaDJixcsRLHPp1Ew3b2AzfPqEnEQzcNM
-	 2tBv7fdK5KE0s6bOnHGogM4+e9LDqLBbEzCUMG95pzAwW/JnOjT/MBRvh7dWbTbYH3
-	 7BaJN9ScoviYmjx2r/USOoKlpIQ3BfkYyeXWm4RtVpBmm/OrG3tEZV48881iFTn7j0
-	 7qvC6qOmKot+uk0BMOpgyRi5TjXbc99YgOVWpL2Fsjq1Py8RbeVTr/cfZEqK9mPEA9
-	 B7XeROOicBGg4cS9w7kWnL0QDrbymeZQP+2DGp4FP+YHxRzmIto8obWKVw1e/HZzOg
-	 eG5MVx6j4Vd7g==
-Message-ID: <sashiko-outbox-221618@kernel.org>
+	b=dmhGaQmzGyocU+AvUG8Pr6Ktt0McwUVeRD7Ky7nqZXawT/fHU6FTXROox2XbFygBu
+	 GPKHitLGPzrxXBpDLkC8MkVea41bVW9oGZxI0oSll5hs8WT+ce93kPejR4yIeWsoYi
+	 UcTH0EAczdGY5tBDqbrwepJjgD5VjHnTQtS7QNgrtwNiCbV8YeTiiI5SCgukbdITjv
+	 0uX2s3A9dyTauw/eSYFknfFRatas8qMk3lYJTZoJIcu73cpUvj8kWa6TnDcMhLZYHF
+	 wMJydRjT3fKZpIBIMvdTuZE/qRShXivhQGGyTRTjE8DFlZlxk5EynSUqP5kyJVc3Fs
+	 XzTZIfNe9DCgg==
+Message-ID: <sashiko-outbox-221619@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH V2 rdma-next 17/21] RDMA/mlx5: Validate firmware RQ/SQ
- state before sqrq_trans[] lookup
+Subject: Re: [PATCH V2 rdma-next 18/21] RDMA/mlx5: Clamp log_max_cq_sz shift
+ in CQ size checks
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Yishai Hadas" <yishaih@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261117170914.27410-18-yishaih@nvidia.com>
+In-Reply-To: <20261117170914.27410-19-yishaih@nvidia.com>
 References: <20261117170914.27410-1-yishaih@nvidia.com>
- <20261117170914.27410-18-yishaih@nvidia.com>
+ <20261117170914.27410-19-yishaih@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 18 Nov 2026 17:13:51 +0000
+Date: Wed, 18 Nov 2026 17:13:52 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,67 +61,27 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue to consider:
-- [Medium] RDMA/mlx5: sqrq_state_to_qp_state() accepts invalid FW states
-  2 and 4
---
+> The CQ create and resize paths check the requested size against
+> 1 << log_max_cq_sz. The cap is 8 bits wide, so an untrusted NIC can
+> report 31 or more, which makes the shift undefined. A large limit also
+> lets the rounded up CQ size exceed INT_MAX, and it is then truncated
+> when passed on as an int.
+>=20
+> Such a size also overflows the CQ buffer size, entries * cqe_size,
+> which create_cq_user() and alloc_cq_frag_buf() compute as an int. A
+> user CQ buffer smaller than the CQ the NIC is given then passes the
+> umem size check, and a kernel CQ gets a zero-sized buffer that
+> init_cq_frag_buf() writes to.
+>=20
+> Take the limit from MLX5_CAP_GEN_LOGSZ_U64(), round up in 64 bits, and
+> reject sizes above INT_MAX. Compute the buffer size with
+> check_mul_overflow(), as resize_user() already does.
+>=20
+> Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
 
-commit 3eeb50e819c6aa09e6f32a3af53732e8d4d484f9
-Author: Yishai Hadas <yishaih@nvidia.com>
-
-RDMA/mlx5: Validate firmware RQ/SQ state before sqrq_trans[] lookup
-
-This commit bounds-checks the RQ and SQ states returned by firmware
-against MLX5_RQ_NUM_STATE and MLX5_SQ_NUM_STATE before indexing
-sqrq_trans[] in sqrq_state_to_qp_state().
-
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5=
-/qp.c
-> index 19cbf6b2b979d..05e8e75d734fb 100644
-> --- a/drivers/infiniband/hw/mlx5/qp.c
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -5081,6 +5081,9 @@ static int sqrq_state_to_qp_state(u8 sq_state, u8 r=
-q_state,
->  		},
->  	};
-> =20
-> +	if (sq_state >=3D MLX5_SQ_NUM_STATE || rq_state >=3D MLX5_RQ_NUM_STATE)
-> +		return -EIO;
-> +
->  	*qp_state =3D sqrq_trans[rq_state][sq_state];
-> =20
->  	if (*qp_state =3D=3D MLX5_QP_STATE_BAD) {
-
-[Severity: Medium]
-Can an untrusted NIC still return invalid hardware states 2 or 4 from
-QUERY_SQ and QUERY_RQ and bypass this check?
-
-In mlx5_ifc.h, the defined hardware states are RST (0x0), RDY (0x1), and
-ERR (0x3).  State 2 is undefined in the hardware interface and indexes an
-uninitialized row or column in sqrq_trans[][], which evaluates to 0
-(IB_QPS_RESET) and overwrites qp->state with IB_QPS_RESET.  State 4 is the
-driver-internal sentinel MLX5_SQ_STATE_NA / MLX5_RQ_STATE_NA (used when
-wqe_cnt is 0), which either misreports the QP state or maps to
-MLX5_QP_STATE_BAD and triggers the WARN(1) below.
-
-In addition, query_raw_packet_qp_sq_state() and
-query_raw_packet_qp_rq_state() assign sq->state and rq->state before
-sqrq_state_to_qp_state() validates the state, so an invalid firmware value
-still corrupts the cached queue state even when the query fails:
-
-drivers/infiniband/hw/mlx5/qp.c:query_raw_packet_qp_sq_state() {
-	err =3D mlx5_core_query_sq_state(dev->mdev, sq->base.mqp.qpn, sq_state);
-	if (err)
-		goto out;
-	sq->state =3D *sq_state;
-    ...
-}
-
-Validating that the firmware state is RST, RDY, or ERR inside
-query_raw_packet_qp_sq_state() and query_raw_packet_qp_rq_state() before
-assigning sq->state and rq->state would avoid both issues.
+Sashiko has reviewed this patch and found no issues.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261117170914.2741=
-0-1-yishaih@nvidia.com?part=3D17
+0-1-yishaih@nvidia.com?part=3D18
+
