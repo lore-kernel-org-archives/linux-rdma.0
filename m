@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794987868;
-	b=lRR639the0Sfg7/GGkYgRoBKEsSaQvq7qAHPkW9mQZXI5hFi+s23TtTd7zUTxFdxLnQ7
-	 mmZBo6aGvca0zHc3HDAkpTOSISmWPQnDORjUk6g4N1loClTv4gIov5sxLsu+2wnXP78RS
-	 u0Exw2nSu7IVj3r1nwRx0ymugNxSPwDWqMWAKK3lOXfuWnhtQuOrNyEqHXdfyaRM2o8QQ
-	 TWxQ6eDRXVwkDmWHU5TKb204OHHVS2cg4r1lBEpaVkPxt2ImI476p4NCo9IDPjcgSE5Nx
-	 iFnjku9oIVPvXT4xsP0FN9sBg3QRrlRjgLE1C2x0s1SfI55qPQ+Ul5d4xO3vp6QARsw==
+	t=1794988255;
+	b=LpdaTDof+pgPcOz87c2ljE40uJenytDShBJSxvEUmlYqpc4ZlyHFq1chWbVThl4u0AWo
+	 mQTRx+M3QHW2e6u1uk4wXnc/fipfeR6uWLU3T57ByRSS7z1HyyL6FPp30p0n8UndNKvSu
+	 Y6p8NvZ425D7tztYq7/yWAGp50o+mOZLrI92ascUxpBn15KOuS2cSD2Z8EcBqvEv47Tt3
+	 +lK48wuyZ4BTYnkrCnJahXmo0QdtOn9HghJhZQKMoXsMvRTPhDNDBE4b7VJS2aaJ6PEay
+	 iw+stCdgRMokMIC05NuJph8p4ShG1Mz2mb9l0CMeAAUe9N5izMWo70sdI2oLGK+gctQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794987868;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794988255;
 	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:References:Content-Language:From:
-	 In-Reply-To:Content-Type:Content-Transfer-Encoding:X-Spam-Status:
+	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
+	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding:X-Spam-Status:
 	 X-Spam-Checker-Version;
-	bh=gX7kzTJMGEgUilvfYAhS+WHhKveX5bpbpbQGBDJ6GaE=;
-	b=LGdjmi/WvJr/UjifpwP9I3l1LOUeh4RD+aHvNmrGBrfZG4x39jAIOoJo1AoiY8XjxHmH
-	 6/0uU2VF75jUpVOEBR2zWf8KJ0lqjKSSAjB7yl/WlS3BN2T8Lru/HVtZ1IfeQwr4ur38x
-	 fsp6vxFx9/0Y52VxqRFdu3l64/kcTmF+zdOiRRiUSO+HEO7LYFEMfFEV/psJ38nquCqWm
-	 G3xcHYHNOo9RdN7Uket4SvdtHJMAj7alqnes3Rxy464SDs29dV9AbuYA7GBsxhR66eW2E
-	 mpMjFXinsqTwkpgM38QlKEIjpA/AU28lhYbQvbBkd/rLDiZCyfp8T2fcvAN8rnr6VpA==
+	bh=l91mS4zSVSG6E8U9qMb4lyxiEjC7Nm+mIRs8YI1Zjzk=;
+	b=AbKvd15vA7OeTqrwEDJLk0CI4towrQWbvivQme8yIdx9YEY3JF3OUajLxpLznVjso+0b
+	 V8CEqsHra19QBHRGouacbkGpPPH8EItss9SSjHoEyticLUQYqdkdTLSo7aW5ZhZUOHauh
+	 UJlRo4lEsODOxRRwVUos/zioHxI4M41cwf3v+ByP7nRP1PvTTgxQyBmwnP5YuIUotc6Re
+	 32vMjK6JygtVbxLWuykr7hlUTCg7H1IJFWr/+UyY8hJYfnMs8kJzVAPpRM1fcB/fpgKmr
+	 Pxc2Ho/pws7+Q5loDovIr5lUApPOq+Bud7BUpfz3/vVu5125FAY6/IkOGz/CdLRKqPA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.microsoft.com;
 	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=Pdgk9FT3;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=KFZLryDg;
 	arc=none smtp.remote-ip=13.77.154.182
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 87B33606A325;
-	Wed, 18 Nov 2026 07:44:28 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 87B33606A325
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 92000606A31C;
+	Wed, 18 Nov 2026 07:50:54 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 92000606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=Pdgk9FT3
-Received: from [10.26.7.43] (unknown [4.213.232.16])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 5C30920B7169;
-	Tue, 17 Nov 2026 23:44:26 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 5C30920B7169
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=KFZLryDg
+Received: from [10.26.7.43] (unknown [4.213.232.22])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 7C4C120B7169;
+	Tue, 17 Nov 2026 23:50:47 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 7C4C120B7169
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1794987867;
-	bh=gX7kzTJMGEgUilvfYAhS+WHhKveX5bpbpbQGBDJ6GaE=;
-	h=Date:Subject:To:References:From:In-Reply-To:From;
-	b=Pdgk9FT33bNeYIK2fpQ2c6t3bvmQpYWDnMgKtelx/ESt4qrvGoOCQ086hbaAfqf9O
-	 jMb3xi/mqSf4fJJi+VyK2HqrCcPV+x8V2SAVORwYA+5fZdT/3G9ldtpjDLBrxwtA5J
-	 A6qk9AGgrRkXT15QSqtbcTw9ajvNdDN34NH/xt3I=
-Message-ID: <1b7ff0e0-a607-49e4-a14b-be95a726e0a8@linux.microsoft.com>
-Date: Wed, 18 Nov 2026 13:14:24 +0530
+	s=default; t=1794988252;
+	bh=l91mS4zSVSG6E8U9qMb4lyxiEjC7Nm+mIRs8YI1Zjzk=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=KFZLryDgsHMq8xjo5y0HLmtBR2GdT03fq61lM6R0Wn4xiqPUiQLHrbE73uz/6VDeh
+	 Ff/fbWeBqpTysbhPe+oeubuFuUfv/PK2PUzVdSvQyp7UPeGO+2m/LmT1m4X6Xk4hTR
+	 TJaxFt7esINQRTlbM/qrn8/OO68T8xosh6Rpii34=
+Message-ID: <4fbc1890-e8e4-4c1c-a0b8-6d38c5afcfbf@linux.microsoft.com>
+Date: Wed, 18 Nov 2026 13:20:46 +0530
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -56,31 +56,142 @@ MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: [PATCH net v3] net: mana: Avoid waiting on dead HWC after device
  reset
-To: sashiko-reviews@lists.linux.dev, linux-hyperv@vger.kernel.org,
- linux-rdma@vger.kernel.org
+To: netdev-bot+sashiko@kernel.org
+Cc: haiyangz@microsoft.com, wei.liu@kernel.org, decui@microsoft.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, pabeni@redhat.com, kotaranov@microsoft.com,
+ horms@kernel.org, ernis@linux.microsoft.com, gargaditya@linux.microsoft.com,
+ mawasthi@linux.microsoft.com, kees+treewide@kernel.org,
+ schakrabarti@linux.microsoft.com, leitao@debian.org,
+ linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ stable@vger.kernel.org
 References: <20261112085226.878780-1-sahilchandna@linux.microsoft.com>
- <sashiko-outbox-212474@kernel.org>
+ <179483726776.3136.399784833950391727@kernel.org>
 Content-Language: en-US
 From: Sahil Chandna <sahilchandna@linux.microsoft.com>
-In-Reply-To: <sashiko-outbox-212474@kernel.org>
+In-Reply-To: <179483726776.3136.399784833950391727@kernel.org>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 13-11-2026 14:22, sashiko-bot@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 1 potential
-> issue to consider:
-> - [Medium] net: mana: premature TX NAPI deletion in
->   mana_dealloc_queues()
-> --
+On 16-11-2026 19:24, netdev-bot+sashiko@kernel.org wrote:
+> Thank you for your contribution! Sashiko AI review found 6 potential
+> issue(s) to consider.
 > 
-> commit d359cd9ade3de8d4713c17d8d3e7c311b5d6d28c
-> Author: Sahil Chandna <sahilchandna@linux.microsoft.com>
+> Critical: 0 · High: 1 · Medium: 3 · Low: 2
+> 
+> If you believe none of the issues are legitimate, please reply to each
+> issue of Medium severity or higher and explain why the AI is wrong.
+> If any of them are legitimate and you plan to respin, please let patchwork
+> know by including "pw-bot: cr" as a separate line at the end of your reply
+> (one such reply per series is enough).
+> 
+> - [High] If mana_gd_dev_reset() fails, mana_dealloc_queues() lowers
+>   hwc_timeout to 1 ms (cmpxchg at mana_en.c:3889) before any teardown…
+> - [Medium] The wait before a function-wide device reset drops from 120 s
+>   to about 300 ms.
+> - [Medium] The patch claims to bound how long mana_dealloc_queues() holds
+>   RTNL when the hardware is unresponsive ('This replaces the 120s drain…
+> - [Medium] net: mana: premature TX NAPI deletion in mana_dealloc_queues()
+> - [Low] mana_hwc_destroy_channel() now skips mana_smc_teardown_hwc() when
+>   hwc_dead is set, but its comment still says 'If it's non-zero, the HWC…
+> - [Low] The comment above mana_need_log() still says '/* Suppress logging
+>   when we set timeout to zero */'.
+> 
+> --
 > 
 > net: mana: Avoid waiting on dead HWC after device reset
 > 
-> This commit replaces the sleep-based TX drain in mana_dealloc_queues()
-> with synchronous CQ polling and marks the hardware channel dead after a
-> device reset so subsequent HWC commands fail fast.
+> This patch replaces the 120 s sleep-based TX drain in mana_dealloc_queues()
+> with synchronous CQ polling of up to about 300 ms per queue, then resets the
+> device if sends are still pending. A successful reset sets a new hwc_dead
+> flag, which makes mana_hwc_send_request() fail fast and skips
+> mana_fence_rqs() and the SHM teardown handshake; a failed reset lowers
+> hwc_timeout to 1 ms.
+> 
+> Link to v2: https://lore.kernel.org/all/20261030125009.3758592-1-sahilchandna@linux.microsoft.com/
+> 
+>> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+>> index ab942d5bfe058..94ee3b61527d6 100644
+>> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
+>> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+>> @@ -153,7 +153,9 @@ bool mana_need_log(struct gdma_context *gc, int err)
+>>  		return true;
+>>  
+>>  	hwc = gc->hwc.driver_data;
+>> -	if (hwc && hwc->hwc_timeout == 0)
+>> +	if (hwc &&
+>> +	    (READ_ONCE(hwc->hwc_timeout) == 0 ||
+>> +	     READ_ONCE(hwc->hwc_dead)))
+>>  		return false;
+> 
+> [Severity: Low]
+> This isn't a bug, but the comment above mana_need_log() still reads:
+> 
+> /* Suppress logging when we set timeout to zero */
+> 
+> With this change, every -ETIMEDOUT is also suppressed once hwc_dead is set,
+> even when hwc_timeout is non-zero. That includes the new fail-fast returns
+> from mana_hwc_send_request(). So callers such as mana_destroy_wq_obj(),
+> mana_pf_deregister_filter(), mana_gd_destroy_dma_region() and the "Failed
+> to disable vPort" message in mana_dealloc_queues() log nothing.
+> 
+> Could the comment be updated to cover the hwc_dead case too?
+> 
+Ack.
+>> diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+>> index fb9f38f65911c..ca9dcbfea9e46 100644
+>> --- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
+>> +++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+> 
+> [ ... ]
+> 
+>> @@ -819,7 +819,11 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
+>>  	 * non-zero, the HWC worked and we should tear down the HWC here.
+>>  	 */
+>>  	if (gc->max_num_cqs > 0) {
+>> -		mana_smc_teardown_hwc(&gc->shm_channel, false);
+>> +		if (READ_ONCE(hwc->hwc_dead))
+>> +			dev_warn(hwc->dev,
+>> +				 "HWC unavailable, skip SHM teardown handshake\n");
+>> +		else
+>> +			mana_smc_teardown_hwc(&gc->shm_channel, false);
+>>  		WRITE_ONCE(gc->max_num_cqs, 0);
+>>  	}
+> 
+> [Severity: Low]
+> The comment just above still says the HWC should be torn down here whenever
+> max_num_cqs is non-zero. mana_smc_teardown_hwc() also describes the
+> handshake as required:
+> 
+> drivers/net/ethernet/microsoft/mana/shm_channel.c:mana_smc_teardown_hwc() {
+>     ...
+> 	/* Read shmem response (polling for VF possession) and validate.
+> 	 * For teardown, waiting for response is required to ensure hardware
+> 	 * invalidates MST entries before software frees memory.
+> 	 */
+>     ...
+> }
+> 
+> Right after this branch, mana_hwc_destroy_channel() frees the HWC queues,
+> caller_ctx and the hwc itself.
+> 
+> Skipping the handshake is only safe if a successful mana_gd_dev_reset()
+> guarantees the device has dropped those MST entries. Is that assumption
+> written down anywhere?
+> 
+> The pcie_flr() kernel-doc says it initiates FLR "unconditionally on @dev
+> without checking any flags and DEVCAP". A 0 return shows that the device's
+> config space is readable again, not that the reset actually happened. If
+> the FLR were ignored, hwc_dead would be set on a live device and the
+> handshake would be skipped. I couldn't check from the tree whether MANA
+> always honours FLR.
+> 
+> Could these comments explain why the handshake can be skipped after a
+> reset?
+> 
+Ack, updated comment explaining the same in v4.
+> [ ... ]
 > 
 >> diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
 >> index 38249e092090a..739021aa09b38 100644
@@ -93,6 +204,300 @@ On 13-11-2026 14:22, sashiko-bot@kernel.org wrote:
 > 
 > [ ... ]
 > 
+>> +				tx_cq->budget = 0;
+>> +				for (retry = 0; retry <= MANA_TX_DRAIN_RETRIES;
+>> +				     retry++) {
+>> +					do {
+>> +						tx_cq->work_done = 0;
+>> +						mana_poll_tx_cq(tx_cq);
+>> +					} while (tx_cq->work_done);
+>> +
+>> +					if (!atomic_read(&txq->pending_sends) ||
+>> +					    trigger_flr ||
+>> +					    READ_ONCE(hwc->hwc_dead))
+>> +						break;
+>> +					if (retry < MANA_TX_DRAIN_RETRIES)
+>> +						msleep(100);
+>>  				}
+>> -				break;
+>> +			}
+>> +
+>> +			pending = atomic_read(&txq->pending_sends);
+>> +
+>> +			if (!trigger_flr && pending > 0) {
+>> +				trigger_flr = true;
+>> +				flr_txq_id = txq->gdma_txq_id;
+>> +				flr_pending = pending;
+>> +			}
+>> +		}
+> 
+> [Severity: Medium]
+> This cuts the wait before a device reset from 120 s to about 300 ms. If any
+> queue still has pending_sends after the first poll and three more 100 ms
+> apart, trigger_flr is set and mana_gd_dev_reset() runs.
+> 
+> mana_gd_dev_reset() calls pcie_flr() on PCI and cdx_dev_reset() on CDX. So
+> it resets the whole function, including the HWC and every vPort, not just
+> the stalled queue.
+> 
+> On success, hwc_dead is set. Nothing clears it until
+> mana_hwc_destroy_channel() frees the hwc. Until then, every HWC request
+> from any port or from mana_ib fails with -ETIMEDOUT in
+> mana_hwc_send_request().
+> 
+> Recovery depends on mana_gf_stats_work_handler() getting -ETIMEDOUT and
+> calling mana_schedule_serv_work(). mana_cdx_bus_ops does not set
+> schedule_serv_work. Does the device stay dead on CDX?
+> 
+> mana_dealloc_queues() also runs on every ndo_stop and mana_detach() (MTU,
+> channel, ring and XDP changes), not only during recovery. A device that is
+> just slow or briefly paused would have finished draining within the old
+> 120 s window. Now it gets a function-level reset.
+> 
+> Is 300 ms known to be long enough before a reset this disruptive? It would
+> help if the commit message explained why 300 ms was chosen. It could also
+> say that the reset is function-wide and that the device stays unusable
+> until a service reset.
+> 
+300 ms decision is not hardware heuristic but something I added from
+testing, updated comment message for the same in v4. Rest of hwc timeout
+failure are same as before the patch.
+>> +		if (trigger_flr && !READ_ONCE(hwc->hwc_dead)) {
+>> +			/* Completions never arrived: the device is
+>> +			 * unresponsive. Issue device reset and
+>> +			 * mark the HWC dead so subsequent HWC commands
+>> +			 * fail fast instead of each waiting the full
+>> +			 * hwc_timeout.
+>> +			 */
+>> +			err = mana_gd_dev_reset(gd->gdma_context);
+> 
+> [Severity: Medium]
+> The commit message says:
+> 
+>   "This replaces the 120s drain timeout with at most 300 ms of sleep per
+>   queue."
+> 
+> However, mana_gd_dev_reset() still runs synchronously here, with RTNL and
+> the netdev instance lock held. On PCI this calls pcie_flr():
+> 
+> drivers/pci/pci.c:pcie_flr() {
+>     ...
+> 	if (!pci_wait_for_pending_transaction(dev))
+> 		pci_err(dev, "timed out waiting for pending transaction; performing function level reset anyway\n");
+>     ...
+> 	msleep(100);
+> 
+> 	ret = pci_dev_wait(dev, "FLR", PCIE_RESET_READY_POLL_MS);
+>     ...
+> }
+> 
+> pci_dev_wait() keeps sleeping, doubling the delay each time, until the
+> Command register reads back valid. It gives up only after about 60 s.
+> 
+> This reset is issued exactly when the driver has decided the device is
+> unresponsive. If the device does not come back from FLR, can RTNL be held
+> for about another 60 s here?
+> 
+> After that, the reset-failure path also reaches mana_fence_rqs(), which
+> sleeps 100 ms per RXQ when the fence fails.
+> 
+Updated commit message in v4 to address this.
+>> +			if (err) {
+>> +				netdev_err(ndev, "device reset failed %d with %d pkts pending in txq %u\n",
+>> +					   err, flr_pending, flr_txq_id);
+>> +
+>> +				/* reduce timeout if device reset failed */
+>> +				timeout = READ_ONCE(hwc->hwc_timeout);
+>> +				if (timeout > 1)
+>> +					cmpxchg(&hwc->hwc_timeout, timeout, 1);
+>> +			} else {
+>> +				WRITE_ONCE(hwc->hwc_dead, true);
+>>  			}
+>>  		}
+> 
+> [Severity: High]
+> If mana_gd_dev_reset() fails, hwc_timeout drops to 1 ms here, before any
+> teardown command has been sent. The commit message explains why the
+> commands are still posted:
+> 
+>   "If the reset fails, the device may not have been reset and may still
+>   access memory, so teardown commands are still posted"
+> 
+> hwc_dead stays false, so mana_disable_vport_rx(), mana_fence_rqs(),
+> mana_destroy_wq_obj() and mana_gd_destroy_dma_region() are all posted.
+> But mana_hwc_send_request() now waits only 1 ms for each reply:
+> 
+> 	timeout = READ_ONCE(hwc->hwc_timeout);
+> 	if (!wait_for_completion_timeout(&ctx->comp_event,
+> 					 (msecs_to_jiffies(timeout)))) {
+> 
+> Any firmware reply slower than 1 ms gives -ETIMEDOUT, and the callers
+> ignore it.
+> 
+> The pending TX SKBs are unmapped and freed in the loop just below. After
+> that, mana_destroy_rxqs(), mana_destroy_txq() and mana_destroy_eq() free
+> the RX buffers, queue rings and DMA-region memory. mana_gd_destroy_queue()
+> frees the memory whether or not the destroy succeeded:
+> 
+> drivers/net/ethernet/microsoft/mana/gdma_main.c:mana_gd_destroy_queue() {
+>     ...
+> 	mana_gd_destroy_dma_region(gc, gmi->dma_region_handle);
+> 	mana_gd_free_memory(gmi);
+> 	kfree(queue);
+> }
+> 
+> Can the device then DMA into memory that has already been freed?
+> 
+> Before this patch, the first teardown command on this path waited the full
+> hwc_timeout. If the HWC still worked, every teardown command was
+> acknowledged before memory was freed. This path is also much easier to
+> reach now, since the reset follows a 300 ms stall instead of 120 s.
+> 
+> The 1 ms value also stays in place until the HWC is rebuilt. A timed-out
+> msg_id slot is freed and handed out again right away through
+> find_first_zero_bit(), and ctx->comp_event is initialised only once, when
+> the HWC is set up. mana_hwc_handle_resp() matches a reply to its caller
+> only by msg_id:
+> 
+> drivers/net/ethernet/microsoft/mana/hw_channel.c:mana_hwc_handle_resp() {
+>     ...
+> 	ctx = hwc->caller_ctx + msg_id;
+> 	err = mana_hwc_verify_resp_msg(ctx, resp_msg, resp_len);
+>     ...
+> 	memcpy(ctx->output_buf, resp_msg, resp_len);
+>     ...
+> 	complete(&ctx->comp_event);
+> }
+> 
+> So a late reply to one request can complete a later request that got the
+> same slot.
+> 
+> The mana_en commands catch this with the msg_type check in
+> mana_verify_resp_hdr(), so mana_destroy_wq_obj() won't accept a stale
+> fence reply. mana_gd_destroy_dma_region() checks only resp.hdr.status:
+> 
+> 	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
+> 	if (err || resp.hdr.status) {
+> 
+> Could a stale reply with status 0 be accepted here as a successful
+> GDMA_DESTROY_DMA_REGION?
+> 
+> Would it be safer to keep the normal hwc_timeout for the teardown commands
+> when the reset fails?
+> 
+I have removed the timeout reduction from here in case of reset fails,
+the only reason to add this here was due to a previous AI review comment
+but the issue is real as highlighted and timeout should not have been
+reduced, so reverted this back in v4.
+> [ ... ]
+> 
+>> @@ -3799,42 +3809,110 @@ static int mana_dealloc_queues(struct net_device *ndev)
+>>  	 * a txq because it may not timely see apc->port_is_up being cleared
+>>  	 * to false, but it doesn't matter since mana_start_xmit() drops any
+>>  	 * new packets due to apc->port_is_up being false.
+>> -	 *
+>> -	 * Drain all the in-flight TX packets.
+>> -	 * A timeout of 120 seconds for all the queues is used.
+>> -	 * This will break the while loop when h/w is not responding.
+>> -	 * This value of 120 has been decided here considering max
+>> -	 * number of queues.
+>> +	 * Drain the in-flight TX completions for each queue. TX is already
+>> +	 * stopped, so pending_sends can no longer grow. For each queue,
+>> +	 * disable NAPI so it cannot run at the same time as this drain,
+>> +	 * then poll its CQ for up to 300 ms. If sends are still missing,
+>> +	 * the hardware is not responding: reset the device and mark the
+>> +	 * HWC dead so that later HWC commands fail fast.
+>>  	 */
+>>
+>>  	if (apc->tx_qp) {
+>>  		for (i = 0; i < apc->num_queues; i++) {
+>> +			struct napi_struct *napi;
+>> +			struct mana_cq *tx_cq;
+>> +			int pending;
+>> +
+>> +			if (!apc->tx_qp[i])
+>> +				continue;
+>> +
+>> +			tx_cq = &apc->tx_qp[i]->tx_cq;
+>>  			txq = &apc->tx_qp[i]->txq;
+>> -			tsleep = 1000;
+>> -			while (atomic_read(&txq->pending_sends) > 0 &&
+>> -			       time_before(jiffies, timeout)) {
+>> -				usleep_range(tsleep, tsleep + 1000);
+>> -				tsleep <<= 1;
+>> -			}
+>> -			if (atomic_read(&txq->pending_sends)) {
+>> -				err = mana_gd_dev_reset(gd->gdma_context);
+>> -				if (err) {
+>> -					netdev_err(ndev, "device reset failed %d with %d pkts pending in txq %u\n",
+>> -						   err,
+>> -					    atomic_read(&txq->pending_sends),
+>> -					    txq->gdma_txq_id);
+>> +			napi = &tx_cq->napi;
+>> +
+>> +			if (txq->napi_initialized) {
+>> +				/* Stop the NAPI poll so it cannot run
+>> +				 * concurrently with the synchronous drain.
+>> +				 */
+>> +				napi_synchronize(napi);
+>> +				napi_disable_locked(napi);
+>> +				cancel_work_sync(&tx_cq->dim.work);
+>> +
+>> +				/* Poll the CQ until no sends are outstanding,
+>> +				 * sleeping 100 ms between polls. Poll once
+>> +				 * if earlier queue was stuck or device
+>> +				 * has already been reset.
+>> +				 * A zero budget frees skbs via the non-NAPI
+>> +				 * path, which is required outside softirq.
+>> +				 */
+>> +				tx_cq->budget = 0;
+>> +				for (retry = 0; retry <= MANA_TX_DRAIN_RETRIES;
+>> +				     retry++) {
+>> +					do {
+>> +						tx_cq->work_done = 0;
+>> +						mana_poll_tx_cq(tx_cq);
+>> +					} while (tx_cq->work_done);
+>> +
+>> +					if (!atomic_read(&txq->pending_sends) ||
+>> +					    trigger_flr ||
+>> +					    READ_ONCE(hwc->hwc_dead))
+>> +						break;
+>> +					if (retry < MANA_TX_DRAIN_RETRIES)
+>> +						msleep(100);
+>>  				}
+>> -				break;
+>> +			}
+>> +
+>> +			pending = atomic_read(&txq->pending_sends);
+>> +
+>> +			if (!trigger_flr && pending > 0) {
+>> +				trigger_flr = true;
+>> +				flr_txq_id = txq->gdma_txq_id;
+>> +				flr_pending = pending;
+>> +			}
+>> +		}
+>> +
+>> +		if (trigger_flr && !READ_ONCE(hwc->hwc_dead)) {
+>> +			/* Completions never arrived: the device is
+>> +			 * unresponsive. Issue device reset and
+>> +			 * mark the HWC dead so subsequent HWC commands
+>> +			 * fail fast instead of each waiting the full
+>> +			 * hwc_timeout.
+>> +			 */
+>> +			err = mana_gd_dev_reset(gd->gdma_context);
+>> +			if (err) {
+>> +				netdev_err(ndev, "device reset failed %d with %d pkts pending in txq %u\n",
+>> +					   err, flr_pending, flr_txq_id);
+>> +
+>> +				/* reduce timeout if device reset failed */
+>> +				timeout = READ_ONCE(hwc->hwc_timeout);
+>> +				if (timeout > 1)
+>> +					cmpxchg(&hwc->hwc_timeout, timeout, 1);
+>> +			} else {
+>> +				WRITE_ONCE(hwc->hwc_dead, true);
+>>  			}
+>>  		}
+>>
 >>  		for (i = 0; i < apc->num_queues; i++) {
 >> +			struct napi_struct *napi;
 >> +			struct mana_cq *tx_cq;
@@ -116,50 +521,47 @@ On 13-11-2026 14:22, sashiko-bot@kernel.org wrote:
 >> +			}
 >>  		}
 >>  	}
+>>
 > 
 > [Severity: Medium]
-> Does deleting the TX NAPI and clearing txq->napi_initialized here run too
-> early, before mana_destroy_txq() destroys the SQ object and detaches the
-> TX CQ?
+> This deletes the TX NAPI and clears txq->napi_initialized long before
+> the SQ object is destroyed and the TX CQ is detached.
 > 
-> At this point in mana_dealloc_queues(), the SQ object is still alive and
-> tx_cq.gdma_cq remains published in gc->cq_table[] and eq->eq.child_cq[]
-> while mana_disable_vport_rx(), mana_fence_rqs(), mana_destroy_rxqs() and
-> mana_destroy_wq_obj() run, so a completion or GDMA_EQE_THROTTLE event on
-> the shared EQ can still call mana_schedule_napi() on the deleted
-> napi_struct.
+> mana_destroy_txq() was arranged so that mana_gd_detach_cq(),
+> netif_napi_del_locked() and clearing napi_initialized all happen
+> together, after mana_destroy_wq_obj(GDMA_SQ). Its comment says this is
+> so a completion EQE that arrives before the WQ is destroyed still finds
+> the CQ, and so one grace period covers both mana_gd_intr() and NAPI
+> users.
 > 
-> Clearing txq->napi_initialized here also causes mana_destroy_txq() to skip
-> its post-mana_destroy_wq_obj() detach block:
+> With this change, the TX CQ is still published in gc->cq_table[], and
+> the EQ is still live, while mana_disable_vport_rx(), mana_fence_rqs(),
+> mana_destroy_rxqs() and mana_destroy_wq_obj() run. A completion EQE for
+> this CQ in that window reaches mana_schedule_napi() on a napi_struct
+> that has already been through netif_napi_del_locked().
 > 
-> drivers/net/ethernet/microsoft/mana/mana_en.c:mana_destroy_txq() {
->     ...
-> 		if (apc->tx_qp[i]->tx_object != INVALID_MANA_HANDLE)
-> 			mana_destroy_wq_obj(apc, GDMA_SQ, apc->tx_qp[i]->tx_object);
+> The memory stays valid until kvfree() in mana_destroy_txq(). The
+> NAPI_STATE_SCHED bit left set by napi_disable_locked() probably keeps
+> this from doing real harm. Still, this is exactly the ordering
+> mana_destroy_txq() was written to avoid.
 > 
-> 		if (apc->tx_qp[i]->txq.napi_initialized) {
-> 			/* Detach the CQ only after the WQ object is destroyed,
-> 			 * so a completion EQE that arrives before then still
-> 			 * finds the CQ in cq_table[] rather than hitting the
-> 			 * WARN in mana_gd_process_eqe(). One grace period then
-> 			 * covers both mana_gd_intr() and NAPI users.
-> 			 */
-> 			mana_gd_detach_cq(gc, apc->tx_qp[i]->tx_cq.gdma_cq);
-> 			netif_napi_del_locked(napi);
-> 			apc->tx_qp[i]->txq.napi_initialized = false;
-> 		}
+> When mana_destroy_txq() runs later, napi_initialized is already false
+> for every queue, so its detach/del block is skipped. The CQ is then
+> detached from mana_deinit_cq() -> mana_gd_destroy_queue() ->
+> mana_gd_destroy_cq(), which calls synchronize_net() again. That gives
+> two grace periods per TX queue under RTNL, where there used to be one.
 > 
-> 		mana_deinit_cq(apc, &apc->tx_qp[i]->tx_cq);
->     ...
-> }
+> I assume napi_initialized is cleared here so that mana_destroy_txq()
+> does not call napi_synchronize() and napi_disable_locked() a second
+> time. Both would spin forever on the NAPI_STATE_SCHED bit left by the
+> first disable.
 > 
-> Because mana_gd_detach_cq() is skipped there, mana_deinit_cq() ->
-> mana_gd_destroy_queue() -> mana_gd_destroy_cq() has to detach the CQ and
-> wait for a second synchronize_net() grace period for every TX queue under
-> rtnl_lock.  Leaving netif_napi_del_locked() and txq->napi_initialized =
-> false to mana_destroy_txq() (and guarding the redundant napi_disable_locked()
-> in mana_destroy_txq()) would avoid both issues.
-In v4, I have removed this and is handled in mana_destroy_txq as was
-originally.
+> Could that be avoided without moving the deletion? For example, the
+> disabled state could be tracked separately from napi_initialized, so
+> that mana_destroy_txq() skips only the synchronize/disable step. The
+> detach and netif_napi_del_locked() would then still happen together
+> after mana_destroy_wq_obj().
 > 
+I have made this change in v4. Handling this in mana_destroy_txq ().
 
+pw-bot: cr
