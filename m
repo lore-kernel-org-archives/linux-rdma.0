@@ -1,57 +1,50 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=115.124.30.99
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=115.124.30.110
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794972550;
-	b=CECC0pmvezTNi+km+Ku1bo35mZ9A1+Y9F3LP2skbcTFE8t0xEFKiJykO7lnUxwrptvvd
-	 Y92tyMEuS7ejewqJLatG5KJiorRPyUxbV0MZkRU1EcdLTARNrkpOWcB/b3En1OspsjP6e
-	 mLUNEZL7kSQ3qcu6Tyd5G20ANc6LVBHuDz130uwqAwO1hNYOPR8wfuuSUoDqsrsXFmJu8
-	 LKjrEHNw7dSTYgqLXlPFVD5HiUzZSqfw+9E99yT54I2pByFLsYlXMPnDkjtg4iG/rDoEo
-	 4eQhm9PjvhbC3eSw70NHMuxuvo8H4iYI5sz6ieWFqEUgclZNUUvrcm7RAX0gA9Zq88g==
+	t=1794972651;
+	b=y86JeSWPC2mGvBW9wDuopiPqa2FQ3NXboXWQ170f7QIie87QvXgekYF7rt/mOCcAA2oe
+	 wOYUl9Y9pwrgoJ5KAMazltC5Bd5El+GCeInNPqa0r5P1+T/yMv3/baybJeB1XAoSGCBRX
+	 MKgH/FUnOlh82TXwEMno6Vzo7sle/HhejM177o4PpbT1Lex5UIU1TnLBiD0tpwNNNF6NK
+	 zL38y3asE7tFlCB/EmiYZeV5b5hoPvwEf+EqScqpvDz7sXelmplXjwu9Idf1pgAsac8mM
+	 ixOPPaP7JRFHbRUjXwqEukmN/HdBs+qrgV7oSTZtzXe3fzngImr9+MY3jQ25hvrL7hA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794972550;
-	h=DMARC-Filter:DKIM-Signature:X-Alimail-AntiSpam:Received:From:To:Cc:
-	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	a=rsa-sha256; c=relaxed/relaxed; t=1794972651;
+	h=DMARC-Filter:DKIM-Signature:X-Alimail-AntiSpam:Received:Message-ID:
+	 Date:MIME-Version:User-Agent:Subject:To:Cc:References:
+	 Content-Language:From:In-Reply-To:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=m2mZFT+nmsHC4e18rOld5LaDIQ7XhMiI0zI/EQz6jAo=;
-	b=48mtc2cH+mWl1bHGp3QkWrtLRfhy1XaCh+VCAQ30hZW8twGbfGOQdvrCUDFIiE37c9uB
-	 rGM9FbsbzvsLWLlV7H/5TQhC8sNShqzXXCZX7QUIP/00rnCLhivqPPjpKo7pJf8+fWgRM
-	 +PNzE3AOQPUp7oruhFilMaw7H2F275hBVpQVlsXVtqk0NidnOBRQqp459ucJLBWCkTINJ
-	 jN55zDZ8zQZMLq09Xy7t7SmBuu78A2Pu14xoWbpEiNgBHg/cwzSMiiCa6+k/UUuTk/Qk2
-	 rM23glix5mvaPiIHz1vsVr0jmRhbtMXTWiB/DHV/Wi9zYYB0pyFun6/C7KV0SQFmb0g==
+	bh=APG9sCSTr31Qk5e5LlTF3oLTJAVZT+6WIuV88gEjZIE=;
+	b=g04Sc31WDhzRZXdwggjEmlWiBlQkIWxM+zGaeANqCcPCk6CINn6IiwX8AMaYoAkivrPk
+	 hPTdg75m585JVlZHX16Ypt+I30HFJzb5DGGUm3hm9+znnseWIBSvSqJ5r7XHQUho4QYJ2
+	 /WuoRiUMhl7GtA3UhWDKTgFVOIIZpjEf+Xd8BZAdnR85O4/gveGlZkDUNfr4sm1gEXNBG
+	 pqs5iwe54wrle3eAvRuIFuFIcbw3enntCjTznpF5kI9vujp8QQqm5h0ddrl1+9JqgrR1d
+	 05860ZV5SZigeEAhbj0Bj2ME8FQyXWXfW/EBAj/wo/HNIyq9L8zq2IQZriz1gcJYpHA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.alibaba.com;
 	spf=pass smtp.mailfrom=linux.alibaba.com;
-	dkim=pass header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=QMl635K3;
-	arc=none smtp.remote-ip=115.124.30.99
-Received: from out30-99.freemail.mail.aliyun.com (out30-99.freemail.mail.aliyun.com [115.124.30.99])
+	dkim=pass header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=GkkHMI4b;
+	arc=none smtp.remote-ip=115.124.30.110
+Received: from out30-110.freemail.mail.aliyun.com (out30-110.freemail.mail.aliyun.com [115.124.30.110])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADB79606A31C;
-	Wed, 18 Nov 2026 03:29:07 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org ADB79606A31C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FA1E606A31C;
+	Wed, 18 Nov 2026 03:30:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9FA1E606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=QMl635K3
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=GkkHMI4b
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1794972539; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=m2mZFT+nmsHC4e18rOld5LaDIQ7XhMiI0zI/EQz6jAo=;
-	b=QMl635K32i1/C1h25Xj6Nh9Ou7kJuoy9iAVcILqzxyxER99G4l87n3I0J1P0CESZmOFBjTyP6O15qr/J+C0zyjTaD7hQt3g79NXMFZ906KzKA+w2g/lyrPLfJB4HsS5raFxjHvwz2B4jlrYjlH+mOKArV/QIt9LcvPc3iSvNLDU=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R621e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037033178;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0XF.GjIm_1794972538;
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0XF.GjIm_1794972538 cluster:ay36)
+	t=1794972639; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=APG9sCSTr31Qk5e5LlTF3oLTJAVZT+6WIuV88gEjZIE=;
+	b=GkkHMI4brIkg/t2A3Ic7bT6pq3K8ePRiO6/VKOgCjaYnr3DP10gTSyI9ihWvoyjOFX63w8UqMOioy9oowWkbKUK/MIvFjJN1lZC3Y29dlQ5DAte5xhfrR8VhNTuuZBY85TEa7ZdqHIxf+ibybu7nUZ9+5kGGpUmx4w2WCIFBicE=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R181e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037009110;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0XF.Gjmt_1794972638;
+Received: from 30.221.96.70(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0XF.Gjmt_1794972638 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Wed, 18 Nov 2026 11:28:58 +0800
-From: Cheng Xu <chengyou@linux.alibaba.com>
-To: stable@vger.kernel.org
-Cc: leon@kernel.org,
-	jgg@ziepe.ca,
-	kaishen@linux.alibaba.com,
-	linux-rdma@vger.kernel.org
-Subject: [PATCH 6.1.y] RDMA/erdma: Use IRQ-safe XArray helpers for QP and CQ tables
-Date: Wed, 18 Nov 2026 11:28:58 +0800
-Message-ID: <20261118032858.92963-1-chengyou@linux.alibaba.com>
-X-Mailer: git-send-email 2.54.0
+          Wed, 18 Nov 2026 11:30:38 +0800
+Message-ID: <9c049865-1ac4-553f-d894-ca4868bd4e4c@linux.alibaba.com>
+Date: Wed, 18 Nov 2026 11:30:37 +0800
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,94 +54,33 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.15.1
+Subject: Re: [PATCH 6.6.y] RDMA/erdma: Use IRQ-safe XArray helpers for QP and
+ CQ tables
+To: Sasha Levin <sashal@kernel.org>, stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ leon@kernel.org, jgg@ziepe.ca, kaishen@linux.alibaba.com
+References: <20261117022839.23186-1-chengyou@linux.alibaba.com>
+ <2026-11-17-1-daily-reply-0002@kernel.org>
+Content-Language: en-US
+From: Cheng Xu <chengyou@linux.alibaba.com>
+In-Reply-To: <2026-11-17-1-daily-reply-0002@kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-[ Upstream commit 00baeade709fb66da647e8327e8398bb532e30f7 ]
 
-Locked QP and CQ lookups from EQ interrupts can deadlock with
-create-path XArray updates. If an interrupt arrives while the create
-path holds the plain xa_lock, the lookup spins forever trying to
-acquire the same lock.
 
-Use IRQ-safe XArray helpers for all QP and CQ create-path updates,
-including the GSI QP store and error paths. Initialize both arrays with
-XA_FLAGS_LOCK_IRQ so sleeping allocations preserve interrupt state.
+On 11/18/26 8:19 AM, Sasha Levin wrote:
+>> Use IRQ-safe XArray helpers for all QP and CQ create-path updates,
+>> including the GSI QP store and error paths.
+> 
+> Queued for 6.12 and 6.6, thanks.
+> 
+> 6.1 has the same bug and is not covered. If you want it there, please send a
+> 6.1.y backport.
+> 
 
-[ The GSI QP create path is not present in 6.1.y, so omit that hunk. ]
+Thanks. I have sent the 6.1.y backport.
 
-Fixes: 98df2aee1459 ("RDMA/erdma: Hold CQ references when processing EQ events")
-Fixes: a52eeff32024 ("RDMA/erdma: Hold QP references for AE and CM processing")
-Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
-Link: https://patch.msgid.link/20260828030344.88021-1-chengyou@linux.alibaba.com
-Signed-off-by: Leon Romanovsky <leon@kernel.org>
----
- drivers/infiniband/hw/erdma/erdma_main.c  |  4 ++--
- drivers/infiniband/hw/erdma/erdma_verbs.c | 16 ++++++++--------
- 2 files changed, 10 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/infiniband/hw/erdma/erdma_main.c b/drivers/infiniband/hw/erdma/erdma_main.c
-index 49d931921741..ca93686b0378 100644
---- a/drivers/infiniband/hw/erdma/erdma_main.c
-+++ b/drivers/infiniband/hw/erdma/erdma_main.c
-@@ -500,8 +500,8 @@ static int erdma_ib_device_add(struct pci_dev *pdev)
- 	INIT_LIST_HEAD(&dev->cep_list);
- 
- 	spin_lock_init(&dev->lock);
--	xa_init_flags(&dev->qp_xa, XA_FLAGS_ALLOC1);
--	xa_init_flags(&dev->cq_xa, XA_FLAGS_ALLOC1);
-+	xa_init_flags(&dev->qp_xa, XA_FLAGS_ALLOC1 | XA_FLAGS_LOCK_IRQ);
-+	xa_init_flags(&dev->cq_xa, XA_FLAGS_ALLOC1 | XA_FLAGS_LOCK_IRQ);
- 	dev->next_alloc_cqn = 1;
- 	dev->next_alloc_qpn = 1;
- 
-diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
-index 2ddc56335b9a..b848828287d1 100644
---- a/drivers/infiniband/hw/erdma/erdma_verbs.c
-+++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
-@@ -693,9 +693,9 @@ int erdma_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attrs,
- 	kref_init(&qp->ref);
- 	init_completion(&qp->safe_free);
- 
--	ret = xa_alloc_cyclic(&dev->qp_xa, &qp->ibqp.qp_num, qp,
--			      XA_LIMIT(1, dev->attrs.max_qp - 1),
--			      &dev->next_alloc_qpn, GFP_KERNEL);
-+	ret = xa_alloc_cyclic_irq(&dev->qp_xa, &qp->ibqp.qp_num, qp,
-+				  XA_LIMIT(1, dev->attrs.max_qp - 1),
-+				  &dev->next_alloc_qpn, GFP_KERNEL);
- 	if (ret < 0) {
- 		ret = -ENOMEM;
- 		goto err_out;
-@@ -750,7 +750,7 @@ int erdma_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attrs,
- 	else
- 		free_kernel_qp(qp);
- err_out_xa:
--	xa_erase(&dev->qp_xa, QP_ID(qp));
-+	xa_erase_irq(&dev->qp_xa, QP_ID(qp));
- err_out:
- 	return ret;
- }
-@@ -1433,9 +1433,9 @@ int erdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	refcount_set(&cq->refcount, 1);
- 	init_completion(&cq->free);
- 
--	ret = xa_alloc_cyclic(&dev->cq_xa, &cq->cqn, cq,
--			      XA_LIMIT(1, dev->attrs.max_cq - 1),
--			      &dev->next_alloc_cqn, GFP_KERNEL);
-+	ret = xa_alloc_cyclic_irq(&dev->cq_xa, &cq->cqn, cq,
-+				  XA_LIMIT(1, dev->attrs.max_cq - 1),
-+				  &dev->next_alloc_cqn, GFP_KERNEL);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -1482,7 +1482,7 @@ int erdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	}
- 
- err_out_xa:
--	xa_erase(&dev->cq_xa, cq->cqn);
-+	xa_erase_irq(&dev->cq_xa, cq->cqn);
- 
- 	return ret;
- }
--- 
-2.31.1
-
+Cheng Xu
