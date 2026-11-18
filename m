@@ -1,88 +1,145 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.46
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.42
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794963127;
-	b=GQSCUkMFE7uUQTMtmpF5n7x1PlPLQlsYSiT+Wg7j9A04XWOil8I9DYFPIj2Un5w0vxbK
-	 tMtjRqMFfJWlJ1JG+ATIcU/xszO6Ysz2eGILWPfqQT26NS259NyTjyp75x6ZZto60BMw6
-	 5ezcvhDhUM30eDF7Zw0od6gPiVUUmcIuZU5PNLjxosM6PZxYTf571kernRY3t399nAyyM
-	 B1yRWuu8rGRqavDED1d6IpyyRWQfNDSbWYyQs9V0CDO4PQGCfIAB/M9UhSxv/m3KbEBXo
-	 lDTF8r5CPyXdrUohPXUKtLqYfpHP14roX+J9s77ZWejUpziJMh/+22Sl3bN7P0+zrhQ==
+	t=1794965346;
+	b=tiSzBrzjyemHw9pO5p5Txx4YV9G5PRx9EIvN58mbxG23JyteWkL+kFF/SW4WiEd/PKLe
+	 LE32ZIud2IpVOgsXirKJAG2f2b4Kgp1M1lz1mfQnBL3TTHsPafMQiBdWPDqAwV1V33MHx
+	 eLC7SBzwTmOg6P9c2OnRUFj2SQO4O3ZifRNbY3nmqkvu1An2wFT28eziTP/w2HY22N5yp
+	 SRaxKI9romVGiJTXaF5Mreo4thyzJTH0IFuXC0U7+cxwkfpADJiqn/oJ62kVg/TE7CJPP
+	 CiYZV/cBgZ93IEbEQKaH2O87OQX90q/GPkP5c56RdRI+wi+IqamebHyVvwLtho6+FVA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794963127;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794965346;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Message-ID:Date:MIME-Version:User-Agent:Subject:To:Cc:References:
-	 Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=5YEjBS6xE1eBk+mrimGlFTFMZhAtwJy1TMR+gCWx7jI=;
-	b=JgPrHeN8wYwDArM5GNbyfYaeiU+r6VxDyJATKsU/aI4tkhHpelh4nwEhNeZPWkHCORP0
-	 VJ3eA6Ix1pFC3wgJzzGz4p8o44cU17BhU64OZ5iGi8wjpxorhtu7m/cIvaoUlqP2caz0j
-	 DPI/xhPGgefcvAWcID7rICEbvPnt6GpbAm03ucQfuSwRlIVcxb8LMvrGMlaqIQ+TJO6r0
-	 okGGNsN1V/9U3cm/obmQ7jALLXEoqOxGv4qWd+eUl4JQ1UGiPAHMBxYFXeCQGLUTTcs/J
-	 YJnqE//7mH1lBSwwrRSqkOVZiX6wDVu5g3C8iHnBo2RZlMFmP9n4QCzhAHgFu4foxnQ==
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=9QrBc0w3KV6ChVNAVMzB1hWL9AMrXve7Stq4IEHc3B0=;
+	b=YtWQ0gDLb6W0T2kaUG2Ux+DsvrwCEcp6MB/j4vDcgo4BdEZR0NiM/FRzL81U85j+IX++
+	 LiomufVsMbho5AgPfzkk9QE/H3EZO//4Ed4Qk1O/mNx+K+au2akS2VipZiuujy4tMkMoN
+	 TfShiWr1MRbRrT7OQl832izmPToXHOydAZnCxS3G6O5fBb35+LbibFJs/vnnmkh+EvKa7
+	 TFFwA7HF1Cp1qMrQf0VvkYoBtnejSTRAGuUm3u/TDrsaibjCuvdB0+LZp1YjYwQpPDqmt
+	 jXJMeVcsZT/ZP4iOYRZG5MhpjPCIWISI7RUqk8C2Yg7qkF9bngqhjmpxbGSYKpw/TrQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=G3qRHQMA;
-	arc=none smtp.remote-ip=74.125.82.46
-Received: from mail-dl1-f46.google.com (mail-dl1-f46.google.com [74.125.82.46])
+	dmarc=pass header.from=chromium.org;
+	spf=pass smtp.mailfrom=chromium.org;
+	dkim=pass header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=H1AWSx2s;
+	arc=none smtp.remote-ip=209.85.216.42
+Received: from mail-pj1-f42.google.com (mail-pj1-f42.google.com [209.85.216.42])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27403606A331
-	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 00:52:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 27403606A331
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3E41606A32A
+	for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 01:29:05 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E3E41606A32A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=G3qRHQMA
-Received: by mail-dl1-f46.google.com with SMTP id a92af1059eb24-1a8cc11ac42so645316c88.0
-        for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 16:52:06 -0800 (PST)
+	dkim=pass (1024-bit key, unprotected) header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=H1AWSx2s
+Received: by mail-pj1-f42.google.com with SMTP id 98e67ed59e1d1-3b0b133f64fso39496a91.3
+        for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2026 17:29:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794963126; x=1795567926; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=5YEjBS6xE1eBk+mrimGlFTFMZhAtwJy1TMR+gCWx7jI=;
-        b=G3qRHQMA8OBSG/SeK4THNh0KKALKpLDgZLISJzsrYrx7B6qYQ9uVos8KxghIFRCZEc
-         f/XQclwG1h8FsqZ4X5TtVNFvRxHaRXIR6IlDpaVFcMU4uToIiBMV23KjCRAQTjRTvCxE
-         tAToPFscVe9C8b1xAv2izulKy6qFb5kVH7tFvh0zvhqBypxKkO779hh6t5Osbd755Dwg
-         wVBhUWg7S9CxCuMkalfzJvWXfygt0lbMl3iI06DF7Shf+e+z+iJcLkOzlDna/qafRP4S
-         FAMh2wlEsRAaD0ScJ7f1e5u5lCzyGTJE5OmpoVimu8vfKJtdKfbHSruDIwMvSuJAgFJ9
-         8Zpw==
+        d=chromium.org; s=google; t=1794965345; x=1795570145; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=9QrBc0w3KV6ChVNAVMzB1hWL9AMrXve7Stq4IEHc3B0=;
+        b=H1AWSx2s6yA5CZ4Kphq2OZbv2w2xBgnzcUeDJNakKtwKJr6At3ZCbGY3hZkAUsj/yp
+         b5eUHT+IBOFEmxJxWhffm3Hlml2THIgqdS86xaG1IYJpNQXva7wATT2dVNqb6auf9kHq
+         Hf8xzqkAwAP9npo0A8KFtaAQ+dIAC/LDfvn9w=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794963126; x=1795567926;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=5YEjBS6xE1eBk+mrimGlFTFMZhAtwJy1TMR+gCWx7jI=;
-        b=gYAyCZGnExrLgu5xB11w/nNxaFoyOYOK+wzm7778fyJ+fADfslGBtk8Xra8QlT6P94
-         BjpGKtNsRacahSyi9mRJcsAlXky/wDbli9UU/dOzxLY7z6WNkSMMNLBPpzy6ZLB3NWIW
-         qOVJsePxGe+NiRWn6ugmMKWO0XAyXz5rIrKNDUQB4+wzSzj2sfXTuElO7F6WbRw92faN
-         n6O0yWqIkbDGr3GKPR8z3x6sk2lyF9XHuJus+imL1+pNqShQBV8CVrG2Jh4Gi2ly9EZx
-         TDmStOS/8eo11YoJ7O4PrBedopQYf3yM/hUB+beTJ8NSKdBvgPSZGET0QWK/7L/Gg/kk
-         Okgg==
-X-Forwarded-Encrypted: i=1; AL+hErFZqRk9uVgqf5EtFWlBdDZfG0YxGQ8f3XDMr+FVze0xlWY0HEvqSB/BOP3hUQfhCPOghq9TbWMpHRIE@vger.kernel.org
-X-Gm-Message-State: APuU4Z/vzHA9xj3TXJ1OcfIJeZ7KUrRdNpjdmHgiZi/Qw+RhcQdgRzJy
-	FjrK4AHzEoQfkPM0dC16BJGFvipnDI2yYIhEI+LDGzPpnQ/Dk9VCXMz/
-X-Gm-Gg: AYBFou0vi1oscKyDzIgNaZyNawSMJIxBPZDRGEJdTomsg8IkscEeU49msizWXunzJt/
-	51zUkaUd/wRuSezrQjOrd/Lb6tqpbADt3nN1piwC5IPg0sOs9QxCbbRA7d0K/bv5bXex1vhMSMw
-	ZrALkDKeiW1tN4BBYm/GMy1RVEJp197XPrUNpi+gzvjWQ7Rjj/CC5WV6O12m5SHPMqic8wSyb/9
-	qsE/dYaLUZv/MWCVTJ0E53CKwNnrqg/TGOKaONA1o3LxhyJHMhxIoVSlsOih1ePDPXMJUvUa+tC
-	1zR2JKPDAKW3dPCPhUhIxwbzN2KpFNnNfRjJeRvn/saAPBMdS2Duu4ZTniDFiRtU3UauHz+GWV2
-	Rzw1UzAzu64lPlntphdtCezd1DAkVoySAVXsW1ur5HEyETs7lDIwvb74VDtXgPoXVP4gUfRriWw
-	eC/GcFKOIDpPnnAv5l5R/0vSOomyJYeVfGn9JcqrsRrocvxb7jVx6NeJthI2WTXbUKK4+67NX3Y
-	7tUULPtibdN/6wQBDjOlVvYzCLVQXv8cBAx/u7k6jOZk5EsgsqlueVfmd+1I4GTgRXGw494mPB/
-	Y9ZYjqPfjLlqCZk56bQKIrfbnrqUgkkwzfu5NdjQOlJAIlmDDSQpDBx5VrOaLA==
-X-Received: by 2002:a05:701b:4642:b0:1ae:b906:7733 with SMTP id a92af1059eb24-1b543ceba98mr1015904c88.23.1794963125640;
-        Tue, 17 Nov 2026 16:52:05 -0800 (PST)
-Received: from ?IPV6:2620:10d:c085:21d6::11c9? ([2620:10d:c090:400::5:bd16])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1b544830c99sm3017616c88.15.2026.11.17.16.52.04
+        d=1e100.net; s=20260707; t=1794965345; x=1795570145;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=9QrBc0w3KV6ChVNAVMzB1hWL9AMrXve7Stq4IEHc3B0=;
+        b=UFsXBHtKoGnOpbdvIQn+owdHUYOSAWDdNKXEDQLSrE/dXHNjHs+o6ERnSfQucW4Ts1
+         0DCnQRRvmElBnHpxaZZazYolithu2M3F9CoO5oOjrb2dNkJ19waKSgquH/GXMmVtmmiW
+         g5JlaOaEeT/5RqoRZm3adDHoysJXH1oEh92aG5haXUsrG86BWVOmOujuA6tkKVNrzQkB
+         Ng5RKF6FFPB/3k2eU9H7yedHaCZGMYduYpsdZMqPwfTS5J8ZM8WEOwdebHvy+JXhQTAY
+         EpxAMSiG8vWLgJJD9IEiKKubeiXFbHMjNhX6wXJUiqT8qqcuaCcyjixTb7NZ/G9i73SI
+         JOCQ==
+X-Forwarded-Encrypted: i=1; AL+hErElNjt9mgqMaip58nLsXPR//nAyNdxMLVdmR42nVmI9YPsWj8MAthgWOFfUY8orEYDy6BAthjFsDABg@vger.kernel.org
+X-Gm-Message-State: APuU4Z+VHnhCPmh8FjUR6tkA3rSUtS5OqDV/jp8apY8isYu7RX8TOkdy
+	9TSt4DBDoAMHPnmuqArPopM2xh3E1KRExQq7B0acJH6rMSOuccP85IIxbyoN0BaW8Q==
+X-Gm-Gg: AZFdTZcIZE8QBa6e3tGv3KAWMuExfWdLPBJgbWvuIVF73FJZ5y/hKyZ/i6lLha2AsCh
+	WuC3rJNgNsItt4+HE3bPQJ25hEeZyyRYBWcx0KHL8oJtTr1YJxTcOknByh7rZvqqkztWLeLz5Uk
+	wKOAVYM0QktKqyRxNb9B7355nxBkTSfhVbLjIDFEOUA3sINkku5lDYW+0oYxCWMA52dgl9k26k4
+	7UfMriytj7sq8fan3JHDtqd/ftMzp80XuI9cOfQeeQRv8roRKzFiCGp/GhbKwh6+4v3uS6fLWcH
+	FzrXKW/yQKbj9MiqgGuQixX8zQR8FoFSbMtHGZvlV15dakR00IkgfdVteqX2PSvmuOH8e4atsRv
+	0na4hyxsA44N6qkoFg8YK9wB2yGohI2DJx8hRjtZZC1qEVH8vZ+MwC2a4p55N76v9180Z5PIvZZ
+	Wd/vebxVt6AudVgKkd1xtExP/kP49hCWDZwRa0WuuIGpQeVheb1/yauBzJfZIM3CrkqbCkxrGH1
+	bkx98mGOz+lmS7t2oLIEiDI72GYmkdAId/yrjLjZ5TlIB5zrJOZFOW9HN7Nq5tKTWtbWKBkVGcq
+	wGHxL591ZOdSjABXY7KOFOScmn1vpTA0JHF74IvtXK7GR8aRBxHCGlSiGEtldH55YMltRnQ=
+X-Received: by 2002:a17:90b:5390:b0:3ac:a11a:7c88 with SMTP id 98e67ed59e1d1-3b3d07af9f8mr1892178a91.3.1794965345247;
+        Tue, 17 Nov 2026 17:29:05 -0800 (PST)
+Received: from localhost (221.247.125.34.bc.googleusercontent.com. [34.125.247.221])
+        by smtp.gmail.com with UTF8SMTPSA id 41be03b00d2f7-cde3b98c75bsm243073a12.10.2026.11.17.17.29.03
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 17 Nov 2026 16:52:05 -0800 (PST)
-Message-ID: <acd93d7c-1e91-45f4-b178-07c6afea7fe5@gmail.com>
-Date: Tue, 17 Nov 2026 16:52:03 -0800
+        Tue, 17 Nov 2026 17:29:04 -0800 (PST)
+From: Jeff Xu <jeffxu@chromium.org>
+To: David Hildenbrand <david@kernel.org>,
+	Tomasz Figa <tfiga@chromium.org>
+Cc: Jeff Xu <jeffxu@chromium.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Vlastimil Babka <vbabka@kernel.org>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	Andrey Ryabinin <ryabinin.a.a@gmail.com>,
+	Lorenzo Stoakes <ljs@kernel.org>,
+	"Liam R . Howlett" <liam@infradead.org>,
+	Mike Rapoport <rppt@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>,
+	Brendan Jackman <brendan.jackman@linux.dev>,
+	Zi Yan <ziy@nvidia.com>,
+	Alexander Potapenko <glider@google.com>,
+	Andrey Konovalov <andreyknvl@gmail.com>,
+	Dmitry Vyukov <dvyukov@google.com>,
+	Vincenzo Frascino <vincenzo.frascino@arm.com>,
+	Marco Elver <elver@google.com>,
+	Boris Brezillon <boris.brezillon@collabora.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Chia-I Wu <olvaffe@gmail.com>,
+	Dev Jain <dev.jain@arm.com>,
+	Evgenii Stepanov <eugenis@google.com>,
+	Ian Rickards <ian.rickards@arm.com>,
+	Jann Horn <jannh@google.com>,
+	Jeff Vander Stoep <jeffv@google.com>,
+	Jeff Xu <jeffxu@google.com>,
+	Kees Cook <kees@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Peter Collingbourne <peter@pcc.me.uk>,
+	=?UTF-8?q?Pierre-Cl=C3=A9ment=20Tosi?= <ptosi@google.com>,
+	Ryan Roberts <ryan.roberts@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Jan Kara <jack@suse.cz>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Baoquan He <baoquan.he@linux.dev>,
+	Pasha Tatashin <pasha.tatashin@soleen.com>,
+	Pratyush Yadav <pratyush@kernel.org>,
+	Allison Henderson <achender@kernel.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	linux-mm@kvack.org,
+	kasan-dev@googlegroups.com,
+	linux-arm-kernel@lists.infradead.org,
+	linux-fsdevel@vger.kernel.org,
+	fuse-devel@lists.linux.dev,
+	kexec@lists.infradead.org,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	rds-devel@oss.oracle.com,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v1 0/7] mm: kasan: skip KASAN for GFP_HIGHUSER
+Date: Tue, 17 Nov 2026 17:28:58 -0800
+Message-ID: <20261118012858.289236-1-jeffxu@chromium.org>
+X-Mailer: git-send-email 2.56.1.703.gf848ed807c-goog
+In-Reply-To: <CAAFQd5DzTmyeVQxNdhdy8pPi+ts1cCgbztVJiMoNBeJWBzjdQQ@mail.gmail.com>
+References: <20261116230627.3537051-1-jeffxu@chromium.org> <2066d131-f999-4747-beb8-520d5e0ce1db@kernel.org> <CAAFQd5DzTmyeVQxNdhdy8pPi+ts1cCgbztVJiMoNBeJWBzjdQQ@mail.gmail.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -92,180 +149,67 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next] net: mlx5: Allow police as the last action of a
- TC rule
-To: Mark Bloch <mbloch@nvidia.com>, netdev@vger.kernel.org
-Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com,
- cjubran@nvidia.com, andrew+netdev@lunn.ch, davem@davemloft.net,
- edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, idosch@nvidia.com
-References: <20261117031337.4126403-1-mohsin.bashr@gmail.com>
- <82d9959a-8176-4433-94a4-ff72445306ca@nvidia.com>
- <09ae2064-38ff-4d25-83e5-0ac4c3eb1658@gmail.com>
- <194e1103-0d28-45d4-986a-819955e11268@nvidia.com>
-Content-Language: en-US
-From: Mohsin Bashir <mohsin.bashr@gmail.com>
-In-Reply-To: <194e1103-0d28-45d4-986a-819955e11268@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
+On Tue, Nov 17, 2026 at 11:11 PM Tomasz Figa <tfiga@chromium.org> wrote:
+>
+> On Tue, Nov 17, 2026 at 7:10 PM David Hildenbrand (Arm)
+> <david@kernel.org> wrote:
+> >
+> > I really don't want us to spread KASAN-related GFP flags in the kernel.
+> >
+> > There must be a proper way to abstract this.
+> >
+> > Why is GFP_HIGHUSER not sufficient? We were already told that this is memory to
+> > be mapped into user space. Placing data structure on it and handing out pointers
+> > to that would already be a bit questionable.
+> >
+> > So what are the ways to avoid GFP_HIGHUSER_KASAN?
+>
+> I think the idea behind GFP_HIGHUSER_KASAN is to make it possible to
+> skip KASAN for GFP_HIGHUSER by default (for most of its users), but
+> keep it for some of the users which today use GFP_HIGHUSER for their
+> memory allocations, but could benefit from the added security. As per
+> the other patches in the series:
+>
+>   pipe, fuse: use GFP_HIGHUSER_KASAN for pipe buffer pages
+>   kexec: use GFP_HIGHUSER_KASAN for segment pages
+>   net/rds: use GFP_HIGHUSER_KASAN for message pages
+>
+> That said, I'm not familiar with any of the code mentioned by those
+> patches, so I can't really tell how much they would benefit from KASAN
+> or if their choice of GFP_HIGHUSER to begin with is correct.
 
+Thanks David and Tomasz for the feedback.
 
-On 11/17/26 2:14 PM, Mark Bloch wrote:
-> 
-> 
-> On 17/11/2026 23:52, Mohsin Bashir wrote:
->>
->>
->> On 11/17/26 11:18 AM, Mark Bloch wrote:
->>> On 17/11/2026 5:13, Mohsin Bashir wrote:
->>>> From: Mohsin Bashir <hmohsin@meta.com>
->>>>
->>>> In switchdev mode, mlx5 offloads police only when other actions follow
->>>> it. TC needs no extra action for a police-only rule to work. The mlx5
->>>> driver makes every police rule forward to the post meter table, but for
->>>> a rate police it adds that forward only after verify_attr_actions() has
->>>> checked the rule, so the check rejects it. The ok result of police is
->>>> also handled as pipe. In TC, ok accepts the packet and ends the action
->>>> list, whereas mlx5 goes on with the actions after police.
->>>>
->>>> Support police as the only action of a rule. Set the forward while
->>>> parsing police, as is already done for police with mtu, and forward
->>>> an ok result to the end of the TC chains, as the driver does when it
->>>> offloads the gact ok action. The upcoming selftest series also relies on
->>>> such rules for TC offload validation.
->>>>
->>>> The patch was tested on a ConnectX-7 in switchdev mode with the command
->>>> below, and it was verified that the rule is offloaded and limits the
->>>> matching traffic to the configured rate, using the hardware drop counter.
->>>>
->>>>     tc filter add dev eth0 ingress pref 100 protocol ipv6 flower skip_sw \
->>>>       ip_proto udp dst_port 5201 \
->>>>       action police rate 100mbit burst 1m conform-exceed drop/ok
->>>>
->>>> Cc: Carolina Jubran <cjubran@nvidia.com>
->>>> Signed-off-by: Mohsin Bashir <hmohsin@meta.com>
->>>> ---
->>>>    drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c | 3 ++-
->>>>    drivers/net/ethernet/mellanox/mlx5/core/en_tc.c            | 3 +++
->>>>    2 files changed, 5 insertions(+), 1 deletion(-)
->>>>
->>>> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c
->>>> index 1bd1c94fb977..52295f5d644c 100644
->>>> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c
->>>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c
->>>> @@ -94,13 +94,14 @@ tc_act_parse_police(struct mlx5e_tc_act_parse_state *parse_state,
->>>>                  MLX5_FLOW_STEERING_CAP_MATCH_RANGES))
->>>>                return -EOPNOTSUPP;
->>>>    -        attr->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
->>>>            attr->flags |= MLX5_ATTR_FLAG_MTU;
->>>>        } else {
->>>>            attr->action |= MLX5_FLOW_CONTEXT_ACTION_EXECUTE_ASO;
->>>>            attr->exe_aso_type = MLX5_EXE_ASO_FLOW_METER;
->>>>        }
->>>>    +    attr->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
->>>
->>> This makes every police that is the lact action pass verify_attr_actions()
->>> not only ok case described.
->>>
->>> what happens with:
->>> "police ... conform-exceed drop/pipe"
->>> with this not writes to FTEID_TO_REG so what happens once a packet
->>> reaches the port action table?
->>>
->>> also what about:
->>> tc filter add dev eth0 ingress pref 100 protocol ipv6 flower skip_sw \
->>>       ip_proto udp dst_port 5201 \
->>>       action police rate 100mbit burst 1m conform-exceed drop/pipe \
->>>       action police rate 100mbit burst 1m conform-exceed drop/pipe
->>>
->>> won't this create a loop?
->>>
->>
->> Thanks for reviewing Mark.
->>
->> Ahh! I missed the loop case. I had a patch to handle pipe on the last police but I dropped it, since my testing showed the post_act table still passed the packets up. Let me respin and send pipe and jump on the last police to the end of the TC chains. Would that work in your opinion?
-> 
-> Yes for PIPE.
-> 
-> For JUMP, we need to check the target. tcf_action_exec() counts from
-> the start of the action list, so even the last police can jump back
-> to itself or an earlier action. If we can't offload that, we should
-> probably reject it.
-> 
-> That's how I read tcf_action_exec(), but please correct me if I'm
-> missing something as I'm not really a tc expert.
-> 
->>
+Tomasz is right about why I added GFP_HIGHUSER_KASAN in v1: out of
+caution, I audited existing GFP_HIGHUSER callers to find any that never
+map the pages to userspace and instead fill/drain them in the kernel via
+kmap_local_page() (pipe, FUSE, kexec, rds). Since this series intends to
+improve KASAN performance while preserving its security aspects, and the
+performance impact on pipe/FUSE/kexec/rds was negligible in my testing,
+v1 was optimized for minimum behavioral change.
 
-Yeah, jump restarts the list. Before this patch police as the last 
-action was rejected anyway, so I believe rejecting jump there in the 
-respin should be okay?
+Looking closer at both of your questions, I agree that the security
+benefit of keeping those 4 under KASAN is minimal -- e.g., only linear
+overflows out of the pipe/FUSE/kexec/rds page, since none of them store
+kernel structures or pointers. That is the exact same trade-off we
+already make for GFP_HIGHUSER_MOVABLE.
 
->>>> +
->>>>        return 0;
->>>>    }
->>>>    diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
->>>> index 1d35c97aea0b..8685e41487f3 100644
->>>> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
->>>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
->>>> @@ -3892,6 +3892,9 @@ alloc_branch_attr(struct mlx5e_tc_flow *flow,
->>>>            attr->action |= MLX5_FLOW_CONTEXT_ACTION_DROP;
->>>>            break;
->>>>        case FLOW_ACTION_ACCEPT:
->>>> +        attr->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
->>>> +        attr->flags |= MLX5_ATTR_FLAG_ACCEPT;
->>>> +        break;
->>>>        case FLOW_ACTION_PIPE:
->>>>            err = set_branch_dest_ft(flow->priv, attr);
->>>>            if (err)
->>>
->>> This also changes rules where police is not the last action.
->>> The conform result defaults to ok when it is not given.
->>>
->>> action police rate 100mbit burst 1m conform-exceed drop \
->>>           action mirred egress redirect dev eth2
->>>
->>>
->>> won't with this change the conforming packets go to the tc end table
->>> and not to the redirect dev?
->>> The rule is still reported as offloaded and installs the redirect
->>> which can't reached now.
->>>
->>
->> Maybe I am missing something here, but when the conform action is not given, doesn't it default to ok? For example, if we have
->>    action police rate 100mbit burst 1m conform-exceed drop action drop
->> shouldn't conforming packets still be pushed up rather than dropped by the following action, making the action drop (or the action mirred) dead code?
->>
-> 
-> Yes, agreed, the following action is dead code in software too,
-> a separated cleanup patch maybe?
-> 
+To avoid introducing GFP_HIGHUSER_KASAN, I see two options:
 
-Yeah probably.
+1) Simply keep those 4 cases under GFP_HIGHUSER (drop patches 1-4 and
+   7), reducing the series to just the GFP_HIGHUSER change and its KUnit
+   test.
 
-> What about packets that reach the rep? I don't see anything in
-> the ACCEPT path that tells software TC the packet has already been
-> processed. For example:
-> 
-> tc filter add dev eth2 ingress pref 100 protocol ipv6 flower skip_sw \
->      ip_proto udp dst_port 5201 \
->      action police rate 100mbit burst 1m conform-exceed drop/ok
-> 
-> tc filter add dev eth2 ingress pref 200 protocol ipv6 flower skip_hw \
->      ip_proto udp dst_port 5201 \
->      action drop
-> 
-> Wouldn't a conforming packet reach software, skip the first rule and
-> get dropped by the second, despite already being accepted in hardware?
-> 
-> Can you test this? The existing gact ok path might have the same issue.
+2) Switch those 4 callers to GFP_USER. Since CONFIG_KASAN_HW_TAGS is
+   64-bit arm64 only (!CONFIG_HIGHMEM), GFP_USER is identical to today's
+   GFP_HIGHUSER on arm64 and all other 64-bit builds (and if 32-bit
+   CONFIG_HIGHMEM=y builds still need ZONE_HIGHMEM, that could be gated
+   on CONFIG_HIGHMEM, though that feels ugly at call sites).
 
-Yeah, in both cases (police and gact ok) the conforming packets are 
-pushed up, where they get dropped by the skip_hw rule. My understanding 
-is that with existing behavior the restore doesn't happen on accept 
-path, so sw tc takes the packet through classification again.
+(1) seems much cleaner to me. David, would (1) work for you?
 
-> Mark
-
+Thanks,
+Jeff
