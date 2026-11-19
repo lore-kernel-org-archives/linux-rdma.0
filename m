@@ -1,22 +1,22 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.208.60
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.49
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795048373;
-	b=MuMkVECpxd+tVhKzuK+H5Z2osMFzpFBcZWDenIH6dt3XnON1Vg3m2TQfHHiheOAFSy/P
-	 Ytwkv9lzcXKmaSY+uzL3sLr1F74R2tZR2uNCPlsJX9pFZdBXYEWHLiHrLFdiqiHmGzv5w
-	 zReDWPQbSTS0sZbDbqglkH3qNslO/rwRq0YXu5jKquFJ5TtUUP3roxdndiUUDNInlDl1S
-	 gFKD1COztFhYOnXMwrT2jNVnBRNoYVRvkuQC0GYInz6tphQVhieDNu7Qiymcal2nDl0lB
-	 wKmjUtajRhuCVjaa/0ZgOR5T3e0N1fsIO9POuMrnsLuq4DVXuZ5nbtoRgjkIsZXLZBQ==
+	t=1795048375;
+	b=sJ8FTK9dxgg0aoYMjxIc36TMtreky00jDmwMwFfGt9Pe4MpeaiLKfSPy//DEddDUXpjy
+	 4/9hkY5g5Ah1nC0ZwxrVJbGLp1g+mhx1HUDsFrc4uI1PRm9XFd+lApIVszoxotvlSROVA
+	 tVYDs9kQpAhcKRv70P4x/2eWXYPFI22pUwAoYLWil0oouand92BOxZC7isgvafmZzUo4c
+	 SUjFFcYZcj+IC3B5/YRGN1PpJP0c5gyLItNuUCgVcqo+kfQGoL9FbbQyckRDG1AH7tSas
+	 7PUzw+jTdCDhFdcUSL67hy/mXWv+GjKPDdYlBbHjThGYG5ZvjVA8A0ip1WG8H40Kjhw==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795048373;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795048375;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:
 	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
-	 From:Date:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 Message-ID:References:In-Reply-To:To:CC:X-Mailer:X-Originating-IP:
-	 X-ClientProxiedBy:X-EOPAttributedMessage:X-MS-PublicTrafficType:
-	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
+	 From:Subject:Date:Message-ID:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:X-B4-Tracking:X-Change-ID:To:CC:X-Mailer:
+	 X-Originating-IP:X-ClientProxiedBy:X-EOPAttributedMessage:
+	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
 	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
 	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
 	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
@@ -26,53 +26,53 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=wuKqU2tXHfG2rHcrThqX6FBB6nh1Pyh0K/Huv/vPmxg=;
-	b=CkeXBah7s7BFqBSuxx7lU2p/lENC176cDxYnqPBPII2RrBRZuccOrFrClbPvjSs4clWg
-	 5fQ/PNNa0gJl0GTBYQT5kjeo0bk2gi4bvNXnmSh++qHalCaWDKnmqpTjGS7zGqtIuJnWh
-	 YnqE5kmxG35xg2QjccX7d0CY5xtZzAPWOvi9ViEBngwEEJDvlOY995cjpMzVY1yHWNokK
-	 XN/u5PeoiWkreqKm2WK1yRqNDuQDtAjDzbOvQ9FfgWMK07yK4khU0SNBG722OhQx0Zwtu
-	 Ohq/H8tpBLmZwrCn3hJBSa1txHdMVNHqno48D70Lg5lXF7EsZR/YxXYCKo1aF2Ay4Fw==
+	bh=vHpvwIBliAvJRZD3+MXpPZc9pvRWX+4dqOI+HvUOrgk=;
+	b=w4pR/rI0jTiwaVu8qKiMi8uT3YlDhYzPwqU3QYCJMQYj/Fn3Ck5A3f9Vb2xOXLWbYzNL
+	 ILc66SuuU3SNv+nMjwVOhuihhAH9UNfR25NVFL11yYXgS73uQDez7Sgkyi2CQA0PrfQeG
+	 IRUD9P46dyr7J6w35z0e9YqbwrWqSyY9QSqE227lPJNhI9DpBkwnfCyBVdcT9hcNX5tKj
+	 vwiBjU4O83A66v2/24vdkncp6Qlo4lU4eDTIbEdu/0QSaXtQ8J/MeiYGN+BayHP1+taLs
+	 Aa0rpN3lbrnsGbX5nGXOEbF+C2lKDr2zVsS+MB/nG2nOUDrECPmvwjD0rImLaE8/9cg==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=amd.com;
 	spf=fail smtp.mailfrom=amd.com;
-	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=wJxT6Q7o;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.208.60
-Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011060.outbound.protection.outlook.com [40.107.208.60])
+	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b="W/rNb1Be";
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.49
+Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013049.outbound.protection.outlook.com [40.107.201.49])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF486606A325;
-	Thu, 19 Nov 2026 00:32:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CF486606A325
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DBA260A2606;
+	Thu, 19 Nov 2026 00:32:54 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8DBA260A2606
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=wJxT6Q7o
+	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=W/rNb1Be
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=qKgWb7swUF0a/WqBrtIi2tUL3eFlLJNWV6bObStC1ETxOlEXk6vHHbHTDuzxRMDMVmL96ihOywXrq+R380078cf91+ZdJF37+YwHNj6kopi4/+NOvjSWwjshYU2/oRbXltq2bvj8gVAAINBvvR0rZ1QsudYerGQKqvLxLIRW1L9KIJjhTLftUTNHYfGZ0bZ9lQvjx/LH7YucD6tmvRh/XSEuiUojse/W78C1wA8EYahVnvZ04Bk2wVf9LKD0zeCTiCgUwlKQuU5WrAyRzyq0ZyFT069Tca74Id+wCBP8jQx9dvH52EfF4N6e4uyd/sh2vwkAmtNprMTPor++KwU5lw==
+ b=soAQuO9ocQqsrU9lhKHmXTCqjBQIUDBAKFY+DqXKscdffyHCb0681m4kLOkMY+ToASG+S+4nXL5UWWnZIFX4qRjy5Vfc4vsdLOiC0+L+ewQDRpRxp4D5v/XMakP1gy8MRRJoK7iNFeD+giSdTsHfIAGv/p4DburhaxwjW3gbaVyf0IfSyLIuhidhGUGeGnbSUK1fXBvAGtbhlk1MUOHcaox48H3LA/1rR1SEA/3Uhw2EX7oT+J9f5vw3mbWBL+xrToW5qpJoq28I0ybauFj5kdht882dFKz50vV+GcciMbjdaiHokw4HXRVccztkw1DoLeD9qfou7qSo0I3+X4wjTw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=wuKqU2tXHfG2rHcrThqX6FBB6nh1Pyh0K/Huv/vPmxg=;
- b=CCZyYZK2i9PeGyjmxa+wF0VnUzSllNqDMOXP5bqXZ+sGkfCLKOJ+TWGxEVzWzTaN8BENV94mIPura/zvhGffnHPfU67E8qr5pc6Gi1oosr+MzQxE76LKGO07HKsnGWp/FDEjMkHYvgs9EDkAQuGW5HmXjKrYsRmoDfP9VDWi6jrbhH+n18F4U7xj42F6+tHQksKF5ZtcSH8VpPlrgSvCREdvKFz8esmnsa4v7Ip9ZQXK3KlBO/c2340wbutd9QrVBY7Sp45kMyxukTpellX+8TFZ3L9FubTyhmfKtPAGqyFzak10LMqeKe74qBGdt4SBFTSb3Si06fRAL7z+Zm+f8Q==
+ bh=vHpvwIBliAvJRZD3+MXpPZc9pvRWX+4dqOI+HvUOrgk=;
+ b=AnrbsABbfMnzNKwergDze/eQNmFxmpRPVIc78/N6kMdEUGkMPE84Nr3yYun2R3VUc6/gk5FZGxdvYXeMP5eVO1lF5e0mFkqpKcMC95X2J6LXk4/v+2XV35w0JZa4MP/n4iz4B2fXhne3XHQbpmy5EN/qvaoP56o4dkJs9d37pMdAm0+ktxkVw2qcDcdeLFbz6XVwyixw+dcyPV6r3Hxj1lLF36K2/pJOyLSxxqy44nvCaxs7hYT/sBfFYGR3pRzzG8688OvPMb9VRArz8f6VS5vsrdkD+on9qLSWveoaHTc49luJVhEQEKjkXHF2iHPQU0wuyIgXGYVTIaE4LVRhhg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
  (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=wuKqU2tXHfG2rHcrThqX6FBB6nh1Pyh0K/Huv/vPmxg=;
- b=wJxT6Q7ovVYH3h0MZ3E7WOFRpao7SygOvf68ABWNftSrBBHgIY/Kc0DI/Z7wauZT64fFG1Egi/WLAS1l3xQTQGW8GLrcgSAwlHbaay/wR/bVpyMZDFM+NSDh8/kYKowttAGs57E1l3caku6HFOXKud3alQXkQbx+tmKygh00E4c=
-Received: from BN0PR04CA0048.namprd04.prod.outlook.com (2603:10b6:408:e8::23)
- by SN7PR12MB7021.namprd12.prod.outlook.com (2603:10b6:806:262::16) with
+ bh=vHpvwIBliAvJRZD3+MXpPZc9pvRWX+4dqOI+HvUOrgk=;
+ b=W/rNb1BeOy01X+M5XNgyEZznBY+AzwDrZPG4ujThka+cBxzjFnXKjxuE+XFofq/dKff7Aen9xTTrUHRCcl4a/0UkvrPxmrHGfKhDFpABQVnHTChmEc8mjIrSsWQeZZtbSMBrYmOrSqEHxcmKUw0vho0AkkAPAtx70u7NNj8FQiY=
+Received: from BLAPR03CA0124.namprd03.prod.outlook.com (2603:10b6:208:32e::9)
+ by MW4PR12MB6756.namprd12.prod.outlook.com (2603:10b6:303:1e9::7) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.14; Thu, 19 Nov
- 2026 00:32:49 +0000
-Received: from BL6PEPF0006C3DC.namprd02.prod.outlook.com
- (2603:10b6:408:e8:cafe::80) by BN0PR04CA0048.outlook.office365.com
- (2603:10b6:408:e8::23) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.14 via Frontend Transport; Thu,
- 19 Nov 2026 00:32:49 +0000
+ 2026 00:32:46 +0000
+Received: from BL6PEPF0006C3E0.namprd02.prod.outlook.com
+ (2603:10b6:208:32e:cafe::5d) by BLAPR03CA0124.outlook.office365.com
+ (2603:10b6:208:32e::9) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.10 via Frontend Transport; Thu,
+ 19 Nov 2026 00:32:46 +0000
 X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
  is 165.204.84.17) smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -80,17 +80,18 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
  165.204.84.17 as permitted sender) receiver=protection.outlook.com;
  client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
 Received: from satlexmb07.amd.com (165.204.84.17) by
- BL6PEPF0006C3DC.mail.protection.outlook.com (10.167.249.230) with Microsoft
+ BL6PEPF0006C3E0.mail.protection.outlook.com (10.167.249.235) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Thu, 19 Nov 2026 00:32:49 +0000
+ 15.21.615.4 via Frontend Transport; Thu, 19 Nov 2026 00:32:46 +0000
 Received: from [10.11.96.223] (10.180.168.240) by satlexmb07.amd.com
  (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.57; Wed, 18 Nov
- 2026 18:32:47 -0600
+ 2026 18:32:44 -0600
 From: "Nikhil P. Rao" <nikhil.rao@amd.com>
-Date: Thu, 19 Nov 2026 00:32:32 +0000
-Subject: [PATCH net-next v3 2/3] RDMA/ionic: Use the ionic command timeout
- for the admin queue
+Subject: [PATCH net-next v3 0/3] ionic: make the device command timeout
+ configurable
+Date: Thu, 19 Nov 2026 00:32:30 +0000
+Message-ID: <20261119-b4-ionic-cmd-timeout-v3-0-2cdb8fca15fd@amd.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -102,9 +103,11 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-ID: <20261119-b4-ionic-cmd-timeout-v3-2-2cdb8fca15fd@amd.com>
-References: <20261119-b4-ionic-cmd-timeout-v3-0-2cdb8fca15fd@amd.com>
-In-Reply-To: <20261119-b4-ionic-cmd-timeout-v3-0-2cdb8fca15fd@amd.com>
+X-B4-Tracking: v=1; b=H4sIAJ5D/moC/32OQQ7CIBREr2JY+w1QsOrKexgXFH4tJhRTKKlpe
+ ncpLnSjy8nMvJmZBBwsBnLazGTAZIP1fRbVdkN0p/obgjVZE075njHKoRGQI1aDdgaidejHCLq
+ mwsiKika0JFcfA7Z2KtgL6TFCj1Mk17cTxuaOOq7UNdvZEP3wLA8SK43/Y4kBBd7WUnNDFdX1W
+ Tmz096VgcS/EfIHgmdEJdVRcaXEoWEfxLIsLw6ZubMVAQAA
+X-Change-ID: 20261102-b4-ionic-cmd-timeout-c704d5304b4f
 To: Brett Creeley <brett.creeley@amd.com>, Andrew Lunn
 	<andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, "Eric
  Dumazet" <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
@@ -122,84 +125,105 @@ X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
  (10.181.42.216)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL6PEPF0006C3DC:EE_|SN7PR12MB7021:EE_
-X-MS-Office365-Filtering-Correlation-Id: fbf1b255-754e-480f-78cb-08df45d4a3bc
+X-MS-TrafficTypeDiagnostic: BL6PEPF0006C3E0:EE_|MW4PR12MB6756:EE_
+X-MS-Office365-Filtering-Correlation-Id: 3268a885-49c0-4d84-f3f2-08df45d4a1d5
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|7416014|82310400026|23010399003|36860700016|921020|10067099003|261026140227099003|56012099006|11063799006|261026121527099003|261021123027099003|261021135927099003|261021121427099003|261022105027099003|261102123227099003|261028144727099003|261009223027099003|22082099003|18002099003;
+	BCL:0;ARA:13230040|1800799024|376014|7416014|36860700016|23010399003|82310400026|921020|261102123227099003|10067099003|11063799006|56012099006|261021121427099003|261021135927099003|261021123027099003|261022105027099003|261026140227099003|261009223027099003|261022075727099003|261026121527099003|261028144727099003|18002099003|6133799003|3023799007;
 X-Microsoft-Antispam-Message-Info:
-	RQdw3NC1le5uu5sHfxmviC0FIKqMMTmR1476vqY1DgHOlMzuB/bcc6thJD/DykkkQazxLvZhwPeyBjuNS79eIZHDXqycz1gqp6B/S7Oq4v4zO20+KP90svtNEE/Smev4UFdYsv7TFMMWVv4cbp5pIEITlRiPcz+2/oiF8jTEYRSZVKdORrQEhbuCq/fPHteiNe6HItpgpMcMDYI2TyQwpgRAQ7UO3yhEDYgSGxg8GXTuk6aU/pVepsW2VJJoOHfTPz8Glldjz6t6XQQ49WnuzCi1P3867QDq5LWjAt1h31nRGhJdUQ4XiqLYj3iFHbov9d65SCz+n1IIViu/hQLM8uIqrKLYkJlwkju0zWIwFvL7By7yqZlHZj6WbgchiJACdLt5TMWsFakOlyzN9mNcA5RKCllyckNsiMNrCjHezfrLDCv4fL35Gzw+abrACuuu+cz2QLgotmgPmCUAi1bt9XfZ7nk6TvExkU5grQB6NwtcB+NwSvrEmsZVxuzqyikYVUlelWYvZIcjFH+st06vzfSJMlmuy98vflPuO89PmBZEhVfIfvNlliIuIgEDOvJiH6iqnrLNUvw9kbCiN63310gJU0ebhpJpBnE3eWWuxi1/bn4JJlVJ+Wt/d2MIfog5Clgwywl5j95LBDl1JucNeZAshbr8rLjTGP53nUGRk7gT9Ti156oDDn062nC7UTY5udXSichwrliYrVfvZ4n+QWkgouyZrkrovBp5DnfymyLzT//Vm6QjFSCbikCinouy
+	ajhasFzxpSptVn4pEVsV0D4vBNCqCi1cYV08fIujkplr9WFzhmXzNHRuBfN+3WbHkg5wQLeNntbimc3A4bgAtfjGCBhsVzvp2Fu18lFZolYOxrKQFdLtS/EbQ+niUnb3P5tsNojwCPlKdrNqGZS/tRtSKuvlZzdjHs1Rm1TIc+WouJKPslrgk5G4IPxuHno2n9bR7p2gHhjmWHtE8DKIMD8C1A+KQ+Nv2EgFU+0wJUUVPXS3WZxzEbdzs/x78vPI3ArB5d0DXVgA2ylvDx4uj0onTqpwC+zrlppkmzdeKhDAW2Bt3X4XFnyNNzIz/3jm/n20Ee+beVwVtqLI7+Y1AOS/gATT8a07Uka7BioAUjYybgvIOWN2R/QVJjJvBYRwqdBUFXBd/Fzl0jb2bOy1zASLy2d1sGte3wlMVSqWvaSyXg84cefVKFs0A+Q3lsWgLe7TxGpHbD8kepXHmQpgI1QgO3QMEAQoZy1SLvvvoyvn9G0jOIWEScPnInoz+mlw7a4TGyDD0dJLFsi3QBWmUsb1LlqEqZpJdGqc+3AtCdzI8Z0PrJXZsKsXZeJugz6zrk9XVh+ACXVFgx6nkAbqD35+Arm/rj0JNst1C5TeCFYIZRtoXIj90u00lHNtPr4Rsga0bbXiT+Fh00aMG0LseRPT0nv+NojLQSJddTSjXWBFBHTaKcfjfgWyDfTfPI89LEua2H5p7Nz7Bkb2gMJLPA==
 X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(82310400026)(23010399003)(36860700016)(921020)(10067099003)(261026140227099003)(56012099006)(11063799006)(261026121527099003)(261021123027099003)(261021135927099003)(261021121427099003)(261022105027099003)(261102123227099003)(261028144727099003)(261009223027099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(36860700016)(23010399003)(82310400026)(921020)(261102123227099003)(10067099003)(11063799006)(56012099006)(261021121427099003)(261021135927099003)(261021123027099003)(261022105027099003)(261026140227099003)(261009223027099003)(261022075727099003)(261026121527099003)(261028144727099003)(18002099003)(6133799003)(3023799007);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	mbMVd+2TreKegcf6FMoE0PmHVquyshD53IsN8q42gecQ8GamJrpYyqfjvvhsj6qpQE2m/b7r/S4Jhr+HQCtXXyIi8FNgznCoqRPQXCcXqeay2FUgjm2E08Ywgh2hYvXP6kDUlwX+yieq8bOn4fEcjEsPPfpm/KpKy2QAZY6wnEvGZiRAWIITAXL9q/m+AV7wnvmb7XH94STroWxHXSjWgAv6Gr9iaDv+QMKFfV/VDnxn/GLgggpAlybYHP87zrryrvlqjv/n5db5NXiuX8rLrKXbkmH0gC/9cjNZZhJJk4grY8LCLLu/0/t0YhI4VS73tPNbKt023OwgWKLKBY0dyvVZ1mjB1HLxu55jE3HhTUKF8yagd/q8VzM/GledAPqwTx9p+57f/tTaiiywxu2ZQKchRiwoZvoEK/Zs4kGBN4LIWm6J6KSl0eTCTGlG6pd0
+	UGdxLiaxNq7NV/Z7a/ndg6wszV1aw1b2CXpktHnktXaJO4N4DJTxNYW1gUuhT1GPkLrPEF3anMF8zTM8bW4+Yt1NXqLOgNVgs3tGDp3x62j6BOweu/RwdqN7ZYU//EAUdcp1xue9TFhOo3I6v5VEG/TwcJd75cGANyoCSnYYQGPbSXfAJ1SRYgDzmEGLycHF0Zoj/q10cdiDMQmnl91NGUcWc3xVk3oWy7t5Tjne0NbFgA2ByRipx0DcXNEsodSUW+pvEQcujIkS0DtQPK2QRTfd2ZQTR+dNItmsAcOKYHVGkv60pQX3pmVoGBLck3aJIfTr+2UzhKqfNXCOyVsBnyzHBvtqYZh54nGsiX8lZkzcsQJQdPwuaz3XrEFOboMppuurFk/AQtSy0rSQ4R9WrPRSJKCkXKQqlkdpcBKQrnwKGS2OOzLhg8S8O9hfirvD
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Nov 2026 00:32:49.1968
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Nov 2026 00:32:46.0085
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: fbf1b255-754e-480f-78cb-08df45d4a3bc
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3268a885-49c0-4d84-f3f2-08df45d4a1d5
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BL6PEPF0006C3DC.namprd02.prod.outlook.com
+	BL6PEPF0006C3E0.namprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB7021
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB6756
 
-From: Arun Kumar Prakash <ArunKumar.Prakash@amd.com>
+ionic waits a fixed 5 seconds for device and admin queue commands, and
+the RDMA driver gives its admin queue 2 seconds. Some commands can take
+the firmware longer than that, for example while a PFC configuration
+change flaps the links. The firmware is alive but slow, yet the
+timed-out command and everything queued behind it fail, and an RDMA
+admin queue timeout resets the RDMA LIF so that later verbs fail with
+-ENODEV.
 
-Commit ec8ee714736e ("ionic: stretch heartbeat detection") notes that
-firmware can take more than 2 seconds to service a device or admin
-queue request, and is only expected to complete it within the ionic
-command timeout. The RDMA admin queue watchdog still uses 2 seconds,
-and when it fires it resets the RDMA LIF and every later verb fails
-with -ENODEV. Use the ionic command timeout, 5 seconds, instead. The
-AH create/destroy busy-wait keeps its fixed 2 second bound.
+Patch 1 makes the timeout a per-device value without changing it.
+Patch 2 has the RDMA admin queue use the ionic command timeout instead
+of its own 2 seconds.
+Patch 3 adds a permanent devlink parameter, cmd_timeout, on each PF.
+The firmware stores the value per PF in NVM, and the PF and its VFs
+read it at probe and after a reset.
 
-Signed-off-by: Arun Kumar Prakash <ArunKumar.Prakash@amd.com>
-Reviewed-by: Brett Creeley <brett.creeley@amd.com>
-Acked-by: Allen Hubbe <allen.hubbe@amd.com>
-Signed-off-by: Nikhil P. Rao <nikhil.rao@amd.com>
+Tested on an AMD Pensando adapter under KASAN and lockdep: get and set
+of the parameter, and the stored value read back after an FLR.
+
+Patch 2 conflicts with "RDMA/ionic: Wait the device command timeout for
+admin queue commands", sent to rdma for-rc:
+https://patch.msgid.link/20261118-b4-ionic-rdma-admin-timeout-v1-1-39536999a3e4@amd.com
+When both are merged, keep this series' version: ionic_admin_timeout()
+replaces IONIC_ADMIN_TIMEOUT, and already defaults to 5 seconds.
+
+This series was developed with the help of an LLM-based coding
+assistant (Claude).
+
 ---
- drivers/infiniband/hw/ionic/ionic_admin.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+Changes in v3:
+- patch 3:
+  - register the parameter once at probe, on PFs only, instead of
+    unregistering it on firmware and PCI resets and registering it
+    again on restart
+  - get reports the value read at the last probe or reset, or stored by
+    a later set, instead of sending a device command
+  - keep the timeout in use when reading the stored value fails,
+    instead of falling back to the default
+  - read the stored value right after identify at probe and PCI reset,
+    so the remaining commands there use it
+- rebase on net-next
+- Link to v2: https://patch.msgid.link/20261105-b4-ionic-cmd-timeout-v2-0-35a9a2aa48b1@amd.com
 
-diff --git a/drivers/infiniband/hw/ionic/ionic_admin.c b/drivers/infiniband/hw/ionic/ionic_admin.c
-index 0ccd869ad8e6..b463ad8b4e80 100644
---- a/drivers/infiniband/hw/ionic/ionic_admin.c
-+++ b/drivers/infiniband/hw/ionic/ionic_admin.c
-@@ -18,8 +18,6 @@
- #define IONIC_ADMIN_BUSY_RETRY_COUNT	2000
- #define IONIC_ADMIN_BUSY_RETRY_MS	1
- 
--/* admin queue will be considered failed if a command takes longer */
--#define IONIC_ADMIN_TIMEOUT	(HZ * 2)
- #define IONIC_ADMIN_WARN	(HZ / 8)
- 
- /* will poll for admin cq to tolerate and report from missed event */
-@@ -28,6 +26,11 @@
- /* work queue for polling the event queue and admin cq */
- struct workqueue_struct *ionic_evt_workq;
- 
-+static unsigned long ionic_admin_timeout(struct ionic_ibdev *dev)
-+{
-+	return HZ * ionic_cmd_timeout(dev->lif_cfg.lif);
-+}
-+
- static void ionic_admin_timedout(struct ionic_aq *aq)
- {
- 	struct ionic_ibdev *dev = aq->dev;
-@@ -294,7 +297,7 @@ static void ionic_admin_dwork(struct work_struct *ws)
- 		}
- 
- 		if (time_is_after_eq_jiffies(aq->stamp +
--					     IONIC_ADMIN_TIMEOUT)) {
-+					     ionic_admin_timeout(dev))) {
- 			/* Timeout threshold not met */
- 			ibdev_dbg(&dev->ibdev, "no progress after %ums\n",
- 				  (u32)jiffies_to_msecs(jiffies - aq->stamp));
+Changes in v2:
+- patch 3:
+  - comment in ionic_dl_cmd_timeout_get() on why it has no FW_RESET check
+  - changelog "after probe or reset" -> "after probe or PCI reset"
+- Link to v1: https://patch.msgid.link/20261102-b4-ionic-cmd-timeout-v1-0-2f75c2d0a0c7@amd.com
 
--- 
-2.43.0
+---
+Arun Kumar Prakash (3):
+      ionic: make the command timeout per device
+      RDMA/ionic: Use the ionic command timeout for the admin queue
+      ionic: add devlink param for command timeout
+
+ Documentation/networking/devlink/ionic.rst         | 27 ++++++++
+ drivers/infiniband/hw/ionic/ionic_admin.c          |  9 ++-
+ drivers/net/ethernet/pensando/ionic/ionic.h        | 10 ++-
+ drivers/net/ethernet/pensando/ionic/ionic_api.h    |  8 +++
+ drivers/net/ethernet/pensando/ionic/ionic_aux.c    |  8 ++-
+ .../net/ethernet/pensando/ionic/ionic_bus_pci.c    |  3 +
+ drivers/net/ethernet/pensando/ionic/ionic_dev.c    | 70 ++++++++++++++++++--
+ drivers/net/ethernet/pensando/ionic/ionic_dev.h    |  2 +
+ .../net/ethernet/pensando/ionic/ionic_devlink.c    | 77 ++++++++++++++++++++++
+ .../net/ethernet/pensando/ionic/ionic_ethtool.c    | 12 ++--
+ drivers/net/ethernet/pensando/ionic/ionic_fw.c     |  8 +--
+ drivers/net/ethernet/pensando/ionic/ionic_if.h     |  8 +++
+ drivers/net/ethernet/pensando/ionic/ionic_lif.c    | 11 ++--
+ drivers/net/ethernet/pensando/ionic/ionic_main.c   | 17 ++---
+ 14 files changed, 236 insertions(+), 34 deletions(-)
+---
+base-commit: 44454974aef9c81949e5858ed3e8cbd08e104cad
+change-id: 20261102-b4-ionic-cmd-timeout-c704d5304b4f
+
+Best regards,
+--  
+Nikhil P. Rao <nikhil.rao@amd.com>
 
