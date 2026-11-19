@@ -1,92 +1,51 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.48
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=160.236.53.86
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795092120;
-	b=fXSSXSgv8TGzTgYWGwHwKyxWGUQXoJqfOfp7jVsR7mXfkpz3DSPHLfxLt+SwWPo7rz0i
-	 zR+P3NkTQrIWWflN6YAd5+A+Sixb6vFKCpZPIOpmBbRFXPa6CU3esJbAJ9uwK0YKZtZhz
-	 ctzgeMSj2dhj12SxEoH6HJiWLBqD6Qb16ZO5c1DR3MJpBgS8zwP89bzVMjhAGF15mb8rA
-	 hXT8htjvNTKQSt8jp6g01uJlH8FE/+T90LmdxL3pMTpdZdVGaB+oDf66Hb4wUU1Nr5pry
-	 hAi0OCHeadNI/S2zZcuHpXaWjaeG3quLoEivDmvLALkYISC0G39Fryp0t3xpUnChBuA==
+	t=1795092291;
+	b=YHE4w0vOIQnnOLe8cpSdlJ5C3OlX7QEMyCw1nxgENo8IBNXs6fDyKFjgKbipQ/lTtzLP
+	 bx8QaoFlaxFROIGaC2NRg+Zr8ZzfJPLf3x4oHXA2WiJO+3zP3RQL1Nhmw4qck+Gd2uZ3m
+	 9XtLE0tg4rfLPhT6yz8ZZY7yxwGdDR3GQHZK2OB2k5S52IbcjOSxNqqe6KsXd8vSb2Oh1
+	 0txHW7rhxL5uxF/2fRMYloGK7tm5+zyHbwxmlSoDpWpi/CbD3dMVlZVJVzSCjxCuowABD
+	 t4kPm4lnZhFUGn7rR2gWCA5Mxe1dEK3WMQtdgzSpSSdZd3DjZynV65iMuVHqZqm9tdA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795092120;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=mOE3Rbuw9z95CS+e89nm2qahBlkxcAeUx3ho/7BXMuo=;
-	b=jgvNHMdhriobr9VAwJrwv3OuzS5Rh3B0Ejptpcrwbvb5k+KA8Waj0YsddcU/Z85C1eDE
-	 CWy7sBzKl3dux1zvTYuyGDR9hMlFAX8yYa7GIwwkCjouGCgOQppHh50jPsXw4mFOYKbt0
-	 THYOb/YFXnCL800qFZWwttle9P/iEVWKH6oaGlVvtX/h9zuwnVJRIUs+ZKJjECSm5fqRZ
-	 Llz78A28sPK8c9ud8C+0JlQb0y7y/KvJA8v8xt+rwj1CzZXk5/JVwgalthSd5HaiQbNOC
-	 kPKzjKz0Gd5o12I65Iiu9oyJXhHqiDOUuiwhecbXUVqkMkZ59gHiUpi0g2RsQZfyHlQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795092291;
+	h=DMARC-Filter:Content-Type:Content-Transfer-Encoding:Message-ID:To:Cc:
+	 Subject:X-Priority:X-Mailer:X-Originating-IP:In-Reply-To:References:
+	 MIME-Version:Received:From:Date:X-HM-Tid:X-HM-MType:X-HM-NTES-SC:
+	 X-HM-Spam-Status:DKIM-Signature;
+	bh=3dqeJugsJq79ha6RZSqW6Sks6KXKi1bn5iTNyHEyu2w=;
+	b=EHyK7iAkmERWApeSgUNDG7JtLQuFzp1YIlCHIvT0ns0/8RgfVl7IaTxCQ6UgF5bI+wJ4
+	 sWEFFzHbMNGQLsBl25Lv1uQntgp5ePwoKaUM3mhDQ2qPGCy8jxnbmVcCyfbA6vR/9T2gq
+	 WlYq5BJ0hgYwma7qxtTwi+5x6fYlhbu6HKIdgJ0YkL5SNnqKvoRRxyc9ZR4leqDhRwuYs
+	 16az8RXJOekOAX+SAuubRM/QFybWFl18AzZaldrTFddB8b8894eDI9DIrxpmM7IRIdVpU
+	 bBc869C4KYMGhoKUUsOWtIlvR1UqtE0wVuMAiAVoRyv2VoB8HZyRK38OQ1ekOgJDSLg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=cloudlinux.com;
-	spf=pass smtp.mailfrom=cloudlinux.com;
-	dkim=pass header.d=cloudlinux.com header.i=@cloudlinux.com header.a=rsa-sha256 header.s=google header.b=Y+hvqyrA;
-	arc=none smtp.remote-ip=209.85.221.48
-Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=pass header.from=mail.sdu.edu.cn;
+	spf=pass smtp.mailfrom=mail.sdu.edu.cn;
+	dkim=pass header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=SiDWSKMv;
+	arc=none smtp.remote-ip=160.236.53.86
+Received: from mail-m1602365386.xmail.ntesmail.com (mail-m1602365386.xmail.ntesmail.com [160.236.53.86])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 277C2606A325
-	for <linux-rdma@vger.kernel.org>; Thu, 19 Nov 2026 12:41:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 277C2606A325
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=cloudlinux.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cloudlinux.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7D52606A325;
+	Thu, 19 Nov 2026 12:44:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D7D52606A325
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mail.sdu.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mail.sdu.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=cloudlinux.com header.i=@cloudlinux.com header.a=rsa-sha256 header.s=google header.b=Y+hvqyrA
-Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-4a3e706b5dfso1399444f8f.2
-        for <linux-rdma@vger.kernel.org>; Thu, 19 Nov 2026 04:41:59 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloudlinux.com; s=google; t=1795092118; x=1795696918; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=mOE3Rbuw9z95CS+e89nm2qahBlkxcAeUx3ho/7BXMuo=;
-        b=Y+hvqyrAvGs1ec1QqlTmDLvfzSnWLZKXPNuQfzHstZzH6CQDJajImBeCM9q8kNfhlC
-         mMAu4BmEHpD0TWRgFv0ncKdEXUrid59k9CHQPoHAMYq9YUV1cDOgePkSgyZT3CWwo8mc
-         zb315Ys+BB30Y9yA9VQwZiroXOyIPodeVJ4YXiN1Mxs9HizQO9omoJIqcaK66mYpkH3b
-         7ClQZBJRXaMrhdPPhMO8lizh0XGQEGU5arOWoQo8pvyFM6INoa4ENeB+tAj8m1VS0C0p
-         xB5rgeun8fSdPb49E6voZgYy/s8YPz9GYSlN6SoxpO61zrNHQzMsX96yraVB55dIPoRN
-         N78w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795092118; x=1795696918;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=mOE3Rbuw9z95CS+e89nm2qahBlkxcAeUx3ho/7BXMuo=;
-        b=rQXcAD1dJoysdbs3xkimPwfXD0hlnrY9h6EXreYDKzU0PzYau2whsjrU1sZ9uJkiF/
-         uNw0zGGMsfoy57FKIQb2Yp75wS9wQkKJ/yi0tRkff8txnO/gWA+zrfScYweTvrW7oIEv
-         TXsu+bI4HyULqbDksew++G1owVz1m/nog3cs2Z1BF45dzWjRN6wMXtW2YItD5DO6Wi7W
-         kcf1i5CXAVmDO7E1zo5tdojKlLQjX+MDLZGHyN2akqAj2hj+f3uf6XMA8NL+zuctpjy5
-         wI8R2lA+XjA9PiUX6v96Qn4h/ZfcC8Z6nUjGM9kLy21nC+Xnx8ZyfPDYl0KPaObExrxJ
-         5vEg==
-X-Gm-Message-State: APuU4Z/iqqk6+h9diNEMhcda/o14qZlJA22XoWz24gbnjlFxERX0FN6C
-	u3WPYIL6Eitg+4V89ogPQwvigYPIcbDL4PymcCNjnNxNj5/qVprU3rT5b6d65i17FqI=
-X-Gm-Gg: AZFdTZehUb8DJO2D3GoFweWtTe6qMBUbGSgrU5DVFy5qLxLEAMv0uFB1YoIVpWLAs0/
-	97G9Ll1mc0N3MeucEVA+8i/c1VK+7f3RceU1SG3PMMGHRN2MRJFHepfo6CRk7luggkJSrplnE/h
-	jr62XH1viqJ7a6JTK8Xtac/k/sqnmX9iP8ismpsvLNEII/ByHAhHM/9MsL3zTizuuAQbcmx9l8J
-	mZ5nH6dstD0nvB20n6JQNVJTRynIAXZT9RIJshHXHbIaQnFb6sg3+vWopQ6Rd8u2Azn1PFb/RhM
-	SD2Ewe0zN7YVnnvfZLTRMWz8rx2DKBUlZht11Zq7517jXbay/ntm34olpMasPB0tLUtPzZUbw+u
-	CIVyIr+4REr7UxMZt74TNjfU10WyspbzfRxnA3mNhteKxL3SZ/r07iU2dQTpkpjQ0gGgzRwGFpK
-	d0YbHeql2DR0dTDqghg1HbjSPmkMBBsPCVGnYG+QpMl143sFENXXLPIyzB+zluw+ChkhYPdeJiY
-	GajVq+KQRBzBDMkKlLWQFhaEAzJ9CRLbt2blL9LbIakpaJST9yV56P2RZ4gJg7WOHDQvnIldb4B
-	iGfB14rpGxQRhFBVnhf8xcrP
-X-Received: by 2002:a05:6000:25c6:b0:49d:7e8c:e89c with SMTP id ffacd0b85a97d-4a63d985dc9mr11927185f8f.42.1795092118533;
-        Thu, 19 Nov 2026 04:41:58 -0800 (PST)
-Received: from dev1.kernelcare.com ([2a01:4f8:172:1c85::2])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4a656a28b8esm10787266f8f.50.2026.11.19.04.41.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 19 Nov 2026 04:41:58 -0800 (PST)
-From: Andrey Misiurov <amisiurov@cloudlinux.com>
-To: Jason Gunthorpe <jgg@nvidia.com>,
-	Leon Romanovsky <leonro@nvidia.com>
-Cc: linux-rdma@vger.kernel.org,
-	Quanye Yang <quanyeyang@proton.me>,
-	linux-kernel@vger.kernel.org,
-	Andrey Misiurov <amisiurov@cloudlinux.com>,
-	stable@vger.kernel.org
-Subject: [PATCH] RDMA/ucma: reject a second join of the same multicast address
-Date: Thu, 19 Nov 2026 13:41:53 +0100
-Message-ID: <20261119124153.1745521-1-amisiurov@cloudlinux.com>
-X-Mailer: git-send-email 2.43.7
+	dkim=pass (1024-bit key, unprotected) header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=SiDWSKMv
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
+Message-ID: <APgA2ADdLAK4Fr01jTNuVqo3.3.1795092279897.Hmail.202321181@mail.sdu.edu.cn>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Subject: =?UTF-8?B?UmU6UmU6IFtQQVRDSF0gSUIvaGZpMTogRml4IHBvdGVudGlhbCBsZWFrcyBpbiBJUG9JQiBUWCBxdWV1ZSBpbml0aWFsaXphdGlvbg==?=
+X-Priority: 3
+X-Mailer: HMail Webmail Server V2.0 Copyright (c) 2016-163.com web
+In-Reply-To: <20261115135524.GE42525@unreal>
+References: <20261111-e5624093d6-rdma-hfi1@mail.sdu.edu.cn> <20261115135524.GE42525@unreal>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -96,73 +55,64 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from 202321181@mail.sdu.edu.cn( [101.76.249.61] ) by ajax-webmail ( [127.0.0.1] ) ; Thu, 19 Nov 2026 20:44:39 +0800 (GMT+08:00)
+From: =?UTF-8?B?5p2O5bm/56GV?= <liguangshuo@mail.sdu.edu.cn>
+Date: Thu, 19 Nov 2026 20:44:39 +0800 (GMT+08:00)
+X-HM-Tid: 0aa1f3d60e80d0cdkusye5b1956c16013
+X-HM-MType: 1
+X-HM-NTES-SC: AL0_4z5B86Wr4Tz9jdMF+bhXMVHpP02bZAKsMEiErRSAekjx+ys+KNZNl0PLwl
+	f2MeqR5lbiqKsoq8sm3hZVy9q3VVBNOjIUwfWq1GfV2NBR9WJV5pp9Gwt04oeFjraKOA9zQamUd8
+	dcMb4KrMTsuroN9WulQJMq64stjjs2ymImO78=
+X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
+	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVkZTh8ZVhkYH0NDGU4dSkhIGVYVFA
+	kWGhdVEwETFhoSFyQUDg9ZV1kYEgtZQVlKS0pVTE1VSU9CVU1KWVdZFhoPEhUdFFlBWU9LSFVCQk
+	lOS1VKS0tVSkJLQlkG
+DKIM-Signature: a=rsa-sha256;
+	b=SiDWSKMvC4IZ3FzIFLRyaAWWSTru4Oew0KnwsDFAKoTTdWPWuzNDo5QQs/7YgBXtiVJK8/1vWnx4wl4xn7KEEQSMaAE6YU/TKYl7Pc/54SLWcYiGWAmQprnf4dPEoDXyZkWN54Chm0hej1r4TYnbUltY234NKpnxdlQ8pZ0vn7w=; c=relaxed/relaxed; s=default; d=mail.sdu.edu.cn; v=1;
+	bh=3dqeJugsJq79ha6RZSqW6Sks6KXKi1bn5iTNyHEyu2w=;
+	h=date:mime-version:subject:message-id:from;
 
-ucma_process_join() lets one cm_id join the same multicast address twice,
-creating two ucma_multicast objects (A and B) and, via
-rdma_join_multicast(), two cma_multicast entries that both point back at
-the ucma object.
-
-rdma_leave_multicast() matches a leave only by sockaddr and destroys the
-first entry it finds. So LEAVE_MCAST on A destroys B's cma_multicast and
-frees ucma object A, while A's cma_multicast stays on the list with a
-context pointing at freed memory. The next event for it is a use-after-free:
-
-  BUG: KASAN: slab-use-after-free in ucma_create_uevent+0xb11/0xb70 [rdma_ucm]
-  Workqueue: rdma_cm cma_iboe_join_work_handler [rdma_cm]
-  Call Trace:
-   ucma_create_uevent+0xb11/0xb70 [rdma_ucm]
-   ucma_event_handler+0xd5/0xa10 [rdma_ucm]
-   cma_cm_event_handler+0x98/0x310 [rdma_cm]
-   cma_iboe_join_work_handler+0xac/0x170 [rdma_cm]
-   process_scheduled_works+0xb59/0x1890
-   worker_thread+0x470/0xe40
-   kthread+0x33a/0x450
-   ret_from_fork+0x59/0x90
-   ret_from_fork_asm+0x1a/0x30
-
-Any user with access to /dev/infiniband/rdma_cm can trigger it.
-
-Reject a second join of an address already joined on the same cm_id. The
-incomplete fix 662ade4de9ff ("RDMA/ucma: Serialize join and leave on
-copy_to_user failure") left this path open.
-
-Fixes: 662ade4de9ff ("RDMA/ucma: Serialize join and leave on copy_to_user failure")
-Cc: stable@vger.kernel.org
-Signed-off-by: Andrey Misiurov <amisiurov@cloudlinux.com>
----
-Found during a backport review.
-
-Reproduced on debian13 6.12.88 debug (KASAN=y) over Soft-RoCE: two joins of
-one address on a cm_id, then LEAVE -> the KASAN use-after-free above within
-one run. With the fix the second join returns -EADDRINUSE and the run is clean.
-
- drivers/infiniband/core/ucma.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -1509,7 +1509,7 @@
- {
- 	struct rdma_ucm_create_id_resp resp;
- 	struct ucma_context *ctx;
--	struct ucma_multicast *mc;
-+	struct ucma_multicast *mc, *tmp;
- 	struct sockaddr *addr;
- 	int ret;
- 	u8 join_state;
-@@ -1544,6 +1544,13 @@
- 	memcpy(&mc->addr, addr, cmd->addr_size);
- 
- 	xa_lock(&multicast_table);
-+	/* leave matches by address only; refuse a duplicate */
-+	list_for_each_entry(tmp, &ctx->mc_list, list)
-+		if (!memcmp(&tmp->addr, addr, cmd->addr_size)) {
-+			ret = -EADDRINUSE;
-+			goto err_free_mc;
-+		}
-+
- 	if (__xa_alloc(&multicast_table, &mc->id, NULL, xa_limit_32b,
- 		     GFP_KERNEL)) {
- 		ret = -ENOMEM;
+CkhpIExlb24sCgpUaGFua3MgZm9yIHRoZSByZXZpZXcuCgpGcm9tOiBMZW9uIFJvbWFub3Zza3kg
+PGxlb25Aa2VybmVsLm9yZz4KRGF0ZTogMjAyNi0xMS0xNSAyMTo1NToyNApUbzogIEd1YW5nc2h1
+byBMaSA8bGlndWFuZ3NodW9AbWFpbC5zZHUuZWR1LmNuPgpDYzogIERlbm5pcyBEYWxlc3NhbmRy
+byA8ZGVubmlzLmRhbGVzc2FuZHJvQGNvcm5lbGlzbmV0d29ya3MuY29tPixKYXNvbiBHdW50aG9y
+cGUgPGpnZ0B6aWVwZS5jYT4sbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcsbGludXgta2VybmVs
+QHZnZXIua2VybmVsLm9yZwpTdWJqZWN0OiBSZTogW1BBVENIXSBJQi9oZmkxOiBGaXggcG90ZW50
+aWFsIGxlYWtzIGluIElQb0lCIFRYIHF1ZXVlIGluaXRpYWxpemF0aW9uPk9uIFdlZCwgTm92IDEx
+LCAyMDI2IGF0IDA4OjIzOjE5UE0gKzA4MDAsIEd1YW5nc2h1byBMaSB3cm90ZToKPj4gV2hlbiBh
+biBTRE1BIGhlYWRlciBhbGxvY2F0aW9uIGZhaWxzLCByb2xsYmFjayBza2lwcyB0aGUgY3VycmVu
+dCBUWAo+PiBxdWV1ZS4gSXRzIHJpbmcgYW5kIGFscmVhZHkgYWxsb2NhdGVkIGhlYWRlcnMgYXJl
+IGxlYWtlZC4gRnJlZSB0aGUKPj4gcGFydGlhbGx5IGluaXRpYWxpemVkIHJpbmcgYmVmb3JlIHVu
+d2luZGluZyB0aGUgY29tcGxldGVkIHF1ZXVlcy4KPgo+ZnJlZV90eF9yaW5nIGFscmVhZHkgcGVy
+Zm9ybXMgdGhhdCwgc2VlICJmb3IgKGogPSAwOyBqIDwgdHhfcmluZ19zaXplOyBqKyspIgo+bG9v
+cC4KPgo+VGhhbmtzCj4KPj4gCj4+IFRoaXMgaXNzdWUgd2FzIGZvdW5kIGJ5IG91ciBzdGF0aWMg
+YW5hbHlzaXMgdG9vbCB1bmRlciBkZXZlbG9wbWVudC4KPj4gCj4+IEZpeGVzOiBjODc0YWQ4Nzlj
+MmYgKCJJQi9oaWZpMTogYWRkIGEgbnVsbCBjaGVjayBvZiBremFsbG9jX25vZGUgaW4gaGZpMV9p
+cG9pYl90eHJlcV9pbml0IikKPj4gU2lnbmVkLW9mZi1ieTogR3VhbmdzaHVvIExpIDxsaWd1YW5n
+c2h1b0BtYWlsLnNkdS5lZHUuY24+Cj4+IC0tLQo+PiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L2hm
+aTEvaXBvaWJfdHguYyB8IDYgKysrKystCj4+ICAxIGZpbGUgY2hhbmdlZCwgNSBpbnNlcnRpb25z
+KCspLCAxIGRlbGV0aW9uKC0pCj4+IAo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5k
+L2h3L2hmaTEvaXBvaWJfdHguYyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL2lwb2liX3R4
+LmMKPj4gaW5kZXggOGI5Y2M1NWRiNTlkLi4yZTkyMjViNTU4YjQgMTAwNjQ0Cj4+IC0tLSBhL2Ry
+aXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL2lwb2liX3R4LmMKPj4gKysrIGIvZHJpdmVycy9pbmZp
+bmliYW5kL2h3L2hmaTEvaXBvaWJfdHguYwo+PiBAQCAtNzQzLDcgKzc0Myw3IEBAIGludCBoZmkx
+X2lwb2liX3R4cmVxX2luaXQoc3RydWN0IGhmaTFfaXBvaWJfZGV2X3ByaXYgKnByaXYpCj4+ICAJ
+CQkJa3phbGxvY19ub2RlKHNpemVvZigqdHgtPnNkbWFfaGRyKSwKPj4gIAkJCQkJICAgICBHRlBf
+S0VSTkVMLCBwcml2LT5kZC0+bm9kZSk7Cj4+ICAJCQlpZiAoIWhmaTFfdHhyZXFfZnJvbV9pZHgo
+dHhfcmluZywgaiktPnNkbWFfaGRyKQo+PiAtCQkJCWdvdG8gZnJlZV90eHFzOwo+PiArCQkJCWdv
+dG8gZnJlZV90eF9yaW5nOwo+PiAgCQl9Cj4+ICAKPj4gIAkJbmV0aWZfbmFwaV9hZGRfdHgoZGV2
+LCAmdHhxLT5uYXBpLCBoZmkxX2lwb2liX3BvbGxfdHhfcmluZyk7Cj4+IEBAIC03NTEsNiArNzUx
+LDEwIEBAIGludCBoZmkxX2lwb2liX3R4cmVxX2luaXQoc3RydWN0IGhmaTFfaXBvaWJfZGV2X3By
+aXYgKnByaXYpCj4+ICAKPj4gIAlyZXR1cm4gMDsKPj4gIAo+PiArZnJlZV90eF9yaW5nOgo+PiAr
+CXdoaWxlIChqLS0pCj4+ICsJCWtmcmVlKGhmaTFfdHhyZXFfZnJvbV9pZHgodHhfcmluZywgaikt
+PnNkbWFfaGRyKTsKPj4gKwlrdmZyZWUodHhfcmluZy0+aXRlbXMpOwo+PiAgZnJlZV90eHFzOgo+
+PiAgCWZvciAoaS0tOyBpID49IDA7IGktLSkgewo+PiAgCQlzdHJ1Y3QgaGZpMV9pcG9pYl90eHEg
+KnR4cSA9ICZwcml2LT50eHFzW2ldOwo+PiAKPj4gYmFzZS1jb21taXQ6IDY2MjhlN2Q0YzZiMjVj
+OGQxOGYxMzQ1ZTNhMjBkMjE4MjlhYWU3ZTQKPj4gCj4KClRoZSBqIGxvb3AgZnJlZXMgYWxsIHRo
+ZSBoZWFkZXJzIGluIGVhY2ggcmluZyBpdCB2aXNpdHMuIEFzIEkgcmVhZApmcmVlX3R4cXMsIHRo
+ZSBvdXRlciBsb29wIHN0YXJ0cyB3aXRoIGktLSwgc28gaXQgc2tpcHMgdGhlIHF1ZXVlIHdoZXJl
+CnRoZSBoZWFkZXIgYWxsb2NhdGlvbiBmYWlsZWQuIElmIHRoYXQgaGFwcGVucyBvbiBxdWV1ZSAw
+LCB0aGUgbG9vcApuZXZlciBydW5zLgoKV291bGQgaXQgbWFrZSBzZW5zZSB0byByZXVzZSB0aGUg
+cmluZyBjbGVhbnVwIGZvciB0aGUgcGFydGlhbCBxdWV1ZQphbmQga2VlcCBuZXRpZl9uYXBpX2Rl
+bCgpIG9ubHkgZm9yIHF1ZXVlcyB3aGVyZSBOQVBJIHdhcyBhZGRlZD8gSWYgc28sCkknbGwgc2Vu
+ZCBhIHYyIHRoYXQgZG9lcyB0aGF0LgoKVGhhbmtzLApHdWFuZ3NodW8=
