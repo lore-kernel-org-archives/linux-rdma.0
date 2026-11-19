@@ -1,98 +1,143 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=67.231.153.30
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.43
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795051900;
-	b=DFHbw8GOIBenzMqXbgNy4pS8Jd4YQgCdS7eJxyy21K8vW5ThDpLG7YhmK4XhJnAc+Cui
-	 izm0X4R2VNHztNgd015pD4dPHeEJ4vsXT6ivbWse6BHYZ5w8Q6eukM39vn5xtkOr+52Cm
-	 zQwIgkoCtmV04U+N7p8FwMGpqNFBzdGCV88qkZTPZkJ8romOyDaIGyzk8sVIYCX1skgna
-	 iBC8a+6q6sLo/UxPqYJ6ODBzCI/SK4ggAqu3ISoRcziZf1PV/jT9Y7Z75qovFa0qq//Xr
-	 aqiaj5no+tWuHCTcx80UmkQZZk5QlvR6PJoTN2ftnMdaN6nJocOJRqkKj2i3Z6JGcBQ==
+	t=1795053894;
+	b=BszTFsc46Guor+DLCb4x3Q6eSCS3o0L0hogmcmoapgeRm93IFXelRLLQA4qcWpyroQek
+	 +4bWdI7ctxceHjNwoMRdhYeK1GXivPSE1wzNViXwg2hFK2zvDUANhF7fr/x3PVWjr7D3G
+	 xkhrpzWPP/Y2+y2u8VO3dQExGkbxJ3fjN13xPgW+HP2vwe0dW/4Efk78WhIwUne70mlAZ
+	 q5voF3rKP+KjfEqKCjx9npTE3rDOlEwiXCXCxTusRpgMpWT9dwuPEWa0oivdfoqfuNJYv
+	 micoRxUmNokb8T6Wxm9Rl3MsSzIh1/PaHOuxGcAmd+72tXfnZ1XKENdhYScCZ7CY4EA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795051900;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:From:To:CC:
-	 Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:Content-Type:X-Originating-IP:
-	 X-Proofpoint-Spam-Info:X-Proofpoint-GUID:X-Authority-Analysis:
-	 X-Proofpoint-ORIG-GUID:X-Proofpoint-Spam-Details-Enc:
-	 X-Proofpoint-Virus-Version;
-	bh=pNrcFkQV1C/8zLJHTThB2eiTETmGNutp7bQGWFNStJQ=;
-	b=OokWj30DRHKCLn42xdbLXaspzPcu7QARoaFRmWOQysQ4Slz3uQuspxnDMn5hbKkraKhL
-	 g3GDJKk0F+qTtTuNE2fn4Pkf8ljYA4uUAcSUm3VK3KZpaVxU0GtR7uJ4P3sBZIPC2tqeu
-	 1sKW91iolJ45kTWoq8jeF4mIbZk4XqlDNO3E23QqfhKZmICkoDH7XSmeYCQpWt6jWjhBn
-	 pNJA/b5g3xIuThaqYYh9AcZVkOuPm8E1mqyGyQWzzNI6VHGwnmrlcs7BmjLhELNJRCl3h
-	 kotDcWyGFFpR4+EfneLbglJ3x6ad/59LLntaI60q93z4Md9rYDJjzp0u/W6xpSm/72g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795053894;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=kC+uhz3Afjp9Cqz8zh23wNboDVMQQa75pZ1niNRa9cE=;
+	b=chs73/xfZGgP4Z2SIpNT/SVRAEGVcKu2IjJPDj4km5a71iTQDdnrmPxRc1sI5US1kKVv
+	 ST+psgIvuPZ0dQiEPQGCWiZhdyctor7M9AaZ08mdTa4bZ2vC7+Q9T3VwAUs4x9oH4+gM/
+	 sCfTMBXdynSGkI9nA9ONiZtR/LfEcF1RAJzw8eBvNQgtHUOVWlqi1BtzmTCOfR7cpmdVC
+	 o/OeQ7MQ7N0wsiw8/Nu4fDbNS12f+cCvK4zhj0DEND1uSyq/zzS5jjc52RdM7ypxaYgR/
+	 c2QC2rA12vZdgvd5vkSuqND9KQ5kRq96BWmddt1FYtlHfsouz8SBDcxo4h1FOLEDXDg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=meta.com;
-	spf=pass smtp.mailfrom=meta.com;
-	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=Q7CG8iVe;
-	arc=none smtp.remote-ip=67.231.153.30
-Received: from mx0b-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=chromium.org;
+	spf=pass smtp.mailfrom=chromium.org;
+	dkim=pass header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=YodJU3G6;
+	arc=none smtp.remote-ip=209.85.216.43
+Received: from mail-pj1-f43.google.com (mail-pj1-f43.google.com [209.85.216.43])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 634A5606A33D;
-	Thu, 19 Nov 2026 01:31:40 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 634A5606A33D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 022BB606A334
+	for <linux-rdma@vger.kernel.org>; Thu, 19 Nov 2026 02:04:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 022BB606A334
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=Q7CG8iVe
-Received: from pps.filterd (m0148460.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AJ192L01041963;
-	Wed, 18 Nov 2026 17:31:29 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=
-	pps82601-s2048-2026-q3; bh=pNrcFkQV1C/8zLJHTThB2eiTETmGNutp7bQGW
-	FNStJQ=; b=Q7CG8iVezvuNmYxpWeK1kHwSxzVupBwHD4p9/7Ub/NOJmsOU5nc2/
-	rlx6XnrQ3RnmS28CYwuCAT/nZQS2eSzfLaLLJ9VGQS8/ZMI8rdRghVTQYPHVP31R
-	ccyG0DCTr/tmCj7vt4XMA8QMZ+5RfzqciMj6OSdVnwlyBnEnq1g8ixTdEwsl6A07
-	7uwlMMvTZrcmJUQu/OuEEBcbZH7wtIwWjrufutPfWWk+lTgvNkjVldFxM58sZ98p
-	xPmt3IdWTyoL1zCSUdEop6efc3rpmLUvOPs0VKf/9UfYF1Y5b8F/KoFOp5hjfTeC
-	NnzgNxIY2FpptupQEe+KNczyie8QrK5ow==
-Received: from mail.thefacebook.com ([163.114.134.16])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j0yu8k791-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Wed, 18 Nov 2026 17:31:29 -0800 (PST)
-Received: from localhost (2620:10d:c085:208::7cb7) by mail.thefacebook.com
- (2620:10d:c08b:78::2ac9) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.56; Thu, 19 Nov
- 2026 01:31:28 +0000
-From: Todd Freed <toddfreed@meta.com>
-To: <netdev@vger.kernel.org>
-CC: "David S. Miller" <davem@davemloft.net>,
-        Andrew Lunn
-	<andrew+netdev@lunn.ch>,
-        =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?=
-	<bjorn@kernel.org>,
-        Boris Pismenny <borisp@nvidia.com>, Cosmin Ratiu
-	<cratiu@nvidia.com>,
-        Daniel Zahka <daniel.zahka@gmail.com>,
-        Donald Hunter
-	<donald.hunter@gmail.com>,
-        Dragos Tatulea <dtatulea@nvidia.com>,
-        Eric Dumazet
-	<edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
-        Jamal Hadi Salim
-	<jhs@mojatatu.com>, Jiri Pirko <jiri@resnulli.us>,
-        Leon Romanovsky
-	<leon@kernel.org>, <linux-doc@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
-        <linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>,
-        Paolo Abeni
-	<pabeni@redhat.com>,
-        Pedro Tammela <pctammela@mojatatu.com>,
-        Saeed Mahameed
-	<saeedm@nvidia.com>, Simon Horman <horms@kernel.org>,
-        Tariq Toukan
-	<tariqt@nvidia.com>, Wei Wang <weiwan@google.com>,
-        Willem de Bruijn
-	<willemdebruijn.kernel@gmail.com>
-Subject: [PATCH net-next v2 10/12] selftests: tc-testing: run dependsOn probes outside the test namespace
-Date: Wed, 18 Nov 2026 17:31:01 -0800
-Message-ID: <20261119013103.1092559-11-toddfreed@meta.com>
-X-Mailer: git-send-email 2.53.1
-In-Reply-To: <20261119013103.1092559-1-toddfreed@meta.com>
-References: <20261119013103.1092559-1-toddfreed@meta.com>
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.a=rsa-sha256 header.s=google header.b=YodJU3G6
+Received: by mail-pj1-f43.google.com with SMTP id 98e67ed59e1d1-3b1bb072438so144423a91.1
+        for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 18:04:53 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1795053893; x=1795658693; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=kC+uhz3Afjp9Cqz8zh23wNboDVMQQa75pZ1niNRa9cE=;
+        b=YodJU3G6HOVaHj6WeDt5Y4UHHP2vfW9vVNUgTmANxu80UmKCDlelZ4zcRR33L8Jm2K
+         VswI4nIIqlVSIxBF0tdChGfztska8+jRizlCyMVGMW6uzwjEUVtNom2NNrBrrNNu/FsZ
+         yQjf+rFOh5JWBC4KwmazJkkyKrtf0xGwBmIEw=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795053893; x=1795658693;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=kC+uhz3Afjp9Cqz8zh23wNboDVMQQa75pZ1niNRa9cE=;
+        b=E8bqdPZxIpyNVJyl4fFU7IcLQ7RbwHyy+GXVt1H7jG+e8piQLL+oAJWTL805C6X4+S
+         37i/RlZllZrjoAqoPDELD+AE4jGBRXGmqSTDWP1040+Qx4chi4H36eLmw1HXEhgymzSw
+         fVAgXoFoqWCU5Iz2hWsO36N6gMBaC8MMUY5l6XxjDIQedZbyVx3T6mddfLTKKGW2eIkF
+         Or2FmPykT44ucCVGEBM6wSxqsdBLQJLXXKMezUG54rbJRT8oH2jr30BDwJWdJfKlmBzF
+         A2N3I4QU1nXx8p+NQLDECBbCFIjeeynSClR2Iwyrn+UyT8aflDikbVmRjxq2utplb1CC
+         Rmdw==
+X-Forwarded-Encrypted: i=1; AL+hErETTUM59khpfbaX0jRTD2QblBA1MleZlJoIYqFHnCt5bQmOtp11cT1T4Hm9sLB95m9ObdN7GV35hiYG@vger.kernel.org
+X-Gm-Message-State: APuU4Z9ZJIsfXJS/MXYhM5nFMq1gtIrL+E7aNlvK0bQW0xAlbFIMKCcm
+	eyEJP0gcw5xFF3sbgczwdyUmQ5ZeOvkuCU2REISa43b8v+WEEE0w5ZIQSbKtVHTRvQ==
+X-Gm-Gg: AZFdTZcugymkxCnG4/ETIr+XTT37D8Mpr16Xv+3jiELzzl1mAlPE6iShunowjCdbDH2
+	VG6M49pB885WfBWj65zI9CCHpW3qsZQCUgtgqjZNCNkP4nOoGt0nrFoZ5QQW7Ueg6fE/0TbdKOQ
+	YQr9XmujE2iAYn5tl4CflEAF28hAbInjrOm0viiEsqt3hjKl/q95lR4mKgf+rpmj+811ShnNXTc
+	82wYhnrvm7a5pBbco8OOiOXz6hf/YJgeFVORg0hUarbbqOgZk6pEpoO9EutxUQ04DRukfmS1z7j
+	2L8Tl3fKspPnrweveXJmHOPHpkIiLR+5QP8BQi/2It+JeEtzOKX0ee1gXWLp4YInV7UXDVMCgxC
+	GErrXXNbKALWmh45i6dsfW1Qoh110WtspCV36a/PpNoCzKoGgbr1Z2dnFIxho3oiISVVn6dNs0E
+	nhaR3IzUPiUoUYYjzPXEWRBkXkLkaFJohgR5etuZrrYp1fVKA6NncGeLGpxfBxEd9SXMK/OlkJ9
+	Q+tQoWxwh65d9aVNp7pAfnTDrL1t30oI5uSltdnytC2LtXanqdSyToi6p1ntP2w7gN9HhBhbqEZ
+	mAM7VrgrAHndtd7MsO9aZc2f0b4z1Z6S1FpZJD6kByE8nZdtMEEukbTYiIBP0Wtx4iHWRw==
+X-Received: by 2002:a17:90b:2805:b0:3b3:c92e:f523 with SMTP id 98e67ed59e1d1-3b3d0764320mr7560562a91.3.1795053893354;
+        Wed, 18 Nov 2026 18:04:53 -0800 (PST)
+Received: from localhost (221.247.125.34.bc.googleusercontent.com. [34.125.247.221])
+        by smtp.gmail.com with UTF8SMTPSA id 98e67ed59e1d1-3b3fe0e5bd4sm772079a91.17.2026.11.18.18.04.51
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 18 Nov 2026 18:04:52 -0800 (PST)
+From: Jeff Xu <jeffxu@chromium.org>
+To: David Hildenbrand <david@kernel.org>
+Cc: Jeff Xu <jeffxu@chromium.org>,
+	Tomasz Figa <tfiga@chromium.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Vlastimil Babka <vbabka@kernel.org>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	Andrey Ryabinin <ryabinin.a.a@gmail.com>,
+	Lorenzo Stoakes <ljs@kernel.org>,
+	"Liam R . Howlett" <liam@infradead.org>,
+	Mike Rapoport <rppt@kernel.org>,
+	Suren Baghdasaryan <surenb@google.com>,
+	Michal Hocko <mhocko@suse.com>,
+	Brendan Jackman <brendan.jackman@linux.dev>,
+	Zi Yan <ziy@nvidia.com>,
+	Alexander Potapenko <glider@google.com>,
+	Andrey Konovalov <andreyknvl@gmail.com>,
+	Dmitry Vyukov <dvyukov@google.com>,
+	Vincenzo Frascino <vincenzo.frascino@arm.com>,
+	Marco Elver <elver@google.com>,
+	Boris Brezillon <boris.brezillon@collabora.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Chia-I Wu <olvaffe@gmail.com>,
+	Dev Jain <dev.jain@arm.com>,
+	Ian Rickards <ian.rickards@arm.com>,
+	Jann Horn <jannh@google.com>,
+	Jeff Vander Stoep <jeffv@google.com>,
+	Jeff Xu <jeffxu@google.com>,
+	Kees Cook <kees@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Peter Collingbourne <peter@pcc.me.uk>,
+	=?utf-8?q?Pierre-Cl=C3=A9ment_Tosi?= <ptosi@google.com>,
+	Ryan Roberts <ryan.roberts@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Jan Kara <jack@suse.cz>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Baoquan He <baoquan.he@linux.dev>,
+	Pasha Tatashin <pasha.tatashin@soleen.com>,
+	Pratyush Yadav <pratyush@kernel.org>,
+	Allison Henderson <achender@kernel.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	linux-mm@kvack.org,
+	kasan-dev@googlegroups.com,
+	linux-arm-kernel@lists.infradead.org,
+	linux-fsdevel@vger.kernel.org,
+	fuse-devel@lists.linux.dev,
+	kexec@lists.infradead.org,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	rds-devel@oss.oracle.com,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v1 0/7] mm: kasan: skip KASAN for GFP_HIGHUSER
+Date: Wed, 18 Nov 2026 18:04:45 -0800
+Message-ID: <20261119020445.1096831-1-jeffxu@chromium.org>
+X-Mailer: git-send-email 2.56.1.708.g77570a6a1d-goog
+In-Reply-To: <332f315d-ea27-488a-9a3c-28cdfdcd5f27@kernel.org>
+References: <20261116230627.3537051-1-jeffxu@chromium.org> <2066d131-f999-4747-beb8-520d5e0ce1db@kernel.org> <CAAFQd5DzTmyeVQxNdhdy8pPi+ts1cCgbztVJiMoNBeJWBzjdQQ@mail.gmail.com> <20261118012858.289236-1-jeffxu@chromium.org> <332f315d-ea27-488a-9a3c-28cdfdcd5f27@kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -103,88 +148,15 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE5MDAwNSBTYWx0ZWRfX9P0Rz4Cxf053
- Awq9xL7Ge239l5w9dozWVmSTx/o+0PTSa6n8bltXUo+sFiMQFWe9FvWDxFOonfMTY5Znq0arkEX
- 3n7NdmR6bwJQIlgCBaHjYynTY+wq/aI=
-X-Proofpoint-GUID: cHGZ10vn5774juy0JmjaG8VwY7VcIh1l
-X-Authority-Analysis: v=2.4 cv=aLRlOr9m c=1 sm=1 tr=0 ts=6afe5171 cx=c_pps
- a=CB4LiSf2rd0gKozIdrpkBw==:117 a=CB4LiSf2rd0gKozIdrpkBw==:17
- a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
- a=JnKecZnUtZousrUlYMGU:22 a=VabnemYjAAAA:8 a=bVv6ZBUfH5OyOozUiAoA:9
- a=gKebqoRLp9LExxC7YDUY:22
-X-Proofpoint-ORIG-GUID: cHGZ10vn5774juy0JmjaG8VwY7VcIh1l
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE5MDAwNSBTYWx0ZWRfXxl960wczq5Cr
- xXag8IhBQpTS+n19e5ERCPqq/WEgjK4ldA1BLQemBHKNu/13NHZ5bwrI9BNn9NM2yLNdOzuBCbi
- 37gZmU3yyaUnCp1urQJ4nWPvvV/maWsaDEGfWH/rJydER37N3KPYYX6hf+c8X6gLdcFsftFgZp1
- NPa9YqjscM+Y9XqTj9yg5tm02+XTKI+3r17Aq2pL+WASNXlWEo/kCAvYepJqhYgOcYIX3/4f0D8
- u9dJaeFaXz9Ucd9NoyHeHpAdzJc2RHeoFHp7Xr5MU4l//XUoobFiRbLBEdveX99wq7olj3uuZTo
- Wl+INHMYX2JOCKuXxNjKIJd+LIQMvWHfiiwPI5nUNj94pZ6g0UWQNcxei+7plVzthbwvucgQ10u
- jlz0HH0JjS1iSqox5rA/b0CNO3a2wbEVyucy3P1Sb53WazxcBwpeL0W0ksKl11elHTOcvUUWDKT
- RVaGl32Gn16pRZ61HVQ==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-19_01,2026-11-16_01,2025-10-01_01
 
-A test's dependsOn probe runs as an execute stage command, but before
-the test's namespace is created. nsPlugin prefixes the command with
-"ip netns exec tcut", which makes it fail. Every test with a probe
-that requires nsPlugin is therefore skipped currently, for example the
-mirred blockid tests and the tunnel_key nofrag test.
+On Wed, Nov 18, 2026 at 10:46 AM David Hildenbrand (Arm) <david@kernel.org> wrote:
+> > 1) Simply keep those 4 cases under GFP_HIGHUSER (drop patches 1-4 and
+> >    7), reducing the series to just the GFP_HIGHUSER change and its KUnit
+> >    test.
+>
+> That's what I would look into first.
 
-Probes are meant to check what tc and the kernel support, not anything
-in the test's namespace. Run them as their own stage ("probe"), which
-makes them run in the base namespace. Add the stage to the README, and
-say in AddingTestCases.txt that dependsOn runs in the base namespace.
+Thanks David. I'll wait a few days in case there is more feedback, for
+example from the KASAN side, and then send v2 with approach (1).
 
-Fixes: 98cfbe4234a4 ("selftests/tc-testing: localize test resources")
-Signed-off-by: Todd Freed <toddfreed@meta.com>
----
- tools/testing/selftests/tc-testing/README                     | 1 +
- .../tc-testing/creating-testcases/AddingTestCases.txt         | 4 +++-
- tools/testing/selftests/tc-testing/tdc.py                     | 2 +-
- 3 files changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/tools/testing/selftests/tc-testing/README b/tools/testing/selftests/tc-testing/README
-index fc8e858ff119..430ac0bf68ab 100644
---- a/tools/testing/selftests/tc-testing/README
-+++ b/tools/testing/selftests/tc-testing/README
-@@ -168,6 +168,7 @@ of the command.
- The stages are identified by the following strings:
- 
-   - pre  (pre-suite)
-+  - probe (dependsOn, before setup)
-   - setup
-   - command
-   - verify
-diff --git a/tools/testing/selftests/tc-testing/creating-testcases/AddingTestCases.txt b/tools/testing/selftests/tc-testing/creating-testcases/AddingTestCases.txt
-index ff956d8c99c5..c61f2e2020e0 100644
---- a/tools/testing/selftests/tc-testing/creating-testcases/AddingTestCases.txt
-+++ b/tools/testing/selftests/tc-testing/creating-testcases/AddingTestCases.txt
-@@ -39,7 +39,9 @@ skip:         A completely optional key, if the corresponding value is "yes"
-               marked as skipped. This key can be placed anywhere inside the
-               test case at the top level.
- dependsOn:    Same as 'skip', but the value is executed as a command. The test
--              is skipped when the command returns non-zero.
-+              is skipped when the command returns non-zero. The command runs
-+              in the base namespace, before setup, so it can't use the test's
-+              devices.
- category:     A list of single-word descriptions covering what the command
-               under test is testing. Example: filter, actions, u32, gact, etc.
- setup:        The list of commands required to ensure the command under test
-diff --git a/tools/testing/selftests/tc-testing/tdc.py b/tools/testing/selftests/tc-testing/tdc.py
-index 511d66c36a2a..541caf984519 100755
---- a/tools/testing/selftests/tc-testing/tdc.py
-+++ b/tools/testing/selftests/tc-testing/tdc.py
-@@ -399,7 +399,7 @@ def run_one_test(pm, args, index, tidx):
-     if 'dependsOn' in tidx:
-         if (args.verbose > 0):
-             print('probe command for test skip')
--        (p, procout) = exec_cmd(tidx, args, pm, 'execute', tidx['dependsOn'])
-+        (p, procout) = exec_cmd(tidx, args, pm, 'probe', tidx['dependsOn'])
-         if p:
-             if (p.returncode != 0):
-                 res = TestResult(tidx['id'], tidx['name'])
--- 
-2.53.1-Meta
-
+Jeff
