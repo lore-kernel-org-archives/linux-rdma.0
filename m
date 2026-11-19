@@ -1,57 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=68.232.154.123
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795085856;
-	b=1T1nx8/8ORgVS5Dx8rKio2u0FmTa1eXc2B04pzfdbYnar6dsSWyPS6HRtvyMC0+MHdGp
-	 DlOGH2ycUWeK4vdXJ+MiDux3O42kCnbI7hLszvjFWADTwxbn2u+4e2zuExNeXlBLu/g0A
-	 cpI0ShjUs6a+a8/oTDAvaCpi6aEhr4S/dAtcljAne6ig6f3WnyBcWe+vN0SdCKzUSYSEf
-	 PjQE0DxH0I1ELEM1HfW5B6Gc8iuAGgHKCCdgDlYHw9N69dKvr9CrAIhP/9/yVEXW3M4Vl
-	 SYaSMS4zLlpz0I+EKScpeVTOjwUliYfNekKhAeWjsyT2epJb+EbNz40LVG35+/ucJKQ==
+	t=1795088935;
+	b=sg+nQhXPMOUZsX7DjxVckDadHDn99TPInjr3J7187dqGnVKkvhZhOgeonYi5ByZvA2W3
+	 VKHpKss3NrsCmviLQ2/EM81X+uW949aYqeBBmeoNk0XW4FoDBkVp8XbywGZi5ltc9y/QN
+	 vSAfgqlB7Ft48fSYu2ijPmxZrFJwF51iWWZDfqczGdm7N0K5Nx1XEYywet+2rqwRWYoLo
+	 oYzhUHUQYwM91llC02uR0KIaFP5jHIAy6aSe1EtsndE6w0zCAF77YbTW2UfPj3Fa/G/LN
+	 Karb0bB9g+gvvaqLfhXQ9ccz5v9Gi7OaaI7L0Y/ry7YKHlyFnQPpCUMuzVEc7AjqRjg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795085856;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=1VxTinBgi6+1nDcp5o1Il7egsG20CkF3pXrlH+TAq4o=;
-	b=1IirK9rt6VE2SVdOOYW/+1q+0SDG+A8djM4BOV/v+qUr6sBaCv+AYntrBqdeykRFTgbm
-	 lpiDwm/ghF9wTc6q5zuy8iswSWmjci2HJVbHMkm3hNKX0dfs9pQHLkd+4LRkvHZWETaF4
-	 xo+QgwyTUZqIpU/OCp8ZxffCyX+JTUsJKVu21YZjCG8QUlDozbbaqCKbz4GE9fqUL7HwI
-	 +m3NoJEaZZuzxiNtUMAXP8zLuYCQsiFsXzXfsPRaavclAme5Rrg4HWto+5GASKtzL2HAE
-	 ElhU+92tUTvju9In1bx49YHOPQqRRdZnsLwZisBvM3DlEVgZGyNma08Jo1M2N510fDQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795088935;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-Amp-Result:Received:Received:Received:Date:From:To:CC:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=ZTyzomv6gn4DyTlHNqpwldZlcCE7/LWTrt4ijf0rUEA=;
+	b=iEHlFRgTNw5BtmPVrhUB+9RkQfLNwwgUY6mlrPmLNE2EQG1mXD88b4DNE7gfJ7hDfbiC
+	 cmC7CeMhP1Mme8wVzNeTfWPPMYHwRP9tM9AFO3+33ejwAqNwHWD2puY7Dv36ED9bXdZRG
+	 knbjN37xoLALbYsgBmZnZxnD704SIPVCCXHH9ivhMHk+AhbiLt9X+PRMDiSrGjaf02D71
+	 raFN7wYObzJdTu02GzyqY2evb25LvxOboUaC9vBCQuByxdhstj8d7gPGRPBbMUz/fjPiZ
+	 RMfxY/GndAPDYfkKsfRf/cKUSGXHdHNC7D6IadTpPxVfydZXrmjD5VcJLOAYcQB3W3Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Vjr228QK;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=microchip.com;
+	spf=pass smtp.mailfrom=microchip.com;
+	dkim=pass header.d=microchip.com header.i=@microchip.com header.a=rsa-sha256 header.s=mchp header.b=lqvcIgdq;
+	arc=none smtp.remote-ip=68.232.154.123
+Received: from esa.microchip.iphmx.com (esa.microchip.iphmx.com [68.232.154.123])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22423606A32A
-	for <linux-rdma@vger.kernel.org>; Thu, 19 Nov 2026 10:57:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 481CD606A325;
+	Thu, 19 Nov 2026 11:48:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 481CD606A325
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microchip.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microchip.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Vjr228QK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4C7C1F000C5;
-	Thu, 19 Nov 2026 10:57:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795085856;
-	bh=1VxTinBgi6+1nDcp5o1Il7egsG20CkF3pXrlH+TAq4o=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Vjr228QKflsNSRw8wuax+fKg/vcv4yNjJBVPT9rjE3V70WA5NP+EVYPyh/I7YNCti
-	 FpPfCE3JNoXVR30CWR9feOZOIbXPNWe4agR71xvhwGivwD0PaoB7gwHySZ1ViSJ4ra
-	 MI9CxYJ9Po4CdB2WbpYYq6F3K26D0CyQkFDqg9Lix1c0dQXxArCIiEUM+E3CHIJEPC
-	 w3+1jicKcUq/3xvOglLdK4uf+inUi/jDDGvNtRMlsdD07yylOIiF6oDy1KiE50k8PN
-	 b0JQBNPM+MBQJM0nw/Eb1dZn14oC0Y3zCN3FfMiYjS1qvSwSM9Rdvq7O6WdP8AWjS6
-	 HhmGKwLw13S1w==
-Message-ID: <sashiko-outbox-222995@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next V3 2/2] net/mlx5e: Batch ICOSQ trigger RCU
- synchronization
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Tariq Toukan" <tariqt@nvidia.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261119103935.2190627-3-tariqt@nvidia.com>
-References: <20261119103935.2190627-1-tariqt@nvidia.com>
- <20261119103935.2190627-3-tariqt@nvidia.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 19 Nov 2026 10:57:35 +0000
+	dkim=pass (2048-bit key) header.d=microchip.com header.i=@microchip.com header.a=rsa-sha256 header.s=mchp header.b=lqvcIgdq
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=microchip.com; i=@microchip.com; q=dns/txt; s=mchp;
+  t=1795088935; x=1826624935;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=0mqY9DMxcso3ErCUbL4FV1Cp5DxTulfgJVGr5xRjnrI=;
+  b=lqvcIgdqkV+rzjpiAP4UyavxMJ4HIDuFqeHeIJ/ClMUF2OqDx8r8KQuz
+   tK8yfyRyiCoxc5hnBQsmDa2pyBHhkKxGRcxvDI0r3BMKjI86syaYJWwV0
+   m9lEWPyZbd/v8l+R2ahXG/d7Z9WNQ6J2a4c/eiRpQZnLhiSjosTsEz4P9
+   aQB5gfTmyo3sqv1RAQj+ajqVqpX8Pckn2QVsrmAkALUeMA1/J+4nokMY9
+   /EXtrZa/p0oLxIkDuuL50w9yhMkoMojozu3jXof9ZGC6NGSwyqF/ZuCax
+   EahhZ7JXdvJzl2mthA+hms8KJbU+Bl84GbkIrV0ZFmiXeyepE3Wg+77vm
+   w==;
+X-CSE-ConnectionGUID: wZg5LJbGSf2b1tDTuC+ooQ==
+X-CSE-MsgGUID: 1B8FZc4cReyx+FbOP2LYcQ==
+X-IronPort-AV: E=Sophos;i="6.27,220,1787036400"; 
+   d="scan'208";a="65785161"
+X-Amp-Result: SKIPPED(no attachment in message)
+Received: from unknown (HELO email.microchip.com) ([170.129.1.10])
+  by esa4.microchip.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Nov 2026 04:48:54 -0700
+Received: from chn-vm-ex03.mchp-main.com (10.10.87.152) by
+ chn-vm-ex3.mchp-main.com (10.10.87.32) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.2.2562.56; Thu, 19 Nov 2026 04:48:53 -0700
+Received: from DEN-DL-M70577.microsemi.net (10.10.85.11) by
+ chn-vm-ex03.mchp-main.com (10.10.85.151) with Microsoft SMTP Server id
+ 15.1.2507.58 via Frontend Transport; Thu, 19 Nov 2026 04:48:51 -0700
+Date: Thu, 19 Nov 2026 12:48:50 +0100
+From: Daniel Machon <daniel.machon@microchip.com>
+To: Jinvas <jinvas@126.com>
+CC: <saeedm@nvidia.com>, <tariqt@nvidia.com>, <mbloch@nvidia.com>,
+	<leonro@nvidia.com>, <andrew+netdev@lunn.ch>, <davem@davemloft.net>,
+	<edumazet@kernel.org>, <kuba@kernel.org>, <pabeni@redhat.com>,
+	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <horms@kernel.org>, <alexious@zju.edu.cn>
+Subject: Re: [PATCH net v3 1/1] net/mlx5e: fix NULL pointer dereference in
+ arfs_create_groups()
+Message-ID: <20261119114850.d3a24mau3t6j6yqt@DEN-DL-M70577.microsemi.net>
+References: <20261118134514.1765-1-jinvas@126.com>
+ <20261118134514.1765-2-jinvas@126.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,30 +82,58 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20261118134514.1765-2-jinvas@126.com>
 
-> From: Carolina Jubran <cjubran@nvidia.com>
->=20
-> During channel activation, mlx5e_activate_channels() triggers the ICOSQ
-> once for every channel in order to kick NAPI. mlx5e_trigger_napi_icosq()
-> sets MLX5E_SQ_STATE_LOCK_NEEDED and waits for an RCU grace period before
-> serializing the trigger with ICOSQ users in NAPI context.
->=20
-> Mark all channel ICOSQs as requiring locking first, wait for a single
-> grace period, and then trigger all of them.
->=20
-> Keep mlx5e_trigger_napi_icosq() with its existing synchronization
-> semantics for standalone callers.
->=20
-> 248 channels, rcu_normal=3D1, ip link set eth2 up:
-> Before: 4.087s
-> After:  1.080s (~3.8x faster)=20
->=20
-> Signed-off-by: Carolina Jubran <cjubran@nvidia.com>
-> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+> arfs_create_groups() creates up to two flow groups in ft->g[], and
+> increments ft->num_groups for each group that was created successfully.
+> If creating the second group fails, the error path frees ft->g and sets
+> it to NULL, but leaves ft->num_groups at 1.
+> 
+> The only caller, arfs_create_table(), calls mlx5e_destroy_flow_table() on
+> the error path, which calls mlx5e_destroy_groups(). The latter walks
+> ft->g[] from ft->num_groups - 1 down to 0 and dereferences ft->g[0].
+> Since ft->g was freed and set to NULL, this is a NULL pointer
+> dereference, and the kernel oopses.
+> 
+> The same error path also leaks the flow group that was created
+> successfully before the failure, since ft->g is freed without the group
+> being destroyed.
+> 
+> Freeing ft->g here was added by commit 3c6d5189246f ("net/mlx5e: fix a
+> double-free in arfs_create_groups"). Before that commit, the group
+> failure path did not touch ft->g at all, so the caller destroyed the
+> flow groups that had been created and then freed the array. That
+> commit fixed a double free in the allocation failure path by freeing
+> ft->g here as well, and in doing so changed the group failure path
+> too.
+> 
+> Rather than also resetting ft->num_groups, leave the free of ft->g to
+> the caller: mlx5e_destroy_flow_table() frees ft->g exactly once, and
+> also destroys the flow groups that were created. This fixes the NULL
+> pointer dereference and the leak, while keeping the double free fixed.
+> 
+> The bug was hit on a virtual mlx5 device whose firmware answers host
+> mailbox commands. The device took longer than the firmware's own
+> timeout to answer one CREATE_FLOW_GROUP command, so the firmware
+> reported the command as failed even though the device had completed it.
+> The host then took the error path and oopsed:
+> 
+>   Oops [#1]
+>   epc : mlx5e_destroy_groups+0x38/0x6c
+>    ra : mlx5e_destroy_flow_table+0x10/0x30
+>   status: 0000000200000120 badaddr: 0000000000000000 cause: 000000000000000d
+> 
+> Note that the host oopses on any error returned by CREATE_FLOW_GROUP,
+> no matter where the error comes from, so the trigger is not specific to
+> that firmware.
+> 
+> The fix has not been tested: the patched kernel was not booted, only the
+> original crash was reproduced.
+> 
+> Fixes: 3c6d5189246f ("net/mlx5e: fix a double-free in arfs_create_groups")
+> Signed-off-by: Jinvas <jinvas@126.com>
 
-Sashiko has reviewed this patch and found no issues.
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261119103935.2190=
-627-1-tariqt@nvidia.com?part=3D2
-
+Reviewed-by: Daniel Machon <daniel.machon@microchip.com>
