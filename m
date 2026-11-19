@@ -1,13 +1,13 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.194.69
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.56.6
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795048379;
-	b=lUvZpOmqoxm9/gJniomMinv0ZAwTze/p/X24HAnJ9bj/lfvPvyqx2sue6xofD1RaLX4k
-	 SGJXKVMAXqBvjCbIQXZpSlKk3wz6rDo1cPnE48gicSt8tyrRBCOkfSnDY7cR0lQDR8Vrc
-	 mFmbJeBAqQb9ERBuT46oD5kaDuOg9LY9JTTH4k4lw4UbQ938gawSJQ7s9AQrYVvLYiwTS
-	 rWlyQNvGSdP+chhahm81yWC+sucKhOMrQwo6wNAoC/5V8Vc0CeomVIlWzPwy6v3+c1sjB
-	 zjaUtzqZC88XScWuQCN3fwO7eCm8Ai1P55FRwPEQgVO34/Omgdsnut4C9xjqCgSiqkw==
+	t=1795048389;
+	b=mtuSYjuNL8UNiiqCpDxziCB4KtmNM4KjkTT/NjNf8ZtVgA3qV/w1gXFm8TXRLUzuWrSz
+	 JNa+iqqI83z1WggeRV61RxcMkaMRaDS3BsFKs/qgX3cf1nbbTOsK7X00Ec1gsDSl7jNtd
+	 TmZbHLF5PE8MCmjydZFZtgqi4t1LxdkfnNSDwGC0YpOqnNhWVX33bTj85UD35nffOlm0P
+	 5SE9BIARRxxvkPn4ijRvxntoAR9h/8wAZYusuZagRSXzixcol3cjZKrcTZqcEo1+ugcHy
+	 QwDhN55nRy8gOr6OXK2qjCd0NDH4xh8E+P8aoZ4ZMd+8K5Fcv81yIUfYMXz70sjQWzg==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795048379;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795048389;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:
 	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
 	 From:Date:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:
@@ -26,53 +26,53 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=GKkaoWriDoWcVPe+ZBg8eZ5UUxDSfn+09cdc8bUh4Bk=;
-	b=V1rbp1t4601okyLmn1tGiLC1515kKE3BNzKdJuwnXRPU7Sf1ixHJBZpXRi09VgxBVgDR
-	 evhXw2tRnKyYXhFkuH9E5FEq3LeWmPwhbMgC3lVXI/egNi2n8lCnVkh1N1Jj5pqRDJ8pc
-	 A3CmX+LwHSp0gBA8WN7r3Yy59x8NMOvHdLDmRHXgIN3B8hEZfN1p6yAAYy7YUfu6C95Qn
-	 9AchMsqqVcYsnuEYB3vByHjHPIwmIXFNkY9W0kpk9UI0Z7L35BD+bsfkfPmpZX/pWVgqp
-	 EQZooXebYNPN1AU6G6t0dinYJiNju+eSx34gads4iI8/CMy0SBsg27W6tZ+B1dRLBkQ==
+	bh=iGRUHs97q8HgWsn9IRw7GWaoXESfHf2lQ5Bv7nxKLN8=;
+	b=4Saz3kq0Si8ry8kWAktvLKKS1NOZwTkUn5lh7X8wPi4wDHsrP5MitzvUBLSZ3ZFCe006
+	 38G5wiR/2F1PBjfhMTu9Ba8VVxuqp/vZDqM/5CYFCC1ddpKdLkP3ZThuZhdBOLpHa9Ny2
+	 Q5g2+u0RujmtghQLXkzqNs3TbSwHPCRHy/zu8/0FRCYSup7maPbOrojo7HWovx8xTdgUw
+	 amrPLsJ5eitoWEtifp3Sjdq4LhLyvA8UzulW9smEZ3H6sE03Pv199bKI9IwL8Uf2R9VVN
+	 Rm+AXKhlYDgZVghY/1UtFif+5OYS23AWbqgDu7BTdpXn1wIJgwYF3ZtQNRetIdSrGdA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=amd.com;
 	spf=fail smtp.mailfrom=amd.com;
-	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=I9H3gsj8;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.194.69
-Received: from SN4PR0501CU005.outbound.protection.outlook.com (mail-southcentralusazon11011069.outbound.protection.outlook.com [40.93.194.69])
+	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=3iMESX6c;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.56.6
+Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11010006.outbound.protection.outlook.com [52.101.56.6])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AD7260A263D;
-	Thu, 19 Nov 2026 00:32:58 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5AD7260A263D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD9E0606A333;
+	Thu, 19 Nov 2026 00:33:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BD9E0606A333
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=I9H3gsj8
+	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=3iMESX6c
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=EYCzz/nWtjmU1odF/c6PZxiyuD4kPXMJv7cZ6gvP/LHyW2vyEFmqdKfMBFCHWYsBvBPRsnG9UzdDvSOyvFQYMZ54Znf2y5239dkgxc5lBRFDLm9RitmfwFX6o1hAkIefgd5U05W3YTc9kdLamDL7p8VSqb2K+ky8kVAoP4dVZmA2SDYcIACTHCHzojyOmY7T7d/WuzH20tWQUyvBpme8DFgMP4eDy0laLA+tBGGzppoJtC+N+HnkkJAAQX/ZN8J6xeEemiJl5d8rydvua90M2kb1VOzcWTBIHfqF2WTmjenI/6jAhq5N4uvYYT0kVIhKP6ffPNaOlp2fcaJFlSirsw==
+ b=ICWi+ojIOfKFMw6ATb9Q7F1LbtCpeY1miaN9eddIdB5jihA3ehiZsTpsMMLoImckTbUE5puxU85QyDZtF/eiqzxAOSKtWoCNlpotnkA4+PuwrL1i1iGLHw4F7aQwzt+cL13DaejFULxxat4LVigh8SglS9/B7x/y8+ocGyIDzgXDV1ABSP30PuFuu6QvA+w4lLJiClxqk1emjeiyyHJvSKcRJOz3XYyyxvHZ5ac3fvTjJFO5W3+UU8nkEAHJIXMaXKYajZrdJYA0y7cmmKx6TYi18YiwYxnTU0UUX0Xby/7jUjnZ3uwdtxYJk4WZVFHFaN7P45XQXv4Kexz+hrd6Pg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=GKkaoWriDoWcVPe+ZBg8eZ5UUxDSfn+09cdc8bUh4Bk=;
- b=TrzfRKCRvsVmjrXkev2QcRzlXZnRhm9V6Cyeke9fSLIhzIOiN3AmHIg5CpAXV7pPW52HCapnYYwmLb0UjM5SUNM8E0tZIPUN4I/BZSXLqWtQ+H3DRdwX6cYd06G4KTJN34N9vciBUmmTSCuqcJtpR0h6UN/Hnn6MmVB9oxP8Xg+9eC8yyyVVSZZUtWX1dhN68XUnEarrV/78YtGpQI+MaUifDtuDbc5w0SZyfKAlYpk0SE/fYqSa37XGcmIlabL99GBX+Iw9f1aCqAV2x6GCUcB8Fb7SKMwPFZi8zrFcIZN/MT6bhA7/GbT7ZSMIajZDw8NfyErTBHKT1tJGPZtCXQ==
+ bh=iGRUHs97q8HgWsn9IRw7GWaoXESfHf2lQ5Bv7nxKLN8=;
+ b=Ak6DOUwvDAKyVKPMiOgE+h9vg3bhwAv6PCzkCexXWR+a051400PYJH0d5oTH1osucPux8wZ9oTM0LtB1pi4iRfVh34IntmXDYokRlEJSN6TgBdQYaPkNRsEAHx2se19q3JDxniwFGEnz0YdUplDw40XkKgSFxuaBfuC4i5Zkjk6BGLfmhIKLf0Bvj24wHm8FHyb7QR1bd2IxkbcofvmeKJMHb37hoQkcpZi8gtMrhW5D97FxHRwcSoQERQJ1P+qxD2YxhhEFbB/R6QGPS7n7E/DoAOY86AyqljnkzNY2zLL5SmzXOmC0+Q+e3Jt7sZv/antniuHbxzKBIA3agnMRdA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
  (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=GKkaoWriDoWcVPe+ZBg8eZ5UUxDSfn+09cdc8bUh4Bk=;
- b=I9H3gsj8xTZ91tSrHMDOOpBQT4Htnw53TDRlLPjo8MU9MzczVdmj8mJ73MDd58351TBTY+/K9xTESryH0dmyrVTiAYw+YHBXPFH7Ikr68C8Fnt/ugBdTJcqO6n4NLCwuEEWOLArWcpH/zTgYOwerepUcXdv2ijNCQbt3UojwyQY=
-Received: from BLAPR03CA0131.namprd03.prod.outlook.com (2603:10b6:208:32e::16)
- by IA0PPF6E99B1BC1.namprd12.prod.outlook.com (2603:10b6:20f:fc04::bd1) with
+ bh=iGRUHs97q8HgWsn9IRw7GWaoXESfHf2lQ5Bv7nxKLN8=;
+ b=3iMESX6crEII4uWnf1v8gtswrPL+ebf6OjHReD62kVu4QSKr00VWCr6woQdpvmH1FapVBLVCAWcvN7viLCBrI3cxZkzVnkOqtSwsXmOEHm7233675AO8gLUTjG1tmQy+erBMQKzXkwhdbK6a/JbQuxVOkqtestH/tJtqK0GAVqI=
+Received: from CH0PR03CA0095.namprd03.prod.outlook.com (2603:10b6:610:cd::10)
+ by SA1PR12MB8985.namprd12.prod.outlook.com (2603:10b6:806:377::18) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.12; Thu, 19 Nov
- 2026 00:32:47 +0000
-Received: from BL6PEPF0006C3E0.namprd02.prod.outlook.com
- (2603:10b6:208:32e:cafe::45) by BLAPR03CA0131.outlook.office365.com
- (2603:10b6:208:32e::16) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.10 via Frontend Transport; Thu,
- 19 Nov 2026 00:32:47 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.9; Thu, 19 Nov
+ 2026 00:32:51 +0000
+Received: from BL6PEPF0006C3DE.namprd02.prod.outlook.com
+ (2603:10b6:610:cd:cafe::29) by CH0PR03CA0095.outlook.office365.com
+ (2603:10b6:610:cd::10) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.13 via Frontend Transport; Thu,
+ 19 Nov 2026 00:32:50 +0000
 X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
  is 165.204.84.17) smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -80,16 +80,17 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
  165.204.84.17 as permitted sender) receiver=protection.outlook.com;
  client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
 Received: from satlexmb07.amd.com (165.204.84.17) by
- BL6PEPF0006C3E0.mail.protection.outlook.com (10.167.249.235) with Microsoft
+ BL6PEPF0006C3DE.mail.protection.outlook.com (10.167.249.233) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.615.4 via Frontend Transport; Thu, 19 Nov 2026 00:32:47 +0000
+ 15.21.615.4 via Frontend Transport; Thu, 19 Nov 2026 00:32:50 +0000
 Received: from [10.11.96.223] (10.180.168.240) by satlexmb07.amd.com
  (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.57; Wed, 18 Nov
- 2026 18:32:45 -0600
+ 2026 18:32:49 -0600
 From: "Nikhil P. Rao" <nikhil.rao@amd.com>
-Date: Thu, 19 Nov 2026 00:32:31 +0000
-Subject: [PATCH net-next v3 1/3] ionic: make the command timeout per device
+Date: Thu, 19 Nov 2026 00:32:33 +0000
+Subject: [PATCH net-next v3 3/3] ionic: add devlink param for command
+ timeout
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -101,7 +102,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-ID: <20261119-b4-ionic-cmd-timeout-v3-1-2cdb8fca15fd@amd.com>
+Message-ID: <20261119-b4-ionic-cmd-timeout-v3-3-2cdb8fca15fd@amd.com>
 References: <20261119-b4-ionic-cmd-timeout-v3-0-2cdb8fca15fd@amd.com>
 In-Reply-To: <20261119-b4-ionic-cmd-timeout-v3-0-2cdb8fca15fd@amd.com>
 To: Brett Creeley <brett.creeley@amd.com>, Andrew Lunn
@@ -121,390 +122,467 @@ X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
  (10.181.42.216)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL6PEPF0006C3E0:EE_|IA0PPF6E99B1BC1:EE_
-X-MS-Office365-Filtering-Correlation-Id: 0424e7bc-5571-4cbd-845c-08df45d4a2f0
+X-MS-TrafficTypeDiagnostic: BL6PEPF0006C3DE:EE_|SA1PR12MB8985:EE_
+X-MS-Office365-Filtering-Correlation-Id: 54fa0247-413c-449b-4837-08df45d4a4ba
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|376014|7416014|82310400026|1800799024|23010399003|261102130727099003|10067099003|261022075727099003|261028144727099003|261021135927099003|261102123227099003|261022113327099003|261022105027099003|261026130827099003|261021130227099003|261021123027099003|261021133027099003|261022115727099003|261021121427099003|261026135527099003|260925021311599003|56012099006|260925021911599003|260925022911599003|261026121527099003|261009223027099003|3023799007|261026140227099003|11063799006|22082099003|18002099003|921020;
+	BCL:0;ARA:13230040|1800799024|23010399003|36860700016|82310400026|7416014|376014|18002099003|22082099003|6133799003|261009221227099003|261009223027099003|3023799007|11063799006|921020|56012099006|261022075727099003|261026121527099003|261102123227099003|261028144727099003|261021135927099003|261022105027099003|261026140227099003|261021121427099003|261021123027099003|10067099003|261102130727099003;
 X-Microsoft-Antispam-Message-Info:
-	r6Xs9RfbopdIZMuJMhJCVyItrgiozkSW1/HSlPDy8mzBYc7VSF5efFELVFOkYzM3oaHiofoR13f53l+aMOXk6H9P4F+W0exQRydt6qQG4gw4ChpSspUq1x7y1H1SKLpUc3ioXBcrdIVbMc4caVIE2n8rsN0oAXgddLB217xKri7cA3/vwkN+XsKUMZyt6BS56UXYKjk/yenIVdYWvxte41kroCwb2lk+IUl6pB+oMduWE4rcQLRG6oSO1bZhdk56H9/3ypaey6EGQ8zp+fg3OzRZyT2zB4EtjsoSvrMcCZSfN9CcoktPtgYP36NC/svgswHXyN6N5RHyIhlcPYqkAbN0+feIS5Oir6UD8QXrVYM93f9hU981DIiUB0dkzQyP154949OVk6rvq/QNhOiMrlQEIMLo6QInL5SNae7h2tSlsIA9gZPG/m48QlGEQQudbO7hBcSVXBxFH197dRNqoPvuLHWT1Pt9uoGoXonZOedkqIJ3JVbXjqefFdlFYb22IXPLEOCB7o2J5gVSlvz8Jph5GzyY9IqlqIFmZtsrIH12enXxnRISZbpf9PWfzrC5ODBSkNKP6ehkblvXpXti2dVqI/SIgARRd6rKvsCzcZ8LF7Ar+3vHYU6xg8TynC2trrq0XA98zO9hqeJ+7UXP4I6r/x3DZySktAgMKXu8K/iNEq0xOveS3tHqqSamrI4Oq1nVsznmjEgPoZAy4BsiMpej5XxbrCQrV25QV7m0FVbKHqJsEaNMKphJ3EYyW9kZ
+	aB2xbf/CALm8yfv1Dxgmw16zS61RS5W6hb8ANEYgDcP6DtUYrcHOKmf+TZNwU6eNQq+19ddwGe+A+GfSsqjH64rMt3UzwPHRgA23MTusecPPevfnRXa5Zo0UHd1Ay8wTuzEUIhvv9J0q4SwvjYIw7N0Lfq79zqA+68ejqDj2tG9GbTxpea/rZo7Opf1+cfvUCk+KOYu4/3BtjmLgyI/PTCFPo1ngnv/hJIQLIsIeOPAKNmqfOs1MD9O77ozRMaBIug/FyQh1cf8droralM3cNigqRBDcr/rHISEbDNc4owAiD89QMfyRj125P3mcUp/biRZhzLgoTX3c/MbTSfoZEJpl8rb/93i2Bj2Dyog+GRSmkIhIzI7yRLkA+KPBTHo/CzacIN8j7bgdaByOzQxXzDO8bMksZShmNB+q3tPZqKDeXwVwHw6j1kodeitgLDky2MSF/xNKn0Wug2Zjk/53kQRnjEarMcS13TxstopOCU3MHfqnruatUlPM1vhPkatjLGAkyAP1P7c3BPlWhIgfA3TBdO/eqPmkTpA36FL0z6d7fTv+e3E4682WFi8eGp7zHpFAGtmfdAoozaY9bMQHSSZG4puuksGOY9Hp7a05I5Df81ryGRo0OCL17GjrRPKhGrV+hnvowjmpK/G0u5SKLXjAOdFFq/mr9C018b1xJbUsXyPNxoM1vTpZV0SJOzXX+Pz8iyDp+m2Vwn2NJIFlzbVxvkhE/3psGMzkmcbFhNAfZiHCr5LiMT8EOwp4rK6c
 X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700016)(376014)(7416014)(82310400026)(1800799024)(23010399003)(261102130727099003)(10067099003)(261022075727099003)(261028144727099003)(261021135927099003)(261102123227099003)(261022113327099003)(261022105027099003)(261026130827099003)(261021130227099003)(261021123027099003)(261021133027099003)(261022115727099003)(261021121427099003)(261026135527099003)(260925021311599003)(56012099006)(260925021911599003)(260925022911599003)(261026121527099003)(261009223027099003)(3023799007)(261026140227099003)(11063799006)(22082099003)(18002099003)(921020);DIR:OUT;SFP:1101;
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(23010399003)(36860700016)(82310400026)(7416014)(376014)(18002099003)(22082099003)(6133799003)(261009221227099003)(261009223027099003)(3023799007)(11063799006)(921020)(56012099006)(261022075727099003)(261026121527099003)(261102123227099003)(261028144727099003)(261021135927099003)(261022105027099003)(261026140227099003)(261021121427099003)(261021123027099003)(10067099003)(261102130727099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	XDdHUpR+IhYHFZuPgoKU3coqYiXwehyV0iT8ESvMuZtZALWmWf0mo2zGyxHw5roarFJ9g2g4mhlBARWDtLPJBq5HUN9qfOMTcFaA0aiWXgsDNcMjOMZuLmtmSGkHAwXz04jWKDc7+BDHRTMqLrdai2oqZaZWrrJP2FHYheuDQj/P71Dfusg9CuPV3Y4LRlpv4TN1c1/h9VVVR5za3gb2NOr2B6XOjK5Eu2XOHT+4SwUHE+cF3tADyX2urMJUT2p1YnCWBrZN5jSsXKtB/VvkrnfZ/xPBg5Bd8wDRFR2fNCnCOsGOzyHJl3fgWU8PNYLSzxjnIHHmKhDUnJLdCSMRLLbSGXCfc6+/U2KiGSQm7h2BThruSKIIQ6N/RU6CEnmi3BaFyc92+YQhiStjWhV7X91ny3Cd8KmP/gm9MP045RaweEjuZguiZTxzjy+ECXkh
+	xGR6nHDFi8wQZWUYXLjS3ybyyan2sHDx+vpVQwFkxZaN7cweruXMZdP6GLyMVqdMG3EChTI/m3a04P6LcqVLB3RczSbUdUVbpV6iliGzbP3ZUWdJ1zZfDFWry+K75pOCxmnHb2Vpxd10cEyAsIBe4ppldGsUbsDAVTtcgI130wchcVNw27urAHNVO6ZdZoCerklGYN5kW62mKEiWwwQLnl4jUEesj05Aa5GZNO/6HNON7Q8O7sG2qwGemgYnCrVfeZM8XdmzSW1kp4kfz4i40yPscb4yHzAqOdKfZxBlUkgC0ouhQR/cY2PoKuYy2uYCFiVd+YAIe7kTGtfBzZtbuEfMOY22JLWDjUQjIJLjEg4vAPS67lBgLumhscZ6JV58wDuVu2hCRpVBDHPLvqQgCWuJVxUMMAe8CeHQl12+QYRUZHTxc9l+ILWXp9QQmEXK
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Nov 2026 00:32:47.8501
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Nov 2026 00:32:50.8520
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0424e7bc-5571-4cbd-845c-08df45d4a2f0
+X-MS-Exchange-CrossTenant-Network-Message-Id: 54fa0247-413c-449b-4837-08df45d4a4ba
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BL6PEPF0006C3E0.namprd02.prod.outlook.com
+	BL6PEPF0006C3DE.namprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PPF6E99B1BC1
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR12MB8985
 
 From: Arun Kumar Prakash <ArunKumar.Prakash@amd.com>
 
-Device and admin queue command waits, and the firmware heartbeat check
-interval, use the compile-time DEVCMD_TIMEOUT. Make the timeout a
-per-device value, so that it can be made configurable through a devlink
-parameter, and export it to the RDMA driver through
-ionic_cmd_timeout().
+Some device and admin commands can take firmware longer than the
+driver allows to complete, for example while a PFC configuration change
+flaps the links. The firmware is alive but slow, yet the timed-out
+command and everything queued behind it fail.
 
-No functional change.
+Make the timeout configurable so it can be tuned to the firmware
+behaviour seen in production.
+
+Add a permanent devlink parameter, cmd_timeout (u8, seconds), stored in
+device NVM via a new device attribute, on firmware that advertises the
+new IONIC_DEV_CAP_CMD_TIMEOUT capability. A non-zero value replaces the
+device command and admin queue timeouts, and the firmware heartbeat
+check interval derived from them; 0 restores the default. A new value
+takes effect on the next driver probe or device reset.
+
+Back-date the initial heartbeat check time by the largest possible
+interval rather than the watchdog period, so that a larger value does
+not delay the first heartbeat sample after probe or PCI reset.
+
+Accept 0, or 5 to 255 seconds (the u8 range). Values below the 5 second
+default are rejected, as the parameter is only meant to lengthen the
+timeouts. On unresponsive firmware, a larger value also lets callers
+block for longer: each device or admin queue command can wait up to this
+value, other commands wait behind it, and RDMA verbs such as QP and CQ
+create can block for several times this value. A large setting may need
+a larger kernel.hung_task_timeout_secs.
 
 Signed-off-by: Arun Kumar Prakash <ArunKumar.Prakash@amd.com>
 Reviewed-by: Brett Creeley <brett.creeley@amd.com>
+Co-developed-by: Nikhil P. Rao <nikhil.rao@amd.com>
 Signed-off-by: Nikhil P. Rao <nikhil.rao@amd.com>
 ---
- drivers/net/ethernet/pensando/ionic/ionic.h         |  3 ++-
- drivers/net/ethernet/pensando/ionic/ionic_api.h     |  8 ++++++++
- drivers/net/ethernet/pensando/ionic/ionic_aux.c     |  8 +++++++-
- drivers/net/ethernet/pensando/ionic/ionic_bus_pci.c |  1 +
- drivers/net/ethernet/pensando/ionic/ionic_dev.c     | 11 ++++++-----
- drivers/net/ethernet/pensando/ionic/ionic_ethtool.c | 12 ++++++------
- drivers/net/ethernet/pensando/ionic/ionic_fw.c      |  8 ++++----
- drivers/net/ethernet/pensando/ionic/ionic_lif.c     | 10 +++++-----
- drivers/net/ethernet/pensando/ionic/ionic_main.c    | 16 ++++++++--------
- 9 files changed, 47 insertions(+), 30 deletions(-)
+ Documentation/networking/devlink/ionic.rst         | 27 ++++++++
+ drivers/net/ethernet/pensando/ionic/ionic.h        |  7 ++
+ drivers/net/ethernet/pensando/ionic/ionic_aux.c    |  2 +-
+ .../net/ethernet/pensando/ionic/ionic_bus_pci.c    |  4 +-
+ drivers/net/ethernet/pensando/ionic/ionic_dev.c    | 61 ++++++++++++++++-
+ drivers/net/ethernet/pensando/ionic/ionic_dev.h    |  2 +
+ .../net/ethernet/pensando/ionic/ionic_devlink.c    | 77 ++++++++++++++++++++++
+ drivers/net/ethernet/pensando/ionic/ionic_if.h     |  8 +++
+ drivers/net/ethernet/pensando/ionic/ionic_lif.c    |  1 +
+ drivers/net/ethernet/pensando/ionic/ionic_main.c   |  3 +-
+ 10 files changed, 187 insertions(+), 5 deletions(-)
 
+diff --git a/Documentation/networking/devlink/ionic.rst b/Documentation/networking/devlink/ionic.rst
+index 48da9c92d5841..f9c6421375c12 100644
+--- a/Documentation/networking/devlink/ionic.rst
++++ b/Documentation/networking/devlink/ionic.rst
+@@ -7,6 +7,33 @@ ionic devlink support
+ This document describes the devlink features implemented by the ``ionic``
+ device driver.
+ 
++Parameters
++==========
++
++The ``ionic`` driver implements the following driver-specific parameters.
++
++.. list-table:: Driver-specific parameters implemented
++   :widths: 5 5 5 85
++
++   * - Name
++     - Type
++     - Mode
++     - Description
++   * - ``cmd_timeout``
++     - u8
++     - permanent
++     - Command timeout in seconds for this PCI function and its VFs, 0, or
++       5 (the default) to 255; values below the default are rejected, as the
++       parameter is for cases where the default does not suffice. It bounds
++       device and admin queue commands and the RDMA admin queue watchdog, and
++       the firmware heartbeat stall check runs at twice this interval.
++       Setting 0 makes the driver use the default. The value is stored in
++       device NVM and takes effect on the next driver probe or device reset.
++       On unresponsive firmware, a larger value lets callers block for
++       longer; a large setting may need a larger
++       kernel.hung_task_timeout_secs. Only available on physical functions
++       whose firmware supports it.
++
+ Info versions
+ =============
+ 
 diff --git a/drivers/net/ethernet/pensando/ionic/ionic.h b/drivers/net/ethernet/pensando/ionic/ionic.h
-index 814d70b8623bd..39999bdbca55e 100644
+index 39999bdbca55e..1a50783171af7 100644
 --- a/drivers/net/ethernet/pensando/ionic/ionic.h
 +++ b/drivers/net/ethernet/pensando/ionic/ionic.h
-@@ -18,7 +18,7 @@ struct ionic_lif;
- #define PCI_DEVICE_ID_PENSANDO_IONIC_ETH_PF	0x1002
- #define PCI_DEVICE_ID_PENSANDO_IONIC_ETH_VF	0x1003
- 
--#define DEVCMD_TIMEOUT			5
-+#define IONIC_CMD_TIMEOUT_DEF		5
- #define IONIC_ADMINQ_TIME_SLICE		msecs_to_jiffies(100)
- 
- #define IONIC_PHC_UPDATE_NS	10000000000	    /* 10s in nanoseconds */
-@@ -66,6 +66,7 @@ struct ionic {
- 	int watchdog_period;
+@@ -67,8 +67,15 @@ struct ionic {
  	void *hwmon_caps_buf;
  	dma_addr_t hwmon_caps_pa;
-+	u8 cmd_timeout;
+ 	u8 cmd_timeout;
++	int cmd_timeout_param;
  };
  
- int ionic_adminq_post(struct ionic_lif *lif, struct ionic_admin_ctx *ctx);
-diff --git a/drivers/net/ethernet/pensando/ionic/ionic_api.h b/drivers/net/ethernet/pensando/ionic/ionic_api.h
-index bd88666836b80..28e6b5e2a2cc0 100644
---- a/drivers/net/ethernet/pensando/ionic/ionic_api.h
-+++ b/drivers/net/ethernet/pensando/ionic/ionic_api.h
-@@ -86,6 +86,14 @@ int ionic_error_to_errno(enum ionic_status_code code);
-  */
- void ionic_request_rdma_reset(struct ionic_lif *lif);
- 
-+/**
-+ * ionic_cmd_timeout - Get the device and admin queue command timeout
-+ * @lif:        Logical interface
-+ *
-+ * Return: the command timeout in seconds
-+ */
-+u8 ionic_cmd_timeout(struct ionic_lif *lif);
++static inline bool ionic_cmd_timeout_supported(struct ionic *ionic)
++{
++	return ionic->ident.dev.capabilities &
++	       cpu_to_le64(IONIC_DEV_CAP_CMD_TIMEOUT);
++}
 +
- /**
-  * ionic_intr_alloc - Reserve a device interrupt
-  * @lif:        Logical interface
+ int ionic_adminq_post(struct ionic_lif *lif, struct ionic_admin_ctx *ctx);
+ int ionic_adminq_wait(struct ionic_lif *lif, struct ionic_admin_ctx *ctx,
+ 		      const int err, const bool do_msg);
 diff --git a/drivers/net/ethernet/pensando/ionic/ionic_aux.c b/drivers/net/ethernet/pensando/ionic/ionic_aux.c
-index 521f3bd9aee15..70f193ebb7ea2 100644
+index 70f193ebb7ea2..2c28969790838 100644
 --- a/drivers/net/ethernet/pensando/ionic/ionic_aux.c
 +++ b/drivers/net/ethernet/pensando/ionic/ionic_aux.c
-@@ -239,7 +239,7 @@ void ionic_request_rdma_reset(struct ionic_lif *lif)
- 	mutex_lock(&ionic->dev_cmd_lock);
+@@ -250,6 +250,6 @@ EXPORT_SYMBOL_NS(ionic_request_rdma_reset, "NET_IONIC");
  
- 	ionic_dev_cmd_go(&ionic->idev, &cmd);
--	err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+	err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 
- 	mutex_unlock(&ionic->dev_cmd_lock);
- 
-@@ -247,3 +247,9 @@ void ionic_request_rdma_reset(struct ionic_lif *lif)
- 		pr_warn("%s request_reset: error %d\n", __func__, err);
+ u8 ionic_cmd_timeout(struct ionic_lif *lif)
+ {
+-	return lif->ionic->cmd_timeout;
++	return READ_ONCE(lif->ionic->cmd_timeout);
  }
- EXPORT_SYMBOL_NS(ionic_request_rdma_reset, "NET_IONIC");
-+
-+u8 ionic_cmd_timeout(struct ionic_lif *lif)
-+{
-+	return lif->ionic->cmd_timeout;
-+}
-+EXPORT_SYMBOL_NS(ionic_cmd_timeout, "NET_IONIC");
+ EXPORT_SYMBOL_NS(ionic_cmd_timeout, "NET_IONIC");
 diff --git a/drivers/net/ethernet/pensando/ionic/ionic_bus_pci.c b/drivers/net/ethernet/pensando/ionic/ionic_bus_pci.c
-index 9bedcb7224abc..abadfa11ebdbd 100644
+index abadfa11ebdbd..6177a68bb6581 100644
 --- a/drivers/net/ethernet/pensando/ionic/ionic_bus_pci.c
 +++ b/drivers/net/ethernet/pensando/ionic/ionic_bus_pci.c
-@@ -239,6 +239,7 @@ static int ionic_setup_one(struct ionic *ionic)
+@@ -239,7 +239,6 @@ static int ionic_setup_one(struct ionic *ionic)
  	struct device *dev = ionic->dev;
  	int err;
  
-+	ionic->cmd_timeout = IONIC_CMD_TIMEOUT_DEF;
+-	ionic->cmd_timeout = IONIC_CMD_TIMEOUT_DEF;
  	ionic_debugfs_add_dev(ionic);
  
  	/* Setup PCI device */
+@@ -273,6 +272,7 @@ static int ionic_setup_one(struct ionic *ionic)
+ 		dev_err(dev, "Cannot identify device: %d, aborting\n", err);
+ 		goto err_out_teardown;
+ 	}
++	ionic_update_cmd_timeout(ionic);
+ 	ionic_debugfs_add_ident(ionic);
+ 
+ 	ionic_map_cmb(ionic);
+@@ -323,6 +323,8 @@ static int ionic_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	ionic->dev = dev;
+ 	pci_set_drvdata(pdev, ionic);
+ 	mutex_init(&ionic->dev_cmd_lock);
++	ionic->cmd_timeout = IONIC_CMD_TIMEOUT_DEF;
++	ionic->cmd_timeout_param = -EOPNOTSUPP;
+ 
+ 	err = ida_alloc(&ionic_ida, GFP_KERNEL);
+ 	if (err < 0)
 diff --git a/drivers/net/ethernet/pensando/ionic/ionic_dev.c b/drivers/net/ethernet/pensando/ionic/ionic_dev.c
-index 648d9d24be856..f14fff4a74278 100644
+index f14fff4a74278..8e8f7d8d174e1 100644
 --- a/drivers/net/ethernet/pensando/ionic/ionic_dev.c
 +++ b/drivers/net/ethernet/pensando/ionic/ionic_dev.c
-@@ -212,7 +212,7 @@ static void ionic_map_disc_cmb(struct ionic *ionic)
- 	mutex_lock(&ionic->dev_cmd_lock);
+@@ -144,7 +144,7 @@ static int ionic_watchdog_init(struct ionic *ionic)
  
- 	ionic_dev_cmd_discover_cmb(idev);
--	err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+	err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 	if (!err) {
- 		sz = min(sizeof(ident->cmb_layout),
- 			 sizeof(idev->dev_cmd_regs->data));
-@@ -590,10 +590,11 @@ int ionic_heartbeat_check(struct ionic *ionic)
- 		return -ENXIO;
- 
- 	/* Because of some variability in the actual FW heartbeat, we
--	 * wait longer than the DEVCMD_TIMEOUT before checking again.
-+	 * wait longer than the command timeout before checking again.
+ 	/* set times to ensure the first check will proceed */
+ 	atomic_long_set(&idev->last_check_time, jiffies - 2 * HZ);
+-	idev->last_hb_time = jiffies - 2 * ionic->watchdog_period;
++	idev->last_hb_time = jiffies - 2 * U8_MAX * HZ;
+ 	/* init as ready, so no transition if the first check succeeds */
+ 	idev->last_fw_hb = 0;
+ 	idev->fw_hb_ready = true;
+@@ -594,7 +594,8 @@ int ionic_heartbeat_check(struct ionic *ionic)
  	 */
  	last_check_time = idev->last_hb_time;
--	if (time_before(check_time, last_check_time + DEVCMD_TIMEOUT * 2 * HZ))
-+	if (time_before(check_time,
-+			last_check_time + ionic->cmd_timeout * 2 * HZ))
+ 	if (time_before(check_time,
+-			last_check_time + ionic->cmd_timeout * 2 * HZ))
++			last_check_time +
++			READ_ONCE(ionic->cmd_timeout) * 2 * HZ))
  		return 0;
  
  	fw_hb = ioread32(&idev->dev_info_regs->fw_heartbeat);
-@@ -795,7 +796,7 @@ int ionic_set_vf_config(struct ionic *ionic, int vf,
- 
- 	mutex_lock(&ionic->dev_cmd_lock);
- 	ionic_dev_cmd_go(&ionic->idev, &cmd);
--	err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+	err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 	mutex_unlock(&ionic->dev_cmd_lock);
- 
- 	return err;
-@@ -812,7 +813,7 @@ void ionic_vf_start(struct ionic *ionic)
- 		return;
- 
- 	ionic_dev_cmd_go(&ionic->idev, &cmd);
--	ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+	ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
+@@ -689,6 +690,62 @@ void ionic_dev_cmd_reset(struct ionic_dev *idev)
+ 	ionic_dev_cmd_go(idev, &cmd);
  }
  
- /* LIF commands */
-diff --git a/drivers/net/ethernet/pensando/ionic/ionic_ethtool.c b/drivers/net/ethernet/pensando/ionic/ionic_ethtool.c
-index 119ac720c0787..29b9a8502b8ed 100644
---- a/drivers/net/ethernet/pensando/ionic/ionic_ethtool.c
-+++ b/drivers/net/ethernet/pensando/ionic/ionic_ethtool.c
-@@ -351,7 +351,7 @@ static int ionic_set_link_ksettings(struct net_device *netdev,
- 	if (ks->base.autoneg != idev->port_info->config.an_enable) {
- 		mutex_lock(&ionic->dev_cmd_lock);
- 		ionic_dev_cmd_port_autoneg(idev, ks->base.autoneg);
--		err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+		err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 		mutex_unlock(&ionic->dev_cmd_lock);
- 		if (err)
- 			return err;
-@@ -361,7 +361,7 @@ static int ionic_set_link_ksettings(struct net_device *netdev,
- 	if (ks->base.speed != le32_to_cpu(idev->port_info->config.speed)) {
- 		mutex_lock(&ionic->dev_cmd_lock);
- 		ionic_dev_cmd_port_speed(idev, ks->base.speed);
--		err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+		err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 		mutex_unlock(&ionic->dev_cmd_lock);
- 		if (err)
- 			return err;
-@@ -411,7 +411,7 @@ static int ionic_set_pauseparam(struct net_device *netdev,
- 
- 	mutex_lock(&ionic->dev_cmd_lock);
- 	ionic_dev_cmd_port_pause(&lif->ionic->idev, requested_pause);
--	err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
++void ionic_update_cmd_timeout(struct ionic *ionic)
++{
++	union ionic_dev_cmd_comp comp = {};
++	union ionic_dev_cmd cmd = {
++		.getattr.opcode = IONIC_CMD_GETATTR,
++		.getattr.attr = IONIC_DEV_ATTR_CMD_TIMEOUT,
++	};
++	u8 timeout = IONIC_CMD_TIMEOUT_DEF;
++	int err;
++
++	mutex_lock(&ionic->dev_cmd_lock);
++	if (!ionic_cmd_timeout_supported(ionic)) {
++		WRITE_ONCE(ionic->cmd_timeout, timeout);
++		WRITE_ONCE(ionic->cmd_timeout_param, -EOPNOTSUPP);
++		goto out;
++	}
++
++	ionic_dev_cmd_go(&ionic->idev, &cmd);
++	err = ionic_dev_cmd_wait_nomsg(ionic, ionic->cmd_timeout);
++	if (err) {
++		dev_warn(ionic->dev, "Cannot get cmd_timeout: %d, keeping %u\n",
++			 err, ionic->cmd_timeout);
++		goto out;
++	}
++
++	ionic_dev_cmd_comp(&ionic->idev, &comp);
++	if (comp.getattr.cmd_timeout >= IONIC_CMD_TIMEOUT_DEF)
++		timeout = comp.getattr.cmd_timeout;
++	else if (comp.getattr.cmd_timeout)
++		dev_warn(ionic->dev, "Ignoring out of range cmd_timeout %u\n",
++			 comp.getattr.cmd_timeout);
++	WRITE_ONCE(ionic->cmd_timeout, timeout);
++	WRITE_ONCE(ionic->cmd_timeout_param, comp.getattr.cmd_timeout);
++out:
++	mutex_unlock(&ionic->dev_cmd_lock);
++}
++
++int ionic_set_cmd_timeout(struct ionic *ionic, u8 timeout)
++{
++	union ionic_dev_cmd cmd = {
++		.setattr.opcode = IONIC_CMD_SETATTR,
++		.setattr.attr = IONIC_DEV_ATTR_CMD_TIMEOUT,
++		.setattr.cmd_timeout = timeout,
++	};
++	int err;
++
++	mutex_lock(&ionic->dev_cmd_lock);
++	ionic_dev_cmd_go(&ionic->idev, &cmd);
 +	err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 	mutex_unlock(&ionic->dev_cmd_lock);
- 	if (err)
++	if (!err)
++		WRITE_ONCE(ionic->cmd_timeout_param, timeout);
++	mutex_unlock(&ionic->dev_cmd_lock);
++
++	return err;
++}
++
+ /* Port commands */
+ void ionic_dev_cmd_port_identify(struct ionic_dev *idev)
+ {
+diff --git a/drivers/net/ethernet/pensando/ionic/ionic_dev.h b/drivers/net/ethernet/pensando/ionic/ionic_dev.h
+index 869adb0a0e0c8..3671b099d5338 100644
+--- a/drivers/net/ethernet/pensando/ionic/ionic_dev.h
++++ b/drivers/net/ethernet/pensando/ionic/ionic_dev.h
+@@ -348,6 +348,8 @@ void ionic_dev_cmd_comp(struct ionic_dev *idev, union ionic_dev_cmd_comp *comp);
+ void ionic_dev_cmd_identify(struct ionic_dev *idev, u8 ver);
+ void ionic_dev_cmd_init(struct ionic_dev *idev);
+ void ionic_dev_cmd_reset(struct ionic_dev *idev);
++void ionic_update_cmd_timeout(struct ionic *ionic);
++int ionic_set_cmd_timeout(struct ionic *ionic, u8 timeout);
+ 
+ void ionic_dev_cmd_port_identify(struct ionic_dev *idev);
+ void ionic_dev_cmd_port_init(struct ionic_dev *idev);
+diff --git a/drivers/net/ethernet/pensando/ionic/ionic_devlink.c b/drivers/net/ethernet/pensando/ionic/ionic_devlink.c
+index 4ec66a6be0738..87bf23c3404ff 100644
+--- a/drivers/net/ethernet/pensando/ionic/ionic_devlink.c
++++ b/drivers/net/ethernet/pensando/ionic/ionic_devlink.c
+@@ -51,6 +51,69 @@ static int ionic_dl_info_get(struct devlink *dl, struct devlink_info_req *req,
+ 	return err;
+ }
+ 
++enum ionic_devlink_param_id {
++	IONIC_DEVLINK_PARAM_ID_BASE = DEVLINK_PARAM_GENERIC_ID_MAX,
++	IONIC_DEVLINK_PARAM_ID_CMD_TIMEOUT,
++};
++
++static int ionic_dl_cmd_timeout_get(struct devlink *dl, u32 id,
++				    struct devlink_param_gset_ctx *ctx,
++				    struct netlink_ext_ack *extack)
++{
++	struct ionic *ionic = devlink_priv(dl);
++	int val;
++
++	val = READ_ONCE(ionic->cmd_timeout_param);
++	if (val < 0)
++		return val;
++
++	ctx->val.vu8 = val;
++
++	return 0;
++}
++
++static int ionic_dl_cmd_timeout_set(struct devlink *dl, u32 id,
++				    struct devlink_param_gset_ctx *ctx,
++				    struct netlink_ext_ack *extack)
++{
++	struct ionic *ionic = devlink_priv(dl);
++
++	if (test_bit(IONIC_LIF_F_FW_RESET, ionic->lif->state))
++		return -EBUSY;
++
++	return ionic_set_cmd_timeout(ionic, ctx->val.vu8);
++}
++
++static int ionic_dl_cmd_timeout_validate(struct devlink *dl, u32 id,
++					 union devlink_param_value *val,
++					 struct netlink_ext_ack *extack)
++{
++	struct ionic *ionic = devlink_priv(dl);
++	int cur;
++
++	cur = READ_ONCE(ionic->cmd_timeout_param);
++	if (cur < 0)
++		return cur;
++
++	if (val->vu8 && val->vu8 < IONIC_CMD_TIMEOUT_DEF) {
++		NL_SET_ERR_MSG_FMT_MOD(extack,
++				       "cmd_timeout must be 0 or at least %d seconds",
++				       IONIC_CMD_TIMEOUT_DEF);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static const struct devlink_param ionic_dl_params[] = {
++	DEVLINK_PARAM_DRIVER(IONIC_DEVLINK_PARAM_ID_CMD_TIMEOUT,
++			     "cmd_timeout", DEVLINK_PARAM_TYPE_U8,
++			     BIT(DEVLINK_PARAM_CMODE_PERMANENT),
++			     ionic_dl_cmd_timeout_get,
++			     ionic_dl_cmd_timeout_set,
++			     ionic_dl_cmd_timeout_validate),
++};
++
+ static const struct devlink_ops ionic_dl_ops = {
+ 	.info_get	= ionic_dl_info_get,
+ 	.flash_update	= ionic_dl_flash_update,
+@@ -88,6 +151,17 @@ int ionic_devlink_register(struct ionic *ionic)
  		return err;
-@@ -479,7 +479,7 @@ static int ionic_set_fecparam(struct net_device *netdev,
- 	if (fec_type != lif->ionic->idev.port_info->config.fec_type) {
- 		mutex_lock(&lif->ionic->dev_cmd_lock);
- 		ionic_dev_cmd_port_fec(&lif->ionic->idev, fec_type);
--		ret = ionic_dev_cmd_wait(lif->ionic, DEVCMD_TIMEOUT);
-+		ret = ionic_dev_cmd_wait(lif->ionic, lif->ionic->cmd_timeout);
- 		mutex_unlock(&lif->ionic->dev_cmd_lock);
  	}
  
-@@ -1131,11 +1131,11 @@ static int ionic_nway_reset(struct net_device *netdev)
- 	mutex_lock(&ionic->dev_cmd_lock);
++	if (!ionic->pdev->is_virtfn) {
++		err = devlink_params_register(dl, ionic_dl_params,
++					      ARRAY_SIZE(ionic_dl_params));
++		if (err) {
++			dev_err(ionic->dev,
++				"devlink_params_register failed: %d\n", err);
++			devlink_port_unregister(&ionic->dl_port);
++			return err;
++		}
++	}
++
+ 	SET_NETDEV_DEVLINK_PORT(ionic->lif->netdev, &ionic->dl_port);
+ 	devlink_register(dl);
+ 	return 0;
+@@ -98,5 +172,8 @@ void ionic_devlink_unregister(struct ionic *ionic)
+ 	struct devlink *dl = priv_to_devlink(ionic);
  
- 	ionic_dev_cmd_port_state(&ionic->idev, IONIC_PORT_ADMIN_STATE_DOWN);
--	err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+	err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
+ 	devlink_unregister(dl);
++	if (!ionic->pdev->is_virtfn)
++		devlink_params_unregister(dl, ionic_dl_params,
++					  ARRAY_SIZE(ionic_dl_params));
+ 	devlink_port_unregister(&ionic->dl_port);
+ }
+diff --git a/drivers/net/ethernet/pensando/ionic/ionic_if.h b/drivers/net/ethernet/pensando/ionic/ionic_if.h
+index 271731a35d9f3..e5b2253d2eca2 100644
+--- a/drivers/net/ethernet/pensando/ionic/ionic_if.h
++++ b/drivers/net/ethernet/pensando/ionic/ionic_if.h
+@@ -280,12 +280,14 @@ union ionic_drv_identity {
+  * @IONIC_DEV_CAP_DISC_CMB:    Device supports CMB discovery operations
+  * @IONIC_DEV_CAP_HWMON:       Device supports hardware monitoring
+  * @IONIC_DEV_CAP_EXTRA_STATS: Device supports extra stats schema
++ * @IONIC_DEV_CAP_CMD_TIMEOUT: Device supports the command timeout attribute
+  */
+ enum ionic_dev_capability {
+ 	IONIC_DEV_CAP_VF_CTRL        = BIT(0),
+ 	IONIC_DEV_CAP_DISC_CMB       = BIT(1),
+ 	IONIC_DEV_CAP_HWMON          = BIT(3),
+ 	IONIC_DEV_CAP_EXTRA_STATS    = BIT(4),
++	IONIC_DEV_CAP_CMD_TIMEOUT    = BIT(5),
+ };
  
- 	if (!err) {
- 		ionic_dev_cmd_port_state(&ionic->idev, IONIC_PORT_ADMIN_STATE_UP);
--		err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+		err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 	}
+ /**
+@@ -1784,11 +1786,13 @@ enum ionic_dev_state {
+  * @IONIC_DEV_ATTR_STATE:     Device state attribute
+  * @IONIC_DEV_ATTR_NAME:      Device name attribute
+  * @IONIC_DEV_ATTR_FEATURES:  Device feature attributes
++ * @IONIC_DEV_ATTR_CMD_TIMEOUT: Command timeout
+  */
+ enum ionic_dev_attr {
+ 	IONIC_DEV_ATTR_STATE    = 0,
+ 	IONIC_DEV_ATTR_NAME     = 1,
+ 	IONIC_DEV_ATTR_FEATURES = 2,
++	IONIC_DEV_ATTR_CMD_TIMEOUT = 3,
+ };
  
- 	mutex_unlock(&ionic->dev_cmd_lock);
-diff --git a/drivers/net/ethernet/pensando/ionic/ionic_fw.c b/drivers/net/ethernet/pensando/ionic/ionic_fw.c
-index 3c209c1a23373..ceb9751475088 100644
---- a/drivers/net/ethernet/pensando/ionic/ionic_fw.c
-+++ b/drivers/net/ethernet/pensando/ionic/ionic_fw.c
-@@ -75,7 +75,7 @@ static int ionic_fw_status_long_wait(struct ionic *ionic,
- 	do {
- 		mutex_lock(&ionic->dev_cmd_lock);
- 		ionic_dev_cmd_go(&ionic->idev, &cmd);
--		err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+		err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 		mutex_unlock(&ionic->dev_cmd_lock);
- 
- 		msleep(20);
-@@ -135,7 +135,7 @@ int ionic_firmware_update(struct ionic_lif *lif, const struct firmware *fw,
- 		ionic_dev_cmd_firmware_download(idev,
- 						offsetof(union ionic_dev_cmd_regs, data),
- 						offset, copy_sz);
--		err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+		err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 		mutex_unlock(&ionic->dev_cmd_lock);
- 		if (err) {
- 			netdev_err(netdev,
-@@ -155,7 +155,7 @@ int ionic_firmware_update(struct ionic_lif *lif, const struct firmware *fw,
- 
- 	mutex_lock(&ionic->dev_cmd_lock);
- 	ionic_dev_cmd_firmware_install(idev);
--	err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+	err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 	ionic_dev_cmd_comp(idev, (union ionic_dev_cmd_comp *)&comp);
- 	fw_slot = comp.fw_control.slot;
- 	mutex_unlock(&ionic->dev_cmd_lock);
-@@ -176,7 +176,7 @@ int ionic_firmware_update(struct ionic_lif *lif, const struct firmware *fw,
- 
- 	mutex_lock(&ionic->dev_cmd_lock);
- 	ionic_dev_cmd_firmware_activate(idev, fw_slot);
--	err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+	err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 	mutex_unlock(&ionic->dev_cmd_lock);
- 	if (err) {
- 		NL_SET_ERR_MSG_MOD(extack, "Failed to start firmware select");
+ /**
+@@ -1799,6 +1803,7 @@ enum ionic_dev_attr {
+  * @state:      Device state (enum ionic_dev_state)
+  * @name:       The bus info, e.g. PCI slot-device-function, 0 terminated
+  * @features:   Device features
++ * @cmd_timeout: Command timeout in seconds, 0 for the default
+  * @rsvd2:      reserved byte(s)
+  */
+ struct ionic_dev_setattr_cmd {
+@@ -1809,6 +1814,7 @@ struct ionic_dev_setattr_cmd {
+ 		u8      state;
+ 		char    name[IONIC_IFNAMSIZ];
+ 		__le64  features;
++		u8      cmd_timeout;
+ 		u8      rsvd2[60];
+ 	} __packed;
+ };
+@@ -1848,6 +1854,7 @@ struct ionic_dev_getattr_cmd {
+  * @status:     Status of the command (enum ionic_status_code)
+  * @rsvd:       reserved byte(s)
+  * @features:   Device features
++ * @cmd_timeout: Command timeout in seconds, 0 for the default
+  * @rsvd2:      reserved byte(s)
+  * @color:      Color bit
+  */
+@@ -1856,6 +1863,7 @@ struct ionic_dev_getattr_comp {
+ 	u8     rsvd[3];
+ 	union {
+ 		__le64  features;
++		u8      cmd_timeout;
+ 		u8      rsvd2[11];
+ 	} __packed;
+ 	u8     color;
 diff --git a/drivers/net/ethernet/pensando/ionic/ionic_lif.c b/drivers/net/ethernet/pensando/ionic/ionic_lif.c
-index 22d1e4b6d61be..267049b768509 100644
+index 267049b768509..60d3f8cae07f2 100644
 --- a/drivers/net/ethernet/pensando/ionic/ionic_lif.c
 +++ b/drivers/net/ethernet/pensando/ionic/ionic_lif.c
-@@ -3382,7 +3382,7 @@ static void ionic_lif_reset(struct ionic_lif *lif)
- 
- 	mutex_lock(&lif->ionic->dev_cmd_lock);
- 	ionic_dev_cmd_lif_reset(idev, lif->index);
--	ionic_dev_cmd_wait(lif->ionic, DEVCMD_TIMEOUT);
-+	ionic_dev_cmd_wait(lif->ionic, lif->ionic->cmd_timeout);
- 	mutex_unlock(&lif->ionic->dev_cmd_lock);
- }
- 
-@@ -3589,7 +3589,7 @@ static int ionic_lif_adminq_init(struct ionic_lif *lif)
- 
- 	mutex_lock(&lif->ionic->dev_cmd_lock);
- 	ionic_dev_cmd_adminq_init(idev, qcq, lif->index, qcq->intr.index);
--	err = ionic_dev_cmd_wait(lif->ionic, DEVCMD_TIMEOUT);
-+	err = ionic_dev_cmd_wait(lif->ionic, lif->ionic->cmd_timeout);
- 	ionic_dev_cmd_comp(idev, (union ionic_dev_cmd_comp *)&comp);
- 	mutex_unlock(&lif->ionic->dev_cmd_lock);
- 	if (err) {
-@@ -3749,7 +3749,7 @@ int ionic_lif_init(struct ionic_lif *lif)
- 
- 	mutex_lock(&lif->ionic->dev_cmd_lock);
- 	ionic_dev_cmd_lif_init(idev, lif->index, lif->info_pa);
--	err = ionic_dev_cmd_wait(lif->ionic, DEVCMD_TIMEOUT);
-+	err = ionic_dev_cmd_wait(lif->ionic, lif->ionic->cmd_timeout);
- 	ionic_dev_cmd_comp(idev, (union ionic_dev_cmd_comp *)&comp);
- 	mutex_unlock(&lif->ionic->dev_cmd_lock);
+@@ -3495,6 +3495,7 @@ static void ionic_lif_handle_fw_up(struct ionic_lif *lif)
+ 	err = ionic_identify(ionic);
  	if (err)
-@@ -3937,7 +3937,7 @@ static void ionic_lif_queue_identify(struct ionic_lif *lif)
- 		mutex_lock(&ionic->dev_cmd_lock);
- 		ionic_dev_cmd_queue_identify(idev, lif->lif_type, qtype,
- 					     ionic_qtype_versions[qtype]);
--		err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+		err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 		if (!err) {
- 			qti->version   = readb(&q_ident->version);
- 			qti->supported = readb(&q_ident->supported);
-@@ -4003,7 +4003,7 @@ int ionic_lif_identify(struct ionic *ionic, u8 lif_type,
- 
- 	mutex_lock(&ionic->dev_cmd_lock);
- 	ionic_dev_cmd_lif_identify(idev, lif_type, IONIC_IDENTITY_VERSION_1);
--	err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+	err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 	memcpy_fromio(lid, &idev->dev_cmd_regs->data, sz);
- 	mutex_unlock(&ionic->dev_cmd_lock);
+ 		goto err_out;
++	ionic_update_cmd_timeout(ionic);
+ 	err = ionic_port_identify(ionic);
  	if (err)
+ 		goto err_out;
 diff --git a/drivers/net/ethernet/pensando/ionic/ionic_main.c b/drivers/net/ethernet/pensando/ionic/ionic_main.c
-index 9955ab77d86d0..507281f3fc8bb 100644
+index 507281f3fc8bb..1ad5f529e6002 100644
 --- a/drivers/net/ethernet/pensando/ionic/ionic_main.c
 +++ b/drivers/net/ethernet/pensando/ionic/ionic_main.c
-@@ -439,7 +439,7 @@ int ionic_adminq_wait(struct ionic_lif *lif, struct ionic_admin_ctx *ctx,
+@@ -439,7 +439,8 @@ int ionic_adminq_wait(struct ionic_lif *lif, struct ionic_admin_ctx *ctx,
  	}
  
  	time_start = jiffies;
--	time_limit = time_start + HZ * (ulong)DEVCMD_TIMEOUT;
-+	time_limit = time_start + HZ * (ulong)lif->ionic->cmd_timeout;
+-	time_limit = time_start + HZ * (ulong)lif->ionic->cmd_timeout;
++	time_limit = time_start +
++		     HZ * (ulong)READ_ONCE(lif->ionic->cmd_timeout);
  	do {
  		remaining = wait_for_completion_timeout(&ctx->work,
  							IONIC_ADMINQ_TIME_SLICE);
-@@ -635,7 +635,7 @@ int ionic_identify(struct ionic *ionic)
- 	memcpy_toio(&idev->dev_cmd_regs->data, &ident->drv, sz);
- 
- 	ionic_dev_cmd_identify(idev, IONIC_DEV_IDENTITY_VERSION_2);
--	err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+	err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 	if (!err) {
- 		sz = min(sizeof(ident->dev), sizeof(idev->dev_cmd_regs->data));
- 		memcpy_fromio(&ident->dev, &idev->dev_cmd_regs->data, sz);
-@@ -679,7 +679,7 @@ int ionic_init(struct ionic *ionic)
- 
- 	mutex_lock(&ionic->dev_cmd_lock);
- 	ionic_dev_cmd_init(idev);
--	err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+	err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 	mutex_unlock(&ionic->dev_cmd_lock);
- 
- 	return err;
-@@ -695,7 +695,7 @@ int ionic_reset(struct ionic *ionic)
- 
- 	mutex_lock(&ionic->dev_cmd_lock);
- 	ionic_dev_cmd_reset(idev);
--	err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+	err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 	mutex_unlock(&ionic->dev_cmd_lock);
- 
- 	return err;
-@@ -711,7 +711,7 @@ int ionic_port_identify(struct ionic *ionic)
- 	mutex_lock(&ionic->dev_cmd_lock);
- 
- 	ionic_dev_cmd_port_identify(idev);
--	err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+	err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 	if (!err) {
- 		sz = min(sizeof(ident->port), sizeof(idev->dev_cmd_regs->data));
- 		memcpy_fromio(&ident->port, &idev->dev_cmd_regs->data, sz);
-@@ -756,10 +756,10 @@ int ionic_port_init(struct ionic *ionic)
- 
- 	memcpy_toio(&idev->dev_cmd_regs->data, &ident->port.config, sz);
- 	ionic_dev_cmd_port_init(idev);
--	err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+	err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 
- 	ionic_dev_cmd_port_state(&ionic->idev, IONIC_PORT_ADMIN_STATE_UP);
--	ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+	ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 
- 	mutex_unlock(&ionic->dev_cmd_lock);
- 	if (err) {
-@@ -786,7 +786,7 @@ int ionic_port_reset(struct ionic *ionic)
- 	if (ionic_is_fw_running(idev)) {
- 		mutex_lock(&ionic->dev_cmd_lock);
- 		ionic_dev_cmd_port_reset(idev);
--		err = ionic_dev_cmd_wait(ionic, DEVCMD_TIMEOUT);
-+		err = ionic_dev_cmd_wait(ionic, ionic->cmd_timeout);
- 		mutex_unlock(&ionic->dev_cmd_lock);
- 	}
- 
 
 -- 
 2.43.0
