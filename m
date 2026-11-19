@@ -1,112 +1,82 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.43.27
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795078729;
-	b=Bu6ZNGRoTtIgq0t3sVwMZ6f8pqPqKuX5yGCI9S+gQnhKJgkD0JAg/gFrBbUNKlMSLLRl
-	 0PyL08B0aoKJCNhieU4hYagZTvdB7S8To6gD9jmCzM6cQygeBLsWz3h35NKBL/6tBj9k6
-	 qKBdDKSd5yEsmjbclpQCf8p3ChPGZn4zYW3q9XwEUfH6yO32tFyjBl9FSUzFvL6mHIeyE
-	 gu4nheeUmu6taONs/DTsfuAx8AIgeKnhAfJ46hAvCT3tdYdxttEOLIylBAnACopqL3Gio
-	 Oho0czMWmrNM2XRpM+QREJ2+C/IwfBAFcIE0ULN3tMUeqOZi375DyTgVglugY4dWvew==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795078729;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:
-	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
-	 Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:In-Reply-To:
-	 References:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Originating-IP:X-ClientProxiedBy:X-EOPAttributedMessage:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-Id:
-	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=tORVYygeegvwgcS7dBzakpDxbWbrEdsVOxg9tjxWrYk=;
-	b=dZ3ftIGN8o4GpDGFG0vcptnYjr9CAZeMAgneQSOVTkHlT3KtEnmLteJryupwvwKvTwek
-	 Mewa3QfMQrp6d77VdRUiPks6zWhUJhnAw5rmeAuRQXWTaUB+AbLM7BXCIjOlEBSMmQ8HG
-	 DCdNZYe8kndGM1/DcwL6ARXt49Vr+FBc97ak8pVUhlrdXtlKl15aFU4zsipEeHX95wWPt
-	 5zwyjkpVO/HIIR/Gh5gBMliIH9WOqQ7fIfzL3uZFMM4mU3aiLrELAAFKlGy3QE1rbxs3A
-	 +jF7voEGL1MHJutSvUz5e+NfE/OLdzdgDO4VH8fNk088FPmMgVk5EWi8qxiQ8Dj875g==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b="TuxK/dOV";
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.43.27
-Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012027.outbound.protection.outlook.com [52.101.43.27])
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.163.158.5
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795079145;
+	b=SlJflyVK/nVdfpQjsRwiLD3a88/tLCHSAO7Ho63jZKlIDC3EoQvu/itnCJg1hn8TUcyq
+	 eQoREyXyGnXApddZcxiXXJAELdUhOA881qTHw+UAmQZgtUKo2Zpf/7eTz8jE9rsoQ2qEr
+	 GhccebrMz0uohsYMtVDjqgnEngT7Ok4teS78nxPYeUBoCzRwFF3+euDDFm0QMDbpMmwDK
+	 V7L/KRMi/6caijuJ70uaDAsziFYW2sZicC2/pGJFM2Z6ROt1/BVIOYxuTs4DuT7y7xTWi
+	 QgBPsJi4kJOceT0rqmtFVmuNsU60lC5bmvC6pPFcIfH/pPHyrsRvuGEwMtj8Dax9wdw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795079145;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
+	 Received:Received:Received:Received:Message-ID:Date:MIME-Version:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-TM-AS-GCONF:
+	 X-Proofpoint-Reinject:X-Proofpoint-ORIG-GUID:X-Proofpoint-GUID:
+	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Spam-Info:
+	 X-Authority-Analysis:X-Proofpoint-Virus-Version:
+	 X-Proofpoint-Spam-Details;
+	bh=h9mrY5VPxLzLNJtknNwlkIizrrzBB2S+plhJgJ/iXWA=;
+	b=k6gny7/+GbxbA5vhilGRvP+kZjHqD26RdbyzXNWmlTqKZ4fk8mRWxFMuTjlp+kKHWqBS
+	 wRxOLfAgZPAjTmQgzLUnlSrbhYy2OJaR1cirAWdbKg+3Xy5EiTzEp7j6VtPPpT6jyD+NO
+	 vZMvXYnAL2suqtnktC9PUJWC8w6OoSZsjlvJa5Ib9bJfl+GWn39rZv+QRURHfhY0oGM5I
+	 7/c7STwGRK7YufW3doWKMeGy9Sn40j+K+DpIVxff7ud7MwHkTuGooQDTkT7J3pjCegsNU
+	 8jGU4vBBCJAhGAogA4JBAInFpRvToiDpIIXCmY8fIJNwdZOKzTXUvYsUGXcfUGmZx9g==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=linux.ibm.com;
+	spf=pass smtp.mailfrom=linux.ibm.com;
+	dkim=pass header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b=Xwova4Lk;
+	arc=none smtp.remote-ip=148.163.158.5
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D593606A320;
-	Thu, 19 Nov 2026 08:58:48 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0D593606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64EB560A260A;
+	Thu, 19 Nov 2026 09:05:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 64EB560A260A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=TuxK/dOV
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=f/U99hAq8ZiGOArDq5Ix6iG7SUTj/dhdfM2q7RQkO89Ax9edsjs9l7GyRkKT2+XPI4suw4FVG86FvvcchvZOYx9R+U8e2fkr3/hwr9JVlZYN3fkgYK1qPC8PPA0E1OjSGUFZp2zjtt6325+UXAQ1cXHDZNFyxNNpIAfwrQXJksRgnppRcBP+8uuEV8BzoRYPAgr/WqtiRgCCaP9v1xnhrqHC1NvLRB1KgHbY91ITXGEKRkGCXhXXZkV8wPOpLzORyrzxsgVRB8Y7yxnPuMHy+6nds8cKb7f+FF2x6tR+UPUQNJ+kaW6Be++1jGgxBkyuyT9kej+5B4Jx0bxx1FPUWA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=tORVYygeegvwgcS7dBzakpDxbWbrEdsVOxg9tjxWrYk=;
- b=sv0x4qhD6I006BQNM5CMmox1p5fZr56sGyGq1tJrNW7cNsPzaXFHVCit86ffVOJknPWivB1nGkR1EoTH1FaTzOfc3rYMeST9X/fuqUXey7conz8LRXGyGqYlDppTt1hfR0f/6qlpGzXeBec0kRR4XwyzugOgI1sV78wX6HzvbhvpjsWPb4s9U5ImczNiOAIBIRKUMibQNmsGbcNqrpqNGNdOl7E7TYs/hxWUhi/LZuQVLQtsvtgpeBAfjQ/6w02jULdEWBMgVKzF1xI39dFoCVxcwY4cWdRqx3OPMFUW3LTvJnND9Ut2OdXb0AmLWXDAFk0a6pI0UNkccSNBsHB/ZQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=tORVYygeegvwgcS7dBzakpDxbWbrEdsVOxg9tjxWrYk=;
- b=TuxK/dOVc2O3FOKx+mt7LsJH/5r803b/+U5oa+xaDziNY3LS7sKiLwrslIV16dig2JLKx44krXWvWcBxeWI2yhTA7anf7uminfJ72ZLUNOlX5LvyYR3T/EH3pEDS13wg4qW2Wvp9bEmfJ9I/AjNWImJXAZhul4fX9NE33OAQbipfzmcAQe/iC1v9MBYDXvgwgw3oAG5oxPD6Jzu6b3l2p04fIVQU4v4PTqpTxeEQ1k00zhipoI4c/7wtSXKabxplBRJEAJwVGxZbuVLEBV5kMeL/eeuTCcTXZCS6k9vuAlEVKmS3ZqtU0QS8VoV40bg9zNoWhza7F7uK08wzwKULeA==
-Received: from SJ0PR13CA0002.namprd13.prod.outlook.com (2603:10b6:a03:2c0::7)
- by DS4PR12MB9820.namprd12.prod.outlook.com (2603:10b6:8:2a7::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.639.12; Thu, 19 Nov
- 2026 08:58:44 +0000
-Received: from CO1PEPF00018866.namprd03.prod.outlook.com
- (2603:10b6:a03:2c0:cafe::19) by SJ0PR13CA0002.outlook.office365.com
- (2603:10b6:a03:2c0::7) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.639.8 via Frontend Transport; Thu, 19
- Nov 2026 08:58:44 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- CO1PEPF00018866.mail.protection.outlook.com (10.167.249.150) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.639.5 via Frontend Transport; Thu, 19 Nov 2026 08:58:43 +0000
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.57; Thu, 19 Nov
- 2026 00:58:26 -0800
-Received: from nps-server-23.mtl.nbulabs.nvidia.com (10.126.230.37) by
- rnnvmail201.nvidia.com (10.129.68.8) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.57; Thu, 19 Nov 2026 00:58:21 -0800
-From: Shay Drory <shayd@nvidia.com>
-To: <netdev-bot+sashiko@kernel.org>
-CC: <tariqt@nvidia.com>, <andrew+netdev@lunn.ch>, <davem@davemloft.net>,
-	<edumazet@kernel.org>, <kuba@kernel.org>, <netdev@vger.kernel.org>,
-	<pabeni@redhat.com>, <cjubran@nvidia.com>, <cratiu@nvidia.com>,
-	<gal@nvidia.com>, <leon@kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, <mbloch@nvidia.com>, <moshe@nvidia.com>,
-	<ohartoov@nvidia.com>, <phaddad@nvidia.com>, <saeedm@nvidia.com>,
-	<udar@nvidia.com>
-Subject: Re: [PATCH net-next V2 10/10] net/mlx5: LAG, do not add a device to an already-active virt LAG
-Date: Thu, 19 Nov 2026 10:58:13 +0200
-Message-ID: <20261119085813.1591422-1-shayd@nvidia.com>
-X-Mailer: git-send-email 2.38.1
-In-Reply-To: <179499792089.3136.10061962693179545978@kernel.org>
-References: <20261116103010.1129666-1-tariqt@nvidia.com> <20261116103010.1129666-11-tariqt@nvidia.com> <179499792089.3136.10061962693179545978@kernel.org>
+	dkim=pass (2048-bit key, unprotected) header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b=Xwova4Lk
+Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AJ6uqjK3422902;
+	Thu, 19 Nov 2026 09:05:27 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=h9mrY5
+	VPxLzLNJtknNwlkIizrrzBB2S+plhJgJ/iXWA=; b=Xwova4LkdbApeipzD/myca
+	3nK4kyG6j6u9ah2pMwkd7lPTzr+tePEiCbo0GJDWsdG+DdpuwnS3mE8I75kN946Z
+	Ds4cv2QY8D4C5i4iYbcaC/Ztz35HMDDHbEXVAo6mhkmiqPCxls0Z4MwbC0jIaEiN
+	QtMKG5jKUzTPs2G17Me6ZkoZNE/lQn9nwwDRZ0DaagUjnE9QLi2NwrjafuwbQw6U
+	zy6K9YFWw+ejBV0Q+JFGr8sBKsuuQ+RJg9IPfZWdg6mqJspkBKoF9qDhYjeGOj17
+	MEuovzUCTETZ7R8EEm7sTTMCh1gPyPAVFclI/h/pxZAFnc1zescOiSmccrV2IChg
+	==
+Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4j105wyksp-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Thu, 19 Nov 2026 09:05:26 +0000 (GMT)
+Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma22.wdc07v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 6AJ7JpnI2580300;
+	Thu, 19 Nov 2026 09:05:26 GMT
+Received: from smtprelay02.fra02v.mail.ibm.com ([9.218.2.226])
+	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4hy2bvpjgr-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 19 Nov 2026 09:05:26 +0000 (GMT)
+Received: from smtpav07.fra02v.mail.ibm.com (smtpav07.fra02v.mail.ibm.com [10.20.54.106])
+	by smtprelay02.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 6AJ95L0r47841594
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 19 Nov 2026 09:05:21 GMT
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id D08092005A;
+	Thu, 19 Nov 2026 09:05:21 +0000 (GMT)
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 862912004E;
+	Thu, 19 Nov 2026 09:05:21 +0000 (GMT)
+Received: from [9.68.25.8] (unknown [9.68.25.8])
+	by smtpav07.fra02v.mail.ibm.com (Postfix) with ESMTP;
+	Thu, 19 Nov 2026 09:05:21 +0000 (GMT)
+Message-ID: <32421feb-4d8c-43bf-9307-9dddd0210cf0@linux.ibm.com>
+Date: Thu, 19 Nov 2026 10:05:21 +0100
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -116,232 +86,83 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
- rnnvmail201.nvidia.com (10.129.68.8)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CO1PEPF00018866:EE_|DS4PR12MB9820:EE_
-X-MS-Office365-Filtering-Correlation-Id: cfd510fa-185d-41a4-d2e8-08df461b5093
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|7416014|36860700016|1800799024|23010399003|82310400026|10067099003|11063799006|5023799004|4143699003|56012099006|261021121427099003|261009223027099003|261102123227099003|261022105027099003|261022075727099003|261026140227099003|261026121527099003|261028144727099003|18002099003|22082099003|6133799003|13003099007;
-X-Microsoft-Antispam-Message-Info:
-	4tkFVr0PO2pF5yScccfhNcccchXhqwr4AdWHl98jSggBB1srN8VU8ZcRk1HA/ZDqgI/f4AHou0dRawmEQLdZaTeWT4Ew/UcVEdmpgc9W4hgXC+rWnjqH7AE6Ntc+4yCxwu5f8/Ax1rrDhKKNTwnAQfoGA3dfYQ40uBUeh/b1awjgO2cGcENJf9eueJS8oZdiX/12fgDUDog7l9CYewse/wBpJn0ToENgrgGHPLEx77spQzsoKxA4V8riyLDevur6Lp/qEZUX5TmPa1BlQqeWpAczGmFHjG987xGt5ygXB3Lu3jSijS9nu1UD6HHDZA6eEaXrPBb0KqtjoW/DhlgsaNxY0SszyqsRIQp9Rwuij+/sczkT/EDMEBZKD9ZTjbao5OtzJIUGu8OJp5r4/Pz4U6KRqn9vJKls0W3TDRXiCenuV0bUoEuO7kZ/dCyCwp9HPDhs8bnNSfLRer7Enxyol9ZRwTyX5oL065YfAs0Pe2ADjpLG6h4ctAMNeW6N+ESPRGQhrvvO8Ce6RFJ4Pk1c9EGAZU2RhkUSn5nq3lndNkmpQBFDc1JAp1NFaHkczVN+iqX5JG2h6iEdXptZVZ/Q7eGNdh7luPxDYCfOCdDoVrfQej69zruSDqh1dsVfGiML9ZB2eI3Rom1vUZqwPlgbK4etqOOblx96wBrUTAxTP4rfAoiZ02oqQVTup5Fztd9QGjJ6DrWA0RgJapaV0FTYmQ==
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(7416014)(36860700016)(1800799024)(23010399003)(82310400026)(10067099003)(11063799006)(5023799004)(4143699003)(56012099006)(261021121427099003)(261009223027099003)(261102123227099003)(261022105027099003)(261022075727099003)(261026140227099003)(261026121527099003)(261028144727099003)(18002099003)(22082099003)(6133799003)(13003099007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	yaSLsEEJt0elhuZY+z4w4fIFtzu6uNrrvhMBAkdfXdMarLByDiHc4GVDPXp3NdmgeXtxQ2NZh0zSTYUIrzu/98QbDY42OV5Jg83ZjUt7QuTjaB5PPNnCE3GfcoEVy0noFrMOy5fRU+0I1kl4M6xBANAFqIBXDcZqfQv0DapRCTtQ2vnOlT4s5JBRwHfFKJRLjhg4pAoo45NSIUoNTUI3gyoDUPKcFgWYlCKyGcRHn/VXx8uM2lMaW1f7r50hBrmwF2MIKBfn10Ixw1mrtZpBjHPZGLOrAdtKiAfocBUYbHjYT5qvqYXmsduWFvn6SDd4i/mlRcZ6pIyWmxzUxTb6hZxG7rXe84pIGK0oGCG51VpvlMacviTHjYyKby2SUoSnWONfP1N6u8Rs3Jdta6hk1dutaN4565cN3SoZwsQBM4+CANzHa/O7nElBLHQSNevW
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Nov 2026 08:58:43.8765
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: cfd510fa-185d-41a4-d2e8-08df461b5093
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CO1PEPF00018866.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS4PR12MB9820
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net v2 1/2] dibs: loopback: reset the client id when the
+ owner unregisters a DMB
+To: hexlabsecurity@proton.me, Dust Li <dust.li@linux.alibaba.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Mahanta Jambigi <mjambigi@linux.ibm.com>,
+        Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@kernel.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Sidraya Jayagond <sidraya@linux.ibm.com>,
+        "D. Wythe" <alibuda@linux.alibaba.com>
+Cc: Hidayath Khan <hidayath@linux.ibm.com>, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        Simon Horman <horms@kernel.org>, Tony Lu <tonylu@linux.alibaba.com>,
+        Wen Gu <guwen@linux.alibaba.com>, linux-s390@vger.kernel.org,
+        Wenjia Zhang <wenjia@linux.ibm.com>,
+        Julian Ruess <julianr@linux.ibm.com>
+References: <20261114-b4-disp-4e6374c2-v2-0-3b7050bddef7@proton.me>
+ <20261114-b4-disp-4e6374c2-v2-1-3b7050bddef7@proton.me>
+Content-Language: en-US
+From: Alexandra Winter <wintera@linux.ibm.com>
+In-Reply-To: <20261114-b4-disp-4e6374c2-v2-1-3b7050bddef7@proton.me>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-ORIG-GUID: D4WqWhorBzS6N49eKkbHLSXUS39zaQ-_
+X-Proofpoint-GUID: bmXfIfar8wPAHBGwKGyoHkvu--uMVthe
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE5MDAzNSBTYWx0ZWRfX9LY20ek8rRmF
+ uBCmqLmd68IeZr8UmLA+fXIPzpfbNwCEsk6g6fKxvOpwrljWS+gSuo02MFOCnlvoVieoYT7NPJs
+ XbL2ropAmccft6WY6cw92nR4UdvxJFu74/Oe+yHsA4RRKG0f2GaQJ+04dkapgBtMNqJNo/skzz2
+ mtQjmAoV1rzWPnS2J7Hm8EYV8+m1XJSnSDQImBvGRnr/iiXoyfZWYHtvNiVPf5A/Ulagu4BfVJ3
+ rURZwFI+2PJ3EhmYsPZN5JEfiDEjQ2bt1gBYCVMLCKOQEpvH+JfX7UvDAU8CFnwoOkLf/kkvte2
+ O4enzvQtL/HcktJvkdoZZkgKwCz+D7BwgSgYAODdtPkxZ+dL8hmbzKpeHSCl6LFnrkXRfELKR8f
+ 6LMsKjFzZavSuhf216NQYn5JFybdH4codggz1DOatgYLnfJ4QE/OXRzsI1OwfoBfvTBCLTiDdno
+ OX2LXOX2MWQoL7dzkCg==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE5MDAzNSBTYWx0ZWRfX3pcEQnvq8S1m
+ ApkiB7/i6f1hrfN7XxnPlPg989ykOwhssMIkXvSVg6s3Ho/afuGKpeOwybgVepviQ2VrrDBb25g
+ NMBwjM1UutuCjLZbIjX5H9K7+2QiS4Y=
+X-Authority-Analysis: v=2.4 cv=K+m3jCWI c=1 sm=1 tr=0 ts=6afebbd7 cx=c_pps
+ a=5BHTudwdYE3Te8bg5FgnPg==:117 a=5BHTudwdYE3Te8bg5FgnPg==:17
+ a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=RnoormkPH1_aCDwRdu11:22 a=Y2IxJ9c9Rs8Kov3niI8_:22 a=VwQbUJbxAAAA:8
+ a=VnNF1IyMAAAA:8 a=aOMzDuweHAdLCSDsqTsA:9 a=QEXdDO2ut3YA:10
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-11-19_02,2026-11-16_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ suspectscore=0 bulkscore=0 clxscore=1015 adultscore=0 spamscore=0
+ priorityscore=1501 impostorscore=0 phishscore=0 lowpriorityscore=0
+ malwarescore=0 classifier=typeunknown authscore=0 authtc= authcc=
+ route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2611040001
+ definitions=main-2611190035
 
-On Wed, 18 Nov 2026 10:32:00 +0000, netdev-bot+sashiko@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 1 potential
-> issue(s) to consider.
->
-> Critical: 0 · High: 0 (1) · Medium: 1 · Low: 0
->
-> If you believe none of the issues are legitimate, please reply to each
-> issue of Medium severity or higher and explain why the AI is wrong.
-> If any of them are legitimate and you plan to respin, please let patchwork
-> know by including "pw-bot: cr" as a separate line at the end of your reply
-> (one such reply per series is enough).
->
-> - [Medium] In this tree, both parts of the patch hit a predicate
->   mismatch.
->
-> Pre-existing issues:
-> - [High] This problem wasn't introduced by this patch, but the patch now
->   cleans up the HCA devcom component on its own new -EOPNOTSUPP path…
->
-> --
->
-> net/mlx5: LAG, do not add a device to an already-active virt LAG
->
-> This patch stops a virt LAG capable function from joining a LAG whose mode
-> is already active. In that case __mlx5_lag_dev_add_mdev() returns
-> -EOPNOTSUPP, and mlx5_lag_add_mdev() then unregisters the HCA devcom
-> component. The patch also makes mlx5_esw_offloads_devcom_init() skip eswitch
-> devcom registration for a non-PF virt LAG capable function that has no ldev.
->
-> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-> > index 3e88b3f51612e..abcab76fced0b 100644
-> > --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-> > @@ -2448,6 +2448,11 @@ static int __mlx5_lag_dev_add_mdev(struct mlx5_core_dev *dev)
-> >  		mutex_unlock(&ldev->lock);
-> >  		return -EAGAIN;
-> >  	}
-> > +
-> > +	if (mlx5_virt_lag_is_supported(dev) && __mlx5_lag_is_active(ldev)) {
-> > +		mutex_unlock(&ldev->lock);
-> > +		return -EOPNOTSUPP;
-> > +	}
->
-> [Severity: Medium]
->
-> Can this condition ever be true in this tree?
->
-> mlx5_lag_add_mdev() is the only caller of __mlx5_lag_dev_add_mdev(). It
-> returns early unless mlx5_lag_is_supported() passes:
->
-> mlx5_lag_add_mdev() {
-> 	if (!mlx5_lag_is_supported(dev))
-> 		return;
-> 	...
-> }
->
-> mlx5_lag_is_supported() requires num_lag_ports >= 2:
->
-> 	if (!MLX5_CAP_GEN(dev, vport_group_manager) ||
-> 	    !MLX5_CAP_GEN(dev, lag_master) ||
-> 	    MLX5_CAP_GEN(dev, num_lag_ports) < 2 ||
-> 	...
->
-> mlx5_virt_lag_is_supported(), on the other hand, requires
-> num_lag_ports < 2:
->
-> 	if (!MLX5_CAP_GEN(dev, multi_uplink_eswitch) ||
-> 	    !MLX5_CAP_GEN(dev, lag_master) ||
-> 	    MLX5_CAP_GEN(dev, num_lag_ports) >= 2)
-> 		return false;
->
-> No device can satisfy both, so this -EOPNOTSUPP return and the new cleanup
-> branch in mlx5_lag_add_mdev() look unreachable.
->
-> The commit message says:
->
->   "mlx5_ldev_add_mdev() would add a newly probed device to the LAG even
->   when the LAG is already active"
->
-> Can that happen today for a virt LAG capable function? If this check only
-> prepares for a later series that enables virt LAG, could the commit message
-> say so?
 
-No, not in this series, and that is intended. As the cover letter says,
-this series only prepares the LAG core. The follow-up series admits virt
-LAG capable functions in mlx5_lag_add_mdev(), and only then can the check
-fire.
 
-> The same mismatch seems to affect the eswitch change. A non-PF virt LAG
-> capable function never reaches mlx5_ldev_add_mdev() here, because
-> sd_lag_init() only handles PF SD secondaries. So dev->priv.lag stays NULL
-> for it, and mlx5_virt_lag_nonmember() is always true:
->
-> static inline bool mlx5_virt_lag_nonmember(struct mlx5_core_dev *dev)
-> {
-> 	return mlx5_virt_lag_is_supported(dev) && !mlx5_lag_dev(dev);
-> }
->
-> As a result, the new early return in mlx5_esw_offloads_devcom_init() fires
-> for every such VF/SF eswitch:
->
-> 	if (!mlx5_core_is_pf(esw->dev) && mlx5_virt_lag_nonmember(esw->dev))
-> 		return;
->
-> Before this patch, a VF/SF eswitch with merged_eswitch would register
-> MLX5_DEVCOM_ESW_OFFLOADS and send ESW_OFFLOADS_DEVCOM_PAIR. The existing
-> MLX5_VPORT_MANAGER() / !mlx5_lag_is_supported() gate further down does not
-> stop a non-PF, because MLX5_VPORT_MANAGER() requires mlx5_core_is_pf().
->
-> Does this drop eswitch devcom pairing for those VF/SF eswitches? That would
-> contradict "it is a no-op for existing configurations".
+On 14.11.26 20:09, Bryam Vargas via B4 Relay wrote:
+> From: Bryam Vargas <hexlabsecurity@proton.me>
+> 
+> dibs_lo_unregister_dmb() resets the DMB's dmb_clientid_arr[] entry only
+> on the last put. If an attacher still holds the DMB, as when an SMC link
+> group is freed while a peer is still attached, the entry stays set after
+> the attacher's dibs_lo_detach_dmb() frees the DMB.
+> dibs_unregister_client() then warns at rmmod smc and returns -EBUSY,
+> which smc_ism_exit() ignores: smc stays in clients[] and dibs->subs[],
+> and a later dibs_dev_add() or dibs_dev_del() (rmmod dibs, ISM hotplug)
+> calls into the unloaded module.
+> 
+> Reset the entry when the owner unregisters, before its put, as
+> ism_unregister_dmb() does. The index stays allocated until the last put,
+> and the attacher's writes no longer raise an interrupt for a client that
+> gave the DMB up.
+> 
+> Fixes: cc21191b584c ("dibs: Move data path to dibs layer")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
+> ---
 
-No existing VF/SF passes mlx5_virt_lag_is_supported(). New FW will allow
-a VF/SF to report multi_uplink_eswitch and lag_master with
-num_lag_ports < 2, so the skip changes nothing for existing
-configurations.
+As this is unchanged, my R-b from v1 still holds
 
-For such a VF/SF, skipping the pairing outside a LAG is intended. It
-manages its own nested E-switch, and it pairs with other E-switches only
-as a member of the virt LAG's shared FDB.
-
-> The commit message also limits the devcom change to "such a device", meaning
-> one rejected from an active LAG. The condition, however, matches any virt LAG
-> capable VF/SF that has no ldev.
->
-> Once virt LAG joins are allowed, devices that are left out because
-> mlx5_lag_dev_alloc(), mlx5_ldev_add_mdev() or
-> mlx5_lag_register_hca_devcom_comp() failed would also be treated as
-> non-members. Is that intended?
-
-Yes. Whatever the reason the device was left out, it is not a LAG member,
-so it must not pair with the LAG members' E-switches.
-
-> >  	mlx5_ldev_get(ldev);
-> >  	err = mlx5_ldev_add_mdev(ldev, dev, 0);
-> >  	if (err) {
-> > @@ -2536,6 +2541,10 @@ void mlx5_lag_add_mdev(struct mlx5_core_dev *dev)
-> >  	err = __mlx5_lag_dev_add_mdev(dev);
-> >  	mlx5_devcom_comp_unlock(dev->priv.hca_devcom_comp);
-> >
-> > +	if (err == -EOPNOTSUPP) {
-> > +		mlx5_lag_unregister_hca_devcom_comp(dev);
-> > +		return;
-> > +	}
->
-> [Severity: High]
->
-> This isn't a bug introduced by this patch, but this new path unregisters the
-> HCA devcom component, while the nearby failure paths in
-> __mlx5_lag_dev_add_mdev() still leave it registered.
->
-> If no peer ldev exists and mlx5_lag_dev_alloc() or mlx5_ldev_add_mdev()
-> fails, __mlx5_lag_dev_add_mdev() returns 0 with dev->priv.lag still NULL:
->
-> 	if (!ldev) {
-> 		ldev = mlx5_lag_dev_alloc(dev);
-> 		if (!ldev) {
-> 			mlx5_core_err(dev, "Failed to alloc lag dev\n");
-> 			return 0;
-> 		}
-> 		err = mlx5_ldev_add_mdev(ldev, dev, 0);
-> 		if (err) {
-> 			mlx5_core_err(dev, "Failed to add mdev to lag dev\n");
-> 			mlx5_ldev_put(ldev);
-> 			return 0;
-> 		}
-> 		return 0;
-> 	}
->
-> mlx5_lag_add_mdev() treats that as success, sends LAG_DEVCOM_PAIR and keeps
-> dev->priv.hca_devcom_comp. On teardown, mlx5_lag_remove_mdev() returns
-> before it reaches mlx5_lag_unregister_hca_devcom_comp():
->
-> 	ldev = mlx5_lag_dev(dev);
-> 	if (!ldev)
-> 		return;
->
-> The comp_dev's data still points at this mlx5_core_dev. Does that comp_dev
-> stay on the shared component list after the core dev is freed?
->
-> If so, a peer with the same key that probes or reloads would get the freed
-> dev back from mlx5_devcom_get_next_peer_data() in __mlx5_lag_dev_add_mdev().
-> It would then call mlx5_lag_dev(tmp_dev) on freed memory.
->
-> A peer's LAG_DEVCOM_PAIR/UNPAIR event would likewise call
-> mlx5_lag_devcom_event() with the freed dev. That reads dev->priv.lag and can
-> call mutex_lock() on a garbage ldev.
->
-> Could the component also be unregistered on those allocation failure paths?
->
-> >  	if (err) {
-> >  		msleep(100);
-> >  		goto recheck;
->
-> [ ... ]
->
-> --
-> Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261116103010.1129666-1-tariqt%40nvidia.com
+Reviewed-by: Alexandra Winter <wintera@linux.ibm.com>
