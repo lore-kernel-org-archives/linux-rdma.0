@@ -1,100 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.82.170
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795114788;
-	b=5mXG8K2nFecpyDrWH9E6QwfXhQbdEExjsHHjCnXMKi9bwqpz3TtO3ix73eycojpVWiGY
-	 GU8FWMacUjhhapvMBQ4u8rr6rVoL1AltcAIj6qKqe49Puu9MK9pjBGaJuYB8rQg0GL7zs
-	 92zmN6iqE8TzM/WlkmzL766hJsp6Oh881L5JsoIuThH541vQrOZAZyA2IFsUfO/l9mKyK
-	 PMD/VxE3NzRVtX8LiPkN53a3H5/AH8LKFso3DfxhAvidaN+o3df58mIrC3pj9wvsobwOU
-	 acCVHv5inIZIwdVkXm8waJRDmC5VZ5CyoVcRZSAN5x1En5OT/eUROumLnemGCWv68Cw==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795114788;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type;
-	bh=wbxe7kLubw9u1wufA+gD9vxLgwISeFpqRh3SSGVI7cw=;
-	b=htCDwlx2kRcUh9VNtx7jB/ScFVihlGXEEzU09RdJb0TTG2nRSKHsK2MaVp/AVxuOGI/M
-	 Sq9vm5RHEdVY7xz1CRdnGTphAs4TXaAOtXzMBTvd5isgyTB/9ZK4jOHX+sKf14sTGz8Rk
-	 K0airnwallxQXozsxjuJCc0HS66UvdlmuK0lPXlfbns6S24gw6eGKG9NND5afBuxdH/7D
-	 oQ18TS+++hDxtGsFsKegxHFBGYzNFFBoUEjmm/waRxqEQ3+tSFcv0vYtz2q+ljj7+Klbp
-	 WpvGyy6isdKTlMdRbu0HfTjg7Fox6fal290Gddq35r+MMPRu6IezlK7GSnE+u9k+AKA==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=b06SVsdc;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.82.170
-Received: from mail-dy1-f170.google.com (mail-dy1-f170.google.com [74.125.82.170])
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.167.199
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795122228;
+	b=OA1/X9r2kCvLsP1p1mUwVcCrmBkLHHRDKRY2sOJlk8wlWbQ7V/OUV/HqAxdF/p1MFKRl
+	 CqstyyvzQ6+sreGHdibUecBvnN3LHuP23iK4OC4h4/jUfMicqjca0xscnm666l0+dKAGO
+	 ouU8C3fAgFuO4vec80Uj6dxiX1Hd+6nMOdMFhzUL/xwNtFbrJ3F8O5JpZ1C6XDS9k/PhL
+	 hdM7eV0//tN4siwnyih6sfJF5z4UvkbxB2gQ5lnzy6VaEBlT6JOO9D/dKawp6f1MPploF
+	 fgVJo/bXtHgprt6H7iPGCR1qJXxwJFK1KOs9Tqwr6TMlxeftJKLaY8ZWfZSmborjNag==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795122228;
+	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:MIME-Version:X-Received:Date:In-Reply-To:
+	 X-Google-Appengine-App-Id:X-Google-Appengine-App-Id-Alias:Message-ID:
+	 Subject:From:To:Content-Type;
+	bh=ADoGAwGu14Wz564rAon5ZmMI2VllXYZSkfNNgMDJ6h0=;
+	b=arfSDGZsjZ/2+wZEX6hFnGDx5X9iuC3n/ojW96cr3iumCri6gACB40L4WfAkawmHgNfF
+	 GXTYBqeJ8Yiv0QpI7X8VFu0VHoDInnzUQaAf8Pj8QGyubuqHy38yOwbdvKnIwxKqEfk7V
+	 n0eVv6jp3fC4qLJk9BxrJ27O1GddFppjmVRuXMmSMWzr9trXgjI0bD1aXtN1dyrANdu9X
+	 YIZTr5/R2lctjPuOT8PnICRZZKsKaET1BHbMq1SV6qBzinjdn7tZ3DbWZboVEq04wiDBf
+	 +fnOZc3HKpZg3lwqKPaPuFjHZuP8dvQXxTBRVaI9MYC4Xq2Z9C+qOQNzTvsOD53E5cA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=fail header.from=syzkaller.appspotmail.com;
+	spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com;
+	arc=none smtp.remote-ip=209.85.167.199
+Received: from mail-oi1-f199.google.com (mail-oi1-f199.google.com [209.85.167.199])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3E64606A32A
-	for <linux-rdma@vger.kernel.org>; Thu, 19 Nov 2026 18:59:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C3E64606A32A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=b06SVsdc
-Received: by mail-dy1-f170.google.com with SMTP id 5a478bee46e88-380b40312e2so51841eec.1
-        for <linux-rdma@vger.kernel.org>; Thu, 19 Nov 2026 10:59:47 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1795114787; cv=none;
-        d=google.com; s=arc-20260327;
-        b=LcG9kn9HzzEucHQB1+whqyr9kKUJDEiw3kOADZRcGYOiL7b8DNUu3DQ5e6a8AtuVvJ
-         PRbdCgjtBtTBjv65qCwaGYzl17bIzUBbqNjOOp2PD3q9w90KsLs81hES/nW2VeMwxvEv
-         3zZumKfVAeSUtkxVO47bAJT4YmXfzGi8OVw20uz4VgJ8LHo0O6sWsWQ6geeDmCivOMNd
-         fDLLOUpeZZEX7E4frUztacPz3zUK1Eb05RfEHvW+N+h942I1fMBsQqkft3XJmoYQs/4o
-         sA5fPTL5lj6yXyR05FzHaYTW3XxNFnlG53c5oSHdWTk44DulnI5BLy5nQqmSRrNkqdMk
-         DyvA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=wbxe7kLubw9u1wufA+gD9vxLgwISeFpqRh3SSGVI7cw=;
-        fh=KjPOIUpAa5v7tdqh8ED/S/HED5F/ze0SlY82EGOmxcY=;
-        b=YPAQ/0eB66MVMHJcDQB2Kzit4VEwGPMi2lrUcicvZcUfWrrcvJ83AP2L456g8AIchm
-         3CGF7e1BxNHMe1JEulWiNhuW/hAU0g6iRZrYA14jscG3fyxGcFlq4s5uRcyfwacIvgao
-         Oh33JirGsEye5PxY8dN2g7txEszsKzMKOOvzgoNTrDMkIrHXBDFFkTzwL0Gs0ahW/VQm
-         d118KNi1knyvRBUiUXkuNiBYRYqap+lyd6CjUOzsINT4P6BORsGRmNlR2IWDbVynEdRS
-         2v04kkm+EE66RQRV7UdiSDuE8+/ckFYe3tU3AiPlVyeYrIRNrYgzGKH0OzDuFKMK84DA
-         XJaw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795114787; x=1795719587; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=wbxe7kLubw9u1wufA+gD9vxLgwISeFpqRh3SSGVI7cw=;
-        b=b06SVsdcaDcUIiqLafzT/utdQ/iCjsDIoPHheymBP14C9oVM+Nij/QnTatPmo5MLd7
-         VWBwzL6foEyhbglKHqywrYsDot3ltlNUz3u3/RxZcXrSwaQqK0r7pphL3G80HqysQJOr
-         RwuwmOjSc3g4F9xMvGEAuyWvzy3Ttht94JwG3wRz1UyFb0Yoehvd14U3X/FaQHODbnNz
-         UbH54uyTHEJIi3O+qLH3rX689h1ixmJHiGMEmfZGg0ICYydBD9ccP+r2c39K7hFPbzWc
-         IrNzaT5Z2aJKpIyzCz/I6Lj5uMjJ3JPS/SEhCliplYtOTnP13itNDhlUdUiBB7kCz7L/
-         Cm+w==
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F59B606A331
+	for <linux-rdma@vger.kernel.org>; Thu, 19 Nov 2026 21:03:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8F59B606A331
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oi1-f199.google.com with SMTP id 5614622812f47-567e742f481so209602b6e.3
+        for <linux-rdma@vger.kernel.org>; Thu, 19 Nov 2026 13:03:48 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795114787; x=1795719587;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=wbxe7kLubw9u1wufA+gD9vxLgwISeFpqRh3SSGVI7cw=;
-        b=x6jV2hdgJh0S8TQPcwesGjQa6KIY4NMuHjPtAd9JJw8VUbWmb2K5fXD4TwLvIrILC/
-         wTmB5GpYKYoFJ5q0eEj9CSygEsimSXPP2eRK1hn2ilKVy1DfnMox++pydD7ip08LIzNh
-         a3zS635LXbNO21bOGSmXZeWaW43XnU6WENYApZpH8Sbm88hCF/EmW+OJKl2JaxrANK8X
-         uo6YsbX6Vwz34jRiav5o/e01+VSTs3gqRwBnuk1x2S8pIIRUOREdIGbib6wLcwE3jcer
-         iPL/OlfRjG8/AlscDqTYMmwcJ35gD6KsFYAg7IyjaxQFU9OxQ11X279eypq+oaAnytnZ
-         7t3Q==
-X-Forwarded-Encrypted: i=1; AL+hErEyJP/EhZ84Qi1QIJVxTxSrkBbWzfHKwmVQk7sg0zvx3IBAteGxJ6ipNnF3zm34u3bK4AYQEBUGe0HJ@vger.kernel.org
-X-Gm-Message-State: APuU4Z85gGZNxRu0Olp9uawZsmZbgHJ50aaV01dDJCwTEP+zBq2TSlGF
-	JPpidaTft0CHYbbSgL+JRCat7lUp10tGceLtN22hoxs84NiIYDcqtH85uMZ6qMiddiu2FHzkS9H
-	Je3xcAVrdVYvQ+uuYoUuv/M2p0ZaoVac=
-X-Gm-Gg: AZFdTZcwttT8tfuWELfqFiYrUIdGE2DHXL1bh6eNE4yPbxQJ4EUBJJ5ydWHuowG6bSj
-	rCHXvL+krQ3KlMssKMf9MilnnvWVmJz+Xf6+nm3dnRhQFCCVXg6zp8BMFApMzhBVlVnOiku+d86
-	5DutXuuWw7yyO6/gA5+SmnvnviZkHBcUTW2unARmamxpIDxdY0aqwDPyLM4pa2MGa68XzDc8go6
-	mXB8NpgEU2ju3XHYwkfkbgN1nS/HmIIqFQhFVJ3/PAG6qz5gU3LIXa3DgmnBiquVbaegctQT5+e
-	zaNBblYD8qCFTSaWiK9OBz7GnpUW/5MlGF55d8NPhjEz43GQ+XHYTazJMaHHvB9W4FJMDFHC6lc
-	8NJ9XiLk+NpVF09o7ICKavRlZ8bkpFaXf1XuQUuBhr4mEsaiWxgCO0rqie4YFNM215U45LHXhDD
-	lkKLDwiG3ecLELXyDbiA==
-X-Received: by 2002:a05:7300:f491:b0:37b:7bba:8199 with SMTP id
- 5a478bee46e88-3856fd5cc92mr183443eec.6.1795114786784; Thu, 19 Nov 2026
- 10:59:46 -0800 (PST)
+        d=1e100.net; s=20260707; t=1795122227; x=1795727027;
+        h=content-type:to:from:subject:message-id:in-reply-to:date
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=ADoGAwGu14Wz564rAon5ZmMI2VllXYZSkfNNgMDJ6h0=;
+        b=QirgvB0UD4GXFuLkdpRgTi9P7tK7XlF6lnYSXTrjDY6mfrKJ083wW0XT3pbhVcc8m1
+         u8vhVcgf8StGa3pZE45k4dTo5H3PveHajgg5KTLJ2qpltZO/Md5rKsRa6uYSAkPav0Jj
+         l4nEAunKfAEw4TARkMMHrbRPjF9oRKTOPM7rYgucV3hSLc9yzVWdZ9g2hYP/lVH5tF7q
+         wGKKiO7JkWvV0F/8GFVHiEE+EMfK+kTViX3RTs9SY9k/Bpn0gfcgHjBLV5dLK6WYBYsN
+         bKbqLAKx6akIv8YsPkr8pfPJLyp4rMkIrRSzgwbYOvqF3+6fijR6R0MZJ4kb2Bs8FkhK
+         SDUw==
+X-Forwarded-Encrypted: i=1; AL+hErHLlKOUsuH3SNqgur1SqT/Fwlylx2s3x+E3HVhhFrfXnx+RQz0EEmkz5OBdk5f3SKVCjVAwR4lWyQp/@vger.kernel.org
+X-Gm-Message-State: APuU4Z/Sgg8MERmrJ682qF60lLmM6wkttPTPGAkYnKZ4Ba63z1pUu6yz
+	XI3eL8TxXregKGT0KE11cRxwplPyJfFAiVQTFh7eBn8Nojf0TeVXAjCdB/IDEc2augmU7JNpPKB
+	9xmpSxsFUw4wVACE6LUxxyn1mJ995BDh+teZxglIvK+rjetKZWmtKAs7UCHg=
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -104,23 +58,91 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261119012707.555494-1-lcy8047@gmail.com> <7e94f48f-f352-4809-a96e-d5363b8be273@nvidia.com>
-In-Reply-To: <7e94f48f-f352-4809-a96e-d5363b8be273@nvidia.com>
-From: Changyul Lee <lcy8047@gmail.com>
-Date: Thu, 19 Nov 2026 13:59:35 -0500
-X-Gm-Features: Aa3M54po2B1r57yvjEB-PRSHSy7gIA46Bx8WGdBCs9hXYwC8qE8ue_MB7q0s0UE
-Message-ID: <CAKefsHt0MC47dMy++wZS7SJ_yZVYeOMdKmG8RvkNtqCoGn2_qA@mail.gmail.com>
-Subject: Re: [PATCH net] net/mlx5e: Skip hairpin entries not ready in debugfs dump
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Mark Bloch <mbloch@nvidia.com>, 
-	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Gal Pressman <gal@nvidia.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
+X-Received: by 2002:a05:6808:1814:b0:54c:7ce7:33ba with SMTP id
+ 5614622812f47-57a0a922959mr1352672b6e.28.1795122227551; Thu, 19 Nov 2026
+ 13:03:47 -0800 (PST)
+Date: Thu, 19 Nov 2026 13:03:47 -0800
+In-Reply-To: <6adb54ac.d1cee5ca.8df35.0007.GAE@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6aff6433.1204dc2f.31261f.0000.GAE@google.com>
+Subject: Re: [syzbot] [rdma?] WARNING in __rxe_cleanup
+From: syzbot <syzbot+fef38133c495aeb48297@syzkaller.appspotmail.com>
+To: jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com, 
+	yanjun.zhu@linux.dev, zyjzyj2000@gmail.com
 Content-Type: text/plain; charset="UTF-8"
 
-Thank you for the review and the corrections :)
-I will send a v2 patch with the fix tag.
+syzbot has found a reproducer for the following issue on:
 
-Best,
-Changyul
+HEAD commit:    a041bdbe1f3a arm64: Drop stdint.h type overrides from asm/..
+git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-kernelci
+console output: https://syzkaller.appspot.com/x/log.txt?x=14adccd5580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=4e8e6c1701ad8af2
+dashboard link: https://syzkaller.appspot.com/bug?extid=fef38133c495aeb48297
+compiler:       Debian clang version 22.1.8 (1~deb13u4), Debian LLD 22.1.8
+userspace arch: arm64
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14f37403580000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=11d60153580000
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/ed0e5cdd75d2/disk-a041bdbe.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/219ccd252cd7/vmlinux-a041bdbe.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/adb21ff27181/Image-a041bdbe.gz.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+fef38133c495aeb48297@syzkaller.appspotmail.com
+
+------------[ cut here ]------------
+WARNING: drivers/infiniband/sw/rxe/rxe_pool.c:212 at __rxe_cleanup+0x244/0x28c drivers/infiniband/sw/rxe/rxe_pool.c:212, CPU#1: syz.0.17/4954
+Modules linked in:
+CPU: 1 UID: 0 PID: 4954 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT 
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 11/06/2026
+pstate: 83400005 (Nzcv daif +PAN -UAO +TCO +DIT -SSBS BTYPE=--)
+pc : __rxe_cleanup+0x244/0x28c drivers/infiniband/sw/rxe/rxe_pool.c:212
+lr : __rxe_cleanup+0x244/0x28c drivers/infiniband/sw/rxe/rxe_pool.c:212
+sp : ffff800098747650
+x29: ffff800098747650 x28: 1fffe0001b49bc03 x27: dfff800000000000
+x26: ffff8000987476e0 x25: 00000000da70a250 x24: 0000000000000000
+x23: dfff800000000000 x22: ffff0000d512d5b0 x21: ffff0000da70a250
+x20: 0000000000000000 x19: ffff0000da70a250 x18: 1fffe000359d3e28
+x17: 0000000000000003 x16: ffff8000898b7000 x15: ffff80008b586000
+x14: 00000000005ab704 x13: 0000000000000001 x12: 0000000000000003
+x11: 0000000000000000 x10: 0000000000000001 x9 : 0000000000000000
+x8 : 0000000000000000 x7 : 0000000000000000 x6 : 0000000000000000
+x5 : 0000000000000001 x4 : 0000000000000008 x3 : ffff800084641254
+x2 : 0000000000000000 x1 : ffff0000d15d0000 x0 : 0000000000000000
+Call trace:
+ __rxe_cleanup+0x244/0x28c drivers/infiniband/sw/rxe/rxe_pool.c:212 (P)
+ rxe_destroy_qp+0x80/0x270 drivers/infiniband/sw/rxe/rxe_verbs.c:661
+ ib_destroy_qp_user+0x2d8/0x548 drivers/infiniband/core/verbs.c:2182
+ uverbs_free_qp+0xdc/0x188 drivers/infiniband/core/uverbs_std_types_qp.c:34
+ destroy_hw_idr_uobject+0x90/0x120 drivers/infiniband/core/rdma_core.c:579
+ uverbs_destroy_uobject+0x23c/0x4f4 drivers/infiniband/core/rdma_core.c:172
+ __uverbs_cleanup_ufile+0x1e8/0x334 drivers/infiniband/core/rdma_core.c:959
+ uverbs_destroy_ufile_hw+0x88/0x210 drivers/infiniband/core/uverbs_main.c:1003
+ ib_uverbs_close+0x54/0x200 drivers/infiniband/core/uverbs_main.c:1018
+ __fput+0x338/0x74c fs/file_table.c:512
+ ____fput+0x20/0x30 fs/file_table.c:541
+ task_work_run+0x1cc/0x25c kernel/task_work.c:233
+ exit_task_work include/linux/task_work.h:40 [inline]
+ do_exit+0x570/0x1a64 kernel/exit.c:980
+ do_group_exit+0x198/0x238 kernel/exit.c:1123
+ __do_sys_exit_group kernel/exit.c:1134 [inline]
+ __se_sys_exit_group kernel/exit.c:1132 [inline]
+ pid_child_should_wake+0x0/0x104 kernel/exit.c:1132
+ __invoke_syscall arch/arm64/kernel/syscall.c:35 [inline]
+ invoke_syscall+0x98/0x244 arch/arm64/kernel/syscall.c:49
+ el0_svc_common+0xec/0x23c arch/arm64/kernel/syscall.c:121
+ do_el0_svc+0x4c/0x5c arch/arm64/kernel/syscall.c:140
+ el0_svc+0x60/0x1d8 arch/arm64/kernel/entry-common.c:797
+ el0t_64_sync_handler+0x44/0x104 arch/arm64/kernel/entry-common.c:816
+ el0t_64_sync+0x198/0x19c arch/arm64/kernel/entry.S:606
+irq event stamp: 2998
+hardirqs last  enabled at (2997): [<ffff80008697a52c>] __raw_spin_unlock_irq include/linux/spinlock_api_smp.h:219 [inline]
+hardirqs last  enabled at (2997): [<ffff80008697a52c>] _raw_spin_unlock_irq+0x30/0x80 kernel/locking/spinlock.c:229
+hardirqs last disabled at (2998): [<ffff8000869540f0>] el1_brk64+0x20/0x54 arch/arm64/kernel/entry-common.c:484
+softirqs last  enabled at (2638): [<ffff8000800204f4>] __do_softirq+0x14/0x20 kernel/softirq.c:703
+softirqs last disabled at (1173): [<ffff8000800204f4>] __do_softirq+0x14/0x20 kernel/softirq.c:703
+---[ end trace 0000000000000000 ]---
+rxe0: qp#17 rxe_destroy_qp: cleanup failed, err = -110
