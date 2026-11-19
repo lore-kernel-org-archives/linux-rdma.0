@@ -1,102 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=67.231.153.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795051632;
-	b=XSjkO6KCQ2Puq9uSlBPoinXIJ/53WJ9QicQZXSr1kqqXhxRSpou5CFXCsOSAAKixsTw4
-	 j8Dl23qGBH6AjGgBYDnZN6Prc7nITp+U2POe1sDQPPa0rnDNRnnEQ98ez/5HbRHcE1eRZ
-	 oSYm6BBIHDJu06Jr4ysxaEckLunAL6xLydPNCqaEJ4kqUXSI+fQ/9HeUfhXFKTHhym5z0
-	 Kv3NvB//mDXyoxHZcZY9eWG+ERozPAP27p8pkyHTuk4gxdGUEfwbO7KyhHPlcTV8B7Tgg
-	 GIn+GK7WeloLYZTlc5nRXAHtI/6ltPzaqSfI/D+YhsiZ4tIgEdXfefxbkv3hl+XRNag==
+	t=1795051887;
+	b=R5theIT2v2joMpPGw2YzVpdUTKF1M8f07dX1R//wKN1ZqG2q1p0zTIieRsH6dhRKZ+Xo
+	 O2XyGnpUDgKUKox5QlTTuxmHbyQWlMOAsSsyyDd9UhtEnQOOkoCDsBAehEGlPtvp/9s5b
+	 v5yJs1sq/Un2BGfMigN5SyYemxOsWXH+bXAz0xvNluXmO397avpvQIRLBVZ0IYE0dligc
+	 3Br14/jeaLe+g7n6RIxKZsyBeY5a4C5eA85HV3epjQBWGgdX1fs1NIuHfi3VP0zsY4BzJ
+	 54rPKN5okAEay5P6dCrvuKHcoxfUIzbb+D1wra584ac9pJsG597aElUfCHYhdVfMlKA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795051632;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=wMPR2OAqKd8NTkv9afi4XE21M7DTJCxQ1aj05lm6jLA=;
-	b=tcHlmtoCVOvVi+bXiIXECNATueGhkqpuPw2eJJJ3dc+fRvOyDr4LSW8tkZEkEKnBbbSy
-	 I2DuE8/ZxPQIiohl0JjOZKgSt2gibT0PcVAYBRtCHnbX40dWOcKv+HlR6ArKDdWlUVFUz
-	 cr5jr7jsje+eoIIYiEjgviS1c+QMv3mruV7UVm5LsK67TFA4IJsD1NdBxqhJNMCsQhDtC
-	 laD9S57G53xtwxHO4vHRoIAdDGX31FLXRkwMVycR5DCJuNwHLWZL2kVcccTHgJK+HvZ9z
-	 CCaCEPdoQ3LQ338fdSRGXqdALrc0FIPe+LWBe48llgSa5w2O1e1Ye8u8Mec+/oy2cPg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795051887;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:From:To:CC:
+	 Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:Content-Type:X-Originating-IP:
+	 X-Proofpoint-GUID:X-Proofpoint-Spam-Details-Enc:
+	 X-Proofpoint-Spam-Info:X-Proofpoint-ORIG-GUID:X-Authority-Analysis:
+	 X-Proofpoint-Virus-Version;
+	bh=P2Uj5eJQ/pImJaX7y2hlXtH60Ket8Hk1wY9Gm9bo7Qs=;
+	b=HfzpafCOf+tdYCidkruACG5PtXIx08eBwdHxJG/fQCpWihJ9jzfLKDsEB4TgiVd+HdVc
+	 jaykLygxSWciiHgJXE1jlunkJr1qsYAGlTo/xk0FMKJS+hvhmHIZ8J2cxOCW3e8mpupiH
+	 PbtHSbk5J8etkpxce4pcwn3BNgfI46M9fUtorRyYQNvtPqmKCz42/u0FyMe4pWqhFC9Qj
+	 rbvhS4HVc05pGlKfmeNi4oegV8pA6XZTu4PlKdT3PlBFNrKsqrWVnvea16zZ5IHCB3PLo
+	 aScwHpXsP4mMhRfYzuEE5V2XGsHHxb0ifHw8Af9D08a0rbr+8IejVuP5mdRd3ge5lTw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=dnBigy5L;
-	arc=none smtp.remote-ip=209.85.222.172
-Received: from mail-qk1-f172.google.com (mail-qk1-f172.google.com [209.85.222.172])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=pass header.from=meta.com;
+	spf=pass smtp.mailfrom=meta.com;
+	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=fh6l6A+J;
+	arc=none smtp.remote-ip=67.231.153.30
+Received: from mx0b-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BAFE606A31C
-	for <linux-rdma@vger.kernel.org>; Thu, 19 Nov 2026 01:27:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4BAFE606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 942E2606A330;
+	Thu, 19 Nov 2026 01:31:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 942E2606A330
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=dnBigy5L
-Received: by mail-qk1-f172.google.com with SMTP id af79cd13be357-949680e6d82so223787885a.2
-        for <linux-rdma@vger.kernel.org>; Wed, 18 Nov 2026 17:27:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795051631; x=1795656431; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=wMPR2OAqKd8NTkv9afi4XE21M7DTJCxQ1aj05lm6jLA=;
-        b=dnBigy5LCe3PKsBq23e+tzlO8XsZwaQCApUPD1wD4F6K6Q5XNb5RCm9PkGUqNAq275
-         kDRAPaS8Z1ouYJH9Gi/DA/vAdNWLSBfwtrt+ZcCHcPqbjR4l/m4lvpjbg0MdRqkR3IXY
-         3gEPFuzpldVtV54oxUxL7CZ0fg0cay7mfcrBcfxJK57/bOcwe1Y6UNEu4npiVjwc4h31
-         uqZLBnbePKmptJZk9mv4MKFVJQLET8BnkaroIthf7S0Uv3tDvqCHPH1pEP7okI7CXY45
-         lvJf3xvwTroXbIm5BtDjmNOqsqIJP6JWA1cfQDm4OOL/Qm5Gc05pIlE3dUKtBVISQA3+
-         Zuvw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795051631; x=1795656431;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=wMPR2OAqKd8NTkv9afi4XE21M7DTJCxQ1aj05lm6jLA=;
-        b=OJZMuo8sNQz7noulzgrJNcoY5mNshyL098MHDHUVI8oU6LZs1NZPgxHpjLJl2nc3Gx
-         uFRNoqn8W+YirhJu4Vr51Dt3XgJ/eCtBmGpMwPIV7omByAlegLSIrIC9FtIlblhmfDh2
-         /+Xz5gYjLyYfC9hfMBxbzMCwBVX4U4FkqId5jOaK81xZRtitHQqDzTxehaKgti9/9n2v
-         F+DyE57QjMI6qXe1lMmnDXnjMXiP68tHtj79vlabfzg6659rP8Wc8DhDWbrrPxVXgz7p
-         Hd21vkpNq/PV4ETrx3lo4fxQcg7CT3aEW/D8mxllb/5m7i31sMvO1gLvCOR1D40Iog9M
-         3BvQ==
-X-Forwarded-Encrypted: i=1; AL+hErFuz3ih+UNxZbLwEjPpXGN/SzE5b2BqBPJS/W7F3ujJa+DAYAiVsLNKNxAjFj6EaxMYT9nqPNdv3m+E@vger.kernel.org
-X-Gm-Message-State: APuU4Z848SRtJXR8aXMx2YadPnUcKwQ9YbHi+T+8wSsCYKtpMcYVl6r1
-	gs4Q6lwg1nSqZgKkHbx8ODkWMbT0PbJYl09su8XocVM7AbfdKJjGtFrU
-X-Gm-Gg: AYBFou0Xh/PYiJ4m3xY9V8ZglnVygm5mgqvItd7mMZZJjgnQg7ixvjvQBXK/XGTeMnb
-	2upTOZ5fOPmuMk2CBV8koglGmLMzSvdTxWK+drlcz5cwrGSSjWxC7D4k9SY5IJfAtcMmUy17Z6l
-	cjZBQOW4QVrxDWIf6etLvWxPHraV5TMOvvVMkVrlNEtfb83bfEPhf4ymUCSzv3ES/kwgpBGslr3
-	IB7/6ZBJqk/YAjS9P4yw52WIrVc+a8KLCmABzJQn+hkTBHNGIbC2MJdRKjXmcc9CLHLnfju0dV1
-	mrhsPLPn8UTOaeCRAlIk0s+bWwVJZ+qq9dBkFUFoNyqk4e5GOPWqplhzPE6IFNRVK5t81N1by9n
-	EqqybAVbwnTLmGdxvFAGCLjpJB2bKSeSLQaYW3YlN4RrnyGORkg3EZbS4OT7MnAAE34prfKcGvH
-	Hp7ubuJIg+099BvBzJ5JERbmrZK6/WoFnsYCm/gWP63fN/kDbzuPatgiJz7wVQAMhfX3R4tR5FA
-	qhGItOuXWsIRf2X/vMSZ1YeP09iDDj39yF2gUUtYKgajrM+dQbK1b4tGAw9TVM2W1ccAcFuTyPf
-	OqhwKcBaAcIky9hen/5eyRDb85CTnkn+f8SMGMrWX8EG+5R6lAc40J5sle/7WOpMN3dgCp4Jyac
-	=
-X-Received: by 2002:a05:620a:2709:b0:93e:920c:c00e with SMTP id af79cd13be357-9499957ea71mr827141385a.21.1795051631052;
-        Wed, 18 Nov 2026 17:27:11 -0800 (PST)
-Received: from linux.. ([8.34.174.240])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9499b4524c3sm318730885a.1.2026.11.18.17.27.10
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 18 Nov 2026 17:27:10 -0800 (PST)
-From: Changyul Lee <lcy8047@gmail.com>
-To: Saeed Mahameed <saeedm@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>,
-	Mark Bloch <mbloch@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Gal Pressman <gal@nvidia.com>,
-	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Changyul Lee <lcy8047@gmail.com>
-Subject: [PATCH net] net/mlx5e: Skip hairpin entries not ready in debugfs dump
-Date: Wed, 18 Nov 2026 20:27:07 -0500
-Message-ID: <20261119012707.555494-1-lcy8047@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=fh6l6A+J
+Received: from pps.filterd (m0528004.ppops.net [127.0.0.1])
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AJ19S0D1375386;
+	Wed, 18 Nov 2026 17:31:16 -0800
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=
+	pps82601-s2048-2026-q3; bh=P2Uj5eJQ/pImJaX7y2hlXtH60Ket8Hk1wY9Gm
+	9bo7Qs=; b=fh6l6A+J3D/DeSDReFswL6gr+hBhtlYaPvsxOHbjJVNROQBfHxrwQ
+	TQN1xwimAAEbhZ6ZXQbf0e4kil79lTWPoZCeFxp+1WlwFapX4u1fOMk+TJA6P973
+	PYCclInj77h4L+MLYtmdrfvfOUB65aXhDUnSIkaBeIlSqtL6rRWZ7Vkwwqi0XLdw
+	i998tBkIAMhXHGBrlClBxHGOtHglwlj6BtTm2ZnwUnrOFQahzvmidak5HFArwNn4
+	ZqukbJ6VfkkljX43bNTUprOLURJP/vluMQv1DFH56EoIpbXfD9A+somcwPpCUMID
+	5JSMqcjCoX4fejCCLj5EKAlkkvCCxZ0Xg==
+Received: from mail.thefacebook.com ([163.114.134.16])
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j0yu6b8r4-2
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
+	Wed, 18 Nov 2026 17:31:16 -0800 (PST)
+Received: from localhost (2620:10d:c085:108::4) by mail.thefacebook.com
+ (2620:10d:c08b:78::c78f) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.56; Thu, 19 Nov
+ 2026 01:31:14 +0000
+From: Todd Freed <toddfreed@meta.com>
+To: <netdev@vger.kernel.org>
+CC: "David S. Miller" <davem@davemloft.net>,
+        Andrew Lunn
+	<andrew+netdev@lunn.ch>,
+        =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?=
+	<bjorn@kernel.org>,
+        Boris Pismenny <borisp@nvidia.com>, Cosmin Ratiu
+	<cratiu@nvidia.com>,
+        Daniel Zahka <daniel.zahka@gmail.com>,
+        Donald Hunter
+	<donald.hunter@gmail.com>,
+        Dragos Tatulea <dtatulea@nvidia.com>,
+        Eric Dumazet
+	<edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
+        Jamal Hadi Salim
+	<jhs@mojatatu.com>, Jiri Pirko <jiri@resnulli.us>,
+        Leon Romanovsky
+	<leon@kernel.org>, <linux-doc@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
+        <linux-rdma@vger.kernel.org>, Mark Bloch <mbloch@nvidia.com>,
+        Paolo Abeni
+	<pabeni@redhat.com>,
+        Pedro Tammela <pctammela@mojatatu.com>,
+        Saeed Mahameed
+	<saeedm@nvidia.com>, Simon Horman <horms@kernel.org>,
+        Tariq Toukan
+	<tariqt@nvidia.com>, Wei Wang <weiwan@google.com>,
+        Willem de Bruijn
+	<willemdebruijn.kernel@gmail.com>
+Subject: [PATCH net-next v2 03/12] psp: declare psp_assoc_set_tx() in psp.h
+Date: Wed, 18 Nov 2026 17:30:54 -0800
+Message-ID: <20261119013103.1092559-4-toddfreed@meta.com>
+X-Mailer: git-send-email 2.53.1
+In-Reply-To: <20261119013103.1092559-1-toddfreed@meta.com>
+References: <20261119013103.1092559-1-toddfreed@meta.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -107,47 +103,80 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Proofpoint-GUID: yVV_1QUW5K0tGURDzbKPcBa7SpKrFcbk
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE5MDAwNSBTYWx0ZWRfX8LkTAZS8L5wt
+ uU6lSqSyZB2RP+C0kSd7pDzvolBLAtp5tGZr6ee236lS3ROGpyrlfiwQ3fzAnOTWvLzVo9UcBqf
+ ++YziysC5Z5TogmWScEPNoDafZBqS/ge3Obw3dwxKwO/kNVyQPHYQ78ffnVkgtwaobqSc7+cpSq
+ 9StQcbYVrmQ4JNDQ2r7ZyBnmX34MQsqYrbu/6DbyszJAHlHiM/pP7yUvU+C45J9TQM4dKkWmFCN
+ aOVoLrFSfBJC3QvE8OLJDb5cmRTRSrkYCUW/CLXqa+jr1IP9oQwI1npaQSFTjroDO60iU75V1Z/
+ 5vcl8p4icp8yo81r6dDaHG9TRpVqIXXIsU3qoe/uGned78z1ObLFGiddr6MwcPkC9MVuqwnvaTW
+ maieXxmCgNamE+Nt/M2WkzKtRVFf+xBiTc2ZCdxpIB7so+j6QHEDR1wAmTuR7dMTIRFc4zKru6z
+ J/1bGz50qKvJRUT0z9Q==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE5MDAwNSBTYWx0ZWRfX5S2WrSb6Dgso
+ bOoFSZU2z3ffmnpAz4zilQCoNAwLlRhTUMsu5hnzZ1ExIdwRJAjvu1maYpm0kpfMc3CvrT+m1hf
+ I0QJ3nja8psG6igAVYdWp89bkzxIxeY=
+X-Proofpoint-ORIG-GUID: yVV_1QUW5K0tGURDzbKPcBa7SpKrFcbk
+X-Authority-Analysis: v=2.4 cv=Mfz5KJ/f c=1 sm=1 tr=0 ts=6afe5164 cx=c_pps
+ a=CB4LiSf2rd0gKozIdrpkBw==:117 a=CB4LiSf2rd0gKozIdrpkBw==:17
+ a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
+ a=GbPsI2Ihf5RTnMjR_gZv:22 a=VabnemYjAAAA:8 a=FmbL48aYcJvIc3pBxYIA:9
+ a=gKebqoRLp9LExxC7YDUY:22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-11-19_01,2026-11-16_01,2025-10-01_01
 
-Hairpin entries are added to the table before creation completes.
-Reading hairpin_table_dump can therefore dereference a NULL pointer
-while creation is in progress, or an error pointer if creation fails.
+Socket-less PSP associations will need to install a Tx key the same way
+sockets do.
 
-Skip entries that are still being created or whose creation failed.
+Make psp_assoc_set_tx() non-static, and declare it in net/psp/psp.h.
 
-Fixes: 0e414518d6d8 ("net/mlx5e: Add hairpin debugfs files")
-Signed-off-by: Changyul Lee <lcy8047@gmail.com>
+Signed-off-by: Todd Freed <toddfreed@meta.com>
 ---
-Found with a static analysis tool we are developing.
+ net/psp/psp.h      |  3 +++
+ net/psp/psp_sock.c | 15 ++++++++++++---
+ 2 files changed, 15 insertions(+), 3 deletions(-)
 
-Compile-tested only, with x86_64_defconfig plus MLX5_CORE_EN,
-MLX5_ESWITCH, MLX5_CLS_ACT and W=1.
-
- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-index 1d35c97aea0b..c6623f13261b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-@@ -1067,12 +1067,15 @@ static int debugfs_hairpin_table_dump_show(struct seq_file *file, void *priv)
- 	u32 bkt;
+diff --git a/net/psp/psp.h b/net/psp/psp.h
+index b123c2427905..de4be3320009 100644
+--- a/net/psp/psp.h
++++ b/net/psp/psp.h
+@@ -24,6 +24,9 @@ void psp_nl_notify_disassoc(struct psp_dev *psd, struct net *net);
+ struct psp_assoc *psp_assoc_create(struct psp_dev *psd);
+ struct psp_dev *psp_dev_get_for_sock(struct sock *sk);
+ void psp_dev_tx_key_del(struct psp_dev *psd, struct psp_assoc *pas);
++int psp_assoc_set_tx(struct psp_dev *psd, struct psp_assoc *pas,
++		     struct psp_key_parsed *key,
++		     struct netlink_ext_ack *extack);
+ int psp_sock_assoc_set_rx(struct sock *sk, struct psp_assoc *pas,
+ 			  struct psp_key_parsed *key,
+ 			  struct netlink_ext_ack *extack);
+diff --git a/net/psp/psp_sock.c b/net/psp/psp_sock.c
+index f2cba3fa3a23..d04146273bf2 100644
+--- a/net/psp/psp_sock.c
++++ b/net/psp/psp_sock.c
+@@ -185,9 +185,18 @@ int psp_sock_assoc_set_rx(struct sock *sk, struct psp_assoc *pas,
+ 	return err;
+ }
  
- 	mutex_lock(&tc->hairpin_tbl_lock);
--	hash_for_each(tc->hairpin_tbl, bkt, hpe, hairpin_hlist)
-+	hash_for_each(tc->hairpin_tbl, bkt, hpe, hairpin_hlist) {
-+		if (!completion_done(&hpe->res_ready) || IS_ERR(hpe->hp))
-+			continue;
- 		seq_printf(file,
- 			   "Hairpin peer_vhca_id %u prio %u refcnt %u num_channels %u num_packets %lu\n",
- 			   hpe->peer_vhca_id, hpe->prio,
- 			   refcount_read(&hpe->refcnt), hpe->hp->num_channels,
- 			   BIT(hpe->hp->log_num_packets));
-+	}
- 	mutex_unlock(&tc->hairpin_tbl_lock);
+-static int psp_assoc_set_tx(struct psp_dev *psd, struct psp_assoc *pas,
+-			    struct psp_key_parsed *key,
+-			    struct netlink_ext_ack *extack)
++/**
++ * psp_assoc_set_tx() - install a Tx key for an association
++ * @psd:	PSP device, must be locked
++ * @pas:	association, must belong to @psd and not have a Tx key yet
++ * @key:	Tx SPI and key
++ * @extack:	netlink extended ack
++ *
++ * Return: 0 on success, negative errno otherwise.
++ */
++int psp_assoc_set_tx(struct psp_dev *psd, struct psp_assoc *pas,
++		     struct psp_key_parsed *key,
++		     struct netlink_ext_ack *extack)
+ {
+ 	int err;
  
- 	return 0;
-
-base-commit: 342e62fd34c2674e82bffc89cb5c7091924986d9
 -- 
-2.43.0
+2.53.1-Meta
 
