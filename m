@@ -1,13 +1,13 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.57.35
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.43.27
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795077678;
-	b=3YX7mlWCBzOt14xGSsMdz17vcEoO/kcNrt1gQrljfefzYjb6hcQo3h/2i3XZ2BewoXpg
-	 H4Evm/lhTRtFM0dvb8Snm7YoPnrwES+CJ7RT8Vkc7h/fXAhN4PgyVwx/SU0wAdnYdq3ua
-	 wGW5mS1daY4HP908RPp7xf7TyhKCscZ4brcBJ0/rS52VCmV2nApVWVWnTVEyiKzDaznE3
-	 zEXr5QPQ0ZySZxVxdStv7D+NcJHWu1rhwPZYh0QpvDvBpiUClywi8nBtI6M+CObD/3Gd5
-	 wMaIfNjT5anKYcmYVjlaigDtSuajPYFLvGRpCgSkhsnhijDYN3WKAk3DjBnjJZpWWfQ==
+	t=1795078729;
+	b=Bu6ZNGRoTtIgq0t3sVwMZ6f8pqPqKuX5yGCI9S+gQnhKJgkD0JAg/gFrBbUNKlMSLLRl
+	 0PyL08B0aoKJCNhieU4hYagZTvdB7S8To6gD9jmCzM6cQygeBLsWz3h35NKBL/6tBj9k6
+	 qKBdDKSd5yEsmjbclpQCf8p3ChPGZn4zYW3q9XwEUfH6yO32tFyjBl9FSUzFvL6mHIeyE
+	 gu4nheeUmu6taONs/DTsfuAx8AIgeKnhAfJ46hAvCT3tdYdxttEOLIylBAnACopqL3Gio
+	 Oho0czMWmrNM2XRpM+QREJ2+C/IwfBAFcIE0ULN3tMUeqOZi375DyTgVglugY4dWvew==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795077678;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795078729;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:
 	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
 	 Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:In-Reply-To:
@@ -26,35 +26,35 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=HaSh8DCHFUMHh9Ws85B18yd5Etf04jneBGkKg+rxRnE=;
-	b=omTKdPzO++Ngfhg88pIpMZlSAovfm8ddP/IBF3xso0vdQUUXwAOFXJWCc+wfsGzcvhIy
-	 SyP/XkBnjxPwMWs7zuYT5yuUbpkYZ8/Jac1Pil0DV6WsNDdv0XbRKTyohZM+zLOtcZLrL
-	 vuU6eu4LTgPw8oIIqUAZPOnryOWNu4GFPXzhomv9eerrjovd3icNi//WDvsSqg30Qw3+9
-	 pvCMJYW3n5F2V0whbRX9BsT3BDuWbqUHmIk2BlNNMeyy0Xido4GNmC+91FqONvGDcFnTc
-	 CFNMqF2e4M7bNSODF8ybEWyMJ/Gj/T0bvScOY5wM7Fb3jxPnejc8R/uiXBZgUsCu9Pg==
+	bh=tORVYygeegvwgcS7dBzakpDxbWbrEdsVOxg9tjxWrYk=;
+	b=dZ3ftIGN8o4GpDGFG0vcptnYjr9CAZeMAgneQSOVTkHlT3KtEnmLteJryupwvwKvTwek
+	 Mewa3QfMQrp6d77VdRUiPks6zWhUJhnAw5rmeAuRQXWTaUB+AbLM7BXCIjOlEBSMmQ8HG
+	 DCdNZYe8kndGM1/DcwL6ARXt49Vr+FBc97ak8pVUhlrdXtlKl15aFU4zsipEeHX95wWPt
+	 5zwyjkpVO/HIIR/Gh5gBMliIH9WOqQ7fIfzL3uZFMM4mU3aiLrELAAFKlGy3QE1rbxs3A
+	 +jF7voEGL1MHJutSvUz5e+NfE/OLdzdgDO4VH8fNk088FPmMgVk5EWi8qxiQ8Dj875g==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=giEZ6p4g;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.57.35
-Received: from BN8PR05CU002.outbound.protection.outlook.com (mail-eastus2azon11011035.outbound.protection.outlook.com [52.101.57.35])
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b="TuxK/dOV";
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.43.27
+Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012027.outbound.protection.outlook.com [52.101.43.27])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25F4B606A331;
-	Thu, 19 Nov 2026 08:41:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 25F4B606A331
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D593606A320;
+	Thu, 19 Nov 2026 08:58:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0D593606A320
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=giEZ6p4g
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=TuxK/dOV
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=KGqG0DbEKrkrNr0DGnlRoM2Kw7RSLMPcS4ZHgbb6k7cfdRRnPa8amuE6jd+2YTunKrBh7dsldhZv7a5ICutgMogQ5e2DBHbz9nrpkHdtCC4zn2vc+laYXqorDLvq5KY43O6VRvzfsgL4GyjYVK2W119OZlrF9lallLYtCCtWNByrZ+07Tl93ukNsjTh+9kscNd3z91pZgfw5Xkjk6qJu/de8XMR9DqhMgnhovZ8xCMvA9hNQNDYz08e37IMQD8vsCbwGoNab+O1E4SwWz9FgGsmoyNOFUxg05iLnC0SZlSW8QidIxnfQH9FWPbtE100SA8a3TzWOzB4UBjINl9gxRw==
+ b=f/U99hAq8ZiGOArDq5Ix6iG7SUTj/dhdfM2q7RQkO89Ax9edsjs9l7GyRkKT2+XPI4suw4FVG86FvvcchvZOYx9R+U8e2fkr3/hwr9JVlZYN3fkgYK1qPC8PPA0E1OjSGUFZp2zjtt6325+UXAQ1cXHDZNFyxNNpIAfwrQXJksRgnppRcBP+8uuEV8BzoRYPAgr/WqtiRgCCaP9v1xnhrqHC1NvLRB1KgHbY91ITXGEKRkGCXhXXZkV8wPOpLzORyrzxsgVRB8Y7yxnPuMHy+6nds8cKb7f+FF2x6tR+UPUQNJ+kaW6Be++1jGgxBkyuyT9kej+5B4Jx0bxx1FPUWA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=HaSh8DCHFUMHh9Ws85B18yd5Etf04jneBGkKg+rxRnE=;
- b=x3rbP+KH81FhNEhgUXdoHywkmTIvl8E2SuDjBCGb74Ll9xbqMtbfXebo9/Jysu0jfGvSeiOVDBg03dC6XYvMxWyS1MvsBVeGbcwKZhV0WrgPeRkC3eJ62UFLm7y9Ro/pvYAC2peRSL7DL02rladAH6gY1QrTGgkm1KqP5W977L7E7GMdG4YFq3ABmVQCqKrkG0/O/AFSxRH30k+iaBYYOxSLJhYoBPxfFoASjjlTHxn87X4P5fygguOmUAc4itZTStUd4q6zDHezlZrRF5nnB5uKNU3qfG7VYYdWrpoeAAhGhVl0Uw6IjfnqbYVhYvU+T92ZPndMI4D2VaiMZNdo+g==
+ bh=tORVYygeegvwgcS7dBzakpDxbWbrEdsVOxg9tjxWrYk=;
+ b=sv0x4qhD6I006BQNM5CMmox1p5fZr56sGyGq1tJrNW7cNsPzaXFHVCit86ffVOJknPWivB1nGkR1EoTH1FaTzOfc3rYMeST9X/fuqUXey7conz8LRXGyGqYlDppTt1hfR0f/6qlpGzXeBec0kRR4XwyzugOgI1sV78wX6HzvbhvpjsWPb4s9U5ImczNiOAIBIRKUMibQNmsGbcNqrpqNGNdOl7E7TYs/hxWUhi/LZuQVLQtsvtgpeBAfjQ/6w02jULdEWBMgVKzF1xI39dFoCVxcwY4cWdRqx3OPMFUW3LTvJnND9Ut2OdXb0AmLWXDAFk0a6pI0UNkccSNBsHB/ZQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -62,18 +62,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=HaSh8DCHFUMHh9Ws85B18yd5Etf04jneBGkKg+rxRnE=;
- b=giEZ6p4g1bLH68TykuPK0LB5EqCii02hmYhJpSTSPzCXzyAYGsPjCb7avr9K9O3UGc/yrAXYZvCC9gJb6IuQ9L3iUP2gymchW8ciaNA5FIdOgiezQGjOMPqDw9/4OkF4gmauUlmY5Yo4lZb76dhJgkqMkaAhdDs99DnIJxEv1exFCEkjCOYA8KSl6fieAOafT3vkKXFJGL9eRKQJ7EWUinPIuc67jox1HAgprqLzWpx4tsXWs04QCtYI8oBJ0t8Migq8xo5uPb5AnFRqD0jhQYjfVr98P6wd4z2duEALsjEC45I3WeWEmTRweXZmPhNrrRqbzG0M+1l8uqfWZ1sfCw==
-Received: from PH8P221CA0061.NAMP221.PROD.OUTLOOK.COM (2603:10b6:510:349::17)
- by LV2PR12MB5869.namprd12.prod.outlook.com (2603:10b6:408:176::16) with
+ bh=tORVYygeegvwgcS7dBzakpDxbWbrEdsVOxg9tjxWrYk=;
+ b=TuxK/dOVc2O3FOKx+mt7LsJH/5r803b/+U5oa+xaDziNY3LS7sKiLwrslIV16dig2JLKx44krXWvWcBxeWI2yhTA7anf7uminfJ72ZLUNOlX5LvyYR3T/EH3pEDS13wg4qW2Wvp9bEmfJ9I/AjNWImJXAZhul4fX9NE33OAQbipfzmcAQe/iC1v9MBYDXvgwgw3oAG5oxPD6Jzu6b3l2p04fIVQU4v4PTqpTxeEQ1k00zhipoI4c/7wtSXKabxplBRJEAJwVGxZbuVLEBV5kMeL/eeuTCcTXZCS6k9vuAlEVKmS3ZqtU0QS8VoV40bg9zNoWhza7F7uK08wzwKULeA==
+Received: from SJ0PR13CA0002.namprd13.prod.outlook.com (2603:10b6:a03:2c0::7)
+ by DS4PR12MB9820.namprd12.prod.outlook.com (2603:10b6:8:2a7::15) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.14; Thu, 19 Nov
- 2026 08:41:13 +0000
-Received: from MW1PEPF0001888D.namprd03.prod.outlook.com
- (2603:10b6:510:349:cafe::30) by PH8P221CA0061.outlook.office365.com
- (2603:10b6:510:349::17) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.615.14 via Frontend Transport; Thu,
- 19 Nov 2026 08:41:13 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.639.12; Thu, 19 Nov
+ 2026 08:58:44 +0000
+Received: from CO1PEPF00018866.namprd03.prod.outlook.com
+ (2603:10b6:a03:2c0:cafe::19) by SJ0PR13CA0002.outlook.office365.com
+ (2603:10b6:a03:2c0::7) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.639.8 via Frontend Transport; Thu, 19
+ Nov 2026 08:58:44 +0000
 X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
  is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -81,17 +81,17 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.117.161 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.117.161) by
- MW1PEPF0001888D.mail.protection.outlook.com (10.167.249.164) with Microsoft
+ CO1PEPF00018866.mail.protection.outlook.com (10.167.249.150) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.639.5 via Frontend Transport; Thu, 19 Nov 2026 08:41:12 +0000
+ 15.21.639.5 via Frontend Transport; Thu, 19 Nov 2026 08:58:43 +0000
 Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
  (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.57; Thu, 19 Nov
- 2026 00:40:57 -0800
+ 2026 00:58:26 -0800
 Received: from nps-server-23.mtl.nbulabs.nvidia.com (10.126.230.37) by
  rnnvmail201.nvidia.com (10.129.68.8) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.57; Thu, 19 Nov 2026 00:40:50 -0800
+ 15.2.2562.57; Thu, 19 Nov 2026 00:58:21 -0800
 From: Shay Drory <shayd@nvidia.com>
 To: <netdev-bot+sashiko@kernel.org>
 CC: <tariqt@nvidia.com>, <andrew+netdev@lunn.ch>, <davem@davemloft.net>,
@@ -101,12 +101,12 @@ CC: <tariqt@nvidia.com>, <andrew+netdev@lunn.ch>, <davem@davemloft.net>,
 	<linux-rdma@vger.kernel.org>, <mbloch@nvidia.com>, <moshe@nvidia.com>,
 	<ohartoov@nvidia.com>, <phaddad@nvidia.com>, <saeedm@nvidia.com>,
 	<udar@nvidia.com>
-Subject: Re: [PATCH net-next V2 09/10] net/mlx5: LAG, drop MLX5_MAX_PORTS scratch array from device rescan
-Date: Thu, 19 Nov 2026 10:40:42 +0200
-Message-ID: <20261119084042.1589375-1-shayd@nvidia.com>
+Subject: Re: [PATCH net-next V2 10/10] net/mlx5: LAG, do not add a device to an already-active virt LAG
+Date: Thu, 19 Nov 2026 10:58:13 +0200
+Message-ID: <20261119085813.1591422-1-shayd@nvidia.com>
 X-Mailer: git-send-email 2.38.1
-In-Reply-To: <179499791924.3136.16901930891335328702@kernel.org>
-References: <20261116103010.1129666-1-tariqt@nvidia.com> <20261116103010.1129666-10-tariqt@nvidia.com> <179499791924.3136.16901930891335328702@kernel.org>
+In-Reply-To: <179499792089.3136.10061962693179545978@kernel.org>
+References: <20261116103010.1129666-1-tariqt@nvidia.com> <20261116103010.1129666-11-tariqt@nvidia.com> <179499792089.3136.10061962693179545978@kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -122,36 +122,36 @@ X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
  rnnvmail201.nvidia.com (10.129.68.8)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MW1PEPF0001888D:EE_|LV2PR12MB5869:EE_
-X-MS-Office365-Filtering-Correlation-Id: 69cd48d7-d217-4874-e223-08df4618de14
+X-MS-TrafficTypeDiagnostic: CO1PEPF00018866:EE_|DS4PR12MB9820:EE_
+X-MS-Office365-Filtering-Correlation-Id: cfd510fa-185d-41a4-d2e8-08df461b5093
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|376014|7416014|1800799024|82310400026|23010399003|261026121527099003|4143699003|261028144727099003|56012099006|11063799006|10067099003|261026140227099003|261022105027099003|261009223027099003|22082099003|18002099003;
+	BCL:0;ARA:13230040|376014|7416014|36860700016|1800799024|23010399003|82310400026|10067099003|11063799006|5023799004|4143699003|56012099006|261021121427099003|261009223027099003|261102123227099003|261022105027099003|261022075727099003|261026140227099003|261026121527099003|261028144727099003|18002099003|22082099003|6133799003|13003099007;
 X-Microsoft-Antispam-Message-Info:
-	iqLTU7b1raaPNLeRrpK/o3Q9Ih66JY70D34A3Nab9YbHPSXLJltWySqk1vBcimUc+Up9WkCQqyQNYkLVtITZSDwLTYuQrJYF1NH36boOZtzu7NJuJ9dxQxt8DzgyHINqVhkIjzktX9mAvwqBA04Cng87KQIupr5BqiyRfmm4QryjXuqxmpEk9DShax44T5akhMI5uOhJaSxh+uH4pmBtVI4pfnv7Z05lFi9z/UIvtT+DEol6MGNlPEJ0YR5N3LjcwY8D8CBwS+pjT1vPlfUM7hiwisppiKMoQhzUPBkgnlpV6iW/bq7fbQYzvK2PTTzDnug2XBwRU0e+i7xGrnkl57DCWSt+zFFT7xxh8LVtKPL+ehDTNSHxS4DoKlynA3EAzwfXLJasDNb5P307dIG55S7h4k/ErQAz6Z1syEUxNPr+tMZ/KDikvqzvI2iIqwCYvjelBeDdY7/IErrA3V8tgRU6PB7Jk7aFbA5v1HKj2z9awa2qkGnckIqRaGcPl5HnMrhyO3AKxG7dPNHiE5Tj5urIGaINt8ZlxhbBaSRN1YhM4TSSJ+VVScIct65E7fgZJFCE+HrSktTyhdLme9nxHWMFa81QzjKRHObx4XpdrWctUGy5keozxe2FKvOk7+5saDLTh8rcprHuv5ytos4mdPXS779ttTvl3FyzDp61H20UVq+mwNHqjE3Lr6FaaMgVSvEBvqyi5qeyv7zHyUpo+w==
+	4tkFVr0PO2pF5yScccfhNcccchXhqwr4AdWHl98jSggBB1srN8VU8ZcRk1HA/ZDqgI/f4AHou0dRawmEQLdZaTeWT4Ew/UcVEdmpgc9W4hgXC+rWnjqH7AE6Ntc+4yCxwu5f8/Ax1rrDhKKNTwnAQfoGA3dfYQ40uBUeh/b1awjgO2cGcENJf9eueJS8oZdiX/12fgDUDog7l9CYewse/wBpJn0ToENgrgGHPLEx77spQzsoKxA4V8riyLDevur6Lp/qEZUX5TmPa1BlQqeWpAczGmFHjG987xGt5ygXB3Lu3jSijS9nu1UD6HHDZA6eEaXrPBb0KqtjoW/DhlgsaNxY0SszyqsRIQp9Rwuij+/sczkT/EDMEBZKD9ZTjbao5OtzJIUGu8OJp5r4/Pz4U6KRqn9vJKls0W3TDRXiCenuV0bUoEuO7kZ/dCyCwp9HPDhs8bnNSfLRer7Enxyol9ZRwTyX5oL065YfAs0Pe2ADjpLG6h4ctAMNeW6N+ESPRGQhrvvO8Ce6RFJ4Pk1c9EGAZU2RhkUSn5nq3lndNkmpQBFDc1JAp1NFaHkczVN+iqX5JG2h6iEdXptZVZ/Q7eGNdh7luPxDYCfOCdDoVrfQej69zruSDqh1dsVfGiML9ZB2eI3Rom1vUZqwPlgbK4etqOOblx96wBrUTAxTP4rfAoiZ02oqQVTup5Fztd9QGjJ6DrWA0RgJapaV0FTYmQ==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(376014)(7416014)(1800799024)(82310400026)(23010399003)(261026121527099003)(4143699003)(261028144727099003)(56012099006)(11063799006)(10067099003)(261026140227099003)(261022105027099003)(261009223027099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(7416014)(36860700016)(1800799024)(23010399003)(82310400026)(10067099003)(11063799006)(5023799004)(4143699003)(56012099006)(261021121427099003)(261009223027099003)(261102123227099003)(261022105027099003)(261022075727099003)(261026140227099003)(261026121527099003)(261028144727099003)(18002099003)(22082099003)(6133799003)(13003099007);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	FVP4ztK4KXzZ1/G2W7rA5WgScGBzzPU3j0y5+sLpoTi4r8Q834kNvrGLhaioD4ioimIbghKxAlr1BC2gQejHphwOPvLncS1ZwEBbHC+NMepEoiPS3f5tbdO+4ecCqhddkIPyAzijAmLVk3VmezXP8GC6WF/0YTelsbgyFq1jL8hZFE0Uar2Um2ysZ6YwPHeQeXfWyaJQJ2cQBct/AV5BPTRmhtfd8UU2/w799A7bZ9VbmIGH7jMYTylLKirf+UwWFOihKkE3Fndc53RrChiIwjHXsZtg9tjaE7vmiiOMN+Sr/GZAnk+OA48gzbHwqQL60rfyO6tpy9C0WvBVSMrxyfGaaE+HwifNgUQVZdaeH4JZouzkhl7jOp2USUQ6AQCkvVNITuuFx0pLi9rG+m7uCjzu1GE6Ab3Znsc0R/LIcmXz5unpiGXrKWA3ScRu8oPz
+	yaSLsEEJt0elhuZY+z4w4fIFtzu6uNrrvhMBAkdfXdMarLByDiHc4GVDPXp3NdmgeXtxQ2NZh0zSTYUIrzu/98QbDY42OV5Jg83ZjUt7QuTjaB5PPNnCE3GfcoEVy0noFrMOy5fRU+0I1kl4M6xBANAFqIBXDcZqfQv0DapRCTtQ2vnOlT4s5JBRwHfFKJRLjhg4pAoo45NSIUoNTUI3gyoDUPKcFgWYlCKyGcRHn/VXx8uM2lMaW1f7r50hBrmwF2MIKBfn10Ixw1mrtZpBjHPZGLOrAdtKiAfocBUYbHjYT5qvqYXmsduWFvn6SDd4i/mlRcZ6pIyWmxzUxTb6hZxG7rXe84pIGK0oGCG51VpvlMacviTHjYyKby2SUoSnWONfP1N6u8Rs3Jdta6hk1dutaN4565cN3SoZwsQBM4+CANzHa/O7nElBLHQSNevW
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Nov 2026 08:41:12.7947
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Nov 2026 08:58:43.8765
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 69cd48d7-d217-4874-e223-08df4618de14
+X-MS-Exchange-CrossTenant-Network-Message-Id: cfd510fa-185d-41a4-d2e8-08df461b5093
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	MW1PEPF0001888D.namprd03.prod.outlook.com
+	CO1PEPF00018866.namprd03.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV2PR12MB5869
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS4PR12MB9820
 
-On Wed, 18 Nov 2026 10:31:59 +0000, netdev-bot+sashiko@kernel.org wrote:
+On Wed, 18 Nov 2026 10:32:00 +0000, netdev-bot+sashiko@kernel.org wrote:
 > Thank you for your contribution! Sashiko AI review found 1 potential
 > issue(s) to consider.
 >
-> Critical: 0 · High: 1 · Medium: 0 · Low: 0
+> Critical: 0 · High: 0 (1) · Medium: 1 · Low: 0
 >
 > If you believe none of the issues are legitimate, please reply to each
 > issue of Medium severity or higher and explain why the AI is wrong.
@@ -159,131 +159,189 @@ On Wed, 18 Nov 2026 10:31:59 +0000, netdev-bot+sashiko@kernel.org wrote:
 > know by including "pw-bot: cr" as a separate line at the end of your reply
 > (one such reply per series is enough).
 >
-> - [High] In mlx5_lag_rescan_devices_locked_filter()
->   (drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c), this patch…
+> - [Medium] In this tree, both parts of the patch hit a predicate
+>   mismatch.
+>
+> Pre-existing issues:
+> - [High] This problem wasn't introduced by this patch, but the patch now
+>   cleans up the HCA devcom component on its own new -EOPNOTSUPP path…
 >
 > --
 >
-> net/mlx5: LAG, drop MLX5_MAX_PORTS scratch array from device rescan
+> net/mlx5: LAG, do not add a device to an already-active virt LAG
 >
-> This commit removes the devs[MLX5_MAX_PORTS] array from
-> mlx5_lag_rescan_devices_locked_filter(). The post-unlock rescan loop now
-> walks the LAG members again with mlx5_lag_for_each(). The commit message
-> describes this as having no functional change.
+> This patch stops a virt LAG capable function from joining a LAG whose mode
+> is already active. In that case __mlx5_lag_dev_add_mdev() returns
+> -EOPNOTSUPP, and mlx5_lag_add_mdev() then unregisters the HCA devcom
+> component. The patch also makes mlx5_esw_offloads_devcom_init() skip eswitch
+> devcom registration for a non-PF virt LAG capable function that has no ldev.
 >
 > > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-> > index a7b12353b7225..3e88b3f51612e 100644
+> > index 3e88b3f51612e..abcab76fced0b 100644
 > > --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
 > > +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
->
-> [ ... ]
->
-> > @@ -1356,12 +1354,16 @@ static void mlx5_lag_rescan_devices_locked_filter(struct mlx5_lag *ldev,
-> >  			fn->dev->priv.flags &= ~MLX5_PRIV_FLAGS_DISABLE_IB_ADEV;
-> >  		else
-> >  			fn->dev->priv.flags |= MLX5_PRIV_FLAGS_DISABLE_IB_ADEV;
-> > -		devs[num_devs++] = fn->dev;
+> > @@ -2448,6 +2448,11 @@ static int __mlx5_lag_dev_add_mdev(struct mlx5_core_dev *dev)
+> >  		mutex_unlock(&ldev->lock);
+> >  		return -EAGAIN;
 > >  	}
-> >
-> >  	mlx5_lag_drop_lock_for_reps(ldev, filter);
-> > -	for (i = 0; i < num_devs; i++)
-> > -		mlx5_rescan_drivers_locked(devs[i]);
-> > +	mlx5_lag_for_each(i, 0, ldev, filter) {
-> > +		fn = mlx5_lag_fn(ldev, i);
-> > +		if (fn->dev->priv.flags & MLX5_PRIV_FLAGS_DISABLE_ALL_ADEV)
-> > +			continue;
 > > +
-> > +		mlx5_rescan_drivers_locked(fn->dev);
+> > +	if (mlx5_virt_lag_is_supported(dev) && __mlx5_lag_is_active(ldev)) {
+> > +		mutex_unlock(&ldev->lock);
+> > +		return -EOPNOTSUPP;
+> > +	}
+>
+> [Severity: Medium]
+>
+> Can this condition ever be true in this tree?
+>
+> mlx5_lag_add_mdev() is the only caller of __mlx5_lag_dev_add_mdev(). It
+> returns early unless mlx5_lag_is_supported() passes:
+>
+> mlx5_lag_add_mdev() {
+> 	if (!mlx5_lag_is_supported(dev))
+> 		return;
+> 	...
+> }
+>
+> mlx5_lag_is_supported() requires num_lag_ports >= 2:
+>
+> 	if (!MLX5_CAP_GEN(dev, vport_group_manager) ||
+> 	    !MLX5_CAP_GEN(dev, lag_master) ||
+> 	    MLX5_CAP_GEN(dev, num_lag_ports) < 2 ||
+> 	...
+>
+> mlx5_virt_lag_is_supported(), on the other hand, requires
+> num_lag_ports < 2:
+>
+> 	if (!MLX5_CAP_GEN(dev, multi_uplink_eswitch) ||
+> 	    !MLX5_CAP_GEN(dev, lag_master) ||
+> 	    MLX5_CAP_GEN(dev, num_lag_ports) >= 2)
+> 		return false;
+>
+> No device can satisfy both, so this -EOPNOTSUPP return and the new cleanup
+> branch in mlx5_lag_add_mdev() look unreachable.
+>
+> The commit message says:
+>
+>   "mlx5_ldev_add_mdev() would add a newly probed device to the LAG even
+>   when the LAG is already active"
+>
+> Can that happen today for a virt LAG capable function? If this check only
+> prepares for a later series that enables virt LAG, could the commit message
+> say so?
+
+No, not in this series, and that is intended. As the cover letter says,
+this series only prepares the LAG core. The follow-up series admits virt
+LAG capable functions in mlx5_lag_add_mdev(), and only then can the check
+fire.
+
+> The same mismatch seems to affect the eswitch change. A non-PF virt LAG
+> capable function never reaches mlx5_ldev_add_mdev() here, because
+> sd_lag_init() only handles PF SD secondaries. So dev->priv.lag stays NULL
+> for it, and mlx5_virt_lag_nonmember() is always true:
+>
+> static inline bool mlx5_virt_lag_nonmember(struct mlx5_core_dev *dev)
+> {
+> 	return mlx5_virt_lag_is_supported(dev) && !mlx5_lag_dev(dev);
+> }
+>
+> As a result, the new early return in mlx5_esw_offloads_devcom_init() fires
+> for every such VF/SF eswitch:
+>
+> 	if (!mlx5_core_is_pf(esw->dev) && mlx5_virt_lag_nonmember(esw->dev))
+> 		return;
+>
+> Before this patch, a VF/SF eswitch with merged_eswitch would register
+> MLX5_DEVCOM_ESW_OFFLOADS and send ESW_OFFLOADS_DEVCOM_PAIR. The existing
+> MLX5_VPORT_MANAGER() / !mlx5_lag_is_supported() gate further down does not
+> stop a non-PF, because MLX5_VPORT_MANAGER() requires mlx5_core_is_pf().
+>
+> Does this drop eswitch devcom pairing for those VF/SF eswitches? That would
+> contradict "it is a no-op for existing configurations".
+
+No existing VF/SF passes mlx5_virt_lag_is_supported(). New FW will allow
+a VF/SF to report multi_uplink_eswitch and lag_master with
+num_lag_ports < 2, so the skip changes nothing for existing
+configurations.
+
+For such a VF/SF, skipping the pairing outside a LAG is intended. It
+manages its own nested E-switch, and it pairs with other E-switches only
+as a member of the virt LAG's shared FDB.
+
+> The commit message also limits the devcom change to "such a device", meaning
+> one rejected from an active LAG. The condition, however, matches any virt LAG
+> capable VF/SF that has no ldev.
+>
+> Once virt LAG joins are allowed, devices that are left out because
+> mlx5_lag_dev_alloc(), mlx5_ldev_add_mdev() or
+> mlx5_lag_register_hca_devcom_comp() failed would also be treated as
+> non-members. Is that intended?
+
+Yes. Whatever the reason the device was left out, it is not a LAG member,
+so it must not pair with the LAG members' E-switches.
+
+> >  	mlx5_ldev_get(ldev);
+> >  	err = mlx5_ldev_add_mdev(ldev, dev, 0);
+> >  	if (err) {
+> > @@ -2536,6 +2541,10 @@ void mlx5_lag_add_mdev(struct mlx5_core_dev *dev)
+> >  	err = __mlx5_lag_dev_add_mdev(dev);
+> >  	mlx5_devcom_comp_unlock(dev->priv.hca_devcom_comp);
+> >
+> > +	if (err == -EOPNOTSUPP) {
+> > +		mlx5_lag_unregister_hca_devcom_comp(dev);
+> > +		return;
 > > +	}
 >
 > [Severity: High]
-> This loop now walks ldev->fns after mlx5_lag_drop_lock_for_reps() has
-> released ldev->lock. Can a concurrent SD member removal free a lag_fn
-> while the walk is in progress?
-
-Valid. The race between SD join/leave and a LAG transition that drops
-ldev->lock is pre-existing; SD join/leave doesn't observe
-mode_changes_in_progress. It will be fixed in a follow-up series.
-
 >
-> On each step, mlx5_get_next_lag_func() reads xarray entries and fn->dev.
-> mlx5_lag_fn() then does an xa_load(), and the loop dereferences
-> fn->dev->priv.flags. The only thing guarding membership while the lock is
-> dropped is ldev->mode_changes_in_progress. The comment in
-> mlx5_lag_drop_lock_for_reps() says:
+> This isn't a bug introduced by this patch, but this new path unregisters the
+> HCA devcom component, while the nearby failure paths in
+> __mlx5_lag_dev_add_mdev() still leave it registered.
 >
-> 	/* Keep PF membership stable while ldev->lock is dropped. Device add
-> 	 * and remove paths observe mode_changes_in_progress and retry.
-> 	 */
+> If no peer ldev exists and mlx5_lag_dev_alloc() or mlx5_ldev_add_mdev()
+> fails, __mlx5_lag_dev_add_mdev() returns 0 with dev->priv.lag still NULL:
 >
-> The SD paths in lib/sd.c don't appear to check that counter, though.
-> sd_lag_cleanup() takes the lock directly:
+> 	if (!ldev) {
+> 		ldev = mlx5_lag_dev_alloc(dev);
+> 		if (!ldev) {
+> 			mlx5_core_err(dev, "Failed to alloc lag dev\n");
+> 			return 0;
+> 		}
+> 		err = mlx5_ldev_add_mdev(ldev, dev, 0);
+> 		if (err) {
+> 			mlx5_core_err(dev, "Failed to add mdev to lag dev\n");
+> 			mlx5_ldev_put(ldev);
+> 			return 0;
+> 		}
+> 		return 0;
+> 	}
 >
-> 	mutex_lock(&ldev->lock);
-> 	mlx5_sd_for_each_secondary(i, primary, pos)
-> 		mlx5_ldev_remove_mdev(ldev, pos);
+> mlx5_lag_add_mdev() treats that as success, sends LAG_DEVCOM_PAIR and keeps
+> dev->priv.hca_devcom_comp. On teardown, mlx5_lag_remove_mdev() returns
+> before it reaches mlx5_lag_unregister_hca_devcom_comp():
 >
-> mlx5_ldev_remove_mdev() then frees the entry right away, with no RCU
-> deferral:
+> 	ldev = mlx5_lag_dev(dev);
+> 	if (!ldev)
+> 		return;
 >
-> 	fn->dev = NULL;
-> 	dev->priv.lag = NULL;
-> 	xa_erase(&ldev->fns, fn->idx);
-> 	kfree(fn);
+> The comp_dev's data still points at this mlx5_core_dev. Does that comp_dev
+> stay on the shared component list after the core dev is freed?
 >
-> sd_lag_cleanup() is serialized only by sd->devcom. For
-> MLX5_LAG_FILTER_ALL, this function runs under the HCA devcom instead.
-> mlx5_do_bond_work() takes only the HCA devcom trylock plus ldev->lock, and
-> not mlx5_mpesw_sd_devcoms_lock(). It reaches this function as follows:
+> If so, a peer with the same key that probes or reloads would get the freed
+> dev back from mlx5_devcom_get_next_peer_data() in __mlx5_lag_dev_add_mdev().
+> It would then call mlx5_lag_dev(tmp_dev) on freed memory.
 >
-> mlx5_do_bond_work()
->   mlx5_do_bond()
->     mlx5_lag_shared_fdb_create(ldev, ..., MLX5_LAG_MODE_SRIOV, 0)
->       mlx5_lag_remove_devices_filter(ldev, MLX5_LAG_FILTER_ALL)
->         mlx5_lag_rescan_devices_locked_filter()
+> A peer's LAG_DEVCOM_PAIR/UNPAIR event would likewise call
+> mlx5_lag_devcom_event() with the freed dev. That reads dev->priv.lag and can
+> call mutex_lock() on a garbage ldev.
 >
-> mlx5_disable_lag() -> mlx5_lag_shared_fdb_destroy(ldev, 0) reaches it the
-> same way. Group id 0 maps to MLX5_LAG_FILTER_ALL, which matches every
-> member, SD secondaries included.
+> Could the component also be unregistered on those allocation failure paths?
 >
-> At the same time, removing an SD member's eth aux driver can run:
+> >  	if (err) {
+> >  		msleep(100);
+> >  		goto recheck;
 >
-> mlx5e_remove() / mlx5e_suspend()
->   mlx5_sd_cleanup()
->     sd_lag_cleanup()
->       mlx5_ldev_remove_mdev()
->
-> This removal can come from a sysfs unbind of mlx5_core.eth.N. It can also
-> come from a reload of an SD secondary whose hca_devcom_comp is NULL or in a
-> different component. Neither case holds the HCA devcom that the bond work
-> holds.
->
-> If that happens, mlx5_get_next_lag_func() could read fn->dev from a freed
-> lag_fn. mlx5_lag_fn() could also return NULL after xa_erase(), and the
-> loop would then dereference it.
->
-> The old loop touched only the devs[] core_dev pointers once the lock was
-> dropped. Those pointers stay valid across an aux unbind, so lag_fn and
-> xarray state was never accessed without the lock.
->
-> A similar question applies to sd_lag_init(), which also takes ldev->lock
-> without checking mode_changes_in_progress and calls mlx5_ldev_add_mdev().
-> Could the second loop then rescan a newly added member whose
-> MLX5_PRIV_FLAGS_DISABLE_IB_ADEV flag the first loop never updated?
->
-> Given the above, is the "no functional change" statement in the commit
-> message accurate?
->
-> Would it be safer to keep a snapshot taken under the lock? For example, a
-> dynamically sized array, or a reference on each core_dev collected before
-> mlx5_lag_drop_lock_for_reps().
->
-> As far as I can tell, the last patch in the series doesn't touch this
-> function or the SD paths, so this would still be present at the end of the
-> series.
-> >  	mlx5_lag_retake_lock_after_reps(ldev);
-> >  }
-> >
+> [ ... ]
 >
 > --
 > Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261116103010.1129666-1-tariqt%40nvidia.com
