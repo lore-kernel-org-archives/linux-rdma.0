@@ -1,83 +1,68 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=44.246.1.125
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795105594;
-	b=OJTVyrfdGbVOie/duKGfUbIVcQ1gtQgW2WOBgqOABWYA0zy0MJJFZrp3kZg7mGif4fgT
-	 lKsH0fwUSJ/Htg3//vqSNXFq5RWgWFkd2zQW6Gd4QGds7K2wibUMvZIxDHd1kGHYUIz2n
-	 9T2+tGd1Ybd+FCa+/6ixkShwuGZwr7EAF94F8uA94vf5Ll5hzd1esLnnrnWl5+BVnBYJF
-	 o24Y1JNHjW7OPSd+5oil3TE4HbC5VL9VHgOghB997TZvptaYKaUgPBWtsu2A5tlDvfQR6
-	 6BFHhPOTPN9G1QYAMRvu3VsS9IM7qoMBqlF8k55pkXFdYYssxYXalR2+z43pRtMHU2Q==
+	t=1795107023;
+	b=4/ZlRtpaft7BD43MkEyrU8FaGgOGmknFCYOKD0yJjL3I8UmYSQffxD4POK0DSWp3XSx4
+	 QVgtX8T9WiX5T5n7bvgPfqNQKGUcDWcyherpeelMhlPeY1KBOvSqrJnDeYMOUDCCLt1zS
+	 koW5wBwmIuW3qHXc6e6uD5Bk4JLjV58vC70nEzvdrxNva72DG0aC4EWmnmJ8Mb+QfOPGQ
+	 H9/9jR4B481PqEjTRc66Q+KwCRX7q5H4yyR5BaYGBHFWAPHs1WrNBK8UMRnGZp6QRXPb7
+	 khkUm1yZPyRPw3804JprOKD5isjHqGE/C63QUrDhWm9vK62W5HdmuSRAv+PSwCvbXjQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795105594;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:Received:Received:X-Farcaster-Flow-ID:Received:Received:
-	 Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To:User-Agent:
-	 X-Originating-IP:X-ClientProxiedBy;
-	bh=gPgbW/BuctYysxO95YTVnB3oz509PtsasvmL7Et8Bh8=;
-	b=EwxYmjNqaSQnlvZbRpEIffvvrcbmyJnkdcS6G5wBqDbd0q1Qs/ztTxicGrxwtmed7MYE
-	 AouUOlTIsRxjiBe+Iii/AprLkvvYBtL3gxDlfkMZvNWkS7txQEn2CwfC92sp3+AeHSDni
-	 aCbTKQQgVxixOUGZtAqILh4L4yU36tDLEdfi6REDDswUfczuz3KbcXC2enEAz10iccDC1
-	 STMbZ+SL9xKm2eGdn4/sCfIV8UTnCNzy/Tz6dHyoic0+auWbxCyUHplm9vouhmBSJsotc
-	 lgYC8p37L3TaawvCXs9xux3Bx5ygmGnr55XhcyPLNQhZgj7g9wBCjPXjLzCUNY2dnaw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795107023;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=hUa6qtyR+bKsAjDIc2Frk2r+gPhHATaP3VnRqdLJXZc=;
+	b=CKvYpFkpds9M6sMmEXgK3Hc72bBm3EpAPRdbM1XBFw/wwQAcd0koDwU8GXwbUlRtI9kJ
+	 QxehI+2w5gDw9OYcYnR7D/rrpjvVEM/2JUDBCA/MCPx5/e2AmFYSELJScBF5Vnj8Bwaxu
+	 pDJX3p7n9WRhH1bVoY1G4LJyvhXjFRM9n3vlNyR9fLwrERBbFgakpP7vgb/ciOWrQPzNH
+	 Nqtc7r6qoxJ22oHGgNrjRNtVP/6XatHFpSESRs1caHIHtLG/3a0u0zPy+BZm4pQc4Np1I
+	 4Nsq2pSbuYUY5il8Sr1xuKcvP6hfUh9BovnYEb+E2e7lIsrd0daoYBrn+CQ1pMCk1yg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=amazon.com;
-	spf=pass smtp.mailfrom=amazon.com;
-	dkim=pass header.d=amazon.com header.i=@amazon.com header.a=rsa-sha256 header.s=amazoncorp2 header.b=cZvtGjyw;
-	arc=none smtp.remote-ip=44.246.1.125
-Received: from pdx-out-002.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-002.esa.us-west-2.outbound.mail-perimeter.amazon.com [44.246.1.125])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="iVHon8/h";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3785606A339
-	for <linux-rdma@vger.kernel.org>; Thu, 19 Nov 2026 16:26:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C3785606A339
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46C6060A2601;
+	Thu, 19 Nov 2026 16:50:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=amazon.com header.i=@amazon.com header.a=rsa-sha256 header.s=amazoncorp2 header.b=cZvtGjyw
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1795105593; x=1826641593;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=gPgbW/BuctYysxO95YTVnB3oz509PtsasvmL7Et8Bh8=;
-  b=cZvtGjywIzHr0S2fgCOcSK3OV+desIDQblF6wB7rumBOLbWWcikPCAAJ
-   I2t4jlXy4i8CPnCJzYnr0UPjwf1nBo6tyDHEvX5Sk3swIfOGBocOlbdg5
-   TkGxQp0KZehzZTtLcWfQbVcS/4eckXPppYcenE7J7nOZSzDIioi8nyLz6
-   aYvXc8KmhbmI/XxAfe9RUEFwSA3/tsRFbnk5uafHSG0MTptlZI3ALN6YF
-   GvfYpRebTQ7W5/LCYviMc1MUWjprcIeRN41WrGof0dYoLbgWQe9KnPCmL
-   TgpV38B5zLRrKFzs3uahoEkUCReUI+N1WUn1DaD3f/hbicX4ktnbwuJ0+
-   w==;
-X-CSE-ConnectionGUID: oVlzZahWT3i5RwdOTvpOOg==
-X-CSE-MsgGUID: UEJ03pyERFOU1volhW67xQ==
-X-IronPort-AV: E=Sophos;i="6.27,221,1787011200"; 
-   d="scan'208";a="34578483"
-Received: from ip-10-5-6-203.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.6.203])
-  by internal-pdx-out-002.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Nov 2026 16:26:30 +0000
-Received: from EX19MTAUWC001.ant.amazon.com [205.251.233.53:8932]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.10.61:2525] with esmtp (Farcaster)
- id 687d294d-5574-4d39-b346-857934f45a26; Thu, 19 Nov 2026 16:26:30 +0000 (UTC)
-X-Farcaster-Flow-ID: 687d294d-5574-4d39-b346-857934f45a26
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWC001.ant.amazon.com (10.250.64.174) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.56;
- Thu, 19 Nov 2026 16:26:30 +0000
-Received: from dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com
- (10.253.103.172) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.56; Thu, 19 Nov 2026
- 16:26:28 +0000
-Date: Thu, 19 Nov 2026 16:26:21 +0000
-From: Michael Margolin <mrgolin@amazon.com>
-To: Leon Romanovsky <leon@kernel.org>
-CC: Ilia Kolominsky <ikolomin@amazon.com>, <jgg@nvidia.com>,
-	<linux-rdma@vger.kernel.org>, <sleybo@amazon.com>, <matua@amazon.com>,
-	<gal.pressman@linux.dev>
-Subject: Re: [PATCH for-next 0/3] RDMA/efa: Add Completion Actions support
-Message-ID: <20261119162601.GA4902@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
-References: <20261109081349.27316-1-ikolomin@amazon.com>
- <20261116112913.GI11319@unreal>
- <20261117081850.GA18565@dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com>
- <20261117125325.GE124972@unreal>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iVHon8/h
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EEF31F000C5;
+	Thu, 19 Nov 2026 16:50:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795107023;
+	bh=hUa6qtyR+bKsAjDIc2Frk2r+gPhHATaP3VnRqdLJXZc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=iVHon8/hQ0lCib8xtzWqtEYQnvShVsVRaKPJyMC9Zr4szBXFQjfBUp9xP5GPRKHpc
+	 lyCd4M7E36MoVUsr8CdhJhxF5tFWNwrbmb2MuRbvVSvlt5GZJ3NMI4PAQROQgp3FbH
+	 sktGMeK84iyJujHGF5T1+z8ToYq21E4T4XBPTyooDO05KegTTTwTZbFnf0ANu2zWf2
+	 250FOM4RzwP3e7C9kflNE3XKIicGLM2FpDzX7VOgtmqbfa0Jno6RmOwEXrXUMkqx3w
+	 Yb+V52OQGzyQTXA8cHiYAwA7YaWBY1GjRgSiC9HWTrT6XDkHyHCcxramFJR5g74bAA
+	 AJ4YfEaHkLNPQ==
+Date: Thu, 19 Nov 2026 16:50:16 +0000
+From: Simon Horman <horms@kernel.org>
+To: Haiyang Zhang <haiyangz@linux.microsoft.com>
+Cc: linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Wei Hu <weh@microsoft.com>,
+	Konstantin Taranov <kotaranov@microsoft.com>,
+	Long Li <longli@microsoft.com>,
+	Erni Sri Satya Vennela <ernis@linux.microsoft.com>,
+	Aditya Garg <gargaditya@linux.microsoft.com>,
+	Dipayaan Roy <dipayanroy@linux.microsoft.com>,
+	Manish Awasthi <mawasthi@linux.microsoft.com>,
+	Breno Leitao <leitao@debian.org>, linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org, paulros@microsoft.com,
+	stable@vger.kernel.org
+Subject: Re: [PATCH net] net: mana: Set 1 usec / 1 comp as default and
+ minimum interrupt moderation
+Message-ID: <20261119165016.GA860048@horms.kernel.org>
+References: <20261113204427.1922848-1-haiyangz@linux.microsoft.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -87,46 +72,62 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261117125325.GE124972@unreal>
-User-Agent: Mutt/1.5.21 (2010-09-15)
-X-ClientProxiedBy: EX19D031UWA004.ant.amazon.com (10.13.139.19) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
+In-Reply-To: <20261113204427.1922848-1-haiyangz@linux.microsoft.com>
 
-On Tue, Nov 17, 2026 at 02:53:25PM +0200, Leon Romanovsky wrote:w3esq23
-
-> On Tue, Nov 17, 2026 at 08:18:50AM +0000, Michael Margolin wrote:
-> > On Mon, Nov 16, 2026 at 01:29:13PM +0200, Leon Romanovsky wrote:
-> > > On Mon, Nov 09, 2026 at 08:13:46AM +0000, Ilia Kolominsky wrote:
-> > > > EFA Completion actions let an application observe work request
-> > > > completions without polling a completion queue: when a work request
-> > > > completes, locally or at the remote side, the device performs an action
-> > > > that the work request names, such as writing a value to a user buffer.
-> > > 
-> > > Why are these verbs EFA-specific? This looks like extension of already
-> > > generic UVERBS_METHOD_COMP_CNTR_* code and probably should be general too.
-> > 
-> > It is indeed an extension of Completion Counters, and later we plan to
-> > connect the two by allowing a Completion Counter to be used as a
-> > Completion Action, but unlike counters, actions mostly matter for
-> > unordered transports where a completion count alone doesn't tell the
-> > application which requests have completed, so it needs an efficient way
-> > to track completion of specific requests.
-> > 
-> > Do you think these semantics can be useful for other providers at this
-> > stage, or can we start with an EFA-specific interface and add a common
-> > ABI later if required?
+On Fri, Nov 13, 2026 at 12:44:04PM -0800, Haiyang Zhang wrote:
+> From: Haiyang Zhang <haiyangz@microsoft.com>
 > 
-> I think the idea and implementation is general enough to be picked by
-> anyone who will decide to implement it later. Let's do it in common ABI,
-> please.
+> The existing code sets interrupt moderation defaults to 0 usec and 0
+> completions, which may cause CQ starvation of our NIC HW, and TX time
+> out error like:
+> mana 7870:00:00.0 ens1: NETDEV WATCHDOG: CPU: 14: transmit queue 4 timed out 63434 ms
 > 
-> Thanks
+> To fix, change the default and minimal rx/tx usecs and frames to 1.
+> When the HW supports interrupt moderation, reject ethtool rx/tx usecs
+> and frames below 1.
+> Also clamp the values written by mana_gd_ring_dim() to [1, max], so
+> no caller, including the DIM work, programs a zero value.
+> On the HW without interrupt moderation support, do not request CQ
+> moderation, the usecs and frames stay at 0, and cannot be modified by
+> ethtool.
+> The PF capability is queried again when the device resumes from a
+> reset or suspend, so re-initialize these settings before re-attaching
+> the vPorts.
 > 
+> Advertise this change to the PF with the new driver capability flag
+> GDMA_DRV_CAP_FLAG_1_SET_MIN_INTR_MOD_VALUE.
+> 
+> Cc: stable@vger.kernel.org
+> Fixes: 433f482add31 ("net: mana: Add Interrupt Moderation support")
+> Signed-off-by: Haiyang Zhang <haiyangz@microsoft.com>
+> ---
+>  .../net/ethernet/microsoft/mana/gdma_main.c   |  5 ++
+>  drivers/net/ethernet/microsoft/mana/mana_en.c | 76 +++++++++++++------
+>  .../ethernet/microsoft/mana/mana_ethtool.c    | 26 +++++--
+>  include/net/mana/gdma.h                       |  6 +-
+>  include/net/mana/mana.h                       |  9 ++-
+>  5 files changed, 88 insertions(+), 34 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+> index ab942d5bfe05..10be69e97ceb 100644
+> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
+> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+> @@ -646,6 +646,11 @@ void mana_gd_ring_dim(struct gdma_queue *cq, u32 mod_usec, bool mod_usec_vld,
+>  	struct gdma_context *gc = cq->gdma_dev->gdma_context;
+>  	u32 dim_val;
+>  
+> +	mod_usec = clamp_t(u32, mod_usec, MANA_INTR_MODR_USEC_MIN,
+> +			   MANA_INTR_MODR_USEC_MAX);
+> +	mod_comps = clamp_t(u32, mod_comps, MANA_INTR_MODR_COMP_MIN,
+> +			    MANA_INTR_MODR_COMP_MAX);
 
-Ok, makes sense.
-Please see libibverbs API suggestion:
-https://github.com/linux-rdma/rdma-core/pull/1865
+mod_comps is u32 and MANA_* are positive constants.
+I believe that clamp() is sufficient here. And if so it's preferred.
 
-Michael
+That notwithstanding, this looks good to me.
+
+Reviewed-by: Simon Horman <horms@kernel.org>
+
+...
