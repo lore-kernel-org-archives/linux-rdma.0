@@ -1,97 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.169
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795186721;
-	b=4vOHMq/Ay+p1ZOS5C4VU01RXHNLeCZ3918xWGgagZUatuJEL+jbVQd5eI4c34wErOZ/5
-	 HywjyTvZJPMO6chnxpTsThp9JdvW0mXrDMyaqKrPNjW7i+dN8sLClAJrXh8zbH3vJAt/F
-	 NZDafC5YzsPfT97J5LlbvK71rcXHdpIj4XU0LALgudI9DDsD5PaQvu89Ss9ZpqYRHEJWe
-	 K60RNuaXAqbLctrymTTgAneao+gNkOdusy0OkHtNKohP/TLDTyhnIpMGaTVj7sGcsiB+L
-	 ihwL0Qaak+MrH4+at2SXRhfx8NJk/wkGmHo4NG+9+Oc5Gj6Xv/OILtF5fz6HX0Mbghw==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795186721;
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.46
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795192747;
+	b=FVWlbj9K1QHDRMf4CNUCn4Z4RHjCHezhlAEeNy5mh6L89QM5if89mnimwN6YRdMnZKL7
+	 rpxVkBEZHHo23Ul7S7mVnM1ltWzmKsupSBKZuXHHF/6RVB/G+Nnjf4V/iy25AMYxyjFNS
+	 EGaW06mf5qDfmPOzaUNgsguZQTOmv2po/TVLP3N8jnZv6uVugF/p5WrrCl6IcL/+8KjuL
+	 4TYAbj8GeKTcFTKA75thm0AA1TSszIwNmaL6+aCCX+0AAQRxdOXwQ1+16xVTL4oLsprfk
+	 DNnxG0qjR/8/M3nTjNzDy7ENtvvO4ng+OUI2DL0+NHrPJJzbL5OjHtDyxY8g+imDmdg==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795192747;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=XdoRtQhHoyHImXneWx/psMei/x18HxmV1jWcBPR1VTA=;
-	b=dnnuKQ6XwtjLaCE7sZY2ztJfjHDodX+RWLYOBzVoq4LLRofTxk1+ju2ZGh9AUZEvp5qs
-	 91JXQntp0DkOHtvlWWBX8HUgro8bbyT0EX9B7v/vG5GvVWu3YIZ0m4cFtRhIVKowPVsF8
-	 WQlnrP9FCDoBV05w16xEMAYbkcuc3jKfbfZX1dM+0j98lFJrlg1EQLp88LgMEEOnq8zZg
-	 KgzmrLUpb7Wd/PfGvym22xYgdQPwixm0gUd6P0aOWb1JhgF0QV8JSVEkjsk+nGyTaopH9
-	 Y1Smq1MoKoHH+JMLlq9wcFYryW8km66KDscaSVCQB9RsiGsqnfCcpQxZ80QL79+6MAg==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=fail header.from=isslab.korea.ac.kr;
-	spf=none smtp.mailfrom=isslab.korea.ac.kr;
-	dkim=pass header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=TAM82AbG;
-	arc=none smtp.remote-ip=209.85.214.169
-Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=EhyQZs78XQFN3n2l0teC/H+aO7J33z3X0XEI3I1dEuk=;
+	b=QCFxknWU/CTpAAHeEqhEmhQNCb/Shnz1wrfTMcoRKsklXOx5iNYqWmiEdeB94a0QpMm3
+	 07hczp8UaaOzwM/RJgr/v+3wAvU7qe8VF06CZGNXyRAdx56RTt2KVImNU+xJIzg0B8BDw
+	 iBG6HeLVUZLxiO2XVXaZ5onGKCDX0WNv5NpY5zDlbgSNX1ROr9LS5/PshKeZBDihRKspZ
+	 3MVGxlizkYEuMo2ZHXTIMevirmYIhSvKP77+QDmYpoR0o0Ui+2B1YtXIMS2xqWcdsTBEw
+	 yrosVMWNNTOXWr7zcdESjcshE7zVu1e8UiyYA7AGmRgjbsfSSFdF8Rii0p/VBvy08wA==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=google.com;
+	spf=pass smtp.mailfrom=google.com;
+	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=exBV0BpG;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.46
+Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 967B160A3833
-	for <linux-rdma@vger.kernel.org>; Fri, 20 Nov 2026 14:58:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 967B160A3833
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=isslab.korea.ac.kr
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=isslab.korea.ac.kr
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A63E7606A320
+	for <linux-rdma@vger.kernel.org>; Fri, 20 Nov 2026 16:39:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A63E7606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=isslab-korea-ac-kr.20260707.gappssmtp.com header.i=@isslab-korea-ac-kr.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=TAM82AbG
-Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-2f03eeda984so5073145ad.2
-        for <linux-rdma@vger.kernel.org>; Fri, 20 Nov 2026 06:58:41 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=exBV0BpG
+Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-6b869ea8224so14918a12.0
+        for <linux-rdma@vger.kernel.org>; Fri, 20 Nov 2026 08:39:06 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1795192745; cv=none;
+        d=google.com; s=arc-20260327;
+        b=WoMyklCC1fPFpnx5qor1GOS4vWhSr6HXLjzQRHeMQhy9b7QG5uiwG8VtT1rdQtoM3I
+         pIRRKqVPvlWwvxl0hYF+J5yQ+OvJ2pRzobmW1qJSxm090HPEsXw5xUkAsQ8Z1V31qjtf
+         nPK78org1S+Yi7Q+vcEXLGsdb1Kw/Bc8DXD/1mG7FWOLOru1NdiCyJkSNG0UsSBhzS2a
+         Uk8CFT7ky/Hi8K3E/AhDV7y9WWh2BsqA9rCg+lpy3k7uigMnRpRpBe0qdB66eUE/KLKd
+         rVkljm/KePuHxJ+2ypPzI4pmAHZz/CC7S2iskC2B25w0Nkqu38woSXzRAo2bmY8QFTuI
+         gr+Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=EhyQZs78XQFN3n2l0teC/H+aO7J33z3X0XEI3I1dEuk=;
+        fh=RFhxTLRGGT2Yju/D9TGxQLJ+oPkp94xZXOLm2AXrSGA=;
+        b=YJ/ffXgWSGQdJ8wIFpFhDfee9enM9091M+K578ATOiP5GXewrVtAATJhQKAl77h6s8
+         +rKL0tPszKLW7Ko4j32Y79mv63WW2iRHakbtkWkhklv/AiEWCRAFIpFYHkRQtnAidyS+
+         LmsbHNItLeCRdp1hF/6etTvo+nc4Tk+flCTmb8a8heKBeAOgiqMIW3uJDyPiMg7YN6vi
+         gmBkzLJ2JKKZMBdUqRLY31gqc19PyjfPihVYnC/EDU5vHKUv0kPaZOMPIaoYysqMX2fG
+         5xVneRqO2gdN7n80W23ZWJ+NHGjKvFzOJv4Upi47BWjOwcD4uAjCnj4tk1Wg2cbXa/20
+         M4cQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=isslab-korea-ac-kr.20260707.gappssmtp.com; s=20260707; t=1795186721; x=1795791521; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
+        d=google.com; s=20260707; t=1795192745; x=1795797545; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=XdoRtQhHoyHImXneWx/psMei/x18HxmV1jWcBPR1VTA=;
-        b=TAM82AbGbrL6t41u5NLlu7pp/fSxNbY3VEmtbHwc67s7Fe5iIO6uEPOH4AGW9HsEl1
-         PqW5FdoV6Dy1jyYEW61TvwRD4KSK7XZFvm5QmfgC7nuIUh/qcCEZGdXl0Wm5isOobxLM
-         jZOUtbCJCgfJy1R13t2VpCsza2EGqxaOUwNBzA9CIPXENbaJ8u43KB5/dEKKDuOlyJvL
-         n/+FT1PFnGcZ2nNqPD65jO2yhFzGJHiRP8HrjQ3HnMS+uGy90T5mHtA4nm2aArPWAlIL
-         yPB9IeEl3WGYP4BKNCpyn6YE34sRCSMfm4OGyxKdyQ/9hflvXSo/TRAZK5NPQ0eY2ZQR
-         74ow==
+        bh=EhyQZs78XQFN3n2l0teC/H+aO7J33z3X0XEI3I1dEuk=;
+        b=exBV0BpGps5XdMiPxKLol86gpdtksfxwUBQOPNI/CX+Vjag7OL0AUTtUePEOEP8WrI
+         RUlzfZV7tuY75+XXDgA2FE996IdeAwfOOQS71YLa3PVsYS5lYtvNykQXpLbu2IIk5Xo+
+         a8hyM88U/z9KAR34tZG+Af7cXNA9wfKV2vvz43XNigXc3hnBJvtspPOn971ezY8WhRYk
+         WGT7FhtNaw7YsBotMKoktHlPZY9bmmEaGf319WakY49a3oR3EgabQSfSpsLo6R3n4vGN
+         xOyBFLseGL/E3NrU51a9p94L/ZXXx3Urm/HtJqUwhfNw4+eQb6KkyPFtmTNtcDHwyTsL
+         BL7A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795186721; x=1795791521;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
+        d=1e100.net; s=20260707; t=1795192745; x=1795797545;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=XdoRtQhHoyHImXneWx/psMei/x18HxmV1jWcBPR1VTA=;
-        b=D8Mpy8FycTrfh42Ol1wbXGhtz7VLj6NxPnyzrNuQGaZHE2Mqw2aN922fNf4gezy9y4
-         57x/Sui3DON2UlfkWLC1azJ+gieqQ/XlEXBlzBl1u+Q+6Y+y0K1dgyS5YDHpkWrWxuYP
-         NnLSUuxPC2yjH3Lq28tt4lH4YcYxfdH5ccDrPcE6xi9Mu1kPmbA9mUOlHF75Wr4eM2ov
-         ++FnDAOkSc6xVraUrvx9l+Op92JPKXj76FAdSBZEg+TcAfHs8PiBtF+2sNiSqC/3zOBk
-         PacW/VlhoQBK/MeDWFynzVDw2IkvxewW3Y3o64gVmfhymBUgNQnBjWTwEezsNNU0GLxU
-         PHNA==
-X-Gm-Message-State: APuU4Z+nLam/R5fe4/3j6XPcZ8KQ+XF8u7slnWuJiYUliOZhBGEUADIE
-	Xoy88f+tZPMDMNBShsl/EqoX8choyiAXiX2VgH9BdRhXWQ7SwNW2yiembBoKZAsoyDElRlQAfoy
-	GAs+Wxbs=
-X-Gm-Gg: AZFdTZdNw9oE1c1G92mwMXgitpjluuh6yQNm0WvNVJ63re0y65itAf21aCvKjv7kJgG
-	aEc4Wx3djQnUHNVxcPUNvExQWPMMTfu+gfbdM5t+xlCFN/ELLd4gucTl5/nW+Csgwz6bwbWSMix
-	lk4dUVA4Ver/SoNm+xlsOsYtBuaOuK3h+niVFLnSAHq9pqVO2yZIHEiKNW3W/G5tjWozRBDSC9v
-	SlBGpaNGa6I/8lv2etH/dk/UmBKRTBT8IJa/UGDhQAopRAWSBdyDbuGAkLkDqJqEchKaPI2pL0N
-	xy/36yj7r4vpdUVf94iMT/Z03AVk2sXVzxfZJ7LgugVQYnX/HP5CllyILveskOpBI4Gt3DnGE+h
-	29KsWvPsGcBgfo9jTGDCLy2lRyLEh718oFXSg52WI/iQQOhZdxXYYvVE3u8ldBBe4hCIsfYBHPR
-	/eIh4QnRAFv2vJBABYb9MGKGwW3IWQLL81HKogCV5MtscUHmGWyNmvVAbICdj54GVP5gHTqhBkz
-	ftNgBihR/2CWW8YAvchSS7nnBiBVF7IClr0Fm6c58KBTiWkRWnKyicWsSygfR4b6aiGA+V6LU++
-	zwHWeEDLpiULVMhZDtWUM26coGG2GXkaWDJtqN2D/kRJ7FDFzZ+qbwfDHnTsppUwo2a7yTwAAYO
-	4I7VLH2B30mGqIqNuYNEixPVEclBxNq2HWXNg
-X-Received: by 2002:a17:902:f543:b0:2df:a0f0:6625 with SMTP id d9443c01a7336-2f03f17d1a2mr38645095ad.17.1795186721178;
-        Fri, 20 Nov 2026 06:58:41 -0800 (PST)
-Received: from yhlee-960QFG.Davolink ([2406:5900:1044:110c:8b25:951:ad8d:5cc1])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2f03f108205sm15372495ad.44.2026.11.20.06.58.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 20 Nov 2026 06:58:40 -0800 (PST)
-From: Yehyeong Lee <yhlee@isslab.korea.ac.kr>
-To: linux-rdma@vger.kernel.org
-Cc: bvanassche@acm.org,
-	jgg@ziepe.ca,
-	leon@kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] RDMA/srp: fix use-after-free of a request in srp_destroy_qp()
-Date: Fri, 20 Nov 2026 23:58:36 +0900
-Message-ID: <20261120145836.3127736-1-yhlee@isslab.korea.ac.kr>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260812190418.200337-1-yhlee@isslab.korea.ac.kr>
-References: <20260812190418.200337-1-yhlee@isslab.korea.ac.kr>
+        bh=EhyQZs78XQFN3n2l0teC/H+aO7J33z3X0XEI3I1dEuk=;
+        b=nJUhdun6fKKp7E1ggO/wXiIHn/tskUUCI/BQ9DZkSLrjC7SnRbRDHS1OxLerRiXlZG
+         Wmcz6zbkN42/rzHELSg5Pp4cJFgewPxj8FZdfXlf426kg6RgacqJu0BesiCz8GZxwVeH
+         caEVc/mY7GRwZZqyS2YymHFQ60ED2u1NNZv4glju5nzQoz5yocY/f2IVBN6UwjnP4EXH
+         jB6AnFzr10e8j9A4H8G50FrRCLUHy/kKJMy44/bpUrPVvGiRZXZ4nrAbLx9BROQag1Ev
+         M0aPTbA4UOaaB/CQhEzzFYQTE42FppEBZMoZ31ukukT3nroYeftIsnOsSgLwAVCwpb0+
+         gGxw==
+X-Forwarded-Encrypted: i=1; AL+hErFw26Pe0uvvqRBXuqFsAIBPQOsVzbFZYo9yHDlUGRINQon3hKPK2UEkFcFN87FS5Oqid2FbdMkpOkm3@vger.kernel.org
+X-Gm-Message-State: APuU4Z/1z6iuV/q/TQp2X6m9zua2vIxmx2JVBlRJCzxMccEql/fILRpm
+	jSe4FvaXz21D72QrCeS6cv92HZSQ8gZEExe99X7O5dsBFtNaP0Y/tKr7bru7FngGzkATzOJRyzT
+	JohnoxDEVqNrc2ZGlzfBCzAsNwbSLNLumGC4LBVEY
+X-Gm-Gg: AZFdTZdzQoNjfHzhi7K4iA7BLLSr3aBi6o2X1J4F01gxkMxX7I4dGrCAN0lnfyy7PmF
+	TNyS05NSQqif3kwyTaHZGKafAnh6cx/HLIFfmUQqg9pF4JibtCXUTv6QCtmbk2lvWZSFVGWUg18
+	d+rPHFDiLr8rRCp8/c5I4V7nuHB2oQI08Cgliblu+nO5MXq4hOOjlfsziiLe8P4Vsegjmeu2b+t
+	fqcF54QifEX/w9UpyKnQgFV80TpOaIjJcw8wga0+19vc7i2IRVf6TLbVFToz2vEUy1jYDiAxqMq
+	A0li4wfKWipf/Bb3MSiWjKd26+NIZooNopziNSUPzm8cFOj+qj3PaYgaHFMaOHMBJ6YaePTRPw/
+	pf0bZm420CVIy5/Sz5V76yl8XR2lj9tlW9PzVLg==
+X-Received: by 2002:a05:6402:c4c6:10b0:6b5:77a4:e7c9 with SMTP id
+ 4fb4d7f45d1cf-6ba38153010mr103871a12.2.1795192744560; Fri, 20 Nov 2026
+ 08:39:04 -0800 (PST)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -101,19 +104,76 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <20261110183826.2927274-1-tariqt@nvidia.com> <b5305251-b758-45cf-a28d-406b04d8bccd@nvidia.com>
+In-Reply-To: <b5305251-b758-45cf-a28d-406b04d8bccd@nvidia.com>
+From: Mina Almasry <almasrymina@google.com>
+Date: Fri, 20 Nov 2026 08:38:52 -0800
+X-Gm-Features: Aa3M54qvoBN2Yfkw1kEqj7wTtv_eM2s0F8mqRYMDR_EgYh3FvB_9-0cl5hbrfvs
+Message-ID: <CAHS8izMhSVabXgMmNbHHLm8cYqW_EVQbpXME2z_tUEJuN2BTnA@mail.gmail.com>
+Subject: Re: [PATCH net-next V2 00/13] net/mlx5e: Add netdev support for data direct
+To: Dragos Tatulea <dtatulea@nvidia.com>
+Cc: Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, 
+	Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>, 
+	Bobby Eshleman <bobbyeshleman@meta.com>, Carolina Jubran <cjubran@nvidia.com>, 
+	Cosmin Ratiu <cratiu@nvidia.com>, Daniel Borkmann <daniel@iogearbox.net>, David Wei <dw@davidwei.uk>, 
+	Erfan Sharafzadeh <erfansh@meta.com>, Gal Pressman <gal@nvidia.com>, 
+	Jacob Keller <Jacob.e.keller@intel.com>, Kaifeng Wang <kaifengw@google.com>, 
+	Leon Romanovsky <leon@kernel.org>, open list <linux-kernel@vger.kernel.org>, 
+	linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>, 
+	Matt Fleming <mfleming@cloudflare.com>, Nikolay Aleksandrov <razor@blackwall.org>, 
+	Saeed Mahameed <saeedm@nvidia.com>, Simon Horman <horms@kernel.org>, 
+	Stanislav Fomichev <sdf@fomichev.me>, Stanislav Fomichev <sdf.kernel@gmail.com>, William Tu <witu@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 13, 2026 at 04:04:18AM +0900, Yehyeong Lee wrote:
-> srp_destroy_qp() drains the send queue before destroying the queue pair.
-> For the fast registration and invalidation work requests, the wr_cqe it
-> finds there is &req->reg_cqe, which lives in the blk-mq request pool.
-> srp_remove_target() frees that pool first, through scsi_remove_host():
-> page_owner records the page freed by blk_mq_free_tags_callback() while
-> that call is running.  __ib_process_cq() then calls wc->wr_cqe->done on
+On Fri, Nov 20, 2026 at 6:39=E2=80=AFAM Dragos Tatulea <dtatulea@nvidia.com=
+> wrote:
+>
+> Hi all,
+>
+> On 10.11.26 19:38, Tariq Toukan wrote:
+> [...]
+> >
+> >  .../ethernet/mellanox/mlx5/core/data_direct.c |   9 +-
+> >  drivers/net/ethernet/mellanox/mlx5/core/en.h  |  14 +
+> >  .../ethernet/mellanox/mlx5/core/en/params.c   |  18 +-
+> >  .../ethernet/mellanox/mlx5/core/en/params.h   |   2 +
+> >  .../mellanox/mlx5/core/en/reporter_rx.c       |   1 +
+> >  .../mellanox/mlx5/core/en/reporter_tx.c       |   1 +
+> >  .../ethernet/mellanox/mlx5/core/en_common.c   |  38 ++-
+> >  .../ethernet/mellanox/mlx5/core/en_ethtool.c  |  67 +++++
+> >  .../net/ethernet/mellanox/mlx5/core/en_main.c | 253 +++++++++++++++++-
+> >  .../net/ethernet/mellanox/mlx5/core/en_rx.c   |  33 +--
+> >  .../net/ethernet/mellanox/mlx5/core/en_tx.c   |   4 +-
+> >  .../net/ethernet/mellanox/mlx5/core/main.c    |   1 +
+> >  include/linux/mlx5/driver.h                   |   1 +
+> >  include/net/netdev_queues.h                   |   1 +
+> >  include/net/netmem.h                          |  24 ++
+> >  net/core/devmem.c                             |  85 ++++++
+> >  net/core/devmem.h                             |   6 +
+> >  net/core/netdev_queues.c                      |  51 ++++
+> While working on V3 I realized that keeping the core part in
+> this series is not the best approach. Initially it made sense
+> because the change was small.
+>
+> I think I should re-spin it in a separate series with netdevsim
+> based selftests for the new APIs. I would base it on Mina's devmem
+> leased queues unregister [1].
+>
+> Any reason not to?
+>
 
-This is superseded by v2:
-  https://lore.kernel.org/all/20260818035229.505098-1-yhlee@isslab.korea.ac.kr/
+I honestly wanted to comment that you should base it on the leased
+queues series from me but didn't want to be annoying, especially
+because I made you wait for the previous series.
 
-Best regards,
-Yehyeong Lee
+My series creates binding->bind_dev, and binding->map_dev, and core
+will (should) handle things correctly across both devices. This seems
+perfect for you, because you have a bind device and a separate map
+device and their lifetime is different.
+
+
+--=20
+Thanks,
+Mina
