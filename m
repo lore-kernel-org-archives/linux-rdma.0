@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795145442;
-	b=qTAGQlgMrRDkxSy/sGxjrpSaBbyZ4TBrh6RcOwiKaimA9FFB+M51iei940LYnC9nGBXl
-	 Vo7sledNt1ADOfHvPGyRprI7mFCpqhqEpeYMpFVuCp74jpKo37z0Vj70X9kPqhvigBEhZ
-	 ZfTlcMFmNEvqBVzjCH5FmfST0CZRc5AnT6NR6c18mBsCFuSTri2CU0IKv+OmsABddrnib
-	 ChPMjvvhLP7c9auJEFNMGznW3nbdvRCGysrrnGaOjyFn4hiU96NkNfZnZnlUiSJPS+sGh
-	 C/LX63DrM9RAyWaGeZL7L3nVJ18q4Dg99zQ0QWPFr0YHHMCfGX1+aCtw11Vzymx00zA==
+	t=1795145444;
+	b=QIbOKwRmlyB8zhmuO+1Hhdmj8pYQO2n6vzF0FI3O0wsz4CU3k8JnqnG6uHcAwXOw9J15
+	 grx8RqJZSWbyca53ffBXdPCmpsYwSiCXDm0WVb6P6QKoTQWAMPdRCMoSlWWvFO2tGrvBL
+	 ruBxzjuvwnYIimHr/E0jQg6A9N1cRn+41rn/mqk+9PbfdXnaVlP4M2nb40cEDB5SozSO6
+	 mYwhI7osZv5Dhl5Nrte5+fndoQibBgUJK8GYPeQFPFMafoz2Ss8PvzhJPwT2AvC5lE2Pl
+	 kGfHE/ruMO1OhgZkbubMslno/xa9zJ3Hv/q1Qst7/MP0OMRIayAO3eaW39Q/TjXr6UA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795145442;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795145444;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=zCwn2O6yZcQVzA3x/FT5d2tM7t7yzAkteMtRQdaOy44=;
-	b=PTRH7/KvZbXtUA59y1Pd61XKnD+A0g+KcJexa0y6U+eY/Z/Vu/Vz43jztWQt6HVzfA9X
-	 HlenqV0FVCx58DKyKHRDVKpYtq5WArUYy/zkKOPrLk4p/82tYmAQvQTcWaZ5nvYoHl/ji
-	 QdIvd9aB731RqZ2uE2pS24Oz9Am6qjG72nQxrmGUSpqB24CQZvxvasRM3FbRQtrA5nhrq
-	 +ZW9SXFPayEsMMVFwNuNY9BEoF7uR791t881MOLtBK92+qT2Jt8CbaWoXqXfLmu22xp7h
-	 iSC1osliZuIWIOtqpc5DXylJTfQ9Cc+wVMfjmeNExroZvHwWoDKWZCe60MPCPKeapvw==
+	bh=JEbsS3L/h/hHVQUZ7EK4zXodUkr5QxYRn1luefQLwmg=;
+	b=rG+jzZ9TjA+U8HRxohWLL2ugK5hMso8yzKR6qyN7UOg/uOBzxOf/EwBs+iUOXtozlr7S
+	 sdFCCSEL2Kq5swfiUdx4pUk9we2ZmcEBHYWWp86Gy3LZ2BkP8DHnHCMQjyt4Ao7m/LppU
+	 Q1Gy3XbijitbKAhlfJgX878JKCk4LLEJJSWWuahBIMibhXi+N5o5qL1tzWEAGiQewxaAF
+	 EX2lKUIV1rNIHZ5WLIo97m/LIFLFUy9yeLJcnys0WzRKcpF1r+1ucRNqc/Qgwi9sOsDiK
+	 z+xcECgWyr3UyJqxB3ZHTgvs1uYH9X8N4BMOX8//6K8Az8wgzdgNQntmd6cO8nmHhIQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Qx61MwNd;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jx3xeSU5;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94B1A606A339;
-	Fri, 20 Nov 2026 03:30:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74D10606A333;
+	Fri, 20 Nov 2026 03:30:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Qx61MwNd
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1AEE1F000C4;
-	Fri, 20 Nov 2026 03:30:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jx3xeSU5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B55791F000C4;
+	Fri, 20 Nov 2026 03:30:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795145442;
-	bh=zCwn2O6yZcQVzA3x/FT5d2tM7t7yzAkteMtRQdaOy44=;
+	s=k20260515; t=1795145444;
+	bh=JEbsS3L/h/hHVQUZ7EK4zXodUkr5QxYRn1luefQLwmg=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=Qx61MwNdO7CwMx4EQj7j2/ZCRD5LrX+/2DfAZMhmOpl1ow32DZitnpsEgbI0+uhO9
-	 clOS2dfsul/i1/pFjCqzp6Xu6iPQQ0vn+Ga5pB6quydKwnK6BjYt4dViNpnJBYztiP
-	 GapdBW1wB1Ul+TXUp5Jf7Oy5xH31WKeuO8nMTeUARTgYsrSTqDLQ1dSO82oSn2n807
-	 /bf1pOG1dANXtbbA2B3rNsDBtpHt18qQnoldlMRNbfp44HO/CYZlVoguILPw5atRQt
-	 Oq9irn4i6rnk+ofnx/tmqz1t4ZvYP2EXaVTxT/j84m6cf/LjYLXn5tWazNf7D1e2Ht
-	 RjrbydpT3G4oQ==
-Subject: Re: [PATCH net-next v2 07/10] selftests: forwarding: tc_flower: test
- the enc_key_id mask
+	b=jx3xeSU59jyKOaAlGzeSDm71p9gj7Az9FVVDrXrm2MJX+NlhKqPzjESpPLEL+Kt3z
+	 kHW191e+JLfpXatl/5wyG+GLrYn5Xum0afORLWn37zFS7h1Z06glVmBAhKjOXfc+b8
+	 5uyzUEWVZYmNWFRqz8TtYFsYvkx0Jgo+TlGroPNRkVUxlKnxJy6iLPxfSeZANNIMbS
+	 gPNFADV/UAzJaGK47M5AVuN6CHC0d3Bxh7l/CGG3cVRPt+mc68rFcxRia83qKyYPzu
+	 UspIWMjCNXuv6w0NSvaZ7MKmO4KjHthVehFDS3MioUJ2NApFRcG978XnuV7VVbw5X8
+	 +9ulhGBrZaRIw==
+Subject: Re: [PATCH net-next v2 08/10] net/mlx5e: TC, offload RX queue mapping
+ in NIC flows
 From: netdev-bot+sashiko@kernel.org
 To: acassen@corp.free.fr
 Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
@@ -53,10 +53,10 @@ Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
  idosch@nvidia.com, shuah@kernel.org, netdev@vger.kernel.org,
  linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org,
  linux-kselftest@vger.kernel.org, oss-drivers@corigine.com
-Date: Fri, 20 Nov 2026 03:30:40 +0000
-Message-ID: <179514544037.3136.16339086532983375306@kernel.org>
-In-Reply-To: <20261117092915.255194-8-acassen@corp.free.fr>
-References: <20261117092915.255194-8-acassen@corp.free.fr>
+Date: Fri, 20 Nov 2026 03:30:42 +0000
+Message-ID: <179514544232.3136.10984795533608621568@kernel.org>
+In-Reply-To: <20261117092915.255194-9-acassen@corp.free.fr>
+References: <20261117092915.255194-9-acassen@corp.free.fr>
 X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -81,133 +81,124 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [Medium] match_enc_key_id_mask_test() in
-  tools/testing/selftests/net/forwarding/tc_flower.sh only checks…
-- [Low] In tools/testing/selftests/net/forwarding/tc_flower.sh,
-  match_enc_key_id_mask_test() depends on a tc (iproute2) change that…
+- [Medium] A TC rule that maps a flow to an RX queue keeps a hardware
+  destination that turns into a silent blackhole once the channel count…
+- [Low] tc_act_can_offload_rx_queue()
+  (drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/rx_queue.c:42)…
 
 --
 
-selftests: forwarding: tc_flower: test the enc_key_id mask
+net/mlx5e: TC, offload RX queue mapping in NIC flows
 
-This adds match_enc_key_id_mask_test() to tc_flower.sh. It creates two
-gretap tunnels with keys 300 and 600 and adds a flower filter matching
-enc_key_id 256/0xf00 on an external gretap device. It then checks that
-key 300 matches and that key 600 falls through to a second filter. The
-test returns early without a result when tcflags is skip_sw or when tc
-does not know the enc_key_id mask.
+This adds offload of the skbedit queue_mapping action to mlx5e NIC TC
+flows. The rule's destination becomes the direct TIR of the requested
+channel. The action must be the last one and must not follow a
+terminating action.
 
-> diff --git a/tools/testing/selftests/net/forwarding/tc_flower.sh b/tools/testing/selftests/net/forwarding/tc_flower.sh
-> index b58909a931129..693361c4b8f7e 100755
-> --- a/tools/testing/selftests/net/forwarding/tc_flower.sh
-> +++ b/tools/testing/selftests/net/forwarding/tc_flower.sh
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/rx_queue.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/rx_queue.c
+> new file mode 100644
+> index 0000000000000..32598a2163009
+> --- /dev/null
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/rx_queue.c
 
 [ ... ]
 
-> @@ -280,6 +281,59 @@ match_vlan_test()
->  	log_test "VLAN match ($tcflags)"
->  }
->  
-> +match_enc_key_id_mask_test()
+> +static bool
+> +tc_act_can_offload_rx_queue(struct mlx5e_tc_act_parse_state *parse_state,
+> +			    const struct flow_action_entry *act,
+> +			    int act_index,
+> +			    struct mlx5_flow_attr *attr)
 > +{
-> +	RET=0
-> +
-> +	# A tunnel device has no offload to take a skip_sw filter
-> +	if [[ $tcflags == "skip_sw" ]]; then
-> +		return 0
-> +	fi
-> +
-> +	if ! tc filter add dev $h2 ingress flower help 2>&1 | \
-> +		grep -q MASKED-KEY-ID; then
-> +		echo "SKIP: iproute2 too old; tc is missing the enc_key_id mask"
-> +		return 0
-> +	fi
 
-[Severity: Low]
-Which iproute2 change adds the MASKED-KEY-ID token to the flower help
-output?
+[ ... ]
 
-The kernel tree does not contain MASKED-KEY-ID. It also does not contain
-the "enc_key_id 256/0xf00" dump format checked further down. Released tc
-parses enc_key_id as a plain be32 and rejects 256/0xf00. The commit
-message does not name or link the tc patch that these strings come from.
-
-With any tc that lacks this exact token, the test echoes the SKIP line
-and returns 0 without a TEST: line. The new TCA_FLOWER_KEY_ENC_KEY_ID_MASK
-handling in fl_set_key() and fl_dump_key() is then never exercised.
-
-If the final tc patch uses a different help placeholder, the test would
-skip forever. If tc prints the key in another format, the dump check
-would fail.
-
-Could the commit reference the tc change it depends on? Then the probe
-string and the dump format could be checked against it.
-
-> +
-> +	tunnel_create gt1 gretap 192.0.2.1 192.0.2.2 dev $h1 key 300
-> +	tunnel_create gt2 gretap 192.0.2.1 192.0.2.2 dev $h1 key 600
-> +	ip link set dev gt1 master v$h1
-> +	ip link set dev gt2 master v$h1
-> +	ip link add gt-ex type gretap external # To collect tunnel info
-> +	ip link set dev gt-ex up
-> +	ip link set dev gt-ex master v$h2
-> +	tc qdisc add dev gt-ex clsact
-> +
-> +	tc filter add dev gt-ex ingress protocol ip pref 1 handle 101 flower \
-> +		$tcflags enc_key_id 256/0xf00 action drop
-> +	tc filter add dev gt-ex ingress protocol ip pref 2 handle 102 flower \
-> +		$tcflags enc_key_id 600 action drop
-> +
-> +	tc filter show dev gt-ex ingress pref 1 | grep -q "enc_key_id 256/0xf00"
-> +	check_err $? "Did not dump the mask"
+> +	if (act->rx_queue >= flow->priv->channels.params.num_channels) {
+> +		NL_SET_ERR_MSG_MOD(extack, "RX queue index out of range");
+> +		return false;
+> +	}
 
 [Severity: Medium]
-What happens here when a tc that knows the mask runs on a kernel without
-TCA_FLOWER_KEY_ENC_KEY_ID_MASK?
+The queue index is only checked against num_channels here, when the rule
+is inserted. What happens to the offloaded rule after a later
+"ethtool -L combined N" with N <= rx_queue?
 
-tc answers the flower help probe above by itself and never asks the
-kernel. So the probe only detects userspace support.
+tc_act_parse_rx_queue() stores the direct TIR number in nic_attr->rx_tirn.
+mlx5e_add_offloaded_nic_rule() then programs it as a TIR destination.
 
-TCA_FLOWER_KEY_ENC_KEY_ID_MASK is added just before __TCA_FLOWER_MAX, so
-older kernels have a smaller TCA_FLOWER_MAX. fl_change() parses the
-options liberally:
+On the channel switch:
 
-net/sched/cls_flower.c:fl_change() {
+mlx5e_switch_priv_channels()
+  mlx5e_deactivate_priv_channels()
+    mlx5e_rx_res_channels_deactivate()
+      mlx5e_rx_res_channel_deactivate_direct()
+        mlx5e_rqt_redirect_direct(&res->channels[ix].direct_rqt,
+                                  res->drop_rqn, NULL);
+
+mlx5e_rx_res_channels_activate() then re-points the direct RQTs only for
+indices below the new channel count. The FTE still points at the direct
+TIR for rx_queue, and that TIR's RQT now points at the drop RQ. Hardware
+drops the matched flow, but tc still reports the filter as in_hw.
+
+The ethtool core check (ethtool_get_max_rxnfc_channel() and
+ethtool_get_max_rxfh_channel() in net/ethtool/common.c) only knows about
+ntuple and RSS users. So the reduction is allowed, and nothing
+re-validates, reprograms or removes the TC rule.
+
+The drops are counted on priv->drop_rq_q_counter, and
+mlx5e_grp_q_update_stats() reports them as rx_if_down_packets even though
+the interface is up.
+
+The commit message acknowledges this:
+
+  "Reducing the channel count below the queue of a rule drops its traffic
+  until the channel returns."
+
+Could the driver track the queues used by TC rules, so that set_channels
+can refuse the change as it does for ethtool's own rules? Alternatively,
+could it reprogram the affected rules so they don't keep dropping
+traffic?
+
+[Severity: Low]
+Is it safe to read priv->channels.params.num_channels here without a lock?
+
+mlx5e_setup_tc() sets f->unlocked_driver_cb = true, so this path can run
+without rtnl:
+
+mlx5e_configure_flower()->...->parse_tc_nic_actions()->parse_tc_actions()
+  ->tc_act_can_offload_rx_queue()
+
+This path doesn't take priv->state_lock either. Meanwhile,
+mlx5e_switch_priv_params() and mlx5e_switch_priv_channels() overwrite the
+structures with plain struct copies under state_lock:
+
+    priv->channels.params = *new_params;
     ...
-	err = nla_parse_nested_deprecated(tb, TCA_FLOWER_MAX,
-					  tca_opts, fl_policy, NULL);
-    ...
-}
+    priv->channels = *new_chs;
 
-In that mode, __nla_validate_parse() skips attributes above maxtype:
+The two sides share no lock, so this is an unannotated data race that
+KCSAN would likely report.
 
-lib/nlattr.c:__nla_validate_parse() {
-    ...
-		if (type == 0 || type > maxtype) {
-			if (validate & NL_VALIDATE_MAXTYPE) {
-				...
-				return -EINVAL;
-			}
-			continue;
-		}
-    ...
-}
+The check is also check-then-act:
 
-So an older kernel would install the enc_key_id 256/0xf00 filter as an
-exact match on key 256. The "Did not dump the mask" and "Did not match a
-key inside the mask" checks would both fail, and tc_flower.sh would exit
-with ksft_fail.
+CPU0 (tc filter add)           CPU1 (ethtool -L combined 4)
+reads num_channels == 8
+accepts rx_queue == 7
+                               switches channels, direct RQT 7 now
+                               points at the drop RQ
+installs FTE to direct TIR 7
 
-Documentation/dev-tools/kselftest.rst says mainline kselftests should
-skip gracefully on older stable kernels. The test already reads the dump
-back. Could a missing mask in the dump be handled the same way as the tc
-probe, instead of being reported as a failure?
+The filter add succeeds, but its traffic is silently dropped. Direct TIRs
+exist for all max_nch indices, so the rule still references a valid TIR.
+
+The commit message mentions this window too ("A channel change racing
+with the range check of a new rule has the same result").
+
+If the channel reduction issue above is fixed by tracking TC queue usage,
+would this check also need to run under priv->state_lock?
 
 > +
-> +	$MZ gt1 -c 1 -p 64 -a "$(mac_get gt1)" -b $h2mac -t ip -q
-> +
-> +	tc_check_packets "dev gt-ex ingress" 101 1
-> +	check_err $? "Did not match a key inside the mask"
+> +	return true;
+> +}
 
 [ ... ]
 
