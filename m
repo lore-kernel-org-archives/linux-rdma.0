@@ -1,72 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=111.22.67.139
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795161011;
-	b=kjNfm8YEq5446q3sGv/RxU1SPl2dBodnUHT1imQ+90oyYsayzYJoE354xpDTfjAdxr5i
-	 dFLguWwvu/01BIIMsuQqhgvKC6ikPBXd4evb+Swkl1Dat0f/tgybaxggpJe2fX8HpE5+l
-	 j8eBfCvIWyAkCzM27iKIKiYzqupuWMgVYvgWN21WhBXp75rj/6sz4515QIu7QyQANugHk
-	 IK/w4QAGBZluqlUfGau3K7Xi+8EqEMRxyLj5CK3vd1BNuUc1/AYhuSHBhbMdzfTfj46fM
-	 EPvyF7HvbTuQ1mz884W4gwNEVqCgSCJbnD6mY26P5y09jqIuzCp3Ezon3JjeogHqoKQ==
+	t=1795161207;
+	b=25f1cx5jz9NT9Q3ar0aqrRItJTS8hGw6m6qn6lLRd3i9+36S+vxbUsXVYh2l9PmaTgKu
+	 ZIolQHCATeCDeTwxV0Bf7q2sVHlJ+C9ZxmjpKym+L0s+9pSt0oKzWRVHBLi+ZwDiGk8QI
+	 0tyn6+rgcGwSn13ngknEiy1yLkr/Q0Sp72coRkxWSJTiqqMu7ng2HCS/q7QeLtbDfOGWJ
+	 tQrX5dYflKbLvfx/dthjdyRU5QCBKXdd1s8hywm7PfTcKgRfnw+nz4DJt9DcJnJDJCYzP
+	 fhKHpbGJCwgra8gchz7WkkjDmp0YawfjQ3JtiHxej1f6ZCREI2V+xaH83x++ueZHZcQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795161011;
-	h=DMARC-Filter:DKIM-Signature:X-RM-TagInfo:X-RM-SPAM-FLAG:Received:
-	 X-RM-TRANSID:X-RM-TagInfo:X-RM-SPAM-FLAG:Received:X-RM-TRANSID:From:
-	 To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=NZQHsT/1yyOszeTOdmMaoUGS5yXzbh+whWHyfrpQDOs=;
-	b=4Wg7bTtxPz+XAj2Ppj4u0QDO3VCFlbxC1Ir3la4KmmqVrLkU/8INSoM1BM8bO76YPaUz
-	 LhY3qXwr0KoP6Ceisy1dvEUW/n64p993hV1t76JIxoPyMmDM2G94m+WBritAeDXrEa6o0
-	 fJG7+OkB5dhguYWA+q0zslMEVDFh+unKj1xqyMq6Yrj50ML1lOpmhgbPJ8/5NfjPcjnyS
-	 6mNITKD1auoOV2KR7+msfM9pI0PhbGBTVEbybXGQ3lbFpdCMJCZ/zDHsD42MI7S9jSaQ2
-	 UQhH2Ta+MepUj19M4VU5m+Q/Xio2MVZNFXp/L8TQXX1rYfJHKlhm8sVChruw/s5Hfqg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795161207;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
+	 In-Reply-To:References:Auto-Submitted:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=Ld9+YyGfs/W/wYUchYl+G0tuTdeNOsMW/DqiAiz5bT8=;
+	b=MBnGN1+G7QKONvu/sppIkEqP3O8shLYIsU/k4MsJ54Y12RhWZpukgIQPgRXalL5qJfp7
+	 Bz8RC6v/8ewDds1j+zvBjWnflQRuN7UfY/edLoUTLk/z/RGREMZIlHjmSlTOgzvtgFAut
+	 +zASoJjtotY3X+cYxyMiSyRk/At09cUsnJtXwdp+USIou+eN25ZG6jLucklA/a05nYDFd
+	 OKlX5gsBeQiok8NKc7HOTXUfj5ZhgHp1SE2q6QDqQvBFIBxtjxvwrAJIbpks79wE7F22/
+	 S6CrdO0QpyPYlQNWzjO6bWJ9QWYXmQ/kdf97XT4Z30dkFfVATZJpINJtjI6D00TCEBQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=cmss.chinamobile.com;
-	spf=pass smtp.mailfrom=cmss.chinamobile.com;
-	dkim=pass header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.a=rsa-sha256 header.s=default header.b=JRrTuUd8;
-	arc=none smtp.remote-ip=111.22.67.139
-Received: from cmccmta6.chinamobile.com (cmccmta6.chinamobile.com [111.22.67.139])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 82F63606A320;
-	Fri, 20 Nov 2026 07:50:10 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 82F63606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmss.chinamobile.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cmss.chinamobile.com
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jgPFHddU;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01E40606A325;
+	Fri, 20 Nov 2026 07:53:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.a=rsa-sha256 header.s=default header.b=JRrTuUd8
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=cmss.chinamobile.com; s=default; l=0;
-	h=from:subject:message-id:to:cc:mime-version;
-	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
-	b=JRrTuUd8GJZH4GdWOMhbevHRHM90IP2mW3Yqdh4ty2qMqLhkzl36kkSMVqBvxE3cLeTm+lq5Ct0Rz
-	 nj0yKkRxkWv+Qu0P5hkT8Q1M19hKoxsZT614+gc/S947aSLnzmCnvhrWdlBjkiByY0Z6yYZ+HspwsE
-	 ni2oe1KTYZO4JE48=
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM-FLAG:00000000
-Received:from spf.mail.chinamobile.com (unknown[10.188.0.87])
-	by rmmx-syy-dmz-app05-12005 (RichMail) with SMTP id 2ee56afffbb09ab-235e8;
-	Fri, 20 Nov 2026 15:50:09 +0800 (CST)
-X-RM-TRANSID:2ee56afffbb09ab-235e8
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM-FLAG:00000000
-Received:from FHD-W7400297 (unknown[10.55.1.70])
-	by rmsmtp-syy-appsvr04-12004 (RichMail) with SMTP id 2ee46afffbae7c9-1c5f9;
-	Fri, 20 Nov 2026 15:50:09 +0800 (CST)
-X-RM-TRANSID:2ee46afffbae7c9-1c5f9
-From: Aibing Chen <chenaibing@cmss.chinamobile.com>
-To: Saeed Mahameed <saeedm@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>,
-	Mark Bloch <mbloch@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH net] net/mlx5: fix a stack over-read in the QP debugfs files
-Date: Fri, 20 Nov 2026 15:50:05 +0800
-Message-ID: <20261120075005.843-1-chenaibing@cmss.chinamobile.com>
-X-Mailer: git-send-email 2.50.1.windows.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jgPFHddU
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD17B1F000C6;
+	Fri, 20 Nov 2026 07:53:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795161206;
+	bh=Ld9+YyGfs/W/wYUchYl+G0tuTdeNOsMW/DqiAiz5bT8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=jgPFHddUcaNfF8dEPJAqyQplvOKJ68SVVHMad5XQEcG62vhFE77Jwlzhy8w3TSjkH
+	 GZJt/CrLP7/YJX4AH3Xx9J1lbZ8RX+KvgQfFb3OZ8TUVnCDjuQwsOYU+N+vZ6qmor3
+	 7NT6a8AN+ZL6radLp9Q74Y7s9siFB2A1HVYq/WzE5UJE+MhhKyM6F8wBYq7s8DsmwC
+	 PzOIXQBBerDk41Rg4xR271uT7notdWQ6UrbAbkU1ZFvNpAidDbGPB3Q/vTrRu42JLJ
+	 XTZdAZSklCoQJvfSdYZDstrUjsU7m8/3xstk6tMy4p3nSeXNeNqTtb8C6VF7fclYCd
+	 aB76Q8Yp3qjcw==
+From: netdev-bot+sinfo@kernel.org
+To: Aibing Chen <chenaibing@cmss.chinamobile.com>
+Cc: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+ Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>,
+ Andrew Lunn <andrew+netdev@lunn.ch>, "David S . Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: 
+ Re: [PATCH net] net/mlx5: fix a stack over-read in the QP debugfs files
+Date: Fri, 20 Nov 2026 07:53:25 +0000
+Message-ID: <179516120532.3291.16859269248680746966@kernel.org>
+In-Reply-To: <20261120075005.843-1-chenaibing@cmss.chinamobile.com>
+References: <20261120075005.843-1-chenaibing@cmss.chinamobile.com>
+Auto-Submitted: auto-generated
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -76,53 +66,30 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-dbg_read() formats the field into char tbuf[18] and passes the return
-value of snprintf() to simple_read_from_buffer() as the number of
-available bytes.  snprintf() returns the length the output would have
-had, not the number of bytes written, so when the string does not fit
-that value is larger than the buffer: the longest QP transport string is
-"Invalid transport type" (22 characters), so with the trailing newline
-the function returns 23 while only 18 bytes were written.
+Hi!
 
-simple_read_from_buffer() uses that length to bound the copy to
-userspace, so reading .../qp/<qpn>/transport copies up to 23 bytes out of
-the 18 byte stack array, leaking 5 bytes of stack.
+This is an automated message. This series looks like a fix, but its
+commit messages seem to be missing some information:
 
-Enlarge the buffer so the longest string fits and use scnprintf(), which
-returns the number of bytes actually written.
+ - How the issue was discovered, e.g. hit in production, hit during
+   development, syzbot report, manual code inspection, LLM or static
+   analysis tool scan.
 
-Signed-off-by: Aibing Chen <chenaibing@cmss.chinamobile.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/debugfs.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ - Whether the issue was actually triggered, or is only theoretical
+   (e.g. found by LLM and not proven at runtime). If it was triggered
+   please include the symptoms, like the stack trace or kernel messages.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-index 30be2b631..3e75f66f7 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-@@ -496,7 +496,7 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
- {
- 	struct mlx5_field_desc *desc;
- 	struct mlx5_rsc_debug *d;
--	char tbuf[18];
-+	char tbuf[24];
- 	int is_str = 0;
- 	u64 field;
- 	int ret;
-@@ -522,9 +522,10 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
- 	}
- 
- 	if (is_str)
--		ret = snprintf(tbuf, sizeof(tbuf), "%s\n", (const char *)(unsigned long)field);
-+		ret = scnprintf(tbuf, sizeof(tbuf), "%s\n",
-+				(const char *)(unsigned long)field);
- 	else
--		ret = snprintf(tbuf, sizeof(tbuf), "0x%llx\n", field);
-+		ret = scnprintf(tbuf, sizeof(tbuf), "0x%llx\n", field);
- 
- 	return simple_read_from_buffer(buf, count, pos, tbuf, ret);
- }
+ - What hardware the change was tested on. For driver fixes please
+   mention the device (and if relevant firmware version) used for
+   testing, or say that the change was not tested on real hardware.
 
+Please do not repost the series just to address the above. Instead,
+reply to this email with the missing information, so that reviewers
+can take it into account.
 
+*IMPORTANT*: If you do repost (for other reasons) - please include
+the relevant info in the cover letter or commit messages.
+-- 
+The evaluation is done by an LLM so it may be wrong, if you think
+that is the case please reply and explain.
