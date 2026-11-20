@@ -1,106 +1,92 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=67.231.145.42
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795195464;
-	b=UoM/e+kUYHpyY6sYXheZbVD4fYgCWDjGf4u1OzcYSs4sQ2/emDbIm3Kr3Bm7Z2SeHG6x
-	 ixNV+csy0aU8TEYfYR2xVEfmqeBXeM0lB6PCSUomlYLtSjawMM7NKd8AfiHHmWjK3dxJs
-	 oSlo64KNWNg3IpNLI1MToL7RbIfbUJKnDukrAlNEahbF+wZ3c3AJ8D5wPj2EvzccorC7y
-	 nXgp2ON7KYCcycwfIMPkVpWPplVfSI/JsKgVg2VMBCTA9DxjGNL9A1y1lpPa20kxpDMzy
-	 1uOkVVaxJPRbKsi/Y/VsINITrpIZk/ICN8eDGqRxdfj+ahKJ4VwGePI9w7JNwK3b1ng==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795195464;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 X-Google-DKIM-Signature:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 X-Received:MIME-Version:References:In-Reply-To:From:Date:
-	 X-Gm-Features:Message-ID:Subject:To:Cc:Content-Type:
-	 X-Authority-Analysis:X-Proofpoint-Spam-Details-Enc:
-	 X-Proofpoint-ORIG-GUID:X-Proofpoint-Spam-Info:X-Proofpoint-GUID:
-	 X-Proofpoint-Virus-Version;
-	bh=6NFMKm4Yb/EeljsK3MyT7gHKFnJ9GueDkr4QoDZuyMs=;
-	b=xd75AMeXQHfvfLUR8Cxwi+HMisrnd2nMv88AMVdc1ridfmm1fRahgTKJagQ2YDgZ4rVS
-	 PeewIcfLxVroTMbux8afTNa/I/FJ41/95LV1hdsKJsMaW64qpHAgWVxwk07gZo7cF6qGL
-	 LPJp4SKQJi15nDxBEONwoaeXfeaUKYb7BxfPu81eQ8iAOC5HCT+dL5LhJepAzrLF6Du3Y
-	 fpcQhnwbB6XYv1arXbzVEV+WcOZy3y5WIMnXPSvbxWzu/S8kNfra0uxXiwKQj+RWB8ORc
-	 1wh0+Q0tenZLOkWu9eOEliC//u0cbG90HO3R/6fP47IAA20SohzjoE+SCHvj/g3l9bQ==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=meta.com;
-	spf=pass smtp.mailfrom=meta.com;
-	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=TGOhdYA6;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=67.231.145.42
-Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.43
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795196653;
+	b=txtbFMrQBBDxKZroDey62wjFKhG/CWnvEeUrLLkCshTPORZD6avQ6gRje+VsrNsNATVv
+	 +pL1wojQszO9egYrBl3Vdhsx9+g1E95uOMK1reaFLvgWN1qIQBtAuTFxewjafKXk1KFMK
+	 4r9JAh6qrZfPv1PMfUogvpmM3rbPWR+23h4tYKYZTq805Um5vMlY76syjYBLMBK885XVi
+	 LpJ1PsP4p52FEL7//eFQggf8TlLs6+dFM2ZIbph1KckAnn3zsLX6YSYMslmlXpUItgjji
+	 ilwKa2ApKuow4lWNEDdTQu/UPnK2PVGuDX57TtX3j40bwraMRk0EQs6pjtRnOTYq6Bg==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795196653;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=NOescnIEQw0JH0XXrCH8rbyYGWVbTRD7Kto+EbMNh0Y=;
+	b=XmmfQTejeO8bdTK9R93JwMlunGqyItDkd54PDc3EqFCjGFHej20CzXP9KSW3oqM+fau5
+	 9ni4/W4CF552j600/aldJaMRt0jEcllOYBZNZ6qasmSGfx6VjAdNbM4K0LFwwUxGoLulM
+	 EmiLvR4q1zg/QreqZUPGFYBs/v7QJjlvNgS5JIE9xkzKIpFj1R/BUGbHW14u2vkIAM50U
+	 MeC5MX9S43C9txuers8Z8pXw2zAuZdzcAWqVXeJu/9ZTx6yVquQ14L5s+qWL0Pe3Xzd/B
+	 /BUe7O72SSI05laL+OepjI0JMmbZ6bHy/qkILc7inYPJIS/mvzHPZZ0THa8sGWdMZaQ==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=cloudlinux.com;
+	spf=pass smtp.mailfrom=cloudlinux.com;
+	dkim=pass header.d=cloudlinux.com header.i=@cloudlinux.com header.a=rsa-sha256 header.s=google header.b=HOCfRnHx;
+	arc=none smtp.remote-ip=209.85.128.43
+Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0B71606A337
-	for <linux-rdma@vger.kernel.org>; Fri, 20 Nov 2026 17:24:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C0B71606A337
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 461AB606A330
+	for <linux-rdma@vger.kernel.org>; Fri, 20 Nov 2026 17:44:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 461AB606A330
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=cloudlinux.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cloudlinux.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=TGOhdYA6
-Received: from pps.filterd (m0528008.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AKH9e5O1581165
-	for <linux-rdma@vger.kernel.org>; Fri, 20 Nov 2026 09:24:23 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pps82601-s2048-2026-q3; bh=6NFMKm4Yb/E
-	eljsK3MyT7gHKFnJ9GueDkr4QoDZuyMs=; b=TGOhdYA62fn8n4BD/9TP8WBEWve
-	Sx+7gr7K0vuT+XGt3vpcITfLWxgoo58oy8cN1z+8aR46XRmYfffQpZ2AYmqv3vjD
-	C7SvuJq3M1zfcHJaNzAIFd2mHkqH6xyQ323zJqoyig76G8cGJ/i0Y0cVgH0WIQSv
-	s4jvumLFpB0GpZssk/o9KEBlfPl69e9MwfrCIMZlJHJYXs/ic2VSNiUBFoA1HiqZ
-	2zDPa+JTtOne0YMwq9R/9LPf/9Fjfq1YCWl5xAoy5teWK0rjcA9kjbQNJW0HdTWJ
-	TqxnEPGOFIMwTH7MnMlN+k366/mTOhzRqaSGB+bhPHlg1EpyBGMRyNvUyEg==
-Received: from mail-pj1-f70.google.com (mail-pj1-f70.google.com [209.85.216.70])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j2tc2r52g-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-rdma@vger.kernel.org>; Fri, 20 Nov 2026 09:24:23 -0800 (PST)
-Received: by mail-pj1-f70.google.com with SMTP id 98e67ed59e1d1-3b3fc6a0083so1297067a91.0
-        for <linux-rdma@vger.kernel.org>; Fri, 20 Nov 2026 09:24:22 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1795195462; cv=none;
-        d=google.com; s=arc-20260327;
-        b=LePeUoB7vMj++EGX4MyN4pLGeMxMc0ejdHr87ZXfiM0KHjMyz6pneiRIlC9ihDpN1Y
-         T2Zo9D3zz5Z3rPTGKCi6e1GmJCFzsklvY08ZEcSmuzKW+3xpkuW1rd6aBDJOsBqEuVpA
-         k3HTipAZeYOPmeUlRh0wJWNMEHMF/jPH1huct+o67ni58HA+4t5ki42SDBJswfoRiTFt
-         V3Tg1Z02cYtjYTnQxkvyUhB+zC0GDCqj5hPE8ME5YCsdqz4k5eTjLINEG8qufThAt6XO
-         RjwSzbgCSbgM+A8FQjUXLuax3HiUbHxs5gOjEePz+wspMCaNOWyBBqTYIENDMBVv+ve7
-         doGA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version;
-        bh=6NFMKm4Yb/EeljsK3MyT7gHKFnJ9GueDkr4QoDZuyMs=;
-        fh=Je+XfjZZELYMeUFG782y9M4oZFPTVtwBgMoamcbwTg0=;
-        b=PnPFxrmpfJaMXgPoWR2nWwn2yj0UBzuUEt00kcmNkPQamynhzieo1HB+2AuzVbI/GU
-         masrk5XN4eka/ATMx/zs6vK5syllUeCpJ4McbgRbQ+VqLIHPi30460GBE1Afqu02ZdgO
-         P9QD978i7gpF8RlHbc7AEXxOLAPTFg4dsJN9ebZGDZx8zx+hQPJyQCsTuw4c4iq2JCoI
-         toKFcWULyIip0E+3ZUA0BgveoRTn00HXY0YFjTfT9KhqAVQ/MkiYWFS/pFUtF7vH61Uq
-         dO45cTnCGV304kOB+VnO9aGqvhJgeKJIvKITvadwUzGbJ88ViLX0S+9zigg+P69++0U9
-         WI0g==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=cloudlinux.com header.i=@cloudlinux.com header.a=rsa-sha256 header.s=google header.b=HOCfRnHx
+Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-4bb606491faso6498565e9.3
+        for <linux-rdma@vger.kernel.org>; Fri, 20 Nov 2026 09:44:12 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cloudlinux.com; s=google; t=1795196651; x=1795801451; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=NOescnIEQw0JH0XXrCH8rbyYGWVbTRD7Kto+EbMNh0Y=;
+        b=HOCfRnHx1QqdFApmPSh/EyMoN+bokzFVzjd2pHAM2WfRbl5+Sm8ryNhO6VM8Soinc7
+         CYkAw7pPAATHTeRkrVVNgdqvWdjHnofe6Jk56aFfMbMcNFdan4ZGGn89uLD9MqAoGBT7
+         FyoV/OfQT2k/u58e3qtSxEWUFKpk+b2NofLNPK3TkqSlwXMFbEike0s4tu/mDvFfDuT2
+         1TajoLuD8PMpl3Pyzyc9YAR86K9DmNg3x2J5HadV9l+K4t9/R2sgHMT8YeQ/P25RJktK
+         FETXa8HBBE7F4TYl+NpP3S2Rvjd+ldYpjFXaNdQcn30nKNyyjPamrxz/dFyJfhHcMX+C
+         Umqw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795195462; x=1795800262;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=6NFMKm4Yb/EeljsK3MyT7gHKFnJ9GueDkr4QoDZuyMs=;
-        b=VfzrzlpnJLtSNZrNBdc0pdOFQK3qV4u6xplT1VzYXzjI8Q/awQrlg2BrqbSdRXhobb
-         z27mmgCjEgkBXmV1W727KfCmwt/CAAWlFd5jp9Rxx67NHB7nFy5GoEXdSQ6gA6vjZs6h
-         /V1MNL0ywqv4luTEbzqW9Chmypt70FNJdt5z71cOdvNxAA+hpsUGyTKqq4p8G1GWaRzF
-         asHlrwq6mE2tLthSN7CmzLCqhezuki6U2oOw0XE/LJuunodiRI+VWGghwHZkiDgrXKP9
-         EEwaIvACaosqY/OKf6ZveAfPfxGrUZMRVVmHS4BNqn6rlGGlDghbmlB4j+t+wAL/LZ72
-         ZRHQ==
-X-Gm-Message-State: APuU4Z9sQg7eddbNANq/W4a+IlisLL7YxkXbJKD2qG6kr3/fF3N7p+EV
-	yC6hlhyBCLt4bDXs3OmIY2U8zfS+J67ZQ+XATv1yUiDwya82GSPNP+wq68NNMQ8qXhJXI9Wpiec
-	pufONRAQ3j920lcWDaj18yJ8XJoElXkve551u6X/bA40ZT6Ez3ybqx4Hz+CBetkQGskaqLIF7kv
-	UnIDV/XecQakkLGd3ByfT8rl+kkNn2J0Ca23Dl3VmL210J0PE=
-X-Gm-Gg: AZFdTZevfEKiPwy3yw3yab6kCRY+2ejbd8I7SFzb3oOK9ueq73uUpTOj2g+OL8xpCoh
-	+l/IE8+7SHSkGYCuB7vom/x8qYRml11tXAd1v17Ypnc/KbfEVjc5T6SFpwZt1ASJtCAwrzU2B2G
-	Gw+4Xeq0zVjfX0xFxILhC4zXd7e4bZyMrSPl4kB6A3qt0YJuZjLdwA3YL60phKjsaeHFNNDoK0N
-	okanSHXdiZ4d3RFtfcB4HUzgSsKvrD3
-X-Received: by 2002:a17:90b:224e:b0:3b4:22d:e066 with SMTP id 98e67ed59e1d1-3b41c7d6061mr3466645a91.5.1795195462130;
-        Fri, 20 Nov 2026 09:24:22 -0800 (PST)
-X-Received: by 2002:a17:90b:224e:b0:3b4:22d:e066 with SMTP id
- 98e67ed59e1d1-3b41c7d6061mr3466626a91.5.1795195461659; Fri, 20 Nov 2026
- 09:24:21 -0800 (PST)
+        d=1e100.net; s=20260707; t=1795196651; x=1795801451;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=NOescnIEQw0JH0XXrCH8rbyYGWVbTRD7Kto+EbMNh0Y=;
+        b=tkLyt9T4X59jdYKDA5NTLvZ/wag5MXVHRDJmbAXcnpeMeWn9AMVCTsSTLYfjpwu1Tp
+         7crtxDBXh4JHtxpjPHY0rXOnfD4ZwqkosQoW1RIgaT1JKr7ZbX5h38oFOOCC8w4k3RyE
+         YlwHCSUlkRScGjqTAYXq7GDnPjPUv0kZ84rGjHRZI/S8Ow2yKM8jXjQaUFSqMI3rJYCJ
+         QaOycmhNTTFMPbtUcFlXhQZl0Gb12CX+lFhOo1Qu4Y400AEWMGyF5Gk3ioaEtPzZY9Dx
+         XFqSMUH7OuFFKXsuoXuZuTT3e5OLGJq24Wzl+/PG1CJLu0xPOe79yrDxk8/qFwlkVr0w
+         o0Pg==
+X-Gm-Message-State: APuU4Z/eDfX7mB78DXek4T+0wEqWzs6y3Tbc/1CMvqO938gwehTkhqv7
+	8w52X3pplRl+026+v1nwF+xcqVdjHXJHeB+avObDBMtzAC7/yLPvkNe1s6EDCZYiyfU=
+X-Gm-Gg: AYBFou1vs3G8p392FW2rBXputkrN94FHVZmvOGZ6GpuBn+sz1WGqK+AXmglspwlFy2P
+	dLhRblXVb2yqKWJNEv0ejKPw9lkyPbcSunNsQyB5ISwiRTDTufYdLzQoKkL0eh8pHavpueGPZ8Z
+	INqYaTRRQSi/zjo1IiuXF4maJ+kDmF8pXA8lNJkHwAeK/hjVIPI/MsVDLOHRty2Gfcz+7OxHfrW
+	tjuCZJN41E6UNR0ZIwvYWbjKgWl1EqMRIdeT7Rnfy4wSupsr4ZxydGHGCJ+0K3ALoW81k8Ms3Dc
+	kzv7uH571zpzh/G2uTlvxSONWJNS5/hwhUqxi2mHZhfeeX0FtPVxpxk7FR95vUubba0AMlSrIaO
+	06pig2EyCe6rL707YNqwv0AQC/AfgKYmcu/Baa90lr+odk2TT2ar5XGZTh8EvsCO7I+DSWdWo50
+	TP6EA5C4QCc6SeuhOGM4HUULPsXoj7XM/NFXsJL7zvUTIq8fnbCOv48i/dYTaI7h863pNMmBVjV
+	1GMuBeXpGPg+Gqw6Cjq4auPgG861t/zFd8Lp7UKBhLZvYGurefXCiYdBd/ZfPbyybKow0j9SSSL
+	iL40a5PCzreCxKvmdhQh5hhXVg==
+X-Received: by 2002:a05:600c:3ba5:b0:4b0:a307:46f8 with SMTP id 5b1f17b1804b1-4bb8880f29bmr98567105e9.10.1795196650660;
+        Fri, 20 Nov 2026 09:44:10 -0800 (PST)
+Received: from dev1.kernelcare.com ([2a01:4f8:172:1c85::2])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb884a15absm90605215e9.9.2026.11.20.09.44.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 20 Nov 2026 09:44:09 -0800 (PST)
+From: Andrey Misiurov <amisiurov@cloudlinux.com>
+To: Jason Gunthorpe <jgg@nvidia.com>,
+	Leon Romanovsky <leonro@nvidia.com>
+Cc: linux-rdma@vger.kernel.org,
+	Quanye Yang <quanyeyang@proton.me>,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org,
+	amisiurov@cloudlinux.com
+Subject: [PATCH v2] RDMA/ucma: reject a second join of the same multicast address
+Date: Fri, 20 Nov 2026 18:44:05 +0100
+Message-ID: <20261120174405.2761262-1-amisiurov@cloudlinux.com>
+X-Mailer: git-send-email 2.43.7
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -110,49 +96,149 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261119013103.1092559-1-toddfreed@meta.com> <20261119013103.1092559-6-toddfreed@meta.com>
- <sashiko-outbox-224312@kernel.org>
-In-Reply-To: <sashiko-outbox-224312@kernel.org>
-From: Todd Bert Freed <toddfreed@meta.com>
-Date: Fri, 20 Nov 2026 09:24:10 -0800
-X-Gm-Features: AclHuK8M1lhzRbuuHmkqHDKPgh53wz_ndGWByADosNoypzx4IbYIadsZhadwjq8
-Message-ID: <CADh2yMz9qKhfin-6R398WTGH6Xi5r-9r12TGf+HO2jsasVkqKQ@mail.gmail.com>
-Subject: Re: [PATCH net-next v2 05/12] net: add METADATA_PSP dst to carry a
- psp association on an skb
-To: sashiko-reviews@lists.linux.dev
-Cc: linux-rdma@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-X-Authority-Analysis: v=2.4 cv=L8aI0OT8 c=1 sm=1 tr=0 ts=6b008247 cx=c_pps
- a=0uOsjrqzRL749jD1oC5vDA==:117 a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22 a=_1IyUuN4QrATX339ibzo:22
- a=7a1JM2k2UpYnRVFoQv4A:9 a=QEXdDO2ut3YA:10 a=mQ_c8vxmzFEMiUWkPHU9:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTIwMDA2OSBTYWx0ZWRfX2TgAPBvJLwnH
- xAGxGx+zgUT3wcXCBmdbi4JP4+rQqgAK3x3cpWhiU5b1Ubsl1l+MScrINzOXHscB9RJiJ81mqZZ
- YROtE2llYV1Qu57EasAMEfAdt2NJ2KwtZWTM82n7NPGQQF0piDsEfNVZSgDo42wJvoV8ahMDdhF
- 6Aqi7pL9PkVrjTyoH576bxbCqYzQXcl7XRhnf1W244qseoSmUDGm5Pe9VugeWn4JuFeIGvLB17a
- ZXWU2L4SV/OeQ/JW1Ij1lYMhy82fHmogGKfhOHAOytMmgA6n6m0gYmnCxs3iVEhrZOG7B2TWCwQ
- eETl+sKczw16LYiGPzW2zE30wCmDYmyE4X1kozclxKo/DWA2rLJcsoNrIqYhAnq6VDI0jN5CS5y
- 1lWjAGF+1ljmExxII7tjvJbeFYveh3fIJXC+baRr4/eOMjp9jmbL5ktaPviW6fi6fHbcEuEHN5s
- BALZOJ4vPty8b/OIDrw==
-X-Proofpoint-ORIG-GUID: mIj1KdfU9IFTEJQ9e_MpeFAD-L6hX5FR
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTIwMDA2OSBTYWx0ZWRfXwfLRWvbcGz5q
- Nky7at8kXufsipwKKJr/rFA7ZxYgSfEDuMf+Rk4STl7sJ8EOeYJPA399oGAwpxR0DTeR/ZS3ZUu
- iPwctRv8cG/8LJgLGjHm3q1rRFwOKLE=
-X-Proofpoint-GUID: mIj1KdfU9IFTEJQ9e_MpeFAD-L6hX5FR
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-20_05,2026-11-19_01,2025-10-01_01
+Content-Transfer-Encoding: 8bit
 
-> [Severity: High]
-> Does sk_validate_xmit_skb() drop all METADATA_PSP packets sent by a
-> TCP_TIME_WAIT socket when CONFIG_INET_PSP is enabled?
->
-> When any TCP socket enters TCP_TIME_WAIT, inet_twsk_alloc() calls
-> psp_twsk_init(), which unconditionally sets tw->tw_validate_xmit_skb even
-> when the socket has no PSP association:
+ucma_process_join() permits multiple joins of the same address on one
+cm_id. Each join has its own ucma_multicast, but rdma_leave_multicast()
+searches by address and removes the first match. A leave can therefore
+destroy another join's cma_multicast and free the requested ucma_multicast
+while its cma_multicast still refers to it. A later event then accesses
+freed memory.
 
-Since posting, this has been fixed upstream,
+Reject duplicate addresses with -EADDRINUSE. Hold ctx->mutex across the
+duplicate check, mc_list insertion and rdma_join_multicast(). Use
+xa_alloc() to reserve the multicast ID; dropping the XArray lock during
+allocation cannot let another join bypass the check while the mutex is
+held.
 
-  82290fab668c (psp: only give time-wait sockets of PSP connections a validator)
+On leave, erase the handle under the XArray lock to claim the multicast
+object, but keep it on mc_list until ctx->mutex is acquired. Hold the
+mutex continuously from list removal through rdma_leave_multicast(),
+event cleanup and freeing the object. Otherwise a rejoin after unlinking
+could create a new membership before the old address-only leave, which
+would destroy the new membership and leave the old one referencing freed
+memory.
 
--Todd
+Fixes: c8f6a362bf3e ("RDMA/cma: Add multicast communication support")
+Cc: stable@vger.kernel.org
+Signed-off-by: Andrey Misiurov <amisiurov@cloudlinux.com>
+---
+Changes in v2:
+- Serialize duplicate detection, insertion and join with ctx->mutex.
+- Keep leave's unlink, RDMA teardown, event cleanup and free under the
+  same mutex; drop the XArray lock before acquiring the mutex.
+- Keep join error unwinding serialized and use the normal XArray API.
+- Correct the Fixes tag to c8f6a362bf3e, where the duplicate join and the
+  address-only leave were introduced.
+
+ drivers/infiniband/core/ucma.c | 38 ++++++++++++++++++++------------------
+ 1 file changed, 20 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index a15182f..9d94d19 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -1509,7 +1509,7 @@ static ssize_t ucma_process_join(struct ucma_file *file,
+ {
+ 	struct rdma_ucm_create_id_resp resp;
+ 	struct ucma_context *ctx;
+-	struct ucma_multicast *mc;
++	struct ucma_multicast *mc, *tmp;
+ 	struct sockaddr *addr;
+ 	int ret;
+ 	u8 join_state;
+@@ -1543,23 +1543,25 @@ static ssize_t ucma_process_join(struct ucma_file *file,
+ 	mc->uid = cmd->uid;
+ 	memcpy(&mc->addr, addr, cmd->addr_size);
+ 
+-	xa_lock(&multicast_table);
+-	if (__xa_alloc(&multicast_table, &mc->id, NULL, xa_limit_32b,
++	mutex_lock(&ctx->mutex);
++	list_for_each_entry(tmp, &ctx->mc_list, list)
++		if (!memcmp(&tmp->addr, addr, cmd->addr_size)) {
++			ret = -EADDRINUSE;
++			goto err_free_mc;
++		}
++
++	if (xa_alloc(&multicast_table, &mc->id, NULL, xa_limit_32b,
+ 		     GFP_KERNEL)) {
+ 		ret = -ENOMEM;
+ 		goto err_free_mc;
+ 	}
+ 
+ 	list_add_tail(&mc->list, &ctx->mc_list);
+-	xa_unlock(&multicast_table);
+ 
+-	mutex_lock(&ctx->mutex);
+ 	ret = rdma_join_multicast(ctx->cm_id, (struct sockaddr *)&mc->addr,
+ 				  join_state, mc);
+-	if (ret) {
+-		mutex_unlock(&ctx->mutex);
++	if (ret)
+ 		goto err_xa_erase;
+-	}
+ 
+ 	resp.id = mc->id;
+ 	if (copy_to_user(u64_to_user_ptr(cmd->response),
+@@ -1567,24 +1570,22 @@ static ssize_t ucma_process_join(struct ucma_file *file,
+ 		ret = -EFAULT;
+ 		goto err_leave_multicast;
+ 	}
+-	mutex_unlock(&ctx->mutex);
+ 
+ 	xa_store(&multicast_table, mc->id, mc, 0);
++	mutex_unlock(&ctx->mutex);
+ 
+ 	ucma_put_ctx(ctx);
+ 	return 0;
+ 
+ err_leave_multicast:
+ 	rdma_leave_multicast(ctx->cm_id, (struct sockaddr *) &mc->addr);
+-	mutex_unlock(&ctx->mutex);
+ 	ucma_cleanup_mc_events(mc);
+ err_xa_erase:
+-	xa_lock(&multicast_table);
+ 	list_del(&mc->list);
+-	__xa_erase(&multicast_table, mc->id);
++	xa_erase(&multicast_table, mc->id);
+ err_free_mc:
+-	xa_unlock(&multicast_table);
+ 	kfree(mc);
++	mutex_unlock(&ctx->mutex);
+ err_put_ctx:
+ 	ucma_put_ctx(ctx);
+ 	return ret;
+@@ -1634,6 +1635,7 @@ static ssize_t ucma_leave_multicast(struct ucma_file *file,
+ {
+ 	struct rdma_ucm_destroy_id cmd;
+ 	struct rdma_ucm_destroy_id_resp resp;
++	struct ucma_context *ctx;
+ 	struct ucma_multicast *mc;
+ 	int ret = 0;
+ 
+@@ -1658,19 +1660,20 @@ static ssize_t ucma_leave_multicast(struct ucma_file *file,
+ 		goto out;
+ 	}
+ 
+-	list_del(&mc->list);
++	ctx = mc->ctx;
+ 	__xa_erase(&multicast_table, mc->id);
+ 	xa_unlock(&multicast_table);
+ 
+-	mutex_lock(&mc->ctx->mutex);
+-	rdma_leave_multicast(mc->ctx->cm_id, (struct sockaddr *) &mc->addr);
+-	mutex_unlock(&mc->ctx->mutex);
++	mutex_lock(&ctx->mutex);
++	list_del(&mc->list);
++	rdma_leave_multicast(ctx->cm_id, (struct sockaddr *)&mc->addr);
+ 
+ 	ucma_cleanup_mc_events(mc);
+ 
+-	ucma_put_ctx(mc->ctx);
+ 	resp.events_reported = mc->events_reported;
+ 	kfree(mc);
++	mutex_unlock(&ctx->mutex);
++	ucma_put_ctx(ctx);
+ 
+ 	if (copy_to_user(u64_to_user_ptr(cmd.response),
+ 			 &resp, sizeof(resp)))
