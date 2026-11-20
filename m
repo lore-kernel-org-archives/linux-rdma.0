@@ -1,56 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795133701;
-	b=aHDvFzTK7M8p53qNqkdaF0cRHubRKy2/MIFLrwBNBf0hAOtTkmwUZ4qSd5i6/HLjyK5d
-	 sreFs4qnE1tW8ZdTvO+0Rb10buO9piffOKv5UbD3VD482+8lLMEaAZbvsvvksRz/ccv5c
-	 2LwOyijEozbwq+Wsz2WfkZGB0yeXhoyZCePFaEI5veXIqk6KZLXS0MEYRdmGcCKJ3xBi6
-	 1nU46bNcWsoOOmB+ST0paxBBaFO1taKSoE318FuFzwn3BH+/3TxzR/BmrdS7d13GBQ5+J
-	 u2Ll0WVEt8gOYyxTpwLD6x4BaCsXJUvZc1q4QMG3DLhtQ4am7lzXgxZmENAY65F1iVg==
+	t=1795135211;
+	b=njSJ0YzMxl+skyHqX6SihXUtfXIxNCFmCpkvIN0LJiRRcsMjEkiwMMhv0Wc6KGqXLXZ0
+	 43uioB9UU1AnXkXjIUCpQPwjbdUwxV4sU6+Dig7zI0ye0ZUuOp9H9DbCUVrjcgCrHb14z
+	 jOy4BVhdCefbAoMmgyNg18zaLSNCewCpp4581KbnohQ1kofkFA0yTfH28ODw6Z/LQ/FIc
+	 8Odvv7ereHaPKq1uLSuumFubC6h5ykQ1G40WNsNX3a8ayJgAjgkMbT6Jmp0n1gzye8ERy
+	 8n5qqsUvtaalRv9PMYyzDdsTj/NVqaW3T5fAmZmdOaZwZOBVrANyLB+sWo3o9KTHlIA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795133701;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=8y/gyTTcX7qcmg0sjlm00Cr55vyWW6VRqyEPN6Mwc4Y=;
-	b=ldTxFrwn+Qt/6CaLBwlcQdE5PWo/hgdjO79rbguQSqpnels3MKUFKSuIZPUCtZ7m+f0T
-	 WnFdzS4UJ2KhnjNkPpq6Oas1smjIVEFLHXLhoSrd50sBvVDBpVobXqSjyX3YffXF1EOQz
-	 MegsLNOO5LD4Q0ilV1y6k96Jijsd8cN5CGtczrXR1tmv8FvyiJXDXIhj7rbVVMZ4kklSX
-	 RauxoRpZNotSrK7atqufuEG9/gK3Q+aczsi7vruEKcEZxK+UkfbIDGB8SlhDVT+M5cDVo
-	 oVTZQdZ0sCIVrg1vHUU+PO19l9siVrh1+Qu7IvuVvTuv/QlZTyhNMAV9cb75ksX6O2g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795135211;
+	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
+	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc;
+	bh=fuYqGKz8tF4JVrpW4P/SNbiXiq0ATgFGBBkKRffwfsU=;
+	b=yLbyjTjcP929ft1uc7D8ly4zWmYVYWQKfFVlsXZTD0i/Ll6cFm43bTgwNxpsnEcErfGl
+	 QGVM9xcHvXiqV9AXgRzT78/CrfAixg+w1R53MZnIZBj7AY+7Qv6I6IT+zWWx9MBtwjyhi
+	 a9SjwO7YU83nONUDr+xaBxozAtw4ttZl+is9nz+hsrW/zHiyx94Y+kdhnbg58iApa05N7
+	 dI8vKtrRYJvgqFQOuKZQGXqKhjGnTfInc5OC777sKSx/nf1nbKvDJ5Ev2+EtUqOcaxxJC
+	 KK8mO4c0W4quH+AvK/8sEfc2VgBK8mNxxT80RBzPvSEDO8JmQDo1rJrcq34AaBw8gbQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Gbz3NCsV;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=P38cuAm1;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B23BB606A325
-	for <linux-rdma@vger.kernel.org>; Fri, 20 Nov 2026 00:15:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C705606A325;
+	Fri, 20 Nov 2026 00:40:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Gbz3NCsV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36A0D1F000C6;
-	Fri, 20 Nov 2026 00:15:01 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=P38cuAm1
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDED41F000CA;
+	Fri, 20 Nov 2026 00:40:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795133701;
-	bh=8y/gyTTcX7qcmg0sjlm00Cr55vyWW6VRqyEPN6Mwc4Y=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=Gbz3NCsV2gVAxvukvLW3W0ABoBgWAkKxUbpVaSFnPWrP47CFaTfdGLUoMleWWKuRN
-	 c/wis5oOOHVdMIFusN/g3LWJ+OTw1LdMiTgehhHuujhyzrchWTQpq09RwvvgWu34HL
-	 zr6rJ1TNBqli6GkS8WTrj/luUAWjxSEyDX8qhyJPt5somuSk1QsysE9S3Y+9BU1KN5
-	 RVI0Q2OfHK5l7VgEDZ2FSEOATfrrOx5fiR309YEmmOGNOj4Ye28s7YHKe+9R/iWdoG
-	 Rn0QpXQRWL5Pqe/HBpTAMX7oLarJmtGubjqG1vCks2hVBjCBJE9r525V0mLtSHH4eo
-	 Gb/ncpC1mYFkA==
-Message-ID: <sashiko-outbox-224260@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-rc] RDMA/siw: Reject a zero length WRITE segment
- that announces more segments
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Andrew Stellman" <astellman@stellman-greene.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261120000829.64597-1-astellman@stellman-greene.com>
-References: <20261120000829.64597-1-astellman@stellman-greene.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Fri, 20 Nov 2026 00:15:00 +0000
+	s=k20260515; t=1795135210;
+	bh=fuYqGKz8tF4JVrpW4P/SNbiXiq0ATgFGBBkKRffwfsU=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=P38cuAm1/jpCPpAmQZGHjFmU/VWaKCTzHLPwz1seUQkeISuENbSe6IDHejHP7bfCC
+	 H94Oi/lI/dJJIeW+ADTqDWSLz8UxwXCmPOG1BHMt9CyLQTiL1Vv4GY9ZVvlQ5+E7Lw
+	 xrZoF96hpw0e4qDEbqyd5j5515wcsyIpSZuC7/tT2p2KeGQWPDzNGh/+iWrlxsH1qw
+	 uSFnHwf1bYj2jn3ZLWcxEuBpgbVszqIMmpnOfMBMS3WaUUQ9rfUPjbYk52Zd0JKJjc
+	 uAB3nECbYD4UFmu67/kuYvRFhQnOdR1YCQrdpK6bB+mFn6J9uZly8EBp4BXCKUV1/C
+	 0fmaJIsQs15uA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id B45673808209;
+	Fri, 20 Nov 2026 00:40:10 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,33 +52,68 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next V2 00/10] net/mlx5: LAG,
+ preparations for LAG over VFs/SFs
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <179513520953.3950719.4715041705999451652.git-patchwork-notify@kernel.org>
+Date: Fri, 20 Nov 2026 00:40:09 +0000
+References: <20261116103010.1129666-1-tariqt@nvidia.com>
+In-Reply-To: <20261116103010.1129666-1-tariqt@nvidia.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
+ cjubran@nvidia.com, cratiu@nvidia.com, gal@nvidia.com, leon@kernel.org,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, mbloch@nvidia.com,
+ moshe@nvidia.com, ohartoov@nvidia.com, phaddad@nvidia.com, saeedm@nvidia.com,
+ shayd@nvidia.com, udar@nvidia.com
 
-> siw_proc_write() returns early for a zero length tagged segment, before
-> it looks up the sink STag. If that first segment has the L bit clear,
-> the next segment is handled as a continuation of the same message and
-> siw reads mem->stag through rx_mem, which was never set. A remote peer
-> on an established siw connection can trigger this, and it panics the
-> host:
->=20
->   Oops: general protection fault, probably for non-canonical address 0xdf=
-fffc0000000004: 0000 [#1] SMP KASAN NOPTI
->   KASAN: null-ptr-deref in range [0x0000000000000020-0x0000000000000027]
->   RIP: 0010:siw_proc_write+0x175/0x9c0
->   Call Trace:
->    <IRQ>
->    siw_tcp_rx_data+0x20e/0x2040
->    __tcp_read_sock+0x1ab/0x810
->    siw_qp_llp_data_ready+0x185/0x2e0
-> [ ... ]
-> The fix and this changelog were drafted with the same tool and reviewed
-> by me.
->=20
-> Fixes: 8b6a361b8c48 ("rdma/siw: receive path")
-> Signed-off-by: Andrew Stellman <astellman@stellman-greene.com>
+Hello:
 
-Sashiko has reviewed this patch and found no issues.
+This series was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261120000829.6459=
-7-1-astellman@stellman-greene.com?part=3D1
+On Mon, 16 Nov 2026 12:30:00 +0200 you wrote:
+> Hi,
+> 
+> This series by Shay is the first part of enabling a LAG over functions
+> that do not represent a physical port - a "virtual LAG" (virt LAG) of
+> VFs or SFs acting as nested e-switch managers. New FW lets a VF/SF front
+> the physical uplinks through a multi-uplink e-switch; such a function
+> reports num_lag_ports < 2 and drives port selection via the e-switch
+> (port_select_eswitch) rather than the HW port-selection flow table. A
+> virt LAG is therefore a software-managed, shared-FDB MPESW LAG: the
+> driver builds the LAG demux and vport-LAG in software.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net-next,V2,01/10] net/mlx5: Distinguish VFs/SFs in the SW system image GUID for LAG grouping
+    https://git.kernel.org/netdev/net-next/c/c25049685e16
+  - [net-next,V2,02/10] net/mlx5: LAG, select the MPESW master from the live member snapshot
+    https://git.kernel.org/netdev/net-next/c/2bfcb28b10e8
+  - [net-next,V2,03/10] net/mlx5: LAG, skip phys LAG prerequisites for a virt LAG
+    https://git.kernel.org/netdev/net-next/c/a2d029ad50e2
+  - [net-next,V2,04/10] net/mlx5: LAG, treat virt LAG as a software managed LAG
+    https://git.kernel.org/netdev/net-next/c/b03cb2fdbbdb
+  - [net-next,V2,05/10] net/mlx5: LAG, decouple iteration end-of-walk from MLX5_MAX_PORTS
+    https://git.kernel.org/netdev/net-next/c/4eef67c32a7b
+  - [net-next,V2,06/10] net/mlx5: LAG, rename PF naming to fn
+    https://git.kernel.org/netdev/net-next/c/1e6086bcd491
+  - [net-next,V2,07/10] net/mlx5: LAG, resolve affinity indices only in queue-affinity mode
+    https://git.kernel.org/netdev/net-next/c/26da1e56cef9
+  - [net-next,V2,08/10] net/mlx5: LAG: replace fixed MLX5_MAX_PORTS arrays with dynamic allocation
+    https://git.kernel.org/netdev/net-next/c/b7826ed4d0b5
+  - [net-next,V2,09/10] net/mlx5: LAG, drop MLX5_MAX_PORTS scratch array from device rescan
+    https://git.kernel.org/netdev/net-next/c/0da8bb5da54f
+  - [net-next,V2,10/10] net/mlx5: LAG, do not add a device to an already-active virt LAG
+    https://git.kernel.org/netdev/net-next/c/5830905813d0
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
