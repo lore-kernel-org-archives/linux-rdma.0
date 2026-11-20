@@ -1,56 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.163.158.5
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795176126;
-	b=B0fr/3flxyuwisXVb7wLDaKnb2p6xq8oKNUDPBGqHq5OikqXFkeDCGf5jIsWOJkAcj+e
-	 UL6D6slEvJHnAX9Cwnfcl2CQ13z7/QaPDP6CrTRImPA8WchN4IcwONAdnE3O25nu9+XA4
-	 pdJnNQ63zs/uSc7o3x6ktcZYFowU9OxP9ZLRaYLR5uWC9Nhmn06r4/dj9+na+8ZaG1aqj
-	 qOcaNaqDu0FNnL3+CJJoac2iFBk/aJNAMOHBAhZ3NZtF9DFiF9DvIUhoORblUIhhBfdUk
-	 dMcp8zjWS8AMGWDseLnCH/i74L7uLq3di1g8Dz+A7tKrzlJDIg8VVj572bkYpCvcjwQ==
+	t=1795178759;
+	b=cvlcDnBDKBui77EYgELspMVpoa/bR4aYKEHNz3e6lZnFqF1m4XqM69J3LfeZEgt7qwOZ
+	 vdmp6n94g5SH0QCcTX9W0YeB4rVT3cHd1B9ZwnVhg2GpE5NMLatWLTXW3GBqo5L5CydBH
+	 4JuWN6n56lIBUJ/vnhYbyJrWPAU6ezTBpq2VSIIF5hlSn7nKgFbuxDUEVu5Z1a4aqYr/E
+	 qKsJQtOhbdyzLmunNirXjz+yPnh988VIRTmSFiQTi/rgvaEz7y9abXPxlEHciLe3MWchb
+	 Ce5cCGKjuHg66xGvTS8V4Q1kLI5HWT07ihnT2XoyR8/hZ2C0NdufIIiA2VRwOSlp9Rw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795176126;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=5OfMrHGP0Nhxt0XLvDJZVUYBPAIRTacqZT17KMs53Zk=;
-	b=GDg+D/9zovOJV3n1goAIReHsmIqs8fGh7a3GvxraFAEyks92O4/QzSYhN9r6n8E/CiLx
-	 lKuKZeNq60ZBKhtqXYMRbSc+zEOkGDvr0oPnxU5jij+0LG8uiZsoozHLEcz/8WjgvPpFO
-	 B4uxG+O9RbQqmIrfvxi40I4lJV21TC9VMK9a0BGe7xuZLZ77gE5W85aHP2RW/i0QI6gsM
-	 HqYcahOOfvAJuZ6DR479Hgzj1T+lSKpJ6jjO3enqWvDMpaZZgUNgFO2XMVSatyu3Qw+MO
-	 smkDX31mVeHQaK+wE+a+h4BTXuc9CyECAPO6B3+vxpFbpH4MA2lxlrqW8Xs6O+swl8Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795178759;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
+	 Received:Received:Received:Received:Received:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-TM-AS-GCONF:X-Proofpoint-Reinject:
+	 X-Proofpoint-ORIG-GUID:X-Proofpoint-GUID:
+	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Spam-Info:
+	 X-Authority-Analysis:X-Proofpoint-Virus-Version:
+	 X-Proofpoint-Spam-Details;
+	bh=De2HgVUYKEIAINfe/1hSpHkMnHxovRlzC2jRpg9nyXI=;
+	b=Z18PnRksWE4tf+Vedo2ptvB5n/wLKpmvvOwrk9qOqriyTQJqj3DmABq6d4OX19CQBAHb
+	 aXZLr6cQ9kbc66d8sbd3IFFJQLEPxdm4d7Am/qiKuwGVYxcMcxE6wjyjJojzh3htJcFy3
+	 yEaOXYYXIMcQDyLNktUo3y+9SEXaQlwjgpiaS33KFykKQNdLyGDVtnvKqZF3mcGD7a/hp
+	 F/KgMpwAkKiT0wN3O1wu1We9kYo8mrAxP5H8hKZOVk0FVYqoA0BcP2Xj4VFkBMoqpTkHb
+	 0qIYaF31cs+kxC1x77ydElwlHoEpLhsw1JFhqZroR1BRgiJQQNBdMwfFrUkOGxohRmA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KZf03VzJ;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=linux.ibm.com;
+	spf=pass smtp.mailfrom=linux.ibm.com;
+	dkim=pass header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b=ptAs0fgf;
+	arc=none smtp.remote-ip=148.163.158.5
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3885B606A325
-	for <linux-rdma@vger.kernel.org>; Fri, 20 Nov 2026 12:02:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EB2B606A320;
+	Fri, 20 Nov 2026 12:45:58 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9EB2B606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KZf03VzJ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 886AE1F000C4;
-	Fri, 20 Nov 2026 12:02:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795176125;
-	bh=5OfMrHGP0Nhxt0XLvDJZVUYBPAIRTacqZT17KMs53Zk=;
-	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=KZf03VzJU8yIASaOJ3FgsKKlB90XnLpHviQWyCqmcn2j1MPGHLI9MtTUnO2gGRVyz
-	 l6fT4oCEA4hJvhfEc3VXn0Rxyfh2qvJKPNfZ4MtwcVRHWiZAQWH4PRB66TmeUV59lr
-	 OA3mAUHOzaz8yU+ug8aTPI1Cxx42C84OGnNX3qbYiuoMW0kveyKouYxVT/UVzvo27/
-	 5WWTaMfeprcX84+8k3QVKDtzBkeUmvcjEunG647X4iCkErWC6WTXiLQ/1q1V5eWDFp
-	 rC2F/gUw7rli4FkzStiTuymMcFUKHToqpEzcyMLMZ7x0XQF0l+KF/nd1X8ikoag/1N
-	 MSPaK12HgKJwA==
-Message-ID: <sashiko-outbox-225106@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v1] RDMA/rxe: Don't trust the user space SQ
- producer index
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Shuai Liu" <847807867@qq.com>, linux-rdma@vger.kernel.org
-In-Reply-To: <tencent_5B9FB1BCC8EF36C5E2128B7D4D54B867480A@qq.com>
-References: <6adb54ac.d1cee5ca.8df35.0007.GAE@google.com>
- <tencent_5B9FB1BCC8EF36C5E2128B7D4D54B867480A@qq.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Fri, 20 Nov 2026 12:02:05 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=ibm.com header.i=@ibm.com header.a=rsa-sha256 header.s=pp1 header.b=ptAs0fgf
+Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AKAuRX12860773;
+	Fri, 20 Nov 2026 12:45:46 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:date:from:in-reply-to:message-id
+	:mime-version:references:subject:to; s=pp1; bh=De2HgVUYKEIAINfe/
+	1hSpHkMnHxovRlzC2jRpg9nyXI=; b=ptAs0fgf3TymVKk/1wX7OJHzIazXo1Ng0
+	63WlQAy7K/47eI3Er88tnL3GjvxBRWaVKhieEbzWbQytOgjUac5EgE4YlGnoTuO+
+	zQTFUTsLY+Nv4eNQGLx1DXvwdT3eSeZRQPDwfgwH68ri+NofprfMXZhPNh2Q0IH9
+	7CHa6zZe/XPJOJLxA+rS2vKtrnzIOdbhegoDXaLZVXv/ESwACfq1MeJsexM/ioPJ
+	DlmR/7ExM8lNxkFTjzUOnyuF/DXiabpgCwe6goTYVfD9OlgkTyUO6REC1OmukyHS
+	kEo7/yveNEtwfw2Pkd7LfUp71O2v53nvx/a17F7snZxthQU1FnfPw==
+Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4j105x82uh-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Fri, 20 Nov 2026 12:45:46 +0000 (GMT)
+Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma23.wdc07v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 6AKAnvTj2162669;
+	Fri, 20 Nov 2026 12:45:45 GMT
+Received: from smtprelay07.fra02v.mail.ibm.com ([9.218.2.229])
+	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 4j1m3j25pw-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 20 Nov 2026 12:45:45 +0000 (GMT)
+Received: from smtpav01.fra02v.mail.ibm.com (smtpav01.fra02v.mail.ibm.com [10.20.54.100])
+	by smtprelay07.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 6AKCjfJP45482414
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 20 Nov 2026 12:45:41 GMT
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 9227920043;
+	Fri, 20 Nov 2026 12:45:41 +0000 (GMT)
+Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 5600620040;
+	Fri, 20 Nov 2026 12:45:41 +0000 (GMT)
+Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.87.85.9])
+	by smtpav01.fra02v.mail.ibm.com (Postfix) with SMTP;
+	Fri, 20 Nov 2026 12:45:41 +0000 (GMT)
+Received: by tuxmaker.boeblingen.de.ibm.com (Postfix, from userid 56341)
+	id 3E779160DEF; Fri, 20 Nov 2026 13:45:41 +0100 (CET)
+From: Mahanta Jambigi <mjambigi@linux.ibm.com>
+To: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
+        dust.li@linux.alibaba.com, sidraya@linux.ibm.com
+Cc: hidayath@linux.ibm.com, pasic@linux.ibm.com, horms@kernel.org,
+        tonylu@linux.alibaba.com, guwen@linux.alibaba.com,
+        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-rdma@vger.kernel.org, Mahanta Jambigi <mjambigi@linux.ibm.com>
+Subject: [PATCH net-next 1/3] net/smc: keep clcsock until socket release
+Date: Fri, 20 Nov 2026 13:45:32 +0100
+Message-ID: <20261120124534.430200-2-mjambigi@linux.ibm.com>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20261120124534.430200-1-mjambigi@linux.ibm.com>
+References: <20261120124534.430200-1-mjambigi@linux.ibm.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,158 +98,124 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+X-TM-AS-GCONF: 00
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-ORIG-GUID: DC0LqePRszzj29xCqpuHKJP1ut7YDKaH
+X-Proofpoint-GUID: kAJZemH2CWLqK2uspZi12AGgtAnOIwk5
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTIwMDA0OSBTYWx0ZWRfX+JpHBLiy/qjM
+ 3VZtyGhKrjtdM65LFRG9BIdvDr0hNsBVCgym9BCJlNt0zp2ZfHdHCVGnRgPagLvCdywvRYLBvM8
+ xrMg3W7dgbrNe65oh8LxTOE1MItmU8TICYcVpnEOc2/RVPlzVWcSYDwj+9xWcKU7IV9y1fQoc5U
+ Lj37tEDoyNfJ4KlJqXJIrgqgyOr4mqyaSXHzdDz5RpBKQlb3LHkTuEGid+IH2MQBjPJHHryfoW3
+ Hq6cTqpFMZZwysqGv6XQswgHCr1/5Tmhm2YNgolm9Svu9SmLxQQQSuKsu/wZ6UIDV9Dl6nBszou
+ pPhAKgI4pGGPuThnUFoW99zZx8hYg8kVGjKIsb97G440kNvPa3m7usfAPZu2/ycAmcmgk8fEh4Z
+ hZuZQilLOUfBxdrSZFJik4m6KzBXo5tyYK+xk+aRh/+x84eNcJL9ZTBdYEZsCw2QLxt0McB4TLu
+ dooAZ3kJ/ZRh0n8C8cw==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTIwMDA0OSBTYWx0ZWRfX4QD0yOqLPJM8
+ Q6nKS+4dmrtJTbyPUY6feAHzDVqRtmUGVc4PgP/suQT6hT+Of9A4KBHefMvz8q4s/Dlhgll+QZa
+ WDHIXO2vqqvtUASAoXWaj0/Qm9I/0P8=
+X-Authority-Analysis: v=2.4 cv=K+m3jCWI c=1 sm=1 tr=0 ts=6b0040fa cx=c_pps
+ a=3Bg1Hr4SwmMryq2xdFQyZA==:117 a=3Bg1Hr4SwmMryq2xdFQyZA==:17
+ a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=RnoormkPH1_aCDwRdu11:22
+ a=Y2IxJ9c9Rs8Kov3niI8_:22 a=VnNF1IyMAAAA:8 a=zmzxMRKWTMvrz3c1K5kA:9
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-11-20_04,2026-11-19_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ suspectscore=0 bulkscore=0 clxscore=1015 adultscore=0 spamscore=0
+ priorityscore=1501 impostorscore=0 phishscore=0 lowpriorityscore=0
+ malwarescore=0 classifier=typeunknown authscore=0 authtc= authcc=
+ route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2611040001
+ definitions=main-2611200049
 
-Thank you for your contribution! Sashiko AI review found 3 potential
-issues to consider:
-- [Medium] RDMA/rxe: requester and completer SQ index desync on
-  out-of-range prod
-- [Medium] RDMA/rxe: unvalidated SQ producer index read in
-  rxe_qp_init_req()
-- [Low] RDMA/rxe: wrong Fixes trailer and IB_QPS_ERR loop description
---
+The clcsock of an SMC socket can be freed from asynchronous contexts:
+link group termination reaches smc_close_active_abort() and peer close
+reaches smc_close_passive_work(), and both can run while the socket is
+referenced by an open file. A task that uses the fd then operates on a
+released socket.
 
-commit 216db84647f6c90b4699ba426a623f31c2b768e8
-Author: Shuai Liu <847807867@qq.com>
+Free the clcsock only when no socket file can reference it: from the
+release paths, and from the abnormal close paths only once the socket
+has no file left. __smc_release() now tears the connection down before
+it releases the clcsock: smc_conn_kill() and smc_close_passive_work()
+check conn->freed and return early once the connection has been freed.
 
-> RDMA/rxe: Don't trust the user space SQ producer index
->
-> The send queue producer index of a user space QP is stored in the
-> queue buffer which is shared with and written by user space. The
-> requester reads it without any validation in req_retry() and
-> __req_next_wqe().
->
-> The requester stops processing WQEs when its local WQE index equals
-> the producer index. If user space writes an out of range producer
-> index into the queue buffer, that comparison can never become true.
-> Once the QP is put into the error state, rxe_requester() then keeps
-> flushing the same (already errored) WQE forever: the flush loop
-> advances the WQE index but req_retry() resets it back to the
-> consumer index, and each pass calls rxe_qp_error() which reschedules
-> the send task, so the loop never converges. The send task holds a
-> reference to the QP for as long as this lasts, so ib_destroy_qp()
-> waits for the QP reference to drop until it times out after 50
-> seconds and the WARN_ON(!ret) fires in __rxe_cleanup():
->
->   WARNING: drivers/infiniband/sw/rxe/rxe_pool.c:212 at __rxe_cleanup
->   Call Trace:
->    __rxe_cleanup
->    rxe_destroy_qp
->    ...
->   rxe0: qp#17 rxe_destroy_qp: cleanup failed, err =3D -110
->
-> Fix this by validating the producer index: if it is out of range,
-> treat the send queue as empty. Verified with the syzbot reproducer
-> in QEMU: without this patch every destroy_qp hangs for 50 seconds
-> and hits the WARNING above; with this patch the reproducer runs
-> cleanly.
->
-> Reported-by: syzbot+fef38133c495aeb48297@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=3Dfef38133c495aeb48297
-> Fixes: 5bcf5a59c41e1 ("RDMA/rxe: Protext kernel index from user space")
-> Signed-off-by: Shuai Liu <847807867@qq.com>
+Signed-off-by: Mahanta Jambigi <mjambigi@linux.ibm.com>
+---
+ net/smc/af_smc.c    |  4 ++--
+ net/smc/smc_close.c | 16 +++++++++++++---
+ 2 files changed, 15 insertions(+), 5 deletions(-)
 
-[Severity: Low]
-Should the Fixes tag point to ae6e843fe08d ("RDMA/rxe: Add memory barriers
-to kernel queues") instead?  In 5bcf5a59c41e ("RDMA/rxe: Protext kernel
-index from user space"), producer_index() still masked the user-space value
-with q->index_mask; ae6e843fe08d ("RDMA/rxe: Add memory barriers to kernel
-queues") replaced producer_index() with queue_get_producer() and dropped
-that mask.
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index bfc0c7e71a12..1d8a602729c1 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -313,13 +313,13 @@ static int __smc_release(struct smc_sock *smc)
+ 	sk->sk_prot->unhash(sk);
 
-Also, when qp_state(qp) =3D=3D IB_QPS_ERR, rxe_requester() jumps directly to
-err: or exit: without reaching req_retry(); qp->req.wqe_index wraps back to
-the consumer index via queue_next_index() at err: because queue_next_index()
-masks with q->index_mask and never matches the out-of-range prod.
+ 	if (sk->sk_state =3D=3D SMC_CLOSED) {
++		if (!smc->use_fallback)
++			smc_conn_free(&smc->conn);
+ 		if (smc->clcsock) {
+ 			release_sock(sk);
+ 			smc_clcsock_release(smc);
+ 			lock_sock(sk);
+ 		}
+-		if (!smc->use_fallback)
+-			smc_conn_free(&smc->conn);
+ 	}
 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/=
-rxe/rxe_req.c
-> index 6e01fb18893bf..4a78562d83b19 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_req.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-> @@ -48,6 +48,12 @@ static void req_retry(struct rxe_qp *qp)
->  	cons =3D queue_get_consumer(q, QUEUE_TYPE_FROM_CLIENT);
->  	prod =3D queue_get_producer(q, QUEUE_TYPE_FROM_CLIENT);
-> =20
-> +	/* The producer index is written by user space and cannot
-> +	 * be trusted; treat an out of range index as an empty queue.
-> +	 */
-> +	if (unlikely(prod & ~q->index_mask))
-> +		prod =3D cons;
-> +
->  	qp->req.wqe_index	=3D cons;
->  	qp->req.psn		=3D qp->comp.psn;
->  	qp->req.opcode		=3D -1;
-> @@ -188,7 +194,7 @@ static struct rxe_send_wqe *__req_next_wqe(struct rxe=
-_qp *qp)
->  	unsigned int prod;
-> =20
->  	prod =3D queue_get_producer(q, QUEUE_TYPE_FROM_CLIENT);
-> -	if (index =3D=3D prod)
-> +	if (unlikely(prod & ~q->index_mask) || index =3D=3D prod)
->  		return NULL;
->  	else
->  		return queue_addr_from_index(q, index);
+ 	return rc;
+diff --git a/net/smc/smc_close.c b/net/smc/smc_close.c
+index 736abfbd2aaf..cf1add1ffda6 100644
+--- a/net/smc/smc_close.c
++++ b/net/smc/smc_close.c
+@@ -36,6 +36,14 @@ void smc_clcsock_release(struct smc_sock *smc)
+ 	mutex_unlock(&smc->clcsock_release_lock);
+ }
 
-[Severity: Medium]
-Can treating out-of-range prod as an empty queue here desynchronize
-qp->req.wqe_index from the completer's consumer index q->index?
-
-queue_empty() in drivers/infiniband/sw/rxe/rxe_queue.h masks the index
-difference with q->index_mask:
-
-drivers/infiniband/sw/rxe/rxe_queue.h:queue_empty() {
-	u32 prod =3D queue_get_producer(q, type);
-	u32 cons =3D queue_get_consumer(q, type);
-
-	return ((prod - cons) & q->index_mask) =3D=3D 0;
-}
-
-When user space writes a producer index where (prod & ~q->index_mask) !=3D 0
-and ((prod - cons) & q->index_mask) !=3D 0, __req_next_wqe() treats the que=
-ue
-as empty and leaves qp->req.wqe_index at cons, while rxe_completer()
-(via get_wqe() or flush_send_queue() -> queue_head() -> queue_empty()) sees
-a non-empty queue and advances cons to prod & q->index_mask.  If user space
-then writes an in-range prod equal to the new cons, __req_next_wqe() sees
-index !=3D prod and processes or flushes already-consumed and unposted WQE
-slots across the ring buffer.
-
-In addition, if WQEs are already in flight (cons !=3D qp->req.wqe_index) wh=
-en
-user space sets upper bits in prod, clamping prod =3D cons in req_retry()
-rewinds qp->req.wqe_index to cons and qp->req.psn to qp->comp.psn while
-skipping the retry loop, leaving those in-flight WQEs stuck in
-wqe_state_pending with exhausted DMA residuals.
-
-Masking prod with q->index_mask in queue_get_producer() for
-QUEUE_TYPE_FROM_CLIENT (as producer_index() did prior to ae6e843fe08d
-("RDMA/rxe: Add memory barriers to kernel queues")) would keep the
-requester, completer, and queue helpers consistent.
-
-[Severity: Medium]
-Does rxe_qp_init_req() also read an unvalidated user producer index into
-qp->req.wqe_index?
-
-drivers/infiniband/sw/rxe/rxe_qp.c:rxe_qp_init_req() {
-	...
-	err =3D rxe_init_sq(qp, init, udata, uresp);
-	if (err)
-		return err;
-
-	qp->req.wqe_index =3D queue_get_producer(qp->sq.queue,
-					       QUEUE_TYPE_FROM_CLIENT);
-	...
-}
-
-rxe_init_sq() calls do_mmap_info(), which copies the mmap info to user space
-and registers it in rxe->pending_mmaps before returning.  If user space maps
-the buffer and writes to q->buf->producer_index before rxe_qp_init_req()
-reads it, qp->req.wqe_index is initialized to an unvalidated value while
-the consumer index q->index starts at 0, so a subsequent valid prod =3D=3D 0
-causes __req_next_wqe() to see index !=3D prod and process unposted WQE slo=
-ts
-on an empty queue.
-
++/* The clcsock can be released once no socket file can reach it; while a
++ * file is still open, smc_release() releases it.
++ */
++static bool smc_clcsock_can_release(struct smc_sock *smc)
++{
++	return smc->clcsock && !smc->sk.sk_socket;
++}
++
+ static void smc_close_cleanup_listen(struct sock *parent)
+ {
+ 	struct sock *sk;
+@@ -157,7 +165,8 @@ void smc_close_active_abort(struct smc_sock *smc)
+ 		sk->sk_state =3D SMC_CLOSED;
+ 		sk->sk_prot->unhash(sk);
+ 		smc_conn_free(&smc->conn);
+-		release_clcsock =3D true;
++		if (smc_clcsock_can_release(smc))
++			release_clcsock =3D true;
+ 		sock_put(sk); /* passive closing */
+ 		break;
+ 	case SMC_PROCESSABORT:
+@@ -169,7 +178,8 @@ void smc_close_active_abort(struct smc_sock *smc)
+ 		sk->sk_state =3D SMC_CLOSED;
+ 		sk->sk_prot->unhash(sk);
+ 		smc_conn_free(&smc->conn);
+-		release_clcsock =3D true;
++		if (smc_clcsock_can_release(smc))
++			release_clcsock =3D true;
+ 		break;
+ 	case SMC_INIT:
+ 	case SMC_PEERABORTWAIT:
+@@ -452,7 +462,7 @@ static void smc_close_passive_work(struct work_struct=
+ *work)
+ 		    (sock_flag(sk, SOCK_DEAD) || !sk->sk_socket)) {
+ 			sk->sk_prot->unhash(sk);
+ 			smc_conn_free(conn);
+-			if (smc->clcsock)
++			if (smc_clcsock_can_release(smc))
+ 				release_clcsock =3D true;
+ 		}
+ 	}
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/tencent_5B9FB1BCC8E=
-F36C5E2128B7D4D54B867480A@qq.com?part=3D1
+2.50.1 (Apple Git-155)
+
