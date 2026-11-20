@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795152920;
-	b=uqdyp/BJq0+cp2hGqC7nTkubq8nk9TzNDqH8nvRf8zshMFooQkZacYTBJAAhZrWcRlEu
-	 lbBbhyGMQcxrJwvGY14Iw7FbG7pXij2gaG3y1tPXN0TxP+ftMyftCPrwZOBp/679sV8EU
-	 fZtJEkeXiHvMFE2OI9nA3LpTDGnCt7MFz/RiJYbVGVRKtzds6++YH6iaL7btQ7EQv3FAg
-	 mQGm2/YsotsrjGJ5mjQiS9TpQfdMAf6+PK7jrx0s6NEcW6fZu4lA+foOajQe46wZ+tnV7
-	 fLPZYzYdhMZShuFpxZJCg7iBNKejZQEY7u/7NNJa9o5z0wdha5LNGHhLFBTxT22mi5Q==
+	t=1795152922;
+	b=dgX7UCY4rxm7xRUYo9aMxXQzWgjPb6tgV7P2sj0IrSBz8XMhWgkHdyqoSVmc1BgJt5f1
+	 hOtvPbIJcMqgB9AsJiJk69ZuSJ+fQCzlAgm9yIso9Dv2TNntZcMf+pNoCExx8RDnF1Kdm
+	 aN4Mj/mJRjc0jm4SeZzfxK03Us9SJnSkxVkNAGcIOs9zLeto+MSZkJs1bWK2HyhMClg25
+	 eV34OspKJOYWNE+VpMnvZkg0Z3Tq1JoCEN1J2VyxVKZFCBEFitihsOah8z6DCaOvPoRb/
+	 Rgfw2rQBvQ77+6WaGNlwL/5qlWDWMkbQQNzRW/MDaerY5JZuE55xVo3LosHWC5brSPQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795152920;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795152922;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=DjvQqhMP94B6pkXRIu5JFvHLBpFWSNq39QBHFx2ALQo=;
-	b=mY/x0Uw8MTllHmplbRfN6QjklaWYZUn4U/LEIorDIOF4js5xNatMpMVt0fkxW0l/mdRx
-	 iXdI6WXwBDc7yuilI2OWdsp8vqJ54rigpr5LYgHyV03EyUK5sb4daxoEu29DEe/fgQ+2t
-	 EQes9V+quSl5L1qOlNs/jOAfi+KO8Rqcclj54UXuHxzFyEUDYak7VZjR4+YgxXxhdAOba
-	 u79mt6LySm+0IWGkzAhMoTVA6Uv5kt5xsIA9GCmmWd+Pv+1XMVWeTlRVezrzzr57Ic2O/
-	 Yo8AIxdfXFTZ+6mlF9cMIIBOmta0mYhIIZmnJjoIRZBvuUyLw4quy7slLgQ+Nzqforw==
+	bh=6NmKnHRU/piT4HLG2fbbtf+VrhiQ2Ne2vhyFekILWNQ=;
+	b=HHWK1Pm0BYzsQkgg/54puDdcHi4V0ZaeiMmy5WdfavebaL+dkmX6FcoLo9vnyhz+KO6i
+	 J9KebPX2dAn1jVAtI6sv8eBaV65kqNPjtp3kWcvk40mcqljAj5SuwS9gHZECysXqtWYpz
+	 +5Aj9DcDdgKXfepZMshIv30ILt1cXBOr4VV337R7GTJbcH+8XZSR+VIt/Z9/Upi5qQD/y
+	 eyB5bJz14svHMeQmhwLa5L4i78caBIAvMQ2BnaKKyQeyLA4bxSOHBNJI2FQFXFLCSgV8i
+	 nbOXbCRlvv9MOC4YPdPQRdQrCHEb8YZSt4shm7qlOfj5RluksUDi3ah+1nZMJSf0f1g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RCEB3UZK;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PyfVUj5V;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B4C6606A325;
-	Fri, 20 Nov 2026 05:35:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A52B606A33A;
+	Fri, 20 Nov 2026 05:35:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RCEB3UZK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D7491F000CF;
-	Fri, 20 Nov 2026 05:35:19 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PyfVUj5V
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE1811F000C4;
+	Fri, 20 Nov 2026 05:35:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795152920;
-	bh=DjvQqhMP94B6pkXRIu5JFvHLBpFWSNq39QBHFx2ALQo=;
+	s=k20260515; t=1795152921;
+	bh=6NmKnHRU/piT4HLG2fbbtf+VrhiQ2Ne2vhyFekILWNQ=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=RCEB3UZK6ItV1J7msmiXhKwoSjJicjoK64DETqry3RWzERBhCySCWTHn6pHPAMLa8
-	 64ccoS23cyFcaV6pMJbIAIE/FkoklawGt4WxBQxDKuHeSGk+sPpTxDGg+FC70dADQv
-	 JcYK3K/TKWEOEf+xWg7BWfYc63cUFAxQQlX09SeP2fiaiEjpYXGsyZCAxjZWdlGYee
-	 MASAd07hZ5mw0vkubQ6eNortOTClyNqUhZ3naLqCi+YTmCasQmYYpYMfvV0YVYxydp
-	 zICzsEQxBNuzLH3E/QO19rVj8QLd+7CyDYYW5iZqoR87HRnwq3XrIwIxbmdHzJ7UhW
-	 NBWNqOI+p08AA==
-Subject: Re: [PATCH net V2 1/2] net/mlx5: HWS, Handle NULL in vport
- destination action creation
+	b=PyfVUj5VjogeatR3yXagNs4L7nS8GfD4rcRQWCafelU0Mz6dsJ4HshJGKc4iphgy4
+	 PMVr4YhtnK75HUhGJowOzhWIUlmRcQUasW8ai5h1mn9TYGl07gDaXPtZ/azxLeIuKQ
+	 T3NOXdo9x0JzvukzSZkc24OQCX3FzUC4Eq5uPERLUjJpiWSFWe/vjyktPnq+/nhrue
+	 Uhy7azpqO6OtV+yx7WIBSGJ+zstqGddvowK7G3+Zn3Osb5c4+pT3uyr9avDod9zqSu
+	 wNdtwtolUVzekPfPUJtSpDEJ0RSXxOwFCrilKCYckAsXCb9+7mLhm3pe8TBvM9UunL
+	 XnWFFq7MWbARQ==
+Subject: Re: [PATCH net V2 2/2] net/mlx5: DR, Fix out-of-bounds write when
+ sync to HW fails
 From: netdev-bot+sashiko@kernel.org
 To: tariqt@nvidia.com
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
@@ -51,11 +51,11 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
  linux-rdma@vger.kernel.org, mbloch@nvidia.com, moshe@nvidia.com,
  prathameshdeshpande7@gmail.com, saeedm@nvidia.com, horms@kernel.org,
  william@theesfeld.net, kliteyn@nvidia.com
-Date: Fri, 20 Nov 2026 05:35:18 +0000
-Message-ID: <179515291858.3136.13333642056498222976@kernel.org>
-In-Reply-To: <20261118173227.1957670-2-tariqt@nvidia.com>
-References: <20261118173227.1957670-2-tariqt@nvidia.com>
-X-sashiko-severity: Low
+Date: Fri, 20 Nov 2026 05:35:20 +0000
+Message-ID: <179515292029.3136.16137473377101738953@kernel.org>
+In-Reply-To: <20261118173227.1957670-3-tariqt@nvidia.com>
+References: <20261118173227.1957670-3-tariqt@nvidia.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -68,142 +68,135 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
-- [Low] The commit message for "net/mlx5: HWS, Handle NULL in vport
-  destination action creation" describes only part of what the bug did.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-Pre-existing issues:
-- [High] This problem wasn't introduced by this patch, but the same
-  caller, mlx5_fs_fte_get_hws_actions() in…
+- [Medium] One SYNC_STEERING failure now disables the ICM pool
+  permanently.
+- [Low] The 'KASAN log excerpt' in the commit message is not real KASAN
+  output.
 
 --
 
-net/mlx5: HWS, Handle NULL in vport destination action creation
+net/mlx5: DR, Fix out-of-bounds write when sync to HW fails
 
-This patch makes mlx5_fs_get_dest_action_vport() return NULL as soon as
-mlx5hws_action_create_dest_vport() fails. A NULL entry is therefore never
-inserted into the vport destination xarray. Before this change, inserting
-NULL could later cause a NULL dereference in hws_action_destroy_hws().
+This patch adds an error_state flag to struct mlx5dr_icm_pool. The flag
+is set when SYNC_STEERING fails in dr_icm_pool_sync_all_buddy_pools().
+While it is set, mlx5dr_icm_free_chunk() stops queuing chunks into
+hot_chunks_arr, which prevents the out-of-bounds write, and
+mlx5dr_icm_alloc_chunk() returns NULL.
 
-> The next mlx5hws_action_create_dest_vport() failure will try to
-> insert NULL again, but xa_insert() will return -EBUSY, because
-> we already have NULL entry. In such case the code will go into
-> error flow of action creation, and eventually will cause NULL
-> dereference at hws_action_destroy_hws().
+> The issue was discovered by a fuzzer that repeatedly triggered sync
+> failure, at which point the out-of-bounds write was reported by KASAN:
+>
+>    KASAN log excerpt: BUG:
+>      slab-out-of-bounds in mlx5dr_icm_free_chunk+0x4cd at call 2
+>      (hot_chunks_num=3 > cap=2).
 
 [Severity: Low]
-This isn't a bug, but does this describe the whole impact? The text covers
-a later creation for the same idx failing again. What about a later
-creation that succeeds?
+Is this excerpt from an actual KASAN report? A real splat starts with
+"BUG: KASAN: slab-out-of-bounds in func+0xoff/0xsize". It is followed
+by "Write of size N at addr ... by task ..." and a stack trace. KASAN
+doesn't print "at call N" or notes like "(hot_chunks_num=3 > cap=2)".
 
-When the entry is NULL, __xa_insert() stores XA_ZERO_ENTRY instead:
+A capacity of 2 also looks hard to reach on real hardware.
+mlx5dr_icm_pool_create() sizes the array like this:
 
-lib/xarray.c:__xa_insert() {
-    ...
-	if (!entry)
-		entry = XA_ZERO_ENTRY;
-    ...
-}
+	num_of_chunks = DIV_ROUND_UP(max_hot_size, entry_size) + 1;
+	pool->th = max_hot_size;
 
-xa_load() turns that back into NULL. The slot looks empty but stays
-reserved.
+Here max_hot_size is a percentage of the byte size of the largest chunk.
+A capacity of 2 would need max_hot_size <= entry_size. Real device caps
+make the array thousands of entries long.
 
-Suppose a later mlx5hws_action_create_dest_vport() call succeeds, for
-example once a transient kzalloc or STC pool failure has cleared. The old
-code then appears to loop:
+The overflow itself looks real. Before this patch, a failed sync left
+hot_chunks_num and hot_memory_size unchanged.
 
-mlx5_fs_get_dest_action_vport()
-  dest_load:
-    xa_load() returns NULL
-    mlx5hws_action_create_dest_vport() returns a valid action
-    xa_insert() returns -EBUSY
-    mlx5hws_action_destroy(dest)
-    goto dest_load
+Could the commit message include the real KASAN splat? Or could it say
+plainly that the overflow was found by injecting sync failures in a
+test harness, and describe how they were injected?
 
-Wouldn't this spin forever and hang rule insertion for that vport?
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_icm_pool.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_icm_pool.c
+> index 1b928b40686e5..a906a72601c4f 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_icm_pool.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_icm_pool.c
 
-The fix covers both outcomes, since NULL is never inserted now. Could the
-commit message also mention the livelock?
+[ ... ]
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
-> index cbcbc2b62809d..de22e7279a312 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
-> @@ -441,6 +441,8 @@ mlx5_fs_get_dest_action_vport(struct mlx5_fs_hws_context *fs_ctx,
+> @@ -368,7 +373,15 @@ static int dr_icm_pool_sync_all_buddy_pools(struct mlx5dr_icm_pool *pool)
 >  
->  	dest = mlx5hws_action_create_dest_vport(ctx, vport_num,	vhca_id_valid,
->  						dest_attr->vport.vhca_id, flags);
-> +	if (!dest)
-> +		return NULL;
->  
->  	err = xa_insert(dests_xa, idx, dest, GFP_KERNEL);
+>  	err = mlx5dr_cmd_sync_steering(pool->dmn->mdev);
 >  	if (err) {
+> -		mlx5dr_err(pool->dmn, "Failed to sync to HW (err: %d)\n", err);
+> +		/* The hot chunks could not be flushed. Put the pool in an
+> +		 * error state so that no further chunks are queued (which
+> +		 * would overflow hot_chunks_arr), and no new chunks are
+> +		 * served. The sync is not retried.
+> +		 */
+> +		mlx5dr_err(pool->dmn,
+> +			   "Failed to sync to HW (err: %d), disabling ICM pool\n",
+> +			   err);
+> +		pool->error_state = true;
+                ^^^^
 
-[Severity: High]
-This is a pre-existing issue, but can the same caller,
-mlx5_fs_fte_get_hws_actions(), still oops on a NULL action in other
-destination cases?
+[Severity: Medium]
+Does one SYNC_STEERING failure now disable this pool for good? Only
+mlx5dr_icm_pool_destroy() clears error_state, and the sync is never
+retried.
 
-In three cases the result goes into fs_actions[] and is counted before
-the NULL check. These are FLOW_TABLE_NUM (when the action has to be
-created), RANGE and FLOW_SAMPLER:
+After that, every mlx5dr_icm_alloc_chunk() call returns NULL. STE hash
+table allocation in mlx5dr_ste_htbl_alloc(), modify action allocation
+and pattern allocation in dr_ptrn.c all fail. No new steering rules can
+be inserted until the domain is torn down by an eswitch mode change,
+driver reload or health recovery. Each later mlx5dr_icm_free_chunk()
+also leaves its segment reserved in the buddy.
 
-drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c:mlx5_fs_fte_get_hws_actions() {
-    ...
-				dest_action = mlx5_fs_create_dest_action_table_num(fs_ctx,
-										   dst);
-				fs_actions[num_fs_actions++].action = dest_action;
-				break;
-			case MLX5_FLOW_DESTINATION_TYPE_RANGE:
-				dest_action = mlx5_fs_create_dest_action_range(ctx, dst);
-				fs_actions[num_fs_actions++].action = dest_action;
-				break;
-    ...
-			case MLX5_FLOW_DESTINATION_TYPE_FLOW_SAMPLER:
-				dest_action =
-					mlx5_fs_get_dest_action_sampler(fs_ctx,
-									dst);
-				fs_actions[num_fs_actions].action = dest_action;
-				fs_actions[num_fs_actions++].sampler_id =
-							dst->dest_attr.sampler_id;
-				break;
-    ...
-			if (!dest_action) {
-				err = -ENOMEM;
-				goto free_actions;
-			}
-    ...
-}
+mlx5dr_cmd_sync_steering() only skips the device internal error state:
 
-Each of these can return NULL:
+	if (mdev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR)
+		return 0;
+	...
+	return mlx5_cmd_exec_in(mdev, sync_steering, in);
 
-  mlx5hws_action_create_dest_table_num(): allocation failure or STC pool
-  exhaustion
+That means transient host-side errors also set the flag. For example,
+the SYNC_STEERING inbox is at most 16 bytes, so alloc_msg() in cmd.c
+skips the message cache:
 
-  mlx5hws_action_create_dest_match_range(): invalid range parameters, or
-  allocation, definer or STC failure
+	if (in_size <= 16)
+		goto cache_miss;
 
-  mlx5_fs_get_dest_action_sampler(): GFP_ATOMIC allocation or
-  __xa_insert() failure, or failure to create the sampler action
+It then allocates with GFP_KERNEL, which can fail with -ENOMEM under
+memory pressure. Command timeouts and the -ENXIO paths are passed up
+the same way.
 
-The free_actions path then calls teardown on every counted entry:
+Also, error_state is per pool (STE, MODIFY_ACTION, MODIFY_HDR_PTRN), but
+the sync is device-wide. A later successful sync from another pool won't
+re-enable this one.
 
-mlx5_fs_destroy_fs_actions()
-  mlx5_fs_destroy_fs_action()
-    mlx5hws_action_get_type(fs_action->action)
-      return action->type;   <-- NULL dereference
+The commit message says a chunk may only return to the buddy after a
+sync confirms HW no longer references it. That explains not recycling
+the queued hot chunks. Does it also justify refusing to allocate from
+segments that are already in the buddy free lists? Those were either
+freed after an earlier successful sync or never used.
 
-The other patch in this series, "net/mlx5: DR, Fix out-of-bounds write
-when sync to HW fails", only touches sws/dr_icm_pool.c and does not fix
-this.
+Would it work to stop queuing only when hot_chunks_num reaches the array
+capacity, leaving those segments reserved, and to retry the sync on
+later frees? That avoids the overflow and keeps the no-recycle rule
+without disabling the pool permanently.
 
-Could dest_action be checked before it goes into fs_actions[]?
-Alternatively, mlx5_fs_destroy_fs_actions() could skip NULL entries.
+>  		return err;
+>  	}
+>  
+
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261118173227.1957670-1-tariqt%40nvidia.com
