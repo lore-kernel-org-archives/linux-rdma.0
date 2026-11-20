@@ -1,62 +1,60 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795145448;
-	b=apxL6TIZHRE/kUgXI6xCYZDOzJM0YcDLiaY2hwd46XGfKG9SMCXULoDQOKBUWqXPBSI9
-	 yPIfJ9bfQ3XlV6MwKhWZgXF4z9iJF+urPHVfysWYJ88bQivCAG0VjsYU6dvr4OPv6hh4W
-	 NPr/ft/GitrUbA1TllSQYJ6YTeCGQ6XbfrdrfN5kGJx6xHpqaNOhV+qjxpUga2qFYNaNm
-	 QGaPkhwgXPjJZ8COLFLHQZ5ThBhoV8XWWHYyMFL9O7hseKgrQGmV0flJoyWo7Y/ouI5D6
-	 Z9WB8Vx0im5h1A8MIlik5e0eIVBA/dVuc+a6cudUfynJrFhpPJFmphmQoEyNMLQZS4w==
+	t=1795152920;
+	b=uqdyp/BJq0+cp2hGqC7nTkubq8nk9TzNDqH8nvRf8zshMFooQkZacYTBJAAhZrWcRlEu
+	 lbBbhyGMQcxrJwvGY14Iw7FbG7pXij2gaG3y1tPXN0TxP+ftMyftCPrwZOBp/679sV8EU
+	 fZtJEkeXiHvMFE2OI9nA3LpTDGnCt7MFz/RiJYbVGVRKtzds6++YH6iaL7btQ7EQv3FAg
+	 mQGm2/YsotsrjGJ5mjQiS9TpQfdMAf6+PK7jrx0s6NEcW6fZu4lA+foOajQe46wZ+tnV7
+	 fLPZYzYdhMZShuFpxZJCg7iBNKejZQEY7u/7NNJa9o5z0wdha5LNGHhLFBTxT22mi5Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795145448;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795152920;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=DzL+yn5jSD+uOgBTf8SzAp9nCi6wEKaq2tvvd5oCRh8=;
-	b=H8Q1IS2UY7NW9qD2v7SZg2iXAfoRvQED2A17Nf9ci0fh76GmUM95o1Vde8/jC9p8M1E/
-	 mB9TLo1EtAC3j1rlXv163cdQV94q3m9mafobslZMJ5T957qXcitdVX0oHzjA1BzjfnudN
-	 yvC0yH6HCSEXmPfNlhsBQ2L0oTEkr1u4CKCn+AcME/r3ioJNop0z523hc83WqFazvvT8G
-	 3K7/rBhOrOqZf4Abo3FmQCm58zRTjer9a5rLSQFQdxhXUdbMTjunLlKIzaazSPJVp7NEC
-	 jCVHCjCMrdHo/A1YAdl5eMcfhuV8IhgsR6cEaCkS0LPnxv4nabEsNupZCEd+ooV4new==
+	bh=DjvQqhMP94B6pkXRIu5JFvHLBpFWSNq39QBHFx2ALQo=;
+	b=mY/x0Uw8MTllHmplbRfN6QjklaWYZUn4U/LEIorDIOF4js5xNatMpMVt0fkxW0l/mdRx
+	 iXdI6WXwBDc7yuilI2OWdsp8vqJ54rigpr5LYgHyV03EyUK5sb4daxoEu29DEe/fgQ+2t
+	 EQes9V+quSl5L1qOlNs/jOAfi+KO8Rqcclj54UXuHxzFyEUDYak7VZjR4+YgxXxhdAOba
+	 u79mt6LySm+0IWGkzAhMoTVA6Uv5kt5xsIA9GCmmWd+Pv+1XMVWeTlRVezrzzr57Ic2O/
+	 Yo8AIxdfXFTZ+6mlF9cMIIBOmta0mYhIIZmnJjoIRZBvuUyLw4quy7slLgQ+Nzqforw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RNyo1ZnL;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RCEB3UZK;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 518F460A2601;
-	Fri, 20 Nov 2026 03:30:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B4C6606A325;
+	Fri, 20 Nov 2026 05:35:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RNyo1ZnL
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95AC91F000C4;
-	Fri, 20 Nov 2026 03:30:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RCEB3UZK
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D7491F000CF;
+	Fri, 20 Nov 2026 05:35:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795145448;
-	bh=DzL+yn5jSD+uOgBTf8SzAp9nCi6wEKaq2tvvd5oCRh8=;
+	s=k20260515; t=1795152920;
+	bh=DjvQqhMP94B6pkXRIu5JFvHLBpFWSNq39QBHFx2ALQo=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=RNyo1ZnL/rnIJXIxucxYmZ6GQAjoBRYYaJjIa++LqRcMggy2wKubrbRW7jqV2jL8U
-	 DOBoWVGP3IFAGErRyXwZoZNMD7fHOevtQAYp/Rf5akSvYXjHluHTFPwpNHEr61aZMv
-	 E6ws5pH+0lhB7fEgQbP3k5R/Kl4+2rirlPL/Y6SJ1EUZy2dOH5CcHHY3uH50Prycqr
-	 hi0i57IMMh4VDd9o9xuG0vRBxk9oNLDnRXioh0D/85Fyi8ujlTbGl818j/SVLns54h
-	 jKPeNpW3uaq5/7YJpgd7Kacbr4qDffvUufywXXKE5W8PVM2hvSZ4wMnDXMyXEHpaiY
-	 f+Fmpn0sbTSkA==
-Subject: Re: [PATCH net-next v2 10/10] docs: networking: describe tunnel key
- partitioning in TC queue filtering
+	b=RCEB3UZK6ItV1J7msmiXhKwoSjJicjoK64DETqry3RWzERBhCySCWTHn6pHPAMLa8
+	 64ccoS23cyFcaV6pMJbIAIE/FkoklawGt4WxBQxDKuHeSGk+sPpTxDGg+FC70dADQv
+	 JcYK3K/TKWEOEf+xWg7BWfYc63cUFAxQQlX09SeP2fiaiEjpYXGsyZCAxjZWdlGYee
+	 MASAd07hZ5mw0vkubQ6eNortOTClyNqUhZ3naLqCi+YTmCasQmYYpYMfvV0YVYxydp
+	 zICzsEQxBNuzLH3E/QO19rVj8QLd+7CyDYYW5iZqoR87HRnwq3XrIwIxbmdHzJ7UhW
+	 NBWNqOI+p08AA==
+Subject: Re: [PATCH net V2 1/2] net/mlx5: HWS, Handle NULL in vport
+ destination action creation
 From: netdev-bot+sashiko@kernel.org
-To: acassen@corp.free.fr
-Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
- jhs@mojatatu.com, jiri@resnulli.us, andrew+netdev@lunn.ch,
- davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
- horms@kernel.org, michael.chan@broadcom.com, pavan.chebbi@broadcom.com,
- bharat@chelsio.com, donald.hunter@gmail.com, corbet@lwn.net,
- skhan@linuxfoundation.org, rdunlap@infradead.org, dsahern@kernel.org,
- idosch@nvidia.com, shuah@kernel.org, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org,
- linux-kselftest@vger.kernel.org, oss-drivers@corigine.com
-Date: Fri, 20 Nov 2026 03:30:46 +0000
-Message-ID: <179514544619.3136.11935885435056519543@kernel.org>
-In-Reply-To: <20261117092915.255194-11-acassen@corp.free.fr>
-References: <20261117092915.255194-11-acassen@corp.free.fr>
+To: tariqt@nvidia.com
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
+ acassen@corp.free.fr, valex@nvidia.com, erezsh@nvidia.com, gal@nvidia.com,
+ kees+treewide@kernel.org, leon@kernel.org, linux-kernel@vger.kernel.org,
+ linux-rdma@vger.kernel.org, mbloch@nvidia.com, moshe@nvidia.com,
+ prathameshdeshpande7@gmail.com, saeedm@nvidia.com, horms@kernel.org,
+ william@theesfeld.net, kliteyn@nvidia.com
+Date: Fri, 20 Nov 2026 05:35:18 +0000
+Message-ID: <179515291858.3136.13333642056498222976@kernel.org>
+In-Reply-To: <20261118173227.1957670-2-tariqt@nvidia.com>
+References: <20261118173227.1957670-2-tariqt@nvidia.com>
 X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -76,148 +74,136 @@ you want to address the nit picks below when you respin.
 
 Low priority / nit picks for your consideration:
 
-- [Low] The new 'Tunnel key partitioning' text in
-  Documentation/networking/tc-queue-filters.rst (lines 39-56) uses a…
-- [Low] The mlx5 paragraph in Documentation/networking/tc-queue-
-  filters.rst (lines 51-56) says a masked enc_key_id filter "runs on a…
-- [Low] Documentation/networking/tc-queue-filters.rst (lines 39-47)
-  describes splitting "the key space of a tunnel" into blocks, and its…
+- [Low] The commit message for "net/mlx5: HWS, Handle NULL in vport
+  destination action creation" describes only part of what the bug did.
+
+Pre-existing issues:
+- [High] This problem wasn't introduced by this patch, but the same
+  caller, mlx5_fs_fte_get_hws_actions() in…
 
 --
 
-docs: networking: describe tunnel key partitioning in TC queue filtering
+net/mlx5: HWS, Handle NULL in vport destination action creation
 
-This commit documents tunnel key partitioning, where a filter with a mask
-on enc_key_id steers a block of tunnel flows to an RX queue. It gives a
-GTP-U example, describes what enc_key_id means on an mlx5 physical port,
-and explains what happens to the filter's traffic when its channel goes
-away.
+This patch makes mlx5_fs_get_dest_action_vport() return NULL as soon as
+mlx5hws_action_create_dest_vport() fails. A NULL entry is therefore never
+inserted into the vport destination xarray. Before this change, inserting
+NULL could later cause a NULL dereference in hws_action_destroy_hws().
 
-> diff --git a/Documentation/networking/tc-queue-filters.rst b/Documentation/networking/tc-queue-filters.rst
-> index 6b417092276f6..14032375d6308 100644
-> --- a/Documentation/networking/tc-queue-filters.rst
-> +++ b/Documentation/networking/tc-queue-filters.rst
-> @@ -35,3 +35,25 @@ queues and/or a single queue are supported as below:
->     devices, TC filter directing traffic to a queue have higher
->     priority over flow director filter assigning a queue. The hash
->     filter has lowest priority.
-> +
-> +Tunnel key partitioning splits the key space of a tunnel into blocks. One
-> +filter with a mask on enc_key_id steers a block to its own queue. This
-> +helps with traffic that RSS cannot spread because its hashed fields barely
-> +vary, such as GTP-U tunnels between a few endpoints::
-> +
-> +  # GTP-U TEIDs whose two top bits are 01 go to queue 1
-> +  tc filter add dev eth0 ingress protocol ip flower skip_sw \
-> +      ip_proto udp dst_port 2152 enc_key_id 0x40000000/0xc0000000 \
-> +      action skbedit queue_mapping 1 skip_sw
+> The next mlx5hws_action_create_dest_vport() failure will try to
+> insert NULL again, but xa_insert() will return -EBUSY, because
+> we already have NULL entry. In such case the code will go into
+> error flow of action creation, and eventually will cause NULL
+> dereference at hws_action_destroy_hws().
 
 [Severity: Low]
+This isn't a bug, but does this describe the whole impact? The text covers
+a later creation for the same idx failing again. What about a later
+creation that succeeds?
 
-Does this example work on mlx5 with the default firmware configuration?
-mlx5e_tc_tun_parse_outer_key_gtp() refuses the filter unless the firmware
-reports the GTP-U TEID flex parser:
+When the entry is NULL, __xa_insert() stores XA_ZERO_ENTRY instead:
 
-drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun_gtp.c:mlx5e_tc_tun_parse_outer_key_gtp() {
+lib/xarray.c:__xa_insert() {
     ...
-	if (!(MLX5_CAP_GEN(priv->mdev, flex_parser_protocols) &
-	      MLX5_FLEX_PARSER_GTPU_TEID_ENABLED)) {
-		NL_SET_ERR_MSG_MOD(extack,
-				   "Matching on GTP-U TEID is not supported");
-		return -EOPNOTSUPP;
-	}
+	if (!entry)
+		entry = XA_ZERO_ENTRY;
     ...
 }
 
-The GENEVE selector also needs a flex parser bit (MLX5_FLEX_PROTO_GENEVE,
-checked through mlx5e_tc_tun_can_offload_geneve()). The preceding commit
-"net/mlx5e: TC, match the tunnel key without a tunnel device" says "GTP-U
-needs flex parser profile 3 and GENEVE profile 0". That means the 2152 and
-6081 selectors listed further down cannot both be available at once.
+xa_load() turns that back into NULL. The slot looks empty but stays
+reserved.
 
-If the firmware default is profile 0, the firmware will refuse this
-example, and the extack message does not mention the flex parser profile.
-Could the text mention this firmware dependency?
+Suppose a later mlx5hws_action_create_dest_vport() call succeeds, for
+example once a transient kzalloc or STC pool failure has cleared. The old
+code then appears to loop:
 
-Also, the example passes skip_sw on the filter, but the text only implies
-that it is required ("Only the hardware can match the key").
-mlx5e_tc_tun_parse_outer_key() refuses the offload without it:
+mlx5_fs_get_dest_action_vport()
+  dest_load:
+    xa_load() returns NULL
+    mlx5hws_action_create_dest_vport() returns a valid action
+    xa_insert() returns -EBUSY
+    mlx5hws_action_destroy(dest)
+    goto dest_load
 
-	if (!f->common.skip_sw) {
-		NL_SET_ERR_MSG_MOD(extack,
-				   "enc_key_id without a tunnel device requires skip_sw");
-		return -EOPNOTSUPP;
-	}
+Wouldn't this spin forever and hang rule insertion for that vport?
 
-Would it help to state that requirement explicitly?
+The fix covers both outcomes, since NULL is never inserted now. Could the
+commit message also mention the livelock?
 
-> +
-> +Not all drivers can program a partial mask.
-> +
-> +On mlx5 devices such a filter runs on a physical port where nothing
-> +decapsulates the packet. All the keys describe the packet on the wire.
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
+> index cbcbc2b62809d..de22e7279a312 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c
+> @@ -441,6 +441,8 @@ mlx5_fs_get_dest_action_vport(struct mlx5_fs_hws_context *fs_ctx,
+>  
+>  	dest = mlx5hws_action_create_dest_vport(ctx, vport_num,	vhca_id_valid,
+>  						dest_attr->vport.vhca_id, flags);
+> +	if (!dest)
+> +		return NULL;
+>  
+>  	err = xa_insert(dests_xa, idx, dest, GFP_KERNEL);
+>  	if (err) {
 
-[Severity: Low]
+[Severity: High]
+This is a pre-existing issue, but can the same caller,
+mlx5_fs_fte_get_hws_actions(), still oops on a NULL action in other
+destination cases?
 
-Is "physical port" the full scope here? __parse_cls_flower() calls
-mlx5e_tc_tun_parse_outer_key() for any filter_dev that is not a tunnel
-device. That includes FDB flows on VF representors:
+In three cases the result goes into fs_actions[] and is counted before
+the NULL check. These are FLOW_TABLE_NUM (when the action has to be
+created), RANGE and FLOW_SAMPLER:
 
-drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c:mlx5e_tc_tun_parse_outer_key() {
+drivers/net/ethernet/mellanox/mlx5/core/steering/hws/fs_hws.c:mlx5_fs_fte_get_hws_actions() {
     ...
-	if (fs_type == FS_FT_FDB && !mlx5e_is_uplink_rep(priv) &&
-	    esw->offloads.inline_mode != MLX5_INLINE_MODE_NONE) {
-		NL_SET_ERR_MSG_MOD(extack,
-				   "Flow is not offloaded due to min inline setting");
-		return -EOPNOTSUPP;
-	}
+				dest_action = mlx5_fs_create_dest_action_table_num(fs_ctx,
+										   dst);
+				fs_actions[num_fs_actions++].action = dest_action;
+				break;
+			case MLX5_FLOW_DESTINATION_TYPE_RANGE:
+				dest_action = mlx5_fs_create_dest_action_range(ctx, dst);
+				fs_actions[num_fs_actions++].action = dest_action;
+				break;
     ...
-}
-
-On a VF representor the keys describe what the VF sent, not the packet on
-the physical wire. The text also does not mention the min inline
-requirement.
-
-Separately, the example's action is only registered for NIC flows:
-
-drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/act.c:tc_acts_nic[] {
+			case MLX5_FLOW_DESTINATION_TYPE_FLOW_SAMPLER:
+				dest_action =
+					mlx5_fs_get_dest_action_sampler(fs_ctx,
+									dst);
+				fs_actions[num_fs_actions].action = dest_action;
+				fs_actions[num_fs_actions++].sampler_id =
+							dst->dest_attr.sampler_id;
+				break;
     ...
-	[FLOW_ACTION_RX_QUEUE_MAPPING] = &mlx5e_tc_act_rx_queue,
-    ...
-}
-
-tc_acts_fdb[] has no such entry, and mlx5e_tc_act_get() uses tc_acts_fdb
-for MLX5_FLOW_NAMESPACE_FDB. Wouldn't the documented command then be
-refused on the uplink representor in switchdev mode, even though that is
-the physical port?
-
-Could the paragraph say that queue_mapping steering only applies to NIC
-(legacy mode) flows?
-
-> +enc_key_id is the only tunnel key such a filter matches.
-> +ip_proto 0x2f, or udp with dst_port 2152, 4789 or 6081, tells the hardware
-> +which tunnel header holds the key. The software datapath has no tunnel
-
-[Severity: Low]
-
-Should this mention that VXLAN (4789) and GENEVE (6081) carry a 24 bit
-VNI? The example above partitions on the top two bits of a 32 bit key,
-but both parsers refuse keys that do not fit in 24 bits:
-
-drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun_vxlan.c:mlx5e_tc_tun_parse_outer_key_vxlan() {
-    ...
-	if (key >= MLX5E_TC_TUN_N_VNI) {
-		NL_SET_ERR_MSG_MOD(extack,
-				   "Tunnel key does not fit the 24 bit VNI");
-		return -EOPNOTSUPP;
-	}
+			if (!dest_action) {
+				err = -ENOMEM;
+				goto free_actions;
+			}
     ...
 }
 
-mlx5e_tc_tun_parse_outer_key_geneve() has the same check. So a filter that
-copies the example with dst_port 4789 and enc_key_id
-0x40000000/0xc0000000 would be refused. For those tunnels the top of the
-key space is bits 23:22, not 31:30.
+Each of these can return NULL:
+
+  mlx5hws_action_create_dest_table_num(): allocation failure or STC pool
+  exhaustion
+
+  mlx5hws_action_create_dest_match_range(): invalid range parameters, or
+  allocation, definer or STC failure
+
+  mlx5_fs_get_dest_action_sampler(): GFP_ATOMIC allocation or
+  __xa_insert() failure, or failure to create the sampler action
+
+The free_actions path then calls teardown on every counted entry:
+
+mlx5_fs_destroy_fs_actions()
+  mlx5_fs_destroy_fs_action()
+    mlx5hws_action_get_type(fs_action->action)
+      return action->type;   <-- NULL dereference
+
+The other patch in this series, "net/mlx5: DR, Fix out-of-bounds write
+when sync to HW fails", only touches sws/dr_icm_pool.c and does not fix
+this.
+
+Could dest_action be checked before it goes into fs_actions[]?
+Alternatively, mlx5_fs_destroy_fs_actions() could skip NULL entries.
 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261117092915.255194-1-acassen%40corp.free.fr
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261118173227.1957670-1-tariqt%40nvidia.com
