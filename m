@@ -1,81 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=203.205.221.233
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795174949;
-	b=U1MGU5IAK7DQ5b8QjScQrzjFYotRoHciRm/d53uHqMtQ4/fBiQAArOzvfz7VuFZQgJ4Q
-	 QXxkdLoGkqgmF4BKIlJRO2WCgMD2fsKNRgRfIqr/sstk1W+h0GA2sKo9/ahtJRV0LoMzC
-	 hWxbGqgjGHlAL78+jH8tXvLJ2UwUmMyX9Y5kJN73HdGj8XeHkTyy92rteqXmhYO3dakYD
-	 AmcHuog6+PVD6xCmaBd99ZSYTGhBBnLaYYUbVMUqfcUIk+QgwltpXPeOvInLCLScLmeFx
-	 F0DGtq0pwvyAeRnXqZQsaA7Y+dQcoygzu0p2NO0gK9nSU3w2jOyhzj4P5ghrysee3dw==
+	t=1795175009;
+	b=RnGlE3DjikyWbStsRIbJdHd5CRH+emC4P7XjqXN+kykRnpIAp+zO7+v9Qyg/w71fw2xY
+	 b8pi3+tuw4xQPHtPitBpZKhWxpRFQDz4UJKi/xywtIH34LAe1BPvDIwzXbOXy2y+FH2HI
+	 VkyvzIufNY2NnpAzSTwob20b6ORnIDUR6je9gIuhV+9H6NIQ6htD3Ef4pBytQqLXnjBo9
+	 v3c0Rq78W44Qny7RxmaNF/0AmqKQ/IMv3WX/t2ZsTDZ1nqMgxPOszJezF7pvlKLTxr2Wo
+	 LBhNNCuKWLjsAGjTmpeq/H2jEe7jN7KLSB/OEpr0q6teCPF544rZhdlutr5wXKwMapQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795174949;
-	h=DMARC-Filter:DKIM-Signature:Received:X-QQ-mid:Message-ID:
-	 X-QQ-XMAILINFO:X-QQ-XMRINFO:From:To:Cc:Subject:Date:X-OQ-MSGID:
-	 X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=DF7mXZvTw1RDuVa5ppZVO6UyLu2N+9+2c00mkMOuaDM=;
-	b=0cP4Mtb5RuthbjiwmyGN1VpYjKZA1Cy8nQzM1dYhpmZ6xpj2o0UR0n4b6yCKUQ+BcwyM
-	 0yGCWpXCdutbYP5Ex8ChH1znSBOy7yZ6CGi7Be8qFrh8XyGtmH3osVKFnd/HG5bL4Hk4H
-	 Hx6oKEfYeR5dAfEzP3vy6OBhaedWkNQ6RLjb/40fyoP4Vl7+VQ5jwZLHMtzOQovNZgW+T
-	 BCj+rPVgPJDvfU0ngkNlgujQs2N5OkuTJCRoUy+sSB3uqfJ4Kg5x/IrJ+/nsFr7RfJmkG
-	 WEXugajouInbZEKFyyVsEo+/SuPaFKcL8FQ3k96WotKB5Kq2+JaSmC9JFpvWDtAUedw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795175009;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
+	 In-Reply-To:References:Auto-Submitted:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=oj2zs7YpNjut+Fle9NDI2/nVbuq1xcuWOh/20pAlrQ0=;
+	b=aGe0vefWc6wydIARDvKxVuZbDuc0lCcox1IOpKMV8RPC/3h5TckAAvUu4mzjB1YyHkfD
+	 8Vx1gi+E9Nppt/qheVty0mWl1TS9qiKuoxSpVm3Vd31GgFvrUtln8LzCz/0GIXuOw9Z/+
+	 Q16IVj8tRKAS86xxhQPcG9IhL0H7xvE3dTJyiiL5j817qLVCytZZaUh7oSrW7AjcgLBa6
+	 12EgXAeEopgiFHLKgWCIZzHpqOURvntoQcbs7lI5cqcR8nlY37NAdTkHevQFuBTeoUgu4
+	 /8iQBnofDRh07JxZQgiROqrC1NcHgHYOpVCOGhXJnARyhQC6hvuzY5MyErzNvK1LoIQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=qq.com;
-	spf=pass smtp.mailfrom=qq.com;
-	dkim=pass header.d=qq.com header.i=@qq.com header.a=rsa-sha256 header.s=s201512 header.b=SXSDi6Za;
-	arc=none smtp.remote-ip=203.205.221.233
-Received: from out203-205-221-233.mail.qq.com (out203-205-221-233.mail.qq.com [203.205.221.233])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UGA3oWwu;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B702606A337;
-	Fri, 20 Nov 2026 11:42:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0B702606A337
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D62F606A336;
+	Fri, 20 Nov 2026 11:43:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=qq.com header.i=@qq.com header.a=rsa-sha256 header.s=s201512 header.b=SXSDi6Za
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
-	t=1795174937; bh=DF7mXZvTw1RDuVa5ppZVO6UyLu2N+9+2c00mkMOuaDM=;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UGA3oWwu
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 544591F000D0;
+	Fri, 20 Nov 2026 11:43:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795175008;
+	bh=oj2zs7YpNjut+Fle9NDI2/nVbuq1xcuWOh/20pAlrQ0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=SXSDi6Za0/NOAQcZP04T/uc8vxWiIunXulrXxNSUJwKX8FtuXRFVKUS98yq/+7JBU
-	 0hA3vCJQqtVr1j5gwpYlTOVzeRHzEekm4iv/fQeAeSXByIVutl1d0LpRY5Lm5vkkyM
-	 TDB8JqXY5S0e91YH7KFWTa31jq0R6ji+MnEt7ll8=
-Received: from shuai-VMware-Virtual-Platform.. ([117.158.156.198])
-	by newxmesmtplogicsvrszc56-0.qq.com (NewEsmtp) with SMTP
-	id A8F85298; Fri, 20 Nov 2026 19:42:15 +0800
-X-QQ-mid: xmsmtpt1795174935tvdaes88h
-Message-ID: <tencent_5B9FB1BCC8EF36C5E2128B7D4D54B867480A@qq.com>
-X-QQ-XMAILINFO: NGbyafB8LluuaL9kMVcdPeWjxflf6SMYiIhU3NeQbvBQYEzsK8M3JD0NfiFgMi
-	 hLSpAcP8EenyfQqjem/14/ltCXWB1UOAz6VmLJuSxZt/v7voQ4QSeb3tBfbG1H5pigP1BGadfep4
-	 KqFIXYOPElk+/sPWD4n4Wv40Xj/rOCBiV6KCIWgtE38lgeGh4c21imd6KdN61zbcLXRBltdU6ef3
-	 nN73I1eRc1WRJJXPgclUI15KQc1FI2QMBagetGbaAkmvoVC/L1l/enIDkF2VVPIeVdApdj4GaU8N
-	 eQZXcHvNh3G5mJ+wP4Jf4DSn+F6XQ5qu8/nnx1tPsQvam/XmCDH+/Izynrbi9ruDZKFO2cyVQLcd
-	 CZGTx4Z49hvldOXSeo1O0GETazCVQaMJOS84qAlc8ENEph/q/ecI7KJ06XDsRgMPVngKJmwPsLW0
-	 VAOCgD5CU4OZmUZBtyEO/vnzKXKCso61roPCeJsh0HsLzZC3Q5ptWzrcG3GH0Lk9DgjG1oF9ZlDU
-	 uzu/jofe8F6NlO5Atkw1IvXdnbo9MmXpWQK5rVDVlogCDQsd2abwH2xmpdtrElF9m14SjRkihDJ3
-	 TlKjbNxCTMepb5ZJrZ3CZSxZGzUa14zzJ3hIq84UUa20OCz2+CSmLTNSKA96oU+8DD6F50Z2mxCI
-	 O9rBvDuZQZxtKmVwnjtVsAmQVZtVmz5soxjxsFjjQ76AuHoheGxFpZ6B6ZDXNx1AybBWEsNhuCOY
-	 HQfH8haHUWr+ris4r+0deaYo06DSWPKS6aGiZDBjAzG16/6Ku6upX2KfjJAyy5/su72n/Nny0aD2
-	 g7g+cUjleypV1bSSv6ACkILoX+h5Ljf9AEo8wFWLV43ApErOB4Gg3CMJpBnYiRsKKlmBTlJT/s2C
-	 bAvkZHEbibjQPa4RCJVcHa017nYLzRhpoCx09Z1hMVWpghu3mffv0EHEQT2j3/L+7EDCcMj2/iSf
-	 Vcoat8kx51+XNrPjga/VwOekBDRkvek9wCRsJ34ORyhvAfUlDjY8siHBcMUxX/8WrIUXQlLSmWFT
-	 /oSZTV3ZZ/7zo7fqIZve6+S9BTOLgNvZTc74SRu8K5sH1lHdIyEVykvx/m5eQ=
-X-QQ-XMRINFO: Mp0Kj//9VHAxzExpfF+O8yhSrljjwrznVg==
-From: Shuai Liu <847807867@qq.com>
-To: linux-rdma@vger.kernel.org
-Cc: yanjun.zhu@linux.dev,
-	zyjzyj2000@gmail.com,
-	jgg@ziepe.ca,
-	leon@kernel.org,
-	rpearsonhpe@gmail.com,
-	syzbot+fef38133c495aeb48297@syzkaller.appspotmail.com,
-	syzkaller-bugs@googlegroups.com,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v1] RDMA/rxe: Don't trust the user space SQ producer index
-Date: Fri, 20 Nov 2026 19:42:15 +0800
-X-OQ-MSGID: <20261120114215.419797-1-847807867@qq.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <6adb54ac.d1cee5ca.8df35.0007.GAE@google.com>
-References: <6adb54ac.d1cee5ca.8df35.0007.GAE@google.com>
+	b=UGA3oWwuRcS2us7TC9QFb1LqYn+ELO6pKX667hv9BLjUJIXlByjo2ydbD7tG4aCWo
+	 zE9b9pOYyu34fY4NvWQT1yALHsYsMbAyYcUNChJtWgofXDVYe/61jxt+pEUCYUoFtz
+	 ooyKk4tHfE+XIIfq467VVfVVROiti4T9bka//ChdSK+Ov3CRArFVY+upY6eVC5OqXQ
+	 WxISFj07pLCwd+PmEkelY93ErvC7enpAjgxcnJJN6j9/29uR2lHz9tDjJjirem7lMZ
+	 8/w0yMrt0QW1+U5Bfn7Jnczy07fktupjpg4EyfxZVq3YFHBUZVaBUydDbcFkbFS4Fg
+	 cd7W4bXaS/dxw==
+From: netdev-bot+sinfo@kernel.org
+To: Mahanta Jambigi <mjambigi@linux.ibm.com>
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
+ kuba@kernel.org, pabeni@redhat.com, alibuda@linux.alibaba.com,
+ dust.li@linux.alibaba.com, sidraya@linux.ibm.com, hidayath@linux.ibm.com,
+ pasic@linux.ibm.com, horms@kernel.org, tonylu@linux.alibaba.com,
+ guwen@linux.alibaba.com, netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+ linux-rdma@vger.kernel.org
+Subject: Re: [PATCH net-next] net/smc: validate smc_diag_req length before
+ reading diag_ext
+Date: Fri, 20 Nov 2026 11:43:26 +0000
+Message-ID: <179517500688.3291.13559881517966104725@kernel.org>
+In-Reply-To: <20261120113708.3950966-1-mjambigi@linux.ibm.com>
+References: <20261120113708.3950966-1-mjambigi@linux.ibm.com>
+Auto-Submitted: auto-generated
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -85,72 +66,26 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-The send queue producer index of a user space QP is stored in the
-queue buffer which is shared with and written by user space. The
-requester reads it without any validation in req_retry() and
-__req_next_wqe().
+Hi!
 
-The requester stops processing WQEs when its local WQE index equals
-the producer index. If user space writes an out of range producer
-index into the queue buffer, that comparison can never become true.
-Once the QP is put into the error state, rxe_requester() then keeps
-flushing the same (already errored) WQE forever: the flush loop
-advances the WQE index but req_retry() resets it back to the
-consumer index, and each pass calls rxe_qp_error() which reschedules
-the send task, so the loop never converges. The send task holds a
-reference to the QP for as long as this lasts, so ib_destroy_qp()
-waits for the QP reference to drop until it times out after 50
-seconds and the WARN_ON(!ret) fires in __rxe_cleanup():
+This is an automated message. This series looks like a fix, but its
+commit messages seem to be missing some information:
 
-  WARNING: drivers/infiniband/sw/rxe/rxe_pool.c:212 at __rxe_cleanup
-  Call Trace:
-   __rxe_cleanup
-   rxe_destroy_qp
-   ...
-  rxe0: qp#17 rxe_destroy_qp: cleanup failed, err = -110
+ - How the issue was discovered, e.g. hit in production, hit during
+   development, syzbot report, manual code inspection, LLM or static
+   analysis tool scan.
 
-Fix this by validating the producer index: if it is out of range,
-treat the send queue as empty. Verified with the syzbot reproducer
-in QEMU: without this patch every destroy_qp hangs for 50 seconds
-and hits the WARNING above; with this patch the reproducer runs
-cleanly.
+ - Whether the issue was actually triggered, or is only theoretical
+   (e.g. found by LLM and not proven at runtime). If it was triggered
+   please include the symptoms, like the stack trace or kernel messages.
 
-Reported-by: syzbot+fef38133c495aeb48297@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=fef38133c495aeb48297
-Fixes: 5bcf5a59c41e1 ("RDMA/rxe: Protext kernel index from user space")
-Signed-off-by: Shuai Liu <847807867@qq.com>
----
- drivers/infiniband/sw/rxe/rxe_req.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+Please do not repost the series just to address the above. Instead,
+reply to this email with the missing information, so that reviewers
+can take it into account.
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index 4f353abd76f55..2f7396f40801b 100644
---- a/drivers/infiniband/sw/rxe/rxe_req.c
-+++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -48,6 +48,12 @@ static void req_retry(struct rxe_qp *qp)
- 	cons = queue_get_consumer(q, QUEUE_TYPE_FROM_CLIENT);
- 	prod = queue_get_producer(q, QUEUE_TYPE_FROM_CLIENT);
- 
-+	/* The producer index is written by user space and cannot
-+	 * be trusted; treat an out of range index as an empty queue.
-+	 */
-+	if (unlikely(prod & ~q->index_mask))
-+		prod = cons;
-+
- 	qp->req.wqe_index	= cons;
- 	qp->req.psn		= qp->comp.psn;
- 	qp->req.opcode		= -1;
-@@ -168,7 +174,7 @@ static struct rxe_send_wqe *__req_next_wqe(struct rxe_qp *qp)
- 	unsigned int prod;
- 
- 	prod = queue_get_producer(q, QUEUE_TYPE_FROM_CLIENT);
--	if (index == prod)
-+	if (unlikely(prod & ~q->index_mask) || index == prod)
- 		return NULL;
- 	else
- 		return queue_addr_from_index(q, index);
+*IMPORTANT*: If you do repost (for other reasons) - please include
+the relevant info in the cover letter or commit messages.
 -- 
-2.43.0
-
+The evaluation is done by an LLM so it may be wrong, if you think
+that is the case please reply and explain.
