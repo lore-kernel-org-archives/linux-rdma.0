@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795232927;
-	b=NOe6srliqpKWS/FxBogADt+/2UpVbBwgZkwLAf4nxEHTAEL8vIGzxolcgxD3B91YQXGZ
-	 1wf+HE0Z2+zPOo2fvXNqEPzN1y+r+ZItihlOpRrnS6cGP9Z+eOCF85+2dEuuRflNs5+Qf
-	 pmgTg3kL/X/M/YZSchFlspqQpCb8XJ9GkI/UGv+KSO93ZrulOvwC+3K3+feeTjnpEIQKd
-	 9Z82vzgL3sL+73beeHeygTAENSOriuRd4Ryffo0EFWv6Sg4ny6ngY3E89p2rKjd30YTSw
-	 uRHDYmAodWZGU/0TxFxhYer770Yzsp+BjyVAxk3S+MNlajfkMyrSYad4InHzbdraX4g==
+	t=1795233064;
+	b=xh1uSzTv9Ddtfk/2BbZQdfmqB8p9CFV13je58TZgQ5pF+jLvKcBs36Uuk0VsaG8tqD6g
+	 JpHprDWWqhJre8zBB/I3vnAPwfFRN6w81XrsKn2O569QULRpt7biifoKVsVNpx5cV32R7
+	 G7WMbGp/O54JdYy/1C/h3ITJVkGNBkl9iPTnrSMF0TeqFwujprPDC2/iW8h//nQCvjLYK
+	 5BP1W5Utdq5aeKnpHJgb+2nI8cNekmQh635JNh7i2sTa1IEA9Si0yRu6l+jT+vB68u5SD
+	 Im8fQ+rP4TzqW3ZiJTjY9i++W1puVGFum2IRZybavWlOM/2evcotqS1nHLFt8Y7UFsA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795232927;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795233064;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=Ep6rJ30FnzbXtPf04LnPdd/K4OzVo4HGBvseiYs67Z0=;
-	b=Vd8pUOvNlXqZtzzgMGuZqhwsA5nw3sX3i7YZ3+5GHUwKfydC8Jx0Iz+i6thkYnv8iDkZ
-	 s549ch/MjHXeUkxGTUR5etC2cere04S/URfjIC/pLMfkfzusqtJ5SOar1ZKxgpp7WWbRF
-	 YNx/E9HsN2Yrv7PM7hWwNPj9Rsq0FiGnGkHEgGUnH7VTv6Pdjm0zIeUYfIPE0LeUMn5M1
-	 I+CkPW5Gy8jojwHwF+t5wfcO6ieuBPTUgepq/xla/gpGMYZOfg9rb62Ewp/iKGFNBHaTa
-	 nkvVqGQYNrNC18uHiD+Y2QnadY59JEuA6cSlqur7XHbqGuij2qKDf7k/pOJw7Q5Ps0A==
+	bh=7q4PMD3e/PGADQpQDkXhEVxlUnE3pnrDNkLoGjIh4PE=;
+	b=ckVaTuM8gDAGzAa0xwBN+cym7S4SIk8DGKnMX0WNsscMab0Ym5ub+0EfJmUosWNiR0+V
+	 Y0T2BNYt7c49oVJGfv6h3H/ZoD9nF3VIHbxStWtyZiy+aDyHiM+422gnysRfx2Cufkq80
+	 HxUer5BYJFsUoTVHEvjaB1pU9QPqBwgcVjXnz70ysiTlNdOqfEiqA5xaNcKnlt+v3RtHv
+	 uNew37Lh/g26DJnqnMNNbARyXS+7Ugd5Rf1liSZcTIYSOPgbZvElIjJmLWxhg4JAYCoRf
+	 PQ1oHQ8MSR6796SLOCpFsHLHeGq7Bt9q8zElQJEdgykr8xxsn4rAeMqh3qTA698Zr9w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Yzfq40tB;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OM2SdcJg;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99C07606A691
-	for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 03:48:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00CCC606A69A
+	for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 03:51:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Yzfq40tB
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A0EA1F000C0;
-	Sat, 21 Nov 2026 03:48:47 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OM2SdcJg
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59DCB1F000CF;
+	Sat, 21 Nov 2026 03:51:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795232927;
-	bh=Ep6rJ30FnzbXtPf04LnPdd/K4OzVo4HGBvseiYs67Z0=;
+	s=k20260515; t=1795233063;
+	bh=7q4PMD3e/PGADQpQDkXhEVxlUnE3pnrDNkLoGjIh4PE=;
 	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=Yzfq40tBN7og/bLF+0Y5L/aQuKddnpcrwW8qDwMExI0brKhy2ulVy5N84jJ1c9/jz
-	 oTfcbYl4azIflIRuQae46+Yr4e2prDzsiIp8HhjIMMEaKwvgfBddJrK54AbPp/bOBO
-	 p5IjHOx7lXR2f6zUJwBV1rol7zLy9a5YFuprqHZo9yL5+syuiq37ygCgDzKEFyB83A
-	 s6celgNv8U0cnw86V1XHek3heYeanxsUuIvdZlddPHuz8pxDx+xAjgcDhMmqY3fL/R
-	 778tiShLjAvxq/iQO53v5A7Js0owpRIOPVnDqOBRM0SXtcQtuCAm/JStHuKB0fLAwG
-	 2PNEekZkPQMjA==
-Message-ID: <sashiko-outbox-226603@kernel.org>
+	b=OM2SdcJgx4SfmSA8wwfXRyDGf0TFXia7f+QC9TdJ7e2/3VbzmDcLsFw+cvfBefDvm
+	 YnMlwfUByPkineOF2pas9LeMm7x6FOJbtJCz5HQObQMlLKnyLWFW+/TkKzLlhjghov
+	 HKd04Zciz4oKmFSVkixMq3c0Av/S0yrRV8ofWGr1zPLs7xBIwM07yI/z2yoUGxlROV
+	 3Z5wfTw3Tr8XUooUGYVA3fYagmbSty5wf68q92FWQ9rCho8RWBRCcjv9J8TCWgLgIl
+	 9+/ZVpwty4BcAOYLmvVXsa0gMni/7ugMGQojViNTvQ2N6L7Gi3U9Cd+ulUYueoKk7Z
+	 41Uu++Nhsx+0A==
+Message-ID: <sashiko-outbox-226605@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] RDMA/rxe: Mask the SQ producer index read from user
- space
+Subject: Re: [PATCH rdma-next v2] RDMA/rxe: Mask the SQ producer index read
+ from user space
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Shuai Liu" <847807867@qq.com>, linux-rdma@vger.kernel.org
-In-Reply-To: <tencent_03B85262EE136CEE83D2012CA5F2704D2008@qq.com>
+In-Reply-To: <tencent_BEE58D9BBE7109C47C2796DDF5A4B958F609@qq.com>
 References: <tencent_5B9FB1BCC8EF36C5E2128B7D4D54B867480A@qq.com>
- <tencent_03B85262EE136CEE83D2012CA5F2704D2008@qq.com>
+ <tencent_BEE58D9BBE7109C47C2796DDF5A4B958F609@qq.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Sat, 21 Nov 2026 03:48:46 +0000
+Date: Sat, 21 Nov 2026 03:51:02 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -85,5 +85,5 @@ Precedence: list
 Sashiko has reviewed this patch and found no issues.
 
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/tencent_03B85262EE1=
-36CEE83D2012CA5F2704D2008@qq.com?part=3D1
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/tencent_BEE58D9BBE7=
+109C47C2796DDF5A4B958F609@qq.com?part=3D1
