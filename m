@@ -1,56 +1,59 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795286644;
-	b=xjWCMkjkQ9CDeTibNeXAqjoWYWOsJFS1qGxR/XmCjnYDRrPbUKv2HvYbYSgEKJwDTfPq
-	 vlunOf2JDqQonFkD3yMm+HZzrPRRBA3Gwc//JR83LAUr0ZFF4YD0+dQARoxrt4iw38rzq
-	 +RIjvklNLQJtalguJPiOTqh9Dxpvy8Ea4s8Gx7B6dVveC8HS63EiLoqshFPfzbxGqWsUo
-	 pg4FeCoikEOOlBzcDPzzGTVxqHxLB3FyPl1swlrWkOY01irncx8Pi1OR0ZIBJTwKk6oK3
-	 oLeairuS5ZiAxxZzefDSmefcnF2eRnEd6e1pGr2VIzAQFHZTcL8MxHndv+VxXaXAF5A==
+	t=1795288276;
+	b=y+SzC3kN/LSQXcmbsfW/cRSz/hIEdpVWknxbxHXU50g8EkYggUe5RmtTrmsq3vkirKwA
+	 K6MTyD7aWyhZ5c7QdZgBbWxqIhkQaCTgAT/NBK9cW9KH/L6afUVMceYAt3bc4pOSL6cPS
+	 kh7xL0VkvLsJkFXJoJQwNVWuc81gbTj3Bs6qAsuoh2hGmzmjNN9IZkkQsMN9fV2TNUP6c
+	 JOU7IpvpQzvJ6i+IlDCIDe2TrpOM4eP+IMTOOozNknnfnVlwx8zg+iYNkzy5uh9Mdozio
+	 LYg5HIHzCsgoCfthG1h3yPQJ9H9M9DS13u7o7xHOaxwU/kgKDjczZMe0QKT1tUU+wUQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795286644;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=Oo+diVxmTnfZUt2xI6xcR1nRTldyDak0go2MYaenUaE=;
-	b=sZ/gjFy4G9R/lBJnAWJFQQR4vRKF397rOTG76J+S/s8saP4tET3mrERCSbjGv7ys6lVM
-	 KJm57IMNYN44ImIbIXF29XJaq+KYyuQWu6xvWC6QL0b6qqfsFTei+igMiESIeeYe/H9Wk
-	 YayKlg7M8ziDJ1lRR0bW+jzbuUzy8KZD7ooPJ8x3G7l34gs4Su2IuO3YCQ72fc8zYM7Xp
-	 FDd0kawKkxBT7L1Le5p9nzJc+NceVy0j7lUDBIr5kKN2IOb0KZOsGe5evg2x7yw36h81E
-	 WoeZhumnMn0LUHu6BDmSK0LdwwJEDr170WEx1X8AKJWTv8cBAtcIb5T0wJpwuHtPiFQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795288276;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=L4eNTZonp+k+fZ1GyudD41c0bwWGbcvGd3rWqouDY4Y=;
+	b=Iq13Aejwm3I4gc3TErcAXVm/zFZkfOfaJF+Dm49vlenPAtiHJ3Tnzl0A8hdM+osP9NBr
+	 90fzAaW2k++8eZLcFimDOtSF4/ZkczXxEfoHjwAVUOpaIq0I8u4NJy++LuucFVG1O93l+
+	 aDeKY2dhhC1qMs4/4LSIpygeijsVXnQF3b+wTJCv5HWVBfUznRnJA1bX0XvTo2An6JnY+
+	 195saKR4/rtfERK3Ft+5dTZ3jXgviibAOy4odZZ7zBAL2de2VsH+rs/5zd/eAM7B2l3iG
+	 0ITv7RIfZDtQcJlCH22KJFUGqGAI1nuqHfOtJoUJcSw2NpuGSEUdUgiSg8bWVSXuQ2Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mHTSLiFJ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bbzPbNpe;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15D38606A320
-	for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 18:44:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBE29606A320;
+	Sat, 21 Nov 2026 19:11:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mHTSLiFJ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B12C41F000C0;
-	Sat, 21 Nov 2026 18:44:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bbzPbNpe
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0AD61F000C0;
+	Sat, 21 Nov 2026 19:11:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795286643;
-	bh=Oo+diVxmTnfZUt2xI6xcR1nRTldyDak0go2MYaenUaE=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=mHTSLiFJeFDVBUy2fotTb/e5EUWUbzHrmxbRfS2+2Es68DtuZsG5CL5gUlBZ90IS5
-	 Pmad1i/kPyKYJFaYNk+D6Y6MU7MElousDWE5eq3JiHYuwCm26yTB98xLG2dVO8T/M6
-	 ABha5CpE0f6jLnOyilMPgY7HJUdvspN6IG/k51L7LCn/u/yAJ+6VuBwmznOLIH6SC7
-	 X/gLYGEe53RnqVar8B63e9BvxhyRUZpe9Eo55JBxaoYIjv40gWaBDbpEaSrCyyL08N
-	 QcIDc82MqNSLsXxFfwxVWplTmRBG2byKbdWbyJ5POr128mLPJ2MXAQrvnqLTtDM04L
-	 TY7/oh4XPBNOA==
-Message-ID: <sashiko-outbox-227270@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net v3 0/2] net: keep the TCP fixed-ID flags on the
- header they describe
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Julius Bairaktaris" <julius@bairaktaris.de>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <cover.1795284858.git.julius@bairaktaris.de>
-References: <cover.1795284858.git.julius@bairaktaris.de>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Sat, 21 Nov 2026 18:44:03 +0000
+	s=k20260515; t=1795288276;
+	bh=L4eNTZonp+k+fZ1GyudD41c0bwWGbcvGd3rWqouDY4Y=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=bbzPbNpeZO0b/DMfj67XtGFQVBAX+rWG1AaXU0PgcDUvRBNLcin4paZH0yGnJZJR/
+	 zjRAhrAzrfzHpB3xPGJ4lxjMByN3nLK7zbN+ot9UnJ7N/Kn2ZVeEe+BkKAFjGyI+ut
+	 fxPDbQgKA1PamvZIqqfqwrBTj6JC4zaADNCXu6Nj1+CAxiFJlqV3p1jb3Um1JcLtar
+	 +lNBGD3NAYDHIuxtfw6T7OTAnzJsd0RVx0hxluhpEyqcfS1Ta/KZIbA2UV2Aw7H1UP
+	 RUpF7TpHUIKBMENCq6iu4XHTq2rtfAuMTB9anyXSJfgk4QTlAw2JWQFAh8Bw014BS0
+	 T26PoilvJHeYw==
+Date: Sat, 21 Nov 2026 11:11:14 -0800
+From: Jakub Kicinski <kuba@kernel.org>
+To: Jinvas <jinvas@126.com>
+Cc: saeedm@nvidia.com, tariqt@nvidia.com, mbloch@nvidia.com,
+ leonro@nvidia.com, andrew+netdev@lunn.ch, davem@davemloft.net,
+ edumazet@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, horms@kernel.org,
+ alexious@zju.edu.cn
+Subject: Re: [PATCH net v3 1/1] net/mlx5e: fix NULL pointer dereference in
+ arfs_create_groups()
+Message-ID: <20261121111114.0ce8c76e@kernel.org>
+In-Reply-To: <20261118134514.1765-2-jinvas@126.com>
+References: <20261118134514.1765-1-jinvas@126.com>
+	<20261118134514.1765-2-jinvas@126.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,9 +62,15 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Sashiko has reviewed this 2-patch series and found no issues.
+On Wed, 18 Nov 2026 21:45:14 +0800 Jinvas wrote:
+> Signed-off-by: Jinvas <jinvas@126.com>
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/cover.1795284858.gi=
-t.julius@bairaktaris.de
+We need a real / legal name as author and sign off.
+Correct me if I'm wrong but Jinvas does not look like one.
+Please repost with your real name.
+-- 
+pw-bot: cr
