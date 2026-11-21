@@ -1,56 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795240728;
-	b=c46JtbYcGojcUnR7Ntm12XKigjBvvgZToRL/tL8+sareeT0a2h18VuGpVd8+L9u7AEal
-	 EaN8dqF6HHediRGU7aOjHreIuuHuwtD2+cL5PAF1KizN/KW4TPdWMoADxhaAI7Dd87SkA
-	 2FHd7+MPi+eX5Jm+fHetLGoZXDafWOhng9ls4NX23EF1pA0aFlJCQRkVHy3LKFXv7Zo2j
-	 IsGy6FKb1opjzClA9uVUNOTOHE9wyhis7kBB/oLsgIS700bwSeQmYC4XUs/Y0AltoDLHm
-	 QmZJ+9rFn/u2hOPcVvjoeeaYIRFBAdb2BmeT7n1m60vBdVZsPFCb7H4R/3KMlFAo/GA==
+	t=1795240729;
+	b=AElW5vWEjjcEJ+UAuFnBG/guF8FaS3w3+5XVwaV8ztOqQHmh6WfXAMrVv1TXTSTZwsxv
+	 Ng0EWsG560FIU6w8K0UoR/RklthRSq07l6kPDJcUMefsV/zFAo9RQx1sR9rpcG4H/dw13
+	 SeSxsmNFb1b2CKvJF27TqSqMPXfKflxyKMzTMReXhSrVUovgbS9tbCuf5BJMd16Y43tFJ
+	 PHwvIV97NEu2Kb057RY6bsAhv4blATRSqf32aKjfOP0YXutOAzpZC2kJq2tGbSDD7ZmLu
+	 ThpUw9LRXtrgBGtnadoWD6/ZUQWIcpQgiawX/4A3CIyCE1ygemoc1djZpakDbTflKKA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795240728;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795240729;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=nHgcj4reAewShIct0fcYEQHlKrmsjIW5S883i48uYO0=;
-	b=HdzPMn6h0Znbo7luXOQlomCk4x4vCiuhcrgzILxNGWY3sQ60bc7cvrkQ5FZWiYd78vrc
-	 Jvtr/iYM13POfwrZvfCBi+p5YzCG6QGhE8DK1/ZGIuZ84g7pi2Q+/chuNuRhgSKo1vgIE
-	 ymDZlOrd04biaAt3aRIwyhO2x9nNvlpPNORl0KneP72Y5FFspzaWqgiB35s97TcAsciMX
-	 CtMURAzDf/FBEuLC2Zq8xsGR/9cPXrpsfA/2yT12vij26vvmgyaSENrLyZO2O5mcy1Jt0
-	 j45goIgGziAY1PxJDPlGle+nlAQjV+I8gMQ/c8JAN4Q8sb6N2SOJPGDXiDxF2+ox/fQ==
+	bh=O0NY586JJmTpwCfLEWgpPjPCUQ+Hj6aJMCMiuUmKZ2c=;
+	b=LBS0aXppmSz4vJi7hfNRws9bKGBpZaJi3YRlJyVTKf8LgjX80g9+lpGLxUf30MTUSHAh
+	 mPymAQKstbE1+x/2cJ2X7ywaWO0bhhzptdoQeoNlA6a6Ua+820Pb4No5LbB7617zq/XnW
+	 3F+QIsutdhp92taUL2FtxlwrEOX6C+HsRMMrU1EWT0vprNmMbgvtOsY4RamMqf62Mzdgw
+	 BBIZ4SKwWAMOiDAzQV+Jod3Ccp4tsV5VB7gtBSXcf7NG23yJ5Dqn/CxLTOilUSTVZC31x
+	 qMWZ1mCj/Y1kg1emm8qZ0OYV2fyTUIzfzj50a+FP45RrFBIxvkmfh2pxUvVJe/iMibw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NKTiTFCm;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KnMGlQwz;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 676C3606A68B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE808606A699
 	for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 05:58:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NKTiTFCm
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3DF51F000C4;
-	Sat, 21 Nov 2026 05:58:47 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KnMGlQwz
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81D951F000C0;
+	Sat, 21 Nov 2026 05:58:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
 	s=k20260515; t=1795240728;
-	bh=nHgcj4reAewShIct0fcYEQHlKrmsjIW5S883i48uYO0=;
+	bh=O0NY586JJmTpwCfLEWgpPjPCUQ+Hj6aJMCMiuUmKZ2c=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=NKTiTFCmUe9wV/wkagz+EE4Kd6FBLLeeRild/NLY+1KadNk2ZDKp+Aol1cruswpDc
-	 dyoxXGVMj2zWLx1VrpmZdBd5cvQT7anKY5OWfaFpfwcwAHH17lung+G3bGPvkL2CbA
-	 dnkqBIt9f6NaoRWUZQvkcEeyveyi8ETSBlP51zM6mF7LvR68mzS90wjinQAqySZftz
-	 x16OkaQd0ZdtTxTcpVgI33MAFFC6H59HWgr8N7jxVjZ02oVCR2TGNmJrSKmKL6Nef0
-	 tbprkB97zbxR6P0oJcAHbQPOBK3bc+ItmqIKVHkT0so+bJF8nWG5rVwZ+NHRJvOz3o
-	 ywc7F1pQrtbqg==
-Message-ID: <sashiko-outbox-226681@kernel.org>
+	b=KnMGlQwzj4gPQmCc8+qvAAoO0FdkBOwuqb0COgAfG/reEq7yuQtcEOpVIpRZGX33/
+	 q1Cx+GJ+007LxLCtw9Bc2hoR6X3quM69OOMZltFhVcomnS10cxP44S2Ti0IpTbza0l
+	 3/jgj/WwtWeMU2bZHCAPWYhscZJ2UBciILp4xyayO/vF9jcynIXD/wj0m6IL/pLUGw
+	 f7oB0r+bnRJtYFyA4knWj95R1o3HKXzF1IaJ/3lUSjYZwvGZ0ritZx8CQVXL/ebWZQ
+	 8JDfKMdCKNJ27OLoGwCS+xR594OJfmWgk3AzxIPLaVO+x10omaWp+Ral0SDJP18Da0
+	 6xAEZckD6kOzQ==
+Message-ID: <sashiko-outbox-226691@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v3 13/24] udmabuf: Convert to the SGT mapping type
+Subject: Re: [PATCH v3 23/24] dma-buf: Add dma_buf_mapping_map() returning a
+ type-tagged mapping and implement it for sgt
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Alistair Popple" <apopple@nvidia.com>, dri-devel@lists.freedesktop.org, intel-xe@lists.freedesktop.org, amd-gfx@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org
 Cc: media-ci@linuxtv.org
-In-Reply-To: <20261120-dma_mapping_type_v4-v3-13-c0183a409bdf@nvidia.com>
+In-Reply-To: <20261120-dma_mapping_type_v4-v3-23-c0183a409bdf@nvidia.com>
 References: <20261120-dma_mapping_type_v4-v3-0-c0183a409bdf@nvidia.com>
- <20261120-dma_mapping_type_v4-v3-13-c0183a409bdf@nvidia.com>
+ <20261120-dma_mapping_type_v4-v3-23-c0183a409bdf@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Sat, 21 Nov 2026 05:58:47 +0000
+Date: Sat, 21 Nov 2026 05:58:48 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -62,86 +63,67 @@ Precedence: list
 
 Thank you for your contribution! Sashiko AI review found 1 potential
 issue to consider:
-- [High] udmabuf: premature publication of ubuf->sg in
-  begin_cpu_udmabuf()
+- [Low] dma-buf: wrong dma_buf_attach_map_type() doc on
+  dma_buf_mapping_type.unmap
 --
 
-commit f138ffdf3b226fef46f9eda6001d750e3e320cdd
+commit bd9afecc501b0a6674a8f68fd07c287949304430
 Author: Alistair Popple <apopple@nvidia.com>
 
-udmabuf: Convert to the SGT mapping type
+dma-buf: Add dma_buf_mapping_map() returning a type-tagged mapping and impl=
+ement it for sgt
 
-This commit converts udmabuf to the SGT mapping type by having
-get_sg_table() and put_sg_table() operate on a caller-allocated struct
-sg_table and embedding the DMA-buf mapping table in struct
-dma_buf_sgt_mapping.
+This commit adds generic dma_buf_mapping_map() and dma_buf_mapping_unmap()
+entry points that select a mapping type and dispatch through its callbacks,
+and converts dma_buf_map_sgt() and dma_buf_unmap_sgt() to use them.
 
-> diff --git a/drivers/dma-buf/udmabuf.c b/drivers/dma-buf/udmabuf.c
-> index df6dd00462423..ef77ae063ae4c 100644
-> --- a/drivers/dma-buf/udmabuf.c
-> +++ b/drivers/dma-buf/udmabuf.c
-
-[ ... ]
-
-> @@ -226,16 +233,19 @@ static int begin_cpu_udmabuf(struct dma_buf *buf,
->  	struct device *dev =3D ubuf->device->this_device;
-> =20
->  	if (!ubuf->sg) {
-> -		ubuf->sg =3D get_sg_table(dev, buf, direction);
-> -		if (IS_ERR(ubuf->sg)) {
-> -			int ret;
-> +		int ret;
+> diff --git a/include/linux/dma-buf-mapping.h b/include/linux/dma-buf-mapp=
+ing.h
+> index 0a1c2934a932a..98d5765cfdba9 100644
+> --- a/include/linux/dma-buf-mapping.h
+> +++ b/include/linux/dma-buf-mapping.h
+> @@ -82,6 +82,32 @@ struct dma_buf_mapping_type {
+>  	 */
+>  	void (*debugfs_dump)(struct seq_file *s,
+>  			     struct dma_buf_attachment *attach);
 > +
-> +		ubuf->sg =3D kzalloc_obj(*ubuf->sg);
-> +		if (!ubuf->sg)
-> +			return -ENOMEM;
-> =20
-> -			ret =3D PTR_ERR(ubuf->sg);
-> +		ret =3D get_sg_table(dev, buf, ubuf->sg, direction);
-> +		if (ret) {
-> +			kfree(ubuf->sg);
->  			ubuf->sg =3D NULL;
->  			return ret;
-> -		} else {
-> -			ubuf->sg_dir =3D direction;
->  		}
-> +		ubuf->sg_dir =3D direction;
->  	}
-> =20
->  	dma_sync_sgtable_for_cpu(dev, ubuf->sg, direction);
+> +	/**
+> +	 * @map:
+> +	 *
+> +	 * Produce a mapping of this type for @attach, for which this type has
+> +	 * already been selected. Called by dma_buf_mapping_map() with the
+> +	 * dma_resv lock held. The result embeds &struct dma_buf_mapping, which
+> +	 * the core fills in once this returns. A map that may unmap its result
+> +	 * on its own unwind must record the entry in it first, since every
+> +	 * unmap reads it. Responsible for pin-on-map of static importers if
+> +	 * the type supports them.
+> +	 */
+> +	struct dma_buf_mapping *(*map)(struct dma_buf_attachment *attach,
+> +				       enum dma_data_direction dir);
+> +
+> +	/**
+> +	 * @unmap:
+> +	 *
+> +	 * Release a mapping returned by @map. Called by dma_buf_mapping_unmap()
+> +	 * with the dma_resv lock held and with dma_buf_attach_map_type()
+> +	 * naming the entry the mapping was made with, which need not be the
+> +	 * attachment's current selection.
+> +	 */
+> +	void (*unmap)(struct dma_buf_attachment *attach,
+> +		      struct dma_buf_mapping *mapping,
+> +		      enum dma_data_direction dir);
+>  };
 
-[Severity: High]
-Can assigning ubuf->sg before get_sg_table() finishes expose an
-uninitialized, unmapped, or freed sg_table to concurrent
-DMA_BUF_IOCTL_SYNC callers?
+[Severity: Low]
+Should this @unmap comment refer to mapping->match rather than
+dma_buf_attach_map_type()?
 
-dma_buf_ioctl() invokes begin_cpu_udmabuf() and end_cpu_udmabuf() without
-holding a lock.  Previously, get_sg_table() allocated, populated, and
-DMA-mapped a local struct sg_table before returning it to be stored in
-ubuf->sg.  With ubuf->sg assigned immediately after kzalloc_obj(), a
-second thread can observe a non-NULL ubuf->sg while the first thread is
-still inside get_sg_table() (or after kfree(ubuf->sg) on the error path):
-
-CPU0                                  CPU1
-begin_cpu_udmabuf()
-  ubuf->sg =3D kzalloc_obj(...)
-  get_sg_table(..., ubuf->sg, ...)
-    sg_alloc_table_from_pages()
-                                      begin_cpu_udmabuf()
-                                        if (!ubuf->sg) /* false */
-                                        dma_sync_sgtable_for_cpu(...,
-                                                                 ubuf->sg,
-                                                                 ...)
-                                          /* uninitialized or freed sgt */
-
-If two threads both enter the !ubuf->sg block, the second kzalloc_obj()
-also overwrites ubuf->sg while the first thread passes ubuf->sg to
-get_sg_table(), leaking the first allocation and initializing the same
-struct sg_table concurrently.
-
-Allocating into a local struct sg_table *sg and assigning ubuf->sg only
-after get_sg_table() succeeds avoids publishing the table prematurely.
+dma_buf_attach_map_type() returns &attach->matches[attach->selected_idx],
+and dma_buf_mapping_unmap() calls match->type->unmap() without changing
+attach->selected_idx, so dma_buf_attach_map_type() still returns the
+attachment's current selection while mapping->match holds the entry the
+mapping was made with.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261120-dma_mappin=
-g_type_v4-v3-0-c0183a409bdf@nvidia.com?part=3D13
+g_type_v4-v3-0-c0183a409bdf@nvidia.com?part=3D23
