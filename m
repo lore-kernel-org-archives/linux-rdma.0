@@ -1,58 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.4
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795255178;
-	b=NxF5lVQV7e9QYiOVJLqK8aDfcUUbtzqtwDONQ1OqhivFAn/lHGKNyOqXq58WPHvGsyDy
-	 tVHigXF58KAMGsfoERHI8VQ6iCwTWONRS66pC+NmFDOjn8ZOPZZfKdjlAW069VSVV2ZCh
-	 xWSWyV1kX6uHXGz2S5uxcbwjrIRfSqxn1l6B263ji/0CCtSLS1RbJMbaE0elGJvuK6iPJ
-	 6C5f9uVmnw1RhPRApMQo8AQwukW11t2paDY6hFwl9LWRvlmb6b43UAfOxIYlMtellKGWQ
-	 lTQWmVT/hgYKBaqKEY+QBo+/2MSrnaQ9mYZTLW5bKnSnPZel3G+0we1czoW+3iyi4eg==
+	t=1795255562;
+	b=JWrNNw92MVekXD4TJuTa6wu23VqDqEKBDJBHYku8cQX9s+0+tirHCnW7gwU4G9A1b3G9
+	 hIuxMqnQV92pQ68R2Mc6qQyRpaW9mcLOtQGS7PxBVaOdF9tUyKriSkKhvDSR4JTsSHJRe
+	 9UurawYgAh0ciCkcduOlzKRtJVomhhcKBR7BBT8FpEYZZ0xZYXE/NZohs7lvtl7mmZUGw
+	 63cWm1UqzieUJnhmeLT08ntu1s7bQY6JNk1V7uRkffl2sxPuZMXyjN5gY6OTInhMw8ZCq
+	 kZ5dhfE93fM3bKbmRZAxOIwpcbJc8JzLTM8jMTzkPzATTU3+1Znf9iLWjtMdpoOgKKA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795255178;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-CM-TRANSID:X-Coremail-Antispam:X-Originating-IP:X-CM-SenderInfo;
-	bh=gCvZo/0sDZOipYo+1oQX2isowKSyfEi5pEhuRbqcGDs=;
-	b=0qwOhjEQJJ4f1tCtHkzqTd9k3kgPoz2Ep8ELbIKorGKizOCPmPIV2NfD20Z/zN47DvHH
-	 CwRx46ziX8u2zMHn0sbZSzhSQCVqQpVxFMwV3tLHQvDQUhCYi79q8LpWPRC7QXK8YwLdE
-	 fSHKx1P92VdsNJSY1+8YudjIYLg/1WDQ4fiDMGMMLVofaWWZSYZpcwfzXxh1aehwx7gwM
-	 2evC2mL0pc5fmWHSiu/gquApiWtQf1XjCvAyPbMt9mTn6nDL/vQkY62mYHGpru0Jhh9io
-	 eJGLkO346FaMUc3f6qOC6KKWmNkqR1e+FA/Rprnv/d1yHJEhS6k+EM5SX51785NdFZw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795255562;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=x8PzcOFbHluV2eHkrVwu9MndJjf6KifwtI4pX//QIO0=;
+	b=qsCFQLN+3kNbMLxXkBbiaGCPcnihHasRmJq5USYeOqgkloirKaN9RlucKsZyGQMc1bM6
+	 3UjPlppimT2pQ/vafx25bbWlPc8TMkChfQECn/iOe+FejGgzxdwZzRx98i4cK7bcEU2sN
+	 j+iYGBtpf/8AxDs/08/2n0fkmcfwyPbG/R5KsRldRtg5MCqBhqr2nE//wA/Hi001Nd+tf
+	 PnwJsH4Pvkv0Eafdg+gYiD1yo+ezoyxqei19Hh3cFj93JGAkJ8mQ39LQqlzP6gjzuNnw6
+	 LFQ+UNh/RD3/6PpNmn9SxLlDmdPIP32gskXx5w4fnW7jusC8A0F+iY3S8kqKqkMflJg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=163.com;
-	spf=pass smtp.mailfrom=163.com;
-	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=n9YpHunu;
-	arc=none smtp.remote-ip=117.135.210.4
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.4])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BjckQP7N;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF905606A320
-	for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 09:59:34 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EF905606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1965606A339
+	for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 10:06:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=n9YpHunu
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=gC
-	vZo/0sDZOipYo+1oQX2isowKSyfEi5pEhuRbqcGDs=; b=n9YpHunu8nBic8yMVn
-	z+OU/IIp0ljD3cpfIj9s60rqPNanErLS9C9j7lcxvW+83vCTmiPPh0b+YjdtfLYN
-	3RIN+y+8MFowOCbk1LfgSt+H+uUqRP6MPHZ7qW0gfXel5ORMztHShCrqz9O00r57
-	8OkucogM1+OhyV9SZLlb/O0kc=
-Received: from localhost.localdomain (unknown [])
-	by gzsmtp4 (Coremail) with SMTP id PygvCgBn8YdtawFrUgkfHQ--.5873S2;
-	Sat, 21 Nov 2026 17:59:11 +0800 (CST)
-From: Wanhui Fu <fuwh1120@163.com>
-To: leon@kernel.org,
-	jgg@ziepe.ca,
-	haggaie@mellanox.com,
-	dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org,
-	Wanhui Fu <fuwh1120@163.com>
-Subject: [PATCH] IB/mlx5: Fix a potential memory leak in setup_qp()
-Date: Sat, 21 Nov 2026 17:59:02 +0800
-Message-Id: <20261121095902.442960-1-fuwh1120@163.com>
-X-Mailer: git-send-email 2.25.1
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BjckQP7N
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46C971F000C4;
+	Sat, 21 Nov 2026 10:06:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795255562;
+	bh=x8PzcOFbHluV2eHkrVwu9MndJjf6KifwtI4pX//QIO0=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=BjckQP7NQvvfK8E7JfF+bO8RZBSugBI6wq3YXTDbBrOAoSa+STdydKWJ2Q8RVqlM0
+	 spG73MQOYJonCdLq03CKhAptbhy1KsudtTE+/1Tw6dL3Ri6vo8PllGq9CuJSH1325b
+	 G5/970kDon9iXQ0BeubFSiglTQzoJOl2kg7mMwcxbBR4kdhyaNKZMq23MC0bIgDZxu
+	 93B+54pl4rv51nlisEGpz13vQIHZaW4j9wgugt899lDaQiLRDCCEgRhbbuQO0vo6rN
+	 /HhWj1NNRyAvxDVa2IpzI7PBOdJOusBk0DvxGSj7fTbTUqye0ylj/46DVf8Ur5iBl8
+	 gTXCEMAfoweww==
+Message-ID: <sashiko-outbox-226908@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] IB/mlx5: Fix a potential memory leak in setup_qp()
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Wanhui Fu" <fuwh1120@163.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261121095902.442960-1-fuwh1120@163.com>
+References: <20261121095902.442960-1-fuwh1120@163.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Sat, 21 Nov 2026 10:06:01 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,38 +58,16 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:PygvCgBn8YdtawFrUgkfHQ--.5873S2
-X-Coremail-Antispam: 1Uf129KBjvdXoW7XFyUKry3AF1fWFWrur4kJFb_yoW3Krb_WF
-	48trn7Z398AF1Skr13C34a9Fy0krWjga1xWa9Iq343A3sxAFW5A392qrn5Zw47Xry8Ja43
-	AryDC348JFWrWjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUU_Ma3UUUUU==
-X-CM-SenderInfo: xixzxiqrsqqiywtou0bp/xtbC7g8RsGsBa29pfwAA34
 
-create_gsi_ud_qp() creates a QP but the QP is not
-released if modify_to_rts() fails. Free the QP by
-calling ib_destroy_qp().
+> create_gsi_ud_qp() creates a QP but the QP is not
+> released if modify_to_rts() fails. Free the QP by
+> calling ib_destroy_qp().
+>=20
+> Fixes: ebab41cff4db ("IB/mlx5: Create multiple transmission GSI QPs")
+> Signed-off-by: Wanhui Fu <fuwh1120@163.com>
 
-Fixes: ebab41cff4db ("IB/mlx5: Create multiple transmission GSI QPs")
-Signed-off-by: Wanhui Fu <fuwh1120@163.com>
----
- drivers/infiniband/hw/mlx5/gsi.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Sashiko has reviewed this patch and found no issues.
 
-diff --git a/drivers/infiniband/hw/mlx5/gsi.c b/drivers/infiniband/hw/mlx5/gsi.c
-index b2e2a219639d..535a9f45fb33 100644
---- a/drivers/infiniband/hw/mlx5/gsi.c
-+++ b/drivers/infiniband/hw/mlx5/gsi.c
-@@ -316,7 +316,7 @@ static void setup_qp(struct mlx5_ib_gsi_qp *gsi, u16 qp_index)
- 	return;
- 
- err_destroy_qp:
--	WARN_ON_ONCE(qp);
-+	WARN_ON_ONCE(ib_destroy_qp(qp));
- }
- 
- int mlx5_ib_gsi_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
--- 
-2.25.1
-
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261121095902.4429=
+60-1-fuwh1120@163.com?part=3D1
