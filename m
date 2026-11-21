@@ -1,54 +1,63 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.116
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795289663;
-	b=bsst3Dyi2K8wfHcBrs5/qmciDdPJde/RtdyLP4PsfVAjM4VthHqloezUXxb9KF4r2tv7
-	 CedPfKW/zsUWTic87CxMLrUawIQJuJMDyIreUPv4xmZb6aQ+g3OuTcd8+qL9GTWn+fHeZ
-	 gTzcFQSiYfh4i0jGgsmfLHsCMLA+doYBSwxG/G1vgEVMTnvB453miTVBArhKj5HRrlRz4
-	 cLICbmFzIPnEVrFC8osTMPSx900DxUzoioI2jRyxV66Cf/VWE9KXugdEo3O1gOoVkgLL1
-	 65kp4WaxUK4ea1l1vjRhyD526q0XFHGG6REeUgAPEiRiRmB2SFIj5KBR2Nnssz4mRLg==
+	t=1795289910;
+	b=MP3R60OMP1op5RLk/Cggq//ntJlYGfjF74f+/o3FMQifw1/iVRXXuBQoqR+bflP86myA
+	 MOz8k8S1/HVsJ4PQaWff5zbyY/wtv54dK/g6ROAJX4bqdTNdfvyH8xci4Vu/oxBr9j3j0
+	 nbO4jF0ymF+Pk/pP5v9vtpL1s8z0+QKmG3sistKfT3j0jxLph3hG7XUdrkXG5URNLiazi
+	 gf7ezC+fLY7nORNxWk/t2DTaUCCWtasWZE6iwY7Rw60Dm8HEWglLRMR/qDSnIobwX6MuL
+	 LK5By+w2i+l27yQP6emIMUERYWmWyqBzVGkAAiZeFZflFndqAgrMOXgkWUrUqO+zT9g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795289663;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=ORTW/L5hh1DC9F6jjZky2W0T49vigeZuL6otjngyggU=;
-	b=H8Gu3EZZApWkrtkqAtNSSGQ1t15gfek+7C0JOv43HKbdGGYvkTEzb7LljS1guur60qc4
-	 Fnc+dXXWHVohlGeriuPWCEnQa3vTnU/R+hRguAUSA1vY4/3wr75i+LIDQOZWA6Xe2bh/F
-	 ffKfe3MEIYQL6v3xjW1l358TVw82rTx7+9SI4NJGZlYIuylo83rltCIlxy3fZiQuXYr7J
-	 WuJ0JZLu9t1ChaOXXtC7h5rTgTzTSerjqua0w9iKuPaiLPalOClperoBbAthqGMEHhZkJ
-	 1lDLSiqMwv/FsdDMI4nVWZEAPPloGRWKPdH7afmQO0E/rDPlIL1QkEZWN3HljkRGgdw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795289910;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
+	 In-Reply-To:References:Auto-Submitted:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=sS9FIrfW22SIhehTvpH3rdvmtslwIeEYozBr0OvaZe8=;
+	b=i8ffivDFz2m2OE2+NrxbFDq1JV4nfBGW1U4idyZoi3OOpQdvvWp96Mxj/nNdfuNi7+CC
+	 KvuU+q3wlPVIyMIl7n2vfHKF8RebuptS39fGvK6Z6Sz7Tj0yGFhOFjyHiKrJaWiQwpN2g
+	 QO4ORakK4uukpoSjj9m8cAov+S1ZLrxXtomHIYsLRFxyRnHUTVILg/ElqpFShNBPnmTse
+	 KjqC8YWieZM05Ht2x3D27MdwjgTFCbW3f1PIgfxdM37/IqSIWOdEenk6NjDkkCm8T+gyG
+	 zn+anB/9ozKZ/NQ6SmLnM6cHDxNeW9jT01x/8lPkpVdBguMUt6dcfZsxg3FlvfEHU/w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=DBB7aNQg;
-	arc=none smtp.remote-ip=95.215.58.116
-Received: from mta1.migadu.com (out-116.mta1.migadu.com [95.215.58.116])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lMEGNHQ0;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19C69606A320
-	for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 19:34:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 19C69606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CFD0606A32A;
+	Sat, 21 Nov 2026 19:38:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=DBB7aNQg
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=I9C/bgiJfXHgW926J6D3HYkewXOwJxbleb9jrP9kCpY=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1795289660; v=1; x=1795894460;
- b=DBB7aNQgauNKvIny4sl0fzklqH8l1slINVYmwr4Dvt7SIpQVqC7N3fR9hj8RwL+Or0EcXEW2
- bRX3vKqgJ4HCaHdlj7PhB7H8WKtY8x/j+g8tnWL/+TlSnLvTNUeBnXsLb/hls7uhRk3WJoRXa4J
- pOIKgax3y+odp8A9btAkFVsQ=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 0be58bc518feca3e;
-	Sat, 21 Nov 2026 19:34:20 +0000
-X-Mizu-Trace-ID: 0be58bc518feca3e
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <3a58ba4f-fd64-4144-8635-4b99983f7640@linux.dev>
-Date: Sat, 21 Nov 2026 11:34:12 -0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lMEGNHQ0
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 633BC1F000C0;
+	Sat, 21 Nov 2026 19:38:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795289910;
+	bh=sS9FIrfW22SIhehTvpH3rdvmtslwIeEYozBr0OvaZe8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=lMEGNHQ07oh2MwUfRgwkvZAZ27WeJo6vDD/l30AWPPpzJj5Q+NfMczzLMW8sfxzQ2
+	 S4pyJsc00F5CC8ChEwg9HqSdcKXUlnaSRaPcc+PfKz4E2SQ/ktqP6gkAbl5YmrP9zp
+	 tQdk8ujImGnzeOEELv3R6oy4k3Ku6FqcDAyXxKli2mxLjR/Jz3wuwS4/EYe3A7nse3
+	 q6zNUOAglc3+hvlWLqhelia66rFiXKv5uyUVKYzeX4IOaNsG1JZhw2v+D+nOqaOHVc
+	 73RfFZRDnZm/6Q5dwkV75tmV7wsAigidVFbsNq4pyfhtQ7GJrGoLPl23u1QH3WnoJ2
+	 cvWELJEQpL3OQ==
+From: netdev-bot+sinfo@kernel.org
+To: Piyus Kedia <piyus@iiitd.ac.in>
+Cc: alibuda@linux.alibaba.com, Dust Li <dust.li@linux.alibaba.com>,
+ Sidraya Jayagond <sidraya@linux.ibm.com>,
+ Mahanta Jambigi <mjambigi@linux.ibm.com>, netdev@vger.kernel.org,
+ Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>,
+ linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
+ linux-kernel@vger.kernel.org, Kapil Vaswani <kapil@presceralabs.ai>
+Subject: Re: [PATCH net] net/smc: validate the peer's CDC cursors against our
+ own buffers
+Date: Sat, 21 Nov 2026 19:38:28 +0000
+Message-ID: <179528990895.3294.1614564040906254045@kernel.org>
+In-Reply-To: <20261121193345.2148966-2-piyus@iiitd.ac.in>
+References: <20261121193345.2148966-1-piyus@iiitd.ac.in>
+ <20261121193345.2148966-2-piyus@iiitd.ac.in>
+Auto-Submitted: auto-generated
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,117 +67,22 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH rdma-next v2] RDMA/rxe: Mask the SQ producer index read
- from user space
-To: Shuai Liu <847807867@qq.com>, linux-rdma@vger.kernel.org
-Cc: zyjzyj2000@gmail.com, jgg@ziepe.ca, leon@kernel.org,
- rpearsonhpe@gmail.com,
- syzbot+fef38133c495aeb48297@syzkaller.appspotmail.com,
- syzkaller-bugs@googlegroups.com, linux-kernel@vger.kernel.org,
- sashiko-reviews@lists.linux.dev, "yanjun.zhu@linux.dev"
- <yanjun.zhu@linux.dev>
-References: <tencent_5B9FB1BCC8EF36C5E2128B7D4D54B867480A@qq.com>
- <tencent_BEE58D9BBE7109C47C2796DDF5A4B958F609@qq.com>
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <tencent_BEE58D9BBE7109C47C2796DDF5A4B958F609@qq.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
 
-在 2026/11/20 19:46, Shuai Liu 写道:
-> The send queue producer index of a user space QP is stored in the
-> queue buffer which is shared with and written by user space. The
-> requester reads it without any validation in req_retry() and
-> __req_next_wqe() and compares it against its own local index which
-> is always masked.
-> 
-> The requester stops processing WQEs when its local WQE index equals
-> the producer index. If user space writes an out of range producer
-> index into the queue buffer, that comparison can never become true.
-> Once the QP is put into the error state, rxe_requester() then keeps
-> flushing WQEs forever: the flush path advances the WQE index with the
-> masked queue_next_index() but the producer index stays out of range,
-> and each pass calls rxe_qp_error() which reschedules the send task,
-> so the loop never converges. The send task holds a reference to the
-> QP for as long as this lasts, so ib_destroy_qp() waits for the QP
-> reference to drop until it times out after 50 seconds and the
-> WARN_ON(!ret) fires in __rxe_cleanup():
-> 
->    WARNING: drivers/infiniband/sw/rxe/rxe_pool.c:212 at __rxe_cleanup
->    Call Trace:
->     __rxe_cleanup
->     rxe_destroy_qp
->     ...
->    rxe0: qp#17 rxe_destroy_qp: cleanup failed, err = -110
-> 
-> Fix this by masking the producer index with q->index_mask when reading
-> it in queue_get_producer() for QUEUE_TYPE_FROM_CLIENT. This restores
-> what producer_index() did before commit ae6e843fe08d ("RDMA/rxe: Add memory
-> barriers to kernel queues") replaced it with queue_get_producer() and
-> dropped the mask, and keeps the requester, the completer and the queue
-> helpers, which all compare the difference of the two indices modulo
-> index_mask, consistent. rxe_qp_init_req() also initializes
-> qp->req.wqe_index from this value so it gets validated as well.
-> 
-> Masking the index in queue_get_producer() instead of checking it at
-> the two requester call sites was suggested by the Sashiko AI review of
-> v1 of this patch.
-> 
-> Verified with the syzbot reproducer in QEMU: without this patch every
-> destroy_qp hangs for 50 seconds and hits the WARNING above; with this
-> patch the reproducer runs cleanly.
+Hi!
 
-Thanks for the patch. A couple of questions/comments on this:
+This is an automated message. This series looks like a fix, but its
+commit messages seem to be missing some information:
 
-The commit message mentions that this fix was verified with the syzbot 
-reproducer in QEMU, but I didn't see any corresponding verification 
-email or test report thread on the list. Could you please share the 
-link/reference to that email or provide a bit more detail on the test 
-setup and baseline kernel used for verification?
+ - How the issue was discovered, e.g. hit in production, hit during
+   development, syzbot report, manual code inspection, LLM or static
+   analysis tool scan.
 
-In queue_get_producer(), there are also other queue types such as 
-QUEUE_TYPE_TO_CLIENT, QUEUE_TYPE_FROM_ULP, and QUEUE_TYPE_TO_ULP. Have 
-you checked whether any of those types could suffer from a similar 
-out-of-range producer index issue? If so, please let us know and include 
-any necessary fixes (either here or in a follow-up patch, as appropriate).
+Please do not repost the series just to address the above. Instead,
+reply to this email with the missing information, so that reviewers
+can take it into account.
 
-Thanks a lot.
-Yanjun Zhu
-
-> 
-> Reported-by: syzbot+fef38133c495aeb48297@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=fef38133c495aeb48297
-> Fixes: ae6e843fe08d ("RDMA/rxe: Add memory barriers to kernel queues")
-> Signed-off-by: Shuai Liu <847807867@qq.com>
-> ---
-> Changes since v1:
-> - Mask the producer index in queue_get_producer() for
->    QUEUE_TYPE_FROM_CLIENT instead of checking it at the two requester
->    call sites, as suggested by the Sashiko AI review of v1. This also
->    covers rxe_qp_init_req(), which initializes qp->req.wqe_index from
->    the same value, and keeps the requester, the completer and the queue
->    helpers consistent with each other.
-> - Point Fixes at commit ae6e843fe08d, which dropped the mask that
->    producer_index() had, instead of commit 5bcf5a59c41e.
-> - Reword the commit message: the flush loop never converges because
->    the WQE index is advanced with the masked queue_next_index() while
->    the producer index stays out of range; the req_retry() reset detail
->    in the v1 description was inaccurate.
-> - Update the subject to describe the actual mechanism.
-> 
->   drivers/infiniband/sw/rxe/rxe_queue.h | 1 +
->   1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_queue.h b/drivers/infiniband/sw/rxe/rxe_queue.h
-> index c711cb98b9496..fe65aecc60464 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_queue.h
-> +++ b/drivers/infiniband/sw/rxe/rxe_queue.h
-> @@ -106,6 +106,7 @@ static inline u32 queue_get_producer(const struct rxe_queue *q,
->   	case QUEUE_TYPE_FROM_CLIENT:
->   		/* used by rxe, client owns the index */
->   		prod = smp_load_acquire(&q->buf->producer_index);
-> +		prod &= q->index_mask;
->   		break;
->   	case QUEUE_TYPE_TO_CLIENT:
->   		/* used by rxe which owns the index */
-
+*IMPORTANT*: If you do repost (for other reasons) - please include
+the relevant info in the cover letter or commit messages.
+-- 
+The evaluation is done by an LLM so it may be wrong, if you think
+that is the case please reply and explain.
