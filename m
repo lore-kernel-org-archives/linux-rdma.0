@@ -1,54 +1,101 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.214
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795294384;
-	b=ppuEPfkEqJrp+e/NLHyof0eSEPGmou3zT2HGZzOLzYQw+w2HeaxqT/zI0zLIP8iY19rS
-	 4/3ReTdUIDCQQJNxA9DxXtu/6TLxPylts+XAFLQd3vYRZZxkHr2ekNxddYEk83xyz18II
-	 d3zNzgGLnEbJ58Ytro1uSvpZW1XQCxnAsGdzeq81uMrCnfYLVxdUiZ/Jtr2oMTwkGTUgN
-	 zYkpqhoqzPH8nsv5eHXVMtwc1BT1o6W2/WQPOnxdb2oAir25/O8hczb9qYiBl1/cwPBzD
-	 VU6wSMGpE+ybCTDSV5xblagJ1GZ3x7UTWuXoH2I+gnXqYb9dCOiSOKNo+rpbydl2Qag==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795294384;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=cC872EySsMC8eMJI+Qe7C5GebioHolwF5sIbQy0Rd28=;
-	b=MHOlV2eTT7vzdJNmbswJgzddp0uYLsD/YBpi3ZilbjZ7lT4QUXHunZAifS5ZQcdbrC3y
-	 Cd0Y2w99mo28npSVAXoFthILyRdBcAIHl/6+rZptzLHQJ8cqfHkMag0vUe2lGHrvB9CHT
-	 QQ5cak/zMHSJpOh3fc/GPvZ+NR8gaPFzCn8kVPeJjKHyBhpT9Rpb7yZfkqfQDCbrhbZ5m
-	 VUQmxH9kQYKb0HWMcml+qF0fOZ5sTEwp8gMOGAN4pbHOfOOp0AU5e1Ve+pB42duIzyzCd
-	 xobMEp1JnZXvvW87c9Ehm+N9mp9RQRFCiivXyT4enfQQu05OIWgUDnDZPChlJxL4xcA==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=N9iG+ZGZ;
-	arc=none smtp.remote-ip=95.215.58.214
-Received: from mta1.migadu.com (out-214.mta1.migadu.com [95.215.58.214])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.46
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795294622;
+	b=B5AfJEm9RUsjEGMQSWDiKU8EQcXgzpYvHMF3EPuSXIvxB5D0mxUMH7ZGeQAf8f6IkW6Q
+	 qt5ZIjJPRowuWOQO8JnX5BIkS7ECZ6/l16vuth0/kSFHYCZQnn9VY8DvJQRf+NP+9KTfp
+	 E/9sSBi4gvwPNt4emuKWed0H2PuDWpJmPrgHcuVdsmIIj9hfyk/msgjF/XY3xPx4LO0py
+	 LUP7rYtnULv28seZ1aH3mgzGMf+Dhj66XYYzD2TcYfLsYLA/tq4c8Vb6oNMZ4YGcwlHbc
+	 W7sNHroxO+q3cu59REciXyA1dAbBsXJMQjatYRfwA5QGH5Xf69p7+l5ngT3vSLVXqyw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795294622;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=+f7+ztUOyhaovcSK8/cLlVw1Izw6zMt7sIYYHaQmuRQ=;
+	b=aSmsdMjKH/Hk5wVOvRv0f2ukXGEkD5GlQiidBzTpOV+Kuz+zoNhwdDgXaNNqfALqjc1X
+	 xuIzspZ/he8XNT9/FFpU170zYBISlRkt24s5oEJEY49xwcXGZk7I37TMPJalYfJzQ/tza
+	 QWcrcAWxJjrJR+cjeruBlxJkIrqmv30q2pldiZE+4kfxzrb7G2rF8s6Z8BbHIE8dze2c1
+	 J0jbT84XlrHK8VnJztEUF1qGYFR5CzbXOb278S3Js0nZQBYy0v3oH48P0j+lt845exr7k
+	 P9s5m5ZHv3mUrEzjx1NWW2gQmELvJA570+OvOI0/UWViLGR3D8uZ/1txy+g9Tg7j5OA==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=L8TpTXAE;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.46
+Received: from mail-yx1-f46.google.com (mail-yx1-f46.google.com [74.125.224.46])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EAE2606A32A
-	for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 20:53:03 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6EAE2606A32A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64D91606A320
+	for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 20:57:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 64D91606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=N9iG+ZGZ
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=fTypxto2RUCo6/a5JpNf0L5VcBFjct/hjtzGvcTcedo=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1795294381; v=1; x=1795899181;
- b=N9iG+ZGZKWBhrj0qAGkiVJ8lnPVDTgkN+VlyoY2WfbqO/laH+7mP0TGlHrHlu6FHnwygbMI8
- /Ca9/2pyxrIKYhhphkCbqs4gj9+nvilfAJU5UE+03G6Tyy02E5CviJA6G30e72YbKKJ/1MWVtRY
- QOC86GJNVfngPZnXktSEdDhI=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id a173131b567a5674;
-	Sat, 21 Nov 2026 20:53:01 +0000
-X-Mizu-Trace-ID: a173131b567a5674
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <6f390b6c-b0d6-4b37-929b-a426282556b7@linux.dev>
-Date: Sat, 21 Nov 2026 12:52:54 -0800
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=L8TpTXAE
+Received: by mail-yx1-f46.google.com with SMTP id 956f58d0204a3-67db35e7953so2204317d50.0
+        for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 12:57:02 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1795294621; cv=none;
+        d=google.com; s=arc-20260327;
+        b=c2MC07n2ZTinKJBjP2ZNLBQ4P4u1Q+tyeC2JxLTKSpWx6fXo5RxYEPqGcMMhNvBUou
+         F/o/jxlGeVeO1uJQqbrRU0RcO9hnk/W2N8YR5lZ2u6U5C9YjIUnGcVVZu26otuAg7IJu
+         r+WOjpodGX9fXBKs9r7Rdqb3tizWsU85HpSJdZF2APAD43CvPi4oKJmrC4kALsKBPy4B
+         Tdl0MV60qlf79RSrhrnPSNuF5kC9kkDQyL1w6ZCQeaiJOKHAp//cY5jKVdYgJlqSt2YH
+         xnHL1GBTPvEkaHr6GHkuqUP/IjU4tm60WV7y9kYSy06Nz93WINzYRj90GSrf/bXh3Bjr
+         7PYw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=+f7+ztUOyhaovcSK8/cLlVw1Izw6zMt7sIYYHaQmuRQ=;
+        fh=vM2RJCYgW3kj/A9VBSC1dfDjYw7b6/J4q4Dzq4tpDuQ=;
+        b=j7/AnfO2yHQZhjIGHcLagUOIAS9/jV3QyxrJAGIBBNA5AG9WSmemujhmkHZcKk6ftt
+         7toEA/QCQs8YVT8QRwMTeOvbZ/f4Tn3lwuaHqgjRbiE2q51R2+jwSL9yVKCClrrzBzkv
+         sK3EXVAHXMUJ2oxGwWRFw60DaN7omSYqaVvrFu/Xv0ECnp3DtwzpQuqPXJvIBAI7tZqF
+         bzMqZ8BkStM1eahs792jQWpBJNUaIs6BGqBTulJObtaQjZZHguaTwT5q1pRMcrGwG/PT
+         86ebdbLlQb/KFHbCd0jmfqqotN7H5rJ3yutsNo3B/boWRvPULIciVUptdMa907Wn3RRi
+         5Rjw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1795294621; x=1795899421; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=+f7+ztUOyhaovcSK8/cLlVw1Izw6zMt7sIYYHaQmuRQ=;
+        b=L8TpTXAEpiXgcy2GKVxQnFmBuJH6vl2ptnjqIEIRtCqzlUq1sVsLGGfoaV5bjJA7vt
+         QA0lladoUwfZ90X//yMghSakFBIWC6KSCxJmehuZNTSpGV26w/lkvLis7LrBdN9X/ORd
+         o/951mpQU/H7ATA+4LnTTK2TEOrI8WYLlMhChTjwLOxL8mxy85MwoLjEUTyHNLCxjdQm
+         q1IlBMp4fSotbhCPl/XK2Cus/GMm/nrzzRxjLKU3+wyum+hSnGEqxWVPoNsMyxtiKUiH
+         BsPV82qfwYn55bVTvSQSgjvRC7qFFcltwpI9n0dq1dhOffwHFu1bJHpa/Stszx49sJiD
+         MgIA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795294621; x=1795899421;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=+f7+ztUOyhaovcSK8/cLlVw1Izw6zMt7sIYYHaQmuRQ=;
+        b=Yp7ZewwfdZGbbXfhSuyS+5plpTATGcSU61j/UyvnVTZTIhvMbujcW7ataUNSXINFnY
+         ouoDcgNA7jaORgIOX/ezB6ipZFdk+UmWDy0lzzjplOnTamSOPoQdHT7Rf8D/ZTTCXH6h
+         3jXbNEEmWAWrFLoKqfG3+ZrCk0KqN7gKM7D/uzxICVa6tehp2AFUp9zrUMm4GKDAllJS
+         cwOJEPqTvQ6Ril5awMtaZLJlgZqlS8KoUTg8F1RqcnUdcxyC55ysieRGcQTMsXxaT5fH
+         sf9nUKEE8GMnrKevtEsBdcxJe6rIcAmPVGgQ9RnmMH1wOndI0xW40fjtgxtM3R2kTB2i
+         GhFw==
+X-Forwarded-Encrypted: i=1; AL+hErE0hFyqAnm96pRmzjrsspLKahZJxC4iA+N4tHXfWhMEGnaoL1eBCRkP74fDP6vJcX9klPGcGAWjmriC@vger.kernel.org
+X-Gm-Message-State: APuU4Z8KJVmv6bCw7IX4Sc8nmmS6+tJAL2KAdtnqIgRAagrV39w/3bPA
+	lZ1guB0CDUVvIF/piAYUi+cyIFvYc6iTByAJ35e4OqqAOnKCYGsDPSm2jHSpGBZQwbWWaFDOjJJ
+	kyEcgKr9/qh1zrxrr2oy1BdKPj0HeE/8=
+X-Gm-Gg: AZFdTZf7qMdFtshS5A8Mx/NX9jlsPpf6DOEVQF5io9sjVCNpnYEPZVQFETiTQpiS7Gy
+	HN8IOGYd1ooiXl/Kr/btz30TSV1al3saCAWItf8K6qtNsNEpXaBH3sjGs7vm0GEQsIh/1+7/nb2
+	55U6xIrT5JfjT9SR+ZwlpuPEX6PvUV/F1C/jf8sIGY5sDQuML+El1+l9iJ3q/uEZsTFgfwdqhSq
+	FPhCBUZG+geS3qfXhcXDgJF44H/W54w7MFEqioZBCOuBC137C292TLiCT2elyG1iubKcasJQLoF
+	flPTUlFon9MJX6FxweECoGSyqw4K3m9nbe2tSH0lHNn9KW+vy4VDLhYIak7VG03fKd5gPpZhuFC
+	9/RfoCKCbH/Si7vpIXAic+CesP7R28RsTFaVVndFyvfISK4+v6g2A/qo01i/vnlgmWh1AtoUn3W
+	VkH7uuylD6QF8Z2GqsQQ56zkXpSdlD
+X-Received: by 2002:a05:690e:47c9:20b0:67c:6e6b:2b58 with SMTP id
+ 956f58d0204a3-67df442352cmr1473959d50.29.1795294621418; Sat, 21 Nov 2026
+ 12:57:01 -0800 (PST)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,184 +105,67 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] RDMA/rxe: Do not re-execute completed local ops after a
- retry
-To: Mohamed Khalfella <mkhalfella@purestorage.com>,
- "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
-Cc: Zhu Yanjun <zyjzyj2000@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>,
- Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
- linux-kernel@vger.kernel.org, stable@vger.kernel.org
-References: <20261113230831.2682071-1-mkhalfella@purestorage.com>
- <e432178a-6e73-4096-9f59-5c5d2bc9d682@linux.dev>
- <20261115173618.GD34016-mkhalfella@purestorage.com>
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <20261115173618.GD34016-mkhalfella@purestorage.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+References: <20261121001414.724236-1-ralerrdirsardx@gmail.com> <179522023307.3294.6067722832080574797@kernel.org>
+In-Reply-To: <179522023307.3294.6067722832080574797@kernel.org>
+From: Artemii Mashanov <ralerrdirsardx@gmail.com>
+Date: Sat, 21 Nov 2026 23:56:50 +0300
+X-Gm-Features: Aa3M54rI9vOhz5FwN5wgejilnXxYc_imK086uF8S01hpRCkqWw3qDXtfbHw3p0s
+Message-ID: <CAGHp__ZrFmXW82R9hpyzRGL0ORdFF=Q-yvcNMFELRyHrfJMzJw@mail.gmail.com>
+Subject: Re: [PATCH net] net: mlx4_en: report the actual RX classification
+ rule count
+To: netdev-bot+sinfo@kernel.org
+Cc: netdev@vger.kernel.org, Tariq Toukan <tariqt@nvidia.com>, 
+	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+	linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+Hi,
 
-在 2026/11/15 9:36, Mohamed Khalfella 写道:
-> On Sat 2026-11-14 11:05:39 -0800, Zhu Yanjun wrote:
->> 在 2026/11/13 15:08, Mohamed Khalfella 写道:
->>> Local operations (IB_WR_REG_MR, IB_WR_LOCAL_INV, IB_WR_BIND_MW) are
->>> executed inline by rxe_requester() through rxe_do_local_ops(), which
->>> marks the wqe wqe_state_done and advances qp->req.wqe_index past it.
->>> Unlike wire operations, nothing is posted to the network and no ack is
->>> expected.
->>>
->>> The completer only consumes wqes from the head of the send queue, in
->>> order. A done local op wqe therefore stays in the queue until every
->>> older wqe has completed, so it can sit behind a SEND or RDMA WRITE that
->>> is still waiting for an ack. With nvme-rdma, which posts REG_MR + SEND
->>> for every I/O, the queue regularly looks like:
->>>
->>>     SEND(A) pending, REG_MR(B) done, SEND(B) pending, REG_MR(C) done ...
->>>
->>> When a retransmit timeout fires or a NAK arrives, req_retry() rewinds
->>> qp->req.wqe_index to the consumer so that every unacked wqe is resent.
->>> Its loop skips wqe_state_done entries when resetting DMA state, but
->>> rxe_requester() itself has no such check. After the rewind it walks
->>> forward through the queue, reaches REG_MR(B), sees WR_LOCAL_OP_MASK and
->>> calls rxe_do_local_ops() on it a second time.
->>>
->>> rxe_reg_fast_mr() rejects the repeated registration because the MR is
->>> already RXE_MR_STATE_VALID, not FREE. The wqe is given
->>> IB_WC_LOC_QP_OP_ERR and the QP is moved to the error state. The
->>> completer then flushes the entire send queue with IB_WC_WR_FLUSH_ERR,
->>> including the wqe that failed, so the consumer never sees the real
->>> error status. nvme-rdma logs only "SEND ... failed with status WR
->>> flushed (5)" and tears down the controller.
->>>
->>> Any packet loss that triggers a retry while a later request is queued
->>> is enough to hit this. On a soft-RoCE setup with a few hundred lost
->>> frames per run every controller reconnect traced back to the same
->>> rxe_dbg_mr() line:
->>>
->>>     rxe1: mr#776 rxe_reg_fast_mr:  mr->lkey = 0x3084c not free
->>>
->>> Skip local op wqes that are already done when the requester reaches
->>> them again after a rewind. Advance wqe_index past them exactly as a
->>> successful execution would and continue with the next wqe. The MR keeps
->>> its registered state and the completer still reports the wqe in order
->>> with its original status. Only local ops can be in wqe_state_done ahead
->>> of the consumer on an RC QP, since wire operations stay pending until
->>> acked, so the check cannot match anything else.
->>>
->>> Fixes: 001345339f4c ("RDMA/rxe: Separate HW and SW l/rkeys")
->>> Cc: stable@vger.kernel.org
->>> Signed-off-by: Mohamed Khalfella <mkhalfella@purestorage.com>
->>> ---
->>>    drivers/infiniband/sw/rxe/rxe_req.c | 14 ++++++++++++++
->>>    1 file changed, 14 insertions(+)
->>>
->>> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
->>> index 4f353abd76f5..fdb55366d668 100644
->>> --- a/drivers/infiniband/sw/rxe/rxe_req.c
->>> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
->>> @@ -723,6 +723,20 @@ int rxe_requester(struct rxe_qp *qp)
->>>    		goto err;
->>>    	}
->>>    
->>> +	/*
->>> +	 * A retry rewinds wqe_index to the send queue consumer. Local
->>> +	 * operations that were already executed may still sit in the
->>> +	 * queue behind an unacked wqe waiting for in-order completion.
->>> +	 * Re-executing them fails (e.g. REG_MR on an MR that is no
->>> +	 * longer free) and would move the QP to the error state, so
->>> +	 * skip them instead.
->>> +	 */
->>> +	if ((wqe->mask & WR_LOCAL_OP_MASK) &&
->>> +	    wqe->state == wqe_state_done) {
->>> +		qp->req.wqe_index = queue_next_index(q, qp->req.wqe_index);
->>> +		goto done;
->>> +	}
->> I understand the need for this check to prevent already-completed local
->> operations from
->>
->> being re-executed after a retry rewinds the WQE index.
->>
->> However, this check is currently placed in the common `rxe_requester()`
->> path, so it is evaluated
->>
->> for every WQE, including normal SEND and RDMA WRITE operations.
->>
->> Since this condition is only relevant when a retry causes the requester
->> to revisit an already-completed
->>
->> local operation, it is expected to be very rare in the normal execution
->> path.
->>
->> Could we move this check into the existing `WR_LOCAL_OP_MASK` handling
->> path, or at least mark
->>
->> the condition with `unlikely()`?
->>
->> I would prefer moving it into the local operation handling path, if the
->> control flow allows it, so that normal wire
->>
->> operations do not pay the cost of an additional state check.
->>
->> This would keep the fix while minimizing its impact on the common fast path.
-> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-> index 12d03f390b09..8bd1f9b1ce06 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_req.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-> @@ -707,6 +707,13 @@ int rxe_requester(struct rxe_qp *qp)
->   	}
->   
->   	if (wqe->mask & WR_LOCAL_OP_MASK) {
-> +		/* Retry rewinds wqe_index, skip it if already done */
-> +		if (unlikely(wqe->state == wqe_state_done)) {
-> +			qp->req.wqe_index = queue_next_index(q,
-> +						qp->req.wqe_index);
-> +			goto done;
-> +		}
-> +
->   		err = rxe_do_local_ops(qp, wqe);
->   		if (unlikely(err))
->   			goto err;
->
-> Does something like the diff above work?
->
-> Also, sashiko marked a high severity issue [1] in this version of the
-> patch. I am not familiar with this codebase enough to know if this is a
-> real issue introduced by this change or not.
->
-> Is the issue reported by sashiko real?
-> If yes, is it introduced by this patch?
-Hi Mohamed,
+I found this while auditing ETHTOOL_GRXCLSRLALL handlers. Reading
+mlx4_en_get_rxnfc() showed that the original loop used rule_cnt
+as its stopping condition and could return success without
+reporting how many rule locations it had copied.
 
-I reviewed sashiko-bot's comments and agree they are valid.
+The ioctl behavior described in the commit message was inferred
+from the original code. I did not reproduce it through an ioctl
+on a running kernel. I tested the patched handler in a standalone
+harness with ASan and UBSan, checking the returned rule count and
+the -EMSGSIZE return when the buffer was too small.
 
-Please update the patch accordingly:
-
-Consumer index overtaking wqe_index: Consider looping/batch-advancing
-
-qp->req.wqe_index past consecutive completed local ops so rxe_completer()
-
-cannot overtake it after a retry.
-
-Fence & IB_QPS_SQD stall/deadlock: Check send queue boundaries and
-
-concurrency/state ordering around req_next_wqe() and fence checks so
-
-completed local ops are skipped before those checks block or deadlock.
-
-And please do not add overhead in the fast path since this will make bad
-
-difference on the whole system's performance.
-
+An earlier revision also built as mlx4_en.ko against Linux
+7.4-rc2. I did not test the change on real mlx4 hardware.
 
 Thanks,
-Yanjun Zhu
->
-> 1- https://lore.kernel.org/all/sashiko-outbox-213867@kernel.org/
->
-> Thanks,
-> Mohamed Khalfella
+Artemii
 
--- 
-Best Regards,
-Yanjun.Zhu
-
+=D1=81=D0=B1, 21 =D0=BD=D0=BE=D1=8F=D0=B1. 2026=E2=80=AF=D0=B3. =D0=B2 03:1=
+7, <netdev-bot+sinfo@kernel.org>:
+>
+> Hi!
+>
+> This is an automated message. This series looks like a fix, but its
+> commit messages seem to be missing some information:
+>
+>  - How the issue was discovered, e.g. hit in production, hit during
+>    development, syzbot report, manual code inspection, LLM or static
+>    analysis tool scan.
+>
+>  - Whether the issue was actually triggered, or is only theoretical
+>    (e.g. found by LLM and not proven at runtime). If it was triggered
+>    please include the symptoms, like the stack trace or kernel messages.
+>
+>  - What hardware the change was tested on. For driver fixes please
+>    mention the device (and if relevant firmware version) used for
+>    testing, or say that the change was not tested on real hardware.
+>
+> Please do not repost the series just to address the above. Instead,
+> reply to this email with the missing information, so that reviewers
+> can take it into account.
+>
+> *IMPORTANT*: If you do repost (for other reasons) - please include
+> the relevant info in the cover letter or commit messages.
+> --
+> The evaluation is done by an LLM so it may be wrong, if you think
+> that is the case please reply and explain.
