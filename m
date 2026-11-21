@@ -1,56 +1,45 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=213.95.11.211
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795220592;
-	b=Jfyz2pH2M1LAbW9phzhbGNooHMP3zHhcDb0OoDSFGR7Lz+XCsoImF48v90gjTs+QN/W6
-	 Q9STHP9gmyzzNJkcu2a8oxDmK3SyMyh87d4781EC7PrFmjm/T99H8hLoBjq5kU1B47xw0
-	 h+7XcA/HdO8WaOCHBMue/o7Lds47Up8RXHPruMWjJVu6ngzDPs08cJSvQMx7uc/i6ah00
-	 jUGUDiyJvQa7eXoE8pj36fd4UDVhHt1t36ExwKV7pI0zqy7Z6hgu6gJN42xVep+gdnA7F
-	 m8s8bjPN11Q3JOXiQtkaRgZWlv7spk4j4XFxZPHRrntzEhpDFu3UcdgiFqsYvS5XLQQ==
+	t=1795221311;
+	b=a04zPC1x66pxtyO9DzA04FNsEXeplludagW2B+bgwPF86ToLIOuYVZQHJStir3Z/ie00
+	 PrBZzf6Xzvhaw0K+v5xGVnsP7jF42xVLpCLDgXn5dGP1jOqkU3psUfm5t31SgSEiRlHO1
+	 bxYdtZVbuadcJn/BOL1CvQgVm2eEg8S4cwp4G6yfuSpovgSpKDAF2JF0ZMkfUm98Nm56Q
+	 zbcaPAQmoLSIn3+YQlHy/x790xST5Q9qKVcvdwMZXYXPsoLhHkHeEwDeLoYp9M4ssCOsb
+	 Jc6aHNxW+CbuuaMwOhqSHZKMyyVEPzsbW9jDk+lD3qwgv8KzYZbDn90wre91nCIVkdQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795220592;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=u0Nny/WYUYwYLpcGQV/jYZ9MZ3mO4eRtGvYwDHBEtl4=;
-	b=ybyDin3pEGUXkMv8iRnuYPMrMqMDXxh7jNKv2WIftGrMPodHIcHDoPvCZh84QfRRk/Rv
-	 U94RuNbNSsNf4SfVGAEgF7wCivuHxhLMGb6eexlQZ5ysgiZjKfcFOM6sMa4wnHr9ajaN5
-	 YTX2ajqzHUh8ZpUz8RI40P65SRXOBf6Z0P205+6Z7zOdJfut73jq/JtaFnjJai9lMfcNr
-	 BAEPCJaOvvvYOolsidFj2TrDgTLtdgwG9xJyLRLEtX5Rxq42SWpWbE7IMika/9QoLeonR
-	 0IksfyDkcXDe2tXw1vtEQHzdiJ+4WkyLUcvuE2pd9etq5oMbZpIHdkuyzD7jAIh48/A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795221311;
+	h=DMARC-Filter:Received:Date:From:To:Cc:Subject:Message-ID:References:
+	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To:User-Agent;
+	bh=M7NmYC/Iylm9myghHwqILim55SAUt9QrM+UZYk0eJlw=;
+	b=1Mn3sygacR9HaDdeSW907zuRmmxCOUWzJsVDl3cMKt4I0FHHOd5KSOzmDBthm07Jte5b
+	 Pe3nmr2DiK32UGhBV3LFdXJq/+4WuB/xVynwifwHPU3bE5Jl1kfOmaAZU+fG0fDTI6m3l
+	 TDQLGLSsRfr44tpSIYSE+gchR8GhR5BVM5TzYBIvPRnAXvJfv1lzhDvJs8E2Yv2d654ED
+	 M7yjemuTBdywGwFGlYlzR7G/BaOaP4eMaP/NFdNFeNahMEePRJDrCK3iHtAYGiO5cbYPs
+	 siqhI9Hr2WQl624Ts+q9RjoktUwbPXokm+eAQbiHAIBCppKrJDJ1yhsy7Bx7MHAJZWg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YthImK15;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=lst.de;
+	spf=pass smtp.mailfrom=lst.de;
+	arc=none smtp.remote-ip=213.95.11.211
+Received: from verein.lst.de (verein.lst.de [213.95.11.211])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51CBD606A687
-	for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 00:23:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YthImK15
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7650C1F000C4;
-	Sat, 21 Nov 2026 00:23:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795220591;
-	bh=u0Nny/WYUYwYLpcGQV/jYZ9MZ3mO4eRtGvYwDHBEtl4=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=YthImK157wHAvcARPH03ad/f/Tfq3KRsGiQ54Fsh829Dma/pSCKpzFmlGeI+BxRdz
-	 cuP6Ny1t4/CHKrIS6ihGY8WB7V3mPnBL+6/xKUGSr5qXODzTP9wlKMkzaaAw61sEsW
-	 WYmyeCdzOe1b8mSUnI+2rcX9AF6k0xLrBSgamGJR9c81yzW0gIKBvlaf103r5QPusS
-	 4C5mhCXinBf4V14egB71uStkq4cK06DKwoXLtiOWXqVEbSvAjn2vQRsw/xfLfIlmPy
-	 SB4FzFS1VUWx9HAwr727Mv62oo6K3+eyPH7Ih3IY69yCIsjmBkRdv5DaZuG545Erqo
-	 KHW4wqKWXeBgw==
-Message-ID: <sashiko-outbox-226399@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net] net: mlx4_en: report the actual RX classification
- rule count
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Artemii Mashanov" <ralerrdirsardx@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261121001414.724236-1-ralerrdirsardx@gmail.com>
-References: <20261121001414.724236-1-ralerrdirsardx@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Sat, 21 Nov 2026 00:23:10 +0000
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00148606A6A2
+	for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 00:35:05 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 00148606A6A2
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
+Received: by verein.lst.de (Postfix, from userid 2407)
+	id 0B4306732A; Sat, 21 Nov 2026 01:35:01 +0100 (CET)
+Date: Sat, 21 Nov 2026 01:35:00 +0100
+From: Christoph Hellwig <hch@lst.de>
+To: Anuj Gupta <anuj20.g@samsung.com>
+Cc: kbusch@kernel.org, axboe@kernel.dk, hch@lst.de, sagi@grimberg.me,
+	jgg@ziepe.ca, leon@kernel.org, asml.silence@gmail.com,
+	nj.shetty@samsung.com, joshi.k@samsung.com, anuj1072538@gmail.com,
+	linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org
+Subject: Re: [RFC 1/4] nvme: move dma-buf I/O context handling to nvme-core
+Message-ID: <20261121003500.GA14598@lst.de>
+References: <20261118103327.1788667-1-anuj20.g@samsung.com> <CGME20261118103450epcas5p1163c0878f3f2da3357146301143047a0@epcas5p1.samsung.com> <20261118103327.1788667-2-anuj20.g@samsung.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,28 +48,13 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261118103327.1788667-2-anuj20.g@samsung.com>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 
-> mlx4_en_get_rxnfc() treats the input rule_cnt as the number of
-> rules it needs to find for ETHTOOL_GRXCLSRLALL.
->=20
-> With room for four locations and only one rule installed, the
-> ioctl succeeds with rule_cnt still set to four and three extra
-> zero entries. When the buffer has too few slots, the ioctl
-> succeeds with an incomplete list.
->=20
-> Bound the scan by the rule table size, skip empty slots and
-> propagate unexpected lookup errors. Return -EMSGSIZE when the next
-> rule cannot fit and set rule_cnt to the number of copied locations
-> on success.
->=20
-> The source-extracted ASan/UBSan regression tests passed.
->=20
-> Fixes: 820672812f82 ("net/mlx4_en: Manage flow steering rules with ethtoo=
-l")
-> Signed-off-by: Artemii Mashanov <ralerrdirsardx@gmail.com>
+Looks good:
 
-Sashiko has reviewed this patch and found no issues.
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261121001414.7242=
-36-1-ralerrdirsardx@gmail.com?part=3D1
