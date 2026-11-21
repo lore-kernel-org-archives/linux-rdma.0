@@ -1,56 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.4
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795251915;
-	b=JPADfFH5q8s3eyNXQHbvKvC05j2Dif9nEMh7GdTrsYUr18Q8gIsALN2Vwqu6MOeP4VTa
-	 h77xfth8U2bhh6Zd+jboXvwQxRJRCQoCqCOymxg+Qcrs9Fv5ndnCiogUCbWo8G9wIK4a2
-	 5mvftSFL0PNZ0Ys4YuZ4aPAkgWJuIdXwgZlpnAJz7WNx6ZBEe8hha1QSevlJWVQW0VV84
-	 WbV+YNanHUqBIiUYRQhyCtSnHBHtOpRcYW3mA4eLFElpHeSuo/cSbkt7+5WwP5uNtr6bI
-	 5oTYu/Fe+6gTnlTeB7byCKeu9Gknxkmk6wgiBTKrFoTXEzKHdEv3+mZbBcyOHo7eeNA==
+	t=1795253972;
+	b=TJNIrxn4RSAh0kieD/1I99x/29QmJVPX4sJ8QSGsW1f3OsJ7l7+gBk0EgHyCpxy+KFQQ
+	 E+gofxZqobjoUUHZ0N41g2bacyW9f6zOewLBjmEdZYxmLFk+bKwFRowMy0PFKNwg2nmHS
+	 djt/9soCgjC/sW5VjTdyvv5OGDweRcQM0TO9bUW066BHGy4BjWzuXSZA7uu409yun/Z6a
+	 heZVUE5F5r3I0HEI5qJ2XCi4t2MtWcKNQtVPGHkGbptQOZwlV3DwGKwgx6DJBNvXz5QJU
+	 GGXkQpBBIjGdgqsjIZ7ZkxBilw65hzbew9mp4kcNZvOOum1ovyhNoCPRtomynlhZBpQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795251915;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=LRTC8vLfPKKB+daofLKm1CRWwkoOBm9o22966vQmmWo=;
-	b=2Oiklf2u9V6UkUSMSQ5RPCu/1AQugaRQ6xIQS9dwqIdo6sNLjnJeOBBkCUNZewHyjlJB
-	 NpfF4Hp53N/p0sMeKvhKoDIt+v3bz8zk6atT8I+5kaSh6lYMmpmJct/lO4gx7tR+Jd2Lj
-	 w9OsgyM/4GXPmGdexNDr2IVe2dzSUyr62N/Wf2UMfHT/28445Tj0j6YRqfWwxkm0FtSRj
-	 qMwCA2jmi8cyqFrUV7ZBkr33oQysyURj+l25BhjVaM+IZ3gtr0RY62pGNP6RFIf5AnT4i
-	 zo5/+CH/8fQTqr13q3fnBfw80N/8opc6aontA/+Z4st6uexJLuYqjEDxJKyQdLzyDkg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795253972;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
+	 Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-CM-TRANSID:X-Coremail-Antispam:X-Originating-IP:X-CM-SenderInfo;
+	bh=vHyM4Cv4BGb7ADvxlq0KJx6cFo+10F6V1rtiSbfbDRg=;
+	b=UdlrJ9fO1LTVwETy25NHjUmehKEnL5pLD/NfU9OL+k+9pU35UlT9B9O/49y7E6bf9swp
+	 27BPY8RjoXjvR8bviP385Y6kBvIlZj7FceHc9TOg2+YOsA8vXq7t4uw5GULU95CQzRiJT
+	 nryAUpAXQbBknQmZzGEull5YMvekm/068NTp/c9DGDfs2eCJ6POpMzPinWkduVBqMKmYm
+	 ByzlaF8UdDtakVSnSZDgVxk4Tx7sQKe8CAwpmdFqt4yl+T1H6cCs2pmbfZmWKyzxxd0rN
+	 pxHGAth6JP5bvl7770Do2cB6fFdnKv6JFRBeENLRkoe5vVXCg3Tc7QOK2Mnv6zEvYzA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PZzkVnl+;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=163.com;
+	spf=pass smtp.mailfrom=163.com;
+	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=VtuG8tXk;
+	arc=none smtp.remote-ip=117.135.210.4
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.4])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44033606A320
-	for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 09:05:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CEBB606A320
+	for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 09:39:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8CEBB606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PZzkVnl+
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD84A1F000C0;
-	Sat, 21 Nov 2026 09:05:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795251914;
-	bh=LRTC8vLfPKKB+daofLKm1CRWwkoOBm9o22966vQmmWo=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=PZzkVnl+XZDi0hjkAwXrdnsSRdyMc39ULNqJ55kRGmoqkln4LUSnqP994MkR3jGD8
-	 JKvtKWHF7tTaVGARAAJdRHRgCPpscfaPChyAyjXzGnNPsMJsD+3S2X0ffgvL7bgptw
-	 vRrI398JK6Sn/2bR4Jbm9IT4HWV2qxHf+UULr63rg0xHP4Cjxbpb+zpUkOnaWRWQRJ
-	 GbgX+Gzib7srb63IkHTywm9wWjVDGjYSd+ZiDMokJc8Yjl9I6gtBMi0UVIpnJgcXdA
-	 LuiRfLSClfR3EB6B1fI3piBOytcBQbFL/3NzT5Ox42GAKmBTb/MQcvWPHnj1Fr4RzC
-	 gbYxrwBIJ2wIg==
-Message-ID: <sashiko-outbox-226854@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] infiniband: cxgb4: Add cleanup on failure path in
- c4iw_init_module()
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Wanhui Fu" <fuwh1120@163.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261121090058.400020-1-fuwh1120@163.com>
-References: <20261121090058.400020-1-fuwh1120@163.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Sat, 21 Nov 2026 09:05:14 +0000
+	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=VtuG8tXk
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=vH
+	yM4Cv4BGb7ADvxlq0KJx6cFo+10F6V1rtiSbfbDRg=; b=VtuG8tXk8t3kXukkgw
+	FuWAYanNff+b24FZEqfeImqMpwIs3WO9APeQSPSnt5FCmFQ3G3cSf+Lg51eULMWZ
+	TyW6E8YQ7C2doLHwCnYq243rirE2Owj/v2a3u0CZ/CEvaEFV5q7KzlvgtoHqFa51
+	iGKVHI+H146lol2vsdfnhevW0=
+Received: from localhost.localdomain (unknown [])
+	by gzga-smtp-mtada-g1-2 (Coremail) with SMTP id _____wD3XyO2ZgFrHFnrJA--.47981S2;
+	Sat, 21 Nov 2026 17:39:07 +0800 (CST)
+From: Wanhui Fu <fuwh1120@163.com>
+To: dennis.dalessandro@cornelisnetworks.com,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	Wanhui Fu <fuwh1120@163.com>
+Subject: [PATCH] IB/hfi1: fix error paths in hfi1_mod_init()
+Date: Sat, 21 Nov 2026 17:39:01 +0800
+Message-Id: <20261121093901.427880-1-fuwh1120@163.com>
+X-Mailer: git-send-email 2.25.1
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,30 +60,64 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:_____wD3XyO2ZgFrHFnrJA--.47981S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW7tF1DAr4xKFWfXr43Ar18Krg_yoW8JFykpF
+	Wjgw1jkry8Xa1xGr4DKa1UuryUta97X34xCF42kwn5XFnI9F1jqw1vqa42vFyDGFZ5CF1f
+	tr48XFn5Kw1xCFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07UzwZsUUUUU=
+X-CM-SenderInfo: xixzxiqrsqqiywtou0bp/xtbC7hzjg2sBZrz3JgAA3z
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue to consider:
-- [Low] RDMA/cxgb4: missing Fixes: trailer on c4iw_init_module() leak
-  fix
---
+The error path in hfi1_mod_init() is not completed.
+Fix this by add some goto label.
 
-commit a9076097e24c29502aab3a6c3bfee7c36d52d50c
-Author: Wanhui Fu <fuwh1120@163.com>
+Signed-off-by: Wanhui Fu <fuwh1120@163.com>
+---
+ drivers/infiniband/hw/hfi1/init.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-> infiniband: cxgb4: Add cleanup on failure path in c4iw_init_module()
->
-> Add c4iw_cm_term() and debugfs_remove_recursive() if reg_workq is
-> not allocated successfully to release memory.
->
-> Signed-off-by: Wanhui Fu <fuwh1120@163.com>
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index f94d896e7212..c66d4dea5fc6 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -1388,7 +1388,7 @@ static int __init hfi1_mod_init(void)
+ 
+ 	ret = node_affinity_init();
+ 	if (ret)
+-		goto bail;
++		goto bail_dev;
+ 
+ 	/* validate max MTU before any devices start */
+ 	if (!valid_opa_max_mtu(hfi1_max_mtu)) {
+@@ -1438,7 +1438,7 @@ static int __init hfi1_mod_init(void)
+ 	ret = opfn_init();
+ 	if (ret < 0) {
+ 		pr_err("Failed to allocate opfn_wq");
+-		goto bail_dev;
++		goto bail_affinity;
+ 	}
+ 
+ 	/*
+@@ -1449,12 +1449,16 @@ static int __init hfi1_mod_init(void)
+ 	ret = pci_register_driver(&hfi1_pci_driver);
+ 	if (ret < 0) {
+ 		pr_err("Unable to register driver: error %d\n", -ret);
+-		goto bail_dev;
++		goto bail_opfn;
+ 	}
+ 	goto bail; /* all OK */
+ 
+-bail_dev:
++bail_opfn:
+ 	hfi1_dbg_exit();
++	opfn_exit();
++bail_affinity:
++	node_affinity_destroy_all();
++bail_dev:
+ 	dev_cleanup();
+ bail:
+ 	return ret;
+-- 
+2.25.1
 
-[Severity: Low]
-This fixes a resource leak introduced when reg_workq allocation was added
-to c4iw_init_module().  Should this include:
-
-  Fixes: 1c8f1da5d851 ("iw_cxgb4: Fix possible circular dependency locking =
-warning")
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261121090058.4000=
-20-1-fuwh1120@163.com?part=3D1
