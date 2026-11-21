@@ -1,57 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.4
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795251712;
-	b=QTLj68u68rHlCNwXCqSwZXMW2Sr6zdsKhS0RMVEm8md6W1y6QCOJK+ORxvj9wtxYDkhB
-	 E9apRGXBKbw8yVMX5tTonn3m9MOKdpe7IQ2ud2EWRM+/+WUDuqcmBrqG/AYagiYJPcTIE
-	 FVY+PSLEfZ+SRX3cMBCGMGrOiX9gOT4v07xA+8FFJh+Rwc0GYvgWsI22Ioh+/nHMfph3q
-	 HMoOY8ccuXz1p9wsmrAYqoaWqG+zHtFkmqGPq1HTPMS6kOiLScekueaaCsQPN0tu5Jcq9
-	 yUozquUaM4DBtzPl2jScN7hP3f6nutMDiV89vB7jipbLDmlK9bHlEpTCmNM4uXsN0kw==
+	t=1795251915;
+	b=JPADfFH5q8s3eyNXQHbvKvC05j2Dif9nEMh7GdTrsYUr18Q8gIsALN2Vwqu6MOeP4VTa
+	 h77xfth8U2bhh6Zd+jboXvwQxRJRCQoCqCOymxg+Qcrs9Fv5ndnCiogUCbWo8G9wIK4a2
+	 5mvftSFL0PNZ0Ys4YuZ4aPAkgWJuIdXwgZlpnAJz7WNx6ZBEe8hha1QSevlJWVQW0VV84
+	 WbV+YNanHUqBIiUYRQhyCtSnHBHtOpRcYW3mA4eLFElpHeSuo/cSbkt7+5WwP5uNtr6bI
+	 5oTYu/Fe+6gTnlTeB7byCKeu9Gknxkmk6wgiBTKrFoTXEzKHdEv3+mZbBcyOHo7eeNA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795251712;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-CM-TRANSID:X-Coremail-Antispam:X-Originating-IP:X-CM-SenderInfo;
-	bh=2iBmeIM6hs+movxRA5ZaXHC2On6Cfl3EL4WF0DR+NjE=;
-	b=Yk1/wDbyODcuMdYcVhnVhNZgQStpe8spbkjy/nLoQqK5QvS70FuIaVG/ce2mxefg7ioE
-	 xNYmGN8NAwPMHBehnR57skDbWfNDKpXvYYkCIaxgX9wTzmx7tvj9eN2Aqc5/mCNZT5mZY
-	 VF2lVeP/Fxma7TyetQAjeWWcJ+s3SpPRYw8EMjsz1+glZXntM1Yj3m+ZQaRDGWMAiM8uS
-	 +BAjGdfrKSyitSF0P8sugH5QTUVDrOil0KJIMxeVgtvYFl1a0cWL4OzQGlbSNUpBcvqDp
-	 9fwvoRVjdopvp/lhihxByIC1mx5wxKPto2sJoqnz8pxSG+6EQUVIHPLHTpP7mttPXYg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795251915;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=LRTC8vLfPKKB+daofLKm1CRWwkoOBm9o22966vQmmWo=;
+	b=2Oiklf2u9V6UkUSMSQ5RPCu/1AQugaRQ6xIQS9dwqIdo6sNLjnJeOBBkCUNZewHyjlJB
+	 NpfF4Hp53N/p0sMeKvhKoDIt+v3bz8zk6atT8I+5kaSh6lYMmpmJct/lO4gx7tR+Jd2Lj
+	 w9OsgyM/4GXPmGdexNDr2IVe2dzSUyr62N/Wf2UMfHT/28445Tj0j6YRqfWwxkm0FtSRj
+	 qMwCA2jmi8cyqFrUV7ZBkr33oQysyURj+l25BhjVaM+IZ3gtr0RY62pGNP6RFIf5AnT4i
+	 zo5/+CH/8fQTqr13q3fnBfw80N/8opc6aontA/+Z4st6uexJLuYqjEDxJKyQdLzyDkg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=163.com;
-	spf=pass smtp.mailfrom=163.com;
-	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=SNPSvjYI;
-	arc=none smtp.remote-ip=117.135.210.4
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.4])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PZzkVnl+;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10269606A325
-	for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 09:01:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 10269606A325
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44033606A320
+	for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 09:05:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=SNPSvjYI
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=2i
-	BmeIM6hs+movxRA5ZaXHC2On6Cfl3EL4WF0DR+NjE=; b=SNPSvjYIQocYzMq3kJ
-	Dh3w82JznWO6eDbybmf+hoki+8d3Ogv2IEbdH3nJndLwCZv6VW/dHbwo6yLN5G4M
-	yfkdSKgU9ckzttmoknPrkHlJtf1dMnUuWGsg3YPQH7vhgl3tNz1yNCf2Lj4VIa0u
-	7AixsxUZV+e8Kh/jIZWfcKYHw=
-Received: from localhost.localdomain (unknown [])
-	by gzsmtp5 (Coremail) with SMTP id QCgvCgB374_dXQFruHTmHA--.29205S2;
-	Sat, 21 Nov 2026 17:01:19 +0800 (CST)
-From: Wanhui Fu <fuwh1120@163.com>
-To: bharat@chelsio.com,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	Wanhui Fu <fuwh1120@163.com>
-Subject: [PATCH] infiniband: cxgb4: Add cleanup on failure path in c4iw_init_module()
-Date: Sat, 21 Nov 2026 17:00:58 +0800
-Message-Id: <20261121090058.400020-1-fuwh1120@163.com>
-X-Mailer: git-send-email 2.25.1
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PZzkVnl+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD84A1F000C0;
+	Sat, 21 Nov 2026 09:05:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795251914;
+	bh=LRTC8vLfPKKB+daofLKm1CRWwkoOBm9o22966vQmmWo=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=PZzkVnl+XZDi0hjkAwXrdnsSRdyMc39ULNqJ55kRGmoqkln4LUSnqP994MkR3jGD8
+	 JKvtKWHF7tTaVGARAAJdRHRgCPpscfaPChyAyjXzGnNPsMJsD+3S2X0ffgvL7bgptw
+	 vRrI398JK6Sn/2bR4Jbm9IT4HWV2qxHf+UULr63rg0xHP4Cjxbpb+zpUkOnaWRWQRJ
+	 GbgX+Gzib7srb63IkHTywm9wWjVDGjYSd+ZiDMokJc8Yjl9I6gtBMi0UVIpnJgcXdA
+	 LuiRfLSClfR3EB6B1fI3piBOytcBQbFL/3NzT5Ox42GAKmBTb/MQcvWPHnj1Fr4RzC
+	 gbYxrwBIJ2wIg==
+Message-ID: <sashiko-outbox-226854@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH] infiniband: cxgb4: Add cleanup on failure path in
+ c4iw_init_module()
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Wanhui Fu" <fuwh1120@163.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261121090058.400020-1-fuwh1120@163.com>
+References: <20261121090058.400020-1-fuwh1120@163.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Sat, 21 Nov 2026 09:05:14 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,36 +59,30 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:QCgvCgB374_dXQFruHTmHA--.29205S2
-X-Coremail-Antispam: 1Uf129KBjvdXoWrZrWruFyxJr47trW3WryDKFg_yoW3twc_Gr
-	W0vr95Xr4Y9Fn5Ca9I9rnrZrW8tw1Y9FZ5Zwn2qas3Jry3uF93Xw4kurn8Ww4UXrW7Ar1D
-	W3yjgr4xWF4fGjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUjsqXtUUUUU==
-X-CM-SenderInfo: xixzxiqrsqqiywtou0bp/xtbC7R+pSWsBXd-YQAAA3i
 
-Add c4iw_cm_term() and debugfs_remove_recursive() if reg_workq is
-not allocated successfully to release memory.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue to consider:
+- [Low] RDMA/cxgb4: missing Fixes: trailer on c4iw_init_module() leak
+  fix
+--
 
-Signed-off-by: Wanhui Fu <fuwh1120@163.com>
----
- drivers/infiniband/hw/cxgb4/device.c | 2 ++
- 1 file changed, 2 insertions(+)
+commit a9076097e24c29502aab3a6c3bfee7c36d52d50c
+Author: Wanhui Fu <fuwh1120@163.com>
 
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index 24ac9871ce67..e337494e30ff 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -1548,6 +1548,8 @@ static int __init c4iw_init_module(void)
- 	reg_workq = create_singlethread_workqueue("Register_iWARP_device");
- 	if (!reg_workq) {
- 		pr_err("Failed creating workqueue to register iwarp device\n");
-+		debugfs_remove_recursive(c4iw_debugfs_root);
-+		c4iw_cm_term();
- 		return -ENOMEM;
- 	}
- 
--- 
-2.25.1
+> infiniband: cxgb4: Add cleanup on failure path in c4iw_init_module()
+>
+> Add c4iw_cm_term() and debugfs_remove_recursive() if reg_workq is
+> not allocated successfully to release memory.
+>
+> Signed-off-by: Wanhui Fu <fuwh1120@163.com>
 
+[Severity: Low]
+This fixes a resource leak introduced when reg_workq allocation was added
+to c4iw_init_module().  Should this include:
+
+  Fixes: 1c8f1da5d851 ("iw_cxgb4: Fix possible circular dependency locking =
+warning")
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261121090058.4000=
+20-1-fuwh1120@163.com?part=3D1
