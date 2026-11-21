@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795295858;
-	b=27WkOz3q4G7YAbuhXk/+4e8Tyf6LuCxdthCs82QfJaJUflS3B5MbsQA+VQQAxhp8/ngT
-	 pzomrxxi8iJq4azfqH1CwPLEQvsT2KYIr7bh+k6m04lPwmHLLem7C7wrPsL8z5Z2dIC1x
-	 hxj4KpRmCbCO11ICO1komN1SEnYz2xGM/bFH9Only6JgZl679Exc4KZWiE5JZ/HPzks1i
-	 Ck+yu5g7knTJWKjDn00RsUQRlaek+gQftm98dk+Q/KSzGzhALrBY9kyBaJAAFHgo9YtxC
-	 tNN+Tb7XeicsDbB1LBiSduyeQMFHL1/2fuhvRPh3nfHtfGZivMAUDqfdR5hHoKXGMhg==
+	t=1795295862;
+	b=XBg+Ydq9ULMHasVwRG4QksrCdvp0gIKX9KgCNcJp8gOLGcqcHXeZvqjSkGHsiYdoh702
+	 eWVDtEBC3gVC3OiAjsMQK5cawbwr5B28neKChmBKjxAn/ytcndNyizWZWrkFkvaoSQkxs
+	 VQo20Zmz7Q3AA+2m+qPEn74CRu7Afpe3nRTV5E8JQ9aCkqcON8RWbLd2OTthzecgd7DXo
+	 f2T8/3HjUU55pqQbzhlSJdhGADzXEWtMRnLORqP1eM+pQnIl2GsU4iz2WHvunQ7zn85cZ
+	 hg7GuVwvOluTlOoSFZNmsaTvFPsLejQpryt6ghw3mY1dZQX5TLANsNvprzuHi6fVaXw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795295858;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795295862;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=ygaWC6fgtJ0AI6XqKUC+g0lmWjmeS9cByt38tmYUkoo=;
-	b=OneohYNGlT3x9aeezKfPSuls3agC2Aaoiu57VLL8dwIQW6zFUXD9CrZ829pKKcnOePLh
-	 nXYVrRYQ89gBvNEGpwJjlO4GDAG7z2i0LJIpqatNXupB79RP0hS3hnsTQA2JkpTjFPXfF
-	 cqYhvp+s+rUrWAtdmtYYKq9fm2HlCi9SA6ShrrU6uXr57qckc28p5jjAVD/4d6cLR0tKG
-	 JgaATAskirqHleJUhmi55RQ+4lab3W144j8L63CB5pTLemOHNQUu2AoWb9C0mjXsn3sPb
-	 oBf8e6QiT+Wa0+aae6YcZ8xEy00nOd6tiLjYClrcO8jwUzg4K1Dj3WfPE9uUwq9WITA==
+	bh=3CgYEOCuySKfkNOqIxxRN+n3wk7VUoG7yJZDvZ1nM8s=;
+	b=ywStawXJHARgLP9byiCY1F27I/BvWUhdUTNRnjU5FKfa5Hg/+OIvT/rq6dWAwajtNnX1
+	 mn7Mpo93+L6O+LQv1QbmZF2I9a7a8DYQ2hKm4KlK4h8XB6TbqNsFDER2nCoWOv+4XrdfB
+	 jUbNhmhKlK/nspN2ltHGFxm1iy/C5YXEqvm3k6jAebpwTSjO1A34bc52W30IUTXZ1wK6p
+	 dtWSOoldA/aIcQXSGMQX2uSKwvy3TFjbR2TSgwLG8jbihFduMDkTokoqSFkoQZ/VpNpmU
+	 DrdseGj3IZVjO5JruzHA7BlNhya8Fxl/CtP/8i3qS0KqdZk+VYZzwAxn/td5dZr10/w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YxLAt8xf;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Tmop0Iwu;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84234606A320;
-	Sat, 21 Nov 2026 21:17:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BE8F606A330;
+	Sat, 21 Nov 2026 21:17:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YxLAt8xf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86BA01F000C4;
-	Sat, 21 Nov 2026 21:17:36 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Tmop0Iwu
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA1471F000D4;
+	Sat, 21 Nov 2026 21:17:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795295858;
-	bh=ygaWC6fgtJ0AI6XqKUC+g0lmWjmeS9cByt38tmYUkoo=;
+	s=k20260515; t=1795295862;
+	bh=3CgYEOCuySKfkNOqIxxRN+n3wk7VUoG7yJZDvZ1nM8s=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=YxLAt8xfR5Vy1T3842E1byod408YGAEvPTYO8bGB8k/Dk5SqMeKT9O+9sDAc7OVXn
-	 wm//mgLp6rGzxqRexTXiy/jwAthqJQkLwhCldUUvlpzMimgP0bmLSi7ZUpuCq06RaY
-	 CDbrQSQKcNq1Sa69s/0Qeh3oHoJq5VSMLhupZa/cfTVfZuJkoy3eHOm8TkdV4+w6W+
-	 /ttByNLZ/Hi7TRXXNYZD82Cw5c5irkrx9/p0NVo48TuwQZggqsuRIo4MNjPWj3CTJu
-	 9nOpA4DCbIOIJ9V1OsdxlndQGUdErg5EYeDjwJZ09u8bfDmT10CRK3mrjHtDONU17z
-	 mr9M9EOBV6T3w==
-Subject: Re: [PATCH net v6 1/8] net/mlx5e: ring the tx doorbell when an accel
- offload drops a packet
+	b=Tmop0IwuxMegvTe6zdSoy6VYlMPeeNhp0bvnxZsam6EzXeFi/aQ0ILKwnxk5wXqe6
+	 8DIGxDA+v2Rfw0BbkgpD8Y8XJTHaee18R+8MXO+nrDM/mPUHJDAzfP9T6hF0CfZZ1q
+	 uj7cNUs0DnoiAChSGk8EXxK3y47jVK47vzN5RMSFTFKeVulSz+u4ThFNbyvcVxx1jP
+	 y0tDUWNHtqUeJ+5EX5tvaOSrTmW02JIBvyV43fRLM7zaCwj9mB8ouxG5cAIoZk3lmG
+	 UvgY6EOyJRdymWTvkuzjLIPz3OzsNHpOmQJ9rj1z3mz/a9Kixwda9uTwLSulqNWt46
+	 d3YkcrPRZuWKg==
+Subject: Re: [PATCH net v6 4/8] ipv4: icmp: don't quote decrypted payload in
+ icmp errors
 From: netdev-bot+sashiko@kernel.org
 To: toddfreed@meta.com
 Cc: netdev@vger.kernel.org, davem@davemloft.net, andrew+netdev@lunn.ch,
@@ -54,11 +54,11 @@ Cc: netdev@vger.kernel.org, davem@davemloft.net, andrew+netdev@lunn.ch,
  rrameshbabu@nvidia.com, sd@queasysnail.net, saeedm@nvidia.com,
  shuah@kernel.org, horms@kernel.org, tariqt@nvidia.com, weiwan@google.com,
  willemdebruijn.kernel@gmail.com, stable@vger.kernel.org
-Date: Sat, 21 Nov 2026 21:17:36 +0000
-Message-ID: <179529585606.3135.5694313033561024003@kernel.org>
-In-Reply-To: <20261117203137.804424-2-toddfreed@meta.com>
-References: <20261117203137.804424-2-toddfreed@meta.com>
-X-sashiko-severity: Low
+Date: Sat, 21 Nov 2026 21:17:40 +0000
+Message-ID: <179529586053.3135.7106623626318776669@kernel.org>
+In-Reply-To: <20261117203137.804424-5-toddfreed@meta.com>
+References: <20261117203137.804424-5-toddfreed@meta.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -71,113 +71,102 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 · Low: 0
 
-- [Low] The new mlx5e_tx_check_stop() call in mlx5e_tx_flush()
-  (drivers/net/ethernet/mellanox/mlx5/core/en_tx.c:368) can count one…
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] The patch blocks decrypted-payload quoting only in
+  __icmp_send() (net/ipv4/icmp.c).
 
 --
 
-net/mlx5e: ring the tx doorbell when an accel offload drops a packet
+ipv4: icmp: don't quote decrypted payload in icmp errors
 
-When mlx5e_accel_tx_begin() drops an skb, this patch makes mlx5e_xmit()
-call mlx5e_tx_flush(). That closes any open mpwqe session, posts a nop
-and rings the doorbell that earlier xmit_more skbs had deferred. It also
-adds a stop_room check to mlx5e_tx_flush() after the nop is posted.
+This patch makes __icmp_send() skip the error when the invoking skb was
+decrypted by the device. Locally originated skbs are the exception: if the
+error is routed to a local address, it is still sent. The netdev and bridge
+nft reject paths are left to a separate nf-next patch.
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-> index 14479da98f427..006bf976def1a 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-> @@ -365,6 +365,7 @@ static void mlx5e_tx_flush(struct mlx5e_txqsq *sq)
->  	};
->  
->  	wqe = mlx5e_post_nop(&sq->wq, sq->sqn, &sq->pc);
-> +	mlx5e_tx_check_stop(sq);
+Closes: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261023234640.1459291-1-toddfreed%40meta.com
 
-[Severity: Low]
-Can this count a single queue stop twice in sq->stats->stopped?
+> diff --git a/net/ipv4/icmp.c b/net/ipv4/icmp.c
+> index 90c0e22c29bea..e11008aa4cecd 100644
+> --- a/net/ipv4/icmp.c
+> +++ b/net/ipv4/icmp.c
+> @@ -979,6 +979,18 @@ void __icmp_send(struct sk_buff *skb_in, int type, int code, __be32 info,
+>  	if (rt->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST))
+>  		goto ende;
+>
+> +	/* Don't send parts of a decrypted skb onto the network. A received skb
+> +	 * was decrypted by the device, and the transport header may have been
+> +	 * encrypted. The different offloads can't be distinguished in all cases
+> +	 * so simply don't send the error.
+> +	 *
+> +	 * A locally originated skb to be encrypted may be quoted if its source
+> +	 * address (target of the error) is local.
+> +	 */
+> +	if (unlikely(skb_is_decrypted(skb_in)) &&
+> +	    (skb_in->skb_iif || !(rt->rt_flags & RTCF_LOCAL)))
+> +		goto ende;
 
-mlx5e_tx_flush() starts with mlx5e_tx_mpwqe_ensure_complete(). If an
-MPWQE session is open, that goes into
-mlx5e_tx_mpwqe_session_complete(), which already runs a stop check:
+[Severity: Medium]
+This check only covers ICMP errors sent through icmp_send(). Can a
+decrypted payload still be quoted in cleartext by the other IPv4
+unreachable builder?
 
-mlx5e_tx_mpwqe_session_complete() {
+nf_reject_skb_v4_unreach() in net/ipv4/netfilter/nf_reject_ipv4.c is
+unchanged by this series and has no skb_is_decrypted() check:
+
+net/ipv4/netfilter/nf_reject_ipv4.c:nf_reject_skb_v4_unreach() {
     ...
-	sq->pc += wi->num_wqebbs;
-
-	session->wqe = NULL;
-
-	mlx5e_tx_check_stop(sq);
+	len = min_t(unsigned int, 536, oldskb->len);
+    ...
+	nskb = alloc_skb(sizeof(struct iphdr) + sizeof(struct icmphdr) +
+			 LL_MAX_HEADER + len, GFP_ATOMIC);
+    ...
+	skb_put_data(nskb, skb_network_header(oldskb), len);
     ...
 }
 
-If closing the session leaves less than sq->stop_room free, the queue
-is stopped and stopped is incremented. The nop then advances sq->pc by
-one more, so free room has only gone down, and the new check also
-fails. mlx5e_tx_check_stop() does not test whether the queue is
-already stopped:
+It is called from nft_reject_netdev_send_v4_unreach() and
+nft_reject_br_send_v4_unreach(). The nskb comes from a fresh alloc_skb(),
+so its decrypted bit is 0, and it goes out through dev_queue_xmit() or
+br_forward().
 
-mlx5e_tx_check_stop() {
-	if (unlikely(!mlx5e_wqc_has_room_for(&sq->wq, sq->cc, sq->pc, sq->stop_room))) {
-		netif_tx_stop_queue(sq->txq);
-		sq->stats->stopped++;
-	}
-}
+With a netdev or bridge family reject rule matching device-decrypted
+traffic, this would still send up to about 508 bytes of kTLS payload, or
+the PSP-covered TCP header and payload, unencrypted.
 
-When the nop completes, mlx5e_txqsq_wake() wakes the queue once and
-increments wake once. That leaves stopped one higher than wake. These
-counters are reported as the qstats tx stop/wake values and as
-tx_queue_stopped/tx_queue_wake in ethtool.
+nf_reject_skb_v6_unreach() in net/ipv6/netfilter/nf_reject_ipv6.c has the
+same gap, with a quote of up to 1220 bytes. The icmp6_send() side is
+handled by the later "ipv6: icmpv6: don't quote decrypted payload in
+icmpv6 errors" patch in this series.
 
-This can be reached from the new accel drop path below. It can also
-now be reached from the existing DMA error paths in
-mlx5e_sq_xmit_mpwqe() and mlx5e_sq_xmit_wqe(), since they call the same
-helper.
+The commit message says:
 
-The PTP path in mlx5e_txwqe_complete() already avoids this:
+    nft reject in the netdev and bridge families builds its own
+    error (nf_reject_skb_v4_unreach()); a separate nf-next patch applies the
+    same rule there.
 
-	if (!netif_tx_queue_stopped(sq->txq) &&
-	    mlx5e_ptpsq_metadata_freelist_empty(sq->ptpsq)) {
-		netif_tx_stop_queue(sq->txq);
-		sq->stats->stopped++;
-	}
+This patch carries Fixes: 784abe24c903 and Cc: stable. A stable backport
+would then make an inet family reject of a decrypted packet send nothing.
+A netdev or bridge family reject of the same packet would still send
+plaintext.
 
-Would a similar netif_tx_queue_stopped() guard work here?
+Should the netfilter builders be fixed in this same series, or through
+nf/net with the same Fixes: and Cc: stable tags, rather than nf-next?
 
-Only the statistics are affected. The queue still wakes when the nop
-completes, and no packets are lost. The normal mlx5e_xmit() path can
-already skew these counters the same way, through
-mlx5e_tx_mpwqe_ensure_complete() followed by mlx5e_txwqe_complete().
-Later patches in the series do not touch en_tx.c, so this is still
-present at the end of the series.
-
->  	mlx5e_notify_hw(&sq->wq, sq->pc, sq->uar_map, &wqe->ctrl);
->  }
->  
-> @@ -672,8 +673,13 @@ netdev_tx_t mlx5e_xmit(struct sk_buff *skb, struct net_device *dev)
->  	}
->  
->  	/* May send SKBs and WQEs. */
-> -	if (unlikely(!mlx5e_accel_tx_begin(dev, sq, skb, &accel)))
-> +	if (unlikely(!mlx5e_accel_tx_begin(dev, sq, skb, &accel))) {
-> +		/* The skb was dropped: ring the doorbell which the previous
-> +		 * ones may have deferred to it
-> +		 */
-> +		mlx5e_tx_flush(sq);
->  		return NETDEV_TX_OK;
-> +	}
-
-This is the new caller that reaches the double count above. It needs a
-PSP, IPsec, MACsec or kTLS drop while an MPWQE session is open and the
-SQ is close to full. The commit message says the next patch makes the
-PSP drop reachable from user space.
-
-[ ... ]
+> +
+>  	/* peer icmp_ratelimit */
+>  	if (!icmpv4_xrlim_allow(net, rt, &fl4, type, code, apply_ratelimit))
+>  		goto ende;
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261117203137.804424-1-toddfreed%40meta.com
