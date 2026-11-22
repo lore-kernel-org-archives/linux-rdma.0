@@ -1,94 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.193.71
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795351407;
-	b=eB8/KCQWCUzm90tqwt8NUZ2FuUPVSKtU/2pvWYWRzFWfrA180jwY0UCpUT3bUPLaVix6
-	 1p8T3b2r8D29x4ClTL4XgSJTUh9vA/uq0l9z5ufoKyNhKaIsZ+4Tn2o8X7ybPwZGchU6l
-	 atBBgR3kOo0pOnXwy+K+r/Wq8up6PMv45tVDPJeEvNW02qWttjYS4VLOrVHch9AAOesi1
-	 g0C4p61+Hlafwy3YLFcKkLAdkUykHbUcwmP1UY1FpXXCtnR0vkglbg0/Jc0AgOEa1NVrN
-	 Re1HmWTsOz6W1DoYtZRP7EWCshHsbhVl0F/4QMNbuPedL9/+BFw4g3UxwHcdt+3yIrg==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795351407;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=XH9AipQmF7tYinwXG5aRlsUimKUMSKokotD/nbvHXdk=;
-	b=MbVWnby6ODukMDRKKrmBfALtLx0etqBSuUnRKzkO23ZaFBH2YYZBLOVb3mnXJgFURTpt
-	 OvVlQ4TNvslVhWzLTHhZKJroZ1mI3akA3WkOQjAwKKSsYFJqHneVdywLM5GzE/w4wasBQ
-	 kU//KGk+YuV0ol6mma6QBYLmIwrDJzCvZ7zE9EInFVslqR89CaZ54lOvjt5nw2WI/73gB
-	 03Xgvmr9PqKVd/Kveaz52fG6R6qRpCjhHjRQOnTPiab5BkKsmepg4sJSGm2OIzpywe+7I
-	 NeIKpZrd5x5yXAi9dvpV8gimSQPJ/7XJLU2ivMJJ5ubksR2k5FuWB8tkMyEqGaLJOYw==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=QBHaLMBn;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.193.71
-Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010071.outbound.protection.outlook.com [52.101.193.71])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.95
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795352783;
+	b=o1DD9cxr5UcbbutUIR6FfM9yzLpAE656c9t7NtAqGrdyZJ1EAVvAhS62BYq/IlnsS0f6
+	 NXwPXIymxPNa/x6UM4vUPGOyM54s1i2YAEQ/hy/qWdeH/+l74bUL6vTz5aChFhC/oX6Oo
+	 Gomg2F6rUOXAoS7mxpXg+1Mo4nFn95HpbdQPYnDOdLgP2uylgBovo0aXDRg+n8mwHpBha
+	 /v3tGir5yRuc+6fWcir8bFyDjJZPtOM3zUbQq3R0/fAtSyvDcNnW3FnVjkm6+QogI+SDh
+	 oLravqDCKPqG1qlj5qNWlrexm0RqEkvDvmkhepatqG4b+d1dqYYj7I/6hL1uvFhD7LA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795352783;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=Ifz1Dp9uyM5CrWMMO7DuqpBxTzYZ145mPZwwugOI68I=;
+	b=xVyh+HXz23L2w5WfhkmULspbygP+DceGLNyv61rFxOvpBifAG5MCKunsFmCR5WghvgkQ
+	 Nu3DnWAINUX1G+157CLv4kd39Dna4NXuSRddiwa09jti0FXjdLnT3g+jST9S+NebpvVN4
+	 v2ClHOVLHGmkkm/Q62BpDjgZI6cmVEwBMaU6McjBhuxxXZ2gxVH7OWWUnaxd2S93NZwtG
+	 Ilxaz+gu+6mS5Rl/jfpeh94pGpiqTNY3H2dpBYbqY7Qq40iTnOGiV5jlBDEFPB6dmZkK8
+	 njop7A43qfMYF/7hVLYb+SdpezxAyRTSG2TqPixsguLn3yiyHNwhxvBK6clsH4cL9dA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=MMhuyXJZ;
+	arc=none smtp.remote-ip=95.215.58.95
+Received: from mta1.migadu.com (out-95.mta1.migadu.com [95.215.58.95])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D850606A320
-	for <linux-rdma@vger.kernel.org>; Sun, 22 Nov 2026 12:43:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5D850606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80F0A606A332
+	for <linux-rdma@vger.kernel.org>; Sun, 22 Nov 2026 13:06:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 80F0A606A332
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=QBHaLMBn
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=yrkuop4quYnDNTjnmnj7WEXpvJ8bUsmyig8IffLqZeh1O9yES8mE1MabUAbZ1B4gsbZY5S7vQN5juWETnBMYifxkf+KR3o0N2MD2v3yKbqHKEGmOpzqGE9ONWq7332df8VWC8gJ1caCt+JQOSgVI3MTnXycFq10CMNQbcHQ0Wi3vq8UpjH9gO5iKk3BXzznRCjyYmqddyGZDY5hvQOfhQA4W6DRgH8GxH0ijUYhBBJwByawOSXqAov1cAn3njeo9KNXPEhD89+VYO2OcgG+yM5rYXR0XxnwAZChWQIu+5PPVjjsIb/cbfU61vtSk10Y95LYN0rrqg3LYKoSaPHisIQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=XH9AipQmF7tYinwXG5aRlsUimKUMSKokotD/nbvHXdk=;
- b=aekKOc6GDhbdi9v2KPjG7qdyMhtcXiPp56BYro1eFtHbrYuA+EONzBvQrsgVikqBSRcqkuZ6G7jOKzYyitkcsu4FAMs3OaRO6H6sh2QFJaj51Iz0h62UOQv3bDTMKZgdv2rpOXls5IUOjveeuaoXX/J1WVYefrUPIgc6nU208e4HihTxz8j3TeSmhONRJv0+9276UFasEr9weuss7sgdPmpBRbE7RIB4qs/z0C06Nop5TFByWhNwDZDCfwrgUEr2iY2OLvA+LLoHNDuALPunBWwFtGSfXMBoA6sZCEUCZfOGRQVKPlb5Bx2+QOcLalFxyG9poPYJNOaeX5jsp7Lsyg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=XH9AipQmF7tYinwXG5aRlsUimKUMSKokotD/nbvHXdk=;
- b=QBHaLMBnXCIhFbfJ6y6a3H/lCRB2mit+5enUQN5Jzy11vqd+fluEjrqAB2lSxucU4yGzU0DISKitH5euF7fned9zmrwWlo4NDMGUzR3C+gKTwV1mx/Hn82Qhg+VEJa5T8QCwL4Ga19opUivi1LksiZZfVaOhiEuBbp2GVfSDYCN3Bq3pPGeJk6BfYlBL9jAwPaNhFVQTPTN9w2SwpnVG+jKVBLaLnbix89b+t0N7CCaURKAd8Bk4kxSHCM50Wflns9r/ix8AB36hEzY/6u99MmY+6JSsMjxzExrmM9kFLsRfac8ZjgRBnRVfnLLd0fsgFLGIz2Zp8Zm95pOFRhN0rg==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from BL3PR12MB6473.namprd12.prod.outlook.com (2603:10b6:208:3b9::16)
- by SJ2PR12MB8160.namprd12.prod.outlook.com (2603:10b6:a03:4af::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.639.13; Sun, 22 Nov
- 2026 12:43:24 +0000
-Received: from BL3PR12MB6473.namprd12.prod.outlook.com
- ([fe80::778:72e1:e792:df81]) by BL3PR12MB6473.namprd12.prod.outlook.com
- ([fe80::778:72e1:e792:df81%6]) with mapi id 15.21.0639.012; Sun, 22 Nov 2026
- 12:43:24 +0000
-Message-ID: <43d2f395-7e36-485c-bcf6-e9ce0d981256@nvidia.com>
-Date: Sun, 22 Nov 2026 14:43:20 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH rdma-next 08/11] RDMA/mlx5: Resolve core device from
- ucontext for DEVX resources
-To: sashiko-reviews@lists.linux.dev
-Cc: linux-rdma@vger.kernel.org
-References: <20261117-mlx5-sd-prep-v1-0-8efd124c7895@nvidia.com>
- <20261117-mlx5-sd-prep-v1-8-8efd124c7895@nvidia.com>
- <sashiko-outbox-221137@kernel.org>
-Content-Language: en-US
-From: Edward Srouji <edwards@nvidia.com>
-In-Reply-To: <sashiko-outbox-221137@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: TL2P290CA0013.ISRP290.PROD.OUTLOOK.COM (2603:1096:950:2::7)
- To BL3PR12MB6473.namprd12.prod.outlook.com (2603:10b6:208:3b9::16)
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=MMhuyXJZ
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=GsSR9hboazddPWhsCVcs48+xXK/0gjFvPNjGYm6kikM=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1795352779; v=1; x=1795957579;
+ b=MMhuyXJZsESJe8bjoWZ+M0UXEf+4AhQiQ620/w4mCmT7vVx3fxVGiZRRwvCpHeptzNYh1coO
+ mOKjuX57/nO+zt9y2xIEb5/55B1owuMvzwQzy95ourNDRl3ZKrA/XbBTL1pbuEjaeCHmf22Z2Y3
+ cDtMZj8JwunT11dRyW8jzVfo=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id bd40fb4aff8af176;
+	Sun, 22 Nov 2026 13:06:19 +0000
+X-Mizu-Trace-ID: bd40fb4aff8af176
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <5cfb9f90-6bd3-4f31-be7b-841c8e7c826a@linux.dev>
+Date: Sun, 22 Nov 2026 14:06:11 +0100
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -98,136 +58,250 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL3PR12MB6473:EE_|SJ2PR12MB8160:EE_
-X-MS-Office365-Filtering-Correlation-Id: 54ff2178-b4c1-40a7-2060-08df489632a3
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|366016|1800799024|376014|10067099003|56012099006|11063799006|4143699003|261026140227099003|261026121527099003|261028144727099003|261022105027099003|261022075727099003|261021121427099003|261102123227099003|261009223027099003|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	GEXH0roSKyw9EDi6EvXD9KzDb5kqTtAiY5b0mz8QHl2RkwC1pO6oZKgBtp74tWGGo1yP0LW5NKLTDzdd/d6dzqYupvyCOPK7D6IO7VKaQP4GY6m2ELvG8Kp4U2fnGxm8r7WAaB2TtRVmoXlpOqdC3+EjTVQYIZibx6xq/ZxHJOUSc+ZU6nmi8P+Kt6Pw+RMD2gWwd2BSfR6loE5AtDntmrYPWN3K3mMWp9EPs7vVJ1hCdWfj5anEKoIPe+uvo/fYOvIZnlYIJXRBf8mxUJEXVuN+GeJ36K3p6OzZHxzrUa+ImwaXVxn9+YPM8aSMuHVp9dHqZZ56Z4MB6rLegGRCVEk07QOW5p6lZYmPH/shUEpz1UQIsG9UbM3W2kq007WUze29gPugtZGvgNOux2cxvbIYSRuHckp79W6oVu2CjVu364KM+0rEvgE4vaHQOXj4YJNjXO6dgQ6su7IFSxNiULNYSOPHZ/27VtMsEQOZz7cgLUE2ZVPmfGvCqjHuXSniKs9n54Z//8ub8T4y+Ae99UgnD6MWGYjfxMDDlkWsCPBCyY1OgH3/ppaMcl8My2HWeoirMK/6z1jRMtQ4sL/tgyulk4Fal6RSjMt9suCgN+g6po6sULOwH84Svb5X80NZg/ejuPudz6FkhqqoHYpQ8Rc3MOmbmEhypFMDblC+T6A=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL3PR12MB6473.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(366016)(1800799024)(376014)(10067099003)(56012099006)(11063799006)(4143699003)(261026140227099003)(261026121527099003)(261028144727099003)(261022105027099003)(261022075727099003)(261021121427099003)(261102123227099003)(261009223027099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?YkFXYkJDenNrd1F6T2g1dU1KVVJyVE1LeXJzR2JIREhsSlNZeENBMmg0S0tU?=
- =?utf-8?B?STlvVUZNYU44NElRSmthT1psSG9sbGdKUktqRXRSU0E3Qys2bC8rUUhrV0x0?=
- =?utf-8?B?TTIwQWJxV1JzMW9Kc2drQnFUSEpsU0x3T0lrcHRaL0pucDV2QnowNGE3ZW9U?=
- =?utf-8?B?UzNKa3E4NXZDRE1JSGRNSjVQbm9vWDd3SEkvK3NFSHJ2YmpZZzBuR1dBckM2?=
- =?utf-8?B?OUsxeHhLbFhkK3oyb29xMC9Yb3JmV3plcGQyZ0h1aFlITW9Na0MrSkdacHlp?=
- =?utf-8?B?dGU4Znc4RVZoR1VhRFZFSVhiWUl1WTM2ak9zTjJVbE4vdnVOVlBnTlN1d0ZE?=
- =?utf-8?B?OUNsRTcwcklhZjdQNjdhdHJIV1hYNk9DclI2aFU1SWkwWG5rZ3VUWHRRZzVP?=
- =?utf-8?B?ODVMSENtR05kMjM2TVpLc1lFbTlubUIyeitPaEw1V2hwOGd4b2hsR2Vzak8x?=
- =?utf-8?B?eWVwRHVEanViQ2JFTEN4Um1wTUxzZXF2QlIwd0FnMDBtbjRhTVJQa1M1QmNV?=
- =?utf-8?B?aVMxOGZBVWdRT3BFTlNQdy9UbkphZ1FjVCt6cDc5OXM0UnpmMkQwaVBaK203?=
- =?utf-8?B?VXdCekYySXRFVm5hb1h1L2RJQ3U0b3prU2xXZ3p5ZUt0dEZoZkdHNUh4ZlNv?=
- =?utf-8?B?djFWdXcvYzcvZkRObFFrekozK09pKzBDK2cwTmQydldXamwrOXdBT0daVXVx?=
- =?utf-8?B?cVhWU1RkSFJrQmUwQk1nUDE3RVZlYTJMbXNPWEJ5Y3lTd1BtL21XaEJWRGR5?=
- =?utf-8?B?blg0NklWbDJzUkhjeDN6M1VLWWVMaUtDY3ZHL3I4L1Axb3BrQ09xRUw3eGR2?=
- =?utf-8?B?clcrSWRCeDA2S0cwTHhoMDI4cnpLUXlBenNRcWllczc2eWduWk5pUnY1SzVS?=
- =?utf-8?B?Z3hjalVDSmt6cHNNRmRFbUJTT0taNXlZQkVsMG1jcnN1T1NBV01PaXk3L3RZ?=
- =?utf-8?B?ZmpidGg2aUZvSkVPLzZQOVFtamFSRG96RkVSaVNQL3NwSGl5eUdQVmNtSGxE?=
- =?utf-8?B?amNiaUwwTTZhaXBrUUI1ak9IV0wxbEdBNzZXNlYxVG42Z3pweGwvamhpbmFO?=
- =?utf-8?B?SkdnYnRIQ2QxakcrVWkzUDByc2ttc2JzeTRiYjNpUFE2Mkt5UkNQODFzS0xS?=
- =?utf-8?B?SExGQ1VwNlV6VFBaZE14OVJSaS9UT1oxTWdZQmI1MTJ5UEJ1Z0xNc3g3c09k?=
- =?utf-8?B?a1o1V0tFWWc1alV0SkFGZU9YVjk3ZzNia0FQVVp0VGVaRVVsQktDdFFnQVBZ?=
- =?utf-8?B?OXd4TXBsWlhOZ0lIdm10UXRIMVZzbmhacndPWHo2eU9uT01DSkhvRkZZSmtG?=
- =?utf-8?B?c2IwWTBmSGkxd095YmJFTTZmb0hVaGRXemxQb01QSnArd2Q4ZGlSUTdGMTc3?=
- =?utf-8?B?ZkhNcE1IenYwS1FzL3ZnWUxDT2FJbE9lVHM2N3l0cUxacitZMWpFMkRuQ0Mx?=
- =?utf-8?B?bFdueE5VelpWYytMU1E3K3JxQ2dCcHByZGVaS3FIamxHOFk0LzlvSE80T2Mw?=
- =?utf-8?B?ZUZKNHJJTVJha1NNSEI1ZDBZUndKUFpLR0VxR2lRbFpMeHF1ZjBjWkU4Ymc5?=
- =?utf-8?B?RlVWMEZhODhpWno3MktZcWJqQnd1TWxXVzcxakt5emcwYkdyS3JwdnZSYW9O?=
- =?utf-8?B?eVJ3cDdkK3o5YnppZkZHKzZjalBXeEkwRVV2RklNNHg3ZHo1cGhhQXRoNTlh?=
- =?utf-8?B?Y21PakI5NkhLRGhZb3JuV21RSXJJeVhRcCtBZ2RXNW5Wdk1mUHF1T1hicFdX?=
- =?utf-8?B?Q0JQdTRONmVkYTN3anNDRE02aHJyZXVYRmREVFFza1IwakpwTlBzaWhKTEty?=
- =?utf-8?B?Y2FrMmhZUExicW1xZHR4VkNHRElMZmFxZ3cwNWV3b2M1anFjazdLcU1kaFRt?=
- =?utf-8?B?Vy93N3NLSTFzbXZFTHlMOUJTRGdWTkJCekREdDFSMHVQWHBWYzdBaG1SbjBm?=
- =?utf-8?B?bUpMY0FYM1c0ZzJlV2Z5SDVMY1krRitjeFhRTzlrRG5aNXdzSkxDbFpjeG9F?=
- =?utf-8?B?SDZESFJJY0pxc290ZXRyT2ErTm00MTB1TEtxT2NEaGJGNU8vWGJLanhLMndi?=
- =?utf-8?B?TW9DdEVEL3RBeHZzRTNGME9wd0k1aXA4b3Zpcm0rQUFUcXpNdHp2dnkvclVa?=
- =?utf-8?B?cmdHS3pKUGtkaC9yYzNoYzRCelg5NnpuS3R2bWVScmtoQUVaNkU3UGFOSElQ?=
- =?utf-8?B?YzNHc2FoZWUzMEdVa3ZmZ0twK0FTZkxCdU9USG1zcmhFWnk0ZC9jNU1aWUxx?=
- =?utf-8?B?RzdpenVlZWtXVU5RNk8xbkxlQ3BHU1JBSm9OMldNektOeVl6c01wNXcvWlVX?=
- =?utf-8?B?VWo1Z3J6aTlHajlLZGVreWJlTndwd0RpWXhLMmZEWTdpNHZDQnB2UT09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 54ff2178-b4c1-40a7-2060-08df489632a3
-X-MS-Exchange-CrossTenant-AuthSource: BL3PR12MB6473.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Nov 2026 12:43:24.3766
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: KrsiMTkVtUbBUjCoN+QJA66BllbshBgErYDJBhZCj+IrKW6JW3/InYG6g+VXwvDDd2Fye90rqkuEDAaplmfiAw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR12MB8160
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH rdma-rc v2] RDMA/siw: Reject opcodes a user send queue may
+ not use
+To: Andrew Stellman <astellman@stellman-greene.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20261120140605.62810-1-astellman@stellman-greene.com>
+From: Bernard Metzler <bernard.metzler@linux.dev>
+In-Reply-To: <20261120140605.62810-1-astellman@stellman-greene.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
+On 20.11.2026 15:06, Andrew Stellman wrote:
+> A user QP's send queue is mapped into the process, and
+> siw_activate_tx_from_sq() only checks that an SQE's opcode is below
+> SIW_NUM_OPCODES. siw-abi.h marks SIW_OP_INVAL_STAG and SIW_OP_REG_MR as
+> valid for in-kernel clients only, but a user process can still post
+> them. For SIW_OP_REG_MR, siw_fastreg_mr() then uses the user supplied
+> base_mr value as a kernel pointer to a struct ib_mr.
+> 
+> The uverbs device is mode 0666, so once an administrator has created a
+> siw device any local user can trigger this. With an unmapped base_mr,
+> as an unprivileged user under KASAN:
+> 
+>    Oops: general protection fault, probably for non-canonical address 0xe000042828282002: 0000 [#1] SMP KASAN NOPTI
+>    KASAN: probably user-memory-access in range [0x0000414141410010-0x0000414141410017]
+>    CPU: 1 UID: 65534 PID: 116 Comm: siw003 Not tainted 7.4.0-rc3-gaebb72744764 #16 PREEMPT(lazy)
+>    Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+>    RIP: 0010:siw_qp_sq_process+0x38b/0x3c10
+>    Code: 0f 85 fe 36 00 00 8b b5 8c 02 00 00 48 85 db 0f 84 15 26 00 00 48 b8 00 00 00 00 00 fc ff df 48 8d 7b 14 48 89 fa 48 c1 ea 03 <0f> b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 d9
+>    RSP: 0018:ff1100000559f860 EFLAGS: 00000203
+>    RAX: dffffc0000000000 RBX: 0000414141410000 RCX: ffffffff98233fb5
+>    RDX: 0000082828282002 RSI: 0000000093e50e00 RDI: 0000414141410014
+>    RBP: ff11000005786000 R08: 0000000000000001 R09: 000000000000000b
+>    R10: 0000000000000000 R11: 00000000c8f9259d R12: ff110000057df400
+>    R13: dffffc0000000000 R14: ff1100000565a000 R15: ff1100000578628c
+>    FS:  00007f1b60b7d740(0000) GS:ff110000caf2e000(0000) knlGS:0000000000000000
+>    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+>    CR2: e000042828282002 CR3: 0000000005732000 CR4: 0000000000751ef0
+>    PKRU: 55555554
+>    Call Trace:
+>     <TASK>
+>     ? __pfx_siw_qp_sq_process+0x10/0x10
+>     ? siw_activate_tx_from_sq+0x865/0xc20
+>     siw_post_send+0xecf/0x20b0
+>     ? kasan_save_track+0x14/0x30
+>     ? uverbs_try_lock_object+0x51/0xa0
+>     ? rdma_lookup_get_uobject+0x1ea/0x360
+>     ? __pfx_siw_post_send+0x10/0x10
+>     ib_uverbs_post_send+0xf28/0x1610
+>     ? nbcon_get_cpu_emergency_nesting+0x5/0x30
+>     ? __pfx_ib_uverbs_post_send+0x10/0x10
+>     ? __pfx__raw_spin_lock_irqsave+0x10/0x10
+>     ib_uverbs_write+0x899/0xd30
+>     ? __pfx_ldsem_down_read+0x10/0x10
+>     ? __pfx_ib_uverbs_write+0x10/0x10
+>     ? _raw_spin_lock_irqsave+0x86/0xe0
+>     ? __pfx__raw_spin_lock_irqsave+0x10/0x10
+>     ? mutex_unlock+0x7b/0xd0
+>     ? file_tty_write.isra.0+0x4f8/0x8f0
+>     ? selinux_file_permission+0x373/0x540
+>     vfs_write+0x227/0xcd0
+>     ? do_sys_openat2+0xd1/0x170
+>     ? kmem_cache_free+0xba/0x3a0
+>     ? __pfx_vfs_write+0x10/0x10
+>     ? __pfx_do_sys_openat2+0x10/0x10
+>     ? fdget_pos+0x53/0x4b0
+>     ksys_write+0x17c/0x1c0
+>     ? __pfx_ksys_write+0x10/0x10
+>     ? __hrtimer_rearm_deferred+0x156/0x450
+>     do_syscall_64+0xdf/0x4c0
+>     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+>    RIP: 0033:0x7f1b60d4f574
+>    Code: c7 00 16 00 00 00 b8 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 f3 0f 1e fa 80 3d d5 ea 0e 00 00 74 13 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 54 c3 0f 1f 00 55 48 89 e5 48 83 ec 20 48 89
+>    RSP: 002b:00007fffd2b4e098 EFLAGS: 00000202 ORIG_RAX: 0000000000000001
+>    RAX: ffffffffffffffda RBX: 000055859422a180 RCX: 00007f1b60d4f574
+>    RDX: 0000000000000020 RSI: 000055859422a238 RDI: 0000000000000004
+>    RBP: 000055856deca0d4 R08: 0000000000000078 R09: 0000000000000000
+>    R10: 0000000000000000 R11: 0000000000000202 R12: 000055859422a180
+>    R13: 00007f1b60b7d6b8 R14: 000055859422a000 R15: 000055859422a0c0
+>     </TASK>
+>    Modules linked in:
+>    ---[ end trace 0000000000000000 ]---
+>    RIP: 0010:siw_qp_sq_process+0x38b/0x3c10
+>    Code: 0f 85 fe 36 00 00 8b b5 8c 02 00 00 48 85 db 0f 84 15 26 00 00 48 b8 00 00 00 00 00 fc ff df 48 8d 7b 14 48 89 fa 48 c1 ea 03 <0f> b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 d9
+>    RSP: 0018:ff1100000559f860 EFLAGS: 00000203
+>    RAX: dffffc0000000000 RBX: 0000414141410000 RCX: ffffffff98233fb5
+>    RDX: 0000082828282002 RSI: 0000000093e50e00 RDI: 0000414141410014
+>    RBP: ff11000005786000 R08: 0000000000000001 R09: 000000000000000b
+>    R10: 0000000000000000 R11: 00000000c8f9259d R12: ff110000057df400
+>    R13: dffffc0000000000 R14: ff1100000565a000 R15: ff1100000578628c
+>    FS:  00007f1b60b7d740(0000) GS:ff110000caf2e000(0000) knlGS:0000000000000000
+>    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+>    CR2: e000042828282002 CR3: 0000000005732000 CR4: 0000000000751ef0
+>    PKRU: 55555554
+> 
+> The task is killed. When its files are closed on exit, uverbs warns:
+> 
+>    ------------[ cut here ]------------
+>    WARNING: drivers/infiniband/core/rdma_core.c:956 at __uverbs_cleanup_ufile+0x2cc/0x390, CPU#0: siw003/116
+>    Modules linked in:
+>    CPU: 0 UID: 65534 PID: 116 Comm: siw003 Tainted: G      D             7.4.0-rc3-gaebb72744764 #16 PREEMPT(lazy)
+>    Tainted: [D]=DIE
+>    Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+>    RIP: 0010:__uverbs_cleanup_ufile+0x2cc/0x390
+>    Code: 00 65 48 2b 05 3d a0 a0 03 0f 85 ca 00 00 00 8b 44 24 04 48 81 c4 f8 00 00 00 5b 5d 41 5c 41 5d 41 5e 41 5f c3 cc cc cc cc 90 <0f> 0b 90 e9 3a ff ff ff 48 b8 00 00 00 00 00 fc ff df 4c 89 ea 48
+>    RSP: 0018:ff1100000559fb38 EFLAGS: 00000202
+>    RAX: 0000000000000001 RBX: ff1100000575b640 RCX: ffffffff981e7f19
+>    RDX: 00000000ffffffff RSI: 0000000000000004 RDI: ff1100000575b640
+>    RBP: dffffc0000000000 R08: 0000000000000001 R09: ffe21c0000aeb6c8
+>    R10: ff1100000575b643 R11: 00000000846d9113 R12: 0000000000000001
+>    R13: ff1100000575bd70 R14: ff1100000575b600 R15: ff1100000575b700
+>    FS:  0000000000000000(0000) GS:ff110000cae2e000(0000) knlGS:0000000000000000
+>    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+>    CR2: 000055859422a0b8 CR3: 0000000074c72000 CR4: 0000000000751ef0
+>    PKRU: 55555554
+>    Call Trace:
+>     <TASK>
+>     ? __pfx___uverbs_cleanup_ufile+0x10/0x10
+>     ? __pfx_down_write+0x10/0x10
+>     uverbs_destroy_ufile_hw+0x6d/0x260
+>     ib_uverbs_close+0x46/0x270
+>     __fput+0x2f8/0x9e0
+>     fput_close_sync+0xe2/0x190
+>     ? __pfx_fput_close_sync+0x10/0x10
+>     filp_close_sync+0x18/0x30
+>     put_files_struct+0x181/0x310
+>     do_exit+0x6ab/0x25f0
+>     ? ksys_write+0x17c/0x1c0
+>     ? __pfx_do_exit+0x10/0x10
+>     ? __hrtimer_rearm_deferred+0x156/0x450
+>     make_task_dead+0xf2/0x2a0
+>     rewind_stack_and_make_dead+0x16/0x20
+>    RIP: 0033:0x7f1b60d4f574
+>    Code: Unable to access opcode bytes at 0x7f1b60d4f54a.
+>    RSP: 002b:00007fffd2b4e098 EFLAGS: 00000202 ORIG_RAX: 0000000000000001
+>    RAX: ffffffffffffffda RBX: 000055859422a180 RCX: 00007f1b60d4f574
+>    RDX: 0000000000000020 RSI: 000055859422a238 RDI: 0000000000000004
+>    RBP: 000055856deca0d4 R08: 0000000000000078 R09: 0000000000000000
+>    R10: 0000000000000000 R11: 0000000000000202 R12: 000055859422a180
+>    R13: 00007f1b60b7d6b8 R14: 000055859422a000 R15: 000055859422a0c0
+>     </TASK>
+>    ---[ end trace 0000000000000000 ]---
+> 
+> The exit never finishes. Thirty seconds later, sysrq-w shows the task
+> blocked in siw_destroy_qp():
+> 
+>    task:siw003          state:D stack:25848 pid:116   tgid:116   ppid:93     task_flags:0x40010c flags:0x00080801
+>    Call Trace:
+>     <TASK>
+>     __schedule+0x18da/0x4c00
+>     ? __pfx___schedule+0x10/0x10
+>     schedule+0x70/0x1f0
+>     schedule_preempt_disabled+0x11/0x20
+>     rwsem_down_write_slowpath+0x47c/0x13a0
+>     ? make_task_dead+0xf2/0x2a0
+>     ? __pfx_rwsem_down_write_slowpath+0x10/0x10
+>     down_write+0x10b/0x130
+>     ? __pfx_down_write+0x10/0x10
+>     ? siw_destroy_qp+0x1a3/0x410
+>     ? kfree+0x121/0x390
+>     siw_destroy_qp+0x1b2/0x410
+>     ? __pfx_siw_destroy_qp+0x10/0x10
+>     ? __pfx___wait_for_common+0x10/0x10
+>     ? complete+0x1d/0x230
+>     ib_destroy_qp_user+0x30f/0x4f0
+>     ? __pfx_ib_destroy_qp_user+0x10/0x10
+>     ? handle_bug+0x11c/0x2a0
+>     uverbs_free_qp+0x7c/0x150
+>     destroy_hw_idr_uobject+0x7e/0x130
+>     uverbs_destroy_uobject+0xdf/0x770
+>     __uverbs_cleanup_ufile+0x18b/0x390
+>     ? __pfx___uverbs_cleanup_ufile+0x10/0x10
+>     ? __pfx_down_write+0x10/0x10
+>     uverbs_destroy_ufile_hw+0x6d/0x260
+>     ib_uverbs_close+0x46/0x270
+>     __fput+0x2f8/0x9e0
+>     fput_close_sync+0xe2/0x190
+>     ? __pfx_fput_close_sync+0x10/0x10
+>     filp_close_sync+0x18/0x30
+>     put_files_struct+0x181/0x310
+>     do_exit+0x6ab/0x25f0
+>     ? ksys_write+0x17c/0x1c0
+>     ? __pfx_do_exit+0x10/0x10
+>     ? __hrtimer_rearm_deferred+0x156/0x450
+>     make_task_dead+0xf2/0x2a0
+>     rewind_stack_and_make_dead+0x16/0x20
+>    RIP: 0033:0x7f1b60d4f574
+>    RSP: 002b:00007fffd2b4e098 EFLAGS: 00000202 ORIG_RAX: 0000000000000001
+>    RAX: ffffffffffffffda RBX: 000055859422a180 RCX: 00007f1b60d4f574
+>    RDX: 0000000000000020 RSI: 000055859422a238 RDI: 0000000000000004
+>    RBP: 000055856deca0d4 R08: 0000000000000078 R09: 0000000000000000
+>    R10: 0000000000000000 R11: 0000000000000202 R12: 000055859422a180
+>    R13: 00007f1b60b7d6b8 R14: 000055859422a000 R15: 000055859422a0c0
+>     </TASK>
+> 
+> Posting an unsupported atomic or SIW_OP_RECEIVE instead hits the
+> WARN(1, "undefined WQE type") in siw_qp_sq_process() and leaves the
+> memory region named in the SQE pinned after the process exits.
+> 
+> No opcode from SIW_OP_FETCH_AND_ADD up is valid on a user send queue,
+> so reject them all.
+> 
+> The issue was found by Claude Opus 5.5 running Quality Playbook, an
+> LLM-driven code review tool:
+> https://github.com/andrewstellman/quality-playbook
+> The fix and this changelog were drafted with the same tool and reviewed
+> by me.
+> 
+> Fixes: f29dd55b0236 ("rdma/siw: queue pair methods")
+> Signed-off-by: Andrew Stellman <astellman@stellman-greene.com>
+> ---
+> v2: Include the full dmesg trace, as Leon asked, with the uverbs warning
+> and the blocked task that follow the oops. No code change.
+> v1: https://lore.kernel.org/linux-rdma/20261120000211.63217-1-astellman@stellman-greene.com/
+> 
+> Tested in QEMU with KASAN on v7.4-rc3. The patch applies unchanged to
+> rdma for-rc. With this patch the post returns -EINVAL for REG_MR,
+> INVAL_STAG, FETCH_AND_ADD and RECEIVE from a user QP, user SEND and RDMA
+> WRITE still complete, and rping over siw works.
+> A reproducer is available on request.
+> 
+>   drivers/infiniband/sw/siw/siw_qp.c | 6 ++++++
+>   1 file changed, 6 insertions(+)
+> 
+> diff --git a/drivers/infiniband/sw/siw/siw_qp.c b/drivers/infiniband/sw/siw/siw_qp.c
+> index bb780e3904a2..10876cefc0bb 100644
+> --- a/drivers/infiniband/sw/siw/siw_qp.c
+> +++ b/drivers/infiniband/sw/siw/siw_qp.c
+> @@ -869,6 +869,12 @@ static int siw_activate_tx_from_sq(struct siw_qp *qp)
+>   		rv = -EINVAL;
+>   		goto out;
+>   	}
+> +	/* No opcode from FETCH_AND_ADD up is valid on a user SQ */
+> +	if (!rdma_is_kernel_res(&qp->base_qp.res) &&
+> +	    wqe->sqe.opcode >= SIW_OP_FETCH_AND_ADD) {
+> +		rv = -EINVAL;
+> +		goto out;
+> +	}
+>   	if (wqe->sqe.flags & SIW_WQE_INLINE) {
+>   		if (wqe->sqe.opcode != SIW_OP_SEND &&
+>   		    wqe->sqe.opcode != SIW_OP_WRITE) {
+> 
+> base-commit: e7732ec135b501e87ab060d992b3b5f2ec4396c9
+Excellent finding! Thank you very much.
 
-
-On 11/18/2026 4:04 PM, sashiko-bot@kernel.org wrote:
-> External email: Use caution opening links or attachments
-> 
-> 
-> Thank you for your contribution! Sashiko AI review found no new issues
-> in this patch, but noticed 1 related pre-existing issue it does not
-> introduce:
-> - [High] RDMA/mlx5: type confusion in
->    UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_ADDR)() [1]
-> --
-> 
-> commit 9b620675534530ff6a87e491bd8226b49883a88b
-> Author: Akiva Goldberger <agoldberger@nvidia.com>
-> 
-> RDMA/mlx5: Resolve core device from ucontext for DEVX resources
-> 
-> This commit introduces a uctx_to_mdev() helper to resolve the mlx5_core_dev
-> from the user context for DEVX resources and removes redundant mdev
-> pointers from struct devx_umem and struct mlx5_ib_pp.
-> 
-> [ ... ]
-> 
->> diff --git a/drivers/infiniband/hw/mlx5/dm.c b/drivers/infiniband/hw/mlx5/dm.c
->> index fbb46d821865b..31a7c0f72b40f 100644
->> --- a/drivers/infiniband/hw/mlx5/dm.c
->> +++ b/drivers/infiniband/hw/mlx5/dm.c
->> @@ -209,6 +209,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_ADDR)(
->>   {
->>        struct ib_uobject *uobj = uverbs_attr_get_uobject(
->>                attrs, MLX5_IB_ATTR_DM_MAP_OP_ADDR_REQ_HANDLE);
->> +     struct mlx5_ib_ucontext *c = to_mucontext(uobj->context);
->>        struct mlx5_ib_dev *dev = to_dev(uobj->context->device);
->>        struct ib_dm *ibdm = uobj->object;
->>        struct mlx5_ib_dm_memic *dm = to_memic(ibdm);
->> @@ -223,7 +224,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_ADDR)(
->>        if (op >= BITS_PER_TYPE(u32))
->>                return -EOPNOTSUPP;
->>
->> -     if (!(MLX5_CAP_DEV_MEM(dev->mdev, memic_operations) & BIT(op)))
->> +     if (!(MLX5_CAP_DEV_MEM(uctx_to_mdev(c), memic_operations) & BIT(op)))
->>                return -EOPNOTSUPP;
->>
->>        mutex_lock(&dm->ops_xa_lock);
-> 
-> [Severity: High]
-> This problem wasn't introduced by this patch, but can
-> UVERBS_HANDLER(MLX5_IB_METHOD_DM_MAP_OP_ADDR)() cause type confusion when
-> called on a non-MEMIC DM handle [1]?
-> 
-> The handler casts ibdm to struct mlx5_ib_dm_memic via to_memic() without
-> verifying that to_mdm(ibdm)->type is MLX5_IB_UAPI_DM_TYPE_MEMIC.  When
-> userspace allocates a software ICM object such as
-> MLX5_IB_UAPI_DM_TYPE_STEERING_SW_ICM, handle_alloc_dm_sw_icm() allocates
-> the smaller struct mlx5_ib_dm_icm instead, so accessing dm->ops_xa_lock,
-> dm->ops, and dm->ref writes past the end of the allocation and corrupts
-> adjacent slab memory.
-> 
-
-Already fixed by commit 4fbcc12ae887 ("RDMA/mlx5:
-Check the DM type before mapping a MEMIC operation")
-https://git.kernel.org/rdma/rdma/c/4fbcc12ae887c7329b06b2fd1eb1244eda035a16
-
-> [1] https://sashiko.dev/#/bug/linux-56314797-6963-404a-8cb9-efc7a99eb571
-> 
-> --
-> Sashiko AI review · https://sashiko.dev/#/patchset/20261117-mlx5-sd-prep-v1-0-8efd124c7895@nvidia.com?part=8
-
+Acked-by: Bernard Metzler <bernard.metzler@linux.dev>
