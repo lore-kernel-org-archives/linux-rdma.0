@@ -1,85 +1,85 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.176
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.47
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795374689;
-	b=kSKI+l09f7XIgBzZx/bYW7Zl1HfyOjFqLAVvXUEfckA3L2TxxacqmIDaKaatzm7isHq1
-	 niBoA2/Ns/skcsWX6iQfo/AY0NgIuuKLuh04xDGkZtGbZWIezmQxfe3lQrNg3EuPK4K0q
-	 QX00mx07thDOK9hfTZXNPZGvvU7upWUpD8irw72v3nqZ6cDHOXEagCBr71EIO/FFX+6TD
-	 d2/23ggvMYlugq/ZeDle85GOoFCqcQBcow2D3JJGBpXfVjE8lnvK7Fs4bOM4htxPG9t4e
-	 01wIdWGPhcJz1U+AoeyTLhKxkYxxcAaLIbbPcEPRKCfnBdGXfacImVRwsKxnFftArkQ==
+	t=1795374692;
+	b=DGGaCevnPXYHD1A1uVKNhPnX0B7ZNvxXVf9bg7uvh8zcJ4K0HUm3eivF/4UtVbc8Tm4C
+	 QrsjlsUXLy5Rx2IZ/tdkVjebEwpB7l91c0Qlz5n8MhNCVpZ1q1FAwe2H2ZkpcFGuuhk0q
+	 vZYNBM6rFRZFVg8ArCY53krfMChNfqtFbkI16nGepmEsguXAs1JbbmZaB/w/LMbJIp2Of
+	 QJtaUFsc3QJzUhfr5nPIfe7iTZ/ryIwjhi78uVEAhWzpf/A7rQQeOVXBMV9SaT4su1WQY
+	 v0RUYOk2IcS9oZCUPfY7OaKXk6OXeOhJXFi83wrsg9FXT/VE0W9lfFcWsds+8KlXXow==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795374689;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795374692;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 Sender:From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=2GpSzR4G5U9X0KrEU6CxhUyVa6azEyHRM8XovyPKyw4=;
-	b=JFbIIu6dPInvc8CSPFgvwLuNvOG5j2LhFROmG9J4Tm43tTUgM0toXImQR+GljN1ivo6a
-	 7KAGrmVOD7c2mGcAi47U9dCw94SGYI8mydjCdrXpofPEVNkeJ72A/EHiHvmPKVbyRRJMq
-	 w+Q8sOWZfvbbJQNDa0IVZRcjQaCxZS5YUMiC8uDMjzLCIRjFr3sy32cOQUSLu/QYaiMte
-	 vJzIjWdOw4sDz53Lm3TJGnQnqSl24xPiWo5PoRAGl9lWWIVR2At1B2L2cJ2EuzYzyvpYg
-	 eJjgzMkWV1yJEbo4Jio/PtF6n5ZErN85gRigd2O1v5moWt2chH4YB8mU8Lk43nlvtcQ==
+	bh=BLMOrirVdVfgpFu7VbhfP1f6o8xzMhqagEEBKwlrCTE=;
+	b=gB+O5wuw0rwSEu7zWWs/55DcP3+EX0OnpIUYx+r1o9suPbmzXuHL0MgDXXBM4af6LtTJ
+	 ZdBmAqP5ApFBXlmgiW3Izhyh8sa4KDuWMreJsuoqGJupHb+mKIKaaxckdoiiedv24mvo0
+	 ijWvoTWSq2xthx2rhm6t7i7oXh0JvgvBxfJghz2nR3sM/a8tzfbDy1IvsqcJ5GK6bEd8P
+	 4IANgAWd+NGmXShELeccwt6UWFyS9XKfGICGFEA+BigLI44OalVVhMhjxwk6cZ9zC1HbB
+	 qvsH5zv5v2PZWGkK5yWh5YSluvl9176NO2a7rJ1VngBSuvu9loU0s3G2mHcrUU5Tzgw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=stellman-greene.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=VM1PBTOV;
-	arc=none smtp.remote-ip=209.85.222.176
-Received: from mail-qk1-f176.google.com (mail-qk1-f176.google.com [209.85.222.176])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="Ec/zu+/2";
+	arc=none smtp.remote-ip=209.85.219.47
+Received: from mail-qv1-f47.google.com (mail-qv1-f47.google.com [209.85.219.47])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16391606A32C
-	for <linux-rdma@vger.kernel.org>; Sun, 22 Nov 2026 19:11:28 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 16391606A32C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E42A606A33E
+	for <linux-rdma@vger.kernel.org>; Sun, 22 Nov 2026 19:11:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5E42A606A33E
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stellman-greene.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=VM1PBTOV
-Received: by mail-qk1-f176.google.com with SMTP id af79cd13be357-9496577d4c4so321142485a.1
-        for <linux-rdma@vger.kernel.org>; Sun, 22 Nov 2026 11:11:28 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Ec/zu+/2
+Received: by mail-qv1-f47.google.com with SMTP id 6a1803df08f44-921276742e3so25716396d6.2
+        for <linux-rdma@vger.kernel.org>; Sun, 22 Nov 2026 11:11:31 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795374688; x=1795979488; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1795374690; x=1795979490; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:sender:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=2GpSzR4G5U9X0KrEU6CxhUyVa6azEyHRM8XovyPKyw4=;
-        b=VM1PBTOVgp50bkFiS9MNgPv9jpbAUqgl2cSKf5aBhvUNm6Ls0zgqO9i/+ycC0ocbBY
-         yeWkT9hyjyaomJ9DWbxopzlsgUIy41tpjLcShe/qIvJrx/30dm4m4IWCdXiW024SbqQs
-         6qq5bO9dGdZ0oSpTZ/Epa9U5U8hw/Q5t19nBYvV7d9QF/mr7dMEd4YQ5D1alUlIh/b3K
-         OfnrX/rhGPW+mglrCujyb3rEEkvthPhVxoWqu58EMIHyhsLFMP8F3+dRL2xqyIs+zwQw
-         zFwWP43UxDFffv+zipFfSdS/3jek8mGgwDSyBmbSOTtxrxradXfAtQu4YSNjCDa+Czoo
-         qmDw==
+        bh=BLMOrirVdVfgpFu7VbhfP1f6o8xzMhqagEEBKwlrCTE=;
+        b=Ec/zu+/28aNR+Jmkmpfi972q3/iefgyRWgW9fea3gSMpxOh3slLP+/s+70+4fq3Ley
+         aNGtw0FPJYguYbLCIR7S6iJG2EYyqdxlKSgaUpV3LaENN7Y7GXF+uS6jrl/CW0sloW9P
+         f+/nf+GPZLak6au/beTmRykoa3MEnDyg8mNuht4PM3lfKFgHLXVNCPLNyphjUs6CmoPd
+         VOmtk9hEXiUFgeT4ROM/n8mGbWdyx9DQ9wOsneLWNEpy6uQdK0Li7Zit6fttBNEx0dOT
+         rbGGG2ql/AqiV/+HZBj0jWJFdqAjGpxAVkIw+hVdzamMoscUASLagqgs9qJqIiV/nvWv
+         d2wg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795374688; x=1795979488;
+        d=1e100.net; s=20260707; t=1795374690; x=1795979490;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:sender:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=2GpSzR4G5U9X0KrEU6CxhUyVa6azEyHRM8XovyPKyw4=;
-        b=vfu05FAc22RQEs5sjFbxaJ18MEEnBMsQnyrwEvQ4MuC5mn0ChoEuGZJnlTO0mhsG3C
-         DVXj4jgeLB/Lw7tx6aUbuT1hfdzuMtfcgsJwQ0bxnOaK51YXNQHO3hHoO3UUkOewvCNc
-         Jp8yk+SwdH01VwiuuWHQsEHrunmhpEhRBbfsIiV38EePjwfKKo93beJw7xFMG/ZesXSv
-         O7EK9PH2mgWiBtOLnixdcY53Zxai6Pnwf90/T21IamJ4aO0lR8vY7Fa5n0JnMWzMhrPG
-         4VnyW6+1n8okx9Aknw7mVo4mxnmgCfGofBuRdT6h78U2E5ds63yLnUadsDTcwLKloMT8
-         oa4g==
-X-Forwarded-Encrypted: i=1; AL+hErFlGPUxmDDIczGUwA8/ItBQFIhcE9Gw41zVT95Xp8e0c0sSqSJaKy4zZDwBhtoxnhK4p65PyT2SVC8K@vger.kernel.org
-X-Gm-Message-State: APuU4Z99vqBDDShSj1IIhOy9eIrS9uWw/fXhUtJf30nYtVayQ3Th7oSo
-	bjHlXg2gNtfKvD5Y/HKscqPzQ+5bE4lZmXog2xFPN6PINXzNiTVFWstl
-X-Gm-Gg: AZFdTZdP+GH8Pd1rnH/jnjBQOiHNjGSk0tJSthMcjm+GKgephTcxjbt7lasEwYzTwCW
-	Gu20qU2Tv68u7kXMHVuNDC1r9ZveONSwG6nAgMJwBfcA9JACDVJspUWOmYnrW3e+nUX0eBGc5xW
-	pE518yx3S+IMz9OE+/DxbaNL3E5oQ1Y9Ry2Is7UdoFgOiTbQTFRtWdt/ZyBJyE2O7sgtBgJgrCS
-	wIFjeH65th+o9vMp/dQo3SMj2ftZ4C6C4Gqv/adeDbfvErjBWl9o+zCgbX/S/OjfLjOko6okvHF
-	ecQHADxTu35Q2H5BF09xyqWalcXoLnXfltTFpBMofKI2snjwwV7pttXBmXTPnMyYJ294Gr11AIE
-	je9zg1ANjqVJfAad4VjGbJkPT/PWalGsKiQFVqcvBskBvMGt58RMt8GrRA+XcSskK6t4GRDP8Gs
-	AjQH9TgVB5N9B/lE4ZeZTZSHq762qjPj3WOFP8BEJnNc4pDnuMocBiJRR1D1dB08eAKWKpl+RSZ
-	515+6qwITWGZXJ40GftMf31+o6a0PiTo/4RsveGmiB4baX8AjCtacOIuy1/Y+166fIyLlBjXLUc
-	JvS4hRJ/ezVtvIi2bdWyQrmfDxMzdTwfV8G5wnY2edzMhGHv3UrsB4LLt97RQX3JjVCATX34W+U
-	d5iaLEaiJh3Z0YuWA09YGoYnplXRZ3/3uzYJvmTlEusnHzN2U6FqXA6YxCrj5OYoh1ysdATiP+7
-	ZGC76rjGH6yPYoa9dek+IstJrsOw==
-X-Received: by 2002:a05:620a:2986:b0:949:aceb:b799 with SMTP id af79cd13be357-949b357272amr1785474285a.13.1795374687873;
-        Sun, 22 Nov 2026 11:11:27 -0800 (PST)
+        bh=BLMOrirVdVfgpFu7VbhfP1f6o8xzMhqagEEBKwlrCTE=;
+        b=Zi5Nuo+2z0jy9EXu2I9A7oirgXycYAgFM/8O1OtqFy9f8bk8AOGhvQKvG3hXpA1eH4
+         qItRTfOIv5msdzxKUOcaJ5AmbcF55mI3TyUHX+g+54QIijsFeenm41Int4gHc4ZvJ6zG
+         7Se706FaqVhHSp4njpIHeSNLF50KzQvrWVh8AA48/ZBpE9Bvf3niyAjhN1tt5kQ7OYT5
+         jwgHZXAy/+/jlbmIP6cok4eyvGZVW+u/gsIHk/O6uZOyLjpiKDRNnzd8Llk+d/o8IeKc
+         NF8htQ13IOMX4IS3XZCWPFaHXYkn+QBwrSA8Vjom8YGrMaa4GqE/aMORm6aqb8tG6gDc
+         AekQ==
+X-Forwarded-Encrypted: i=1; AL+hErFLqclWViaJXMw/JFKBcV3HbXZjk3uJfterOc0vJUEuVmS/iJkLn6bW2fw7zJ7M3Wol0sxI0sLIfP8L@vger.kernel.org
+X-Gm-Message-State: APuU4Z9yNkPBPlIiemGUKknJfSKweA85LdoSoT6fSBfAPYSceLXMd+/o
+	+SYDrm7tQ67DVnUXVZdEHoMqR8GqQWInpKVr9YNmBXMn1rjUxv8FXtSXTaFGgs4G
+X-Gm-Gg: AZFdTZc3FcmrMJiSQxvHNrB9gCgL2sPwS8jqf4aUKteT4s1ze3gxLW1dhhRF0tWRnVC
+	yDBuEpbJu9VqT1z4tohTIXL7R3RHZXVkgZH0C+Ct5mGx2mpPqTkDQY+n1UcTvi9kn6skNGi0GmP
+	caFs0hYwL0dGjwfzSbk43uoPjEYqoceCbKHe6tZQcyJLcZK1/bW2Kq9sZtsZhvrWx+fjUkY33ha
+	2a0UMSUIZ7qBqBn9LqXANfjARrQmTBVOheCPpPhYj2j5p1Eh2GWfZ1d9STPX2amkoftxKnNmlL7
+	d3U2tvZkzQUKQrIJEK6kg6sA6vScRasx9qA7uTr2mPV4z26uJGXFjJ6C2o2Gixxmmy3z3OaJOKG
+	8hEetVbQYXENaIKA1Q2jkDZYWSg4DlPHOvcssWIBhXpKKLDWGtcKgENOVI4Df27T/T+RRlrC8Jz
+	t3duLJU6XVhRqPwoJ7CaiECpTjCTdqL79wtkOhZmI38JH8MWCc3ZKsApnpMW+XBAoDdRn8z8kPz
+	AMA4w9lYZOg6AlnBJxRTggL9dlv/vDe4PyhpEv/B+yi27an4Q/v5haBugvdYP6iRUnGMJQEzLHc
+	2V7dzUNOd85ZfppgCZyx6hhtx0IM6O3ud745SbCIq8JqtYMIIr74VJs5NyMFi1DwsBPomMon/nb
+	T8tfXQySG//tpUhb7DBZ3dYsFQGMGKkuSyjvrl5tZBDMjPfYjxIjqGFJGLjGP+ITdqrVY3kolyx
+	I4v7/kUPLW54RgVqQ8ko/VKExdU8d3asXJXPdnzx/51D+Xhis=
+X-Received: by 2002:a05:6214:dc7:b0:921:38d7:3aee with SMTP id 6a1803df08f44-92138d73c1cmr153157236d6.28.1795374690225;
+        Sun, 22 Nov 2026 11:11:30 -0800 (PST)
 Received: from Mac.mynetworksettings.com ([2600:4041:5c28:200:c8ee:a73:9097:862f])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-949c555faf9sm536397585a.0.2026.11.22.11.11.27
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-921349d0f6bsm85852186d6.21.2026.11.22.11.11.29
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Sun, 22 Nov 2026 11:11:27 -0800 (PST)
+        Sun, 22 Nov 2026 11:11:29 -0800 (PST)
 Sender: Andrew Stellman <stellman@gmail.com>
 From: Andrew Stellman <astellman@stellman-greene.com>
 To: Bernard Metzler <bernard.metzler@linux.dev>
@@ -87,9 +87,9 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>,
 	linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-rc] RDMA/siw: Don't send stale data for a queued zero length Read Request
-Date: Sun, 22 Nov 2026 14:11:22 -0500
-Message-ID: <20261122191122.65240-1-astellman@stellman-greene.com>
+Subject: [PATCH rdma-rc] RDMA/siw: Honor the sg_offset in siw_map_mr_sg()
+Date: Sun, 22 Nov 2026 14:11:28 -0500
+Message-ID: <20261122191128.65369-1-astellman@stellman-greene.com>
 X-Mailer: git-send-email 2.53.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -102,28 +102,24 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-siw_init_rresp() queues an inbound RDMA Read Request in the inbound read
-queue (IRQ) when the TX work request is busy. For a zero length Read
-Request the IRQ entry has num_sge 0, and siw_activate_tx() then leaves
-wqe->sqe.sge[0] as the previous work request left it.
-siw_qp_sq_proc_tx() sets num_sge to 1 for every Read Response, so the
-Read Response is built from the previous work request's sge[0]. RFC
-5040, section 5.2.1, requires a zero length Read Response.
+siw_map_mr_sg() builds the first PBL entry from sg_dma_address() and
+sg_dma_len() of the first scatterlist entry and ignores *sg_off.
+ib_sg_to_pages() includes *sg_off in mr->iova, which siw stores as
+mem->va, so siw_pbl_get_buffer() resolves an address in the MR to a
+location *sg_off bytes before it. rdma_rw_ctx_init() passes its
+sg_offset to ib_map_mr_sg(), and isert can pass a nonzero offset.
 
-A plain TCP peer that speaks MPA rev 1 sent two Read Requests in one
-write(): 64 bytes from an MR with remote read access, then a zero
-length Read Request. The second Read Response carried the same 64
-bytes of the MR:
+A test module registered a one page buffer on siw with ib_map_mr_sg()
+and sg_offset 0x200, which gave mr->iova at page offset 0x200 and
+mr->length 3584. A user space client then wrote 16 bytes with an RDMA
+WRITE at mr->iova. The bytes landed at page offset 0x000 of the buffer
+instead of 0x200. With sg_offset 0 they landed at page offset 0x000,
+as expected.
 
-  Read Response, sink STag 0x11110000: 64 bytes "SIW016-REMOTE-RD..."
-  Read Response, sink STag 0x22220000: 64 bytes "SIW016-REMOTE-RD..."
-
-When the zero length Read Request was sent 500 ms after the first one,
-its Read Response had no payload.
-
-Copy sge[0] from the IRQ entry whatever its length, as the immediate
-path in siw_init_rresp() does. With this change the second Read
-Response has no payload in both cases.
+Start the first PBL entry *sg_off bytes into the first scatterlist
+entry, and reject an offset past the end of that entry, as
+ib_sg_to_pages() does. With this change the bytes land at page offset
+0x200.
 
 The issue was found by Claude Opus 5.5 running Quality Playbook, an
 LLM-driven code review tool:
@@ -131,43 +127,37 @@ https://github.com/andrewstellman/quality-playbook
 The fix and this changelog were drafted with Claude Opus 5.5 and
 reviewed by me.
 
-Fixes: f29dd55b0236 ("rdma/siw: queue pair methods")
+Fixes: 303ae1cdfdf7 ("rdma/siw: application interface")
 Signed-off-by: Andrew Stellman <astellman@stellman-greene.com>
 ---
-Tested in QEMU on v7.4-rc3 with KASAN, with a plain TCP peer that speaks
-MPA rev 1. A reproducer is available on request.
+Tested in QEMU on v7.4-rc3 with KASAN, with an in-kernel test module
+and a librdmacm client over siw. A reproducer is available on request.
 
- drivers/infiniband/sw/siw/siw_qp.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/infiniband/sw/siw/siw_verbs.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/siw/siw_qp.c b/drivers/infiniband/sw/siw/siw_qp.c
-index bb780e3904a..f3eb1c85f3e 100644
---- a/drivers/infiniband/sw/siw/siw_qp.c
-+++ b/drivers/infiniband/sw/siw/siw_qp.c
-@@ -972,14 +972,15 @@ int siw_activate_tx(struct siw_qp *qp)
- 	/* start READ RESPONSE */
- 	wqe->sqe.opcode = SIW_OP_READ_RESPONSE;
- 	wqe->sqe.flags = 0;
--	if (irqe->num_sge) {
--		wqe->sqe.num_sge = 1;
--		wqe->sqe.sge[0].length = irqe->sge[0].length;
--		wqe->sqe.sge[0].laddr = irqe->sge[0].laddr;
--		wqe->sqe.sge[0].lkey = irqe->sge[0].lkey;
--	} else {
--		wqe->sqe.num_sge = 0;
--	}
-+	/*
-+	 * Copy sge[0] also for a zero length Read Request. The TX path
-+	 * sends sge[0] of every Read Response, and the previous work
-+	 * request's sge[0] must not be sent in its place.
-+	 */
-+	wqe->sqe.num_sge = irqe->num_sge;
-+	wqe->sqe.sge[0].length = irqe->sge[0].length;
-+	wqe->sqe.sge[0].laddr = irqe->sge[0].laddr;
-+	wqe->sqe.sge[0].lkey = irqe->sge[0].lkey;
- 
- 	/* Retain original RREQ's message sequence number for
- 	 * potential error reporting cases.
+diff --git a/drivers/infiniband/sw/siw/siw_verbs.c b/drivers/infiniband/sw/siw/siw_verbs.c
+index 80ef4cb95fc..c5f67c8e7ce 100644
+--- a/drivers/infiniband/sw/siw/siw_verbs.c
++++ b/drivers/infiniband/sw/siw/siw_verbs.c
+@@ -1505,8 +1505,15 @@ int siw_map_mr_sg(struct ib_mr *base_mr, struct scatterlist *sl, int num_sle,
+ 			return -EINVAL;
+ 		}
+ 		if (i == 0) {
+-			pble->addr = sg_dma_address(slp);
+-			pble->size = sg_dma_len(slp);
++			unsigned int off = sg_off ? *sg_off : 0;
++
++			/* The MR starts *sg_off bytes into the first entry */
++			if (off > sg_dma_len(slp)) {
++				siw_dbg_mem(mem, "sg_off %u beyond first SGE\n", off);
++				return -EINVAL;
++			}
++			pble->addr = sg_dma_address(slp) + off;
++			pble->size = sg_dma_len(slp) - off;
+ 			pble->pbl_off = 0;
+ 			pbl_size = pble->size;
+ 			pbl->num_buf = 1;
 -- 
 2.43.0
 
