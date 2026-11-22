@@ -1,84 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.27.60.169
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795383132;
-	b=ipoktkDm5cqLDpbxTzDfnAA8oYvEu0qRB49U3VlNyyJzBwJHUyUf5VHvcjP7YpVug+du
-	 vdv2PThMobHuKH3B4NGI6tiYeFQITaVh5QlqVr7R+0J0kE53/zy/lPf+YK7SSFp8U3dq7
-	 P2DgMu/C/n3Ya4d5yYkWzh3y9oCIMd+WtXpItbv3K4KtI7D+cX6IpxrFRp8JWzOY4UcHB
-	 MzNh2tdz6AZnKkkWNs0QVRv5lz1KsBMFQMKAUDH2Jj1bNCp4UmKIPydWEiakHbzc41uRl
-	 4zgxJIT7qKBJ5WWxfzCI2JFVjAAs1McSLs10Gh7rWda61PxTwWfgMpTB4eMNQ3LVFdA==
+	t=1795383904;
+	b=kGvNLaZS+fyjlIqVTIOZn1uUl0wsEBgZFfwi+iGkAr+BUpTVxDw7JmuR55IQ12vVcp6W
+	 Vf5geOMnfLYNCzJk/s3Ey+Gul5G8pASM/6JojvOEPhhOgutqJpDaF7WK3Z4fEcEVavWCU
+	 aDvMurH8lXOLJOc9si1Jmmzpf89TpikmnTkI0bgOCNiDvHKLaiCX6aF8ihDoUbiYd4LBX
+	 hrvSeZQy6sFJalja2hqVkLJhLIovkLEXTxUE1ukLTt/7dgKfPCuVy1C6NzwXM5v+7HQmg
+	 UFdYToQILxkn2oA3ykvpXuLWLos/zKZlVxRfzQQCcoIKaID+zExUQhn08lNdcBPCXQA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795383132;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=QpXJymSL48oHV5Gty6tREKnyHspYs4HJDm5tg/o9etQ=;
-	b=U3KAdvxDhwVNEOwBCinR1k/8LtUDhW9wDeimNNU9AECSIeqkckNX5xosTiQNuUf6qxvc
-	 h2fZ+WxB0+j1DoqZpVXeXwW4b5nwVp3938bmaZwZldfhzR4bGNm+HY0HiLLU6fruq9RGU
-	 ZznK/2RStkcpR83y6gJA6U0DkcG4QI6WxvBKG1d+XhzPo4toZdKIpGVKvH5p1WmUrxm29
-	 8b40HC+EaEP9yvO2Gy/4TEBLJP3tuICFrRDnZdMLY6Y0qQLsAbGGK/wfdGRGWly7oVwNL
-	 owlDdqBfXvbiiukkaxNoso0E2iK4EMY9Kjg70vi+vwhhDeG0GLIQezqZOdPVUWxSnRQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795383904;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=hj7exSx/wU+wrmvW1UvVx6ag6wPIoatbUnhQK7bpxbg=;
+	b=O+27wDLWx0rFMRi5ilWFO+7ZGKT+tZOyVCtSw0GbvH8HOmTCIohNkIlYClNBVHRLLyFI
+	 7Srbtv0YuxCUHnm2pWaJllYBRnnZQBClrqIxV4r3Jw1yMCPne622WxbHp26gW1NwMDUzO
+	 SCxHh1r3dEif+D6Gd1ubq9YYJJh8j98mUQuEG/YRaR/7U1w1WKf/Hrd/5vf+DWOUBYVAn
+	 fcbcJ6JYJ1Q66q1E1R+6ZhHSN5NAumHhm3VkejSGBx2jTwXHSipyEL08tPUu3KoHj88fO
+	 eOd5jM0sU3RDfEUvoHCEGGFFJqmLnLHizgxCyHqbowz94ATREJGUSO99YPhlTV7VrYw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=corp.free.fr;
-	spf=pass smtp.mailfrom=corp.free.fr;
-	dkim=pass header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=TxDaeuln;
-	arc=none smtp.remote-ip=212.27.60.169
-Received: from rcs.proxad.net (rcs.proxad.net [212.27.60.169])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IiE3NQD+;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41C3E606A33C;
-	Sun, 22 Nov 2026 21:32:11 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 41C3E606A33C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=corp.free.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=corp.free.fr
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5E7C606A333
+	for <linux-rdma@vger.kernel.org>; Sun, 22 Nov 2026 21:45:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=TxDaeuln
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=corp.free.fr; s=rcs;
-	t=1795383129; bh=9RTIFcQyd9tjIJwC9OkGdscO68l46ebZ0ckUIssCKmo=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=TxDaeulnvByl3AbhOx1Mjm6LekRHIpx4JE8HM3iqE9aqoxBmmCeBIcwj9XjZJQ7+g
-	 7sh+GQhxxSO9IH2WvIsPw78YwGchtOEomrVtWVHjphODQoneE0kdp8iPTDAk7htgB5
-	 u7guwG1Ws0GfJJJORRYiRnaxOem942ee1ZeVzRKmxjkIquqqqX5dbdhWWtHuhm7+70
-	 MGiUx9+f3Wi+PDJnxGBDyg+fRUlTFRyVudGtGnuksNsCrd8fsl5ccYiEcTXRjuc1Kn
-	 JMabWolZOJFGWdVANTqcp6Y3vpSqjdbvjNfErIC+rVEaCgcrF0I7HZZQHUvY2duuSC
-	 uQLF3QOpis8vA==
-Received: from lnxos-dev.home (82-66-150-212.subs.proxad.net [82.66.150.212])
-	by rcs.proxad.net (Postfix) with ESMTPSA id 6D82044C0B49;
-	Sun, 22 Nov 2026 22:32:09 +0100 (CET)
-From: Alexandre Cassen <acassen@corp.free.fr>
-To: Saeed Mahameed <saeedm@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>,
-	Mark Bloch <mbloch@nvidia.com>,
-	Jamal Hadi Salim <jhs@mojatatu.com>,
-	Jiri Pirko <jiri@resnulli.us>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Michael Chan <michael.chan@broadcom.com>,
-	Pavan Chebbi <pavan.chebbi@broadcom.com>,
-	Potnuri Bharat Teja <bharat@chelsio.com>,
-	Donald Hunter <donald.hunter@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	David Ahern <dsahern@kernel.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	Shuah Khan <shuah@kernel.org>,
-	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	linux-kselftest@vger.kernel.org,
-	oss-drivers@corigine.com
-Subject: [PATCH net-next v3 05/11] net/mlx5e: TC, reject a partial tunnel key with tunnel mapping
-Date: Sun, 22 Nov 2026 22:31:53 +0100
-Message-ID: <20261122213200.3207385-6-acassen@corp.free.fr>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IiE3NQD+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DE8D1F000CF;
+	Sun, 22 Nov 2026 21:45:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795383904;
+	bh=hj7exSx/wU+wrmvW1UvVx6ag6wPIoatbUnhQK7bpxbg=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=IiE3NQD+bgeKff09+khW9ArFKgqO5EzZLArQ01cSDNwXCEk6sbbKIWHFiUUwNz0nk
+	 Oz8e8MMxQ4ejvmng94HRy8nzZpFW5BEC1MdJbyQUJHLOcPQcQNXNazsX6B87R004mS
+	 LgBOINz+xH4gGEyD+0x7CABRnUERI+RE4sTdB74tVcTdZ30AZyw7PHmD13faeANrRD
+	 C+yV9JOKBgx+xESuMqloE6lS9eOKzs9GDyqyfyubZiY58F1JtDRqSIiOPVpJH/wmPl
+	 O9RCLzAW6MKCvsBoGhxA07dTdwxnFwufdjCr20dw0zItFjrb68w0ZoKbeGHs2BZJKu
+	 64IUr0OAibp4A==
+Message-ID: <sashiko-outbox-228375@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net-next v3 00/11] tc flower: tunnel key partitioning
+ for RX queue steering
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Alexandre Cassen" <acassen@corp.free.fr>
+Cc: linux-rdma@vger.kernel.org
 In-Reply-To: <20261122213200.3207385-1-acassen@corp.free.fr>
 References: <20261122213200.3207385-1-acassen@corp.free.fr>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Sun, 22 Nov 2026 21:45:03 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -87,54 +59,9 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-Tunnel mapping stores the matched tunnel key. The metadata of a packet
-missing in hardware after a goto chain or a sample is restored from it.
-A partial enc_key_id mask would restore a wrong tunnel id. Flower is about
-to accept such masks.
+Sashiko has reviewed this 11-patch series and found no issues.
 
-Tunnel options with a partial class or type are already rejected here.
-Rules without tunnel mapping keep working.
-
-Found by an AI code review agent while auditing the users of enc_key_id.
-Tested on ConnectX-7 with firmware 28.48.1000 in switchdev mode.
-
-Signed-off-by: Alexandre Cassen <acassen@corp.free.fr>
----
- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-index 1d35c97aea0b..ba3aef3c8063 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-@@ -2257,6 +2257,7 @@ static int mlx5e_get_flow_tunnel_id(struct mlx5e_priv *priv,
- 	struct tunnel_match_enc_opts tun_enc_opts;
- 	struct mlx5_rep_uplink_priv *uplink_priv;
- 	struct mlx5_flow_attr *attr = flow->attr;
-+	struct flow_match_enc_keyid enc_keyid;
- 	struct mlx5e_rep_priv *uplink_rpriv;
- 	struct tunnel_match_key tunnel_key;
- 	bool enc_opts_is_dont_care = true;
-@@ -2265,6 +2266,16 @@ static int mlx5e_get_flow_tunnel_id(struct mlx5e_priv *priv,
- 	u32 value, mask;
- 	int err;
- 
-+	/* The mapping restores the tunnel id of a packet missing in hardware */
-+	if (flow_rule_match_key(rule, FLOW_DISSECTOR_KEY_ENC_KEYID)) {
-+		flow_rule_match_enc_keyid(rule, &enc_keyid);
-+		if (enc_keyid.mask->keyid != cpu_to_be32(U32_MAX)) {
-+			NL_SET_ERR_MSG_MOD(extack,
-+					   "Partial match of tunnel key in chains isn't supported");
-+			return -EOPNOTSUPP;
-+		}
-+	}
-+
- 	esw = priv->mdev->priv.eswitch;
- 	uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw, REP_ETH);
- 	uplink_priv = &uplink_rpriv->uplink_priv;
--- 
-2.43.0
-
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261122213200.3207=
+385-1-acassen@corp.free.fr
