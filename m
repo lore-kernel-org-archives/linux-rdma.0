@@ -1,52 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.27.60.169
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795378639;
-	b=LeTKhCcfYD5OnpQ63dHXVR/GzgFy/CMsgwv2z1HXSSBwwHytBBGAOrx1jKmb+D7TwLQr
-	 0CFWY3nk84q97p/5v1E0sy/ypFZHSNESAg9DEqvpltln9JVGlUr7l8L9i+olYfMKXcUig
-	 Hes8iacm3auYEmogkCNY78OhzMbKcQBM1gMHqDM6gbM4OgjFLeIMLwRcpKOcZHPP+QwtP
-	 relguKrq56hlw0U3GWDeUkf4vPAaZHeNNgmhiwrFfU021oTgMDIm0MbGgWqqqZZbQA3E9
-	 tMw8NFuzuR5OofYPK+YoogvRSVaam2c6CYPsbufno3J+L6GPpw0GJJGmI4UcLer71QQ==
+	t=1795379634;
+	b=2xuW3YOcGKpEAWq2U7oxYv2+DVjteYMgPf14RnYc8jmmOdM5tQfeJHiFW+nH/LIQKZey
+	 MjrUpX/vCGg18+oDCheAUuaueH3RKXKfEghgGF7PVEdcwFkl2XqDJH+ZLbPqOFJk4mFqU
+	 95ZNrmD1xLIqnvZ2bsqSkITzjhY+xUBJB/a6+2vibYJlCUzKUTXrfP6FpJ67G4yZdtAvI
+	 U1pssGswD/tS51Rl+PeEjp2Sx80lI3QLYxo3l9Iln38a0f5UWcsWzSRu3LbJQqc6evOGm
+	 2XaqeT28VbDPAbkckQ+ZU4bYIdk6PZbJE/+kjQkqPjse1JqHwwnmbDwxz/Rf59gzzew==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795378639;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795379634;
 	h=DMARC-Filter:DKIM-Signature:Received:Message-ID:Date:MIME-Version:
 	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
 	 Content-Type:Content-Transfer-Encoding;
-	bh=eRHsra6RBQdHsm+/rz4srEJmAl36q57hdP0Dh3GlsWw=;
-	b=CH07x0RV/Fvo02a9k04qtUtcmF5U6MZsoTF2ZnBpylfZCA8nJQPXkSjAYZm8aYIaUqY1
-	 11pDqgZoTLtPG8jx3XwW5jTV0k2KUpmvXdQ3zlU5FBzLpWjejdi8oMsFNKMi1sxXOsTQR
-	 wYKe1+u630YBLkmZ9xeuxRW4eSdG7PhknzLK/l5LwO7tKir8W4i+WcLFY4lGhxDGvy5Or
-	 fe5iUMu1g7mfkKRmBzdVkA2KpezEr78cTsQx4aaRF8d1dNEtsDdLqz3Vl2JQcscjBOLfR
-	 znvDGEF6/NlpKGGuorJ+B2qgmpmiA2mJ/U49ZP3/s1+/lSeMd819ml2QUFCTVGnGqZQ==
+	bh=RA8x73YPrFGxdZjoHXQbPrziSX/WOKdJXB926WeBtQY=;
+	b=rFGxGrITjgomTLFMVwRTsLb9sddQ9f/WjbBqCphuK0/aAawYHah/lVKQLQPEGhkqIVRA
+	 8OTsRZGaRmK3p2QzPD4UzApmHvvt00Jnv6jsO445PTkonbn9XefFngfY5vJlRrvGfTfhC
+	 6q8fEe5qTjQ5UwZD5gvS2nNzDswnXdVRCapQhTM9swNzvGPRJsTaep2b2wMWLSVnJb37K
+	 BBys7X/+paYux1wg4/oOc4v157OltojQtRynub2yPoz/y0aRD0FlJveGGe5rVaRWSf1EL
+	 V1FoZbF/UV6PWTLeVXfnMRe1oB6DrasPnndv43xR+qkaUcNhfxIMYzdEev05WR7aFug==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=corp.free.fr;
 	spf=pass smtp.mailfrom=corp.free.fr;
-	dkim=pass header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b="KV6a/Ax0";
+	dkim=pass header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=XhHbwF8m;
 	arc=none smtp.remote-ip=212.27.60.169
 Received: from rcs.proxad.net (rcs.proxad.net [212.27.60.169])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9A65606A31E;
-	Sun, 22 Nov 2026 20:17:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E9A65606A31E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9CE0606A31A;
+	Sun, 22 Nov 2026 20:33:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B9CE0606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=corp.free.fr
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=corp.free.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=KV6a/Ax0
+	dkim=pass (2048-bit key) header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=XhHbwF8m
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=corp.free.fr; s=rcs;
-	t=1795378630; bh=reaXzdgyMMqRj1zA2Esagitp1XJA0FQvEzoZ17ZFMmI=;
+	t=1795379631; bh=1AkORMZI9fsVIs2vr6hJ9ymldCq6J3f7/QD/Oa4DfIM=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=KV6a/Ax0sBJ8OshW7PRXLVfGl41wyZ6N/c3AOKxOLU/ncq+3wpMoUzOF1cgQam+X0
-	 gSlsHOJC9VonxEVes6wxFuYhlz4oAyN/vy17UgWpyJLXYG3BVax7T3gXf+W07SCZ/R
-	 OLtU4KJcK3Vz0AjJguVkD0M8M+xGCf903Z6/vwWmb0ecxVsd/ePR9pFJaK5+Pb7aRm
-	 i2ZmCGKRc8Acw3APo5oSKUxemfDzfFF4g7FpUNsd6zrKlcE597REeOHXftyoVjlsyl
-	 uG3Rq9STohXFHqb2T8HVOuQuyErCFnFeRzQSBgWOwnwA4K/KrwCzBQneySRRSzuY84
-	 OKZ7imniFQ22A==
+	b=XhHbwF8mqx6NhCtA6G/mPzI2EfpUxZgJQPgfyss+ngvduypWUxSqkNwAiW6YYZoiB
+	 YL5+0QNWA/ELIooQLppESOKsb6/JXB//sno6A4YaRnChIp9WUtOiUAL+NASCPRJbXH
+	 rf0C8uCEGc9lahloB5ABzd3cXYmCm29r4LG2ZHi8cqoRrMKJX4d46mGzHLwmWkBUK+
+	 CRw6ovrV4R9+69+fZ+9DBNmn092HQ5fl/6jOphyWz2Va7Zh14q078RpR3cJ2Ojkpjh
+	 XwBHEbYLWkqULXf5fersIUELt/B5LXdDTTeC58V+lWHJRzGnWc/81nXVxy4ONmKpW2
+	 ul5JpZylbZyRw==
 Received: from [0.0.0.0] (unknown [213.228.1.188])
-	by rcs.proxad.net (Postfix) with ESMTPSA id 895A944C036C;
-	Sun, 22 Nov 2026 21:17:08 +0100 (CET)
-Message-ID: <3b3dff0d-e879-4a14-9f17-2b3015b6da39@corp.free.fr>
-Date: Sun, 22 Nov 2026 21:17:07 +0100
+	by rcs.proxad.net (Postfix) with ESMTPSA id C990644C0B3E;
+	Sun, 22 Nov 2026 21:33:49 +0100 (CET)
+Message-ID: <73a9b976-ad73-4793-8444-bcbbf7b2bd8f@corp.free.fr>
+Date: Sun, 22 Nov 2026 21:33:49 +0100
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -57,8 +57,8 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v2 05/10] net/mlx5e: TC, reject a partial tunnel
- key with tunnel mapping
+Subject: Re: [PATCH net-next v2 07/10] selftests: forwarding: tc_flower: test
+ the enc_key_id mask
 To: netdev-bot+sashiko@kernel.org
 Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
  jhs@mojatatu.com, jiri@resnulli.us, andrew+netdev@lunn.ch,
@@ -70,57 +70,94 @@ Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
  netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
  linux-doc@vger.kernel.org, linux-kselftest@vger.kernel.org,
  oss-drivers@corigine.com
-References: <20261117092915.255194-6-acassen@corp.free.fr>
- <179514543838.3136.15751272244504735479@kernel.org>
+References: <20261117092915.255194-8-acassen@corp.free.fr>
+ <179514544037.3136.16339086532983375306@kernel.org>
 Content-Language: en-US
 From: Alexandre Cassen <acassen@corp.free.fr>
-In-Reply-To: <179514543838.3136.15751272244504735479@kernel.org>
+In-Reply-To: <179514544037.3136.16339086532983375306@kernel.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
 On 11/20/26 04:30, netdev-bot+sashiko@kernel.org wrote:
 > [Severity: Low]
-> Should this check depend on the tunnel type? For VXLAN and Geneve the
-> tunnel id is a 24-bit VNI, but this check requires all 32 mask bits.
+> Which iproute2 change adds the MASKED-KEY-ID token to the flower help
+> output?
 >
-> The VXLAN and Geneve parsers already refuse keys that do not fit in 24
-> bits:
+> The kernel tree does not contain MASKED-KEY-ID. It also does not contain
+> the "enc_key_id 256/0xf00" dump format checked further down. Released tc
+> parses enc_key_id as a plain be32 and rejects 256/0xf00. The commit
+> message does not name or link the tc patch that these strings come from.
 >
-> drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun_geneve.c:mlx5e_tc_tun_parse_geneve_vni() {
+> With any tc that lacks this exact token, the test echoes the SKIP line
+> and returns 0 without a TEST: line. The new TCA_FLOWER_KEY_ENC_KEY_ID_MASK
+> handling in fl_set_key() and fl_dump_key() is then never exercised.
+>
+> If the final tc patch uses a different help placeholder, the test would
+> skip forever. If tc prints the key in another format, the dump check
+> would fail.
+>
+> Could the commit reference the tc change it depends on? Then the probe
+> string and the dump format could be checked against it.
+
+
+The tc side is the iproute2 pair posted with v1 [1]. v3 drops the help 
+probe.
+The test now adds a probe filter and reads its mask back. That also checks
+the dump format of the pair.
+
+> [Severity: Medium]
+> What happens here when a tc that knows the mask runs on a kernel without
+> TCA_FLOWER_KEY_ENC_KEY_ID_MASK?
+>
+> tc answers the flower help probe above by itself and never asks the
+> kernel. So the probe only detects userspace support.
+>
+> TCA_FLOWER_KEY_ENC_KEY_ID_MASK is added just before __TCA_FLOWER_MAX, so
+> older kernels have a smaller TCA_FLOWER_MAX. fl_change() parses the
+> options liberally:
+>
+> net/sched/cls_flower.c:fl_change() {
 >      ...
-> 	if (be32_to_cpu(enc_keyid.key->keyid) >= MLX5E_TC_TUN_N_VNI) {
->      ...
-> 	MLX5_SET(fte_match_set_misc, misc_c, geneve_vni, be32_to_cpu(enc_keyid.mask->keyid));
+> 	err = nla_parse_nested_deprecated(tb, TCA_FLOWER_MAX,
+> 					  tca_opts, fl_policy, NULL);
 >      ...
 > }
 >
-> mlx5e_tc_tun_parse_vxlan() has the same check. The mask is then written
-> into the 24-bit vxlan_vni or geneve_vni field of fte_match_set_misc, so
-> MLX5_SET() cuts it down to 0xffffff. On the VXLAN-GBP path,
-> tunnel_header_1 gets mask << 8, which is 0xffffff00 for both masks.
+> In that mode, __nla_validate_parse() skips attributes above maxtype:
 >
-> As a result, enc_key_id <vni>/0xffffff and enc_key_id <vni>/0xffffffff
-> program the same hardware match. Also, key & 0x00ffffff equals key for
-> every key the parser accepts. So the wrong-tunnel-id case from the commit
-> message does not seem possible with this mask.
+> lib/nlattr.c:__nla_validate_parse() {
+>      ...
+> 		if (type == 0 || type > maxtype) {
+> 			if (validate & NL_VALIDATE_MAXTYPE) {
+> 				...
+> 				return -EINVAL;
+> 			}
+> 			continue;
+> 		}
+>      ...
+> }
 >
-> After "net/sched: cls_flower: add enc_key_id mask" later in this series,
-> a VXLAN or Geneve rule with the natural full-VNI mask 0xffffff would get
-> -EOPNOTSUPP on every tunnel-mapping path. That covers rules in a chain
-> greater than 0, and chain 0 rules with goto or sample actions.
+> So an older kernel would install the enc_key_id 256/0xf00 filter as an
+> exact match on key 256. The "Did not dump the mask" and "Did not match a
+> key inside the mask" checks would both fail, and tc_flower.sh would exit
+> with ksft_fail.
 >
-> Would it work better to compare against the id width of the tunnel (24
-> bits for VXLAN/Geneve, 32 for GRE)? Another option is to compare the mask
-> only over the bits the device actually programs.
+> Documentation/dev-tools/kselftest.rst says mainline kselftests should
+> skip gracefully on older stable kernels. The test already reads the dump
+> back. Could a missing mask in the dump be handled the same way as the tc
+> probe, instead of being reported as a failure?
 
 
-No. This is the question of v1 [1]. On VXLAN and GENEVE, N/0xffffff matches
-the same packets as the exact key N and the exact key works in chains.
-A check per tunnel width would only accept a second spelling of the same 
-rule.
+Yes. On a kernel without the mask the v2 test fails with "Did not dump 
+the mask".
+In v3 the probe filter goes on $h2 first. When its dump lacks the mask, 
+the test
+logs a SKIP line and returns. It now passes on a kernel with the mask 
+and only
+logs the skip on a kernel without it, with the new and the old tc alike.
+
 
 [1] 
-https://lore.kernel.org/netdev/35bf2a1f-7f65-45fa-a854-dd4f4c4c0d90@corp.free.fr/
-
+https://lore.kernel.org/netdev/20261109131151.960789-1-acassen@corp.free.fr/
 
