@@ -1,93 +1,65 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.52.12
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795342132;
-	b=rezgdXAbRsK6O7UTPjsJoMIyEFW/A7A9v8Bi2ugNT4vZMEUAqyEBaWXt1qlVkDicghIW
-	 lzWTn2CCMo6J/Oq12c9cCxNu3XNTflGjrW1Isf0467nyHqyKiBOqAvWFwEjiV5Rupzixt
-	 QoNhYUSLp3PIGRlVKbdH9jCulf6ZYjqdJL5ZjpvRSUJl4P8TUBfAoJfARfdikWNgnnKCM
-	 d8WmGQmZq4zGJkNOJEGj2Akjh8nl3YFrIAc2UDp7+CUtjdmT0J7qDHxEqirm/lHpxr3tx
-	 pXqRbDKGmKU4Ssz8j0kroNIbzZvm4DBURekAaytfkP8XcCrpZL5rZKg7aROyH1slZ/g==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795342132;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=SFCL+nGTZrqDukoqI+TD4w6kluc4pq0GCHYgZdTvnjE=;
-	b=fgDtZSlwNBr0nUfhhk3NCe0U4L2u5wEFztXCYg8a8X7DQKliF6NwhX5DAEApTl3gOlG/
-	 3HsVhc1WLnuhFNr6JihEM5LpGa+1H486Da0q39AOoObt4mQlx97rtOK+GwHWzRUbSCJ8u
-	 i3QbR0FFmLJq5WRrrdp1R3tNcBg0NtWNEYjrgTYHBEoV3YQJz3ptHkE4ky1KD0aQmQuFZ
-	 tm1hK1qA5RXuzV9PGDhT8jtu/gC3K4zkLMLsk8QLEDBwP40vygIcjENIBQub4FT6eQJxl
-	 EnecRPRVrCDjYNPkCXO7nqNSlzG7LG/kIMQ+AmjYdOQkB7h0ybNcim0niLivtOcdpjQ==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=NRag7HDh;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.52.12
-Received: from BL2PR02CU003.outbound.protection.outlook.com (mail-eastusazon11011012.outbound.protection.outlook.com [52.101.52.12])
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795342854;
+	b=oHO7PvRee/CErq6ubqkXEKrV8OV8hGXsmhGDfJHCwnWPFjjsGDHiRfg3d38koOU0lB90
+	 p7KZQLjEwfJ/ZVtaxNERpLi4H1Jc2srQEQGDGEDxuQTti0NMq094DAzcYa7rNugvcrTX1
+	 KPZbfr7KQYdubG+Q+XuFt0Rt8Vn5TH8rAe39RdQPUIpHnFCs+aL9FhN4U0264CqIQD7fF
+	 hCPs9tdbgLXEyEQBt3osMWqs3Q2WSYAvCz3urMkCTbG0Nn5omRU0dZkhjaBMYxyYA3gRh
+	 3nK7zBFweIngaCyLGNo3VjdBOTAw7x8gTnENMjrOp7zvVsxbWVswgqzyRkb/yJdw2LQ==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795342854;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=XbK8dY1xzsejjPb1arOv0xhaSlwRdVDea8jWM8dUcuw=;
+	b=NkVul1LzrTiWsA2s/oe8gAbmWQmRr57nedKKtoclplem4vNCVDQtv5CV7aNHiUS6G7FV
+	 e83eXt6t8/VfcHbNt7f1meJtUB89HLpUuIBSmRRsyJw96cqTlTXUqFB5qM6tqd7KiG5p3
+	 gPpeYo+5Fk6hAkT1XLExNUmo8IPLwNGmyOxpFuTMxC1wfZCxC/+K8aoonTlWEYvj1U0rw
+	 oBFQu+eJyiFB3VUjxpxcKN2AWdM+tELl0rnsvy2b/iUbtl4J7GfPNoIXEPcdWe6N/U1po
+	 SIVkP5t4V++Upi5yQePQdrQdumpPcPQ1ev9oFXHHDfiTQ7f+WoeGsaAHplelmfmd80w==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mMmNtnZr;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63593606A32C
-	for <linux-rdma@vger.kernel.org>; Sun, 22 Nov 2026 10:08:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 63593606A32C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D19A606A32A;
+	Sun, 22 Nov 2026 10:20:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=NRag7HDh
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=S106L1idqoiiKd/43OrxkH1lTzxcbJfCrQIH0KV849eyMFh8+V9lyOshNJ6/zdA6i1KUhWmarhZHi5iFcadLO5geC2wTTL/RnAVwFHf1cumFeHDW/JO29C6xU7TajTeKKXOzxR2n6GUtga2G8wO4c6YTRJKeUK/DOrS4GPEKzf/MkCuY7V2SvmlJUElp3UsusrvB+siPIEyHSzjtI3X6HEB3x9qkx91PgoWYc+D17IhghzF4o31880rcTaoO8FjXhlp04xjx+mRlVmULvBxfR37K/18EfNeZTqenc/lKfw8ed862fg2V3NIWzlKN7eXuKb8rX8ydylIjieplSxOilw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=SFCL+nGTZrqDukoqI+TD4w6kluc4pq0GCHYgZdTvnjE=;
- b=JzdnK1ERRNuwzHDH/NX8+HPOMdK2nTp23Er7LduoqMjYPgn9aggjGyFPTWYvcXAAcI9rfeOO6kWdSGjyspFKFm12ovCtcZTEJ41BeGFWnnFV2fl5HySGjiF0hjMs6hnyVDnFcMHfJg9ptkKcY464iGMag7wHZALDu8QXs5ko2H6UbmKDI3+h3qMCFStYnQcjeVyuRRNAUA/XDPpXA3goAK6ss+XPzOY8TFD75e64zFs1bt1eaMPq2yjins6jhyvmkrS9k0XumIDHvYFSlXgzGSMD90nw7Q/h2T3K/UQ/vnLzjS7AtmgJTGdRXD6aAjMhkqkd7Kg/UuBsAC1C3lF3nQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=SFCL+nGTZrqDukoqI+TD4w6kluc4pq0GCHYgZdTvnjE=;
- b=NRag7HDhVfeh494N528bZgkIhA2Jyq5M0/HS9oM2anq+U1PFCLl2s8Gjw5YOfyiaMyXD2kF/dw9tKCOQDb5IY4zNjN9tn1OlqGbTXTGoC6KhnaKgAvKxLoWwInhoptEtpFnvAb5KisUv+bZGBHvj71HpNyTNn0xKGd//OidD96cptEsaVeDHdxOjeelKl3HkEM++ANMoupfC3aUv9VBrA2TsYseaI9yGeb/aiKF0sSv0ufFhuKab+f58Hzf7Xz2JIAd68135osuNlBLMP51A3aRWQ1wMs9NehiQlOa1RIvysdhi8IcGKF6QdxC8OgGIiFcqH+g0AM6bl/Y8KZXrePA==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from BL3PR12MB6473.namprd12.prod.outlook.com (2603:10b6:208:3b9::16)
- by DS7PR12MB6046.namprd12.prod.outlook.com (2603:10b6:8:85::20) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.639.10; Sun, 22 Nov
- 2026 10:08:48 +0000
-Received: from BL3PR12MB6473.namprd12.prod.outlook.com
- ([fe80::778:72e1:e792:df81]) by BL3PR12MB6473.namprd12.prod.outlook.com
- ([fe80::778:72e1:e792:df81%6]) with mapi id 15.21.0639.012; Sun, 22 Nov 2026
- 10:08:48 +0000
-Message-ID: <45237f26-af37-4390-ab34-8b6cc78ec510@nvidia.com>
-Date: Sun, 22 Nov 2026 12:08:44 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] IB/mlx5: Fix a potential memory leak in setup_qp()
-To: Wanhui Fu <fuwh1120@163.com>, leon@kernel.org, jgg@ziepe.ca,
- haggaie@mellanox.com, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org
-References: <20261121095902.442960-1-fuwh1120@163.com>
-Content-Language: en-US
-From: Edward Srouji <edwards@nvidia.com>
-In-Reply-To: <20261121095902.442960-1-fuwh1120@163.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: TL2P290CA0026.ISRP290.PROD.OUTLOOK.COM
- (2603:1096:950:3::13) To BL3PR12MB6473.namprd12.prod.outlook.com
- (2603:10b6:208:3b9::16)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mMmNtnZr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 878FA1F000C6;
+	Sun, 22 Nov 2026 10:20:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795342853;
+	bh=XbK8dY1xzsejjPb1arOv0xhaSlwRdVDea8jWM8dUcuw=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=mMmNtnZrSH+8Fu0k2sBGHx8qLNCtqxiRysbBRUqoLOP8sLKPr06zw2itooghmi4HC
+	 P40foT0++CDz3OcI9OMtIqw2sa1SUkGI5PGVOmDhff/0bM2agSy0QG0SairNUhzvKl
+	 Q08FSk81UfGsOfwCVCYSBgOiWSwTHb6zCgTkjNCkT//UPEPoDciPGsgAlOTR8KYTnq
+	 AmEcN1ZHCWcK6mlK2z5v5l4xPbVmPfn8IXahxWaTb/+Fj8toobQpeYperK1thd6ViH
+	 hF8puGlWgj2OElfYcwEMDeQ/HxyM05KVV+QOb4wvoa68xGFFg9bErrQldoDBLKEIK0
+	 oAgELJ3Di7FSQ==
+Subject:
+ Re: [PATCH net v4] net: mana: Avoid waiting on dead HWC after device reset
+From: netdev-bot+sashiko@kernel.org
+To: sahilchandna@linux.microsoft.com
+Cc: haiyangz@microsoft.com, wei.liu@kernel.org, decui@microsoft.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, pabeni@redhat.com, kotaranov@microsoft.com, horms@kernel.org,
+ ernis@linux.microsoft.com, gargaditya@linux.microsoft.com,
+ mawasthi@linux.microsoft.com, kees+treewide@kernel.org,
+ schakrabarti@linux.microsoft.com, leitao@debian.org,
+ linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+ stable@vger.kernel.org
+Date: Sun, 22 Nov 2026 10:20:52 +0000
+Message-ID: <179534285205.3135.17134166045415765008@kernel.org>
+In-Reply-To: <20261118091436.3985155-1-sahilchandna@linux.microsoft.com>
+References: <20261118091436.3985155-1-sahilchandna@linux.microsoft.com>
+X-sashiko-severity: Medium
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -97,101 +69,190 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL3PR12MB6473:EE_|DS7PR12MB6046:EE_
-X-MS-Office365-Filtering-Correlation-Id: 5deb69b7-8361-4bb7-44b2-08df488099b7
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|23010399003|366016|376014|18002099003|22082099003|261009223027099003|56012099006|261102123227099003|261022105027099003|261021121427099003|261026140227099003|261021123027099003|261028144727099003|11063799006|10067099003;
-X-Microsoft-Antispam-Message-Info:
-	Gfu9jk3zuwo07Z4I929h5EDgwn2lpafBTlGdKf8fJ1kQQal108FqAqCx68CO1o0ioEpdxuZw/kNZM/RJ73rmJAj0u8N0O57EDW63RhrkByMT5Scn6KPAHsV+ulF2/rSsloaIjm6eY0tYFZUIHmKs+Qyf4tSlrDJeYIGcOvS9EHoxqzFZxHhLcpQa3rnGeP8cuR5x7yLVNJ+meh14t6JGVqJsuO7EbRGwuisP/IdYWGDclfBrytf4kmItw4g6S98vK0dDeSbQ6t55/O4BF3n/DoJWFwSNT3a/9mh6uI4bzn1H/6e/ZuNBlNERmIVrAVnet+cpyHw8NQi8CUVWhvKCAEq+C3IfzmrU/agYICLQV+nlaoyHVP2Cl7ahhGt9s717BRPUInPgrZj1b012DJAvnSQjeIDGR/aRgjILBoHjGqOHaszlIbvU8b2JALsKG+LMdeNhlzsWBAFo7XyjBHZNktF42AYnO4DJqcFV0fE78tXlhK2eX7aW82RwFhSN5m53A4+/tY2jKAEzAfltn0x0u2AGyOKfVvKuw8nxm5ZKWyIJQDTmBU+7h2Kt16uMLUdlwjzo4k+FIiLSfFDJvIGSSPuaaUOT1RhRHVnYzPxySfF9yua6/3Ryt/crmWfSFzvxckzRbYscksOtJ/+XtS5OArne4KjHZOeGEQGxFDr88ao=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL3PR12MB6473.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(23010399003)(366016)(376014)(18002099003)(22082099003)(261009223027099003)(56012099006)(261102123227099003)(261022105027099003)(261021121427099003)(261026140227099003)(261021123027099003)(261028144727099003)(11063799006)(10067099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?RnlpQWxjaWtNcEJ6TVA1V0tLYlY5cnpEVExSNFJHUlZFRTNpamh6MUdKYTI2?=
- =?utf-8?B?dFZ3NklXYkwvWEQ2VmcrRmh1TExPNTFPMlhzNlZ6WEdIb1YxRWlIVmF0RlFz?=
- =?utf-8?B?L0pGT21OMDd3NVk4ZDF1T1JaeVdrcFNLdG4waERpN0liWWFrNVZ4S2ZjODRL?=
- =?utf-8?B?UGUvdzc1QUVIR1hrSlBYa0dBUUc3YytWYVQ1MVp0SGRnRFFKakNXT01VWSs3?=
- =?utf-8?B?eDlqR0dMcHhTTjBjcFc5dWFtaXNZaWdObjJUdWhyRVdGV1ZTbDc3SGYzekVB?=
- =?utf-8?B?Vno0SjZ4WVVLdi9JcGd5NEJVeUpPelRoc2dBV3lCQ21Qakd3WVFnb1VzZ2ZN?=
- =?utf-8?B?Qlp4cWsrK3NvSXVLU1l0MTdNcnVSV2FXZnVuM0hodDZvSzJVV2EvSUdrRlJx?=
- =?utf-8?B?S3hpOFJyVzZmVGIxNmJJMkxicDZTTHNxbWZjVTVBRFlyQ1IzanhFMzdGNzZH?=
- =?utf-8?B?YmFhaFBMMHR4VU1wd21SQlk2TWZyM1o1b2tlTml5QU5SeENSQXd4QlhsMnFx?=
- =?utf-8?B?L0ZGVGZjVm9URHR1Z214bUpsb2tCeXV3ckNnODlSUzFsaHJjenlGU2FZTC9Z?=
- =?utf-8?B?WnVONlVGQVpycGRKSmxVOXc5cXNJemxmNE5sUEtlRE5sMENDTVRqaFdJT3VB?=
- =?utf-8?B?bFlHWlZnQ0lpV0E1bEgrd2VKbzcyRFBteVZ2S1RtMFJjSVpPUStBQk5PSHRR?=
- =?utf-8?B?WjVDbkdQOGJRbCtYelFGNzFKcTRaZ2dJWUF2d0xxakg0ZEVKN3hGdVFBSGVO?=
- =?utf-8?B?U3k0M2p3aVE5aGdwVHpRalVDbkp6cEZHSWZzQXNKcUx2TndRamhNV2FONzdV?=
- =?utf-8?B?N2lQeFM0Y2FqQ2pJbm9MV0JBTE5ZbjdRQXpsamUvZTFFaG82cTBJMUZZdHVr?=
- =?utf-8?B?QXVBRDdtWUZVMkJ2TEE1QTdIa01SOVJQK1UwL0k5dk1PQ2ZNVFFTMnFKNmNh?=
- =?utf-8?B?Y29HTFN6c2NKbnJzWEtpb1FrUzBmRW4xWkV5VVdGcEZ1N1lEMk8wdUY3VHRa?=
- =?utf-8?B?WVRRQ1MvSWtOcDNFaXhLdWdwMXdoRDc3d05qemoyWVZRcy9QdnlzTXpvOGtx?=
- =?utf-8?B?QlhDTklwZ0lKelJ0SU5kOTFvY1BmNWNqRkQ5U1RtNWlJa2toK0R4d21acDJM?=
- =?utf-8?B?WG84TkRHMW01OTFoNlFNZWd3UnB4T1NKUHVhVXNabE9Wakw1Q1U4ZXNXRzEw?=
- =?utf-8?B?ZExURlV0aGx4cEQwcTJrWFZUY2hPaEtMNGsxV0gwTXZNbE1reWpPZGZLRmxq?=
- =?utf-8?B?ZXlremZ4ZXRWRnJYd2RFRzVyaTVrVk9yT0xJVXQrU3hEVWZRTnFNbTBMRHIy?=
- =?utf-8?B?Nm5vdzVqQ1VsNk9VV0RyWXZqYzZlVmVmT3JTU0JSc1lBQktqNDRSWHpTT2VW?=
- =?utf-8?B?Y1BIVTZ1cVZnUldVOTNkc0FKUnlMc3pVaUtTc0VHUEFnZkZSdmp3L3FyL2dK?=
- =?utf-8?B?RUpQcjdqalluWWhLdlBDSHpZQ05oWmg1NW4vUmtXQVg0SEl5S2MxZDVMNVBQ?=
- =?utf-8?B?ZFAvMXh5UUNYbUpOcEpLcEtPcytRL0ZzMG5RRFFiaUVWM2ZUYlVSUXlEajJh?=
- =?utf-8?B?eDJiK0FCSDQvNFpZNVk1Qi9QT1FaTWgwb2RnQXhXVmFxWW42SWYzVjNTbjZL?=
- =?utf-8?B?Mk9hRkFTT0VHbENnTmQ0LzBxMS83eTNBUUFiMXE2bFpHL2RhZTdLUlUyY0wr?=
- =?utf-8?B?NUFXbHpNczJ0ckI1T090eUllSE9tTzBUVTNzUEdaUElaek1ybHZiY0lNaW1u?=
- =?utf-8?B?Nnh4MkM3UlVXNTJmdlNiaHl1Qm43OUx2b0JUVmdwQVcrSCt2Z0ViZUxtY0hV?=
- =?utf-8?B?UzVTK1ZTcmFZRmh2NGpaRUpZOFJTZzYxWU4zTWh3MUczNjF0MHB4eVVMcWlR?=
- =?utf-8?B?bEl4NE9KTWt4WTZrcnp2L3c5SmdJbmxTTUJxZ3NQSWJ0ekRmQXVqZWJxbUR6?=
- =?utf-8?B?bngvOVgxZ0M4anVxQlV5RjM0MTFSUUI1aWhvMFpjTEJnak54Y0FyOFkxWXZO?=
- =?utf-8?B?SGVHYTJYTWw5WjZ0NkE5NjFwSllCYVJScGQzS1JrcUdpRU52M2ZQZGpCallQ?=
- =?utf-8?B?SC80RjZWaTIxNXY0akgxOXc1Y29jczNWVE5EbjVlZWorZk1uKzN2bnlLRHVT?=
- =?utf-8?B?UUdSR1BMbHY2MUlZeGVLS0ErMDN6b2FuNkx3a2RqTWtOT0Rrc3h5ZHovZUVM?=
- =?utf-8?B?RFJIS0pKdERyQ3lSWUhNU0xDeHlIRm52Ky80TXpnSytiTnA3V3VoUW5GS3JR?=
- =?utf-8?B?eG11WGxPMi8xcVlRM1VvbEJ3aWptajVkSGJKcTcvRVVPQWRrRUR4ZjJ2RE85?=
- =?utf-8?B?V3VzMksrVUs5WStieGw2ZlVCUzBNdExKTW0zMmh0Y3F6REtPYzhtUT09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5deb69b7-8361-4bb7-44b2-08df488099b7
-X-MS-Exchange-CrossTenant-AuthSource: BL3PR12MB6473.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Nov 2026 10:08:48.3268
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: kZEm+iAYy794OeslU4UAaFAXKxa/VJlAysyIpA2IcvmtWl1b91buanlSq58hSlA2dx8FxrTpAt+ukYE0pdX1vQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB6046
 
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
-On 11/21/2026 11:59 AM, Wanhui Fu wrote:
-> External email: Use caution opening links or attachments
-> 
-> 
-> create_gsi_ud_qp() creates a QP but the QP is not
-> released if modify_to_rts() fails. Free the QP by
-> calling ib_destroy_qp().
-> 
-> Fixes: ebab41cff4db ("IB/mlx5: Create multiple transmission GSI QPs")
-> Signed-off-by: Wanhui Fu <fuwh1120@163.com>
-> ---
->   drivers/infiniband/hw/mlx5/gsi.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/gsi.c b/drivers/infiniband/hw/mlx5/gsi.c
-> index b2e2a219639d..535a9f45fb33 100644
-> --- a/drivers/infiniband/hw/mlx5/gsi.c
-> +++ b/drivers/infiniband/hw/mlx5/gsi.c
-> @@ -316,7 +316,7 @@ static void setup_qp(struct mlx5_ib_gsi_qp *gsi, u16 qp_index)
->          return;
-> 
->   err_destroy_qp:
-> -       WARN_ON_ONCE(qp);
-> +       WARN_ON_ONCE(ib_destroy_qp(qp));
->   }
-> 
->   int mlx5_ib_gsi_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
-> --
-> 2.25.1
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-Reviewed-by: Edward Srouji <edwards@nvidia.com>
+- [Medium] In mana_dealloc_queues()
+  (drivers/net/ethernet/microsoft/mana/mana_en.c), the patch cuts the…
+- [Low] When mana_gd_dev_reset() fails in mana_dealloc_queues(), hwc_dead
+  is deliberately left clear, and v4 dropped the hwc_timeout reduction…
 
+--
+
+net: mana: Avoid waiting on dead HWC after device reset
+
+This commit replaces the 120 second sleep-based TX drain in
+mana_dealloc_queues() with synchronous CQ polling. Each queue gets about
+300 ms, and the device is reset if sends are still outstanding after that.
+After a successful reset a new hwc_dead flag is set, so that
+mana_hwc_send_request() fails fast with -ETIMEDOUT, and mana_fence_rqs() and
+the SHM teardown handshake are skipped.
+
+> diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+> index 7e9223143fc75..5e4379107b457 100644
+> --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
+> +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+
+[ ... ]
+
+> @@ -3774,19 +3780,24 @@ int mana_attach(struct net_device *ndev)
+>  	return 0;
+>  }
+>  
+> +#define MANA_TX_DRAIN_RETRIES	3
+> +
+>  static int mana_dealloc_queues(struct net_device *ndev)
+>  {
+
+[ ... ]
+
+> @@ -3799,31 +3810,79 @@ static int mana_dealloc_queues(struct net_device *ndev)
+>  	 * to false, but it doesn't matter since mana_start_xmit() drops any
+>  	 * new packets due to apc->port_is_up being false.
+>  	 *
+> -	 * Drain all the in-flight TX packets.
+> -	 * A timeout of 120 seconds for all the queues is used.
+> -	 * This will break the while loop when h/w is not responding.
+> -	 * This value of 120 has been decided here considering max
+> -	 * number of queues.
+> +	 * Drain the in-flight TX completions for each queue. TX is already
+> +	 * stopped, so pending_sends can no longer grow. For each queue,
+> +	 * disable NAPI so it cannot run at the same time as this drain,
+> +	 * then poll its CQ for up to 300 ms. If sends are still missing,
+> +	 * the hardware is not responding: reset the device and mark the
+> +	 * HWC dead so that later HWC commands fail fast.
+>  	 */
+>  
+>  	if (apc->tx_qp) {
+>  		for (i = 0; i < apc->num_queues; i++) {
+
+[ ... ]
+
+> +				tx_cq->budget = 0;
+> +				for (retry = 0; retry <= MANA_TX_DRAIN_RETRIES;
+> +				     retry++) {
+> +					do {
+> +						tx_cq->work_done = 0;
+> +						mana_poll_tx_cq(tx_cq);
+> +					} while (tx_cq->work_done);
+> +
+> +					if (!atomic_read(&txq->pending_sends) ||
+> +					    trigger_flr ||
+> +					    READ_ONCE(hwc->hwc_dead))
+> +						break;
+> +					if (retry < MANA_TX_DRAIN_RETRIES)
+> +						msleep(100);
+>  				}
+> -				break;
+> +			}
+> +
+> +			pending = atomic_read(&txq->pending_sends);
+> +
+> +			if (!trigger_flr && pending > 0) {
+> +				trigger_flr = true;
+> +				flr_txq_id = txq->gdma_txq_id;
+> +				flr_pending = pending;
+> +			}
+> +		}
+
+[Severity: Medium]
+Before, the driver waited up to 120 seconds for completions before deciding
+the device was unresponsive. Now it waits about 300 ms per queue. Is 300 ms
+a safe threshold for a function-wide reset?
+
+mana_dealloc_queues() runs during routine operations. These include
+mana_close(), mana_change_mtu(), mana_set_channels(), mana_set_ringparam(),
+mana_set_priv_flags(), mana_xdp_set() and the per-port queue reset work.
+
+Suppose a device works but is slow, and a TX completion is still outstanding
+after the fourth poll. Then trigger_flr is set and mana_gd_dev_reset() runs:
+
+drivers/net/ethernet/microsoft/mana/gdma_pci.c:mana_pci_dev_reset() {
+	return pcie_flr(to_pci_dev(gc->dev));
+}
+
+On CDX this is cdx_dev_reset() instead. Both reset the whole function. That
+hits every vPort on the gdma_context and any mana_ib user, not just the port
+being torn down. Also, pcie_flr() here does not save and restore config
+space.
+
+A successful reset sets hwc->hwc_dead. Nothing clears it until
+mana_hwc_destroy_channel() frees the hwc and a new one is allocated. Until
+then mana_hwc_send_request() fails at once:
+
+	if (READ_ONCE(hwc->hwc_dead))
+		return -ETIMEDOUT;
+
+Wouldn't the mana_attach() that follows mana_detach() then fail and leave
+the interface down?
+
+On PCI, recovery seems to happen only when mana_gf_stats_work_handler()
+sees -ETIMEDOUT and schedules a service reset.
+
+The CDX bus_ops have no schedule_serv_work callback, so
+mana_schedule_serv_work() returns -EOPNOTSUPP there. Would a CDX device stay
+down until the driver is rebound?
+
+The commit message says the budget "is not based on a hardware limit". It
+also says that in testing the late completions had all arrived "by its
+second poll", which comes after the first 100 ms sleep. That is about a 3x
+margin for a decision that resets the whole device, in a patch marked for
+stable.
+
+> +
+> +		if (trigger_flr && !READ_ONCE(hwc->hwc_dead)) {
+> +			/* Completions never arrived: the device is
+> +			 * unresponsive. Issue device reset and
+> +			 * mark the HWC dead so subsequent HWC commands
+> +			 * fail fast instead of each waiting the full
+> +			 * hwc_timeout.
+> +			 */
+> +			err = mana_gd_dev_reset(gd->gdma_context);
+> +			if (err) {
+> +				netdev_err(ndev, "device reset failed %d with %d pkts pending in txq %u\n",
+> +					   err, flr_pending, flr_txq_id);
+> +			} else {
+> +				WRITE_ONCE(hwc->hwc_dead, true);
+>  			}
+>  		}
+
+[Severity: Low]
+Two comments here say that missing sends lead to a reset and to the HWC
+being marked dead so later commands fail fast. One is the block comment at
+the top of the drain, the other is the comment just above
+mana_gd_dev_reset(). But hwc_dead is only set when the reset succeeds. Do
+these comments match the error path?
+
+If mana_gd_dev_reset() fails, hwc_dead stays false and hwc_timeout is not
+changed (v4 dropped the step that lowered it). The next call is
+mana_disable_vport_rx()->mana_hwc_send_request(). It passes both hwc_dead
+checks, posts MANA_CONFIG_VPORT_RX, and then waits:
+
+	timeout = READ_ONCE(hwc->hwc_timeout);
+	if (!wait_for_completion_timeout(&ctx->comp_event,
+					 (msecs_to_jiffies(timeout)))) {
+
+That wait uses the full firmware value, 60s on the tested system.
+mana_fence_rqs() also still runs on this path and sleeps 100 ms per RX queue
+on error. pcie_flr() can itself block in pci_dev_wait() before it fails.
+
+This is still shorter than the old 120s drain plus 60s wait. Item 2 of the
+commit message also says that posting teardown commands after a failed reset
+is intentional.
+
+Could the comments and the commit message say that RTNL can still be held
+for the full hwc_timeout on this path?
+
+[ ... ]
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261118091436.3985155-1-sahilchandna%40linux.microsoft.com
