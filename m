@@ -1,50 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.27.60.169
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795383133;
-	b=AlME3TQ/CvGKbaZrRtEm/dj2c/PB7sMl8iHN/7Gawly1mfoEM2x8dFeAF+qZ7XB4bwOB
-	 hb2bJFrIc8wcx/gfhlrDAoaHBhWALRQviR/WBKHTdlRIRZA57/UR8DxmeVH6fdY97TUyM
-	 b+xwg3vvd+8wkNdtC4j152rLT9qIB4nrZmKChOC71hQaYyik51j/hXU1qal/eZhAWDHFh
-	 wuHWfzHTTgwCqaMhgfTn2rfiDvgYwppcePaSL5zc3pCl7TkFJT91aPqj5Ah44myQ7U2ED
-	 IdvytgISRGBoK21TUazP2Hmd5KWltsO7e7lE70cXyEDdPSXb6tDOwuXeYolq1YCmc2w==
+	t=1795383134;
+	b=Qdm4kI77bYzG2N7B2Hs495Tnp/RkFCHvjzXVb6PNL0Dll7ROo2hIn15JS0+tBiJF9ARz
+	 eNVhmlw2t/81pdxo0TbreyQ0E6EMyGiMgkGXurYBIGFZEq3KPOs8ijmRGElMC7NErZxzc
+	 GpIWHqCIs9exMjssTR8pPw9X77gdn+l1iyI9gH7ftAV+vNFtm0XMrTN3swozK1jNPA/sU
+	 9rxN3AL8OHvD2KaUaNlPYqdAGvviMVf/pcW77SUGxr+KLt1+pTHcA2az7PRcHT1ZWitvs
+	 loZsJMT8wPh25lEIgZdgjQ1ANet1xRJhcyQxCafoRJX25O+ZCOShlopwKangNBitBnw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795383133;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795383134;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=x8bb8dSlnAi9xysbj9q54f2eazuM7V12au3HzFc3v2s=;
-	b=TROfhqHUSsj2m0c6Vs+b8+TQ6VcyGYvoFlX83CR0EL5YEdFl0hHsMEB2d8/Wz6aKwkZp
-	 HClDKenqRcKm8cS3ce/hWfwooGlz8ZuDJXIi78jrDVwiuoDWwau7BQtjysy7uXiKECFL9
-	 gyEZx3K2gyQu1U3EgiqSm9/q6cgsNQMwc5vKACBjnDw9CPk6pyZZOeJzVMOKFB2iksOwN
-	 RMfZyUGj+r7k0B5819DAE7qPSg07P//kl8xrzouSLGzX1YBDLnFpBVmECVZJUe/3kyUt7
-	 nxYaKQNO/ckReeltN3HLiwNE6pKvPBo87U6gieqL/5wxBOkJeuBUMdd4pW/j+g3Tq5g==
+	bh=lQQL+w7jSXxL7DuCEWJgXOVlyIiO08sZXsfYcN/oPBc=;
+	b=cydqfJ6JyprOah3xYog/fpk5PkBZZ1kzmwGgjEI0rYuJF9hkUhUmBILDldUoizIeieJ3
+	 /alqVHTkjH5F6fweHEYfJf7s/8Tc9hZlhkUqgQvfwOiYBbimIX8W6H7tY1OfYNRRkqrv0
+	 aI1+HEeKubIwOg6xE3n8IFYSjD6rlrrmm/1vVgGQdLxXanCBth0Vjb70BFsxx3ri4RdH4
+	 VFl1uxxQRJEdlhboYArNjtJz+qg6VFmA3X6V0IzeBde/lPoyTImvOkf4+zg7/Iu855QGB
+	 WmDJzbOV91RRiXLsdlrXp1CT5kIGMS01Ood1lLumfHfSgzsDl2Mko+xaiM8mH0/QKVQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=corp.free.fr;
 	spf=pass smtp.mailfrom=corp.free.fr;
-	dkim=pass header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=kd279qKG;
+	dkim=pass header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b="PNY/WmiJ";
 	arc=none smtp.remote-ip=212.27.60.169
 Received: from rcs.proxad.net (rcs.proxad.net [212.27.60.169])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41C55606A33E;
-	Sun, 22 Nov 2026 21:32:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 41C55606A33E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE9C560A2612;
+	Sun, 22 Nov 2026 21:32:13 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AE9C560A2612
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=corp.free.fr
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=corp.free.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=kd279qKG
+	dkim=pass (2048-bit key) header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=PNY/WmiJ
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=corp.free.fr; s=rcs;
-	t=1795383130; bh=T20bBXJlBwEbj1ZdlGMC/bOUUlcqtdRACZ/kT9wMq8k=;
+	t=1795383131; bh=kHRSW5x32V/1AcgY5KsUJ58hTF+YN8QMY2Q/TVZ/4XM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=kd279qKGqfcJM/QiPOpx1tAn/UfCvidnvasUEgXMjULT/eJhPWdI/5IHnfE/ikJRm
-	 l1gJiUKuzf/UY7SDWCZ0tC/9lDNJCLW3R9JOGL95VipusnOQKwAoJn2gzUeoFNkQ/p
-	 CzuKt/QTnzp9RUEVjICyk0dgHNnvgw6w/kD5YGmJbP0q4pCZsyZnuJtfL52Ow0qoGX
-	 UzSQlb0DhZTdISuvBO3X7G1mvgdPnI1/C/2+22diPlxKB1E/7wXPNXlFBaJVl/QFiA
-	 aAmBTZX1FEgrTko3VUgPoRS2Jr7EeujKhH1KRVCZn8nRg/aX19Kugrmi4UXMrLYd/S
-	 wbTVO4M85PRqg==
+	b=PNY/WmiJnuXwFMVGSBqasSMOPnymrPStY7frJLzk6sYT+k89kiQPMuTK2RsBuxPJ3
+	 V9DlQusGygRBiYIK6EKPEq7WodxwwJf14vtkQU9pzeK/lJkKkbChtAdqOgteOJmzpA
+	 Tg1kSvNHnC8FtaO0EChq9z8JWka8S2PkhoRPDjx3e6u28tBEN9ZWn8UbwG4K2L1TO/
+	 Q8k8UtKrt2tp6K6uV0RL69Qkxd+cTLLsUsdUyqxdsLhZwcApYR8YvSyvbw1BI5geps
+	 f2FlcD2LyN1gFEZPOiBsCdrZXXG4p8/ouXl3L3J2Xrl21RJZxw11a//qm4tbOOwM3R
+	 J1fnxje4BpOjQ==
 Received: from lnxos-dev.home (82-66-150-212.subs.proxad.net [82.66.150.212])
-	by rcs.proxad.net (Postfix) with ESMTPSA id 7069944C0B51;
-	Sun, 22 Nov 2026 22:32:10 +0100 (CET)
+	by rcs.proxad.net (Postfix) with ESMTPSA id 68B1844C0B5A;
+	Sun, 22 Nov 2026 22:32:11 +0100 (CET)
 From: Alexandre Cassen <acassen@corp.free.fr>
 To: Saeed Mahameed <saeedm@nvidia.com>,
 	Leon Romanovsky <leon@kernel.org>,
@@ -72,10 +72,12 @@ Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
 	linux-rdma@vger.kernel.org,
 	linux-doc@vger.kernel.org,
 	linux-kselftest@vger.kernel.org,
-	oss-drivers@corigine.com
-Subject: [PATCH net-next v3 07/11] selftests: forwarding: tc_flower: test the enc_key_id mask
-Date: Sun, 22 Nov 2026 22:31:55 +0100
-Message-ID: <20261122213200.3207385-8-acassen@corp.free.fr>
+	oss-drivers@corigine.com,
+	Vlad Buslov <vladbu@nvidia.com>,
+	Roi Dayan <roid@nvidia.com>
+Subject: [PATCH net-next v3 09/11] net/mlx5e: TC, reject tunnel keys without a tunnel device
+Date: Sun, 22 Nov 2026 22:31:57 +0100
+Message-ID: <20261122213200.3207385-10-acassen@corp.free.fr>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261122213200.3207385-1-acassen@corp.free.fr>
 References: <20261122213200.3207385-1-acassen@corp.free.fr>
@@ -90,97 +92,53 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-A filter on a block of tunnel keys must match a key inside the block and
-no key outside it. A second filter proves that the frame outside the
-block reaches the device.
+The list of supported keys accepts the tunnel ones but only tunnel devices
+parse them. On any other device these keys are silently dropped from the
+match. Following rule is offloaded as a match on all IPv4 traffic:
 
-A probe filter must dump its mask first. An old tc refuses the mask and
-an old kernel drops it. The test then only logs this. Reporting a skip
-would turn the exit status of the whole script into a skip. A tunnel
-device takes no skip_sw filter. The test only runs in software.
+  tc filter add dev eth0 ingress protocol ip flower skip_sw \
+      enc_key_id 5 action drop
 
+Commit 075973c7d7bb ("net/mlx5e: Rely on filter_dev instead of dissector
+keys for tunnels") stopped parsing these keys on other devices. Reject
+them there, for NIC and eswitch flows.
+
+Triggered during code development while preparing a generalized version of
+earlier GTP-U work [1]. Reproduced on ConnectX-7 with firmware 28.48.1000
+without kernel changes in NIC mode and on the uplink representor in
+switchdev mode. With this patch the rule is refused in both modes and rules
+on VXLAN and gretap devices stay offloaded. Not tested against kernel
+selftests because none offloads tunnel keys on a physical port.
+
+Fixes: 075973c7d7bb ("net/mlx5e: Rely on filter_dev instead of dissector keys for tunnels")
+Link: https://github.com/acassen/research/tree/main/UPF-flow-steering [1]
 Signed-off-by: Alexandre Cassen <acassen@corp.free.fr>
 ---
- .../selftests/net/forwarding/tc_flower.sh     | 59 +++++++++++++++++++
- 1 file changed, 59 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/tools/testing/selftests/net/forwarding/tc_flower.sh b/tools/testing/selftests/net/forwarding/tc_flower.sh
-index b58909a93112..0f725ec17468 100755
---- a/tools/testing/selftests/net/forwarding/tc_flower.sh
-+++ b/tools/testing/selftests/net/forwarding/tc_flower.sh
-@@ -3,6 +3,7 @@
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index 2326fb21da66..eab4d5417ce2 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -2786,6 +2786,17 @@ static int __parse_cls_flower(struct mlx5e_priv *priv,
+ 		err = mlx5e_tc_verify_tunnel_ecn(priv, f, &match_inner_ecn);
+ 		if (err)
+ 			return err;
++	} else if (dissector->used_keys &
++		   (BIT_ULL(FLOW_DISSECTOR_KEY_ENC_KEYID) |
++		    BIT_ULL(FLOW_DISSECTOR_KEY_ENC_IPV4_ADDRS) |
++		    BIT_ULL(FLOW_DISSECTOR_KEY_ENC_IPV6_ADDRS) |
++		    BIT_ULL(FLOW_DISSECTOR_KEY_ENC_PORTS) |
++		    BIT_ULL(FLOW_DISSECTOR_KEY_ENC_CONTROL) |
++		    BIT_ULL(FLOW_DISSECTOR_KEY_ENC_IP) |
++		    BIT_ULL(FLOW_DISSECTOR_KEY_ENC_OPTS))) {
++		NL_SET_ERR_MSG_MOD(extack,
++				   "Tunnel keys are only supported on tunnel devices");
++		return -EOPNOTSUPP;
+ 	}
  
- ALL_TESTS="match_dst_mac_test match_src_mac_test match_dst_ip_test \
- 	match_src_ip_test match_ip_flags_test match_pcp_test match_vlan_test \
-+	match_enc_key_id_mask_test \
- 	match_ip_tos_test match_indev_test match_ip_ttl_test
- 	match_mpls_label_test \
- 	match_mpls_tc_test match_mpls_bos_test match_mpls_ttl_test \
-@@ -280,6 +281,64 @@ match_vlan_test()
- 	log_test "VLAN match ($tcflags)"
- }
- 
-+match_enc_key_id_mask_test()
-+{
-+	local ret
-+
-+	RET=0
-+
-+	# A tunnel device has no offload to take a skip_sw filter
-+	if [[ $tcflags == "skip_sw" ]]; then
-+		return 0
-+	fi
-+
-+	# An old tc refuses the mask and an old kernel drops it
-+	tc filter add dev $h2 ingress protocol ip pref 1 handle 101 flower \
-+		$tcflags enc_key_id 256/0xf00 action drop 2> /dev/null
-+	tc filter show dev $h2 ingress pref 1 | grep -q "enc_key_id 256/0xf00"
-+	ret=$?
-+	tc filter del dev $h2 ingress protocol ip pref 1 handle 101 flower \
-+		2> /dev/null
-+	if [[ $ret -ne 0 ]]; then
-+		echo "SKIP: tc or the kernel lacks the enc_key_id mask"
-+		return 0
-+	fi
-+
-+	tunnel_create gt1 gretap 192.0.2.1 192.0.2.2 dev $h1 key 300
-+	tunnel_create gt2 gretap 192.0.2.1 192.0.2.2 dev $h1 key 600
-+	ip link set dev gt1 master v$h1
-+	ip link set dev gt2 master v$h1
-+	ip link add gt-ex type gretap external # To collect tunnel info
-+	ip link set dev gt-ex up
-+	ip link set dev gt-ex master v$h2
-+	tc qdisc add dev gt-ex clsact
-+
-+	tc filter add dev gt-ex ingress protocol ip pref 1 handle 101 flower \
-+		$tcflags enc_key_id 256/0xf00 action drop
-+	tc filter add dev gt-ex ingress protocol ip pref 2 handle 102 flower \
-+		$tcflags enc_key_id 600 action drop
-+
-+	$MZ gt1 -c 1 -p 64 -a "$(mac_get gt1)" -b $h2mac -t ip -q
-+
-+	tc_check_packets "dev gt-ex ingress" 101 1
-+	check_err $? "Did not match a key inside the mask"
-+
-+	$MZ gt2 -c 1 -p 64 -a "$(mac_get gt2)" -b $h2mac -t ip -q
-+
-+	tc_check_packets "dev gt-ex ingress" 102 1
-+	check_err $? "Did not receive the key outside the mask"
-+
-+	tc_check_packets "dev gt-ex ingress" 101 1
-+	check_err $? "Matched a key outside the mask"
-+
-+	tc qdisc del dev gt-ex clsact
-+	tunnel_destroy gt-ex
-+	tunnel_destroy gt2
-+	tunnel_destroy gt1
-+
-+	log_test "enc_key_id mask match ($tcflags)"
-+}
-+
- match_ip_tos_test()
- {
- 	RET=0
+ 	err = mlx5e_flower_parse_meta(filter_dev, f);
 -- 
 2.43.0
 
