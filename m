@@ -1,98 +1,70 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.47
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795356408;
-	b=B7v/KF+qTVcwUZyodFHeEBrA2XuoT0mY7n+BiDebYSH284IUiY0alIdURo5gkG6QdGQs
-	 q3z/JM6FfgKW2ysvwPmqI4Gjd2Grs+Vn+kvV9mK156M5la7wQfzMpH22YGkMIH7DTIVsA
-	 vYTIJI7Y1XV3NL+AI8lB9PmKyathmdpE9IglOj1gl64eQ9WxNVagd9PgJ/hbsfU5BXQvi
-	 uPqG3colJAh/1xLPzHrOmQX7oEfgUmuMyoClTE7jY5nR8cFbzeNBme5HeYX6YP7skv/K1
-	 RYFnA9E6B2HUK56r2rgHrOq6ucwzX4vgQYAhiRiONt9FYGi3+HROuI6WTf8ECbZxmLw==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795356408;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=2P7NnlFD6hf0e/Q9nUMush5WduoVnm93NdkP6w446kQ=;
-	b=QdEIlXPQOHL85DE9xtEEN5USV2gcL9TlIyqgOsAGnkb0W0RoHdcV9Bs2W10u4CNsr3uD
-	 XsZPE9gLzg9L20ru5c+Qv2NWSk6VtVJIAwvMqSAKTqkJbMKqKnoPUnOZ1LUeooao5YdxP
-	 gNxm7xP6ShWQ0QPq7yfprgPibVEw7kCSCZ+Jvh7hILCnfj4qtdpf3FrkrhtZMQCF06+y2
-	 C1kDbhHkbX/Sf2KmBK+TG1F+/9EnGU+qhPVAEuabCS9wmPs03jtLwaoIqbX05KcoSdxNU
-	 B8yqMSjWbcG2xuCVOK9SXminW/X4wJfNwTHhnYgJ2Hscvx98KKnbLJRuyk6FvVEbZJA==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=none header.from=iiitd.ac.in;
-	spf=pass smtp.mailfrom=iiitd.ac.in;
-	dkim=pass header.d=iiitd.ac.in header.i=@iiitd.ac.in header.a=rsa-sha256 header.s=google header.b=jd6ioXn8;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.47
-Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B52F606A32A
-	for <linux-rdma@vger.kernel.org>; Sun, 22 Nov 2026 14:06:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8B52F606A32A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iiitd.ac.in
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iiitd.ac.in
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=111.22.67.151
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795359120;
+	b=P6/IL8NkdkDizDoi/91i/hijrM9vocYPEeECTlYFHyA5oMd8vH3ZbStP1JRCI/6M+IPh
+	 DrpNVgILKPzRPDOl+yDG37Y1lDGkWUUBdywzxpMQ6/TWPTqcDg902HmquXQaZTV8yxpxq
+	 tkQugK/M8fj2ifRM2JNywtzGRxUXrG3cSiTCmxIEECtbLtE9RhIR20H6wS5fgcrh+jeRR
+	 6kok9kWKqY+SYpmirLPtqmv5fMImivWpQx7TXM0MlRSNbDg7GVQtCsaNAZaEJkX3PTX5E
+	 RkORcVHHp3WePqzoasuyE5SiPIySrCE5pwrcd51nFIrq46qU1bGpoxU/3u0Kb0CP+iw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795359120;
+	h=DMARC-Filter:DKIM-Signature:X-RM-TagInfo:X-RM-SPAM-FLAG:Received:
+	 X-RM-TRANSID:X-RM-TagInfo:X-RM-SPAM-FLAG:Received:X-RM-TRANSID:From:
+	 To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=rSO4ALisH8jyfd0JkfLxMr351B/lt+GHAhFQPJIOu1I=;
+	b=trVmMCTFhUID3ghF7Rrt3AuI7ceTF2T1IvQw487xHZ4x+HDbaRoMndTJCIxA8ZX5GpMj
+	 WcB9T6DEyFXftn7m61Z6AWzN8MhZi93lB1R7aI0UzgduZlb4LT3fUq7ugpD1fX8epBVJZ
+	 mfkB8JuBKvESzsZOyXt7FELXU6XSTH5tCm2+uHruiOvYcIUGA7f1AqRMfqBvsNu9cjIj8
+	 1QqBE3tJDM/VPfl73EtCjvCPDpE/M9wCaTRkL+dxprgB9GXpKSg3D8MEpGcfhzKw5IXT8
+	 llhkTWpIYNsTc+GQI9RDS+DYdMqp2wsjkEa2ZU8MaUczaI6tUFY5yYJ2RhfOX6RpyUw==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=cmss.chinamobile.com;
+	spf=pass smtp.mailfrom=cmss.chinamobile.com;
+	dkim=pass header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.a=rsa-sha256 header.s=default header.b=uqO+Fbsl;
+	arc=none smtp.remote-ip=111.22.67.151
+Received: from cmccmta8.chinamobile.com (cmccmta8.chinamobile.com [111.22.67.151])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 42FDD606A320;
+	Sun, 22 Nov 2026 14:51:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 42FDD606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmss.chinamobile.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cmss.chinamobile.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=iiitd.ac.in header.i=@iiitd.ac.in header.a=rsa-sha256 header.s=google header.b=jd6ioXn8
-Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-6b8a52db5f9so2710814a12.3
-        for <linux-rdma@vger.kernel.org>; Sun, 22 Nov 2026 06:06:43 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1795356402; cv=none;
-        d=google.com; s=arc-20260327;
-        b=cfVSp9xovnKTUd5eHjCQtOPW71nkOcv70zsCJxnstMQmGLXxMO9qeNg0bKiBigS7jD
-         EMacU/5fM9ayQCU96QAmWnnJMJy4Rw+FrgS9R137a7xByJY2ZdTL3pBBC9k1LafCyHNb
-         A2MSAcVVxCmHRvUZvBN9saFy/FExeVsUbDsx3s+L59q8KtDGj2GMokhnwB/rnHD6lOvb
-         OLSWM6XL3HnMy/lb1GABc8eTRymwU/zsYljgcnTvNRlvClSFBSwUfwKVhQ2tSleyZXZB
-         KDPYjAo/q440E6SKcyLfNSL1Hpx5KV+6JtlJw4OuPjY5//Ic4/tDAKBKUU6HqUFIk+An
-         /G/w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=2P7NnlFD6hf0e/Q9nUMush5WduoVnm93NdkP6w446kQ=;
-        fh=njVdtrvWd+l8UxLYbxOKZ7ITmKrcuHQfPWxDURL6DOU=;
-        b=JZViS6czydgEbUO4jAlvrgVdef3zIXkLzUnP10MTgWbwn0cc6oFyeSnduZxwhXB/bi
-         DiXk3la+aNDA29b2/i+4ilRwOvuWQBk0wLFS6FG1MIACS28iyKgHp7KZbxRiKs03nVG3
-         eOPAomSgnhs8BgjB/mbQ5Z4sIbKisQOmQCrcwyK2BR5+mdNrtYAR88YqfT30/1com9QE
-         tNb9XoaA7haeC0C0xjBL2bU8Sjgi2Y5R4TxpTMdLHEeCJRc3RNw5xerUFiUrnp7QynwZ
-         SodqnOh8W4+svwjLpdSKy4dTArb1pXqMFSGLrrBH7Cb+iw0zY5mnjZ9OSK0guZkiYuRa
-         qY8A==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (1024-bit key, unprotected) header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.a=rsa-sha256 header.s=default header.b=uqO+Fbsl
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=iiitd.ac.in; s=google; t=1795356402; x=1795961202; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=2P7NnlFD6hf0e/Q9nUMush5WduoVnm93NdkP6w446kQ=;
-        b=jd6ioXn8/jtSW042HF6KtWbUIW3aLVlunRvtvFxC7uBtabqLQOB56p7GCu61HgF+jL
-         4ERHRbTjMX6muoegMifIFXfcQpMaYLcR9pm4TCKCc9aC1Ms59nBdWl4/K4XAtvpmeVvU
-         7vZ2oZxiLbMOCF+o/7WrDrg7xXGtpTH1ohREQ=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795356402; x=1795961202;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=2P7NnlFD6hf0e/Q9nUMush5WduoVnm93NdkP6w446kQ=;
-        b=vqYpdcNJZE/m6fvAzKyhqawS8qBbzPaVY/8NEK4vNWTLBwyAExMaOtQ+B952I6aCv/
-         dlSA5QxFt21e4BtIllhVZ/2nV/vYsFKi7TgI9lS/digjCbsQ3N128Ki48jUGC37yJS8s
-         OYyGxEXVMlwdX1Vf1z4NULjS6MNk55w2BNyIunL8L0dbTeKFM4Duxz9io82fIpBbLP9e
-         3kbD/6nqzP7Ux1U8P7UyjuD/PjF58LRqryYkcU1Fe8Uh1rWtSqZM7AkMTIhDtuLZTq82
-         6DWCxjLoshrZyunyGZ20LGXwIpkWwPYTLxqMPX2AK3RUdiTv1k3Y304Ga/KBJgPGCZGz
-         b7ig==
-X-Forwarded-Encrypted: i=1; AL+hErGsooSVhz2sLqj04jBVwnqJxCCgMI3+3uy8fzCpilkkWVmnNLX14om2MQ1EytZjFqce0j2Mcoq9Zjsz@vger.kernel.org
-X-Gm-Message-State: APuU4Z+OHTlsLEeeTCDQioG/y6OmRwJsscIxuovG9Iv+wuNlDc+JuYEF
-	gVrKYy1OGGtN+8y4hh8sOv7Gu9op0YzrTLqeCnqRQtvF/sMnGZvbg/91N2dXMkwEPOGXJi31SOr
-	uq6jZ+xUwlI9E9VTP6uXYEOdc+iAbvNa95JKxMO+11w==
-X-Gm-Gg: AZFdTZemkppYiktAfi2tX3hFHaIM1uGiba+NEfLxQRNx4sFpF+AuxqwgJ3wdPtUREh8
-	YlaMEzP+pmAs5LB88iOinVLurBFd39dGEpVriwBfaZyQArajTrbJvQ3OAu4bBPDzzwcwtg7G0Fm
-	5sFbSd60CFAX+TKsf95r3K4i7A5cFiJfSTDVG//l8VkI9RFe/4jOkGBWhEmBaSFyJoqtdyGF591
-	j1crwRDhRRCpz29pXihEpetmo/Xg8fZYVHM+e8fQ0yuQYMAYf0BkW3F0tXGbEIfNcWHBvgbQRzx
-	NQbjGILgdFTMQa/B9ZkjtNtTscuacfSUH0QMrDL20TbPi70QQSE7fS+Plh3jmwq06TW4K5RFPaw
-	zwIWMItIPftQ+nFTYalQ5WJ0MtPQoPYrW1IQuWk7s49xAPfFUvo0S8GCqokGVYlTpdUYFNzLwrc
-	jbPSikX/mZvq3wQzcNk54V6+Wi0FKcHCSSe5O6SzzqsVGWET1rhZWh5cQ=
-X-Received: by 2002:a05:6402:274d:b0:6ba:92c3:fef7 with SMTP id
- 4fb4d7f45d1cf-6ba92c4088cmr1355074a12.19.1795356402046; Sun, 22 Nov 2026
- 06:06:42 -0800 (PST)
+	d=cmss.chinamobile.com; s=default; l=0;
+	h=from:subject:message-id:to:cc:mime-version;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=uqO+Fbsl1MrJhHQ+R2zoR2uSEP2GEdgA3h37G4f3jU77wEJieNywlJcfujaOVCI68EaNzSelWQQFD
+	 NycbIgULV6yZC4AfVp18mS5LupvCoTfuKZhwFpZPZlf5387ecvHNly0GxUSAvkOzMh6gT4IgnyWjzS
+	 v+euzaRXSAr7isNc=
+X-RM-TagInfo: emlType=0                                       
+X-RM-SPAM-FLAG:00000000
+Received:from spf.mail.chinamobile.com (unknown[10.188.0.87])
+	by rmmx-syy-dmz-app02-12002 (RichMail) with SMTP id 2ee26b030181a29-70102;
+	Sun, 22 Nov 2026 22:51:51 +0800 (CST)
+X-RM-TRANSID:2ee26b030181a29-70102
+X-RM-TagInfo: emlType=0                                       
+X-RM-SPAM-FLAG:00000000
+Received:from FHD-W7400297 (unknown[10.55.1.70])
+	by rmsmtp-syy-appsvr06-12006 (RichMail) with SMTP id 2ee66b0301847ec-71d52;
+	Sun, 22 Nov 2026 22:51:51 +0800 (CST)
+X-RM-TRANSID:2ee66b0301847ec-71d52
+From: Aibing Chen <chenaibing@cmss.chinamobile.com>
+To: Allison Henderson <achender@kernel.org>
+Cc: "David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	rds-devel@oss.oracle.com,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net v4] net/rds: defer CM id destruction to a workqueue
+Date: Sun, 22 Nov 2026 22:51:48 +0800
+Message-ID: <20261122145148.1250-1-chenaibing@cmss.chinamobile.com>
+X-Mailer: git-send-email 2.50.1.windows.1
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -102,67 +74,160 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261122042120.2430434-1-piyus@iiitd.ac.in> <awLwiDzVpdJOr6BZ@linux.alibaba.com>
-In-Reply-To: <awLwiDzVpdJOr6BZ@linux.alibaba.com>
-From: Piyus Kedia <piyus@iiitd.ac.in>
-Date: Sun, 22 Nov 2026 19:36:31 +0530
-X-Gm-Features: Aa3M54pNcRlGq48LgyU0hvUMf93COD0ltrBkDDB650T83qW9BEt14_13yQ0gDU8
-Message-ID: <CADq=QSyGfZBpziK7r6KD8mm1_0LRO4r4tAKe8gU52Fm-V+DHsQ@mail.gmail.com>
-Subject: Re: [PATCH net v2] net/smc: validate the peer's CDC cursors against
- our own buffers
-To: dust.li@linux.alibaba.com
-Cc: alibuda@linux.alibaba.com, Sidraya Jayagond <sidraya@linux.ibm.com>, 
-	Mahanta Jambigi <mjambigi@linux.ibm.com>, netdev@vger.kernel.org, 
-	Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>, 
-	linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, Kapil Vaswani <kapil@presceralabs.ai>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Hi Dust,
+rds_ib_laddr_check_cm() destroys the RDMA CM id it created while
+rds_trans_get_preferred() holds rds_trans_sem for reading.  The bind
+path then takes rds_trans_sem and afterwards handler_mutex in
+rdma_destroy_id(), while the CM callback path takes handler_mutex in
+cma_ib_req_handler() and afterwards rds_trans_sem through
+rds_conn_create().  lockdep reports the resulting cycle.
 
-Thanks for pointing this out. I checked that Bryam's patch indeed
-fixes the same issue. Please drop this patch.
+Queue the destruction on rds_wq instead, so that rds_trans_sem is
+released before handler_mutex is taken.  The work item is allocated
+before the CM id is created and owns the id until rdma_destroy_id() has
+run; if the allocation fails, the address check fails with -ENOMEM
+rather than falling back to the synchronous destroy, which would bring
+the deadlock back under memory pressure.
 
-Best,
-Piyus
+Deferring the destruction keeps the CM id alive after bind() returns:
+until the worker runs it pins a cma_dev reference and an RDMA_PS_TCP
+port, and cma_process_remove() waits for every pending destroy.  An
+unprivileged user can call bind() in a loop, so bound the number of
+pending probes with rds_ib_pending_probes and fail the address check
+with -EAGAIN above RDS_IB_MAX_PENDING_PROBES.
+
+rds_ib_exit() flushes rds_wq after rds_trans_unregister() so that no
+queued destroy runs after the module text is gone.
+
+Reported-by: syzbot+ccdb5058c3df2d94811c@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=ccdb5058c3df2d94811c
+Suggested-by: Hillf Danton <hdanton@sina.com>
+Suggested-by: Jason Gunthorpe <jgg@ziepe.ca>
+Suggested-by: Allison Henderson <achender@kernel.org>
+Fixes: ec16227e1414 ("RDS/IB: Infiniband transport")
+Cc: stable@vger.kernel.org
+Signed-off-by: Aibing Chen <chenaibing@cmss.chinamobile.com>
+---
+v4:
+- bound the pending probe ids with an atomic counter and return -EAGAIN
+  above RDS_IB_MAX_PENDING_PROBES, since each pending id pins a
+  cma_dev reference and an RDMA_PS_TCP port until the worker runs.
+- document that exposure in the commit message.
+
+v3:
+- allocate the work item before rdma_create_id() and fail with -ENOMEM
+  instead of falling back to the synchronous destroy.
+- free the work item when rdma_create_id() fails and drop the now
+  redundant fallback in the out path.
+
+v2:
+- move the workqueue from RDMA core into RDS, as suggested in review.
+- flush rds_wq in rds_ib_exit() so a queued destroy cannot run after
+  the module text is freed.
+- add the Fixes tag, drop the Tested-by tags.
+
+ net/rds/ib.c | 60 ++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 58 insertions(+), 2 deletions(-)
+
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index 4ea9838d0..c4c10e3ea 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -391,6 +391,30 @@ static void rds6_ib_ic_info(struct socket *sock, unsigned int len,
+ }
+ #endif
+ 
++/*
++ * Maximum number of probe cm_ids whose destruction is still pending on
++ * rds_wq.  Each of them pins a cma_dev reference and an RDMA_PS_TCP port,
++ * so the number of in-flight probes has to be bounded.
++ */
++#define RDS_IB_MAX_PENDING_PROBES	64
++
++static atomic_t rds_ib_pending_probes = ATOMIC_INIT(0);
++
++struct rds_ib_destroy_work {
++	struct work_struct work;
++	struct rdma_cm_id *cm_id;
++};
++
++static void rds_ib_destroy_id_work(struct work_struct *work)
++{
++	struct rds_ib_destroy_work *w =
++		container_of(work, struct rds_ib_destroy_work, work);
++
++	rdma_destroy_id(w->cm_id);
++	kfree(w);
++	atomic_dec(&rds_ib_pending_probes);
++}
++
+ /*
+  * Early RDS/IB was built to only bind to an address if there is an IPoIB
+  * device with that address set.
+@@ -411,14 +435,39 @@ static int rds_ib_laddr_check_cm(struct net *net, const struct in6_addr *addr,
+ #endif
+ 	struct sockaddr_in sin;
+ 	struct sockaddr *sa;
++	struct rds_ib_destroy_work *w;
+ 	bool isv4;
+ 
+ 	isv4 = ipv6_addr_v4mapped(addr);
++
++	/*
++	 * The id is destroyed from rds_wq: rds_trans_get_preferred() calls this
++	 * function with rds_trans_sem held for reading, and rdma_destroy_id()
++	 * takes handler_mutex, which the CM callback path acquires before
++	 * taking rds_trans_sem.  Reserve a pending-probe slot first, so that a
++	 * loop of bind() calls cannot pile up ids that pin a cma_dev reference
++	 * and an RDMA_PS_TCP port.
++	 */
++	if (atomic_inc_return(&rds_ib_pending_probes) >
++	    RDS_IB_MAX_PENDING_PROBES) {
++		atomic_dec(&rds_ib_pending_probes);
++		return -EAGAIN;
++	}
++
++	w = kzalloc_obj(*w, GFP_KERNEL);
++	if (!w) {
++		atomic_dec(&rds_ib_pending_probes);
++		return -ENOMEM;
++	}
++
+ 	/* Create a CMA ID restricted to IB devices and try to bind it. */
+ 	cm_id = rdma_create_id(&init_net, rds_rdma_cm_event_handler,
+ 			       NULL, RDMA_PS_TCP, IB_QPT_RC);
+-	if (IS_ERR(cm_id))
++	if (IS_ERR(cm_id)) {
++		atomic_dec(&rds_ib_pending_probes);
++		kfree(w);
+ 		return PTR_ERR(cm_id);
++	}
+ 	ret = rdma_restrict_node_type(cm_id, RDMA_NODE_IB_CA);
+ 	if (ret)
+ 		goto out;
+@@ -484,7 +533,9 @@ static int rds_ib_laddr_check_cm(struct net *net, const struct in6_addr *addr,
+ 		 cm_id->device ? cm_id->device->node_type : -1);
+ 
+ out:
+-	rdma_destroy_id(cm_id);
++	INIT_WORK(&w->work, rds_ib_destroy_id_work);
++	w->cm_id = cm_id;
++	queue_work(rds_wq, &w->work);
+ 
+ 	return ret;
+ }
+@@ -542,6 +593,11 @@ void rds_ib_exit(void)
+ 	rds_ib_sysctl_exit();
+ 	rds_ib_recv_exit();
+ 	rds_trans_unregister(&rds_ib_transport);
++	/*
++	 * rds_ib_laddr_check_cm() may have queued rdma_destroy_id() on rds_wq;
++	 * wait for it before the module text goes away.
++	 */
++	flush_workqueue(rds_wq);
+ 	rds_ib_mr_exit();
+ }
+ 
 
 
-On Sun, Nov 22, 2026 at 7:09=E2=80=AFPM Dust Li <dust.li@linux.alibaba.com>=
- wrote:
->
-> On 2026-11-22 09:51:20, Piyus Kedia wrote:
-> >A peer's CDC message carries two cursors that are offsets into buffers
-> >described on this side: the producer cursor counts the bytes the peer ha=
-s
-> >written into the RMB we published to it, and the consumer cursor the byt=
-es
-> >it has taken from the RMB it published to us.  Neither is checked, on ei=
-ther
-> >transport.
-> >
-> >smcr_cdc_msg_to_host() and smcd_cdc_msg_to_host() copy both into the
-> >connection as they arrive, and every later user treats them as trustwort=
-hy:
-> >
-> > - smc_cdc_msg_recv_action() adds the producer difference to
-> >   conn->bytes_to_rcv under a comment asserting
-> >   "guarantee 0 <=3D bytes_to_rcv <=3D rmb_desc->len", which nothing enf=
-orces;
-> > - smc_cdc_handle_urg_data_arrival() reads
-> >   *(base + conn->urg_curs.count - 1), an unbounded index into the RMB;
-> > - smc_rx_recvmsg() clamps only the first of its two ring chunks
-> >   (rmb_desc->len - cons.count) and uses the remainder unclamped for the
-> >   second, so bytes_to_rcv becomes a copy length;
-> > - smc_rx_splice() walks PAGE_ALIGN(len + offset) / PAGE_SIZE pages call=
-ing
-> >   vmalloc_to_page() without checking the result, and get_page() then
-> >   dereferences NULL once the walk passes the end of the RMB.
->
-> I think Bryam's patch is solving the same problem here:
-> https://lore.kernel.org/netdev/20261112-b4-disp-0287c16e-v9-0-e5e8fa68817=
-7@proton.me
->
-> Best regards,
-> Dust
->
