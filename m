@@ -1,81 +1,80 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.42
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795321282;
-	b=Wb0ZwXiuxFD/trx3p6V/5f+O3SM9ActfF67JO5kLcLjAj0WMbrbqe/6/5qyb9SoLClwl
-	 XTQB71nGpwJ0LZRqqHHnFQo686jwKVV7B/+wN9PYUZyk/YWWMM+RKuxntoU9twBVjxC10
-	 7XnN0E/E+mUOybERwnk/y2rh0O6VDHq1SHOvfQkVafq3mzixS+CFpZxWXAHMWZNTokdO1
-	 HT5RSzQikCbQe5bFxyyMBeb2Q2qWkqbsMR/GAVBRWBT90QQzhy2jtbdcv13zn7ozzJNFV
-	 zqszKTMHx5ZFyoyB3VwslgIguRAys8qpj3Nk/saaqfyH18BXoNtsBpTX6cVITF2iNSQ==
+	t=1795321290;
+	b=Lyovs1O8Vj1LJ2CPs4MgdokTIsUJrbz8RYKTXqGVhp9BcqDrhWZmKOPzbK9ngTzd5sMN
+	 aXFmzLVkltk/zIS7D1EoJWyrZVxrHKN3nEFlhY7+zBFvDYHOBjBnHzotzKwJ2gHIMYvff
+	 /ZZzaSrHGcAtnvtR3wXPordzBKhtc0f6Jc9A2axZqywxjZeBhy12ltRxgqUr4C1UHA8Sy
+	 aHdiE19WjCxjrN+ig4ZQze1qHzMYRP+zoLhchZpQpkRm5EqfqWBEO9HEXgSwBMEpf9kt8
+	 MKgiicIBSG0bEpuDxDsat7gTiSpm7Dh7Qu1W6610GEYHclF5yZTQdrXAeAJ2OPN70pQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795321282;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795321290;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-Id:X-Mailer:In-Reply-To:References:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=5ZGfxFm22MqdeOsOLhYKxi18iGVL17970v+rtqXfBak=;
-	b=ng0bRVJnHfM4CSWeSRq4p7OODBhsSFQbmG6R3h52IXcO9MeIQCCPh1PpqKkJxnbD6rHy
-	 GXky/vr7t/MioYonjhRo+PKhpd2KRqhb91gtqwPGdlYWC/7rWT+YdPMWOGaaJ++wHoxw9
-	 4EYi7LoYnSo4aPBCfjRvRuBsDg+IMubZ+sDBSqMFbfDfITlLM2vyyqPeT2VyVQb1yjHq6
-	 O0rxY7ZxuOhKpecIAxKqAfJ/cfxt764hguvRkxp+Woq7mrzsdKsf07sFdQXs/03yyZGTi
-	 QWwz54wOkgJPH2ebxPeuHXFiNZkVMIc9xamtkoy2AHehlk2N6Xd3DMjJ9XabLghizEg==
+	 From:To:Cc:Subject:Date:Message-Id:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=HJWH9hxOjGLkWCyzc+2OYWRLFu1BzAPngPtrjIxuofY=;
+	b=wtzEhM+4RM02GGBIJXNljvkThvwLJYp720p9/zeSl0amrgZj8xVmamPyYKYHUrKKKyoh
+	 Tjd5KMhKcYBFSNC/fBqb+hNz041HWUyQs/pwXwszaSQloVw/9o1wn7MuO14jYtJFAppEl
+	 gz03H40nG0cplp0hjr5An1OdJraGm1hsSxarLHAtBXkMFEj0ghl1623+wC9Npy03VzNXJ
+	 jUBW+HazJit9x1I7RdPDkcJYq7ZHZuBqhV92WlQclCskcxqoHyR0n4cLHfMob24SGcufx
+	 T2s3AEqwMhZXXnMaXPPC+ppCCenX+h//q2p7yulN6iv91Z41itDO1dCjWTRAN14A/JA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=iiitd.ac.in;
 	spf=pass smtp.mailfrom=iiitd.ac.in;
-	dkim=pass header.d=iiitd.ac.in header.i=@iiitd.ac.in header.a=rsa-sha256 header.s=google header.b=TlXDXhE1;
-	arc=none smtp.remote-ip=209.85.216.42
-Received: from mail-pj1-f42.google.com (mail-pj1-f42.google.com [209.85.216.42])
+	dkim=pass header.d=iiitd.ac.in header.i=@iiitd.ac.in header.a=rsa-sha256 header.s=google header.b=WDnYFfJo;
+	arc=none smtp.remote-ip=209.85.214.182
+Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DD62606A32C
-	for <linux-rdma@vger.kernel.org>; Sun, 22 Nov 2026 04:21:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5DD62606A32C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 803E9606A331
+	for <linux-rdma@vger.kernel.org>; Sun, 22 Nov 2026 04:21:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 803E9606A331
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iiitd.ac.in
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iiitd.ac.in
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=iiitd.ac.in header.i=@iiitd.ac.in header.a=rsa-sha256 header.s=google header.b=TlXDXhE1
-Received: by mail-pj1-f42.google.com with SMTP id 98e67ed59e1d1-3ae2b7e1e17so1336030a91.3
-        for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 20:21:20 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=iiitd.ac.in header.i=@iiitd.ac.in header.a=rsa-sha256 header.s=google header.b=WDnYFfJo
+Received: by mail-pl1-f182.google.com with SMTP id d9443c01a7336-2f0481b35c9so10924265ad.0
+        for <linux-rdma@vger.kernel.org>; Sat, 21 Nov 2026 20:21:30 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=iiitd.ac.in; s=google; t=1795321280; x=1795926080; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=5ZGfxFm22MqdeOsOLhYKxi18iGVL17970v+rtqXfBak=;
-        b=TlXDXhE1vFamfVLeUXgS0rBDmWhARPSEQdZqgYb1TiKcGrKVl7fXBKPP6/JGfUDqYR
-         OdJPTJdan2Hz8or3R3YtQFDsX8zxOZjjxoFH7usjuiOak/CkNBFXsz4OCOpUfpGXpdsQ
-         TacQFdsnM9SmOIBkRkFLEBxIpkHt5UCcCb9w4=
+        d=iiitd.ac.in; s=google; t=1795321290; x=1795926090; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=HJWH9hxOjGLkWCyzc+2OYWRLFu1BzAPngPtrjIxuofY=;
+        b=WDnYFfJomB/kWbXSv6O7VFw9HUzZQwf4GYzRkJ8Q9YIbj0PuamJ7grUC1Hoa81wWPM
+         XIq0wXvdKZM2q7s+Ld04jnBAz/Tc1+q47kS5jKgUepxD+auwbwcBXtMLwJLWz4QsZGlg
+         ZIUEIYGC1xdoaf+OFn1M/jfl/fNd2hc2tEayM=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795321280; x=1795926080;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=5ZGfxFm22MqdeOsOLhYKxi18iGVL17970v+rtqXfBak=;
-        b=L5rNEIwyPwHlLfKHsfVtI0Puh4vl/yjmDCZrhS0CAzrQvQvfBv8moyp9ZQ78tOTGTu
-         LoTzhfWq8BJxA8BCRzoDH4XABUR4BOSvTN+cL4O06sfO143kLW5SaCijR4x7YBhe0Pyv
-         uxdm/01nkxnPkNfBr7/B3a4YjIvM0mGdCBCUlsh3tgzrgc7amA8rxpupAde1ECYxxmrh
-         fYL8qVF9/5RvyiYLorIcfhUds9edSYcyoCp+7oOlG2mMZHe7nVvd2eHhBU+g9VNlgxt1
-         llFT2nAkXClb9Z2FrgodisbInIQZ+J9nHhXj+IR6QTPtykAjqik628SsOQXE4Vl61cGO
-         fd0A==
-X-Forwarded-Encrypted: i=1; AL+hErE0wVg6f/K5qHtZG/RUfeyhPNHgAr/sFhR6wGmpBvUF8TDLW3UnRaH5vlrUc28WsZUOqJrxt5GebmVk@vger.kernel.org
-X-Gm-Message-State: APuU4Z+p27ldquk9yjdihaH+zFx12OzJJWY5uBivFTVeGTUA1iopBIM5
-	E6FgVW+rrYU7XdA1AXoNyCTZY0Z4CRO2b/sqmccC2czyZGYeRonvfkBl/g4Pi/3Muik=
-X-Gm-Gg: AZFdTZd5to2/fD+TVcMxbzV8W0Vv8sky9FRC/lsiwVuPG1c/I2B2+n+bVtbAIkHpC8h
-	5ft7dwgus0YsMwz/PSr/i0gbAbWXb2xd5gGcQnB8ze/3MQ976daCMQA/jX1h7tLuTQl0YVSh84e
-	UpHjhVjede8rNiqZCzHUwTeL6BGpP8yeCD9xdvV7x82cdLXyJZ8vWGCE6HbxFYKekOVsiWDazax
-	zicmuiput2XTypag8u3cp5Wqru830Tu6jK/KpYjOA6lTpVBvOQSFJMg1HVIynkJT8TL2hH2Rz5S
-	bWkA9oYsgiV2NPaKkN8rRRaAZ1Y5RWHo4UKxID+VKHea6hH0Qh5z1BSr1cAZ9NhzYk6sSM0kIo6
-	rB0lV6WJuoFJzqQeME6vIspPlgIyFc4Ai9J6Kogl4QEoZ6usZjf5swqEwNNAe1oGmU9C6qOCepa
-	RE9zO6kirIzMHyopCtxkRGq/BsDnhX/DFkcQQN6eDz86K69ZBn1s1yvem0QueodBoPcB78BP2Wc
-	fzvx0F4kGdk0tt6hZuSri/71KBkRSycIfbbx13jby1GCpLz1ojBLK79yC7ff412pyoqCZ1XKc+l
-	XIwSlOZbaP7eHFGdSxL5o/eYvmD2ZEJVzc41DGy9UsLiL7hFtrGX5ATJ50YpjqUWzC8WjaUdxK7
-	kaZfuq1IwCQ5zhzmV0DpuNt5+Wv5WtuwIsBh1ZzjhLvd4MzzR55uDyq3gIusWiwqA
-X-Received: by 2002:a17:90a:d2c7:b0:3b4:a90:7f3a with SMTP id 98e67ed59e1d1-3b41c95da5bmr6806828a91.55.1795321279640;
-        Sat, 21 Nov 2026 20:21:19 -0800 (PST)
+        d=1e100.net; s=20260707; t=1795321290; x=1795926090;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=HJWH9hxOjGLkWCyzc+2OYWRLFu1BzAPngPtrjIxuofY=;
+        b=lJwy6UZbbvnvMelqZfjt/JCzRazgBhR1fSj7UTbzfM1IgtwCJDHxnp74Y7KPuxjHq6
+         K4i8txebaXhalnHrLW9pxcKjRL7/ZRJdCIQeLOVIhu4DWuMQwdoKyUb2bc38AabhTycX
+         iMxa/vKXDU0TtQUx9jmwvgiqYj441FeG1v2LXVoUxBzQld6LUBNX1BNVY0iyzHdbmkuh
+         zUTP3qy6C6aNA/867vBamBWUj3ymLe1C1BPce0C5e6QaFxunbcVx0RES+MY6qRzupirn
+         hIkKh736U8d/PqEsLm8TUzzX018zP+t0HK87+nQGT0YeW8/n+gMx8R0Bs0G6vl2CKczv
+         /h0Q==
+X-Forwarded-Encrypted: i=1; AL+hErEyO9PjIVAQhNGWg//k1gwMzaIkcbfVIYoGebar8wCrkimUbcT0t4eXr2F2M450chE4NCJtZ01HMBXr@vger.kernel.org
+X-Gm-Message-State: APuU4Z9xUljxGTkkjTthqSnh4c/9ksxzXfbXYRtaA3vaORytnS56ohSz
+	yDO0cjK0SmnUrZm9QNUDV+NNVB0q+xpz+RCIsTmyCNr5FTKwzoDyfSRgBTq3K6WTGVk=
+X-Gm-Gg: AZFdTZcxsg6wnlt9ecUm43yyWQjfa3rlDtNMsjFKnM/BzXU7KY+lybkY7QsMIN3d+JD
+	TLXide80RawF09HaHHm47qrvQB14t+4tjDoT6uG2FH3U0cGKEEj99we04pnY1KupNtyQ2vPiLXu
+	JcdnuaD7R0TMoiQk4sM/HnRiWXW+NpvJk81YmtkaalULVlZVRZvM6B3T7SY1WCwudsZwZCOTnSI
+	r/wc/3eAR5acIxdqDEL+2RjBYbRRToa5u3oFfb07s71JDRTb2BgRxp8mngs8slmNpfYktRH/BJD
+	xmCi9LZNRyeriZAgbzysyMM/ukk+5aPExFgYltG4w/erOnPZSzSAqWhOfFOmQQ8oI3TxiBqe54s
+	DLwShDDJxbAefzIuTgcf8tT4zBkj5UymTSLUzfvYLjg3A8MVx8516DR43FmjrO+9LuUuOt7DIF0
+	cTZ2r0KYBqjColyOverLrISRs2KhQCPKXll2doXhp4BfaBjfzIajxmdK6Mg/6DIl+9LITSgRzLu
+	gE6wIo58Ae1JMBv9T55PsZzMi5o0wTNWpinxDFUXCtUXaLu8A9DYNXfDp2lS7rm0Ht3iyc/ZEJE
+	S2bayIlUEBFIba3aF6MXo2fKuVUImWt13SDlfEMoVVF9cm3l3kD8bgJlZTqWuOJjEPhb5yYy5be
+	lsn6PlimBEC5s18qOO7SJKB9VPtnGGBUEuDcmRZZ/6snodbPGY4DYLlS+2PtBIMbq
+X-Received: by 2002:a17:90a:e705:b0:3ad:3e8:12 with SMTP id 98e67ed59e1d1-3b41cb056e2mr5675261a91.48.1795321289774;
+        Sat, 21 Nov 2026 20:21:29 -0800 (PST)
 Received: from iiitd-S2600STB.iiitd.edu.in ([103.25.231.160])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b405d97356sm13717803a91.13.2026.11.21.20.21.15
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b405ecb486sm13775407a91.16.2026.11.21.20.21.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 21 Nov 2026 20:21:19 -0800 (PST)
+        Sat, 21 Nov 2026 20:21:29 -0800 (PST)
 From: Piyus Kedia <piyus@iiitd.ac.in>
 To: alibuda@linux.alibaba.com,
 	Dust Li <dust.li@linux.alibaba.com>,
@@ -87,13 +86,12 @@ Cc: Tony Lu <tonylu@linux.alibaba.com>,
 	linux-rdma@vger.kernel.org,
 	linux-s390@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	Kapil Vaswani <kapil@presceralabs.ai>
-Subject: Re: [PATCH net] net/smc: validate the peer's CDC cursors against our own buffers
-Date: Sun, 22 Nov 2026 09:51:13 +0530
-Message-Id: <20261122042113.2430308-1-piyus@iiitd.ac.in>
+	Kapil Vaswani <kapil@presceralabs.ai>,
+	Piyus Kedia <piyus@iiitd.ac.in>
+Subject: [PATCH net v2] net/smc: validate the peer's CDC cursors against our own buffers
+Date: Sun, 22 Nov 2026 09:51:20 +0530
+Message-Id: <20261122042120.2430434-1-piyus@iiitd.ac.in>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <179528990895.3294.1614564040906254045@kernel.org>
-References: <179528990895.3294.1614564040906254045@kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -105,93 +103,133 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-> This is an automated message. This series looks like a fix, but its
-> commit messages seem to be missing some information:
->
->  - How the issue was discovered, e.g. hit in production, hit during
->    development, syzbot report, manual code inspection, LLM or static
->    analysis tool scan.
+A peer's CDC message carries two cursors that are offsets into buffers
+described on this side: the producer cursor counts the bytes the peer has
+written into the RMB we published to it, and the consumer cursor the bytes
+it has taken from the RMB it published to us.  Neither is checked, on either
+transport.
 
-Sorry for the omission.
+smcr_cdc_msg_to_host() and smcd_cdc_msg_to_host() copy both into the
+connection as they arrive, and every later user treats them as trustworthy:
 
-How it was found
-================
+ - smc_cdc_msg_recv_action() adds the producer difference to
+   conn->bytes_to_rcv under a comment asserting
+   "guarantee 0 <= bytes_to_rcv <= rmb_desc->len", which nothing enforces;
+ - smc_cdc_handle_urg_data_arrival() reads
+   *(base + conn->urg_curs.count - 1), an unbounded index into the RMB;
+ - smc_rx_recvmsg() clamps only the first of its two ring chunks
+   (rmb_desc->len - cons.count) and uses the remainder unclamped for the
+   second, so bytes_to_rcv becomes a copy length;
+ - smc_rx_splice() walks PAGE_ALIGN(len + offset) / PAGE_SIZE pages calling
+   vmalloc_to_page() without checking the result, and get_page() then
+   dereferences NULL once the walk passes the end of the RMB.
 
-By AI-driven fuzzing built on top of syzkaller.
+A peer that reports a cursor larger than the buffer therefore makes the
+kernel read past it.  With a 64 KiB RMB and a forged cursor, KASAN on
+7.4.0-rc3 reports a 1-byte read in the urgent-data path and a 131072-byte
+read in the receive path, the latter via _copy_to_iter() - i.e. the
+out-of-bounds bytes are delivered to userspace by recvmsg() - and splice()
+oopses on the NULL page.
 
-Its analysis was checked by hand against the code before we wrote anything,
-and every claim in the report was reproduced on net.git main at d5b89d55a322
-under KASAN:
+Validate both cursors where each transport accepts the message, so that one
+test per transport covers every consumer.  Each cursor is bounded by the
+buffer its own arithmetic uses: the producer cursor by conn->rmb_desc->len
+as in smc_cdc_msg_recv_action(), the consumer cursor by
+conn->peer_rmbe_size as in the diff_cons calculation beside it.  A cursor
+equal to the buffer length is legitimate (a full ring), so only a larger one
+is rejected.  An out-of-range cursor cannot occur in a correct peer, and the
+malformed message is dropped like any other.
 
-  - a 131072-byte read past a 65536-byte RMB in smc_rx_recvmsg(), reaching
-    userspace through _copy_to_iter();
-  - a 1-byte read at an attacker-chosen offset in
-    smc_cdc_handle_urg_data_arrival(), from the CDC tasklet;
-  - a NULL dereference and oops in smc_rx_splice(), where vmalloc_to_page()
-    returns NULL past the end of the RMB and get_page() dereferences it.
+The SMC-R check sits next to the existing length and sequence-number tests
+in smc_cdc_rx_handler().  SMC-D needs its own, because smcd_cdc_rx_tsklet()
+reads the cursors straight out of the DMB the peer writes into, in host
+byte order and with no validation of any kind on that path today.
 
-Each was run on an unpatched and a patched kernel built from the same tree in
-the same scripted run: unpatched reports on all three, patched clean on all
-three, with SMC_DIAG confirming SMC-R came up (mode=0, fb_reason=0x0) in
-every run so that a clean result cannot be a setup failure.
+How this was found: by AI-driven fuzzing built on top of syzkaller.  Its
+analysis was then checked by hand against the code, and all three faults
+were reproduced on net.git main under KASAN, with the patched kernel clean
+on the same three reproducers and ordinary SMC-R and SMC-D traffic
+unaffected.
 
-What changed in v2
-==================
+Signed-off-by: Kapil Vaswani <kapil@presceralabs.ai>
+Signed-off-by: Piyus Kedia <piyus@iiitd.ac.in>
+---
+ net/smc/smc_cdc.c | 44 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-Sending v2 separately, because it is a code change rather than only the
-information above: v1 validated the SMC-R path only, while the report
-acknowledged that SMC-D shares all three consumers.  smcd_cdc_rx_tsklet()
-reads the cursors straight out of the DMB the peer writes into, in host byte
-order, with no validation of any kind - not even the length and seqno tests
-the SMC-R handler applies - so v1 left the same exposure open there.  v2 adds
-the equivalent check on that path.  The SMC-R check itself is unchanged.
-
-We have no ISM device, so the SMC-D half is reasoned from the code and from
-the shared consumers rather than reproduced; what we did verify at runtime is
-that ordinary SMC-D traffic over the loopback-ISM device still works with the
-check in place, so it does not reject a correct peer.
-
-The interdiff from the posted v1:
-
-  diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
-  index 03ff10fef..8d24e0c83 100644
-  --- a/net/smc/smc_cdc.c
-  +++ b/net/smc/smc_cdc.c
-  @@ -433,6 +433,18 @@ static void smc_cdc_msg_recv(struct smc_sock *smc, struct smc_cdc_msg *cdc)
-   	sock_put(&smc->sk); /* no free sk in softirq-context */
-   }
-   
-  +static bool smcd_cdc_cursors_invalid(struct smc_connection *conn,
-  +				     struct smcd_cdc_msg *cdc)
-  +{
-  +	if (!conn->rmb_desc)
-  +		return true;
-  +	if (cdc->prod.count > (u32)conn->rmb_desc->len)
-  +		return true;
-  +	if (cdc->cons.count > (u32)conn->peer_rmbe_size)
-  +		return true;
-  +	return false;
-  +}
-  +
-   /* Schedule a tasklet for this connection. Triggered from the ISM device IRQ
-    * handler to indicate update in the DMBE.
-    *
-  @@ -452,6 +464,15 @@ static void smcd_cdc_rx_tsklet(struct tasklet_struct *t)
-   	data_cdc = (struct smcd_cdc_msg *)conn->rmb_desc->cpu_addr;
-   	smcd_curs_copy(&cdc.prod, &data_cdc->prod, conn);
-   	smcd_curs_copy(&cdc.cons, &data_cdc->cons, conn);
-  +	/* This CDC was written by the peer into the DMB we published to it, so
-  +	 * both cursors are peer-supplied and index buffers described on this
-  +	 * side.  Nothing else checks them, and smc_cdc_msg_recv_action() uses
-  +	 * the producer cursor as a receive length and the consumer cursor to
-  +	 * credit sndbuf_space - which under DMB-nocopy is the memory the peer
-  +	 * itself owns.  Unlike the SMC-R path these values are host order.
-  +	 */
-  +	if (smcd_cdc_cursors_invalid(conn, &cdc))
-  +		return;
-   	smc = container_of(conn, struct smc_sock, conn);
-   	smc_cdc_msg_recv(smc, (struct smc_cdc_msg *)&cdc);
-   }
-
-Thanks,
-Piyus Kedia
+diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
+index 32d6d03df..8d24e0c83 100644
+--- a/net/smc/smc_cdc.c
++++ b/net/smc/smc_cdc.c
+@@ -433,6 +433,18 @@ static void smc_cdc_msg_recv(struct smc_sock *smc, struct smc_cdc_msg *cdc)
+ 	sock_put(&smc->sk); /* no free sk in softirq-context */
+ }
+ 
++static bool smcd_cdc_cursors_invalid(struct smc_connection *conn,
++				     struct smcd_cdc_msg *cdc)
++{
++	if (!conn->rmb_desc)
++		return true;
++	if (cdc->prod.count > (u32)conn->rmb_desc->len)
++		return true;
++	if (cdc->cons.count > (u32)conn->peer_rmbe_size)
++		return true;
++	return false;
++}
++
+ /* Schedule a tasklet for this connection. Triggered from the ISM device IRQ
+  * handler to indicate update in the DMBE.
+  *
+@@ -452,6 +464,15 @@ static void smcd_cdc_rx_tsklet(struct tasklet_struct *t)
+ 	data_cdc = (struct smcd_cdc_msg *)conn->rmb_desc->cpu_addr;
+ 	smcd_curs_copy(&cdc.prod, &data_cdc->prod, conn);
+ 	smcd_curs_copy(&cdc.cons, &data_cdc->cons, conn);
++	/* This CDC was written by the peer into the DMB we published to it, so
++	 * both cursors are peer-supplied and index buffers described on this
++	 * side.  Nothing else checks them, and smc_cdc_msg_recv_action() uses
++	 * the producer cursor as a receive length and the consumer cursor to
++	 * credit sndbuf_space - which under DMB-nocopy is the memory the peer
++	 * itself owns.  Unlike the SMC-R path these values are host order.
++	 */
++	if (smcd_cdc_cursors_invalid(conn, &cdc))
++		return;
+ 	smc = container_of(conn, struct smc_sock, conn);
+ 	smc_cdc_msg_recv(smc, (struct smc_cdc_msg *)&cdc);
+ }
+@@ -466,6 +487,26 @@ void smcd_cdc_rx_init(struct smc_connection *conn)
+ 
+ /***************************** init, exit, misc ******************************/
+ 
++/* A peer's cursors are offsets into OUR buffers: the producer cursor counts the
++ * bytes it has written into the RMB we gave it, the consumer cursor the bytes it
++ * has taken from the RMB it published to us.  Nothing else checks them.  smcr_cdc_msg_to_host()
++ * copies both into the connection, and from there smc_cdc_msg_recv_action() adds the
++ * producer difference to conn->bytes_to_rcv and the receive path uses that as a
++ * length - so a peer that reports more than the buffer holds makes the kernel read
++ * past it.
++ */
++static bool smcr_cdc_cursors_invalid(struct smc_connection *conn,
++				     struct smc_cdc_msg *cdc)
++{
++	if (!conn->rmb_desc)
++		return true;
++	if (ntohl(cdc->prod.count) > (u32)conn->rmb_desc->len)
++		return true;
++	if (ntohl(cdc->cons.count) > conn->peer_rmbe_size)
++		return true;
++	return false;
++}
++
+ static void smc_cdc_rx_handler(struct ib_wc *wc, void *buf)
+ {
+ 	struct smc_link *link = (struct smc_link *)wc->qp->qp_context;
+@@ -499,6 +540,9 @@ static void smc_cdc_rx_handler(struct ib_wc *wc, void *buf)
+ 			   conn->local_rx_ctrl.seqno))
+ 		/* received seqno is old */
+ 		goto out;
++	if (smcr_cdc_cursors_invalid(conn, cdc))
++		/* peer cursor outside the buffer it describes */
++		goto out;
+ 
+ 	smc_cdc_msg_recv(smc, cdc);
+ out:
