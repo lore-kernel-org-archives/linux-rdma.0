@@ -1,96 +1,97 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.178
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.170
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795442787;
-	b=R3n6dwK8JC/yuMqYXKBu9fBqOqMR0qnNlnB9tdxmsTJYJ8m1cadYhI5Z6N7p99DNJvSP
-	 N4Lb9lQ0fZOl440RDuYvOko/+Is0FXDtfbl/76T/3pS3s76VGVd5/HGx8ons8Zz2BJNGr
-	 VeQkGBbWAd8wQhLvrmnoFBw0ARMebEkIaPYwv/rzByrwjRgvKglHUSvd/VgmIMlNnpkqD
-	 lB9aaElEIHqfSpODiwriSRe3bkWgOCGiRF5HgBYXWtcEku7WF9MwtIosrgTw9DFmdYogd
-	 GAaZxtQTLD/RBiYznn9m/C5NMLGR2muJ7EY8tdlrbAUKPiTzTtH1OZ8aquL2FWJRO2A==
+	t=1795442788;
+	b=ZNb8+S6Ndm+Q8rwuOfe3AzhUP5iLyXYpFXWRksLE8J/tEDVAXXRnYgECUlwOTKMRnhYq
+	 PjKxzu7WfGD28BIwLB5ZhsfttIykqFUb7ypfWGZ7t/sRvjvyVs8TeLKyRCClWCR3Tv/Dw
+	 /6CUMniQjdScF2ow0v46/A0/wt9jyXjPtlbrDy2G+tZEW7YsYW1gerJwVfGWFmR10VhRR
+	 ILmxkSNWhvNd5qcAK7YNq7fc+pSzONUk70pGS41LaurxUBH1moqmhssLy7++d+TiH8WlL
+	 Eap0lPHg4MdZdUDdI4YmcL4gZFC2PwH+hcf+DVbmwCYdUqnAQI9U6shRw+W6KU84gXQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795442787;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795442788;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 Sender:From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=jrb5fUsOngtPTzC22BJAsemxm+H2DBi4a3HxR8uh170=;
-	b=U+iqxQDyYMI5lgEv9tVKszwBRHps4DcPkk29li31FNC9c5hylcmKkxDlV5f22bfZ9NuQ
-	 un8cjVLSmzY0ntNuFm/sCm57PwwAnwauuCwzOKnfmlExB2nf95RFg2P1H2eH+q0sYTjlH
-	 CfBN5Zbf719k0rl2dYZYsiTSdpVnwafGtchO9emlye0vtvAlqll6wCSL8czBUGH98PKGt
-	 NwoyP+Rd4gGFQiZJug7izT9le0zsHuSCChfGbYQtCOiCEXcMFq9DvjrThIgzzVe6VTDSc
-	 QnYfbMPw/CXZclcEx1yDZsd9ynhHm7zs7ptzmPwuzBiH05fK9EAaJA0puMjCxJh7Pwg==
+	bh=Bu5wY55r6MxEDWtvWV/v9nM7+LfCe+RWbKpq2oatC5w=;
+	b=tUFjnxBQqHElKf1pgOwnfikBHzNvXziF3j4bhqQnP4cF9qyS+5wM+RI0hThRX0eepl1T
+	 lUzk8C/08nUP0J1oo2uY2nJyTd4oY2BKv5QgsvTA0lJhyLtsTJVFDDv+Ia0j8Vjikcr0P
+	 gef0ePi23KI2i8CYyPwiuxNpk3QTVsFyB8aKmWusx3lebjwgLI8ZqeFr8ESSs0OrIq9M0
+	 +lfq3mxPTVWZRNW0CuNve1H2B3gsDa1ITXRabnGFCUvaCFq4fo1YnMKvQQbmffvYou6bm
+	 1hrO2RJaZ+1vCZo+CIwIGwfomlb7PHArULEugoZlLrk9lh+JlR97GUo6CgSsODSi1GQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=stellman-greene.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Y4yz00N+;
-	arc=none smtp.remote-ip=209.85.160.178
-Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=OAaxT1Ha;
+	arc=none smtp.remote-ip=209.85.160.170
+Received: from mail-qt1-f170.google.com (mail-qt1-f170.google.com [209.85.160.170])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C18C606A31E
-	for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 14:06:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5C18C606A31E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC92D606A330
+	for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 14:06:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AC92D606A330
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stellman-greene.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Y4yz00N+
-Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-55bd96affd2so57499971cf.1
-        for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 06:06:26 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=OAaxT1Ha
+Received: by mail-qt1-f170.google.com with SMTP id d75a77b69052e-537548b811aso28397831cf.3
+        for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 06:06:27 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795442785; x=1796047585; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1795442787; x=1796047587; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:sender:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=jrb5fUsOngtPTzC22BJAsemxm+H2DBi4a3HxR8uh170=;
-        b=Y4yz00N+PbrIRD1bJ5rBgnwNetfiXb7ub1BVy8U2gtjlG/C8Q+4/HiPM9n/SRbaY0K
-         ZVccXyuWhr/x+xpBJXeCk3htxdYzvSyD8I2hR/10pThxxNF2uQSWwjQ3LJk+7AZPaIUd
-         4GkS44HmnXEsDoVSGLEXiB3dOvnkungB0Jw3rx9Gxi60bbwCs88rRmELBJRqwiN7bt1H
-         pbZL1X/XuUKOkn5c06g3IsoRtITna9Tv/CS5yXRjY1EVTjTZgqYYjHWVqArkc8JRS+0l
-         ss3nn/iGsExctm0nh6WBgpIxyVrgI+fVbCAyPPIjwzNBNwOoL30rZCt2XDhahYyz9ZLP
-         vb+w==
+        bh=Bu5wY55r6MxEDWtvWV/v9nM7+LfCe+RWbKpq2oatC5w=;
+        b=OAaxT1HapvnkRFx8BdOhkETfVDa2kMX0iasWTpYBdgmsIC1o5rMUNXeUdcCyHH4nT/
+         XqUcDDSu6VsK97gfoURNIXaNN0tmEMcIHLZ22qxJICETJHi2BCHaZCdpglqrnayxDlei
+         YBr20RknzY5kscvp9qgJHTzXfPYaMWkRTzprLMIboGhpdcghtm85IvHyUj2YSorzIerm
+         OqNedr/UVCQXoa5OpSbUvPT/BhdjqnonmLTYop98TGByW3DBfWhi1eaoPzvsIHAtYg4/
+         oy5O4hNSSjvkCkUHH0zOcgxL3rX/+OJGyGpyTMx+S+Nbt9m6bteMLNkLULUjDDpHNidG
+         iFAA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795442785; x=1796047585;
+        d=1e100.net; s=20260707; t=1795442787; x=1796047587;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:sender:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=jrb5fUsOngtPTzC22BJAsemxm+H2DBi4a3HxR8uh170=;
-        b=DQKI7d3EqkPGvCg6jZf9OGANcP5QLmIVtzZwYfluSqKwI001dMhvwrjfpWMbhMikuQ
-         tgh2ulq0DMMThutMjvCKgTXNthx6i1FonzULv6OpJ7TTKX14sONo5SoF7cKjnXg1KpYs
-         ZPbYEd/MD90U0Mr2TberBq9zldU04aT3vgushhEzwgAkiZPMwyMviPkcJ+xs+Xn90GxJ
-         x/j02cJeEDEonPGQq2UJsX0Az5qkyvFfMBxV80Ec+b17D3DvLEb16RXkorHKPf45OwgA
-         BYaaHsnGB0swAeqcrLlwqjK1da0HOwp2X/s9B21l5hrM99eSy6GVHsiG3+7ZmR2yQVXI
-         xOyA==
-X-Forwarded-Encrypted: i=1; AL+hErFLqOC4PkseerK9E/5RTgvMgb8gVoj4zTSqlGqGrWjAMmcS+mgNRX1e/AQ+KiD2OSqAOJaVNCeyynON@vger.kernel.org
-X-Gm-Message-State: APuU4Z90eUtzA9qSVtS7SkwsJSo4/xZ7KyHOmP3Hpi0IVet+k0B/e/O2
-	UoYIdL+/wvQ0QgwE49kSymBkD5VVy1X9kTV/KYxqH79O49f/yXhi8fUK
-X-Gm-Gg: AZFdTZdNpRel54F2pGucI/MlY/Bqjf9sGC07T9ROd5N1ivjaoy8REWGz5E77IEj4pN1
-	iIldZ3oJ4vl+9g0QW7+vk1a9nCIrm+iuhE7S4FurvS2paNELfVw23N1+YjlXaV1x5EuA5cEpb4l
-	cJ1EoFjEBFZvMoj9wOFYpZ6CW3Wo/BAaMdRNxfwHo7VL5gkE6fo9qj8iBLF38CxEkFdjYLMjK51
-	WfuNDSwZ6Ptxq4LvOd8/LBd2J9WYeYx+7DQ1NMr18guKgN7juHhdaM/9O3F8qYdn3pbiBAtiEYO
-	hFiWwfwkv38JCcAMmBwXxBgD/qHOVg7x/MuAWktxwBYQwc344NpcZYgbkG1l5J8pA2E3Xw0navE
-	Pho4hPGjOTNQxtEWX+FLr7FfRmHSGR0I1+Ip9VwnRZr+0Xg7Td8eYjQQ1AiEq0qT56POIMVaudY
-	168vicXJm+hU3128g7TQMQDCFUx7cbRzqcBWHYgn6+OpK6ztinYzCw+d1JhdDgTBapI9wc/k4Rs
-	qYt9SON4cwZsjtleqPnIF77A80WjvkYXoX94unI8YB2R84ftAVlWZRRC2V8iigOKkXBINixbWeZ
-	nU0L07Z4OK+8FqSec/sw0GKr5Ol15NSLfSrFjDv5M5zK340hSVtWwgV1kISnQpr3CbhRNTxkLvd
-	ne4o1Qs39SXqGGgItdGMQ5BS5TuFtl2xPU6zjPE3NciLt5gXXYV/r0GV2O7XAexgRJfX/HDI8PZ
-	axBeAxhUcpNKjmld+GYd7FbrcRg3k=
-X-Received: by 2002:a05:622a:1aa8:b0:55d:2737:ccc2 with SMTP id d75a77b69052e-55d6fd24195mr215979821cf.34.1795442785163;
-        Mon, 23 Nov 2026 06:06:25 -0800 (PST)
+        bh=Bu5wY55r6MxEDWtvWV/v9nM7+LfCe+RWbKpq2oatC5w=;
+        b=upu3kDuYUw+GU/RvUTeq5DMK0/Lax8BG9i5QTgT2Zasc73Mu6ayDc7mkgra37u+xj4
+         Nc3dD0U3iQnZp0cOhm5n4RsXVib58pOMoNVjubAyqLBLNjTxsFnaUiOWDRhzE1/3oJdU
+         RfVOl02ti7aSRxbigXC7kBpdq1UMdR5NG/n/QziwunOZl76x281YHtdNHwCjkqjOP3dJ
+         UQPd6ZnLboQTSZP7m7ON7EXGTPN/cqZGTj86X8DbfRcGxl+jVxVoGoTHIO8E0mjkQV0g
+         0rHn5bkbtSxzhM4tSXjxEaQEGOzcwEbaIN+lo4NpmZRcVPxm8liWcZuOMKNYkPhhHZud
+         lGNw==
+X-Forwarded-Encrypted: i=1; AL+hErHBbORVYHT4fcBKny3u3UybZZd8jG39mQ7kXqSKXbXjfDMBA9jNvJRJsMRtWGQwHT/M3RgG/tAvf3Yh@vger.kernel.org
+X-Gm-Message-State: APuU4Z8DfddpFMKbICoArfSmMKwKITMXVaVmPg/bvX8KTQRlFbZLBkVR
+	l1ctcTBDucJT2M1wcAcd3YOdJjPDjLIbqz6vPoQeW8wOHPKpGMlZhNgD
+X-Gm-Gg: AZFdTZc7X9yhlN1rEEmnJ25hG6iNJnWENmfkLgn49jovEIBvu/Lf2d9E2apaBu1CvAM
+	hqSUM1ZQAzHDpFnFRbAsHLa76PKmrFuDjPVzYM4C+YUXd3S68mWMh9Y/LljHW3klQFgfPpHrFhu
+	5+UT1Yx99znj8GzjSMbi9eLimF8YKRuqacylTXI9Fd6MVz6/A9v54YUr1N2oaLwGhOml7c74r5z
+	Ieg4U0JvLsls1+K3CZpeZeGM9uzjuR4dJ2ISMErj6yooxU+Harm1aa1q1G8BENf3DAICtbtvUmP
+	5qzOCVS/a0zVNjRuR+oY24QAmyxImQxhVk4V6YMEwgd5MlAtUwgfcln66FwJkH5S2en8RbseiDk
+	9pxm9laEombE2nyRh9kK2QlrR/8K5FAQWESt0lVaGnyjdxyIT/8M0Y9FRT8VVVA/3BzasvhDcIT
+	f2ON3DM5rpd2VWpMQrPW1TMQtk2O/yMnbcWSg1JFUZC2LwHo5mHb9fulMqCdqygKpMNY7P/9Iyl
+	luu/BaN+TSXgC9hDPNo+f7Zv6YysmXliBiRvXjBhFFwXQ/DKDkugsb/+9ng11c/5i/bgwGD1B1w
+	QxS6YI3H2KjXcj+IgAoVmu4Aj0qptB+HdN+Vxd+IIH5eyfaByMXMZxe0uOO6yg2Tu/sJ17PpFMo
+	xjgnNyRqmnpVvnnRWjo0uugef+KfBfGAee7Np3zoB/a2KhM+8oVGHDW2czSrBL0xSmeXbAisjzr
+	9tnlzXRW5L0fzD2QvIvX6jlD4HQZ0=
+X-Received: by 2002:a05:6214:1d27:b0:91e:8e90:90af with SMTP id 6a1803df08f44-92134987eb9mr224158296d6.1.1795442786561;
+        Mon, 23 Nov 2026 06:06:26 -0800 (PST)
 Received: from Mac.mynetworksettings.com ([2600:4041:5c28:200:c1e4:47d6:99db:6f6c])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-55da87b3ba8sm3313581cf.1.2026.11.23.06.06.24
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-921349b0b10sm107672366d6.10.2026.11.23.06.06.25
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Mon, 23 Nov 2026 06:06:24 -0800 (PST)
+        Mon, 23 Nov 2026 06:06:26 -0800 (PST)
 Sender: Andrew Stellman <stellman@gmail.com>
 From: Andrew Stellman <astellman@stellman-greene.com>
 To: Zhu Yanjun <zyjzyj2000@gmail.com>
 Cc: Zhu Yanjun <yanjun.zhu@linux.dev>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>,
+	Xiao Yang <yangx.jy@fujitsu.com>,
 	linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-rc] RDMA/rxe: Zero struct rxe_mmap_info on allocation
-Date: Mon, 23 Nov 2026 09:06:20 -0500
-Message-ID: <20261123140620.64393-1-astellman@stellman-greene.com>
+Subject: [PATCH rdma-rc] RDMA/rxe: Fail ATOMIC_WRITE WQEs whose length is not 8 bytes
+Date: Mon, 23 Nov 2026 09:06:25 -0500
+Message-ID: <20261123140625.64448-1-astellman@stellman-greene.com>
 X-Mailer: git-send-email 2.53.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -103,45 +104,55 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-rxe_create_mmap_info() allocates the structure with kmalloc_obj() and
-does not set info.pad. do_mmap_info() copies ip->info to userspace with
-copy_to_user(), so the 4 pad bytes of struct mminfo come from
-uninitialized kernel heap memory.
+For IB_WR_ATOMIC_WRITE, rxe_requester() uses wqe->dma.resid as the
+payload length and finish_packet() copies that many bytes (up to the
+path MTU) from wqe->dma.atomic_wr, which holds 8 bytes. For a user QP,
+resid is written by userspace in the mmap'd send ring and is not
+checked.
 
-On x86_64 v7.4-rc3 under QEMU with init_on_alloc=0, an unprivileged
-user (CapEff 0) issued 300 CQ_CREATE ioctls on rxe0 and read the driver
-response. After the guest had run ls -lR on /proc and /sys and read
-/proc/*/status and /proc/*/stat, 101 of the 300 pads were nonzero. In a
-separate boot with slub_debug=P, all 300 pads were 0x6b6b6b6b. With
-this patch, all 300 pads were zero in both configurations.
+On x86_64 v7.4-rc3 under QEMU with KASAN, an unprivileged user wrote
+an ATOMIC_WRITE WQE with resid 1024 into the last send ring slot of an
+RC QP. KASAN reported a vmalloc-out-of-bounds read of size 1024 in
+rxe_requester(). With resid 64 and 1024 in another slot, a test-only
+printk in the responder showed packets of 64 and 1024 bytes, including
+bytes I had placed after the value in the slot. The sender's completion
+was IB_WC_REM_INV_REQ_ERR. With resid 8 the write succeeded.
 
-Allocate the structure with kzalloc_obj() so the pad is zero.
+The responder already rejects an ATOMIC_WRITE whose length is not 8.
+Make the requester fail such a WQE with IB_WC_LOC_QP_OP_ERR before
+building the packet. With this patch, resid 64 and 1024 (in another
+slot and in the last slot) completed with IB_WC_WR_FLUSH_ERR instead of
+IB_WC_REM_INV_REQ_ERR, resid 4 also completed with IB_WC_WR_FLUSH_ERR,
+KASAN reported nothing, and resid 8 still succeeded.
 
 The issue was found by Claude Opus 5.5 running Quality Playbook, an LLM-driven code review tool:
 https://github.com/andrewstellman/quality-playbook
 The fix and this changelog were drafted with Claude Sonnet 5.5 and reviewed by me.
 
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Fixes: abb633cf2804 ("RDMA/rxe: Make requester support atomic write on RC service")
 Signed-off-by: Andrew Stellman <astellman@stellman-greene.com>
 ---
 A reproducer is available on request.
 
- drivers/infiniband/sw/rxe/rxe_mmap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_req.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mmap.c b/drivers/infiniband/sw/rxe/rxe_mmap.c
-index a4ead89cc..ac851f245 100644
---- a/drivers/infiniband/sw/rxe/rxe_mmap.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mmap.c
-@@ -102,7 +102,7 @@ struct rxe_mmap_info *rxe_create_mmap_info(struct rxe_dev *rxe, u32 size,
- 	if (!udata)
- 		return ERR_PTR(-EINVAL);
- 
--	ip = kmalloc_obj(*ip);
-+	ip = kzalloc_obj(*ip);
- 	if (!ip)
- 		return ERR_PTR(-ENOMEM);
- 
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 4f353abd7..bc3d5cae5 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -766,6 +766,11 @@ int rxe_requester(struct rxe_qp *qp)
+ 	mtu = get_mtu(qp);
+ 	payload = (mask & (RXE_WRITE_OR_SEND_MASK | RXE_ATOMIC_WRITE_MASK)) ?
+ 			wqe->dma.resid : 0;
++	/* use the local copies: a user QP's WQE can change under us */
++	if ((mask & RXE_ATOMIC_WRITE_MASK) && payload != sizeof(u64)) {
++		wqe->status = IB_WC_LOC_QP_OP_ERR;
++		goto err;
++	}
+ 	if (payload > mtu) {
+ 		if (qp_type(qp) == IB_QPT_UD) {
+ 			/* C10-93.1.1: If the total sum of all the buffer lengths specified for a
 -- 
 2.43.0
 
