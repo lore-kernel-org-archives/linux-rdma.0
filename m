@@ -1,94 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.48
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.43
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795444647;
-	b=Rgfe9hSOU85vFk8fjMybv6fKANVwid/PTpO3tT8rNYlxiWoqwH19TSFmTgxD0iIykaGa
-	 Jhc25dDc3L9qHggrCr2Vg+FHBSyd6ENjCGCpUB4P4MhsWsm9uyZorXrs1c7NjIMzI38Ll
-	 UmZjiYhN4SLT3IKkt3Iz0Tq40DT8a/lG/qojgCfR01gs+DhLnH9BmmP0Y/5cQTC2knVpr
-	 /Kz1h1fh+bnQveMv0OD8RBOACTu9hFdxv0hdFpPckAs/el5sM93L8ewa+qkuBuRITEjEs
-	 76AJRYlwHrPwMlzH19eCAGXlAeSN0Lab/WkfQgLLC46ag0v/Q6Di107uOyrzzMD9h0g==
+	t=1795444648;
+	b=oyeKmFpI9rP24Jbzph9wEupEel/pQd48qCRmLApuWtvMkBfmJ6ECOVnn8/ieAVJf96cj
+	 lraK4m3qoxYGNBCqxsyXLaP8fwgGq3e0tTx8DRVd2W6pH21z/gNhIZt658ytCbqs8r2ro
+	 kIViyz2RjfOSGQvqDvybgNGYxgciXMLBXiTFKkOh8iq8JHhjVp6HhvVa9J0mAIvHu0giY
+	 3sqclmk5okL72mEYZp/F4VX3JgQ5092UYPBJICRMLr+BIW6fxf9E/dbJUmKx2t1Bmro13
+	 696xhxqdYDgNgNyF+lAPBl8XANzU9oTzkOHSpXVWoKidD8id96vsYHR0E8nAAyVuXcA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795444647;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795444648;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=+/URcS/PgRWRcHLsYi0d3E1Tt2H5uOxLYR7uFYNaFco=;
-	b=NIm7uJqR80+wtDxq1Yw5MbCLd+M8b6ZX9lgpUrK5uR8ti/DnYBdFAK08+l88D2F/FSd+
-	 BR5hTqdxz1/Cr5y9k4ScSQYNkyIKYNtrOTqNqXoco7Mf1Kh9JkVopaoWrdQhxLfHGvQFx
-	 i9egYoRvblgF2IcIi6YShZV31gXe5NGR/ASCXmQ3+zOLWKN0QoMtp0979RVlkQqwKjEfn
-	 RqMVHTcKuFVyUYqYz9Ic0EZjYToCc8FqeMDJ4QpU4z6gbEpJaTFsmuEimi+SvaO259sn5
-	 wvc7oY2duret8MS54QurLTwxHK044h3mxWqQag6UMQn9CDinqQRB/waK6bzOoe3ooww==
+	bh=HWeuMGR6wrGVpKqnn1AiZ9rjvdrQbQeBx/a490ofF9c=;
+	b=cjFxmAqZlSNIKSEuJeRPAbzjwIglOZXguKGXNWD+oguqJBjfbEvuywr/qFJpdOPyDnr2
+	 ckI4v49RMhuzQVSQPryCUJ3VwWZQBR2c652kpFM5btyU2xXbRV90p/HXqwTeIRuZ8hFJO
+	 He+kYihKMoqDCHvHhc37IHCjlruzVH33/q8u2XtEJC19+DrWOOgWqYA6ad2xkiHK07A43
+	 RQxU8aH/TENKvWaxbC2kSYKhETksjqA1QHE6/RMw7CHUEsoPLw9imeaFqRoX9oCHHCk6f
+	 mTZKfmxeAFbhRTXKo9mUkQiop0Zq3eI6PN9dzd6HI6tmzOP9CohVSNg801wOEvExtjw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=ionos.com;
 	spf=pass smtp.mailfrom=ionos.com;
-	dkim=pass header.d=ionos.com header.i=@ionos.com header.a=rsa-sha256 header.s=google header.b=WnDdQT6M;
-	arc=none smtp.remote-ip=209.85.128.48
-Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
+	dkim=pass header.d=ionos.com header.i=@ionos.com header.a=rsa-sha256 header.s=google header.b=UaF9JZAf;
+	arc=none smtp.remote-ip=209.85.128.43
+Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DF1C606A32C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C664A606A339
 	for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 14:37:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2DF1C606A32C
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C664A606A339
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.a=rsa-sha256 header.s=google header.b=WnDdQT6M
-Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-4bb72b44a97so28567345e9.0
-        for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 06:37:26 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.a=rsa-sha256 header.s=google header.b=UaF9JZAf
+Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-4a207b02a2cso24084225e9.1
+        for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 06:37:27 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google; t=1795444645; x=1796049445; darn=vger.kernel.org;
+        d=ionos.com; s=google; t=1795444646; x=1796049446; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=+/URcS/PgRWRcHLsYi0d3E1Tt2H5uOxLYR7uFYNaFco=;
-        b=WnDdQT6MF8R3aLvx7XhWkqEZlB3JmK7dPMid56pMXcMqf1t82TFARl1M2hMf7QoBIV
-         Kaj9z0rFZaSgjNr8QBLH1oLerIU/T5KaEr5KSMLloewwdCR1MPzDFr/SvvELhTIDUHO2
-         NbbX6KrcYZnloaPd0JDUJ70ltWRMT/MWmB2knIDgporcvzlVzBV5CR6HqZgt0G71xfSd
-         EeqdzbMLMIbseNTaP/Xg8K/M/HGTE2RsxbjuOgHMnDC5SM4vmstQyv+ZBW7zPza5/M0Q
-         Np4jxRnecJwQ2Ej5nO95m4mZ6sXsaVt/zGzhveDT3vbAPEm4i81gveTrNSM7P1p3aS93
-         UJrQ==
+        bh=HWeuMGR6wrGVpKqnn1AiZ9rjvdrQbQeBx/a490ofF9c=;
+        b=UaF9JZAfalh7iwfoAfTdvv099j51WmVhpInXaXpvHAxx0uKRdKmgG2GRhxNwRcpDGQ
+         YmeQ+vA4+b7eD5f+hifxBtWUEt5xOM8Q+USusEU+5pjTea4lZlD2qCAq3PnEoVNbcxd4
+         xl8jIryvMVVD4pewQJ4qGQwSxCqEmNk6YEb9pz1JuV4+DWODmPoihdLw9hUYtf0Ng1Pl
+         PETRjq/3CoiWqZxD4wRSpoD4UUEr9IrSCmHPEDRHRwAUm1l8TbAzdNzj14T0d/vdVpCH
+         uqODhAJTv0wTuDOdwqzoZ9y4cA13eff05PQskVBaq1M1DA+iDAr56KR1kVyUKEsQLgLR
+         h4zg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795444645; x=1796049445;
+        d=1e100.net; s=20260707; t=1795444646; x=1796049446;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=+/URcS/PgRWRcHLsYi0d3E1Tt2H5uOxLYR7uFYNaFco=;
-        b=vIqFNc68t+h9hhnYuY/8EX8kfPCx0cSCw2uljwQ8BFHDrMyMM8ea2tSHgVrPl8VqfO
-         DvsSPtT/4F+8C+Y3SvK9qWUfUKDNWZsycotMfzhRfNiL+SjuW6gbp+gvJT2bFBvAHYLR
-         mOH1qX7v2Qm3IVk776mmC5BPadXt4xPHYkb31EGqR0jmsb3s5IutauSwBduyZ7ijwP+8
-         qFI1qf4e/70k2gYjf2btcXFt1W9b+RFiY9W++adoaUyx4mbKLUj5HrwK5rXvuF911EH9
-         RZSbwrnk7shUVZL3Ms+cfkdurnVXPrS4Yxaw6OVcHbRh0uDjA4Zn3dd+j5E7ZcfErldZ
-         AcuA==
-X-Gm-Message-State: APuU4Z/rYAhroUgXvKAez0fqaeAea+gqU0AWGuZ0W+Tw+u7xLE7FdxKq
-	GA5lm9stPlqg58HI7NhNJGVSYLNg44Tl/JPSNIQFKn25eW0g/hBDxJyQxLRz5g0WhHYzbLj3l6S
-	sCDQX8SA=
-X-Gm-Gg: AZFdTZe/zpyFJH0py22HGcdvoqeQZLc3qAk0Q3YcFv7jSvNYaKL9N6EAi7ZHTgF4fic
-	wQByD5jD0Poy/MkqpXpoUAKLVvz5jcpWklUvneqz+mQqy8FZXZmH6lpvXQKQr581TO+YU8NfJbM
-	tA4IHhrw1tWdBco1xK54UxWi6MrU+wCT1WwINzXbSF48XMYS8HAYH4bXhyrAePJ7aeVZjWESN0u
-	XJ0My3k+rOkQweKhcWyq0+tdBXbbszf85/9w3/wNP9H4DxW3DNkBu2dG0ThpUZbhQjk1tySVA2u
-	fKX4Cs1PzphA8jeR3Tvf2PIOXJ/4WfWiWsKYGPaFfElR6PjdlnONxNqMMyU8sSSWTqaUCm0qcZb
-	HezYTb/RgY8W93w0or8/ZafsBxcYeJXFgBSVfleJhN/hQ5YOnDE09gJTLJByrIaKG8fHYnHuPZZ
-	RHKdaQB1qSjZpVPBRENfgolhdIQB3VqRhHrOB0Nc4cmTcTyztKHNOMZ1i5mdwRp+OW57pC5jpBJ
-	HgC/LnGGjnbzMPA98V9spiCBaWs2pofwiQQ2APXdI/hX5sqyysEadnTksM1y/FM7uDbAW2aJiII
-	/tJyQCr/yv77Nwu8tVUZCa9jDqxG0VdBj+c8kZuMOixPQ8nWAPe/jb07RdTNfZJZjvq+LSF5WgT
-	MMaqvnWsptDVqmL+TaKZeoVPQlxJtObxGAZAYRc/dGVR9wZeMyHpo1GmFAoX88FB1MsM4GF4pk5
-	U7NASg4gt9V8mOOejMX8i/nGOLyNKFa0PMp1o=
-X-Received: by 2002:a05:600c:64c6:b0:4bb:6fd3:5aaa with SMTP id 5b1f17b1804b1-4bb887c30fbmr212168515e9.3.1795444645483;
-        Mon, 23 Nov 2026 06:37:25 -0800 (PST)
+        bh=HWeuMGR6wrGVpKqnn1AiZ9rjvdrQbQeBx/a490ofF9c=;
+        b=BQjJS99zzyB4WaZ1Kx8ZCk2W2Ep2DHpnen1XrPOTOzIZuBY8WfZ7FQqw89uZFDyqj3
+         3XWCiRqjhzHdDUEtmX3IkmEeha9Oqs9+AidczcS+BCbNn60lmFtT+YvTP3+rgfXw/BuY
+         ZDXp26XtXMdPgNl2XGciKVrW53jAmQPVmBU42/eZgSCFM6AI94fE9v+NuQJ+VymIW9Ks
+         vI6N6iSDbSiXsc9hkQaPxCc7rB160iIRPstwg8WsXd1vHZ2+Le6BGgxvnbB7dTZ3CCXT
+         XsuNJkvDeHrYmaPWMRzHxEjAt7Lp/eMt5Kq3Mo9Hr4TWJ2PdZJATB7nq+R7iEWxaIulq
+         J6cA==
+X-Gm-Message-State: APuU4Z9AVaz+etuUJM5pJLLbTs/odEt8fq0nA5Vk8iCnawibpWzmSfj9
+	7enuzTI8ZzFpRCvKBf7qPhjxEYj50U50fpXDRrF0rrkpDskQv0dfHNMaT0c1zNYoTXN3ISwH1MU
+	BAADvNfU=
+X-Gm-Gg: AZFdTZeWVw0ne17/8R8xjDeVPIgvTm5XE/+Bu/uR67ySImiEHh44FLhLmNKadAFwWKw
+	Y6Nfsq7JXd/WgOHMU92NVmcWHol3Cjgo+w/kpUZjXLTI3D238GJTIWKNTfeVR/AxKRvBVLYsdDm
+	voZywkgeX64KcNArh/I9KqA39KwPjh1mQr7eyYl5OwacWATPD8n5J/BUci6jWO595n3HadbdEks
+	WftZidERhACBgDLE9/6FydjaUwh8Ie0iQq0xSCvqyThenHX1gbR23PdmTY8C7P1PQb8vwbe9Xmc
+	slLhqgWJ8MqNBp4JA4796Mn55t5xknye3/DYOdQGkH4OoK1suHoy6tLPUIVUV53bDEXGIUl5d4u
+	NW5RYmW/AjprhqpsdvVJMLE8kYAVtggVXRUbfypnXvk+awqU/o3uVBlCJhRz4b9SFMFBV/VHzZv
+	sKVDQhpn+FFtU0DFelicso2QSb8mPkyjR3Sw4r5zsEtIAXaDrpTzV1ielB8DJgUopp2LOK7DvoZ
+	IEMbWCBkZnCYRUTEdQ6RS8GZta4eR953VtjfkAy08qFZte137CZ4151kscUrgNyqRmJjqwFBuL9
+	6VDkHRirbID2g1zdBV6VOslP+JQH8jmpi9ZYDYufGmnJGsozJIoR0EUTDzH18M53V4q3R1q9Xt7
+	/rM9kU22JZsbyed4yEnT1vJc6UDOyygiAN7n3EATHSpl5DIAcN6nHqe/ATsKEWVtTCFmjUKH83O
+	TkznsAWQjbPVFoRBVic78dPYTblT4Lim12snQ=
+X-Received: by 2002:a05:600c:4f4c:b0:4bb:8503:69f4 with SMTP id 5b1f17b1804b1-4bb888097a2mr297665295e9.5.1795444646126;
+        Mon, 23 Nov 2026 06:37:26 -0800 (PST)
 Received: from lb03189.fkb.profitbricks.net ([212.227.34.98])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb906d6a13sm172562325e9.3.2026.11.23.06.37.24
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb906d6a13sm172562325e9.3.2026.11.23.06.37.25
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
         Mon, 23 Nov 2026 06:37:25 -0800 (PST)
 From: Md Haris Iqbal <haris.iqbal@ionos.com>
 To: linux-rdma@vger.kernel.org,
 	Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>
-Cc: Md Haris Iqbal <haris.iqbal@ionos.com>,
+Cc: Danil Kipnis <danil.kipnis1@ionos.com>,
+	Md Haris Iqbal <haris.iqbal@ionos.com>,
 	Jack Wang <jinpu.wang@ionos.com>
-Subject: [PATCH 6/9] RDMA/rtrs-clt: Fix reconnect jitter being applied in milliseconds
-Date: Mon, 23 Nov 2026 15:37:16 +0100
-Message-ID: <20261123143719.938876-7-haris.iqbal@ionos.com>
+Subject: [PATCH 7/9] RDMA/rtrs-clt: Back off the reconnect delay exponentially
+Date: Mon, 23 Nov 2026 15:37:17 +0100
+Message-ID: <20261123143719.938876-8-haris.iqbal@ionos.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261123143719.938876-1-haris.iqbal@ionos.com>
 References: <20261123143719.938876-1-haris.iqbal@ionos.com>
@@ -103,55 +104,91 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-RTRS_RECONNECT_SEED was introduced to spread reconnect attempts of
-different clients over an 8 second window, so that a major network
-outage does not make all of them hammer the server at the same moment.
+From: Danil Kipnis <danil.kipnis1@ionos.com>
 
-The random value is however added to delay_ms, which is already in
-milliseconds, before the sum is converted with msecs_to_jiffies():
+A path that loses its link waits out the full, flat reconnect_delay_sec
+(30s on rnbd, + 0-8s jitter) before its first retry, and every retry
+after that, no matter how quickly the far end actually comes back.
+Nothing about that delay depends on how the path went down:
+rtrs_clt_err_recovery_work() runs the same way whether the trigger was a
+CM disconnect, a heartbeat timeout, or a port error, so a transient blip
+pays the same price as a genuinely dead fabric.
 
-	delay_ms = clt->reconnect_delay_sec * 1000;
-	queue_delayed_work(rtrs_wq, &clt_path->reconnect_dwork,
-			   msecs_to_jiffies(delay_ms +
-					    get_random_u32_below(RTRS_RECONNECT_SEED)));
+Start the delay at RTRS_RECONNECT_BACKOFF_INIT_MS (1s) after the first
+failure and double it on each further consecutive failure, capped at the
+configured reconnect_delay_sec, which becomes the steady-state ceiling
+rather than a constant. reconnect_attempts already counts consecutive
+failures since the path last came up and already resets to 0 in
+rtrs_clt_path_up() on success, so it doubles as the backoff step with no
+new per-path state. The existing anti-herd jitter (RTRS_RECONNECT_SEED)
+is kept as-is on top of every step. RTRS_RECONNECT_BACKOFF_MAX_SHIFT (8)
+only bounds the shift below reconnect_delay_sec's u8 range (max 255s);
+it is a safety margin, not a behavior knob.
 
-With the seed defined as 8, the jitter is therefore 0 to 7
-milliseconds instead of the intended 0 to 8 seconds, which is far too
-small to stagger reconnects and leaves the thundering herd it was
-meant to prevent.
-
-Define the seed in milliseconds, matching RTRS_RECONNECT_BACKOFF and
-the unit of the expression it is added to, and reword the comment to
-state the resulting half open range.
-
-Fixes: 09e0dbbeed82 ("RDMA/rtrs-clt: add an additional random 8 seconds before reconnecting")
+Signed-off-by: Danil Kipnis <danil.kipnis1@ionos.com>
+Reviewed-by: Md Haris Iqbal <haris.iqbal@ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
 Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 35 ++++++++++++++++++++++++--
+ 1 file changed, 33 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index c059d69c3e5a..54d72fa52cb1 100644
+index 54d72fa52cb1..7930039dcd32 100644
 --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
 +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -26,11 +26,13 @@
+@@ -34,6 +34,26 @@
   */
- #define RTRS_RECONNECT_BACKOFF 1000
- /*
-- * Wait for additional random time between 0 and 8 seconds
-+ * Wait for additional random time in the range [0, 8) seconds
-  * before starting to reconnect to avoid clients reconnecting
-- * all at once in case of a major network outage
-+ * all at once in case of a major network outage.
-+ * Expressed in milliseconds, like RTRS_RECONNECT_BACKOFF, since
-+ * it is added to a millisecond delay before conversion to jiffies.
-  */
--#define RTRS_RECONNECT_SEED 8
-+#define RTRS_RECONNECT_SEED 8000
+ #define RTRS_RECONNECT_SEED 8000
  
++/*
++ * Delay before the first reconnect attempt after a failure, doubled on each
++ * further consecutive failure and capped at reconnect_delay_sec. Lets a path
++ * that recovers quickly (a transient CM error, a brief port flap) start
++ * retrying off this short initial delay instead of the full configured
++ * delay, while a path facing a genuinely dead fabric still settles at the
++ * same steady state as before. RTRS_RECONNECT_SEED jitter is added on top
++ * of every attempt as before, so the actual first retry lands anywhere in
++ * [RTRS_RECONNECT_BACKOFF_INIT_MS, RTRS_RECONNECT_BACKOFF_INIT_MS +
++ * RTRS_RECONNECT_SEED).
++ */
++/* Matches RTRS_RECONNECT_BACKOFF's value by coincidence, not by shared purpose. */
++#define RTRS_RECONNECT_BACKOFF_INIT_MS 1000
++/*
++ * Shifting RTRS_RECONNECT_BACKOFF_INIT_MS by more than this always exceeds
++ * reconnect_delay_sec's range (u8, so at most 255000 ms); capping the shift
++ * avoids relying on shift-by-large-amount being well defined.
++ */
++#define RTRS_RECONNECT_BACKOFF_MAX_SHIFT 8
++
  #define FIRST_CONN 0x01
  /* limit to 128 * 4k = 512k max IO */
+ #define RTRS_MAX_SEGMENTS          128
+@@ -1537,11 +1557,22 @@ static void rtrs_clt_err_recovery_work(struct work_struct *work)
+ {
+ 	struct rtrs_clt_path *clt_path;
+ 	struct rtrs_clt_sess *clt;
+-	int delay_ms;
++	unsigned int shift;
++	u32 delay_ms;
+ 
+ 	clt_path = container_of(work, struct rtrs_clt_path, err_recovery_work);
+ 	clt = clt_path->clt;
+-	delay_ms = clt->reconnect_delay_sec * 1000;
++	/*
++	 * reconnect_attempts counts consecutive failures since the path last
++	 * came up (rtrs_clt_path_up() resets it to 0), so it doubles as the
++	 * backoff step: 0 failures so far -> the initial delay, each further
++	 * failure doubles it, capped once it reaches the configured steady
++	 * state delay.
++	 */
++	shift = min_t(unsigned int, clt_path->reconnect_attempts,
++		      RTRS_RECONNECT_BACKOFF_MAX_SHIFT);
++	delay_ms = min_t(u32, clt->reconnect_delay_sec * 1000,
++			 RTRS_RECONNECT_BACKOFF_INIT_MS << shift);
+ 	rtrs_clt_stop_and_destroy_conns(clt_path);
+ 	queue_delayed_work(rtrs_wq, &clt_path->reconnect_dwork,
+ 			   msecs_to_jiffies(delay_ms +
 -- 
 2.43.0
 
