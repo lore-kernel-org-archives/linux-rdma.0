@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795442969;
-	b=ZC98DiR+DL5lxiad9CJfo9QRf1U6WMHrCxZW0Aeap26Vbkn/Qe1YvuHDlo7T4sExPkeU
-	 2F1plUPnpCAVSGlresBeBaylTMyBttcT3Vra8VsxOwVkSaGzVcYuoLegM32Fk0Y8H36WR
-	 6AEjhgux/Yg3FJzqqNV8TAwqA1zzdaCzjrZyj+rkO93Oa9WtAPQOyEcc30DvFo5/CpbWl
-	 Fp8+UAD/jF963jhOSCaQjkanHiPTve9oJmEKzHNpm/Az/upeK78XhcXieDvhU+kGx72QN
-	 8hGEm5mmkPfZEmBAZ4oto+kQsYE7jEEph3WgGMDTD9+2nD52RA+H4l23eAYDWVSgMmQ==
+	t=1795443572;
+	b=XNht6Oixmq9YSDBRDD83lQ61QScvvNqllHbteMxdQZSYD0JHuFYAEP8nOQszbVkezPAY
+	 KIicgFfyfvdoVR/6pKblTM62hmG0+PxjZ0PxizaI6xktX+561ZLI0bmMsK96nT4mBg5zf
+	 7YExMYKN5f3nOpF5fl433MYKnIamztkSvyujvwJ8gVzYaC+CjPjCo5Yj70QEG2vC/RS64
+	 w0x7lo+AqD/ALHDqmsIdJMvh5uKyfzLTcmJuRVL4A7Golr2OuJeRSaizJnKdDCjLWlvNu
+	 xmSdM2hC1MuDefTqs5ynGnWYI82q91FStvUU+6kQOEdx+BuV83gIIcZzDeZUJLI4Esw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795442969;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795443572;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=oTGSn9qe8rLrlzJPvUc/96/oj20XWjWdXShIWr4W+zU=;
-	b=l0hwBvJ3crc4XaaPiu+o94O7F4LRV1ibttuXlLJu+N0O1jH/032khLm6kJndQq8tn4Y5
-	 v9rkP25Ajgw6riACY3EYIS7ZvH6JvqyU9/rQYMgZN4Xro1khsdPqB1OiSFfEZK2lm3612
-	 dY/i5MW//KxjIaeEiVm4Ggc6KtzZizkJy3zFhEmcxVOM37bjpiCloSatGHVJK65daNZ2t
-	 BQYHEdWSlwr/h2Lp6JjElrbARXT0Q20APwkwQ1pODoUBHMHYKG91LgtxFDLQeY5+NUqI0
-	 sUXjZINsuzWy+Z7bviYhMyrThYuSdmC7DBJWDz0RLnafMsTOrEZrkMfcCRaln/vVITw==
+	bh=IAXFOlKyfgOIfd7LKbnq7QQpi2lY40FSmuuFoCMyJZs=;
+	b=Vxpeq1W1h1hUBI0h8xBUEWzdoEOFV3aAxZr+ORwoT2Dbgl4JMa9266ybqy8bt1adAp6j
+	 g2jjOMm/wvM1yqkWa14Xf2nw7ttBkmgoWm+jlEB59rkjb1ln4xrQnJ9xgpjvL4gSMmoXn
+	 o9uIU4kO/lQrYaJEjfqscsXIu67l/mrwDpxkcn52c9H7m8mQja1Ap658z9bl/tILPyPaG
+	 78R92IlTvzQ9h1FEXfzQO0QuHWWB8ceZ3cWoB/mrfRFQGSDVYL9KlUzWpt675M1iusXY+
+	 2HEBF7YTgC4TOndfiWMgSbGwFXTGDte/Qr36M32LjcwKyOVMKO+1f1DifOsBy/0Xr5w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YGLQ5ji5;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=U8j2LsDn;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8961606A6A6
-	for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 14:09:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64EAE606A31E
+	for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 14:19:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YGLQ5ji5
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 209A71F000D3;
-	Mon, 23 Nov 2026 14:09:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=U8j2LsDn
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8FE31F000EB;
+	Mon, 23 Nov 2026 14:19:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795442968;
-	bh=oTGSn9qe8rLrlzJPvUc/96/oj20XWjWdXShIWr4W+zU=;
+	s=k20260515; t=1795443571;
+	bh=IAXFOlKyfgOIfd7LKbnq7QQpi2lY40FSmuuFoCMyJZs=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=YGLQ5ji5pjX3Y9vaynDd8njVacVX00e1OQ5ESMdI5sLyb3V5tz8VEI+e9+ab80ZT9
-	 HarpCOcfw0MO6CdbKTFNZ0iuTNoa3hh4uAeFLBnvWsOuyI9yo3IKd5wURzaUBGds/v
-	 cHPyky7416d7Z/QqbfQQdKRRXrO5RoPaRxW2j+wZJVEdZBm3gJIzZvMTdjpDkWt9pD
-	 +wURq01XZIjlPrjTN7IbdHdeFcA1QUbuDdv7DIPEQ/cNWzPcyM+JVIri9sD/P48XAQ
-	 UpJx9shU/n+Ge0DUd0u9y0zRiv56Ebp6Pe5Wkj7rkHKYGyRkgwSeNsp8EzYlNaUInl
-	 22Z8yi3oD6i0A==
-Message-ID: <sashiko-outbox-229379@kernel.org>
+	b=U8j2LsDnN/S8+T6jlyDmDlxpZ/touQedZbkofySlh7PbHZK9UI3W8yme10sToyGjg
+	 1tBnP61Awu0MEaBs+3225ZvVz4glesM2e7WqqAED3ShgGFtnDzcMHkFUqYLcq0Uq3D
+	 ZKH6IQ/ooZeOc54pebaXBUJ6HLt9qnmyeF9JzJeQ+iGNOa6kJCBD951pZDjicbkFhu
+	 PLJmZ+9ayO+p690JsLlvaAJjtdecJTFVE6CXMMdolQms615rtV92yfYybrniuesVWK
+	 JnZCbXVhkLOZzv+F66NbpvIkwqNMMP3e4ots1VwJsFWwu7ZxcFIxi6+AvcsFOXJL77
+	 Ivu2F4RhybWug==
+Message-ID: <sashiko-outbox-229387@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-rc] RDMA/rxe: Zero struct rxe_mmap_info on
- allocation
+Subject: Re: [PATCH rdma-rc] RDMA/rxe: Fail ATOMIC_WRITE WQEs whose length
+ is not 8 bytes
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Andrew Stellman" <astellman@stellman-greene.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261123140620.64393-1-astellman@stellman-greene.com>
-References: <20261123140620.64393-1-astellman@stellman-greene.com>
+In-Reply-To: <20261123140625.64448-1-astellman@stellman-greene.com>
+References: <20261123140625.64448-1-astellman@stellman-greene.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 23 Nov 2026 14:09:27 +0000
+Date: Mon, 23 Nov 2026 14:19:31 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,31 +60,60 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-> rxe_create_mmap_info() allocates the structure with kmalloc_obj() and
-> does not set info.pad. do_mmap_info() copies ip->info to userspace with
-> copy_to_user(), so the 4 pad bytes of struct mminfo come from
-> uninitialized kernel heap memory.
->=20
-> On x86_64 v7.4-rc3 under QEMU with init_on_alloc=3D0, an unprivileged
-> user (CapEff 0) issued 300 CQ_CREATE ioctls on rxe0 and read the driver
-> response. After the guest had run ls -lR on /proc and /sys and read
-> /proc/*/status and /proc/*/stat, 101 of the 300 pads were nonzero. In a
-> separate boot with slub_debug=3DP, all 300 pads were 0x6b6b6b6b. With
-> this patch, all 300 pads were zero in both configurations.
->=20
-> Allocate the structure with kzalloc_obj() so the pad is zero.
->=20
-> The issue was found by Claude Opus 5.5 running Quality Playbook, an LLM-d=
-riven code review tool:
-> https://github.com/andrewstellman/quality-playbook
-> The fix and this changelog were drafted with Claude Sonnet 5.5 and review=
-ed by me.
->=20
-> Fixes: 8700e3e7c485 ("Soft RoCE driver")
-> Signed-off-by: Andrew Stellman <astellman@stellman-greene.com>
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue to consider:
+- [Medium] RDMA/rxe: unreachable atomic write length check in
+  rxe_requester()
+--
 
-Sashiko has reviewed this patch and found no issues.
+commit 53a7ca51888beabddbfd557ad8447b0102b0d59e
+Author: Andrew Stellman <astellman@stellman-greene.com>
+
+RDMA/rxe: Fail ATOMIC_WRITE WQEs whose length is not 8 bytes
+
+This commit adds a check in rxe_requester() to fail IB_WR_ATOMIC_WRITE
+WQEs with IB_WC_LOC_QP_OP_ERR when the payload length is not sizeof(u64).
+
+> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/=
+rxe/rxe_req.c
+> index 6e01fb18893bf..962aef824ccc2 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_req.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
+> @@ -824,6 +824,11 @@ int rxe_requester(struct rxe_qp *qp)
+>  	mtu =3D get_mtu(qp);
+>  	payload =3D (mask & (RXE_WRITE_OR_SEND_MASK | RXE_ATOMIC_WRITE_MASK)) ?
+>  			wqe->dma.resid : 0;
+> +	/* use the local copies: a user QP's WQE can change under us */
+> +	if ((mask & RXE_ATOMIC_WRITE_MASK) && payload !=3D sizeof(u64)) {
+> +		wqe->status =3D IB_WC_LOC_QP_OP_ERR;
+> +		goto err;
+> +	}
+
+[Severity: Medium]
+Can payload ever differ from sizeof(u64) here when RXE_ATOMIC_WRITE_MASK
+is set?
+
+Earlier in rxe_requester(), req_next_wqe() copies the WQE into the
+kernel-private buffer qp->req.send_wqe.wqe and forces wqe->dma.resid to
+sizeof(u64) for atomic writes (added in a668a8564748 ("RDMA/rxe: copy
+send WQE to kernel buffer before processing")):
+
+drivers/infiniband/sw/rxe/rxe_req.c:req_next_wqe() {
+    ...
+	if (unlikely((wqe->mask & WR_ATOMIC_WRITE_MASK) &&
+		     wqe->dma.resid !=3D sizeof(u64)))
+		wqe->dma.resid =3D sizeof(u64);
+	return wqe;
+}
+
+As a result, this new check is unreachable, and an IB_WR_ATOMIC_WRITE WQE
+with wqe->dma.resid !=3D sizeof(u64) will still be clamped and sent as an
+8-byte atomic write instead of failing with IB_WC_LOC_QP_OP_ERR.
+
+Also, because this check runs after check_init_depth(), if the clamping in
+req_next_wqe() is removed, a malformed atomic write WQE would consume or
+stall on rd_atomic credits before failing.
 
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261123140620.6439=
-3-1-astellman@stellman-greene.com?part=3D1
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261123140625.6444=
+8-1-astellman@stellman-greene.com?part=3D1
