@@ -1,54 +1,80 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795446157;
-	b=lcsYB11bR4lZatm2wRifNk+xdW59fA1ysL5kIksTPgEFaupzW9fvRrMCf/MyaKBCsHr7
-	 7O6rH9xj2wV7i4wqQhc9YqWp84Zvd+RrjApGi59XmHmN/OOQdUH1EB9NVPECTMRMmj2Ep
-	 fmiUfATEhSWOsbQOeI/WtNrcnS+Q7uihF+4ve9HAwveYMt2mmFA7xpAa2ocW7c8mKgfgP
-	 KFvtYlT1eHGRvyohMnL6qK7a6imMCAgU2Vjt8uT+Aj0k2m8OXTHPmdnFIX0r7l2IT3cRt
-	 qI0Esj2BPWhSIqpwsIjZiqgc86+1Inv2Ku+5JCDeNlRYRlklFCFTEKpg1frtje8OOGg==
+	t=1795447313;
+	b=Th2Qtz9gvd8qHl5sfufMbif/38Ku2xxvJs7CjyfOL/PfWX09Axu0fSNrCK7i61UjE6CE
+	 cu5YHuc6BrkTJrSenly9ILLgRFn9w7vn4r8/fbrXvjRZgMAhCoNccWZyvgpJonv250Uco
+	 6E7vBykVafigbMrX98WAZCSrOxJjh3CpJ30nBHdTKvglswENopvlZbO/x2HRboiaRlvK1
+	 Ruy3XF/TdI6Pzjxh+DwgIPeW4PwnAQDV3l7ZYkftsutXeRRdn3fB8TQNtZ8Mpf25JFDQG
+	 OwmKTCmJ3r9t+4/auFnthLvVfiZ+V1LM2ZUx7oOt8M6fHXFRzhL1o5DskhOn6TfNXRg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795446157;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=HzpNQfv294tpDmZGUhk6s34i9rMoubfO7Z1hNpYoskI=;
-	b=j7ohNiR+gedj9pNvc6IYunLzpNvAxuDicxDth8qMmCjRLIXBIIvWnwD9VSvFuDGOBkCt
-	 D2p1MbP5oj4KTYgefW/HN9XnafbNkg6AC5TI1a+QTS9is7f8h3W1/uP5mmQNelcz0DB28
-	 ZE/iWqxdrPpQo8dsqtumciI8s4vBb7eBzjwrFEms+vPGFnJ81ZJrbYym7RZmBoa4DuQjV
-	 l8axBWKxC6MD40Gurav21knNmi6jLz5yhVgDe95Wz2I3gnVEIhWTqWL/VLVZaReRQlmyi
-	 rV3FXYsdGSpfndbOvlcjfPmTECaOVuwYarQo4ZSEWNyiCeEyyPJ9YtaFS68wBWKEcbA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795447313;
+	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
+	bh=FDHhwxCxCbXmvaM7MXxMxxf1AWoTVfTVQx5EL51XTSY=;
+	b=yYSuOLPysBvNcF5tNTNBjcSzlnMiTUAnyQhJ+sOfBJe62Rjabv+HFDPUDtEw5dVlMx9j
+	 QO1lzKqZsXR2PJ9pggvg9ogqu1iAkVfG26qx/aCo3NLS7m+DeQuYKC6rs4YJe8Y7LCjRm
+	 5RiBnpsRBIcEi+6aI6hIoPGebAv3+2KUmuoyRNuKDZs/5PyOkNsD3dajbiUaSIirfsvPE
+	 2Ll3Ymz97ABJfsZc5EDBLu8GcRuATOO4uIGFt8uvRWG4FBbWCEjNLfNSlBJY1FQZRIg+6
+	 xOq+nZjbJLSmBGHPudO8TND3aZRlTyKSEH7sCJHlVhLqQ2Bj8198zrkLUCubdyH2TdQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=owPirzA2;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 631EF606A32E
-	for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 15:02:37 +0000 (UTC)
+	dmarc=pass header.from=linux.microsoft.com;
+	spf=pass smtp.mailfrom=linux.microsoft.com;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=J1P3PFoa;
+	arc=none smtp.remote-ip=13.77.154.182
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id F3441606A31F;
+	Mon, 23 Nov 2026 15:21:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F3441606A31F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=owPirzA2
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 292141F000C6;
-	Mon, 23 Nov 2026 15:02:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795446157;
-	bh=HzpNQfv294tpDmZGUhk6s34i9rMoubfO7Z1hNpYoskI=;
-	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=owPirzA2U8a+dNe5cvZ+4DKXkH4pK6dQv/T0NrFrxT4hXYte9BdHPKnIna4ajggqM
-	 ufgSS6xyYWs4qwEJ8FfdOveu37nReW5naZKEUj1kRPWu/DX3mzD/DmsPg00U1ITKB5
-	 CnMqHePtUdiO5XM9+NDOJ1CgDHh+tK77EiaCAq+YShXs76QiJNnQKerIRL+3QPDdKX
-	 j+18BOsABmHJzIefstzytfS/7d7ut3Feqz8Gqfp440QimDhZ/SWYyuJVT7ZmKmWetJ
-	 1FRxZzTWNp2ZncN46ojW72m/nbUCWSG2YiyuEUDzq09JXR2MNCZ3AyuZtm19IVu3G5
-	 3GSCR5jAoBMmg==
-Message-ID: <sashiko-outbox-229469@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH 0/9] Misc patches for RTRS
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Md Haris Iqbal" <haris.iqbal@ionos.com>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261123143719.938876-1-haris.iqbal@ionos.com>
-References: <20261123143719.938876-1-haris.iqbal@ionos.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Mon, 23 Nov 2026 15:02:36 +0000
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=J1P3PFoa
+Received: from weh-cvm-dev-vm.y50bckvjo0hefgfnzfztsfttff.phxx.internal.cloudapp.net (unknown [20.169.55.37])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 87B0320B7167;
+	Mon, 23 Nov 2026 07:21:47 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 87B0320B7167
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1795447308;
+	bh=FDHhwxCxCbXmvaM7MXxMxxf1AWoTVfTVQx5EL51XTSY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=J1P3PFoa9nR7k2KaZQn4p3MoCICXl+phdl58ZUlBuX/wXLkMPyF1M6ne2cWYQ+n6H
+	 gpBWeFkU1+O/zbw8VIgfThH8iyxKUaCaa4NLLwCXPbM0lryhPuTH2z0kOpxjGv9br4
+	 ALdYvK1B6Ch0CB/X6qb6ZfvKG/GjqRTum51UIGLM=
+From: Wei Hu <weh@linux.microsoft.com>
+To: netdev-bot+sashiko@kernel.org
+Cc: longli@kernel.org,
+	kotaranov@microsoft.com,
+	kuba@kernel.org,
+	davem@davemloft.net,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	andrew+netdev@lunn.ch,
+	jgg@ziepe.ca,
+	leon@kernel.org,
+	haiyangz@microsoft.com,
+	wei.liu@kernel.org,
+	decui@microsoft.com,
+	shradhagupta@linux.microsoft.com,
+	horms@kernel.org,
+	ernis@linux.microsoft.com,
+	stephen@networkplumber.org,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-hyperv@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	gargaditya@linux.microsoft.com,
+	kees+treewide@kernel.org,
+	kees@kernel.org,
+	mawasthi@linux.microsoft.com,
+	weh@microsoft.com,
+	edumazet@kernel.org
+Subject: Re: [PATCH net-next v11 1/4] net: mana: prepare HWC ownership for safe reinitialization
+Date: Mon, 23 Nov 2026 15:21:44 +0000
+Message-ID: <20261122064231.hwc-v11-netdev-p1.weh@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <179527856753.3135.1812581824985082274@kernel.org>
+References: <f94c7f71d4228c7c30838f9c901b429ec5b1428c.1794751992.git.weh@linux.microsoft.com> <179527856753.3135.1812581824985082274@kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -57,20 +83,32 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Sashiko has finished reviewing this 9-patch series:
+On Sat, Nov 21, 2026, netdev-bot+sashiko wrote:
+> Should mana_ib unpublish the slot, wait for a grace period, and only then
+> free the object, as the HWC teardown path in this patch does?
 
-- Patches 2, 4, and 6-9: no issues found.
-- Patch 1 ("RDMA/rtrs-clt: Add mpath_policy module parameter"): 2
-  potential issues (1 Medium, 1 Low)
-- Patch 3 ("RDMA/rtrs-clt: Trigger error recovery when posting L..."): 1
-  potential issue (1 High)
-- Patch 5 ("RDMA/rtrs-clt: rename pathname parameter to sessname..."): 1
-  related pre-existing bug noted
+The HWC teardown protects the table itself, not the lifetime of each
+RDMA CQ in it. The individual CQ race exists upstream; v12 leaves it
+out of this series.
 
-Detailed reviews have been sent as separate replies to patches 1, 3, and
-5.
+> Can this leak repeat without limit through the existing PCI recovery loop?
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261123143719.9388=
-76-1-haris.iqbal@ionos.com
+Yes, in v11. In v12, if probe cleanup can't get a DESTROY_HWC ack,
+the driver doesn't schedule another PCI probe. If teardown fails during
+removal for a driver-initiated rescan, it skips the rescan. A bound
+device can retry the destroy. Final removal can still leak the last set
+of HWC buffers: the PF may still be using them.
+
+> What happens to setup_active when the PF returns possession with a
+> well-formed ESTABLISH_HWC response that carries a non-zero status?
+
+It stays set. Once the VF has submitted the queue addresses, an error
+reply doesn't establish that the PF has dropped the mappings. The VF
+still attempts DESTROY_HWC and waits for its ack before freeing them.
+A reset notification isn't a substitute for that ack.
+
+Thanks,
+Wei
