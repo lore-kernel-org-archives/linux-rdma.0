@@ -1,94 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.42
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.45
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1795444646;
-	b=QKFtfp1T0SybKuZWU0mFKMhF62mRV1fLduIFl4WqetEvdhg/kfty8wdv7TDKN1stTVqB
-	 ZtQa+oQc7veVYopUqE1E/AKwxBcKxgkcVR8bgElJw7cH+Y2B1aqSHY667VoOaao+vsQLV
-	 tMPzfHHyO7r3L3ZTYwdGjBSZ99H2zyK3IvGWeMdOHnkreHHoBcTLJUsNTyEOsa3+1T+jb
-	 X+CfoOzPujI5C1B6ss0grEFFnF2u/5dHT9+9K2uT4S+zrC/dFIk9gcgTazlFLTX6eE0lV
-	 YWcKL3OpQSnN5Fha8jCjslhUfp84q+dXTjXArJuNp1tOpEWbECvn2eGsvpg/XGuntqQ==
+	b=O7F+nLxpzNwnN0RcsmyTXdRlt+IeuZ82ZkfeneMdS0qJEaTeCRtsWRLY9hCf9jJd2Z/L
+	 P1W6LC6GD8e88mihoe/BI9HojWubykVkUXWQKdDFCMG2930PDGeOWl2lVu+Zi8jNdvfP6
+	 u43MwZseNMrnWTG0+sLDuHZMu+0kzxw+IMFy5y9ooL1a3J8XuKZN3rnHKxOWhVYuB3Rmc
+	 px4aaKysCCiOb5cRJZhM/htIQU9Po0HOmB8F8fdJ93SY7zr4ffO0h92cefDf+ESlnLGaz
+	 maS4NfRMR9VUe4LN1yBJMpOcjuMXhN+wL/wUMdQccuKi7nkq8pyEogpFw/fz/b74N0w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1795444646;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=jV1kE22gjteZFLT1j9oodaWGB84P8DfL3IABfgB4BO8=;
-	b=RiVziXZjr4nLLx4BI11pirVaf0RwA1iE61MbqsZkTMvJPHw3C2fsCTwH3prj9A51JtAG
-	 i90B4HTOwDVk4fCA1RjOverK9y0lACZN/N30UqVM17aX9ho7+M7kmzYRERC3961Ul0XLP
-	 LQxrgzmwok3MTIbZ3ocp+396Z4YwIEnUHFKPHvpITt2ys9LL/a+eUUGnuLGJY4G3Xdro5
-	 oTLNvMyUPSeedQ/JLVxum6N4IRW+3ZgrVLza4nWpOeFGjn1XtZlYCir9kVgG82DOwNJG1
-	 7myNJZe2AITJLApiRcOQT84eJoOLNeiDT7m28Zl7mlNsDm+Wrhxi5MCkjZN0GmPFEnQ==
+	bh=df24alR55Nr815JXMco+A7diZgMDRmfG71elU5OAFrw=;
+	b=o1PFHXbt4Vxkz1ObHkAFQ1eHcm5aaEvkL/DTS1eYfBaySblBAyqIXILaw9bc/5kZnn6q
+	 Psch6/TNuEoneVR8aeYjpA6lMYU93zLguil7s0pdjzXEEegzlln/6d7Yo48W8TQemqlrK
+	 nTAq8wNVbUqIdxfqz7gCUXpAMd2HV/lZ/o555oyynBHcWZ3mecqAPRjkR7jCATFuxtsqh
+	 utCNheVerCq+OIAewDnqI/wMEUSa83cI67byT/Vuf4wBsXVg5ZaPrT/5SvKJ/QX7qOu8h
+	 Sq+dxFvcox4C2qfoEvQIohR99JQW7U4gx6jkhbllVJzOhxY348X3bWJIae9WA1m7v2w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=ionos.com;
 	spf=pass smtp.mailfrom=ionos.com;
-	dkim=pass header.d=ionos.com header.i=@ionos.com header.a=rsa-sha256 header.s=google header.b=iCbzMmG4;
-	arc=none smtp.remote-ip=209.85.128.42
-Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
+	dkim=pass header.d=ionos.com header.i=@ionos.com header.a=rsa-sha256 header.s=google header.b=A6A3y81Q;
+	arc=none smtp.remote-ip=209.85.128.45
+Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5D69606A31F
-	for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 14:37:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C5D69606A31F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77544606A32D
+	for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 14:37:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 77544606A32D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.a=rsa-sha256 header.s=google header.b=iCbzMmG4
-Received: by mail-wm1-f42.google.com with SMTP id 5b1f17b1804b1-4a35ac4475dso25039335e9.2
-        for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 06:37:25 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.a=rsa-sha256 header.s=google header.b=A6A3y81Q
+Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-4a9a8d6cea8so43306105e9.1
+        for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 06:37:26 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google; t=1795444644; x=1796049444; darn=vger.kernel.org;
+        d=ionos.com; s=google; t=1795444645; x=1796049445; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=jV1kE22gjteZFLT1j9oodaWGB84P8DfL3IABfgB4BO8=;
-        b=iCbzMmG4PQCcetrIUObSTFll3tTAYL/oWrrU1Ml2dO72ZmAy9La0xlDvO8VUGiJF+6
-         SucLhI/MMrkeSdSi3o+wx/nJCmEtNgtdraxZIyVcYV9mVdA+nBfn5UneU8XzS+tHVq0J
-         PqDq3vh9sHa0POGJuHylsyjDOFDvnJRuwkRmdsdUKGY1VNjUNZHlb4msfnhxnZYpCsrY
-         g2MTYgaXnewDLkRkmQYKTWldd42dBcanl3iQa6fZIiHYKmeYMStrKwMKcXaxh95XIHAX
-         UJWx3lBzs6fE9K/8zyFNeTjDb61VEcKWANO+IPEE8Zd1DRHS8B5DJDBMHb6FP+YGnSbJ
-         XjpQ==
+        bh=df24alR55Nr815JXMco+A7diZgMDRmfG71elU5OAFrw=;
+        b=A6A3y81QFZSfCrV9iQqIhoShhUwSkaYwKC/tRmva3DzNT7HlsvLhY/u0cjKCL7Q7q4
+         vvhkUReg2lnpm2fQ5Uh7GZyQCQZwWSSk9wNawGFUa/9G3buZpDccIpSDrIiF5grmvv3E
+         5DTG3VWZBIi1Yx61604DyUzMTazwPSA+Kn8xH2KobaQWAVW3XG30dDQ1qcHlXlDYx6YV
+         V3cm1lcun96u8ywDgLyWLSjdAqsti+C1TWYX7eH10zZGUHUGZQy6gND8KiKQhn2/o+G8
+         vlS79WNkySwLCeW/kmaT6GcSbtBRPvTkEILPLXvBDVGOGDwchb1iLCXCOhlVvOLyAhrD
+         xhuw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795444644; x=1796049444;
+        d=1e100.net; s=20260707; t=1795444645; x=1796049445;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=jV1kE22gjteZFLT1j9oodaWGB84P8DfL3IABfgB4BO8=;
-        b=rrQZRbr5EJ6TNtX0bkw2NrNdxXesAdpWBr2KPtiUUZTATM4Qx8xAOlkBmXYKs68Ot3
-         +mk8K88hFZRtFaVPZg2JTTWFYKAYJMwTq6zpMqnUeMzQxNSpuJon4c8etDrIFDDCJSLT
-         Y8jwWwKWyl55t/RyO49T06wo8VxaH495FK28h46Ld+0Rkxhh5YqHvX9KURpYcVYY4P3n
-         MYJRYtx+CStBT3Srm9TXbuV6DUTsssqBY0+6OrLDmoka0nEc++fVjjwp1bU3EzT6qY+4
-         945F+I+IaBUhuyKY8GEFGqrflPigizcBfL5jyTOk3jp9D+dlxdTyfs/hBVsy5+9ufqel
-         nNBQ==
-X-Gm-Message-State: APuU4Z9+2Ra+jyZALg+3MpSWdg4ZW3S0AsgTekLwcug6XspNg0HxOPFs
-	ciS014YMGDoZY7j8qqm7bEIB7ZSP39ulu/XHi/+6RgZYehexIwdiWjHBTYvSaW2JjyiSxu/luoc
-	ly9G9yzk=
-X-Gm-Gg: AZFdTZdaM2d1YnATACgV/4/UsEBMi/0laLIM8FgrSURlTeppHsytXYPLZ//pL0WFPJF
-	9PdXiLJga23KCN0EDB+HLjjo/9typc91D0deJAi/HZ37Mill7+WmFXIXFIldEIbtCyoUvKRCeGR
-	lC+J2W3+TPrGWcOHWOO3tVqLCrtPbtYfM4spqEMdOg/HtPCWQ9hiqJajTocW9wBuVEJ9p1TKimo
-	bm5ya+QGPZS4M4arYbzNMXAgdQSXW/vbz0z5x8VEOoBTX8FUEZIRYsV8uVSvGBcoBlz4Mjvb+/N
-	rqOZvu68u8Cpqivsw6Ad3Zoz7+09TW8gydOhMxm4/EMJux+Grt+oqaS4zJzHX69tZ2r5Ai+iKeL
-	GXh/NUNasrMGXFNWqQouqeKryZz2MmKUnab5jNLCDUCFOtKdTIAD36teD1ob5JY0vwx1gWfhxqL
-	qYyPrgbt8whCaNMxyCKPSbMIHFgmMWJ/h95zSb9K1PeTNhAc2PHI0tW69mBWca+ckppGxmZif1m
-	LPjYQ1/X+TNrNGINb8ukKdbjTLQwciA+5ftscnm7brRYMXy8lI3ueOMR4jOd6xcKrwAWDgAxZj4
-	posHJUZ+X2b17/CIXCfNrrk5mpyEfWncUo/9N1G1/B9rmViJVpENsbGNYvJ0TEH4t4HZHaUCJQ0
-	ZcgfmR8896oiz1mnP+Mr4TwSXVpN2CKKbEZH9w//2U9TCrwIyEM+HHEwC60EZEs1Foz4Rpa7I3u
-	PCXEWBRNdAVRkowNPYgEaP+rowV1dSwhaN55Q=
-X-Received: by 2002:a05:600c:6749:b0:4a2:d99:3171 with SMTP id 5b1f17b1804b1-4bb8881b52dmr234127635e9.23.1795444644176;
+        bh=df24alR55Nr815JXMco+A7diZgMDRmfG71elU5OAFrw=;
+        b=xs6qrf12BcUpbSECVaLLT1lqiuRTSD8VxIaNRqds3VbtXTDOusG5rpAiXOjp6MnbyU
+         u65cwxNQ7lyCtb4zVGh8ntNhZ5XDFsiE/gzv7QKPjuY8DxDbK8yXeppzfanBVanIwj7Y
+         //xVunLSAxCttnj99MVlKu1TVzslPkInO48UEAYdXuLadQ5onx+LBt8R+OGKbtAuKhuh
+         vcO7BF+tHTBzaZCxcpNWqblBNMxuKUSd1XH1svv/PjJEzR3sf3zJUrTiaF4BHx73ouNa
+         Ox3SwJ8LACLxYxf9sJ5vNF/Rhlek3/M3xUDyj45meOmZ1FGTn2sySSVZO+2fnd6yifiE
+         8J9g==
+X-Gm-Message-State: APuU4Z+ldn7kuaQANeR3e1/1/K5c0awj21ora3CSxg4/E+3Y7y4FcTZ5
+	pDkoSGUB6ik/XhFUDYSPb2z/S5GVX1lVvKzFb4FiCw8mGZ92xeDapbp8xQC2PVuWJUEheaKmR4n
+	zP+8CiII=
+X-Gm-Gg: AZFdTZeELv4Z9m2lfp6zXys2387c7JtDy6kMO0srvwATkL/BlFVbJc0RWGEpiqeBFQc
+	XyhX/KvH3v1N8ASo/0fcEMIGHvbPKSn6Rf2Sd8pkd6gaz9VNrGNzbvUTAHNTZK9QM0YgIq7pkqk
+	I2Fs0KwC2VXykUHhBhqmgpl2VGT9pTu1kXBhYpQTZGXtAUkuoYsVmIIQkijHm0dgE2X9xbOTMgr
+	ACkwQYOR7+uwYQQzCRt/MNEtTuALrUyepMipjp+5dliPRnLpwPgEAg2m0rTkHZ5LleoAztQKIzb
+	jKp45pqjyXilxxAmxqTJoBRh/i+IoyBIBnLk3Fo1sNf2zUbxxiYObuFNS2WnibvvXsHDe8H+8KR
+	ZSvl8xFETQ5JClXfjfefBEd27pR22a/EPVYs8o4vPTUZTnKcQtgzlC7uumsMlw+bTkuJzGZCyEb
+	3cPKP4PC8aS6zIcuUdUUVO+BjLEIvCQGZ4rsbpXhK1Q/APDU1kIT4uvvf4i1diLbGGf259DhKHd
+	u6QQd0BPv100ZNueMHgzwcsjdJuP4F5dxGLssGMPYyDqH3mRRInzXpmHU4QkQ/+Dm09bkfJwe6u
+	+05Q8J5q1GKJvdw+0mAHSF1Cf+HlWefNTok0w32oOjuXF15W2V8ZDFBYzmcRFhRjJtVC8WhyMVu
+	SmJ5cXq6nBkjFuxkiZnv77krCW3hjYf5a8Ry/pbbt8AK59KAsON95qFCiW3XWPYvKn3CcWG4fuo
+	6hOJ50mSFcCzsvKQTQcBtUeif0Rj3UMFUbU18=
+X-Received: by 2002:a05:600c:5303:b0:4ba:4928:8aec with SMTP id 5b1f17b1804b1-4bb88807d7cmr230514695e9.9.1795444644753;
         Mon, 23 Nov 2026 06:37:24 -0800 (PST)
 Received: from lb03189.fkb.profitbricks.net ([212.227.34.98])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb906d6a13sm172562325e9.3.2026.11.23.06.37.23
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb906d6a13sm172562325e9.3.2026.11.23.06.37.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 23 Nov 2026 06:37:23 -0800 (PST)
+        Mon, 23 Nov 2026 06:37:24 -0800 (PST)
 From: Md Haris Iqbal <haris.iqbal@ionos.com>
 To: linux-rdma@vger.kernel.org,
 	Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>
-Cc: Grzegorz Prajsner <grzegorz.prajsner@ionos.com>,
+Cc: Danil Kipnis <danil.kipnis1@ionos.com>,
+	Jack Wang <jinpu.wang@ionos.com>,
 	Md Haris Iqbal <haris.iqbal@ionos.com>
-Subject: [PATCH 4/9] RDMA/rtrs-srv: Fix processing messages for Big-Endian archs
-Date: Mon, 23 Nov 2026 15:37:14 +0100
-Message-ID: <20261123143719.938876-5-haris.iqbal@ionos.com>
+Subject: [PATCH 5/9] RDMA/rtrs-clt: rename pathname parameter to sessname in rtrs_clt_open()
+Date: Mon, 23 Nov 2026 15:37:15 +0100
+Message-ID: <20261123143719.938876-6-haris.iqbal@ionos.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261123143719.938876-1-haris.iqbal@ionos.com>
 References: <20261123143719.938876-1-haris.iqbal@ionos.com>
@@ -103,41 +104,72 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Grzegorz Prajsner <grzegorz.prajsner@ionos.com>
+From: Danil Kipnis <danil.kipnis1@ionos.com>
 
-Convert msg->sg_cnt from le16 to cpu endianness before processing
-it. This fixes bug processing messages on Big-Endian architectures.
+The parameter has always referred to the RTRS session name, not a
+filesystem path. Rename it to sessname throughout the API declaration
+in rtrs.h and the implementation in rtrs-clt.c for clarity.
 
-Fixes: 9cb837480424 ("RDMA/rtrs: server: main functionality")
-Signed-off-by: Grzegorz Prajsner <grzegorz.prajsner@ionos.com>
+Signed-off-by: Danil Kipnis <danil.kipnis1@ionos.com>
+Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
 Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-srv.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 10 +++++-----
+ drivers/infiniband/ulp/rtrs/rtrs.h     |  2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-index 5314599d29fe..7a47b90e8539 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-@@ -1045,7 +1045,7 @@ static void process_read(struct rtrs_srv_con *con,
- 	struct rtrs_srv_ctx *ctx = srv->ctx;
- 	struct rtrs_srv_op *id;
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index 5ef912a472cd..c059d69c3e5a 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -2832,7 +2832,7 @@ static void free_clt(struct rtrs_clt_sess *clt)
+ /**
+  * rtrs_clt_open() - Open a path to an RTRS server
+  * @ops: holds the link event callback and the private pointer.
+- * @pathname: name of the path to an RTRS server
++ * @sessname: name of the RTRS session
+  * @paths: Paths to be established defined by their src and dst addresses
+  * @paths_num: Number of elements in the @paths array
+  * @port: port to be used by the RTRS session
+@@ -2848,7 +2848,7 @@ static void free_clt(struct rtrs_clt_sess *clt)
+  * Return a valid pointer on success otherwise PTR_ERR.
+  */
+ struct rtrs_clt_sess *rtrs_clt_open(struct rtrs_clt_ops *ops,
+-				 const char *pathname,
++				 const char *sessname,
+ 				 const struct rtrs_addr *paths,
+ 				 size_t paths_num, u16 port,
+ 				 size_t pdu_sz, u8 reconnect_delay_sec,
+@@ -2858,13 +2858,13 @@ struct rtrs_clt_sess *rtrs_clt_open(struct rtrs_clt_ops *ops,
+ 	struct rtrs_clt_sess *clt;
+ 	int err, i;
  
--	size_t usr_len, data_len;
-+	size_t usr_len, data_len, sg_cnt;
- 	void *data;
- 	int ret;
- 
-@@ -1055,7 +1055,8 @@ static void process_read(struct rtrs_srv_con *con,
- 			     rtrs_srv_state_str(srv_path->state));
- 		return;
+-	if (strchr(pathname, '/') || strchr(pathname, '.')) {
+-		pr_err("pathname cannot contain / and .\n");
++	if (strchr(sessname, '/') || strchr(sessname, '.')) {
++		pr_err("sessname cannot contain / and .\n");
+ 		err = -EINVAL;
+ 		goto out;
  	}
--	if (msg->sg_cnt != 1 && msg->sg_cnt != 0) {
-+	sg_cnt = le16_to_cpu(msg->sg_cnt);
-+	if (sg_cnt != 1 && sg_cnt != 0) {
- 		rtrs_err_rl(s,
- 			    "Processing read request failed, invalid message\n");
- 		return;
+ 
+-	clt = alloc_clt(pathname, paths_num, port, pdu_sz, ops->priv,
++	clt = alloc_clt(sessname, paths_num, port, pdu_sz, ops->priv,
+ 			ops->link_ev,
+ 			reconnect_delay_sec,
+ 			max_reconnect_attempts);
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs.h b/drivers/infiniband/ulp/rtrs/rtrs.h
+index b5bd35712de0..0ae78b28986e 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs.h
++++ b/drivers/infiniband/ulp/rtrs/rtrs.h
+@@ -55,7 +55,7 @@ struct rtrs_clt_ops {
+ };
+ 
+ struct rtrs_clt_sess *rtrs_clt_open(struct rtrs_clt_ops *ops,
+-				 const char *pathname,
++				 const char *sessname,
+ 				 const struct rtrs_addr *paths,
+ 				 size_t path_cnt, u16 port,
+ 				 size_t pdu_sz, u8 reconnect_delay_sec,
 -- 
 2.43.0
 
