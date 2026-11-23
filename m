@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795447314;
-	b=UdW2g3awP7ha4ufMoikG6UQCgRjm7xY89SjimgP+3U3scHN4wbCdKS2VH2XhHQ75Kirp
-	 kUFNJsyEoOkPTI477HNUPJ8xmJLDGNpd0vP1cX1tHqLGhEUyYYdJuAo9c896/UCQTNyGk
-	 hSbOQNfO0mCmkbMQrWS/3I4xQR6++G5qcDB7wVCiLqXqLz/4JObFP7F4wYPEq9RsEHHdc
-	 5pgq5iQ6hwaSfiFlEu9fi8hFBlRujAK52uA9042JrGTrZGkOfD4/As1ZlNjqntJkWZeBA
-	 KiHioxtfS74esv7m+EArSUGcWl+npFdZ39JGcxwdksusHJw6aaMfqZjD63UNfKqg7Ug==
+	t=1795447316;
+	b=VsLS9ab2kImdrRfFcIAqBPeuibbbiQ1MbrWDCKw/vicqGXT8yj9hNauOdDa8vaieGPQR
+	 mGGLDOqv1kJpAMKAQOXr40ioyY0r2vMed9ckzSBeri6hk0IKBHDtZMG7N+e0EnFGEfJ12
+	 2+gRPvDNCNS7H7mqenBBnaFvtRZHv1ZLQWP6PK64PTGAKhzemzRKgoxvWZYIoPWmmxTkU
+	 aVebmFrqUwmBT3cAL2cA5utxkJPniG4sapMuAHqRYxqa5x/eMMlAJRVM66HJDmMXvuxzJ
+	 jOP00Ru0SZ5k3Nvb9Bt6b9SfGv63UYsxR1TsLyfUpxK2slCIfDgL7jgkzSXpfg6s9xw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795447314;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795447316;
 	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=2Sx7YyQZhZSyc1/RwYOc4ocxELc/8nu4dZNulzsCBGA=;
-	b=p/8I1JJy5f+Ha5b0z169NoTvbR9LhhIhUfN5wiwI6Eyvrwa1ekXCyJHwnKOW9UYFZZEz
-	 ll+zuzZeSR//wUx531/dvWxbIqYtr31iZMLLgPGGMSRCn151Cy18U1TdZX6kEsn4DXGXY
-	 VpqOR6nfjmroFmpWKigu/YEGOq7w9pm6xhPg0uSKqwaMjJ1QJrGMrDbjTmmKydf9E2Tjw
-	 tHi8Wwyq6dVKdKLpvXXf3qf4SrTCySX42/JxhU8mV9LRLLKTFUftRaCxOI3dexEpYjhWi
-	 f1olQ96+1OEEgHIQEF05TbimuBB8iTeOVwXNdza1S7OniV7NoiSyHyDO5uJEJX9SJ3A==
+	bh=STKKGhMDLzI7yW9S72yonEXwLFCwhDpVjPRmQQOrHEs=;
+	b=Hsq546nTrEoYoKdSqm0dNw1b9i4fJ24d1u3pIsKS5osGwlxvtttbCBjoT/nf114/2l9k
+	 W0EhAgl7pD4bq/xNgDkwoDFFjtUxbEU+YK9O7Lq6v2Uk0akLOX9AveEWZgJ9+iZNANXBp
+	 OLKQqYVm0SF7cNlrrCXe597AmVhodIPfHPnG6VTG29+MrnEgqW1lFV3vxlvmc9eHYJppe
+	 AOBh+1zYoXeEdRCZGCuDdWeZJYrGfNT7ldgh1xrvv07Xvwt2Rb0JUTstkhoaJMITKKPnP
+	 RUz08tCCSvW+d0/GWYeXve9K2p76zVhLba/yX3N+tzRz7XNekNJgOVCwuax0MVg6K6A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.microsoft.com;
 	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=gml5r+EH;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=EVnfaTKD;
 	arc=none smtp.remote-ip=13.77.154.182
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 62455606A693;
-	Mon, 23 Nov 2026 15:21:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 62455606A693
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D46E1606A6BD;
+	Mon, 23 Nov 2026 15:21:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D46E1606A6BD
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=gml5r+EH
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=EVnfaTKD
 Received: from weh-cvm-dev-vm.y50bckvjo0hefgfnzfztsfttff.phxx.internal.cloudapp.net (unknown [20.169.55.37])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 2D89720B7169;
-	Mon, 23 Nov 2026 07:21:49 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 2D89720B7169
+	by linux.microsoft.com (Postfix) with ESMTPSA id AAA3A20B7168;
+	Mon, 23 Nov 2026 07:21:50 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com AAA3A20B7168
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1795447310;
-	bh=2Sx7YyQZhZSyc1/RwYOc4ocxELc/8nu4dZNulzsCBGA=;
+	s=default; t=1795447311;
+	bh=STKKGhMDLzI7yW9S72yonEXwLFCwhDpVjPRmQQOrHEs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=gml5r+EH5ZpXCV/ikVL7acA1DS3gS53lk4MSyL8ogaPJvspgxwG3BnmuZdU02kHmi
-	 t4DFQNL1hZ2BAWj+VATZbvcxoKdwuZPlGHX8WWDI37UV1oHvBHfyBOaLu148FZ4Oi/
-	 CVmsRmGKGzIRibd8gL2eyOc7FcsOmEXvQ9Ts4JeU=
+	b=EVnfaTKDGMuYZQyhfGpkSIL81h4ys9JfX86fu36lJR4jCvAku98oTcIj8Q4LQKEIk
+	 TxFH9eNN6ViklP+IAd82FgA+KiyklUnEy+UaRoiyGHCh/whGFYt51adLABKxxn6XXi
+	 FO4KtEwu6jgz33lT0E+kAEa7BpKmOdl/9nRUYQQY=
 From: Wei Hu <weh@linux.microsoft.com>
 To: netdev-bot+sashiko@kernel.org
 Cc: longli@kernel.org,
@@ -69,12 +69,12 @@ Cc: longli@kernel.org,
 	mawasthi@linux.microsoft.com,
 	weh@microsoft.com,
 	edumazet@kernel.org
-Subject: Re: [PATCH net-next v11 3/4] net: mana: support concurrent HWC requests
-Date: Mon, 23 Nov 2026 15:21:45 +0000
-Message-ID: <20261122064231.hwc-v11-netdev-p3.weh@linux.microsoft.com>
+Subject: Re: [PATCH net-next v11 4/4] net: mana: add dynamic HWC queue depth with reinit path
+Date: Mon, 23 Nov 2026 15:21:46 +0000
+Message-ID: <20261122064231.hwc-v11-netdev-p4.weh@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <179527857180.3135.15262062177473658662@kernel.org>
-References: <45db2acd8f03421191f5b3a9f4bd7ce9e9259b33.1794751992.git.weh@linux.microsoft.com> <179527857180.3135.15262062177473658662@kernel.org>
+In-Reply-To: <179527857414.3135.3409829551491930106@kernel.org>
+References: <100c6b7a71e86c8d7afd0c55f6b231f01db184d5.1794751992.git.weh@linux.microsoft.com> <179527857414.3135.3409829551491930106@kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -87,46 +87,34 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
 On Sat, Nov 21, 2026, netdev-bot+sashiko wrote:
-> Can this leave a dangling CQ callback for kernel CQs, which then runs on
-> freed memory?
+> Could the doorbell validation go into its own patch with the Fixes: tag,
+> and the dynamic depth work be sent without one?
 
-Yes. ib_free_cq() can free the CQ even when destroy returns an error.
-I removed the v11 early return so the normal CQ teardown withdraws the
-callback. This doesn't fix the separate upstream race with a reader of
-the RDMA CQ table.
+Yes. Doorbell validation is patch 1 in v12 and carries the Fixes: tag.
+The depth change is patch 5 and has no Fixes: tag.
 
-> Can a rejected destroy here leave the driver tracking a QP that the
-> RDMA core then frees anyway?
+> Can the PF meaning of MAX_REQUEST and MAX_RESPONSE be confirmed here?
 
-Yes. V12 also drops the QP early return: teardown removes the QP from
-the driver's table and CQ lists rather than relying on a retry.
+Yes. MAX_RESPONSE limits what the VF sends; MAX_REQUEST limits what
+the VF receives. With MAX_REQUEST=2048 and MAX_RESPONSE=4096, the VF
+may send a 4096-byte request. I've kept that direction in v12.
 
-> Does this leak the GIC reference when the rejected command was not the
-> EQ disable?
+> Does the PF know that the rebuilt rings are larger than the bootstrap
+> rings?
 
-Yes. V12 restores the upstream EQ-create unwind. If creating the EQ
-fails, its caller drops the IRQ-context reference; it doesn't use the
-HWC error code to decide whether to keep it.
+They aren't larger in v12. The PF uses the same 4 KiB descriptor rings
+after rebuild. The reported depth changes how many requests can be
+outstanding, not where the rings wrap. If the reported depth would
+require a larger ring, v12 keeps the bootstrap channel.
 
-> What releases this retained GIC reference later?
+> Can this overwrite a timeout that the PF set during the rebuild?
 
-V12 doesn't retain that extra reference on EQ teardown. The last
-mana_gd_put_gic() unregisters the handler before freeing a dynamic
-MSI-X vector.
-
-> After the continue, what still points to the retained tx_qp[i]?
-
-Nothing in v11 once the parent is freed. V12 keeps the upstream
-Ethernet TX, RX and EQ teardown instead of retaining those queues.
-
-At the normal response timeout of a posted HWC command, the PF has
-drained DMA to the old queues and packet buffers, as well as interrupt
-writes. Unanswered commands haven't taken effect. V12 stops posting on
-that HWC and won't accept a handle from a late reply. A reset notice,
-a failed post or a wait for a free slot gives no such guarantee. The
-HWC's own rings and buffers still require a DESTROY_HWC ack.
+Yes, restoring the saved timeout in v11 could overwrite a newer value.
+V12 doesn't shorten the timeout for the private EQ test, so there's no
+saved value to restore. If the candidate fails, v12 tears it down
+before rebuilding and testing a depth-one channel. If teardown isn't
+acknowledged, it keeps the HWC resources and returns the error without
+trying the same destroy again on the way out.
 
 Thanks,
 Wei
-
-pw-bot: cr
