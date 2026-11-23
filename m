@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795469678;
-	b=Af2krlC+rCz/+fvXaY0HKNmOa6bpYqJKMKDnim/aW4JeDPNudurN86CNEXs+kuYcTrsV
-	 Xhy+/odNsIvxbUcBOAoxWDpznd0CaW9yWJydup5FWWmbsLfXSdmS35vHaOLyCS9iQwYjF
-	 GIczhAhpg610dLr+tSY3pIzTXcQbpy/Cber1K0zHMElu12NG7MIkzU6DMrfTNN+r0EwxS
-	 koa2Ea3AUGzLEz+rJcnQvvZ1t51kkAZnQHB6tHt3vvYwSAA8R1VLgy3RZPvrJmb8xna3u
-	 d6cww/J53p7B5pdSFOHotPOUE6OUJxToiwiZXbRBAJC+j539EKClImjKQi43Mnpa93g==
+	t=1795469675;
+	b=RvTPa54PQmW6+1zweR0/AFRZygaZEqSXsjEhC505eVvWpppd6HTiwvfekdCJEwrun8rS
+	 9WFUM+1h3AzvQtuFh4AmWIIMzWlRUckgfHE/9+XY9pVQoahfhy87Wjn2lFnG4agfkZrCz
+	 DLCvb4/tdBxIFR1cd9/53rwrz+/g7sw+LPvTkKpPvhrxLAyiAFV5rZ9SrnM14yDqm1NgA
+	 lixgUtirIUOUhJNjZV9ifKxjlaX6Eh3WpSHx2XECudHHXB0t06ATd4kueSSmtFvQFHOuD
+	 hN3zymFPEezEbFKkqn94cuJTuiQVZEHR6L0cFF0+q4uPOpv/QT5+IWL+QS/I0xxKEGA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795469678;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795469675;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=cF9MqqZvJpA3rAgWU3U2gamenfTkfRWF7VnItEtlw0w=;
-	b=hdU57i83v2Tc1WGjQUyMyF1/byPVFPK+a5df38MGFkApEpbuZjwnxe1soJkjVKRJDjfB
-	 e7aoKRECx41jQrFhiW9GU5n8nzjJo6K/SI8yqUu9laIljEJLpt9ZGT87nauXOUeDlgGdb
-	 hvvq3STqU5aHHnDowtjXzZXjpA9gDURORG8PXvspK3nYeJKghGDv/Jq9fSdGchc1rYt5v
-	 tY/C7o9dbEIREp8QfuXtImfCFZ9soe6s325vmm6BdM+rNUBalyIYbNlB/PoYe+4pUrCGK
-	 nzTFMN03oY8aFpMk1qLjgkizjTQtQDYTy3pJAhEBs9b0RH7Q1UVs9P0ZUkZpd7ntcSw==
+	bh=9/No1l1Kc63z3bylzGTqguL7lglbI2czanvjCA3a2mY=;
+	b=iKfkvpmzEqybNxjQWVRuS60dQl5BOHunmyvI1WoLdtwFnlnFiIA2JdOdu+vPYXwccfft
+	 zRbNx6osJ4a3B3UlctkEJ75HHTzDGA2JBE6XkIwXmmFea0CSu0tHwZIFWltcRbTyM9+hQ
+	 6xHlFXFZ05e0CSrv7WXK9Yv+f5UHGvjx4B01NyBssPWTu2Zf8fm1J2IfxsbpI1zk4UT5t
+	 vvHy+FeMHuvjNhMJBrqYtfzwnSbOx1Ra3Yn/ChYCgzq7zUTknmTsgP7IgEgBT5tKsynFX
+	 yPibzMxDDv3Stoy8VxAjJqX92j6YoLj5Oa6zOBPrUgYPtQfK2sJVR+qPktdMdBXbfNQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FEv6TbjR;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dkTUJ8k4;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 809B7606A680;
-	Mon, 23 Nov 2026 21:34:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79C87606A327;
+	Mon, 23 Nov 2026 21:34:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FEv6TbjR
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 570FA1F000C0;
-	Mon, 23 Nov 2026 21:34:36 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dkTUJ8k4
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 993141F000E1;
+	Mon, 23 Nov 2026 21:34:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795469677;
-	bh=cF9MqqZvJpA3rAgWU3U2gamenfTkfRWF7VnItEtlw0w=;
+	s=k20260515; t=1795469675;
+	bh=9/No1l1Kc63z3bylzGTqguL7lglbI2czanvjCA3a2mY=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=FEv6TbjRfw9/Js4uuOTiG5W2QhJt25p6GuAX+p9/00Yux6Xw+4WIB64FEKp3DRRLS
-	 sRA7I337bCbifWehFB43oO3JoB0AgWg9X0ajVLdm/kOBt7YzS0KXpXfJo2hMED6wSA
-	 fqaj6iU5SyUISmNN5QegrfMJJ7PZLLFtjCY+iIvdbKCj2/tFhADeWkz39zg4kDzioI
-	 qKnizb4hRnD9MloKsIo2ZAkYguJpSjW+FRyjI/99CPH7nKcMADXCyE0z84znyJJsv3
-	 GaHpNHCuS4krc+fVmEOvW5g0gEA+nQEMq7nvh+OYdzYF30M2qDV/ZhI5lNpbB/iA8U
-	 BD6kKTRltbf3w==
-Subject: Re: [PATCH net-next v3 11/11] docs: networking: describe tunnel key
- partitioning in TC queue filtering
+	b=dkTUJ8k4dnEXI3c187Ferhu/z9D7afOKibujKNvAH3gBnHsNU14B8dRif9zh2eIyz
+	 WiU6eKdKAG3KZ9j8CYeKUz9X9JpUiyqlUn6iAUjCyiNzqRUZLgiseyjVAYMp+ZJbA/
+	 Byz3QkVetyMQUQjJplfguXV1iLal9Pf7cLhk+Y7NQ46BQkrGLDEdcxZ5zq3zrtDcyt
+	 WgjdCfIRdXXkxABUXXnLESji/9h6K8K+WO7+NmyDHoGFAQfAMl6Rdk8D9dWhI36Ov9
+	 gblfc6EP1WO7xm2KTEgR4pmpFfcA08deaHa11Nd43K0U/1a+ddezgba54TZgLZz/gW
+	 HNVCI8EXznn9w==
+Subject: Re: [PATCH net-next v3 09/11] net/mlx5e: TC, reject tunnel keys
+ without a tunnel device
 From: netdev-bot+sashiko@kernel.org
 To: acassen@corp.free.fr
 Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
@@ -53,10 +53,10 @@ Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
  idosch@nvidia.com, shuah@kernel.org, netdev@vger.kernel.org,
  linux-rdma@vger.kernel.org, linux-doc@vger.kernel.org,
  linux-kselftest@vger.kernel.org, oss-drivers@corigine.com
-Date: Mon, 23 Nov 2026 21:34:35 +0000
-Message-ID: <179546967590.3135.7112800630047842498@kernel.org>
-In-Reply-To: <20261122213200.3207385-12-acassen@corp.free.fr>
-References: <20261122213200.3207385-12-acassen@corp.free.fr>
+Date: Mon, 23 Nov 2026 21:34:33 +0000
+Message-ID: <179546967317.3135.11320901240553136005@kernel.org>
+In-Reply-To: <20261122213200.3207385-10-acassen@corp.free.fr>
+References: <20261122213200.3207385-10-acassen@corp.free.fr>
 X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -76,106 +76,75 @@ you want to address the nit picks below when you respin.
 
 Low priority / nit picks for your consideration:
 
-- [Low] The new mlx5 paragraph in Documentation/networking/tc-queue-
-  filters.rst (lines 54-55) says 'ip_proto 0x2f, or udp with dst_port…
-- [Low] The new mlx5 paragraph in Documentation/networking/tc-queue-
-  filters.rst (lines 51-56) leaves out two conditions the driver…
+- [Low] The new rejection in __parse_cls_flower()
+  (drivers/net/ethernet/mellanox/mlx5/core/en_tc.c) returns the extack…
 
 --
 
-docs: networking: describe tunnel key partitioning in TC queue filtering
+net/mlx5e: TC, reject tunnel keys without a tunnel device
 
-This patch documents tunnel key partitioning in tc-queue-filters.rst,
-where an enc_key_id mask steers blocks of tunnel flows to RX queues. It
-gives a GTP-U example and describes how mlx5 matches enc_key_id on a
-physical port. It also describes what happens to such a filter when its
-channel is removed.
+This commit rejects flower rules that use enc_* dissector keys when
+filter_dev is not a tunnel device. It applies to both NIC and eswitch
+flows. Before this change those keys were silently dropped from the
+hardware match.
 
-> diff --git a/Documentation/networking/tc-queue-filters.rst b/Documentation/networking/tc-queue-filters.rst
-> index 6b417092276f6..14032375d6308 100644
-> --- a/Documentation/networking/tc-queue-filters.rst
-> +++ b/Documentation/networking/tc-queue-filters.rst
+Link: https://github.com/acassen/research/tree/main/UPF-flow-steering [1]
 
-[ ... ]
-
-> +  # GTP-U TEIDs whose two top bits are 01 go to queue 1
-> +  tc filter add dev eth0 ingress protocol ip flower skip_sw \
-> +      ip_proto udp dst_port 2152 enc_key_id 0x40000000/0xc0000000 \
-> +      action skbedit queue_mapping 1 skip_sw
-> +
-> +Not all drivers can program a partial mask.
-> +
-> +On mlx5 devices such a filter runs on a physical port where nothing
-
-[Severity: Low]
-Should this paragraph list the conditions mlx5 checks before it will
-offload the GTP-U example above?
-
-First, the GTP-U TEID match depends on the firmware flex parser profile.
-In mlx5e_tc_tun_parse_outer_key_gtp():
-
-drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun_gtp.c:
-	if (!(MLX5_CAP_GEN(priv->mdev, flex_parser_protocols) &
-	      MLX5_FLEX_PARSER_GTPU_TEID_ENABLED)) {
-
-If that capability is not set, the rule fails with -EOPNOTSUPP and
-"Matching on GTP-U TEID is not supported".
-
-The commit "net/mlx5e: TC, match the tunnel key without a tunnel device"
-says GTP-U needs flex parser profile 3 and GENEVE needs profile 0. That
-means 2152 and 6081 cannot both be used on one device. The text below
-lists them without any condition.
-
-Second, skbedit queue_mapping is only registered for NIC flows:
-
-drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/act.c:tc_acts_nic[]
-	[FLOW_ACTION_RX_QUEUE_MAPPING] = &mlx5e_tc_act_rx_queue,
-
-drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/act.c:mlx5e_tc_act_get()
-	tc_acts = ns_type == MLX5_FLOW_NAMESPACE_FDB ? tc_acts_fdb : tc_acts_nic;
-
-tc_acts_fdb[] has no entry for it. In switchdev mode the physical port is
-the uplink representor, and its ingress rules are FDB flows. Can the
-example command be offloaded there at all?
-
-Third, mlx5e_tc_tun_parse_outer_key() accepts the wire-header enc_key_id
-match on FDB flows for VF representors when inline mode is none:
-
-drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c:mlx5e_tc_tun_parse_outer_key()
-	if (fs_type == FS_FT_FDB && !mlx5e_is_uplink_rep(priv) &&
-	    esw->offloads.inline_mode != MLX5_INLINE_MODE_NONE) {
-
-That covers more than "a physical port". Would it help to say that the
-example applies to NIC (legacy) mode with a flex parser profile that
-supports GTP-U?
-
-> +decapsulates the packet. All the keys describe the packet on the wire.
-> +enc_key_id is the only tunnel key such a filter matches.
-> +ip_proto 0x2f, or udp with dst_port 2152, 4789 or 6081, tells the hardware
-> +which tunnel header holds the key. The software datapath has no tunnel
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+> index 2326fb21da66b..eab4d5417ce24 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+> @@ -2786,6 +2786,17 @@ static int __parse_cls_flower(struct mlx5e_priv *priv,
+>  		err = mlx5e_tc_verify_tunnel_ecn(priv, f, &match_inner_ecn);
+>  		if (err)
+>  			return err;
+> +	} else if (dissector->used_keys &
+> +		   (BIT_ULL(FLOW_DISSECTOR_KEY_ENC_KEYID) |
+> +		    BIT_ULL(FLOW_DISSECTOR_KEY_ENC_IPV4_ADDRS) |
+> +		    BIT_ULL(FLOW_DISSECTOR_KEY_ENC_IPV6_ADDRS) |
+> +		    BIT_ULL(FLOW_DISSECTOR_KEY_ENC_PORTS) |
+> +		    BIT_ULL(FLOW_DISSECTOR_KEY_ENC_CONTROL) |
+> +		    BIT_ULL(FLOW_DISSECTOR_KEY_ENC_IP) |
+> +		    BIT_ULL(FLOW_DISSECTOR_KEY_ENC_OPTS))) {
+> +		NL_SET_ERR_MSG_MOD(extack,
+> +				   "Tunnel keys are only supported on tunnel devices");
 
 [Severity: Low]
-This lists 4789 and 6081 next to 2152, but the 24-bit VNI limit for
-VXLAN and GENEVE is not mentioned. Both
-mlx5e_tc_tun_parse_outer_key_vxlan() and
-mlx5e_tc_tun_parse_outer_key_geneve() have this check:
+Is this extack message accurate for NIC mode flows?
 
-	if (key >= MLX5E_TC_TUN_N_VNI || !(mask & (MLX5E_TC_TUN_N_VNI - 1))) {
+In NIC mode the filter_dev passed down is always the mlx5e netdev itself:
 
-MLX5E_TC_TUN_N_VNI is BIT(24). The only example uses mask 0xc0000000,
-which has no bits in the low 24 bits.
+mlx5e_setup_tc_cls_flower()
+    return mlx5e_configure_flower(priv->netdev, priv, cls_flower,
+                                  flags);
 
-Suppose the example is copied and only dst_port is changed to 4789 or
-6081. The rule is then always refused with -EOPNOTSUPP and "Tunnel key
-does not fit the 24 bit VNI".
+The only indirect block registration in mlx5 is the
+flow_indr_dev_register() call in mlx5e_rep_tc_netdevice_event_register(),
+and only the uplink representor init path calls it. So tunnel filter_devs
+only exist in switchdev mode.
 
-The commit message says the patch documents "what enc_key_id means on a
-physical port of mlx5". Could the text state that for VXLAN and GENEVE,
-the key and mask must fit in the 24-bit VNI?
+In NIC mode, a rule such as "tc filter add dev <mlx5 netdev> ingress
+flower skip_sw enc_dst_ip ..." takes this path:
 
-> +metadata on such a port. Only the hardware can match the key.
+mlx5e_setup_tc_cls_flower()->mlx5e_configure_flower()->mlx5e_tc_add_flow()
+    ->mlx5e_add_nic_flow()->parse_cls_flower()->__parse_cls_flower()
 
-[ ... ]
+The rule is still rejected with -EOPNOTSUPP. However, the message tells
+the user to use a tunnel device, and a rule added on a vxlan or gretap
+device would never reach mlx5 in NIC mode.
+
+The follow-up patch "net/mlx5e: TC, match the tunnel key without a tunnel
+device" changes this string to "Tunnel keys other than enc_key_id require
+a tunnel device". Wouldn't that wording mislead NIC mode users in the
+same way for the remaining enc_* keys?
+
+Could the message say that these keys need switchdev mode and a tunnel
+device, or use a different message for NIC flows?
+
+> +		return -EOPNOTSUPP;
+>  	}
+>  
+>  	err = mlx5e_flower_parse_meta(filter_dev, f);
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261122213200.3207385-1-acassen%40corp.free.fr
