@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795447313;
-	b=Th2Qtz9gvd8qHl5sfufMbif/38Ku2xxvJs7CjyfOL/PfWX09Axu0fSNrCK7i61UjE6CE
-	 cu5YHuc6BrkTJrSenly9ILLgRFn9w7vn4r8/fbrXvjRZgMAhCoNccWZyvgpJonv250Uco
-	 6E7vBykVafigbMrX98WAZCSrOxJjh3CpJ30nBHdTKvglswENopvlZbO/x2HRboiaRlvK1
-	 Ruy3XF/TdI6Pzjxh+DwgIPeW4PwnAQDV3l7ZYkftsutXeRRdn3fB8TQNtZ8Mpf25JFDQG
-	 OwmKTCmJ3r9t+4/auFnthLvVfiZ+V1LM2ZUx7oOt8M6fHXFRzhL1o5DskhOn6TfNXRg==
+	t=1795447314;
+	b=UdW2g3awP7ha4ufMoikG6UQCgRjm7xY89SjimgP+3U3scHN4wbCdKS2VH2XhHQ75Kirp
+	 kUFNJsyEoOkPTI477HNUPJ8xmJLDGNpd0vP1cX1tHqLGhEUyYYdJuAo9c896/UCQTNyGk
+	 hSbOQNfO0mCmkbMQrWS/3I4xQR6++G5qcDB7wVCiLqXqLz/4JObFP7F4wYPEq9RsEHHdc
+	 5pgq5iQ6hwaSfiFlEu9fi8hFBlRujAK52uA9042JrGTrZGkOfD4/As1ZlNjqntJkWZeBA
+	 KiHioxtfS74esv7m+EArSUGcWl+npFdZ39JGcxwdksusHJw6aaMfqZjD63UNfKqg7Ug==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795447313;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795447314;
 	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=FDHhwxCxCbXmvaM7MXxMxxf1AWoTVfTVQx5EL51XTSY=;
-	b=yYSuOLPysBvNcF5tNTNBjcSzlnMiTUAnyQhJ+sOfBJe62Rjabv+HFDPUDtEw5dVlMx9j
-	 QO1lzKqZsXR2PJ9pggvg9ogqu1iAkVfG26qx/aCo3NLS7m+DeQuYKC6rs4YJe8Y7LCjRm
-	 5RiBnpsRBIcEi+6aI6hIoPGebAv3+2KUmuoyRNuKDZs/5PyOkNsD3dajbiUaSIirfsvPE
-	 2Ll3Ymz97ABJfsZc5EDBLu8GcRuATOO4uIGFt8uvRWG4FBbWCEjNLfNSlBJY1FQZRIg+6
-	 xOq+nZjbJLSmBGHPudO8TND3aZRlTyKSEH7sCJHlVhLqQ2Bj8198zrkLUCubdyH2TdQ==
+	bh=2Sx7YyQZhZSyc1/RwYOc4ocxELc/8nu4dZNulzsCBGA=;
+	b=p/8I1JJy5f+Ha5b0z169NoTvbR9LhhIhUfN5wiwI6Eyvrwa1ekXCyJHwnKOW9UYFZZEz
+	 ll+zuzZeSR//wUx531/dvWxbIqYtr31iZMLLgPGGMSRCn151Cy18U1TdZX6kEsn4DXGXY
+	 VpqOR6nfjmroFmpWKigu/YEGOq7w9pm6xhPg0uSKqwaMjJ1QJrGMrDbjTmmKydf9E2Tjw
+	 tHi8Wwyq6dVKdKLpvXXf3qf4SrTCySX42/JxhU8mV9LRLLKTFUftRaCxOI3dexEpYjhWi
+	 f1olQ96+1OEEgHIQEF05TbimuBB8iTeOVwXNdza1S7OniV7NoiSyHyDO5uJEJX9SJ3A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.microsoft.com;
 	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=J1P3PFoa;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=gml5r+EH;
 	arc=none smtp.remote-ip=13.77.154.182
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id F3441606A31F;
-	Mon, 23 Nov 2026 15:21:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F3441606A31F
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 62455606A693;
+	Mon, 23 Nov 2026 15:21:54 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 62455606A693
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=J1P3PFoa
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=gml5r+EH
 Received: from weh-cvm-dev-vm.y50bckvjo0hefgfnzfztsfttff.phxx.internal.cloudapp.net (unknown [20.169.55.37])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 87B0320B7167;
-	Mon, 23 Nov 2026 07:21:47 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 87B0320B7167
+	by linux.microsoft.com (Postfix) with ESMTPSA id 2D89720B7169;
+	Mon, 23 Nov 2026 07:21:49 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 2D89720B7169
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1795447308;
-	bh=FDHhwxCxCbXmvaM7MXxMxxf1AWoTVfTVQx5EL51XTSY=;
+	s=default; t=1795447310;
+	bh=2Sx7YyQZhZSyc1/RwYOc4ocxELc/8nu4dZNulzsCBGA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=J1P3PFoa9nR7k2KaZQn4p3MoCICXl+phdl58ZUlBuX/wXLkMPyF1M6ne2cWYQ+n6H
-	 gpBWeFkU1+O/zbw8VIgfThH8iyxKUaCaa4NLLwCXPbM0lryhPuTH2z0kOpxjGv9br4
-	 ALdYvK1B6Ch0CB/X6qb6ZfvKG/GjqRTum51UIGLM=
+	b=gml5r+EH5ZpXCV/ikVL7acA1DS3gS53lk4MSyL8ogaPJvspgxwG3BnmuZdU02kHmi
+	 t4DFQNL1hZ2BAWj+VATZbvcxoKdwuZPlGHX8WWDI37UV1oHvBHfyBOaLu148FZ4Oi/
+	 CVmsRmGKGzIRibd8gL2eyOc7FcsOmEXvQ9Ts4JeU=
 From: Wei Hu <weh@linux.microsoft.com>
 To: netdev-bot+sashiko@kernel.org
 Cc: longli@kernel.org,
@@ -69,12 +69,12 @@ Cc: longli@kernel.org,
 	mawasthi@linux.microsoft.com,
 	weh@microsoft.com,
 	edumazet@kernel.org
-Subject: Re: [PATCH net-next v11 1/4] net: mana: prepare HWC ownership for safe reinitialization
-Date: Mon, 23 Nov 2026 15:21:44 +0000
-Message-ID: <20261122064231.hwc-v11-netdev-p1.weh@linux.microsoft.com>
+Subject: Re: [PATCH net-next v11 3/4] net: mana: support concurrent HWC requests
+Date: Mon, 23 Nov 2026 15:21:45 +0000
+Message-ID: <20261122064231.hwc-v11-netdev-p3.weh@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <179527856753.3135.1812581824985082274@kernel.org>
-References: <f94c7f71d4228c7c30838f9c901b429ec5b1428c.1794751992.git.weh@linux.microsoft.com> <179527856753.3135.1812581824985082274@kernel.org>
+In-Reply-To: <179527857180.3135.15262062177473658662@kernel.org>
+References: <45db2acd8f03421191f5b3a9f4bd7ce9e9259b33.1794751992.git.weh@linux.microsoft.com> <179527857180.3135.15262062177473658662@kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -87,28 +87,46 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
 On Sat, Nov 21, 2026, netdev-bot+sashiko wrote:
-> Should mana_ib unpublish the slot, wait for a grace period, and only then
-> free the object, as the HWC teardown path in this patch does?
+> Can this leave a dangling CQ callback for kernel CQs, which then runs on
+> freed memory?
 
-The HWC teardown protects the table itself, not the lifetime of each
-RDMA CQ in it. The individual CQ race exists upstream; v12 leaves it
-out of this series.
+Yes. ib_free_cq() can free the CQ even when destroy returns an error.
+I removed the v11 early return so the normal CQ teardown withdraws the
+callback. This doesn't fix the separate upstream race with a reader of
+the RDMA CQ table.
 
-> Can this leak repeat without limit through the existing PCI recovery loop?
+> Can a rejected destroy here leave the driver tracking a QP that the
+> RDMA core then frees anyway?
 
-Yes, in v11. In v12, if probe cleanup can't get a DESTROY_HWC ack,
-the driver doesn't schedule another PCI probe. If teardown fails during
-removal for a driver-initiated rescan, it skips the rescan. A bound
-device can retry the destroy. Final removal can still leak the last set
-of HWC buffers: the PF may still be using them.
+Yes. V12 also drops the QP early return: teardown removes the QP from
+the driver's table and CQ lists rather than relying on a retry.
 
-> What happens to setup_active when the PF returns possession with a
-> well-formed ESTABLISH_HWC response that carries a non-zero status?
+> Does this leak the GIC reference when the rejected command was not the
+> EQ disable?
 
-It stays set. Once the VF has submitted the queue addresses, an error
-reply doesn't establish that the PF has dropped the mappings. The VF
-still attempts DESTROY_HWC and waits for its ack before freeing them.
-A reset notification isn't a substitute for that ack.
+Yes. V12 restores the upstream EQ-create unwind. If creating the EQ
+fails, its caller drops the IRQ-context reference; it doesn't use the
+HWC error code to decide whether to keep it.
+
+> What releases this retained GIC reference later?
+
+V12 doesn't retain that extra reference on EQ teardown. The last
+mana_gd_put_gic() unregisters the handler before freeing a dynamic
+MSI-X vector.
+
+> After the continue, what still points to the retained tx_qp[i]?
+
+Nothing in v11 once the parent is freed. V12 keeps the upstream
+Ethernet TX, RX and EQ teardown instead of retaining those queues.
+
+At the normal response timeout of a posted HWC command, the PF has
+drained DMA to the old queues and packet buffers, as well as interrupt
+writes. Unanswered commands haven't taken effect. V12 stops posting on
+that HWC and won't accept a handle from a late reply. A reset notice,
+a failed post or a wait for a free slot gives no such guarantee. The
+HWC's own rings and buffers still require a DESTROY_HWC ack.
 
 Thanks,
 Wei
+
+pw-bot: cr
