@@ -1,55 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795446136;
-	b=EAhFR60SPYC4IIwx2zDN0pCld1F6XSTwJN/AB5a2HW2gAg/7h9A6xQ1xt89+VX8UYvwP
-	 HzWfO0w+o9esf7n4IxPsjgacLweSMlddBOn8uI8Cq34CUL2ZroF/s4EWP1H2eVY7NJzuN
-	 JQQgnG9DkrWAHqVi98LgkQAw4k3DmWqFb3m8BBFd/KdyLhYw9vtvNoG6u/6lGK1ZUdZJ8
-	 /XFFgMrKHhteN7bBS5zpYCGyeRWkjKVln2YIPruHqcYQ/An2bOznW3BV5R0HOBVcSGGr/
-	 gOuVtuRxL1ofrH0ujUy3W1AJlL8ATH4OEKebMaloO0ONMNGKGG+vSmq5Ynhcq/SkFSQ==
+	t=1795446156;
+	b=Y+a+0JwJeEjFGRSh/nhi4ilth3ofWynxjh0Zr6axqW28ij4gol8UzaTjDyMMbUEwKtQ/
+	 eo/gFSmJ3jdK8TKu1cqCkdTMsSW0cFJSzyB4aMfOhS6BUAEuST5kGjs+WAOQY4qywmz3U
+	 6H0kU2eO8k5NYbjVZamm8JJtmoXX3TlW413psEWZYFdWkMkDZjACfJmN5LwAyUEIgAFh+
+	 NhTYnCPQ+hl7j6znva6iO7K+rUyqVkzgY4HMC9U1iSeF6Sb154NEijmAZYtbE0ck3z8gf
+	 SHE4nCStN7rq2D3tfzzRGCaIzwm+zYSXujz0upKEu9jH/piDa0FMjaCVrphjTqyx2ug==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795446136;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	a=rsa-sha256; c=relaxed/relaxed; t=1795446156;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=4+p2Ol9rfv+lZGs8fA3gqiJbeb7tGlOWrTdyBWHI8R8=;
-	b=HX48RAGeTA+1nCYcLkRag14XuKRvWsm8BUbKaFDatIVWO/MswP9+HbE8KrjvVjeONxB+
-	 0X7m7Pr07C0tIdv+YlCpoAoA/Ne3E7dmXb3PsaK3oRnNwxfo7RK5QySS7xAK6dn/bBslE
-	 DQIpaP7NbTq8Xt5Gd3tsCGZhl1ThDRR9E1cGDzcUq0Cbfb4ea9PmCjFrZLjgif8ucTxc1
-	 XPIDrmoFlu9BhJTBqSwkdYj4++MFtUgAx9VZIwkwjHsK5xqLKJtmqSKxZIyAf0KrzrOMc
-	 TR2fOC0Kb0o4ya7i59VEH1FEaaymzlxc12ewvpzizX7Sqh9vhRpkWddZ7xd2yMXqxFg==
+	bh=W5RWbJiraCOaRRtzXNZhfWCde7w7xlZtx4jexRA2pPM=;
+	b=P5p6jrRQnU5/dqI3gsADs/FUxRBsTSq65dSA7yDouxVQe6kS9sft7YzTnMgx8EVZTbJY
+	 CcuO6msJq+tK1o9mX8579CxesqX/fzmZWaEW8l8pbu0l5QXdpvqKQzcersrKQoDtZoIfK
+	 t6hEgVVdPKo91Qaco6LGnLeZbK48i8ZM5sQhZNPNkpxrFxwIN+zZtm7reqTv8nrZeyu8i
+	 fgXGMM2dN9ArQerUdLiC6SSsw9Hik7AYvH2Folg0KkxrkOs9kHy8vFRvql7Igmu0JgSI6
+	 93iW1S9xJe9pyQuFtXeL5IHz5y7VY8J2B+AsqKKv1EwbCCpZtbAKGMqywf7nfV0eazw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=M2mYtoak;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IbTkV2HK;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10563606A31E
-	for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 15:02:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C74A2606A31E
+	for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 15:02:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=M2mYtoak
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6C5E1F000EC;
-	Mon, 23 Nov 2026 15:02:14 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IbTkV2HK
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20A7A1F000CA;
+	Mon, 23 Nov 2026 15:02:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795446135;
-	bh=4+p2Ol9rfv+lZGs8fA3gqiJbeb7tGlOWrTdyBWHI8R8=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=M2mYtoakSRKhme8KnnudcreCb/RQ7FUKhQySgYrBhnBLEkKGdPEs2SceC9pB1oXKD
-	 x/bKQcOTFqrCs2Z3cEpYG4+3IHcDnWF79gW8i9TqGM7qu81ESTMEsd11HKJn+Yo8dY
-	 ZXSTydyPZjRcuqlrc8giUJAtLvXNdt0lReMwOZr1ui6ZQhzEX7qtigdxIqnJAfwyHu
-	 I+zo/fq1o1j7HHhtDZvbZI+Dlj0wfMiayBsIycPSOc98YXHU/QYBmneI2vgFiPDgG1
-	 FyJij6quLs/9PCJxagmTH7YrW/SncJORQ3YITjxS+f62Kb57n7c9FT0YMtHVz6FRxT
-	 u8jJ5LVnVoAIA==
-Message-ID: <sashiko-outbox-229467@kernel.org>
+	s=k20260515; t=1795446156;
+	bh=W5RWbJiraCOaRRtzXNZhfWCde7w7xlZtx4jexRA2pPM=;
+	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
+	b=IbTkV2HKNMs4DmnI+70bjftrKZ0QQmJM1XdN8w83xWV2sFv2A56FtvEZrxtovXiAg
+	 xG6V7SkrEvtqldwtPGLWmMT0SGal4kf+FcWDt5g7NJW47smuQRCJLN9XYiREHVtKWT
+	 ja2SnMs7EDfNiJ20l+c1oGUbm4RrlT3m0jB+SVjw7dBpJjPAYnrCVzW0eeSuKrmAYY
+	 ieesyPZYsWn/gdEsV55OaBZbBvFPhbs3CzTjp7MmpnjvgllZWm/pty6ZbJ9t700uuO
+	 Mq/QFBrxGsIu9hK2GFwpz+D9B3mcIg9Y5KFTymsMBO4qdXEHZw1r4R4qcHawsNsLmE
+	 IJ3MdLgpI/Uug==
+Message-ID: <sashiko-outbox-229468@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] IB/iser: Fix deadlock during blocking connect
+Subject: Re: [PATCH 3/9] RDMA/rtrs-clt: Trigger error recovery when posting
+ LOCAL_INV fails
 Reply-To: sashiko-reviews@lists.linux.dev
-To: "Ziyu Zhang" <ziyuzhang201@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261123144440.65441-1-ziyuzhang201@gmail.com>
-References: <20261123144440.65441-1-ziyuzhang201@gmail.com>
+To: "Md Haris Iqbal" <haris.iqbal@ionos.com>, linux-rdma@vger.kernel.org
+In-Reply-To: <20261123143719.938876-4-haris.iqbal@ionos.com>
+References: <20261123143719.938876-1-haris.iqbal@ionos.com>
+ <20261123143719.938876-4-haris.iqbal@ionos.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Mon, 23 Nov 2026 15:02:14 +0000
+Date: Mon, 23 Nov 2026 15:02:35 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,83 +60,84 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issues to consider:
-- [High] IB/iser: double destroy of iscsi_endpoint and CMA race on
-  connect_failure
-- [High] IB/iser: blocking iser_connect() still hangs when connection
-  fails
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue to consider:
+- [High] RDMA/rtrs-clt: early return in complete_rdma_req() leaks DMA
+  mappings
 --
 
-commit 25481c11c640d37ac59ae7c53e55d7c62c9a8e55
-Author: Ziyu Zhang <ziyuzhang201@gmail.com>
+commit 61b2b66e033c3217c1bebe6348e99899004f5550
+Author: Jack Wang <jinpu.wang@ionos.com>
 
-IB/iser: Fix deadlock during blocking connect
+RDMA/rtrs-clt: Trigger error recovery when posting LOCAL_INV fails
 
-This commit drops and reacquires iser_conn->state_mutex around
-wait_for_completion_interruptible() in iser_connect() so the CMA handler
-can acquire state_mutex and complete up_completion during a blocking
-connect.
+This commit clears req->mr->need_inval and triggers RDMA error recovery
+when rtrs_inv_rkey() fails synchronously in complete_rdma_req().
 
-> diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniban=
-d/ulp/iser/iser_verbs.c
-> index ab2a27d23478a..5d865b9bfc983 100644
-> --- a/drivers/infiniband/ulp/iser/iser_verbs.c
-> +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-> @@ -778,7 +778,9 @@ int iser_connect(struct iser_conn *iser_conn, struct =
-sockaddr *src_addr,
->  	}
-> =20
->  	if (!non_blocking) {
-> +		mutex_unlock(&iser_conn->state_mutex);
->  		wait_for_completion_interruptible(&iser_conn->up_completion);
-> +		mutex_lock(&iser_conn->state_mutex);
-
-[Severity: High]
-Does wait_for_completion_interruptible(&iser_conn->up_completion) still
-hang when the connection attempt fails or is rejected?
-
-up_completion is only completed in iser_connected_handler() on
-RDMA_CM_EVENT_ESTABLISHED.  On address, route, or connect failure,
-iser_connect_error() sets iser_conn->state =3D ISER_CONN_TERMINATING without
-completing up_completion, leaving a blocking iser_connect() asleep until a
-signal arrives while holding rx_queue_mutex in iscsi_if_rx().
-
-(Note that if error paths complete up_completion, iscsi_iser_ep_poll() will
-also need to check iser_conn->state =3D=3D ISER_CONN_UP when
-wait_for_completion_interruptible_timeout() returns a positive value.)
-
-> =20
->  		if (iser_conn->state !=3D ISER_CONN_UP) {
->  			err =3D  -EIO;
+> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/=
+ulp/rtrs/rtrs-clt.c
+> index de226e6ba1246..5ef912a472cda 100644
+> --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> @@ -436,6 +436,19 @@ static void complete_rdma_req(struct rtrs_clt_io_req=
+ *req, int errno,
+>  			if (err) {
+>  				rtrs_err_rl(con->c.path, "Send INV WR key=3D%#x: %pe\n",
+>  					    req->mr->rkey, ERR_PTR(err));
+> +				/*
+> +				 * No LOCAL_INV completion will fire, so the
+> +				 * rkey is still live on the HCA but we cannot
+> +				 * invalidate it from this context.  Clear
+> +				 * need_inval so subsequent reapers don't
+> +				 * wait on an invalidate that will never
+> +				 * happen, and kick off error recovery so the
+> +				 * QP (and MR) is torn down cleanly via
+> +				 * fail_all_outstanding_reqs() ->
+> +				 * complete_rdma_req(can_wait=3Dtrue).
+> +				 */
+> +				req->mr->need_inval =3D false;
+> +				rtrs_rdma_error_recovery(con);
+>  			} else if (can_wait) {
+>  				wait_for_completion(&req->inv_comp);
+>  			}
 
 [Severity: High]
-When wait_for_completion_interruptible() returns with iser_conn->state !=3D
-ISER_CONN_UP, jumping to connect_failure leaves iser_conn->state as
-ISER_CONN_PENDING or ISER_CONN_TERMINATING instead of setting
-ISER_CONN_DOWN:
+Does complete_rdma_req() leak the DMA mapping on req->sglist when called
+from fail_all_outstanding_reqs() on an in-flight request that still has
+req->mr->need_inval set?
 
-drivers/infiniband/ulp/iser/iser_verbs.c:iser_connect() {
-    ...
-addr_failure:
-	iser_conn->state =3D ISER_CONN_DOWN;
-connect_failure:
-	mutex_unlock(&iser_conn->state_mutex);
-	iser_conn_release(iser_conn);
-	return err;
+During recovery, rtrs_clt_stop_and_destroy_conns() drains QPs via
+stop_cm() and then runs fail_all_outstanding_reqs(), which calls
+complete_rdma_req() with can_wait =3D true and req->ref =3D=3D 1.
+complete_rdma_req() increments req->ref to 2 before rtrs_inv_rkey(), and
+neither the if (err) branch (when posting to the stopped QP fails) nor the
+else if (can_wait) branch (where rtrs_clt_inv_rkey_done() only signals
+req->inv_comp without dropping a reference) decrements req->ref:
+
+drivers/infiniband/ulp/rtrs/rtrs-clt.c:complete_rdma_req() {
+	...
+			refcount_inc(&req->ref);
+			err =3D rtrs_inv_rkey(req);
+			if (err) {
+				...
+				req->mr->need_inval =3D false;
+				rtrs_rdma_error_recovery(con);
+			} else if (can_wait) {
+				wait_for_completion(&req->inv_comp);
+			}
+			if (!refcount_dec_and_test(&req->ref))
+				return;
+		}
+		ib_dma_unmap_sg(clt_path->s.dev->ib_dev, req->sglist,
+				req->sg_cnt, req->dir);
+	...
 }
 
-Does this cause iscsi_destroy_endpoint() to be called twice on the same
-iscsi_endpoint?
-
-Because iser_conn->state is not ISER_CONN_DOWN, iser_conn_release() calls
-iscsi_destroy_endpoint(iser_conn->ep), and then iscsi_iser_ep_connect()
-calls iscsi_destroy_endpoint(ep) a second time when iser_connect() returns
-an error, causing a use-after-free and double free of ep.  In addition,
-unlocking state_mutex at connect_failure while state is still
-ISER_CONN_PENDING allows concurrent iser_cma_handler() callbacks to keep
-running during teardown before iser_conn_release() reacquires state_mutex.
+refcount_dec_and_test(&req->ref) drops req->ref from 2 to 1 and returns
+early, skipping ib_dma_unmap_sg() and the clt_path->stats->inflight
+decrement right before fail_all_outstanding_reqs() fails over or completes
+the request.
 
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261123144440.6544=
-1-1-ziyuzhang201@gmail.com?part=3D1
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261123143719.9388=
+76-1-haris.iqbal@ionos.com?part=3D3
