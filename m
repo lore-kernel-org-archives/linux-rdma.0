@@ -1,49 +1,81 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=68.232.153.233
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795424313;
-	b=MX8VnnDg6+dapCRaei1gQAV5zlkZj42jkiUbAQ6r5DyPJz6Xh9ueRKxTF5nggP3a53iQ
-	 vs88pShsQ4865GfIj9u00Y/ueuI/+UaxgpR4yhHb4d5dJdWLlBjGTVDVv6oOy1Etsd3ib
-	 BEEpA/6oRsYns4Ysw1/mIBKqHE8D/6Eu0RCd68NoOZ6bUO0vq7DohqcS6zSF13DCEH0d/
-	 oaNBkwEJ5Awcpbr0x/xe4c2JWet5ulEmTNHaVF8YCnXmrbMOO5JMBOc+OnIIZp7AwZfxn
-	 gDOEkOHFwl8w6XccR69uFo/OkOw7H/SdnEd0GlFujeB99XHGWtr0yGl4T3xZbG1EMTQ==
+	t=1795424455;
+	b=a7sbsJ+XrAvbsUYwlxyEsVU/BaYQXeUFu96kZNAZsSq3DlStp5RHsZisRi8YRH5NYekN
+	 cPa1cZQ6X/rIF5UkK4X7NYPyaq7fxfYzJ/JFTnaIQalPLuJ5IyMA3u1et/564C9FVkyqf
+	 DMNSAv+8uJ6X7Ghu4v1ywlBvlh7NhIZKTLkC9nHBBxGM7eTcm1gx5sLNOLt/86UVuEIkN
+	 mPe229ufaSQ2zxLcwcckutwXJWR0+K+RFWMEn+Q/8/dpje7lJ9+JtK3EXenhAsBWEMJg+
+	 pcmJ7k6w0jfAH84CR0e+PdkFOn4DTeF11ohDkBbDqZRNctljlq5dBzpTjgoYAG7b24g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795424313;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:Cc:References:From:
-	 Content-Language:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=b3WMjSBwi5PFDvIaCpQd7Axi/XWPxIYqZlMheE6sk7Q=;
-	b=sIvehgBMbjwdqGlTAQ9AwBphQxzmF7BmJTV11amiST1OX3VsFf06jx2ezQlZy7iqeD5q
-	 Etgv6ovvgQH5t44cDSKf+ILioqxoq6lLqS7Zn5trSFjr0a8945Q9X9jMz/MAIL8kNjuvC
-	 FS2Sj6NXf+zAcTaeQBNVREPfsXGfHHsnM9LX7Q+HaVOTMhF2DUB5Ro+lEKp8mjK6O5zLM
-	 UXurJKAQiEEHq9q3jefuIbgeyoHI8d8zqADkZdoVhf8RRR6SWufARGKccPyyHT5imEte8
-	 gwXkZ2n58PewiLgwtDvXs4/1SyeTwO2y80+N23VMGpdSnaHMoQEjhuZoRATKaUFbI5g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795424455;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-Amp-Result:Received:Received:Received:Date:From:To:CC:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=wK56nV5dj6BN9DnAzwC2it7nIfhccBMyPksEVfxk8L4=;
+	b=ayXf4zjqCXW/DCMPw6IxOFwlyB7yQwTSxtStZ5lK+oFTYPUDg4gEXdrWxbZylxat0/5Q
+	 FBbqdWyJ2LptLgR4Y6XNt6DBrm1tOSZzPtrEaGYKcfcYD1FkrPQVxyo/GrGVn7BcAmjUs
+	 9GKTjiGdwf80Xtzgo9rx7a/FhdG3aYSzIjTxwVgwVTL5U37Mc6BlHez587PCPHkK+udWn
+	 BuLr93+B5yy+Xnh5fq2K4ecGOa/BVDBoR9GEhBr4T+OPmr/bSwY2Xt+BRa4awC4JNxgqY
+	 Lsuv2Dcmzc521JJys/te9ebc7zA8M5r24c6u+s0grEfSdiQHjiLV2o2LrTiGfs3ADPA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arm.com;
-	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=ljFKBqmi;
-	arc=none smtp.remote-ip=217.140.110.172
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6A6C7606A31E;
-	Mon, 23 Nov 2026 08:58:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6A6C7606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	dmarc=pass header.from=microchip.com;
+	spf=pass smtp.mailfrom=microchip.com;
+	dkim=pass header.d=microchip.com header.i=@microchip.com header.a=rsa-sha256 header.s=mchp header.b=ThYvsDtQ;
+	arc=none smtp.remote-ip=68.232.153.233
+Received: from esa.microchip.iphmx.com (esa.microchip.iphmx.com [68.232.153.233])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9567B606A31A;
+	Mon, 23 Nov 2026 09:00:54 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9567B606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microchip.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microchip.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=ljFKBqmi
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id DB6561A25;
-	Mon, 23 Nov 2026 00:58:28 -0800 (PST)
-Received: from [10.57.91.245] (unknown [10.57.91.245])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id BFF623F882;
-	Mon, 23 Nov 2026 00:58:22 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1795424311; bh=IyuQOHegOm7o8+idks5YbotHgA2kGInEw/MsLFSwZbI=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=ljFKBqmieG86A9o17mg2OKClKeqYmywjsi88qro4DKa+Bzf6DMkYNr9cZvknPpkUp
-	 MK+dIkOffcqanqO2jC1axlvaTs8nppW4q108uU909LcHYNdp1I6oK5movdwY5TJcih
-	 uXIzdw84Y8RliXz46ZJI31Ytyxy9qn1kOEfkLx1Q=
-Message-ID: <7a3ffc6a-866d-472b-91d6-886ca8095008@arm.com>
-Date: Mon, 23 Nov 2026 08:58:20 +0000
+	dkim=pass (2048-bit key) header.d=microchip.com header.i=@microchip.com header.a=rsa-sha256 header.s=mchp header.b=ThYvsDtQ
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=microchip.com; i=@microchip.com; q=dns/txt; s=mchp;
+  t=1795424463; x=1826960463;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=vVIT0KjQxjO+p+ys4Bw721gnr410olPHzZc14uULyqU=;
+  b=ThYvsDtQwp+r566AhDWYFcHwQE+ofdFWmZRRYroQ4ATDfVHrSFHikScv
+   QZgf7sbvuZFs6xcY3VRyIzdG4wWbfXSdWwYDSfck+YK6DkjtE+rzDIyur
+   1EfllIzgEyzN3BHClSKd2uWM9makInbzQNqHi1kntMI4CEgkWjjNg8bdZ
+   +7Ymdhv7Igz7/72/GbeTKl7etgpEeIdqNaBpQ5XDO3O7HlWFgA18gkVZy
+   xQHxwX4bCAVJOdvvc8b80sjFLo4klIlh1yqM53tv1cX4jkdCScC6Gk7Hw
+   6MaffLMfbkVgiCseeheVOMWvSfACeiwFy5p57Y6LvYrv2vAsp5wNQHncy
+   w==;
+X-CSE-ConnectionGUID: fjHc7KbqRG+GFgtrW5tWDg==
+X-CSE-MsgGUID: idz3Yb9QRXKumrLi0BSZhQ==
+X-IronPort-AV: E=Sophos;i="6.27,227,1787036400"; 
+   d="scan'208";a="298321523"
+X-Amp-Result: SKIPPED(no attachment in message)
+Received: from unknown (HELO email.microchip.com) ([170.129.1.10])
+  by esa5.microchip.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2026 02:01:01 -0700
+Received: from chn-vm-ex04.mchp-main.com (10.10.87.151) by
+ chn-vm-ex1.mchp-main.com (10.10.87.30) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.2.2562.57; Mon, 23 Nov 2026 02:00:52 -0700
+Received: from DEN-DL-M70577 (10.10.85.11) by chn-vm-ex04.mchp-main.com
+ (10.10.85.152) with Microsoft SMTP Server id 15.1.2507.58 via Frontend
+ Transport; Mon, 23 Nov 2026 02:00:49 -0700
+Date: Mon, 23 Nov 2026 10:00:49 +0100
+From: Daniel Machon <daniel.machon@microchip.com>
+To: Zhao Li <enderaoelyther@gmail.com>
+CC: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, Mark
+ Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Andrew Lunn
+	<andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, Eric
+ Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
+	<pabeni@redhat.com>, Moshe Shemesh <moshe@nvidia.com>, Shay Drory
+	<shayd@nvidia.com>, Akiva Goldberger <agoldberger@nvidia.com>,
+	<netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH net] net/mlx5e: TC, fix a NULL pointer write in the peer
+ flow error path
+Message-ID: <20261123090049.hkhclpdiljjfptff@DEN-DL-M70577>
+References: <20261118025708.86215-1-enderaoelyther@gmail.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -53,131 +85,29 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 2/2] mm/kasan/kunit: add page_alloc_skip_kasan test
-To: Jeff Xu <jeffxu@chromium.org>, Andrew Morton <akpm@linux-foundation.org>,
- David Hildenbrand <david@kernel.org>, Vlastimil Babka <vbabka@kernel.org>,
- Johannes Weiner <hannes@cmpxchg.org>,
- Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>, "Liam R . Howlett"
- <liam@infradead.org>, Mike Rapoport <rppt@kernel.org>,
- Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>,
- Brendan Jackman <brendan.jackman@linux.dev>, Zi Yan <ziy@nvidia.com>,
- Alexander Potapenko <glider@google.com>,
- Andrey Konovalov <andreyknvl@gmail.com>, Dmitry Vyukov <dvyukov@google.com>,
- Vincenzo Frascino <vincenzo.frascino@arm.com>, Marco Elver
- <elver@google.com>, Boris Brezillon <boris.brezillon@collabora.com>,
- Catalin Marinas <catalin.marinas@arm.com>, Chia-I Wu <olvaffe@gmail.com>,
- Dev Jain <dev.jain@arm.com>, Ian Rickards <ian.rickards@arm.com>,
- Jann Horn <jannh@google.com>, Jeff Vander Stoep <jeffv@google.com>,
- Jeff Xu <jeffxu@google.com>, Kees Cook <kees@kernel.org>,
- Mark Rutland <mark.rutland@arm.com>, Peter Collingbourne <peter@pcc.me.uk>,
- =?UTF-8?Q?Pierre-Cl=C3=A9ment_Tosi?= <ptosi@google.com>,
- Tomasz Figa <tfiga@chromium.org>, Will Deacon <will@kernel.org>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
- Miklos Szeredi <miklos@szeredi.hu>, Baoquan He <baoquan.he@linux.dev>,
- Pasha Tatashin <pasha.tatashin@soleen.com>,
- Pratyush Yadav <pratyush@kernel.org>, Allison Henderson
- <achender@kernel.org>, "David S . Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
- linux-mm@kvack.org, kasan-dev@googlegroups.com,
- linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org,
- fuse-devel@lists.linux.dev, kexec@lists.infradead.org,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
-References: <20261123033111.2349160-1-jeffxu@chromium.org>
- <20261123033111.2349160-3-jeffxu@chromium.org>
-From: Ryan Roberts <ryan.roberts@arm.com>
-Content-Language: en-GB
-In-Reply-To: <20261123033111.2349160-3-jeffxu@chromium.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20261118025708.86215-1-enderaoelyther@gmail.com>
 
-On 23/11/2026 03:31, Jeff Xu wrote:
-> Add a KUnit test (page_alloc_skip_kasan) to verify that page allocations
-> using __GFP_SKIP_KASAN (GFP_KERNEL | __GFP_SKIP_KASAN, GFP_HIGHUSER, and
-> GFP_HIGHUSER_MOVABLE) under CONFIG_KASAN_HW_TAGS:
+> The peer flow add path hands the duplicated flow over to the origin
+> flow before it looks up the peer entry for the peer vhca_id. When
+> that entry is missing, the function returns -ENODEV, and the caller
+> then deletes the duplicated flow with list_del() on its peer node, a
+> list head that was never initialised and never linked. list_del() on
+> such a node writes through the NULL page.
 > 
-> 1. Reset page_kasan_tag() to KASAN_TAG_KERNEL (0xff) across all sub-pages
->    of a high-order allocation, and
-> 2. Return a match-all (0xff) linear-map pointer from page_address() that
->    does not trigger a KASAN fault even when the underlying physical
->    granules carry a mismatched tag (such as KASAN_TAG_INVALID or
->    restored userspace PROT_MTE tags).
+> Look the peer entry up before the duplicated flow is created and
+> handed over, so that a missing entry is reported without leaving a
+> duplicated flow behind. The entry cannot change in between: the peer
+> loop in mlx5e_add_fdb_flow() holds the devcom component's read lock,
+> and peer_flows entries are only stored and erased by the pair and
+> unpair events, under its write lock.
 > 
-> Tested on arm64 with CONFIG_KASAN_HW_TAGS under QEMU (virt,mte=on) with
-> kasan.mode=sync, async and asymm.
+> Found by code review and not reproduced; compile-tested only.
 > 
-> Signed-off-by: Jeff Xu <jeffxu@chromium.org>
+> AI assistance was used.
+> 
+> Fixes: 9d608a40c2d4 ("net/mlx5e: TC, track peer flows in a vhca_id xarray")
+> Signed-off-by: Zhao Li <enderaoelyther@gmail.com>
 
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-
-> ---
->  mm/kasan/kasan_test_c.c | 44 +++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 44 insertions(+)
-> 
-> diff --git a/mm/kasan/kasan_test_c.c b/mm/kasan/kasan_test_c.c
-> index f34163e19bd6..72342137bb18 100644
-> --- a/mm/kasan/kasan_test_c.c
-> +++ b/mm/kasan/kasan_test_c.c
-> @@ -380,6 +380,49 @@ static void page_alloc_uaf(struct kunit *test)
->  	KUNIT_EXPECT_KASAN_FAIL_READ(test, ((volatile char *)ptr)[0]);
->  }
->  
-> +static void page_alloc_skip_kasan_helper(struct kunit *test, gfp_t gfp)
-> +{
-> +	struct page *pages;
-> +	size_t order = 2;
-> +	char *ptr;
-> +	size_t i;
-> +
-> +	pages = alloc_pages(gfp, order);
-> +	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, pages);
-> +
-> +	for (i = 0; i < (1UL << order); i++) {
-> +		/*
-> +		 * __GFP_SKIP_KASAN allocations must carry the match-all tag
-> +		 * in page->flags, and so in page_address(), not a random tag.
-> +		 */
-> +		KUNIT_EXPECT_EQ(test, page_kasan_tag(pages + i),
-> +				(u8)KASAN_TAG_KERNEL);
-> +
-> +		ptr = page_address(pages + i);
-> +		KUNIT_EXPECT_EQ(test, (u8)get_tag(ptr), (u8)KASAN_TAG_KERNEL);
-> +
-> +		/*
-> +		 * The memory tags of such pages are arbitrary: stale poison,
-> +		 * or tags set by userspace through PROT_MTE. Accesses via
-> +		 * page_address() must not fault regardless.
-> +		 */
-> +		kasan_poison(ptr, PAGE_SIZE, KASAN_TAG_INVALID, false);
-> +		KUNIT_EXPECT_KASAN_RESULT(test, WRITE_ONCE(*ptr, 0),
-> +					  "WRITE_ONCE(*ptr, 0)", false);
-> +	}
-> +
-> +	__free_pages(pages, order);
-> +}
-> +
-> +static void page_alloc_skip_kasan(struct kunit *test)
-> +{
-> +	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_HW_TAGS);
-> +
-> +	page_alloc_skip_kasan_helper(test, GFP_KERNEL | __GFP_SKIP_KASAN);
-> +	page_alloc_skip_kasan_helper(test, GFP_HIGHUSER);
-> +	page_alloc_skip_kasan_helper(test, GFP_HIGHUSER_MOVABLE);
-> +}
-> +
->  static void krealloc_more_oob_helper(struct kunit *test,
->  					size_t size1, size_t size2)
->  {
-> @@ -2369,6 +2412,7 @@ static struct kunit_case kasan_kunit_test_cases[] = {
->  	KUNIT_CASE(kmalloc_large_invalid_free),
->  	KUNIT_CASE(page_alloc_oob_right),
->  	KUNIT_CASE(page_alloc_uaf),
-> +	KUNIT_CASE(page_alloc_skip_kasan),
->  	KUNIT_CASE(krealloc_more_oob),
->  	KUNIT_CASE(krealloc_less_oob),
->  	KUNIT_CASE(krealloc_large_more_oob),
-
+Reviewed-by: Daniel Machon <daniel.machon@microchip.com>
