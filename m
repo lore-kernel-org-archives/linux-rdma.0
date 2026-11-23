@@ -1,56 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.87
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795426011;
-	b=qPzjdUccR6N1oOsmaR0tfhHcADeEvoNxC30cCy0P+z9pN9Jw5QUKL8toR6WNC23Oy4oL
-	 7BG5KTeDzrWnjvIe0sC60LiWZb5Wn1JwpRNr6axuq0UVVzt69shwvvXI/HNbQKbecSA5e
-	 T4gDsCC6TwozrnN8O6kOL+bztKh27vlyCszkJ7S7Y2EaEIW7fwc/OXIdgj1JVqB8eSYwx
-	 Y7xFY4NWsVIvwF9rV+d6GjujPjtaiykkHFnGqVQjP4U1r3268PRmNz7wFzcl6XT9TVWAf
-	 W+NEWW+FtlOCOeVbYE34Xl8lUA2puYSu22kY8goOY00czu5Rnp1hYo91BhtUyjLVxMQ==
+	t=1795426396;
+	b=rivDCyLuchrBSOBzLVAiF8dCzCANH7Fm9Qqmh5MRRCcx/q7reDf8Bu3jwRX4ruRRq/Kn
+	 G8zGyxxJNLbwMeUEfC2VhD8l06y18eDWiWxFiBKX8nIlDSRwI/wwXrpf5B74TdGlOnW/X
+	 g5T8hU5XPnGdWXIiUkyXB+rcy0LR4SOqbpQCWdRnsZIiKO9cA6qWx4Ti3f5HS3cMm7t5+
+	 8EwJs+Wqdv6/N3XN5aV5agrI7QXwazy62CGtojVEg+XL3HPTPnzHC09K5WvHoRRuOSNWZ
+	 YyVe/H49AVFKkYFjxkL6GiRqqDY2Vd8HTfuRW+ZwDkYyLE2MvEMwkBTM0VZtWGKPoKQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795426011;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:From:Date:Subject:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:Message-Id:X-B4-Tracking:To:Cc:
-	 X-Mailer;
-	bh=czfx09lVEJ+5qbSUxtIYbjWuSXbhH8LThXJ7vZTPIOM=;
-	b=S5tqcnQoxbek271qr3Wulbyy4tTwg81V/KdbkxVeoFgj9jCWOwAF7B+11XWGOXScX6I6
-	 d70Ug+mItGhqEvzRPqpzR3s8cXcbg5yr43CtJxuf75CgIGoUwzdnLcJ076+6pMWO6dyMC
-	 80rqgZ2QP7zedlnQQfXrfeTfGaBm8lyqo0lDPBAoBJBoLLLTL0Wju30jTk4m1ETAQcPFf
-	 T1hS8V5JQ6Qh6b8Ml7V3eCKNUtnPDgVboxljQOuLTBTTCb3IFxworusS0gtjfaWLccVtl
-	 3ZOpVje9jJmDMeGnOQOukb4GivIlApmEWF3GeQVTuxKNjL8jCtqN5gLEB7ltfxbNxpA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795426396;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=GGmkv4nw2045Y5xoLlaLJyKcSJJx07dC/S1HeYHyLH8=;
+	b=CQV/If++IuyT8SGcPx5o0ZSkWEu0ek2wfwZdUK6AQN9pLzUwr1F5DyG/x5UNI5lEdR9N
+	 D9bq88medyKmjhQN6VIqWaHYR3HzFzzjM/CGznqUN1tyT55R+2hevqZDTLfLu6ed2Hwuh
+	 IbePaJhTFDAxTRmPQ2CYsaryk2Ay5yg0F2AUl/8iwNDOwkktB/3YORmmjmfZyGLpFQjQv
+	 ro7t9TJfVYFCSF9c5eaE5OLkQsS2An9kXgra0uuHFJbKOlqYAck1feRFfBnjTKrEyCiEd
+	 70qbAkZsQgr+AKRk/URmdLg0Erjj2aC7QuS0XULoWSsZMuDv/XyppFojadIG6nN4gvg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=QBIsBHeG;
-	arc=none smtp.remote-ip=91.218.175.87
-Received: from mta0.migadu.com (out-87.mta0.migadu.com [91.218.175.87])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ck1p4wCB;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C766606A321
-	for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 09:26:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5C766606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99D6B606A32D
+	for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 09:33:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=QBIsBHeG
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=g5DXUn2a5VY10LYZ28Rn2x9UC5KFh89OzpiCFa3tU90=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1795426008; v=1; x=1796030808;
- b=QBIsBHeG7lHzJ8+PNgp7D176lstmiRez7/rrX9vx1lt+k5wi2O6Fte4uMGymfDgNwYbzDE3P
- N2Tco4AwtPjBJb6MAXVNAupZIP+CQUhRCMB84mAhSXvlvQdpxvm4s2pS+rELEY998ATiszL+LpH
- tYfEgDGbpN4wOGaB6FT2bwqA=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 918bf4bc19c1858d;
-	Mon, 23 Nov 2026 09:26:47 +0000
-X-Mizu-Trace-ID: 918bf4bc19c1858d
-X-Migadu-Flow: FLOW_OUT
-From: Qiliang Yuan <qiliang.yuan@linux.dev>
-Date: Mon, 23 Nov 2026 04:26:42 -0500
-Subject: [PATCH for-rc] RDMA/rxe: Allocate the MR page array with
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ck1p4wCB
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0590C1F000EB;
+	Mon, 23 Nov 2026 09:33:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795426396;
+	bh=GGmkv4nw2045Y5xoLlaLJyKcSJJx07dC/S1HeYHyLH8=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=ck1p4wCBAnVZM0CVmguwj7ygHV43fbo2OtciPzX2FEEe/dhILOXQbrfUqPQHUdNn9
+	 Bfpc5tfKKhbSvy85DSlb116hQ5rdG+hP2mK+YZXMVVWZvZyDl+bjisb3LueEwMDyK+
+	 2siSKKsNMOdCJtbG1GuFVvwWfDjkHkmVXMp70+WYbkOCvKyzp1O4xS6fGHMNlp5bAM
+	 glz5yE6dO/pma/kC7pcXZRdxJthFmfjvp+nIIUwwzYGIS1iCDrPD0j7DoWLzK/XiqK
+	 8xNgGcjTTkpznaBlYHQssDlTLYJAUh1/dbz6GzArAZe0EOssCpFQlZ6nVOWFjEgyPO
+	 h6b4EDjtV8mig==
+Message-ID: <sashiko-outbox-228980@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH for-rc] RDMA/rxe: Allocate the MR page array with
  kvzalloc()
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Qiliang Yuan" <qiliang.yuan@linux.dev>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261123-bug-rdma-rxe-large-mr-v1-1-8d0748ac4a3f@linux.dev>
+References: <20261123-bug-rdma-rxe-large-mr-v1-1-8d0748ac4a3f@linux.dev>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Mon, 23 Nov 2026 09:33:15 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,82 +59,41 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261123-bug-rdma-rxe-large-mr-v1-1-8d0748ac4a3f@linux.dev>
-X-B4-Tracking: v=1; b=H4sIANEGBGsC/x2MwQqDMBAFf0X27IJJ1Lb+iniIZmMXqpYXWgTx3
- w0eB2bmoCRQSdQVB0H+mnRbM5iyoOnt11lYQ2aylW2NsY7H38wIi2fswh+PbCzg+Gisr1/h6dq
- GcvuFRN3vb09xA2Oi4Twvub+JWm8AAAA=
-To: Zhu Yanjun <zyjzyj2000@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
- Leon Romanovsky <leon@kernel.org>, Li Zhijian <lizhijian@fujitsu.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Zhu Yanjun <yanjun.zhu@linux.dev>, stable@vger.kernel.org, 
- Qiliang Yuan <qiliang.yuan@linux.dev>
-X-Mailer: b4 0.13.0
 
-A user MR keeps a struct rxe_mr_page, 16 bytes on 64-bit, for every
-PAGE_SIZE page it covers, in one array allocated with kzalloc() when the
-MR is registered. Before the array, the pages were kept in an xarray.
+> A user MR keeps a struct rxe_mr_page, 16 bytes on 64-bit, for every
+> PAGE_SIZE page it covers, in one array allocated with kzalloc() when the
+> MR is registered. Before the array, the pages were kept in an xarray.
+>=20
+> With 4 KiB pages, the array of an MR larger than 1 GiB exceeds
+> KMALLOC_MAX_SIZE, so registering it fails with -ENOMEM, and the first
+> attempt warns:
+>=20
+>   WARNING: mm/slub.c:5459 at ___kmalloc_large_node+0xe9/0x130
+>   Call Trace:
+>    __kmalloc_large_node_noprof
+>    __kmalloc_noprof
+>    __alloc_mr_page_info
+>    rxe_mr_init_user
+>    rxe_reg_user_mr
+>=20
+> Allocate the array with kvzalloc_objs() and free it with kvfree(), so
+> that MRs of any size can be registered again.
+>=20
+> Registering an MR over THP-backed memory, median of 3:
+>=20
+>   size     before (ms)   after (ms)   change
+>   1 GiB            5.3          5.2      -2%
+>   2 GiB        -ENOMEM         10.8      n/a
+>   4 GiB        -ENOMEM         21.1      n/a
+>   16 GiB       -ENOMEM         85.9      n/a
+>=20
+> Fixes: 12985e5915a0b ("RDMA/rxe: Fix iova-to-va conversion for MR page si=
+zes !=3D PAGE_SIZE")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Qiliang Yuan <qiliang.yuan@linux.dev>
 
-With 4 KiB pages, the array of an MR larger than 1 GiB exceeds
-KMALLOC_MAX_SIZE, so registering it fails with -ENOMEM, and the first
-attempt warns:
+Sashiko has reviewed this patch and found no issues.
 
-  WARNING: mm/slub.c:5459 at ___kmalloc_large_node+0xe9/0x130
-  Call Trace:
-   __kmalloc_large_node_noprof
-   __kmalloc_noprof
-   __alloc_mr_page_info
-   rxe_mr_init_user
-   rxe_reg_user_mr
-
-Allocate the array with kvzalloc_objs() and free it with kvfree(), so
-that MRs of any size can be registered again.
-
-Registering an MR over THP-backed memory, median of 3:
-
-  size     before (ms)   after (ms)   change
-  1 GiB            5.3          5.2      -2%
-  2 GiB        -ENOMEM         10.8      n/a
-  4 GiB        -ENOMEM         21.1      n/a
-  16 GiB       -ENOMEM         85.9      n/a
-
-Fixes: 12985e5915a0b ("RDMA/rxe: Fix iova-to-va conversion for MR page sizes != PAGE_SIZE")
-Cc: stable@vger.kernel.org
-Signed-off-by: Qiliang Yuan <qiliang.yuan@linux.dev>
----
- drivers/infiniband/sw/rxe/rxe_mr.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 13cb28d3916f6..fbf4d89947383 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -157,7 +157,7 @@ static int rxe_mr_fill_pages_from_sgt(struct rxe_mr *mr, struct sg_table *sgt)
- 
- static int __alloc_mr_page_info(struct rxe_mr *mr, int num_pages)
- {
--	mr->page_info = kzalloc_objs(struct rxe_mr_page, num_pages);
-+	mr->page_info = kvzalloc_objs(struct rxe_mr_page, num_pages);
- 	if (!mr->page_info)
- 		return -ENOMEM;
- 
-@@ -186,7 +186,7 @@ static void free_mr_page_info(struct rxe_mr *mr)
- 	if (!mr->page_info)
- 		return;
- 
--	kfree(mr->page_info);
-+	kvfree(mr->page_info);
- 	mr->page_info = NULL;
- }
- 
-
----
-base-commit: e7732ec135b501e87ab060d992b3b5f2ec4396c9
-change-id: 20261123-bug-rdma-rxe-large-mr-f752a49d8365
-
-Best regards,
--- 
-Qiliang Yuan <qiliang.yuan@linux.dev>
-
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261123-bug-rdma-r=
+xe-large-mr-v1-1-8d0748ac4a3f@linux.dev?part=3D1
