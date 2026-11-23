@@ -1,159 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.193.26
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795447851;
-	b=DnbbZpV8bvd8eXhf5YY8F+yyRrjzqrFwOworH33TsUA5M8nAsT+p1Ng+5RA1PDB79lYN
-	 aY16y4PyhV75+Xo93VLrR4TgElQqWCQ8dc3IYyMfG4os4rfCagaZd827GMvB7YeevXgvG
-	 7Pr9pV86GFMqDo95rZD7R7s8iEH0GrMl7Uys0USN+mElaWMYeRDZQ1z9Bn7GjdtZEd5Iy
-	 YpFZDWLdbuua0gmA4+4V41FWe7/r8jMIxWNgoSYcwfyrCbVQiZOZA+3xARbAK7pCj+oCh
-	 9PnJPHknZVKIqHU1wlLdIE5RhXi9vQyJFv/NxxCTLdaQCHZUEeVj1Kg1cn7EnMhio+Q==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795447851;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:From:To:CC:Subject:
-	 Thread-Topic:Thread-Index:Date:Message-ID:References:In-Reply-To:
-	 Accept-Language:Content-Language:X-MS-Has-Attach:X-MS-TNEF-Correlator:
-	 x-ms-publictraffictype:x-ms-traffictypediagnostic:
-	 x-ms-office365-filtering-correlation-id:x-ms-exchange-senderadcheck:
-	 x-ms-exchange-antispam-relay:x-microsoft-antispam:
-	 x-microsoft-antispam-message-info:x-forefront-antispam-report:
-	 x-ms-exchange-antispam-messagedata-chunkcount:
-	 x-ms-exchange-antispam-messagedata-0:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-AuthAs:X-MS-Exchange-CrossTenant-AuthSource:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-originalarrivaltime:
-	 X-MS-Exchange-CrossTenant-fromentityheader:
-	 X-MS-Exchange-CrossTenant-id:X-MS-Exchange-CrossTenant-mailboxtype:
-	 X-MS-Exchange-CrossTenant-userprincipalname:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=IrBwOctcEI10YUqpf7utCoJ+VgHecvJt3qssqaYrgUU=;
-	b=hZQLJZ8FbaOYmCDx30D8ZMF9hIEazuzPWNosGCsucbx/khtD4J6jkfhq2oC9uT2fdBd5
-	 PFEXuetg8k+2e6yyxXxcJLIkmjvSsXtZTLBpM2Ft5FfWKEV6YddqEpLB8MdDtqI76xFsF
-	 Hvba4ISB4bvvkoH/LLrNtFp328odQOt+7KQ9GVHKeMT7eIr8HnYTvs/1Q6L4PITw/7/RB
-	 mbL9PWVvxq+HdQaX016Tc+dxNTS2sbmIYXClgAlxp2C+/vcyF7Si1miL/L8aabyiTUSGS
-	 GxgOqWZB9+qTZsbZXsixpH65a0xs/cVfc8rqYgYsHvaS/sjmUVDFg38bWAhnQFepJjg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=ZmgGYcBQ;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.193.26
-Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010026.outbound.protection.outlook.com [52.101.193.26])
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795448107;
+	b=lMOShtaDA2tF3KUQOWWCm1RFf8GuQR+cp994km1N+cA87SpOj7xIVCP5CynSTlqvmmHM
+	 yge/eCKhUsUtvU2ehiwsyyep+Pc+dl3V6Wt595HzGBXpuNmW+k1WIK4Q+Whe1EZWXiHCX
+	 zHPh6faY2vHkmGvGii91wKxUNq6+77x5GWWYQ9GIolYQKIbYgv8AYb8/fUVtPvpinnuUZ
+	 4Q15D8RXOuUnBEUU8RNQULQ+oCEFEHZ4qPKPCci8PLYl1qa8SEQRoa9DeJDoBE4vMofgh
+	 KlBf3o1ilSTCgzyXGYWolY6YswN2Lr3dbO+KWVKS3lg3qTuuYnzmwGmJVzDoiGj1yeA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795448107;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=2WTUAIe9/FWuJxjNSbePYXA4Ybis92IvBPtCl2Olzak=;
+	b=xSYikZPoWcLs6/3Eyo3nEpmTWf/x2Ok6tP+6lQ8w9VhtdFRn/Z+or7IWJky5yiDiebtR
+	 fxpot1T31kfu7xcCAhOAN5YedArVVQ6bsohXRwHhEFLrJzLL83eYf5j7f6yQSm8HI86se
+	 +q23pSyoogPVIygJvtoT3iRemEo2Xq9V+VF3Aj9L6rD2D9mO1Yx7r1WbBulyEya5oQVma
+	 XRTMs91PDOc0TLlv4jpJ72XFJp0r1Z5W+ER4qURAax+YGQ1FM1+uJw9uen+1zs9Isb+nL
+	 0102Dzr6X05qMWn13sUvgzXl3HZKiPxxwoiDV8DtSxGgc9W1cyClf6upXj22HkiXv3Q==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PaLXvN1b;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A6C1606A31E;
-	Mon, 23 Nov 2026 15:30:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3A6C1606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF74D606A31A;
+	Mon, 23 Nov 2026 15:35:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=ZmgGYcBQ
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=boabOnIwP/5q+KmDUblx6u8kosixrwJsdEqxy4SupnwI0FKOXL21oBwXKUbs4YQtp0u1trBV/gmIV4wVJMYcUXoKwmzV1NPM4YQ/T2XQK4CtGkUNl1jMK8X4Kt5pjEVL+VFqMSQkU2srx8PYat7frOpIeLTdAfVCNYXMbj63AzE7bWhAUmRZz6eCc1LKJBSWvmoz/B2cuF7QcJOPbS6MPbN6TrX78r0bWjhUW1nDOsuVUQ4KC3SYA9QGKpoFWCJm0qYASPYGYztJENKn8HX1fUyT8Tk8ZbvVPmvigxA48VP+JMxNWf3Aul8PJS6lW67STmAzqOoLg0S2Uh+SaTmE0Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=IrBwOctcEI10YUqpf7utCoJ+VgHecvJt3qssqaYrgUU=;
- b=bKO2RJkN2VUo53YtvmdBHZR90vZ/YZ9BQjgjyF5c6sR3ZmqpJAij1pVQ2PuaxHDOTCk+cRUpGp1K7BjrT19WS0JjxvXVDg2tm1FeiGFuldhS3j9ocRHkh2di7cIMX6ex7tr10KBasATPApWSZVeqg51dfWFLX6gS9HUjCGwKvgVi6SomCtyWGgRzppaf2qgF1QCmSvwrVTMm/w8hlghVLHGElhK8Bko5UckMVYIUKQ5GtrTSwfYiYcohq32Jv1AUaj+RO+fgPOzucKRrAIFFP+x1eJVShuq125keF9dmbB/EbnUlvdKXtwYizkalj3taaj4Rd5Ok5b2wl0SqZk9MMg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=IrBwOctcEI10YUqpf7utCoJ+VgHecvJt3qssqaYrgUU=;
- b=ZmgGYcBQd1xV8rcIIdwksEdaLrhCfo7z/N7bbCGPOw71jixLIqTvqkjK/7JTTQdHx2smco9bncRsjDeRlEMOrrCgReh8XumUzXhwcTBq2JlaFjKqraZzAP0dhnnYeCFU1WNX09jwi6Qrb1u4SLjrH+VuuAwEgjW6qVHFFA0GQ9uLgmvyxDCBes5LtEkVd7m0PUlbHpJo3a1nyIxKAQHvWU0jJ0jtlF3FFl/w8rXk2VE1gs98XzFzaRmYQU6BeGA50Ats/056h9Rh9xoc+mm25sd11D9dd7mF0d+QZP38h2e4Cc21z9p28vVrIebif41PAP2PPK/EFAUZEmhZCE2z5A==
-Received: from PH7PR12MB6956.namprd12.prod.outlook.com (2603:10b6:510:1b9::19)
- by IA1PR12MB8539.namprd12.prod.outlook.com (2603:10b6:208:446::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.639.13; Mon, 23 Nov
- 2026 15:30:46 +0000
-Received: from PH7PR12MB6956.namprd12.prod.outlook.com
- ([fe80::dcc7:f4c1:a9e3:dfcf]) by PH7PR12MB6956.namprd12.prod.outlook.com
- ([fe80::dcc7:f4c1:a9e3:dfcf%5]) with mapi id 15.21.0639.012; Mon, 23 Nov 2026
- 15:30:46 +0000
-From: Uri Dar <udar@nvidia.com>
-To: "netdev-bot+sashiko@kernel.org" <netdev-bot+sashiko@kernel.org>, Tariq
- Toukan <tariqt@nvidia.com>
-CC: "andrew+netdev@lunn.ch" <andrew+netdev@lunn.ch>, "davem@davemloft.net"
-	<davem@davemloft.net>, "edumazet@kernel.org" <edumazet@kernel.org>,
-	"kuba@kernel.org" <kuba@kernel.org>, "netdev@vger.kernel.org"
-	<netdev@vger.kernel.org>, "pabeni@redhat.com" <pabeni@redhat.com>, Gal
- Pressman <gal@nvidia.com>, "leon@kernel.org" <leon@kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Mark Bloch
-	<mbloch@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>, Saeed Mahameed
-	<saeedm@nvidia.com>, Shay Drori <shayd@nvidia.com>
-Subject: RE: [PATCH net-next] net/mlx5: E-Switch, Size FDB peer groups for
- asymmetric peers
-Thread-Topic: [PATCH net-next] net/mlx5: E-Switch, Size FDB peer groups for
- asymmetric peers
-Thread-Index: AQHddg7cJpbQdwXzF0aaR0b1uaj2ibczjagAgAg+45A=
-Date: Mon, 23 Nov 2026 15:30:46 +0000
-Message-ID:
- <PH7PR12MB69563290678C8270A52C3CF3AA452@PH7PR12MB6956.namprd12.prod.outlook.com>
-References: <20261116210917.1297111-1-tariqt@nvidia.com>
- <179499312875.3136.7073415507714082354@kernel.org>
-In-Reply-To: <179499312875.3136.7073415507714082354@kernel.org>
-Accept-Language: en-IL, en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: PH7PR12MB6956:EE_|IA1PR12MB8539:EE_
-x-ms-office365-filtering-correlation-id: 9bb87059-7be7-48ae-d217-08df4976bea4
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|1800799024|366016|376014|7416014|23010399003|261009223027099003|6133799003|18002099003|22082099003|261022105027099003|261022075727099003|261021121427099003|261026121527099003|261026140227099003|261028144727099003|261102123227099003|56012099006|4143699003|10067099003|38070700021|11063799006;
-x-microsoft-antispam-message-info:
- SlBM5KwdkuCuPoCpPfpoHERzSNuOxpBUaIxhvGg1XK5a5Gc3wWnLhY2tb50l5YSCR2YlNCjv51PJ1L2l+ZGS4691QlEYNWGFP7yqa5kPKDer51F2rNPl5j+ruqmZ8HsgO4+mnXc+Yd+4aG7pbzbTbmCqMYG+C/o/ceo+SRcFTxm/MpwZ1ZWyHOjAtTsn0YD2UQvIePqLnM939RJxp3BDlEVtXDUf+mr9fd6+BZDpEHHn+6qNNiNq1fVQDAk1fFd0asLRuzvX/rOj9OgkJtzPpe4prUgU3uKotL8UEUvl9SKIxwU2WwPQVhF9M9+xjVQTlws6EZdG/rkcm64t3pQDWKlyXkFWzL+LlPy0GZpxNmZAYo/7xDwmUkB6eeYggGeBmsFyga/3mW8LNdEwX2K8CrvRU8/hT0Us9NyLMCjlx7hdZy3Rh332NLOGZPxOZx/lojVAetCVmwg23H5phCtgmTU2C5INqYybpu2k62oe2FEfrqwlDXMWfP35+OlgRwmsbk2Yj/Ex8TLbbgWdQVjWTfuFkzkFI8tQ1n2O1sTq8bq59hF/ejlJ1YGyqiD9IRnu0tyLoeYXaHvMDB0As0XqlbJ2YVCmGaBi56TqLMqeFK2kjAfl+Rai9/xYo3D3u6Px2+jlOm7WB+gbGlkWqL/7we/RUHTbNeo9f0Zjsyv/YzRCiSXCtvzKFBTclD94hfrAdki/UGB9+8nlMmwLRFfImw==
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR12MB6956.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(7416014)(23010399003)(261009223027099003)(6133799003)(18002099003)(22082099003)(261022105027099003)(261022075727099003)(261021121427099003)(261026121527099003)(261026140227099003)(261028144727099003)(261102123227099003)(56012099006)(4143699003)(10067099003)(38070700021)(11063799006);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?cGtBSktoSGlEQnpGUDdoV1U3bStJVXZGS3ZjdlBlWU9zV2RBeDVWemMyOERW?=
- =?utf-8?B?V0dmMlcvQ2tUam9YTXJLL3o2RXZvdWExMzZVTVNnLzlVK2dYRE5IRTNvYXp5?=
- =?utf-8?B?a3NIMUc2WVB3UU5MN0xHZkRlZFBYQTBDeTJCaTRRdTQ5QUk3U1k3ZHlsL3BQ?=
- =?utf-8?B?NUt2VGVsMkdJMnIxamNiU1NJaWNsQnVHVmpIWXg0S1A5MEhmaFlhS1NGTTFI?=
- =?utf-8?B?UTFlMFBRSnJvV2hqVE03MkNoN09QR1BhMXNyaHhUOUUvY2txYVVyOUdtZDJM?=
- =?utf-8?B?T1hhQlROc0o1WU1keGhMWVQvakZxUWJEdVpIL3c3M1oySEE0dEFlV2JoRFZZ?=
- =?utf-8?B?L2lWMnVlbXB3Z1J3NzViekN4REprb1UveVpqbWV4aVh2ZWswTXQ0TGIvMzVj?=
- =?utf-8?B?R0loYXJsUHNteUVzZlRCQkJxaDdQNlZhalY5QXRxenRNU2Q1eHI5WERySXRM?=
- =?utf-8?B?UE1WbnBBaGRuWkF1ZWdVR2dUZjMvN1BOTGE5ZGtETFIxS1V6L3VYNUJ1SVpu?=
- =?utf-8?B?YlBlSDZ6blo5N2U2SXk5cnFLcFpON3NlK1BPVllGSzNuc1NiZDVHejVhQWhj?=
- =?utf-8?B?Y2tldFM5akRENzZGT1h0S2N4R0VOQnhPcVBlNGtlMGdwV2RyaFViL1NPVERm?=
- =?utf-8?B?MUFRNGVyT2xkZkQxNHUva0FQWFNkVXAwV0VjTDBGdERBRitBMUhySU5wM2JO?=
- =?utf-8?B?TEhjalJzVTM3eUhTWnExeUtEc09Ja1I2am43T1d1K0FFRUJqZU5vWlBtZGhB?=
- =?utf-8?B?T09xVXNIRjlRQUwzQ0hYNEtGTGw5YndLWmFWR2JBa3lzRksxTVRsd2xWZDZQ?=
- =?utf-8?B?d0duMVQ4eWtQTzdhOTJtdzBMWVdINkFNWXZYclJvd0FnOVJhZSsvcWZkcTg0?=
- =?utf-8?B?cWhZTjMzb2tKaG9YVXdNVWRGNU43VTQ4Mm04bUdVWHJob3prZk01cWp3RXN1?=
- =?utf-8?B?SmtoNVBjdG84bGwzWkh6T1dLbHRucTZmSUkzVGYwWTRLKzBtL1dOd1AvaGlo?=
- =?utf-8?B?cDlVVDBabnlrRmZRMWQ2V0NrM3VsQnBDQ1dCNnFDUEt5Zm5UeHJtNmhhOFBE?=
- =?utf-8?B?MVhRTzdZRnd4UmIxSGNSUjdSWHJYRDJ5eUoxMStJMTd3NGM1dUtySjh4VitG?=
- =?utf-8?B?L3JLME1qa2pRc0QvYUZRZ3QvNjl1eUd6WnplZ3pXcXgyZFlkd2VzaWwvcEdm?=
- =?utf-8?B?OXcvVlZXMlZnRU5peHNKUWdiVi9uaTR0eHExeWZ4OW5xRUhaMVNCaGw5cWlY?=
- =?utf-8?B?MlJPOEMxQmc3Z3BvY3Q1QVhyUWlMTEhtVGNMSFRCb2YvYUkwV1J6S3FzNFAz?=
- =?utf-8?B?MU1mZXl1c1VTampZc3J4UkNCRWVwV1RmL0NmR1JCRDlwY21zNjZHa1IrVVQ1?=
- =?utf-8?B?Y2QwMEl1dWREUUI0MXkrUkpEc0hJS285V2tWdllmT1oyN01MV0RIRTkyNEgw?=
- =?utf-8?B?bEp6T1dzb05URnZJTWkvaDNobzZOS0pTay9CbWVVNGpoMlJPNTF5TnljRFBk?=
- =?utf-8?B?N282bngxWEJwNUtJRTlQWU0rdENMTXIra2M1RHcrU2FuWEkxWnMwK09ZQzNB?=
- =?utf-8?B?VkZySDM5VC8zSUh6QStGYjNwbXpNMWo3SU1PcER3YzQwY0d5ZVFQeDBTOWho?=
- =?utf-8?B?cEhrMWhwTHVwQ0R1QUtqWFlrVVZjTHcwQjdoQ2dKeExza3BQVXdRdjVTUVdt?=
- =?utf-8?B?cHdqd3BMcTJZd25GUldWL1k2eG56UHdDanVGdnJDWmU2TElYaUtpR05kNWtq?=
- =?utf-8?B?L3g5SEIvKzg5R0ZOdkUvVWZucit0c0piUENGMjRsRDNibkJCN0VFekFWaFBs?=
- =?utf-8?B?OVZPakVkR3JOZWUwZjF6Uk1jbXp3MHhPMVdRYUFPcGpSYW01V2E0S3dXSGxz?=
- =?utf-8?B?ZU9jSk93Y2xZNmJKTSs0clYvVnNSdHpoT1U3TmdUT0NBY0Zjd0VUN0RiaHJz?=
- =?utf-8?B?Q2FIKy9KUUZxK09WckwrOXhaaTdWZkVZempxMkRYVTVPMnNWRkdvVVFSU2Y1?=
- =?utf-8?B?ekpCSWVFR3dwbnhSeUplZXJaejlKdjFKWGZvblJwSVlTV1VBa1hKWkY3ZGpY?=
- =?utf-8?B?bkJ4VUFXQ1k3ajh2eDA5a3d2ZVZqZWtQM3FLREVTaFkxbXprdnlSd3BMYnJl?=
- =?utf-8?B?ajVzYjBHNWlXdi9sQWFIczR1dm1YTXdEU2JtTER3Vzd0TE11dG5pejZmbnpT?=
- =?utf-8?B?SjJiSXlJWXM2ek9EVjh3Mk12aW9XRnFQT3NEZFdSN3VlRGRDanZkeVg1Z3c0?=
- =?utf-8?B?b2xWdkF5RlNienZOVEhtNnZaNERnZ2VGYkRKZm5zakM3ZU9kR2plYzZ1YUE4?=
- =?utf-8?Q?Cfsu3JGpxLZxD+9IAg?=
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PaLXvN1b
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC21B1F000D0;
+	Mon, 23 Nov 2026 15:35:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795448107;
+	bh=2WTUAIe9/FWuJxjNSbePYXA4Ybis92IvBPtCl2Olzak=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=PaLXvN1baVDqlSR/1pfAUv7HDrVbjk1nEg7WL+oRUMqypGPkPIzMiIomok+P717GB
+	 GUb4J4J6A1A1mYbl6usEItkLJBPzEapq4chPn/gNpVt0wjD07E1Y9DOeb1IcK1fQaB
+	 I8La+AkQICMQ/eMamfK3uRqrVmnDBKjfWiYmnbHcOM3nlFEJIcUjExjBvJsc4+2tUS
+	 Eg4dPowa0tTaiu4hSD6N3cuO28WxvaHFsgPK34wQbeGRZWcSBoxOTjgsiMFtK8Thtc
+	 13Zko3QrqYIDHCH2Wihh6TJ6539jzMwfi/1mvgYjilTlb+Bi/+/12aYJIWYEvrrQrt
+	 5zzcttsqY3xCw==
+Subject: Re: [PATCH net v4] net/rds: defer CM id destruction to a workqueue
+From: netdev-bot+sashiko@kernel.org
+To: chenaibing@cmss.chinamobile.com
+Cc: achender@kernel.org, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, netdev@vger.kernel.org,
+ linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
+ linux-kernel@vger.kernel.org
+Date: Mon, 23 Nov 2026 15:35:06 +0000
+Message-ID: <179544810638.3135.8411229490217638790@kernel.org>
+In-Reply-To: <20261122145148.1250-1-chenaibing@cmss.chinamobile.com>
+References: <20261122145148.1250-1-chenaibing@cmss.chinamobile.com>
+X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -163,24 +63,236 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: PH7PR12MB6956.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9bb87059-7be7-48ae-d217-08df4976bea4
-X-MS-Exchange-CrossTenant-originalarrivaltime: 23 Nov 2026 15:30:46.2435
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: CTbJmcR9ekUwa6IGaq5HnQfzDUdlkQBFDqr4QbhNCGYRMowBpmp9K7FBtnaP67ay
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB8539
 
-PiBbU2V2ZXJpdHk6IE1lZGl1bV0NCj4gSW4gU01GUy9ITUZTIG1vZGUsIGNhbiBlc3dfbWF4X3Zw
-b3J0cygpIHJldHVybiBsZXNzIHRoYW4gdGhlIG9sZCBzaXppbmc/DQoNCk5vLCBpbiBzd2l0Y2hk
-ZXYgbW9kZSwgdnBvcnQgbWF0Y2ggbWV0YWRhdGEgZW5hYmxlZCBpcyB0aGUgb25seQ0KY29uZmln
-dXJhdGlvbiB3ZSBzdXBwb3J0IChpdCBpcyBhbHNvIHRoZSBkZWZhdWx0KS4gV2l0aCBtZXRhZGF0
-YQ0KZW5hYmxlZCwgZXN3X29mZmxvYWRzX21ldGFkYXRhX2luaXQoKSBmYWlscyB3aXRoIC1FTk9T
-UEMgYmVmb3JlIHRoZSBGREINCmlzIGNyZWF0ZWQgaWYgdGhlcmUgYXJlIG1vcmUgdnBvcnRzIHRo
-YW4gTUxYNV9FU1dfTUFYX1ZQT1JUX0lELCBzbyB0aGUNCm5ldyBzaXppbmcgaXMgbmV2ZXIgc21h
-bGxlciB0aGFuIHRoZSBvbGQgb25lLiBXZSBpbnRlbnRpb25hbGx5IGRvIG5vdA0Kc3VwcG9ydCBz
-d2l0Y2hkZXYgd2l0aCBtZXRhZGF0YSBkaXNhYmxlZC4NCg==
+Thank you for your contribution! Sashiko AI review found 3 potential
+issue(s) to consider.
+
+Critical: 0 · High: 1 · Medium: 2 · Low: 0
+
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [High] RDS_IB_MAX_PENDING_PROBES (net/rds/ib.c:399-401) is one global
+  budget of 64 for the whole system, with no per-user or per-socket…
+- [Medium] The new temporary errors in rds_ib_laddr_check_cm()
+  (net/rds/ib.c) never reach userspace; callers read them as "this…
+- [Medium] The commit message calls the issue a real deadlock ("falling
+  back to the synchronous destroy, which would bring the deadlock back…
+
+--
+
+net/rds: defer CM id destruction to a workqueue
+
+This patch moves rdma_destroy_id() for the probe cm_id created in
+rds_ib_laddr_check_cm() onto rds_wq, so it no longer runs under
+rds_trans_sem. A global atomic counter caps pending probe ids at
+RDS_IB_MAX_PENDING_PROBES, and the address check returns -EAGAIN above
+that cap. rds_ib_exit() flushes rds_wq before the module goes away.
+
+Closes: https://syzkaller.appspot.com/bug?extid=ccdb5058c3df2d94811c
+
+> diff --git a/net/rds/ib.c b/net/rds/ib.c
+> index 4ea9838d090c3..c4c10e3eabced 100644
+> --- a/net/rds/ib.c
+> +++ b/net/rds/ib.c
+> @@ -391,6 +391,30 @@ static void rds6_ib_ic_info(struct socket *sock, unsigned int len,
+>  }
+>  #endif
+>  
+> +/*
+> + * Maximum number of probe cm_ids whose destruction is still pending on
+> + * rds_wq.  Each of them pins a cma_dev reference and an RDMA_PS_TCP port,
+> + * so the number of in-flight probes has to be bounded.
+> + */
+> +#define RDS_IB_MAX_PENDING_PROBES	64
+> +
+> +static atomic_t rds_ib_pending_probes = ATOMIC_INIT(0);
+
+[Severity: High]
+Is one system-wide budget of 64 safe here? Nothing splits it per user or
+per socket. The only place that releases a slot is
+rds_ib_destroy_id_work(), which runs on rds_wq. That is an ordered
+single-threaded workqueue, and other RDS work shares it:
+
+net/rds/threads.c:rds_threads_init() {
+	rds_wq = create_singlethread_workqueue("krdsd");
+	...
+}
+
+The commit message only considers a bind() loop. However,
+rds_ib_laddr_check_cm() is also reached for every new connection:
+
+__rds_conn_create()
+  rds_trans_get_preferred(net, faddr, conn->c_dev_if)
+    rds_ib_laddr_check()
+      rds_ib_laddr_check_cm()
+
+That includes incoming connect requests. There,
+rds_ib_cm_handle_connect() calls rds_conn_create(&init_net, daddr6,
+saddr6, ...), and saddr6 comes from the peer's CM private data.
+
+rds_ib_laddr_check() skips the probe only for v4-mapped addresses that
+rds_ib_get_device() finds. Remote peers, IPv6 addresses and uncached IPv4
+addresses each hold a slot until the worker runs.
+
+Can one unprivileged user, or a burst of connection setup, keep
+rds_ib_pending_probes at 64 and make every other user's IB address check
+fail? Their bind() would then be moved to RDS/TCP or fail, as described
+below for the -EAGAIN return. Before this patch, one user could not
+affect another user's IB bind.
+
+There also seems to be a lasting effect on connections. Take a new
+connection whose faddr is local but misses the fast path. If the probe
+returns -EAGAIN and rds_tcp is not loaded, loop_trans is NULL and
+c_loopback stays 0:
+
+net/rds/connection.c:__rds_conn_create() {
+	...
+	loop_trans = rds_trans_get_preferred(net, faddr, conn->c_dev_if);
+	if (loop_trans) {
+		rds_trans_put(loop_trans);
+		conn->c_loopback = 1;
+	...
+}
+
+Connections are not re-evaluated later, so the looped-back IB passive
+connection split is skipped:
+
+	if (conn &&
+	    conn->c_loopback &&
+	    conn->c_trans != &rds_loop_transport &&
+	    ipv6_addr_equal(laddr, faddr) &&
+	    !is_outgoing) {
+
+Wouldn't the incoming self-connect then find the outgoing conn itself,
+and rds_ib_cm_handle_connect() reject it as a raced connect?
+
+The commit message mentions neither the connection creation path nor the
+shared budget.
+
+[ ... ]
+
+> @@ -411,14 +435,39 @@ static int rds_ib_laddr_check_cm(struct net *net, const struct in6_addr *addr,
+
+[ ... ]
+
+>  	isv4 = ipv6_addr_v4mapped(addr);
+> +
+> +	/*
+> +	 * The id is destroyed from rds_wq: rds_trans_get_preferred() calls this
+> +	 * function with rds_trans_sem held for reading, and rdma_destroy_id()
+> +	 * takes handler_mutex, which the CM callback path acquires before
+> +	 * taking rds_trans_sem.  Reserve a pending-probe slot first, so that a
+> +	 * loop of bind() calls cannot pile up ids that pin a cma_dev reference
+> +	 * and an RDMA_PS_TCP port.
+> +	 */
+
+[Severity: Medium]
+The commit message, which is tagged Cc: stable, says:
+
+    rather than falling back to the synchronous destroy, which would bring
+    the deadlock back under memory pressure.
+
+Can that deadlock actually happen? The handler_mutex that
+rdma_destroy_id() takes here belongs to the private probe cm_id created a
+few lines below. That id has a NULL context, is only bound, is never
+listened on, and is never shared.
+
+On the CM callback path in the commit message, the code holds the
+listener's handler_mutex and the new conn_id's handler_mutex, not the
+probe's:
+
+cma_ib_req_handler()
+  rds_rdma_cm_event_handler()
+    rds_ib_cm_handle_connect()
+      rds_conn_create()
+        rds_trans_get_preferred()
+          down_read(&rds_trans_sem)
+
+Those are different instances of the same lock class.
+
+For the probe id, the events that could hold its handler_mutex reach
+rds_rdma_cm_event_handler_cmn() with conn == NULL, and nothing is done:
+
+	case RDMA_CM_EVENT_DEVICE_REMOVAL:
+	case RDMA_CM_EVENT_ADDR_CHANGE:
+		if (conn)
+			rds_conn_drop(conn);
+		break;
+
+That path never waits for rds_trans_sem. Both sides also take
+rds_trans_sem only for read.
+
+This looks like a class-level lockdep report rather than an
+instance-level deadlock. It is still worth silencing, but could the
+commit message and this comment describe it that way?
+
+If no real deadlock exists, is the stable backport justified? This patch
+also brings in the global probe cap and the transport fallback described
+here.
+
+> +	if (atomic_inc_return(&rds_ib_pending_probes) >
+> +	    RDS_IB_MAX_PENDING_PROBES) {
+> +		atomic_dec(&rds_ib_pending_probes);
+> +		return -EAGAIN;
+> +	}
+> +
+> +	w = kzalloc_obj(*w, GFP_KERNEL);
+> +	if (!w) {
+> +		atomic_dec(&rds_ib_pending_probes);
+> +		return -ENOMEM;
+> +	}
+
+[Severity: Medium]
+Does the -EAGAIN (or -ENOMEM) ever reach userspace?
+rds_trans_get_preferred() treats any non-zero laddr_check() result as
+"not this transport" and moves on to the next slot:
+
+net/rds/transport.c:rds_trans_get_preferred() {
+	...
+	for (i = 0; i < RDS_TRANS_COUNT; i++) {
+		trans = transports[i];
+
+		if (trans && (trans->laddr_check(net, addr, scope_id) == 0) &&
+		    (!trans->t_owner || try_module_get(trans->t_owner))) {
+	...
+}
+
+RDS_TRANS_TCP comes after RDS_TRANS_IB. rds_tcp_laddr_check() returns 0
+for any RTN_LOCAL IPv4 address and for any IPv6 address that passes
+ipv6_chk_addr(), and IPoIB addresses pass both checks.
+
+While the cap is hit, would the following happen?
+
+- bind() on an IB address succeeds but selects RDS/TCP. rds_bind() then
+  stores it in rs->rs_transport for the life of the socket, so RDMA cmsgs
+  and MR registration fail later.
+
+- If rds_tcp is not loaded, bind() fails with -EADDRNOTAVAIL and logs
+  "load rds_tcp or rds_rdma?".
+
+- With SO_RDS_TRANSPORT set to IB, bind() fails with -ENOPROTOOPT:
+
+	if (rs->rs_transport) {
+		trans = rs->rs_transport;
+		if (!trans->laddr_check ||
+		    trans->laddr_check(sock_net(sock->sk),
+				       binding_addr, scope_id) != 0) {
+			ret = -ENOPROTOOPT;
+
+So the cap doesn't seem to give the retryable back-pressure that the
+comment and commit message describe. rdma_create_id() could already fail
+with -ENOMEM and take the same fallback, but that was rare. Any user can
+now hit the cap on purpose.
+
+Is it intended that hitting the cap silently moves the socket to RDS/TCP?
+If so, could the commit message mention the transport switch and the
+changed errno?
+
+[ ... ]
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261122145148.1250-1-chenaibing%40cmss.chinamobile.com
