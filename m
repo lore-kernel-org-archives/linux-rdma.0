@@ -1,95 +1,96 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.43
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.51
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1795444648;
-	b=oyeKmFpI9rP24Jbzph9wEupEel/pQd48qCRmLApuWtvMkBfmJ6ECOVnn8/ieAVJf96cj
-	 lraK4m3qoxYGNBCqxsyXLaP8fwgGq3e0tTx8DRVd2W6pH21z/gNhIZt658ytCbqs8r2ro
-	 kIViyz2RjfOSGQvqDvybgNGYxgciXMLBXiTFKkOh8iq8JHhjVp6HhvVa9J0mAIvHu0giY
-	 3sqclmk5okL72mEYZp/F4VX3JgQ5092UYPBJICRMLr+BIW6fxf9E/dbJUmKx2t1Bmro13
-	 696xhxqdYDgNgNyF+lAPBl8XANzU9oTzkOHSpXVWoKidD8id96vsYHR0E8nAAyVuXcA==
+	b=L/iYdda79TkZI0u8daH6hj9Zd7PmLXtKXRfQFcF/5fWsyMhYzm8MVtABQ8duFMbR2oKA
+	 i+bd2y21kzmFMLFV99vaw13YUc14y8FYpebefq7ekp1+XzbPhr8riS7bHlVFuG7OFC6wM
+	 hRrUluzemskWQg4ZbZuvf8vBCSN2WytF466eTownpxSMbZc79jsw4/UTrjjp2JX8OceDh
+	 ArU5915FDAw8BnW8EscpYLYU03+tHB53H2LrcL1u5EFd5u6EaHrzRWvGlxHqhW6B4Hkkn
+	 u9pjSonRblGcrX6qED5Ukc7tTyqvsSLhE4HGShENIra5+KPZLhd/rcjXkAu+9f2Nq3w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1795444648;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=HWeuMGR6wrGVpKqnn1AiZ9rjvdrQbQeBx/a490ofF9c=;
-	b=cjFxmAqZlSNIKSEuJeRPAbzjwIglOZXguKGXNWD+oguqJBjfbEvuywr/qFJpdOPyDnr2
-	 ckI4v49RMhuzQVSQPryCUJ3VwWZQBR2c652kpFM5btyU2xXbRV90p/HXqwTeIRuZ8hFJO
-	 He+kYihKMoqDCHvHhc37IHCjlruzVH33/q8u2XtEJC19+DrWOOgWqYA6ad2xkiHK07A43
-	 RQxU8aH/TENKvWaxbC2kSYKhETksjqA1QHE6/RMw7CHUEsoPLw9imeaFqRoX9oCHHCk6f
-	 mTZKfmxeAFbhRTXKo9mUkQiop0Zq3eI6PN9dzd6HI6tmzOP9CohVSNg801wOEvExtjw==
+	 Content-Type:Content-Transfer-Encoding;
+	bh=NRvsxGZ+NUErwOy3fRsv6NSczA2Tq3p7OdShy/hIZ9M=;
+	b=Xu+LuSe/1+JOjiVkuN/VrYoL9NhjDqLeY9fH/UCESFQV8aWIULWdo9Tc74vL6SRbcJ8j
+	 tpTHuOa2BUQvbYHBsW1O8q8xiiftVeG1uwD7JmHJRgQVZs6urCnxX1SixmROLN55Xz/81
+	 wqRXnTMNbGZHTWQDoQBmzSDQ8GmLHwmNpdRrZoNnHIl1rfnF3ZsaijHFGRGb3kfZD46zs
+	 z64IxUfO6jDM/xoEi2Y4YXwjOlG8u8apK34q5aBJWAOFzSMjtUH7agj0St7Fj3xqR8KQZ
+	 MLBx15mtUE4KxLRZHFiZiFh4o44NsqYhZz6yFhFH70H7GzcuopUjWNASvUeFfySh0oQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=ionos.com;
 	spf=pass smtp.mailfrom=ionos.com;
-	dkim=pass header.d=ionos.com header.i=@ionos.com header.a=rsa-sha256 header.s=google header.b=UaF9JZAf;
-	arc=none smtp.remote-ip=209.85.128.43
-Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
+	dkim=pass header.d=ionos.com header.i=@ionos.com header.a=rsa-sha256 header.s=google header.b=K+gYTzFP;
+	arc=none smtp.remote-ip=209.85.128.51
+Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C664A606A339
-	for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 14:37:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C664A606A339
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 698C2606A333
+	for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 14:37:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 698C2606A333
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ionos.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.a=rsa-sha256 header.s=google header.b=UaF9JZAf
-Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-4a207b02a2cso24084225e9.1
-        for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 06:37:27 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.a=rsa-sha256 header.s=google header.b=K+gYTzFP
+Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-4bb5b8ef642so28243045e9.1
+        for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 06:37:28 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google; t=1795444646; x=1796049446; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=HWeuMGR6wrGVpKqnn1AiZ9rjvdrQbQeBx/a490ofF9c=;
-        b=UaF9JZAfalh7iwfoAfTdvv099j51WmVhpInXaXpvHAxx0uKRdKmgG2GRhxNwRcpDGQ
-         YmeQ+vA4+b7eD5f+hifxBtWUEt5xOM8Q+USusEU+5pjTea4lZlD2qCAq3PnEoVNbcxd4
-         xl8jIryvMVVD4pewQJ4qGQwSxCqEmNk6YEb9pz1JuV4+DWODmPoihdLw9hUYtf0Ng1Pl
-         PETRjq/3CoiWqZxD4wRSpoD4UUEr9IrSCmHPEDRHRwAUm1l8TbAzdNzj14T0d/vdVpCH
-         uqODhAJTv0wTuDOdwqzoZ9y4cA13eff05PQskVBaq1M1DA+iDAr56KR1kVyUKEsQLgLR
-         h4zg==
+        d=ionos.com; s=google; t=1795444647; x=1796049447; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=NRvsxGZ+NUErwOy3fRsv6NSczA2Tq3p7OdShy/hIZ9M=;
+        b=K+gYTzFP5i/Y6KJdbOr+iUR22pG2Imk47B3klhu1Xpjsl6AMcb41I+mLldmZPi3y6D
+         t0VqZ1xU5vseT4KuTefKzjQwNObjlTEfRpofMcnxeEvrhNyEMlL5Z/bcN6WafbbPU/zy
+         ACoYwnIb1QdWHiZADRmjKKxDQHSGUFLwM2rosutYUKCuSyovEV604hawJwF3DkXxW+67
+         7ra/b6fGliF8zQngv6aJw/bgKrauMEiD42tGMfiLbLfiHLFxepanZFj+NSxZaqMF/lTh
+         QEmyrSglRm584xwRTdcdj4YZT26U+xlL0Y8o/26p/jfCSoeWgP6p2RtAn0sBx+hcLKef
+         VWbw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795444646; x=1796049446;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=HWeuMGR6wrGVpKqnn1AiZ9rjvdrQbQeBx/a490ofF9c=;
-        b=BQjJS99zzyB4WaZ1Kx8ZCk2W2Ep2DHpnen1XrPOTOzIZuBY8WfZ7FQqw89uZFDyqj3
-         3XWCiRqjhzHdDUEtmX3IkmEeha9Oqs9+AidczcS+BCbNn60lmFtT+YvTP3+rgfXw/BuY
-         ZDXp26XtXMdPgNl2XGciKVrW53jAmQPVmBU42/eZgSCFM6AI94fE9v+NuQJ+VymIW9Ks
-         vI6N6iSDbSiXsc9hkQaPxCc7rB160iIRPstwg8WsXd1vHZ2+Le6BGgxvnbB7dTZ3CCXT
-         XsuNJkvDeHrYmaPWMRzHxEjAt7Lp/eMt5Kq3Mo9Hr4TWJ2PdZJATB7nq+R7iEWxaIulq
-         J6cA==
-X-Gm-Message-State: APuU4Z9AVaz+etuUJM5pJLLbTs/odEt8fq0nA5Vk8iCnawibpWzmSfj9
-	7enuzTI8ZzFpRCvKBf7qPhjxEYj50U50fpXDRrF0rrkpDskQv0dfHNMaT0c1zNYoTXN3ISwH1MU
-	BAADvNfU=
-X-Gm-Gg: AZFdTZeWVw0ne17/8R8xjDeVPIgvTm5XE/+Bu/uR67ySImiEHh44FLhLmNKadAFwWKw
-	Y6Nfsq7JXd/WgOHMU92NVmcWHol3Cjgo+w/kpUZjXLTI3D238GJTIWKNTfeVR/AxKRvBVLYsdDm
-	voZywkgeX64KcNArh/I9KqA39KwPjh1mQr7eyYl5OwacWATPD8n5J/BUci6jWO595n3HadbdEks
-	WftZidERhACBgDLE9/6FydjaUwh8Ie0iQq0xSCvqyThenHX1gbR23PdmTY8C7P1PQb8vwbe9Xmc
-	slLhqgWJ8MqNBp4JA4796Mn55t5xknye3/DYOdQGkH4OoK1suHoy6tLPUIVUV53bDEXGIUl5d4u
-	NW5RYmW/AjprhqpsdvVJMLE8kYAVtggVXRUbfypnXvk+awqU/o3uVBlCJhRz4b9SFMFBV/VHzZv
-	sKVDQhpn+FFtU0DFelicso2QSb8mPkyjR3Sw4r5zsEtIAXaDrpTzV1ielB8DJgUopp2LOK7DvoZ
-	IEMbWCBkZnCYRUTEdQ6RS8GZta4eR953VtjfkAy08qFZte137CZ4151kscUrgNyqRmJjqwFBuL9
-	6VDkHRirbID2g1zdBV6VOslP+JQH8jmpi9ZYDYufGmnJGsozJIoR0EUTDzH18M53V4q3R1q9Xt7
-	/rM9kU22JZsbyed4yEnT1vJc6UDOyygiAN7n3EATHSpl5DIAcN6nHqe/ATsKEWVtTCFmjUKH83O
-	TkznsAWQjbPVFoRBVic78dPYTblT4Lim12snQ=
-X-Received: by 2002:a05:600c:4f4c:b0:4bb:8503:69f4 with SMTP id 5b1f17b1804b1-4bb888097a2mr297665295e9.5.1795444646126;
+        d=1e100.net; s=20260707; t=1795444647; x=1796049447;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=NRvsxGZ+NUErwOy3fRsv6NSczA2Tq3p7OdShy/hIZ9M=;
+        b=Q8aLviRgc99S43254319TV/vHLsiAUwSdi/cGiZYLBj9tHmLZ3Z0WSXwyHMalwKuYG
+         P0De7LN8+3yeq0LbDwaeWWTE5IpLfSYhgvZhu5CB/t4OW3GickEg7fJ82yTxFNeMaU1R
+         uYZ3to/EedMHZ5597LB6ukeDhfaz/rkQtJZeS2um4jUevV8BzSfqpj5KynDjatoilCzF
+         ZiFnr7rboMOrgxB7UQox/8F1+pFWWTbD25dFXMeiuHvgA0zf+PtZxVcqz4LjkxBxPe6t
+         CG1Lv1RtX7uoHzXKglr0U1rjAcjmtviGKe7MTCmzdjZqtX5d3d2V+yzghSXMte91kF6Y
+         4gAA==
+X-Gm-Message-State: APuU4Z/nCcgxUP8ZcHa0bQVRY4LOL3nl4Yvj5cHtLovF26UjLMkFzxSO
+	hU/paagyMVOWNN7rO/svozJJNrfZ3AH2k6TSvVr+cjs0dN3CuDtP6mMIdkZ8aC5Oh3NNdJGAV5z
+	UcSAcPho=
+X-Gm-Gg: AZFdTZcx9jY+gE5SSqmvTspQTwvYUZJ21hyYRsI415iFNSBjymfvJGfc3pTJPi7XwOs
+	O0bLjTQnfz30USb+gBRtgykMFZqA01elvF2BRIDF4K2r10tDcQHQn7r4KkgDtGaa/GVjlcFSuP8
+	g9xYalpiKDR/gExUogRlSzPN6BmzeB1iR7JKJIBM3aVBTulTkPRiuM/SyxBss4E5nt1jZ9ERA0Y
+	KVPjtoKeZ9/ud7Q9hDgDwNy9QcmynQm1yyVqOc6cqIZo8HgAPm9toryzZFnE6RVOFCG/mJJ4o/N
+	03dQmYtt55fvyVuAJEVM0mLkSDzwerkmzk5vmbriB4NzTX6PClzchcuZAyua25Jko0zoWiUsFSD
+	iCaXbkMCZ1tXKrtClrZ6c+lz/fp3CzOIFXeSAaGXBE2yfPmdergX4iDiqc/fTIovCnBpXnZLoWh
+	/8KPlyxzQWVcGk+5iOx4AbvdHBh5L8eKXAyTjgTF/YQgRiELcbmTm9SV6BpSFtcLeFs6Ut1nhdd
+	X+dlx6JVFIteFd5WykQ7ZhkOLi1m8jq8suR88VjNK6C2Km5aE1s2XL6QnF5GUtbEnx4Mo8rDscP
+	PWlOXOntdOnava/43Aa8DwLthrBhNESNH8o/nUq/K2iii4l4tGrzle0NzPfGmBfHWCbMyM4pQnl
+	HhMldEDg1irA2Ihouv8dGkiZXW4bfRyksYYy/DUG0iAIpWaoj687D06jI5Ubh8RUogpiV/hBXIe
+	PPV1ZbAM/oLLDUUKxi/4lQiJllE8iXqc1Zpkw=
+X-Received: by 2002:a05:600c:4ecd:b0:4a3:12fb:1ef1 with SMTP id 5b1f17b1804b1-4bb8881e81cmr252914825e9.29.1795444646724;
         Mon, 23 Nov 2026 06:37:26 -0800 (PST)
 Received: from lb03189.fkb.profitbricks.net ([212.227.34.98])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb906d6a13sm172562325e9.3.2026.11.23.06.37.25
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb906d6a13sm172562325e9.3.2026.11.23.06.37.26
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 23 Nov 2026 06:37:25 -0800 (PST)
+        Mon, 23 Nov 2026 06:37:26 -0800 (PST)
 From: Md Haris Iqbal <haris.iqbal@ionos.com>
 To: linux-rdma@vger.kernel.org,
 	Jason Gunthorpe <jgg@ziepe.ca>,
 	Leon Romanovsky <leon@kernel.org>
-Cc: Danil Kipnis <danil.kipnis1@ionos.com>,
-	Md Haris Iqbal <haris.iqbal@ionos.com>,
-	Jack Wang <jinpu.wang@ionos.com>
-Subject: [PATCH 7/9] RDMA/rtrs-clt: Back off the reconnect delay exponentially
-Date: Mon, 23 Nov 2026 15:37:17 +0100
-Message-ID: <20261123143719.938876-8-haris.iqbal@ionos.com>
+Cc: =?UTF-8?q?Benjamin=20St=C3=BCrz?= <benjamin.stuerz@ionos.com>,
+	Jack Wang <jinpu.wang@ionos.com>,
+	Md Haris Iqbal <haris.iqbal@ionos.com>
+Subject: [PATCH 8/9] RDMA/rtrs-srv: Snapshot the READ request header instead of reusing it
+Date: Mon, 23 Nov 2026 15:37:18 +0100
+Message-ID: <20261123143719.938876-9-haris.iqbal@ionos.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261123143719.938876-1-haris.iqbal@ionos.com>
 References: <20261123143719.938876-1-haris.iqbal@ionos.com>
@@ -102,93 +103,150 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Danil Kipnis <danil.kipnis1@ionos.com>
+From: Benjamin Stürz <benjamin.stuerz@ionos.com>
 
-A path that loses its link waits out the full, flat reconnect_delay_sec
-(30s on rnbd, + 0-8s jitter) before its first retry, and every retry
-after that, no matter how quickly the far end actually comes back.
-Nothing about that delay depends on how the path went down:
-rtrs_clt_err_recovery_work() runs the same way whether the trigger was a
-CM disconnect, a heartbeat timeout, or a port error, so a transient blip
-pays the same price as a genuinely dead fabric.
+process_read() validates the READ request header and then keeps a
+pointer to it in srv->chunks[buf_id]. The client's permits normally keep
+that chunk stable until the server responds, but the server does not
+enforce it: once the client gives up on a request and releases the
+permit, the chunk is reused for an unrelated I/O, while a slow backend
+can leave the original operation in flight on a path the server has not
+yet declared dead.
 
-Start the delay at RTRS_RECONNECT_BACKOFF_INIT_MS (1s) after the first
-failure and double it on each further consecutive failure, capped at the
-configured reconnect_delay_sec, which becomes the steady-state ceiling
-rather than a constant. reconnect_attempts already counts consecutive
-failures since the path last came up and already resets to 0 in
-rtrs_clt_path_up() on success, so it doubles as the backoff step with no
-new per-path state. The existing anti-herd jitter (RTRS_RECONNECT_SEED)
-is kept as-is on top of every step. RTRS_RECONNECT_BACKOFF_MAX_SHIFT (8)
-only bounds the shift below reconnect_delay_sec's u8 range (max 255s);
-it is a safety margin, not a behavior knob.
+rdma_write_sg(), send_io_resp_imm() and rtrs_srv_resp_rdma() re-read
+sg_cnt, the invalidate flag and the descriptor from there at completion
+time, so they act on whatever now lives at that offset. The RDMA write
+can then go to another request's remote address with its length and
+rkey, or the response can invalidate the wrong rkey.
 
-Signed-off-by: Danil Kipnis <danil.kipnis1@ionos.com>
-Reviewed-by: Md Haris Iqbal <haris.iqbal@ionos.com>
-Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
+Snapshot sg_cnt, the invalidate flag and the descriptor into
+rtrs_srv_op when the request arrives, and drop rd_msg. The WRITE path
+reads none of them, so nothing needs clearing there.
+
+Fixes: 9cb837480424 ("RDMA/rtrs: server: main functionality")
+Signed-off-by: Benjamin Stürz <benjamin.stuerz@ionos.com>
+Reviewed-by: Jack Wang <jinpu.wang@ionos.com>
 Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 35 ++++++++++++++++++++++++--
- 1 file changed, 33 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c | 33 ++++++++++++++------------
+ drivers/infiniband/ulp/rtrs/rtrs-srv.h | 13 +++++++++-
+ 2 files changed, 30 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index 54d72fa52cb1..7930039dcd32 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -34,6 +34,26 @@
-  */
- #define RTRS_RECONNECT_SEED 8000
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+index 7a47b90e8539..c1c76ec65d0f 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+@@ -210,8 +210,8 @@ static int rdma_write_sg(struct rtrs_srv_op *id)
+ 	struct ib_sge *plist;
+ 	struct ib_sge list;
  
-+/*
-+ * Delay before the first reconnect attempt after a failure, doubled on each
-+ * further consecutive failure and capped at reconnect_delay_sec. Lets a path
-+ * that recovers quickly (a transient CM error, a brief port flap) start
-+ * retrying off this short initial delay instead of the full configured
-+ * delay, while a path facing a genuinely dead fabric still settles at the
-+ * same steady state as before. RTRS_RECONNECT_SEED jitter is added on top
-+ * of every attempt as before, so the actual first retry lands anywhere in
-+ * [RTRS_RECONNECT_BACKOFF_INIT_MS, RTRS_RECONNECT_BACKOFF_INIT_MS +
-+ * RTRS_RECONNECT_SEED).
-+ */
-+/* Matches RTRS_RECONNECT_BACKOFF's value by coincidence, not by shared purpose. */
-+#define RTRS_RECONNECT_BACKOFF_INIT_MS 1000
-+/*
-+ * Shifting RTRS_RECONNECT_BACKOFF_INIT_MS by more than this always exceeds
-+ * reconnect_delay_sec's range (u8, so at most 255000 ms); capping the shift
-+ * avoids relying on shift-by-large-amount being well defined.
-+ */
-+#define RTRS_RECONNECT_BACKOFF_MAX_SHIFT 8
-+
- #define FIRST_CONN 0x01
- /* limit to 128 * 4k = 512k max IO */
- #define RTRS_MAX_SEGMENTS          128
-@@ -1537,11 +1557,22 @@ static void rtrs_clt_err_recovery_work(struct work_struct *work)
- {
- 	struct rtrs_clt_path *clt_path;
- 	struct rtrs_clt_sess *clt;
--	int delay_ms;
-+	unsigned int shift;
-+	u32 delay_ms;
+-	sg_cnt = le16_to_cpu(id->rd_msg->sg_cnt);
+-	need_inval = le16_to_cpu(id->rd_msg->flags) & RTRS_MSG_NEED_INVAL_F;
++	sg_cnt = id->sg_cnt;
++	need_inval = id->need_inval;
+ 	if (sg_cnt != 1)
+ 		return -EINVAL;
  
- 	clt_path = container_of(work, struct rtrs_clt_path, err_recovery_work);
- 	clt = clt_path->clt;
--	delay_ms = clt->reconnect_delay_sec * 1000;
+@@ -220,7 +220,7 @@ static int rdma_write_sg(struct rtrs_srv_op *id)
+ 	wr		= &id->tx_wr;
+ 	plist		= &id->tx_sg;
+ 	plist->addr	= dma_addr + offset;
+-	plist->length	= le32_to_cpu(id->rd_msg->desc[0].len);
++	plist->length	= le32_to_cpu(id->desc.len);
+ 
+ 	/* WR will fail with length error
+ 	 * if this is 0
+@@ -236,8 +236,8 @@ static int rdma_write_sg(struct rtrs_srv_op *id)
+ 
+ 	wr->wr.sg_list	= plist;
+ 	wr->wr.num_sge	= 1;
+-	wr->remote_addr	= le64_to_cpu(id->rd_msg->desc[0].addr);
+-	wr->rkey	= le32_to_cpu(id->rd_msg->desc[0].key);
++	wr->remote_addr	= le64_to_cpu(id->desc.addr);
++	wr->rkey	= le32_to_cpu(id->desc.key);
+ 
+ 	wr->wr.opcode = IB_WR_RDMA_WRITE;
+ 	wr->wr.wr_cqe   = &io_comp_cqe;
+@@ -347,15 +347,10 @@ static int send_io_resp_imm(struct rtrs_srv_con *con, struct rtrs_srv_op *id,
+ 	int err;
+ 
+ 	if (id->dir == READ) {
+-		struct rtrs_msg_rdma_read *rd_msg = id->rd_msg;
+-		size_t sg_cnt;
+-
+-		need_inval = le16_to_cpu(rd_msg->flags) &
+-				RTRS_MSG_NEED_INVAL_F;
+-		sg_cnt = le16_to_cpu(rd_msg->sg_cnt);
++		need_inval = id->need_inval;
+ 
+ 		if (need_inval) {
+-			if (sg_cnt) {
++			if (id->sg_cnt) {
+ 				inv_wr.wr_cqe   = &io_comp_cqe;
+ 				inv_wr.sg_list = NULL;
+ 				inv_wr.num_sge = 0;
+@@ -363,7 +358,7 @@ static int send_io_resp_imm(struct rtrs_srv_con *con, struct rtrs_srv_op *id,
+ 				inv_wr.send_flags = 0;
+ 				/* Only one key is actually used */
+ 				inv_wr.ex.invalidate_rkey =
+-					le32_to_cpu(rd_msg->desc[0].key);
++					le32_to_cpu(id->desc.key);
+ 			} else {
+ 				WARN_ON_ONCE(1);
+ 				need_inval = false;
+@@ -512,7 +507,7 @@ bool rtrs_srv_resp_rdma(struct rtrs_srv_op *id, int status)
+ 		return false;
+ 	}
+ 
+-	if (status || id->dir == WRITE || !id->rd_msg->sg_cnt)
++	if (status || id->dir == WRITE || !id->sg_cnt)
+ 		err = send_io_resp_imm(con, id, status);
+ 	else
+ 		err = rdma_write_sg(id);
+@@ -1072,7 +1067,15 @@ static void process_read(struct rtrs_srv_con *con,
+ 	id->con		= con;
+ 	id->dir		= READ;
+ 	id->msg_id	= buf_id;
+-	id->rd_msg	= msg;
 +	/*
-+	 * reconnect_attempts counts consecutive failures since the path last
-+	 * came up (rtrs_clt_path_up() resets it to 0), so it doubles as the
-+	 * backoff step: 0 failures so far -> the initial delay, each further
-+	 * failure doubles it, capped once it reaches the configured steady
-+	 * state delay.
++	 * Take a private copy of everything we still need once the I/O
++	 * completes: by then the chunk is not guaranteed to still hold
++	 * this request's header, see struct rtrs_srv_op.
 +	 */
-+	shift = min_t(unsigned int, clt_path->reconnect_attempts,
-+		      RTRS_RECONNECT_BACKOFF_MAX_SHIFT);
-+	delay_ms = min_t(u32, clt->reconnect_delay_sec * 1000,
-+			 RTRS_RECONNECT_BACKOFF_INIT_MS << shift);
- 	rtrs_clt_stop_and_destroy_conns(clt_path);
- 	queue_delayed_work(rtrs_wq, &clt_path->reconnect_dwork,
- 			   msecs_to_jiffies(delay_ms +
++	id->sg_cnt	= sg_cnt;
++	id->need_inval	= le16_to_cpu(msg->flags) & RTRS_MSG_NEED_INVAL_F;
++	if (sg_cnt)
++		id->desc = msg->desc[0];
+ 	data_len = off - usr_len;
+ 	data = page_address(srv->chunks[buf_id]);
+ 	ret = ctx->ops.rdma_ev(srv->priv, id, data, data_len,
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.h b/drivers/infiniband/ulp/rtrs/rtrs-srv.h
+index 3d36876527f5..bf27e01402d1 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.h
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.h
+@@ -52,7 +52,18 @@ struct rtrs_srv_op {
+ 	struct rtrs_srv_con		*con;
+ 	u32				msg_id;
+ 	u8				dir;
+-	struct rtrs_msg_rdma_read	*rd_msg;
++	/*
++	 * Snapshot of the READ request header, taken when the request is
++	 * received and validated.  The client's permits normally keep the
++	 * chunk stable until we respond, but that is the client's
++	 * bookkeeping and not something we enforce: reconnect and failover
++	 * edge cases can leave the chunk rewritten by a newer request while
++	 * this I/O is still running.  The completion path must use this copy
++	 * and never read srv->chunks[msg_id] back.
++	 */
++	bool				need_inval;
++	u16				sg_cnt;
++	struct rtrs_sg_desc		desc;
+ 	struct ib_rdma_wr		tx_wr;
+ 	struct ib_sge			tx_sg;
+ 	struct list_head		wait_list;
 -- 
 2.43.0
 
