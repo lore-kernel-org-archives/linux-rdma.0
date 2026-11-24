@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795525035;
-	b=Y/avzTzKhrJ1+c9nU/+nStqqLa5F8/IHb7CFpWl2oyUiZ4SFAj+yE1Ztd+T+EmU4DUQf
-	 k9GACWlbIAkDMKWYaKiuQgP473sgtf9FygMTPy9duNHOLd1K74FryqqiaV9TsInbXnJGb
-	 OoTWaj6ZQR/ySdSd7vzCcK8Q6jwgfkMpSk3y6j619Nj8E2cepr/aC0S6EuCg370LW/2B+
-	 o5qjujAAGCP2k3hbQjnU3EwvPqpL7wx4zfq+rKnWtEpNAzflGbRI52SPbWuDZ0v3IJeWA
-	 8Zgm67FUG5HhqGpl8yqrodgymT3+s6LU38RleufHQkUJMGm//8sh6jyI5Rh7S86PyDQ==
+	t=1795525048;
+	b=ZFmqVCI5hyQd1LY6mM9rYdJKEtmLq20urIBVAraSI7qB1mebDXWqD2LVjYFkZfGPRSB+
+	 ngWLyy7WZW0ZvimahwG6JUbHHHWLIAqMIUGQV2XW2PH0ZpkqFwqpvwy5DGE4fMsRd+Tgy
+	 jdA8y91HoT34Vp5O+pJSt+WOSg1rVHUb9LpCa9iknUbsXyhvDAXrSCLuOQ5ZzzHcOpQEh
+	 t6T7eor+JzUnukL7LKF4/OJ8CSLWHoX+RTnVK65fK2nppJddU+Js1cmbhuCPcApxAMmq+
+	 lGMB6KKJTjycCIqj5F5933Y4rHN/Ba/zTxYB8Rwrv71B2GcMaKsOkILicczS0uuvp8g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795525035;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795525048;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=XvBo39oa7bpeKA03NVP1pIOBu5yhj0WFEtus/hl+7BI=;
-	b=z17phJJrSP2XSFtnNvTRe6dYgn+fHplgSoGFNJXetWfDep4VD0gh4q3zbMH+wEl7NzKu
-	 r4kYPmIyW1h6tLLccaMe2zLCo8UsmVaakrPrL0h6Eho0A8Dr7eLqACnyqSZKV+m5PQ8pa
-	 zae8EWl+cgKhe5Am8USdhUBsNcMNGxwlmDvXjroJK8yShOXK3p8w9DxwLborz68bD0mld
-	 3wqtTePnhF017e9MqUMuVuciZbeGFOTI1gVBNCg7R5JNO5b4olXfKPTS3d3f+5k1c6jki
-	 U4bRYvYPdyLpV8Z7HCwV/8ULvlKPCPuMVAYZPZo7sW0FMkOEmP4HgAVfb3QOn/Nbl8g==
+	bh=dNNwywQJbTsZXg/w5rJJ/5JqisBmDi3sRrbjcHK3wFI=;
+	b=d5cFrg/rmRCEIE7UtKOda7XXXK07l9QzFAhzZEepxJhfIKK9TrehRj3zXlXBDTTbMgwL
+	 K4qLxUzx7U0nbMttpGiAmqdyQXhHUVPAgSR7RpYvg4RotdVAwOJPWoec/xc88PLyUfAsY
+	 Tmg8zWfnyzXi/vE6tJFn3NPypLQ0ALTXoRB4njqpLyVYZC7sv2w4XDEHf2wZXkwng6O2O
+	 82oYDHOolqDRjL+cMjrPKYs0SKKnwZOtfCZ/tWfJSHX1stkk3mBI6yqfu2vxzBUs/lXLP
+	 1iwhlxnw1xgDPwOrsEOsZw1hXzsbf5ft0mSwE/ptroOj/Z+pXmDk1RjkNEUQG/vPauQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=b8rrhvUi;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RITCRP94;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE18D606A31E;
-	Tue, 24 Nov 2026 12:57:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D3CF606A31E;
+	Tue, 24 Nov 2026 12:57:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=b8rrhvUi
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 715FE1F000C4;
-	Tue, 24 Nov 2026 12:57:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RITCRP94
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FEA51F000D8;
+	Tue, 24 Nov 2026 12:57:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795525035;
-	bh=XvBo39oa7bpeKA03NVP1pIOBu5yhj0WFEtus/hl+7BI=;
+	s=k20260515; t=1795525047;
+	bh=dNNwywQJbTsZXg/w5rJJ/5JqisBmDi3sRrbjcHK3wFI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=b8rrhvUikY9XPyDwKdD2TMncflHFV8e+wbmxKQ4QphZNP2Jy8JD9raSLZHpmEz87w
-	 pMrrYBdpEQVTqFZGUDWVh4W0hgY67f2uM7pg618hvw1Kd052+gWy5QcJi9w4le2e1j
-	 +EBnfO/uOfUZ+qBakCkEG+YOuc2VXLkWafL2iyWlH8DzCSNBeWBDOqqTuTDR9DAGlD
-	 mhHkY5C5hAEEhv4DBaaUFN4m/Ct6ICFKkc0e352cbU0s9HgZUFuvM7I69GHTmnJ/N7
-	 lQQlJbfexhk+yLLgjzrUklGWTK8HXxqPNMehxV6c8/t3OXjHMACvOgYobee95K/7FB
-	 ep9mRUzvMKasQ==
+	b=RITCRP94VvGO4yKZt0Mc2EcdoIJbRPKkygZKiYEXUC62oX65zzxJGW+g0nf5HePbL
+	 PGeUarp0OhFoqURnm96f7IledVu7c4FlRPUkYORRD3SQ9yS9k0dq3kwFensDxqQr3f
+	 SDlANCSzwy5mB+SKo/8YPyNKTUtsO81jpD5EqhVUuVyGfqywVmwdhwneN2iSUmEepp
+	 mOuwN82PRrFLy96Hcb7HvR3fUB9ZOdQljO5g44VyYiqdvxEPIIX8AEbOOdgKmSQoh0
+	 ludlwWiniWUwo8QmedTZYseZiYZkp2QXqOmg7JT0xCm7YqXvoFpPzEFF+uKlK+Hh+T
+	 Rc/m9v+KjiV7Q==
 From: =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn@kernel.org>
 To: Magnus Karlsson <magnus.karlsson@intel.com>,
 	Maciej Fijalkowski <maciej.fijalkowski@intel.com>,
@@ -99,9 +99,9 @@ Cc: Stuart Clark <stuclar@meta.com>,
 	linux-kselftest@vger.kernel.org,
 	linux-doc@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH net-next 01/15] xdp: Let memory providers offer XDP a view of their net_iovs
-Date: Tue, 24 Nov 2026 13:56:36 +0100
-Message-ID: <20261124125654.183091-1-bjorn@kernel.org>
+Subject: [PATCH net-next 02/15] xdp: Keep the shared info of a buffer in kernel memory
+Date: Tue, 24 Nov 2026 13:56:37 +0100
+Message-ID: <20261124125654.183091-2-bjorn@kernel.org>
 X-Mailer: git-send-email 2.56.1
 In-Reply-To: <20261124112707.118678-1-bjorn@kernel.org>
 References: <20261124112707.118678-1-bjorn@kernel.org>
@@ -117,156 +117,178 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Currently, a net_iov is memory that the kernel does not read.
-netmem_address() and skb_frag_address() give NULL for it, and XDP
-code, which takes buffer addresses the same way, cannot read it
-either. Some providers back net_iovs with memory that the CPU can
-reach and XDP must read, such as the UMEM of an AF_XDP socket that
-receives in the device's buffer layout, later in this series. io_uring
-zcrx could do the same.
+Currently, the shared info of an XDP buffer, with the fragment list of
+a multi-buffer packet, lives at the end of the buffer's frame, in
+memory that the device writes. Helpers follow its fragments, drivers
+free them through it, and frame and skb conversion copy it, so memory
+that others may write while the kernel uses it must not hold it.
+Classic AF_XDP zero copy keeps it in the tail of a UMEM chunk, where
+userspace can rewrite it.
 
-Such memory is net_iov and not pages because it is user memory pinned
-with GUP. mm owns the struct page fields that page_pool takes over
-(lru, where pp_magic and pp live, and mapping), a chunk larger than a
-page lies inside a hugetlb folio instead of being a page of its own,
-and the provider keeps state per chunk. io_uring zcrx wraps pinned
-user pages in net_iovs for the same reasons.
+Let an RX queue keep the shared info of its buffers in kernel memory.
+The queue gets one from xdp_rxq_info_reg_ext_sinfo(), and
+xdp_rxq_info_unreg_mem_model() frees it. A buffer with the new
+XDP_FLAGS_SINFO_EXT finds its shared info there.
 
-Let a net_iov area offer an XDP view, an address for each of its
-net_iovs that XDP code may read and write. Add xdp_netmem_address()
-for the head of an XDP buffer and xdp_frag_address() for its
-fragments, and use them in bpf_xdp_pointer(), bpf_xdp_copy_buf(),
-bpf_xdp_pull_data() and the tail growth of bpf_xdp_adjust_tail().
+Whoever prepares a buffer sets the flag before adding fragments. The
+queue NAPI builds one buffer at a time, so one shared info per queue
+is enough. It is valid until the buffer is redirected, dropped or
+copied. Frame conversion and skb construction refuse buffers with the
+flag, as a frame or an skb would keep its shared info in the buffer.
+Nothing sets the flag until later in this series.
 
-The area keeps the address and size of the view and the log2 of the
-net_iov size, so net_iov i lies at xdp_vaddr + (i << xdp_shift). For
-pages the helpers give page_address(), and for a net_iov without a
-view they give NULL. dmabuf and io_uring zcrx areas are allocated
-zeroed, so they offer no view. AF_XDP sinks are the first to offer
-one.
-
-XDP may read a net_iov only through these helpers, and only if its
-provider offers a view. Such buffers must not become skb frags or
-xdp_frames. For the core and the stack every net_iov stays unreadable,
-netmem_address() and skb_frag_address() still give NULL, and
-skb->unreadable is still set for every net_iov frag. Other readers get
-NULL for a net_iov with a view too, so they fail closed.
-
-The other rules for providers stay. Native XDP runs next to a provider
-only if it opts in, and providers without an XDP view still need
-header split. AF_XDP sinks are exempt from both through MP_XDP_ONLY.
+xdp_data_hard_end() reserves no shared-info tailroom for such a
+buffer, so its data may reach the end of the frame. frame_sz then
+bounds every write past the data, such as tail growth and
+bpf_xdp_pull_data(), so the frame must not cover memory of other
+buffers. Drivers may then pack such buffers tighter.
 
 Signed-off-by: Björn Töpel <bjorn@kernel.org>
 ---
- include/net/netmem.h |  8 ++++++++
- include/net/xdp.h    | 34 ++++++++++++++++++++++++++++++++++
- net/core/filter.c    |  8 ++++----
- 3 files changed, 46 insertions(+), 4 deletions(-)
+ include/net/xdp.h | 41 +++++++++++++++++++++++++++++++++++------
+ net/core/xdp.c    | 30 ++++++++++++++++++++++++++++++
+ 2 files changed, 65 insertions(+), 6 deletions(-)
 
-diff --git a/include/net/netmem.h b/include/net/netmem.h
-index fb693bc1702a..4cf4ee1cd55d 100644
---- a/include/net/netmem.h
-+++ b/include/net/netmem.h
-@@ -104,6 +104,14 @@ struct net_iov_area {
- 	/* Array of net_iovs for this area. */
- 	struct net_iov *niovs;
- 	size_t num_niovs;
-+	/* XDP view, see xdp_netmem_address(): XDP may read and write net_iov i
-+	 * at xdp_vaddr + (i << xdp_shift), xdp_vsize bytes in all. NULL if the
-+	 * provider offers none. The core and the stack take every net_iov as
-+	 * unreadable either way.
-+	 */
-+	void *xdp_vaddr;
-+	size_t xdp_vsize;
-+	unsigned int xdp_shift;
- };
- 
- static inline struct net_iov_area *net_iov_owner(const struct net_iov *niov)
 diff --git a/include/net/xdp.h b/include/net/xdp.h
-index 07231adfb5f8..1629e347b71f 100644
+index 1629e347b71f..944418111a86 100644
 --- a/include/net/xdp.h
 +++ b/include/net/xdp.h
-@@ -164,6 +164,40 @@ xdp_init_buff(struct xdp_buff *xdp, u32 frame_sz, struct xdp_rxq_info *rxq)
- #endif
+@@ -65,6 +65,11 @@ struct xdp_rxq_info {
+ 	u32 reg_state;
+ 	struct xdp_mem_info mem;
+ 	u32 frag_size;
++	/* Shared info of buffers with %XDP_FLAGS_SINFO_EXT, in kernel
++	 * memory, see xdp_rxq_info_reg_ext_sinfo(). The queue builds one
++	 * such buffer at a time.
++	 */
++	struct skb_shared_info *ext_sinfo;
+ } ____cacheline_aligned; /* perf critical, avoid false-sharing */
+ 
+ struct xdp_txq_info {
+@@ -81,6 +86,15 @@ enum xdp_buff_flags {
+ 	 * XDP program is not attached.
+ 	 */
+ 	XDP_FLAGS_FRAGS_UNREADABLE	= BIT(2),
++	/* The shared info lives in &xdp_rxq_info.ext_sinfo, in kernel memory,
++	 * not at the end of the frame. For memory that someone outside the
++	 * kernel may write. Whoever prepares the buffer sets it before adding
++	 * fragments, on a queue that has ext_sinfo. The queue NAPI builds one
++	 * such buffer at a time: its shared info is valid until the buffer
++	 * is redirected, dropped or copied. The data may reach the end of the
++	 * frame, see xdp_data_hard_end(): the frame must hold nothing else.
++	 */
++	XDP_FLAGS_SINFO_EXT		= BIT(3),
+ };
+ 
+ struct xdp_buff {
+@@ -212,17 +226,27 @@ xdp_prepare_buff(struct xdp_buff *xdp, unsigned char *hard_start,
+ 
+ /* Reserve memory area at end-of data area.
+  *
+- * This macro reserves tailroom in the XDP buffer by limiting the
+- * XDP/BPF data access to data_hard_end.  Notice same area (and size)
+- * is used for XDP_PASS, when constructing the SKB via build_skb().
++ * This reserves tailroom in the XDP buffer by limiting the XDP/BPF data
++ * access to data_hard_end.  Notice same area (and size) is used for
++ * XDP_PASS, when constructing the SKB via build_skb(). Buffers with
++ * %XDP_FLAGS_SINFO_EXT keep the shared info elsewhere and reserve none.
+  */
+-#define xdp_data_hard_end(xdp)				\
+-	((xdp)->data_hard_start + (xdp)->frame_sz -	\
+-	 SKB_DATA_ALIGN(sizeof(struct skb_shared_info)))
++static __always_inline void *xdp_data_hard_end(const struct xdp_buff *xdp)
++{
++	u32 tailroom = SKB_DATA_ALIGN(sizeof(struct skb_shared_info));
++
++	if (xdp->flags & XDP_FLAGS_SINFO_EXT)
++		tailroom = 0;
++	return xdp->data_hard_start + xdp->frame_sz - tailroom;
++}
+ 
+ static inline struct skb_shared_info *
+ xdp_get_shared_info_from_buff(const struct xdp_buff *xdp)
+ {
++	/* Kernel structures stay out of memory that userspace may write */
++	if (unlikely(xdp->flags & XDP_FLAGS_SINFO_EXT))
++		return xdp->rxq->ext_sinfo;
++
+ 	return (struct skb_shared_info *)xdp_data_hard_end(xdp);
  }
  
-+/* XDP view of net_iovs: a memory provider may give XDP an address for its
-+ * net_iovs, see &net_iov_area.xdp_vaddr. XDP code may read and write a
-+ * net_iov only through these helpers, and only if its provider offers a
-+ * view; such buffers must not become skb frags or xdp_frames. For the core
-+ * and the stack every net_iov stays unreadable: netmem_address() and
-+ * skb_frag_address() give NULL for it. A net_iov without a view gives NULL
-+ * here too, so a reader that does not use these helpers fails closed.
-+ */
-+static __always_inline void *xdp_net_iov_address(const struct net_iov *niov)
-+{
-+	const struct net_iov_area *area = net_iov_owner(niov);
-+
-+	if (!area->xdp_vaddr)
-+		return NULL;
-+	return area->xdp_vaddr +
-+	       ((unsigned long)net_iov_idx(niov) << area->xdp_shift);
-+}
-+
-+/* Address of @netmem, which a driver uses as the head of an XDP buffer */
-+static __always_inline void *xdp_netmem_address(netmem_ref netmem)
-+{
-+	if (netmem_is_net_iov(netmem))
-+		return xdp_net_iov_address(netmem_to_net_iov(netmem));
-+	return __netmem_address(netmem);
-+}
-+
-+/* Address of the bytes of @frag of an XDP buffer */
-+static __always_inline void *xdp_frag_address(const skb_frag_t *frag)
-+{
-+	void *addr = xdp_netmem_address(skb_frag_netmem(frag));
-+
-+	return addr ? addr + skb_frag_off(frag) : NULL;
-+}
-+
- static __always_inline void
- xdp_prepare_buff(struct xdp_buff *xdp, unsigned char *hard_start,
- 		 int headroom, int data_len, const bool meta_valid)
-diff --git a/net/core/filter.c b/net/core/filter.c
-index f42ecfb5841f..d5774b2577e7 100644
---- a/net/core/filter.c
-+++ b/net/core/filter.c
-@@ -4310,7 +4310,7 @@ void bpf_xdp_copy_buf(struct xdp_buff *xdp, unsigned long off,
- 			break;
- 
- 		ptr_off += ptr_len;
--		ptr_buf = skb_frag_address(next_frag);
-+		ptr_buf = xdp_frag_address(next_frag);
- 		ptr_len = skb_frag_size(next_frag);
- 		next_frag++;
+@@ -454,6 +478,10 @@ int xdp_update_frame_from_buff(const struct xdp_buff *xdp,
+ 		return -ENOSPC;
  	}
-@@ -4338,7 +4338,7 @@ void *bpf_xdp_pointer(struct xdp_buff *xdp, u32 offset, u32 len)
- 		u32 frag_size = skb_frag_size(&sinfo->frags[i]);
  
- 		if  (offset < frag_size) {
--			addr = skb_frag_address(&sinfo->frags[i]);
-+			addr = xdp_frag_address(&sinfo->frags[i]);
- 			size = frag_size;
- 			break;
- 		}
-@@ -4429,7 +4429,7 @@ static int bpf_xdp_frags_increase_tail(struct xdp_buff *xdp, int offset)
- 	if (unlikely(offset > tailroom))
- 		return -EINVAL;
++	/* A frame keeps its shared info in the buffer */
++	if (unlikely(xdp->flags & XDP_FLAGS_SINFO_EXT))
++		return -EFAULT;
++
+ 	xdp_frame->data = xdp->data;
+ 	xdp_frame->len  = xdp->data_end - xdp->data;
+ 	xdp_frame->headroom = headroom - sizeof(*xdp_frame);
+@@ -533,6 +561,7 @@ bool xdp_rxq_info_is_reg(struct xdp_rxq_info *xdp_rxq);
+ int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
+ 			       enum xdp_mem_type type, void *allocator);
+ void xdp_rxq_info_unreg_mem_model(struct xdp_rxq_info *xdp_rxq);
++int xdp_rxq_info_reg_ext_sinfo(struct xdp_rxq_info *xdp_rxq);
+ int xdp_reg_mem_model(struct xdp_mem_info *mem,
+ 		      enum xdp_mem_type type, void *allocator);
+ void xdp_unreg_mem_model(struct xdp_mem_info *mem);
+diff --git a/net/core/xdp.c b/net/core/xdp.c
+index 1d679e8fd649..3472b03ee661 100644
+--- a/net/core/xdp.c
++++ b/net/core/xdp.c
+@@ -142,6 +142,8 @@ void xdp_rxq_info_unreg_mem_model(struct xdp_rxq_info *xdp_rxq)
+ 	}
  
--	memset(skb_frag_address(frag) + skb_frag_size(frag), 0, offset);
-+	memset(xdp_frag_address(frag) + skb_frag_size(frag), 0, offset);
- 	skb_frag_size_add(frag, offset);
- 	sinfo->xdp_frags_size += offset;
- 	if (rxq->mem.type == MEM_TYPE_XSK_BUFF_POOL)
-@@ -12835,7 +12835,7 @@ __bpf_kfunc int bpf_xdp_pull_data(struct xdp_md *x, u32 len)
- 		skb_frag_t *frag = &sinfo->frags[i];
- 		u32 shrink = min_t(u32, delta, skb_frag_size(frag));
+ 	xdp_unreg_mem_model(&xdp_rxq->mem);
++	kfree(xdp_rxq->ext_sinfo);
++	xdp_rxq->ext_sinfo = NULL;
+ }
+ EXPORT_SYMBOL_GPL(xdp_rxq_info_unreg_mem_model);
  
--		memcpy(xdp->data_end, skb_frag_address(frag), shrink);
-+		memcpy(xdp->data_end, xdp_frag_address(frag), shrink);
+@@ -368,6 +370,30 @@ int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
  
- 		xdp->data_end += shrink;
- 		sinfo->xdp_frags_size -= shrink;
+ EXPORT_SYMBOL_GPL(xdp_rxq_info_reg_mem_model);
+ 
++/**
++ * xdp_rxq_info_reg_ext_sinfo - keep the shared info of buffers in the queue
++ * @xdp_rxq: registered RX queue
++ *
++ * For buffers in memory that someone outside the kernel may write: those
++ * with %XDP_FLAGS_SINFO_EXT keep their shared info in kernel memory of
++ * @xdp_rxq instead of at the end of their frame.
++ * xdp_rxq_info_unreg_mem_model() frees it.
++ *
++ * Return: 0 on success, or a negative errno.
++ */
++int xdp_rxq_info_reg_ext_sinfo(struct xdp_rxq_info *xdp_rxq)
++{
++	if (xdp_rxq->reg_state != REG_STATE_REGISTERED) {
++		WARN(1, "Missing register, driver bug");
++		return -EFAULT;
++	}
++
++	if (!xdp_rxq->ext_sinfo)
++		xdp_rxq->ext_sinfo = kzalloc_obj(*xdp_rxq->ext_sinfo);
++	return xdp_rxq->ext_sinfo ? 0 : -ENOMEM;
++}
++EXPORT_SYMBOL_GPL(xdp_rxq_info_reg_ext_sinfo);
++
+ /**
+  * xdp_reg_page_pool - register &page_pool as a memory provider for XDP
+  * @pool: &page_pool to register
+@@ -638,6 +664,10 @@ struct sk_buff *xdp_build_skb_from_buff(const struct xdp_buff *xdp)
+ 	u32 nr_frags = 0;
+ 	int metalen;
+ 
++	/* An skb keeps its shared info in the buffer */
++	if (unlikely(xdp->flags & XDP_FLAGS_SINFO_EXT))
++		return NULL;
++
+ 	if (unlikely(xdp_buff_has_frags(xdp))) {
+ 		sinfo = xdp_get_shared_info_from_buff(xdp);
+ 		nr_frags = sinfo->nr_frags;
 -- 
 2.56.1
 
