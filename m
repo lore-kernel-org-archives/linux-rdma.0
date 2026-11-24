@@ -1,51 +1,127 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=47.88.81.140
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.46
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795528829;
-	b=5osuWID60fMJVT7bNixhh38BveGyK3MdNwPbdkGZpZ23wC0Dq65N2IA+FBCtxgalpGLK
-	 rhcJN4t7RRA7giT/S0PrRSQlB+oSs4PuEISDdUVCiUjO53A8Ni6nz2np6pccs4ekO8rzo
-	 bR+Aof4vKUvOILbTjFe30Xjr1UjCEBuwxqTGgX42YG0OkYtULOxrEIp5Iu473BboZfm3n
-	 QKE68KVRI0CrlPvul9yAPTNhaf1SXhgne1wtXIpMCfHYU7Y3HRv6b4/1zHBHuWP/tgsJr
-	 uhjZuQA9Qhw7GHnlMxcdVkksxC0U639UbhDGf4RDvRvVfC12uuKvDNwP3k6X7Twb1+g==
+	t=1795528842;
+	b=bL/3lN6k+o6CN9MfecEOtE0tJUWNQHmoCGSrh0KsDdXi7be8lGVQ8EzUNugykONDFVQK
+	 O+fkI5dA+RG+3CaHtNC+nSC8yW18GcO4dBrxyJV2blluhsKr/TJyBsfDcr7IMdSueJnqJ
+	 MYesNwxbuFDIWOL2nDO07XnTipVJSG3gHfW5HmseNL8DvQiJZTddeEeNpytQfuJlZ/hDY
+	 GwpefVXH7XpaQP4jvYJr9tPFCagvQ3x3fMzHs7NBJ5B8crI2uy0qBoeYQnxSTBKphI6VU
+	 gbSCw1jMUUP3runa3iUs2okZUfY0ApAuDSIwyIxzf8bD4czFhgBfH+YGjr1DkUVrX+Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795528829;
-	h=DMARC-Filter:Content-Type:Content-Transfer-Encoding:Message-ID:To:Cc:
-	 Subject:X-Priority:X-Mailer:X-Originating-IP:In-Reply-To:References:
-	 MIME-Version:Received:From:Date:X-HM-Tid:X-HM-MType:X-HM-NTES-SC:
-	 X-HM-Spam-Status:DKIM-Signature;
-	bh=SrQBO4DXNz5cl5iYyYb4W1p5h9a2cEbxQXiC8gyTbFk=;
-	b=OPADORnVf0CULRo1nnxmEJkVz4Uq/M80ZD1O/hOr3TNvU92mRycnyjRfShEK/7tgyyIB
-	 f+5GUFbCArVa13h4boqDb06OyGyZxyXDBtN6Yd3l4qSxQulO6h4BUNSV8HFCCVI4qzxNb
-	 7lTRnIYpoOnkOPasU26wO2qHi1fi63snxBgHfaTE3GgShzntkqkKFZjMaj9jj5BslZUWx
-	 fIo6Hg3827H95LLs+6PkVWF0ipka8mS93j20tn4sxfQ5iGgusP40XS2USDuug0SU/N0Da
-	 Nkpe226ZN/B8lBzzDwIhQCeW9zmOsDJCNPBAlzOb8dAGUVfWKLGzZzKlvm0mSGB6Jlg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795528842;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:Content-Transfer-Encoding:
+	 In-Reply-To;
+	bh=o+7iSwGfMjtzT2Y6Ygii4nLjUX3g93NcfuA7HOwwEkw=;
+	b=JHGVLnvR5Q4GWInHIUYtnt/eoxR/FKTwjeILZKNzcycyzTVKvaTfZHFSZKT8+TanxCXy
+	 8AEz//Os4AGNs/2t0ePjvyaPWnZxqdGQjgWMucPcpIQ3crarmzE1SZdkhaBqhz75FsTJ3
+	 EAR5wWY3Vl8jphzWufTJSq/m8hb4MPQc9ZwoEO4CYV04YPjBZX6ywqiogiSXiqwfVyZ6d
+	 QyEwFR5oBsvPOCRGy5oVCuEbKNAoB45QKh4uR5mTDw+ianCXfLTjTjIziu8CMdtBoUFWk
+	 w0pmQZgDk2OP0OrHEP4e/j/IiVOIS6rOE+kzAIKjMHbPKw0IbTXrWilmpp/+Ep19GoQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=mail.sdu.edu.cn;
-	spf=pass smtp.mailfrom=mail.sdu.edu.cn;
-	dkim=pass header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=bQiWl6y+;
-	arc=none smtp.remote-ip=47.88.81.140
-Received: from mail-m81140.netease.com (mail-m81140.netease.com [47.88.81.140])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=none header.from=ziepe.ca;
+	spf=pass smtp.mailfrom=ziepe.ca;
+	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=V30Q+iur;
+	arc=none smtp.remote-ip=209.85.218.46
+Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A02D606A31E;
-	Tue, 24 Nov 2026 14:00:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3A02D606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mail.sdu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mail.sdu.edu.cn
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC378606A31E
+	for <linux-rdma@vger.kernel.org>; Tue, 24 Nov 2026 14:00:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DC378606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=bQiWl6y+
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
-Message-ID: <AGsAhgCELDjQPd1Ecfeljaop.3.1795528818135.Hmail.202321181@mail.sdu.edu.cn>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Subject: =?UTF-8?B?UmU6UmU6IFJlOiBbUEFUQ0hdIElCL2hmaTE6IEZpeCBwb3RlbnRpYWwgbGVha3MgaW4gSVBvSUIgVFggcXVldWUgaW5pdGlhbGl6YXRpb24=?=
-X-Priority: 3
-X-Mailer: HMail Webmail Server V2.0 Copyright (c) 2016-163.com web
-In-Reply-To: <20261122150246.GF14811@unreal>
-References: <20261111-e5624093d6-rdma-hfi1@mail.sdu.edu.cn> <20261115135524.GE42525@unreal> <APgA2ADdLAK4Fr01jTNuVqo3.3.1795092279897.Hmail.202321181@mail.sdu.edu.cn> <20261122150246.GF14811@unreal>
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=V30Q+iur
+Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-c40e30c26a4so1089074266b.0
+        for <linux-rdma@vger.kernel.org>; Tue, 24 Nov 2026 06:00:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1795528840; x=1796133640; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=o+7iSwGfMjtzT2Y6Ygii4nLjUX3g93NcfuA7HOwwEkw=;
+        b=V30Q+iurO56H29PrX9q7wVWHAj934LHyh9dyaSa8KHPs1wYEL79KlkRZ8Ndk67ZYFP
+         8Moy2ZuuvXyGxj6hxEU5MHXoHu4tO+Fkx1FOmb3i6VmcSl2yRSR7ozCFXelACXZQQdpH
+         73eeCdMmnAdK5bgaPJM2yLbbq+7EGbpzKQXhHQ+LiUd9gwn3Zcp08lnZgZpi+N/nP0qn
+         CCEUWkIh7w7v7yFw7Ka90+w4XwePfoZZMNmE95Z67q//yab58k2vPq4mUMHNrX/ny0rT
+         lztbpD17efmc4Yo1kTZgqTWxQyLSdMFoAnYsApctQXm4VrrSm5WoZqx2pG7gjDZXr6oU
+         zvzA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795528840; x=1796133640;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=o+7iSwGfMjtzT2Y6Ygii4nLjUX3g93NcfuA7HOwwEkw=;
+        b=Cf/sH3IZ6mhc6rjoxcUAlVc0KRAH5VeZqFlrLP2xBerIFVfSoLKzrJ2z7UjBGai/Ne
+         bIE5io9cBav7RWndVJ3fcICo1xVxOQPGgSeLR1Qa6dZbLMdyMY0zpX4q8MT4vWB3RyPX
+         5QxVuAdGj7H1YF2olcNbgIXA+fPm3yCln5ufWiO9lnorBSMzjLxILaoNCRRvUSJYJRMM
+         ROjonlDrPUYmTu/KZpuQmXRDAtBlUjZAliYiZuJQIqA474LFsJSnwaMoWMaK4IgdTkk3
+         q3AoTD1UdEhkP6CRBrP52t+OVLCx0HYU01hDBVKtLHdPGRw6v1oOgDzv7Haz7wCgI05W
+         eDBA==
+X-Forwarded-Encrypted: i=1; AL+hErFtCggDXKLJLmo5NoJm1zCZ+5T9JuxWJsxixrLIA9NY+vCow9AkkGAqC4x+0m/hdJN0eVGne2/gfg09@vger.kernel.org
+X-Gm-Message-State: APuU4Z/dhtzBWRJhCq6lnqkVFEO6T9w8vo7Y8AHm/GBHzp2nOybsebHp
+	kYRBYhEX7xjAFJDa51BSiwVsLSrqlNUISBuHdNTBJcieFCJ0XJaTe1hfVBwmXuPg7Tg=
+X-Gm-Gg: AZFdTZcMpLboP+igRCvHa1dCSCIq42dZp7ewJo2/bto8Nj+Fk9D6ZgKnXOxEbIKCc+I
+	1RBbdMTsUS6e4vpxCSnKaTvDTfLuyoN2ycTLm9GEd/bld5+IJ5qZZ6Fk1Lyh8h5UIYP40AG8klG
+	fAWrRbS09oF7JdhIIRJgmyLi00qYsJ+TVPnAvEvZlf5MFEi+Ngv3b/mhNKbHHxieeGiu7nGJQGI
+	XZmIwjgQc821yT6jhhaqGUcklr2FTocgs3D/VB5J1NKHTtFIPavUzqO2xelOKDcZfBSBuF3MHLS
+	L6m/l+eio1MRY/eWO5u/phdof9sLUz4ir9Tfwcd+ueP4rogRKAOX/o1R2Ll4NUixJy5tDHzfdEI
+	Gj3bt1k2S3WV2QBr/dyZ1vUyXneGAiUI+0Yv7NJGabbWSFG3k2tWA+HQ7CYDC0vd0rDGrLscgLj
+	b2e+IQX6gz5dCMXijLPmLuwnAw1sNf2VIxn2dlD4Ko8xoATlDralW2JG6U0AvAptzVyGybrgDGt
+	5YOONuq9JpB0ej97+QT6l4B5HsigxVs8Xm8JgTRm8sEaPhgnVdMHtdY1PgHKGuZ1/eZpG5Idisr
+	t20cpg==
+X-Received: by 2002:a17:907:3e86:b0:c36:777f:824c with SMTP id a640c23a62f3a-c51315851d7mr1405271066b.4.1795528839874;
+        Tue, 24 Nov 2026 06:00:39 -0800 (PST)
+Received: from ziepe.ca ([142.177.118.84])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6ba370cc257sm6492195a12.13.2026.11.24.06.00.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 24 Nov 2026 06:00:39 -0800 (PST)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1xVr4W-00000000QnE-3MAi;
+	Tue, 24 Nov 2026 10:00:36 -0400
+Date: Tue, 24 Nov 2026 10:00:36 -0400
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>
+Cc: Alistair Popple <apopple@nvidia.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
+	Simona Vetter <simona.vetter@ffwll.ch>,
+	Matthew Brost <matthew.brost@intel.com>,
+	Vivek Kasireddy <vivek.kasireddy@intel.com>,
+	Dongwon Kim <dongwon.kim@intel.com>,
+	Kevin Tian <kevin.tian@intel.com>,
+	Xu Yilun <yilun.xu@linux.intel.com>,
+	Karl Mehltretter <kmehltretter@gmail.com>,
+	Baolu Lu <baolu.lu@linux.intel.com>,
+	Felix Kuehling <felix.kuehling@amd.com>,
+	Alex Deucher <alexander.deucher@amd.com>,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	intel-xe@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	linux-rdma@vger.kernel.org, iommu@lists.linux.dev,
+	Keith Busch <kbusch@kernel.org>, Jens Axboe <axboe@kernel.dk>,
+	Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>,
+	linux-nvme@lists.infradead.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Mina Almasry <almasrymina@google.com>, netdev@vger.kernel.org,
+	Alexey Kardashevskiy <aik@amd.com>, zhipingz@meta.com,
+	treding@nvidia.com, jhubbard@nvidia.com, chaitanyak@nvidia.com,
+	Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v3 03/24] dma-buf: Add the SGT DMA mapping type
+Message-ID: <20261124140036.GM9566@ziepe.ca>
+References: <20261120-dma_mapping_type_v4-v3-0-c0183a409bdf@nvidia.com>
+ <20261120-dma_mapping_type_v4-v3-3-c0183a409bdf@nvidia.com>
+ <ad46d60a-189d-4dd5-9ad8-ecfd3c90f9d9@amd.com>
+ <20261123165716.GM179082@ziepe.ca>
+ <7ac7edd0-5c38-440a-b26a-21bcbb6f4702@amd.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -55,94 +131,51 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Received: from 202321181@mail.sdu.edu.cn( [101.76.249.61] ) by ajax-webmail ( [127.0.0.1] ) ; Tue, 24 Nov 2026 22:00:18 +0800 (GMT+08:00)
-From: =?UTF-8?B?5p2O5bm/56GV?= <liguangshuo@mail.sdu.edu.cn>
-Date: Tue, 24 Nov 2026 22:00:18 +0800 (GMT+08:00)
-X-HM-Tid: 0aa20ddafeced0cdkusyed8236ec248b6
-X-HM-MType: 1
-X-HM-NTES-SC: AL0_4z5B86Wr4Tz9jdMF+bhXMVHpP02bZAKsMEiErRSAekjx+ys+KNZNl0PLwl
-	f2MeqR5lbiqKsoq8sm3hZVy9q3VetZ+Wq0Te/EdHEVk+2W3XygE0t2b+veD5v+x2w+urvH1wcBEK
-	LfuXeRGaGP72UMA9Ea1JsRyT3OtZavULeVx80=
-X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVlCSEJLVhoZH0pCQ0xKHUNOSFYVFA
-	kWGhdVEwETFhoSFyQUDg9ZV1kYEgtZQVlKS0pVTE1VSU9CVU1KWVdZFhoPEhUdFFlBWU9LSFVCQk
-	lOS1VKS0tVSkJLQlkG
-DKIM-Signature: a=rsa-sha256;
-	b=bQiWl6y+2oGNR00ETJCbZzVLxN93rE9lPhEJiX882O+/KnGWq3b2Cusk4D0ZAD9VEo2tGxGGP3mDz3JKVBRUwSv5+FYhu6sl0psf+Wo2RpyM1HYpR33kX5Sh+baDqBxS2j8HwcNjOqLeTOp4rNce/w7x3m8ULwaJ8WwkHP8Z9fI=; c=relaxed/relaxed; s=default; d=mail.sdu.edu.cn; v=1;
-	bh=SrQBO4DXNz5cl5iYyYb4W1p5h9a2cEbxQXiC8gyTbFk=;
-	h=date:mime-version:subject:message-id:from;
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <7ac7edd0-5c38-440a-b26a-21bcbb6f4702@amd.com>
 
-SGkgTGVvbiwKClRoYW5rcyBmb3IgdGhlIHJldmlldy4KCuWPkeS7tuS6uu+8mkxlb24gUm9tYW5v
-dnNreSA8bGVvbkBrZXJuZWwub3JnPgrlj5HpgIHml6XmnJ/vvJoyMDI2LTExLTIyIDIzOjAyOjQ2
-CuaUtuS7tuS6uu+8miLmnY7lub/noZUiIDxsaWd1YW5nc2h1b0BtYWlsLnNkdS5lZHUuY24+CuaK
-hOmAgeS6uu+8mkRlbm5pcyBEYWxlc3NhbmRybyA8ZGVubmlzLmRhbGVzc2FuZHJvQGNvcm5lbGlz
-bmV0d29ya3MuY29tPixKYXNvbiBHdW50aG9ycGUgPGpnZ0B6aWVwZS5jYT4sbGludXgtcmRtYUB2
-Z2VyLmtlcm5lbC5vcmcsbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwrkuLvpopjvvJpSZTog
-UmU6IFtQQVRDSF0gSUIvaGZpMTogRml4IHBvdGVudGlhbCBsZWFrcyBpbiBJUG9JQiBUWCBxdWV1
-ZSBpbml0aWFsaXphdGlvbj5PbiBUaHUsIE5vdiAxOSwgMjAyNiBhdCAwODo0NDozOVBNICswODAw
-LCDmnY7lub/noZUgd3JvdGU6Cj4+IAo+PiBIaSBMZW9uLAo+PiAKPj4gVGhhbmtzIGZvciB0aGUg
-cmV2aWV3Lgo+PiAKPj4gRnJvbTogTGVvbiBSb21hbm92c2t5IDxsZW9uQGtlcm5lbC5vcmc+Cj4+
-IERhdGU6IDIwMjYtMTEtMTUgMjE6NTU6MjQKPj4gVG86ICBHdWFuZ3NodW8gTGkgPGxpZ3Vhbmdz
-aHVvQG1haWwuc2R1LmVkdS5jbj4KPj4gQ2M6ICBEZW5uaXMgRGFsZXNzYW5kcm8gPGRlbm5pcy5k
-YWxlc3NhbmRyb0Bjb3JuZWxpc25ldHdvcmtzLmNvbT4sSmFzb24gR3VudGhvcnBlIDxqZ2dAemll
-cGUuY2E+LGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnLGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5l
-bC5vcmcKPj4gU3ViamVjdDogUmU6IFtQQVRDSF0gSUIvaGZpMTogRml4IHBvdGVudGlhbCBsZWFr
-cyBpbiBJUG9JQiBUWCBxdWV1ZSBpbml0aWFsaXphdGlvbj5PbiBXZWQsIE5vdiAxMSwgMjAyNiBh
-dCAwODoyMzoxOVBNICswODAwLCBHdWFuZ3NodW8gTGkgd3JvdGU6Cj4+ID4+IFdoZW4gYW4gU0RN
-QSBoZWFkZXIgYWxsb2NhdGlvbiBmYWlscywgcm9sbGJhY2sgc2tpcHMgdGhlIGN1cnJlbnQgVFgK
-Pj4gPj4gcXVldWUuIEl0cyByaW5nIGFuZCBhbHJlYWR5IGFsbG9jYXRlZCBoZWFkZXJzIGFyZSBs
-ZWFrZWQuIEZyZWUgdGhlCj4+ID4+IHBhcnRpYWxseSBpbml0aWFsaXplZCByaW5nIGJlZm9yZSB1
-bndpbmRpbmcgdGhlIGNvbXBsZXRlZCBxdWV1ZXMuCj4+ID4KPj4gPmZyZWVfdHhfcmluZyBhbHJl
-YWR5IHBlcmZvcm1zIHRoYXQsIHNlZSAiZm9yIChqID0gMDsgaiA8IHR4X3Jpbmdfc2l6ZTsgaisr
-KSIKPj4gPmxvb3AuCj4+ID4KPj4gPlRoYW5rcwo+PiA+Cj4+ID4+IAo+PiA+PiBUaGlzIGlzc3Vl
-IHdhcyBmb3VuZCBieSBvdXIgc3RhdGljIGFuYWx5c2lzIHRvb2wgdW5kZXIgZGV2ZWxvcG1lbnQu
-Cj4+ID4+IAo+PiA+PiBGaXhlczogYzg3NGFkODc5YzJmICgiSUIvaGlmaTE6IGFkZCBhIG51bGwg
-Y2hlY2sgb2Yga3phbGxvY19ub2RlIGluIGhmaTFfaXBvaWJfdHhyZXFfaW5pdCIpCj4+ID4+IFNp
-Z25lZC1vZmYtYnk6IEd1YW5nc2h1byBMaSA8bGlndWFuZ3NodW9AbWFpbC5zZHUuZWR1LmNuPgo+
-PiA+PiAtLS0KPj4gPj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL2lwb2liX3R4LmMgfCA2
-ICsrKysrLQo+PiA+PiAgMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlv
-bigtKQo+PiA+PiAKPj4gPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkx
-L2lwb2liX3R4LmMgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvaGZpMS9pcG9pYl90eC5jCj4+ID4+
-IGluZGV4IDhiOWNjNTVkYjU5ZC4uMmU5MjI1YjU1OGI0IDEwMDY0NAo+PiA+PiAtLS0gYS9kcml2
-ZXJzL2luZmluaWJhbmQvaHcvaGZpMS9pcG9pYl90eC5jCj4+ID4+ICsrKyBiL2RyaXZlcnMvaW5m
-aW5pYmFuZC9ody9oZmkxL2lwb2liX3R4LmMKPj4gPj4gQEAgLTc0Myw3ICs3NDMsNyBAQCBpbnQg
-aGZpMV9pcG9pYl90eHJlcV9pbml0KHN0cnVjdCBoZmkxX2lwb2liX2Rldl9wcml2ICpwcml2KQo+
-PiA+PiAgCQkJCWt6YWxsb2Nfbm9kZShzaXplb2YoKnR4LT5zZG1hX2hkciksCj4+ID4+ICAJCQkJ
-CSAgICAgR0ZQX0tFUk5FTCwgcHJpdi0+ZGQtPm5vZGUpOwo+PiA+PiAgCQkJaWYgKCFoZmkxX3R4
-cmVxX2Zyb21faWR4KHR4X3JpbmcsIGopLT5zZG1hX2hkcikKPj4gPj4gLQkJCQlnb3RvIGZyZWVf
-dHhxczsKPj4gPj4gKwkJCQlnb3RvIGZyZWVfdHhfcmluZzsKPj4gPj4gIAkJfQo+PiA+PiAgCj4+
-ID4+ICAJCW5ldGlmX25hcGlfYWRkX3R4KGRldiwgJnR4cS0+bmFwaSwgaGZpMV9pcG9pYl9wb2xs
-X3R4X3JpbmcpOwo+PiA+PiBAQCAtNzUxLDYgKzc1MSwxMCBAQCBpbnQgaGZpMV9pcG9pYl90eHJl
-cV9pbml0KHN0cnVjdCBoZmkxX2lwb2liX2Rldl9wcml2ICpwcml2KQo+PiA+PiAgCj4+ID4+ICAJ
-cmV0dXJuIDA7Cj4+ID4+ICAKPj4gPj4gK2ZyZWVfdHhfcmluZzoKPj4gPj4gKwl3aGlsZSAoai0t
-KQo+PiA+PiArCQlrZnJlZShoZmkxX3R4cmVxX2Zyb21faWR4KHR4X3JpbmcsIGopLT5zZG1hX2hk
-cik7Cj4+ID4+ICsJa3ZmcmVlKHR4X3JpbmctPml0ZW1zKTsKPj4gPj4gIGZyZWVfdHhxczoKPj4g
-Pj4gIAlmb3IgKGktLTsgaSA+PSAwOyBpLS0pIHsKPj4gPj4gIAkJc3RydWN0IGhmaTFfaXBvaWJf
-dHhxICp0eHEgPSAmcHJpdi0+dHhxc1tpXTsKPj4gPj4gCj4+ID4+IGJhc2UtY29tbWl0OiA2NjI4
-ZTdkNGM2YjI1YzhkMThmMTM0NWUzYTIwZDIxODI5YWFlN2U0Cj4+ID4+IAo+PiA+Cj4+IAo+PiBU
-aGUgaiBsb29wIGZyZWVzIGFsbCB0aGUgaGVhZGVycyBpbiBlYWNoIHJpbmcgaXQgdmlzaXRzLiBB
-cyBJIHJlYWQKPj4gZnJlZV90eHFzLCB0aGUgb3V0ZXIgbG9vcCBzdGFydHMgd2l0aCBpLS0sIHNv
-IGl0IHNraXBzIHRoZSBxdWV1ZSB3aGVyZQo+PiB0aGUgaGVhZGVyIGFsbG9jYXRpb24gZmFpbGVk
-LiBJZiB0aGF0IGhhcHBlbnMgb24gcXVldWUgMCwgdGhlIGxvb3AKPj4gbmV2ZXIgcnVucy4KPj4g
-Cj4+IFdvdWxkIGl0IG1ha2Ugc2Vuc2UgdG8gcmV1c2UgdGhlIHJpbmcgY2xlYW51cCBmb3IgdGhl
-IHBhcnRpYWwgcXVldWUKPj4gYW5kIGtlZXAgbmV0aWZfbmFwaV9kZWwoKSBvbmx5IGZvciBxdWV1
-ZXMgd2hlcmUgTkFQSSB3YXMgYWRkZWQ/IElmIHNvLAo+PiBJJ2xsIHNlbmQgYSB2MiB0aGF0IGRv
-ZXMgdGhhdC4KPgo+SSB0aGluayB0aGF0IHRoaXMgd2lsbCBmaXggaXQuCj4KPmRpZmYgLS1naXQg
-YS9kcml2ZXJzL2luZmluaWJhbmQvaHcvaGZpMS9pcG9pYl90eC5jIGIvZHJpdmVycy9pbmZpbmli
-YW5kL2h3L2hmaTEvaXBvaWJfdHguYwo+aW5kZXggOGI5Y2M1NWRiNTlkOC4uMjNjMDZkODZiMjky
-MSAxMDA2NDQKPi0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL2lwb2liX3R4LmMKPisr
-KyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL2lwb2liX3R4LmMKPkBAIC03NTIsNyArNzUy
-LDcgQEAgaW50IGhmaTFfaXBvaWJfdHhyZXFfaW5pdChzdHJ1Y3QgaGZpMV9pcG9pYl9kZXZfcHJp
-diAqcHJpdikKPiAgICAgICAgcmV0dXJuIDA7Cj4KPiBmcmVlX3R4cXM6Cj4tICAgICAgIGZvciAo
-aS0tOyBpID49IDA7IGktLSkgewo+KyAgICAgICBmb3IgKGk7IGkgPj0gMDsgaS0tKSB7Cj4gICAg
-ICAgICAgICAgICAgc3RydWN0IGhmaTFfaXBvaWJfdHhxICp0eHEgPSAmcHJpdi0+dHhxc1tpXTsK
-Pgo+ICAgICAgICAgICAgICAgIG5ldGlmX25hcGlfZGVsKCZ0eHEtPm5hcGkpOwo+fgo+Cj4KPj4g
-Cj4+IFRoYW5rcywKPj4gR3VhbmdzaHVvCj4KCkluY2x1ZGluZyB0aGUgY3VycmVudCBxdWV1ZSB3
-b3VsZCBjb3ZlciB0aGUgbWlzc2luZyBoZWFkZXJzLiBUaGUgc2FtZQpsYWJlbCBpcyBhbHNvIHJl
-YWNoZWQgd2hlbiB0aGUgcmluZyBhbGxvY2F0aW9uIGZhaWxzLCB0aG91Z2gsIGFuZCBOQVBJCmhh
-cyBub3QgYmVlbiBhZGRlZCBmb3IgdGhlIGN1cnJlbnQgcXVldWUgb24gZWl0aGVyIGZhaWx1cmUg
-cGF0aC4KCkkgdGhpbmsgd2UgY2FuIHVzZSB0aGF0IGxvb3AgYnkgcmVnaXN0ZXJpbmcgTkFQSSBi
-ZWZvcmUgdGhlIGFsbG9jYXRpb25zCmFuZCBza2lwcGluZyB0aGUgaGVhZGVyIHdhbGsgd2hlbiB0
-aGUgcmluZyBpcyBOVUxMLiBXb3VsZCB0aGF0IGJlIGEKcmVhc29uYWJsZSB3YXkgdG8gaGFuZGxl
-IHRoZSBwYXJ0aWFsIHF1ZXVlPyBJZiBzbywgSSdsbCBzZW5kIGEgdjIuCgpUaGFua3MsCkd1YW5n
-c2h1bwo=
+On Mon, Nov 23, 2026 at 07:37:41PM +0100, Christian König wrote:
+> > Part of the design of this series was to allow the conversion away
+> > from SGT to be done incrementally without breaking compatibility.
+> 
+> Do you know the joke from the hitchhikers guide to the galaxy where
+> the dolphins are happy for exactly the same reasons?
+> 
+> I'm pushing against this plan for exactly the same reason because I
+> think it will make the conversation away from SGT even more
+> problematic than it already is.
+
+I think it is well proven that trying to do big bang conversions in
+software doesn't work well. :(
+ 
+> > So it is effectively this:
+> > 
+> >> The framework should then either connect the SGT directly if both
+> >> importer and export are using the "classic" interface 
+> 
+> Yeah but that should not be a separate mapping type, it's rather
+> that we just convert back and forth from DMA addresses to SGT for
+> compatibility reasons.
+
+The mapping type is to support ualink/etc that don't do "DMA".
+
+Only DMA API can create dma_addr_t's, you can't reuse those types for
+something else.
+
+And you still need a scheme to negotiate exactly what kind of
+connection you need. Focusing on the SGT is missing the big picture of
+why this was organized like this.
+
+> > As this is actually quite complicated and needs discussion exactly
+> > what it will look like.
+> 
+> Actually that is the easy step I think because quite a lot of
+> drivers already convert the SGT to a DMA addr array outside of the
+> DMA-buf framework anyway.
+
+Given the importer an array is not so bad. Getting the sgt out of the
+importer will be a debate.
+
+Jason
