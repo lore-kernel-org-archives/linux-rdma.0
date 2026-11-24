@@ -1,94 +1,68 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.53
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.225
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795485108;
-	b=aw5Dp6vClDukC0jO5so97aYmxhDQsnZhrThx48xhlUNEUgSv/S8WykzoJ12POwmJ+FQB
-	 /ueYjy1X5HaHP8AtSm1FnsqbTEiEvEdaVZpe7JREr2YV4AG9YheQkyE7bhH+LYLU8a88L
-	 cNmzRpY84Jpjrhc9YF1VR0+uU2te94GuFtZpFT/J+YhwfL0iUZSOcNpifvKSko1H7NyRD
-	 yP+jcsMZmMhj6ownd2CwmNMUlayzvB2SNxN9fsRiNRGirLOtT4G3TCKoPgGC0NObnn5FA
-	 mLK4MdLo/ri6QtuWgEGhARy6SGWyvd4c7nKelTFSOalVBa+FXmYM6I5GnZKvAyS0iug==
+	t=1795485201;
+	b=XLa3s4WmVWbWdzjfyPSxpU5vMUxspwcuxAd9CjNhS3JsllaFB7ZJQ/gJTEOxS5gsk3mm
+	 YWpmGOJTBTtgbu8OrtEjDuqparCm1LYpBygg+mNKATF5gpfgifhS7Kqg7oxHsmJDjsc5T
+	 6Bt5Kvihze3Y0t703wz+JkuD2pTYZNUuln9FXcbO76ZDoHfx0MxnC/rTutdkpuqcypA/f
+	 ZyPlpGcwID47rih2ZYSkcrG4lxyNKDrSH7txGawBZwS/Pkw94Eqysf2z8A1zWR2h5Y2Vj
+	 wrXjPRG3dn6qbbwnJKJubL6KP7qwGYWAwwWamHIWrqN9hRjM9m/WRSQpny/wbV7yCkQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795485108;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=ZokbXljId6D6u7QuANBTdgfEPKfjnXSZeiibQC9/lkA=;
-	b=vyv7DlJxUeVIRgaIAjh72kUafngv7oiprYMhu8Hz8RDM0gpu8Mq3YhbeA2OOdjnkapYq
-	 0rBc/h6LbghpMXC7gzQ3d6U3GXOSx/NPYgiUMcieNfidsXQ2uaFJ6xHSFpsVaGJK0ecJP
-	 QgcLQxxNxFn7ccyMiPh/mPJ+q+Ml/FLAnpJVS3zy6POIZvklYE6OapFC2lBoOF3XjOnRw
-	 wUjeSZcAXIBhaKsJVW9TQz9DiUfU6ZavF6JKFul0hAlU7m933S6ly4U/CIvYFfAdkxwu+
-	 ilvPkP5mxEtculgLd0TN3+CkeqsMQOP7EgvibqRxxvnq3k0ADAzuMizuHC0SQ9kvFAQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795485201;
+	h=DMARC-Filter:dkim-signature:Received:Received:Received:From:To:CC:
+	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding:Content-Type:X-Originating-IP:
+	 X-ClientProxiedBy;
+	bh=tkucSQ4byPvhiJwUrA8Yq4ByYevkQkVNvkxbqT3c11M=;
+	b=OxH0QIFKtIn+mJlQIEmJLCZaNv2KrrsMiPLb8qo5FJAR3I7W3X/wRZf8MADUcEnGEXKK
+	 H3gJL2nmihXD8lsLJkxXDvsY1R8H4Qz5Mj3cjQuKN+RwnVfBf+JV2qilxRb+LKGKrCYFO
+	 fjTbPs+kA5dOHDOGIgVyF81mEWyRZrOEBfPcwQOM57Vanr+h1yn+0Sn7ge0csPcb6kK0O
+	 VH6voazAZ2Zc/lfq8DsisxgVj5v7/C5BTcVUVddvs84H4WrdvqvJe3ZI66IG0CNPOS13d
+	 Mf/GjsePiJ1gPoqp9Gc1G9TNdOqq+YY+W2LKDlhApNHz7pPbKKGeaOf3tLrUNbXNy4A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="Y//Iw/2h";
-	arc=none smtp.remote-ip=209.85.160.53
-Received: from mail-oa1-f53.google.com (mail-oa1-f53.google.com [209.85.160.53])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=pass header.from=huawei.com;
+	spf=pass smtp.mailfrom=huawei.com;
+	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=oPMgnupr;
+	arc=none smtp.remote-ip=113.46.200.225
+Received: from canpmsgout10.his.huawei.com (canpmsgout10.his.huawei.com [113.46.200.225])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9135C606A31E
-	for <linux-rdma@vger.kernel.org>; Tue, 24 Nov 2026 01:51:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9135C606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDC38606A321;
+	Tue, 24 Nov 2026 01:53:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DDC38606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Y//Iw/2h
-Received: by mail-oa1-f53.google.com with SMTP id 586e51a60fabf-483c607ccb4so2116656fac.0
-        for <linux-rdma@vger.kernel.org>; Mon, 23 Nov 2026 17:51:47 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795485106; x=1796089906; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=ZokbXljId6D6u7QuANBTdgfEPKfjnXSZeiibQC9/lkA=;
-        b=Y//Iw/2hGLlL7kW9tiXPoJQIkAnMO1wPPPyCfHudPMhAFcxaDOyuMFdss/Yr7NjONz
-         3WubNTPggyprI6vliE1ezEwTf/HcsAntu+OQlK58XePd0Za4zqFgDvbOI41EFOFaFE1w
-         rgStdIzT/3/WEkhCMJH1aQkeFudGFQe3/giV79QE3wMxoLz3NAhVXlyDNDc9qvvZp2XM
-         h2PDAqvaH735hINC3Hsk5JHVBN3zMMAE6NROgWaEEyipARzbJlAhiVtWN8ARpNwaAO6Q
-         SAOzje4yljCVX46QvbPt1JNXUwx8a+gk5DVv45F8/Y6gh7CSN3CR39lEy7Hju004hoND
-         6vxQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795485106; x=1796089906;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=ZokbXljId6D6u7QuANBTdgfEPKfjnXSZeiibQC9/lkA=;
-        b=E2msoFpFl/2BVmD7eEQhnZ28zmNPcqtxMp4eQwk0o7ug2evCxkCIf3FYVBnXV8g+eS
-         5fT2jIkqRY3MGbHS34ihx7owZv/gPF8i6yhUM9Vy58iqjr5ZdBIA7/zZdtgDQupT30XX
-         cwGQAg0pADYawIfZoEn618TYcZsVSxoldwiNJrE+yQxSwLD1980iM8FwY8BAACBh8OSZ
-         zb+weZN5T8I1jhmGtIEoxZ3M3TQZX35NqopIwsPmdTcTweTkzr/IJtBGCKC0fscbVLxC
-         o7B1Y3AW+qrm3lVyHd4j+BrL69jc/Gf8tcWtktXNHSIasTrf4GqKe6fl7wBmkITmnxu2
-         FyJw==
-X-Forwarded-Encrypted: i=1; AL+hErEkg//wMw+m7pwqyATSsQw+p/B4UckaVz/Gl9qR4blSF5ejGrYKfJ/WDEIgUaxqqVmHIN0TTTVRMebT@vger.kernel.org
-X-Gm-Message-State: APuU4Z/CgtPFu6fs2eGKyLqFm5oRv06i/1ma98LYzGXinlK/Yt2QAVSg
-	k3YbbhRgKxI+QPkxYBCLcbl8/ZfDIyZeVWj5hJR8GdolvKCLgte5J0keI6d2zA==
-X-Gm-Gg: AZFdTZfU+xGAjeZx+h5LQZfeceoefFJg5X2EJS5sImFjdbjopPLJe3/UjZ/aMP2lDqx
-	p2Gt0XN1UH+Z7xV0XhVUsR8xhRofvivTwfPsBPWJ32Wk8VkAaqw1vlIvtCA2dLukTV4LB3VJ3qd
-	jsSZ1LzKGvxZLOfewMH735EQhn/ipE9WMBNiX/k8JGROwSsWR5ngfPbHL7Cv079riHn8rC+u/KJ
-	dBJW+iJMtkhifth5axKocUcheoAsgU+Z0yEQCYbMUGnJTEBNvoPLIOIyHWheznxhRYS6BXl31Qo
-	husC9qnppHsir4B+wkmFMrg4OADilGiA4SXWprJ0dp+XOCxq1/lKQ/EqsmHc6c1aI+MgnHG7DN1
-	8P7R9IYNqnDwYtDsxl3NzBsmNBvTGSbFyiIFOBOGNSZGQIf6wRaDP8/F9cM31V7YvM/yTm62EJR
-	4Nv20EcYeXwIIjnnllKPX0s6T2SaCzGztxxgr5TJNlCGqapo3jB9M715H9V5vXU+1/RVN1ARZAo
-	0yzIK/UFhlNLamJ+grYlGfZF5J2xrVD8pxg6L3jQJFwEgypgKtOHKB59b9FvFVVmFkfnXVwAAqc
-	Cj3MTRcarbCipehr3Y1QD7zAZMyQ3GesI09n9IWBAg1m2kS9U/Mu0jnkoH/Jv6XS2JNdXjjUFBs
-	nxO3tc1UMj2vOLr+CVyFEWQYWH+Uprr9PQafKjfAQJb+AU6uVQDZNxzrwJHXUk7dyQjk=
-X-Received: by 2002:a05:687c:8da:20b0:4c4:58b7:f4b2 with SMTP id 586e51a60fabf-4c458b833aemr3066573fac.21.1795485106362;
-        Mon, 23 Nov 2026 17:51:46 -0800 (PST)
-Received: from tempest-testimage-cc-centos9-stream-server-1191361818 (chi-dyn-129-114-108-164.tacc.chameleoncloud.org. [129.114.108.164])
-        by smtp.gmail.com with ESMTPSA id 586e51a60fabf-4bd044fc4besm10895565fac.7.2026.11.23.17.51.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 23 Nov 2026 17:51:44 -0800 (PST)
-From: Yuho Choi <oss.patchbox@gmail.com>
-To: Selvin Xavier <selvin.xavier@broadcom.com>,
-	Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	linux-rdma@vger.kernel.org,
-	Yuho Choi <oss.patchbox@gmail.com>
-Subject: [PATCH rdma-next] RDMA/bnxt_re: Don't republish a QP whose destroy failed
-Date: Tue, 24 Nov 2026 01:51:36 +0000
-Message-ID: <20261124015141.294866-2-oss.patchbox@gmail.com>
-X-Mailer: git-send-email 2.56.1
+	dkim=pass (1024-bit key, unprotected) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=oPMgnupr
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=tkucSQ4byPvhiJwUrA8Yq4ByYevkQkVNvkxbqT3c11M=;
+	b=oPMgnuprLaUiyQR1swM21wyMOTyPwddx9g6ITfEvHdhCjuMRUjowWpQUMK6TuZlKXq5L8lYQd
+	SxFY96YHAcpZ0r8Vi0InTgaGvyMyk4Vy6B7LfpMUGYtbRcCWbdHnjfQaNb/neDgcTZCVNh/esAj
+	HjACZHx+fB0mRBVEjrl4wIs=
+Received: from mail.maildlp.com (unknown [172.19.162.92])
+	by canpmsgout10.his.huawei.com (SkyGuard) with ESMTPS id 4jYQn61jslz1K9BF;
+	Tue, 24 Nov 2026 09:52:58 +0800 (CST)
+Received: from whupemk300014.china.huawei.com (unknown [7.152.185.8])
+	by mail.maildlp.com (Postfix) with ESMTPS id 6585640586;
+	Tue, 24 Nov 2026 09:53:15 +0800 (CST)
+Received: from huawei.com (10.50.85.128) by whupemk300014.china.huawei.com
+ (7.152.185.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Tue, 24 Nov
+ 2026 09:53:14 +0800
+From: Li Xiasong <lixiasong1@huawei.com>
+To: Chuck Lever <cel@kernel.org>, Jeff Layton <jlayton@kernel.org>, NeilBrown
+	<neil@brown.name>, Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo
+	<Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>, Trond Myklebust
+	<trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>
+CC: <linux-nfs@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+	<stable@vger.kernel.org>, <yuehaibing@huawei.com>,
+	<zhangchangzhong@huawei.com>, <weiyongjun1@huawei.com>
+Subject: [PATCH v3 0/3] rpcrdma: Fix device removal races and endpoint cleanup
+Date: Tue, 24 Nov 2026 10:18:39 +0800
+Message-ID: <20261124021842.130141-1-lixiasong1@huawei.com>
+X-Mailer: git-send-email 2.34.1
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -99,80 +73,83 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
+ whupemk300014.china.huawei.com (7.152.185.8)
 
-bnxt_qplib_destroy_qp() removes the QP from rcfw->qp_tbl before sending
-DESTROY_QP and re-inserts it if bnxt_qplib_rcfw_send_message() fails.
+This series fixes races and endpoint cleanup issues in the RPC-over-RDMA
+device removal paths.
 
-No caller uses the QP after a failure, though:
-- bnxt_re_destroy_qp() logs the error and returns 0 since
-  commit d507d29bfde3 ("RDMA/bnxt_re: Don't fail destroy QP and cleanup
-  debugfs earlier"), so the IB core frees the QP.
-- bnxt_re_destroy_gsi_sqp() logs the error and frees gsi_sqp.
-- bnxt_re_create_qp() frees the QP resources and returns the error so the
-  IB core frees the QP.
-- bnxt_re_create_shadow_gsi() abandons the shadow QP on failure.
+Notification registration is not serialized with device removal. Removal
+can free the per-device private data while registration is still using it,
+or finish walking the notification array before a new registration is
+published. In addition, the notification walk does not hold references to
+the objects containing the notifications, allowing concurrent unregister
+and teardown to free an object before its removal callback is invoked.
 
-Moreover, on the error paths of bnxt_qplib_create_qp() and
-bnxt_qplib_create_qp1(), bnxt_qplib_destroy_qp() is called before the QP
-is even inserted into rcfw->qp_tbl (and before sq_flush/rq_flush are
-initialized in bnxt_qplib_create_qp()), so the rollback publishes a
-half-initialized QP that is about to be freed.
+On the client side, the device removal callback only forces a transport
+disconnect. A connect worker waiting for re_connect_status to change can
+remain asleep, preventing endpoint cleanup. Removal that races with
+connection establishment can also be overwritten by a late ESTABLISHED
+event, and releasing the endpoint from a removal callback or address
+change can free its CM ID context before CMA has stopped dispatching
+events to it.
 
-Except for the abandoned shadow QP, the QP is freed right after, so
-rcfw->qp_tbl is left with a dangling pointer. On a later QP error
-notification, bnxt_qplib_process_qp_event() marks that QP in error and
-passes it to the async event handler.
+Patch 1 serializes notification registration with the transition to device
+removal and protects access to the per-device private data. The critical
+section runs in a NOIO allocation scope so reclaim cannot wait for RPC I/O
+on a transport whose reconnect needs the same mutex.
 
-Drop the rollback so the QP stays out of rcfw->qp_tbl when DESTROY_QP
-fails.
+Patch 2 serializes removal callbacks with unregister. Short removal
+callbacks run under the device mutex, so an owner cannot be unregistered
+and freed while its callback is running. Callbacks that must release a
+reference do so outside the mutex through an independently owned release
+callback, keeping a final transport put from waiting on a connect worker
+that needs the mutex.
 
-Fixes: f218d67ef004 ("RDMA/bnxt_re: Allow posting when QPs are in error")
-Fixes: d507d29bfde3 ("RDMA/bnxt_re: Don't fail destroy QP and cleanup debugfs earlier")
-Signed-off-by: Yuho Choi <oss.patchbox@gmail.com>
----
-Compile-tested only (x86_64 with INFINIBAND_BNXT_RE, W=1). I have no
-NetXtreme-E RoCE hardware, and DESTROY_QP only fails when the firmware
-times out or returns an error status, so I could not trigger it.
+Patch 3 records device removal in the endpoint connection status and wakes
+a waiting connect worker. Atomic state transitions give -ENODEV precedence
+and force an established connection to disconnect without a late
+ESTABLISHED event masking the error. It drops the connection-management
+callback get/put pairs and destroys the CM ID in the endpoint destructor,
+before freeing its context, so that active and future callbacks are fenced.
+Device removal during setup is translated to -ENOTCONN so pending RPCs
+retry.
 
- drivers/infiniband/hw/bnxt_re/qplib_fp.c | 16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+The patches are ordered by dependency: patch 2 uses the serialization
+introduced by patch 1, and patch 3 relies on the callback lifetime
+protection added by patch 2.
 
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-index 5301e4f21ade..a5660002d184 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-@@ -1473,7 +1473,6 @@ int bnxt_qplib_destroy_qp(struct bnxt_qplib_res *res,
- 	struct bnxt_qplib_cmdqmsg msg = {};
- 	struct cmdq_destroy_qp req = {};
- 	u32 tbl_indx;
--	int rc;
- 
- 	spin_lock_bh(&rcfw->tbl_lock);
- 	tbl_indx = map_qp_id_to_tbl_indx(qp->id, rcfw);
-@@ -1488,16 +1487,11 @@ int bnxt_qplib_destroy_qp(struct bnxt_qplib_res *res,
- 	req.qp_cid = cpu_to_le32(qp->id);
- 	bnxt_qplib_fill_cmdqmsg(&msg, &req, &resp, NULL, sizeof(req),
- 				sizeof(resp), 0);
--	rc = bnxt_qplib_rcfw_send_message(rcfw, &msg);
--	if (rc) {
--		spin_lock_bh(&rcfw->tbl_lock);
--		rcfw->qp_tbl[tbl_indx].qp_id = qp->id;
--		rcfw->qp_tbl[tbl_indx].qp_handle = qp;
--		spin_unlock_bh(&rcfw->tbl_lock);
--		return rc;
--	}
--
--	return 0;
-+	/*
-+	 * Don't put the QP back into qp_tbl if the command fails: no caller
-+	 * uses the QP after a failure, and most of them free it right away.
-+	 */
-+	return bnxt_qplib_rcfw_send_message(rcfw, &msg);
- }
- 
- void bnxt_qplib_free_qp_res(struct bnxt_qplib_res *res,
+Changes since v2:
+- Run the registration critical section under memalloc_noio_save()/
+  memalloc_noio_restore() so the module-wide mutex is never held across
+  reclaim that may wait for RPC I/O.
+- Drop the rn_get/rn_put callbacks and rpcrdma_notification_ref. Removal
+  callbacks now run under the device mutex (they are short and do not
+  sleep), so a pinned owner is unnecessary. Transport references are moved
+  back into verbs.c and svc_rdma_transport.c and released outside the
+  mutex via a new rpcrdma_notification_release output parameter.
+- Make rpcrdma_ep_disconnect() use a try_cmpxchg loop so a connection that
+  is already established transitions to the error state and is forced to
+  disconnect, instead of leaving re_connect_status at 1.
+- Have RDMA_CM_EVENT_ESTABLISHED return early when the status is already
+  non-zero, avoiding a forced disconnect on an unpinned transport.
+- Translate the -ENODEV connection status to -ENOTCONN so pending RPCs
+  retry on a hard mount when the device disappears during setup.
+- Link to v2: https://lore.kernel.org/all/20261103032758.1302493-1-lixiasong1@huawei.com/
 
-base-commit: 8dac6df92a2e66e2098bbc69061964cfe7e8375b
+Li Xiasong (3):
+  rpcrdma: Serialize notification registration with device removal
+  rpcrdma: Serialize removal callbacks with unregister
+  xprtrdma: Wake connect worker on device removal
+
+ include/linux/sunrpc/rdma_rn.h           |  27 ++++-
+ net/sunrpc/xprtrdma/ib_client.c          |  86 +++++++++++---
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |  24 +++-
+ net/sunrpc/xprtrdma/transport.c          |   2 +-
+ net/sunrpc/xprtrdma/verbs.c              | 138 +++++++++++++++--------
+ 5 files changed, 208 insertions(+), 69 deletions(-)
+
 -- 
-2.56.1
+2.34.1
 
