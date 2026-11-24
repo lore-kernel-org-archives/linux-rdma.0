@@ -1,61 +1,93 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.44
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795509175;
-	b=0dps5U9IIsmUJpOGSCounQECGaQvRSbj6hkIDlRPjRI5Uf31Ho08J9f7Mr0PJJzBGgF2
-	 aZgXC+93Af+7iuAp0i4Zr/ACKPqFok2BVXC/rlyWxnGqRK9xK121rpI9D1HCGP4Siyj8K
-	 sr23VvFHyTwUbhqyLNyprf+HK0UPR1pQgud0Zmefvvoqh9b8iEwB6EU2KoRL7Wnki3kdj
-	 ofP64NWlriBD/vic1l9NAd3VMNnIr2ZIXf1ofdprV3JGGOjgB9lQOAEo4xNMXPQhqSzM5
-	 pF1aX6FRRnQKotbMbM3gtV3lKaMjArBa/NTfgpm+Dd9aXc5Mqig5/X2Z5XmqcHqYU9A==
+	t=1795510892;
+	b=a4bui0r/r6iPyRHD2N/XR+T0K9HkJldjkFMFDivFoQrAUAKf9s6n3IcGHjHdE9r8vgog
+	 43sDw+m0eZ+u2F4jIV+NPnbhX6ezu3QorHfcTxrTzhgrXyre+CXTj5n1bQQLg2KmUeeoz
+	 q7OHDiQYQmMOFfFJVE0FSE8Xk4TiP3pI56M9obblTsFA8Zm8nwn8hp4cRxU6IcouhCGJF
+	 t/GYMr9IH8fSWdPguUwqwCdyUkWpCVx2LCyETg1FNm4OQeSeuKBIJm8ljrO2NAzkf0ttV
+	 8BH+ngOsdf0i9yXbB6yv6QEBQ5J1A4GhA/LeZTtCJ0rbunH/M6Jq1yqRZyQ8LyxxWVw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795509175;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=HHCOhh1scpjZ1mmCtu+F0vsYxG67SpGIkKK48e5engo=;
-	b=QN0BOdvBMLrYPht8yGPRAVmTxv6VG+rPlrx4T2t0ZK/n4fZXFpnUOfVb5TknAVrCmsJN
-	 vtBkyopidfkSVONtzvwdd8Q3jqPjDJ4Xwzcvrk01c8cWMgf7HEqB1g3v9juKIwIDjawIp
-	 QzQ/Igv/ClgyuXtv+UnOUrxJ/2nOslxAtPx5A14iCiPK3N6VDYmCSQy/iX1RYSuHAjSJ2
-	 fhATsLT9mGeC58vvT2lby3U+f+p04XR4bVnmSSYresx9S4WZVn+eZOV03QYDIMqcvLKW2
-	 Xl5Z+otLy4wJdQeGLcxFzHpEkclcADJ4W+brJEPlRlEQlMyYIL0Awqv9hojDXqv7GYA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795510892;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
+	 Date:Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=xshIw2ltDpH8Fa2+b6L6mvxHTuXNivgj14RbIHd51to=;
+	b=oD6sa2dH5p4jUUk/goOGwywz1oaFKTvZ7cx15NRel7OCMh4QQ4W/fNlkZ4QtxhGVRb16
+	 m+hQmIU0oTRFfM1BWo7ueDALO7wQ7rQVZbzs7hbI6mDJdvAjzmgLQEikXYBUdQLSIJEzd
+	 FZK1Dulgt75+icoOEQuU8Lr1SzqJWbdPII16jDnE/FerKx1qnZTH/qX2pVoeAi+Lf29Ju
+	 8X1o4duWKziJ1lhFOBBcJ0c8I2fYH80fsYwyvgpyIR7sad1l10Fm679YDkNoG//kQERr1
+	 s8+dWcw0+rGXCJc/YCektC2K5bmA8+xDvL8GcI5X0iBYBrmK+CBYkuVq0PbD1FyeRkQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=me2h9mcx;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=sDLdwhuT;
+	arc=none smtp.remote-ip=209.85.216.44
+Received: from mail-pj1-f44.google.com (mail-pj1-f44.google.com [209.85.216.44])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A46DF606A32C;
-	Tue, 24 Nov 2026 08:32:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12020606A31E
+	for <linux-rdma@vger.kernel.org>; Tue, 24 Nov 2026 09:01:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 12020606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=me2h9mcx
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7575F1F000D4;
-	Tue, 24 Nov 2026 08:32:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795509175;
-	bh=HHCOhh1scpjZ1mmCtu+F0vsYxG67SpGIkKK48e5engo=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=me2h9mcxlMluavCfFcLHD5egTnJzc96IWSbdZ+m5pxTJ+gSS58RvAC+OjU+99sPmU
-	 /VP9LOCEPbKohkBza2HTesoA3lH/HYomhua0E0KlzS7Qz03Iitltwlm65Zzpp4ICH2
-	 DUvXePmh3kTsATBWstTlvo1igCmeCuTlhH2LZGvgRB7/e8owj96o93KiDRn6Yty6nn
-	 ao3WvDFVyEAXWwh/oUCdJ9ibF1OJxm9kkAEwcxEvFqRJJIMsBo6p0mJ+lXCMVZlbcK
-	 lwgS7C48J1XPTAghOpWNgscRHCVuzpFfVlHPK/bCiqybTtZ0GtCXJg2vRkoTAwxjhj
-	 x6NWjhIwPLTDw==
-Subject: Re: [PATCH net-next V2 5/5] net/mlx5: LAG, enable LAG over functions
- that do not represent a physical port
-From: netdev-bot+sashiko@kernel.org
-To: tariqt@nvidia.com
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
- agoldberger@nvidia.com, gal@nvidia.com, jgg@ziepe.ca, leon@kernel.org,
- linux-rdma@vger.kernel.org, mbloch@nvidia.com, moshe@nvidia.com,
- ohartoov@nvidia.com, saeedm@nvidia.com, shayd@nvidia.com
-Date: Tue, 24 Nov 2026 08:32:54 +0000
-Message-ID: <179550917403.3135.6078772385370645877@kernel.org>
-In-Reply-To: <20261120075959.2533702-6-tariqt@nvidia.com>
-References: <20261120075959.2533702-6-tariqt@nvidia.com>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=sDLdwhuT
+Received: by mail-pj1-f44.google.com with SMTP id 98e67ed59e1d1-3b4166b78b7so515060a91.3
+        for <linux-rdma@vger.kernel.org>; Tue, 24 Nov 2026 01:01:31 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1795510891; x=1796115691; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=xshIw2ltDpH8Fa2+b6L6mvxHTuXNivgj14RbIHd51to=;
+        b=sDLdwhuTdzBhSx7WY+SeNxNzmejDkf7A+0fk1CekbyAdrw/wDE1HDvlEJsfhLb1p5x
+         Y0whgxulwu0JP2uphVmBAqPlNtFl1nguE+B2qnmxLBcTw++EIY4jBxaH71Gr9Suw/yxf
+         nNVADz0/xxhp6IFsU2EGy5m17d3oXJoDr412WdUl+fCVFE9SOVawSWIatF7nFyz90Emz
+         unbI8xf351P9qehnhNuObb09PJHZILdi0RwdzaY/PP6uD8l8yh0zogzUrZ7HlKVb/U2F
+         5WB0+oIGmYUwKRQQWDhTqxVJySYQJvdv1gA4q8rEXKsuEFXNt+8lPLjrkqT+ORMNswVR
+         6uUw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795510891; x=1796115691;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=xshIw2ltDpH8Fa2+b6L6mvxHTuXNivgj14RbIHd51to=;
+        b=pncblAQTgt0D+YWof0zPjykeHZY8YS5cIwEaXUc6yuDzVvB1aMKQBdMGAuj2GgsxcB
+         R4WFVnTaw1MQPVytXKPHJvqeKEJYVx1qkfNyj8clEt78oB6Yx+er9FmvkAvKmkYR2eCE
+         y23a0175Qt1F1n/w/gH4Cv1Hp8UHLgAOKtShyG0PMfkoHmg4lI01bRT28XbkqKcov+pf
+         Qfo1d/4ZiVDRPEXSbnxgwuiEKE5/1JWoP0yiq3vV7FrOH+29agu8/ZphvL61m61qCnc6
+         Y0gB3S/nMIVt4IfTACV7J2KQ15O3FTp9/cG68HecjlTU/KDmryE2d7iWJUZeMa6iDanw
+         PhuQ==
+X-Gm-Message-State: APuU4Z/ZcwBbtqr3Ey1ZyHANrCNHeiHu3mzFwn3nEZxOOACLfZgkz6/F
+	mfEEtOgyz4jX73WJ6MEJOv4jrSS7FtKS2ngpVmREyVB6mYC9pXh5vRz4
+X-Gm-Gg: AZFdTZcSRXhhXEADpm2+DcmcI3nqpMY9ipX7vnwDj6Kkk0RChBD8AvQOluaZQfaFUUp
+	LAX725dj6GQxkJI+Rpwu6BLxShYZwV5ndJkBSVTKX5nPSt9kFmyp4NCVhmCkw/5YZzKKShgGPPl
+	R4Urkhu+vN641A2iEb1Yzm+MvVe097Q7jiRjot2KgB4QgLakatP1bz76+JNiDF48xXQpY7kje7P
+	vOc8onV5lnuFbqhht6crN0s7AeIES89W4eOKlX0RL3s2qkE26P2jwuG57yvjbXH0NYPBddcSvzO
+	xtxdyM72p8ZjrfeEGWUKw6ftJ71P/P7miNPwOuZo0JyDygpVb3Murv8IsSRHfNWwPTp81VlI38O
+	QdvMoO/DvVi8lVbIs5g35H0FSN9X3vaGHL4Lpx7oKJT7AqiXLjXp3vKYSmDV4mGeAN2CLzVjGkv
+	S/SHDgvAOIMEpeJ7efB/ZimB1KLpcl75KjZ1b+Y2lnc1FsfqulRmE79pwt5sgCdUCat7sohPeRi
+	0gIkV5yavMQ6s6Sj3ZwOWWovT4svgZvVCuNYeHt2g1sFbfjmtlQ/gTTkpyOYa+lNn1n61sdqMAb
+	HoIhEyIyxJyUd/YKO2RzqhPeu7T7HBTB8HkSsCtm
+X-Received: by 2002:a17:90b:39a3:b0:3a4:c895:570 with SMTP id 98e67ed59e1d1-3b41c91f7b1mr22760547a91.4.1795510891163;
+        Tue, 24 Nov 2026 01:01:31 -0800 (PST)
+Received: from gmail.com ([124.127.65.130])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2f03f0dc4f2sm68086245ad.30.2026.11.24.01.01.27
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Tue, 24 Nov 2026 01:01:30 -0800 (PST)
+From: Ziyu Zhang <ziyuzhang201@gmail.com>
+To: sagi@grimberg.me,
+	mgurtovoy@nvidia.com,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	baijiaju1990@gmail.com,
+	ziyuzhang201@gmail.com
+Subject: [PATCH v2] IB/iser: Fix blocking connect hang and endpoint double free
+Date: Tue, 24 Nov 2026 17:01:21 +0800
+Message-Id: <20261124090121.77115-1-ziyuzhang201@gmail.com>
+X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -65,201 +97,176 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 4 potential
-issue(s) to consider.
+iser_connect() waits for up_completion while holding
+iser_conn->state_mutex.  The RDMA CM callback that advances the
+connection state machine needs the same mutex, so a blocking connect
+can never finish establishing and the wait only returns when a signal
+arrives.  The caller then sits there with rx_queue_mutex held, which
+stalls the iscsi netlink path for the whole daemon.
 
-Critical: 0 · High: 0 · Medium: 2 · Low: 2
+Dropping the mutex around the wait is not enough on its own:
+up_completion is only completed on RDMA_CM_EVENT_ESTABLISHED, so an
+address, route, connect or reject error still leaves the waiter asleep
+forever; complete it from iser_connect_error() as well.  The cleanup
+events are the other way an attempt can end without an establishment:
+DISCONNECTED, ADDR_CHANGE, TIMEWAIT_EXIT and DEVICE_REMOVAL reach
+iser_cleanup_handler() with the connection still ISER_CONN_PENDING,
+where iser_conn_terminate() does nothing because it only acts on an
+established connection.  Terminate a PENDING connection there and wake
+the waiter, leaving the established-connection cleanup unchanged.
+iscsi_iser_ep_poll() must then look at the connection state when the
+completion fires, otherwise a failed attempt is reported as a
+successful connection.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+Finally, the failure paths left the connection in ISER_CONN_PENDING or
+ISER_CONN_TERMINATING.  iser_conn_release() destroys iser_conn->ep when
+the state is not DOWN, and iscsi_iser_ep_connect() destroys the same
+endpoint again on the error return, so the endpoint was freed twice.
+Terminate the connection and mark it DOWN under the state mutex instead,
+so the endpoint keeps a single owner, and so that no handler can keep
+operating on a connection that is being torn down.
 
-- [Medium] mlx5_lag_add_mdev() now lets any VF/SF that passes
-  mlx5_virt_lag_is_supported() into the LAG, and nothing caps how many…
-- [Medium] net/mlx5: LAG, empty debugfs member list in members_show() for
-  virt_lag
-- [Low] For a virt LAG, vport speed aggregation does nothing at all.
-- [Low] The commit message does not mention that the exported
-  mlx5_lag_is_mpesw() changes meaning.
+DOWN is terminal: iser_connect() drops state_mutex before the cma_id is
+destroyed, so a late CM error event can still reach iser_connect_error().
+That handler used to move the state to TERMINATING unconditionally, so
+iser_conn_release() destroyed the endpoint first and
+iscsi_iser_ep_connect() destroyed it again when iser_connect() returned.
+Leave a DOWN connection alone there.
 
---
+Fixes: 504130c039f9 ("IB/iser: Protect iser state machine with a mutex")
+Fixes: 9a3119e4b787 ("IB/iser: Release the iscsi endpoint if ep_disconnect wasn't called")
+Cc: stable@vger.kernel.org
+Signed-off-by: Ziyu Zhang <ziyuzhang201@gmail.com>
 
-net/mlx5: LAG, enable LAG over functions that do not represent a physical port
+---
+Changes in v2:
+- Wake up the blocking waiter on connection errors and on cleanup events
+  received while the connection is PENDING, including device removal.
+- Check the return value of wait_for_completion_interruptible() and
+  propagate signal interruption errors.
+- Terminate the connection and set its state to DOWN under state_mutex
+  on connect failure, leaving endpoint destruction to the caller.
+- Keep DOWN terminal in iser_connect_error() so a late CM error cannot
+  trigger endpoint destruction in iser_conn_release().
+- Check the connection state after a positive completion result in
+  iscsi_iser_ep_poll() to distinguish successful and failed connections.
+- Expand the commit message to explain the failure wakeups and endpoint
+  cleanup ordering.
 
-This patch lets VF/SF functions that sit behind a multi_uplink_eswitch
-(num_lag_ports < 2) join a LAG, using mlx5_virt_lag_is_supported() to
-detect them. Such members are not marked as ports. They do not register
-the PORT_CHANGE, netdev or multipath FIB notifiers, and they do not add
-netdevs to the LAG.
+v1: https://lore.kernel.org/linux-rdma/20261123144440.65441-1-ziyuzhang201@gmail.com/
 
-The patch also widens mlx5_lag_get_filter() and mlx5_lag_is_mpesw() for
-virt LAG, makes mlx5_lag_get_num_ports() return at least 1, and stops
-RDMA from assigning a TX port affinity for these functions.
+ drivers/infiniband/ulp/iser/iscsi_iser.c | 11 +++++-
+ drivers/infiniband/ulp/iser/iser_verbs.c | 50 +++++++++++++++++++++++-
+ 2 files changed, 58 insertions(+), 3 deletions(-)
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-> index 193fbe47fef15..2cd2319f93189 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-
-[ ... ]
-
-> @@ -2398,7 +2404,7 @@ int mlx5_ldev_add_mdev(struct mlx5_lag *ldev,
->  	fn->group_id = group_id;
->  	dev->priv.lag = ldev;
->  
-> -	if (group_id)
-> +	if (group_id || ldev->virt_lag)
->  		return 0;
->  
->  	xa_set_mark(&ldev->fns, idx, MLX5_LAG_XA_MARK_PORT);
-
-[Severity: Medium]
-Does this early return also leave the lag/members debugfs file empty
-for every virt LAG device?
-
-mlx5_lag_add_mdev() now lets virt-LAG capable functions through. On
-success it calls mlx5_ldev_add_debugfs(dev), which creates the lag
-directory, including the members file.
-
-members_show() in lag/debugfs.c lists the members with:
-
-	mlx5_ldev_for_each(i, 0, ldev)
-		seq_printf(file, "%s\n",
-			   dev_name(mlx5_lag_fn(ldev, i)->dev->device));
-
-mlx5_ldev_for_each() uses MLX5_LAG_FILTER_PORTS, so
-mlx5_get_next_lag_func() only walks entries marked with
-MLX5_LAG_XA_MARK_PORT. A virt-LAG member returns here before
-xa_set_mark() runs, so no entry in ldev->fns carries the mark.
-Reading lag/members on such a device then always prints nothing, even
-when the LAG has members.
-
-This patch already switched mlx5_lag_get_filter() to
-MLX5_LAG_FILTER_ALL for virt LAG because its members are not marked
-as ports. Should members_show() use the same per-device filter, or
-MLX5_LAG_FILTER_ALL when ldev->virt_lag is set, so the file reports
-the real members? Or is the members file not meant to exist for a
-virt LAG?
-
-[Severity: Low]
-Because of this early return for virt_lag, no virt-LAG member ever gets
-MLX5_LAG_XA_MARK_PORT or the PORT_CHANGE notifier. Does that leave vport
-speed aggregation doing nothing for a virt LAG?
-
-mlx5_lag_enable_mpesw() calls mlx5_lag_shared_fdb_create() with
-MLX5_LAG_FILTER_ALL, and that function then does:
-
-	if (filter == MLX5_LAG_FILTER_PORTS || filter == MLX5_LAG_FILTER_ALL)
-		mlx5_lag_set_vports_agg_speed(ldev);
-
-mlx5_lag_set_vports_agg_speed(), mlx5_lag_get_devices_oper_speed() and
-mlx5_lag_get_devices_max_speed() all iterate with mlx5_ldev_for_each(),
-which only visits PORT-marked entries. For a virt LAG the summed speed
-is 0, and the loop that calls mlx5_lag_modify_device_vports_speed() runs
-zero times.
-
-The skipped notifier, mlx5_lag_mpesw_port_change_event(), is the only
-place that queues speed_update_work. So nothing would refresh the speed
-later either.
-
-Other virt-LAG paths in this series were moved to MLX5_LAG_FILTER_ALL
-(for example mlx5_lag_get_devcom_comp()). If speed aggregation is not
-meant to apply to virt LAG, should mlx5_lag_shared_fdb_create() skip the
-call explicitly? If it is meant to apply, should the speed helpers and
-the refresh trigger cover all members?
-
-> @@ -2547,7 +2553,7 @@ void mlx5_lag_add_mdev(struct mlx5_core_dev *dev)
->  {
->  	int err;
->  
-> -	if (!mlx5_lag_is_supported(dev))
-> +	if (!mlx5_lag_is_supported(dev) && !mlx5_virt_lag_is_supported(dev))
->  		return;
->  
->  	if (mlx5_lag_register_hca_devcom_comp(dev))
-
-[Severity: Medium]
-Can the retry loop below this check spin forever once a virt LAG has 255
-members?
-
-mlx5_lag_add_mdev() gives up only on -EOPNOTSUPP:
-
-	if (err == -EOPNOTSUPP) {
-		mlx5_lag_unregister_hca_devcom_comp(dev);
-		return;
-	}
-	if (err) {
-		msleep(100);
-		goto recheck;
-	}
-
-The devcom match key comes from mlx5_query_nic_sw_system_image_guid().
-It is the system image GUID plus the load_balance_id and VF/SF flag
-bytes. So every virt-LAG capable SF (or VF) of the same NIC in the same
-netns would join the same ldev through __mlx5_lag_dev_add_mdev().
-
-mlx5_ldev_add_mdev() allocates the slot with:
-
-	err = xa_alloc(&ldev->fns, &idx, fn, XA_LIMIT(0, U8_MAX - 1),
-		       GFP_KERNEL);
-
-After 255 members this returns -EBUSY, and __mlx5_lag_dev_add_mdev()
-passes it back unchanged. This happens when MPESW is not yet active;
-otherwise the late-joiner -EOPNOTSUPP check returns first. The xarray
-stays full between iterations, so mlx5_load() for the 256th function
-would sleep and retry until some other member unloads.
-
-An earlier patch in this series ("net/mlx5: E-switch, add match-metadata
-allocator for nested VF/SF eswitches") already mentions the 0-254 slot
-limit from this xa_alloc(). Before this patch, only vport_group_manager
-PFs with 2..MLX5_MAX_PORTS lag ports reached this path, so the limit
-could not be hit.
-
-Should a permanent capacity error end the LAG join the same way
--EOPNOTSUPP does, instead of being retried like a transient error?
-
-[ ... ]
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c
-> index 2d3e61541d8a1..0ef2d13d00968 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c
-> @@ -336,7 +336,7 @@ bool mlx5_lag_is_mpesw(struct mlx5_core_dev *dev)
->  	struct mlx5_lag *ldev = mlx5_lag_dev(dev);
->  
->  	return ldev && ldev->mode == MLX5_LAG_MODE_MPESW &&
-> -	       __mlx5_lag_dev_is_port(ldev, dev);
-> +	       (ldev->virt_lag || __mlx5_lag_dev_is_port(ldev, dev));
->  }
->  EXPORT_SYMBOL(mlx5_lag_is_mpesw);
-
-[Severity: Low]
-This isn't a bug, but the commit message does not say that the exported
-mlx5_lag_is_mpesw() now returns true for every virt-LAG member, not only
-for port-marked ones.
-
-It also does not mention the change in mlx5_lag_get_filter():
-
-	if (fn && (fn->group_id || ldev->virt_lag))
-		return MLX5_LAG_FILTER_ALL;
-
-With this change, mlx5_lag_get_dev_seq(), mlx5_lag_get_next_peer_mdev()
-and the related helpers walk all members of a virt LAG.
-
-Several places call mlx5_lag_is_mpesw():
-
-  - eswitch_offloads.c (uplink destination type)
-  - en_tc.c
-  - en/tc_tun.c
-  - ib_rep.c
-  - a devlink parameter getter in eswitch.c, which reports the value to
-    user space
-
-Their behavior for VF/SF functions now changes. Could the commit message
-describe these two changes?
-
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+index 7df441685780..47c264cb9aff 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+@@ -843,7 +843,16 @@ static int iscsi_iser_ep_poll(struct iscsi_endpoint *ep, int timeout_ms)
+ 	rc = wait_for_completion_interruptible_timeout(&iser_conn->up_completion,
+ 						       msecs_to_jiffies(timeout_ms));
+ 	/* if conn establishment failed, return error code to iscsi */
+-	if (rc == 0) {
++	if (rc > 0) {
++		/*
++		 * up_completion is also signalled when the connection attempt
++		 * failed, don't report that as a successful connection.
++		 */
++		mutex_lock(&iser_conn->state_mutex);
++		if (iser_conn->state != ISER_CONN_UP)
++			rc = -1;
++		mutex_unlock(&iser_conn->state_mutex);
++	} else if (rc == 0) {
+ 		mutex_lock(&iser_conn->state_mutex);
+ 		if (iser_conn->state == ISER_CONN_TERMINATING ||
+ 		    iser_conn->state == ISER_CONN_DOWN)
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 55fe68e5b837..f57d71e3d448 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -480,7 +480,18 @@ static void iser_connect_error(struct rdma_cm_id *cma_id)
+ 
+ 	lockdep_assert_held(&iser_conn->state_mutex);
+ 
++	/*
++	 * A failed iser_connect() moves the connection to DOWN and drops
++	 * state_mutex before the cma_id is destroyed.  A late error event
++	 * must not move it back: iser_conn_release() would then destroy
++	 * the endpoint that iscsi_iser_ep_connect() destroys as well.
++	 */
++	if (iser_conn->state == ISER_CONN_DOWN)
++		return;
++
+ 	iser_conn->state = ISER_CONN_TERMINATING;
++	/* Wake up a blocking iser_connect() waiting for the result */
++	complete(&iser_conn->up_completion);
+ }
+ 
+ static void iser_calc_scsi_params(struct iser_conn *iser_conn,
+@@ -652,6 +663,19 @@ static void iser_cleanup_handler(struct rdma_cm_id *cma_id,
+ 	struct iser_conn *iser_conn = cma_id->context;
+ 
+ 	lockdep_assert_held(&iser_conn->state_mutex);
++
++	/*
++	 * A cleanup event during connection setup ends the attempt before
++	 * it reaches ISER_CONN_UP.  iser_conn_terminate() only acts on an
++	 * established connection, so wake up iser_connect() and
++	 * iscsi_iser_ep_poll() here.  A late event after a failed connect()
++	 * finds the connection DOWN and leaves it alone.
++	 */
++	if (iser_conn->state == ISER_CONN_PENDING) {
++		iser_conn->state = ISER_CONN_TERMINATING;
++		complete(&iser_conn->up_completion);
++	}
++
+ 	/*
+ 	 * We are not guaranteed that we visited disconnected_handler
+ 	 * by now, call it here to be safe that we handle CM drep
+@@ -778,7 +802,21 @@ int iser_connect(struct iser_conn *iser_conn, struct sockaddr *src_addr,
+ 	}
+ 
+ 	if (!non_blocking) {
+-		wait_for_completion_interruptible(&iser_conn->up_completion);
++		int ret;
++
++		/*
++		 * The connection state machine is driven from the RDMA CM
++		 * callback, which needs state_mutex: don't hold it while
++		 * waiting for the connection to be established or to fail.
++		 */
++		mutex_unlock(&iser_conn->state_mutex);
++		ret = wait_for_completion_interruptible(&iser_conn->up_completion);
++		mutex_lock(&iser_conn->state_mutex);
++
++		if (ret) {
++			err = ret;
++			goto connect_failure;
++		}
+ 
+ 		if (iser_conn->state != ISER_CONN_UP) {
+ 			err =  -EIO;
+@@ -795,8 +833,16 @@ int iser_connect(struct iser_conn *iser_conn, struct sockaddr *src_addr,
+ id_failure:
+ 	ib_conn->cma_id = NULL;
+ addr_failure:
+-	iser_conn->state = ISER_CONN_DOWN;
+ connect_failure:
++	/*
++	 * The connection never made it to ISER_CONN_UP.  Terminate it in
++	 * case the wait raced with a successful establishment, and mark it
++	 * DOWN so iser_conn_release() leaves iser_conn->ep alone: on this
++	 * path the endpoint is still owned by iscsi_iser_ep_connect(),
++	 * which destroys it when we return an error.
++	 */
++	iser_conn_terminate(iser_conn);
++	iser_conn->state = ISER_CONN_DOWN;
+ 	mutex_unlock(&iser_conn->state_mutex);
+ 	iser_conn_release(iser_conn);
+ 	return err;
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261120075959.2533702-1-tariqt%40nvidia.com
+2.34.1
+
