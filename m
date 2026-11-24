@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795509173;
-	b=gBT9XlqeXkl1A0WqwJXQn1rzunB79qn6CJBh4mgvEjUL76gYoMLw1upfoUpIKTfgOyML
-	 aKhB7aDxMNtjObHoqBBYrTWo1hR7iunIA+Pmp5jabv7DoMCBFdpve05XSsBQhzWSDtvvh
-	 tZ7jlglqicE1+bVrCy5G4u9fwg7lNZOcViGzSrmjfgreOC5UKQD9uN2q9r4ksNwVF95UY
-	 RT5nB5MissF82EVxdz9p+41fyKfPpVrqGXOhPVQfJj7Gy9tu3n93YHPB8FnnehfJgfMKz
-	 V165BhFoMutJC+kHpch1NSncPmzE8SHM9T4lx+PrmrtPHUKxN0V/bbr9rWN4l/hIRZw==
+	t=1795509171;
+	b=l1+DpdyuUObBwmOoO+eqjkhMbOzMENWL2AtBgiHo7oC7jvQVHeIMeLE3bZTQFMUkdvrS
+	 8BD1j3CdsihrddxkzQMhZI741l9J8AmBuzYDtLm+qwhdOm73rfJl9RX6xCoKBKq/QZEZ8
+	 3TTPABzS+hG5lxlaa86A51ox0+WqUOKV3EKzG+XMTZ1wHX+GthV1LSBo6D1nfROilfhWD
+	 WruBvSfD41ulMpD0qEm175x+aqfEc09Od+IJWogzdsqO64944lWNXVsSKKkXTdfQ7J1js
+	 oyDcvkVc9WuhikADfU3Wvmnju9U5Tp5xF45LQI3oit9cMV+4TrYmVGdiIyDUbWHhXGg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795509173;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795509171;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=/ItIR3u3IAZKinHI/Kt2n31M5TXyRHqKKC1RLcMClSA=;
-	b=Nu+ti3ABpSoSycZGEcVqy4xJ9HMGZZzWUC9nGMUqIiudj0QOP4nE/E1J+edpl+q48Pr8
-	 DagpjyJ7hjnKCeIHxXLecgKoqja7I+rhOjkvhdHtNf7vaolDEGkenwexVaksKDCfdSpOF
-	 OBB9KzEVtp7nNMDkNiS5swfrZscjJUNLfmErib0uo3prCRpJBDCrhQ3m7Dqnbqk358QZg
-	 dgcw1+N2jfibxfMb4lCKnTuoIOHGcHx9EjFR/rpDdw3HtahIVUqG3azeh/132M75bQAzv
-	 lkbaL2EVTMggulbhIW8eQjShsS/bC24UTRHns98dkUNmLc1Gp1fUvA+e34lB+jdDM+g==
+	bh=SSWvAwr/5hEsEptr43m3m8mH5r8bFDdlRYQILkQYTEM=;
+	b=4MidSxzNLQ38LK/joPJCMlbvg1tBPv+xQ+qq+YFZqzTXlBPjL+MCjFzQxPJfmJXyg/j6
+	 33Wcx0tvBh0gn21Uzbwf7b6u07WUW/jn8qj0YIwcXg9cwRCmr76kyiXwIhEa0UEjj1h+K
+	 1eRaapudWhAj/BCHTMgfDDthT2vEjtW+BplvUSGwERV/Em6otblCujvc3UcaoPDAwuAGj
+	 nznfCmbUMM4e1VX6+0RbrvmvsbgdnV7Gp3P4hR0euCAm3BdEiPpfJo8KdVUc8T67/EII+
+	 SNM/P+vKka65pAyHTp1BOKpX9d3vKkrGq+29sNLmFymU6tokbYoEXJ/ebm52YDV7qNg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="c4h94k0/";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hXm+mFJ0;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB387606A32C;
-	Tue, 24 Nov 2026 08:32:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A133A606A6A4;
+	Tue, 24 Nov 2026 08:32:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=c4h94k0/
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59C571F000EC;
-	Tue, 24 Nov 2026 08:32:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hXm+mFJ0
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 473DD1F000EB;
+	Tue, 24 Nov 2026 08:32:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795509173;
-	bh=/ItIR3u3IAZKinHI/Kt2n31M5TXyRHqKKC1RLcMClSA=;
+	s=k20260515; t=1795509171;
+	bh=SSWvAwr/5hEsEptr43m3m8mH5r8bFDdlRYQILkQYTEM=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=c4h94k0/VEqZ/yHQFGSXTeM0S+IS7lYAX9Vot+uQdwyzFkPhpmLIKLkqCKO5ULBt9
-	 8CwCBXJS2UfcYjylaPYW/9ayBp0GYH6IRiKkkM10z/eBnZ6OfQ66WupUaO7eQobc2L
-	 32Rrdy+BThZmlkqMs8Cr4RBviDvICxEdbKo2AkkQLEY/yhFBssbVRTcEXOCD4zZU8b
-	 Jn/YiavN9jLZk+nCO/xK4K+7szupIi+ZzfiwdEpWX5Rnj8xvbBmOv8lNJD74VF+Yld
-	 RjGmyXTP4XFjH2hNdibo5kZhuFI0rY6lnlABJkAnHPCoBHPacMsR5Ddjm1QBq4+Mqt
-	 rwCH/d2hR17ZA==
-Subject: Re: [PATCH net-next V2 4/5] net/mlx5e: Register eswitch-manager VF/SF
- self-port with switch-id
+	b=hXm+mFJ0ZVFvxtft1siHaeFCEq15eVyX1uNX3Viw8chFsdW5P1zxElSeuZG8anSYo
+	 SylVsyGdIx2tHYNfnJrir+0jX868exfOO8lr1TbOeMD/dLvPofdGdfvJY4b64RihGH
+	 j0v+Mb3iWuULc5ch2IuzUYmXkATmFgP3Le49YbixtYcXWETt2ELynCtzPZC0tG0g8e
+	 F1Fq+p7C/QJ2/FtY3Y5+iZR8iraAhxGJYjGWhzdjx/ryPu63jIGHbhi+6tTTkemNU1
+	 U+X8nez2jByFn88divXgrhtdmpGSy1x5IAfC62IQiq97uklyEpHxwxO29A4YDNHr5u
+	 WReMwwvxgnR+A==
+Subject: Re: [PATCH net-next V2 3/5] net/mlx5: E-switch, drop master egress
+ rule under a SW vport LAG
 From: netdev-bot+sashiko@kernel.org
 To: tariqt@nvidia.com
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
@@ -49,11 +49,11 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
  agoldberger@nvidia.com, gal@nvidia.com, jgg@ziepe.ca, leon@kernel.org,
  linux-rdma@vger.kernel.org, mbloch@nvidia.com, moshe@nvidia.com,
  ohartoov@nvidia.com, saeedm@nvidia.com, shayd@nvidia.com
-Date: Tue, 24 Nov 2026 08:32:51 +0000
-Message-ID: <179550917191.3135.3268324102399128656@kernel.org>
-In-Reply-To: <20261120075959.2533702-5-tariqt@nvidia.com>
-References: <20261120075959.2533702-5-tariqt@nvidia.com>
-X-sashiko-severity: Low
+Date: Tue, 24 Nov 2026 08:32:49 +0000
+Message-ID: <179550916987.3135.15857697066223649709@kernel.org>
+In-Reply-To: <20261120075959.2533702-4-tariqt@nvidia.com>
+References: <20261120075959.2533702-4-tariqt@nvidia.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -66,139 +66,165 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
-- [Low] In mlx5e_devlink_port_register()
-  (drivers/net/ethernet/mellanox/mlx5/core/en/devlink.c, new lines…
-- [Low] The commit message says the self-port 'was always registered with
-  DEVLINK_PORT_FLAVOUR_VIRTUAL, which doesn't carries switch_id' (also a…
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] mlx5_eswitch_offloads_vport_lag_del_one() calls
+  esw_set_master_egress_rule() for every slave that passes…
+- [Low] The commit message describes the conflict as a general property
+  of the software vport LAG: the master egress rule redirects the…
 
 --
 
-net/mlx5e: Register eswitch-manager VF/SF self-port with switch-id
+net/mlx5: E-switch, drop master egress rule under a SW vport LAG
 
-This patch makes a non-PF function (VF or SF) that is an eswitch manager
-register its self-port with a switch_id. The switch_id comes from the SW
-system image GUID. As a result, the uplink netdev reports a
-phys_switch_id and can be grouped with the representors it manages.
+This commit removes a slave's eswitch master egress rule when the
+software vport LAG slave egress rule is installed. It restores the rule
+when the vport LAG is removed. It also moves the MPESW metadata cleanup
+in mlx5_lag_disable_mpesw() to after the shared FDB is destroyed.
 
-> A non-PF function's self-port (its own uplink netdev) was always
-> registered with DEVLINK_PORT_FLAVOUR_VIRTUAL, which doesn't carries
-> switch_id.
-
-[Severity: Low]
-Is this description accurate? In net/devlink/port.c, switch_port depends
-only on whether a switch_id was supplied. The port flavour plays no part:
-
-net/devlink/port.c:__devlink_port_attrs_set() {
-    ...
-	if (attrs->switch_id.id_len) {
-		devlink_port->switch_port = true;
-		...
-	} else {
-		devlink_port->switch_port = false;
-	}
-}
-
-devlink_compat_switch_id_get() checks only switch_port. A VIRTUAL port
-can carry a switch_id, and this patch relies on that: it keeps
-DEVLINK_PORT_FLAVOUR_VIRTUAL and only fills attrs.switch_id.
-
-The phys_switch_id was missing because mlx5e_devlink_port_register()
-never filled attrs.switch_id for non-PF functions. The flavour was not
-the cause.
-
-The message also mentions only grouping with representors. Could it say
-that the uplink netdev now passes netdev_port_same_parent_id() checks it
-used to fail? Examples are tc_act_can_offload_mirred(),
-tc_act_parse_mirred() and the check in en/tc_tun.c.
-
-There is also a grammar slip: "doesn't carries" should be
-"doesn't carry".
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/devlink.c b/drivers/net/ethernet/mellanox/mlx5/core/en/devlink.c
-> index 8818f65d1fbc4..79adb1ecc4506 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/devlink.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/devlink.c
-> @@ -63,6 +63,11 @@ int mlx5e_devlink_port_register(struct mlx5e_dev *mlx5e_dev,
->  		dl_port_index = mlx5_esw_vport_to_devlink_port_index(mdev,
->  								     MLX5_VPORT_UPLINK);
->  	} else {
-> +		if (MLX5_ESWITCH_MANAGER(mdev)) {
-> +			mlx5e_devlink_get_port_parent_id(mdev, &ppid);
-> +			memcpy(attrs.switch_id.id, ppid.id, ppid.id_len);
-> +			attrs.switch_id.id_len = ppid.id_len;
-> +		}
+> The software vport LAG emulation cannot. It is a catch-all rule in the
+> slave eswitch's egress ACL that forwards to the master's manager vport,
+> while the master egress rule redirects the packet after the FDB - past
+> the point where the slave egress rule is evaluated - so the bounced
+> packet never reaches it.
+>
+> The two therefore cannot coexist: drop the master egress rule when the
+> software vport LAG is installed, and restore it when it is removed.
 
 [Severity: Low]
-Is this switch_id unique to the nested eswitch? The value comes from
-mlx5_query_nic_sw_system_image_guid(). That is the device-wide FW GUID
-followed by capability-only bytes, with trailing zero bytes trimmed:
+Is this conflict already present in shipped kernels for MPESW over SD
+groups?
 
-drivers/net/ethernet/mellanox/mlx5/core/vport.c:
-static u8 mlx5_sw_guid_sf(const struct mlx5_core_dev *mdev)
-{
-	return mlx5_core_is_sf(mdev) && mlx5_virt_lag_is_supported(mdev);
-}
+Before this patch, MPESW over SD appears to install both rules for the
+other SD primary:
 
-static u8 mlx5_sw_guid_vf(const struct mlx5_core_dev *mdev)
-{
-	return mlx5_core_is_vf(mdev) && mlx5_virt_lag_is_supported(mdev);
-}
+mlx5_lag_enable_mpesw()
+  mlx5_mpesw_teardown_sd_fdb()          /* clears fn->sd_fdb_active */
+  mlx5_lag_shared_fdb_create(FILTER_ALL)
+    mlx5_activate_lag()
+      mlx5_create_lag()
+        mlx5_lag_create_single_fdb()
+          mlx5_eswitch_offloads_single_fdb_add_one()
+            /* master egress rule for each SD-primary slave */
 
-mlx5_query_nic_sw_system_image_guid() {
-    ...
-	for (i = 0; i < ARRAY_SIZE(mlx5_sw_guid_fields); i++) {
-		u8 val = mlx5_sw_guid_fields[i](mdev);
+Then mlx5_ib loads on the master:
 
-		buf[(*len)++] = val;
-		if (val)
-			trim_len = *len;
-	}
+mlx5_eth_lag_init()
+  mlx5_cmd_create_vport_lag()           /* sw path, group_id != 0 */
+    mlx5_lag_create_vport_lag()         /* FILTER_ALL */
+      mlx5_eswitch_offloads_vport_lag_add_one()
+        esw_set_slave_egress_rule()     /* only this, pre-patch */
 
-	*len = trim_len;
-}
+Following the commit message's own reasoning, that pair of rules
+misdelivers traffic.
 
-Commit c25049685e16 ("Distinguish VFs/SFs in the SW system image
-GUID...") says a PF and its VFs/SFs share the same FW system image GUID.
-It also says a VF/SF that cannot join a virt LAG "keeps its current key
-and is still identified as the same HW as its PF". This leads to two
-cases.
+The software vport LAG came from 98d56915eef5 ("net/mlx5: LAG, introduce
+software vport LAG implementation"). MPESW over SD came from
+de464720489c ("net/mlx5: LAG, add MPESW over SD LAG support").
 
-In the first case, a VF/SF eswitch manager lacks the virt-LAG caps
-(multi_uplink_eswitch, lag_master, num_lag_ports < 2). It then gets
-exactly the PF's switch_id. The PF uplink carries that same ID, and so
-do the PF-eswitch PCI_VF/PCI_SF representors set up by
-mlx5_esw_offloads_pf_vf_devlink_port_attrs_set(), including the
-representor of this VF/SF itself.
+Could the commit message say that the existing MPESW over SD
+configuration is affected, and add the matching Fixes: tag?
 
-In the second case, every virt-LAG-capable VF (or SF) eswitch manager on
-one HCA gets the same ID, whether or not they share an FDB. That
-includes a standalone late joiner that mlx5_esw_offloads_devcom_init()
-refuses to pair.
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> index 57f58e79478e4..2072921c1fffa 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> @@ -3380,12 +3380,32 @@ void mlx5_eswitch_offloads_single_fdb_del_one(struct mlx5_eswitch *master_esw,
+>  int mlx5_eswitch_offloads_vport_lag_add_one(struct mlx5_eswitch *master_esw,
+>  					    struct mlx5_eswitch *slave_esw)
+>  {
+> -	return esw_set_slave_egress_rule(master_esw->dev, slave_esw->dev);
+> +	int err;
+> +
+> +	err = esw_set_slave_egress_rule(master_esw->dev, slave_esw->dev);
+> +	if (err)
+> +		return err;
+> +
+> +	esw_unset_master_egress_rule(master_esw->dev, slave_esw->dev);
+> +
+> +	return 0;
+>  }
+>  
+>  void mlx5_eswitch_offloads_vport_lag_del_one(struct mlx5_eswitch *master_esw,
+> -					     struct mlx5_eswitch *slave_esw)
+> +					     struct mlx5_eswitch *slave_esw,
+> +					     int max_slaves)
+>  {
+> +	int err;
+> +
+> +	if (mlx5_sd_is_primary(slave_esw->dev)) {
+> +		err = esw_set_master_egress_rule(master_esw->dev,
+> +						 slave_esw->dev, max_slaves);
 
-After this patch, devlink_compat_switch_id_get() reports this ID as the
-phys_switch_id of the VF/SF uplink netdev.
-Documentation/networking/switchdev.rst says the switch ID must be unique
-between switches on the same system.
+[Severity: Medium]
+Is this restore correct when no master egress rule existed before
+mlx5_eswitch_offloads_vport_lag_add_one() ran?
 
-The nested-eswitch representors already used this ID before the patch,
-and the PF uplinks of one HCA already share a switch_id. The in-kernel
-mlx5 TC forwarding path re-checks the real eswitch/LAG relationship in
-mlx5e_is_valid_eswitch_fwd_dev(). What changes is that the uplink netdev
-itself now reports the colliding ID.
+On the add side, esw_unset_master_egress_rule() returns early when
+vport->egress.acl is NULL and does not record whether it removed
+anything. Here the rule is recreated for any SD-primary slave. The two
+sides only match when a shared FDB installed the rule beforehand.
 
-Should this check also require mlx5_virt_lag_is_supported(), or the
-nested-eswitch condition used elsewhere in the series, rather than only
-MLX5_ESWITCH_MANAGER(mdev)? If not, should the limitation be documented?
+mlx5_eth_lag_init() creates the vport LAG whenever mlx5_lag_is_active()
+and mlx5_lag_is_sw_managed() are true. Neither checks the shared FDB
+state. With an active LAG that has no MLX5_LAG_MODE_FLAG_SHARED_FDB
+(ROCE, or SRIOV with shared_fdb false), the sequence would be:
 
->  		attrs.flavour = DEVLINK_PORT_FLAVOUR_VIRTUAL;
->  		dl_port_index = mlx5_esw_vport_to_devlink_port_index(mdev, 0);
->  	}
+mlx5_do_bond()                          /* no shared FDB */
+mlx5_eth_lag_init()
+  mlx5_cmd_create_vport_lag()
+    mlx5_eswitch_offloads_vport_lag_add_one()
+      esw_unset_master_egress_rule()    /* no-op, egress.acl NULL */
+mlx5_eth_lag_cleanup()
+  mlx5_cmd_destroy_vport_lag()
+    mlx5_eswitch_offloads_vport_lag_del_one()
+      esw_set_master_egress_rule()      /* new ACL, group, bounce rule */
+
+Does this leak the egress ACL table, flow group and bounce rule on the
+master's manager vport? mlx5_deactivate_lag() only tears down master
+egress state for a shared FDB:
+
+	if (test_bit(MLX5_LAG_MODE_FLAG_SHARED_FDB, &flags)) {
+		mlx5_lag_destroy_single_fdb(ldev);
+
+The leftover bounce rule would also redirect traffic that reaches the
+master's manager vport into the slave eswitch. On a later shared FDB
+activation, esw_set_master_egress_rule() would find the stale entry:
+
+	if (xa_load(&vport->egress.offloads.bounce_rules, slave_index))
+		return -EINVAL;
+
+so mlx5_lag_create_single_fdb_filter() would keep failing until the
+driver is reloaded.
+
+A non shared FDB LAG from mlx5_do_bond() needs the netdev notifier.
+mlx5_lag_dev_alloc() registers that notifier only when the allocating
+device is not SD capable. So this path seems to need an SD primary in
+the same ldev as a function that is not SD capable. It is not clear
+from the code that such an ldev can exist.
+
+Would it be safer for add_one to record whether it actually removed a
+master egress rule, and for del_one to restore it only in that case?
+
+> +		if (err)
+> +			esw_warn(master_esw->dev,
+> +				 "Failed to restore master egress rule (%d)\n",
+> +				 err);
+> +	}
+> +
+>  	esw_unset_slave_egress_rule(master_esw->dev, slave_esw->dev);
+>  }
+
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261120075959.2533702-1-tariqt%40nvidia.com
