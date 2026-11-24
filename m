@@ -1,62 +1,62 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=67.231.145.42
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795482412;
-	b=TXvTl1wN46bFcAxQ3p2o+munmv6qLJ6KIUhvonemXgH9vDtz8yOS1DryZne/ZwcuOKU3
-	 Oe6vfH/m9NmHo1/OkR2sr1mmBlKIS/8fHupVrYN8lvL3BI5GzcIxnr76QLOwuRZfCDote
-	 MVHKT2BULC/Xcnw2b5QWZEBcP6Bj7MHkehuDgXSgfyL0w0nBtJFuoiDyNJl0UCJaOxTpo
-	 1k2gs9MMXK1zxVgzdyNr3p4/Ybq9ZF+XfXN1Ggr7mxQ4Ovh+ilvu1gHc4vWSDkPKHymmw
-	 sVWAXKs3MB8feNtsWpV4Bmyr9fdz+6J/jN1yyQK3d/RF63YaKbnN4aQmM9I9TxNjn6w==
+	t=1795482414;
+	b=pEhqAC8KgNE9lZDPyXhy9+ryWl5Hz90D4b1KN/MNspBMmIxNWAlCQlLHoBE+GySXpHV8
+	 YgmORocRnGRyj2LDwnTPhkVww5BGaxeIiXDdAgmC4cNAfnPhZVGynhFgo3XC3othli21l
+	 UTZIUhVD0LMUGigtaINXD+fVhaqIqyyzY3IsZPvQ5/NOypoWxv+CSd8Rnl0xY3LQQ717x
+	 ryA9VYv93NsP8ZZqrckYkG0IDCXpH/4TysBJuHf6zhVpSJwUbCyuPTuGFHsGbsyQo7YXM
+	 bwJE4kjFbwRRIx8olwWci1qlTBcN9BGLoFz8usPO4fIZZvcR5Bk1PwHD1GpnsSS36Hw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795482412;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795482414;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:From:To:CC:
 	 Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:Content-Type:X-Originating-IP:
 	 X-Proofpoint-Spam-Info:X-Proofpoint-ORIG-GUID:
 	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-GUID:X-Authority-Analysis:
 	 X-Proofpoint-Virus-Version;
-	bh=UcyGvThNggizuHqQMay+CIEWy4dATEZ/NyCR35GDedk=;
-	b=TVsj7dntuH17m4kdq5UaRwlR+nQiU5LI2G+oSGvJ4tvsM00vMzrQnnh/tZ5LUFL8INHx
-	 9ugu0sTqM2rZe7khaqJCRAR8fjytem1XlqTQ/EJoA5vIPYsX7l2MD0gQCcTfRDqGjD43Q
-	 qk9OBNk/kEQT/bTf4ojXAQw8ISGXADPV+ob72ru6CaB7pie+4Fx/TVuQqwKCAU9mg5Pey
-	 RZqJO7zrcKrpo26GmnGavmm8ii/FjwDo3QdrFsFsB4ranSgqOvFT0zX9k+Aq6G9cWHZNn
-	 qkhYdKITpR3gEITv9kZB+7s0Ey80inCJ+Ocvpf+DCKgJmsv/iAhE9+wxdpKwR0NGLnw==
+	bh=S8SOytfhv3bDOHQqYrJymyWLPGJnx0o/1uLG/eVfQ5A=;
+	b=cwp8XU0QZdsGzVxL6JbpY1GyFDo9b3xQGNK/IecH0q4bJhTEpaTYmzyi4juEWtWEiCpo
+	 +WOqquErJolTTHbfe65XE0LSwdCQtU6Typc47aqDSd3we4XZXTsYDsS5BomZVMugjT6C5
+	 sf7EAnYctXRJS7gXeo/VdMVpQch+9P47TMLfefIXD9K6atLR6eCFfbMs0kk8qTEmKiapp
+	 BhTY1Vl05tytmxM8RxYK/iILqR2OmWvz5Kzdeh+KGTzHe5dGvtoXtKjlf1fKQQz3/dKzb
+	 TnHV3WsTFuRCAtjbKl247yAclOrRAVQpJG+nQRsgvFWyzT1nJ4dM81YpJXqBqpVixsg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=meta.com;
 	spf=pass smtp.mailfrom=meta.com;
-	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=SibXjPhz;
+	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=THs2F5SL;
 	arc=none smtp.remote-ip=67.231.145.42
 Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE65D606A331;
-	Tue, 24 Nov 2026 01:06:51 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EE65D606A331
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECDC7606A332;
+	Tue, 24 Nov 2026 01:06:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org ECDC7606A332
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=SibXjPhz
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=THs2F5SL
 Received: from pps.filterd (m0044012.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6ANJwZsI251234;
-	Mon, 23 Nov 2026 17:06:30 -0800
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6ANJwZsK251234;
+	Mon, 23 Nov 2026 17:06:31 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to; s=
-	pps82601-s2048-2026-q3; bh=UcyGvThNggizuHqQMay+CIEWy4dATEZ/NyCR3
-	5GDedk=; b=SibXjPhzpOpJ/VxwiPbuwllkvXSwm+Gsp+fZkdhqp3IFiuCWNlGB4
-	sF3d8IYBN+cgdoa1jjEI4nAuK3wYPC0boKR7m5Wox8L4rj6EmbTZzKtcxl1qjYT9
-	W42yLzALWQ76akiiN6s1LUru9uYi3y8hhk9MCxn7wgUBkVnRV2cqUgsbNwpA31pv
-	TvzGRAqoMVgzbkVVpYlYTK1vV1pMZSGT9kc25VMW52rVP7ZjocIplA9iCVKku3Gh
-	kBjns5StKEBETYSsNsyqKzVLbs0JkDbZBKSLPlH22lLWS72T5PGLF264YjmF+q/c
-	tuaXXLtxfGkT9BPvoMrukE8aFTQOmFjOw==
+	pps82601-s2048-2026-q3; bh=S8SOytfhv3bDOHQqYrJymyWLPGJnx0o/1uLG/
+	eVfQ5A=; b=THs2F5SLweRbpOrY7/q5g7+XGYmZKGViLLMdkw85X71V2TwlPNcug
+	G4Q2rY7ngToFoALjBewcrvd8ZFUr68DPr0Uh+U/WNc13LJK4Pb3is9dLGxpQWmJH
+	ztWpK+vdaYECjkbKC4aOOkWmTQAZhIT4HLPmO8eHG3GoMaC54QI8I1u62Z+QogpN
+	kXMBWKOiovlxL4LQanQ+zD+5F2Qq6qvVDJqDvOfdppYEWGqJlZqDIYeGn2nmqaaY
+	NdGirXB1/viQ+gwPpa6TTaT8soUD2PSD6/XCUmqNGbpsE60WDnMoQOHkyY6jXbCT
+	XplWohPXk+S+JB5cjZmZdyQo7RDEf4I1g==
 Received: from maileast.thefacebook.com ([163.114.135.16])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j39v3dtk3-1
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j39v3dtk3-3
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Mon, 23 Nov 2026 17:06:30 -0800 (PST)
-Received: from localhost (2620:10d:c0a8:1c::1b) by mail.thefacebook.com
+	Mon, 23 Nov 2026 17:06:31 -0800 (PST)
+Received: from localhost (2620:10d:c0a8:fe::f072) by mail.thefacebook.com
  (2620:10d:c0a9:6f::237c) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.56; Tue, 24 Nov
- 2026 01:06:28 +0000
+ 2026 01:06:30 +0000
 From: Todd Freed <toddfreed@meta.com>
 To: <netdev@vger.kernel.org>
 CC: "David S. Miller" <davem@davemloft.net>,
@@ -93,9 +93,9 @@ CC: "David S. Miller" <davem@davemloft.net>,
         Willem de Bruijn
 	<willemdebruijn.kernel@gmail.com>,
         <stable@vger.kernel.org>
-Subject: [PATCH net v7 1/9] net/mlx5e: ring the tx doorbell when an accel offload drops a packet
-Date: Mon, 23 Nov 2026 17:05:53 -0800
-Message-ID: <20261124010601.3995693-2-toddfreed@meta.com>
+Subject: [PATCH net v7 2/9] psp: don't encapsulate ipv6 packets with extension headers
+Date: Mon, 23 Nov 2026 17:05:54 -0800
+Message-ID: <20261124010601.3995693-3-toddfreed@meta.com>
 X-Mailer: git-send-email 2.53.1
 In-Reply-To: <20261124010601.3995693-1-toddfreed@meta.com>
 References: <20261124010601.3995693-1-toddfreed@meta.com>
@@ -110,82 +110,98 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTI0MDAwNCBTYWx0ZWRfX+IrbwyEWE6Sg
- wfGa/HRVaVDsNVjtNUh/VAKAcJ1BrsRnVH1+OidE1hWuqYb7lxRL9O2gJdCEjoKrhuF81ZpPdex
- 7WmL9ABNLYmqi1XhRVOShrCGs0fB81o=
-X-Proofpoint-ORIG-GUID: gpeTMnAq0tFa6teIIZo5g-L9Uo9wfgHs
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTI0MDAwNCBTYWx0ZWRfXz4utddXdIyUB
- pSoystuXnryNihBPv1va+VTbfwf7V6imw/QOqR/Wx6PifMo4uj/ceHzuJ4THCpy8nlI+GCQFOss
- x2WSRMHTRugh8atoA4Yk6MgalwXuzgQmlKgI8pJXFZiASLizMKMXg9o5MzE+cKbfgJjm5+DknDZ
- i2xxxwOXraI1N/6HdrmmPh9Rt8kVeZ9t8AZFMwpmH8IxMgH4N9YkRRVqixMoheGsbZxVvbQYsvf
- +Z1niv2+1DZfzzZjqPniqCL4rmZ0rZvfGZIGVpNukvd807WaboyO3jQ6EwhOxP7no4Ojaiy3tk9
- 8Y46Ll8Ch01SMTxd8CjjP27WrCO2gbq57ZefAx8iQrzoAXymsLyX4X5tU3uY0ZZyrHUr+cbRH8F
- ev4nV2ASlHRseGvC+wePg4W3lpED+CRicI3udF/SsNxoGHO5MOaSPF2AhYVYYjeqeZXQGSIutrV
- 8ohNpsfU2NRIbx+Sczg==
-X-Proofpoint-GUID: gpeTMnAq0tFa6teIIZo5g-L9Uo9wfgHs
-X-Authority-Analysis: v=2.4 cv=a+mlZkSF c=1 sm=1 tr=0 ts=6b04e316 cx=c_pps
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTI0MDAwNCBTYWx0ZWRfXwqxsQfVKR550
+ iH4OAihoYawcfIB1ihmgb5EFvVm8MLPPcKUot2pZzM3qjWh8krRm7rgmU/PMg2FbohuCjXZIFWU
+ Ra1mlQbOx/wf2Q9pCUx3MMUMdEsAUXw=
+X-Proofpoint-ORIG-GUID: j2VPB6KxE0bVGb33qRUekrm2hC0AIJ4f
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTI0MDAwNCBTYWx0ZWRfX5QN9ohuHvFUf
+ Z5c8mFyHK9HojE4Laidg1swHGHTSigf2Wx6FiW0qoTSbgk5DYX+OtIifJPm5D1ZVU2BF0SZO6mh
+ GSy6CvK1QH3h5B0sFTyqg2mQqlevMs5qjBBmt7cArmUN+4/XCppxE3EOwTpu0TPTm0tW0891q6q
+ lB6C9oPw5cOxkkyw0ddDoIWFKBKyT4KvucxmYM2fKx6AIVE/3+UVk7Gw51SZctpFdxdpeoXYRmg
+ ckvxVX7xo7pgeBZUm7eOvO7BlWBAoMWTYbpo+D8BeUi3a+jLD7+k7I1MyhBi4Z6dZW0pUnrdk9s
+ OHosooSQBKDZo3RMq8G/JfKRy2o5M4LgAcTKUcYLMHU418VhnepJgIr/1T8/X2zXZ4t1emtL2R9
+ YBxS6Od2iqFQwZFJ1+l4cCYwF5xBK9j8rdAaUMR7ykowuGu1z4RBVds6+yePRTMi77+vK2aC5kW
+ nI0yUhXMOuDjyy3n3Pg==
+X-Proofpoint-GUID: j2VPB6KxE0bVGb33qRUekrm2hC0AIJ4f
+X-Authority-Analysis: v=2.4 cv=a+mlZkSF c=1 sm=1 tr=0 ts=6b04e317 cx=c_pps
  a=MfjaFnPeirRr97d5FC5oHw==:117 a=MfjaFnPeirRr97d5FC5oHw==:17
  a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
- a=PAz_-FQ8hEVmOPYdF0yf:22 a=Ikd4Dj_1AAAA:8 a=VwQbUJbxAAAA:8 a=VabnemYjAAAA:8
- a=1_dJyMls8txaqAh-cwMA:9 a=gKebqoRLp9LExxC7YDUY:22
+ a=PAz_-FQ8hEVmOPYdF0yf:22 a=VwQbUJbxAAAA:8 a=VabnemYjAAAA:8
+ a=IIHd1SC46VqhS9DrjhMA:9 a=gKebqoRLp9LExxC7YDUY:22
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
  definitions=2026-11-23_05,2026-11-23_01,2025-10-01_01
 
-When mlx5e_accel_tx_begin() drops the skb, e.g. because PSP can't
-encapsulate it, mlx5e_xmit() returns without posting anything. The skbs
-before it in a bulk dequeue may have been posted with xmit_more, which
-defers the doorbell to the next one, and an MPWQE session may be open.
-The device then doesn't see them until the next transmit on that SQ, and
-since the queue isn't stopped, the TX watchdog doesn't fire.
+psp_dev_encapsulate() inserts the UDP+PSP headers at the transport
+header, rewrites the protocol of the fixed IP header to UDP, and writes
+TCP as the PSP next header. So TCP must directly follow the fixed
+header.
 
-Flush the SQ on this drop like the DMA error paths do: close the MPWQE
-session, post a NOP and ring the doorbell.
+If the packet is an IPv6 packet with extension headers, UDP+PSP is
+placed after them, but the next header indicating the L4 protocol is on
+the last extension header in the chain, not in the fixed header.
+Therefore this produces a malformed packet.
 
-mlx5e_tx_flush() doesn't check whether the NOP leaves less than
-stop_room in the SQ. For the DMA error paths that is rare, but a run of
-offload drops would post NOPs without stopping the queue, and could
-overrun WQEs in flight. So check it in mlx5e_tx_flush(), like the other
-producers do. The completion of the NOP wakes the queue again.
+In addition to being malformed, with mlx5 this kind of packet goes out
+unencrypted. Since the Tx association encodes intent to send encrypted
+packets, drop such packets instead.
 
-The next patch makes the PSP drop reachable from user space, with an
-IPv6 extension header set on a PSP socket.
+A PSP TCP socket emits such packets if certain socket options are set on
+it (e.g. IPV6_DSTOPTS). Refusing the combination of such socket options
+with a PSP association would be helpful but is not implemented here.
+Since extension headers can also come from a route, the datapath check
+is needed anyway.
 
-Fixes: 2ac9cfe78223 ("net/mlx5e: IPSec, Add Innova IPSec offload TX data path")
-Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
+The check also covers IPv4: the L4 protocol must be TCP, and the
+transport header must follow the IP header and its options. Packets of
+a PSP TCP socket always pass it.
+
+Fixes: fc724515741a ("psp: provide encapsulation helper for drivers")
 Cc: stable@vger.kernel.org
 Signed-off-by: Todd Freed <toddfreed@meta.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_tx.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ net/psp/psp_main.c | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-index 14479da98f42..006bf976def1 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-@@ -365,6 +365,7 @@ static void mlx5e_tx_flush(struct mlx5e_txqsq *sq)
- 	};
- 
- 	wqe = mlx5e_post_nop(&sq->wq, sq->sqn, &sq->pc);
-+	mlx5e_tx_check_stop(sq);
- 	mlx5e_notify_hw(&sq->wq, sq->pc, sq->uar_map, &wqe->ctrl);
+diff --git a/net/psp/psp_main.c b/net/psp/psp_main.c
+index 273b010d2355..c071f507261b 100644
+--- a/net/psp/psp_main.c
++++ b/net/psp/psp_main.c
+@@ -245,6 +245,24 @@ static void psp_write_headers(struct net *net, struct sk_buff *skb, __be32 spi,
+ 	memset(&psph->iv, 0, sizeof(psph->iv));
  }
  
-@@ -672,8 +673,13 @@ netdev_tx_t mlx5e_xmit(struct sk_buff *skb, struct net_device *dev)
- 	}
++/* UDP+PSP goes in at the transport header, the protocol of the fixed IP
++ * header becomes UDP, and TCP the PSP next header: TCP must directly follow
++ * the fixed header. It doesn't with IPv6 extension headers, whose last one
++ * holds the L4 protocol.
++ */
++static bool psp_dev_encap_ok(const struct sk_buff *skb)
++{
++	u32 network_len = skb_network_header_len(skb);
++
++	if (skb->protocol == htons(ETH_P_IP))
++		return ip_hdr(skb)->protocol == IPPROTO_TCP &&
++		       network_len == ip_hdrlen(skb);
++	if (skb->protocol == htons(ETH_P_IPV6))
++		return ipv6_hdr(skb)->nexthdr == IPPROTO_TCP &&
++		       network_len == sizeof(struct ipv6hdr);
++	return false;
++}
++
+ /* Encapsulate a TCP packet with PSP by adding the UDP+PSP headers and filling
+  * them in.
+  */
+@@ -255,8 +273,7 @@ bool psp_dev_encapsulate(struct net *net, struct sk_buff *skb, __be32 spi,
+ 	u32 ethr_len = skb_mac_header_len(skb);
+ 	u32 bufflen = ethr_len + network_len;
  
- 	/* May send SKBs and WQEs. */
--	if (unlikely(!mlx5e_accel_tx_begin(dev, sq, skb, &accel)))
-+	if (unlikely(!mlx5e_accel_tx_begin(dev, sq, skb, &accel))) {
-+		/* The skb was dropped: ring the doorbell which the previous
-+		 * ones may have deferred to it
-+		 */
-+		mlx5e_tx_flush(sq);
- 		return NETDEV_TX_OK;
-+	}
+-	if (skb->protocol != htons(ETH_P_IP) &&
+-	    skb->protocol != htons(ETH_P_IPV6))
++	if (!psp_dev_encap_ok(skb))
+ 		return false;
  
- 	mlx5e_sq_xmit_prepare(sq, skb, &accel, &attr);
- 
+ 	if (skb_cow_head(skb, PSP_ENCAP_HLEN))
 -- 
 2.53.1-Meta
 
