@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795507870;
-	b=OZc9KXV9N3zm77dvtAkzB6aKZMxTLu5fdDpIQqWWhD/P2oRXhBf1X29AuFwgaLpL9wbh
-	 cO1HuKlGKUTMHiAMqYKC7PYEH46PZUbYp1zQhETLHnTJV/uKbKM25W+gN9P9Jktu/3xhN
-	 OlQ83q24lVuDE7B7pPfyhemX9gFgd6MGOa+SemO5CpHCETzQZN9ffze7+anh38LPy40nF
-	 MnZlI7gK7cHhd8uoAXibA83XYhtI+Utq7prdMZBzgqK71G8gykQeGYiMo2xRfnau/sRm1
-	 YSSfzneZLGiT4Jomki8yWtMgG/Hi5KpCDZvaggB+Sn5vqIUnjlc1a2Ta92YaYpYwjBQ==
+	t=1795508281;
+	b=wxzF8rWBIfQNcKb23+gU0LDIiFXck95vzdZKdoGEeqfDwKxN1zwifxtboZBnLw7xaXmt
+	 RRbI57v9YgXaIpglYZlJ3eO6ayp2MncXTw/ma/saH2P9xqMG6Nz3+xdVOs22AW7b3/jAw
+	 VBg+OKF6KmsemKCnJyDsoMrY1M50TzJlwneJAD2989LgDl2GSY1oc2Qz+j5yZp/suBN9j
+	 0zQmRfINc+LVhhj1vCP3VzT4hmm9vrTdlK1Q0nUzsEwFhDY/1PFvkNT4izkAvq9Cjx75L
+	 /bLvBVJmKpO5JUULfiI34Xxn47rcPxVWi5kVBTIXlJ5rSP7tKWdJhJHKWK2+D+0iz4Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795507870;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795508281;
 	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
 	 Subject:To:Cc:References:From:Content-Language:Autocrypt:In-Reply-To:
 	 Content-Type:Content-Transfer-Encoding;
-	bh=HT0r4HcDbQnSXCvlZ/RECDLVWuKCcbSUYpyd1IXB0iM=;
-	b=zIVTeXWz4RURN+ucg8dL/3+7ohZsK/0nTAsKGA2HPfNfiI8zuftXEpJXRFXs/lplMq1j
-	 2uh3/WYkeqcT7H8UCMUU7DAZM1jhVCOsuNdmURRd/jSvujjY8R5NDFj9udK8XeCFVdhT+
-	 pxFhhDr7Dh59S5sl3ThgcVcz8AiM9DbLtzkvRnM7EBIoBIPIoGOeX3IftZTMFUs3jfpOM
-	 br6VnbXKlxQ3WyGyB4VN5tpON+YQhNmYX9sTaFPbpOBNHClGyj+JctfMVHiZaGHgNg7BH
-	 bQ0CMXY4hwebM6LBmNZvNQritmCFF24ywd1uc1VAEzuP9f7ztlU+ioTcIiMt/Jc0aeg==
+	bh=FXF3amYK4zVK9HrsHP25oSXQsLclmm6eVoNLKiPVVAk=;
+	b=HfNqKeHrkc+mBMFEIncsPl9GCSFFcP+jzZb5aAxPDlh2r2Ydn3SC74RDoFS7vqp3pN8o
+	 f8y0rZ/FcJ5ZKkbaDsFNIdw5gV/zP0fYRX5KEFj61hFHhdsNaNiRJRJF+1Zq5WPbd138t
+	 qxohk3xqmv+IB1ZOyIzmR+5SYp2aUGenz2Gh0GbJwtgHmSVceCNaMKeVwt+Pw6fLuPrHg
+	 KujlLkD30qOXyfFmsQq4RZN/6BgSEOfQZRcyfsoLfzEEclL4T3lmaqVJiVDkTUsS71LgS
+	 7Z2Z2MlT8EHvJJpWepNaL0L52LQSDq94lhNnMkEdIpJkgKSWeFoDMOVyd+6BOBuieeA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nTnIoYeC;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jDfksFj9;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5633B606A31E;
-	Tue, 24 Nov 2026 08:11:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 613FE606A31E;
+	Tue, 24 Nov 2026 08:18:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nTnIoYeC
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA4B61F000C0;
-	Tue, 24 Nov 2026 08:10:57 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jDfksFj9
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B505E1F000C4;
+	Tue, 24 Nov 2026 08:17:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795507869;
-	bh=HT0r4HcDbQnSXCvlZ/RECDLVWuKCcbSUYpyd1IXB0iM=;
+	s=k20260515; t=1795508281;
+	bh=FXF3amYK4zVK9HrsHP25oSXQsLclmm6eVoNLKiPVVAk=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=nTnIoYeC7NpBkbQZJv/CMbaZo4bkDmpeccQb9Gf4juySQf3zaSYGjjOQDpfz3LVoA
-	 7gwFR0TIw3+Qi4g6ZkX3nIy5l/JZi/nqwsTpj6sOz9qZnoMMmswBQnZ2wXtRq4ZBf/
-	 7gjIDylfQXm5mAOGeOq8RX1pOp8dELAb4tSY/t3s0QKPMTiZAPXi794iYxQBvdrNF6
-	 zcMf37Gev3dZOOKtngRQWB58H+LAYVTmGUJV5sgnPAZbj0/ULKYX7QPyJ6MExILy5r
-	 7VqhHRw649o6ZE2jl1sU1ZxMRnK9E6W6Cu3NhrwzXtedpDQZWP9XUv9nQFCi9qWjNi
-	 E5IfY33x8mH4g==
-Message-ID: <7ed1f755-5759-4b5b-ae00-a814f16b7903@kernel.org>
-Date: Tue, 24 Nov 2026 09:10:53 +0100
+	b=jDfksFj90RJuUYMvQl/D3DcouK7J4WV7mZz3xt4Ni+IJnZVhJeicGKcJbs7h1ClSc
+	 umDt4lfTGeLUThRvmvaMVMkyL8DZ1vNmwfedc0zwkDaEcBb4yw3Np6ZLJ35arCmyW9
+	 A5ZgWhVN6lINi9/7peguLU5acV7966donpMgCZXSUxFIYAQTH8GwsoiEg5phANvA8P
+	 YrQzrNCR8FajQyg8aCkJ4ufXQMkJeC+OfUeruoDxyo8N45lFVUks5DGI9X0RGYp3H+
+	 I2vgTRhcthwLELfGV7udxRMB5gHre/OVC9exQklOIYSZxpUkrtjtwlBPTHbkrzxi/B
+	 6d73Z4BcdjGqQ==
+Message-ID: <74dd67a2-eaff-4bbb-8105-4481fbbdd016@kernel.org>
+Date: Tue, 24 Nov 2026 09:17:45 +0100
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -52,7 +52,7 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 1/2] mm: kasan: skip KASAN for GFP_HIGHUSER
+Subject: Re: [PATCH v2 2/2] mm/kasan/kunit: add page_alloc_skip_kasan test
 To: Jeff Xu <jeffxu@chromium.org>, Andrew Morton <akpm@linux-foundation.org>,
  Vlastimil Babka <vbabka@kernel.org>, Johannes Weiner <hannes@cmpxchg.org>,
  Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -85,7 +85,7 @@ Cc: Lorenzo Stoakes <ljs@kernel.org>, "Liam R . Howlett"
  netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
  rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
 References: <20261123033111.2349160-1-jeffxu@chromium.org>
- <20261123033111.2349160-2-jeffxu@chromium.org>
+ <20261123033111.2349160-3-jeffxu@chromium.org>
 From: "David Hildenbrand (Arm)" <david@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
@@ -132,51 +132,110 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20261123033111.2349160-2-jeffxu@chromium.org>
+In-Reply-To: <20261123033111.2349160-3-jeffxu@chromium.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 On 11/23/26 04:31, Jeff Xu wrote:
-> Move __GFP_SKIP_KASAN from GFP_HIGHUSER_MOVABLE to GFP_HIGHUSER so
-> non-movable userspace page allocations also skip KASAN tagging on
-> allocation and poisoning on free under CONFIG_KASAN_HW_TAGS.
+> Add a KUnit test (page_alloc_skip_kasan) to verify that page allocations
+> using __GFP_SKIP_KASAN (GFP_KERNEL | __GFP_SKIP_KASAN, GFP_HIGHUSER, and
+> GFP_HIGHUSER_MOVABLE) under CONFIG_KASAN_HW_TAGS:
 > 
-> GFP_HIGHUSER_MOVABLE already skips KASAN because user pages do not hold
-> kernel data structures and tagging every 16-byte MTE granule on
-> allocation and free is expensive. GFP_HIGHUSER has the same contract and
-> differs only in being non-movable, used mainly by DMA-BUF, DRM/GPU
-> buffers, and non-movable HugeTLB.
+> 1. Reset page_kasan_tag() to KASAN_TAG_KERNEL (0xff) across all sub-pages
+>    of a high-order allocation, and
+> 2. Return a match-all (0xff) linear-map pointer from page_address() that
+>    does not trigger a KASAN fault even when the underlying physical
+>    granules carry a mismatched tag (such as KASAN_TAG_INVALID or
+>    restored userspace PROT_MTE tags).
 > 
-> On an Armv9.2-A device (6.12 kernel, kasan.mode=sync), this reduces
-> 32 MB /dev/dma_heap/system alloc+free latency by ~80% (~59% alloc, ~98%
-> close) and improves an app-loading OpenGL benchmark by 15-23%.
-> 
-> Callers that access GFP_HIGHUSER pages through kmap_local_page() or
-> page_address() (such as ramfs, pipe/FUSE buffers, kexec, and RDS) lose
-> HW_TAGS checking on those pages. None of them store kernel structs
-> there; this matches the trade-off already made for GFP_HIGHUSER_MOVABLE.
-> Generic and SW_TAGS KASAN are unaffected.
+> Tested on arm64 with CONFIG_KASAN_HW_TAGS under QEMU (virt,mte=on) with
+> kasan.mode=sync, async and asymm.
 > 
 > Signed-off-by: Jeff Xu <jeffxu@chromium.org>
 > ---
->  include/linux/gfp_types.h | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  mm/kasan/kasan_test_c.c | 44 +++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 44 insertions(+)
 > 
-> diff --git a/include/linux/gfp_types.h b/include/linux/gfp_types.h
-> index c1331bf0b239..bb54c7abfb02 100644
-> --- a/include/linux/gfp_types.h
-> +++ b/include/linux/gfp_types.h
-> @@ -376,8 +376,8 @@ enum {
->  #define GFP_USER	(__GFP_RECLAIM | __GFP_IO | __GFP_FS | __GFP_HARDWALL)
->  #define GFP_DMA		__GFP_DMA
->  #define GFP_DMA32	__GFP_DMA32
-> -#define GFP_HIGHUSER	(GFP_USER | __GFP_HIGHMEM)
-> -#define GFP_HIGHUSER_MOVABLE	(GFP_HIGHUSER | __GFP_MOVABLE | __GFP_SKIP_KASAN)
-> +#define GFP_HIGHUSER	(GFP_USER | __GFP_HIGHMEM | __GFP_SKIP_KASAN)
-> +#define GFP_HIGHUSER_MOVABLE	(GFP_HIGHUSER | __GFP_MOVABLE)
+> diff --git a/mm/kasan/kasan_test_c.c b/mm/kasan/kasan_test_c.c
+> index f34163e19bd6..72342137bb18 100644
+> --- a/mm/kasan/kasan_test_c.c
+> +++ b/mm/kasan/kasan_test_c.c
+> @@ -380,6 +380,49 @@ static void page_alloc_uaf(struct kunit *test)
+>  	KUNIT_EXPECT_KASAN_FAIL_READ(test, ((volatile char *)ptr)[0]);
+>  }
+>  
+> +static void page_alloc_skip_kasan_helper(struct kunit *test, gfp_t gfp)
+> +{
+> +	struct page *pages;
+> +	size_t order = 2;
 
-Can we please add a big fat comment above GFP_HIGHUSER, explaining why we use
-__GFP_SKIP_KASAN and which security impact this has?
+Why magic value two?
+
+Should be const.
+
+> +	char *ptr;
+> +	size_t i;
+> +
+> +	pages = alloc_pages(gfp, order);
+> +	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, pages);
+> +
+> +	for (i = 0; i < (1UL << order); i++) {
+
+"1 << order" is sufficient.
+
+> +		/*
+> +		 * __GFP_SKIP_KASAN allocations must carry the match-all tag
+> +		 * in page->flags, and so in page_address(), not a random tag.
+> +		 */
+> +		KUNIT_EXPECT_EQ(test, page_kasan_tag(pages + i),
+> +				(u8)KASAN_TAG_KERNEL);
+
+Squeeze this into a single line.
+
+> +
+> +		ptr = page_address(pages + i);
+> +		KUNIT_EXPECT_EQ(test, (u8)get_tag(ptr), (u8)KASAN_TAG_KERNEL);
+> +
+> +		/*
+> +		 * The memory tags of such pages are arbitrary: stale poison,
+> +		 * or tags set by userspace through PROT_MTE. Accesses via
+> +		 * page_address() must not fault regardless.
+> +		 */
+> +		kasan_poison(ptr, PAGE_SIZE, KASAN_TAG_INVALID, false);
+> +		KUNIT_EXPECT_KASAN_RESULT(test, WRITE_ONCE(*ptr, 0),
+> +					  "WRITE_ONCE(*ptr, 0)", false);
+
+Why do we care about checking HW behavior? (match-all working)
+
+> +	}
+> +
+> +	__free_pages(pages, order);
+> +}
+> +
+> +static void page_alloc_skip_kasan(struct kunit *test)
+> +{
+> +	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_HW_TAGS);
+> +
+> +	page_alloc_skip_kasan_helper(test, GFP_KERNEL | __GFP_SKIP_KASAN);
+> +	page_alloc_skip_kasan_helper(test, GFP_HIGHUSER);
+> +	page_alloc_skip_kasan_helper(test, GFP_HIGHUSER_MOVABLE);
+> +}
+> +
+>  static void krealloc_more_oob_helper(struct kunit *test,
+>  					size_t size1, size_t size2)
+>  {
+> @@ -2369,6 +2412,7 @@ static struct kunit_case kasan_kunit_test_cases[] = {
+>  	KUNIT_CASE(kmalloc_large_invalid_free),
+>  	KUNIT_CASE(page_alloc_oob_right),
+>  	KUNIT_CASE(page_alloc_uaf),
+> +	KUNIT_CASE(page_alloc_skip_kasan),
+
+Don't we have to limit this case to having actual MTE-capable HW etc?
+
+>  	KUNIT_CASE(krealloc_more_oob),
+>  	KUNIT_CASE(krealloc_less_oob),
+>  	KUNIT_CASE(krealloc_large_more_oob),
+
 
 -- 
 Cheers,
