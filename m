@@ -1,62 +1,62 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=67.231.153.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795558749;
-	b=hapj3zQGB4wCtKdzV1Z2ud/NhyW8qveR4GmeSuIpqD6V76Nz5tCzCcn0sUPc4bYSAumP
-	 6elX+FKBZ3JNHRsu9F6A2xql2zUbhprUzPu0o3w/C34hKluACOrrS3zezcD5yzYjhHXES
-	 jq4TFQSDYE1u5nczaYxs5tv4Ypoah5Qj1reizmLbe1CbW3/cpkva5mspZbdvNoJ5lvzzN
-	 /92dbdKBg/PuEXHOy1g5LmRocJt2pSKYh3wU1Z+/RnNmaJImi2KXgm8TzYP26g9bltwS+
-	 4m6WgjkXBtlwBMqs1WXJJKkfUOMfzsBytHT5OR/P3U5xXdicsaCYauFjQqwfJ1KE8hw==
+	t=1795558751;
+	b=PVSbAC3cPnNNZ2RHOwQi5A50kgLshMv6dmqT/CxLT8x/shqmC6dU2w48R+DcmPjlMSFb
+	 J6smLoD049T4pM8GWLNh2DUdLUPts02mQ7bLQE5AnkaYIZ2qfzEvJszjqU+YNksUw0EgS
+	 nvhISVrU47PGPSY1T97XacC6u+hT5MInhwW4rMmGQEmiBVxlC9rg6ciVy5Bbd6NexxdH2
+	 g7aK4e0H/5WDfSnPBdl0CzVjENL1XYAT3Yk7iEdtIbidqkl2LE/nTLc4kAK6Vwejdo/5v
+	 0/70yMOMR6ejjaGn9FGPBVgMBPSZ26olgQhxPE3FI5AheCzYijmFbvilia+VHf9TEqg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795558749;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795558751;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:From:To:CC:
 	 Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:Content-Type:X-Originating-IP:
 	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-GUID:
-	 X-Proofpoint-Spam-Info:X-Proofpoint-ORIG-GUID:X-Authority-Analysis:
+	 X-Proofpoint-ORIG-GUID:X-Proofpoint-Spam-Info:X-Authority-Analysis:
 	 X-Proofpoint-Virus-Version;
-	bh=5+y+pEJjkRlNPLPCUMjFNeoBC6zZvACT5MVl5k5uM+g=;
-	b=yiCK0JOw3ek13rC9Jh12o91SGP/3rVIqANXVzH2UX3gt0CKbY1mtQifO1efbTNXRBT8y
-	 FlUzyzbYuNZLByUy9zDsb9pFZ1dXEwTWdWB0XxJc/z8djLiLNyeikx4t5EbubItFudrSR
-	 4gpuHHEwSoBl6qZrAK8FUyCqYHxnAklOiUL+eEYdtFT5MN2KkcM0hMFET6OKLGvcCs8tt
-	 S5y+GVMu6lowz7xAQjWgV3q1PdOSr3VHvDQWfBRvGs2FQnfrDEnqVj5zysllfUAocrmIF
-	 LjB90gX4oOlZrOyy/Bruy0yTvtnt1q0x8eWCMnM6NPRjhb8kV1kFuoa1f1gCUPiSbuQ==
+	bh=143hEI/7EfGkjnfnz5DIIJiKfbG4zWj3tNRZc4ue7QQ=;
+	b=lfBfDp7Kdwzzj69E4mLXk+v6ZuUNyrXTHh6CYz98hdaZFuWOW4vBEjGRpfT/pdl/eegK
+	 vwc2Ku2lm4uvQ9dmUPqw5ZOTcaKCptgQ5e+zw5VNOiIjM8LPt6Qac3SFvsZD0ke6RZFBg
+	 UVULwNBtWzZ2PxDlH4cQT+07H+EzYAixmB6wpyJMvnPaZvL3j7JWVARnz1EzRlnTCFDUB
+	 LFKHt3WiIHzf72KcAplaHE/sfAKMTLeDdh7dE5+QROxSgzWWkZqxsWOl6B5UsCk2X6bH5
+	 OH96x0zbSlgL4qoTYbEalZ2UbtMXoIfmUCumZRuiWp7MqYmS3hbGxdkybDScgJkV5EA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=meta.com;
 	spf=pass smtp.mailfrom=meta.com;
-	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=IIw3paMo;
+	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=NSzRYm0v;
 	arc=none smtp.remote-ip=67.231.153.30
 Received: from mx0b-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B694A606A326;
-	Tue, 24 Nov 2026 22:19:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B694A606A326
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4BAE60A2608;
+	Tue, 24 Nov 2026 22:19:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E4BAE60A2608
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=IIw3paMo
-Received: from pps.filterd (m0109331.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AOMBBeR1462611;
-	Tue, 24 Nov 2026 14:18:25 -0800
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=NSzRYm0v
+Received: from pps.filterd (m0528004.ppops.net [127.0.0.1])
+	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AOMB2CV1583223;
+	Tue, 24 Nov 2026 14:18:17 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to; s=
-	pps82601-s2048-2026-q3; bh=5+y+pEJjkRlNPLPCUMjFNeoBC6zZvACT5MVl5
-	k5uM+g=; b=IIw3paMo5bwlWOU0u1YpRsGSmkRgCEHTRaqSoytolBtu+Wdbgo92k
-	8Gzi+ZEn/Luvq+fErnwzuDt+MDvH/xZ3Yv8e5J6M6X6mETlyeXLgdraT/8lnGoyk
-	ZvSyGqp45on3AOnlzVApD7G4QexEYocfJXLgTLChiDXwE7BRBfSsKhHrOtAtGSj5
-	3oa3Qz4x+0YhHcvZ8ckuMrnHRCEQL4g0nI/QGpMbFGBaXs9w5zDWmBrVM3rmMP4c
-	XeqsaIDQ9tQfEBk5vNq3RriplObC1pu5lZUO27gMpsjn/52FV4pZiLuEvQgPMIpe
-	YLQgBmGRN3/bZp2EAXuZAGKDNdIhkX0CA==
-Received: from maileast.thefacebook.com ([163.114.135.16])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j5eaw2q3v-1
+	pps82601-s2048-2026-q3; bh=143hEI/7EfGkjnfnz5DIIJiKfbG4zWj3tNRZc
+	4ue7QQ=; b=NSzRYm0vfHlXUbL2b1JLNEW+BLqDSG64Z9cwJoaAc/wZA0ig0rKLI
+	ptEuTch0n1KZ4fdZNt5ZWR8y1PHcKJep8aVAJQC1pnCVi/8Eg3khAe0JBe2Y3cfZ
+	kDBfoj/WTaIdwMGhSwDHClKZNF0z7t19TbbYb9TmQyi1uXbekB1zQjtS7SHKzhpX
+	nlv5fz+tE3M2sxecpIsoVRfZ60P5X1Y6FL6jKLSc5bIXDr1w7I0naREQHv8wY+aY
+	SuasvMTio6ceSzS59qKuhcQL2Fg8i3lg+3QnTM/u1l3ZR+tSkNsHOPMCsyk4kZTp
+	8PGn0JQdtJuvdeGW2wDk1thf9bTOOPIBQ==
+Received: from mail.thefacebook.com ([163.114.134.16])
+	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j5hr28pby-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Tue, 24 Nov 2026 14:18:25 -0800 (PST)
-Received: from localhost (2620:10d:c0a8:1c::11) by mail.thefacebook.com
- (2620:10d:c0a9:6f::237c) with Microsoft SMTP Server (version=TLS1_2,
+	Tue, 24 Nov 2026 14:18:16 -0800 (PST)
+Received: from localhost (2620:10d:c085:208::f) by mail.thefacebook.com
+ (2620:10d:c08b:78::2ac9) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.56; Tue, 24 Nov
- 2026 22:18:24 +0000
+ 2026 22:18:15 +0000
 From: Todd Freed <toddfreed@meta.com>
 To: <netdev@vger.kernel.org>
 CC: "David S. Miller" <davem@davemloft.net>,
@@ -103,9 +103,9 @@ CC: "David S. Miller" <davem@davemloft.net>,
         =?UTF-8?q?Jonas=20K=C3=B6ppeler?= <j.koeppeler@tu-berlin.de>,
         Hangbin Liu
 	<hangbin.liu@linux.dev>
-Subject: [PATCH net-next v3 07/12] net/sched: flower: add psp_spi, psp_ver, and psp_dev matches
-Date: Tue, 24 Nov 2026 14:17:53 -0800
-Message-ID: <20261124221758.3230929-8-toddfreed@meta.com>
+Subject: [PATCH net-next v3 04/12] psp: add support for socket-less psp associations
+Date: Tue, 24 Nov 2026 14:17:50 -0800
+Message-ID: <20261124221758.3230929-5-toddfreed@meta.com>
 X-Mailer: git-send-email 2.53.1
 In-Reply-To: <20261124221758.3230929-1-toddfreed@meta.com>
 References: <20261124221758.3230929-1-toddfreed@meta.com>
@@ -120,354 +120,819 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTI0MDA4NyBTYWx0ZWRfX7XYE2Q0CcUy2
- DimOKe5b5dNamxzPHUOUFTFujO/HJk6wvJsoCl4pIp60zfuQtN9khqPBzDnfHF6y5HN2bZK+BgT
- AuBBRNoWecgarywsuGq2YvYhAVNSyT4jbELgWl1jKjeHfO3y3zQKTiCT81juypnSX4tmauJGk0n
- VBkHzT9eKpgj8FHcrKOTQ+m/JhzayeVxRI4CQE/CouQ4I8lpSgDyRuginQDAiaYtVX8membAyXK
- R+cUvLubOmExTUnE4jg3PxIxgWiz6mHCc73QzWi+noC2pPYACp1To/8AHslAhIKStPo6PlUq79C
- +JlYiKGIk13gxaM0o68UEo7bx9r0x/y4L3mOjLLPOY3yYko+RqS5jfwHz3s9oGXaFrzJQf8W50A
- nReNaZJNXmBW0twk5paitnXi+WdESUg2o84D7AHqQgLOpy0AoO+qMrgen4FSCmdoVFj/D3yT20h
- t3FEL4IhFtOHW980+kw==
-X-Proofpoint-GUID: E4J5Ot1bXoTVxhuzwU2hmJFy0ppCnYHO
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTI0MDA4NyBTYWx0ZWRfX6WkrXyfbygoC
- 0IS4no1xadnSVsw6JFddkN4blCdNCk9BLPDjaWbVXoLXgyDFl8AkpO7qJ6jm+bDPIy9r4e3jVhv
- +LRM6hXXbj/tEs27k4PwvtysLfl5eHA=
-X-Proofpoint-ORIG-GUID: E4J5Ot1bXoTVxhuzwU2hmJFy0ppCnYHO
-X-Authority-Analysis: v=2.4 cv=cIV1IVeN c=1 sm=1 tr=0 ts=6b060d31 cx=c_pps
- a=MfjaFnPeirRr97d5FC5oHw==:117 a=MfjaFnPeirRr97d5FC5oHw==:17
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTI0MDA4NyBTYWx0ZWRfXysEFn8gIg54R
+ 2VkMlFZ8vxdqLlzab8g9en7d55h8lo0v9ctNPwqBFCERAK8mvQtpCoB7GLGsXSSgtbVs3qIcu8J
+ tly/rbvWbdIaYPJye8jmfSGQWmw2oSaTWVgfjpMlIQZ3bHETGGSkQ97EDjvs+4I1Kxu1ACHTMt5
+ GrXKOAvNa4cxSV+9nmjM1Xw2JfoxXnioT7EshiJPGeGQGfhEKSa2qxCeUW7awMprsHIbxCt+qOl
+ PUpTZRQ9nOHD1fjHc+NfCHaYDsEWkuCdRVph8dJYI26kSPasW7xCwDdrbP0hN8q7tb8xTUgI0Gy
+ HSBzFEBSDCQWjXePINmsMMo9e1FTNeNaIuPAniyoYsQL+4bwrBqrE5gnWtaxBOABKFSVx/r2G5l
+ Kw+NZJnWz/8eQeqf9mcxIts3PJYAIPthaRHwg6ZLfWUs+TG+feAjhGORPUvdx4Oy9n0NTc68xYi
+ GHvJ3cY1Hq/Y+q3WqaA==
+X-Proofpoint-GUID: mjR3Mn_dIplvYY1v7PmJpF47bcgOXvf5
+X-Proofpoint-ORIG-GUID: mjR3Mn_dIplvYY1v7PmJpF47bcgOXvf5
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTI0MDA4NyBTYWx0ZWRfX4pLvwnofLAEs
+ 6hptal8jDFvYG/Afu97NkXlglyuZg9224CZciJwaLk3zsAZyRJtSfZcziyle0Uf5nbzXHObuedY
+ Cn9VHwwqkB7bs4gyJOKhN3SjDioM3fY=
+X-Authority-Analysis: v=2.4 cv=evtKXYpX c=1 sm=1 tr=0 ts=6b060d29 cx=c_pps
+ a=CB4LiSf2rd0gKozIdrpkBw==:117 a=CB4LiSf2rd0gKozIdrpkBw==:17
  a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
- a=wpfVPzegXHpEFt3DAXn9:22 a=VabnemYjAAAA:8 a=UA3dg4tPmuigaKddVqUA:9
+ a=GbPsI2Ihf5RTnMjR_gZv:22 a=VabnemYjAAAA:8 a=sKsbMWHWLt6S3Jh_swgA:9
  a=gKebqoRLp9LExxC7YDUY:22
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
  definitions=2026-11-24_06,2026-11-23_01,2025-10-01_01
 
-Add a flow dissector key filled from the PSP Rx state (SKB_EXT_PSP) the
-device attached to a decrypted packet, and corresponding flower matches:
-the SPI the packet was decrypted with (psp_spi, with a mask), the PSP
-version (psp_ver), and the ID of the PSP device which decrypted it
-(psp_dev).
+Currently, a PSP association is bound to a TCP socket when it is
+created, and can hold both an Rx and a Tx key.
 
-For example, to take the packets of one Rx SPI (allocated with
-rx-spi-alloc), and remove their PSP state so that they can be forwarded:
+Add Tx associations which are not bound to a socket, and are referenced
+by an ID, so that other parts of the stack can attach them to packets.
+See the subsequent patches, where the tc psp action does just this.
 
-  tc filter add dev eth0 ingress protocol ipv6 flower
-      psp_spi 0x80000001 psp_ver 0 psp_dev 1
-      action psp decap
+Socket-less Rx does not need an association, and the kernel does not
+keep anything for this case. For Rx, userspace calls the rx-spi-alloc
+operation, and then uses tc filters that match the corresponding SPI,
+version, and PSP device. The flower matches for these fields are added
+in a subsequent patch.
 
-Together these matches tie a rule to one Rx SPI, in a form which
-hardware can match on (offload comes in a follow-up series). The SPI is
-only unique on its PSP device, and is allocated for one PSP version.
-This matches the per-packet check that PSP sockets have against their
-association, with an important exception - the generation of the device
-key is not checked.
+Add the following new netlink commands. They are admin-only, and
+restricted to the netns of the PSP device.
 
-This means that a rule for an SPI could match packets after two device
-key rotations, if the device allocates the same SPI again (which it is
-free to do).
+  rx-spi-alloc  allocate an Rx SPI and derived key, without a socket.
+                The key is delivered to the peer out of band. Also
+                returns the number of key rotations of the PSP device
+                so far (key-rotations)
+  assoc-add     create a Tx association and install the peer's key,
+                returns its ID
+  assoc-del     delete a Tx association
+  assoc-get     get / dump Tx associations; only the SPI is reported
 
-Userspace is responsible for handling this. It must replace a rule which
-matches on SPI before the device key has had two rotations. The existing
-key rotation notification may be used for this purpose.
+Socket associations are not addressed by these commands, so for example
+assoc-get does not list them.
 
-No driver offloads these matches yet, and some drivers offload a rule
-without checking which keys it uses, so it would match without them.
-Don't offload a rule which uses them, and reject it with skip_sw. A
-rule which isn't offloaded is not on the filter's hw list either, so
-it isn't offloaded later when the block gets another device.
+The kernel doesn't enforce key rotation for socket-less Rx the way it
+does for socket associations. A tc filter which matches a SPI of one
+generation will also match that SPI if subsequently re-used in another
+generation. It is up to userspace to deal with this eventuality by
+removing such rules in time. Userspace may subscribe to rotation
+notifications for this purpose.
 
-Note that these flower matches only ever match packets which were
-decrypted, even if the mask is 0. So "psp_spi 0/0" matches any decrypted
-PSP packet.
+Tx associations hold the peer's key, which device key rotation doesn't
+affect. They are on a device list of their own, which key rotation
+doesn't walk, and are deleted when their PSP device is unregistered.
+
+The Rx key is returned once, by rx-spi-alloc, and not stored. The Tx
+key is passed in by assoc-add and never reported back: assoc-get only
+reports the SPI, and users reference Tx associations by ID.
 
 Signed-off-by: Todd Freed <toddfreed@meta.com>
 ---
- Documentation/netlink/specs/tc.yaml | 19 ++++++++
- include/linux/skbuff.h              |  4 ++
- include/net/flow_dissector.h        | 18 +++++++
- include/uapi/linux/pkt_cls.h        |  5 ++
- net/core/flow_dissector.c           | 27 ++++++++++
- net/sched/cls_flower.c              | 76 +++++++++++++++++++++++++++++
- 6 files changed, 149 insertions(+)
+ Documentation/netlink/specs/psp.yaml |  91 ++++++++++
+ include/net/psp/functions.h          |   1 +
+ include/net/psp/types.h              |   4 +
+ include/uapi/linux/psp.h             |   6 +
+ net/psp/Makefile                     |   2 +-
+ net/psp/psp-nl-gen.c                 |  60 +++++++
+ net/psp/psp-nl-gen.h                 |   8 +
+ net/psp/psp.h                        |   4 +
+ net/psp/psp_assoc.c                  | 122 ++++++++++++++
+ net/psp/psp_main.c                   |   4 +
+ net/psp/psp_nl.c                     | 244 +++++++++++++++++++++++++++
+ net/psp/psp_sock.c                   |   1 +
+ 12 files changed, 546 insertions(+), 1 deletion(-)
+ create mode 100644 net/psp/psp_assoc.c
 
-diff --git a/Documentation/netlink/specs/tc.yaml b/Documentation/netlink/specs/tc.yaml
-index b6ccc645b0e3..d9d8b21eb1bf 100644
---- a/Documentation/netlink/specs/tc.yaml
-+++ b/Documentation/netlink/specs/tc.yaml
-@@ -2908,6 +2908,25 @@ attribute-sets:
-         byte-order: big-endian
-         enum: flower-key-ctrl-flags
-         enum-as-flags: true
+diff --git a/Documentation/netlink/specs/psp.yaml b/Documentation/netlink/specs/psp.yaml
+index f6af1a510d17..95af0ada4046 100644
+--- a/Documentation/netlink/specs/psp.yaml
++++ b/Documentation/netlink/specs/psp.yaml
+@@ -103,6 +103,21 @@ attribute-sets:
+         name: sock-fd
+         doc: Sockets which should be bound to the association immediately.
+         type: u32
 +      -
-+        name: key-psp-spi
-+        type: u32
-+        byte-order: big-endian
-+      -
-+        name: key-psp-spi-mask
-+        type: u32
-+        byte-order: big-endian
-+      -
-+        name: key-psp-version
-+        type: u8
-+        checks:
-+          max: 15
-+      -
-+        name: key-psp-dev
++        name: id
++        doc: |
++          ID of a Tx association which is not bound to a socket.
++          Such associations can be attached to packets with the tc psp action.
 +        type: u32
 +        checks:
 +          min: 1
-+          max: 65535
++      -
++        name: key-rotations
++        doc: |
++          Number of key rotations of the device (key-rotations in get-stats)
++          when an Rx SPI was allocated. The device decrypts the SPI until its
++          key has been rotated twice more.
++        type: uint
    -
-     name: flower-key-enc-opts-attrs
-     name-prefix: tca-flower-key-enc-opts-
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 55ab6392301a..c20294084fb7 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -1663,6 +1663,10 @@ void skb_flow_dissect_hash(const struct sk_buff *skb,
- 			   struct flow_dissector *flow_dissector,
- 			   void *target_container);
+     name: keys
+     attributes:
+@@ -354,6 +369,82 @@ operations:
+           attributes: []
+         pre: psp-device-get-locked
+         post: psp-device-unlock
++    -
++      name: rx-spi-alloc
++      doc: |
++        Allocate a new Rx key + SPI pair without binding it to a socket.
++        The key is derived by the device and must be passed to the peer
++        out of band, to be installed there with assoc-add. The kernel
++        keeps no state for it: a tc rule takes the packets the device
++        decrypted with the SPI with the flower psp_spi, psp_ver and
++        psp_dev keys. The SPI is decrypted until the device key has been
++        rotated twice more, after which the device can allocate it again:
++        user space must remove rules matching it by then.
++      attribute-set: assoc
++      flags: [admin-perm]
++      do:
++        request:
++          attributes:
++            - dev-id
++            - version
++        reply:
++          attributes:
++            - dev-id
++            - rx-key
++            - key-rotations
++        pre: psp-assoc-device-get-locked-admin
++        post: psp-device-unlock
++    -
++      name: assoc-add
++      doc: |
++        Add a PSP Tx association which is not bound to a socket.
++        Returns the ID of the new association.
++      attribute-set: assoc
++      flags: [admin-perm]
++      do:
++        request:
++          attributes:
++            - dev-id
++            - version
++            - tx-key
++        reply:
++          attributes:
++            - id
++            - dev-id
++        pre: psp-assoc-device-get-locked-admin
++        post: psp-device-unlock
++    -
++      name: assoc-del
++      doc: |
++        Delete a PSP Tx association which is not bound to a socket.
++        Packets and tc actions which still reference it keep it alive.
++      attribute-set: assoc
++      flags: [admin-perm]
++      do:
++        request:
++          attributes:
++            - id
++        reply:
++          attributes: []
++    -
++      name: assoc-get
++      doc: |
++        Get / dump Tx associations which are not bound to a socket.
++        Key material is never reported: tx-key carries the SPI only.
++      attribute-set: assoc
++      flags: [admin-perm]
++      do:
++        request:
++          attributes:
++            - id
++        reply: &assoc-all
++          attributes:
++            - id
++            - dev-id
++            - version
++            - tx-key
++      dump:
++        reply: *assoc-all
  
-+void skb_flow_dissect_psp(const struct sk_buff *skb,
-+			  struct flow_dissector *flow_dissector,
-+			  void *target_container);
-+
- static inline __u32 skb_get_hash_net(const struct net *net, struct sk_buff *skb)
- {
- 	if (!skb->l4_hash && !skb->sw_hash)
-diff --git a/include/net/flow_dissector.h b/include/net/flow_dissector.h
-index ced79dc8e856..151ae03d5ad5 100644
---- a/include/net/flow_dissector.h
-+++ b/include/net/flow_dissector.h
-@@ -339,6 +339,23 @@ struct flow_dissector_key_cfm {
- 	u8	opcode;
+ mcast-groups:
+   list:
+diff --git a/include/net/psp/functions.h b/include/net/psp/functions.h
+index 5a7a518b9579..2380af3b9c86 100644
+--- a/include/net/psp/functions.h
++++ b/include/net/psp/functions.h
+@@ -23,6 +23,7 @@ int psp_dev_rcv(struct sk_buff *skb, u16 dev_id, u8 generation, bool strip_icv);
+ 
+ /* Kernel-facing API */
+ void psp_assoc_put(struct psp_assoc *pas);
++struct psp_assoc *psp_assoc_get_by_id(struct net *net, u32 id);
+ 
+ #if IS_ENABLED(CONFIG_INET_PSP)
+ unsigned int psp_key_size(u32 version);
+diff --git a/include/net/psp/types.h b/include/net/psp/types.h
+index f3e1fe97224e..881e10050977 100644
+--- a/include/net/psp/types.h
++++ b/include/net/psp/types.h
+@@ -82,6 +82,8 @@ struct psp_assoc_dev {
+  *			device key
+  * @stale_assocs:	associations which use a rotated out key, or were
+  *			superseded by a rekey
++ * @sockless_assocs:	socket-less Tx associations, which key rotation
++ *			doesn't move
+  * @tx_del:		deferred TX key deletion state
+  * @tx_del.active:	TX keys to be deleted after the current grace period
+  * @tx_del.next:	TX keys queued for deletion during current grace period
+@@ -115,6 +117,7 @@ struct psp_dev {
+ 	struct list_head active_assocs;
+ 	struct list_head prev_assocs;
+ 	struct list_head stale_assocs;
++	struct list_head sockless_assocs;
+ 
+ 	struct {
+ 		struct list_head active;
+@@ -183,6 +186,7 @@ enum psp_assoc_flags {
+ 
+ struct psp_assoc {
+ 	struct psp_dev *psd;
++	u32 id;
+ 
+ 	u16 dev_id;
+ 	u8 generation;
+diff --git a/include/uapi/linux/psp.h b/include/uapi/linux/psp.h
+index 1c8899cd4da5..e62462a9542b 100644
+--- a/include/uapi/linux/psp.h
++++ b/include/uapi/linux/psp.h
+@@ -44,6 +44,8 @@ enum {
+ 	PSP_A_ASSOC_RX_KEY,
+ 	PSP_A_ASSOC_TX_KEY,
+ 	PSP_A_ASSOC_SOCK_FD,
++	PSP_A_ASSOC_ID,
++	PSP_A_ASSOC_KEY_ROTATIONS,
+ 
+ 	__PSP_A_ASSOC_MAX,
+ 	PSP_A_ASSOC_MAX = (__PSP_A_ASSOC_MAX - 1)
+@@ -87,6 +89,10 @@ enum {
+ 	PSP_CMD_GET_STATS,
+ 	PSP_CMD_DEV_ASSOC,
+ 	PSP_CMD_DEV_DISASSOC,
++	PSP_CMD_RX_SPI_ALLOC,
++	PSP_CMD_ASSOC_ADD,
++	PSP_CMD_ASSOC_DEL,
++	PSP_CMD_ASSOC_GET,
+ 
+ 	__PSP_CMD_MAX,
+ 	PSP_CMD_MAX = (__PSP_CMD_MAX - 1)
+diff --git a/net/psp/Makefile b/net/psp/Makefile
+index 40decd8fe050..b06f1732b5f8 100644
+--- a/net/psp/Makefile
++++ b/net/psp/Makefile
+@@ -2,4 +2,4 @@
+ 
+ obj-$(CONFIG_INET_PSP) += psp.o
+ 
+-psp-y := psp_main.o psp_nl.o psp_sock.o psp_deferred_del.o psp-nl-gen.o
++psp-y := psp_main.o psp_nl.o psp_sock.o psp_assoc.o psp_deferred_del.o psp-nl-gen.o
+diff --git a/net/psp/psp-nl-gen.c b/net/psp/psp-nl-gen.c
+index 0e426ffac398..dbdbe79b569e 100644
+--- a/net/psp/psp-nl-gen.c
++++ b/net/psp/psp-nl-gen.c
+@@ -67,6 +67,29 @@ static const struct nla_policy psp_dev_disassoc_nl_policy[PSP_A_DEV_NSID + 1] =
+ 	[PSP_A_DEV_NSID] = { .type = NLA_S32, },
  };
  
-+/**
-+ * struct flow_dissector_key_psp - PSP Rx state of a decrypted packet
-+ * @spi: SPI of the PSP association the packet was decrypted with
-+ * @dev_id: ID of the PSP device which decrypted the packet
-+ * @version: PSP version (enum psp_version) the packet was decrypted with
-+ * @present: packet was decrypted by a PSP device
-+ *
-+ * Taken from the PSP Rx state the device attached to the skb, not from the
-+ * packet, which no longer carries the PSP header.
-+ */
-+struct flow_dissector_key_psp {
-+	__be32	spi;
-+	u16	dev_id;
-+	u8	version;
-+	u8	present;
++/* PSP_CMD_RX_SPI_ALLOC - do */
++static const struct nla_policy psp_rx_spi_alloc_nl_policy[PSP_A_ASSOC_VERSION + 1] = {
++	[PSP_A_ASSOC_DEV_ID] = NLA_POLICY_MIN(NLA_U32, 1),
++	[PSP_A_ASSOC_VERSION] = NLA_POLICY_MAX(NLA_U32, 3),
 +};
 +
- #define FLOW_DIS_CFM_MDL_MASK GENMASK(7, 5)
- #define FLOW_DIS_CFM_MDL_MAX 7
- 
-@@ -376,6 +393,7 @@ enum flow_dissector_key_id {
- 	FLOW_DISSECTOR_KEY_L2TPV3, /* struct flow_dissector_key_l2tpv3 */
- 	FLOW_DISSECTOR_KEY_CFM, /* struct flow_dissector_key_cfm */
- 	FLOW_DISSECTOR_KEY_IPSEC, /* struct flow_dissector_key_ipsec */
-+	FLOW_DISSECTOR_KEY_PSP, /* struct flow_dissector_key_psp */
- 
- 	FLOW_DISSECTOR_KEY_MAX,
- };
-diff --git a/include/uapi/linux/pkt_cls.h b/include/uapi/linux/pkt_cls.h
-index 14cff8f5da74..0cfa7425404b 100644
---- a/include/uapi/linux/pkt_cls.h
-+++ b/include/uapi/linux/pkt_cls.h
-@@ -561,6 +561,11 @@ enum {
- 	TCA_FLOWER_KEY_ENC_FLAGS,	/* be32 */
- 	TCA_FLOWER_KEY_ENC_FLAGS_MASK,	/* be32 */
- 
-+	TCA_FLOWER_KEY_PSP_SPI,		/* be32 */
-+	TCA_FLOWER_KEY_PSP_SPI_MASK,	/* be32 */
-+	TCA_FLOWER_KEY_PSP_VERSION,	/* u8, enum psp_version */
-+	TCA_FLOWER_KEY_PSP_DEV,		/* u32, PSP device ID */
++/* PSP_CMD_ASSOC_ADD - do */
++static const struct nla_policy psp_assoc_add_nl_policy[PSP_A_ASSOC_TX_KEY + 1] = {
++	[PSP_A_ASSOC_DEV_ID] = NLA_POLICY_MIN(NLA_U32, 1),
++	[PSP_A_ASSOC_VERSION] = NLA_POLICY_MAX(NLA_U32, 3),
++	[PSP_A_ASSOC_TX_KEY] = NLA_POLICY_NESTED(psp_keys_nl_policy),
++};
 +
- 	__TCA_FLOWER_MAX,
++/* PSP_CMD_ASSOC_DEL - do */
++static const struct nla_policy psp_assoc_del_nl_policy[PSP_A_ASSOC_ID + 1] = {
++	[PSP_A_ASSOC_ID] = NLA_POLICY_MIN(NLA_U32, 1),
++};
++
++/* PSP_CMD_ASSOC_GET - do */
++static const struct nla_policy psp_assoc_get_nl_policy[PSP_A_ASSOC_ID + 1] = {
++	[PSP_A_ASSOC_ID] = NLA_POLICY_MIN(NLA_U32, 1),
++};
++
+ /* Ops table for psp */
+ static const struct genl_split_ops psp_nl_ops[] = {
+ 	{
+@@ -151,6 +174,43 @@ static const struct genl_split_ops psp_nl_ops[] = {
+ 		.maxattr	= PSP_A_DEV_NSID,
+ 		.flags		= GENL_ADMIN_PERM | GENL_CMD_CAP_DO,
+ 	},
++	{
++		.cmd		= PSP_CMD_RX_SPI_ALLOC,
++		.pre_doit	= psp_assoc_device_get_locked_admin,
++		.doit		= psp_nl_rx_spi_alloc_doit,
++		.post_doit	= psp_device_unlock,
++		.policy		= psp_rx_spi_alloc_nl_policy,
++		.maxattr	= PSP_A_ASSOC_VERSION,
++		.flags		= GENL_ADMIN_PERM | GENL_CMD_CAP_DO,
++	},
++	{
++		.cmd		= PSP_CMD_ASSOC_ADD,
++		.pre_doit	= psp_assoc_device_get_locked_admin,
++		.doit		= psp_nl_assoc_add_doit,
++		.post_doit	= psp_device_unlock,
++		.policy		= psp_assoc_add_nl_policy,
++		.maxattr	= PSP_A_ASSOC_TX_KEY,
++		.flags		= GENL_ADMIN_PERM | GENL_CMD_CAP_DO,
++	},
++	{
++		.cmd		= PSP_CMD_ASSOC_DEL,
++		.doit		= psp_nl_assoc_del_doit,
++		.policy		= psp_assoc_del_nl_policy,
++		.maxattr	= PSP_A_ASSOC_ID,
++		.flags		= GENL_ADMIN_PERM | GENL_CMD_CAP_DO,
++	},
++	{
++		.cmd		= PSP_CMD_ASSOC_GET,
++		.doit		= psp_nl_assoc_get_doit,
++		.policy		= psp_assoc_get_nl_policy,
++		.maxattr	= PSP_A_ASSOC_ID,
++		.flags		= GENL_ADMIN_PERM | GENL_CMD_CAP_DO,
++	},
++	{
++		.cmd	= PSP_CMD_ASSOC_GET,
++		.dumpit	= psp_nl_assoc_get_dumpit,
++		.flags	= GENL_ADMIN_PERM | GENL_CMD_CAP_DUMP,
++	},
  };
  
-diff --git a/net/core/flow_dissector.c b/net/core/flow_dissector.c
-index 1be6c739e3c7..95d3fa3b1568 100644
---- a/net/core/flow_dissector.c
-+++ b/net/core/flow_dissector.c
-@@ -28,6 +28,7 @@
- #include <linux/ptp_classify.h>
- #include <net/flow_dissector.h>
- #include <net/pkt_cls.h>
-+#include <net/psp/types.h>
- #include <scsi/fc/fc_fcoe.h>
- #include <uapi/linux/batadv_packet.h>
- #include <linux/bpf.h>
-@@ -511,6 +512,32 @@ void skb_flow_dissect_hash(const struct sk_buff *skb,
- }
- EXPORT_SYMBOL(skb_flow_dissect_hash);
+ static const struct genl_multicast_group psp_nl_mcgrps[] = {
+diff --git a/net/psp/psp-nl-gen.h b/net/psp/psp-nl-gen.h
+index 24d51bff997f..27474f1ce112 100644
+--- a/net/psp/psp-nl-gen.h
++++ b/net/psp/psp-nl-gen.h
+@@ -24,6 +24,9 @@ int psp_assoc_device_get_locked(const struct genl_split_ops *ops,
+ int psp_device_get_locked_dev_assoc(const struct genl_split_ops *ops,
+ 				    struct sk_buff *skb,
+ 				    struct genl_info *info);
++int psp_assoc_device_get_locked_admin(const struct genl_split_ops *ops,
++				      struct sk_buff *skb,
++				      struct genl_info *info);
+ void
+ psp_device_unlock(const struct genl_split_ops *ops, struct sk_buff *skb,
+ 		  struct genl_info *info);
+@@ -38,6 +41,11 @@ int psp_nl_get_stats_doit(struct sk_buff *skb, struct genl_info *info);
+ int psp_nl_get_stats_dumpit(struct sk_buff *skb, struct netlink_callback *cb);
+ int psp_nl_dev_assoc_doit(struct sk_buff *skb, struct genl_info *info);
+ int psp_nl_dev_disassoc_doit(struct sk_buff *skb, struct genl_info *info);
++int psp_nl_rx_spi_alloc_doit(struct sk_buff *skb, struct genl_info *info);
++int psp_nl_assoc_add_doit(struct sk_buff *skb, struct genl_info *info);
++int psp_nl_assoc_del_doit(struct sk_buff *skb, struct genl_info *info);
++int psp_nl_assoc_get_doit(struct sk_buff *skb, struct genl_info *info);
++int psp_nl_assoc_get_dumpit(struct sk_buff *skb, struct netlink_callback *cb);
  
-+void skb_flow_dissect_psp(const struct sk_buff *skb,
-+			  struct flow_dissector *flow_dissector,
-+			  void *target_container)
+ enum {
+ 	PSP_NLGRP_MGMT,
+diff --git a/net/psp/psp.h b/net/psp/psp.h
+index 687bedde5ea9..09b24fa3a4e0 100644
+--- a/net/psp/psp.h
++++ b/net/psp/psp.h
+@@ -40,6 +40,10 @@ int psp_sock_assoc_set_tx(struct sock *sk, struct psp_dev *psd,
+ 			  struct netlink_ext_ack *extack);
+ void psp_assocs_key_rotated(struct psp_dev *psd);
+ 
++int psp_assoc_publish(struct psp_assoc *pas);
++void psp_assoc_unpublish(struct psp_assoc *pas);
++struct psp_assoc *psp_assoc_get_next(struct net *net, unsigned long *index);
++
+ static inline void psp_dev_get(struct psp_dev *psd)
+ {
+ 	refcount_inc(&psd->refcnt);
+diff --git a/net/psp/psp_assoc.c b/net/psp/psp_assoc.c
+new file mode 100644
+index 000000000000..257f7885116d
+--- /dev/null
++++ b/net/psp/psp_assoc.c
+@@ -0,0 +1,122 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/* PSP Tx associations which are not bound to a socket.
++ *
++ * They are created and deleted over netlink, and referenced by ID by other
++ * kernel users, e.g. the tc psp action. The registry holds one reference
++ * on each published association.
++ *
++ * There is no corresponding socket-less PSP Rx association.
++ */
++
++#include <linux/xarray.h>
++#include <net/psp.h>
++
++#include "psp.h"
++
++static DEFINE_XARRAY_ALLOC1(psp_assocs);
++static u32 psp_assoc_next_id;
++
++/**
++ * psp_assoc_publish() - add an association to the ID registry
++ * @pas: Tx association with its key installed
++ *
++ * On success @pas->id is set and the registry holds its own reference.
++ *
++ * Return: 0 on success, negative errno otherwise.
++ */
++int psp_assoc_publish(struct psp_assoc *pas)
 +{
-+#if IS_ENABLED(CONFIG_INET_PSP)
-+	struct flow_dissector_key_psp *key;
-+	struct psp_skb_ext *pse;
++	int err;
 +
-+	if (!dissector_uses_key(flow_dissector, FLOW_DISSECTOR_KEY_PSP))
-+		return;
++	refcount_inc(&pas->refcnt);
++	err = xa_alloc_cyclic(&psp_assocs, &pas->id, pas, xa_limit_31b,
++			      &psp_assoc_next_id, GFP_KERNEL);
++	if (err < 0) {
++		pas->id = 0;
++		refcount_dec(&pas->refcnt);
++		return err;
++	}
 +
-+	pse = skb_ext_find(skb, SKB_EXT_PSP);
-+	if (!pse)
-+		return;
-+
-+	key = skb_flow_dissector_target(flow_dissector,
-+					FLOW_DISSECTOR_KEY_PSP,
-+					target_container);
-+	key->spi = pse->spi;
-+	key->dev_id = pse->dev_id;
-+	key->version = pse->version;
-+	key->present = 1;
-+#endif
++	return 0;
 +}
-+EXPORT_SYMBOL(skb_flow_dissect_psp);
 +
- static enum flow_dissect_ret
- __skb_flow_dissect_mpls(const struct sk_buff *skb,
- 			struct flow_dissector *flow_dissector,
-diff --git a/net/sched/cls_flower.c b/net/sched/cls_flower.c
-index 23eba4a00a94..d7b6250f417b 100644
---- a/net/sched/cls_flower.c
-+++ b/net/sched/cls_flower.c
-@@ -81,6 +81,7 @@ struct fl_flow_key {
- 	struct flow_dissector_key_l2tpv3 l2tpv3;
- 	struct flow_dissector_key_ipsec ipsec;
- 	struct flow_dissector_key_cfm cfm;
-+	struct flow_dissector_key_psp psp;
- } __aligned(BITS_PER_LONG / 8); /* Ensure that we can do comparisons as longs. */
++/**
++ * psp_assoc_unpublish() - remove an association from the ID registry
++ * @pas: association
++ *
++ * Drops the registry's reference, unless a concurrent caller already did.
++ */
++void psp_assoc_unpublish(struct psp_assoc *pas)
++{
++	if (xa_cmpxchg(&psp_assocs, pas->id, pas, NULL, 0) == pas)
++		psp_assoc_put(pas);
++}
++
++static int psp_assoc_check_access(struct psp_assoc *pas, struct net *net)
++{
++	struct psp_dev *psd = pas->psd;
++	int err;
++
++	mutex_lock(&psd->lock);
++	if (psp_dev_is_registered(psd))
++		err = psp_dev_check_access(psd, net, true);
++	else
++		err = -ENODEV;
++	mutex_unlock(&psd->lock);
++
++	return err;
++}
++
++/**
++ * psp_assoc_get_by_id() - look up a published association
++ * @net: netns of the caller, must be the netns of the PSP device
++ * @id:  association ID
++ *
++ * Return: association with a reference taken, or NULL.
++ */
++struct psp_assoc *psp_assoc_get_by_id(struct net *net, u32 id)
++{
++	struct psp_assoc *pas;
++
++	rcu_read_lock();
++	pas = xa_load(&psp_assocs, id);
++	if (pas && !refcount_inc_not_zero(&pas->refcnt))
++		pas = NULL;
++	rcu_read_unlock();
++
++	if (pas && psp_assoc_check_access(pas, net)) {
++		psp_assoc_put(pas);
++		pas = NULL;
++	}
++
++	return pas;
++}
++EXPORT_SYMBOL_GPL(psp_assoc_get_by_id);
++
++/**
++ * psp_assoc_get_next() - iterate over published associations
++ * @net:   netns of the caller
++ * @index: in: first ID to consider, out: ID of the returned association
++ *
++ * Return: association with a reference taken, or NULL when done.
++ */
++struct psp_assoc *psp_assoc_get_next(struct net *net, unsigned long *index)
++{
++	struct psp_assoc *pas;
++
++	for (;; (*index)++) {
++		rcu_read_lock();
++		pas = xa_find(&psp_assocs, index, ULONG_MAX, XA_PRESENT);
++		if (pas && !refcount_inc_not_zero(&pas->refcnt)) {
++			rcu_read_unlock();
++			continue;
++		}
++		rcu_read_unlock();
++
++		if (!pas)
++			return NULL;
++		if (!psp_assoc_check_access(pas, net))
++			return pas;
++		psp_assoc_put(pas);
++	}
++}
+diff --git a/net/psp/psp_main.c b/net/psp/psp_main.c
+index dc6144469647..8f669304a996 100644
+--- a/net/psp/psp_main.c
++++ b/net/psp/psp_main.c
+@@ -95,6 +95,7 @@ psp_dev_create(struct net_device *netdev,
+ 	INIT_LIST_HEAD(&psd->active_assocs);
+ 	INIT_LIST_HEAD(&psd->prev_assocs);
+ 	INIT_LIST_HEAD(&psd->stale_assocs);
++	INIT_LIST_HEAD(&psd->sockless_assocs);
+ 	refcount_set(&psd->refcnt, 1);
  
- struct fl_flow_mask_range {
-@@ -343,6 +344,7 @@ TC_INDIRECT_SCOPE int fl_classify(struct sk_buff *skb,
- 				    ARRAY_SIZE(fl_ct_info_to_flower_map),
- 				    post_ct, zone);
- 		skb_flow_dissect_hash(skb, &mask->dissector, &skb_key);
-+		skb_flow_dissect_psp(skb, &mask->dissector, &skb_key);
- 		skb_flow_dissect(skb, &mask->dissector, &skb_key,
- 				 FLOW_DISSECTOR_F_STOP_BEFORE_ENCAP);
+ 	err = psp_deferred_del_init(psd);
+@@ -172,10 +173,13 @@ void psp_dev_unregister(struct psp_dev *psd)
  
-@@ -465,6 +467,16 @@ static int fl_hw_replace_filter(struct tcf_proto *tp,
- 	bool skip_sw = tc_skip_sw(f->flags);
- 	int err = 0;
+ 	list_splice_init(&psd->active_assocs, &psd->prev_assocs);
+ 	list_splice_init(&psd->prev_assocs, &psd->stale_assocs);
++	list_splice_init(&psd->sockless_assocs, &psd->stale_assocs);
+ 	list_for_each_entry_safe(pas, next, &psd->stale_assocs, assocs_list) {
+ 		if (psp_assoc_needs_tx_key_del(pas))
+ 			psp_dev_tx_key_del(psd, pas);
+ 		list_del(&pas->assocs_list);
++		if (pas->id)
++			psp_assoc_unpublish(pas);
+ 	}
  
-+	/* No driver offloads the PSP matches yet, and some offload a rule
-+	 * without checking which keys it uses: it would match without them
-+	 */
-+	if (dissector_uses_key(&f->mask->dissector, FLOW_DISSECTOR_KEY_PSP)) {
-+		if (!skip_sw)
-+			return 0;
-+		NL_SET_ERR_MSG_MOD(extack, "PSP matches can't be offloaded");
+ 	list_for_each_entry_safe(entry, entry_tmp, &psd->assoc_dev_list,
+diff --git a/net/psp/psp_nl.c b/net/psp/psp_nl.c
+index cdfc2d72fb39..ad22ba7ca85d 100644
+--- a/net/psp/psp_nl.c
++++ b/net/psp/psp_nl.c
+@@ -743,6 +743,20 @@ int psp_assoc_device_get_locked(const struct genl_split_ops *ops,
+ 	return err;
+ }
+ 
++int psp_assoc_device_get_locked_admin(const struct genl_split_ops *ops,
++				      struct sk_buff *skb,
++				      struct genl_info *info)
++{
++	struct nlattr *dev_id = info->attrs[PSP_A_ASSOC_DEV_ID];
++
++	if (GENL_REQ_ATTR_CHECK(info, PSP_A_ASSOC_DEV_ID))
++		return -EINVAL;
++
++	info->user_ptr[0] = psp_device_get_and_lock(genl_info_net(info),
++						    dev_id, true);
++	return PTR_ERR_OR_ZERO(info->user_ptr[0]);
++}
++
+ static int
+ psp_nl_parse_key(struct genl_info *info, u32 attr, struct psp_key_parsed *key,
+ 		 unsigned int key_sz)
+@@ -900,6 +914,236 @@ int psp_nl_tx_assoc_doit(struct sk_buff *skb, struct genl_info *info)
+ 	return err;
+ }
+ 
++int psp_nl_rx_spi_alloc_doit(struct sk_buff *skb, struct genl_info *info)
++{
++	struct psp_dev *psd = info->user_ptr[0];
++	struct psp_key_parsed key;
++	struct sk_buff *rsp;
++	u32 version;
++	int err;
++
++	if (GENL_REQ_ATTR_CHECK(info, PSP_A_ASSOC_VERSION))
++		return -EINVAL;
++
++	version = nla_get_u32(info->attrs[PSP_A_ASSOC_VERSION]);
++	if (!(psd->caps->versions & (1 << version))) {
++		NL_SET_BAD_ATTR(info->extack, info->attrs[PSP_A_ASSOC_VERSION]);
 +		return -EOPNOTSUPP;
 +	}
 +
- 	cls_flower.rule = flow_rule_alloc(tcf_exts_num_actions(&f->exts));
- 	if (!cls_flower.rule)
- 		return -ENOMEM;
-@@ -633,6 +645,12 @@ static void *fl_get(struct tcf_proto *tp, u32 handle)
- 	return __fl_get(head, handle);
- }
- 
-+/* SKB_EXT_PSP holds the PSP device ID in 16 bits, and IDs start at 1 */
-+static const struct netlink_range_validation fl_psp_dev_range = {
-+	.min = 1,
-+	.max = U16_MAX,
-+};
++	rsp = psp_nl_reply_new(info);
++	if (!rsp)
++		return -ENOMEM;
 +
- static const struct nla_policy fl_policy[TCA_FLOWER_MAX + 1] = {
- 	[TCA_FLOWER_UNSPEC]		= { .strict_start_type =
- 						TCA_FLOWER_L2_MISS },
-@@ -745,6 +763,12 @@ static const struct nla_policy fl_policy[TCA_FLOWER_MAX + 1] = {
- 	[TCA_FLOWER_KEY_SPI]		= { .type = NLA_U32 },
- 	[TCA_FLOWER_KEY_SPI_MASK]	= { .type = NLA_U32 },
- 	[TCA_FLOWER_L2_MISS]		= NLA_POLICY_MAX(NLA_U8, 1),
-+	[TCA_FLOWER_KEY_PSP_SPI]	= { .type = NLA_BE32 },
-+	[TCA_FLOWER_KEY_PSP_SPI_MASK]	= { .type = NLA_BE32 },
-+	/* the version field of the PSP header has 4 bits */
-+	[TCA_FLOWER_KEY_PSP_VERSION]	= NLA_POLICY_MAX(NLA_U8, 15),
-+	[TCA_FLOWER_KEY_PSP_DEV]	= NLA_POLICY_FULL_RANGE(NLA_U32,
-+							&fl_psp_dev_range),
- 	[TCA_FLOWER_KEY_CFM]		= { .type = NLA_NESTED },
- 	[TCA_FLOWER_KEY_ENC_FLAGS]	= NLA_POLICY_MASK(NLA_BE32,
- 							  TCA_FLOWER_KEY_ENC_FLAGS_POLICY_MASK),
-@@ -2077,6 +2101,34 @@ static int fl_set_key(struct net *net, struct nlattr *tca_opts,
- 			return ret;
- 	}
- 
-+	if (tb[TCA_FLOWER_KEY_PSP_SPI_MASK] && !tb[TCA_FLOWER_KEY_PSP_SPI]) {
-+		NL_SET_ERR_ATTR_MISS(extack, tca_opts, TCA_FLOWER_KEY_PSP_SPI);
++	err = psd->ops->rx_spi_alloc(psd, version, &key, info->extack);
++	if (err)
++		goto err_free_rsp;
++
++	/* Nothing to keep: the SPI is only matched by value (flower) */
++	if (nla_put_u32(rsp, PSP_A_ASSOC_DEV_ID, psd->id) ||
++	    psp_nl_put_key(rsp, PSP_A_ASSOC_RX_KEY, version, &key) ||
++	    nla_put_uint(rsp, PSP_A_ASSOC_KEY_ROTATIONS,
++			 psd->stats.rotations)) {
++		err = -EMSGSIZE;
++		goto err_free_rsp;
++	}
++
++	memzero_explicit(&key, sizeof(key));
++
++	return psp_nl_reply_send(rsp, info);
++
++err_free_rsp:
++	memzero_explicit(&key, sizeof(key));
++	nlmsg_free(rsp);
++	return err;
++}
++
++int psp_nl_assoc_add_doit(struct sk_buff *skb, struct genl_info *info)
++{
++	struct psp_dev *psd = info->user_ptr[0];
++	struct psp_key_parsed key;
++	struct psp_assoc *pas;
++	struct sk_buff *rsp;
++	unsigned int key_sz;
++	u32 version;
++	int err;
++
++	if (GENL_REQ_ATTR_CHECK(info, PSP_A_ASSOC_VERSION) ||
++	    GENL_REQ_ATTR_CHECK(info, PSP_A_ASSOC_TX_KEY))
 +		return -EINVAL;
-+	}
-+	if (tb[TCA_FLOWER_KEY_PSP_SPI] || tb[TCA_FLOWER_KEY_PSP_VERSION] ||
-+	    tb[TCA_FLOWER_KEY_PSP_DEV]) {
-+		if (!IS_ENABLED(CONFIG_INET_PSP)) {
-+			NL_SET_ERR_MSG(extack, "PSP isn't enabled");
-+			return -EOPNOTSUPP;
-+		}
-+		fl_set_key_val(tb, &key->psp.spi, TCA_FLOWER_KEY_PSP_SPI,
-+			       &mask->psp.spi, TCA_FLOWER_KEY_PSP_SPI_MASK,
-+			       sizeof(key->psp.spi));
-+		if (tb[TCA_FLOWER_KEY_PSP_VERSION]) {
-+			key->psp.version =
-+				nla_get_u8(tb[TCA_FLOWER_KEY_PSP_VERSION]);
-+			mask->psp.version = 0xff;
-+		}
-+		if (tb[TCA_FLOWER_KEY_PSP_DEV]) {
-+			key->psp.dev_id =
-+				nla_get_u32(tb[TCA_FLOWER_KEY_PSP_DEV]);
-+			mask->psp.dev_id = 0xffff;
-+		}
-+		/* Only match packets which were actually decrypted */
-+		key->psp.present = 1;
-+		mask->psp.present = 0xff;
++
++	version = nla_get_u32(info->attrs[PSP_A_ASSOC_VERSION]);
++	if (!(psd->caps->versions & (1 << version))) {
++		NL_SET_BAD_ATTR(info->extack, info->attrs[PSP_A_ASSOC_VERSION]);
++		return -EOPNOTSUPP;
 +	}
 +
- 	if (tb[TCA_FLOWER_KEY_ENC_IPV4_SRC] ||
- 	    tb[TCA_FLOWER_KEY_ENC_IPV4_DST]) {
- 		key->enc_control.addr_type = FLOW_DISSECTOR_KEY_IPV4_ADDRS;
-@@ -2263,6 +2315,8 @@ static void fl_init_dissector(struct flow_dissector *dissector,
- 			     FLOW_DISSECTOR_KEY_IPSEC, ipsec);
- 	FL_KEY_SET_IF_MASKED(mask, keys, cnt,
- 			     FLOW_DISSECTOR_KEY_CFM, cfm);
-+	FL_KEY_SET_IF_MASKED(mask, keys, cnt,
-+			     FLOW_DISSECTOR_KEY_PSP, psp);
- 
- 	skb_flow_dissector_init(dissector, keys, cnt);
- }
-@@ -3651,6 +3705,28 @@ static int fl_dump_key(struct sk_buff *skb, struct net *net,
- 			    sizeof(key->ipsec.spi)))
- 		goto nla_put_failure;
- 
-+	if (mask->psp.present &&
-+	    fl_dump_key_val(skb, &key->psp.spi, TCA_FLOWER_KEY_PSP_SPI,
-+			    &mask->psp.spi, TCA_FLOWER_KEY_PSP_SPI_MASK,
-+			    sizeof(key->psp.spi)))
-+		goto nla_put_failure;
-+	/* With a 0 SPI mask and no version or device, the SPI still carries
-+	 * the match on a decrypted packet: dump it with its mask
++	key_sz = psp_key_size(version);
++	if (!key_sz)
++		return -EINVAL;
++
++	err = psp_nl_parse_key(info, PSP_A_ASSOC_TX_KEY, &key, key_sz);
++	if (err < 0)
++		return err;
++
++	rsp = psp_nl_reply_new(info);
++	if (!rsp) {
++		err = -ENOMEM;
++		goto err_clear_key;
++	}
++
++	pas = psp_assoc_create(psd);
++	if (!pas) {
++		err = -ENOMEM;
++		goto err_free_rsp;
++	}
++	pas->version = version;
++
++	err = psp_assoc_set_tx(psd, pas, &key, info->extack);
++	if (err)
++		goto err_put_pas;
++	/* Off the lists of socket associations, which key rotation walks:
++	 * the peer's key isn't affected by the rotation of the device key
 +	 */
-+	if (mask->psp.present && !mask->psp.spi && !mask->psp.version &&
-+	    !mask->psp.dev_id &&
-+	    (nla_put(skb, TCA_FLOWER_KEY_PSP_SPI, sizeof(key->psp.spi),
-+		     &key->psp.spi) ||
-+	     nla_put(skb, TCA_FLOWER_KEY_PSP_SPI_MASK, sizeof(mask->psp.spi),
-+		     &mask->psp.spi)))
-+		goto nla_put_failure;
-+	if (mask->psp.version &&
-+	    nla_put_u8(skb, TCA_FLOWER_KEY_PSP_VERSION, key->psp.version))
-+		goto nla_put_failure;
-+	if (mask->psp.dev_id &&
-+	    nla_put_u32(skb, TCA_FLOWER_KEY_PSP_DEV, key->psp.dev_id))
-+		goto nla_put_failure;
++	list_move_tail(&pas->assocs_list, &psd->sockless_assocs);
 +
- 	if ((key->basic.ip_proto == IPPROTO_TCP ||
- 	     key->basic.ip_proto == IPPROTO_UDP ||
- 	     key->basic.ip_proto == IPPROTO_SCTP) &&
++	err = psp_assoc_publish(pas);
++	if (err)
++		goto err_put_pas;
++
++	if (nla_put_u32(rsp, PSP_A_ASSOC_ID, pas->id) ||
++	    nla_put_u32(rsp, PSP_A_ASSOC_DEV_ID, psd->id)) {
++		psp_assoc_unpublish(pas);
++		err = -EMSGSIZE;
++		goto err_put_pas;
++	}
++
++	psp_assoc_put(pas);
++	memzero_explicit(&key, sizeof(key));
++
++	return psp_nl_reply_send(rsp, info);
++
++err_put_pas:
++	psp_assoc_put(pas);
++err_free_rsp:
++	nlmsg_free(rsp);
++err_clear_key:
++	memzero_explicit(&key, sizeof(key));
++	return err;
++}
++
++int psp_nl_assoc_del_doit(struct sk_buff *skb, struct genl_info *info)
++{
++	struct psp_assoc *pas;
++	struct sk_buff *rsp;
++
++	if (GENL_REQ_ATTR_CHECK(info, PSP_A_ASSOC_ID))
++		return -EINVAL;
++
++	pas = psp_assoc_get_by_id(genl_info_net(info),
++				  nla_get_u32(info->attrs[PSP_A_ASSOC_ID]));
++	if (!pas) {
++		NL_SET_BAD_ATTR(info->extack, info->attrs[PSP_A_ASSOC_ID]);
++		return -ENOENT;
++	}
++
++	rsp = psp_nl_reply_new(info);
++	if (!rsp) {
++		psp_assoc_put(pas);
++		return -ENOMEM;
++	}
++
++	psp_assoc_unpublish(pas);
++	psp_assoc_put(pas);
++
++	return psp_nl_reply_send(rsp, info);
++}
++
++static int
++psp_nl_assoc_fill(struct psp_assoc *pas, struct sk_buff *rsp,
++		  const struct genl_info *info)
++{
++	struct nlattr *nest;
++	void *hdr;
++
++	hdr = genlmsg_iput(rsp, info);
++	if (!hdr)
++		return -EMSGSIZE;
++
++	if (nla_put_u32(rsp, PSP_A_ASSOC_ID, pas->id) ||
++	    nla_put_u32(rsp, PSP_A_ASSOC_DEV_ID, pas->dev_id) ||
++	    nla_put_u32(rsp, PSP_A_ASSOC_VERSION, pas->version))
++		goto err_cancel_msg;
++
++	/* Report the SPI only, never the key */
++	nest = nla_nest_start(rsp, PSP_A_ASSOC_TX_KEY);
++	if (!nest ||
++	    nla_put_u32(rsp, PSP_A_KEYS_SPI, be32_to_cpu(pas->tx.spi)))
++		goto err_cancel_msg;
++	nla_nest_end(rsp, nest);
++
++	genlmsg_end(rsp, hdr);
++	return 0;
++
++err_cancel_msg:
++	genlmsg_cancel(rsp, hdr);
++	return -EMSGSIZE;
++}
++
++int psp_nl_assoc_get_doit(struct sk_buff *skb, struct genl_info *info)
++{
++	struct psp_assoc *pas;
++	struct sk_buff *rsp;
++	int err;
++
++	if (GENL_REQ_ATTR_CHECK(info, PSP_A_ASSOC_ID))
++		return -EINVAL;
++
++	pas = psp_assoc_get_by_id(genl_info_net(info),
++				  nla_get_u32(info->attrs[PSP_A_ASSOC_ID]));
++	if (!pas) {
++		NL_SET_BAD_ATTR(info->extack, info->attrs[PSP_A_ASSOC_ID]);
++		return -ENOENT;
++	}
++
++	rsp = genlmsg_new(GENLMSG_DEFAULT_SIZE, GFP_KERNEL);
++	if (!rsp) {
++		err = -ENOMEM;
++		goto err_put_pas;
++	}
++
++	err = psp_nl_assoc_fill(pas, rsp, info);
++	if (err)
++		goto err_free_msg;
++
++	psp_assoc_put(pas);
++	return genlmsg_reply(rsp, info);
++
++err_free_msg:
++	nlmsg_free(rsp);
++err_put_pas:
++	psp_assoc_put(pas);
++	return err;
++}
++
++int psp_nl_assoc_get_dumpit(struct sk_buff *rsp, struct netlink_callback *cb)
++{
++	unsigned long index = cb->args[0];
++	struct psp_assoc *pas;
++	int err = 0;
++
++	while ((pas = psp_assoc_get_next(sock_net(rsp->sk), &index))) {
++		err = psp_nl_assoc_fill(pas, rsp, genl_info_dump(cb));
++		psp_assoc_put(pas);
++		if (err)
++			break;
++		index++;
++	}
++	cb->args[0] = index;
++
++	return err;
++}
++
+ static int
+ psp_nl_stats_fill(struct psp_dev *psd, struct sk_buff *rsp,
+ 		  const struct genl_info *info)
+diff --git a/net/psp/psp_sock.c b/net/psp/psp_sock.c
+index 89d97e5ff37c..604be916661a 100644
+--- a/net/psp/psp_sock.c
++++ b/net/psp/psp_sock.c
+@@ -155,6 +155,7 @@ void psp_assoc_put(struct psp_assoc *pas)
+ 	if (pas && refcount_dec_and_test(&pas->refcnt))
+ 		call_rcu(&pas->rcu, psp_assoc_free_queue);
+ }
++EXPORT_SYMBOL_GPL(psp_assoc_put);
+ 
+ void psp_sk_assoc_free(struct sock *sk)
+ {
 -- 
 2.53.1-Meta
 
