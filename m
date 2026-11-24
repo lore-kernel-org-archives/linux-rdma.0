@@ -1,101 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.54
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795557775;
-	b=Wb1xstzD0tZxgD7+6DBdKKntEJHQM7LCZ+9YSvY1JsCdiXdrJX1D7gXRc99AhTkuexM9
-	 I2UF26uAO8F9/m7qn3aS44GhYFQrb73oTPmstPK0W493O7UG3jm2eG8avcuy8iTgVqAcf
-	 d56iWLBtBaMOuBumj0RZkW3Hpg4GwuRT7zXGyzoNvCFvw0tF8HNMU5HwvZjOnP+c6eFB3
-	 qAAGaGXEp9VwKxxixqGZLLOKxUwTUgRhCPkvuT5DExE5Fx6CyC2g/oP3eLLbIyN7dQ4YN
-	 HFE+ijsZuPxIBcmcZRCtE+ArxB66zqhKzRSw3/Yr6WWJJtpU3etx9Kr0+GETWIve4GQ==
+	t=1795558414;
+	b=5XHEAxgPX1oTbjQuQNTfclsAZl1IECKdgCAJ2NPishZYdzm+HT6WpdwT6UTqrDzMcseH
+	 jMzJbXP0T8xna6lETXYfw+kPb6sLoZkCGnGichdeA0yl+tXSEu+1N5y++FMVyeZZO5iq1
+	 L98J3dMqS2GCDHzme1TXXKbtigizRjCkoWbGC2AE1qgVpVqFUliayJdWtLJ57zaTih+md
+	 2U4lUsVW2XtSURuUpCxeGi5v18IbNgBwvTvkQP06o2KeLieXlkUY2YeVX5F80EzSeTKMX
+	 chZcDa7wY/9r+evlMW9w1xG2tKDbwuAqIT3K76yIj/hYHwqFfLCF7CL31Mm3s0BEyIQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795557775;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=MTsG6ObX1QZphRq69WtSXAGO8I5Qp7B9rjGutUJIVt0=;
-	b=W9nqTGvrzGDL0uHMdWy5p57lh5m0fVJ6tsZZrl/SsSqi6EsHp3rRj9IRBRhwkAA2mUe7
-	 UKSXKKVS1aqBR+vGZPyd4oo+LZCjI5EHnZeyswl0SHHVV53fi2gz6osd+fUw+3paCzcvq
-	 mjDicWnk7C84maFHQ1AToHSoPwK+JOptujdfDT+BqpPAndlbLd40/Dq9IBGHrbcjYoHZI
-	 +pNaLZ8gxJD4H1gHrv3DTNemV3on+869OAVPzvhtaItuRpSH9fNX48wabPMwG4qFqL0Jo
-	 eXVxlyilwDse3jF4BhpKp7OXmHtrk77iIA/JPm7JLvOxIWwseyWL+3gCzZpci8Qfi9g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795558414;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=N2T3xrtOwYNy9ttW/L15mt+hDIXRdxOJNL38mkKBBZY=;
+	b=zb6taVrprpqAjl/upPtpRl6022QvhYmxS1uOdl0ORFH8j+5sN6N5CIPa2h538nMZNvzn
+	 lNmeJHit5BCRrnjVIqjTxPviSokWueWqwimtkly2XD1aoIYPfWTnOtCEm+7AvaXXJO9Rj
+	 iQQsufbTjUQedbQenUYaAMk+FSIPZ+FPkRCVf8vIdv/PQusX7Lr0OSXviU1jStJZLTTq3
+	 AoJiqv9S8678+Bkx1Gbi54bLtnPm4SSFfbqWfOm1WCDZNTwnd4YqrqWlgT4JtWA07BxWs
+	 GQX/2+ZcvzE4W4P6FnO5dQ0hAvoSVjppvzkV9bqNi8qvwAkpdL5Jb5mj6BJY0gqNsLg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="Hz7o8//i";
-	arc=none smtp.remote-ip=209.85.210.54
-Received: from mail-ot1-f54.google.com (mail-ot1-f54.google.com [209.85.210.54])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BUL7BDet;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ABF7606A323
-	for <linux-rdma@vger.kernel.org>; Tue, 24 Nov 2026 22:02:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0ABF7606A323
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 806E6606A33B
+	for <linux-rdma@vger.kernel.org>; Tue, 24 Nov 2026 22:13:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Hz7o8//i
-Received: by mail-ot1-f54.google.com with SMTP id 46e09a7af769-862aca1ed4dso2061906a34.0
-        for <linux-rdma@vger.kernel.org>; Tue, 24 Nov 2026 14:02:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795557774; x=1796162574; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=MTsG6ObX1QZphRq69WtSXAGO8I5Qp7B9rjGutUJIVt0=;
-        b=Hz7o8//ifyypD2vcRuajMaBRFCCt7gq5hVxY4h34XSTuCklaUZjCviBkF/B6bk/hf3
-         hctWcH7ztS2urkic7Jlkz9DF0pVagybCHw1UQ88mMHivAfyyKW5+g1+FDOr4vIAFFMTh
-         C6K7wmKqxX7zD3McLzBVfxzWF0Tmo2/QUETVMRntMNrwbQILhPLUg/BFc7ze/Q7bldsO
-         jqM9BRbs94s1/Dv0Y8Kz3nxiZRKTT2tIgkrEjM+ObxB2erd4R10JUdCFdt67Uj+wEVK1
-         qnghUqKs225CQJsJlw07EKkVs0cE6y0yDyMxEyuHmpXx8XbTe9kTTB3eSQ0l53mc9yFN
-         6BDQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795557774; x=1796162574;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=MTsG6ObX1QZphRq69WtSXAGO8I5Qp7B9rjGutUJIVt0=;
-        b=0zalbbHztjNrI06Cdwkl3OcHkzDOkGG9YTZsjGB9GiSgGKAXSGGIylGKvXvzADtPpc
-         7siCzUd5KtlznRTLq5i+SDmPpi3pUl9ApBBFMpIWjvlJdPlo1RxrSPF49HL2r5kHzyye
-         9UYKwRzvpE/6HFshwPRkVEFMqhw+1Iu5GYdCAMMJT0NQQwKxZCFHCkckY4sLp4PEOENY
-         rTJCFSdMqrn6t+ns70zRFSSHqk3mmB3IcngXv7sMuOWFZYb916yZQglsQ/ZGfioFYOB5
-         IeBI20uRe2ZWFksDAJOlVB7pjyQYrQm63+g2+WCS7870c7yN2M+YJnqMk5yeI7aT4+3y
-         BTMQ==
-X-Forwarded-Encrypted: i=1; AL+hErEIeIyAfV4KAAZx1aY3q+HMFC9jpHHYTzUoIkirvWrAEko9SGnW/lCZMLb6y6itY5v/Be3rRgIYzm3a@vger.kernel.org
-X-Gm-Message-State: APuU4Z/H0ogkRXrr2oAoejSGH0AK/Eq06Sb1a/XpY1zStjxiwF20t0M1
-	kfh1Cqs6+QZIRZpzI0AGmcjOvb6Wx/K6Snd+Swx58p32+lO7rHOE1huF
-X-Gm-Gg: AZFdTZefmF8E5do/U663tjhC43PCJ0Ul+eIeo306KQLFiLa8znoVFGBaMVcRjK6oA+V
-	+A13DlPGqstyF/zL+VnT0H3EY8pEjyFQ85yPGSfyMNrn9y5IYosj1F2+Y/Aezsdqb1/zDGD8KZs
-	0ppqgI6yeHTqj3ZsJonEbNggekGxd1SEwQapoXhUhYT+ZBCPUR2uA3p+I33Y07cioD4X8r5edDQ
-	pYqJiuTHzT/bfyRYdMkOYDdQxRdryuN3hektQPxkvUYW0QpwRWcDWzXhlBeRVDPVFray/dAhdIL
-	TweUVhLg5mP4rQlsH4Id+V1eq4Uosinystcn2rguIit15GqoS84Oj7IYoyZrlYgnz/vczEGU+EA
-	vm23E3YPzJ5xH6w80PKzUQKFwzs7CIiZUS3bfpHXCHHInRCtlmmNiIBhTT7Weg+N/nmuV1mse2Q
-	L7LNCs06PsoiDPMVnsk4e8tzuIfk3piPMIsfuMRTy0udCb9JSj7b/CaPaiIX6QD389k9plwfo6d
-	cCOO1U4p8eVrdoVDkxpOeqqLLalVYE+dH80ubSBXtnXiIvy4cSlzBY0hikpGw0LeUbjNfp13K+K
-	dltnIooi/Njs6I9RtyCRK0h2Gq4=
-X-Received: by 2002:a05:6830:4119:b0:862:f05c:2fd with SMTP id 46e09a7af769-863152c5e83mr17966959a34.3.1795557773847;
-        Tue, 24 Nov 2026 14:02:53 -0800 (PST)
-Received: from localhost ([2a03:2880:31ff:52::])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-863168c1bc5sm11180539a34.6.2026.11.24.14.02.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 24 Nov 2026 14:02:53 -0800 (PST)
-From: Mohsin Bashir <mohsin.bashr@gmail.com>
-To: netdev@vger.kernel.org
-Cc: saeedm@nvidia.com,
-	leon@kernel.org,
-	tariqt@nvidia.com,
-	mbloch@nvidia.com,
-	cjubran@nvidia.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	mohsin.bashr@gmail.com,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH net-next v3] net: mlx5: Allow police as the last action of a TC rule
-Date: Tue, 24 Nov 2026 14:02:51 -0800
-Message-ID: <20261124220251.776944-1-mohsin.bashr@gmail.com>
-X-Mailer: git-send-email 2.53.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BUL7BDet
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D0891F00AD3;
+	Tue, 24 Nov 2026 22:13:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795558414;
+	bh=N2T3xrtOwYNy9ttW/L15mt+hDIXRdxOJNL38mkKBBZY=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=BUL7BDetFe9nGL9ViVbFL8YdIZQ4dxSlYlRwXE/nfwHfuSPWCYWNiic/EzZZ3qN1a
+	 a08V5oxYgYkakUmQrcdDt9zNjDZkPINhu3H09eGylTObxXJNn/nDPsy/cTU44+uSds
+	 jeDFxzPuvzd4OeXFIqX03lOf4A/lX7t1MWhOj5ld/1azDGyqFvuL1x2VPSy4EDEYWr
+	 95yc+ZY1YcXjeh0fl1hYu/txhR8tGbppuMPbF07ZYbXG/LBBB4iWry2vtZv/F8mqJp
+	 0/xQ8/7yFerEfho4aIg8+HdOZakxRdoL457cz49OGmtZOZz4WolYcMM5ZpdmfO7edQ
+	 VzvTXURutgvrA==
+Message-ID: <sashiko-outbox-232095@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net] net/mlx5: HWS, fix action STE double free on rule
+ update
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Alexandre Cassen" <acassen@corp.free.fr>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261123221310.4045513-1-acassen@corp.free.fr>
+References: <20261123221310.4045513-1-acassen@corp.free.fr>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Tue, 24 Nov 2026 22:13:33 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -104,233 +59,87 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-From: Mohsin Bashir <hmohsin@meta.com>
+Thank you for your contribution! Sashiko AI review found 2 potential
+issues to consider:
+- [Medium] net/mlx5: HWS, missing rollback on update alloc error in
+  hws_rule_create_hws()
+- [Medium] net/mlx5: HWS, leak of old_action_ste on rule deletion after
+  failed update
+--
 
-In switchdev mode, mlx5 does not offload a rule where police is the last
-action, although TC needs no other action for such a rule. The upcoming
-selftest series relies on these rules. With nothing after police, the
-police result alone decides where the packet goes, so each result must
-be offloaded as TC executes it. The driver does not do that today. An ok
-result is handled as pipe and runs the actions after police, a pipe
-result always returns to the post action table, and a jump is counted
-from police while TC counts it from the start of the action list. A rate
-police is also rejected by verify_attr_actions(), as its forward to the
-post meter table is added only after the check.
+commit 0a380355d2aec6e9f92b8c556ecd839808dbe0cd
+Author: Alexandre Cassen <acassen@corp.free.fr>
 
-Make the offloaded rule behave as it does in TC. An ok result ends
-processing in TC. A pipe result does the same when police is the last
-action. Send both to the end of the TC chains as the driver already does
-for gact ok. For jump, offload only the simple case where police is the
-first action and the skipped actions are all drop or all ok. Reject the
-rest. Existing rules where police is followed by other actions also
-change. An ok result now accepts the packet instead of running those
-actions. Finally set the forward to the post meter table while parsing
-police. This is already done for police with mtu and lets a police-only
-rule pass verify_attr_actions().
+net/mlx5: HWS, fix action STE double free on rule update
 
-Tested on a ConnectX-7 in switchdev mode with the commands below. The
-hardware drop counter showed that the rules are offloaded and limit the
-traffic to the configured rate, that the second police only sees the
-packets conforming to the first, and that the jump lands on its target.
+This commit clears rule->action_ste.action_tbl after saving rule->action_ste
+to rule->old_action_ste during a rule update so that rules updated to need
+no action STEs do not free the old chunk twice.
 
-  tc filter add dev eth0 ingress pref 100 protocol ipv6 flower skip_sw \
-    ip_proto udp dst_port 5201 \
-    action police rate 100mbit burst 1m conform-exceed drop/ok
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.c =
+b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.c
+> index 0d4cb2b2393b9..cc94d3149d76a 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.c
+> @@ -243,6 +243,8 @@ static void hws_rule_create_init(struct mlx5hws_rule =
+*rule,
+>  		 * new action STEs and a corresponding match STE.
+>  		 */
+>  		rule->old_action_ste =3D rule->action_ste;
+> +		/* The rule may need no action STEs once updated */
+> +		rule->action_ste.action_tbl =3D NULL;
+>  	}
+> =20
+>  	rule->pending_wqes =3D 0;
 
-  tc filter add dev eth0 ingress pref 100 protocol ipv6 flower skip_sw \
-    ip_proto udp dst_port 5201 \
-    action police rate 200mbit burst 1m conform-exceed drop/pipe \
-    action police rate 100mbit burst 1m conform-exceed drop/pipe
+[Severity: Medium]
+Does hws_rule_create_hws() leave the rule stuck in
+MLX5HWS_RULE_STATUS_UPDATING and leak rule->old_action_ste if
+mlx5hws_rule_alloc_action_ste() fails during an update?
 
-  tc filter add dev eth0 ingress pref 100 protocol ipv6 flower skip_sw \
-    ip_proto udp dst_port 5201 \
-    action police rate 100mbit burst 1m conform-exceed drop / jump 2 \
-    action drop action ok
+hws_rule_create_init() sets rule->status to MLX5HWS_RULE_STATUS_UPDATING,
+moves rule->action_ste to rule->old_action_ste, and clears
+rule->action_ste.action_tbl before hws_rule_create_hws() calls
+mlx5hws_rule_alloc_action_ste():
 
-Cc: Carolina Jubran <cjubran@nvidia.com>
-Signed-off-by: Mohsin Bashir <hmohsin@meta.com>
----
-Changelog:
-v3:
-  - Offload jump only when police is the first action, the target is a
-    later action, the skipped actions are all drop or all ok, and the
-    same action is not used twice in a row, as discussed on v2:
-    https://lore.kernel.org/netdev/5c493bd0-31f5-430a-844a-ad011a5f0ba8@nvidia.com
-  - Update commit message
+drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.c:hws_rule_create=
+_hws() {
+    ...
+	if (action_stes) {
+		ret =3D mlx5hws_rule_alloc_action_ste(rule, attr->queue_id,
+						    !!ste_attr.rtc_0,
+						    !!ste_attr.rtc_1);
+		if (ret) {
+			mlx5hws_err(ctx, "Failed to allocate action memory %d", ret);
+			mlx5hws_send_abort_new_dep_wqe(queue);
+			return ret;
+		}
+	}
+    ...
+}
 
-v2: https://lore.kernel.org/netdev/20261119040010.1405900-1-mohsin.bashr@gmail.com
-v1: https://lore.kernel.org/netdev/20261117031337.4126403-1-mohsin.bashr@gmail.com
----
- .../mellanox/mlx5/core/en/tc/act/police.c     | 59 ++++++++++++++++++-
- .../net/ethernet/mellanox/mlx5/core/en_tc.c   | 26 +++++---
- 2 files changed, 75 insertions(+), 10 deletions(-)
+Because no WQE is posted on that error return, no completion transitions
+rule->status out of MLX5HWS_RULE_STATUS_UPDATING.  Later update and
+destroy calls fail with -EBUSY, and mlx5hws_bwc_rule_destroy() frees the
+rule object while leaking rule->old_action_ste, rule->resize_info, and the
+hardware match STE.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c
-index 1bd1c94fb977..f03a992cbc27 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc/act/police.c
-@@ -37,6 +37,52 @@ static int police_act_validate(const struct flow_action_entry *act,
- 	return 0;
- }
- 
-+static bool
-+police_act_can_offload_jump(struct mlx5e_tc_act_parse_state *parse_state,
-+			    const struct flow_action_entry *act,
-+			    int act_index, u32 target)
-+{
-+	const struct flow_action *flow_action = parse_state->flow_action;
-+	struct netlink_ext_ack *extack = parse_state->extack;
-+	const struct flow_action_entry *prev, *entry;
-+	u32 i;
-+
-+	if (act_index) {
-+		NL_SET_ERR_MSG_MOD(extack,
-+				   "Jump is only supported when police is the first action");
-+		return false;
-+	}
-+
-+	if (!target || target >= flow_action->num_entries) {
-+		NL_SET_ERR_MSG_MOD(extack, "Jump target must be a later action");
-+		return false;
-+	}
-+
-+	prev = act;
-+	for (i = 1; i <= target; i++) {
-+		entry = &flow_action->entries[i];
-+
-+		if (i < target &&
-+		    ((entry->id != FLOW_ACTION_DROP &&
-+		      entry->id != FLOW_ACTION_ACCEPT) ||
-+		     entry->id != flow_action->entries[1].id)) {
-+			NL_SET_ERR_MSG_MOD(extack,
-+					   "Jump can only skip actions that are all drop or all ok");
-+			return false;
-+		}
-+
-+		if (entry->id == prev->id && entry->hw_index == prev->hw_index) {
-+			NL_SET_ERR_MSG_MOD(extack,
-+					   "Jump over the same action twice in a row is not supported");
-+			return false;
-+		}
-+
-+		prev = entry;
-+	}
-+
-+	return true;
-+}
-+
- static bool
- tc_act_can_offload_police(struct mlx5e_tc_act_parse_state *parse_state,
- 			  const struct flow_action_entry *act,
-@@ -49,6 +95,16 @@ tc_act_can_offload_police(struct mlx5e_tc_act_parse_state *parse_state,
- 	if (err)
- 		return false;
- 
-+	if (act->police.exceed.act_id == FLOW_ACTION_JUMP &&
-+	    !police_act_can_offload_jump(parse_state, act, act_index,
-+					 act->police.exceed.extval))
-+		return false;
-+
-+	if (act->police.notexceed.act_id == FLOW_ACTION_JUMP &&
-+	    !police_act_can_offload_jump(parse_state, act, act_index,
-+					 act->police.notexceed.extval))
-+		return false;
-+
- 	return !!mlx5e_get_flow_meters(parse_state->flow->priv->mdev);
- }
- 
-@@ -94,13 +150,14 @@ tc_act_parse_police(struct mlx5e_tc_act_parse_state *parse_state,
- 		      MLX5_FLOW_STEERING_CAP_MATCH_RANGES))
- 			return -EOPNOTSUPP;
- 
--		attr->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
- 		attr->flags |= MLX5_ATTR_FLAG_MTU;
- 	} else {
- 		attr->action |= MLX5_FLOW_CONTEXT_ACTION_EXECUTE_ASO;
- 		attr->exe_aso_type = MLX5_EXE_ASO_FLOW_METER;
- 	}
- 
-+	attr->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
-+
- 	return 0;
- }
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-index 1d35c97aea0b..7e7111e6d058 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-@@ -3874,7 +3874,7 @@ static int
- alloc_branch_attr(struct mlx5e_tc_flow *flow,
- 		  struct mlx5e_tc_act_branch_ctrl *cond,
- 		  struct mlx5_flow_attr **cond_attr,
--		  u32 *jump_count,
-+		  u32 *jump_count, bool last,
- 		  struct netlink_ext_ack *extack)
- {
- 	struct mlx5_flow_attr *attr;
-@@ -3891,11 +3891,17 @@ alloc_branch_attr(struct mlx5e_tc_flow *flow,
- 	case FLOW_ACTION_DROP:
- 		attr->action |= MLX5_FLOW_CONTEXT_ACTION_DROP;
- 		break;
--	case FLOW_ACTION_ACCEPT:
- 	case FLOW_ACTION_PIPE:
--		err = set_branch_dest_ft(flow->priv, attr);
--		if (err)
--			goto out_err;
-+		if (!last) {
-+			err = set_branch_dest_ft(flow->priv, attr);
-+			if (err)
-+				goto out_err;
-+			break;
-+		}
-+		fallthrough;
-+	case FLOW_ACTION_ACCEPT:
-+		attr->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
-+		attr->flags |= MLX5_ATTR_FLAG_ACCEPT;
- 		break;
- 	case FLOW_ACTION_JUMP:
- 		if (*jump_count) {
-@@ -3967,7 +3973,7 @@ dec_jump_count(struct flow_action_entry *act, struct mlx5e_tc_act *tc_act,
- static int
- parse_branch_ctrl(struct flow_action_entry *act, struct mlx5e_tc_act *tc_act,
- 		  struct mlx5e_tc_flow *flow, struct mlx5_flow_attr *attr,
--		  struct mlx5e_tc_jump_state *jump_state,
-+		  struct mlx5e_tc_jump_state *jump_state, bool last,
- 		  struct netlink_ext_ack *extack)
- {
- 	struct mlx5e_tc_act_branch_ctrl cond_true, cond_false;
-@@ -3980,7 +3986,7 @@ parse_branch_ctrl(struct flow_action_entry *act, struct mlx5e_tc_act *tc_act,
- 	tc_act->get_branch_ctrl(act, &cond_true, &cond_false);
- 
- 	err = alloc_branch_attr(flow, &cond_true,
--				&attr->branch_true, &jump_count, extack);
-+				&attr->branch_true, &jump_count, last, extack);
- 	if (err)
- 		goto out_err;
- 
-@@ -3988,7 +3994,7 @@ parse_branch_ctrl(struct flow_action_entry *act, struct mlx5e_tc_act *tc_act,
- 		jump_state->jumping_attr = attr->branch_true;
- 
- 	err = alloc_branch_attr(flow, &cond_false,
--				&attr->branch_false, &jump_count, extack);
-+				&attr->branch_false, &jump_count, last, extack);
- 	if (err)
- 		goto err_branch_false;
- 
-@@ -4052,7 +4058,9 @@ parse_tc_actions(struct mlx5e_tc_act_parse_state *parse_state,
- 
- 		dec_jump_count(act, tc_act, attr, priv, &jump_state);
- 
--		err = parse_branch_ctrl(act, tc_act, flow, attr, &jump_state, extack);
-+		err = parse_branch_ctrl(act, tc_act, flow, attr, &jump_state,
-+					flow_action_is_last_entry(flow_action, act),
-+					extack);
- 		if (err)
- 			goto out_free_post_acts;
- 
--- 
-2.53.1-Meta
+[Severity: Medium]
+Can clearing rule->action_ste.action_tbl here also leak
+rule->old_action_ste when a rule is deleted after an asynchronous update
+failure?
 
+If an update WQE fails while either rule->rtc_0 or rule->rtc_1 remains
+non-zero, hws_send_engine_update_rule() leaves rule->status at
+MLX5HWS_RULE_STATUS_FAILING rather than MLX5HWS_RULE_STATUS_FAILED.  When
+the rule is later deleted, both the MLX5HWS_RULE_STATUS_DELETED completion
+in hws_send_engine_update_rule() and the skip_delete path in
+hws_rule_destroy_hws() only call
+mlx5hws_rule_free_action_ste(&rule->action_ste), leaving
+rule->old_action_ste leaked in the action STE pool even when the failed
+update needed no new action STEs.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261123221310.4045=
+513-1-acassen@corp.free.fr?part=3D1
