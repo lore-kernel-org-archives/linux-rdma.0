@@ -1,61 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795529661;
-	b=B3Brwjdda+ZwN8G+RD4mql3Lje3S0wPhC0ImOZo9chl+DrkRw6lvNxxkFvXh4ssVhMgv
-	 1SGGQp8JjfkAVUdcL5DE5UChC6tZohWhMruqSJsQ40nGZMW/6gr2KEkzLAjitjf9PhYbY
-	 KvCCDy2i58tq+GGA+4VtSP9uK48rVnWXPDumEBFeynFhC/nS8p1NsjhitQ52QX9uF4F4t
-	 ah7IeZM4ZD3mqM8ukOFYITm+9P5L4kMVFJnQlv6vtOuuhRG5AAOeCfvJdtOdJ/zniofui
-	 9Um3GrQ/2dMq5WFg9m9umOZTJUg64Arb7fo7zV2Rjo37DD6ExJ0OdWJMAr9j255/PtA==
+	t=1795529885;
+	b=ObJDeQds7Iur3YVRn9CBljeWyT4soXOcaqhx2xyVt1GW5Oa7VIEtdQOtUxlCBwOWW22F
+	 e2QvusfCKz97iDrypW/bBmspa/s9qFqOgLPQPQG17oaczNEPwKjGwiI1K2EHEQIatk7rz
+	 InH2J1z6plD9yXhjo/uqeKRhdSsFfST/nH6AysccmJhnLlvHthO//jp7zxDay1oWKltp8
+	 1dmhBHpcHK97CZndN7Lmdxv+YfDmNJyT5Fhj0WMQ9jXtrryH2Ge9d7PZity5VW+W556H2
+	 8H2B4QCdIGR5556QrZWEW3I1t9CkX6ehx+pdyENlR828wxqYs2Vqym9DJMaY1AAzAbw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795529661;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=LvJWJlf5iq1bxTZ/Pi7wnqUYZw6hL5app7P3pS/MwcY=;
-	b=dHsm5ibZMom+RU6fwMEb1PxZnRcCM2GVHu5oQ5FQkWDtuE0CXjgG7F3CPid6u0EMqImm
-	 VgmKZjAdayZHYgweQrrSuxeX2zNGM8oEUkjbbNZu2nbmXjETB2++SOf5OQN6XBcmpEqAk
-	 fs22KEItQCE/modhJ30xBNRIrPb4zyyEyqW7tXSp0l1kstkqjm/tEKtHe0vy232NGxMbO
-	 Pi/vGqRGRJvwITN+hdhWBid5Wz5zYEj+XQJwThScgH21vVUfBJLg2ZTvJ8MkMM7ej3PCR
-	 XFJszthixJtyPNNkWyNF5igUIj9MHZZrrJbjSIez7X/TFEEF785+9nj4FABDMb5Fx2g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795529885;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=RcEZBau4Vg0AeEXj4m9HmtRiHgUy7WeKZ8ntHILtOX8=;
+	b=4d4IHRsos7GezzWal+HHfOkLsuzbJBzAe/ePZP/Y81rFuh4HTTsfTvgJFGty0a8QJhGA
+	 Xe03Fu7dUaXWkQmNj/22O69lWTeaSV3T2WKEwhRGZZHgpKthV6xrLccnnqKjtQtK5i5oc
+	 7XXfIcqiqVfI9g6L4bw42HIuwzY2ZXJyGbBiuZfAaBK7ZmZbydJxFwuT7ulZNARpscun2
+	 WiBJ9pK/JXMEakU+Ckelg851HbjzFBct+GRapAzWo7ndcMDXqdHDda4trEruPt3Xv4qT3
+	 d3CCkQ3B5PUxBg7qhzLr3/8Txk8hGvtL1SeKDmL6c0gyU0lGqo1qYZxslMQpV7vUuWA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aEfj7T8Q;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HphSiGhN;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0786606A321;
-	Tue, 24 Nov 2026 14:14:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B262606A31E;
+	Tue, 24 Nov 2026 14:18:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aEfj7T8Q
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB7501F000D2;
-	Tue, 24 Nov 2026 14:14:19 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HphSiGhN
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 624951F000CA;
+	Tue, 24 Nov 2026 14:18:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795529660;
-	bh=LvJWJlf5iq1bxTZ/Pi7wnqUYZw6hL5app7P3pS/MwcY=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=aEfj7T8Q1koa+ivp6riQSUXgnghMoIf8OrXc18aP+SnH9YPunS31TqKlIca2tcrQO
-	 ZN+KFI4NyZTpdVZdPJJaqfrC6WW8eObQevwGWRcdxVAxHrjNiME5wa3fSQyRyvwEIq
-	 6VFWSmLDQh8jJisv0KKaA6R6gWhCRf5gKjegRoAZiep1PQkZ1ah4iofTKlbPys8WdI
-	 Gq2byWrBdw/k0lx2jFEp73wx9YJ8RSdR0k/vHjGgZO1tKTseYqm6nyIQ3y+sseAwjk
-	 dG980EP41GAHloUklPP53zRbiW8iTic8zlSFtyewARrALVxCEcH8VUJ7+FCZmfKiYr
-	 Q3WTnEqckC9OQ==
-Subject: Re: [PATCH net v2 1/2] net/smc: bound the failover cursor catch-up by
- what is outstanding
-From: netdev-bot+sashiko@kernel.org
-To: piyus@iiitd.ac.in
-Cc: alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
- sidraya@linux.ibm.com, mjambigi@linux.ibm.com, netdev@vger.kernel.org,
- tonylu@linux.alibaba.com, guwen@linux.alibaba.com, linux-rdma@vger.kernel.org,
- linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org,
- kapil@presceralabs.ai, stable@vger.kernel.org, kuba@kernel.org
-Date: Tue, 24 Nov 2026 14:14:19 +0000
-Message-ID: <179552965941.3135.8878591105354373466@kernel.org>
-In-Reply-To: <20261123135327.3953509-1-piyus@iiitd.ac.in>
-References: <20261123135327.3953509-1-piyus@iiitd.ac.in>
-X-sashiko-severity: High
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	s=k20260515; t=1795529884;
+	bh=RcEZBau4Vg0AeEXj4m9HmtRiHgUy7WeKZ8ntHILtOX8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=HphSiGhNs14GVrdk82c2baLULqVwTRrGG+T1Ug40RGxbSfmbi2x/3fLfoXh6N1NoL
+	 nV/8GMv7DYqz/+T56ryRCRWKY3VvscQgsMpelPDytRBKTg5lZzQkyvZAV6HQXMyORP
+	 sT/7toX1vnbW1oQlsgZfCfMko74ayp/7Ie9LtvdWTvoLXYCfu1y6eEcMxznfSzsWBi
+	 6PUnYKTs7kPl+nj6cCe2psgn7wFdpBi+hmc9HQRmxGj7Uf6rlZfRldbpnjcaDZUGcn
+	 yYAplJRTW/jWRtDGlsFWuqaaU8F5RTZ+BPqGUwiq95Fie3YsH2U8fLC6MtqZVB1SRq
+	 8Jy6GDtjW4arA==
+Date: Tue, 24 Nov 2026 16:18:00 +0200
+From: Leon Romanovsky <leon@kernel.org>
+To: Ziheng Wei <zihengw03@163.com>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH] RDMA/hfi1: free CPU to SDMA map nodes after an RCU grace
+ period
+Message-ID: <20261124141800.GV14811@unreal>
+References: <20261116130940.1629295-1-zihengw03@163.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -65,208 +58,152 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261116130940.1629295-1-zihengw03@163.com>
 
-Thank you for your contribution! Sashiko AI review found 3 potential
-issue(s) to consider.
+On Mon, Nov 16, 2026 at 09:09:40PM +0800, Ziheng Wei wrote:
+> sdma_select_user_engine() looks up the per-CPU sdma_rht_node in
+> dd->sdma_rht under rcu_read_lock() and reads rht_node->map[vl],
+> map->mask and map->sde[].  sdma_set_cpu_to_sde_map(), called when the
+> cpu_list sysfs attribute of an SDMA engine is written, removes a node
+> whose maps have become empty with rhashtable_remove_fast() and then
+> kfree()s the maps and the node right away.  There is no RCU grace
+> period between the removal and the free, so a user SDMA submission on
+> that CPU can read the node and the map after they have been freed.  If
+> the memory has been reused, the map pointer and the engine pointer read
+> from it are arbitrary, and the caller goes on to use that engine.
+> 
+> Writing cpu_list requires CAP_SYS_ADMIN.  The reader is reachable by any
+> user that can open /dev/hfi1_N, when the task submitting user SDMA
+> requests is pinned to a single CPU.  So this needs an administrator to
+> change the SDMA engine CPU lists while jobs are running.
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 2
+This is unlikely to occur in any real-world scenario.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+Thanks
 
-- [High] The new bound in smc_switch_cursor() reads sndbuf_space, then
-  advances tx_curs_fin and sndbuf_space.
-- [Low] In smc_switch_cursor() (net/smc/smc_core.c:1080-1081), the new
-  bound is stored in a variable named `sent`, and the comment calls it…
-- [Low] When the new clamp in smc_switch_cursor() lowers diff below the
-  cons - fin gap the peer reported, local_tx_ctrl.prod and…
-
---
-
-net/smc: bound the failover cursor catch-up by what is outstanding
-
-This commit clamps the diff that smc_switch_cursor() uses to advance
-tx_curs_sent and tx_curs_fin and to credit sndbuf_space during SMC-R link
-failover. The bound is sndbuf_desc->len - sndbuf_space. The goal is to stop
-a forged peer consumer cursor from pushing sndbuf_space past the send
-buffer size, which leads to an out-of-bounds write in smc_tx_sendmsg().
-
-Link: https://lore.kernel.org/all/20261122053223.2497832-2-piyus@iiitd.ac.in/
-
-> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-> index a3164201c1420..436a702f3d8de 100644
-> --- a/net/smc/smc_core.c
-> +++ b/net/smc/smc_core.c
-
-[ ... ]
-
-> @@ -1069,6 +1070,16 @@ static int smc_switch_cursor(struct smc_sock *smc, struct smc_cdc_tx_pend *pend,
->  		 * fin above, so now prod is smaller than cons. Fix that.
->  		 */
->  		diff = smc_curs_diff(conn->peer_rmbe_size, &fin, &cons);
-> +		/* The peer's consumer cursor is taken as it arrives, so this
-> +		 * difference is a value the peer chose.  An honest peer cannot
-> +		 * have consumed more than this side has outstanding, so bound
-> +		 * the catch-up by that: sndbuf_space then keeps the invariant
-> +		 * the tx path relies on, and the cursors advanced below stay
-> +		 * within the send buffer.
-> +		 */
-> +		sent = conn->sndbuf_desc->len - atomic_read(&conn->sndbuf_space);
-> +		diff = min_t(int, diff, max_t(int, sent, 0));
+> 
+> The debugfs dump in sdma_seqfile_dump_cpu_list() has the same problem,
+> and in addition does not hold the RCU read lock at all while walking
+> the node, because rhashtable_lookup_fast() drops it before returning.
+> 
+> Free the node and its maps from an RCU callback, as is already done for
+> dd->sdma_map, and do the debugfs lookup and walk inside an RCU read-side
+> critical section.  hfi1_free_devdata() calls rcu_barrier() before
+> sdma_clean(), so no callback can still be pending when the hash table
+> is destroyed.
+> 
+> Found by LLM-assisted static analysis.  Not reproduced, as I have no
+> Omni-Path hardware; build tested only.
+> 
+> Fixes: 0cb2aa690c7e ("IB/hfi1: Add sysfs interface for affinity setup")
+> Fixes: af3674d62d34 ("IB/hfi1: Add new debugfs sdma_cpu_list file")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Ziheng Wei <zihengw03@163.com>
+> ---
+> 
+> Notes:
+>     The changelog was drafted with an AI assistant from my analysis;
+>     I have reviewed the code, the fix and the text.
+> 
+>  drivers/infiniband/hw/hfi1/sdma.c | 45 ++++++++++++++++++-------------
+>  1 file changed, 27 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
+> index a71fc8f2d..bf9e362f1 100644
+> --- a/drivers/infiniband/hw/hfi1/sdma.c
+> +++ b/drivers/infiniband/hw/hfi1/sdma.c
+> @@ -801,6 +801,7 @@ struct sdma_rht_node {
+>  	unsigned long cpu_id;
+>  	struct sdma_rht_map_elem *map[HFI1_MAX_VLS_SUPPORTED];
+>  	struct rhash_head node;
+> +	struct rcu_head rcu;
+>  };
+>  
+>  #define NR_CPUS_HINT 192
+> @@ -886,6 +887,22 @@ static void sdma_cleanup_sde_map(struct sdma_rht_map_elem *map,
+>  	}
+>  }
+>  
+> +static void sdma_rht_free(void *ptr, void *arg)
+> +{
+> +	struct sdma_rht_node *rht_node = ptr;
+> +	int i;
 > +
-
-[Severity: High]
-
-Does this bound keep sndbuf_space <= sndbuf_desc->len on the DELETE_LINK
-path, given that the old link's CDC completions can still run?
-
-smc_switch_conns() calls smc_switch_cursor() with only conn->send_lock
-held:
-
-	spin_lock_bh(&conn->send_lock);
-	smc_switch_link_and_count(conn, to_lnk);
-	rc = smc_switch_cursor(smc, pend, wr_buf);
-	spin_unlock_bh(&conn->send_lock);
-
-CDC send completions on the old link go through smc_cdc_tx_handler(),
-which holds only bh_lock_sock():
-
-	bh_lock_sock(&smc->sk);
-	if (!wc_status && sndbuf_desc) {
-		diff = smc_curs_diff(sndbuf_desc->len,
-				     &cdcpend->conn->tx_curs_fin,
-				     &cdcpend->cursor);
-		...
-		atomic_add(diff, &cdcpend->conn->sndbuf_space);
-		...
-		smc_curs_copy(&conn->tx_curs_fin, &cdcpend->cursor, conn);
-
-In smc_llc_process_cli_delete_link(), the old QP is still live when the
-connections are switched. It is moved to error and drained only later, in
-smcr_link_clear():
-
-	if (smc_link_downing(&lnk_del->state))
-		smc_switch_conns(lgr, lnk_del, false);
-	smcr_link_clear(lnk_del, true);
-
-So completions for CDCs already posted on the old QP can run during or
-after smc_switch_cursor().
-
-In the concurrent case, smc_switch_cursor() snapshots sent as
-prep - fin_old. The old-link handler then credits C - fin_old and sets
-tx_curs_fin to C. smc_switch_cursor() then credits up to prep - fin_old
-more and adds diff to the tx_curs_fin that has already moved. The total
-credit is more than prep - fin_old.
-
-In the late completion case, a peer forges cons so that the clamp moves
-tx_curs_fin all the way to prep. A completion for an older cursor C then
-arrives on the old QP. If C.wrap != prep.wrap, smc_curs_diff() looks only
-at the wraps:
-
-	if (old->wrap != new->wrap)
-		return max_t(int, 0,
-			     ((size - old->count) + new->count));
-
-It returns (len - prep.count) + C.count, which is larger than len, so
-sndbuf_space moves toward 2 * len. If the wraps are equal, the credit is 0
-but tx_curs_fin moves back to C. The next completion on the new link then
-credits prep - C again.
-
-Either way sndbuf_space ends up above sndbuf_desc->len. The second chunk
-in smc_tx_sendmsg() then writes past the send buffer:
-
-	rc = memcpy_from_msg(sndbuf_base + chunk_off,
-			     msg, chunk_len);
-
-The commit message says:
-
-  For a lying one sndbuf_space keeps the invariant that
-  smc_tx_sendmsg(), smc_tx_prepared_sends() and SIOCOUTQ in smc_ioctl()
-  all depend on
-
-Does that still hold on this path? The follow-up patch "net/smc: bound the
-DMB-nocopy send-buffer credit as well" only changes the SMC-D DMB-nocopy
-credit in smc_cdc_msg_recv_action(), so it doesn't cover this case.
-
-Do the old link's TX completions also need to be quiesced or serialized
-with the switch? Two options: drain them before smc_switch_cursor(), or
-take the same lock and ignore completions whose cursor is behind
-tx_curs_fin.
-
-[Severity: Low]
-
-Is sent the right name for this value? Does "what this side has
-outstanding" in the comment describe it accurately?
-
-sndbuf_desc->len - sndbuf_space is the amount prepared but not yet
-confirmed (tx_curs_prep - tx_curs_fin). smc_tx_sendmsg() lowers
-sndbuf_space when data is copied in, not when it is RDMA-written:
-
-	atomic_sub(copylen, &conn->sndbuf_space);
-
-The real pre-switch send position is already lost at this point, because
-smc_switch_cursor() starts with:
-
-	smc_curs_copy(&conn->tx_curs_sent, &conn->tx_curs_fin, conn);
-
-So a lying peer can still move tx_curs_sent and tx_curs_fin up to
-tx_curs_prep. Bytes that sendmsg() accepted but never wrote are then
-counted as confirmed and never sent. The clamp also hides the protocol
-violation: out_of_sync is not set and the connection is not aborted.
-
-Without a race, sndbuf_space and the cursors stay in range. But the
-variable name, the comment, and the commit message's "bound the catch-up
-by what is outstanding" all describe a tighter bound than the code
-applies. Could they be adjusted to match?
-
->  		smc_curs_add(conn->sndbuf_desc->len,
->  			     &conn->tx_curs_sent, diff);
->  		smc_curs_add(conn->sndbuf_desc->len,
-
-[Severity: Low]
-
-When the clamp makes diff smaller than the cons - fin gap the peer
-reported, where does local_tx_ctrl.prod end up?
-
-prod was set to fin earlier, and this branch runs only when cons > fin.
-Further down, prod and local_tx_ctrl_fin move forward only by the clamped
-diff:
-
-	smc_curs_add(conn->peer_rmbe_size,
-		     &conn->local_tx_ctrl.prod, diff);
-	smc_curs_add(conn->peer_rmbe_size,
-		     &conn->local_tx_ctrl_fin, diff);
-
-That leaves prod behind local_rx_ctrl.cons, which is the state the
-existing "now prod is smaller than cons. Fix that." comment says this
-block repairs.
-
-The next statement recomputes peer_rmbe_space from that inverted pair:
-
-	atomic_set(&smc->conn.peer_rmbe_space, smc_write_space(conn));
-
-and smc_write_space() computes:
-
-	space = buffer_len - smc_curs_diff(buffer_len, &cons, &prod);
-
-If the wraps are equal, smc_curs_diff() returns 0 and peer_rmbe_space
-becomes peer_rmbe_size. If cons.wrap == prod.wrap + 1, it returns
-(size - cons.count) + prod.count. For example, size=100, prod=(0,90) and
-cons=(1,10) give space = -80.
-
-With a negative peer_rmbe_space, smc_tx_rdma_writes() returns early on
-every call:
-
-	if (rmbespace <= 0) {
-
-Later CDCs in smc_cdc_msg_recv_action() only add diff_cons on top of that
-wrong base, so the value never recovers and the connection stops sending.
-
-Should the clamp firing be treated as a protocol violation that aborts the
-connection, rather than continuing with inconsistent flow-control state?
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261123135327.3953509-1-piyus%40iiitd.ac.in
+> +	for (i = 0; i < HFI1_MAX_VLS_SUPPORTED; i++)
+> +		kfree(rht_node->map[i]);
+> +
+> +	kfree(rht_node);
+> +}
+> +
+> +static void sdma_rht_free_rcu(struct rcu_head *head)
+> +{
+> +	sdma_rht_free(container_of(head, struct sdma_rht_node, rcu), NULL);
+> +}
+> +
+>  /*
+>   * Prevents concurrent reads and writes of the sdma engine cpu_mask
+>   */
+> @@ -1027,10 +1044,11 @@ ssize_t sdma_set_cpu_to_sde_map(struct sdma_engine *sde, const char *buf,
+>  							     sdma_rht_params);
+>  				WARN_ON(ret);
+>  
+> -				for (i = 0; i < HFI1_MAX_VLS_SUPPORTED; i++)
+> -					kfree(rht_node->map[i]);
+> -
+> -				kfree(rht_node);
+> +				/*
+> +				 * sdma_select_user_engine() may still be
+> +				 * using the node under rcu_read_lock().
+> +				 */
+> +				call_rcu(&rht_node->rcu, sdma_rht_free_rcu);
+>  			}
+>  		}
+>  	}
+> @@ -1055,17 +1073,6 @@ ssize_t sdma_get_cpu_to_sde_map(struct sdma_engine *sde, char *buf)
+>  	return strnlen(buf, PAGE_SIZE);
+>  }
+>  
+> -static void sdma_rht_free(void *ptr, void *arg)
+> -{
+> -	struct sdma_rht_node *rht_node = ptr;
+> -	int i;
+> -
+> -	for (i = 0; i < HFI1_MAX_VLS_SUPPORTED; i++)
+> -		kfree(rht_node->map[i]);
+> -
+> -	kfree(rht_node);
+> -}
+> -
+>  /**
+>   * sdma_seqfile_dump_cpu_list() - debugfs dump the cpu to sdma mappings
+>   * @s: seq file
+> @@ -1081,10 +1088,10 @@ void sdma_seqfile_dump_cpu_list(struct seq_file *s,
+>  	struct sdma_rht_node *rht_node;
+>  	int i, j;
+>  
+> -	rht_node = rhashtable_lookup_fast(dd->sdma_rht, &cpuid,
+> -					  sdma_rht_params);
+> +	rcu_read_lock();
+> +	rht_node = rhashtable_lookup(dd->sdma_rht, &cpuid, sdma_rht_params);
+>  	if (!rht_node)
+> -		return;
+> +		goto out;
+>  
+>  	seq_printf(s, "cpu%3lu: ", cpuid);
+>  	for (i = 0; i < HFI1_MAX_VLS_SUPPORTED; i++) {
+> @@ -1107,6 +1114,8 @@ void sdma_seqfile_dump_cpu_list(struct seq_file *s,
+>  	}
+>  
+>  	seq_puts(s, "\n");
+> +out:
+> +	rcu_read_unlock();
+>  }
+>  
+>  /*
+> 
+> base-commit: 97d73c8251226cf27cc6656b4c542869bb8c69fa
+> -- 
+> 2.43.0
+> 
