@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795525096;
-	b=Bcog0B/3nBISj8o/5OzeGCF4JRr4V3/znw8Fc/2k3S3iYHs6XhTVfv+zrIujOXfr4dtm
-	 k/mptzlHKoNOF8MXbd583YdN62+AZBgDHownqHhk2+1tDjmyNlhqhRz1e/zUL7BWzFyCK
-	 FWYiDDrsbyh7YigHOMOXzMipoCI5hqD1o2/rvy/gcZNVK52JqLr7OIWqh6P9CmyKyMcXl
-	 h012xM+VpTMIMzzy8jI3UdBpQ+jvtgVFxWMxLktu51PxWtLXBnGZj69CVXniQ/5sWT5R5
-	 SGokvUFKxRclFC43+1sN01YA8BCnCFu40ciVpaq7juRbOqj6lrszIL4I8OhZNg3Pv5g==
+	t=1795525108;
+	b=F4uKNJw+UbwdVsSZtWms1Oy3jEIDmuZYFOTuXjabOo96O9bj22A5+nQ2DuhjYeIFTDQX
+	 z1RJwOta4M7MSz3O+6Bvx4atF0uaD0TCLlOF0nZh9KwZfXXE9FaGmCiVibbLCas2KVcJN
+	 rc/eeH6I9EOpoE+DWyrLwc4yWQ32tI5CRNh7e2xsUKdrFQhBwQKVok3HqDr8sox73r89P
+	 ngvSMy99aExi+xCfw0G3Dtpqs7+6WTk0LJDdqTP7p6vKB2Oj1SQ5/5xkH0tgDMahF7bLE
+	 2Iabd3DZtvG9LZLd3OPz7Tp8KOaWWO0C06KAK6/4jC0MZG023fP/zUY07GHJN8XaTFg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795525096;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795525108;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=XQq5tLPOmPVafd3xu2rMpJx4/ZuIBpKF/py13mFzisA=;
-	b=SE2LBRb7GKTdTvB2ErN9lOa5RnUFftZpgCP9Qj2FhmC/3ORw21EMSLcCahNImwA5LLJV
-	 rwJe+kNjTAhgFZlJeHPgFGeUCvyCiwnTDAyX71fMxm7u829m+Y7wboy4W6pXhia5+203O
-	 n2qD+oRiPQoXJQdOfizXzWAztXGNgSGdaR3SzNeY6InOvc2JfI70BCS1M9m2QrPp+N/Xn
-	 58aLVG5+NiXNC6/JxKjW7i6gSiv7tKbYT7yTXenIfTS/I3EkUmmNZgzg9JgDX9n+BTYxZ
-	 radkkNJkwTYRuPCZJ2dfiRhb0Mg8n2UgyWvh/CAJukW+9UQtvjpv8VH0YsaME1b/a2Q==
+	bh=6Gdd21OdIrefrCmmbZ2Abnaxfar/ibXJI1PcKHhAWfA=;
+	b=f71rLKVg2TsPb1MMriwaABQvXEFSrgFweX0dqCDNw6VVELNf78r2W0fho2XiO7TSerRh
+	 RWZBe6W6M4uY6IHtDCukKSggVjNtYxzVfRwU/ncEeI9cyMwPvZKGXwJMs7BS0r6hQBVkd
+	 gG6njDxCwHFVSp0Tat8T40psvCC27rKH68/4v+LSB8lEddhcNdOGBTvWQe07hREgMcp8q
+	 gDrnpD0XQ7KDowFGfaVafFCKrnna9tnyQ3oNY7PjXcmmKCirO7nSSbH781yYgUlhd3ANh
+	 dfUZnvtyh/UwdLVEbaVwpPNwdoxe93dEIziAI3VtdPBtZJdyaU6QZf44Z/MIiDctLLw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SJycLsmn;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oKPoxPtm;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 797BA606A31E;
-	Tue, 24 Nov 2026 12:58:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C036A606A322;
+	Tue, 24 Nov 2026 12:58:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SJycLsmn
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E52A1F01562;
-	Tue, 24 Nov 2026 12:58:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oKPoxPtm
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A49C51F000CF;
+	Tue, 24 Nov 2026 12:58:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795525095;
-	bh=XQq5tLPOmPVafd3xu2rMpJx4/ZuIBpKF/py13mFzisA=;
+	s=k20260515; t=1795525108;
+	bh=6Gdd21OdIrefrCmmbZ2Abnaxfar/ibXJI1PcKHhAWfA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=SJycLsmngMgiiWt98LSbIVCX16Igdmy5KQFrGfaQw4pMtc5kVHrCW8VhZnM6Ig5B4
-	 fKDk3yxc9eonwRih82O5qP1N4wfQchsab9my3Ef64l44WHSL/qsrgr2B5+/lBULyfw
-	 2PjQGZfZ1rMZISwyDLcx7I1IgNm+a5Fbs7A2FIto98F0YhS1qLQmRPUfNJ97Vy7o3l
-	 gp1GCI3cBXxq2aHsquITVRL4Flc+v8+0qq+xptwYUiVfzmgnXUbQRlINei10QnjwYn
-	 QaUztE8aQrjowCev7sXEOmKQNRjEc9iZi82nHHho/cQqPUzBPtvZnB29rlhQsFONmP
-	 PrHLM/AOto0hg==
+	b=oKPoxPtmIsbL5KuuXvx/5Ck/OjVeg4R64Nph2f5OrF5CbDt3Jnku7ciRP+VtlB76D
+	 vwGgP/wMnUoZyuP8xTOMCB57PtKUG0LLOp/YGSCZiCRy0T5I5s/XUz4CHh3ETBQkKk
+	 N8IzlN3Cd4YLbq4GXBojDCCOE0oV3ZAJvmtBngrTbqJDgj6WEUjzmzTVC+4xC1297n
+	 QfnJ4oV/ePEtUBfCKHzP271NpMnXl87tVdNZCKohmFeERcwBJ+lV7uYpXRRCBloH3v
+	 f1mPNk8St5JhtRnXOeybcQHsK8Uf29PS5EoLymkl7h8RdEOVMD+cfORxk4i5FOQ+xJ
+	 3F202XoMXq4bA==
 From: =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn@kernel.org>
 To: Magnus Karlsson <magnus.karlsson@intel.com>,
 	Maciej Fijalkowski <maciej.fijalkowski@intel.com>,
@@ -99,9 +99,9 @@ Cc: Stuart Clark <stuclar@meta.com>,
 	linux-kselftest@vger.kernel.org,
 	linux-doc@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH net-next 06/15] xsk: Lend UMEM chunks to the page pools of a queue
-Date: Tue, 24 Nov 2026 13:56:41 +0100
-Message-ID: <20261124125654.183091-6-bjorn@kernel.org>
+Subject: [PATCH net-next 07/15] xsk: Deliver to the socket in the device's buffer layout
+Date: Tue, 24 Nov 2026 13:56:42 +0100
+Message-ID: <20261124125654.183091-7-bjorn@kernel.org>
 X-Mailer: git-send-email 2.56.1
 In-Reply-To: <20261124112707.118678-1-bjorn@kernel.org>
 References: <20261124112707.118678-1-bjorn@kernel.org>
@@ -117,734 +117,712 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Currently, AF_XDP zero copy makes the device fill one UMEM chunk per
-buffer, at the UMEM headroom. Drivers bend their RX geometry to that
-and carry a second RX path for it, and packets that the stack would
-build from several buffers, or pack into one page, cannot be received
-without a copy.
+Currently, the chunks of a UMEM back the page pools of a queue, but
+nothing delivers their buffers to the AF_XDP socket, and a chunk that
+the kernel took never goes back.
 
-Let the device lay out buffers in UMEM chunks as it does in pages, for
-a UMEM registered with the new flag XDP_UMEM_DRV_LAYOUT. First, let
-the chunks of such a UMEM back the RX page pools of the bound queue,
-through a sink memory provider that the socket installs with the queue
-management API, so drivers need no AF_XDP code.
+Deliver redirected sink buffers to the receiving socket of the queue,
+the first bound socket with an RX ring, and give each chunk back once
+the device and the socket are done with it.
 
-The chunk is the unit of ownership. A FILL entry lends a chunk to the
-kernel until the kernel gives it back, see the next patch. A chunk
-that is lent twice, or lies outside the UMEM, counts as an invalid
-FILL entry, so userspace cannot make the device use a chunk twice. A
-refill takes at most a page pool cache worth of FILL entries, bounding
-the NAPI work. Chunks that a page pool released when it went away, as
-at a queue restart, stay on a list that refills take from only when
-FILL gives too few, so every chunk taken from it stays in circulation.
-The pool allocates no xdp_buff_xsk per chunk, which saves 128 bytes
-per 4 KiB chunk. The kernel mapping of the UMEM is the XDP view of its
-net_iovs, so XDP reads the chunks in place.
+Each buffer of a packet becomes one RX descriptor, at the address that
+the device chose, chained with XDP_PKT_CONTD. Metadata that the
+program wrote in front of the head is already in place. The socket
+drops and counts a packet with a buffer outside its UMEM, with more
+than one buffer without XDP_USE_SG, with metadata that does not fit in
+front of the head within its chunk, or when the RX ring is full.
+Buffers of other memory, and copies, never go to such a socket.
 
-The provider refuses page pools with pages larger than a chunk, with
-another DMA device, or so large that the device could hold every
-chunk. Binding needs a native XDP program, which cannot be detached
-while the provider is installed, as drivers would otherwise build skbs
-around the buffers. Unbind restarts the queue without the provider, or
-closes the device if that fails, as the old queue may go on receiving
-into the UMEM. Device unregister may uninstall the provider before the
-socket unbinds, and unbind then only frees what is left.
+The socket drops the reference of each buffer it takes without an
+atomic. Sink buffers go nowhere but the socket of their queue, so only
+the queue NAPI changes the count of a chunk in flight, or nothing does
+while it is stopped.
 
-Bind sets the RX need_wakeup flag before the queue starts, as the
-queue may need FILL entries to start. After that only the queue NAPI
-changes the flag, asking for a kick only while FILL is empty.
-Process-context refills, as when bnxt fills a new queue, leave it
-alone.
+A chunk goes back to userspace once nothing in the kernel uses it, if
+a buffer of it reached the socket. If the socket's drop frees the
+chunk, the descriptor of that buffer carries the new
+XDP_RX_CHUNK_FREE. If the device lets go of the chunk later, the page
+pool hands it to the provider on its last put, and an empty descriptor
+at the chunk gives it back at the next flush of the queue NAPI, or at
+a refill while no packets come. Chunks that find the RX ring full stay
+on the hand-off list for a later poll, and the refill asks the socket
+for a kick while any chunk waits, so that a reader that fell behind
+gets them once it has drained its ring. A returned chunk stays charged
+to its page pool, which takes it straight into its cache when
+userspace lends it again. Chunks whose buffers all stayed in the
+kernel, as for dropped packets, stay there.
 
-DMA syncs work as with page pools. The UMEM is mapped once, at bind,
-the provider syncs a chunk for the device when it lends it, page pools
-sync the chunks they recycle, and drivers sync each buffer for the CPU
-before XDP runs.
+Only the queue NAPI writes to the RX ring and takes from the hand-off
+list. A refill gives chunks back only with BH disabled, which is the
+queue NAPI, as drivers refill from process context with BH enabled.
+Busy polling runs the same NAPI, and a queue restart stops the old
+queue before the new one runs, also in mlx5, whose new channels have
+their own NAPIs. So the NAPIs of an old and a new page pool never run
+at the same time. Unbind and device unregister take the list only
+after the queue stopped.
 
-None of this is reachable until UMEM registration accepts
-XDP_UMEM_DRV_LAYOUT, two patches later.
+When the provider goes, page pools put back the chunks they hold for
+userspace, so that they can be destroyed. Device unregister and unbind
+may both do this, and the second skips what the first put back. None
+of this is reachable until the next patch lets sockets bind.
 
 Signed-off-by: Björn Töpel <bjorn@kernel.org>
 ---
- include/linux/netdevice.h         |   2 +
- include/net/xsk_buff_pool.h       |   3 +
- include/uapi/linux/if_xdp.h       |   7 +
- net/core/dev.c                    |  30 +++
- net/xdp/Kconfig                   |   1 +
- net/xdp/Makefile                  |   2 +-
- net/xdp/xsk_buff_pool.c           |  30 ++-
- net/xdp/xsk_sink.c                | 416 ++++++++++++++++++++++++++++++
- net/xdp/xsk_sink.h                |  14 +
- tools/include/uapi/linux/if_xdp.h |   7 +
- 10 files changed, 505 insertions(+), 7 deletions(-)
- create mode 100644 net/xdp/xsk_sink.c
- create mode 100644 net/xdp/xsk_sink.h
+ include/net/xdp_sock.h            |   8 +
+ include/uapi/linux/if_xdp.h       |  12 +-
+ net/core/filter.c                 |   9 +
+ net/xdp/xsk.c                     |  28 ++-
+ net/xdp/xsk_sink.c                | 362 +++++++++++++++++++++++++++++-
+ net/xdp/xsk_sink.h                |   5 +
+ tools/include/uapi/linux/if_xdp.h |  12 +-
+ 7 files changed, 419 insertions(+), 17 deletions(-)
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 5fd2bec1178a..5a7247873ce8 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -4459,6 +4459,8 @@ u32 dev_xdp_prog_id(struct net_device *dev, enum bpf_xdp_mode mode);
+diff --git a/include/net/xdp_sock.h b/include/net/xdp_sock.h
+index 6e70b320b399..e81724fd624c 100644
+--- a/include/net/xdp_sock.h
++++ b/include/net/xdp_sock.h
+@@ -126,6 +126,8 @@ struct xsk_tx_metadata_ops {
+ int xsk_generic_rcv(struct xdp_sock *xs, struct xdp_buff *xdp);
+ int __xsk_map_redirect(struct xdp_sock *xs, struct xdp_buff *xdp);
+ void __xsk_map_flush(struct list_head *flush_list);
++int xsk_sink_redirect(struct xdp_buff *xdp, enum bpf_map_type map_type,
++		      void *fwd);
+ INDIRECT_CALLABLE_DECLARE(void xsk_destruct_skb(struct sk_buff *));
  
- u32 dev_get_min_mp_channel_count(const struct net_device *dev);
- bool dev_mp_blocks_xdp(const struct net_device *dev);
-+bool dev_has_xdp_only_mp(const struct net_device *dev);
-+bool dev_xdp_drv_prog_held(struct net_device *dev);
- 
- int __dev_forward_skb(struct net_device *dev, struct sk_buff *skb);
- int dev_forward_skb(struct net_device *dev, struct sk_buff *skb);
-diff --git a/include/net/xsk_buff_pool.h b/include/net/xsk_buff_pool.h
-index 02e89350faf9..376408994a33 100644
---- a/include/net/xsk_buff_pool.h
-+++ b/include/net/xsk_buff_pool.h
-@@ -11,6 +11,7 @@
- #include <net/xdp.h>
- 
- struct xsk_buff_pool;
-+struct xsk_sink;
- struct xdp_rxq_info;
- struct xsk_cb_desc;
- struct xsk_queue;
-@@ -54,6 +55,8 @@ struct xsk_buff_pool {
- 	spinlock_t xsk_tx_list_lock;
- 	refcount_t users;
- 	struct xdp_umem *umem;
-+	/* RX in the device's buffer layout, see net/xdp/xsk_sink.c */
-+	struct xsk_sink *sink;
- 	struct work_struct work;
- 	/* Protects generic receive in shared and non-shared umem mode. */
- 	spinlock_t rx_lock;
-diff --git a/include/uapi/linux/if_xdp.h b/include/uapi/linux/if_xdp.h
-index 50d67df78911..160a437ed540 100644
---- a/include/uapi/linux/if_xdp.h
-+++ b/include/uapi/linux/if_xdp.h
-@@ -45,6 +45,13 @@
-  */
- #define XDP_UMEM_TX_METADATA_LEN	(1 << 2)
- 
-+/* RX buffers follow the device's layout: a page-sized chunk may hold
-+ * several of them, a packet may span chunks, and the device picks the
-+ * offsets. A FILL entry lends a chunk to the kernel. Needs aligned
-+ * page-sized chunks and no headroom.
-+ */
-+#define XDP_UMEM_DRV_LAYOUT		(1 << 4)
-+
- struct sockaddr_xdp {
- 	__u16 sxdp_family;
- 	__u16 sxdp_flags;
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 8a1d5a284e53..3bc20c7e409f 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -10860,6 +10860,11 @@ static int dev_xdp_attach(struct net_device *dev, struct netlink_ext_ack *extack
- 		NL_SET_ERR_MSG(extack, "Active program does not match expected");
- 		return -EEXIST;
- 	}
-+	if (cur_prog && !new_prog && !link && mode == XDP_MODE_DRV &&
-+	    dev_has_xdp_only_mp(dev)) {
-+		NL_SET_ERR_MSG(extack, "An XDP-only memory provider needs the program");
-+		return -EBUSY;
-+	}
- 
- 	/* put effective new program into new_prog */
- 	if (link)
-@@ -11163,6 +11168,31 @@ bool dev_mp_blocks_xdp(const struct net_device *dev)
- 	return false;
+ /**
+@@ -182,6 +184,12 @@ static inline int xsk_generic_rcv(struct xdp_sock *xs, struct xdp_buff *xdp)
+ 	return -ENOTSUPP;
  }
  
-+/* A native program is attached, and dev_xdp_attach() keeps it while an
-+ * AF_XDP socket receives in the buffer layout of @dev. A BPF link could go
-+ * without asking, and so could a program that an upper device propagated.
-+ */
-+bool dev_xdp_drv_prog_held(struct net_device *dev)
++static inline int xsk_sink_redirect(struct xdp_buff *xdp,
++				    enum bpf_map_type map_type, void *fwd)
 +{
-+	return dev_xdp_prog_id(dev, XDP_MODE_DRV) &&
-+	       !dev_xdp_link(dev, XDP_MODE_DRV) && !dev->xdp_from_upper;
++	return -EOPNOTSUPP;
 +}
 +
-+/* A queue of @dev has an XDP-only memory provider */
-+bool dev_has_xdp_only_mp(const struct net_device *dev)
-+{
-+	const struct memory_provider_ops *ops;
-+	unsigned int i;
+ static inline int __xsk_map_redirect(struct xdp_sock *xs, struct xdp_buff *xdp)
+ {
+ 	return -EOPNOTSUPP;
+diff --git a/include/uapi/linux/if_xdp.h b/include/uapi/linux/if_xdp.h
+index 160a437ed540..933b8700281f 100644
+--- a/include/uapi/linux/if_xdp.h
++++ b/include/uapi/linux/if_xdp.h
+@@ -47,8 +47,9 @@
+ 
+ /* RX buffers follow the device's layout: a page-sized chunk may hold
+  * several of them, a packet may span chunks, and the device picks the
+- * offsets. A FILL entry lends a chunk to the kernel. Needs aligned
+- * page-sized chunks and no headroom.
++ * offsets. A FILL entry lends a chunk to the kernel, and an RX descriptor
++ * with XDP_RX_CHUNK_FREE gives it back. Needs aligned page-sized chunks and
++ * no headroom.
+  */
+ #define XDP_UMEM_DRV_LAYOUT		(1 << 4)
+ 
+@@ -189,4 +190,11 @@ struct xdp_desc {
+ /* TX packet carries valid metadata. */
+ #define XDP_TX_METADATA (1 << 1)
+ 
++/* Flag on an RX descriptor of an XDP_UMEM_DRV_LAYOUT UMEM: the kernel is done
++ * with the UMEM chunk of the descriptor, and puts nothing more in it. The
++ * chunk is userspace's again. An empty descriptor at the chunk carries only
++ * this flag, when the device let go of the chunk after its last buffer.
++ */
++#define XDP_RX_CHUNK_FREE (1 << 2)
 +
-+	for (i = 0; i < dev->real_num_rx_queues; i++) {
-+		ops = dev->_rx[i].mp_params.mp_ops;
-+		if (ops && ops->flags & MP_XDP_ONLY)
-+			return true;
+ #endif /* _UAPI_LINUX_IF_XDP_H */
+diff --git a/net/core/filter.c b/net/core/filter.c
+index d5774b2577e7..30b35d00e6b2 100644
+--- a/net/core/filter.c
++++ b/net/core/filter.c
+@@ -4775,6 +4775,15 @@ int xdp_do_redirect(struct net_device *dev, struct xdp_buff *xdp,
+ 	struct bpf_redirect_info *ri = bpf_net_ctx_get_ri();
+ 	enum bpf_map_type map_type = ri->map_type;
+ 
++	/* A sink buffer goes to an AF_XDP socket of its queue */
++	if (static_branch_unlikely(&xdp_sink_key) && xdp_buff_is_sink(xdp)) {
++		void *fwd = ri->tgt_value;
++
++		ri->map_id = 0;
++		ri->map_type = BPF_MAP_TYPE_UNSPEC;
++		return xsk_sink_redirect(xdp, map_type, fwd);
 +	}
 +
-+	return false;
-+}
-+
- u32 dev_get_min_mp_channel_count(const struct net_device *dev)
- {
- 	int i;
-diff --git a/net/xdp/Kconfig b/net/xdp/Kconfig
-index 71af2febe72a..c9c68d3b3712 100644
---- a/net/xdp/Kconfig
-+++ b/net/xdp/Kconfig
-@@ -2,6 +2,7 @@
- config XDP_SOCKETS
- 	bool "XDP sockets"
- 	depends on BPF_SYSCALL
-+	select PAGE_POOL
- 	default n
- 	help
- 	  XDP sockets allows a channel between XDP programs and
-diff --git a/net/xdp/Makefile b/net/xdp/Makefile
-index 30cdc4315f42..73a638f12843 100644
---- a/net/xdp/Makefile
-+++ b/net/xdp/Makefile
-@@ -1,4 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0-only
- obj-$(CONFIG_XDP_SOCKETS) += xsk.o xdp_umem.o xsk_queue.o xskmap.o
--obj-$(CONFIG_XDP_SOCKETS) += xsk_buff_pool.o
-+obj-$(CONFIG_XDP_SOCKETS) += xsk_buff_pool.o xsk_sink.o
- obj-$(CONFIG_XDP_SOCKETS_DIAG) += xsk_diag.o
-diff --git a/net/xdp/xsk_buff_pool.c b/net/xdp/xsk_buff_pool.c
-index 5ec092f7cb6f..7ece7d9e3937 100644
---- a/net/xdp/xsk_buff_pool.c
-+++ b/net/xdp/xsk_buff_pool.c
-@@ -7,6 +7,7 @@
- #include <net/xdp_sock_drv.h>
+ 	if (map_type == BPF_MAP_TYPE_XSKMAP)
+ 		return __xdp_do_redirect_xsk(ri, dev, xdp, xdp_prog);
+ 
+diff --git a/net/xdp/xsk.c b/net/xdp/xsk.c
+index f22f9a2cdbbe..0753fac8d4a8 100644
+--- a/net/xdp/xsk.c
++++ b/net/xdp/xsk.c
+@@ -35,6 +35,7 @@
+ #include "../core/dev.h"
  
  #include "xsk_queue.h"
 +#include "xsk_sink.h"
  #include "xdp_umem.h"
  #include "xsk.h"
  
-@@ -69,9 +70,14 @@ struct xsk_buff_pool *xp_create_and_assign_umem(struct xdp_sock *xs,
- 	if (!pool)
- 		goto out;
+@@ -437,6 +438,12 @@ static bool xsk_dev_queue_valid(const struct xdp_sock *xs,
+ 	return false;
+ }
  
--	pool->heads = kvzalloc_objs(*pool->heads, umem->chunks);
--	if (!pool->heads)
--		goto out;
-+	/* Receiving in the device's buffer layout and copy TX take none */
-+	if (!(umem->flags & XDP_UMEM_DRV_LAYOUT)) {
-+		pool->heads = kvzalloc_objs(*pool->heads, umem->chunks);
-+		if (!pool->heads)
-+			goto out;
-+		pool->heads_cnt = umem->chunks;
-+		pool->free_heads_cnt = umem->chunks;
++/* The pool receives in the device's buffer layout, or did */
++static bool xsk_drv_layout(const struct xdp_sock *xs)
++{
++	return xs->pool->umem->flags & XDP_UMEM_DRV_LAYOUT;
++}
++
+ static int xsk_rcv_check(struct xdp_sock *xs, struct xdp_buff *xdp, u32 len)
+ {
+ 	if (!xsk_is_bound(xs))
+@@ -454,8 +461,14 @@ static int xsk_rcv_check(struct xdp_sock *xs, struct xdp_buff *xdp, u32 len)
+ 
+ static void xsk_flush(struct xdp_sock *xs)
+ {
++	struct xsk_sink *sink = xs->pool->sink;
++
++	if (sink)
++		xsk_sink_flush(sink);
+ 	xskq_prod_submit(xs->rx);
+-	__xskq_cons_release(xs->pool->fq);
++	/* A sink releases FILL under its lock, see xsk_sink_take_fill() */
++	if (!sink)
++		__xskq_cons_release(xs->pool->fq);
+ 	sock_def_readable(&xs->sk);
+ }
+ 
+@@ -465,6 +478,11 @@ int xsk_generic_rcv(struct xdp_sock *xs, struct xdp_buff *xdp)
+ 	int err;
+ 
+ 	err = xsk_rcv_check(xs, xdp, len);
++	/* A sink socket takes buffers of its provider only */
++	if (!err && xsk_drv_layout(xs)) {
++		xs->rx_dropped++;
++		err = -EOPNOTSUPP;
 +	}
+ 	if (!err) {
+ 		spin_lock_bh(&xs->pool->rx_lock);
+ 		err = __xsk_rcv(xs, xdp, len);
+@@ -489,6 +507,14 @@ static int xsk_rcv(struct xdp_sock *xs, struct xdp_buff *xdp)
+ 		return xsk_rcv_zc(xs, xdp, len);
+ 	}
  
- 	if (xs->tx)
- 		if (xp_alloc_tx_descs(pool, xs, max_segs))
-@@ -79,8 +85,6 @@ struct xsk_buff_pool *xp_create_and_assign_umem(struct xdp_sock *xs,
- 
- 	pool->chunk_mask = ~((u64)umem->chunk_size - 1);
- 	pool->addrs_cnt = umem->size;
--	pool->heads_cnt = umem->chunks;
--	pool->free_heads_cnt = umem->chunks;
- 	pool->headroom = umem->headroom;
- 	pool->chunk_size = umem->chunk_size;
- 	pool->chunk_shift = ffs(umem->chunk_size) - 1;
-@@ -211,6 +215,13 @@ int xp_assign_dev(struct xsk_buff_pool *pool,
- 	 */
- 	hlist_add_head(&pool->dev_node, &netdev->xsk_pools);
- 
-+	if (pool->umem->flags & XDP_UMEM_DRV_LAYOUT) {
-+		err = xsk_sink_bind(pool, netdev, queue_id, flags);
-+		if (err)
-+			goto err_unbind;
-+		return 0;
++	/* Sink buffers take xsk_sink_redirect(); others cannot go to a sink
++	 * socket
++	 */
++	if (xsk_drv_layout(xs)) {
++		xs->rx_dropped++;
++		return -EOPNOTSUPP;
 +	}
 +
- 	if (force_copy)
- 		/* For copy-mode, we are done. */
- 		return 0;
-@@ -268,6 +279,7 @@ int xp_assign_dev(struct xsk_buff_pool *pool,
- err_unreg_pool:
- 	if (!force_zc)
- 		err = 0; /* fallback to copy mode */
-+err_unbind:
- 	if (err) {
- 		pool->umem->flags = umem_flags;
- 		xsk_clear_pool_at_qid(netdev, queue_id);
-@@ -285,6 +297,9 @@ int xp_assign_dev_shared(struct xsk_buff_pool *pool, struct xdp_sock *umem_xs,
- 	struct xdp_umem *umem = umem_xs->umem;
- 
- 	flags = umem->zc ? XDP_ZEROCOPY : XDP_COPY;
-+	/* The device layout has no copy mode */
-+	if (umem->flags & XDP_UMEM_DRV_LAYOUT)
-+		flags = 0;
- 
- 	if (umem->flags & XDP_UMEM_SG_FLAG)
- 		flags |= XDP_USE_SG;
-@@ -300,7 +315,10 @@ static void __xp_clear_dev(struct xsk_buff_pool *pool)
- 	struct net_device *netdev = pool->netdev;
- 
- 	netdev_assert_locked_ops_compat(netdev);
--	xp_disable_drv_zc(pool);
-+	if (pool->sink)
-+		xsk_sink_unbind(pool);
-+	else
-+		xp_disable_drv_zc(pool);
- 	xsk_clear_pool_at_qid(netdev, pool->queue_id);
- 	hlist_del(&pool->dev_node);
- 	pool->netdev = NULL;
+ 	err = __xsk_rcv(xs, xdp, len);
+ 	if (!err)
+ 		xdp_return_buff(xdp);
 diff --git a/net/xdp/xsk_sink.c b/net/xdp/xsk_sink.c
-new file mode 100644
-index 000000000000..b78116f25e71
---- /dev/null
+index b78116f25e71..9f1f7cf82266 100644
+--- a/net/xdp/xsk_sink.c
 +++ b/net/xdp/xsk_sink.c
-@@ -0,0 +1,416 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* AF_XDP RX in the device's buffer layout
+@@ -4,13 +4,29 @@
+  * Userspace lends page-sized UMEM chunks through the FILL ring. Each chunk
+  * becomes a net_iov of a page pool memory provider, and the device splits it
+  * as it splits pages: a chunk may hold several RX buffers, and a packet may
+- * span chunks.
++ * span chunks. Each buffer of a packet that XDP redirects to the socket
++ * becomes one RX descriptor, at the address the device chose.
 + *
-+ * Userspace lends page-sized UMEM chunks through the FILL ring. Each chunk
-+ * becomes a net_iov of a page pool memory provider, and the device splits it
-+ * as it splits pages: a chunk may hold several RX buffers, and a packet may
-+ * span chunks.
++ * The socket drops the page pool reference of each buffer it takes. A chunk
++ * goes back to userspace once nothing in the kernel uses it, if a buffer of
++ * it reached the socket: the descriptor of the buffer that freed it carries
++ * XDP_RX_CHUNK_FREE, or, when the device lets go of the chunk later, an
++ * empty descriptor at the chunk does:
 + *
-+ * The kernel maps the chunks through the UMEM mapping, so XDP programs read
-+ * and write the packets in place. The kernel stores none of its own data in
-+ * the chunks: the shared info of a packet lives in the sink, see
-+ * %XDP_FLAGS_SINFO_EXT, and the core turns every verdict that would build an
-+ * skb or a frame in the buffers into a drop.
++ *   FILL 0x7000
++ *   RX {0x7100, A}
++ *   RX {0x7900, B, XDP_RX_CHUNK_FREE}  or  RX {0x7000, 0, XDP_RX_CHUNK_FREE}
++ *
++ * Such a chunk stays charged to its page pool, which takes it straight back
++ * when userspace lends it again. Chunks whose buffers all stayed in the
++ * kernel, as for dropped packets, stay in the kernel.
+  *
+  * The kernel maps the chunks through the UMEM mapping, so XDP programs read
+- * and write the packets in place. The kernel stores none of its own data in
+- * the chunks: the shared info of a packet lives in the sink, see
+- * %XDP_FLAGS_SINFO_EXT, and the core turns every verdict that would build an
+- * skb or a frame in the buffers into a drop.
++ * and write the packets in place, and their metadata lands in front of the
++ * first buffer. The kernel stores none of its own data in the chunks: the
++ * shared info of a packet lives in the sink, see %XDP_FLAGS_SINFO_EXT, and
++ * the core turns every verdict that would build an skb or a frame in the
++ * buffers into a drop.
+  */
+ 
+ #include <linux/nospec.h>
+@@ -49,11 +65,15 @@ struct xsk_sink {
+ 	spinlock_t lock;
+ 	struct xsk_queue *fq;
+ 	refcount_t refs;
+-	/* One node per chunk: chunks that page pools released, from any
+-	 * context
++	/* The socket that receives, set once */
++	struct xdp_sock *xs;
++	/* One node per chunk, on at most one list. Page pools add chunks
++	 * that they released, and chunks that they handed off to go back to
++	 * userspace, from any context.
+ 	 */
+ 	struct llist_node *nodes;
+ 	struct llist_head released;
++	struct llist_head handed;
+ };
+ 
+ static void xsk_sink_free(struct xsk_sink *sink)
+@@ -172,12 +192,78 @@ static u32 xsk_sink_take_released(struct xsk_sink *sink, struct page_pool *pp,
+ 	return n;
+ }
+ 
++/* Posts the chunks that page pools handed off as empty RX descriptors
++ * while the ring has room, and puts the rest back on the list. Their order
++ * does not matter, as userspace tells chunks by their address. Only one
++ * NAPI runs a queue at a time, so this is the only consumer of the list
++ * while the queue runs, and xsk_sink_scrub() the only one after it stopped.
++ *
++ * Context: the queue NAPI
 + */
-+
-+#include <linux/nospec.h>
-+#include <net/netdev_queues.h>
-+#include <net/netdev_rx_queue.h>
-+#include <net/page_pool/helpers.h>
-+#include <net/page_pool/memory_provider.h>
-+#include <net/xdp_sock_drv.h>
-+
-+#include "../core/dev.h"
-+#include "xsk_queue.h"
-+#include "xsk_sink.h"
-+
-+#define XSK_SINK_DMA_ATTR (DMA_ATTR_WEAK_ORDERING | DMA_ATTR_SKIP_CPU_SYNC)
-+/* Chunks a refill tops up to with released ones */
-+#define XSK_SINK_RESERVE	32
-+
-+/* &net_iov.mp_state: whether userspace has the chunk or lent it */
-+enum {
-+	XSK_SINK_USER,
-+	XSK_SINK_LENT,
-+};
-+
-+struct xsk_sink {
-+	struct net_iov_area area;
-+	struct device *dev;
-+	/* Valid until the socket unbinds */
-+	struct xsk_buff_pool *pool;
-+	/* NULL once no queue uses the provider */
-+	struct netdev_rx_queue *rxq;
-+	/* Protects fq, which stays set while the UMEM is mapped, and keeps
-+	 * refills the only taker of released chunks. Besides the queue NAPI,
-+	 * drivers refill from process context, as bnxt fills the rings of a
-+	 * new queue while the old one still runs.
-+	 */
-+	spinlock_t lock;
-+	struct xsk_queue *fq;
-+	refcount_t refs;
-+	/* One node per chunk: chunks that page pools released, from any
-+	 * context
-+	 */
-+	struct llist_node *nodes;
-+	struct llist_head released;
-+};
-+
-+static void xsk_sink_free(struct xsk_sink *sink)
++static void xsk_sink_give_back(struct xsk_sink *sink, struct xdp_sock *xs)
 +{
-+	kvfree(sink->nodes);
-+	kvfree(sink->area.niovs);
-+	kfree(sink);
++	struct llist_node *node, *last;
++	u32 idx;
++
++	if (llist_empty(&sink->handed) || !xskq_prod_nb_free(xs->rx, 1))
++		return;
++
++	node = llist_del_all(&sink->handed);
++	while (node && xskq_prod_nb_free(xs->rx, 1)) {
++		idx = node - sink->nodes;
++		node = node->next;
++		WRITE_ONCE(sink->area.niovs[idx].mp_state, XSK_SINK_USER);
++		__xskq_prod_reserve_desc(xs->rx, (u64)idx << PAGE_SHIFT, 0,
++					 XDP_RX_CHUNK_FREE);
++	}
++	if (!node)
++		return;
++
++	/* The ring is full, so userspace is behind */
++	for (last = node; last->next; last = last->next)
++		;
++	llist_add_batch(node, last, &sink->handed);
 +}
 +
-+static void xsk_sink_put(struct xsk_sink *sink)
-+{
-+	if (refcount_dec_and_test(&sink->refs))
-+		xsk_sink_free(sink);
-+}
-+
-+static int xsk_sink_init(struct page_pool *pp)
-+{
-+	struct xsk_sink *sink = pp->mp_priv;
-+
-+	/* Each net_iov is one chunk, mapped for one device */
-+	if (pp->p.order)
-+		return -E2BIG;
-+	if (pp->p.dev != sink->dev || pp->p.offset + pp->p.max_len > PAGE_SIZE)
-+		return -EINVAL;
-+	/* Rings that keep every chunk posted leave none to replace the ones
-+	 * the device filled: mlx5 posts about 16K pages per queue at MTU
-+	 * 9000.
-+	 */
-+	if (pp->p.pool_size + PP_ALLOC_CACHE_SIZE >= sink->area.num_niovs)
-+		return -ENOSPC;
-+
-+	refcount_inc(&sink->refs);
-+	return 0;
-+}
-+
-+static void xsk_sink_destroy(struct page_pool *pp)
-+{
-+	xsk_sink_put(pp->mp_priv);
-+}
-+
-+/* Takes the chunks that FILL entries lend into the cache of @pp, which still
-+ * holds those it gave back before. A chunk that an earlier page pool still
-+ * holds goes back to it. Returns the number of chunks taken.
++/* Drops the reference of the buffer of @niov that the socket took at the
++ * last RX descriptor. Only the queue NAPI changes the count of a chunk that
++ * delivers to the socket, so this needs no atomic.
 + */
-+static u32 xsk_sink_take_fill(struct xsk_sink *sink, struct page_pool *pp)
++static void xsk_sink_drop_buf(struct xsk_sink *sink, struct xdp_sock *xs,
++			      struct net_iov *niov)
 +{
-+	struct net_iov *niov, *niovs = sink->area.niovs;
-+	u32 i, entries, cons, mask, nr, n = 0;
-+	struct xsk_queue *fq = sink->fq;
-+	struct xdp_umem_ring *ring;
-+	struct page_pool *owner;
-+	netmem_ref netmem;
-+	u64 addr;
++	struct xdp_rxtx_ring *ring;
++	atomic_long_t *count;
++	long left;
 +
-+	lockdep_assert_held(&sink->lock);
-+
-+	/* One cache worth, bounding NAPI work */
-+	entries = fq ? xskq_cons_nb_entries(fq, PP_ALLOC_CACHE_SIZE) : 0;
-+	if (!entries)
-+		return 0;
-+
-+	nr = sink->area.num_niovs;
-+	ring = (struct xdp_umem_ring *)fq->ring;
-+	mask = fq->ring_mask;
-+	cons = fq->cached_cons;
-+	for (i = 0; i < entries; i++) {
-+		addr = ring->desc[(cons + i) & mask];
-+		niov = &niovs[array_index_nospec((u32)(addr >> PAGE_SHIFT),
-+						 nr)];
-+		/* A chunk lent twice would be in two places at once */
-+		if (unlikely(addr >= (u64)nr << PAGE_SHIFT ||
-+			     READ_ONCE(niov->mp_state) == XSK_SINK_LENT)) {
-+			fq->invalid_descs++;
-+			continue;
-+		}
-+
-+		WRITE_ONCE(niov->mp_state, XSK_SINK_LENT);
-+		netmem = net_iov_to_netmem(niov);
-+		owner = netmem_get_pp(netmem);
-+		if (owner && owner != pp) {
-+			page_pool_put_unrefed_netmem(owner, netmem, -1, false);
-+			continue;
-+		}
-+		if (!owner)
-+			net_mp_niov_set_page_pool(pp, niov);
-+		pp->alloc.cache[n++] = netmem;
++	count = netmem_get_pp_ref_count_ref(net_iov_to_netmem(niov));
++	left = atomic_long_read(count) - 1;
++	if (left > 0) {
++		/* The device still uses it: its last put hands it off */
++		atomic_long_set(count, left);
++		niov->mp_hand_off = true;
++		return;
 +	}
 +
-+	xskq_cons_release_n(fq, entries);
-+	__xskq_cons_release(fq);
-+	return n;
-+}
-+
-+/* Tops up the cache of @pp, which holds @n chunks, with chunks that page
-+ * pools released. A reserve, not a source. Each chunk it adds stays in
-+ * circulation, so take only what FILL could not give. The lock keeps this
-+ * the only consumer of the list, as llist_del_first() needs.
-+ */
-+static u32 xsk_sink_take_released(struct xsk_sink *sink, struct page_pool *pp,
-+				  u32 n)
-+{
-+	struct llist_node *node;
-+	struct net_iov *niov;
-+
-+	lockdep_assert_held(&sink->lock);
-+
-+	/* The page pool cache has 8 entries with 64K pages */
-+	while (n < min(XSK_SINK_RESERVE, PP_ALLOC_CACHE_SIZE)) {
-+		node = llist_del_first(&sink->released);
-+		if (!node)
-+			break;
-+		niov = &sink->area.niovs[node - sink->nodes];
-+		net_mp_niov_set_page_pool(pp, niov);
-+		pp->alloc.cache[n++] = net_iov_to_netmem(niov);
-+	}
-+	return n;
-+}
-+
-+static netmem_ref xsk_sink_alloc_netmems(struct page_pool *pp, gfp_t gfp)
-+{
-+	struct xsk_sink *sink = pp->mp_priv;
-+	/* The NAPI owns the need_wakeup flags */
-+	bool napi = in_softirq() && !in_hardirq();
-+	struct xsk_queue *fq;
-+	dma_addr_t dma;
-+	u32 i, n;
-+
-+	/* The page pool refills only an empty cache */
-+	if (WARN_ON_ONCE(pp->alloc.count))
-+		return 0;
-+
-+	spin_lock_bh(&sink->lock);
-+	n = xsk_sink_take_fill(sink, pp);
-+	n = xsk_sink_take_released(sink, pp, n);
-+	fq = sink->fq;
-+	/* Ask for kicks only while FILL runs dry, as zero copy drivers do: a
-+	 * kick schedules the NAPI, which a busy poller would rather run
-+	 * itself. Process context refills new queues only and leaves the
-+	 * flags to their NAPI and to bind.
++	/* Free: back to userspace with this descriptor, still charged to its
++	 * page pool with the count of a free netmem
 +	 */
-+	if (napi && fq && sink->pool->uses_need_wakeup) {
-+		if (n)
-+			xsk_clear_rx_need_wakeup(sink->pool);
-+		else
-+			xsk_set_rx_need_wakeup(sink->pool);
-+	}
-+	if (fq && !n)
-+		fq->queue_empty_descs++;
-+	spin_unlock_bh(&sink->lock);
-+	if (!n)
-+		return 0;
-+
-+	for (i = 0; i < n; i++) {
-+		dma = page_pool_get_dma_addr_netmem(pp->alloc.cache[i]);
-+		dma_sync_single_range_for_device(pp->p.dev, dma, pp->p.offset,
-+						 pp->p.max_len, pp->p.dma_dir);
-+	}
-+
-+	pp->alloc.count = n - 1;
-+	return pp->alloc.cache[n - 1];
++	WARN_ON_ONCE(left < 0);
++	atomic_long_set(count, 1);
++	niov->mp_hand_off = false;
++	WRITE_ONCE(niov->mp_state, XSK_SINK_USER);
++	ring = (struct xdp_rxtx_ring *)xs->rx->ring;
++	ring->desc[(xs->rx->cached_prod - 1) & xs->rx->ring_mask].options |=
++		XDP_RX_CHUNK_FREE;
 +}
 +
-+static bool xsk_sink_release_netmem(struct page_pool *pp, netmem_ref netmem)
+ static netmem_ref xsk_sink_alloc_netmems(struct page_pool *pp, gfp_t gfp)
+ {
+ 	struct xsk_sink *sink = pp->mp_priv;
+ 	/* The NAPI owns the need_wakeup flags */
+ 	bool napi = in_softirq() && !in_hardirq();
+ 	struct xsk_queue *fq;
++	struct xdp_sock *xs;
+ 	dma_addr_t dma;
+ 	u32 i, n;
+ 
+@@ -185,17 +271,34 @@ static netmem_ref xsk_sink_alloc_netmems(struct page_pool *pp, gfp_t gfp)
+ 	if (WARN_ON_ONCE(pp->alloc.count))
+ 		return 0;
+ 
++	/* Userspace may wait for chunks the device let go of after the last
++	 * flush, and with no packets coming, no flush gives them back. A
++	 * refill with BH disabled is the queue NAPI, as process context
++	 * refills with BH enabled. Only one NAPI runs a queue at a time, as
++	 * a queue restart stops the old queue before the new one runs, so
++	 * the refill may produce to the RX ring.
++	 */
++	/* Pairs with xsk_sink_add_sock() */
++	xs = smp_load_acquire(&sink->xs);
++	if (xs && napi && !llist_empty(&sink->handed)) {
++		xsk_sink_give_back(sink, xs);
++		xskq_prod_submit(xs->rx);
++		xs->sk.sk_data_ready(&xs->sk);
++	}
++
+ 	spin_lock_bh(&sink->lock);
+ 	n = xsk_sink_take_fill(sink, pp);
+ 	n = xsk_sink_take_released(sink, pp, n);
+ 	fq = sink->fq;
+-	/* Ask for kicks only while FILL runs dry, as zero copy drivers do: a
+-	 * kick schedules the NAPI, which a busy poller would rather run
+-	 * itself. Process context refills new queues only and leaves the
+-	 * flags to their NAPI and to bind.
++	/* Ask for kicks while FILL runs dry, as zero copy drivers do, and
++	 * while chunks wait for room in the RX ring. A kick schedules the
++	 * NAPI, which a busy poller would rather run itself, but once a
++	 * slow socket has drained its ring, only a NAPI run posts the
++	 * chunks that waited. Process context refills new queues only and
++	 * leaves the flags to their NAPI and to bind.
+ 	 */
+ 	if (napi && fq && sink->pool->uses_need_wakeup) {
+-		if (n)
++		if (n && llist_empty(&sink->handed))
+ 			xsk_clear_rx_need_wakeup(sink->pool);
+ 		else
+ 			xsk_set_rx_need_wakeup(sink->pool);
+@@ -226,12 +329,61 @@ static bool xsk_sink_release_netmem(struct page_pool *pp, netmem_ref netmem)
+ 	return false;
+ }
+ 
++/* The last put of a chunk with a buffer in userspace: it goes back to
++ * userspace, still charged to @pp. The next flush or refill of the queue
++ * NAPI posts its empty descriptor.
++ */
++static bool xsk_sink_hand_off(struct page_pool *pp, netmem_ref netmem)
 +{
 +	struct net_iov *niov = netmem_to_net_iov(netmem);
 +	struct xsk_sink *sink = pp->mp_priv;
++	struct llist_node *node;
 +
-+	net_mp_niov_clear_page_pool(niov);
-+	llist_add(&sink->nodes[net_iov_idx(niov)], &sink->released);
-+	return false;
++	niov->mp_hand_off = false;
++	node = &sink->nodes[net_iov_idx(niov)];
++	llist_add(node, &sink->handed);
++	return true;
 +}
 +
-+static int xsk_sink_nl_fill(void *mp_priv, struct sk_buff *rsp,
-+			    struct netdev_rx_queue *rxq)
-+{
-+	return 0;
-+}
-+
-+/* No queue DMAs to the UMEM any longer */
-+static void xsk_sink_stop(struct xsk_sink *sink)
-+{
-+	bool unmap;
-+
-+	spin_lock_bh(&sink->lock);
-+	WRITE_ONCE(sink->rxq, NULL);
-+	unmap = sink->fq;
-+	sink->fq = NULL;
-+	spin_unlock_bh(&sink->lock);
-+
-+	/* Wait for wakeups that found the sink or the queue */
-+	synchronize_net();
-+	if (unmap)
-+		xp_dma_unmap(sink->pool, XSK_SINK_DMA_ATTR);
-+}
-+
-+/* Device unregister, after the queue stopped */
-+static void xsk_sink_uninstall(void *mp_priv, struct netdev_rx_queue *rxq)
-+{
-+	memset(&rxq->mp_params, 0, sizeof(rxq->mp_params));
-+	xsk_sink_stop(mp_priv);
-+}
-+
-+static const struct memory_provider_ops xsk_sink_ops = {
-+	.alloc_netmems	= xsk_sink_alloc_netmems,
-+	.release_netmem	= xsk_sink_release_netmem,
-+	.init		= xsk_sink_init,
-+	.destroy	= xsk_sink_destroy,
-+	.nl_fill	= xsk_sink_nl_fill,
-+	.uninstall	= xsk_sink_uninstall,
-+	.flags		= MP_XDP_ONLY,
-+};
-+
-+static struct xsk_sink *xsk_sink_create(struct xsk_buff_pool *pool,
-+					struct device *dev)
-+{
-+	u32 i, nr = pool->umem->chunks;
-+	struct xsk_sink *sink;
-+	struct net_iov *niov;
-+	dma_addr_t dma;
-+
-+	sink = kzalloc_obj(*sink, GFP_KERNEL_ACCOUNT);
-+	if (!sink)
-+		return ERR_PTR(-ENOMEM);
-+
-+	/* See &xdp_rxq_info.sink_area */
-+	BUILD_BUG_ON(offsetof(struct xsk_sink, area));
-+
-+	sink->area.niovs = kvcalloc(nr, sizeof(*niov), GFP_KERNEL_ACCOUNT);
-+	sink->nodes = kvcalloc(nr, sizeof(*sink->nodes), GFP_KERNEL_ACCOUNT);
-+	if (!sink->area.niovs || !sink->nodes) {
-+		xsk_sink_free(sink);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	sink->area.num_niovs = nr;
-+	/* Chunks are pages, see XDP_UMEM_DRV_LAYOUT */
-+	sink->area.xdp_vaddr = pool->addrs;
-+	sink->area.xdp_vsize = (size_t)nr << PAGE_SHIFT;
-+	sink->area.xdp_shift = PAGE_SHIFT;
-+	sink->dev = dev;
-+	sink->pool = pool;
-+	sink->fq = pool->fq;
-+	spin_lock_init(&sink->lock);
-+	init_llist_head(&sink->released);
-+	refcount_set(&sink->refs, 1);
-+
-+	/* Chunks are pages, see XDP_UMEM_DRV_LAYOUT */
-+	for (i = 0; i < nr; i++) {
-+		niov = &sink->area.niovs[i];
-+		dma = pool->dma_pages[i] & ~XSK_NEXT_PG_CONTIG_MASK;
-+		net_iov_init(niov, &sink->area, NET_IOV_XSK);
-+		if (net_mp_niov_set_dma_addr(niov, dma)) {
-+			xsk_sink_free(sink);
-+			return ERR_PTR(-ERANGE);
-+		}
-+	}
-+
-+	return sink;
-+}
-+
-+/* Sockets sharing the pool find no sink after the grace period of
-+ * xsk_sink_stop(), see xsk_wakeup()
+ static int xsk_sink_nl_fill(void *mp_priv, struct sk_buff *rsp,
+ 			    struct netdev_rx_queue *rxq)
+ {
+ 	return 0;
+ }
+ 
++/* Page pools hold the chunks that went back to userspace until it lends
++ * them again. Put them back, so that the page pools can finish their
++ * destruction, and handed-off chunks that never made it to userspace too.
++ * The queue stopped, so no NAPI takes from the handed list any longer.
++ * Device unregister scrubs twice, when it uninstalls the provider and
++ * when the socket unbinds.
 + */
-+static void xsk_sink_detach(struct xsk_buff_pool *pool)
++static void xsk_sink_scrub(struct xsk_sink *sink)
 +{
-+	struct xsk_sink *sink = pool->sink;
++	struct llist_node *node;
++	struct net_iov *niov;
++	netmem_ref netmem;
++	u32 idx;
 +
-+	WRITE_ONCE(pool->sink, NULL);
-+	xsk_sink_stop(sink);
-+	xsk_sink_put(sink);
-+	static_branch_dec(&xdp_sink_key);
++	for (node = llist_del_all(&sink->handed); node; node = node->next)
++		sink->area.niovs[node - sink->nodes].mp_state = XSK_SINK_USER;
++
++	for (idx = 0; idx < sink->area.num_niovs; idx++) {
++		niov = &sink->area.niovs[idx];
++		netmem = net_iov_to_netmem(niov);
++		if (niov->mp_state == XSK_SINK_LENT || !netmem_get_pp(netmem))
++			continue;
++
++		niov->mp_hand_off = false;
++		/* A later scrub must skip it: its page pool may not have
++		 * released it yet
++		 */
++		niov->mp_state = XSK_SINK_LENT;
++		page_pool_put_unrefed_netmem(netmem_get_pp(netmem), netmem,
++					     -1, false);
++	}
++}
++
+ /* No queue DMAs to the UMEM any longer */
+ static void xsk_sink_stop(struct xsk_sink *sink)
+ {
+@@ -245,6 +397,7 @@ static void xsk_sink_stop(struct xsk_sink *sink)
+ 
+ 	/* Wait for wakeups that found the sink or the queue */
+ 	synchronize_net();
++	xsk_sink_scrub(sink);
+ 	if (unmap)
+ 		xp_dma_unmap(sink->pool, XSK_SINK_DMA_ATTR);
+ }
+@@ -259,6 +412,7 @@ static void xsk_sink_uninstall(void *mp_priv, struct netdev_rx_queue *rxq)
+ static const struct memory_provider_ops xsk_sink_ops = {
+ 	.alloc_netmems	= xsk_sink_alloc_netmems,
+ 	.release_netmem	= xsk_sink_release_netmem,
++	.hand_off	= xsk_sink_hand_off,
+ 	.init		= xsk_sink_init,
+ 	.destroy	= xsk_sink_destroy,
+ 	.nl_fill	= xsk_sink_nl_fill,
+@@ -298,6 +452,7 @@ static struct xsk_sink *xsk_sink_create(struct xsk_buff_pool *pool,
+ 	sink->fq = pool->fq;
+ 	spin_lock_init(&sink->lock);
+ 	init_llist_head(&sink->released);
++	init_llist_head(&sink->handed);
+ 	refcount_set(&sink->refs, 1);
+ 
+ 	/* Chunks are pages, see XDP_UMEM_DRV_LAYOUT */
+@@ -397,6 +552,27 @@ int xsk_sink_bind(struct xsk_buff_pool *pool, struct net_device *dev,
+ 	return 0;
+ }
+ 
++/* The first socket with an RX ring receives; others sharing the pool,
++ * such as TX-only sockets, do not.
++ *
++ * Context: RTNL and the instance lock of the device
++ */
++void xsk_sink_add_sock(struct xsk_sink *sink, struct xdp_sock *xs)
++{
++	if (xs->rx && !sink->xs) {
++		/* The NAPI acquires the socket once it is set up */
++		smp_store_release(&sink->xs, xs);
++	}
++}
++
++/* The receiving socket, if any.
++ * Context: RTNL and the instance lock of the device
++ */
++struct xdp_sock *xsk_sink_sock(struct xsk_sink *sink)
++{
++	return sink->xs;
++}
++
+ /* Context: RTNL and the instance lock of the device */
+ void xsk_sink_unbind(struct xsk_buff_pool *pool)
+ {
+@@ -414,3 +590,165 @@ void xsk_sink_unbind(struct xsk_buff_pool *pool)
+ 		netif_close(pool->netdev);
+ 	xsk_sink_detach(pool);
+ }
++
++/* The net_iov of @netmem if it is one of ours; tells by its address */
++static __always_inline struct net_iov *xsk_sink_niov(struct xsk_sink *sink,
++						     netmem_ref netmem)
++{
++	struct net_iov *niov;
++
++	if (!netmem_is_net_iov(netmem))
++		return NULL;
++	niov = netmem_to_net_iov(netmem);
++	if ((unsigned long)(niov - sink->area.niovs) >= sink->area.num_niovs)
++		return NULL;
++	return niov;
++}
++
++/* Puts the buffers of a packet on the RX ring, one descriptor each, with
++ * the metadata of the program in front of the first. Returns 0 if the socket
++ * took them.
++ */
++static int xsk_sink_rcv(struct xsk_sink *sink, struct xdp_sock *xs,
++			struct xdp_buff *xdp)
++{
++	struct net_iov *niov, *hniov = NULL, *empty = NULL;
++	u32 i, n, len, hlen, nr_frags = 0, headroom;
++	struct skb_shared_info *sinfo;
++	const skb_frag_t *frag;
++	u64 addr, off;
++	u32 metalen = 0;
++	netmem_ref netmem;
++
++	sinfo = xdp_get_shared_info_from_buff(xdp);
++	if (xdp_buff_has_frags(xdp))
++		nr_frags = sinfo->nr_frags;
++
++	/* The head sits in the UMEM mapping */
++	off = (u8 *)xdp->data - (u8 *)sink->area.xdp_vaddr;
++	if (off >= (u64)sink->area.num_niovs << PAGE_SHIFT)
++		goto drop;
++	niov = &sink->area.niovs[off >> PAGE_SHIFT];
++	hlen = xdp->data_end - xdp->data;
++	if (!hlen) {
++		/* An empty linear part, as mlx5 builds for nonlinear RQs */
++		empty = niov;
++		headroom = 0;
++	} else {
++		if ((off & ~PAGE_MASK) + hlen > PAGE_SIZE)
++			goto drop;
++		hniov = niov;
++		headroom = min_t(u64, off & ~PAGE_MASK,
++				 xdp->data - xdp->data_hard_start);
++	}
++
++	for (i = 0; i < nr_frags; i++)
++		if (!xsk_sink_niov(sink, skb_frag_netmem(&sinfo->frags[i])))
++			goto drop;
++
++	n = nr_frags + !!hlen;
++	if (!n || (n > 1 && !xs->sg))
++		goto drop;
++
++	/* The program put metadata in front of the head, which must be the
++	 * first buffer, within its chunk
++	 */
++	if (!xdp_data_meta_unsupported(xdp))
++		metalen = xdp->data - xdp->data_meta;
++	if (metalen > headroom)
++		goto drop;
++
++	if (xskq_prod_nb_free(xs->rx, n) < n) {
++		xs->rx_queue_full++;
++		return -ENOBUFS;
++	}
++
++	for (i = 0; i < n; i++) {
++		if (hlen && !i) {
++			niov = hniov;
++			addr = off;
++			len = hlen;
++		} else {
++			frag = &sinfo->frags[i - !!hlen];
++			niov = netmem_to_net_iov(skb_frag_netmem(frag));
++			addr = ((u64)(niov - sink->area.niovs) << PAGE_SHIFT) +
++			       skb_frag_off(frag);
++			len = skb_frag_size(frag);
++		}
++		__xskq_prod_reserve_desc(xs->rx, addr, len,
++					 i + 1 < n ? XDP_PKT_CONTD : 0);
++		xsk_sink_drop_buf(sink, xs, niov);
++	}
++
++	if (empty) {
++		netmem = net_iov_to_netmem(empty);
++		page_pool_put_netmem(netmem_get_pp(netmem), netmem, -1, false);
++	}
++	return 0;
++
++drop:
++	xs->rx_dropped++;
++	return -EINVAL;
 +}
 +
 +/**
-+ * xsk_sink_bind - install the UMEM of @pool as the provider of an RX queue
-+ * @pool: buffer pool with an XDP_UMEM_DRV_LAYOUT UMEM
-+ * @dev: device of the queue
-+ * @queue_id: RX queue
-+ * @flags: bind flags
++ * xsk_sink_flush - give back chunks at the end of a NAPI poll
++ * @sink: provider of a socket that received in this poll
 + *
-+ * Context: RTNL and the instance lock of @dev.
-+ * Return: 0 on success. No copy mode takes over on error.
++ * Context: the queue NAPI, from xdp_do_flush(), before the RX ring is
++ * submitted.
 + */
-+int xsk_sink_bind(struct xsk_buff_pool *pool, struct net_device *dev,
-+		  u16 queue_id, u16 flags)
++void xsk_sink_flush(struct xsk_sink *sink)
 +{
-+	u32 needed = NETDEV_XDP_ACT_BASIC | NETDEV_XDP_ACT_REDIRECT;
-+	struct pp_memory_provider_params p = { .mp_ops = &xsk_sink_ops };
-+	struct device *dma_dev;
++	/* Pairs with xsk_sink_add_sock() */
++	struct xdp_sock *xs = smp_load_acquire(&sink->xs);
++
++	if (!xs)
++		return;
++
++	xsk_sink_give_back(sink, xs);
++}
++
++/**
++ * xsk_sink_redirect - deliver a sink buffer to a socket of its queue
++ * @xdp: sink buffer, see xdp_buff_is_sink()
++ * @map_type: map of the redirect
++ * @fwd: target of the redirect
++ *
++ * The target must be the receiving socket of the queue in an XSKMAP. Other
++ * maps cannot take sink buffers.
++ *
++ * Context: the queue NAPI, from xdp_do_redirect().
++ * Return: 0 if the socket took the buffer.
++ */
++int xsk_sink_redirect(struct xdp_buff *xdp, enum bpf_map_type map_type,
++		      void *fwd)
++{
++	struct net_iov_area *area = xdp->rxq->sink_area;
 +	struct xsk_sink *sink;
++	struct xdp_sock *xs;
 +	int err;
 +
-+	if (flags & XDP_USE_SG)
-+		needed |= NETDEV_XDP_ACT_RX_SG;
-+	if (flags & XDP_COPY || !dev->queue_mgmt_ops ||
-+	    (dev->xdp_features & needed) != needed ||
-+	    queue_id >= dev->real_num_rx_queues)
++	/* Set for every queue with a sink provider, see
++	 * PP_FLAG_ALLOW_XDP_ONLY_NETMEM
++	 */
++	if (unlikely(!area))
++		return -EINVAL;
++	sink = container_of(area, struct xsk_sink, area);
++
++	if (map_type != BPF_MAP_TYPE_XSKMAP)
 +		return -EOPNOTSUPP;
 +
-+	/* The program of another device would see a leased queue's packets */
-+	if (netif_rxq_is_leased(dev, queue_id))
-+		return -EOPNOTSUPP;
++	/* Pairs with xsk_sink_add_sock() */
++	xs = smp_load_acquire(&sink->xs);
++	if (unlikely(!xs || xs != fwd))
++		return -EINVAL;
 +
-+	/* The device of the queue's page pools, which may differ per queue */
-+	dma_dev = netdev_queue_get_dma_dev(dev, queue_id, NETDEV_QUEUE_TYPE_RX);
-+	if (!dma_dev)
-+		return -EOPNOTSUPP;
-+
-+	/* Without a program, drivers would build skbs from the buffers */
-+	if (!dev_xdp_drv_prog_held(dev))
-+		return -ENOENT;
-+
-+	err = xp_dma_map(pool, dma_dev, XSK_SINK_DMA_ATTR, pool->umem->pgs,
-+			 pool->umem->npgs);
++	err = xsk_sink_rcv(sink, xs, xdp);
 +	if (err)
 +		return err;
 +
-+	sink = xsk_sink_create(pool, dma_dev);
-+	if (IS_ERR(sink)) {
-+		xp_dma_unmap(pool, XSK_SINK_DMA_ATTR);
-+		return PTR_ERR(sink);
-+	}
-+
-+	/* Until the first refill of the NAPI: the queue may need FILL to
-+	 * start. Set before the NAPI runs, which owns the flags after that.
-+	 */
-+	if (pool->uses_need_wakeup)
-+		xsk_set_rx_need_wakeup(pool);
-+
-+	/* The core keeps sink buffers to the socket once the queue runs */
-+	static_branch_inc(&xdp_sink_key);
-+	sink->rxq = __netif_get_rx_queue(dev, queue_id);
-+	pool->sink = sink;
-+	p.mp_priv = sink;
-+	err = netif_mp_open_rxq(dev, queue_id, &p, NULL);
-+	if (err) {
-+		xsk_sink_detach(pool);
-+		return err;
-+	}
-+
++	if (!xs->flush_node.prev)
++		list_add(&xs->flush_node, bpf_net_ctx_get_xskmap_flush_list());
 +	return 0;
 +}
-+
-+/* Context: RTNL and the instance lock of the device */
-+void xsk_sink_unbind(struct xsk_buff_pool *pool)
-+{
-+	struct xsk_sink *sink = pool->sink;
-+	struct pp_memory_provider_params p = {
-+		.mp_ops = &xsk_sink_ops,
-+		.mp_priv = sink,
-+	};
-+
-+	/* Unregister may have uninstalled the provider already. A queue that
-+	 * cannot restart without it may still use the UMEM: stop the device.
-+	 */
-+	if (READ_ONCE(sink->rxq) &&
-+	    netif_mp_close_rxq(pool->netdev, pool->queue_id, &p))
-+		netif_close(pool->netdev);
-+	xsk_sink_detach(pool);
-+}
 diff --git a/net/xdp/xsk_sink.h b/net/xdp/xsk_sink.h
-new file mode 100644
-index 000000000000..3f201163c530
---- /dev/null
+index 3f201163c530..fe73b2916608 100644
+--- a/net/xdp/xsk_sink.h
 +++ b/net/xdp/xsk_sink.h
-@@ -0,0 +1,14 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* AF_XDP RX in the device's buffer layout, see xsk_sink.c */
-+
-+#ifndef XSK_SINK_H_
-+#define XSK_SINK_H_
-+
-+struct net_device;
-+struct xsk_buff_pool;
-+
-+int xsk_sink_bind(struct xsk_buff_pool *pool, struct net_device *dev,
-+		  u16 queue_id, u16 flags);
-+void xsk_sink_unbind(struct xsk_buff_pool *pool);
-+
-+#endif /* XSK_SINK_H_ */
+@@ -5,10 +5,15 @@
+ #define XSK_SINK_H_
+ 
+ struct net_device;
++struct xdp_sock;
+ struct xsk_buff_pool;
++struct xsk_sink;
+ 
+ int xsk_sink_bind(struct xsk_buff_pool *pool, struct net_device *dev,
+ 		  u16 queue_id, u16 flags);
+ void xsk_sink_unbind(struct xsk_buff_pool *pool);
++void xsk_sink_flush(struct xsk_sink *sink);
++void xsk_sink_add_sock(struct xsk_sink *sink, struct xdp_sock *xs);
++struct xdp_sock *xsk_sink_sock(struct xsk_sink *sink);
+ 
+ #endif /* XSK_SINK_H_ */
 diff --git a/tools/include/uapi/linux/if_xdp.h b/tools/include/uapi/linux/if_xdp.h
-index 50d67df78911..160a437ed540 100644
+index 160a437ed540..933b8700281f 100644
 --- a/tools/include/uapi/linux/if_xdp.h
 +++ b/tools/include/uapi/linux/if_xdp.h
-@@ -45,6 +45,13 @@
-  */
- #define XDP_UMEM_TX_METADATA_LEN	(1 << 2)
+@@ -47,8 +47,9 @@
  
-+/* RX buffers follow the device's layout: a page-sized chunk may hold
-+ * several of them, a packet may span chunks, and the device picks the
-+ * offsets. A FILL entry lends a chunk to the kernel. Needs aligned
-+ * page-sized chunks and no headroom.
+ /* RX buffers follow the device's layout: a page-sized chunk may hold
+  * several of them, a packet may span chunks, and the device picks the
+- * offsets. A FILL entry lends a chunk to the kernel. Needs aligned
+- * page-sized chunks and no headroom.
++ * offsets. A FILL entry lends a chunk to the kernel, and an RX descriptor
++ * with XDP_RX_CHUNK_FREE gives it back. Needs aligned page-sized chunks and
++ * no headroom.
+  */
+ #define XDP_UMEM_DRV_LAYOUT		(1 << 4)
+ 
+@@ -189,4 +190,11 @@ struct xdp_desc {
+ /* TX packet carries valid metadata. */
+ #define XDP_TX_METADATA (1 << 1)
+ 
++/* Flag on an RX descriptor of an XDP_UMEM_DRV_LAYOUT UMEM: the kernel is done
++ * with the UMEM chunk of the descriptor, and puts nothing more in it. The
++ * chunk is userspace's again. An empty descriptor at the chunk carries only
++ * this flag, when the device let go of the chunk after its last buffer.
 + */
-+#define XDP_UMEM_DRV_LAYOUT		(1 << 4)
++#define XDP_RX_CHUNK_FREE (1 << 2)
 +
- struct sockaddr_xdp {
- 	__u16 sxdp_family;
- 	__u16 sxdp_flags;
+ #endif /* _UAPI_LINUX_IF_XDP_H */
 -- 
 2.56.1
 
