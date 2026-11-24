@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795534872;
-	b=yTUJFMfp9IIVQKjGzouh3lRvTf02pcq6u/rU2v8EcqK9a7WDQz9wkEF4PAcix5EoRhMN
-	 mfuPshUkEG0+jLp7NRCOVMYJbU051ZnjFMFMDzFyv04pkoeodi+GOXSJBCYgv1LPqy0IY
-	 57rOusBkzWHc1bGFrbAQEEjiqeI+qxztWgbS7onaELwC17P/mZfh9gfLp39xHBTbcuEbb
-	 u5TxSX2cNsEAzTk8Q5P/25EyGdrnHnqan7oJt+Eo0P2GmiW6C+qsEDuGt++DrY0LpjIOT
-	 luyKTOGqfvRMNoFFVtu5wCLncnyCHUjx2kpUPeqs1Z8hh67kJT1morQEKa4k+FfcEXg==
+	t=1795534873;
+	b=yONCgK9KqQ/jvEdMN0h6q/fHuK2lFaaI5EM2y5we/NT3ji6k3Sjqhb+Le3I4Pb+TYk+w
+	 VbEWv+V3ZieS/kK6ftiwodzEkJbjTGlE9S4+fPxrCxFgEDu5kwZTtOMkXz7NbnI7lnrpa
+	 LVj2vVRr0s5cc1zR9fwBAhO7p3J5bXJQkJb5ecSpObd/Uac6LDoqjPG5V/k6T2dr3SDCI
+	 0/NXRdFIuFiksjAT6J2VvuQlD/r6shnnfruqi80e7QiuBiNq5f7TAlcUmQd23nJVPsjpw
+	 +Sq4qGYTGsTLh1ymmnX7h7IAR3l3/SGmiJsFKW7m4V+x2IDUXepygpgJlXqeH0tXWiw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795534872;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795534873;
 	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=F/F+/Vl9CXYnxppmJ1inDEnMHeZ7DKWXFKbh0mG1AVA=;
-	b=bHL1SI8tdYz0WibyLCqR86kED2UUi3LVcPgMiRWYU/vShXdrWmDI1iaBqYuIaufyLlZm
-	 Uv19rM8Aw+RjatvNC3SeH6yJpwMBlt9za0+1kyN6JQ8Jlx6fXReiIGjrMI/kMekSH1Ca6
-	 AgkiI6fdz7EeEPTFG6YAI7DOe9LahDLkS50lyNO+N2uKccYLs4+lFEs82WNMDKBJUDhH1
-	 naTe1fIej2xkkfHHi8kt0oMpnfuw5/c2gn6bJITjRxlH7ZQt9bGoLcs4QPzEoNNcKFiNI
-	 pxDo3j0vedX1d9qdJCe+dar45LRC5SfIJlf4I+oysgPwZE2zG7diiLUfqB+9waFZyUg==
+	bh=AzZsYoosrn/HfDTUHNVy9Q5o9yaH6GlY+jQTsO5yjMs=;
+	b=zrQ5QqtQIO5aC40Pfw7b8WqWWkIcVe2ttZS8wsddSX1/63dSMrovThhcS1LdENZ1bkg8
+	 6vYg37W7ixS8YaYGaOnlFf8djNO+yHaWrHMdr5sSc0/7C0zDX1akCbBYj1riH1q9esasR
+	 Ng/yNoZQcNm/cVxuUc/9SR91tV8S733tsoZ3PjeDofMqpTlTxFiy1h+AlA8H6AGhBN7E3
+	 E43bIFesUKela3mT2GWj+sj7Mzcze2JWc4vrRK1J+MaqL1zaXgWMEo+av14Beb5pSGGXI
+	 RM/AoSuhYalSEBP4618auIvAA8KC5tw6fGDz7G4CkXvRDkRnRYEzW4YcEGwQ8MpUNRg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.microsoft.com;
 	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=mUZRuf+5;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=VhzCCvj7;
 	arc=none smtp.remote-ip=13.77.154.182
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E1399606A32C;
-	Tue, 24 Nov 2026 15:41:11 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E1399606A32C
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3415C606A332;
+	Tue, 24 Nov 2026 15:41:13 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3415C606A332
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=mUZRuf+5
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=VhzCCvj7
 Received: from weh-cvm-dev-vm.y50bckvjo0hefgfnzfztsfttff.phxx.internal.cloudapp.net (unknown [20.169.55.37])
-	by linux.microsoft.com (Postfix) with ESMTPSA id D768420B7171;
-	Tue, 24 Nov 2026 07:41:05 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com D768420B7171
+	by linux.microsoft.com (Postfix) with ESMTPSA id BB95320B7170;
+	Tue, 24 Nov 2026 07:41:01 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com BB95320B7170
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1795534866;
-	bh=F/F+/Vl9CXYnxppmJ1inDEnMHeZ7DKWXFKbh0mG1AVA=;
+	s=default; t=1795534862;
+	bh=AzZsYoosrn/HfDTUHNVy9Q5o9yaH6GlY+jQTsO5yjMs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=mUZRuf+5/rvsWD2v+viEqarL9Dc1CrwWNo6bop59T9dFGT5jOdq1tk3EmZCGCRumD
-	 QKbUslhhCSY6ZFugXo1Btwz9o7srbcISpD1rHqfpCn/IHQdNZf+DbBorR9u/f3FSpK
-	 +I69L0tg0jSw2HUNaWzHl2LtPW0iZpvwY2Fqy18I=
+	b=VhzCCvj7zfkD+Ue6H5p7bSDi2NFOYbqvfGX2BrXVF5AScGQfCCRFtsu/H9FNOL0Qy
+	 af7bsFBPFuIZYYolzug4+go2+L7uwEL53X2nsykSc9sr4t7RmiqjT86WoW5nOU+PF4
+	 XUTxrp3FG7o23eql2+UgeorAPKxqG0qYJKAoTmAs=
 From: Wei Hu <weh@linux.microsoft.com>
 To: longli@kernel.org,
 	kotaranov@microsoft.com,
@@ -69,9 +69,9 @@ Cc: netdev@vger.kernel.org,
 	weh@microsoft.com,
 	edumazet@kernel.org,
 	shacharr@microsoft.com
-Subject: [PATCH net-next v12 3/5] net: mana: protect the HWC response buffer until the sender returns
-Date: Tue, 24 Nov 2026 15:40:56 +0000
-Message-ID: <hwc-v12.91ec3eff9cb647d5bc5cc932b3c6f60c.3@linux.microsoft.com>
+Subject: [PATCH net-next v12 1/5] net: mana: validate the HWC doorbell before ringing it
+Date: Tue, 24 Nov 2026 15:40:54 +0000
+Message-ID: <hwc-v12.91ec3eff9cb647d5bc5cc932b3c6f60c.1@linux.microsoft.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <hwc-v12.91ec3eff9cb647d5bc5cc932b3c6f60c.0@linux.microsoft.com>
 References: <hwc-v12.91ec3eff9cb647d5bc5cc932b3c6f60c.0@linux.microsoft.com>
@@ -87,256 +87,147 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
 From: Long Li <longli@microsoft.com>
-Date: Mon, 7 Sep 2026 20:51:56 -0700
+Date: Mon, 24 Aug 2026 20:04:01 +0000
 
-A response can race with a sender that has timed out. Clear the output
-pointer under the same lock used to copy the response, so the handler
-cannot write to the caller's buffer after the sender returns.
+The HWC gets its doorbell page from an initialization event. Unlike a
+registered device, it uses that page without checking that it fits in
+BAR0. The EQ can also try to rearm before a page has been assigned.
 
-Reset the completion and result under that lock when assigning a slot.
-If the response wins the race with timeout, return its result. This
-does not change admission or prevent reuse of the message ID.
+Check the page before storing it and skip doorbell writes until a page
+is available. Fail setup on a bad page rather than waiting for another
+event on an EQ that cannot be rearmed.
 
 Fixes: ca9c54d2d6a5 ("net: mana: Add a driver for Microsoft Azure Network Adapter (MANA)")
 Signed-off-by: Long Li <longli@microsoft.com>
 Signed-off-by: Wei Hu <weh@microsoft.com>
 ---
- .../net/ethernet/microsoft/mana/hw_channel.c  | 125 +++++++++++++-----
- include/net/mana/hw_channel.h                 |   4 +-
- 2 files changed, 95 insertions(+), 34 deletions(-)
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 25 +++++++++++++------
+ .../net/ethernet/microsoft/mana/hw_channel.c  | 19 ++++++++++++++
+ include/net/mana/gdma.h                       |  1 +
+ include/net/mana/hw_channel.h                 |  1 +
+ 4 files changed, 38 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index d6ae89c2ccddce5cca264fa499ddd1cbdee8cf85..673a4754c9dd00a8a0b4436e27ce1c433d85c2ff 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -547,13 +547,28 @@ static int mana_gd_disable_queue(struct gdma_queue *queue)
+ #define DOORBELL_OFFSET_EQ	0xFF8
+ #define DOORBELL_OFFSET_DIM	0x820
+ 
++bool mana_gd_is_valid_doorbell(struct gdma_context *gc, u32 db_id)
++{
++	if (!gc->db_page_size || gc->db_page_off >= gc->bar0_size)
++		return false;
++
++	/* The page size comes from a 16-bit register field. */
++	return db_id != INVALID_DOORBELL &&
++	       gc->db_page_size * ((u64)db_id + 1) <=
++	       gc->bar0_size - gc->db_page_off;
++}
++
+ static void mana_gd_ring_doorbell(struct gdma_context *gc, u32 db_index,
+ 				  enum gdma_queue_type q_type, u32 qid,
+ 				  u32 tail_ptr, u8 num_req, u8 client_offset)
+ {
+-	void __iomem *addr = gc->db_page_base + gc->db_page_size * db_index;
+ 	union gdma_doorbell_entry e = {};
++	void __iomem *addr;
++
++	if (unlikely(db_index == INVALID_DOORBELL))
++		return;
+ 
++	addr = gc->db_page_base + gc->db_page_size * db_index;
+ 	addr += client_offset;
+ 
+ 	switch (q_type) {
+@@ -1533,13 +1548,7 @@ int mana_gd_register_device(struct gdma_dev *gd)
+ 		return err ? err : -EPROTO;
+ 	}
+ 
+-	/* Validate that doorbell page for db_id is within the BAR0 region.
+-	 * In mana_gd_ring_doorbell(), the address is calculated as:
+-	 *   addr = db_page_base + db_page_size * db_id
+-	 *        = (bar0_va + db_page_off) + (db_page_size * db_id)
+-	 * So we need: db_page_off + db_page_size * (db_id + 1) <= bar0_size
+-	 */
+-	if (gc->db_page_off + gc->db_page_size * ((u64)resp.db_id + 1) > gc->bar0_size) {
++	if (!mana_gd_is_valid_doorbell(gc, resp.db_id)) {
+ 		dev_err(gc->dev, "Doorbell ID %u out of range\n", resp.db_id);
+ 		return -EPROTO;
+ 	}
 diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-index 39a0ed32e43c7953885146b647249db6e03fb8bb..a98e58b83f9c75bf8b40183c73a9286670d4aef4 100644
+index fb9f38f65911ca9e4171f03ff7f9c8f2a40b5b28..130b249318f208ae8369c98facf5113a3743cfd4 100644
 --- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
 +++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-@@ -9,6 +9,7 @@
- static int mana_hwc_get_msg_index(struct hw_channel_context *hwc, u16 *msg_id)
- {
- 	struct gdma_resource *r = &hwc->inflight_msg_res;
-+	struct hwc_caller_ctx *ctx;
- 	unsigned long flags;
- 	u32 index;
- 
-@@ -19,8 +20,17 @@ static int mana_hwc_get_msg_index(struct hw_channel_context *hwc, u16 *msg_id)
- 	index = find_first_zero_bit(hwc->inflight_msg_res.map,
- 				    hwc->inflight_msg_res.size);
- 
-+	ctx = &hwc->caller_ctx[index];
-+	spin_lock(&ctx->lock);
-+	reinit_completion(&ctx->comp_event);
-+	ctx->output_buf = NULL;
-+	ctx->output_buflen = 0;
-+	ctx->error = -EINPROGRESS;
-+	ctx->status_code = 0;
-+
- 	bitmap_set(hwc->inflight_msg_res.map, index, 1);
- 
-+	spin_unlock(&ctx->lock);
- 	spin_unlock_irqrestore(&r->lock, flags);
- 
- 	*msg_id = index;
-@@ -90,14 +100,21 @@ static void mana_hwc_handle_resp(struct hw_channel_context *hwc, u32 resp_len,
- 	}
- 
- 	ctx = hwc->caller_ctx + msg_id;
--	err = mana_hwc_verify_resp_msg(ctx, resp_msg, resp_len);
--	if (err)
--		goto out;
- 
--	ctx->status_code = resp_msg->status;
-+	spin_lock(&ctx->lock);
-+	if (!ctx->output_buf) {
-+		spin_unlock(&ctx->lock);
-+		mana_hwc_post_rx_wqe(hwc->rxq, rx_req);
-+		return;
-+	}
- 
--	memcpy(ctx->output_buf, resp_msg, resp_len);
--out:
-+	err = mana_hwc_verify_resp_msg(ctx, resp_msg, resp_len);
-+	if (!err) {
-+		ctx->status_code = resp_msg->status;
-+		memcpy(ctx->output_buf, resp_msg, resp_len);
-+	}
-+
-+	ctx->output_buf = NULL;
- 	ctx->error = err;
- 
- 	/* Must post rx wqe before complete(), otherwise the next rx may
-@@ -106,6 +123,7 @@ out:
- 	mana_hwc_post_rx_wqe(hwc->rxq, rx_req);
- 
- 	complete(&ctx->comp_event);
-+	spin_unlock(&ctx->lock);
- }
- 
- static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
-@@ -709,8 +727,10 @@ static int mana_hwc_test_channel(struct hw_channel_context *hwc, u16 q_depth,
- 	if (!ctx)
- 		return -ENOMEM;
- 
--	for (i = 0; i < q_depth; ++i)
-+	for (i = 0; i < q_depth; ++i) {
- 		init_completion(&ctx[i].comp_event);
-+		spin_lock_init(&ctx[i].lock);
-+	}
- 
- 	hwc->caller_ctx = ctx;
- 
-@@ -1019,6 +1039,37 @@ void mana_hwc_free_retained_channel(struct gdma_context *gc)
- 	gc->hwc.gdma_context = NULL;
- }
- 
-+static int mana_hwc_response_status(struct hw_channel_context *hwc,
-+				    u32 command, int error, u32 status)
-+{
-+	if (error)
-+		return error;
-+
-+	if (!status || status == GDMA_STATUS_MORE_ENTRIES)
-+		return 0;
-+
-+	if (status == GDMA_STATUS_CMD_UNSUPPORTED)
-+		return -EOPNOTSUPP;
-+
-+	if (command != MANA_QUERY_PHY_STAT)
-+		dev_err(hwc->dev, "Command 0x%x failed with status: 0x%x\n",
-+			command, status);
-+
-+	return -EPROTO;
-+}
-+
-+static void mana_hwc_finish_request(struct hw_channel_context *hwc,
-+				    struct hwc_caller_ctx *ctx, u16 msg_id)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ctx->lock, flags);
-+	ctx->output_buf = NULL;
-+	spin_unlock_irqrestore(&ctx->lock, flags);
-+
-+	mana_hwc_put_msg_index(hwc, msg_id);
-+}
-+
- int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
- 			  const void *req, u32 resp_len, void *resp)
- {
-@@ -1026,26 +1077,32 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
- 	struct hwc_wq *txq = hwc->txq;
- 	struct gdma_req_hdr *req_msg;
- 	struct hwc_caller_ctx *ctx;
-+	unsigned long flags;
- 	u32 dest_vrcq;
- 	u32 dest_vrq;
- 	u32 command;
-+	u32 status;
- 	u16 msg_id;
- 	int err;
- 
--	mana_hwc_get_msg_index(hwc, &msg_id);
-+	err = mana_hwc_get_msg_index(hwc, &msg_id);
-+	if (err)
-+		return err;
- 
- 	tx_wr = &txq->msg_buf->reqs[msg_id];
-+	ctx = hwc->caller_ctx + msg_id;
- 
- 	if (req_len > tx_wr->buf_len) {
- 		dev_err(hwc->dev, "HWC: req msg size: %d > %d\n", req_len,
- 			tx_wr->buf_len);
--		err = -EINVAL;
--		goto out;
-+		mana_hwc_finish_request(hwc, ctx, msg_id);
-+		return -EINVAL;
- 	}
- 
--	ctx = hwc->caller_ctx + msg_id;
-+	spin_lock_irqsave(&ctx->lock, flags);
- 	ctx->output_buf = resp;
- 	ctx->output_buflen = resp_len;
-+	spin_unlock_irqrestore(&ctx->lock, flags);
- 
- 	req_msg = (struct gdma_req_hdr *)tx_wr->buf_va;
- 	if (req)
-@@ -1067,11 +1124,24 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
- 	err = mana_hwc_post_tx_wqe(txq, tx_wr, dest_vrq, dest_vrcq, false);
- 	if (err) {
- 		dev_err(hwc->dev, "HWC: Failed to post send WQE: %d\n", err);
--		goto out;
-+		mana_hwc_finish_request(hwc, ctx, msg_id);
-+		return err;
- 	}
- 
- 	if (!wait_for_completion_timeout(&ctx->comp_event,
--					 (msecs_to_jiffies(hwc->hwc_timeout)))) {
-+					 msecs_to_jiffies(hwc->hwc_timeout))) {
-+		spin_lock_irqsave(&ctx->lock, flags);
-+		ctx->output_buf = NULL;
-+		err = ctx->error;
-+		status = ctx->status_code;
-+		spin_unlock_irqrestore(&ctx->lock, flags);
-+
-+		if (err != -EINPROGRESS) {
-+			mana_hwc_finish_request(hwc, ctx, msg_id);
-+			return mana_hwc_response_status(hwc, command, err,
-+							status);
+@@ -123,6 +123,15 @@ static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
+ 	switch (event->type) {
+ 	case GDMA_EQE_HWC_INIT_EQ_ID_DB:
+ 		eq_db.as_uint32 = event->details[0];
++		if (!mana_gd_is_valid_doorbell(gd->gdma_context,
++					       eq_db.doorbell)) {
++			dev_err(hwc->dev, "Invalid HWC doorbell %u\n",
++				eq_db.doorbell);
++			WRITE_ONCE(hwc->hwc_init_error, -EPROTO);
++			complete(&hwc->hwc_init_eqe_comp);
++			break;
 +		}
 +
- 		if (hwc->hwc_timeout != 0)
- 			dev_err(hwc->dev, "Command 0x%x timed out: %u ms\n",
- 				command, hwc->hwc_timeout);
-@@ -1080,27 +1150,16 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
- 		if (hwc->hwc_timeout > 1)
- 			hwc->hwc_timeout = 1;
+ 		hwc->cq->gdma_eq->id = eq_db.eq_id;
+ 		gd->doorbell = eq_db.doorbell;
+ 		break;
+@@ -182,6 +191,10 @@ static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
+ 		break;
  
--		err = -ETIMEDOUT;
--		goto out;
-+		mana_hwc_finish_request(hwc, ctx, msg_id);
-+		return -ETIMEDOUT;
- 	}
+ 	case GDMA_EQE_HWC_INIT_DONE:
++		if (gd->doorbell == INVALID_DOORBELL) {
++			dev_err(hwc->dev, "Missing HWC doorbell\n");
++			WRITE_ONCE(hwc->hwc_init_error, -EPROTO);
++		}
+ 		complete(&hwc->hwc_init_eqe_comp);
+ 		break;
  
--	if (ctx->error) {
--		err = ctx->error;
--		goto out;
--	}
-+	spin_lock_irqsave(&ctx->lock, flags);
-+	ctx->output_buf = NULL;
-+	err = ctx->error;
-+	status = ctx->status_code;
-+	spin_unlock_irqrestore(&ctx->lock, flags);
+@@ -676,6 +689,8 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
+ 	struct gdma_queue *cq = hwc->cq->gdma_cq;
+ 	int err;
  
--	if (ctx->status_code && ctx->status_code != GDMA_STATUS_MORE_ENTRIES) {
--		if (ctx->status_code == GDMA_STATUS_CMD_UNSUPPORTED) {
--			err = -EOPNOTSUPP;
--			goto out;
--		}
--		if (command != MANA_QUERY_PHY_STAT)
--			dev_err(hwc->dev, "Command 0x%x failed with status: 0x%x\n",
--				command, ctx->status_code);
--		err = -EPROTO;
--		goto out;
--	}
--out:
--	mana_hwc_put_msg_index(hwc, msg_id);
--	return err;
-+	mana_hwc_finish_request(hwc, ctx, msg_id);
-+	return mana_hwc_response_status(hwc, command, err, status);
- }
++	gc->hwc.doorbell = INVALID_DOORBELL;
++	WRITE_ONCE(hwc->hwc_init_error, 0);
+ 	init_completion(&hwc->hwc_init_eqe_comp);
+ 
+ 	err = mana_smc_setup_hwc(&gc->shm_channel, false,
+@@ -690,6 +705,10 @@ static int mana_hwc_establish_channel(struct gdma_context *gc, u16 *q_depth,
+ 	if (!wait_for_completion_timeout(&hwc->hwc_init_eqe_comp, 60 * HZ))
+ 		return -ETIMEDOUT;
+ 
++	err = READ_ONCE(hwc->hwc_init_error);
++	if (err)
++		return err;
++
+ 	*q_depth = hwc->hwc_init_q_depth_max;
+ 	*max_req_msg_size = hwc->hwc_init_max_req_msg_size;
+ 	*max_resp_msg_size = hwc->hwc_init_max_resp_msg_size;
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 1f0f9897b806dc90d81cc9b9ba2c405bf5cb920b..bde68d6a99f01634f456a9b16eb74fba566e788c 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -1179,6 +1179,7 @@ int mana_gd_post_and_ring(struct gdma_queue *queue,
+ int mana_gd_alloc_res_map(u32 res_avail, struct gdma_resource *r);
+ void mana_gd_free_res_map(struct gdma_resource *r);
+ 
++bool mana_gd_is_valid_doorbell(struct gdma_context *gc, u32 db_id);
+ void mana_gd_wq_ring_doorbell(struct gdma_context *gc,
+ 			      struct gdma_queue *queue);
+ void mana_gd_wq_ring_doorbell_ext(struct gdma_context *gc, struct gdma_queue *queue,
 diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
-index fc2c26f809047703244ffd30ff4a7a115c682617..bcaf276976a81dca825ee08804a3b2fa5ee24a9a 100644
+index 1ab2d66c891e42f3a847e62acf75b69fcf7ffb1e..113b01325137bfbab4a0b4c42f1ee883dbcbedb5 100644
 --- a/include/net/mana/hw_channel.h
 +++ b/include/net/mana/hw_channel.h
-@@ -168,10 +168,12 @@ struct hwc_wq {
+@@ -186,6 +186,7 @@ struct hw_channel_context {
+ 	u32 hwc_init_max_req_msg_size;
+ 	u32 hwc_init_max_resp_msg_size;
  
- struct hwc_caller_ctx {
- 	struct completion comp_event;
-+	/* Protects initialization, output storage and response state. */
-+	spinlock_t lock;
- 	void *output_buf;
- 	u32 output_buflen;
++	int hwc_init_error;
+ 	struct completion hwc_init_eqe_comp;
  
--	u32 error; /* Linux error code */
-+	int error; /* Linux error code */
- 	u32 status_code;
- };
- 
+ 	struct hwc_wq *rxq;
