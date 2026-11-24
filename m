@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795525144;
-	b=pmbRBNI1+tbCiM172D+j/oDxgMzf2Lks1Jp10L+8vE04IcAxTU6TALRTgnz4XhTgClTm
-	 /teYpgBkHNpEgVq0A9lWWkHyKBcsWuKUU1u1mcbL37bkvVTfiX+JhFBI7h0ydujxjo3cf
-	 EElhLgonVFZwjYKp2k+DBPsrBVvVDKcbz87sAx61bUeTNjcLepR6kmVYlN2Gx02ccHaOz
-	 kCn+BSWa/YsGqFJPxly3gjk5k/TvbCh5bs3/L+7i6bd73NH+2zK6P50jk+DJpo/itBEX+
-	 QPsAQ0nQsBakZAfnKREFOEP937gJwNSVBu4IZLVmsCBkqG30WmoJJ/As+so29Gd2pDw==
+	t=1795525156;
+	b=ZXc+taxytxiibw0VSyI2rAFKX+GNXaB6sQ19FL0ZaZ9MYZHctoWGMvt7vM9ubSfGsGIn
+	 wUZIpwrjDEPND+PiCqxUeJst+5ntFKuplaINy33uO8jL79Ye7L6JgoX8nL08ZWXeXfl59
+	 5/zqxUDCoDkccWPcf5UziltARioSSRDo3kkrObLOwg+uTPJ94m+fjTJzy2s2DP0j+atWf
+	 qr0lWTDdfIExlFoXYIgaYgxXH0KaTRlCKtGisH2PNVXoZyLUHuC6sy8u/8nJzhzEK6rP/
+	 Y/bsnOHOslodbL28wkSW5cmH5pGymmU+JkymyQFzU8Hb1H/4XVbqn2ugeO5eXIj3EFg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795525144;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795525156;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=sOrW8WAVqGhN7ypdWI21rgk1hDNeJGcR+x3MXFy7pYg=;
-	b=p3fq83YHj2f/UJ2q9xxEW4cJz0H6sVI+I2jY7h5D658N/UlMJCk/CQPuDfc8r4Rr4xyZ
-	 bCt99/QQ2VWJZ9UngNn6HrGC0BdWrhMrvM9fVxPQXqs4RgdwO1H+kR/7bvAMXhzStUQ3y
-	 bEG3RX0nA8IGPbeQeT//9B5h+9AQpF8MRcf0uxj5cJaN0qRbMOwHjWVkinruaQ1z2myuj
-	 jouMCYdj0LLRp2U8IUtfe7zHBKdXgtuch5kwG4hIcCMrWRkgshSJRXj3eSczoASI9jCPV
-	 rTwUHh2oi9H4dH1Baq9baeOqpK0XpprwuJBNOC/L0/tNWK3D6K3zvYnkjOONbSCHUjw==
+	bh=LA1pnI8aeeYlz5Y+3GA+5FCYedjmJ9wlZv/anfHcgGI=;
+	b=2bhNGE6532ZTQwDWvBLDMi10dV5rdj9/pDarRe74HXhcUz8Pj6ocO5l8snSFLN6V+B5E
+	 u1elXNMNj/zOttpcC3vkUZriJeceufem2EkLjEspGxDKsYCezuQYRJOf6/DiXkGcFUqiy
+	 mVeRuHDwBwjQibtz8iZpVrza3YFxtId/vHqPHs5NB+Qd+EUK4OJ+DfW2DEqc/sGk6lR0c
+	 U/XjkhMOD3Mro/4ke2QiudxwENvhStAennPG6FiRPI2LlDVfMA0ifsK/bwm/ebjnUllZH
+	 QbwVdLyrRy+kiqW5HuVSdLb6MwwzXvevgCfxqQE+zWbV0NFo+uzdqNp4TrpG32G3zgQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mUCPjvQ2;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=h03Sjxum;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DF48606A31E;
-	Tue, 24 Nov 2026 12:59:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49889606A31E;
+	Tue, 24 Nov 2026 12:59:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mUCPjvQ2
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEC471F000C4;
-	Tue, 24 Nov 2026 12:58:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=h03Sjxum
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78F431F000C0;
+	Tue, 24 Nov 2026 12:59:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795525144;
-	bh=sOrW8WAVqGhN7ypdWI21rgk1hDNeJGcR+x3MXFy7pYg=;
+	s=k20260515; t=1795525155;
+	bh=LA1pnI8aeeYlz5Y+3GA+5FCYedjmJ9wlZv/anfHcgGI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=mUCPjvQ2S2oh7rzDoY6gQPx11eJ5wnU5A2r54ewy3KJ9dXjXyj2Y8H3gF2OS0ZiBS
-	 SjXimE94snAAQZy8BkI+IWSA7kij7KzsTQlXd99w4ABEWPJyHdmoa5GC4BgxxeupAj
-	 saKQB+bUWTx64cqNuo0fWZIen0vqlNvRlr97fwHWUU36udESPI5+QXomUkcCfMMzG4
-	 YU4uwPFMhVIp5rdiUU9HjWuyrvBV97mHqrM0MElRNSokVAbFxRrPcEpS5V0mMlxKdU
-	 WueckzN5RExN/b93jGWBpH2SldXscHzKbTqBmZGyv8UH/vF+tOxO7+GjIGCLZ5F9wr
-	 cldmqg+lQSvag==
+	b=h03SjxumTxIqMg65F7MX2PyEtjRQ2rVLMzNU5UrAP2yer4y6cqZf5xBPTB/mpq+zo
+	 Smp5n7RXcH57JyZkf8jusqDiw3xxgNKUW/YJl+cWgBAVE4IcYLkhwXL+qj+NQQe36U
+	 YuSz5dkdHiSt6302VxO2u2O0X47CFEQJnYeFRTOdX99p6em5xIdz56eH8jKZdYAGY2
+	 S1C1ulZpOEAKbl0ZHij578yzJU+B16ZWz98UaHD3tIdVfmjEm8ytHDXyGm8R2+8qoQ
+	 CmAgPtC4q/AalqgOAoF7hOetzJ3+Q9rMSW/AQzpjmJR0gSZLiy1zEf8r5dnGjSvtDg
+	 gdzmDHYkVX+vg==
 From: =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn@kernel.org>
 To: Magnus Karlsson <magnus.karlsson@intel.com>,
 	Maciej Fijalkowski <maciej.fijalkowski@intel.com>,
@@ -99,9 +99,9 @@ Cc: Stuart Clark <stuclar@meta.com>,
 	linux-kselftest@vger.kernel.org,
 	linux-doc@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH net-next 10/15] eth: fbnic: Receive into XDP-only memory providers
-Date: Tue, 24 Nov 2026 13:56:45 +0100
-Message-ID: <20261124125654.183091-10-bjorn@kernel.org>
+Subject: [PATCH net-next 11/15] net: Add netif_rxq_has_xdp_only_mp()
+Date: Tue, 24 Nov 2026 13:56:46 +0100
+Message-ID: <20261124125654.183091-11-bjorn@kernel.org>
 X-Mailer: git-send-email 2.56.1
 In-Reply-To: <20261124112707.118678-1-bjorn@kernel.org>
 References: <20261124112707.118678-1-bjorn@kernel.org>
@@ -117,137 +117,72 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Currently, fbnic takes the address of an RX head as a page address and
-puts the head back by that address, so an XDP-only memory provider,
-such as the AF_XDP sink, cannot back its RX pool. Otherwise fbnic
-builds XDP buffers from page pool netmem and splits pages with page
-pool fragments, all that such a provider needs.
+A driver lays out an RX queue before it creates the page pools of that
+queue, so it cannot ask a pool whether a memory provider backs it, and
+a layout that depends on the provider has nothing to read.
 
-Let the header page pool, which the payload ring shares without header
-split, take an XDP-only provider, and handle heads by their netmem,
-taking their address with xdp_netmem_address().
+Tell the driver from the queue. Return whether the provider of an RX
+queue is XDP-only, which the next patch uses to keep an mlx5 queue
+from waiting for buffers that its socket has not lent yet.
 
-The core turns XDP_TX and XDP_PASS on XDP-only buffers into drops, so
-fbnic needs no checks of its own. fbnic skips the prefetch of an
-XDP-only head, as the kernel reads it only if the program does, and
-the prefetch may cost a page walk. Redirects are flushed after the
-poll has freed its buffers, so the provider takes them back in the
-same poll. The frame of an XDP buffer ends at the headroom of the next
-one, so a program may grow the tail of an XDP-only buffer into the
-room that fbnic leaves for a shared info.
+Page pools of a queue are created under the instance lock, which the
+caller holds as well, so the answer agrees with the pools of that
+queue. A queue index past the device's RX queues has no provider.
 
 Signed-off-by: Björn Töpel <bjorn@kernel.org>
 ---
- drivers/net/ethernet/meta/fbnic/fbnic_txrx.c | 33 ++++++++++----------
- drivers/net/ethernet/meta/fbnic/fbnic_txrx.h |  2 ++
- 2 files changed, 19 insertions(+), 16 deletions(-)
+ include/net/netdev_queues.h |  1 +
+ net/core/netdev_rx_queue.c  | 25 +++++++++++++++++++++++++
+ 2 files changed, 26 insertions(+)
 
-diff --git a/drivers/net/ethernet/meta/fbnic/fbnic_txrx.c b/drivers/net/ethernet/meta/fbnic/fbnic_txrx.c
-index 2c8276d23a15..c2e20a7b36a8 100644
---- a/drivers/net/ethernet/meta/fbnic/fbnic_txrx.c
-+++ b/drivers/net/ethernet/meta/fbnic/fbnic_txrx.c
-@@ -765,15 +765,14 @@ static void fbnic_page_pool_init(struct fbnic_ring *ring, unsigned int idx,
- 	rx_buf->netmem = netmem;
- }
+diff --git a/include/net/netdev_queues.h b/include/net/netdev_queues.h
+index c5335e935b7d..813388778797 100644
+--- a/include/net/netdev_queues.h
++++ b/include/net/netdev_queues.h
+@@ -235,6 +235,7 @@ void netdev_queue_config(struct net_device *dev, int rxq,
+ 			 struct netdev_queue_config *qcfg);
  
--static struct page *
-+static netmem_ref
- fbnic_page_pool_get_head(struct fbnic_q_triad *qt, unsigned int idx)
+ bool netif_rxq_has_unreadable_mp(struct net_device *dev, unsigned int rxq_idx);
++bool netif_rxq_has_xdp_only_mp(struct net_device *dev, unsigned int rxq_idx);
+ 
+ /**
+  * DOC: Lockless queue stopping / waking helpers.
+diff --git a/net/core/netdev_rx_queue.c b/net/core/netdev_rx_queue.c
+index 2e10201fc0c0..212f1b9415b3 100644
+--- a/net/core/netdev_rx_queue.c
++++ b/net/core/netdev_rx_queue.c
+@@ -94,6 +94,31 @@ bool netif_rxq_has_unreadable_mp(struct net_device *dev, unsigned int rxq_idx)
+ }
+ EXPORT_SYMBOL(netif_rxq_has_unreadable_mp);
+ 
++/**
++ * netif_rxq_has_xdp_only_mp() - whether an XDP-only provider backs an RX queue
++ * @dev: device of the queue
++ * @rxq_idx: RX queue of @dev itself, not of a lease
++ *
++ * The page pools of the queue that allow it take the provider, see
++ * %PP_FLAG_ALLOW_XDP_ONLY_NETMEM. They are created under the instance lock,
++ * which the caller holds, so they agree with the answer.
++ *
++ * Return: true if the queue has a provider with %MP_XDP_ONLY.
++ */
++bool netif_rxq_has_xdp_only_mp(struct net_device *dev, unsigned int rxq_idx)
++{
++	const struct memory_provider_ops *ops;
++
++	netdev_assert_locked(dev);
++
++	if (rxq_idx >= dev->real_num_rx_queues)
++		return false;
++
++	ops = __netif_get_rx_queue(dev, rxq_idx)->mp_params.mp_ops;
++	return ops && ops->flags & MP_XDP_ONLY;
++}
++EXPORT_SYMBOL(netif_rxq_has_xdp_only_mp);
++
+ bool netif_rxq_has_mp(struct net_device *dev, unsigned int rxq_idx)
  {
- 	struct fbnic_rx_buf *rx_buf = &qt->sub0.rx_buf[idx];
- 
- 	rx_buf->pagecnt_bias--;
- 
--	/* sub0 is always fed system pages, from the NAPI-level page_pool */
--	return netmem_to_page(rx_buf->netmem);
-+	return rx_buf->netmem;
- }
- 
- static netmem_ref
-@@ -1001,13 +1000,12 @@ static void fbnic_pkt_prepare(struct fbnic_napi_vector *nv, u64 rcd,
- 	unsigned int len = FIELD_GET(FBNIC_RCD_AL_BUFF_LEN_MASK, rcd);
- 	unsigned int hdr_pg_idx = fbnic_rcd_bd_idx(&qt->sub0, rcd);
- 	unsigned int frame_sz, hdr_pg_start, hdr_pg_end, headroom;
--	unsigned char *hdr_start;
--	struct page *page;
-+	netmem_ref netmem;
- 
- 	/* data_hard_start should always be NULL when this is called */
- 	WARN_ON_ONCE(pkt->buff.data_hard_start);
- 
--	page = fbnic_page_pool_get_head(qt, hdr_pg_idx);
-+	netmem = fbnic_page_pool_get_head(qt, hdr_pg_idx);
- 
- 	/* Short-cut the end calculation if we know page is fully consumed */
- 	hdr_pg_end = FIELD_GET(FBNIC_RCD_AL_PAGE_FIN, rcd) ?
-@@ -1020,15 +1018,20 @@ static void fbnic_pkt_prepare(struct fbnic_napi_vector *nv, u64 rcd,
- 	hdr_pg_start += fbnic_rcd_bd_page_offset(&qt->sub0, rcd);
- 
- 	/* Sync DMA buffer */
--	dma_sync_single_range_for_cpu(nv->dev, page_pool_get_dma_addr(page),
-+	dma_sync_single_range_for_cpu(nv->dev,
-+				      page_pool_get_dma_addr_netmem(netmem),
- 				      hdr_pg_start, frame_sz,
- 				      DMA_BIDIRECTIONAL);
- 
- 	/* Build frame around buffer */
--	hdr_start = page_address(page) + hdr_pg_start;
--	net_prefetch(hdr_start + headroom);
--	xdp_prepare_buff(&pkt->buff, hdr_start, headroom,
--			 len - FBNIC_RX_PAD, true);
-+	xdp_prepare_buff(&pkt->buff, xdp_netmem_address(netmem) + hdr_pg_start,
-+			 headroom, len - FBNIC_RX_PAD, true);
-+	pkt->head = netmem;
-+	/* The kernel reads an XDP-only head only if the program does, and a
-+	 * prefetch may cost a page walk
-+	 */
-+	if (!netmem_is_net_iov(netmem))
-+		net_prefetch(pkt->buff.data);
- 
- 	pkt->hwtstamp = 0;
- 	pkt->add_frag_failed = false;
-@@ -1072,8 +1075,6 @@ static void fbnic_add_rx_frag(struct fbnic_napi_vector *nv, u64 rcd,
- static void fbnic_put_pkt_buff(struct fbnic_q_triad *qt,
- 			       struct fbnic_pkt_buff *pkt, int budget)
- {
--	struct page *page;
--
- 	if (!pkt->buff.data_hard_start)
- 		return;
- 
-@@ -1092,8 +1093,7 @@ static void fbnic_put_pkt_buff(struct fbnic_q_triad *qt,
- 		}
- 	}
- 
--	page = virt_to_page(pkt->buff.data_hard_start);
--	page_pool_put_full_page(qt->sub0.page_pool, page, !!budget);
-+	page_pool_put_full_netmem(qt->sub0.page_pool, pkt->head, !!budget);
- }
- 
- static struct sk_buff *fbnic_build_skb(struct fbnic_napi_vector *nv,
-@@ -1611,7 +1611,8 @@ fbnic_alloc_qt_page_pools(struct fbnic_net *fbn, struct fbnic_q_triad *qt,
- 	struct page_pool_params pp_params = {
- 		.order = 0,
- 		.flags = PP_FLAG_DMA_MAP |
--			 PP_FLAG_DMA_SYNC_DEV,
-+			 PP_FLAG_DMA_SYNC_DEV |
-+			 PP_FLAG_ALLOW_XDP_ONLY_NETMEM,
- 		.pool_size = fbn->hpq_size + fbn->ppq_size,
- 		.nid = NUMA_NO_NODE,
- 		.dev = fbn->netdev->dev.parent,
-diff --git a/drivers/net/ethernet/meta/fbnic/fbnic_txrx.h b/drivers/net/ethernet/meta/fbnic/fbnic_txrx.h
-index 7bc0c25ac50b..ea5f70462aa6 100644
---- a/drivers/net/ethernet/meta/fbnic/fbnic_txrx.h
-+++ b/drivers/net/ethernet/meta/fbnic/fbnic_txrx.h
-@@ -81,6 +81,8 @@ struct fbnic_net;
- 
- struct fbnic_pkt_buff {
- 	struct xdp_buff buff;
-+	/* Head buffer, from the HPQ */
-+	netmem_ref head;
- 	ktime_t hwtstamp;
- 	bool add_frag_failed;
- };
+ 	if (rxq_idx < dev->real_num_rx_queues)
 -- 
 2.56.1
 
