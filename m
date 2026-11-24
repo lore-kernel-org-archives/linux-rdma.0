@@ -1,62 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=67.231.145.42
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=67.231.153.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795558750;
-	b=ZeG2n8zWM13nCR96tjarYhMqfs+PVPJz7kRFOy1x/G+C9I5/i40pFAXnWFzXR6kRJ8G4
-	 ngmfQoNsfeIZCBvTCjIHalIGWuM+XMqa+tBM4Xf7zFm6Ov43hHVQL3Xnc0jSTwneWgnHh
-	 4V7QKTwwg2RUvCx4XVr2OkHz4CZ8FJU4v6gK396f+z/Cnmz4t5E3KYimM6l6rw64+I+UC
-	 d72eqPX+1YZVjn39FYk84dvUp7krDVere+iJZBJsrzdRxNQYYy6nLW6m74tI+A+lVdOA3
-	 VqdVA9sGgB6rr9mdsPyFcfw1hb36DnZnVQPXZyNx3QXGJvgK/kcMe2cYwZX1nanXIPQ==
+	t=1795558757;
+	b=o8oJEUFFBpcOOX3TZCyC525pLgSfcvElD7MshTs1AR9bqj7BHpU4RKCqut+YKcGUfejC
+	 dEStYStpRy0MX9jkH7qtNQYioAXVFz3inqWS7/L+srf6sSoh3xcJtNtZfseZb2ScSLFCE
+	 kZK3waNqeavNBsMIOzcEy4HTIuO9GuS6/ww2B8csIcV2M43lNc+AcsVjTZ29x1eMTmFD5
+	 7YgOCtP18AFgF5GdVHdxsfLxPP9H2+vIlwsqrPjmvidUXQVW+t0gT6Ldy1aDmXSrLpmOS
+	 272zaBTwhM87URq8+SGvzxF+E6hjeZ0gf/tAjiuAhMYkxL5ueiwNYOngpAWrT7NW0nA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795558750;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795558757;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:From:To:CC:
 	 Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:Content-Type:X-Originating-IP:
-	 X-Proofpoint-ORIG-GUID:X-Authority-Analysis:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Spam-Info:
-	 X-Proofpoint-GUID:X-Proofpoint-Virus-Version;
-	bh=l+IGb2MMhDSd7RH1hGgNIF+8P8G05Ajw57zNdAkQ70E=;
-	b=k/tYKWEYAJCj3PoQ1zauctKhGa+e6v0WuAX4LmTotgb/Xxs50cSRhcA/4hMrk/mUeFng
-	 wNJoG+iF6PVGHQSUsTiSBFNDlpDFeg+kruhvX97Tm+98XvLphZRgUoqk+qy+eYs9E6rhj
-	 gQXXmI6gMTO+it3e/Mp3y1UGNqwV2ED6NureFfRwujBGk/yvGGVGIKm9uEe4QlSSLvirv
-	 Lxg0fQYLug/LQ9JOcrhxlyp+p7ceeEpdWEK3Y329ZquOl8jWaKid0kPCjnEYvJIcu+dZJ
-	 qDE0if04SPvXX9ZWtcoM47wwBWDgJyo8vIHM0LaCpCHN11BUOAFveeNvVd6yRIOCwHA==
+	 X-Proofpoint-GUID:X-Proofpoint-Spam-Details-Enc:X-Authority-Analysis:
+	 X-Proofpoint-Spam-Info:X-Proofpoint-ORIG-GUID:
+	 X-Proofpoint-Virus-Version;
+	bh=7grfssRROetZJgztMkCCYQXYDZGNxybINiJazt++fqI=;
+	b=oUUaMFgugPyGDGWm99b+Vr+3pJNo58O6JJMGMYaOT5M70D13VjWDWhpc9GmsA1Uau7Dd
+	 m1khjVDWqvGCFADR5i5oT91pdQ6iAUEoq5HhvhzhAYrW7GIc/3wk7Kx8E2GSIueFanHea
+	 V6R2TpM9K2S3WkXEbZFJeLta8kzEKegGIGSG6e1morvo3UxTXdo6ycfHNpVgBwKVmXNgW
+	 3wkf7V5CN0/n3ncuQB4vb4VoB8LlRDyaaFJqMXL8+GVHPMZz3H/MDmy8tK0SpNJTGgWjl
+	 rHe6bcTSlLLwbTWflltpIDfweRVCSp/Pj8QT7jp2pcZ8DRGn1uzwIxz+NWdmS9JmbKg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=meta.com;
 	spf=pass smtp.mailfrom=meta.com;
-	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=OqmFmAWU;
-	arc=none smtp.remote-ip=67.231.145.42
-Received: from mx0a-00082601.pphosted.com (mx0a-00082601.pphosted.com [67.231.145.42])
+	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=XzG1MnlM;
+	arc=none smtp.remote-ip=67.231.153.30
+Received: from mx0a-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57B30606A6B0;
-	Tue, 24 Nov 2026 22:19:10 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 57B30606A6B0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB3AC606A6B0;
+	Tue, 24 Nov 2026 22:19:16 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BB3AC606A6B0
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=OqmFmAWU
-Received: from pps.filterd (m0109333.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AOMBXjs1791243;
-	Tue, 24 Nov 2026 14:18:16 -0800
+	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=XzG1MnlM
+Received: from pps.filterd (m0089730.ppops.net [127.0.0.1])
+	by m0089730.ppops.net (8.18.1.11/8.18.1.11) with ESMTP id 6AOMBa6P3755042;
+	Tue, 24 Nov 2026 14:18:28 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to; s=
-	pps82601-s2048-2026-q3; bh=l+IGb2MMhDSd7RH1hGgNIF+8P8G05Ajw57zNd
-	AkQ70E=; b=OqmFmAWU9VfcxgV5bclW02/K4uCVM7iCzay2Qom4avTIBNhIKPjJa
-	oszv4qta0Fh0/zLRS3ZNgRfZPRUJE32Fos56Ku+ZCesF1RpxEEpypJUX3+hBnKuO
-	q/bJ1mftDHYCS+TboyZq1IXWFOznMt2H26zGE80MfqGijEQvv9fvFj9Q3Kfov+QL
-	+CQc3aBAmDxUepgAHHG/2/ztPmFac4w0XVTAKyJbeI+LCar0bq57XBvIfpvPny6M
-	IFXoeB+NMOESHQ3xBHImp1tmZWRuDe9az0veLHWe1OcBRjY7waa+2/zC0Yfi/dev
-	IJliX/X4yLdTtQkFN8eOrt2QkzFJ2b7Iw==
-Received: from maileast.thefacebook.com ([163.114.135.16])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j5fmw9v6y-1
+	pps82601-s2048-2026-q3; bh=7grfssRROetZJgztMkCCYQXYDZGNxybINiJaz
+	t++fqI=; b=XzG1MnlMaMN/WdfYLg61oawb2+anEepeTALv/pUXjzSVAwxris4qn
+	irLLdO+JmY4cVFdQdT5qpFFlo8kF93TXVn4ky8HQUlvIEaRFTDDMDtLXX9VNOcdE
+	VmKhtIeenE74zFmc7VGc9U6W97HqSu339rwyh1nSSa1fnY/zqPfmwaXJ3hWy70mW
+	CTXLqBjvYGE3DLR2PlEc5wkyTZMXwfHk4NAWY47fFF6lPanjs2ASAHudJrjn6rh/
+	0fLdyya7z8XnboFfBN/0PljRPN2u+cnYK/pc2VdI5N72sfHVOwKBFthH+MKYEVsb
+	DA/ApwUFScmWkQk3DB+8q5rNzXpVkbJnw==
+Received: from mail.thefacebook.com ([163.114.134.16])
+	by m0089730.ppops.net (PPS) with ESMTPS id 4j5bsuv28g-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Tue, 24 Nov 2026 14:18:15 -0800 (PST)
-Received: from localhost (2620:10d:c0a8:1c::1b) by mail.thefacebook.com
- (2620:10d:c0a9:6f::237c) with Microsoft SMTP Server (version=TLS1_2,
+	Tue, 24 Nov 2026 14:18:27 -0800 (PST)
+Received: from localhost (2620:10d:c085:208::f) by mail.thefacebook.com
+ (2620:10d:c08b:78::2ac9) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.56; Tue, 24 Nov
- 2026 22:18:14 +0000
+ 2026 22:18:26 +0000
 From: Todd Freed <toddfreed@meta.com>
 To: <netdev@vger.kernel.org>
 CC: "David S. Miller" <davem@davemloft.net>,
@@ -103,9 +103,9 @@ CC: "David S. Miller" <davem@davemloft.net>,
         =?UTF-8?q?Jonas=20K=C3=B6ppeler?= <j.koeppeler@tu-berlin.de>,
         Hangbin Liu
 	<hangbin.liu@linux.dev>
-Subject: [PATCH net-next v3 02/12] psp: take the psp nexthdr from the packet on encap
-Date: Tue, 24 Nov 2026 14:17:48 -0800
-Message-ID: <20261124221758.3230929-3-toddfreed@meta.com>
+Subject: [PATCH net-next v3 09/12] selftests: drv-net: psp: test that software encap on ingress drops
+Date: Tue, 24 Nov 2026 14:17:55 -0800
+Message-ID: <20261124221758.3230929-10-toddfreed@meta.com>
 X-Mailer: git-send-email 2.53.1
 In-Reply-To: <20261124221758.3230929-1-toddfreed@meta.com>
 References: <20261124221758.3230929-1-toddfreed@meta.com>
@@ -120,248 +120,247 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-ORIG-GUID: F2SDich1z0MTqvYm28XNgtUi0TFc0qXW
-X-Authority-Analysis: v=2.4 cv=MPn1C8Zl c=1 sm=1 tr=0 ts=6b060d27 cx=c_pps
- a=MfjaFnPeirRr97d5FC5oHw==:117 a=MfjaFnPeirRr97d5FC5oHw==:17
+X-Proofpoint-GUID: Fm2isvUrkbSrIpxaHgMXee28zx1YDRFW
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTI0MDA4NyBTYWx0ZWRfX+tkqIgHmdK18
+ P+e4UzyNLZgbdpcxgZ+EZcvBI5YL26iPz5rh6g5/msiq/3eEBTVnJWZxz8T4vG6G3AllTwpFRap
+ mZH3lEmyG2WVl5l2FdVqScQ++ot256/BNpKwRCdsx11CIOBdtb/jCHuZLTeq44Y9ZDno07TKJYW
+ fmRRX7mMS21NDaVy6bwGKCu2OlMUBZg7IQpFUI7TVo7XnUWR6reChohMDN7OKjv8pBjwsjc7MIH
+ hm8x51boVMsVFzv9IUK/qR/vw89fTACo9ddTO2/DUM/CBd47bJqdqypJu5YSCmqjxe84nRKZ0jI
+ JfVGibDUpdXVjTBZHoGSXqcTGzaUQZHRuXRBi0ss8n8F1XeFmFWry63EpcCLS9OODh8/MbFTE5I
+ O41/MQclJ5myw7pXddnTnVP34DGHe53zhEJ2KnRzlkC2oOqGBMdYd82FsI0hxjOj1G7n31ucK0J
+ RyaVZSk8Ce8WnBiZThA==
+X-Authority-Analysis: v=2.4 cv=Efld0/mC c=1 sm=1 tr=0 ts=6b060d33 cx=c_pps
+ a=CB4LiSf2rd0gKozIdrpkBw==:117 a=CB4LiSf2rd0gKozIdrpkBw==:17
  a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
- a=tpM8CJlwf7uhpglF1g9U:22 a=VabnemYjAAAA:8 a=ZRZWA7VBFQUiA7_YxpgA:9
- a=gKebqoRLp9LExxC7YDUY:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTI0MDA4NyBTYWx0ZWRfX06ZlynsxrHk5
- rQ7OO6eVy4f1LVG6LK6BzZASyv1A9UDeKYmFNUgvfJtc3lfO5wuAbQoNCbOcY8dvNbZmpQbdbtq
- k5a6J1D5JQSINbVD8bSChmlUYAMTl+zIPZctkq4b1RKmJ3AWkdh9DfjqPlHvgFylRoIqzzNaPe6
- dTRqVpyd+4zd1XTymznMXB1sN8cg1AImlB9VF4xlfb5cLhb9wnlGrqAGxSchsnqvKOE6fjRZ1++
- dXy6955+KDI0kqDmOXK18CQ1hBdC7aSBeBZbLr+ZWVDJsxRDj9z1C7Ieie9/AinEjTSCnTViqSt
- S2yCjsuMp96V0NV00KGlboqpv2oi0zW9X2iadnVaeImx1h8Y0ETQOYICNZ/YZhrIiXVBG+PsfdV
- FojeiFLpvVv5USbl5hjPJRy0iGUzcYs4QEEmiy17f/Vor83cFyxXwCSf2Bp121/024QsIgJf83b
- dw38f0E7wndNuJ3b5Tg==
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTI0MDA4NyBTYWx0ZWRfXy65O63BRbaXi
- XxXbQx3hZTz4YVHgd1Fnlk3S5WIH/WGuvbnMeTDNSU8eMqfWswTlB/Gipu76BA5tG4sVR+q1NVP
- aLNyse6+mb2d0fuPZ/Yd/FrpRGpeYJ8=
-X-Proofpoint-GUID: F2SDich1z0MTqvYm28XNgtUi0TFc0qXW
+ a=855S8uPTkML1Oy45N9_h:22 a=VabnemYjAAAA:8 a=y88YBaQT-65dKC87SboA:9
+ a=O8hF6Hzn-FEA:10 a=gKebqoRLp9LExxC7YDUY:22
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTI0MDA4NyBTYWx0ZWRfX16YeqipBJDEh
+ MW8nis1CeFW9Fg78OfBOT2PGP7G+cyGXcdaIRxWphY0wmJczvdC4Ff5TD001NQY74h0vKwa6cK7
+ RI6PKGI9Zl9XwoHUyvPMw82/VHI/Rbk=
+X-Proofpoint-ORIG-GUID: Fm2isvUrkbSrIpxaHgMXee28zx1YDRFW
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
  definitions=2026-11-24_06,2026-11-23_01,2025-10-01_01
 
-PSP socket support has thus far been limited to TCP, and
-psp_dev_encapsulate() hardcodes IPPROTO_TCP as the PSP next header.
+Encap on ingress isn't supported: the action drops the packet.
 
-Socket-less PSP associations will also support UDP traffic. Populate the
-PSP next header from the IP header of the original packet instead.
+Verify it on traffic of a client behind a veth, with encap on the veth's
+ingress: forwarded, the packets must not reach the remote in clear text,
+and to a local address, they must not reach the local socket.
 
-With the next header taken from the fixed header, psp_dev_encapsulate()
-now refuses some cases which are unsupported:
-
- - IPv4 and IPv6 fragments. Non-initial fragments have no L4 header, so
-   this cannot work. Not a behavior change for PSP sockets.
- - IPv6 extension headers. More generally, any packet whose transport
-   header isn't right after the IP header (IPv4 options are fine). Some
-   of these could be supported in the future. Not a behavior change for
-   PSP sockets.
- - Already encapsulated for a tunnel (skb->encapsulation). Their inner
-   headers are already set up.
- - A checksum to complete (CHECKSUM_PARTIAL) for a next header other than
-   TCP or UDP, which the device can't complete behind the PSP header.
-   Software GSO of a tunnel with an outer checksum, e.g. GRE with csum,
-   clears skb->encapsulation on the segments but leaves the outer checksum
-   to the device.
-
-Both callers of psp_dev_encapsulate(), mlx5 and netdevsim, drop the
-packet when it returns false.
-
-mlx5e also fixes up the TCP checksum of GSO skbs for the device, which
-is only valid for TCP. Have the stack segment other GSO skbs, e.g. UDP
-from socket-less associations, in software. Likewise the device only
-completes a TCP or UDP checksum behind the PSP header: have the stack
-checksum the other CHECKSUM_PARTIAL skbs.
-
-For the outer UDP source port, psp_write_headers() already branches to
-use TCP ehash if the skb has a socket, with fallback to
-udp_flow_src_port(). Previously, sk always meant TCP. Add an explicit
-check on nexthdr, and on the socket being a TCP one (a raw or packet
-socket can send TCP segments, and has no sk_hash), so that the fallback
-branch is taken for other packets. udp_flow_src_port() hashes the flow
-if the skb has no hash yet: compute it in psp_dev_encapsulate() before
-the headers are moved and the IP protocol rewritten, so that it covers
-the packet's own flow rather than the outer headers being written.
+  data_tc_encap_routed  routed packets are dropped by encap, IPv4 and
+                        IPv6
+  data_tc_encap_local   so are packets to a local address
 
 Signed-off-by: Todd Freed <toddfreed@meta.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/en_main.c | 33 +++++++++
- net/psp/psp_main.c                            | 67 ++++++++++++++++---
- 2 files changed, 90 insertions(+), 10 deletions(-)
+ tools/testing/selftests/drivers/net/config |   2 +
+ tools/testing/selftests/drivers/net/psp.py | 159 ++++++++++++++++++++-
+ 2 files changed, 159 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 54f4f5a097c8..0fac06651e5b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -5248,6 +5248,23 @@ static netdev_features_t mlx5e_tunnel_features_check(struct mlx5e_priv *priv,
- 	return features & ~(NETIF_F_CSUM_MASK | NETIF_F_GSO_MASK);
- }
+diff --git a/tools/testing/selftests/drivers/net/config b/tools/testing/selftests/drivers/net/config
+index baf1c9d0dd13..b39de6e64263 100644
+--- a/tools/testing/selftests/drivers/net/config
++++ b/tools/testing/selftests/drivers/net/config
+@@ -5,6 +5,7 @@ CONFIG_DUMMY=m
+ CONFIG_INET_PSP=y
+ CONFIG_IPV6=y
+ CONFIG_MACSEC=m
++CONFIG_NET_ACT_GACT=m
+ CONFIG_NET_ACT_MIRRED=m
+ CONFIG_NET_ACT_PSP=m
+ CONFIG_NET_ACT_SKBEDIT=m
+@@ -25,5 +26,6 @@ CONFIG_NET_SCH_PRIO=m
+ CONFIG_PPP=y
+ CONFIG_PPPOE=y
+ CONFIG_TLS=y
++CONFIG_VETH=m
+ CONFIG_VLAN_8021Q=m
+ CONFIG_XDP_SOCKETS=y
+diff --git a/tools/testing/selftests/drivers/net/psp.py b/tools/testing/selftests/drivers/net/psp.py
+index 936ac37dd913..affe4bb8c1fc 100755
+--- a/tools/testing/selftests/drivers/net/psp.py
++++ b/tools/testing/selftests/drivers/net/psp.py
+@@ -22,7 +22,7 @@ from lib.py import ksft_variants, KsftNamedVariant
+ from lib.py import KsftSkipEx, KsftFailEx
+ from lib.py import NetDrvEpEnv, NetDrvContEnv
+ from lib.py import Netlink, NlError, PSPFamily, RtnlFamily
+-from lib.py import NetNSEnter
++from lib.py import NetNS, NetNSEnter
+ from lib.py import bkg, rand_port, wait_port_listen
+ from lib.py import cmd, ip, tc
  
-+/* The L4 protocol right after the IP header (and its IPv4 options), which
-+ * the PSP Tx path requires, is one the device can complete the checksum of
-+ */
-+static bool mlx5e_psp_l4_csum_ok(const struct sk_buff *skb)
-+{
-+	u8 proto;
+@@ -1411,6 +1411,160 @@ def data_tc_encap_psp_sock(cfg):
+     _close_psp_conn(cfg, s)
+ 
+ 
++def _tc_act_stats(dev, pref, host=None):
++    """ Stats of the first action of the ingress filter @pref of @dev """
++    filters = tc(f"-s filter show dev {dev} ingress pref {pref}",
++                 json=True, host=host)
++    for flt in filters:
++        for act in flt.get("options", {}).get("actions", []):
++            return act["stats"]
++    raise KsftFailEx(f"no action on the {dev} pref {pref} filter")
 +
-+	if (skb->protocol == htons(ETH_P_IP))
-+		proto = ip_hdr(skb)->protocol;
-+	else if (skb->protocol == htons(ETH_P_IPV6))
-+		proto = ipv6_hdr(skb)->nexthdr;
-+	else
-+		return false;
 +
-+	return proto == IPPROTO_TCP || proto == IPPROTO_UDP;
-+}
++def _tc_act_pkts(dev, pref, host=None):
++    """ Packets of the first action of the ingress filter @pref of @dev """
++    return _tc_act_stats(dev, pref, host)["packets"]
 +
- netdev_features_t mlx5e_features_check(struct sk_buff *skb,
- 				       struct net_device *netdev,
- 				       netdev_features_t features)
-@@ -5256,6 +5273,22 @@ netdev_features_t mlx5e_features_check(struct sk_buff *skb,
- 
- 	features = vlan_features_check(skb, features);
- 
-+	/* The PSP tx path fixes up the TCP checksum of a GSO skb for the
-+	 * device, which is only valid for TCP, and the device only completes
-+	 * a TCP or UDP checksum behind the PSP header. Have the stack segment
-+	 * and checksum other skbs.
-+	 */
-+	if ((skb_is_gso(skb) || skb->ip_summed == CHECKSUM_PARTIAL) &&
-+	    mlx5e_psp_is_offload(skb, netdev)) {
-+		if (skb_is_gso(skb) &&
-+		    !(skb_shinfo(skb)->gso_type &
-+		      (SKB_GSO_TCPV4 | SKB_GSO_TCPV6)))
-+			features &= ~NETIF_F_GSO_MASK;
-+		if (skb->ip_summed == CHECKSUM_PARTIAL &&
-+		    !mlx5e_psp_l4_csum_ok(skb))
-+			features &= ~NETIF_F_CSUM_MASK;
-+	}
 +
- 	/* Validate if the tunneled packet is being offloaded by HW */
- 	if (skb->encapsulation &&
- 	    (features & NETIF_F_CSUM_MASK || features & NETIF_F_GSO_MASK))
-diff --git a/net/psp/psp_main.c b/net/psp/psp_main.c
-index 964749a865b1..dc6144469647 100644
---- a/net/psp/psp_main.c
-+++ b/net/psp/psp_main.c
-@@ -214,7 +214,8 @@ unsigned int psp_key_size(u32 version)
- EXPORT_SYMBOL(psp_key_size);
- 
- static void psp_write_headers(struct net *net, struct sk_buff *skb, __be32 spi,
--			      u8 ver, unsigned int udp_len, __be16 sport)
-+			      u8 ver, u8 nexthdr, unsigned int udp_len,
-+			      __be16 sport)
- {
- 	struct udphdr *uh = udp_hdr(skb);
- 	struct psphdr *psph = (struct psphdr *)(uh + 1);
-@@ -236,10 +237,11 @@ static void psp_write_headers(struct net *net, struct sk_buff *skb, __be32 spi,
- 	 * This field is subject to reshuffling, thanks to
- 	 * sk_rethink_txhash() calls in various TCP functions.
- 	 *
--	 * Instead, use sk->sk_hash which is constant through
-+	 * Instead, use sk->sk_hash for TCP which is constant through
- 	 * the whole flow duration.
- 	 */
--	if (likely(sk)) {
-+	if (likely(sk && nexthdr == IPPROTO_TCP &&
-+		   (!sk_fullsock(sk) || sk_is_tcp(sk)))) {
- 		u32 hash = sk->sk_hash;
- 		int min, max;
- 
-@@ -261,7 +263,7 @@ static void psp_write_headers(struct net *net, struct sk_buff *skb, __be32 spi,
- 	uh->check = 0;
- 	udp_set_len(uh, udp_len);
- 
--	psph->nexthdr = IPPROTO_TCP;
-+	psph->nexthdr = nexthdr;
- 	psph->hdrlen = PSP_HDRLEN_NOOPT;
- 	psph->crypt_offset = 0;
- 	psph->verfl = FIELD_PREP(PSPHDR_VERFL_VERSION, ver) |
-@@ -270,8 +272,34 @@ static void psp_write_headers(struct net *net, struct sk_buff *skb, __be32 spi,
- 	memset(&psph->iv, 0, sizeof(psph->iv));
- }
- 
--/* Encapsulate a TCP packet with PSP by adding the UDP+PSP headers and filling
-- * them in.
-+/* UDP+PSP goes in at the transport header, the protocol of the IP header
-+ * becomes UDP, and the PSP next header takes the protocol it had. The
-+ * transport header must directly follow the IP header: IPv4 options are fine,
-+ * IPv6 extension headers aren't.
-+ */
-+static bool psp_dev_encap_ok(const struct sk_buff *skb)
-+{
-+	u32 network_len = skb_network_header_len(skb);
++def _fwd_client(ipver):
++    """
++    Set up a client in a netns behind veth psp-fwd0, and forward its
++    traffic: only from psp-fwd0, the host's own forwarding settings stay as
++    they are. Return a UDP socket of the client.
++    """
++    ns = NetNS()
++    defer(ns.__del__)
++    ip(f"link add psp-fwd0 type veth peer name psp-fwd1 netns {ns.name}")
++    defer(ip, "link del psp-fwd0")
++    if ipver == "4":
++        fwd = "/proc/sys/net/ipv4/conf/psp-fwd0/forwarding"
++        local, client, plen = "198.51.100.1", "198.51.100.2", 24
++    else:
++        fwd = "/proc/sys/net/ipv6/conf/psp-fwd0/force_forwarding"
++        local, client, plen = "2001:db8:fe::1", "2001:db8:fe::2", 64
++    if not os.path.exists(fwd):
++        raise KsftSkipEx(f"{fwd} not supported")
++    # Goes away with the device
++    with open(fwd, "w", encoding="utf-8") as fp:
++        fp.write("1")
++    # IPv6 may be disabled on new devices
++    if cmd(f"ip addr add {local}/{plen} dev psp-fwd0 nodad",
++           fail=False).ret:
++        raise KsftSkipEx(f"can't add {local} to a new device")
++    ip("link set psp-fwd0 up")
++    ip(f"-n {ns.name} addr add {client}/{plen} dev psp-fwd1 nodad")
++    ip(f"-n {ns.name} link set psp-fwd1 up")
++    ip(f"-n {ns.name} route add default via {local}")
 +
-+	/* inner headers already set up */
-+	if (skb->encapsulation)
-+		return false;
-+	/* fragments not supported for transport mode */
-+	if (skb->protocol == htons(ETH_P_IP))
-+		return network_len == ip_hdrlen(skb) &&
-+		       !ip_is_fragment(ip_hdr(skb));
-+	if (skb->protocol == htons(ETH_P_IPV6))
-+		return !ipv6_ext_hdr(ipv6_hdr(skb)->nexthdr) &&
-+		       network_len == sizeof(struct ipv6hdr);
-+	return false;
-+}
++    family = socket.AF_INET if ipver == "4" else socket.AF_INET6
++    with NetNSEnter(ns.name):
++        s = socket.socket(family, socket.SOCK_DGRAM)
++    defer(s.close)
++    return s
 +
-+/* Encapsulate a packet with PSP by adding the UDP+PSP headers and filling
-+ * them in. The PSP next header is taken from the IP header: packets with
-+ * IPv6 extension headers, or whose transport header isn't right after the IP
-+ * header, are refused, as are IP fragments, packets already encapsulated
-+ * for a tunnel, and packets with a checksum to complete for a protocol other
-+ * than TCP or UDP.
-  */
- bool psp_dev_encapsulate(struct net *net, struct sk_buff *skb, __be32 spi,
- 			 u8 ver, __be16 sport)
-@@ -279,11 +307,30 @@ bool psp_dev_encapsulate(struct net *net, struct sk_buff *skb, __be32 spi,
- 	u32 network_len = skb_network_header_len(skb);
- 	u32 ethr_len = skb_mac_header_len(skb);
- 	u32 bufflen = ethr_len + network_len;
-+	u8 nexthdr;
- 
--	if (skb->protocol != htons(ETH_P_IP) &&
--	    skb->protocol != htons(ETH_P_IPV6))
-+	if (!psp_dev_encap_ok(skb))
- 		return false;
- 
-+	if (skb->protocol == htons(ETH_P_IP))
-+		nexthdr = ip_hdr(skb)->protocol;
-+	else
-+		nexthdr = ipv6_hdr(skb)->nexthdr;
 +
-+	/* Devices complete only a TCP or UDP checksum behind the PSP header.
-+	 * Software GSO of a tunnel with an outer checksum, e.g. GRE, leaves
-+	 * the segments here with encapsulation cleared and CHECKSUM_PARTIAL
-+	 * at the tunnel header.
-+	 */
-+	if (skb->ip_summed == CHECKSUM_PARTIAL &&
-+	    nexthdr != IPPROTO_TCP && nexthdr != IPPROTO_UDP)
-+		return false;
++def _remote_filter(cfg, pref, proto, match):
++    """
++    Add a flower filter on the remote's ingress, to count what gets there.
++    In software only: drivers refresh the counters of offloaded filters
++    periodically, and these counts must be exact.
++    """
++    _tc_clsact(cfg.remote_ifname, host=cfg.remote)
++    tc(f"filter add dev {cfg.remote_ifname} ingress pref {pref} handle 1 "
++       f"protocol {proto} flower skip_hw {match}", host=cfg.remote)
++    defer(tc, f"filter del dev {cfg.remote_ifname} ingress pref {pref} "
++          f"handle 1 protocol {proto} flower", host=cfg.remote)
 +
-+	/* udp_flow_src_port() may need to hash the flow: do it on the
-+	 * original headers, before they are moved and rewritten
-+	 */
-+	skb_get_hash(skb);
 +
- 	if (skb_cow_head(skb, PSP_ENCAP_HLEN))
- 		return false;
++def _tc_encap_ingress(proto, port, tx):
++    """ psp encap on psp-fwd0's ingress, which software drops """
++    _tc_clsact("psp-fwd0")
++    tc(f"filter add dev psp-fwd0 ingress pref 10 protocol {proto} "
++       f"flower ip_proto udp dst_port {port} "
++       f"action psp encap assoc {tx['id']}")
++
++
++@ksft_variants(_get_ip_variants())
++def data_tc_encap_routed(cfg, ipver):
++    """ Test software encap on ingress drops routed packets """
++    cfg.require_ipver(ipver)
++    _init_psp_dev(cfg)
++    _require_tc_psp(cfg)
++
++    proto = _tc_proto(ipver)
++    _, tx = _sockless_assocs(cfg)
++    s = _fwd_client(ipver)
++
++    port = rand_port(socket.SOCK_DGRAM)
++    _remote_filter(cfg, 10, proto,
++                   f"ip_proto udp dst_port {port} action drop")
++
++    def remote_pkts():
++        return _tc_act_pkts(cfg.remote_ifname, 10, host=cfg.remote)
++
++    def send(n):
++        for _ in range(n):
++            s.sendto(b'0123456789', (cfg.remote_addr_v[ipver], port))
++            time.sleep(0.01)
++        time.sleep(0.2)
++
++    # Without encap the packets are forwarded to the remote, unless
++    # something else, e.g. a FORWARD policy, stops them
++    send(10)
++    sent = remote_pkts()
++    if not sent:
++        raise KsftSkipEx("forwarded packets don't reach the remote")
++
++    # Encap on ingress isn't supported: the action drops the packets.
++    # They must not reach the remote in clear text.
++    _tc_encap_ingress(proto, port, tx)
++    send(10)
++    ksft_eq(_tc_act_pkts("psp-fwd0", 10), 10)
++    ksft_eq(_tc_act_stats("psp-fwd0", 10)["drops"], 10,
++            comment="dropped by encap")
++    ksft_eq(remote_pkts(), sent)
++
++
++@ksft_variants(_get_ip_variants())
++def data_tc_encap_local(cfg, ipver):
++    """ Test software encap on ingress drops packets to a local address """
++    cfg.require_ipver(ipver)
++    _init_psp_dev(cfg)
++    _require_tc_psp(cfg)
++
++    _, tx = _sockless_assocs(cfg)
++    s = _fwd_client(ipver)
++    fam = "inet" if ipver == "4" else "inet6"
++    addrs = ip("addr show dev psp-fwd0", json=True)[0]["addr_info"]
++    local = [a["local"] for a in addrs
++             if a["family"] == fam and a["scope"] == "global"][0]
++
++    family = socket.AF_INET if ipver == "4" else socket.AF_INET6
++    with socket.socket(family, socket.SOCK_DGRAM) as srv:
++        srv.bind((local, 0))
++        srv.settimeout(0.5)
++        port = srv.getsockname()[1]
++
++        # Without encap the packets are delivered, unless something
++        # else, e.g. an INPUT policy, stops them
++        s.sendto(b'clear', (local, port))
++        try:
++            got = srv.recv(64)
++        except socket.timeout as e:
++            raise KsftSkipEx("the client's packets aren't delivered") from e
++        ksft_eq(got, b'clear')
++
++        # Encap on ingress isn't supported: the action drops the
++        # packets, rather than let them be received
++        _tc_encap_ingress(_tc_proto(ipver), port, tx)
++        s.sendto(b'encap', (local, port))
++        with ksft_raises(socket.timeout):
++            srv.recv(64)
++        ksft_eq(_tc_act_pkts("psp-fwd0", 10), 1)
++        ksft_eq(_tc_act_stats("psp-fwd0", 10)["drops"], 1,
++                comment="dropped by encap")
++
++
+ def removal_device_tc(cfg):
+     """ Test removing a PSD with tc actions holding its assocs """
+     cfg.require_nsim()
+@@ -1937,7 +2091,8 @@ def main() -> None:
  
-@@ -304,11 +351,11 @@ bool psp_dev_encapsulate(struct net *net, struct sk_buff *skb, __be32 spi,
- 		be16_add_cpu(&ipv6_hdr(skb)->payload_len, PSP_ENCAP_HLEN);
- 	}
+                 cases = [data_basic_send, data_mss_adjust,
+                          rekey_rx_basic, rekey_tx_basic, rekey_both_sides,
+-                         data_tc_basic_send]
++                         data_tc_basic_send, data_tc_encap_routed,
++                         data_tc_encap_local]
  
--	skb_set_inner_ipproto(skb, IPPROTO_TCP);
-+	skb_set_inner_ipproto(skb, nexthdr);
- 	skb_set_inner_transport_header(skb, skb_transport_offset(skb) +
- 						    PSP_ENCAP_HLEN);
- 	skb->encapsulation = 1;
--	psp_write_headers(net, skb, spi, ver,
-+	psp_write_headers(net, skb, spi, ver, nexthdr,
- 			  skb->len - skb_transport_offset(skb), sport);
- 
- 	return true;
+                 if has_cont:
+                     cases += [
 -- 
 2.53.1-Meta
 
