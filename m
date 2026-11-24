@@ -1,107 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.54
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795528074;
-	b=48ZN3X8oKiLkKiQUkM31di8rJBt0JsB5ShBYfqmu0eaCarWdk7C8ZwfyRouKsK6bCxEo
-	 S/EezVURxHppDBBM9bxzVau7MqlgBnkQa3e9g+M205MOOilloaeqfGw0zsiiWB3F+ZIdw
-	 MGt7hzONuNHJ8Dw229zhPmwu9kV4SudEqLy9MD+WWB7ZAGuU8BuZUg5fEPlBW0WvxJ7gs
-	 g3ZrPye9SdlpkNHC4w5VRkobc4Ar2FoLX57dE3xjWd47cfqbtlsIYLDh3hMHlDR+O0h7o
-	 gRiCOdme6m6520O4M/vZ/mRLtf//id39w6ChAzABsCF3YR64OlekFc06kz+n+mCbIbw==
+	t=1795528424;
+	b=pnJXae/FNCdJEvBHJHmB6VolHj57Z959e98r/u4b/gTPoQUoLB1qTtQeKMICjUKWfHTd
+	 zU3dKzHQve21WKJxmIS3noLo4dQ/rJr3E+wf3LqAj5vr3T0iRGBAf1zipqfu4b/N4YjYj
+	 /wpf6cDc1KncDZSGQjjIF2AF+oqj8fas8uBIDMdJNsPGYZ/WPkCuOl91pbSe6Hd4tFwFL
+	 gDU87NBHnOFhO8j0S0SHPJEcOr8L6dVbYeWtlLEeEkCCerbpPbsErLusUJzzo1cgPuRKg
+	 xS0HPjoe9vXrTuPI4fz8RnidZc2F+9PGVavAcgmBG7d8afC4TxF4ZgeAJPnafS00Vaw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795528074;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:Content-Transfer-Encoding:
-	 In-Reply-To;
-	bh=vMDqbnU1JcZRjV4iBwiOSDccQES6fNfvp7K7cXvvapM=;
-	b=HgWJDZTmx8ajbtaSPsbqQqlMxJtXsWOgLkPM2SIboaDs6+7o1guQ5cOV8m1E198Lp8rm
-	 CiMN+EkmeUl4ggus4yWWt2LG96bFOMxOu2RXbo+L11/XSeNlJeopsu96C195dgxQSUB9L
-	 QUcNzq2A1k+2tGqSuOaIMif8esvu4/N3UmzlY6JFuuxPNuCYs6Xq4eCVWUp+w8H2XgDuQ
-	 6PfnJmkblNOmilfnt++U25yzUCIPqJ76hh5RtACrPDEDrD9YXZMqMs1rpst/3Qi2L23e4
-	 JU+oWE49oMW1lDPGlJB+0JUTVEdfMjRGGn2Ah+G/UDYZG8HPNPZnv+EVaPLXJ7GCNww==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795528424;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=/TR5NvUlPrWkZidpo8NpGlurym56SZzfsHzZEIx9OMA=;
+	b=pSQlM29PEp7vIZF1ScJ4jfGzgsVG5CzfZIKN48L7DKUN1jOOOQy5JdZ+y0r7P6gHLEcN
+	 m0FsJ/kG8hlShuqIz5JoNtmMJUOj/sT0sLzUMY0yL/yUWmrAc674xkjPHfKr+rLu+KwW7
+	 kypLv9S2LB0cJjSk5Yz605fDUG4UgWO1wZHnkq/vqEdYJumvu/eTZC62TIPRVVA3azfkC
+	 KLUp4nIVgE0omXQ9E8jcUSoumar6VMth0ZA/TnmUhaOQnwsX1UnR0JHzT7Fju4DKMXTPp
+	 QadbbdApNg9AZ/aKogqWNL1ym3RCzTO/pStk5dNEaR/AFKVllR1+B1wVGswTBUq/vcQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=ziepe.ca;
-	spf=pass smtp.mailfrom=ziepe.ca;
-	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=NdQ+RUQL;
-	arc=none smtp.remote-ip=209.85.219.54
-Received: from mail-qv1-f54.google.com (mail-qv1-f54.google.com [209.85.219.54])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IiH4+I60;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C392606A336
-	for <linux-rdma@vger.kernel.org>; Tue, 24 Nov 2026 13:47:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3C392606A336
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76724606A331;
+	Tue, 24 Nov 2026 13:53:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=NdQ+RUQL
-Received: by mail-qv1-f54.google.com with SMTP id 6a1803df08f44-92157f2e8c1so24802646d6.1
-        for <linux-rdma@vger.kernel.org>; Tue, 24 Nov 2026 05:47:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1795528073; x=1796132873; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=vMDqbnU1JcZRjV4iBwiOSDccQES6fNfvp7K7cXvvapM=;
-        b=NdQ+RUQLLl9NE7pcsTGsPyFo0JDIEwqHUWUTh6FGstCQlXDqQGm4bzmVpn7NrOMNN/
-         nUmwzw+7AXCwCOB0lNWa/4gs7ETmEy+gpNc4PFSFMZjW/XN/5hCSia7u7LYeQBThBZ1s
-         DiCl/4CxtrHD+AkQegWdE2/heCv5J50ilql3Jbj6NtTeAwCS2NgW2snsnz8shWgS8ORA
-         4CjgkakkgOFF7v6BRpaIBjQ1evzQr94a4nFlmL3Ecij589zRHBuiOv2HWEgE4nsYg3jw
-         CvQ9uEbdjNe/2RQk5kPtL5ExT9kibh7OEtq6HLk6gebbjDW0HErvE5oB55F0r55nzcPm
-         FDDg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795528073; x=1796132873;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:from
-         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=vMDqbnU1JcZRjV4iBwiOSDccQES6fNfvp7K7cXvvapM=;
-        b=pLzyWqvS3TeIJGVdKuiDwONF4zYxgyrpVPUaDrTbTVPp4U4qcHQSHE+zjIcczgmivN
-         5e8KB2D8fUDCH7auMkZ6eBvH5rrslZmMZ5usaw7yeEw5NA4VDRwBjeHbhk6yM8H8ioGe
-         XfmhpZyyaTkD3/M6RB+yB5sn8lWNHbzziEvDzqfN1sUTqIAf854LbtTxfWkhFy2Fmgag
-         OE3OrmiAkp1jeg8aKJtat8KMR5mDtZCCLAjXXUT1gGDh6XjtLa6w94xzPKPRUJ14TVuQ
-         HCQcqYl/HLW2KI4T4fB6VlUYTSi71iUost26mQOjZKHgZUmyxWzIzi7dKshuBBexq/+B
-         3V/Q==
-X-Forwarded-Encrypted: i=1; AL+hErFh5FS8A2zl1W0MZcxdbCkWf2fy1qU2hSc3gLYFW8W2ODGYfA1RnStVF4ulsOYg/utZWNsM2/Kzetab@vger.kernel.org
-X-Gm-Message-State: APuU4Z/Sw9JRTk2xKYYpasHqinXLDoXNUbRNsPFB2ScYJMgL/MVMwRF8
-	Cdl4xsyI9+zezVIZKqAfDkFfWq6gZnLQ1LyL3wHJ9p56avgbyQMPmet7mXH50EV6fZQ=
-X-Gm-Gg: AZFdTZfSdni8UDmScQWQGim27jVaKteCbcSX35Npw510YT58S4sFdR1VwVPIMcmxO4c
-	sn53byZgkET2Ngm4ZjpTpdNosJXBKBm911rnw5jronF8ZUTpL/DoAj2sHMB5q6VcGwQwNhfNxnu
-	nZLrPSp0Hp9G01k3tGYiub4+HTffuJnXaQpD0lpiQLz4OO789fR7fGazxPxnj93lex5AgbXcmUS
-	pL4+6doLqGksM48j1dXWuMScExs7jIlgMXNiei68U8kQKfZLT3ETN57Yj1pKEZe1nrueUPV2/lU
-	mvSta16FcKvlYvlsw7K3WI8AQpRoesfkmD9oV3c+8Hh5Mbpkkbrn2ucnTDt083bxnErTTVm6wHE
-	QBzup0QjhxpcwpXso1OlD+N+m5KsNyXA4Cn7ITcAtQ8Xrh8sT5dNWRDEwxKDeJHhONTRV7il82i
-	142Yc8UkrJmtv4oKf4AHV55qDFOtDq9cNfE10wU9Mcj5IvFRCkPCvSeylx4z3hHuAV1i2irzOiP
-	i4f8GOmifD5/YW2lgJr0XuM6mO04hYQAR+nf+Gx9nCE6aTSJCGQehLBTm+qpR8TVHRmdCIdw4Ah
-	ZPSY+Q==
-X-Received: by 2002:ad4:5c86:0:b0:921:3a31:64c7 with SMTP id 6a1803df08f44-9213a316546mr238701036d6.13.1795528073118;
-        Tue, 24 Nov 2026 05:47:53 -0800 (PST)
-Received: from ziepe.ca ([142.177.118.84])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-921349b081csm132608436d6.7.2026.11.24.05.47.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 24 Nov 2026 05:47:52 -0800 (PST)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1xVqsB-00000000QLY-46Ib;
-	Tue, 24 Nov 2026 09:47:51 -0400
-Date: Tue, 24 Nov 2026 09:47:51 -0400
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Yishai Hadas <yishaih@nvidia.com>, linux-rdma@vger.kernel.org,
-	netdev@vger.kernel.org, saeedm@nvidia.com, tariqt@nvidia.com,
-	mbloch@nvidia.com, kuba@kernel.org, pabeni@redhat.com,
-	edumazet@kernel.org, davem@davemloft.net, andrew+netdev@lunn.ch,
-	dtatulea@nvidia.com, moshe@nvidia.com, maorg@nvidia.com
-Subject: Re: [PATCH V2 rdma-next 21/21] RDMA/core: Report and enforce
- adversarial mode via GET_CONTEXT
-Message-ID: <20261124134751.GJ9566@ziepe.ca>
-References: <20261117170914.27410-1-yishaih@nvidia.com>
- <20261117170914.27410-22-yishaih@nvidia.com>
- <20261122073156.GA12665@unreal>
- <761ca80e-a772-41f3-b8e9-cc332e4ba5d9@nvidia.com>
- <20261124125327.GR14811@unreal>
- <20261124125950.GC9566@ziepe.ca>
- <20261124133353.GT14811@unreal>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IiH4+I60
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0C3B1F000E0;
+	Tue, 24 Nov 2026 13:53:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795528423;
+	bh=/TR5NvUlPrWkZidpo8NpGlurym56SZzfsHzZEIx9OMA=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=IiH4+I605+DLKHBhtgflFm3D7+fdNKs2WoiJKtjp6Ooo8W0dSLllZjCu58GziWXg3
+	 trz8E+qyXs+Giw9mDPDJ2cbQKGjuh3mNm5P81EYiklic0SZuDSxegB6ZndHKOAMiIM
+	 5gWmlWCTpVWZG1h5NC5VOjjfL/EfZRjgA3B0ENXrb4HAXZy11yyNo2sO+ieFm537uw
+	 Y3G7CZKB64sVOvie9UhRN4u7q0p38peBDhn8nH0LUOy7jeqKIvyBoigeB0VxsIF9me
+	 Pjv9aau71AirZvcnJwgCiTvOYLYpPXE6ezEDdOv2w8tMnCCt7+eF1N5hKbhBM3f0Qz
+	 DIlJh76gnn0zw==
+Message-ID: <sashiko-outbox-231270@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net v2 1/2] net/smc: bound the failover cursor catch-up
+ by what is outstanding
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Piyus Kedia" <piyus@iiitd.ac.in>
+Cc: linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, "Heiko Carstens" <hca@linux.ibm.com>, "Vasily
+ Gorbik" <gor@linux.ibm.com>, "Alexander Gordeev" <agordeev@linux.ibm.com>, "Christian
+ Borntraeger" <borntraeger@linux.ibm.com>
+In-Reply-To: <20261123135327.3953509-1-piyus@iiitd.ac.in>
+References: <20261123135327.3953509-1-piyus@iiitd.ac.in>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Tue, 24 Nov 2026 13:53:43 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -110,47 +61,118 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20261124133353.GT14811@unreal>
 
-On Tue, Nov 24, 2026 at 03:33:53PM +0200, Leon Romanovsky wrote:
-> On Tue, Nov 24, 2026 at 08:59:50AM -0400, Jason Gunthorpe wrote:
-> > > > RDMA/core: Report and enforce adversarial mode via GET_CONTEXT
-> > > > 
-> > > > In adversarial mode the NIC is not trusted. As the kernel protects its
-> > > > own code from it, user space has to protect its own area, e.g. the data
-> > > > path that polls CQEs directly from the HW.
-> > > > 
-> > > > Hardened user space might use a different data path, with extra checks,
-> > > > and support a smaller surface. This isn't needed for a trusted NIC, so user
-> > > > space must know when a device is in adversarial mode.
-> > > 
-> > > This information is part of trust level series. Why is this a “must” in RDMA UAPI? 
-> > 
-> > Userspace has to work differently if the kernel driver is in the
-> > adversarial mode, and the kernel should not permit an old non-supporting
-> > rdma-core from loading to prevent a security downgrade.
-> 
-> I understand the first part of the sentence above, but the second part is
-> unclear. Why should this prevent it? In adversarial mode, the kernel simply
-> isolates that device from the others.
+Thank you for your contribution! Sashiko AI review found 2 potential
+issues to consider:
+- [High] net/smc: smc_switch_cursor() bounds catch-up by prepared
+  instead of sent bytes
+- [High] net/smc: smc_switch_cursor() clamp leaves local_tx_ctrl.prod
+  behind cons
+--
 
-Userspace needs to do it too or it is not a complete defense.
+commit d641bcdb06babb4611de33b1b2a3ed34727ace6d
+Author: Piyus Kedia <piyus@iiitd.ac.in>
 
-> Moreover, the kernel cannot determine whether rdma-core has actually been
-> adapted. A locally cloned version of rdma-core can set the new adversarial
-> flag without changing the old, legacy version.
-> 
-> Once that flag is set, the kernel allows the patched rdma-core to proceed.
-> Therefore, saying that it “should not permit” this makes no sense.
+net/smc: bound the failover cursor catch-up by what is outstanding
 
-If someone makes a non-official version of rdma-core that doesn't work
-securely then I don't care one bit.
+This commit bounds the cursor catch-up diff in smc_switch_cursor() by
+conn->sndbuf_desc->len - atomic_read(&conn->sndbuf_space) so a peer's
+consumer cursor cannot credit conn->sndbuf_space past the send buffer size.
 
-I care that the official versions are not improperly mismtached to
-give something insecure.
+Link: https://lore.kernel.org/all/20261122053223.2497832-2-piyus@iiitd.ac.i=
+n/
 
-Jason
+> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+> index a3164201c1420..436a702f3d8de 100644
+> --- a/net/smc/smc_core.c
+> +++ b/net/smc/smc_core.c
+> @@ -1057,6 +1057,7 @@ static int smc_switch_cursor(struct smc_sock *smc, =
+struct smc_cdc_tx_pend *pend,
+>  	union smc_host_cursor cons, fin;
+>  	int rc =3D 0;
+>  	int diff;
+> +	int sent;
+> =20
+>  	smc_curs_copy(&conn->tx_curs_sent, &conn->tx_curs_fin, conn);
+>  	smc_curs_copy(&fin, &conn->local_tx_ctrl_fin, conn);
+> @@ -1069,6 +1070,16 @@ static int smc_switch_cursor(struct smc_sock *smc,=
+ struct smc_cdc_tx_pend *pend,
+>  		 * fin above, so now prod is smaller than cons. Fix that.
+>  		 */
+>  		diff =3D smc_curs_diff(conn->peer_rmbe_size, &fin, &cons);
+> +		/* The peer's consumer cursor is taken as it arrives, so this
+> +		 * difference is a value the peer chose.  An honest peer cannot
+> +		 * have consumed more than this side has outstanding, so bound
+> +		 * the catch-up by that: sndbuf_space then keeps the invariant
+> +		 * the tx path relies on, and the cursors advanced below stay
+> +		 * within the send buffer.
+> +		 */
+> +		sent =3D conn->sndbuf_desc->len - atomic_read(&conn->sndbuf_space);
+
+[Severity: High]
+Does conn->sndbuf_desc->len - atomic_read(&conn->sndbuf_space) measure all
+prepared bytes in the send buffer (tx_curs_prep - tx_curs_fin) rather than =
+the
+unconfirmed bytes actually transmitted to the peer RMBE (tx_curs_sent -
+tx_curs_fin before tx_curs_sent is overwritten above)?
+
+When prepared but unsent data sits between tx_curs_sent and tx_curs_prep (f=
+or
+example due to corking, autocorking, or a full peer RMBE), advancing
+tx_curs_sent and tx_curs_fin up to sent skips over unsent payload in sndbuf
+and credits sndbuf_space for data that was never put on the wire.  Also, wh=
+en
+conn->sndbuf_desc->len > conn->peer_rmbe_size, sent can exceed
+conn->peer_rmbe_size, allowing smc_curs_add(conn->peer_rmbe_size, ...) below
+(which subtracts peer_rmbe_size only once) to leave local_tx_ctrl.prod.count
+at or above conn->peer_rmbe_size.  Finally, advancing tx_curs_fin past the =
+old
+tx_curs_sent moves it ahead of any in-flight cdcpend->cursor on the old link
+(which is drained via smc_wr_tx_wait_no_pending_sends() only after
+smc_switch_conns() returns), so a completing CQE on the old link in
+smc_cdc_tx_handler() either computes a wrapped diff or rewinds tx_curs_fin =
+and
+lets the new link's validation CQE double-credit sndbuf_space above
+sndbuf_desc->len.
+
+Computing the bound from smc_curs_diff(conn->sndbuf_desc->len,
+&conn->tx_curs_fin, &conn->tx_curs_sent) before overwriting conn->tx_curs_s=
+ent
+would limit the catch-up to bytes actually sent on the old link.
+
+> +		diff =3D min_t(int, diff, max_t(int, sent, 0));
+
+[Severity: High]
+When this clamp reduces diff below smc_curs_diff(conn->peer_rmbe_size, &fin,
+&cons), does leaving conn->local_rx_ctrl.cons unclamped leave
+conn->local_tx_ctrl.prod behind conn->local_rx_ctrl.cons after this block?
+
+smc_switch_cursor() resets conn->local_tx_ctrl.prod to fin and relies on
+adding diff to bring prod up to cons, then immediately updates peer_rmbe_sp=
+ace
+via smc_write_space():
+
+net/smc/smc_core.c:smc_write_space() {
+	...
+	smc_curs_copy(&prod, &conn->local_tx_ctrl.prod, conn);
+	smc_curs_copy(&cons, &conn->local_rx_ctrl.cons, conn);
+	/* determine rx_buf space */
+	space =3D buffer_len - smc_curs_diff(buffer_len, &cons, &prod);
+	return space;
+}
+
+Both smc_curs_diff(buffer_len, &cons, &prod) and smc_tx_rdma_writes() assume
+cons <=3D prod.  If prod < cons across a wrap boundary (prod.wrap !=3D cons=
+.wrap),
+smc_curs_diff() takes the old->wrap !=3D new->wrap branch and returns
+(buffer_len - cons.count) + prod.count; when prod.count > cons.count that
+exceeds buffer_len and makes peer_rmbe_space negative, and when
+peer_rmbe_space > 0 smc_tx_rdma_writes() sees prod.wrap !=3D cons.wrap, ski=
+ps
+clamping dst_len to conn->peer_rmbe_size - prod.count, and can RDMA-write p=
+ast
+the end of the peer RMBE.
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261123135327.3953=
+509-1-piyus@iiitd.ac.in?part=3D1
