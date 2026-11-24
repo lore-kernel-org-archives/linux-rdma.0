@@ -1,59 +1,51 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=47.88.81.140
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795528425;
-	b=hmJL22xIazGkkDvbrqTUtVxuLyatqkC0AL0v2v0GYjWkCdn7y9OsffSqFd7z7Tgl6dl8
-	 zFMy2/Q0SK3NKp9XmSOoJBnHm3+sjsPUKt11y1y2F4zpgumQaedYGd3XE5/Bpc+/maGNP
-	 WzcH3tcgdrk7awzUPtvOablR3m5V/VjyvNbRJ6APN0uTUh53FT7qRDL07YRpQmnJ2dZiB
-	 LfPUE15jDiNqYWo0da54mrR409HEZvqwmJIL3P26aip4gxsWJeSc8a72avI1qmEMUfZ62
-	 cUZ9MbOf7OSf3C7s9/tQyHLbDkjdkb0byURy5grYuGxNwZsjTSeYPLOwyCVlJhLLx5g==
+	t=1795528829;
+	b=5osuWID60fMJVT7bNixhh38BveGyK3MdNwPbdkGZpZ23wC0Dq65N2IA+FBCtxgalpGLK
+	 rhcJN4t7RRA7giT/S0PrRSQlB+oSs4PuEISDdUVCiUjO53A8Ni6nz2np6pccs4ekO8rzo
+	 bR+Aof4vKUvOILbTjFe30Xjr1UjCEBuwxqTGgX42YG0OkYtULOxrEIp5Iu473BboZfm3n
+	 QKE68KVRI0CrlPvul9yAPTNhaf1SXhgne1wtXIpMCfHYU7Y3HRv6b4/1zHBHuWP/tgsJr
+	 uhjZuQA9Qhw7GHnlMxcdVkksxC0U639UbhDGf4RDvRvVfC12uuKvDNwP3k6X7Twb1+g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795528425;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=RYGIGzqQUM0vzsX2/bRDyouuVck8cJQdyz+UWcgDSkM=;
-	b=z4ZuhNIPgxgrSipFtPPdBMXFP46o4iGaA8OkRMdKYe5ZXpwDvpKfXieoC1PIipHiC7g1
-	 lA2xeeMw5KD6hxu/JomT1I1l4hoMOSWNxyJCIJZa9BHY35OHCaARm1aUf5Cc4F5HhpoYw
-	 OXU/R2m8B8iLtOp5f5CT/gCwQ4SoaCVh+QyHUs52odSfKefCfKzUB4g7xFddl2ElrV3L2
-	 NbwWj6+UOlo3TyjBejW5eWnhOpn8PEMy2v6ne3oVgQnKbF9o5/0CP1O6J9l3jFLuaGza8
-	 iOBt7/dFN1pgN95Tk3qnjUlCctphADTL8/1Ml+PEX5UZrxqmeCOVWGLLK8bSG25zHtQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795528829;
+	h=DMARC-Filter:Content-Type:Content-Transfer-Encoding:Message-ID:To:Cc:
+	 Subject:X-Priority:X-Mailer:X-Originating-IP:In-Reply-To:References:
+	 MIME-Version:Received:From:Date:X-HM-Tid:X-HM-MType:X-HM-NTES-SC:
+	 X-HM-Spam-Status:DKIM-Signature;
+	bh=SrQBO4DXNz5cl5iYyYb4W1p5h9a2cEbxQXiC8gyTbFk=;
+	b=OPADORnVf0CULRo1nnxmEJkVz4Uq/M80ZD1O/hOr3TNvU92mRycnyjRfShEK/7tgyyIB
+	 f+5GUFbCArVa13h4boqDb06OyGyZxyXDBtN6Yd3l4qSxQulO6h4BUNSV8HFCCVI4qzxNb
+	 7lTRnIYpoOnkOPasU26wO2qHi1fi63snxBgHfaTE3GgShzntkqkKFZjMaj9jj5BslZUWx
+	 fIo6Hg3827H95LLs+6PkVWF0ipka8mS93j20tn4sxfQ5iGgusP40XS2USDuug0SU/N0Da
+	 Nkpe226ZN/B8lBzzDwIhQCeW9zmOsDJCNPBAlzOb8dAGUVfWKLGzZzKlvm0mSGB6Jlg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TBrr0LwB;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=mail.sdu.edu.cn;
+	spf=pass smtp.mailfrom=mail.sdu.edu.cn;
+	dkim=pass header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=bQiWl6y+;
+	arc=none smtp.remote-ip=47.88.81.140
+Received: from mail-m81140.netease.com (mail-m81140.netease.com [47.88.81.140])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73F93606A322;
-	Tue, 24 Nov 2026 13:53:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A02D606A31E;
+	Tue, 24 Nov 2026 14:00:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3A02D606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mail.sdu.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mail.sdu.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TBrr0LwB
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CACD61F0093E;
-	Tue, 24 Nov 2026 13:53:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795528425;
-	bh=RYGIGzqQUM0vzsX2/bRDyouuVck8cJQdyz+UWcgDSkM=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=TBrr0LwB+4cGYxvR/BP29oC0bBwrIB9c4RBsm5GDUKMWcRWYa/Xx1XTJFdkWtviU6
-	 LEVLKTRe91yEBjP69lEjkgaVrXwLhINg0jC34QcHQaHl0Sd/BKcWrmh+c4/bsIqAJe
-	 3FVVXW6Yjjy1G/TOLXHj2XKyfTxsv2TtUJhzSHnE/ipAiF6s6ISq1Z+xDXwEBpFz1r
-	 2jozlvMNL29V6ALQAg1Q9OUnvYlXR4Ikz7sGBk4v52eyIYYeR8r/+1gTuXgqtWH7u5
-	 KX5WmuG4s6Em7WyzhOtK1I3irJP2uBRKDpp16Ct4QzOVZndRRMDn5STyZrD2JGfy/e
-	 uD9+LWTtCOKkA==
-Message-ID: <sashiko-outbox-231271@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net v2 2/2] net/smc: bound the DMB-nocopy send-buffer
- credit as well
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Piyus Kedia" <piyus@iiitd.ac.in>
-Cc: linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, "Heiko Carstens" <hca@linux.ibm.com>, "Vasily
- Gorbik" <gor@linux.ibm.com>, "Alexander Gordeev" <agordeev@linux.ibm.com>, "Christian
- Borntraeger" <borntraeger@linux.ibm.com>
-In-Reply-To: <20261123135327.3953509-2-piyus@iiitd.ac.in>
-References: <20261123135327.3953509-1-piyus@iiitd.ac.in>
- <20261123135327.3953509-2-piyus@iiitd.ac.in>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Tue, 24 Nov 2026 13:53:44 +0000
+	dkim=pass (1024-bit key) header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=bQiWl6y+
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
+Message-ID: <AGsAhgCELDjQPd1Ecfeljaop.3.1795528818135.Hmail.202321181@mail.sdu.edu.cn>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Subject: =?UTF-8?B?UmU6UmU6IFJlOiBbUEFUQ0hdIElCL2hmaTE6IEZpeCBwb3RlbnRpYWwgbGVha3MgaW4gSVBvSUIgVFggcXVldWUgaW5pdGlhbGl6YXRpb24=?=
+X-Priority: 3
+X-Mailer: HMail Webmail Server V2.0 Copyright (c) 2016-163.com web
+In-Reply-To: <20261122150246.GF14811@unreal>
+References: <20261111-e5624093d6-rdma-hfi1@mail.sdu.edu.cn> <20261115135524.GE42525@unreal> <APgA2ADdLAK4Fr01jTNuVqo3.3.1795092279897.Hmail.202321181@mail.sdu.edu.cn> <20261122150246.GF14811@unreal>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -62,97 +54,95 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Received: from 202321181@mail.sdu.edu.cn( [101.76.249.61] ) by ajax-webmail ( [127.0.0.1] ) ; Tue, 24 Nov 2026 22:00:18 +0800 (GMT+08:00)
+From: =?UTF-8?B?5p2O5bm/56GV?= <liguangshuo@mail.sdu.edu.cn>
+Date: Tue, 24 Nov 2026 22:00:18 +0800 (GMT+08:00)
+X-HM-Tid: 0aa20ddafeced0cdkusyed8236ec248b6
+X-HM-MType: 1
+X-HM-NTES-SC: AL0_4z5B86Wr4Tz9jdMF+bhXMVHpP02bZAKsMEiErRSAekjx+ys+KNZNl0PLwl
+	f2MeqR5lbiqKsoq8sm3hZVy9q3VetZ+Wq0Te/EdHEVk+2W3XygE0t2b+veD5v+x2w+urvH1wcBEK
+	LfuXeRGaGP72UMA9Ea1JsRyT3OtZavULeVx80=
+X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
+	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVlCSEJLVhoZH0pCQ0xKHUNOSFYVFA
+	kWGhdVEwETFhoSFyQUDg9ZV1kYEgtZQVlKS0pVTE1VSU9CVU1KWVdZFhoPEhUdFFlBWU9LSFVCQk
+	lOS1VKS0tVSkJLQlkG
+DKIM-Signature: a=rsa-sha256;
+	b=bQiWl6y+2oGNR00ETJCbZzVLxN93rE9lPhEJiX882O+/KnGWq3b2Cusk4D0ZAD9VEo2tGxGGP3mDz3JKVBRUwSv5+FYhu6sl0psf+Wo2RpyM1HYpR33kX5Sh+baDqBxS2j8HwcNjOqLeTOp4rNce/w7x3m8ULwaJ8WwkHP8Z9fI=; c=relaxed/relaxed; s=default; d=mail.sdu.edu.cn; v=1;
+	bh=SrQBO4DXNz5cl5iYyYb4W1p5h9a2cEbxQXiC8gyTbFk=;
+	h=date:mime-version:subject:message-id:from;
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issues to consider:
-- [Medium] net/smc: smc_cdc_msg_recv_action() bounds diff_tx by prepared
-  not sent bytes
-- [Medium] net/smc: smc_cdc_msg_recv_action() leaves local_rx_ctrl.cons
-  unclamped
---
-
-commit 07f52f148d1ba914d6b4ce3e90b172be0a15f763
-Author: Piyus Kedia <piyus@iiitd.ac.in>
-
-net/smc: bound the DMB-nocopy send-buffer credit as well
-
-This commit bounds the send-buffer credit on the SMC-D DMB-nocopy path in
-smc_cdc_msg_recv_action() by the amount of data outstanding in the send
-buffer and advances tx_curs_fin by the bounded amount.
-
-Link: https://lore.kernel.org/all/20261122053223.2497832-2-piyus@iiitd.ac.i=
-n/
-
-> diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
-> index 32d6d03df3214..9ffa3e422aa1f 100644
-> --- a/net/smc/smc_cdc.c
-> +++ b/net/smc/smc_cdc.c
-> @@ -333,6 +333,7 @@ static void smc_cdc_msg_recv_action(struct smc_sock *=
-smc,
->  	union smc_host_cursor cons_old, prod_old;
->  	struct smc_connection *conn =3D &smc->conn;
->  	int diff_cons, diff_prod, diff_tx;
-> +	int sent;
-> =20
->  	smc_curs_copy(&prod_old, &conn->local_rx_ctrl.prod, conn);
->  	smc_curs_copy(&cons_old, &conn->local_rx_ctrl.cons, conn);
-> @@ -361,13 +362,26 @@ static void smc_cdc_msg_recv_action(struct smc_sock=
- *smc,
->  			diff_tx =3D smc_curs_diff(conn->sndbuf_desc->len,
->  						&conn->tx_curs_fin,
->  						&conn->local_rx_ctrl.cons);
-> +			/* This difference comes from the cursor the peer
-> +			 * reported, which is taken as it arrives.  A peer
-> +			 * cannot have consumed more than this side has
-> +			 * outstanding, so bound it by that and advance
-> +			 * tx_curs_fin by the bounded amount rather than
-> +			 * assigning the reported cursor: the invariant below
-> +			 * then holds by construction, and tx_curs_fin stays
-> +			 * inside the send buffer.
-> +			 */
-> +			sent =3D conn->sndbuf_desc->len -
-> +			       atomic_read(&conn->sndbuf_space);
-> +			diff_tx =3D min_t(int, diff_tx, max_t(int, sent, 0));
-
-[Severity: Medium]
-Can bounding diff_tx by conn->sndbuf_desc->len - sndbuf_space still advance
-conn->tx_curs_fin past conn->tx_curs_sent and credit sndbuf_space for
-prepared data that has not been sent yet?
-
-smc_tx_sendmsg() advances conn->tx_curs_prep and subtracts copylen from
-conn->sndbuf_space as soon as data is copied into the send buffer, before
-smc_tx_sndbuf_nonempty() advances conn->tx_curs_sent (which is skipped when
-corked via MSG_MORE or TCP_CORK).  When prepared-but-unsent bytes exist,
-conn->sndbuf_desc->len - sndbuf_space includes [tx_curs_sent, tx_curs_prep),
-so a peer consumer cursor ahead of tx_curs_sent pushes tx_curs_fin past
-tx_curs_sent and allows subsequent smc_tx_sendmsg() calls to overwrite the
-unsent bytes.  Should sent be computed with smc_curs_diff() between
-conn->tx_curs_fin and conn->tx_curs_sent, as smcd_cdc_msg_send() does?
-
->  			/* increase local sndbuf space and fin_curs */
->  			smp_mb__before_atomic();
->  			atomic_add(diff_tx, &conn->sndbuf_space);
->  			/* guarantee 0 <=3D sndbuf_space <=3D sndbuf_desc->len */
->  			smp_mb__after_atomic();
-> -			smc_curs_copy(&conn->tx_curs_fin,
-> -				      &conn->local_rx_ctrl.cons, conn);
-> +			smc_curs_add(conn->sndbuf_desc->len,
-> +				     &conn->tx_curs_fin, diff_tx);
-
-[Severity: Medium]
-Does advancing conn->tx_curs_fin by the clamped diff_tx while leaving
-conn->local_rx_ctrl.cons at the peer's raw cursor desynchronize the two
-cursors for subsequent CDC messages?
-
-smc_cdc_msg_to_host() has already written the unclamped cursor into
-conn->local_rx_ctrl.cons.  Once diff_tx is clamped, local_rx_ctrl.cons sits
-ahead of tx_curs_fin: if more data is sent and the peer advances its forged
-cursor by 1 byte, diff_cons is 1 and smc_cdc_msg_recv_action() recomputes
-diff_tx across the entire remaining gap between tx_curs_fin and the forged
-local_rx_ctrl.cons, crediting all newly sent bytes at once (whereas a later
-valid cursor below the forged cons_old yields diff_cons =3D=3D 0 and credits
-nothing).
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261123135327.3953=
-509-1-piyus@iiitd.ac.in?part=3D2
+SGkgTGVvbiwKClRoYW5rcyBmb3IgdGhlIHJldmlldy4KCuWPkeS7tuS6uu+8mkxlb24gUm9tYW5v
+dnNreSA8bGVvbkBrZXJuZWwub3JnPgrlj5HpgIHml6XmnJ/vvJoyMDI2LTExLTIyIDIzOjAyOjQ2
+CuaUtuS7tuS6uu+8miLmnY7lub/noZUiIDxsaWd1YW5nc2h1b0BtYWlsLnNkdS5lZHUuY24+CuaK
+hOmAgeS6uu+8mkRlbm5pcyBEYWxlc3NhbmRybyA8ZGVubmlzLmRhbGVzc2FuZHJvQGNvcm5lbGlz
+bmV0d29ya3MuY29tPixKYXNvbiBHdW50aG9ycGUgPGpnZ0B6aWVwZS5jYT4sbGludXgtcmRtYUB2
+Z2VyLmtlcm5lbC5vcmcsbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwrkuLvpopjvvJpSZTog
+UmU6IFtQQVRDSF0gSUIvaGZpMTogRml4IHBvdGVudGlhbCBsZWFrcyBpbiBJUG9JQiBUWCBxdWV1
+ZSBpbml0aWFsaXphdGlvbj5PbiBUaHUsIE5vdiAxOSwgMjAyNiBhdCAwODo0NDozOVBNICswODAw
+LCDmnY7lub/noZUgd3JvdGU6Cj4+IAo+PiBIaSBMZW9uLAo+PiAKPj4gVGhhbmtzIGZvciB0aGUg
+cmV2aWV3Lgo+PiAKPj4gRnJvbTogTGVvbiBSb21hbm92c2t5IDxsZW9uQGtlcm5lbC5vcmc+Cj4+
+IERhdGU6IDIwMjYtMTEtMTUgMjE6NTU6MjQKPj4gVG86ICBHdWFuZ3NodW8gTGkgPGxpZ3Vhbmdz
+aHVvQG1haWwuc2R1LmVkdS5jbj4KPj4gQ2M6ICBEZW5uaXMgRGFsZXNzYW5kcm8gPGRlbm5pcy5k
+YWxlc3NhbmRyb0Bjb3JuZWxpc25ldHdvcmtzLmNvbT4sSmFzb24gR3VudGhvcnBlIDxqZ2dAemll
+cGUuY2E+LGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnLGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5l
+bC5vcmcKPj4gU3ViamVjdDogUmU6IFtQQVRDSF0gSUIvaGZpMTogRml4IHBvdGVudGlhbCBsZWFr
+cyBpbiBJUG9JQiBUWCBxdWV1ZSBpbml0aWFsaXphdGlvbj5PbiBXZWQsIE5vdiAxMSwgMjAyNiBh
+dCAwODoyMzoxOVBNICswODAwLCBHdWFuZ3NodW8gTGkgd3JvdGU6Cj4+ID4+IFdoZW4gYW4gU0RN
+QSBoZWFkZXIgYWxsb2NhdGlvbiBmYWlscywgcm9sbGJhY2sgc2tpcHMgdGhlIGN1cnJlbnQgVFgK
+Pj4gPj4gcXVldWUuIEl0cyByaW5nIGFuZCBhbHJlYWR5IGFsbG9jYXRlZCBoZWFkZXJzIGFyZSBs
+ZWFrZWQuIEZyZWUgdGhlCj4+ID4+IHBhcnRpYWxseSBpbml0aWFsaXplZCByaW5nIGJlZm9yZSB1
+bndpbmRpbmcgdGhlIGNvbXBsZXRlZCBxdWV1ZXMuCj4+ID4KPj4gPmZyZWVfdHhfcmluZyBhbHJl
+YWR5IHBlcmZvcm1zIHRoYXQsIHNlZSAiZm9yIChqID0gMDsgaiA8IHR4X3Jpbmdfc2l6ZTsgaisr
+KSIKPj4gPmxvb3AuCj4+ID4KPj4gPlRoYW5rcwo+PiA+Cj4+ID4+IAo+PiA+PiBUaGlzIGlzc3Vl
+IHdhcyBmb3VuZCBieSBvdXIgc3RhdGljIGFuYWx5c2lzIHRvb2wgdW5kZXIgZGV2ZWxvcG1lbnQu
+Cj4+ID4+IAo+PiA+PiBGaXhlczogYzg3NGFkODc5YzJmICgiSUIvaGlmaTE6IGFkZCBhIG51bGwg
+Y2hlY2sgb2Yga3phbGxvY19ub2RlIGluIGhmaTFfaXBvaWJfdHhyZXFfaW5pdCIpCj4+ID4+IFNp
+Z25lZC1vZmYtYnk6IEd1YW5nc2h1byBMaSA8bGlndWFuZ3NodW9AbWFpbC5zZHUuZWR1LmNuPgo+
+PiA+PiAtLS0KPj4gPj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL2lwb2liX3R4LmMgfCA2
+ICsrKysrLQo+PiA+PiAgMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlv
+bigtKQo+PiA+PiAKPj4gPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkx
+L2lwb2liX3R4LmMgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvaGZpMS9pcG9pYl90eC5jCj4+ID4+
+IGluZGV4IDhiOWNjNTVkYjU5ZC4uMmU5MjI1YjU1OGI0IDEwMDY0NAo+PiA+PiAtLS0gYS9kcml2
+ZXJzL2luZmluaWJhbmQvaHcvaGZpMS9pcG9pYl90eC5jCj4+ID4+ICsrKyBiL2RyaXZlcnMvaW5m
+aW5pYmFuZC9ody9oZmkxL2lwb2liX3R4LmMKPj4gPj4gQEAgLTc0Myw3ICs3NDMsNyBAQCBpbnQg
+aGZpMV9pcG9pYl90eHJlcV9pbml0KHN0cnVjdCBoZmkxX2lwb2liX2Rldl9wcml2ICpwcml2KQo+
+PiA+PiAgCQkJCWt6YWxsb2Nfbm9kZShzaXplb2YoKnR4LT5zZG1hX2hkciksCj4+ID4+ICAJCQkJ
+CSAgICAgR0ZQX0tFUk5FTCwgcHJpdi0+ZGQtPm5vZGUpOwo+PiA+PiAgCQkJaWYgKCFoZmkxX3R4
+cmVxX2Zyb21faWR4KHR4X3JpbmcsIGopLT5zZG1hX2hkcikKPj4gPj4gLQkJCQlnb3RvIGZyZWVf
+dHhxczsKPj4gPj4gKwkJCQlnb3RvIGZyZWVfdHhfcmluZzsKPj4gPj4gIAkJfQo+PiA+PiAgCj4+
+ID4+ICAJCW5ldGlmX25hcGlfYWRkX3R4KGRldiwgJnR4cS0+bmFwaSwgaGZpMV9pcG9pYl9wb2xs
+X3R4X3JpbmcpOwo+PiA+PiBAQCAtNzUxLDYgKzc1MSwxMCBAQCBpbnQgaGZpMV9pcG9pYl90eHJl
+cV9pbml0KHN0cnVjdCBoZmkxX2lwb2liX2Rldl9wcml2ICpwcml2KQo+PiA+PiAgCj4+ID4+ICAJ
+cmV0dXJuIDA7Cj4+ID4+ICAKPj4gPj4gK2ZyZWVfdHhfcmluZzoKPj4gPj4gKwl3aGlsZSAoai0t
+KQo+PiA+PiArCQlrZnJlZShoZmkxX3R4cmVxX2Zyb21faWR4KHR4X3JpbmcsIGopLT5zZG1hX2hk
+cik7Cj4+ID4+ICsJa3ZmcmVlKHR4X3JpbmctPml0ZW1zKTsKPj4gPj4gIGZyZWVfdHhxczoKPj4g
+Pj4gIAlmb3IgKGktLTsgaSA+PSAwOyBpLS0pIHsKPj4gPj4gIAkJc3RydWN0IGhmaTFfaXBvaWJf
+dHhxICp0eHEgPSAmcHJpdi0+dHhxc1tpXTsKPj4gPj4gCj4+ID4+IGJhc2UtY29tbWl0OiA2NjI4
+ZTdkNGM2YjI1YzhkMThmMTM0NWUzYTIwZDIxODI5YWFlN2U0Cj4+ID4+IAo+PiA+Cj4+IAo+PiBU
+aGUgaiBsb29wIGZyZWVzIGFsbCB0aGUgaGVhZGVycyBpbiBlYWNoIHJpbmcgaXQgdmlzaXRzLiBB
+cyBJIHJlYWQKPj4gZnJlZV90eHFzLCB0aGUgb3V0ZXIgbG9vcCBzdGFydHMgd2l0aCBpLS0sIHNv
+IGl0IHNraXBzIHRoZSBxdWV1ZSB3aGVyZQo+PiB0aGUgaGVhZGVyIGFsbG9jYXRpb24gZmFpbGVk
+LiBJZiB0aGF0IGhhcHBlbnMgb24gcXVldWUgMCwgdGhlIGxvb3AKPj4gbmV2ZXIgcnVucy4KPj4g
+Cj4+IFdvdWxkIGl0IG1ha2Ugc2Vuc2UgdG8gcmV1c2UgdGhlIHJpbmcgY2xlYW51cCBmb3IgdGhl
+IHBhcnRpYWwgcXVldWUKPj4gYW5kIGtlZXAgbmV0aWZfbmFwaV9kZWwoKSBvbmx5IGZvciBxdWV1
+ZXMgd2hlcmUgTkFQSSB3YXMgYWRkZWQ/IElmIHNvLAo+PiBJJ2xsIHNlbmQgYSB2MiB0aGF0IGRv
+ZXMgdGhhdC4KPgo+SSB0aGluayB0aGF0IHRoaXMgd2lsbCBmaXggaXQuCj4KPmRpZmYgLS1naXQg
+YS9kcml2ZXJzL2luZmluaWJhbmQvaHcvaGZpMS9pcG9pYl90eC5jIGIvZHJpdmVycy9pbmZpbmli
+YW5kL2h3L2hmaTEvaXBvaWJfdHguYwo+aW5kZXggOGI5Y2M1NWRiNTlkOC4uMjNjMDZkODZiMjky
+MSAxMDA2NDQKPi0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL2lwb2liX3R4LmMKPisr
+KyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL2lwb2liX3R4LmMKPkBAIC03NTIsNyArNzUy
+LDcgQEAgaW50IGhmaTFfaXBvaWJfdHhyZXFfaW5pdChzdHJ1Y3QgaGZpMV9pcG9pYl9kZXZfcHJp
+diAqcHJpdikKPiAgICAgICAgcmV0dXJuIDA7Cj4KPiBmcmVlX3R4cXM6Cj4tICAgICAgIGZvciAo
+aS0tOyBpID49IDA7IGktLSkgewo+KyAgICAgICBmb3IgKGk7IGkgPj0gMDsgaS0tKSB7Cj4gICAg
+ICAgICAgICAgICAgc3RydWN0IGhmaTFfaXBvaWJfdHhxICp0eHEgPSAmcHJpdi0+dHhxc1tpXTsK
+Pgo+ICAgICAgICAgICAgICAgIG5ldGlmX25hcGlfZGVsKCZ0eHEtPm5hcGkpOwo+fgo+Cj4KPj4g
+Cj4+IFRoYW5rcywKPj4gR3VhbmdzaHVvCj4KCkluY2x1ZGluZyB0aGUgY3VycmVudCBxdWV1ZSB3
+b3VsZCBjb3ZlciB0aGUgbWlzc2luZyBoZWFkZXJzLiBUaGUgc2FtZQpsYWJlbCBpcyBhbHNvIHJl
+YWNoZWQgd2hlbiB0aGUgcmluZyBhbGxvY2F0aW9uIGZhaWxzLCB0aG91Z2gsIGFuZCBOQVBJCmhh
+cyBub3QgYmVlbiBhZGRlZCBmb3IgdGhlIGN1cnJlbnQgcXVldWUgb24gZWl0aGVyIGZhaWx1cmUg
+cGF0aC4KCkkgdGhpbmsgd2UgY2FuIHVzZSB0aGF0IGxvb3AgYnkgcmVnaXN0ZXJpbmcgTkFQSSBi
+ZWZvcmUgdGhlIGFsbG9jYXRpb25zCmFuZCBza2lwcGluZyB0aGUgaGVhZGVyIHdhbGsgd2hlbiB0
+aGUgcmluZyBpcyBOVUxMLiBXb3VsZCB0aGF0IGJlIGEKcmVhc29uYWJsZSB3YXkgdG8gaGFuZGxl
+IHRoZSBwYXJ0aWFsIHF1ZXVlPyBJZiBzbywgSSdsbCBzZW5kIGEgdjIuCgpUaGFua3MsCkd1YW5n
+c2h1bwo=
