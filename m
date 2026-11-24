@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795525072;
-	b=2ELrbTgmNITLFp8hBgw2UbC9k7+eVTuCjMASYFMkaLd6G5xYL3y1WP3Oi9eZ9eINtZi4
-	 2vUPe4uS082wqFeIIF4nkYG5rVVeX9hbHotzhtiWE7KYUSS01rIAvzoFagD5Vfz15Ic0r
-	 F0v6wj7glAVWjExBzPdBTDIWjZYJAg8ghl9BJ1HukGra866Kti0AiDfuzW6tftpPlO5HE
-	 zE188c8TPhg2aKheUDHqBR7f5CP6Kt+VTFX/4tOxzySuMk/22d0D7xtOlfquAOMeuJmbs
-	 slZAv0/sZVKEh7K5yEoky7okvT9eospTOexYRXf/FzAVlHFySPUmbqEa9aYAyhGj04w==
+	t=1795525084;
+	b=tNAy+6NPjzCGp65MsQtVDLOrKnqXAPlwLyC4rYoN8FhRWSC8YrdPegIvbSPoNTrX2RJL
+	 2FxuAA+Xglvt+GBrUiBVbaTpWW5FJG+ijdc4odN5/kYpjRtYtJ/nZW2UjdHepXjv9VU1w
+	 Zu9lhkAZN+hjaNNgWLmTGPhVebEkuX4wlGiZaCixZcmGjsqyqMjOV+jR9UmvFgx0Nr4s4
+	 lpYsBpWj2cipzEzg5wrHotZaTnLzp3AD9D7lveu8+uWNeqIRhLW2YYImOmZGvRle7GC9N
+	 CbBTITWN0bAypsGFtIEU8y7F5OjtCmxw9nJ1x4uCrpoEp+PxKhWF6dM3MyAebP05E1Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795525072;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795525084;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=D1yRI2yItmD+irGFKYrlKRL9eZ4pOJtSvhWJj7f6yqk=;
-	b=PU+Fd+vvwS8DfpZajmjE5BsLkNy9Feop6FboUU3KY536DBncr+3mH9uSj1qt0ptn6T9g
-	 EhCb93RQemTc6QMIM3ajOncBbUCUs4oONGfE5ceAOKZZVwRZsbOw8smAuhtUBhjRRSrJg
-	 2SwYTCNRbdMYvTEFhrnm/x3ZKn64iaip0OCyJKAcJvf48u0i4pwggL4ou1TcOI8j6DtIO
-	 cjXqQT5KGyQnG3yRfnbGIuQ3i0yU6QDgqBW8Ab1JN61TK82TCFinRCVgri/39NpQnnIhV
-	 a7MzMGaMezEsalkuemLNKliqJhldVPE9nkoMek5lUAo27RaJK6r0CjCuL0WwFsS8ihw==
+	bh=30u9uyHWEQkkhYEnv4CR+vpY+wZPioS6NouB3Hcke60=;
+	b=17jAkzTaBbrs2gTwd0Lcz3gmI7XM52xXg3D9CmYJgyxSkxT3grZ/7j1dFHy9gXq2rAiS
+	 najd0NHJkaQjhCTVi13/1OWYaVuGaaYU+Mi3C1CJe+lLf37zoumLd09659IEN0v0gt/u4
+	 uamxg5RTcgZcBgm3vAFq+gAGuxvbDbldhm/Vmtg9j67A2WqqxTTVXz+E7ecnJ710RrzRe
+	 nKury9o4cSDq90PBp1xbzqIlMZF48OhSdObs6Hibxq5col/XxtzaR/gM4OUM0SKRi3ncR
+	 0oZdLNsqRdy5Z9IDwES14sjNSXnupNakWQMdWbhLDMYRhRsN7zPc+LKqzb8Mnph5WpQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PCjZ+DFd;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cdmBNWx+;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBA80606A31E;
-	Tue, 24 Nov 2026 12:57:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EAA8606A682;
+	Tue, 24 Nov 2026 12:58:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PCjZ+DFd
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23DEF1F000D1;
-	Tue, 24 Nov 2026 12:57:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cdmBNWx+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 678961F000CA;
+	Tue, 24 Nov 2026 12:57:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795525071;
-	bh=D1yRI2yItmD+irGFKYrlKRL9eZ4pOJtSvhWJj7f6yqk=;
+	s=k20260515; t=1795525083;
+	bh=30u9uyHWEQkkhYEnv4CR+vpY+wZPioS6NouB3Hcke60=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=PCjZ+DFdac0b8hSXOatNivr3xZhSoAAzyg1PcEvtZf6tvB0KuFQ+W+6FhunjfSNj5
-	 dmkdTFFof5w5PklZ9d2S/pP32loY5K5wJfEGOOcwp/YRcyngSGJezZ1VwSJpBKLnVG
-	 eOT6RogktDgQgSD8zHsHE8HA5BeQUpcvXIfgU4snii+IYx7I6R/Q2Kq0hVQ+3rEyeK
-	 lr39PQiMSUf7qlieqXMhh6w/aoB0nRw0rbUWNo0a8NhU4oUoHIqXCXkfFdW1LW3YGD
-	 48TqiMt+pwYxCEO2m9eDwDlm0PNIokQdOSlciXxbqExFGuRBqkDA1JOhacobICUiPc
-	 Bg3ErF6zYKjRg==
+	b=cdmBNWx+ZVBXZuJnp9GgmfNXoO3aMKr5AKzwehKkJxkSoWlFiCNGH8HhM98V1eaSs
+	 wKU5KzOVlOZ+LcCLq1q8vkD6Awi8ULpXMcnPK+uKZi1WgWBEFCk27CuTzoniatpwY2
+	 Qx0h0AQFjUAK+9UtKEFOvHD35Ao7JV0cVJurzYEZ6MOGuR3cuiRZqwASlbhzpY6wmz
+	 xA4aNKtw7jws9gPeGz6x+tWA4KTT9cbI3Uj/NI7xhsqHlbxM0DleXjGX/FecCOLldv
+	 0KEaAG/8WlGkpeMUdIwWavm/iC4J726REaii6gzyfbrQuaFj4IuCDvZGF9mPI0CnUa
+	 lW/G4dsA3KXAg==
 From: =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn@kernel.org>
 To: Magnus Karlsson <magnus.karlsson@intel.com>,
 	Maciej Fijalkowski <maciej.fijalkowski@intel.com>,
@@ -99,9 +99,9 @@ Cc: Stuart Clark <stuclar@meta.com>,
 	linux-kselftest@vger.kernel.org,
 	linux-doc@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH net-next 04/15] page_pool: Let memory providers take back net_iovs
-Date: Tue, 24 Nov 2026 13:56:39 +0100
-Message-ID: <20261124125654.183091-4-bjorn@kernel.org>
+Subject: [PATCH net-next 05/15] xdp: Run programs on buffers that must not hold kernel structures
+Date: Tue, 24 Nov 2026 13:56:40 +0100
+Message-ID: <20261124125654.183091-5-bjorn@kernel.org>
 X-Mailer: git-send-email 2.56.1
 In-Reply-To: <20261124112707.118678-1-bjorn@kernel.org>
 References: <20261124112707.118678-1-bjorn@kernel.org>
@@ -117,125 +117,325 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Currently, the only provider hook on the last put of a net_iov is
-release_netmem(), which takes it out of its page pool. The AF_XDP
-sink, later in this series, gives a chunk back to userspace only once
-the device is done with it too, so it must see that last put. With
-release_netmem(), the pool would take the chunk in again each time
-userspace lends it back.
+Currently, the core refuses native XDP programs next to a memory
+provider. An AF_XDP sink needs XDP to steer its packets and to use the
+RX metadata kfuncs. Its buffers are UMEM chunks that XDP may read
+through the kernel mapping, but that userspace may write at any time,
+also while the kernel reads them. If drivers build XDP buffers on them
+as on pages, the core puts kernel structures into them, such as the
+shared info of a multi-buffer packet, the xdp_frame of XDP_TX and
+redirects, and the skb of XDP_PASS.
 
-Let a provider mark a net_iov so that its last put goes to the
-provider's hand_off() instead of the page pool cache, still charged to
-the pool, for the provider to put back later.
+Let programs run on sink buffers as on pages, and keep every kernel
+structure out of them.
 
-The hand-off also covers the fragment allocator draining a marked
-net_iov. Providers that mark net_iovs must implement hand_off(), and
-nothing changes for others, as the mark is clear by default. Also give
-providers a byte of their own in the net_iov, in the cache line they
-touch anyway.
+A sink offers an XDP view of its UMEM, so drivers build the buffer as
+for a page, while netmem_address() and skb_frag_address() still give
+NULL for sink net_iovs. Programs and helpers read and write the packet
+in place, fragments included. xdp_prepare_buff() tells a sink head by
+its address, with one range check under a static key, and marks the
+buffer before the driver adds fragments. Other buffers pay nothing
+while no sink is bound.
+
+A marked buffer keeps its shared info in the queue, with
+XDP_FLAGS_SINFO_EXT, set up when the driver registers a sink page pool
+as its memory model.
+
+A sink buffer may only go to the AF_XDP socket of its queue. The core
+turns XDP_TX and XDP_PASS into XDP_DROP, so drivers need no checks of
+their own. XDP_ABORTED and invalid verdicts reach the driver, which
+traces them and drops the packet. Frame conversion and skb
+construction refuse sink buffers too, so devmap and cpumap drop them,
+and sink net_iovs never become skb frags, so every net_iov frag stays
+unreadable.
+
+As userspace may change the bytes meanwhile, the kernel takes bounds
+only from its own fields, and only the program and its helpers read
+the bytes. A helper that reads bytes twice must check a copy.
 
 Signed-off-by: Björn Töpel <bjorn@kernel.org>
 ---
- include/net/netmem.h                    |  8 ++++++++
- include/net/page_pool/memory_provider.h |  6 ++++++
- net/core/page_pool.c                    | 20 +++++++++++++++++++-
- 3 files changed, 33 insertions(+), 1 deletion(-)
+ include/net/netmem.h          |  5 ++-
+ include/net/page_pool/types.h |  7 ++--
+ include/net/xdp.h             | 60 +++++++++++++++++++++++++++++++++--
+ net/core/xdp.c                | 46 +++++++++++++++++++++++++--
+ 4 files changed, 108 insertions(+), 10 deletions(-)
 
 diff --git a/include/net/netmem.h b/include/net/netmem.h
-index 4cf4ee1cd55d..1be7298ac6d9 100644
+index 1be7298ac6d9..834a735e33a7 100644
 --- a/include/net/netmem.h
 +++ b/include/net/netmem.h
-@@ -97,6 +97,12 @@ enum net_iov_type {
- struct net_iov {
- 	struct netmem_desc desc;
- 	enum net_iov_type type;
-+	/* The last put hands it to its memory provider instead of the page
-+	 * pool cache, see &memory_provider_ops.hand_off
-+	 */
-+	bool mp_hand_off;
-+	/* Owned by the memory provider */
-+	u8 mp_state;
- 	struct net_iov_area *owner;
+@@ -68,6 +68,7 @@ DECLARE_STATIC_KEY_FALSE(page_pool_mem_providers);
+ enum net_iov_type {
+ 	NET_IOV_DMABUF,
+ 	NET_IOV_IOURING,
++	NET_IOV_XSK,
  };
  
-@@ -132,6 +138,8 @@ static inline void net_iov_init(struct net_iov *niov,
- {
- 	niov->owner = owner;
- 	niov->type = type;
-+	niov->mp_hand_off = false;
-+	niov->mp_state = 0;
- }
+ /* A memory descriptor representing abstract networking I/O vectors.
+@@ -81,7 +82,9 @@ enum net_iov_type {
+  * CPU-readable or unreadable. New code must not assume net_iov implies
+  * unreadable memory (check readability via netmem_address() or
+  * skb_frags_readable() instead) and should, as much as possible, generalize
+- * existing limitations to match the design principles.
++ * existing limitations to match the design principles. AF_XDP sink
++ * net_iovs (%NET_IOV_XSK) are unreadable for the core and the stack as well:
++ * only XDP reads them, through their XDP view (&net_iov_area.xdp_vaddr).
+  *
+  * @pp_magic:	pp field, similar to the one in struct page/struct
+  *		netmem_desc.
+diff --git a/include/net/page_pool/types.h b/include/net/page_pool/types.h
+index 35d4dc45db6a..e932d836316f 100644
+--- a/include/net/page_pool/types.h
++++ b/include/net/page_pool/types.h
+@@ -33,9 +33,10 @@
  
- /* netmem */
-diff --git a/include/net/page_pool/memory_provider.h b/include/net/page_pool/memory_provider.h
-index d52c7a450c68..bfc284158222 100644
---- a/include/net/page_pool/memory_provider.h
-+++ b/include/net/page_pool/memory_provider.h
-@@ -36,6 +36,12 @@ enum mp_flags {
- struct memory_provider_ops {
- 	netmem_ref (*alloc_netmems)(struct page_pool *pool, gfp_t gfp);
- 	bool (*release_netmem)(struct page_pool *pool, netmem_ref netmem);
-+	/* Takes a free net_iov marked mp_hand_off that stays charged to the
-+	 * pool; the provider puts it back later. Returns false to have the
-+	 * pool recycle it instead. Called where the pool puts netmem, outside
-+	 * hard IRQ context. Needed by providers that mark net_iovs.
+ /*
+  * Allow an XDP-only memory provider of the queue (%MP_XDP_ONLY) to back the
+- * pool. The driver registers the pool as the memory model of the RX queue,
+- * sets up XDP buffers with xdp_prepare_buff() at xdp_netmem_address() of
+- * their head, and puts heads back by netmem, not by address.
++ * pool. The driver registers the pool as the memory model of the RX queue
++ * with xdp_rxq_info_reg_mem_model(), sets up XDP buffers with
++ * xdp_prepare_buff() at xdp_netmem_address() of their head, and puts heads
++ * back by netmem, not by address.
+  */
+ #define PP_FLAG_ALLOW_XDP_ONLY_NETMEM BIT(4)
+ 
+diff --git a/include/net/xdp.h b/include/net/xdp.h
+index 944418111a86..c7cb0ba4e16f 100644
+--- a/include/net/xdp.h
++++ b/include/net/xdp.h
+@@ -65,6 +65,10 @@ struct xdp_rxq_info {
+ 	u32 reg_state;
+ 	struct xdp_mem_info mem;
+ 	u32 frag_size;
++	/* Area of the MP_XDP_ONLY provider of the page pool, see
++	 * xdp_sink_mark()
 +	 */
-+	bool (*hand_off)(struct page_pool *pool, netmem_ref netmem);
- 	int (*init)(struct page_pool *pool);
- 	void (*destroy)(struct page_pool *pool);
- 	int (*nl_fill)(void *mp_priv, struct sk_buff *rsp,
-diff --git a/net/core/page_pool.c b/net/core/page_pool.c
-index 8a1ea21ccdcd..200b0569b9fe 100644
---- a/net/core/page_pool.c
-+++ b/net/core/page_pool.c
-@@ -840,6 +840,16 @@ static bool __page_pool_page_can_be_recycled(netmem_ref netmem)
- 		!page_is_pfmemalloc(netmem_to_page(netmem)));
++	struct net_iov_area *sink_area;
+ 	/* Shared info of buffers with %XDP_FLAGS_SINFO_EXT, in kernel
+ 	 * memory, see xdp_rxq_info_reg_ext_sinfo(). The queue builds one
+ 	 * such buffer at a time.
+@@ -95,6 +99,15 @@ enum xdp_buff_flags {
+ 	 * frame, see xdp_data_hard_end(): the frame must hold nothing else.
+ 	 */
+ 	XDP_FLAGS_SINFO_EXT		= BIT(3),
++	/* AF_XDP sink memory, see %MP_XDP_ONLY: the buffer may only go to the
++	 * AF_XDP socket of its queue. Userspace may write it at any time,
++	 * also while the kernel reads it. So the kernel takes bounds only
++	 * from its own fields, and only the XDP program and its helpers read
++	 * the bytes. A helper that checks bytes and reads them again later
++	 * must check a copy, see bpf_syncookie_th(). Nothing builds a frame
++	 * or an skb in the buffer.
++	 */
++	XDP_FLAGS_SINK			= BIT(4),
+ };
+ 
+ struct xdp_buff {
+@@ -150,6 +163,14 @@ static __always_inline void xdp_buff_set_frag_unreadable(struct xdp_buff *xdp)
+ 	xdp->flags |= XDP_FLAGS_FRAGS_UNREADABLE;
  }
  
-+/* A memory provider takes back a free net_iov it marked, see
-+ * &memory_provider_ops.hand_off
-+ */
-+static bool page_pool_hand_off(struct page_pool *pool, netmem_ref netmem)
++static __always_inline bool xdp_buff_is_sink(const struct xdp_buff *xdp)
 +{
-+	return netmem_is_net_iov(netmem) &&
-+	       unlikely(netmem_to_net_iov(netmem)->mp_hand_off) &&
-+	       pool->mp_ops->hand_off(pool, netmem);
++	return !!(xdp->flags & XDP_FLAGS_SINK);
 +}
 +
- /* If the page refcnt == 1, this will try to recycle the page.
-  * If pool->dma_sync is set, we'll try to sync the DMA area for
-  * the configured size min(dma_sync_size, pool->max_len).
-@@ -852,6 +862,10 @@ __page_pool_put_page(struct page_pool *pool, netmem_ref netmem,
++/* Enabled while an AF_XDP socket receives in the device's buffer layout */
++DECLARE_STATIC_KEY_FALSE(xdp_sink_key);
++
+ static __always_inline u32 xdp_buff_get_skb_flags(const struct xdp_buff *xdp)
  {
- 	lockdep_assert_no_hardirq();
+ 	return xdp->flags;
+@@ -178,6 +199,21 @@ xdp_init_buff(struct xdp_buff *xdp, u32 frame_sz, struct xdp_rxq_info *rxq)
+ #endif
+ }
  
-+	/* The provider takes the net_iovs it marked */
-+	if (page_pool_hand_off(pool, netmem))
-+		return 0;
++/* Drivers take the address of a head buffer with xdp_netmem_address(),
++ * which for an AF_XDP sink lies in its XDP view, the UMEM, see
++ * &net_iov_area.xdp_vaddr. Mark such buffers before the driver adds
++ * fragments: their shared info lives in the queue, and they may only go to
++ * the AF_XDP socket of the queue.
++ */
++static __always_inline void xdp_sink_mark(struct xdp_buff *xdp)
++{
++	struct net_iov_area *area = xdp->rxq->sink_area;
++	unsigned long off = (u8 *)xdp->data_hard_start - (u8 *)area->xdp_vaddr;
 +
- 	/* This allocator is optimized for the XDP mode that uses
- 	 * one-frame-per-page, but have fallbacks that act like the
- 	 * regular page allocator APIs.
-@@ -1051,6 +1065,9 @@ static netmem_ref page_pool_drain_frag(struct page_pool *pool,
- 	if (likely(page_pool_unref_netmem(netmem, drain_count)))
- 		return 0;
- 
-+	if (page_pool_hand_off(pool, netmem))
-+		return 0;
++	if (off < area->xdp_vsize)
++		xdp->flags |= XDP_FLAGS_SINK | XDP_FLAGS_SINFO_EXT;
++}
 +
- 	if (__page_pool_page_can_be_recycled(netmem)) {
- 		page_pool_dma_sync_for_device(pool, netmem, -1);
- 		return netmem;
-@@ -1067,7 +1084,8 @@ static void page_pool_free_frag(struct page_pool *pool)
+ /* XDP view of net_iovs: a memory provider may give XDP an address for its
+  * net_iovs, see &net_iov_area.xdp_vaddr. XDP code may read and write a
+  * net_iov only through these helpers, and only if its provider offers a
+@@ -212,6 +248,9 @@ static __always_inline void *xdp_frag_address(const skb_frag_t *frag)
+ 	return addr ? addr + skb_frag_off(frag) : NULL;
+ }
  
- 	pool->frag_page = 0;
++/* Marks sink buffers in @xdp->flags too: call it after xdp_init_buff(), which
++ * clears the flags
++ */
+ static __always_inline void
+ xdp_prepare_buff(struct xdp_buff *xdp, unsigned char *hard_start,
+ 		 int headroom, int data_len, const bool meta_valid)
+@@ -222,6 +261,10 @@ xdp_prepare_buff(struct xdp_buff *xdp, unsigned char *hard_start,
+ 	xdp->data = data;
+ 	xdp->data_end = data + data_len;
+ 	xdp->data_meta = meta_valid ? data : data + 1;
++
++	if (static_branch_unlikely(&xdp_sink_key) && xdp->rxq &&
++	    unlikely(xdp->rxq->sink_area))
++		xdp_sink_mark(xdp);
+ }
  
--	if (!netmem || page_pool_unref_netmem(netmem, drain_count))
-+	if (!netmem || page_pool_unref_netmem(netmem, drain_count) ||
-+	    page_pool_hand_off(pool, netmem))
- 		return;
+ /* Reserve memory area at end-of data area.
+@@ -348,8 +391,12 @@ static inline bool xdp_buff_add_frag(struct xdp_buff *xdp, netmem_ref netmem,
  
- 	page_pool_return_netmem(pool, netmem);
+ 	if (unlikely(netmem_is_pfmemalloc(netmem)))
+ 		xdp_buff_set_frag_pfmemalloc(xdp);
+-	if (unlikely(netmem_is_net_iov(netmem)))
++	if (unlikely(netmem_is_net_iov(netmem))) {
+ 		xdp_buff_set_frag_unreadable(xdp);
++		/* AF_XDP sink memory may only go to the socket of its queue */
++		if (netmem_to_net_iov(netmem)->type == NET_IOV_XSK)
++			xdp->flags |= XDP_FLAGS_SINK;
++	}
+ 
+ 	return true;
+ }
+@@ -478,8 +525,10 @@ int xdp_update_frame_from_buff(const struct xdp_buff *xdp,
+ 		return -ENOSPC;
+ 	}
+ 
+-	/* A frame keeps its shared info in the buffer */
+-	if (unlikely(xdp->flags & XDP_FLAGS_SINFO_EXT))
++	/* Sink buffers go to their AF_XDP socket, or nowhere. A frame keeps
++	 * its shared info in the buffer.
++	 */
++	if (unlikely(xdp->flags & (XDP_FLAGS_SINK | XDP_FLAGS_SINFO_EXT)))
+ 		return -EFAULT;
+ 
+ 	xdp_frame->data = xdp->data;
+@@ -763,6 +812,11 @@ static __always_inline u32 bpf_prog_run_xdp(const struct bpf_prog *prog,
+ 	 */
+ 	u32 act = __bpf_prog_run(prog, xdp, BPF_DISPATCHER_FUNC(xdp));
+ 
++	/* Sink buffers go to the AF_XDP socket of their queue, or nowhere */
++	if (static_branch_unlikely(&xdp_sink_key) && xdp_buff_is_sink(xdp) &&
++	    (act == XDP_PASS || act == XDP_TX))
++		act = XDP_DROP;
++
+ 	if (static_branch_unlikely(&bpf_master_redirect_enabled_key)) {
+ 		if (act == XDP_TX && netif_is_bond_slave(xdp->rxq->dev))
+ 			act = xdp_master_redirect(xdp);
+diff --git a/net/core/xdp.c b/net/core/xdp.c
+index 3472b03ee661..b22944f84d93 100644
+--- a/net/core/xdp.c
++++ b/net/core/xdp.c
+@@ -15,6 +15,7 @@
+ #include <linux/rhashtable.h>
+ #include <linux/bug.h>
+ #include <net/page_pool/helpers.h>
++#include <net/page_pool/memory_provider.h>
+ 
+ #include <net/hotdata.h>
+ #include <net/netdev_lock.h>
+@@ -142,6 +143,7 @@ void xdp_rxq_info_unreg_mem_model(struct xdp_rxq_info *xdp_rxq)
+ 	}
+ 
+ 	xdp_unreg_mem_model(&xdp_rxq->mem);
++	xdp_rxq->sink_area = NULL;
+ 	kfree(xdp_rxq->ext_sinfo);
+ 	xdp_rxq->ext_sinfo = NULL;
+ }
+@@ -334,11 +336,26 @@ static struct xdp_mem_allocator *__xdp_reg_mem_model(struct xdp_mem_info *mem,
+ 	return ERR_PTR(errno);
+ }
+ 
++/* The page pool has an MP_XDP_ONLY provider */
++static bool xdp_mem_is_sink(enum xdp_mem_type type, void *allocator)
++{
++	struct page_pool *pp = allocator;
++
++	return type == MEM_TYPE_PAGE_POOL && pp && pp->mp_ops &&
++	       pp->mp_ops->flags & MP_XDP_ONLY;
++}
++
+ int xdp_reg_mem_model(struct xdp_mem_info *mem,
+ 		      enum xdp_mem_type type, void *allocator)
+ {
+ 	struct xdp_mem_allocator *xdp_alloc;
+ 
++	/* Sink buffers need the area and shared info that only
++	 * xdp_rxq_info_reg_mem_model() sets up
++	 */
++	if (xdp_mem_is_sink(type, allocator))
++		return -EOPNOTSUPP;
++
+ 	xdp_alloc = __xdp_reg_mem_model(mem, type, allocator);
+ 	if (IS_ERR(xdp_alloc))
+ 		return PTR_ERR(xdp_alloc);
+@@ -346,23 +363,44 @@ int xdp_reg_mem_model(struct xdp_mem_info *mem,
+ }
+ EXPORT_SYMBOL_GPL(xdp_reg_mem_model);
+ 
++DEFINE_STATIC_KEY_FALSE(xdp_sink_key);
++EXPORT_SYMBOL_GPL(xdp_sink_key);
++
+ int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
+ 			       enum xdp_mem_type type, void *allocator)
+ {
++	bool had_sinfo = xdp_rxq->ext_sinfo;
+ 	struct xdp_mem_allocator *xdp_alloc;
++	int err;
+ 
+ 	if (xdp_rxq->reg_state != REG_STATE_REGISTERED) {
+ 		WARN(1, "Missing register, driver bug");
+ 		return -EFAULT;
+ 	}
+ 
++	/* Userspace may write sink buffers: their shared info lives here */
++	if (xdp_mem_is_sink(type, allocator)) {
++		err = xdp_rxq_info_reg_ext_sinfo(xdp_rxq);
++		if (err)
++			return err;
++	}
++
+ 	xdp_alloc = __xdp_reg_mem_model(&xdp_rxq->mem, type, allocator);
+-	if (IS_ERR(xdp_alloc))
++	if (IS_ERR(xdp_alloc)) {
++		if (!had_sinfo) {
++			kfree(xdp_rxq->ext_sinfo);
++			xdp_rxq->ext_sinfo = NULL;
++		}
+ 		return PTR_ERR(xdp_alloc);
++	}
+ 
+ 	if (type == MEM_TYPE_XSK_BUFF_POOL && allocator)
+ 		xsk_pool_set_rxq_info(allocator, xdp_rxq);
+ 
++	/* MP_XDP_ONLY providers put their net_iov_area first in mp_priv */
++	xdp_rxq->sink_area = xdp_mem_is_sink(type, allocator) ?
++			     ((struct page_pool *)allocator)->mp_priv : NULL;
++
+ 	if (trace_mem_connect_enabled() && xdp_alloc)
+ 		trace_mem_connect(xdp_alloc, xdp_rxq);
+ 	return 0;
+@@ -664,8 +702,10 @@ struct sk_buff *xdp_build_skb_from_buff(const struct xdp_buff *xdp)
+ 	u32 nr_frags = 0;
+ 	int metalen;
+ 
+-	/* An skb keeps its shared info in the buffer */
+-	if (unlikely(xdp->flags & XDP_FLAGS_SINFO_EXT))
++	/* Sink buffers go to their AF_XDP socket, or nowhere. An skb keeps
++	 * its shared info in the buffer.
++	 */
++	if (unlikely(xdp->flags & (XDP_FLAGS_SINK | XDP_FLAGS_SINFO_EXT)))
+ 		return NULL;
+ 
+ 	if (unlikely(xdp_buff_has_frags(xdp))) {
 -- 
 2.56.1
 
