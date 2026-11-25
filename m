@@ -1,61 +1,96 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.43
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795560471;
-	b=OruRFVXnqtJlnwU0mDYm7wMHMhI5TETK2Ehntkn1vriJN0Af4NoEtFKHzSXC32idwRbF
-	 b9fkcY43aD9P8jj5+wI+52hFTLBUU2shCfcT/Icdi5LBVw81W8OdeuTnmlS19VIBx/TQ4
-	 gCNovHVpk0u1oF9kHm7urCOT2M0vUOTDJ+5rb3RrU92UrlqUR0ZTXf+m0d7cFK0D9o0BX
-	 2MFq/G0uobzlQTZoo4wsSIhARjkMD7d1J++7dQyw5fa1rA1Xxu4mODq2qV+SWy5i7BMqe
-	 FGkYlC6K1+GCL4kABMKYw/TvWydSq97LcfV6n4wZ6I+W5TteoosCYsIJAe24LRSYaSg==
+	t=1795573790;
+	b=CcdFDqOahuVPpzZXiaI2ac0ib7YdPaqYoQK0B7QlTQl4ZniG7fSCplH+QVJJWXt6VZft
+	 tZvwyLv3qBqjC9AykyD8R+ZxHtLCsQ8LPEwtGhW3K9+AgXJKYz0BBsrof4d6dcfbhRJFD
+	 zEdg7NC/Z/spII0f/ocL1S93/ZFao7/V7g4WupOQfub79g8j7B6Uz1RSD5p/17t2PuUS4
+	 xt9KWLsCjlQt/GFYhTBkJXgPu/YRIZSgIsE+t1D7WLMLv9wQaAfruG2GWOURWOUv8CDt2
+	 Bj8iq9muDVtL/hD8tZXhTum4vAjDy6wfDijjb/ulmAGm8+tUFqmqYgke+/LpkkSj/qg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795560471;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=0R1qd0ZsGZVW1mj41hnJZL6GPjctmE+pDYfhYYzhDAg=;
-	b=PDZp9VGgLX7aU9UdOWNTnyBisocrHAuKU3DjvXFV8jp191DphoZZeTadUCRcrK46FkcR
-	 w4JVQghhMi6ljR09g5wRIfXooYJYb28Gow7iUwQbK0LZ54f2f6fDsMspgOnAPlRA03v7I
-	 rqV8IGnYsQ+wO0FnLZh3SMEOrG8Ov/S/8MDIsQUSBYwRvVFcKtbUbqrZ5a5JjP1tt7RjE
-	 nlxdXiBnJf9l/sB7PGLdXS7WJXnio1ZuP1DyHc1d8dfYT/XU+OYV70QV1lY/MM12x9U1j
-	 PzaQEKmIAsBangIPgi6RMDB6tZya3I05F9WFvJficL8674HXpDpTmhP4v+Rwdy4OxDA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795573790;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=5yYpKRVT2piPSpwzX/oy6NpReWj0wAGbXHq7GXlOkoI=;
+	b=TavY5mYQH+ZiSfVdMKJMQCdZ0izudRLc7R+27RHmcz4W1Ne0dCst7hlValccy6R2oaRl
+	 Q/U5HDspq6Cuo64uwWxTckIo12eR8YKTxVnhA6TCzQkKQiyknfTTJjR3CSqARzEjQxoTc
+	 xjdQveEopQfWC2ys/cbmXfoKHUl7MpESs+YYu9nw4ZQ7TJ6R9bOT2yFl9yKUIdm7LrxqA
+	 0b6jS3qUXwy1+vhEoIP/UGNEOuoZT77IbkGHlYjevYBaRNxOFqptzSDjD0CdCJuiLYXeL
+	 1ld/ntVvotCOjXMcjVQCIBmoje2zMT9SJinMDyqKjPhKeqfBHl2H0cxSPDWQcm8KR0g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NJ8pZ6EC;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Iu9M4RWs;
+	arc=none smtp.remote-ip=74.125.82.43
+Received: from mail-dl1-f43.google.com (mail-dl1-f43.google.com [74.125.82.43])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 731DB606A31E;
-	Tue, 24 Nov 2026 22:47:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE58B606A338
+	for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 02:29:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DE58B606A338
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NJ8pZ6EC
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 470F01F000C6;
-	Tue, 24 Nov 2026 22:47:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795560471;
-	bh=0R1qd0ZsGZVW1mj41hnJZL6GPjctmE+pDYfhYYzhDAg=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=NJ8pZ6EC9yA6FRSGxZpPrg9xYa0CZA3wlj4Q1S5oCejZ5AfDJ+CTr9lIr26yq4V+v
-	 WuKi8qT3aisUBL5wIIGNiN3UcMAtUO2H3ISmywkAl/xlBWU636Lq8auPolmN1zjt+h
-	 U4Tpjs51k9zo3nTKtqV4NzoSltqnxSpzuEX8evEJFj+XWFcEZffcizl2DKg3ddaRm8
-	 ndhQrqftOcO4KiYYWn0b6bfN4ZBSUX7wsWDC+kcJU9TLOykFnCFCiXUKLc2RoAIHVV
-	 sHf+52SoDO3xggbocnDKMNd6ssxfy5sTfTowj+XwNkZxZIcrTiba2vemmsVllkKYBp
-	 QTvxkI0RM2L+g==
-Subject:
- Re: [PATCH net] net/mlx5: HWS, fix action STE double free on rule update
-From: netdev-bot+sashiko@kernel.org
-To: acassen@corp.free.fr
-Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
- andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, moshe@nvidia.com,
- kliteyn@nvidia.com, vdogaru@nvidia.com, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org
-Date: Tue, 24 Nov 2026 22:47:49 +0000
-Message-ID: <179556046979.3135.2314506196260150359@kernel.org>
-In-Reply-To: <20261123221310.4045513-1-acassen@corp.free.fr>
-References: <20261123221310.4045513-1-acassen@corp.free.fr>
-X-sashiko-severity: High
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=Iu9M4RWs
+Received: by mail-dl1-f43.google.com with SMTP id a92af1059eb24-1ae58d17cd9so5515113c88.1
+        for <linux-rdma@vger.kernel.org>; Tue, 24 Nov 2026 18:29:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1795573789; x=1796178589; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=5yYpKRVT2piPSpwzX/oy6NpReWj0wAGbXHq7GXlOkoI=;
+        b=Iu9M4RWsRk9WdnsnZHLPXIDN0e9I/69xL9VPLjYcrrWUTueEjNSjLGzetbPnAzCcOP
+         Wr6wakC2pwVuxwvMkGlIOd8pu77scMmnbrBHok6AFcK1tqURh3yHIwYjqKOmXqESRUpl
+         MUhjYlCn+9a3tNyTdKdiTHQqQzqlAvqyYnStIRQrtvNqgCx4yqboih9a8H2i6Ottl1kV
+         I3A8XWOQ3hncfIUY8qMEDaAuvgdYuSSLCyz/ruXFEHeNSgXCisPWiVsYMeepuB1AVWvi
+         OP5YMf9hV1mqeZLhKUZXO/veRRRXaRW0zgDUPc90CQFaeYgEThRs46VskTbvq6bjMG92
+         bUCQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795573789; x=1796178589;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=5yYpKRVT2piPSpwzX/oy6NpReWj0wAGbXHq7GXlOkoI=;
+        b=ovBuS/HWRgMuscaIBnD2mrb1it8Wa85Ez836MiQkdGokGdwkn5ENHjCNUPA0zlEmVM
+         byBLVeu0rzMlG4g9pCO6GS/gLIull/b0+QmtZcrQHEjiFMV54Y/3GWPC86NxrFrSrHiK
+         onpsHwJtB4CqQbxes12/DS4ghTV5IvZVz4tf7JMMB/OnVoAwojVmqkZlGbfqcbpLqH63
+         2M1D+DLT0rjiLMyzxWWOAXWQmgBzfMOv64myiV3ZRQRcxCQ9rx+SglYn4gX0WQ70Dz4d
+         BcYt7L6PiPDZOHK4Eoyu8gXMoFrN8z1i0DkKaFFtFtKB7kmDxs8SBocDIDu8PXueclQ1
+         kvxA==
+X-Forwarded-Encrypted: i=1; AL+hErEkZ2Nj+nkEUkXluR4rKXpGbzsIm+iITLYvjy4+f3Zic48TDFWy6bO1CPachLKjyzeWhY0FhQg8nXMS@vger.kernel.org
+X-Gm-Message-State: APuU4Z8rCtTpfPY48gp2aQtN85exuehV4BM2vy1fDMs+y66T4Z09SXZQ
+	pM/LOmniPyUcHN53DBb8rrtiOAwBZ2O3yoy59lWJxg83EQkmmQPICvJE
+X-Gm-Gg: AZFdTZdD/kUR5uYgtzRfPu8ZNIc+xpFqtCs1KqGLyFxfuF11rLKVH95m8JxIXF0FVkw
+	AfUZkC2/6jKt6H85ZAGpZnxl+6x7Wgp7jjDM8xflrRXbuLA3PLkGYXxz5uKVTi/72+zWnIiVFj2
+	JrX16l0imgnzT5XnOCS6iU2xG2vOp84+bZHamm4/HOx+kr8W7YGb+xgTgJJX+3n7Vxd1/WxEjM7
+	4zWaVCuDMlNk/5uHnSaJI+ZEzsmKb6z13tkx/rvj6gJItD9G+2g/HMcsi75f6q480bMrm5WG1we
+	bgNQ3GKDVzYnBt213uZowzO5WhiuMeZ6zEgdYs9UoNnZstfQ2PQqp8MXdMBYO2ZFBmSYnIeGuwD
+	dYia7Uvf6VEyBnL5YQTbLEAO9EK+7QcQPVIykxMbVrNWP2i+tkIjf/pceGEqMEY39aglJMfxis9
+	jeTjOHQZHsrbCUkd2gL5SPuz9Z63VYFaa0AyXIhZwOZYf5yoCgdJPkbQTpFEKG9RBz5NHDTV4iS
+	u7xfBUlvCsRzEYjwV7RZ4HHjxIn8v30kDhPW8CQDcFkry4iTByWjGja+PNrxGDPpGYkLb8xModv
+	Q5qGHK64i1DDC0y+XUGhI2cvBg==
+X-Received: by 2002:a05:693c:69d4:b0:36c:a154:db1d with SMTP id 5a478bee46e88-3856c6b41eemr16943243eec.4.1795573788900;
+        Tue, 24 Nov 2026 18:29:48 -0800 (PST)
+Received: from ubuntu.. ([2405:201:8026:213e:e27a:f80:e9db:185])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-385666e7f59sm50655698eec.6.2026.11.24.18.29.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 24 Nov 2026 18:29:48 -0800 (PST)
+From: mdshahid03@gmail.com
+To: tariqt@nvidia.com
+Cc: andrew+netdev@lunn.ch,
+	davem@davemloft.net,
+	edumazet@kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	Mohammad Shahid <mdshahid03@gmail.com>
+Subject: [PATCH] net/mlx4: fix error propagation in mlx4_load_one()
+Date: Wed, 25 Nov 2026 07:59:13 +0530
+Message-ID: <20261125022913.205366-1-mdshahid03@gmail.com>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -65,127 +100,48 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+From: Mohammad Shahid <mdshahid03@gmail.com>
 
-Critical: 0 · High: 1 · Medium: 1 · Low: 0
+The return value of mlx4_check_dev_cap() is not assigned to err at
+two places in mlx4_load_one().
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+If the helper return an error ,execution jumps to err_fw,but err may
+still contain zero from the previous successful operation.
 
-- [High] The patch leaves a second double free of action STEs on rule
-  update in place.
-- [Medium] This patch adds a new leak of the old action STE chunk when an
-  update partially fails and the new actions need no action STEs…
+Assigning the helper's return value to err ensures that the error is
+correctly propagated.
 
---
+Signed-off-by: Mohammad Shahid <mdshahid03@gmail.com>
+---
+ drivers/net/ethernet/mellanox/mlx4/main.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-net/mlx5: HWS, fix action STE double free on rule update
-
-This patch clears rule->action_ste.action_tbl in hws_rule_create_init()
-once the current chunk is saved into rule->old_action_ste during an
-update. If the new actions need no action STEs, a later update or delete
-no longer frees the same action STE chunk again.
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.c
-> index 0d4cb2b2393b9..cc94d3149d76a 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.c
-> @@ -243,6 +243,8 @@ static void hws_rule_create_init(struct mlx5hws_rule *rule,
->  		 * new action STEs and a corresponding match STE.
->  		 */
->  		rule->old_action_ste = rule->action_ste;
-> +		/* The rule may need no action STEs once updated */
-> +		rule->action_ste.action_tbl = NULL;
->  	}
-
-[Severity: High]
-
-The subject says this fixes the action STE double free on rule update.
-Can the old_action_ste slot still be freed twice, though?
-
-When an update succeeds, hws_send_engine_update_rule() in send.c frees
-the old chunk:
-
-	} else if (priv->rule->status == MLX5HWS_RULE_STATUS_UPDATED) {
-		/* Rule was updated, free the old action STEs */
-		mlx5hws_rule_free_action_ste(&priv->rule->old_action_ste);
-
-Neither mlx5hws_rule_free_action_ste() nor mlx5hws_action_ste_chunk_free()
-clears old_action_ste.action_tbl after that. So the only guard in the
-helper still passes on a later call:
-
-	if (!action_ste->action_tbl)
-		return;
-
-One CQE with an opcode other than MLX5_CQE_REQ makes
-hws_send_engine_poll_cq() set queue->err, and nothing clears it. After
-that, every destroy on the queue goes through
-hws_rule_destroy_hws()->hws_rule_destroy_failed_hws(), which does:
-
-	/* Perhaps the rule failed updating - release old action STEs as well */
-	mlx5hws_rule_free_action_ste(&rule->old_action_ste);
-
-Any rule that was updated successfully before gets its old chunk freed a
-second time here. The reproducer's flower rules, which lose and regain
-their police action, are such rules. Eswitch teardown is one way to
-reach this destroy path.
-
-The cleanup work (hws_action_ste_pool_cleanup()->
-hws_action_ste_table_destroy()) may kfree() the now empty table between
-the two frees. In that case, mlx5hws_action_ste_chunk_free() would read
-chunk->action_tbl->parent_elem->parent_pool->lock from freed memory.
-
-The commit message calls this path "Not addressed here and not
-triggered".
-
-Would clearing action_ste->action_tbl inside
-mlx5hws_rule_free_action_ste() after the free make every free site safe
-to repeat? Combined with this change, that would cover this path as
-well as the one fixed here.
-
-[Severity: Medium]
-
-Does this hunk now leak the old chunk when an update to actions with no
-action STEs partially fails?
-
-After this hunk, old_action_ste is the only reference to the old chunk.
-
-Take an FDB rule with both RX and TX RTCs. One WQE may complete with an
-error status without setting queue->err. Then
-hws_send_engine_update_rule() zeroes only that RTC's used_id. The status
-stays FAILING and does not become FAILED:
-
-	if (!priv->rule->rtc_0 && !priv->rule->rtc_1)
-		priv->rule->status = MLX5HWS_RULE_STATUS_FAILED;
-
-hws_rule_destroy_hws() then takes either the skip_delete branch or the
-normal DEACTIVATE path. Both free only rule->action_ste. The skip_delete
-branch does:
-
-	mlx5hws_rule_free_action_ste(&rule->action_ste);
-
-and the DELETED completion in hws_send_engine_update_rule() does:
-
-	mlx5hws_rule_free_action_ste(&priv->rule->action_ste);
-
-action_ste.action_tbl is now NULL, so neither call frees anything. The
-chunk held in old_action_ste is never released, so the pool is still
-non-empty at teardown. Before this patch, the chunk was still in
-action_ste, and delete freed it once.
-
-The commit message notes "A failed update can leak it now also when it
-needs no action STEs".
-
-Would either of these avoid the leak?
-
-  - free old_action_ste in the DELETED completion and in the
-    skip_delete branch
-  - restore action_ste from old_action_ste on partial failure
-
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index 036135df23bf..9d89721077c9 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -3505,7 +3505,8 @@ static int mlx4_load_one(struct pci_dev *pdev, int pci_dev_data,
+ 				goto err_fw;
+ 			}
+ 
+-			if (mlx4_check_dev_cap(dev, dev_cap, nvfs))
++			err = mlx4_check_dev_cap(dev, dev_cap, nvfs);
++			if (err)
+ 				goto err_fw;
+ 
+ 			if (!(dev_cap->flags2 & MLX4_DEV_CAP_FLAG2_SYS_EQS)) {
+@@ -3540,7 +3541,8 @@ static int mlx4_load_one(struct pci_dev *pdev, int pci_dev_data,
+ 				goto err_fw;
+ 			}
+ 
+-			if (mlx4_check_dev_cap(dev, dev_cap, nvfs))
++			err = mlx4_check_dev_cap(dev, dev_cap, nvfs);
++			if (err)
+ 				goto err_fw;
+ 		}
+ 	}
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261123221310.4045513-1-acassen%40corp.free.fr
+2.43.0
+
