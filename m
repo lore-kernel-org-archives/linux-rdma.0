@@ -1,109 +1,102 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.181
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795617924;
-	b=4Xng+6a34/MN+ezYa/5XZ5NGVDX+o4MSyRqv/95YAQYDAKtcWRo6Ug9Z8a/MJEizvfLw
-	 HJhQUQgRon1U3iOVI6oDKz96ZAMLWGtg4Zy165i0nZhpmosAKbz2T56G+9jIm1CcSLOuA
-	 nAMWHSkAjI8J4avbd73w0k/yItKSFxWNkSHqBNYQOg9y/KRvZmPJhpTuG52ZnZtTB3qKS
-	 C4STocl1HbT389a6bkx8DFjK7/o+pB8zqbMTbAwWiRsmZbZo+6Bh3jpbQ7udit1ZAXn+z
-	 C9t52ahzHuq9q07prioAJHU5sWFOGe1FAcfamQ/Vv/xaK3IZ3MUi90ZhB3pLnx5/XGA==
+	t=1795618576;
+	b=1izkMfiWtBr+2OzauF+3nPZhL1NRUlOf70gEar5aM+NNINqQV9Pv3QoJkzHxocxt1JRK
+	 tJcLKT0I1kah74+kIGs08ff7hZL1MX9MACxjsPW7zTiZC2opsvAnQPPVDGAXe2pZY+aDA
+	 trTdReBR6mzBNdSIfDHZ62B6wm7FDADdgelQgSwbkTEWht7YcoP3FBla6WCvKOQ1zk4W7
+	 g+qqYsHWev09HWCJ0hyRADLi48lhWTVnCjl/zVOYwlWLaLM2Ey0XA8owE/JjXHAjSYMR+
+	 YzwEA6P1hkKvqsrpJ2Y59pz67gxxQC8aWdGzLi/kjaZSQ4t6Nft5I5gctsacLPmDgUQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795617924;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795618576;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
 	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=GQIqrvkEuCQaYgl8JZYA17fRuuRBiz0DeFEwMWUBlxE=;
-	b=HoZPY07/4FscnmpgyHIU9Rtm2oKUkM/VCMcqVvspwhb7epDcLLJmCr7fyiTmSKfIgJsg
-	 SG4NSQ4iq2JJXN7idL/mOhZQFGe1s5P5kHc/Y13Rp4p48YjfpCCOnBxgPG14oqw7qJyuc
-	 iPDMGJHTWWzYNtGQRbRmCop62JxS5WwqkHDYlw+0yPrfSMFihhVEABWS3piq2lmqMiRot
-	 WpsMHVUIb07K67w+DdqZ27ZwyjZY8NTOEgqlffs6ROdXN8Dxh7hz7TvfbYey4Ts/Z2Jh2
-	 eMrz2LDHnf+W7hBtyz492waaujUYO3zaxYQw5PSajRtxt4qHFD7Xdf1PwLYPdJRt/5w==
+	bh=H2v9m8o2ZyN6mJNXof8J2YJUJ0qz0MjiMku6/OumPR8=;
+	b=uUsyXrdROQ/D/DSS821XaZXXxs6BWjYpXVCjuC8by3mG1kVJ8xcFXMYQPXAELcqy1AO3
+	 57FIvrpw+ZydKSD3IopzD59akohav1X7VL54z69Khea1sgPQ4HzuPUy/Q/jixBJbStRX+
+	 Rzoeqg+pmPeUxMCT0pTyv/trW+C8eAiCtf4sLu9VKZeivNCpIOFGKMrDNN3foSecCZqIK
+	 TbOa6dDJyXQ8NqYgI9PCs9aw1IORTrWu54AcR8Mt/ir9DOYIcXA+C76PrmLdhhC8d30T3
+	 fDZFWg+5/dUvmubXAV9S879O+3iHsGPaeT4bO7fkwy8CTlecJdaPNvt+ACgpLmg99Aw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=ziepe.ca;
 	spf=pass smtp.mailfrom=ziepe.ca;
-	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=GfHorJdx;
+	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=OYNxKfNH;
 	arc=none smtp.remote-ip=209.85.222.181
 Received: from mail-qk1-f181.google.com (mail-qk1-f181.google.com [209.85.222.181])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2DE6606A329
-	for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 14:45:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A2DE6606A329
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6785606A332
+	for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 14:56:15 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D6785606A332
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=GfHorJdx
-Received: by mail-qk1-f181.google.com with SMTP id af79cd13be357-949657a20d7so556236785a.1
-        for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 06:45:23 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=OYNxKfNH
+Received: by mail-qk1-f181.google.com with SMTP id af79cd13be357-943e8d35f74so582387785a.0
+        for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 06:56:15 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1795617922; x=1796222722; darn=vger.kernel.org;
+        d=ziepe.ca; s=google; t=1795618575; x=1796223375; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=GQIqrvkEuCQaYgl8JZYA17fRuuRBiz0DeFEwMWUBlxE=;
-        b=GfHorJdxm/Tm/nk4NUjeAJQJeMDopYjbHRxpuzqoYvpqO3p4antAF9Co8gVV9g2PyA
-         D+jEJvpcvNWs8JcznIBLvvI6KVXvooCwh1nHS41khHRAT+PPGeO/UsbuQiLLN4qglPfq
-         QLJh+SV2O/J9aX4fleNQ/yXAxWIU21F5ryaFCt1ewGBY0rJxTkRvmr7Y+D9KNsR348Ke
-         4VMocHdeZqjkQzWEJoUCRhhNC7TEWSHXg7Jn2gULsuOvbM9z5sgLSwQqCPcsSb188vFb
-         Od3OsLXLJv9gyijuBwth+ELtyRHOI5qlbVseSdKjv8ldSPwWObeNyteRxVKytQu0/Zov
-         u9hg==
+        bh=H2v9m8o2ZyN6mJNXof8J2YJUJ0qz0MjiMku6/OumPR8=;
+        b=OYNxKfNHfP6AwkYsERu63zDzJAQPUGhYsCT43HZkjStcluGygKe12LuAexit9a5c6I
+         2xHd+rFeUUWgQz3UD4v6ixaaQHjS+rxO6ULdO3fhPiUPK01Xq8/mBmvNXb1FFx0+5h+y
+         txmt8Qu7dTrHwsvfmdLvBZVh1tYGu5ws2UTAxhQ4QQZ6wJ9BJZ0AHoMR77wCIUE8irGw
+         yOJVXSOfdvyNe/kwEsFYcbGWMENmzqdQGwGisbGOpmrz0P+cscixGw43F3nRwhBp4hXK
+         oAi1vBIDqzDf2RFEYLAzJgTZsaAnHnNnhRfu705bDSb63uQLNQ3FjPvM/ZEIm9FBbf+L
+         49WA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795617922; x=1796222722;
+        d=1e100.net; s=20260707; t=1795618575; x=1796223375;
         h=in-reply-to:content-disposition:content-type:mime-version
          :references:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=GQIqrvkEuCQaYgl8JZYA17fRuuRBiz0DeFEwMWUBlxE=;
-        b=bfu0JOi0z2e7cWUaHrsmoXvqawY6OcwaX7WOUNcxgeZ93lsKdgcAML2Msh7EPHfsU9
-         inguRW0O19oUGDczUP5rCr8rZYn2zvhEAP/YodlIKpb7w5OW5jw0Pbl9XfHGwScgBPAe
-         kQdzXj7S+NG8SPwJvDdGslGjq1wgucELExiBZ0Haw+WZ+2cta+8qQaXgev0PMYYYSX/3
-         XNR2ld0g3L2Vl/gVR1Y2nU0TpiSC9Wq/12UIxCTGuRjfUS+ck4XQg8GuzJaFsS7+W+wj
-         1S+nIguwDPsPtQ8TCywIuHl4VgCWkWq8BYTh9T05easAQ0w6/ST82mbH21bMedcK2G5h
-         56ag==
-X-Forwarded-Encrypted: i=1; AL+hErHu6S7Y/w1ZEkq2rbPQ/5zi6WAEgKrGG9K1SNDbsMlfUCoU6paF0Z4dZqKOXCmsbONaSnOaNG8wJcep@vger.kernel.org
-X-Gm-Message-State: APuU4Z/jPk5UxbP6v22oa2fQhDkG0za8ik2P8EMd3YKTkwxKOdm+ETdN
-	EnlHGaFl68B2G6DQ3n2l2VMpycT80Ek6u6tWWJuZLYdvQZxIiAsEAphfbXa0bFIEPtk=
-X-Gm-Gg: AZFdTZeI1GXhWvdxTt1ECJ9wVf4n53YWLfJCHRFwYcb6fPOKI++TmpklctrzSsxZrhB
-	eT5s3CFzW+QhCPxhBwoMWaYgtJhg4bjJmgZYShUbVWBoqJic9MXtVegy88ddgSL/c4Tyl+xTTLM
-	xhA5A+8aZCwXDO4nrYhBOI2gExiTPj4OckrXP38Pf2g/W18/njUIOsF3FrwP/2ClsD8RIUKKUPN
-	qQ+N687Aqv7EcgjM0j60jmbUMYoVR9flyaUhgnytFAbqkWxtP0biRokq1SasVSUT5i2W4VUf4xC
-	aDEK+Ho8ezm6MDjIeuwOO5qHINZmdUR4a41Cvy3jvi/Pct8ESK1QtNz8VXBaObsfMIQaeyGD4de
-	noX4QCxYsBFplt3iOpiGvoohxFnfRRsBPSM5zEF24FcOikn2J5ToXvkjaj030ywG63DlOFBAWjw
-	MQg8zwpQj6reuarH6L/lMkxtIRsfRu2wDWE6PM6EqLEsss9iI8x3CpoVDqMgtppFnqMSnh2XV9p
-	sgh6Pw1D8B1EDEPvhiMbJyhVkN5Dh5XLr6x/nPqwn83pePIOlislh/B0tX44j89INYR46tCohZ/
-	RF8TEw==
-X-Received: by 2002:a05:620a:6487:b0:949:9a8c:7052 with SMTP id af79cd13be357-949bab1577cmr2699750285a.70.1795617922348;
-        Wed, 25 Nov 2026 06:45:22 -0800 (PST)
+        bh=H2v9m8o2ZyN6mJNXof8J2YJUJ0qz0MjiMku6/OumPR8=;
+        b=QAYRiuUwxaUXUU9iWdkEfp0HVUOxzDdnc///4IphEh402ms1JGTJsLTCBLmO9/fZp9
+         WPTY2Uqd8NZNsmK82yqJtmy3D3nxe/lOg4ZeNl7ZbLmJMO6bCVHUIdC/366wmsB2LI3L
+         io8JBAwO9FJIW51AS9erZmonApnqUX4nVFvpsPYu8wAaDO61KAOCZ0orMqTemfEiE9nH
+         R7uEMbD7kS7ugjXcjydteg3KEbsJNxOa47L8yLWCrFvxdeWTAhkHAAfyzy+RteeDVIFq
+         m64nkwqjWG/6QL8up7iVIQAWavb5knGQCYWDEe7+23YpKR/6Da4thTTvkSzPEumCI3f3
+         JN6g==
+X-Forwarded-Encrypted: i=1; AL+hErEtRA1A08psEXd4Tm61DKIHrw2MbKRJJ2Qntw9tgD11KbuNwD5ebC/Bp+GT923gHnyWP2G5oX3i0yPY@vger.kernel.org
+X-Gm-Message-State: APuU4Z+HFSEWxc5XaJGWZFcSx664ft1qjpYy0xC2UjTe2HQKpBL5CFRp
+	4x7qV8Z7Na40nTN94/Z7voF5EgCYIMf5ifWpEXRlE/KOHfRTF/v/qRyNz39/cryXAJk=
+X-Gm-Gg: AZFdTZeIe5ryS/klr/4G/ow1Fht59vqmAnUKo4az2R7Jc3Qp4E14k26SrbHHYYV+kZW
+	tIzphwX3ZWzq68Rz2hhFQHEjIn0DNjB4IEpVIcEzxE5A9SawVHLz8xn5ayIW8RBz6cOTPnjlPhZ
+	F+rFxMyD10Ag7LiW67+GK3kHqA8IMHI55BOJ19/cvaFJnaUImxaks9i//PDCM7uaaJ7jnwCtG6m
+	rqnxCYuw3hqjwTKhfrX1kjZDDL4AjQ8uCM3Q2X2na67bslWQG0GRDBZYvQKGX+NFVgHkUpK92dl
+	Ox1f2yURpVFXJM5d//suOvYGYG9FexXSPKZmd0sxxuBMYu+Dla5fJwNc9CYcIJXtJs0TrqKt5jz
+	iaihmpN6I85403MSA2U4A+08h3RYtHS86EQ1acvjzgzYs4MjiRDJA964b0ulP8q1azf9P5HAxPV
+	WCJW3D+UqKVAztCV3QyVdpwU1iM12JEfLJIqG60WYt5RSz5XV1MmrabN0WNRnY4skmax1IJyXXL
+	ChzZKFtxKeLXHzKgmf6OLa50lUHhy6k/MCGVMA5BnEd4c30ovHLtZmAAIqzi+loqxXVlwT9VU90
+	2+JGbw==
+X-Received: by 2002:a05:620a:2956:b0:949:9cf0:badd with SMTP id af79cd13be357-949bab2f511mr3135941485a.73.1795618574856;
+        Wed, 25 Nov 2026 06:56:14 -0800 (PST)
 Received: from ziepe.ca ([142.177.118.84])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-949bb38319asm1327544785a.16.2026.11.25.06.45.21
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-949bb38c903sm1327013585a.19.2026.11.25.06.56.14
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 25 Nov 2026 06:45:21 -0800 (PST)
+        Wed, 25 Nov 2026 06:56:14 -0800 (PST)
 Received: from jgg by wakko with local (Exim 4.97)
 	(envelope-from <jgg@ziepe.ca>)
-	id 1xWEFN-00000001mSD-154e;
-	Wed, 25 Nov 2026 10:45:21 -0400
-Date: Wed, 25 Nov 2026 10:45:21 -0400
+	id 1xWEPt-00000001o1M-2tKn;
+	Wed, 25 Nov 2026 10:56:13 -0400
+Date: Wed, 25 Nov 2026 10:56:13 -0400
 From: Jason Gunthorpe <jgg@ziepe.ca>
 To: Leon Romanovsky <leon@kernel.org>
-Cc: Yishai Hadas <yishaih@nvidia.com>, linux-rdma@vger.kernel.org,
-	netdev@vger.kernel.org, saeedm@nvidia.com, tariqt@nvidia.com,
-	mbloch@nvidia.com, kuba@kernel.org, pabeni@redhat.com,
-	edumazet@kernel.org, davem@davemloft.net, andrew+netdev@lunn.ch,
-	dtatulea@nvidia.com, moshe@nvidia.com, maorg@nvidia.com
-Subject: Re: [PATCH V2 rdma-next 21/21] RDMA/core: Report and enforce
- adversarial mode via GET_CONTEXT
-Message-ID: <20261125144521.GI246011@ziepe.ca>
-References: <20261117170914.27410-22-yishaih@nvidia.com>
- <20261122073156.GA12665@unreal>
- <761ca80e-a772-41f3-b8e9-cc332e4ba5d9@nvidia.com>
- <20261124125327.GR14811@unreal>
- <20261124125950.GC9566@ziepe.ca>
- <20261124133353.GT14811@unreal>
- <20261124134751.GJ9566@ziepe.ca>
- <20261124140906.GU14811@unreal>
- <20261124143024.GO9566@ziepe.ca>
- <20261125090309.GY14811@unreal>
+Cc: Jaeyeong Lee <lee@jaeyeong.cc>, Artemy Kovalyov <artemyko@mellanox.com>,
+	Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH v2] RDMA/mlx5: Preserve DEVX objects after failed output
+ copy
+Message-ID: <20261125145613.GJ246011@ziepe.ca>
+References: <20261111105346.3220427-1-lee@jaeyeong.cc>
+ <20261115135123.GD42525@unreal>
+ <20261122103715.51731-1-lee@jaeyeong.cc>
+ <20261122103855.51859-1-lee@jaeyeong.cc>
+ <20261125131244.GB14811@unreal>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -115,57 +108,38 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261125090309.GY14811@unreal>
+In-Reply-To: <20261125131244.GB14811@unreal>
 
-On Wed, Nov 25, 2026 at 11:03:09AM +0200, Leon Romanovsky wrote:
-> > What do you mean? This is a mechanism to help the user manage software
-> > versions by not accepting incompatible rdma-cores.
+On Wed, Nov 25, 2026 at 03:12:44PM +0200, Leon Romanovsky wrote:
+> On Sun, Nov 22, 2026 at 10:39:01AM +0000, Jaeyeong Lee wrote:
+> > As requested, below is the full dmesg from the reproducer run.
 > 
-> Please take a look at the patch.
-> User space provides that new adversarial flag.
+> <...>
 > 
-> +	ret = uverbs_get_flags32(&ctx_flags, attrs, UVERBS_ATTR_GET_CONTEXT_FLAGS,
-> +				 UVERBS_ATTR_GET_CONTEXT_FLAG_ADVERSARIAL_SUPPORTED);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (ib_dev->adversarial_mode &&
-> +	    !(ctx_flags & UVERBS_ATTR_GET_CONTEXT_FLAG_ADVERSARIAL_SUPPORTED))
-> +		return -EPERM;
-> 
-> ...
-> +	UVERBS_ATTR_FLAGS_IN(UVERBS_ATTR_GET_CONTEXT_FLAGS, u32,
-> +			     UA_OPTIONAL),
+> > [   13.847526] mlx5_dct_repro: loading out-of-tree module taints kernel.
+>
+> What value does this change provide if it is based on an AI-generated sequence?
 
-What's the issue? If the user space doesn't ACK it has the new
-software then it doesn't create the context?
+More importantly you are not allowed to call
+uobj_finalize_uobj_create() from new style methods, it is only for the
+old write interface. I guess it is in the wrong header.
 
-This is how we do every feature that needs rdma-core support, though
-more often there is a fallback in the kernel.
+It should be uverbs_finalize_uobj_create() if you want to use this
+sequence.
 
-> The kernel does not care whether rdma-core is up to date. It works either
-> way, so why should we prohibit older userspace on these systems?
+And it should probably cover devx_handle_mkey_indirect() as well.
 
-What do you mean?
+The idea itself seems reasonable, once we have done the actual create
+command to FW it should use the normal destroy sequence. That is
+exactly why we have the finalize helper in the first place.
 
- +	if (ib_dev->adversarial_mode &&
- +	    !(ctx_flags & UVERBS_ATTR_GET_CONTEXT_FLAG_ADVERSARIAL_SUPPORTED))
- +		return -EPERM;
+But to do that right the entire obj_destroy should be removed.
 
-That is not "works either way" that is requiring new software. Which
-is exactly what I want to see here.
- 
-> > It is not a security mechanism to hard guarantee that rdma-core has no
-> > bugs.
-> 
-> It is you who talked about "... security downgrade ...".
+IDK about the claim that DRAIN_DCT can fail, but I suppose it is
+possible for a hostile userspace to immediately refcount any kind of
+object and cause its destruction to fail and that does seem like a
+legitimate problem to me, so this is worth adjusting.
 
-Yes, in that I want people using normal software to have a safer more
-secure experience. Meaning you need supporting rdma-core if the kernel
-is in adversarial mode, because otherwise you don't get the right
-security outcome.
+Please send a v3.
 
-You took it to some absurd scenario of a user hacking their rdma-core
-to defeat the check, which is not the point at all.
- 
 Jason
