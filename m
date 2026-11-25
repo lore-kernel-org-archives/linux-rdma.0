@@ -1,87 +1,74 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795636220;
-	b=ddA1givSzULJOiXAfBAxYBhQYeH3BkD5VFFKeHPTPW7imh4dQ4kan9M4jA7cwc9gC/4F
-	 V6Zen9ZMN4EKBI1Fi+LLh14JWSgDAk7jWOJv9fdmoenhflh1lpwn0azRsLzomJSwf4gip
-	 Gd8CsCr6IzfQW5fLWn7ynRHCqhGSOdAOIaCttZLNKGoeVdzKx9C5jRZyMFSFJbilOEOdo
-	 onI6OWdKeoXLMIwkLIpzueSwOJdRxJkZvj7O23qGA+EJZwi8vBg1QzbcledM1dl858gGj
-	 Zyh+cJ7S7wjcDMgxkXvWJEjt8JozAr8IKwmlDjJdnLAf/EwaJHyXsxGnKTB4/FF4sKg==
+	t=1795636518;
+	b=LXpXwyhcI4/0rBI3m3huL5um3m6xQg3lHz1iZWccBQcgcYO/wqQOepZFpsN4RK7ez210
+	 2rpsrz8Eeav1xo7c2a1+JhnywrmapTHc4/nQevEznBkBGkw9xy65nLMUC5yBql9QydTTO
+	 VhDCJVjq8Xh6b+OVw5uCLdOYUBaYXJHxrYoN/nBNd5ADKVXRjrh4fA0OkwbTIk8R2+MEP
+	 2Dhpikt33bXXNUJati9m7qm0JpYzuPUofnSoCbhyOjsNwEVVs0WujDoWyDseojUADNVsr
+	 Yyy2OZQsdpfBZmYBuEb2fZaIfEpOO8+8xLj1ICCnofmDTjzS3cqDg9XvBgTspPRcofg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795636220;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795636518;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:In-Reply-To:References:
 	 Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding;
-	bh=QM3eA59kfAmko2h6w0lhdnOjVX+zvtHEYYmZknhRfY0=;
-	b=19QDIlDhbWMmslR5Vmc0M6/hqcP5UCD0DYevvNecq3vPt5AEyQwwcLs3ThxKWJBtROKi
-	 XM04ClavnTWplmKIFQuqVFBcFooG4CrAGTuKvLMzh3NCjmEXZdDwh4Z8wNLXnLcbateJr
-	 jgeBRPylWZi0112VrcScaKEAOYG+2Xp68Bi2vDL0uGwvrd7WBkgF/BERSHF/n96rcq2b8
-	 YIp9uYdfgJbPoAwigF+1O4GUbUtAm1kmUurvVOYmPPnjDLrHodoOAFxuVN9SCHpA6tt1Q
-	 EfglyAvlE8HdWk3le8/n78Mf1uFLq2DmTc48V6qTISzjNZznyrFvYMGOSP7LEFtLNrQ==
+	bh=VrIp4UuqLML5zpUv0LIQhFdRxW0WUPrcltu+dCKTMog=;
+	b=QWljTnWZmzvAABewFbTfQRxKyph2OXMAgAlCjuK2kknHuNcywPS/OV1J6uWw1iOEQd5q
+	 XTGKYRE80zwVyf57r786FQc3em+u2vrH6GFxDdlOD+CocrmuAuNMQIaZ0ViWLohhv8ubt
+	 5H65kBaE+PGm7c90+07OBre2KumFIgmnPPkVOL/bUs58EHxMuoIFeY01SNfJWL+9QDzTd
+	 Z79Y8DtIapz9H5UMOM6sgJlfsVsJzuzq5vDRP1+qVYtsbMnirdXL93ZHF35v5Kx3q62SF
+	 UdWoAZFQzAPGJitCGhM7qCBlSvsJYv+zA49yExdWynOowu74Afoclt09hWUMs+4CJuQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iGNhLSiM;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VmiPb1GP;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C74C9606A329;
-	Wed, 25 Nov 2026 19:50:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D51A3606A31E;
+	Wed, 25 Nov 2026 19:55:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iGNhLSiM
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 652A41F000C6;
-	Wed, 25 Nov 2026 19:50:19 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VmiPb1GP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D24701F000C0;
+	Wed, 25 Nov 2026 19:55:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795636220;
-	bh=QM3eA59kfAmko2h6w0lhdnOjVX+zvtHEYYmZknhRfY0=;
+	s=k20260515; t=1795636518;
+	bh=VrIp4UuqLML5zpUv0LIQhFdRxW0WUPrcltu+dCKTMog=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date;
-	b=iGNhLSiMgKF6+m0ChpnHIHvmkrkC3j2St+TRFQkyy+QkmYLtkwfmC5F30JYh3MPLf
-	 gyQF++J+IODjjeayKXffQghl4jIvlcZC21Sg3GNFn5cAT7PTdcxkuJBi2Vc/fqHDUY
-	 KFAlFD5Y5apAiMdynX2JJfi4mF8qAx6k37eY1+8K6IazzpmrtmTOKQIYw7uJMDQyWs
-	 R0UVQEq5tIQqLrMBGjzsZXdIAr2D9UURcNDAD4fDLiuJzPJiuKsPhQVqswyFFdbjA1
-	 Xs0TveRe4BmdYAvuuwb8WLBR5Q2m5ujSl4kBn1ty2VLp7l8eXk9yIur+hbWqy33HdT
-	 TLlbO8HV4M2Aw==
+	b=VmiPb1GPuDA6ow86f3h2bazo85jvyVYrUQV2gIgHZCgaomEbofTdGb3RMcFUtMhJO
+	 jdBW4BDreQ/vv4ARIMr8y2swl56nQUBP+UkamajNlGHoElThPcrewcLVNAYIpwXn7s
+	 Vw/UtrRoutLi9SyvavmJ3enQth1LCcIJqp5g3enbdNXFjGfBG9hScQoHnpgF09sEen
+	 0tgPlU8F6jrXZzvSVEWrDIgvciP76cpxZIsI0cr/vCpUvsZL7gQ3O5ZL3cHExno5hO
+	 OI2dST0GFsWmYaULP+iZiuq9XkSkX174R/WmcmdU3UxWpmPf1YjtRKy0YL8zDWUdEa
+	 WEuo+1p95Sznw==
 From: =?utf-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>
-To: Maciej Fijalkowski <maciej.fijalkowski@intel.com>
-Cc: Magnus Karlsson <magnus.karlsson@intel.com>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
- <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Andrew Lunn
- <andrew+netdev@lunn.ch>, Alexei Starovoitov <ast@kernel.org>, Daniel
- Borkmann <daniel@iogearbox.net>, Jesper Dangaard Brouer <hawk@kernel.org>,
- John
- Fastabend <john.fastabend@gmail.com>, Andrii Nakryiko <andrii@kernel.org>,
- Eduard Zingerman <eddyz87@gmail.com>, Kumar Kartikeya Dwivedi
- <memxor@gmail.com>, Ilias Apalodimas <ilias.apalodimas@linaro.org>,
- Alexander Duyck <alexanderduyck@fb.com>, Saeed Mahameed
- <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, Mark Bloch
- <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Michael Chan
- <michael.chan@broadcom.com>, Pavan Chebbi <pavan.chebbi@broadcom.com>,
- Jonathan Corbet <corbet@lwn.net>, Shuah Khan <shuah@kernel.org>,
- bpf@vger.kernel.org, netdev@vger.kernel.org, Stuart Clark
- <stuclar@meta.com>, Stanislav Fomichev <sdf@fomichev.me>, Simon Horman
- <horms@kernel.org>, Martin KaFai Lau <martin.lau@linux.dev>, Mina Almasry
- <almasrymina@google.com>, Song Liu <song@kernel.org>, Yonghong Song
- <yonghong.song@linux.dev>, Jiri Olsa <jolsa@kernel.org>, Emil Tsalapatis
- <emil@etsalapatis.com>, Ihor Solodrai <ihor.solodrai@linux.dev>, Randy
- Dunlap <rdunlap@infradead.org>, kernel-team@meta.com, Dimitri Daskalakis
- <dimitri.daskalakis1@gmail.com>, Bobby Eshleman <bobbyeshleman@meta.com>,
- Mohsin Bashir <mohsin.bashr@gmail.com>, Kees Cook <kees@kernel.org>, Breno
- Leitao <leitao@debian.org>, Maxime Chevallier
- <maxime.chevallier@bootlin.com>, Tao Cui <cuitao@kylinos.cn>, Vadim
- Fedorenko <vadim.fedorenko@linux.dev>, "Mike Marciniszyn (Meta)"
- <mike.marciniszyn@gmail.com>, Kuniyuki Iwashima <kuniyu@google.com>,
- Jiayuan
- Chen <jiayuan.chen@linux.dev>, Martin Karsten <mkarsten@uwaterloo.ca>,
- Nikolay Aleksandrov <razor@blackwall.org>, David Wei <dw@davidwei.uk>,
- Pavel
- Begunkov <asml.silence@gmail.com>, linux-rdma@vger.kernel.org,
+To: netdev-bot+sashiko@kernel.org
+Cc: magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
+ davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org,
+ pabeni@redhat.com, andrew+netdev@lunn.ch, ast@kernel.org,
+ daniel@iogearbox.net, hawk@kernel.org, john.fastabend@gmail.com,
+ andrii@kernel.org, eddyz87@gmail.com, memxor@gmail.com,
+ ilias.apalodimas@linaro.org, alexanderduyck@fb.com, saeedm@nvidia.com,
+ tariqt@nvidia.com, mbloch@nvidia.com, leon@kernel.org,
+ michael.chan@broadcom.com, pavan.chebbi@broadcom.com, corbet@lwn.net,
+ shuah@kernel.org, bpf@vger.kernel.org, netdev@vger.kernel.org,
+ stuclar@meta.com, sdf@fomichev.me, horms@kernel.org, martin.lau@linux.dev,
+ almasrymina@google.com, song@kernel.org, yonghong.song@linux.dev,
+ jolsa@kernel.org, emil@etsalapatis.com, ihor.solodrai@linux.dev,
+ rdunlap@infradead.org, kernel-team@meta.com,
+ dimitri.daskalakis1@gmail.com, bobbyeshleman@meta.com,
+ mohsin.bashr@gmail.com, kees@kernel.org, leitao@debian.org,
+ maxime.chevallier@bootlin.com, cuitao@kylinos.cn,
+ vadim.fedorenko@linux.dev, mike.marciniszyn@gmail.com, kuniyu@google.com,
+ jiayuan.chen@linux.dev, mkarsten@uwaterloo.ca, razor@blackwall.org,
+ dw@davidwei.uk, asml.silence@gmail.com, linux-rdma@vger.kernel.org,
  linux-kselftest@vger.kernel.org, linux-doc@vger.kernel.org,
  linux-kernel@vger.kernel.org
 Subject: Re: [PATCH net-next 05/15] xdp: Run programs on buffers that must
  not hold kernel structures
-In-Reply-To: <awb9GzkXa9Z9LxuP@boxer>
-References: <20261124112707.118678-1-bjorn@kernel.org>
- <20261124125654.183091-5-bjorn@kernel.org> <awb9GzkXa9Z9LxuP@boxer>
-Date: Wed, 25 Nov 2026 20:50:16 +0100
-Message-ID: <877bi0oflz.fsf@all.your.base.are.belong.to.us>
+In-Reply-To: <179561569289.3135.1423395269344157578@kernel.org>
+References: <20261124125654.183091-5-bjorn@kernel.org>
+ <179561569289.3135.1423395269344157578@kernel.org>
+Date: Wed, 25 Nov 2026 20:55:14 +0100
+Message-ID: <8733soofdp.fsf@all.your.base.are.belong.to.us>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -94,74 +81,125 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-Maciej Fijalkowski <maciej.fijalkowski@intel.com> writes:
+netdev-bot+sashiko@kernel.org writes:
 
-> On Tue, Nov 24, 2026 at 01:56:40PM +0100, Bj=C3=B6rn T=C3=B6pel wrote:
+> Thank you for your contribution! Sashiko AI review found 2 potential
+> issue(s) to consider.
+>
+> Critical: 0 =C2=B7 High: 1 =C2=B7 Medium: 0 =C2=B7 Low: 1
+>
+> If you believe none of the issues are legitimate, please reply to each
+> issue of Medium severity or higher and explain why the AI is wrong.
+> If any of them are legitimate and you plan to respin, please let patchwork
+> know by including "pw-bot: cr" as a separate line at the end of your reply
+> (one such reply per series is enough).
+>
+> - [High] The new XDP_FLAGS_SINK contract in include/net/xdp.h says a
+>   helper that checks bytes and reads them again later must check a copy,=
+=E2=80=A6
+> - [Low] The commit message opens with "Currently, the core refuses native
+>   XDP programs next to a memory provider." That was no longer true when=
+=E2=80=A6
+>
+> --
+>
+> xdp: Run programs on buffers that must not hold kernel structures
+>
+> This lets native XDP programs run on AF_XDP sink buffers (UMEM chunks
+> that userspace may write at any time). Such buffers are marked with
+> XDP_FLAGS_SINK and XDP_FLAGS_SINFO_EXT, and their shared info moves into
+> the rxq. XDP_TX and XDP_PASS become XDP_DROP, and frame and skb
+> construction refuse sink buffers.
+>
 >> Currently, the core refuses native XDP programs next to a memory
 >> provider. An AF_XDP sink needs XDP to steer its packets and to use the
->> RX metadata kfuncs. Its buffers are UMEM chunks that XDP may read
->> through the kernel mapping, but that userspace may write at any time,
->> also while the kernel reads them. If drivers build XDP buffers on them
->> as on pages, the core puts kernel structures into them, such as the
->> shared info of a multi-buffer packet, the xdp_frame of XDP_TX and
->> redirects, and the skb of XDP_PASS.
->>=20
->> Let programs run on sink buffers as on pages, and keep every kernel
->> structure out of them.
->>=20
->> A sink offers an XDP view of its UMEM, so drivers build the buffer as
->> for a page, while netmem_address() and skb_frag_address() still give
->> NULL for sink net_iovs. Programs and helpers read and write the packet
->> in place, fragments included. xdp_prepare_buff() tells a sink head by
->> its address, with one range check under a static key, and marks the
->> buffer before the driver adds fragments. Other buffers pay nothing
->> while no sink is bound.
->>=20
->> A marked buffer keeps its shared info in the queue, with
->> XDP_FLAGS_SINFO_EXT, set up when the driver registers a sink page pool
->> as its memory model.
->>=20
->> A sink buffer may only go to the AF_XDP socket of its queue. The core
->> turns XDP_TX and XDP_PASS into XDP_DROP, so drivers need no checks of
->> their own. XDP_ABORTED and invalid verdicts reach the driver, which
->> traces them and drops the packet. Frame conversion and skb
->> construction refuse sink buffers too, so devmap and cpumap drop them,
->> and sink net_iovs never become skb frags, so every net_iov frag stays
->> unreadable.
->>=20
->> As userspace may change the bytes meanwhile, the kernel takes bounds
->> only from its own fields, and only the program and its helpers read
->> the bytes. A helper that reads bytes twice must check a copy.
->>=20
->> Signed-off-by: Bj=C3=B6rn T=C3=B6pel <bjorn@kernel.org>
->> ---
->>  include/net/netmem.h          |  5 ++-
->>  include/net/page_pool/types.h |  7 ++--
->>  include/net/xdp.h             | 60 +++++++++++++++++++++++++++++++++--
->>  net/core/xdp.c                | 46 +++++++++++++++++++++++++--
->>  4 files changed, 108 insertions(+), 10 deletions(-)
 >
->>  	xdp_frame->data =3D xdp->data;
->> @@ -763,6 +812,11 @@ static __always_inline u32 bpf_prog_run_xdp(const s=
-truct bpf_prog *prog,
+> [Severity: Low]
+> Is this opening sentence still accurate at this point in the series?
+
+I'll address this in the next version.
+
+> The previous commit, "net: Add memory providers that only feed XDP",
+> already exempts MP_XDP_ONLY providers in dev_mp_blocks_xdp():
+>
+> net/core/dev.c:dev_mp_blocks_xdp() {
+>     ...
+> 		if (ops && !(ops->flags & MP_XDP_ONLY))
+> 			return true;
+>     ...
+> }
+>
+> That commit also relaxed the dev_xdp_prog_count() check in
+> __netif_mp_open_rxq() for XDP-only providers.
+>
+> This patch touches neither net/core/dev.c nor netdev_rx_queue.c. Could
+> the message be reworded so it doesn't suggest that this patch lifts the
+> refusal?
+>
+>> diff --git a/include/net/xdp.h b/include/net/xdp.h
+>> index 944418111a86e..c7cb0ba4e16f4 100644
+>> --- a/include/net/xdp.h
+>> +++ b/include/net/xdp.h
+>
+> [ ... ]
+>
+>> @@ -95,6 +99,15 @@ enum xdp_buff_flags {
+>>  	 * frame, see xdp_data_hard_end(): the frame must hold nothing else.
 >>  	 */
->>  	u32 act =3D __bpf_prog_run(prog, xdp, BPF_DISPATCHER_FUNC(xdp));
->>=20=20
->> +	/* Sink buffers go to the AF_XDP socket of their queue, or nowhere */
->> +	if (static_branch_unlikely(&xdp_sink_key) && xdp_buff_is_sink(xdp) &&
->> +	    (act =3D=3D XDP_PASS || act =3D=3D XDP_TX))
->> +		act =3D XDP_DROP;
+>>  	XDP_FLAGS_SINFO_EXT		=3D BIT(3),
+>> +	/* AF_XDP sink memory, see %MP_XDP_ONLY: the buffer may only go to the
+>> +	 * AF_XDP socket of its queue. Userspace may write it at any time,
+>> +	 * also while the kernel reads it. So the kernel takes bounds only
+>> +	 * from its own fields, and only the XDP program and its helpers read
+>> +	 * the bytes. A helper that checks bytes and reads them again later
+>> +	 * must check a copy, see bpf_syncookie_th(). Nothing builds a frame
+>> +	 * or an skb in the buffer.
+>> +	 */
+>> +	XDP_FLAGS_SINK			=3D BIT(4),
 >
-> I think it would be better to follow SEC(xdp.frags) approach and from
-> verifier POV disallow progs doing anything different than XDP_REDIRECT...?
+> [Severity: High]
+> Where is bpf_syncookie_th() defined? I can't find it in this commit or
+> later in the series. This comment is the only place the name appears.
 >
-> Here you affect whole system.
+> The syncookie helpers that XDP programs can call still read th->doff
+> twice from packet memory:
+>
+> net/core/filter.c:bpf_tcp_raw_gen_syncookie_ipv4() {
+>     ...
+> 	if (unlikely(th_len < sizeof(*th) || th_len !=3D th->doff * 4))
+> 		return -EINVAL;
+>
+> 	mss =3D tcp_parse_mss_option(th, 0) ?: TCP_MSS_DEFAULT;
+>     ...
+> }
+>
+> tcp_parse_mss_option() then reads doff again to decide how many option
+> bytes to walk:
+>
+> 	int length =3D (th->doff * 4) - sizeof(struct tcphdr);
+>
+> bpf_tcp_raw_gen_syncookie_ipv6() does the same thing. So does
+> bpf_tcp_gen_syncookie(), which checks doff and then re-parses the
+> options through tcp_v4/v6_get_syncookie().
+>
+> The verifier only checks th_len bytes, because arg2 is ARG_PTR_TO_MEM and
+> arg3 is ARG_MEM_SIZE_OR_ZERO. With a sink buffer, a userspace thread can
+> change doff from 5 to 15 between the check and tcp_parse_mss_option().
+> Could the parse then read up to 40 bytes beyond the region the verifier
+> checked?
+>
+> xdp_sink_mark() also sets XDP_FLAGS_SINFO_EXT on sink buffers, so
+> xdp_data_hard_end() reserves no shared-info tailroom. A program can grow
+> the tail to the end of the frame. If the TCP header sits at the end of
+> the last UMEM chunk, can the extra read go past xdp_vaddr + xdp_vsize
+> and fault in NAPI context?
+>
+> Classic AF_XDP zero copy has the same double fetch, but there the
+> shared-info tailroom keeps the extra read inside the chunk.
+>
+> Should this patch add the copy-and-check that the comment describes for
+> these helpers? Or, if it is meant to come later, should the comment
+> point to something that already exists?
 
-This will go away once PASS/TX is supported in the follow up.
-
-> Also, I don't follow currently why xdp pass is not allowed, management
-> traffic gonna be dead on this queue.
-
-This is to keep the size of the series down, to make it reviewable.
-XDP_PASS and XDP_TX will be added in a follow up. You can have a look at
-the patches on the github branch I linked in the cover.
+Yeah, the double read of th->doff is real, and older than this series.
+I'll think about a fix.
