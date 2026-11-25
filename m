@@ -1,58 +1,87 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795576881;
-	b=48dXJBVYr5fsdiTyESbB7KJb23W8abLq/TA2LEvbSOiV1CCH2/Sv0JcUoxuMBC8Vp6pP
-	 xfHYEHXXJ+LpHJayrbzOc6sUzDHUED6+BGVihmrISLyiK0jPaNa7uTW91rxyhYdVOkB4e
-	 dms9IUqshO7smVd9Q/QCdoTQOnGl26QQpHbTwhkJZQjMFEORZw03M431BfWhLD7YFNsyz
-	 vSeaIDrXxCE7HKQ3ODxkEinVLktlAzFCwiW7Uk8K0sgvd2dRmrJXMWzVp46lpKxXZqgig
-	 /CiblqQ5zpcbKXkhbV3qMNX7F8BAIHNcWqRK01J9GDnb3bLnYIu0ZSblejwCWQv0a+g==
+	t=1795577108;
+	b=v16GOWG7WgiBdovi/VQLIH+2N4nBqTAnDFWo0vQrHP/qP2a/FK6o2xUN3Dd0qINBD29z
+	 i1peom51RKLlIZ/9rd6nVLOqLFOlzTNJBKCV32DzHVcT3KRgu71AaX90IA5UNjfdCDpc2
+	 ROADgT2oKP02FNDD5/yrCyuOPzEHDfISV0SH3mTQ/Ga7cEYxd6heTXJIOaOQeGCkd40H6
+	 cPnE1lHKK69OOgUzDHPW3lDH2kLwCDdPXZmCZeqfCBJbrl98gzG4dgeSdQTDyxooUyAUM
+	 8gtgi2hSB8lqwQBk610SXAr6t0ETPPbjV+MIv+LRV93x2V3HbqH+zWfk3X75YHYWX/Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795576881;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=BYEw4LReM8jd7zxCyyxvwZ3gIo1peIA5T+sz5mf4TIo=;
-	b=RsErDxLnHKrmkX0Vxra9yLmZX8+YnLwn0tl/80WeIjefclB3RvFRIHz6MY/2D1dvC0bA
-	 lCFmL5MtW9rOu///Ys+9D0a9Cs1eD7ypMawaOQ+CfV6fPRvYStD+ftl6pP5jf6ZP54GmW
-	 N4cd1g2OlJEtw3IcqqnYsj1OVIryB31cc+wKOOn0PQtN8oBfp0nSXMSn2RizblF+NDg/U
-	 LJ69T1Gy6nbv4x5NDRJu83AOW0cu1uaCv27243CqXfsPU06sSbtuKpDty4eS5Ft8yez0A
-	 yLHmWnS7Rt1z76mjW3ftU76Kp++lD5DbB/VXMyrpSCaY97lhF6Jr0MRLnCfVGk4VCrQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795577108;
+	h=Received:DKIM-Signature:Date:Message-ID:From:To:Cc:Subject:
+	 In-Reply-To:References:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=jm765WKY/zC72jkI2x569XRAtZ95jMdKBRn4kx2NFXU=;
+	b=rrjW1BcU/nROFseWCk6q7Qo7TzWqkB3pNnX9HSi0VYG7k5tDQ44Mqhjh67DnGcGqTwhU
+	 yBovC1HEDZ2KwVLJToknA9iPCqzOIFV/NwfB8YHZJPRx+3iGlA6GCgDy98gYEGENx66Md
+	 uGMhpCZXZ32fWh6NMAR8SunISKW9k5xhlXGHznp4W9EiNYFXiCaNY5K5YfQY7E7H3rCld
+	 UiDAGOD2kfyh6j8MpLg2NacQQtt8dG5ahg8wZpRajOHLnjQCgQnauy9pHvziq9r1RmfMD
+	 WgheNPh033Kc+bld/QmlUJTkkEKWYDoJ93OQplN3Xp3znFUVrIxZ+qOySq11D2bmIbw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TfX1eQGS;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=V4AGWGfe;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64EDC606A323;
-	Wed, 25 Nov 2026 03:21:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 057F4606A31E;
+	Wed, 25 Nov 2026 03:25:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TfX1eQGS
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 209A11F000C0;
-	Wed, 25 Nov 2026 03:21:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=V4AGWGfe
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 722391F00A3D;
+	Wed, 25 Nov 2026 03:25:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795576880;
-	bh=BYEw4LReM8jd7zxCyyxvwZ3gIo1peIA5T+sz5mf4TIo=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=TfX1eQGSJozqrtDby6XAblKI0HJ7z+r+P22060Bbmz5eE2oK07x0fCOzZsp4Nq/9g
-	 UTk6a0UViNRPSET4LQyT7/gBWrBci5SFdSewstVB9ooHdtLBxq9af2bvC8fneUDx3t
-	 zw1hUzri6bR5/gBbnSq1DwwkdRghgKJx/UHCdUYd3cJHQ9KmPcgx/3vzPYUem6z2RR
-	 VkKgc0X52iVzcX65nPS0A/5JIbvu4eL31fZX1AQhU2FmDUrZssZ+utAp61PUNcG4dC
-	 lOdS27yfEbPvQRurOgtoPLRZXF+gGUHi8aCn/psHHfjBZHOF6fA+lo3pa7bVPyUHR0
-	 tbO0JtCpMt1Ag==
-Message-ID: <sashiko-outbox-232458@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net] net/smc: validate peer CDC cursors against buffer
- bounds and window
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Qican Ma" <goonsomeway@gmail.com>
-Cc: linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, "Heiko Carstens" <hca@linux.ibm.com>, "Vasily
- Gorbik" <gor@linux.ibm.com>, "Alexander Gordeev" <agordeev@linux.ibm.com>, "Christian
- Borntraeger" <borntraeger@linux.ibm.com>
-In-Reply-To: <CA+OT+ON4Lt9mLvWPK8rUaHKZ01_p0fGCiCsWHwXWzT1sGaTtLA@mail.gmail.com>
-References: <CA+OT+ON4Lt9mLvWPK8rUaHKZ01_p0fGCiCsWHwXWzT1sGaTtLA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 25 Nov 2026 03:21:19 +0000
+	s=k20260515; t=1795577107;
+	bh=jm765WKY/zC72jkI2x569XRAtZ95jMdKBRn4kx2NFXU=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=V4AGWGfeZLmrhtquKRv6EviHYCknQ6uF6sSccjviJ4oFSvgpAICCuQyib02WKudKy
+	 WZzoevJXnvM5e8NOpUoL9Ig82rYSxXxmUF9Jr1DLDbm4EjtTfslgzFUp9UHxUlPTv9
+	 wrZwz+G0W0uX1L3CBHkaI1MEt38fA9MYeSZuWLQ37eiV+uutE2OGEeTf1isC4/809q
+	 ZNbCkMcYIXb3teD/R3X/bXjffIjQmZgy38Wakf++rKKgIEMtzE5TK9nhDC09ZhOLli
+	 riBulMJ56RdCaDMuJt8qSHKFWjz1+SQJPB/Yzgx1/6vGL5v3z03GsZeS1enRqA31wI
+	 ei8UTG7MewgQw==
+Date: Tue, 24 Nov 2026 17:25:06 -1000
+Message-ID: <8fefdabc4b1d9e0c0d0b3bae1995e784@kernel.org>
+From: Tejun Heo <tj@kernel.org>
+To: Alice Ryhl <aliceryhl@google.com>
+Cc: Lai Jiangshan <jiangshanlai@gmail.com>, Jonathan Corbet <corbet@lwn.net>,
+ Boqun Feng <boqun@kernel.org>, Miguel Ojeda <ojeda@kernel.org>,
+ Danilo Krummrich <dakr@kernel.org>, Philipp Stanner <phasta@kernel.org>,
+ Matthew Brost <matthew.brost@intel.com>,
+ =?utf-8?q?Christian_K=C3=B6nig?= <ckoenig.leichtzumerken@gmail.com>,
+ =?utf-8?q?Thomas_Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
+ Rodrigo Vivi <rodrigo.vivi@intel.com>,
+ Boris Brezillon <boris.brezillon@collabora.com>,
+ Steven Price <steven.price@arm.com>, Liviu Dudau <liviu.dudau@arm.com>,
+ =?utf-8?q?Onur_=C3=96zkan?= <work@onurozkan.dev>,
+ dri-devel@lists.freedesktop.org, intel-xe@lists.freedesktop.org,
+ rust-for-linux@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-kernel@vger.kernel.org,
+ Corey Minyard <corey@minyard.net>, openipmi-developer@lists.sourceforge.net,
+ Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>,
+ Mikulas Patocka <mpatocka@redhat.com>,
+ Benjamin Marzinski <bmarzins@redhat.com>, dm-devel@lists.linux.dev,
+ Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org,
+ "Rafael J. Wysocki" <rafael@kernel.org>,
+ Viresh Kumar <viresh.kumar@linaro.org>, linux-arm-msm@vger.kernel.org,
+ linux-pm@vger.kernel.org,
+ "D. Wythe" <alibuda@linux.alibaba.com>, Dust Li <dust.li@linux.alibaba.com>,
+ Sidraya Jayagond <sidraya@linux.ibm.com>,
+ Mahanta Jambigi <mjambigi@linux.ibm.com>,
+ Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>, linux-rdma@vger.kernel.org,
+ linux-s390@vger.kernel.org, netdev@vger.kernel.org,
+ Oder Chiou <oder_chiou@realtek.com>, Liam Girdwood <lgirdwood@gmail.com>,
+ Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>,
+ Takashi Iwai <tiwai@suse.com>, linux-sound@vger.kernel.org,
+ "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowangio@gmail.com>,
+ =?utf-8?q?Eugenio_P=C3=A9rez?= <eperezma@redhat.com>,
+ Xuan Zhuo <xuanzhuo@linux.alibaba.com>, virtualization@lists.linux.dev
+Subject: Re: [PATCH 2/2] workqueue: doc: clarify cancel_work_sync() cross-workqueue behavior
+In-Reply-To: <20261118-ordered-wq-cancel-v1-2-916e01f9affe@google.com>
+References: <20261118-ordered-wq-cancel-v1-0-916e01f9affe@google.com> <20261118-ordered-wq-cancel-v1-2-916e01f9affe@google.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,156 +90,35 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Thank you for your contribution! Sashiko AI review found 3 potential
-issues to consider:
-- [Critical] net/smc: missing monotonicity and wrap checks in
-  smc_cdc_msg_recv_action()
-- [High] net/smc: incomplete diff_prod window check in
-  smc_cdc_msg_recv_action()
-- [High] net/smc: valid initial CDC messages dropped in
-  smc_cdc_msg_recv_action()
+Applied to wq/for-7.5.
+
+Note that cancel_work_sync() and friends haven't been waiting for a work
+item which is still running from a different workqueue since 606a5020b9bd
+("workqueue: gut flush[_delayed]_work_sync()") which went in in v3.7. This
+has been broken for well over a decade and the documentation now says so.
+
+The following queue the same work item on more than one workqueue and then
+sync-cancel or flush it. As cancel_work_sync() doesn't guarantee that the
+work item is quiescent in that case, they need to make sure in some other
+way, e.g. by flushing the workqueues that are involved. Note that system_wq
+and system_percpu_wq, which schedule_work() uses, are different workqueues.
+cc'ing the maintainers.
+
+- drivers/char/ipmi/ipmi_msghandler.c: smi_work
+- drivers/md/dm-mpath.c: trigger_event
+- net/smc/smc_llc.c: llc_event_work
+- sound/soc/codecs/rt5651.c: jack_detect_work
+- sound/soc/codecs/rt5682s.c: jack_detect_work
+- sound/soc/soc-jack.c: snd_soc_jack_gpio.work
+- drivers/input/misc/palmas-pwrbutton.c: input_work
+- drivers/cpufreq/qcom-cpufreq-hw.c: throttle_work
+- drivers/vdpa/vdpa_user/vduse_dev.c: vduse_virtqueue.inject
+
+Thanks.
+
 --
-
-commit 1b4f7a808b103f512ec58fa5533fdc1b60707fd4
-Author: Qican Ma <goonsomeway@gmail.com>
-
-net/smc: validate peer CDC cursors against buffer bounds and window
-
-This commit decodes incoming CDC messages into a temporary
-smc_host_cdc_msg and validates cursor offsets and deltas against buffer
-bounds and available capacity before updating conn->local_rx_ctrl.
-
-> diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
-> index 32d6d03df3214..fd5e296e8becb 100644
-> --- a/net/smc/smc_cdc.c
-> +++ b/net/smc/smc_cdc.c
-> @@ -332,14 +332,48 @@ static void smc_cdc_msg_recv_action(struct smc_sock=
- *smc,
->  {
->  	union smc_host_cursor cons_old, prod_old;
->  	struct smc_connection *conn =3D &smc->conn;
-> -	int diff_cons, diff_prod, diff_tx;
-> +	struct smc_host_cdc_msg rx_ctrl =3D {};
-> +	int diff_cons, diff_prod, diff_tx =3D 0;
-> =20
->  	smc_curs_copy(&prod_old, &conn->local_rx_ctrl.prod, conn);
->  	smc_curs_copy(&cons_old, &conn->local_rx_ctrl.cons, conn);
-> -	smc_cdc_msg_to_host(&conn->local_rx_ctrl, cdc, conn);
-> +	rx_ctrl.prod =3D prod_old;
-> +	rx_ctrl.cons =3D cons_old;
-> +	smc_cdc_msg_to_host(&rx_ctrl, cdc, conn);
-> +
-> +	if (rx_ctrl.prod.count >=3D conn->rmb_desc->len ||
-> +	    rx_ctrl.cons.count >=3D conn->peer_rmbe_size)
-> +		return;
-
-[Severity: High]
-Does checking rx_ctrl.cons.count >=3D conn->peer_rmbe_size drop valid
-initial CDC messages on a listening server before conn->peer_rmbe_size is
-initialized?
-
-In smc_listen_work(), the server allocates conn->rmb_desc and registers
-the connection before sending SMC_CLC_ACCEPT, while conn->peer_rmbe_size
-remains 0 until SMC_CLC_CONFIRM arrives and smc_conn_save_peer_info()
-runs.  On the client, smc_connect_rdma() and smc_connect_ism() send
-SMC_CLC_CONFIRM, set sk_state to SMC_ACTIVE, and return from connect()
-immediately:
-
-kworker (server)                  <softirq> (server)
-smc_listen_work()
-  smc_listen_find_device()
-  smc_clc_send_accept()
-                                  /* client receives ACCEPT, sends
-                                   * CONFIRM + initial data + CDC
-                                   * (prod.count > 0, cons.count =3D=3D 0)
-                                   */
-                                  smc_cdc_msg_recv()
-                                    bh_lock_sock(&smc->sk)
-                                    smc_cdc_msg_recv_action()
-                                      rx_ctrl.cons.count >=3D
-                                        conn->peer_rmbe_size
-                                      /* 0 >=3D 0 -> message dropped */
-  smc_clc_wait_msg(CONFIRM)
-  ...
-  smc_conn_save_peer_info()
-    conn->peer_rmbe_size =3D ...
-
-Because delivered RDMA/ISM CDC messages are not retransmitted, dropping
-this initial CDC message loses the producer cursor update (and any close
-flags), leaving the server blocked in recvmsg().
-
->  	diff_cons =3D smc_curs_diff(conn->peer_rmbe_size, &cons_old,
-> -				  &conn->local_rx_ctrl.cons);
-> +				  &rx_ctrl.cons);
-> +	if (diff_cons > conn->peer_rmbe_size - atomic_read(&conn->peer_rmbe_spa=
-ce))
-> +		return;
-> +
-> +	if (diff_cons && conn->lgr->is_smcd &&
-> +	    smc_ism_support_dmb_nocopy(conn->lgr->smcd)) {
-> +		if (rx_ctrl.cons.count >=3D conn->sndbuf_desc->len)
-> +			return;
-> +		diff_tx =3D smc_curs_diff(conn->sndbuf_desc->len,
-> +					&conn->tx_curs_fin, &rx_ctrl.cons);
-> +		if (diff_tx > conn->sndbuf_desc->len - atomic_read(&conn->sndbuf_space=
-))
-> +			return;
-> +	}
-> +
-> +	diff_prod =3D smc_curs_diff(conn->rmb_desc->len, &prod_old,
-> +				  &rx_ctrl.prod);
-> +	if (diff_prod > conn->rmb_desc->len - atomic_read(&conn->bytes_to_rcv))
-> +		return;
-
-[Severity: High]
-Can a peer still advance conn->local_rx_ctrl.prod past
-conn->local_tx_ctrl.cons because conn->bytes_to_rcv does not include
-non-inline urgent bytes or in-flight spliced bytes?
-
-When SOCK_URGINLINE is not set and rx_ctrl.prod_flags.urg_data_present is
-set, smc_cdc_handle_urg_data_arrival() decrements diff_prod before
-atomic_add(diff_prod, &conn->bytes_to_rcv), so each 1-byte urgent CDC
-message advances conn->local_rx_ctrl.prod by 1 without increasing
-conn->bytes_to_rcv.  Similarly, on splice() reads, smc_rx_recvmsg()
-subtracts copylen from conn->bytes_to_rcv immediately while
-conn->local_tx_ctrl.cons is not advanced until smc_rx_pipe_buf_release()
-drops conn->splice_pending.  In both cases, checking only against
-conn->rmb_desc->len - atomic_read(&conn->bytes_to_rcv) allows the peer to
-wrap conn->local_rx_ctrl.prod past unconsumed data in the RMB.
-
-> +
-> +	conn->local_rx_ctrl.common.type =3D rx_ctrl.common.type;
-> +	conn->local_rx_ctrl.len =3D rx_ctrl.len;
-> +	conn->local_rx_ctrl.seqno =3D rx_ctrl.seqno;
-> +	conn->local_rx_ctrl.token =3D rx_ctrl.token;
-> +	smc_curs_copy(&conn->local_rx_ctrl.prod, &rx_ctrl.prod, conn);
-> +	smc_curs_copy(&conn->local_rx_ctrl.cons, &rx_ctrl.cons, conn);
-
-[Severity: Critical]
-Can a peer bypass these delta checks by rewinding cursors on SMC-D or
-jumping wrap counters on SMC-R and SMC-D?
-
-On SMC-D, smcd_cdc_msg_to_host() copies peer->prod and peer->cons without
-checking monotonicity.  If a peer sends new.wrap =3D=3D old.wrap with
-new.count < old.count, smc_curs_diff() clamps new->count - old->count to
-0, which passes the upper-bound checks and commits the rewound cursor to
-conn->local_rx_ctrl without decreasing bytes_to_rcv or peer_rmbe_space
-(and on dmb_nocopy links, a subsequent small advance with diff_cons > 0
-and diff_tx =3D=3D 0 rewinds conn->tx_curs_fin as well).  Advancing the
-cursor again then re-credits the same range and still inflates
-bytes_to_rcv, peer_rmbe_space, and sndbuf_space past the buffer length.
-
-In addition, when old->wrap !=3D new->wrap, neither smc_curs_diff() nor
-smc_cdc_cursor_to_host() verifies that new->wrap =3D=3D (u16)(old->wrap + 1)
-and new->count <=3D old->count.  A peer can jump rx_ctrl.cons.wrap while
-keeping diff_cons within peer_rmbe_size - atomic_read(&conn->peer_rmbe_spac=
-e),
-leaving prod.wrap !=3D cons.wrap in smc_tx_rdma_writes() when
-prod.count + len > conn->peer_rmbe_size so that dst_len is not clamped to
-conn->peer_rmbe_size - prod.count, causing an out-of-bounds write past
-the peer RMBE/DMB.
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/CA+OT+ON4Lt9mLvWPK8=
-rUaHKZ01_p0fGCiCsWHwXWzT1sGaTtLA@mail.gmail.com?part=3D1
+tejun
