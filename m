@@ -1,87 +1,74 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795635365;
-	b=TGec0NM+np1hmUhsCQ219u1XnRWYyV5nI3N1Yxk5vp0e8UsgAF1FtGIz17VrXMH99npd
-	 6MSEH7thTKvAAoxHvJc+q29PnE+0HX6Jq7CxU+qgOo3zjU/fsfCPqouPdLuoRMWD/KWyr
-	 fTJArBE4VhciXLblJk0+Zkmhg3nYSBHFCX66W+E5q3e4YqQ5aOLfLdVHvomGjxF+qV28A
-	 /c9NmQyrQLSeQRGozEDQ6fyP9dhDfmMQNlVivCCYTO+j0THiVrfchGDqZQbsmWk8LLi87
-	 B4bIHkytfYKAfYnKDAT1046tFaf4JDugdj8Sz+rIeCiz3oxmxvGTEjkAUCk8ZfZYfjw==
+	t=1795635548;
+	b=HQUrgx+/Zb9svwvJWcgFIvMb4efxUUGG3YmtyUl0le99NPuRvMTyhUmRgj0SYF2GV0Sp
+	 e6M2lAHUJEArJDKwMT4kOANwUWuBqpMsNshCMcsJfWl0tNwRzz/ajnEQSRYEyfP/eGjdw
+	 T0vx+rgvtKnaCMyn47QI32IY/KBhZpCF/B8MbcDF+u1NA9J6vIxJiMS/JCLbDlcjiN9Qe
+	 uqUWxbi7D0ODbWIuWwriFUDKYsxabdp5AiWWs4gJquwYCauy7PW/nzj3Knas4Fh17gqxc
+	 e1E/52BAFcwrj20X6iuVuvHf4QybihRccx83UtV3kc6jZSDPXWc5kTfbML+1hn710yw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795635365;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795635548;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:In-Reply-To:References:
-	 Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding;
-	bh=Tr/iPHr+JWqZmmJR7USpXjVU7ujr6M6VCMW4PPGH0TI=;
-	b=fiIUkngOZrfdJuMbvtt327Wx6/ARLv3ipOuQhX82sIAE7ILbcehP8DPw5LYff1qrjVaQ
-	 9ewq20ES8jkUgoqiz62VbkhgrnXkvbtXWTqJmK1BuGTgftaoIsS8XL4ZENXzNNNxmZRK8
-	 /IreF8mionr5H97bMj3NVB8/sUockR+xD5IMgTnGDojx1sFGOhXqCckYqIKB2/AfXFCsj
-	 1u6DDwFeBfZPe6sRMHQ4bL8sAt9/0WaMVfZJjrk9laFdjvPgL30vbG3pY1y8RNor6TzOP
-	 icKcv5M5tvFypQNOyrBfc5TD9zvT5H6nQA9zkNUUyDWiJUluBxjxomYN/oCAwyn7g2w==
+	 Date:Message-ID:MIME-Version:Content-Type;
+	bh=4JIpkbzf9JBuRi7wi/hXUTx/9PeRcB5EF6i+tZhvo4s=;
+	b=eWrIgM3lZBYS/dNOvlDNrDGoX3hMjdPR1osVnf320EBsk862pk+xzQIW8gZ2CDBFXhA/
+	 QTaxlBzEEm/x+i/IN28C7x+G45dWKbH26ZdrFplqJ/x3XY5VrgYXYumuk5EVO7njyOXox
+	 1stbnTuljktvuZfXj+MqXpQNAAG4HZwKrR4d+lCMze+f/ZDkuSQ1Oe/JYFps8zzTeU7r5
+	 CleLMaIudqtukPVzI6AcdwP9pAyHZGyfGxS9SQHntjz1GM6y+4tA8x3gXN2UImEUgUJVl
+	 /zh19lZ8w5Ij86IZWXOizF1t0/nq3HxFjnsmmn2aQ7E8loUpLgk+hsTg/Qq44L+0X1g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="gZI6ZY/9";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QbuEShLi;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19BCD606A323;
-	Wed, 25 Nov 2026 19:36:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2113606A321;
+	Wed, 25 Nov 2026 19:39:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gZI6ZY/9
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CDE21F000D0;
-	Wed, 25 Nov 2026 19:36:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QbuEShLi
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4EE21F000C4;
+	Wed, 25 Nov 2026 19:39:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795635364;
-	bh=Tr/iPHr+JWqZmmJR7USpXjVU7ujr6M6VCMW4PPGH0TI=;
+	s=k20260515; t=1795635547;
+	bh=4JIpkbzf9JBuRi7wi/hXUTx/9PeRcB5EF6i+tZhvo4s=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date;
-	b=gZI6ZY/9FOlg1GJgOUhV+Cj0dx2xtMFRnWmyHraUhfsTgZjRWcxSshCt64dU0RpX0
-	 EDhalz88iIHbniIOjjOm5PVk4BXti7Hsh17cmehu2NLSmIzekMYo2fX/sOR46PMxq0
-	 eR7D4qT1xOBsY0U3iF9q8niKafp3xMkG9OSaA+UD6jldHb+CKxBcomllqrvBdBZc8z
-	 352jKDlQ0teuXsvk7vnFJ7hjJsxDESnegcfbNk8d4ZfQJt3mUsINYuR9CTo8BA3XQJ
-	 sGjAD7+QrrFMawIkuyZNlsU0eakuzq0CbBYgkPM3UtF+uXuMqVThLVtGdjJkRwXF0S
-	 t5cLNGuJeKR7Q==
+	b=QbuEShLi544NaqUt1tLMA3EEz4cc//Z80hoJf2oz3FNzqzd1oMQc6bu7mZPjIM3L4
+	 aPysv0MrQF5mpM3fjFSc3MzO1wpRIQP98KRBYcuP6Y8MfZd1zitnhm7W8gIj9K5XZR
+	 AxCa+Ytjhw7GZsJEpUSHLenk7kb7Uiv6eOTwsekLT01X1ipiUViZmzpQgE+cSMK2Tg
+	 wWfzRS+gFM8Y5CCIus+57t1dQZM1giVuQkMOezHnsargX42ERMy2dp+kQp4dTKLuAs
+	 ZbUerKPMxG37Rl81ezxfLltmCIUycyfjK1ziTtnQqeQPCLPw2MCu34fOxsQhmYZVKz
+	 gALHJ2T8i6w7w==
 From: =?utf-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>
-To: Maciej Fijalkowski <maciej.fijalkowski@intel.com>
-Cc: Magnus Karlsson <magnus.karlsson@intel.com>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
- <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Andrew Lunn
- <andrew+netdev@lunn.ch>, Alexei Starovoitov <ast@kernel.org>, Daniel
- Borkmann <daniel@iogearbox.net>, Jesper Dangaard Brouer <hawk@kernel.org>,
- John
- Fastabend <john.fastabend@gmail.com>, Andrii Nakryiko <andrii@kernel.org>,
- Eduard Zingerman <eddyz87@gmail.com>, Kumar Kartikeya Dwivedi
- <memxor@gmail.com>, Ilias Apalodimas <ilias.apalodimas@linaro.org>,
- Alexander Duyck <alexanderduyck@fb.com>, Saeed Mahameed
- <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, Mark Bloch
- <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Michael Chan
- <michael.chan@broadcom.com>, Pavan Chebbi <pavan.chebbi@broadcom.com>,
- Jonathan Corbet <corbet@lwn.net>, Shuah Khan <shuah@kernel.org>,
- bpf@vger.kernel.org, netdev@vger.kernel.org, Stuart Clark
- <stuclar@meta.com>, Stanislav Fomichev <sdf@fomichev.me>, Simon Horman
- <horms@kernel.org>, Martin KaFai Lau <martin.lau@linux.dev>, Mina Almasry
- <almasrymina@google.com>, Song Liu <song@kernel.org>, Yonghong Song
- <yonghong.song@linux.dev>, Jiri Olsa <jolsa@kernel.org>, Emil Tsalapatis
- <emil@etsalapatis.com>, Ihor Solodrai <ihor.solodrai@linux.dev>, Randy
- Dunlap <rdunlap@infradead.org>, kernel-team@meta.com, Dimitri Daskalakis
- <dimitri.daskalakis1@gmail.com>, Bobby Eshleman <bobbyeshleman@meta.com>,
- Mohsin Bashir <mohsin.bashr@gmail.com>, Kees Cook <kees@kernel.org>, Breno
- Leitao <leitao@debian.org>, Maxime Chevallier
- <maxime.chevallier@bootlin.com>, Tao Cui <cuitao@kylinos.cn>, Vadim
- Fedorenko <vadim.fedorenko@linux.dev>, "Mike Marciniszyn (Meta)"
- <mike.marciniszyn@gmail.com>, Kuniyuki Iwashima <kuniyu@google.com>,
- Jiayuan
- Chen <jiayuan.chen@linux.dev>, Martin Karsten <mkarsten@uwaterloo.ca>,
- Nikolay Aleksandrov <razor@blackwall.org>, David Wei <dw@davidwei.uk>,
- Pavel
- Begunkov <asml.silence@gmail.com>, linux-rdma@vger.kernel.org,
+To: netdev-bot+sashiko@kernel.org
+Cc: magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
+ davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org,
+ pabeni@redhat.com, andrew+netdev@lunn.ch, ast@kernel.org,
+ daniel@iogearbox.net, hawk@kernel.org, john.fastabend@gmail.com,
+ andrii@kernel.org, eddyz87@gmail.com, memxor@gmail.com,
+ ilias.apalodimas@linaro.org, alexanderduyck@fb.com, saeedm@nvidia.com,
+ tariqt@nvidia.com, mbloch@nvidia.com, leon@kernel.org,
+ michael.chan@broadcom.com, pavan.chebbi@broadcom.com, corbet@lwn.net,
+ shuah@kernel.org, bpf@vger.kernel.org, netdev@vger.kernel.org,
+ stuclar@meta.com, sdf@fomichev.me, horms@kernel.org, martin.lau@linux.dev,
+ almasrymina@google.com, song@kernel.org, yonghong.song@linux.dev,
+ jolsa@kernel.org, emil@etsalapatis.com, ihor.solodrai@linux.dev,
+ rdunlap@infradead.org, kernel-team@meta.com,
+ dimitri.daskalakis1@gmail.com, bobbyeshleman@meta.com,
+ mohsin.bashr@gmail.com, kees@kernel.org, leitao@debian.org,
+ maxime.chevallier@bootlin.com, cuitao@kylinos.cn,
+ vadim.fedorenko@linux.dev, mike.marciniszyn@gmail.com, kuniyu@google.com,
+ jiayuan.chen@linux.dev, mkarsten@uwaterloo.ca, razor@blackwall.org,
+ dw@davidwei.uk, asml.silence@gmail.com, linux-rdma@vger.kernel.org,
  linux-kselftest@vger.kernel.org, linux-doc@vger.kernel.org,
  linux-kernel@vger.kernel.org
 Subject: Re: [PATCH net-next 02/15] xdp: Keep the shared info of a buffer in
  kernel memory
-In-Reply-To: <awb8BX2lbZ4sotpQ@boxer>
-References: <20261124112707.118678-1-bjorn@kernel.org>
- <20261124125654.183091-2-bjorn@kernel.org> <awb8BX2lbZ4sotpQ@boxer>
-Date: Wed, 25 Nov 2026 20:36:02 +0100
-Message-ID: <87qzg8og9p.fsf@all.your.base.are.belong.to.us>
+In-Reply-To: <179561567996.3135.9952128421877275714@kernel.org>
+References: <20261124125654.183091-2-bjorn@kernel.org>
+ <179561567996.3135.9952128421877275714@kernel.org>
+Date: Wed, 25 Nov 2026 20:39:04 +0100
+Message-ID: <87ld6gog4n.fsf@all.your.base.are.belong.to.us>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -91,45 +78,145 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 
-Maciej Fijalkowski <maciej.fijalkowski@intel.com> writes:
+netdev-bot+sashiko@kernel.org writes:
 
-> On Tue, Nov 24, 2026 at 01:56:37PM +0100, Bj=C3=B6rn T=C3=B6pel wrote:
->> Currently, the shared info of an XDP buffer, with the fragment list of
->> a multi-buffer packet, lives at the end of the buffer's frame, in
->> memory that the device writes. Helpers follow its fragments, drivers
->> free them through it, and frame and skb conversion copy it, so memory
->> that others may write while the kernel uses it must not hold it.
->> Classic AF_XDP zero copy keeps it in the tail of a UMEM chunk, where
->> userspace can rewrite it.
->>=20
->> Let an RX queue keep the shared info of its buffers in kernel memory.
->> The queue gets one from xdp_rxq_info_reg_ext_sinfo(), and
->> xdp_rxq_info_unreg_mem_model() frees it. A buffer with the new
->> XDP_FLAGS_SINFO_EXT finds its shared info there.
->>=20
->> Whoever prepares a buffer sets the flag before adding fragments. The
->> queue NAPI builds one buffer at a time, so one shared info per queue
->> is enough. It is valid until the buffer is redirected, dropped or
->> copied. Frame conversion and skb construction refuse buffers with the
->> flag, as a frame or an skb would keep its shared info in the buffer.
->> Nothing sets the flag until later in this series.
->>=20
->> xdp_data_hard_end() reserves no shared-info tailroom for such a
->> buffer, so its data may reach the end of the frame. frame_sz then
->> bounds every write past the data, such as tail growth and
->> bpf_xdp_pull_data(), so the frame must not cover memory of other
->> buffers. Drivers may then pack such buffers tighter.
->>=20
->> Signed-off-by: Bj=C3=B6rn T=C3=B6pel <bjorn@kernel.org>
->> ---
->>  include/net/xdp.h | 41 +++++++++++++++++++++++++++++++++++------
->>  net/core/xdp.c    | 30 ++++++++++++++++++++++++++++++
->>  2 files changed, 65 insertions(+), 6 deletions(-)
+> Thank you for your contribution! Sashiko AI review found more severe
+> issue(s) in other patches of this series. This mail is only an FYI, in case
+> you want to address the nit picks below when you respin.
 >
-> couldn't this effort be sent separately and address classic zc as well?
+> Low priority / nit picks for your consideration:
+>
+> - [Low] A comment is now stale.
+>
+> Pre-existing issues:
+> - [High] This problem wasn't introduced by this patch, but the patch's
+>   commit message names it and the series leaves it open.
+>
+> --
+>
+> xdp: Keep the shared info of a buffer in kernel memory
+>
+> This patch lets an RX queue keep the skb_shared_info of its XDP buffers
+> in kernel memory, allocated by xdp_rxq_info_reg_ext_sinfo(). Buffers
+> with the new XDP_FLAGS_SINFO_EXT flag look up their shared info there.
+> For such buffers xdp_data_hard_end() reserves no tailroom, and frame
+> and skb conversion refuse them.
+>
+>> diff --git a/include/net/xdp.h b/include/net/xdp.h
+>> index 1629e347b71fb..944418111a86e 100644
+>> --- a/include/net/xdp.h
+>> +++ b/include/net/xdp.h
+>
+> [ ... ]
+>
+>> @@ -212,17 +226,27 @@ xdp_prepare_buff(struct xdp_buff *xdp, unsigned char *hard_start,
+>>  
+>>  /* Reserve memory area at end-of data area.
+>>   *
+>> - * This macro reserves tailroom in the XDP buffer by limiting the
+>> - * XDP/BPF data access to data_hard_end.  Notice same area (and size)
+>> - * is used for XDP_PASS, when constructing the SKB via build_skb().
+>> + * This reserves tailroom in the XDP buffer by limiting the XDP/BPF data
+>> + * access to data_hard_end.  Notice same area (and size) is used for
+>> + * XDP_PASS, when constructing the SKB via build_skb(). Buffers with
+>> + * %XDP_FLAGS_SINFO_EXT keep the shared info elsewhere and reserve none.
+>>   */
+>> -#define xdp_data_hard_end(xdp)				\
+>> -	((xdp)->data_hard_start + (xdp)->frame_sz -	\
+>> -	 SKB_DATA_ALIGN(sizeof(struct skb_shared_info)))
+>> +static __always_inline void *xdp_data_hard_end(const struct xdp_buff *xdp)
+>> +{
+>> +	u32 tailroom = SKB_DATA_ALIGN(sizeof(struct skb_shared_info));
+>> +
+>> +	if (xdp->flags & XDP_FLAGS_SINFO_EXT)
+>> +		tailroom = 0;
+>> +	return xdp->data_hard_start + xdp->frame_sz - tailroom;
+>> +}
+>
+> [Severity: Low]
+> This isn't a bug, but should the comment in bpf_xdp_adjust_tail() be
+> updated along with this change?
+>
+> net/core/filter.c:bpf_xdp_adjust_tail() {
+>     ...
+> 	/* Notice that xdp_data_hard_end have reserved some tailroom */
+> 	if (unlikely(data_end > data_hard_end))
+> 		return -EINVAL;
+>     ...
+> }
+>
+> xdp_data_hard_end() no longer reserves tailroom for XDP_FLAGS_SINFO_EXT
+> buffers. For those buffers this bound reaches the end of the frame, and
+> frame_sz is the only limit.
 
-Yes, and it should. This is a security issue for AF_XDP implementations
-supporting xdp.frags. :-(
+Yes, will fix.
+
+>>  
+>>  static inline struct skb_shared_info *
+>>  xdp_get_shared_info_from_buff(const struct xdp_buff *xdp)
+>>  {
+>> +	/* Kernel structures stay out of memory that userspace may write */
+>> +	if (unlikely(xdp->flags & XDP_FLAGS_SINFO_EXT))
+>> +		return xdp->rxq->ext_sinfo;
+>> +
+>>  	return (struct skb_shared_info *)xdp_data_hard_end(xdp);
+>>  }
+>
+> [Severity: High]
+> This is a pre-existing issue, not one introduced by this patch. The
+> commit message gives it as the motivation:
+>
+>     Classic AF_XDP zero copy keeps it in the tail of a UMEM chunk, where
+>     userspace can rewrite it.
+>
+> Is classic AF_XDP zero copy meant to stay exposed? XSK pool buffers
+> never get XDP_FLAGS_SINFO_EXT, either here or later in the series. Later
+> in the series only xdp_sink_mark() sets the flag, and only for
+> MP_XDP_ONLY page pools.
+>
+> So xsk_buff_add_frag() still writes the fragment list into the UMEM
+> tail:
+>
+> xsk_buff_add_frag()
+>   __xdp_buff_add_frag(head, ...)
+>     xdp_get_shared_info_from_buff(head)
+>       xdp_data_hard_end(head)
+>
+> That is the tailroom that xsk_pool_get_rx_frame_size() reserves when
+> XDP_UMEM_SG_FLAG is set.
+>
+> Userspace can rewrite nr_frags and frags[] of chunks it has handed over
+> through the fill ring while NAPI builds a multi-buffer packet. Can a
+> forged nr_frags then overflow sinfo->frags[]? __xdp_buff_add_frag()
+> only checks:
+>
+> 	} else if (unlikely(nr_frags == MAX_SKB_FRAGS)) {
+> 		return false;
+>
+> With a value above MAX_SKB_FRAGS, it writes frags[nr_frags] past the
+> end of the chunk.
+>
+> On XDP_PASS, xdp_copy_frags_from_zc() in net/core/xdp.c has the same
+> problem:
+>
+> 	xinfo = xdp_get_shared_info_from_buff(xdp);
+> 	nr_frags = xinfo->nr_frags;
+>
+> 	for (u32 i = 0; i < nr_frags; i++) {
+>
+> There is no bound on nr_frags here. It indexes skb_shinfo()->frags[] of
+> the new skb and copies from skb_frag_address() of the forged frag
+> netmems. xsk_rcv_zc() also sizes its RX ring reservation from nr_frags.
+>
+> Triggering this needs a zero-copy AF_XDP socket with XDP_UMEM_SG_FLAG
+> and an attached XDP program.
+>
+> Could the commit message say that classic zero copy stays out of scope?
+> Or could MEM_TYPE_XSK_BUFF_POOL buffers use ext_sinfo as well?
+
+This is older than this series, and the series does not change it.
+Classic is out of scope here.
+
+I'll work with Magnus and Maciej to get a fix out for classic.
