@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795615692;
-	b=gcA3QJ55Pmx9ck21MCM6q8QZPhSThDZ7wtEvqEcU8yh6nq8F84eZx2C8Csm4xhUREthe
-	 EpuexHMS9Vk+QlzBd1VOCVsFRbK5IymbRbiQFGRDdaxHs/0cy92dahMF+4X8K/+oRXliu
-	 6HZLog1ZJD9nfGPXq2FILWTT6lZSdlJnZKmph06oyO6ZQkbuqjIrdHRBp8HtHMIezlLB0
-	 O/1/a0GjCNgr2GM2pBIQPpv0vj043GzMtBf4x4iWm+LDN6+NV26yuhtLuvycokv22N23T
-	 L6B+ZeDZq0e+F1XSI1SOSKKO+aaeUvcHF5ERxYHs9xtJrfRM9cYBBtovHgAmG7MzTkg==
+	t=1795615701;
+	b=t33PA0dCC4UzuSEf3J8Zznms2wDtnqPnQsMkOhEKQzsXHiwVw4MpgN2olPDxjrHJUZnZ
+	 cglQHKS0NYj1r+7Y+vLVEq/Y7yeW7O8xKd8gcnkBV0gcSB5R2fhyi7rCSJd0nBzkeG7Zm
+	 v8n8U8eAnYIxqMOAdwbNFcKZyuhD9yRPkJIcia7yI7eERb+2RaTKAS23B0Kr5D/S7SeOu
+	 xUdJYOHXSAT+Vtg/J3lZIinHRSj6/3kvbbhJydDFsgKKDHGdfGEjshy/ftPIYd1mghkTH
+	 1sNvegHyldQfWRR3thoQlWR4ObpTD00IiLWulPdfZ+PxYw2nelqBLgUfnVYMqkkMR5w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795615692;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795615701;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=GbCYvltGS1vRdk4BTywX1cFRzeLqxpYtIIQ6NGtFrHo=;
-	b=qdaOb39Rh3cEKKCcNFSJap7c2HhNctojsGsR+zmt9tV7tbZM6X1FR4U4Itu5/4BPOMnk
-	 9l5HwSEJ1+7E0V8vZV5gBOepal02qoKx1hv0tteaStvtJjo5oXqPsUXCWUrm6duAEqNZ+
-	 UJxpvnugK4IWl4809SBzqhtbJLSV/qs+fLhl41lj6VeCRYSAnOE3gYoFNtXt/XRNyGsYh
-	 EInnwCWOyxOX/VCY7hTHP4YsA4NKFgLQZB7NVtF7oP5+/7/JzAtMz5AJUVrQnvBpPwyfN
-	 LYH3e7yfkOUlU39rCkmEbWKk7Ltl57buhATmqCeoDVhF1NgED1Fr8dbpydahetVgjtw==
+	bh=rWbz4RgCF0mlQGwOhlMOH54+5ikq+Qvq2ti0jqOYo1k=;
+	b=iQaf+rmCGm4lRWhjq/Mp1m3kh6sNDxiTKe1k0hmsCGcXazTTRvgacEl+GcLwPmWaVDPX
+	 6GX2oCsfunygOgn/u2ob6Ss0xrvBxLNwBQxznVBRo9Svh1r1AkQCEciGCxswFYxLxQVFc
+	 4y2Nrh28cbFXTtGMVA/zAp1s49fY31WA1YurQK8EMCecJTWzU5E9B9lHa/qkyLo+3Egqs
+	 mOC7F7Y6fFNojjioUiPTa0JyPOMCa4NXf5sVxb4jFSrWlBoJA0sgaJRqN9nfFYniAfYkH
+	 NyO1Qfuf2Ao6ENzr9p+HYqrJV/vDfNH2IZbv0MzxhvJBbOK0osvKkVnKw3TEgGHynew==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lcUky5J+;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SfAuXdnA;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54888606A330;
-	Wed, 25 Nov 2026 14:08:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1696E606A335;
+	Wed, 25 Nov 2026 14:08:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lcUky5J+
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 044041F000EE;
-	Wed, 25 Nov 2026 14:08:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=SfAuXdnA
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 428B71F00AD3;
+	Wed, 25 Nov 2026 14:08:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795615692;
-	bh=GbCYvltGS1vRdk4BTywX1cFRzeLqxpYtIIQ6NGtFrHo=;
+	s=k20260515; t=1795615700;
+	bh=rWbz4RgCF0mlQGwOhlMOH54+5ikq+Qvq2ti0jqOYo1k=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=lcUky5J+s0jy7UW7bD2rbLZA8pX/c+aFO4hFTKKx0I/eINjtUQgGBq6McJ4yd4Rtt
-	 3V2T7tixw0W4JIXl+0mkn2mNz1x/zw1qQFSR7SQ/csaRKMGHHQRCuQqFc4ReKyVUZg
-	 LVfooRSd5JRNR1tRGfkfeLp6YzocePh0aMx9FgHG0jlMYUwEQ0qQfpG3CsphoXkPy5
-	 3WJ4kKAmOYCZfXv3kOA6vvAZ23tIYMaX+HUOxptJ4tz+nY7gdxEAukRcEfcPOf7sTW
-	 /u7EW1PY3gbpUPJLIer+4gS8hUaoO/uqw2Oy33VsHDQEXXp9ozRqo5mLp8nZy1eAJR
-	 6H6TlPTIyi20A==
+	b=SfAuXdnAXtBGaBMwNS99nVdUxqIxDGjd7OYcWhbS94XEEIr/U8mvXEy6yNUOJTDb9
+	 yVgCKqQHwWAn34Bc/KxmDBslb6RmvOKjK2MiecD1NJw5ksXT7rog7HrEzxbfBPivp0
+	 uWE+lwmSWF1KtoBwzl3FdfgR5WzonW06dtvDDNO8uq5FE48TgibttIU+jeVLRw7ci0
+	 iyEoCDHWeThD0jZkjPbjw5KyjWe4rnaNKm+qppCpqsfeSWL6oO8yy7IkXfxixvctOj
+	 C6ahV1ecYQtUq8iP9lfKc7ZGIojcFuF8NSj+QxM782j168YKbA86wkeffrGcRAJFsa
+	 udWjF2JFTF83g==
 Subject:
- Re: [PATCH net-next 04/15] page_pool: Let memory providers take back net_iovs
+ Re: [PATCH net-next 06/15] xsk: Lend UMEM chunks to the page pools of a queue
 From: netdev-bot+sashiko@kernel.org
 To: bjorn@kernel.org
 Cc: magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
@@ -63,11 +63,11 @@ Cc: magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
  dw@davidwei.uk, asml.silence@gmail.com, linux-rdma@vger.kernel.org,
  linux-kselftest@vger.kernel.org, linux-doc@vger.kernel.org,
  linux-kernel@vger.kernel.org
-Date: Wed, 25 Nov 2026 14:08:08 +0000
-Message-ID: <179561568855.3135.15810206390695616800@kernel.org>
-In-Reply-To: <20261124125654.183091-4-bjorn@kernel.org>
-References: <20261124125654.183091-4-bjorn@kernel.org>
-X-sashiko-severity: Low
+Date: Wed, 25 Nov 2026 14:08:16 +0000
+Message-ID: <179561569684.3135.6558736307763434214@kernel.org>
+In-Reply-To: <20261124125654.183091-6-bjorn@kernel.org>
+References: <20261124125654.183091-6-bjorn@kernel.org>
+X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -80,123 +80,276 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 6 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 2 · Medium: 2 · Low: 2
 
-- [Low] page_pool_hand_off() in net/core/page_pool.c (lines 846-851)
-  branches on netmem_is_net_iov() and casts the netmem down to a net_iov…
-- [Low] The kernel-doc for memory_provider_ops.hand_off in
-  include/net/page_pool/memory_provider.h (lines 39-44) says a false…
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [High] When a DRV_LAYOUT UMEM is shared across two queues of one netdev
+  whose per-queue DMA devices differ, xsk_sink_bind() gives the second…
+- [High] xsk: xsk_sink_take_fill() recycles old-pool chunks instead of
+  releasing them
+- [Medium] The 'chunk lent twice' check only works inside one sink, so a
+  UMEM shared across queues or devices with XDP_SHARED_UMEM gets around…
+- [Medium] xsk: xp_assign_dev() blocks standard zero-copy when
+  MP_XDP_ONLY is active
+- [Low] A DRV_LAYOUT bind accepts XDP_ZEROCOPY but delivers neither zero-
+  copy TX nor a zero-copy report.
+- [Low] xsk_sink_nl_fill() returns 0 and emits no attribute, so a page
+  pool backed by an AF_XDP sink cannot be identified in page-pool-…
 
 --
 
-page_pool: Let memory providers take back net_iovs
+xsk: Lend UMEM chunks to the page pools of a queue
 
-This commit adds a hand_off() memory provider op and an mp_hand_off flag
-in struct net_iov. When a net_iov is marked, its last put goes to the
-provider instead of the page pool cache, and it stays charged to the
-pool. The hook is wired into __page_pool_put_page(),
-page_pool_drain_frag() and page_pool_free_frag(). The commit also adds a
-provider-owned mp_state byte.
+This adds a sink memory provider. With it, the chunks of a UMEM
+registered with XDP_UMEM_DRV_LAYOUT back the RX page pools of the bound
+queue, and the device lays out RX buffers in those chunks as it does in
+pages. FILL entries lend chunks to the kernel, the UMEM is DMA mapped
+once at bind, and binding requires a held native XDP program.
 
-> diff --git a/include/net/page_pool/memory_provider.h b/include/net/page_pool/memory_provider.h
-> index d52c7a450c68e..bfc2841582225 100644
-> --- a/include/net/page_pool/memory_provider.h
-> +++ b/include/net/page_pool/memory_provider.h
-> @@ -36,6 +36,12 @@ enum mp_flags {
->  struct memory_provider_ops {
->  	netmem_ref (*alloc_netmems)(struct page_pool *pool, gfp_t gfp);
->  	bool (*release_netmem)(struct page_pool *pool, netmem_ref netmem);
-> +	/* Takes a free net_iov marked mp_hand_off that stays charged to the
-> +	 * pool; the provider puts it back later. Returns false to have the
-> +	 * pool recycle it instead. Called where the pool puts netmem, outside
-> +	 * hard IRQ context. Needed by providers that mark net_iovs.
-> +	 */
+> diff --git a/net/xdp/xsk_buff_pool.c b/net/xdp/xsk_buff_pool.c
+> index 5ec092f7cb6f7..7ece7d9e39376 100644
+> --- a/net/xdp/xsk_buff_pool.c
+> +++ b/net/xdp/xsk_buff_pool.c
+
+[ ... ]
+
+> @@ -211,6 +215,13 @@ int xp_assign_dev(struct xsk_buff_pool *pool,
+>  	 */
+>  	hlist_add_head(&pool->dev_node, &netdev->xsk_pools);
+>  
+> +	if (pool->umem->flags & XDP_UMEM_DRV_LAYOUT) {
+> +		err = xsk_sink_bind(pool, netdev, queue_id, flags);
+> +		if (err)
+> +			goto err_unbind;
+> +		return 0;
+> +	}
+
+[Severity: Medium]
+After xsk_sink_bind() installs the provider on one queue,
+dev_get_min_mp_channel_count() returns non-zero for the whole device.
+It checks mp_params.mp_priv on every RX queue and does not skip
+MP_XDP_ONLY providers. Further down, xp_assign_dev() still uses it to
+gate classic zero copy:
+
+	if (dev_get_min_mp_channel_count(netdev)) {
+		err = -EBUSY;
+		goto err_unreg_pool;
+	}
+
+So once a DRV_LAYOUT socket is bound to one queue, a regular AF_XDP
+socket on another queue of the same device fails with -EBUSY if it
+asked for XDP_ZEROCOPY. Without that flag it silently falls back to
+copy mode.
+
+Earlier in this series, dev_mp_blocks_xdp() replaced this helper in
+dev_xdp_install(), netif_xdp_propagate() and the ethtool rings path,
+because an MP_XDP_ONLY provider does not stop native XDP. Was this
+caller left out on purpose? If not, would dev_mp_blocks_xdp() be the
+right test here? A sink on the queue being bound is already caught by
+the earlier xsk_get_pool_from_qid() check, so the device-wide test
+only needs to catch providers that block XDP.
 
 [Severity: Low]
+This branch returns success without setting pool->umem->zc, so xsk_bind()
+ends up with xs->zc = false. Should a bind that passes XDP_ZEROCOPY be
+accepted here?
 
-Is "Returns false to have the pool recycle it instead" true for every
-caller?
+xsk_sink_bind() rejects XDP_COPY but lets XDP_ZEROCOPY through:
 
-In __page_pool_put_page() and page_pool_drain_frag(), a false return falls
-through to recycling, because __page_pool_page_can_be_recycled() is always
-true for a net_iov.
+	if (flags & XDP_COPY || !dev->queue_mgmt_ops ||
 
-page_pool_destroy() calls page_pool_free_frag(). There, a false return
-falls through to this:
+TX on such a socket still goes through xsk_generic_xmit(). Also,
+getsockopt(XDP_OPTIONS) sets XDP_OPTIONS_ZEROCOPY only when xs->zc is
+true, so it reports copy mode even though RX is zero copy through the
+page pool.
 
-	if (!netmem || page_pool_unref_netmem(netmem, drain_count) ||
-	    page_pool_hand_off(pool, netmem))
-		return;
+So a bind that asks for forced zero copy succeeds, TX runs in copy mode,
+and XDP_OPTIONS says the socket is not zero copy. The documentation patch
+later in the series says these sockets transmit in copy mode. It does not
+say that XDP_ZEROCOPY is accepted or what XDP_OPTIONS reports. Both become
+uAPI once registration accepts the flag. Could this be made consistent,
+either by rejecting XDP_ZEROCOPY or by reporting the RX mode?
 
-	page_pool_return_netmem(pool, netmem);
+[ ... ]
 
-For a provider pool, page_pool_return_netmem() calls
-mp_ops->release_netmem() and bumps pages_state_release_cnt. The net_iov is
-then taken out of the pool instead of being recycled. The commit message
-says a hand-off provider wants to avoid exactly this.
+> diff --git a/net/xdp/xsk_sink.c b/net/xdp/xsk_sink.c
+> new file mode 100644
+> index 0000000000000..b78116f25e712
+> --- /dev/null
+> +++ b/net/xdp/xsk_sink.c
 
-The only provider in the series, xsk_sink_hand_off(), always returns true,
-so nothing reaches this path today. Could the comment or
-page_pool_free_frag() be changed so the two agree?
+[ ... ]
 
-> +	bool (*hand_off)(struct page_pool *pool, netmem_ref netmem);
->  	int (*init)(struct page_pool *pool);
->  	void (*destroy)(struct page_pool *pool);
->  	int (*nl_fill)(void *mp_priv, struct sk_buff *rsp,
-> diff --git a/net/core/page_pool.c b/net/core/page_pool.c
-> index 8a1ea21ccdcdc..200b0569b9fe7 100644
-> --- a/net/core/page_pool.c
-> +++ b/net/core/page_pool.c
-> @@ -840,6 +840,16 @@ static bool __page_pool_page_can_be_recycled(netmem_ref netmem)
->  		!page_is_pfmemalloc(netmem_to_page(netmem)));
->  }
->  
-> +/* A memory provider takes back a free net_iov it marked, see
-> + * &memory_provider_ops.hand_off
-> + */
-> +static bool page_pool_hand_off(struct page_pool *pool, netmem_ref netmem)
+> +static u32 xsk_sink_take_fill(struct xsk_sink *sink, struct page_pool *pp)
 > +{
-> +	return netmem_is_net_iov(netmem) &&
-> +	       unlikely(netmem_to_net_iov(netmem)->mp_hand_off) &&
-> +	       pool->mp_ops->hand_off(pool, netmem);
+
+[ ... ]
+
+> +	for (i = 0; i < entries; i++) {
+> +		addr = ring->desc[(cons + i) & mask];
+> +		niov = &niovs[array_index_nospec((u32)(addr >> PAGE_SHIFT),
+> +						 nr)];
+> +		/* A chunk lent twice would be in two places at once */
+> +		if (unlikely(addr >= (u64)nr << PAGE_SHIFT ||
+> +			     READ_ONCE(niov->mp_state) == XSK_SINK_LENT)) {
+> +			fq->invalid_descs++;
+> +			continue;
+> +		}
+
+[Severity: High]
+Once the next patch hands chunks back to userspace while they stay
+attached to the page pool that received into them, can this branch
+starve a new page pool on a queue restart?
+
+netdev_rx_queue_reconfig() calls ndo_queue_mem_alloc() and, for most
+drivers, ndo_queue_start() before ndo_queue_mem_free() destroys the
+old page pool. When the new pool pp first refills, every chunk that
+userspace posts back on FILL still has the old pool as owner, and
+sink->released is still empty.
+
+For each such chunk, xsk_sink_take_fill() marks it XSK_SINK_LENT,
+consumes the FILL entry and calls page_pool_put_unrefed_netmem() on
+the old pool. For a net_iov, __page_pool_page_can_be_recycled() is
+always true, so the chunk lands in owner->alloc.cache or owner->ring.
+page_pool_return_netmem(), and with it xsk_sink_release_netmem(),
+runs only when that ring is full. The chunk never reaches
+sink->released.
+
+So xsk_sink_take_fill() can consume up to PP_ALLOC_CACHE_SIZE FILL
+entries and still return 0. xsk_sink_take_released() then finds
+nothing, and xsk_sink_alloc_netmems() returns 0 and bumps
+queue_empty_descs even though FILL was not empty. The driver's ring
+fill in ndo_queue_mem_alloc() or ndo_queue_start() can then fail, or
+the new queue comes up without buffers.
+
+After page_pool_destroy() runs on the old pool, the chunks still held
+by userspace keep it inflight. Its ring is then scrubbed only from
+page_pool_release_retry(), once every DEFER_TIME. Until that happens,
+each refill of the new pool keeps pushing FILL chunks into the ring
+of a pool that is going away.
+
+Should a chunk whose owner is not pp be released to the sink, or moved
+to pp directly, rather than recycled into the old pool? Once a new
+pool exists for the queue, does the old pool ever need these chunks
+back?
+
+[Severity: Medium]
+Does this check still hold when the UMEM is shared with XDP_SHARED_UMEM
+across queues or devices?
+
+xp_assign_dev_shared() now sends DRV_LAYOUT UMEMs into xp_assign_dev()
+with flags = 0. A socket that shares the UMEM on another queue or device
+gets its own xsk_buff_pool and its own FILL ring. Then
+xsk_sink_bind()->xsk_sink_create() allocates a separate niov array over
+the same umem->chunks:
+
+	sink->area.niovs = kvcalloc(nr, sizeof(*niov), GFP_KERNEL_ACCOUNT);
+
+The mp_state checked here belongs only to this sink, and it is checked
+under this sink's lock. Suppose userspace posts the same chunk address on
+both FILL rings. Each sink sees XSK_SINK_USER and lends the chunk. Two RX
+queues then DMA into the same UMEM page, and both sockets later get that
+chunk back as free.
+
+The commit message says:
+
+  A chunk that is lent twice, or lies outside the UMEM, counts as an
+  invalid FILL entry, so userspace cannot make the device use a chunk
+  twice.
+
+Is this guarantee meant to cover the shared UMEM case? As far as I can
+tell, the end of the series refuses a second receiving socket only on the
+same pool. The cross-queue branch of xsk_bind() still creates a second,
+independent sink.
+
+[ ... ]
+
+> +static int xsk_sink_nl_fill(void *mp_priv, struct sk_buff *rsp,
+> +			    struct netdev_rx_queue *rxq)
+> +{
+> +	return 0;
 > +}
 
 [Severity: Low]
+Should this emit an attribute that identifies the provider?
+page_pool_nl_fill() calls:
 
-This isn't a bug, but does this fit the netmem abstraction rules?
-page_pool_hand_off() branches on netmem_is_net_iov() and downcasts with
-netmem_to_net_iov() inside page_pool core. Before this patch, page_pool.c
-had no netmem_to_net_iov() call.
+	if (pool->mp_ops && pool->mp_ops->nl_fill(pool->mp_priv, rsp, NULL))
 
-The netmem_ref kernel-doc in include/net/netmem.h says:
+That call is the only way a page-pool dump says which memory provider
+backs a pool. In devmem, mp_dmabuf_devmem_nl_fill() emits
+NETDEV_A_PAGE_POOL_DMABUF and NETDEV_A_QUEUE_DMABUF, and io_uring zcrx
+emits its IO_URING nest.
 
-  Downcasting netmem_ref via netmem_to_page() or netmem_to_net_iov() in
-  callers is not allowed unless a code path strictly requires a specific
-  backing type ... In such cases, add a netmem helper here that handles
-  both page and net_iov cases
-
-Documentation/networking/netmem.rst also says core code should avoid
-per-netmem-type branching. It also says new code must not assume that
-using a memory provider implies net_iov memory.
-
-The mp_hand_off flag lives in struct net_iov, and the hand_off() contract
-only covers net_iovs. So a provider that hands out page-backed netmems
-can't use this hook.
-
-Would a netmem.h helper fit better here? For example, something like
-netmem_mp_hand_off() that returns false for pages and is called from
-page_pool core.
-
-> +
->  /* If the page refcnt == 1, this will try to recycle the page.
->   * If pool->dma_sync is set, we'll try to sync the DMA area for
->   * the configured size min(dma_sync_size, pool->max_len).
+With this stub, a page pool backed by UMEM chunks looks like an ordinary
+pool in page-pool-get dumps. Queue dumps still show NETDEV_A_QUEUE_XSK
+through rxq->pool, but the page-pool side has nothing. The function is
+unchanged at the end of the series.
 
 [ ... ]
+
+> +int xsk_sink_bind(struct xsk_buff_pool *pool, struct net_device *dev,
+> +		  u16 queue_id, u16 flags)
+> +{
+
+[ ... ]
+
+> +	/* The device of the queue's page pools, which may differ per queue */
+> +	dma_dev = netdev_queue_get_dma_dev(dev, queue_id, NETDEV_QUEUE_TYPE_RX);
+> +	if (!dma_dev)
+> +		return -EOPNOTSUPP;
+> +
+> +	/* Without a program, drivers would build skbs from the buffers */
+> +	if (!dev_xdp_drv_prog_held(dev))
+> +		return -ENOENT;
+> +
+> +	err = xp_dma_map(pool, dma_dev, XSK_SINK_DMA_ATTR, pool->umem->pgs,
+> +			 pool->umem->npgs);
+
+[Severity: High]
+Can the second queue end up with IOVAs that were mapped for a different
+struct device here?
+
+Take a DRV_LAYOUT UMEM shared across two queues of one netdev.
+xp_dma_map() first calls xp_find_dma_map(), which matches only on the
+netdev:
+
+	if (dma_map->netdev == pool->netdev)
+		return dma_map;
+
+xp_init_dma_info() then copies that map's dma_pages into the pool and
+sets pool->dev = dma_map->dev, which is the first queue's device. Nothing
+compares dma_dev with dma_map->dev.
+
+xsk_sink_create() builds every net_iov DMA address from
+pool->dma_pages[i], but stores sink->dev = dma_dev, the second queue's
+device. So this check in xsk_sink_init() passes:
+
+	if (pp->p.dev != sink->dev || pp->p.offset + pp->p.max_len > PAGE_SIZE)
+
+The second queue's page pool then posts IOVAs from the first device's
+mapping to the second device. xsk_sink_alloc_netmems() also calls
+dma_sync_single_range_for_device(pp->p.dev, ...) on addresses that
+pp->p.dev never mapped.
+
+mlx5e_queue_get_dma_dev() returns ch->pdev, which differs per channel on
+multi-PF and socket-direct NICs. The mlx5 patch later in this series lets
+mlx5 RQs use this provider.
+
+If the two functions sit in separate IOMMU domains, won't the second
+device DMA to IOVAs that are unmapped in its domain, or mapped to
+something else there?
+
+The devmem bind path already rejects queues whose DMA devices differ, for
+this reason. Should xsk_sink_bind() do the same?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261124112707.118678-1-bjorn%40kernel.org
