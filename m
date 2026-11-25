@@ -1,102 +1,49 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.181
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795618576;
-	b=1izkMfiWtBr+2OzauF+3nPZhL1NRUlOf70gEar5aM+NNINqQV9Pv3QoJkzHxocxt1JRK
-	 tJcLKT0I1kah74+kIGs08ff7hZL1MX9MACxjsPW7zTiZC2opsvAnQPPVDGAXe2pZY+aDA
-	 trTdReBR6mzBNdSIfDHZ62B6wm7FDADdgelQgSwbkTEWht7YcoP3FBla6WCvKOQ1zk4W7
-	 g+qqYsHWev09HWCJ0hyRADLi48lhWTVnCjl/zVOYwlWLaLM2Ey0XA8owE/JjXHAjSYMR+
-	 YzwEA6P1hkKvqsrpJ2Y59pz67gxxQC8aWdGzLi/kjaZSQ4t6Nft5I5gctsacLPmDgUQ==
+	t=1795619434;
+	b=DY1m79a4+oOPD5HkIgk53w5BKdfVAainLUf1ezUzK7NDWtR2U9LjZFJR1sxNyCKIUa/x
+	 sWBjA7n+/l9/uq3klX6T1nJkMcAKZ/Kw1EIJ76AQ7N2jJdvWXv2JUIUpix+ziQaCwYEXH
+	 XOFu3TRaza6W9TtVfv50Om5E3wbLZn45HKYLaeMCYla6X+qiG21vggcmFSGdS42vKaz0T
+	 Uaat/6Ntg0dc76hbaHczn62PWGw1xFyVDLfQ62aZ1ME1TqrKzx/kP+uZTU70HIX1cj7cJ
+	 Qee08/Ujpl1/8OY7nPGOsWC2bJ3aulLVcZ5s9jP/CjQ1yTncy2r8v794iydheUA7qLQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795618576;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=H2v9m8o2ZyN6mJNXof8J2YJUJ0qz0MjiMku6/OumPR8=;
-	b=uUsyXrdROQ/D/DSS821XaZXXxs6BWjYpXVCjuC8by3mG1kVJ8xcFXMYQPXAELcqy1AO3
-	 57FIvrpw+ZydKSD3IopzD59akohav1X7VL54z69Khea1sgPQ4HzuPUy/Q/jixBJbStRX+
-	 Rzoeqg+pmPeUxMCT0pTyv/trW+C8eAiCtf4sLu9VKZeivNCpIOFGKMrDNN3foSecCZqIK
-	 TbOa6dDJyXQ8NqYgI9PCs9aw1IORTrWu54AcR8Mt/ir9DOYIcXA+C76PrmLdhhC8d30T3
-	 fDZFWg+5/dUvmubXAV9S879O+3iHsGPaeT4bO7fkwy8CTlecJdaPNvt+ACgpLmg99Aw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795619434;
+	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
+	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc;
+	bh=ZbE6/xbsj/Ta26P/SdRAHznnPHVS39Jy37MF9dpc3/M=;
+	b=wBZW4q3uM9TYXkEKuoZNJHMx+wv9BLdRfwg0OHc4VJB4uOHd3t/EAjrX76v7fmgh2HA1
+	 eK/9b0duTzLql3jtiacWvzcWuddRIlb8byQO0BC8cLea/ETaamA7BnC/315AZlEW2ptWp
+	 6XM4Wk03+aZIlbiptaVbgJDMr8Yg/XS7sYvllmbRZaJRzTIDOEogmwJhdP1EELPjGLj93
+	 1hvIgcQ/QCfDLgc8R5omRg/e9ky1In7AVuXXLaausVkdY6B6Amt+N5W5mJL3Dnf72DHJr
+	 tWwzt2N6PUBEZYCp2t0EBMxYaqM4UThzKABw2sUP1MMKOUvBia7d9JlQzgb89FIldpQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=ziepe.ca;
-	spf=pass smtp.mailfrom=ziepe.ca;
-	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=OYNxKfNH;
-	arc=none smtp.remote-ip=209.85.222.181
-Received: from mail-qk1-f181.google.com (mail-qk1-f181.google.com [209.85.222.181])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CxNebb0+;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6785606A332
-	for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 14:56:15 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D6785606A332
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 463AD606A33E;
+	Wed, 25 Nov 2026 15:10:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=OYNxKfNH
-Received: by mail-qk1-f181.google.com with SMTP id af79cd13be357-943e8d35f74so582387785a.0
-        for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 06:56:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1795618575; x=1796223375; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=H2v9m8o2ZyN6mJNXof8J2YJUJ0qz0MjiMku6/OumPR8=;
-        b=OYNxKfNHfP6AwkYsERu63zDzJAQPUGhYsCT43HZkjStcluGygKe12LuAexit9a5c6I
-         2xHd+rFeUUWgQz3UD4v6ixaaQHjS+rxO6ULdO3fhPiUPK01Xq8/mBmvNXb1FFx0+5h+y
-         txmt8Qu7dTrHwsvfmdLvBZVh1tYGu5ws2UTAxhQ4QQZ6wJ9BJZ0AHoMR77wCIUE8irGw
-         yOJVXSOfdvyNe/kwEsFYcbGWMENmzqdQGwGisbGOpmrz0P+cscixGw43F3nRwhBp4hXK
-         oAi1vBIDqzDf2RFEYLAzJgTZsaAnHnNnhRfu705bDSb63uQLNQ3FjPvM/ZEIm9FBbf+L
-         49WA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795618575; x=1796223375;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=H2v9m8o2ZyN6mJNXof8J2YJUJ0qz0MjiMku6/OumPR8=;
-        b=QAYRiuUwxaUXUU9iWdkEfp0HVUOxzDdnc///4IphEh402ms1JGTJsLTCBLmO9/fZp9
-         WPTY2Uqd8NZNsmK82yqJtmy3D3nxe/lOg4ZeNl7ZbLmJMO6bCVHUIdC/366wmsB2LI3L
-         io8JBAwO9FJIW51AS9erZmonApnqUX4nVFvpsPYu8wAaDO61KAOCZ0orMqTemfEiE9nH
-         R7uEMbD7kS7ugjXcjydteg3KEbsJNxOa47L8yLWCrFvxdeWTAhkHAAfyzy+RteeDVIFq
-         m64nkwqjWG/6QL8up7iVIQAWavb5knGQCYWDEe7+23YpKR/6Da4thTTvkSzPEumCI3f3
-         JN6g==
-X-Forwarded-Encrypted: i=1; AL+hErEtRA1A08psEXd4Tm61DKIHrw2MbKRJJ2Qntw9tgD11KbuNwD5ebC/Bp+GT923gHnyWP2G5oX3i0yPY@vger.kernel.org
-X-Gm-Message-State: APuU4Z+HFSEWxc5XaJGWZFcSx664ft1qjpYy0xC2UjTe2HQKpBL5CFRp
-	4x7qV8Z7Na40nTN94/Z7voF5EgCYIMf5ifWpEXRlE/KOHfRTF/v/qRyNz39/cryXAJk=
-X-Gm-Gg: AZFdTZeIe5ryS/klr/4G/ow1Fht59vqmAnUKo4az2R7Jc3Qp4E14k26SrbHHYYV+kZW
-	tIzphwX3ZWzq68Rz2hhFQHEjIn0DNjB4IEpVIcEzxE5A9SawVHLz8xn5ayIW8RBz6cOTPnjlPhZ
-	F+rFxMyD10Ag7LiW67+GK3kHqA8IMHI55BOJ19/cvaFJnaUImxaks9i//PDCM7uaaJ7jnwCtG6m
-	rqnxCYuw3hqjwTKhfrX1kjZDDL4AjQ8uCM3Q2X2na67bslWQG0GRDBZYvQKGX+NFVgHkUpK92dl
-	Ox1f2yURpVFXJM5d//suOvYGYG9FexXSPKZmd0sxxuBMYu+Dla5fJwNc9CYcIJXtJs0TrqKt5jz
-	iaihmpN6I85403MSA2U4A+08h3RYtHS86EQ1acvjzgzYs4MjiRDJA964b0ulP8q1azf9P5HAxPV
-	WCJW3D+UqKVAztCV3QyVdpwU1iM12JEfLJIqG60WYt5RSz5XV1MmrabN0WNRnY4skmax1IJyXXL
-	ChzZKFtxKeLXHzKgmf6OLa50lUHhy6k/MCGVMA5BnEd4c30ovHLtZmAAIqzi+loqxXVlwT9VU90
-	2+JGbw==
-X-Received: by 2002:a05:620a:2956:b0:949:9cf0:badd with SMTP id af79cd13be357-949bab2f511mr3135941485a.73.1795618574856;
-        Wed, 25 Nov 2026 06:56:14 -0800 (PST)
-Received: from ziepe.ca ([142.177.118.84])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-949bb38c903sm1327013585a.19.2026.11.25.06.56.14
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 25 Nov 2026 06:56:14 -0800 (PST)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1xWEPt-00000001o1M-2tKn;
-	Wed, 25 Nov 2026 10:56:13 -0400
-Date: Wed, 25 Nov 2026 10:56:13 -0400
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Jaeyeong Lee <lee@jaeyeong.cc>, Artemy Kovalyov <artemyko@mellanox.com>,
-	Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH v2] RDMA/mlx5: Preserve DEVX objects after failed output
- copy
-Message-ID: <20261125145613.GJ246011@ziepe.ca>
-References: <20261111105346.3220427-1-lee@jaeyeong.cc>
- <20261115135123.GD42525@unreal>
- <20261122103715.51731-1-lee@jaeyeong.cc>
- <20261122103855.51859-1-lee@jaeyeong.cc>
- <20261125131244.GB14811@unreal>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CxNebb0+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 082571F000C6;
+	Wed, 25 Nov 2026 15:10:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795619434;
+	bh=ZbE6/xbsj/Ta26P/SdRAHznnPHVS39Jy37MF9dpc3/M=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=CxNebb0+yh4Xtop77pwqnBTWUjjLCNFoVtu0uHyV4zO28wXBHM1mzEvodXQVb+N8C
+	 elo5J02lrMUHdl9JHXyi9ewU1dNsM9wIeaIY0EF6CqHVV1IexlT0Su/w0dSM1taCJH
+	 0fJllGNytqOmRPVBm6xr45UkNPfiXCU/Q5bq0CAo3UE+kz8vp8tXUxMSbRegjRUdqd
+	 3mOGM/NGI+9hw4xPM8Wbp9kh9IIiOJw5JroGX/eWAPkCPX9JTRVIY9nMCByL69thmb
+	 CJgAq7HNZFl+pkSeevBtT6cDZ2M2BPkiuFKoAjig6foHvIRZ9DGNnEZq6uHsNSoYaD
+	 J0mvXN7z54+2g==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id F15183808209;
+	Wed, 25 Nov 2026 15:10:33 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -106,40 +53,46 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261125131244.GB14811@unreal>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 0/2] net/mlx5: Declare no DMA segment boundary
+ restriction
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <179561943251.592665.7058769841730060658.git-patchwork-notify@kernel.org>
+Date: Wed, 25 Nov 2026 15:10:32 +0000
+References: <20261120081819.2538191-1-tariqt@nvidia.com>
+In-Reply-To: <20261120081819.2538191-1-tariqt@nvidia.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com, gal@nvidia.com,
+ leon@kernel.org, linux-rdma@vger.kernel.org, mbloch@nvidia.com,
+ moshe@nvidia.com, saeedm@nvidia.com, yishaih@nvidia.com
 
-On Wed, Nov 25, 2026 at 03:12:44PM +0200, Leon Romanovsky wrote:
-> On Sun, Nov 22, 2026 at 10:39:01AM +0000, Jaeyeong Lee wrote:
-> > As requested, below is the full dmesg from the reproducer run.
+Hello:
+
+This series was applied to netdev/net-next.git (main)
+by Paolo Abeni <pabeni@redhat.com>:
+
+On Fri, 20 Nov 2026 10:18:17 +0200 you wrote:
+> Hi,
 > 
-> <...>
+> This series by Yishai declares that the mlx5 devices have no DMA segment
+> boundary restriction.
 > 
-> > [   13.847526] mlx5_dct_repro: loading out-of-tree module taints kernel.
->
-> What value does this change provide if it is based on an AI-generated sequence?
+> Regards,
+> Tariq
+> 
+> [...]
 
-More importantly you are not allowed to call
-uobj_finalize_uobj_create() from new style methods, it is only for the
-old write interface. I guess it is in the wrong header.
+Here is the summary with links:
+  - [net-next,1/2] net/mlx5: Declare no DMA segment boundary restriction
+    https://git.kernel.org/netdev/net-next/c/0ef669aa10e6
+  - [net-next,2/2] net/mlx5: Declare no DMA segment boundary for data direct device
+    https://git.kernel.org/netdev/net-next/c/7e25d974eb36
 
-It should be uverbs_finalize_uobj_create() if you want to use this
-sequence.
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-And it should probably cover devx_handle_mkey_indirect() as well.
 
-The idea itself seems reasonable, once we have done the actual create
-command to FW it should use the normal destroy sequence. That is
-exactly why we have the finalize helper in the first place.
-
-But to do that right the entire obj_destroy should be removed.
-
-IDK about the claim that DRAIN_DCT can fail, but I suppose it is
-possible for a hostile userspace to immediately refcount any kind of
-object and cause its destruction to fail and that does seem like a
-legitimate problem to me, so this is worth adjusting.
-
-Please send a v3.
-
-Jason
