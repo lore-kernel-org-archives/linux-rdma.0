@@ -1,89 +1,74 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.228
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795638593;
-	b=vDiQHDsZ0WFQ87YN9YFJTe9E9kugJVIZJX7rDgxJiY8zQ1JlNXpA8RcKibyjhHWrG52+
-	 8lQ3lYKiuWMk4GepMi+SDDre6YIdPl0+sXoRNUJaaGizfSg4Dl9o4vU4asPEah6BWRVG+
-	 ONVClQ2AxsvfIi1ucHX6QqN1AXHwmScCewH4+IhTXn9reMR1IRQXOIqJhWtLaMxk9pGL4
-	 HsvNgHw5PAziU7/XZRpBKuWMRBAQNGSkw4Y/8BfdaVAe3yHq7yeaXoCYfnohCiBetGkZX
-	 s5Z84ZvxtkhyDrGZL8PHRcjYgXNkCgvQfBdVJdWublg5zbKOmMUVBPMWEEQA26Ij2dQ==
+	t=1795638839;
+	b=U3H6qu1w2e+Ze615wXj5xQjCOZ+ewiKsijO35Jnjj17sc2k3jPl48f983/JfQFSEMu8s
+	 ykB5lZ3vEfKb4SCfzsuwW8Uck/Mci60P3BlHO/ZnGwcpKAPo5cVp7bEbzhJxOv6cs6hA3
+	 PfAy3E1wX4XbuRkQPz1njZPt8TpJepGs7LZ6GlwywBmmFgewM4FAf9NLcuF7kl94jKYJS
+	 9OtBJ0m7QKQ39y3rKU01I7lEB+Fk7MlQR2wKfG/0PEN8GowgXv68CYTwOImzpuLHJE5tl
+	 uLXBRM6ltw8sXrSg1gJfIMuoAzReeonK3x7DGCIO3ABR/wWrJ1qVn3TvPUhLxQzJ6Vg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795638593;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 X-Relaying-Domain:Received:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:Subject:From:To:Cc:In-Reply-To:References:
-	 Date:Message-Id:X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=5by1QEX/cGC23E25Nzrw5GrZTEPj5OnY/lGT7wIEPVw=;
-	b=U6TDo1T5LZwzzf62bErASGwa7qMlycXID19m7Y+VBSkGAubweBdoLt7oGS9hfQvb6LPp
-	 ECZ1dRsh73BywwDIGUJ+Llyu6lrP4MQZTCq+QO3ej4lGDEKU4Ih2BFIKe4IimODmWrKIG
-	 vP3qwUzYYvDW/RWkI/8R6IklMcZxSZA0jmoHhnHzU0FY+6F6LbXFwPM2Igt3/48OJOaGR
-	 SPZjrbQPof3xTPQdKmRYi1Dy1OK+UpE4EHhRVBoCZz9uASzMGZ34SMw0C5MXh85NtWM4M
-	 MCCzjhOkuaZqd1XC7II7JmSLzmAuksq9U/6gIYt1oBhNxRH8e5xzqrADyXQKMldQs8w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795638839;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:In-Reply-To:References:
+	 Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=ANh8y3HJAaHJLKduPLINj2dJygHOEpMXMM0zpKq2/2Q=;
+	b=wv0zt8HHrPWqm+bsobMgkGGkUc1fvVwXzW1D5i5h/E9LYqqXg6PlcNGh7AxhyR5i0L7K
+	 C/XdRp17AmD5QhfwvajdM/RdM2OFM9x7TofijlPlKTSbWzwlFObuQidmyV3KBm5BgZGOd
+	 9s0Ae3Ln1h/b04fxe2y1+2z+RoaVDFWLUWTcdkgPJRyLuHN7vAD8cl0KNPqm75PTav91B
+	 ILcN5wOR87x+Iu16JX9XSR+YhuLfYAy2HLI7pxHiiM6eZ5ZC5FW82S7eqYg5iC/V/KSKi
+	 XLi6KxgEnxRY8bfdNLuKWVYlAg9dFbODVve8jNf1tc8KwxPmZ5+YlPPhkow0Vf2TyPw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=purestorage.com;
-	spf=pass smtp.mailfrom=purestorage.com;
-	dkim=pass header.d=purestorage.com header.i=@purestorage.com header.a=rsa-sha256 header.s=google2022 header.b="I+MxKs/p";
-	arc=none smtp.remote-ip=74.125.82.228
-Received: from mail-dy1-f228.google.com (mail-dy1-f228.google.com [74.125.82.228])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DHzfOI9E;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96E6E606A326
-	for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 20:29:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 96E6E606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=purestorage.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=purestorage.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 547A3606A332;
+	Wed, 25 Nov 2026 20:33:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=purestorage.com header.i=@purestorage.com header.a=rsa-sha256 header.s=google2022 header.b=I+MxKs/p
-Received: by mail-dy1-f228.google.com with SMTP id 5a478bee46e88-386b8f2f671so3244209eec.1
-        for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 12:29:52 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=purestorage.com; s=google2022; t=1795638592; x=1796243392; darn=vger.kernel.org;
-        h=message-id:date:references:in-reply-to:cc:to:from:subject
-         :content-transfer-encoding:content-type:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=5by1QEX/cGC23E25Nzrw5GrZTEPj5OnY/lGT7wIEPVw=;
-        b=I+MxKs/pMhX9Lj7v1b+pmXCQGTFkou16/qGRsto0wbGAUWQ3XXn+aSRSICAMwXsnkN
-         Lir3Ad13iPHE/klgrh1D1amjN7jyUF14MN4Hf5XwHQ23CXLJgptV6+7655hf0dMcFkM7
-         f37KztvfT8gUm0Tc21eq75yL/QjOQ+RnKIaARtYTnIIBcuaf3/y6XoFy6eTpASUtOVkQ
-         u9jO17NSMpZQFnKDv4D8MTtY6CY3HoX4AswUfqWxpKRO/IBI6kfcZKkNh9c/62jdEr2y
-         PmE4pCnc15x+tCmJY1nBLRghFI4OCiKsr0liwdqIgjg6a/q1qJT3ixv5I7I6W1b7Myws
-         XT3w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795638592; x=1796243392;
-        h=message-id:date:references:in-reply-to:cc:to:from:subject
-         :content-transfer-encoding:content-type:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=5by1QEX/cGC23E25Nzrw5GrZTEPj5OnY/lGT7wIEPVw=;
-        b=TYSk5juAOqYYbBIm8UqHw+TeR7BucOqu4jpvFLRVZRMF9vhPI0SPckYSXKv+icrb/g
-         B5mhy10Dp1YNrFBd6rcROtC4CrGpSAjs52Jm57Plzv8PjjYzZhioJPvIQ/U8GtyqJ7TF
-         Zpy4sFhhyCjYUYS2l+e13Rq1ZMoUIegjImX9rioAEqJKuNnQyLSp87RggUZuC7RlCi2s
-         DcGc5GOwvxeVF8TEry8PVXJy6PH0hp8ZDlXa+9CRWUJSfPnqtie+WCdwWvygMOWxyDbW
-         pIzVdFK0uSk8q5NAPh3O+MGE+dHs4Xmqi/ncnlX/DFCwvEN9XmHfRmLdbkaYEDk+RSzt
-         sGCw==
-X-Forwarded-Encrypted: i=1; AL+hErHdw/RRqIwpC3BaTgFt2ZvPyuxuACRIBerCm7SiXsyNHG4jDym+ax35EKZPRFG7aAm5EF+sZy4HJr9C@vger.kernel.org
-X-Gm-Message-State: APuU4Z916IX1CH9920j1zMdgFrJb9v4YjlTyUap6iwg/5MSkRGnuMxz0
-	0jaOlx7WK7JaanNzUliU31cUp5LS+BAjBax2WylNylc5DF95v/YxLdPZK/fzEhPD6c/9fbzKoTJ
-	8yjrtxlYgysAT0zmU9RuR2FlfEV3aW3XTPSXffQdCXNv05+woHdskxQBPe/ImI3B6LGNrDU0YUR
-	OoR+t6ZdZmF8R+V8o0hGC1dGN1/j6AmlbxGv8TJVONpREaeLmixeee0b1hXEP9C40NewcSktK8i
-	BPeBh1LqLSQhjh3qe8sQlORb5av
-X-Gm-Gg: AZFdTZclB3VY1foClr24TbOYLbfJxzrUuWBGOUGh7kw2fc5HQzmhxPzoFDci7dEh8Cq
-	eAOYY0syA8XKEmaPueXwSpcAA3UEg9uIL9DoQVmxHdR65MciPYqRxJ9CjXWLpTXSg6hOjDPOFvx
-	+94oD6DDQ4nJiRDC/Bq/aTgUDmOJe8RJ/gkkUZGi2Ao/h8fzpShc5y6h0U4pU4EoxPu/m5JtK21
-	Hqf3BtSBbh4kNdgFc7n5/14SK6cjXUjvAUQUNu/3l1DinbU7Yyin7L/WwWdQmHhcwWr1e8mXE4v
-	4uwuPmzoqQYNW3VsFeWaj+BkGFfXLErx/SJ3fTY2J/IqESsONShmrGa3OU5YmgzgbmwzdziqHxc
-	Baq9+BSDxMJ+4pzQbqvoRS1+bp+W1clZ5b72cpQ==
-X-Received: by 2002:a05:7301:391c:b0:379:f7aa:1013 with SMTP id 5a478bee46e88-3856fd59fcemr19297575eec.15.1795638591450;
-        Wed, 25 Nov 2026 12:29:51 -0800 (PST)
-Received: from c14-smtp-2023.dev.purestorage.com ([208.88.158.129])
-        by smtp-relay.gmail.com with ESMTPS id 5a478bee46e88-386c213b6c6sm1225263eec.5.2026.11.25.12.29.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 25 Nov 2026 12:29:51 -0800 (PST)
-X-Relaying-Domain: purestorage.com
-Received: from irdv-tmenninger.dev.purestorage.com (irdv-tmenninger.dev.purestorage.com [10.32.149.15])
-	by c14-smtp-2023.dev.purestorage.com (Postfix) with ESMTPS id AC32934038A;
-	Wed, 25 Nov 2026 12:29:20 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DHzfOI9E
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABDD21F000CA;
+	Wed, 25 Nov 2026 20:33:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795638838;
+	bh=ANh8y3HJAaHJLKduPLINj2dJygHOEpMXMM0zpKq2/2Q=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date;
+	b=DHzfOI9EHnabFLk9oQd27pLnF/AJFFlkbmxZbfzTPP7AMHDlnk9NXETc53fULAYCD
+	 e/p/E3D48BeVf5UgL8Lz0nZOwcGoxW7jsNQctxfzLhVjpp5/Qd+Z6bam0HF+rzbRml
+	 MQl6A4i0rpIxh6k5OTUNd9huZ8GjMRue5zvz4xKoNVpLpYJ63Ebjk9TNoisbwGm1BE
+	 p7KNG4OXoJNbYJ4sePoODXnb67SL9Y6kbRiyTKSvZc7CjOF0JQ8EEAD4TDV0CFIi/E
+	 IXiESH2MrkQYxaXEQqdxXNMSWBMfhosYP4iFmC0LZH15G1qqYyUO3I9DNFb/4TNnku
+	 3FJt2ni2k4cyg==
+From: =?utf-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>
+To: netdev-bot+sashiko@kernel.org
+Cc: magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
+ davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org,
+ pabeni@redhat.com, andrew+netdev@lunn.ch, ast@kernel.org,
+ daniel@iogearbox.net, hawk@kernel.org, john.fastabend@gmail.com,
+ andrii@kernel.org, eddyz87@gmail.com, memxor@gmail.com,
+ ilias.apalodimas@linaro.org, alexanderduyck@fb.com, saeedm@nvidia.com,
+ tariqt@nvidia.com, mbloch@nvidia.com, leon@kernel.org,
+ michael.chan@broadcom.com, pavan.chebbi@broadcom.com, corbet@lwn.net,
+ shuah@kernel.org, bpf@vger.kernel.org, netdev@vger.kernel.org,
+ stuclar@meta.com, sdf@fomichev.me, horms@kernel.org, martin.lau@linux.dev,
+ almasrymina@google.com, song@kernel.org, yonghong.song@linux.dev,
+ jolsa@kernel.org, emil@etsalapatis.com, ihor.solodrai@linux.dev,
+ rdunlap@infradead.org, kernel-team@meta.com,
+ dimitri.daskalakis1@gmail.com, bobbyeshleman@meta.com,
+ mohsin.bashr@gmail.com, kees@kernel.org, leitao@debian.org,
+ maxime.chevallier@bootlin.com, cuitao@kylinos.cn,
+ vadim.fedorenko@linux.dev, mike.marciniszyn@gmail.com, kuniyu@google.com,
+ jiayuan.chen@linux.dev, mkarsten@uwaterloo.ca, razor@blackwall.org,
+ dw@davidwei.uk, asml.silence@gmail.com, linux-rdma@vger.kernel.org,
+ linux-kselftest@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net-next 13/15] eth: bnxt: Receive into XDP-only memory
+ providers
+In-Reply-To: <179561571294.3135.1261628874481958794@kernel.org>
+References: <20261124125654.183091-13-bjorn@kernel.org>
+ <179561571294.3135.1261628874481958794@kernel.org>
+Date: Wed, 25 Nov 2026 21:33:55 +0100
+Message-ID: <87jym0lkgc.fsf@all.your.base.are.belong.to.us>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -93,77 +78,83 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH v3 3/3] xprtrdma: Wake connect worker on device removal
-From: tmenninger@purestorage.com
-To: Li Xiasong <lixiasong1@huawei.com>
-Cc: Chuck Lever <cel@kernel.org>, Jeff Layton <jlayton@kernel.org>, 
- NeilBrown <neil@brown.name>, Olga Kornievskaia <okorniev@redhat.com>, 
- Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>, 
- Trond Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>, 
- linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org, 
- stable@vger.kernel.org, yuehaibing@huawei.com, zhangchangzhong@huawei.com, 
- weiyongjun1@huawei.com
-In-Reply-To: <20261124021842.130141-4-lixiasong1@huawei.com>
-References: <20261124021842.130141-1-lixiasong1@huawei.com>
- <20261124021842.130141-4-lixiasong1@huawei.com>
-Date: Wed, 25 Nov 2026 20:29:19 +0000
-Message-Id: <179563855914.3954750.11018048330217114132.b4-review@b4>
-X-Mailer: b4 0.16.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1795638560; l=2167;
- i=tmenninger@everpuredata.com; s=20261125; h=from:subject:message-id;
- bh=Kd2c2EKrkQoXWQCM5emjG4zJKJ8aBSctLvqtZYaDmn0=;
- b=1V7sWT7lWWf0f8yfMDpj+BIRdbhVgODSyOZTykZ9roGfZtm7tD1sUCxO14/jnJRB0pHPY/wI1
- EgFk+lSkYfJDaPC2jMoNoxwp/6D3les2LPYNSdfYjt9mCQz3/cfkBmY
-X-Developer-Key: i=tmenninger@everpuredata.com; a=ed25519;
- pk=nZPlfTnkwWNTqraxDCv+eNh7JBZRFxAoLY1xeLR6zXI=
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-> Device removal only forces a transport disconnect, leaving a connect
-> worker asleep while re_connect_status is zero and blocking endpoint
-> cleanup.
-> 
-> Set -ENODEV and wake pending connects on removal. Give -ENODEV
-> precedence over other failures so late CM events cannot mask device
-> removal. Force established connections to disconnect and use atomic
-> transitions to prevent late ESTABLISHED events from overwriting errors.
-> Handle REJECTED with an atomic status update. Wake the connect worker
-> if the connection is still pending, or force an established connection
-> to disconnect without relying on CQ flushes.
-> 
-> The final endpoint put can free id->context before rdma_destroy_id()
-> synchronizes with CM callbacks. Destroy the CM ID in the endpoint
-> destructor before freeing its context to close this window. Remove the
-> CM callback get/put pairs so final puts occur outside CM callbacks.
-> Initialize the connect waitqueue before notification registration.
+netdev-bot+sashiko@kernel.org writes:
 
-A bit of a nit...
-
-Could you split these endpoint/CM ID lifetime changes into a separate
-patch, ahead of the connect-worker wakeup changes?
-
-Moving rdma_destroy_id() into the endpoint destructor and removing the
-CM callback get/put pairs changes the endpoint ownership and teardown
-rules. That addresses a different failure mode from the connect worker
-remaining asleep during device removal, and I think it warrants its own
-commit and explanation.
-
-> 
-> If transport pinning fails, fail and wake a pending connect under the
-> device mutex before skipping the notification. The final transport put
-> can be waiting for that worker to release XPRT_LOCKED.
-> 
-> Translate -ENODEV from the connection status to -ENOTCONN so pending
-> RPCs retry on a hard mount when the device disappears during setup.
-> 
-> Fixes: 3f4eb9ff9234 ("xprtrdma: Handle device removal outside of the CM event handler")
-> Signed-off-by: Li Xiasong <lixiasong1@huawei.com>
+> Thank you for your contribution! Sashiko AI review found 1 potential
+> issue(s) to consider.
 >
+> Critical: 0 =C2=B7 High: 0 =C2=B7 Medium: 1 =C2=B7 Low: 0
+>
+> If you believe none of the issues are legitimate, please reply to each
+> issue of Medium severity or higher and explain why the AI is wrong.
+> If any of them are legitimate and you plan to respin, please let patchwork
+> know by including "pw-bot: cr" as a separate line at the end of your reply
+> (one such reply per series is enough).
+>
+> - [Medium] eth: bnxt: permanent RX queue stall when XDP-only FILL ring is
+>   empty at setup
+>
+> --
+>
+>> diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/eth=
+ernet/broadcom/bnxt/bnxt.c
+>> --- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+>> +++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+>> @@ -3969,7 +3951,8 @@ static int bnxt_alloc_rx_page_pool(struct bnxt *bp,
+>>  	pp.dma_dir =3D bp->rx_dir;
+>>  	pp.max_len =3D PAGE_SIZE << pp.order;
+>>  	pp.flags =3D PP_FLAG_DMA_MAP | PP_FLAG_DMA_SYNC_DEV |
+>> -		   PP_FLAG_ALLOW_UNREADABLE_NETMEM;
+>> +		   PP_FLAG_ALLOW_UNREADABLE_NETMEM |
+>> +		   PP_FLAG_ALLOW_XDP_ONLY_NETMEM;
+>>  	pp.queue_idx =3D rxr->bnapi->index;
+>>=20=20
+>>  	pool =3D page_pool_create(&pp);
+>
+> [Severity: Medium]
+> With PP_FLAG_ALLOW_XDP_ONLY_NETMEM, rxr->page_pool can now be backed
+> by the AF_XDP sink, and the sink takes its buffers from the userspace
+> FILL ring. What happens if that ring is empty when bnxt fills the RX
+> ring?
+>
+> bnxt_alloc_one_rx_ring_skb() breaks out of its loop on the first
+> bnxt_alloc_rx_data() failure. With an empty FILL ring, rx_prod is
+> left at 0, and rx_agg_prod is left at 0 by
+> bnxt_alloc_one_rx_ring_netmem(). bnxt_queue_mem_alloc() still returns
+> success, and bnxt_queue_start() rings the doorbell with nothing
+> posted.
+>
+> As far as I can tell, bnxt only refills RX buffers from bnxt_rx_pkt()
+> while it handles a completion. With no descriptors posted, the NIC
+> never produces a completion. When userspace later fills the ring and
+> xsk_sink_wakeup() schedules NAPI, __bnxt_poll_work() finds no work
+> and returns without allocating, so the queue stays wedged.
+>
+> This is the normal AF_XDP order: bind first, then populate FILL.
+> xsk_sink_bind() expects it by setting need_wakeup, and
+> testapp_stats_fill_empty() in this series exercises it. It can also
+> happen on netdev_rx_queue_reconfig(). There, new_mem is allocated
+> before the old queue's buffers go back to the sink, so FILL can be
+> dry at that point even if userspace keeps it topped up.
+>
+> Does bnxt need a refill pass at the end of NAPI poll when the RX ring
+> is short, like mlx5 and fbnic have? Or did you have another way in
+> mind to prime the ring for an XDP-only provider?
 
-I have no other feedback on this series that wasn't already brought up
-by Chuck.
+This is how bnxt fills its rings today. Rings stop at the first failed
+allocation with a warning, and after that refills one buffer per
+completion.
 
-I'm still working on a reproducer to give you a tested tag.
+devmem and iouring zcrx feed works the same way. A ring that starts
+empty never fills, wakeup or not. If it starts short, it stays short (I
+think!)
 
--- 
-Tim Menninger <tmenninger@everpuredata.com>
+But... a sink makes an empty start likely as FILL can be dry when the
+queue restarts while bound. The docs says FILL before bind, but that
+only cover bind.
+
+I'll add a refill pass for rings with page pool providers, so it covers
+devmem and iouring zcrx as well.
