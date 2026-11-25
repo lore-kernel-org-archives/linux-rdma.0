@@ -1,57 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795609947;
-	b=JKadF2Jzdl+7fyp307tSax/sVUSYSEPk8rHW7waDDBmFFtL3x38IU6e0KCPsY3p0Issy
-	 f0FNB5GuVye9cD1Y05trI7VetB5nb6YPJOdaMc/Fen6gADWYWlNGk9N8LOKeAKYzycw+U
-	 hIrWbS1kwFj71ibitiJoGx5+XNvPPw7RkBvjP12DhBrn1Bg5hEMPgGZcZ/jpePLI+ACBJ
-	 dgLbVz50qBlLsPAt2vXqvDci27rMtAsHwHHnMa5ipZ0Yl8gy8cAzxTkyi1xNXbyMMeqiF
-	 XQ9UzSk8qdLXePeotVRyPXjU6rjWEsVo50QdmlrPbqxmlDyBWgdR23TlI71PI8sk+oA==
+	t=1795610870;
+	b=BQEpAciLqI0omlFnSsnW770o+SMx3NGbG/C4OfFO/Kov9RLrhqzknbCLnbP7J5UOuGWR
+	 8ip+W76LvfvbtQ3hzPV9Cbwl93NuFMTUgVnjPIRedJWktE0MxXXj0F/68cHdb8UfQ19cg
+	 l9uy2f4FDxzP0KMULWOXGHq3JV9CQ0oUu1V9GvjHpc0KxJ3qMvcs5/3oOMmZ5xXxpMQrK
+	 U7+JCsNtbcd/gMRrYMQkR2ML52MuoEBDXnsSALbppe0JA1cgtCfO0JdXyClv66tyRrwmh
+	 IhvAialxnLNRyhZBdPwBgBPcRemGXa3xHgvff0QI+AoWkj2ZHxnf702ZsXnKg5LD3Cw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795609947;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795610870;
 	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
 	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
 	 X-Mailer;
-	bh=4NWmtZ8CW/7A9XJyobnEBmpRbMXZZGSv3a/9zyUB5u4=;
-	b=rImRU0qWdLW47u/TFogPP+Og7gtMrQLhvrChKhuOR/kBturVN7OFuAmtc12kOoiNZyTY
-	 +U4vJwcgYHv6Q7ebKI7UjArjRWW9yF7m7ArQdZSfKvgHlK1GYKFT9XnBOWT7lFdG1ZEJj
-	 XWwYt0oL+NiF7gPOaCrzIfW6wHdnaYz2VBeVjkMSVy7BPHvKEo6Ov/1vSX5p/gDN8sTZU
-	 svYFK68kv/Q4KDW4N4g9FSiSCJAvwfyf7Tj01+3hWyaefKjR5j4TjN3gZ7VN8xLMZkWPR
-	 ygDRs+6mFoEJOF2+cdXImFsjCBLjIB+Aik/Gj9//K0XQIrjHmevOFhUVfWzOTk9S7kQ==
+	bh=qmmNsGHx5swsZXrbHcd6p0xEwZ8Dh7RJPPdxqIjGjGo=;
+	b=llfhATs1KR2gbJT737ah79sie252T6tXgyDtU6/oaRzofLkGHi5EV+VN6uAA1myH4Eq4
+	 zFNp0J6vUgrsvMp/OcfJ1Yl8dMavnT3/PP2TiR/fopevKkhthk1DSKpC7q7ex0LIjgJAT
+	 Qt9HVLeHZabDqR+zOg1zYxNvOliTz61zTGGKZrGC3fiL6fz6ylkIRq+JSLlSw4aQ+W90a
+	 sev5SHk7Jy37RZENgaMFiH8J1uTaWSjk0u2s3OktECzrVJGQ1/cbg9w/nZjot0rgixLbz
+	 3pID4yriRfIfJz1KqlLaAQblTVh3E2/BWP5LkKxGFGWKCDsVXj7hYA31gtybJvrP39w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TAjcqReb;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=A5B+nm0g;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC027606A31E;
-	Wed, 25 Nov 2026 12:32:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 999E1606A31E
+	for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 12:47:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TAjcqReb
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CECD11F000C6;
-	Wed, 25 Nov 2026 12:32:26 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=A5B+nm0g
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0FB11F000C4;
+	Wed, 25 Nov 2026 12:47:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795609947;
-	bh=4NWmtZ8CW/7A9XJyobnEBmpRbMXZZGSv3a/9zyUB5u4=;
+	s=k20260515; t=1795610870;
+	bh=qmmNsGHx5swsZXrbHcd6p0xEwZ8Dh7RJPPdxqIjGjGo=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=TAjcqReb3U63bw0ULkLKAMgSBOS3ijzwvQqcP9eEtXz8BRBbQotTHRHXWBxOTSPS8
-	 d6bDOnf2cnNqfdtylj8qXNFONq9MA6l/lYM+ESj3t4PDA+HR/177wZPJU9lrUSaRSW
-	 LufX50vkMUIG+ftf4RH8KfRLBMnqtE5qsDbKVLBhpOtR9wT41FtVKi5nufDP5yPKv5
-	 MDXJaanHRm1Oee7wDmb9Cd04BnpKxWAOQHfI7MbI0zYPIZROK0nUdUtwNC3riztpzZ
-	 MkzkLDd1ktKM8GTrtWH1VUez75lB1avIKRpNxFf5bV4p6aweDbFB24fLJ+xwHXcV8e
-	 XgHDJPYEWcp4A==
+	b=A5B+nm0gLGTZXsQ0QTPdBUBji5230f6k6lhnhDtPeZVwLym9oPNkLYQZbjJhTDEwY
+	 A09x39Z+0xP0QsnzVFSpfrKREdbPd9qZ12RE8MW5NTeSotIu5eL2cs7mh3L3Gu5UxW
+	 5M4vlSBGV15zY3Xr8/20Gv+sj+U2HuD2R/8yNl0VQr93d63KTJS0m5MAZj7CV3wR0c
+	 yuu9enUQS0cusVr+BvQ7FJr4fOcaNhkXMg20+2ZTOCWysg8zFIROJ6Eoctbfse5Faw
+	 9ymcJZZd/SirtMgYxpAIN61Mr9Dh98YJgZMd9jLEN4gbmXaUniFqco0oJi8jh14qCT
+	 1Wj0UcuaQdyfg==
 From: Leon Romanovsky <leon@kernel.org>
-To: Zhu Yanjun <zyjzyj2000@gmail.com>, 
- Andrew Stellman <astellman@stellman-greene.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Zhu Yanjun <yanjun.zhu@linux.dev>, 
- Daisuke Matsuda <matsuda@preferred.jp>, Daisuke Matsuda <dskmtsd@gmail.com>, 
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <20261122003712.91551-1-astellman@stellman-greene.com>
-References: <20261122003712.91551-1-astellman@stellman-greene.com>
-Subject: Re: [PATCH rdma-rc] RDMA/rxe: Fix the copy offsets in
- __rxe_odp_mr_copy()
-Message-Id: <179560994458.1211799.13917205332984308475.b4-ty@kernel.org>
-Date: Wed, 25 Nov 2026 07:32:24 -0500
+To: jgg@ziepe.ca, haggaie@mellanox.com, dledford@redhat.com, 
+ Wanhui Fu <fuwh1120@163.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261121095902.442960-1-fuwh1120@163.com>
+References: <20261121095902.442960-1-fuwh1120@163.com>
+Subject: Re: [PATCH] IB/mlx5: Fix a potential memory leak in setup_qp()
+Message-Id: <179561086727.1213625.7685046838604300896.b4-ty@kernel.org>
+Date: Wed, 25 Nov 2026 07:47:47 -0500
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -66,22 +63,15 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Sat, 21 Nov 2026 19:37:11 -0500, Andrew Stellman wrote:
-> __rxe_odp_mr_copy() maps each page it copies and copies to or from the
-> start of that page. It uses the offset of iova in the first page only
-> to size the first copy, not to find where in the page to copy, and it
-> does not advance addr after each page, so each page is copied between
-> the start of that page and the start of addr.
-> 
-> Tested as root on rxe loopback (path MTU 1024), three runs, with an
-> ODP MR registered 100 bytes into a page:
-> 
-> [...]
+On Sat, 21 Nov 2026 17:59:02 +0800, Wanhui Fu wrote:
+> create_gsi_ud_qp() creates a QP but the QP is not
+> released if modify_to_rts() fails. Free the QP by
+> calling ib_destroy_qp().
 
 Applied, thanks!
 
-[1/1] RDMA/rxe: Fix the copy offsets in __rxe_odp_mr_copy()
-      https://git.kernel.org/rdma/rdma/c/53598d569e5509
+[1/1] IB/mlx5: Fix a potential memory leak in setup_qp()
+      https://git.kernel.org/rdma/rdma/c/274daf227ed929
 
 Best regards,
 -- 
