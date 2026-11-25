@@ -1,58 +1,46 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=213.95.11.211
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795582681;
-	b=O9dK9hI4OgIRsFk+CnLMDyme3dGCONjR40tD7ZJEdP99iBNmqXPmxFFUSZZ5IKZY1dfc
-	 m2ZfTl0SfpJG/7un/49wM/xuSZhQlz8BZ1fpcS1X4j7at6tyJbCTmXPUyz+OC6M2fASBl
-	 oFbSrSadqhWG0jKKqJkslVXTn+6/PZrbsmKP6Av51fPOZ5qEa1271qvVPJMtbOPi/VjC2
-	 MvxrBZ/uOyM/+jKCNZ0KpftsSfE15UEDVO0m5O49QGmYwDTSTVE/y2S40D77GfxSNoLSu
-	 utpYYhWf9Y+ey6AQhoRoltbUcaOpX4omWUqi0yltVPHp4X2xo8MI6QRF2LpHcquVv5A==
+	t=1795584861;
+	b=yqkg8v4I0hSptUxWaNO9bSaDTlFc0Gr8hwPKOTY/V1MGosr/woCsPEpJ2zLHcM01JlA6
+	 746/CljgaHrgMXknX6PkoMLy8fR2liCY71keULtdINJwzaN/vIoQ5Sn0cg+WFZQv6hdz7
+	 w9duHooXRPsDGIWf7I058krtTOM55VfVxIhlP5nLcE6J3NlhmvXXRFe+bGKRhddes2d0l
+	 RKJggfgjit4DKTh4MfMezHU0D1LpZDALwC5XnL/qzfcywnSmz7XYWh8LMHfjZkdpLLFHF
+	 ZYSVcgtKjREOrwLsOFuW2hCZnB8QhGGdFBn8PQaMbFtt65s+StQB1OiHqUNsXAW17KQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795582681;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=Yf6kIbFF2cs2VKmiW7uMv0sVztDeBkfj8IeEZl7uPYA=;
-	b=Sb8M3/1c6xTPf8aXwi5M79w2ei3jnVBXt5Vvq+KYu1avO0crK3zhFdX+en5ejGWbMmzR
-	 o/bfWnXCjj5cAIU3pGCPg0vydo4cgTbSOwnpmTEYIyjp5UFKU8UPLgCyRwjV8MXt5J3uV
-	 tiJGDOD/jKS2CctaaxCQ0H9v4+WhvvQp58anH8JxqjMSLtt3G+jnyOiJ58u6TsaM54Bwl
-	 LX9jI1qqDeGplDTtHwMNm6ZuMepIRgpiAC/OJpzfeXZPitBfmzXvJfqca/tbrzQacqOMO
-	 TxxbdBNpt2AdJEFaDBOYPUR3uDakGuDi/j/+aUfgMSnIFjni96gNbMYO2UmoyuEPh/A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795584861;
+	h=DMARC-Filter:Received:Date:From:To:Cc:Subject:Message-ID:References:
+	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To:User-Agent;
+	bh=O6Ks90UOzjrAcrR9Y56o/keqAZb9C70ipG1oPffIQ5k=;
+	b=J4GQwF33gi2Cb3upihSY/n3vawOgxHyEC1R3MhQCLov31K3kqs+04B3XTuCjuPYZx+TW
+	 PncrrJRrvnqc79zNRga6glrbeCDblkpgNnFmovPY9zKo6ebLEjERD0MNJXjTzdy6vDBvg
+	 aa8U9lgSNn80Doij6pnGWikBaWNU4JjOxki14gGuVXPKNNuRoUa5QuFSSN4zME8I9/bzH
+	 L0Bz7xU59lf6GZipoz1v0KcVl4+Fp9YqdKeDadRA75UmRLSBoZT0I761HKLiXTWDMfzHT
+	 aEzivwom7T1YOZasROWJxg4pys9vqlYSWCPw6ZFmc/5esS5EHjbMPimT4PEXo1vqnIw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WRT6rrjN;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=lst.de;
+	spf=pass smtp.mailfrom=lst.de;
+	arc=none smtp.remote-ip=213.95.11.211
+Received: from verein.lst.de (verein.lst.de [213.95.11.211])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67C44606A31E;
-	Wed, 25 Nov 2026 04:58:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WRT6rrjN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 776E31F000C4;
-	Wed, 25 Nov 2026 04:58:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795582680;
-	bh=Yf6kIbFF2cs2VKmiW7uMv0sVztDeBkfj8IeEZl7uPYA=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=WRT6rrjNcJOSCgm18h/xPnTG1OGsXdJxmkbFRQMJx55KE1N0489XAi2fOJoAW7Hg/
-	 6E+6tIGnbigLEWnUmnmyF3cwRomzCtGvDMtLirHPJ1VOO2nzyCPGUvJ8wInKfbbgJ9
-	 rsIw3+kubHy/z9TyzZqwG8bACeAW11d1tIuO/3hK9eG0agbsVE6w3at/WoHuMaPnG1
-	 ZJIyphLs5gclY20Vyi/fg90G3AN/SBbF88yCRQC2+8FG+gYUqAmoV1qslgW5qDkw9V
-	 UsHtO3ix9Xnh0fc1XXMyg6lvAnAymXVs3PidgHomrizjuBQkCJAY7FOuyGwRmHUQZh
-	 lMqDDyGH2tRBQ==
-Message-ID: <sashiko-outbox-232599@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH bpf-next v2] bpf: Reject sleepable struct_ops programs
- without check_member
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Sechang Lim" <rhkrqnwk98@gmail.com>
-Cc: linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, "Heiko Carstens" <hca@linux.ibm.com>, "Vasily
- Gorbik" <gor@linux.ibm.com>, "Alexander Gordeev" <agordeev@linux.ibm.com>, "Christian
- Borntraeger" <borntraeger@linux.ibm.com>
-In-Reply-To: <20261125045105.2326120-1-rhkrqnwk98@gmail.com>
-References: <20261125045105.2326120-1-rhkrqnwk98@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 25 Nov 2026 04:58:00 +0000
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84DBB606A31E
+	for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 05:34:20 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 84DBB606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lst.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
+Received: by verein.lst.de (Postfix, from userid 2407)
+	id C6BCD68AFE; Wed, 25 Nov 2026 06:34:16 +0100 (CET)
+Date: Wed, 25 Nov 2026 06:34:16 +0100
+From: Christoph Hellwig <hch@lst.de>
+To: Nitesh Shetty <nj.shetty@samsung.com>
+Cc: Christoph Hellwig <hch@lst.de>, Anuj Gupta <anuj20.g@samsung.com>,
+	kbusch@kernel.org, axboe@kernel.dk, sagi@grimberg.me, jgg@ziepe.ca,
+	leon@kernel.org, asml.silence@gmail.com, joshi.k@samsung.com,
+	anuj1072538@gmail.com, linux-nvme@lists.infradead.org,
+	linux-rdma@vger.kernel.org
+Subject: Re: [RFC 4/4] nvme-rdma: support dma-buf backed requests
+Message-ID: <20261125053416.GB20407@lst.de>
+References: <20261118103327.1788667-1-anuj20.g@samsung.com> <CGME20261118103457epcas5p17770752b910960b84cc259d007120965@epcas5p1.samsung.com> <20261118103327.1788667-5-anuj20.g@samsung.com> <20261121003730.GB14598@lst.de> <20261123111040.7b2q7fe2xd6k6777@green245.gost>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,26 +49,24 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261123111040.7b2q7fe2xd6k6777@green245.gost>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 
-> Any struct_ops program can be loaded as sleepable, and it is up to each
-> struct_ops to reject that in check_member. tcp_congestion_ops, Qdisc_ops
-> and smc_hs_ctrl have no check_member, although the kernel calls most of
-> their members in softirq, under a spinlock or under rcu_read_lock(). A
-> sleepable program attached there is entered through
-> __bpf_prog_enter_sleepable(), and lockdep reports "BUG: Invalid wait
-> context".
->=20
-> Reject sleepable programs in the verifier when the struct_ops has no
-> check_member, and drop the check in bpf_tcp_ops that is now the
-> default. Qdisc_ops init and destroy run under rtnl and can sleep, so
-> give bpf qdisc a check_member that still allows sleepable programs
-> there.
->=20
-> Suggested-by: Alexei Starovoitov <ast@kernel.org>
-> Signed-off-by: Sechang Lim <rhkrqnwk98@gmail.com>
+On Mon, Nov 23, 2026 at 04:46:55PM +0530, Nitesh Shetty wrote:
+> On 21/11/26 01:37AM, Christoph Hellwig wrote:
+>> How does this work with rxe/siw or non-PCIe based HCAs?
+>>
+> rxe/swi do not provide a DMA device, so registration fails with
+> -EOPNOTSUPP (patch 3).
+>
+> For hardware HCAs, the dma-buf is attached to the DMA device of the
+> ib_device. Nothing in the mapping path is PCI specific, and if P2P is
+> not possible for non-PCI device, we expect the exporter's
+> pci_p2pdma_distance() check to take care of it. We do not have access to
+> non-PCI HCA setup, so that path is untested.
 
-Sashiko has reviewed this patch and found no issues.
+Ok.  Can you add comments?
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261125045105.2326=
-120-1-rhkrqnwk98@gmail.com?part=3D1
