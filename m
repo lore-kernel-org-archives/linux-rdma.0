@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795611612;
-	b=OPRyStkQkr/gvneAghvcZBjhOmEVEzLNb0AkdNEgoHI4U6sF9R3ft8GE/VJbbiSQYdgd
-	 N5H62Rg3UEvfe8qyzN3jTkZ1eOivb5EYMoA08bxNucXpzRCGH+IC9qmXfa/3GaLRjk4TW
-	 e1cDaFPPCpbsfH9gRb+xJnjADbllpA5Ha7QhDqxLMK5EMuFnJ/82zwi42h5QrsG2Agtav
-	 GEM6ljqDGTlenKF3egYES5/f8hIdNURxs/kkOEG3ZLTsBwmJtnel/3aOb+awXZJkNfUM6
-	 r1bfQLw3bM9h4NFSe+Imm4odMMNe6qHD5H6iXCeQWm0rjbiRe82Vvy3c8sY01nmWbbA==
+	t=1795611613;
+	b=J02S2VBzsDghpFgl5CcpZWJCfX5zUFyydOyEW+Mk2ZaFdRD2a6vdE00vKTM5dSoWck/1
+	 tGa22TZb7WR6clEvSlPpzwpAaH5HMGn4gJPb1PXGUWQTzJUxKKOEL9etRXgXYB5fWuNgH
+	 Dm19inFDeYL8R/ke3NkHFh+6x4yKHsEf568LRWXULIi4XShI4sSmGfBvaHfFLnw5BZ7zS
+	 k53Tm0aw24WiURGt84ETC6E4ATI0UpQbuI1qW1va6DDem0lC5INmU4lASQo8mg8boZkCI
+	 d+7/B+HTUVFInbYTwAYGM/UAVXWXKU7XJ8WDH/xo8OFwHZzeVYgWi9fTlkWYNRKJlAA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795611612;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795611613;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=UCJQQAwUv7EjIGphmNS2tq+U0M54aJMj9FLtLPAoriM=;
-	b=3NmcyEkkEHADqW4/Y66i5XKh6ZnGny9IKYI1CttL7vCz3cFPV3nITfI7YW64JfGHq/Aw
-	 sat0Vh5ZgaLlef0a1qiq5UfdKkCh/tK+hwtEAipgEa2F0qIm8kBHVcDkkqhFG2dgqzZ+W
-	 KzusjuFQrYrKlWPb4IACPZhjAIcclr2UpRwflLHSfWh8G2wNqvGVEJDXcNt+hkvOLN2Y4
-	 Rv0Na55A2Hmje27wcJfSTNVRIxkngS6cOYmFt59Csn4MUcON7NF+2tLE9q6WNEnHvoG9F
-	 AsENi7ruhGIJTJfxIa+9pLMJLJBk6qOncY8ydwR/9KCe5h5Wfu/nks85BTLri6m3F9w==
+	bh=el9nU2HHLF/xjMhB0WwMFNSqllhxZ9uhWPOS87fqitA=;
+	b=y7wOHBRbmyGS1eD+71vRzncV3IjupXFSSK8so5RP/QiKyN+VBY1Ta95hGj1SelAeqFSk
+	 6d51Pgv0YL3j0TZ/HWJUWpn7hNpiMSOqo8rsKsYymmeAXDhmBUtVZ/IP/YQVm1eH7+Pd4
+	 j6H/9ClTc/blKw23hX1mK7fc2VSU2ubvUoAFn0FIX1364msvUjmeU+9CITNnm63lgkzVF
+	 C8VjqT3g9Je3yC0uKpgnWXXu9oEfxpsbCEow/RrVSHCHW8yJSq0DE3+WQMSEsh8LiKviS
+	 q9ZETk3CzcoI5UkzhZsh1MsISBr8JustnMVU4UbUZ2rWjQb2BtheEYiZr6+c2pAMPBQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aZAJbl4B;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="AB/ty3fg";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDDEF606A329;
-	Wed, 25 Nov 2026 13:00:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92537606A6B6;
+	Wed, 25 Nov 2026 13:00:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aZAJbl4B
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 263BB1F000CF;
-	Wed, 25 Nov 2026 13:00:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AB/ty3fg
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31A941F000E6;
+	Wed, 25 Nov 2026 13:00:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795611612;
-	bh=UCJQQAwUv7EjIGphmNS2tq+U0M54aJMj9FLtLPAoriM=;
+	s=k20260515; t=1795611613;
+	bh=el9nU2HHLF/xjMhB0WwMFNSqllhxZ9uhWPOS87fqitA=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=aZAJbl4BjsMmzrSeyCmDtkmQrbcGvDazUPUm+NDsCb2bXP2Mnu48S2ye+vm3o4mpW
-	 PdQ2D2L3BTE3qAvphs1mCtvjZ+eYX1K3Y8WV/G7tpuzRgubnOPtlo3TyYUCuo7/SI7
-	 iCRRshvgD0M1eRQeIPko4Jnqc9laPX7FoOOIbkUqaqUBZ46OczdWEXPbLqYpK2dkqO
-	 6Z3U/Z/jYdMirHqEmJnSCwYfb95GVpn2QG4S/bu5nxyjdnOwQtMGWfad6VNOoSgGEK
-	 yFe0+Ao1wa3S3fcXr22/U1J6K19P5dIlfgybBpk6c3arDODeCB3UpTbExaNfOUTt+C
-	 YMjcL4XC7sN0Q==
-Message-ID: <sashiko-outbox-233416@kernel.org>
+	b=AB/ty3fg4FY+1+81c2uY8ElrKKRRbGS4OlH4h4Jmu8lDGDMuNr0UZG8ym3y2CfgKI
+	 FQ9xsTf94zXgyPPzuoIndTX14BDjZc5TmNVr4EkRnqYgXRe891qusT2gsazzQWUiSp
+	 hNMolai1pnRS0wWNM4Mp3WL72UGV8WvGfdjUC0qiUd/YUvjxxiVWhdQNH3/UCabf4E
+	 fjqYt68DXBYP5IkkOff09MUtfWfFqaR1hCl/jc68ZFIu7qvabrZWB23T5iT1tbtQDg
+	 owf+rbBgHCsbXMi71XIiYeNzP4tvuxpLDqs70JsrHRXJ4LD4qWdF+Cqd9Qs8mGkhq/
+	 xtZ4R0zOFa4sA==
+Message-ID: <sashiko-outbox-233417@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next 06/15] xsk: Lend UMEM chunks to the page pools
- of a queue
+Subject: Re: [PATCH net-next 07/15] xsk: Deliver to the socket in the
+ device's buffer layout
 Reply-To: sashiko-reviews@lists.linux.dev
 To: =?utf-8?b?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>, bpf@vger.kernel.org
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261124125654.183091-6-bjorn@kernel.org>
+In-Reply-To: <20261124125654.183091-7-bjorn@kernel.org>
 References: <20261124112707.118678-1-bjorn@kernel.org>
- <20261124125654.183091-6-bjorn@kernel.org>
+ <20261124125654.183091-7-bjorn@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Wed, 25 Nov 2026 13:00:11 +0000
+Date: Wed, 25 Nov 2026 13:00:12 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,229 +61,310 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 3 potential
+Thank you for your contribution! Sashiko AI review found 5 potential
 issues to consider:
-- [High] xsk: per-queue DMA device mismatch in xsk_sink_bind() and
-  xp_find_dma_map()
-- [High] xsk: xsk_sink_take_fill() recycles old-pool chunks instead of
-  releasing them
-- [Medium] xsk: xp_assign_dev() blocks standard zero-copy when
-  MP_XDP_ONLY is active
-It also noticed 2 related pre-existing issues this patch does not
-introduce:
-- [High] xsk: DMA mapping leak in __xp_dma_unmap() when IOVA is 0 [1]
-- [Critical] xsk: false match in xp_find_dma_map() due to dangling
-  netdev pointer [2]
+- [High] xsk: page_pool_put_unrefed_netmem() in take_fill/scrub recycles
+  to old pool
+- [High] xsk: handed chunks miss wakeup in xsk_sink_flush() and stall
+  when cached
+- [Medium] bpf: xdp_do_redirect() sink path leaks ri->flags/map and
+  skips tracepoints
+- [Medium] xsk: xsk_sink_alloc_netmems() wakes socket when
+  xsk_sink_give_back() fails
+- [Medium] xsk: missing release-acquire ordering on niov->mp_state in
+  xsk_sink
 --
 
-commit 58bc067256d91ca8a9a5c3294236af1fb45e76be
+commit b48b71ff0dc93c37b004fc1b4026f483bf6126d2
 Author: Bj=C3=B6rn T=C3=B6pel <bjorn@kernel.org>
 
-xsk: Lend UMEM chunks to the page pools of a queue
+xsk: Deliver to the socket in the device's buffer layout
 
-This commit adds the XDP_UMEM_DRV_LAYOUT flag and a page pool memory
-provider (xsk_sink) so an AF_XDP socket can lend page-sized UMEM chunks to
-the page pools of a bound RX queue.
+This commit delivers redirected sink buffers to the bound AF_XDP socket in
+the device's buffer layout and returns UMEM chunks to userspace via
+XDP_RX_CHUNK_FREE once both the socket and the device are done with them.
 
-> diff --git a/net/xdp/xsk_buff_pool.c b/net/xdp/xsk_buff_pool.c
-> index 5ec092f7cb6f7..7ece7d9e39376 100644
-> --- a/net/xdp/xsk_buff_pool.c
-> +++ b/net/xdp/xsk_buff_pool.c
-[ ... ]
-> @@ -211,6 +215,13 @@ int xp_assign_dev(struct xsk_buff_pool *pool,
->  	 */
->  	hlist_add_head(&pool->dev_node, &netdev->xsk_pools);
+> diff --git a/net/core/filter.c b/net/core/filter.c
+> index d5774b2577e72..30b35d00e6b2f 100644
+> --- a/net/core/filter.c
+> +++ b/net/core/filter.c
+> @@ -4775,6 +4775,15 @@ int xdp_do_redirect(struct net_device *dev, struct=
+ xdp_buff *xdp,
+>  	struct bpf_redirect_info *ri =3D bpf_net_ctx_get_ri();
+>  	enum bpf_map_type map_type =3D ri->map_type;
 > =20
-> +	if (pool->umem->flags & XDP_UMEM_DRV_LAYOUT) {
-> +		err =3D xsk_sink_bind(pool, netdev, queue_id, flags);
-> +		if (err)
-> +			goto err_unbind;
-> +		return 0;
-> +	}
+> +	/* A sink buffer goes to an AF_XDP socket of its queue */
+> +	if (static_branch_unlikely(&xdp_sink_key) && xdp_buff_is_sink(xdp)) {
+> +		void *fwd =3D ri->tgt_value;
 > +
->  	if (force_copy)
->  		/* For copy-mode, we are done. */
->  		return 0;
+> +		ri->map_id =3D 0;
+> +		ri->map_type =3D BPF_MAP_TYPE_UNSPEC;
+> +		return xsk_sink_redirect(xdp, map_type, fwd);
+> +	}
 
 [Severity: Medium]
-Once xsk_sink_bind() installs the MP_XDP_ONLY provider on a queue,
-dev_get_min_mp_channel_count(netdev) returns non-zero for the whole
-net_device.  Because xp_assign_dev() still checks
-dev_get_min_mp_channel_count(netdev) rather than dev_mp_blocks_xdp(netdev)
-further down, does binding an XDP_UMEM_DRV_LAYOUT socket on one queue
-cause standard AF_XDP sockets on other queues of the same device to fail
-with -EBUSY or silently fall back to copy mode?
+Does taking this early return leave ri->flags and ri->map set when an XDP
+program on a sink queue calls bpf_redirect_map() on another map type, such
+as a devmap with BPF_F_BROADCAST?
 
-[ ... ]
+__xdp_do_redirect_frame() clears ri->flags and WRITE_ONCE(ri->map, NULL)
+so dev_map_free() does not spin waiting on a stale ri->map pointer and
+later redirects in the same softirq do not inherit stale flags.  This path
+also skips _trace_xdp_redirect_map() and _trace_xdp_redirect_map_err().
 
 > diff --git a/net/xdp/xsk_sink.c b/net/xdp/xsk_sink.c
-> new file mode 100644
-> index 0000000000000..b78116f25e712
-> --- /dev/null
+> index b78116f25e712..9f1f7cf822667 100644
+> --- a/net/xdp/xsk_sink.c
 > +++ b/net/xdp/xsk_sink.c
-> @@ -0,0 +1,416 @@
+
 [ ... ]
-> +static u32 xsk_sink_take_fill(struct xsk_sink *sink, struct page_pool *p=
-p)
+
+> @@ -172,12 +192,78 @@ static u32 xsk_sink_take_released(struct xsk_sink *=
+sink, struct page_pool *pp,
+>  	return n;
+>  }
+> =20
+> +/* Posts the chunks that page pools handed off as empty RX descriptors
+> + * while the ring has room, and puts the rest back on the list. Their or=
+der
+> + * does not matter, as userspace tells chunks by their address. Only one
+> + * NAPI runs a queue at a time, so this is the only consumer of the list
+> + * while the queue runs, and xsk_sink_scrub() the only one after it stop=
+ped.
+> + *
+> + * Context: the queue NAPI
+> + */
+> +static void xsk_sink_give_back(struct xsk_sink *sink, struct xdp_sock *x=
+s)
 > +{
-[ ... ]
-> +	for (i =3D 0; i < entries; i++) {
-> +		addr =3D ring->desc[(cons + i) & mask];
-> +		niov =3D &niovs[array_index_nospec((u32)(addr >> PAGE_SHIFT),
-> +						 nr)];
-> +		/* A chunk lent twice would be in two places at once */
-> +		if (unlikely(addr >=3D (u64)nr << PAGE_SHIFT ||
-> +			     READ_ONCE(niov->mp_state) =3D=3D XSK_SINK_LENT)) {
-> +			fq->invalid_descs++;
-> +			continue;
-> +		}
+> +	struct llist_node *node, *last;
+> +	u32 idx;
 > +
-> +		WRITE_ONCE(niov->mp_state, XSK_SINK_LENT);
-> +		netmem =3D net_iov_to_netmem(niov);
-> +		owner =3D netmem_get_pp(netmem);
-> +		if (owner && owner !=3D pp) {
-> +			page_pool_put_unrefed_netmem(owner, netmem, -1, false);
-> +			continue;
-> +		}
-> +		if (!owner)
-> +			net_mp_niov_set_page_pool(pp, niov);
-> +		pp->alloc.cache[n++] =3D netmem;
+> +	if (llist_empty(&sink->handed) || !xskq_prod_nb_free(xs->rx, 1))
+> +		return;
+> +
+> +	node =3D llist_del_all(&sink->handed);
+> +	while (node && xskq_prod_nb_free(xs->rx, 1)) {
+> +		idx =3D node - sink->nodes;
+> +		node =3D node->next;
+> +		WRITE_ONCE(sink->area.niovs[idx].mp_state, XSK_SINK_USER);
+> +		__xskq_prod_reserve_desc(xs->rx, (u64)idx << PAGE_SHIFT, 0,
+> +					 XDP_RX_CHUNK_FREE);
+> +	}
+> +	if (!node)
+> +		return;
+> +
+> +	/* The ring is full, so userspace is behind */
+> +	for (last =3D node; last->next; last =3D last->next)
+> +		;
+> +	llist_add_batch(node, last, &sink->handed);
+> +}
+> +
+> +/* Drops the reference of the buffer of @niov that the socket took at the
+> + * last RX descriptor. Only the queue NAPI changes the count of a chunk =
+that
+> + * delivers to the socket, so this needs no atomic.
+> + */
+> +static void xsk_sink_drop_buf(struct xsk_sink *sink, struct xdp_sock *xs,
+> +			      struct net_iov *niov)
+> +{
+> +	struct xdp_rxtx_ring *ring;
+> +	atomic_long_t *count;
+> +	long left;
+> +
+> +	count =3D netmem_get_pp_ref_count_ref(net_iov_to_netmem(niov));
+> +	left =3D atomic_long_read(count) - 1;
+> +	if (left > 0) {
+> +		/* The device still uses it: its last put hands it off */
+> +		atomic_long_set(count, left);
+> +		niov->mp_hand_off =3D true;
+> +		return;
+> +	}
+> +
+> +	/* Free: back to userspace with this descriptor, still charged to its
+> +	 * page pool with the count of a free netmem
+> +	 */
+> +	WARN_ON_ONCE(left < 0);
+> +	atomic_long_set(count, 1);
+> +	niov->mp_hand_off =3D false;
+> +	WRITE_ONCE(niov->mp_state, XSK_SINK_USER);
+> +	ring =3D (struct xdp_rxtx_ring *)xs->rx->ring;
+> +	ring->desc[(xs->rx->cached_prod - 1) & xs->rx->ring_mask].options |=3D
+> +		XDP_RX_CHUNK_FREE;
+> +}
+
+[Severity: Medium]
+Can xsk_sink_take_fill() observe niov->mp_state =3D=3D XSK_SINK_USER before
+niov->mp_hand_off =3D false and atomic_long_set(count, 1) become visible on
+weakly ordered architectures?
+
+When a driver refills a new queue's page pool from process context while
+the old queue NAPI is still running (such as bnxt during queue restart)
+and userspace has already placed the chunk address on the FILL ring, the
+RX-ring-to-FILL-ring ordering is bypassed:
+
+CPU0 (old queue NAPI)             CPU1 (process-context refill)
+xsk_sink_drop_buf()               xsk_sink_take_fill()
+  atomic_long_set(count, 1)         READ_ONCE(niov->mp_state)
+  niov->mp_hand_off =3D false           // sees XSK_SINK_USER
+  WRITE_ONCE(niov->mp_state,        WRITE_ONCE(niov->mp_state,
+             XSK_SINK_USER)                    XSK_SINK_LENT)
+                                    page_pool_put_unrefed_netmem(owner, ...)
+                                      page_pool_hand_off()
+                                        if (niov->mp_hand_off)
+                                          <-- sees stale true
+
+If page_pool_hand_off() sees stale mp_hand_off =3D=3D true, it puts the chu=
+nk
+on sink->handed instead of releasing it from the old page pool, emitting a
+duplicate XDP_RX_CHUNK_FREE descriptor for a chunk whose FILL entry was
+already consumed.  Pairing smp_store_release(&niov->mp_state,
+XSK_SINK_USER) with smp_load_acquire(&niov->mp_state) in
+xsk_sink_take_fill() would order these accesses.
+
+>  static netmem_ref xsk_sink_alloc_netmems(struct page_pool *pp, gfp_t gfp)
+>  {
+>  	struct xsk_sink *sink =3D pp->mp_priv;
+>  	/* The NAPI owns the need_wakeup flags */
+>  	bool napi =3D in_softirq() && !in_hardirq();
+>  	struct xsk_queue *fq;
+> +	struct xdp_sock *xs;
+>  	dma_addr_t dma;
+>  	u32 i, n;
+> =20
+> @@ -185,17 +271,34 @@ static netmem_ref xsk_sink_alloc_netmems(struct pag=
+e_pool *pp, gfp_t gfp)
+>  	if (WARN_ON_ONCE(pp->alloc.count))
+>  		return 0;
+> =20
+> +	/* Userspace may wait for chunks the device let go of after the last
+> +	 * flush, and with no packets coming, no flush gives them back. A
+> +	 * refill with BH disabled is the queue NAPI, as process context
+> +	 * refills with BH enabled. Only one NAPI runs a queue at a time, as
+> +	 * a queue restart stops the old queue before the new one runs, so
+> +	 * the refill may produce to the RX ring.
+> +	 */
+> +	/* Pairs with xsk_sink_add_sock() */
+> +	xs =3D smp_load_acquire(&sink->xs);
+> +	if (xs && napi && !llist_empty(&sink->handed)) {
+> +		xsk_sink_give_back(sink, xs);
+> +		xskq_prod_submit(xs->rx);
+> +		xs->sk.sk_data_ready(&xs->sk);
 > +	}
 
-[Severity: High]
-When a chunk in the FILL ring still belongs to an earlier page pool
-(owner !=3D pp), does calling page_pool_put_unrefed_netmem(owner, ...)
-recycle the chunk into owner->ring instead of releasing it onto
-sink->released?
-
-net/core/page_pool.c:page_pool_put_unrefed_netmem() {
-	...
-	netmem =3D __page_pool_put_page(pool, netmem, dma_sync_size,
-				      allow_direct);
-	if (netmem && !page_pool_recycle_in_ring(pool, netmem)) {
-		/* Cache full, fallback to free pages */
-		recycle_stat_inc(pool, ring_full);
-		page_pool_return_netmem(pool, netmem);
-	}
-}
-
-Because __page_pool_page_can_be_recycled() is always true for a net_iov,
-page_pool_put_unrefed_netmem() puts the chunk into owner->ring and only
-calls page_pool_return_netmem() -> xsk_sink_release_netmem() when that
-ring is full.  During netdev_rx_queue_reconfig(), ndo_queue_mem_alloc()
-and ndo_queue_start() refill the new page pool before ndo_queue_mem_free()
-destroys the old one, and even after page_pool_destroy(owner) runs, any
-in-flight chunks keep owner alive in deferred release.  Refills on the new
-pool will consume FILL descriptors and strand those chunks in the old
-pool's ptr_ring instead of supplying buffers to pp.
-
-Calling page_pool_return_netmem(owner, netmem) (or transferring the chunk
-directly to pp after releasing it from owner) would avoid recycling into
-the old pool.
+[Severity: Medium]
+When xs->rx is full, xsk_sink_give_back() returns immediately without
+reserving any descriptors and leaves the chunks on sink->handed.  Should
+xskq_prod_submit() and sk_data_ready() only run when xsk_sink_give_back()
+actually posted descriptors, to avoid waking the socket on every NAPI
+cache refill while the RX ring is full?
 
 [ ... ]
 
-> +/* No queue DMAs to the UMEM any longer */
-> +static void xsk_sink_stop(struct xsk_sink *sink)
+> +/* Page pools hold the chunks that went back to userspace until it lends
+> + * them again. Put them back, so that the page pools can finish their
+> + * destruction, and handed-off chunks that never made it to userspace to=
+o.
+> + * The queue stopped, so no NAPI takes from the handed list any longer.
+> + * Device unregister scrubs twice, when it uninstalls the provider and
+> + * when the socket unbinds.
+> + */
+> +static void xsk_sink_scrub(struct xsk_sink *sink)
 > +{
-> +	bool unmap;
+> +	struct llist_node *node;
+> +	struct net_iov *niov;
+> +	netmem_ref netmem;
+> +	u32 idx;
 > +
-> +	spin_lock_bh(&sink->lock);
-> +	WRITE_ONCE(sink->rxq, NULL);
-> +	unmap =3D sink->fq;
-> +	sink->fq =3D NULL;
-> +	spin_unlock_bh(&sink->lock);
+> +	for (node =3D llist_del_all(&sink->handed); node; node =3D node->next)
+> +		sink->area.niovs[node - sink->nodes].mp_state =3D XSK_SINK_USER;
 > +
-> +	/* Wait for wakeups that found the sink or the queue */
-> +	synchronize_net();
-> +	if (unmap)
-> +		xp_dma_unmap(sink->pool, XSK_SINK_DMA_ATTR);
+> +	for (idx =3D 0; idx < sink->area.num_niovs; idx++) {
+> +		niov =3D &sink->area.niovs[idx];
+> +		netmem =3D net_iov_to_netmem(niov);
+> +		if (niov->mp_state =3D=3D XSK_SINK_LENT || !netmem_get_pp(netmem))
+> +			continue;
+> +
+> +		niov->mp_hand_off =3D false;
+> +		/* A later scrub must skip it: its page pool may not have
+> +		 * released it yet
+> +		 */
+> +		niov->mp_state =3D XSK_SINK_LENT;
+> +		page_pool_put_unrefed_netmem(netmem_get_pp(netmem), netmem,
+> +					     -1, false);
+> +	}
 > +}
 
 [Severity: High]
-This problem wasn't introduced by this patch, but xp_dma_unmap() ->
-__xp_dma_unmap() checks if (*dma) before unmapping each entry [1],
-can that leak DMA mappings when a page is assigned a valid IOVA of 0?
+Does calling page_pool_put_unrefed_netmem() here and in
+xsk_sink_take_fill() recycle chunks into the old page pool's ptr_ring
+instead of releasing them?
 
-net/xdp/xsk_buff_pool.c:__xp_dma_unmap() {
-	...
-	for (i =3D 0; i < dma_map->dma_pages_cnt; i++) {
-		dma =3D &dma_map->dma_pages[i];
-		if (*dma) {
-			*dma &=3D ~XSK_NEXT_PG_CONTIG_MASK;
-			dma_unmap_page_attrs(dma_map->dev, *dma, PAGE_SIZE,
-					     DMA_BIDIRECTIONAL, attrs);
-			*dma =3D 0;
-		}
+Once chunks return to userspace in XSK_SINK_USER, netmem_get_pp(netmem)
+still points to the page pool that allocated them.  Because
+__page_pool_page_can_be_recycled() always returns true for net_iovs:
+
+net/core/page_pool.c:__page_pool_put_page() {
+    ...
+	if (likely(__page_pool_page_can_be_recycled(netmem))) {
+		...
+		return netmem;
 	}
-	...
+    ...
+	page_pool_return_netmem(pool, netmem);
+	return 0;
 }
 
-On IOMMU or architecture configurations where 0 is a valid DMA address,
-__xp_dma_unmap() skips dma_unmap_page_attrs() for that page, leaking the
-mapping across pool teardown.
+page_pool_put_unrefed_netmem(owner, netmem, -1, false) pushes the chunk
+into owner->ring rather than calling page_pool_return_netmem() ->
+xsk_sink_release_netmem().
+
+During a queue restart in drivers that allocate the new queue's buffers
+before destroying the old page pool (such as bnxt or fbnic),
+xsk_sink_take_fill() consumes FILL entries for the new page pool and traps
+them in the old pool's ptr_ring instead of moving them to sink->released,
+so xsk_sink_alloc_netmems() returns 0 even with a full FILL ring.  And on
+unbind, xsk_sink_scrub() runs after netif_mp_close_rxq() has already
+called page_pool_destroy(), so pushing the chunks into the detached pool's
+ptr_ring delays page pool and sink destruction until the 1-second
+release_dw retry work drains the ring.
 
 [ ... ]
 
-> +int xsk_sink_bind(struct xsk_buff_pool *pool, struct net_device *dev,
-> +		  u16 queue_id, u16 flags)
+> +/**
+> + * xsk_sink_flush - give back chunks at the end of a NAPI poll
+> + * @sink: provider of a socket that received in this poll
+> + *
+> + * Context: the queue NAPI, from xdp_do_flush(), before the RX ring is
+> + * submitted.
+> + */
+> +void xsk_sink_flush(struct xsk_sink *sink)
 > +{
-[ ... ]
-> +	/* The device of the queue's page pools, which may differ per queue */
-> +	dma_dev =3D netdev_queue_get_dma_dev(dev, queue_id, NETDEV_QUEUE_TYPE_R=
-X);
-> +	if (!dma_dev)
-> +		return -EOPNOTSUPP;
+> +	/* Pairs with xsk_sink_add_sock() */
+> +	struct xdp_sock *xs =3D smp_load_acquire(&sink->xs);
 > +
-> +	/* Without a program, drivers would build skbs from the buffers */
-> +	if (!dev_xdp_drv_prog_held(dev))
-> +		return -ENOENT;
+> +	if (!xs)
+> +		return;
 > +
-> +	err =3D xp_dma_map(pool, dma_dev, XSK_SINK_DMA_ATTR, pool->umem->pgs,
-> +			 pool->umem->npgs);
-
-[Severity: Critical]
-This problem wasn't introduced by this patch, but xp_dma_map() looks up
-existing mappings in xp_find_dma_map() by comparing raw dma_map->netdev =3D=
-=3D
-pool->netdev pointers without holding a netdev reference on
-dma_map->netdev [2].  If the original net_device is freed while
-the UMEM stays alive and a new net_device is allocated at the same address,
-xp_find_dma_map() can match the dangling pointer and reuse stale DMA
-addresses on the new device.
-
-> +	if (err)
-> +		return err;
-> +
-> +	sink =3D xsk_sink_create(pool, dma_dev);
+> +	xsk_sink_give_back(sink, xs);
+> +}
 
 [Severity: High]
-When a UMEM is shared with XDP_SHARED_UMEM across two queues of the same
-net_device that have different per-queue DMA devices, can xp_dma_map() and
-xsk_sink_create() pair sink->dev with DMA addresses mapped for another
-device?
+Can chunks left on sink->handed stall when the RX ring is full at the end
+of a NAPI poll or when later refills are satisfied from pp->alloc.cache?
 
-net/xdp/xsk_buff_pool.c:xp_find_dma_map() {
-	...
-	list_for_each_entry(dma_map, &pool->umem->xsk_dma_list, list) {
-		if (dma_map->netdev =3D=3D pool->netdev)
-			return dma_map;
-	}
-}
+If xsk_sink_give_back() in xsk_sink_flush() stops because xs->rx is full,
+nothing sets xsk_set_rx_need_wakeup(sink->pool) if xsk_sink_alloc_netmems()
+already ran earlier in the poll (when sink->handed was empty) or did not
+run because pp->alloc.cache had entries.  Userspace then drains xs->rx
+without knowing it needs to wake the NAPI.
 
-xp_find_dma_map() checks only dma_map->netdev =3D=3D pool->netdev and does =
-not
-check that dma_map->dev matches dma_dev.  On a multi-DMA-device netdev,
-binding a second shared-UMEM socket reuses the first queue's dma_pages
-while xsk_sink_create(pool, dma_dev) sets sink->dev =3D dma_dev, so
-xsk_sink_init() sees pp->p.dev =3D=3D sink->dev and the second queue perfor=
-ms
-DMA syncs and transfers with IOVAs mapped for the first queue's DMA
-device.
-
-[1] https://sashiko.dev/#/bug/linux-5e2b8325-f1ba-4785-8981-9032096f3c3f
-[2] https://sashiko.dev/#/bug/linux-fb37d535-f34d-40eb-b2c2-d903fa118a91
+Even when XDP_RING_NEED_WAKEUP is set, a subsequent wakeup NAPI poll that
+receives no packets does not call xsk_sink_flush(), and only reaches
+xsk_sink_alloc_netmems() if the driver refills and both pp->alloc.cache
+and pp->ring are empty; otherwise the handed-off chunks remain on
+sink->handed across polls.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261124112707.1186=
-78-1-bjorn@kernel.org?part=3D6
+78-1-bjorn@kernel.org?part=3D7
