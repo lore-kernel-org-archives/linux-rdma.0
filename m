@@ -1,44 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795635789;
-	b=nu3LWheMd/PSSb1wOKC2MG0PCJi8ZRbFAGLQvNH02xGp2wD1Mb7wXoNyTH8xEzYVtOi+
-	 84ZQGIckw0hW40uzd98xW1WT2JLCfx0gR+O4/7s6s6nURM8eNWv7dM09HP/k25ImaaOQ7
-	 1c/9EgLo+m1vK8J7JFbwR5YiN+flThUmYpFYMVdKeNtzLOHd/0w8XENDusZ0SQ3M+YMFy
-	 4ZjMTfGOnWIq/r8lq1UGId5J04/s3FTTHY3yJmlmZJLFsuO6HYEGg9KU7vjFngmKmZMMC
-	 gzY6/DIJjIQyQXJqe7pl/xbZ+faBZeDsjoqZOmGNOppwDwITtzoKSKedyBtZNW1iEJQ==
+	t=1795635962;
+	b=srOzr2v7oXAr1gUNZiShTcHXn3b6qguJm5mo0RSBhOHwWRWuGHWNY48dY43eVXaR2/pj
+	 Q2V5dBtm++VC6yegtbtXq/ZsAI9eQ0PzZyHeXPile1sTRuZBIU/xxGavqOZgsm/ueDhvT
+	 xpPnbBD0V1gp+Dk/Gh3w9YTeD04h35oCP1jiBlMPsrrBhT7SkPlAvJhDu2MY62D4VZHd/
+	 bqC3dkphqcPS4QlbESZqO9W8sAqR5fGUPXCl8j1mSZSKT+upvrT0NLDlGt21aP7t8n802
+	 vvwrIWi5sWaYbCLWWsyJFGiYVfoet2yNSGjUCfmJFL0Hc3knhtceouVGDtuiKZRXHGQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795635789;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795635962;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:In-Reply-To:References:
 	 Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding;
-	bh=MLc4/6k9Z6sxMwo5Ugfr+gMYCrDQyFv5j935bfc4lHg=;
-	b=0+j9OmUKBgDnpXmxqqXR7VXlVd57wa/S3/JDFylYumfqlkk0nP9+/CU3FKJCelvhpegm
-	 qQG+bcoaqaGvIeJdMRPqkKAfHyctjGxvZcq2q1Nzo2McCK3ZlYjtegKF1oxqqpXLLt/dD
-	 vbhOUQHcuNrQ3/qX6yO8tQCrL506hb1VjIxxx5bfFq+dBWt05DswG9TD7xj6ckXYwvpJR
-	 B8XoKXirqzwuLYdRihrebYDwjMdfdFoV8LK0q5rC/sxaDPRzYD5oyGGzamaDtFjJmJdNg
-	 0E4P0tN0zOkNLxc1Tz7nJivYnOYfSJwCJjVvxSCbKQHtpgakxwDn/8yx01WfXRErXxw==
+	bh=vYrHubQhIzK/ork0V0gkVDMcpei3zJK7hFk5RZ+fCWw=;
+	b=NeCMDq18cvJgjgouYyH4mOiiQYkW+r0uFcsToZQ3KDMO0Hw5Mb8K8kY3Lov+n6xR69dS
+	 CHP8tlZE9P3riUfz1poZiZ3IviGLtOsjvWiqCNYSSsE+B+2xnsM1FqqlUut6UaumCMPJb
+	 6u6TW/QjeNKssXKqJL8VxoHSXceRrOIkvOD4XEW8ENRPWXySXicXCh0ulTF/Cw2EuGN2M
+	 tojelY7MAXsm1BpflTRTRUI3Gyzv3N6sArr4NzglQdFnc1VFtki4c08eXLMCpI4NbeTvG
+	 YJ2+EkDiRyoSf5PzUwGtyWZCn43wLwGm9EvwRf2FAdNTRHGVrGWL+uHnows4HtXwQ5g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IlB4xbnc;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=A5VgDqTH;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6667606A321;
-	Wed, 25 Nov 2026 19:43:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6321C606A323;
+	Wed, 25 Nov 2026 19:46:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IlB4xbnc
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07B731F000C0;
-	Wed, 25 Nov 2026 19:43:09 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=A5VgDqTH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 550CF1F000E6;
+	Wed, 25 Nov 2026 19:46:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795635789;
-	bh=MLc4/6k9Z6sxMwo5Ugfr+gMYCrDQyFv5j935bfc4lHg=;
+	s=k20260515; t=1795635961;
+	bh=vYrHubQhIzK/ork0V0gkVDMcpei3zJK7hFk5RZ+fCWw=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date;
-	b=IlB4xbncT7TdKfveO1rm1FT2gCv4IrTSQ05brtd2009HIOI86yf1t3YO9xQcOpuqm
-	 plQ3clS+mv14LdeWvVQeB80S43PeuiptlMEkhkm7cvp4Zc0wqB9563ctgrQ+Fi2TMq
-	 sLGpJdYdnBreL+XLlfv1CXxOCcvZ1CNSI24CocAOUeNwUwRrfpnACcwrDRfjpuPgpH
-	 s7/V3e5TEknLqvfFLiOoFQ+VvEaIl4LLR0jAZ92VEtv7Zo2MQs03phRdNTCbhi+zQl
-	 WQGXej1P1//AE8xrQwLbF466qrnPQPcZCp8bOtqmfAvdFovymXQuqLh8M2zCmK3wX9
-	 N6hMNK3MH/JTw==
+	b=A5VgDqTHBQBIcGWxj8ZlWowBpHDzCW7y8I+5bmgx99dahG052n5ez8Y5oLeMxv6UZ
+	 O4dpKL90vapusvkXypytmxThWxcZhZTdSlLHt6XGohKfhpLwp5dvAlHpqpGQLRhNeP
+	 pxCDCnt8cgAFaaqEA6id/VtfF06vyWsEcGRMVwxNKCBGw9BNRRx0/e3UhupBTPQd7l
+	 4SwWcBMhIAgW0lYLeJ3KJYLpN36e+Ar123CE7QVrLR5V2IjzeFDW8eH5nQJGuw7usk
+	 YjU/fJSONeysT1XOzyHxC1R68KgDf3mj+O73DAoo30030IBzmQatD4mlX5dU9AoOrT
+	 stbbXFnrwwpng==
 From: =?utf-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>
 To: netdev-bot+sashiko@kernel.org
 Cc: magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
@@ -62,13 +62,13 @@ Cc: magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
  dw@davidwei.uk, asml.silence@gmail.com, linux-rdma@vger.kernel.org,
  linux-kselftest@vger.kernel.org, linux-doc@vger.kernel.org,
  linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next 03/15] net: Add memory providers that only feed
- XDP
-In-Reply-To: <179561568417.3135.7506567631056689365@kernel.org>
-References: <20261124125654.183091-3-bjorn@kernel.org>
- <179561568417.3135.7506567631056689365@kernel.org>
-Date: Wed, 25 Nov 2026 20:43:05 +0100
-Message-ID: <87h5h4ofxy.fsf@all.your.base.are.belong.to.us>
+Subject: Re: [PATCH net-next 04/15] page_pool: Let memory providers take
+ back net_iovs
+In-Reply-To: <179561568855.3135.15810206390695616800@kernel.org>
+References: <20261124125654.183091-4-bjorn@kernel.org>
+ <179561568855.3135.15810206390695616800@kernel.org>
+Date: Wed, 25 Nov 2026 20:45:59 +0100
+Message-ID: <87bj7coft4.fsf@all.your.base.are.belong.to.us>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -83,110 +83,78 @@ Content-Transfer-Encoding: quoted-printable
 
 netdev-bot+sashiko@kernel.org writes:
 
-> Thank you for your contribution! Sashiko AI review found 1 potential
-> issue(s) to consider.
+> Thank you for your contribution! Sashiko AI review found more severe
+> issue(s) in other patches of this series. This mail is only an FYI, in ca=
+se
+> you want to address the nit picks below when you respin.
 >
-> Critical: 0 =C2=B7 High: 0 =C2=B7 Medium: 1 =C2=B7 Low: 0
+> Low priority / nit picks for your consideration:
 >
-> If you believe none of the issues are legitimate, please reply to each
-> issue of Medium severity or higher and explain why the AI is wrong.
-> If any of them are legitimate and you plan to respin, please let patchwork
-> know by including "pw-bot: cr" as a separate line at the end of your reply
-> (one such reply per series is enough).
->
-> - [Medium] This patch adds MP_XDP_ONLY providers, which by design sit
->   next to native XDP and AF_XDP.
+> - [Low] page_pool_hand_off() in net/core/page_pool.c (lines 846-851)
+>   branches on netmem_is_net_iov() and casts the netmem down to a net_iov=
+=E2=80=A6
+> - [Low] The kernel-doc for memory_provider_ops.hand_off in
+>   include/net/page_pool/memory_provider.h (lines 39-44) says a false=E2=
+=80=A6
 >
 > --
 >
-> net: Add memory providers that only feed XDP
+> page_pool: Let memory providers take back net_iovs
 >
-> This patch lets a memory provider mark itself XDP-only with MP_XDP_ONLY.
-> Such a provider needs no header split and does not block native XDP. A pa=
-ge
-> pool takes it only when the driver sets PP_FLAG_ALLOW_XDP_ONLY_NETMEM. The
-> XDP install, XDP propagate and ethtool rings checks move from
-> dev_get_min_mp_channel_count() to the new dev_mp_blocks_xdp().
+> This commit adds a hand_off() memory provider op and an mp_hand_off flag
+> in struct net_iov. When a net_iov is marked, its last put goes to the
+> provider instead of the page pool cache, and it stays charged to the
+> pool. The hook is wired into __page_pool_put_page(),
+> page_pool_drain_frag() and page_pool_free_frag(). The commit also adds a
+> provider-owned mp_state byte.
 >
->> diff --git a/net/core/dev.c b/net/core/dev.c
->> index 4ca8a9f5a7a5c..8a1d5a284e53c 100644
->> --- a/net/core/dev.c
->> +++ b/net/core/dev.c
+>> diff --git a/include/net/page_pool/memory_provider.h b/include/net/page_=
+pool/memory_provider.h
+>> index d52c7a450c68e..bfc2841582225 100644
+>> --- a/include/net/page_pool/memory_provider.h
+>> +++ b/include/net/page_pool/memory_provider.h
+>> @@ -36,6 +36,12 @@ enum mp_flags {
+>>  struct memory_provider_ops {
+>>  	netmem_ref (*alloc_netmems)(struct page_pool *pool, gfp_t gfp);
+>>  	bool (*release_netmem)(struct page_pool *pool, netmem_ref netmem);
+>> +	/* Takes a free net_iov marked mp_hand_off that stays charged to the
+>> +	 * pool; the provider puts it back later. Returns false to have the
+>> +	 * pool recycle it instead. Called where the pool puts netmem, outside
+>> +	 * hard IRQ context. Needed by providers that mark net_iovs.
+>> +	 */
 >
-> [ ... ]
+> [Severity: Low]
 >
->> @@ -11146,6 +11146,23 @@ int dev_change_xdp_fd(struct net_device *dev, s=
-truct netlink_ext_ack *extack,
->>  	return err;
->>  }
->>=20=20
->> +/* Native XDP runs next to XDP-only providers only, see %MP_XDP_ONLY */
->> +bool dev_mp_blocks_xdp(const struct net_device *dev)
->> +{
->> +	const struct memory_provider_ops *ops;
->> +	unsigned int i;
->> +
->> +	netdev_assert_locked_ops_compat(dev);
->> +
->> +	for (i =3D 0; i < dev->real_num_rx_queues; i++) {
->> +		ops =3D dev->_rx[i].mp_params.mp_ops;
->> +		if (ops && !(ops->flags & MP_XDP_ONLY))
->> +			return true;
->> +	}
->> +
->> +	return false;
->> +}
->> +
->
-> [Severity: Medium]
-> Should the AF_XDP zero-copy setup paths use this helper too?
->
-> Two callers still use dev_get_min_mp_channel_count(). It counts every
-> provider by mp_priv, including XDP-only ones:
->
-> net/xdp/xsk_buff_pool.c:xp_assign_dev() {
->     ...
-> 	if (dev_get_min_mp_channel_count(netdev)) {
-> 		err =3D -EBUSY;
-> 		goto err_unreg_pool;
-> 	}
->     ...
-> err_unreg_pool:
-> 	if (!force_zc)
-> 		err =3D 0; /* fallback to copy mode */
->     ...
-> }
->
-> drivers/net/netkit.c:netkit_xsk() {
->     ...
-> 	if (!create || !dev_get_min_mp_channel_count(phys))
-> 		ret =3D phys->netdev_ops->ndo_bpf(phys, &xdp_lower);
->     ...
-> }
->
-> Later in the series, xsk_sink_bind() installs an MP_XDP_ONLY provider
-> (xsk_sink_ops) on q0. After that, a classic AF_XDP socket that binds q1 on
-> the same device would see this:
->
->   bind with XDP_ZEROCOPY fails with -EBUSY
->   bind without a mode flag falls back to copy mode and does not report it
->   XSK pool creation through a netkit leased queue returns -EBUSY
->
-> The result also seems to depend on bind order. Suppose the classic
-> zero-copy socket binds q1 first. The sink can then still be installed on
-> q0, because __netif_mp_open_rxq() only checks the pool of its own queue:
->
-> net/core/netdev_rx_queue.c:__netif_mp_open_rxq() {
->     ...
-> 	if (rxq->pool && !xdp_only) {
->     ...
-> }
->
-> So the same end state (sink on q0, zero copy on q1) is accepted in one
-> order and refused in the other. Is that intended?
+> Is "Returns false to have the pool recycle it instead" true for every
+> caller?
 
-No, that's not intended. The device-wide check in
-xp_assign_dev()/netkit_xsk() predates this work, and a sink on another
-queue does not stop native XDP. I'll switch both to dev_mp_blocks_xdp()
-in the next version, so the bind order no longer mattters.
+You're right, at destroy a false return releases the net_iov, which is
+what a dying pool should do. I'll fix the comment.
 
+> [Severity: Low]
+>
+> This isn't a bug, but does this fit the netmem abstraction rules?
+> page_pool_hand_off() branches on netmem_is_net_iov() and downcasts with
+> netmem_to_net_iov() inside page_pool core. Before this patch, page_pool.c
+> had no netmem_to_net_iov() call.
+>
+> The netmem_ref kernel-doc in include/net/netmem.h says:
+>
+>   Downcasting netmem_ref via netmem_to_page() or netmem_to_net_iov() in
+>   callers is not allowed unless a code path strictly requires a specific
+>   backing type ... In such cases, add a netmem helper here that handles
+>   both page and net_iov cases
+>
+> Documentation/networking/netmem.rst also says core code should avoid
+> per-netmem-type branching. It also says new code must not assume that
+> using a memory provider implies net_iov memory.
+>
+> The mp_hand_off flag lives in struct net_iov, and the hand_off() contract
+> only covers net_iovs. So a provider that hands out page-backed netmems
+> can't use this hook.
+>
+> Would a netmem.h helper fit better here? For example, something like
+> netmem_mp_hand_off() that returns false for pages and is called from
+> page_pool core.
+
+Yeah, let's use a helper.
