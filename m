@@ -1,44 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795637802;
-	b=ifn+iycOPBK0VVNYVj4S3Ei6ACOA6+FJbWWp16CsJMYhaRai35iGq0FelmGHv8FVmZM5
-	 WucTrMjnLIrCmo53OnAYEECI6Ns8tQIMLi/Q2nF2RV3Ymdw96aiKOc+r5r+k85LXOgFii
-	 jGBV3Xct5NzDKGtyQjys8MIqc+QvGb7OB4QHoQh++o2rJP9/w0gARTcGkVSJrsWIGb+Yj
-	 ejki2j8y5H0gTA3ilsqdC19fsGssX7Hubz7eQ9MV+jAtHSwkilHQAsvPnrlzBTdpBqH9p
-	 /rcpNyJ+gQkw66u1/5RG46iCDDCeDeI5i6e7+T8bazd+MCH3P0cIZpxMibGy2+uu5Qw==
+	t=1795638421;
+	b=Me7mkCFW0TbipoyusOjbRVunP//QqkM5KAhR7pKGw+Cd6FoADep3ws44s251KHsIdBfZ
+	 7zflJ7ow6CgFqzEU9Yf9YF6exmupB7dgwpahU/CjJlTLQrYJDPedTX/+7mvyEtRYRb3Da
+	 kIHizHMVf0HBxJbz8H/tC10vPM+hWVxtMuGGewQkjlUtCjYkFs7RytBwyLxLkq1Pjy79B
+	 Eo+34zzPdmpfQAtiG0+MQrFRZFTugqpfaPN3ZpAiH5zOmqPjkSSBb4CL0FBA5XXOgZyDF
+	 TJ5DFlFYoyGdTfpyEWq0ZnE1iEZskegUQ8xX0JKjmAfo7g1XCYkLjMlbKv9yHMOizYw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795637802;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795638421;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:In-Reply-To:References:
 	 Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding;
-	bh=FMoTVIsv2IP6m7YESB31vaDMuhfNof+tzgvvUh6wb7I=;
-	b=pyqOocE9IomqniU1u9UmgUpXJERB9mY3KVFDEJHgzOJNY/8BM9z7U8Moa8NCAdPbE8Qe
-	 f/QbBWNs0Ujq6d8cjTiB2l8pRgVpxv6DOHalcx9PwdO/cP8O4UJFn1Ppsy6PO6vcaLnGe
-	 yLysMyROo4/VYexbtA+azZSq7PZaMaSX1O+mZW31s8420EKNuAEXsd7rJqa1csGZ2ABYn
-	 0Qfr/lmh9NjJsp3zE3ODY2kX9nia8S/ePgAt6x3pYKTDJiXiDBxpVm3MBefTGyDQZVwX2
-	 X0/B6begCRTwUoZVq+2Pmjqewbo4V7SwVDSJNAIthg8zVPufKveiPvGzxg8PJgvrw7g==
+	bh=ZeI0AGTd97czsolzOlbnXFbpYQc5tCXGUex9w6md5FQ=;
+	b=P9T8Mdv/PFRBUYHbSO8+rK/5uwl3cRt2J38Y34KZzJMR70uf1rhgpM/18PWEhav1c9ma
+	 lyVKFh23BF4+rO27VfWnCumCkkEUghYGoKINm9SxmcWwAjvNiFy1mdPUG+DXfyEeoaBIU
+	 0UZ/Fb4MNAFV3FkfWeuynV93AnfruX/GXu/LCiHO6/f6wX7yxWDbEe/JDlOZU6DFtEKtC
+	 TaVk+tmGoAx1qQlP8etjDQlORi+DawFc8IWkkkhWnPduyxtrmcLU7S4At7VCmF7Uxg75l
+	 FASJ1X7HbELUe9h0KxRXg8sjLmEcCu70d8dGN3mEODuyI8d1qrEV7hoZWhYO0FXkrsg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="il/dmMEK";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PGCAiqT+;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13F48606A327;
-	Wed, 25 Nov 2026 20:16:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFA90606A326;
+	Wed, 25 Nov 2026 20:27:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=il/dmMEK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 167F81F000D3;
-	Wed, 25 Nov 2026 20:16:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PGCAiqT+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C08D1F000CF;
+	Wed, 25 Nov 2026 20:27:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795637801;
-	bh=FMoTVIsv2IP6m7YESB31vaDMuhfNof+tzgvvUh6wb7I=;
+	s=k20260515; t=1795638421;
+	bh=ZeI0AGTd97czsolzOlbnXFbpYQc5tCXGUex9w6md5FQ=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date;
-	b=il/dmMEKcJqRKHQ63Xsm7kj9wIdp1Rb/LuTssYKXM/Zs+sJLJyuzFCGGqSWBc1sGV
-	 3DesCnw1x+Uv2XW5HLmVyYKNHmQMZf1mdxj/BACtRNq8wYAYKDOipgsB7/xDFzBRq9
-	 jKl7WTugFvxx7goJSD+IfPjaCUFuLcQkbi9KwTu14KT5UPEFDZYJm1xHCB+St/BVKG
-	 M8TlDq43AMWBe79ckUsZ978D6WYxql7h/C7lrvk5FkmtHtjaR6edvaiDn+NQUrJeje
-	 reORIEhjWYS71Qgch7Li9ftHyz57mY3Y52bO5SLcm8ARXylD7Qt9MlUkEw/G0FeT77
-	 zFKqlPMP3dxOg==
+	b=PGCAiqT+Cr5Xm0z7RchrnJVJTmAuvoCt1912rq67bQoYYP49MbcqJOVi/26A3yxLz
+	 lIdHVQpfxG8x5xvZsRWYpbNIy7gi/aleII8GzT3ZwcTD2O0yxnesqm2uD4pOnnk3/n
+	 TOESmUGnCN56BM42n3VPVq6+Jd3ZdbjDwqPKyJ8WrjOwDiZKsunTKTP1vns8YhvmGd
+	 kBkFXuLpJIjimllwtg/vtO7iHbvr4iw/k5TEfNUy5TDS23Djq8BEA8SkzySC85lW+J
+	 yrg8YVOI28GEKO1e7koCSvd1H/v7B1yMUD3GMX/SGqkXZc5jf5/5BsHaZKkvAs+0go
+	 cHG9eak9Gi37A==
 From: =?utf-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>
 To: netdev-bot+sashiko@kernel.org
 Cc: magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
@@ -62,12 +62,13 @@ Cc: magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
  dw@davidwei.uk, asml.silence@gmail.com, linux-rdma@vger.kernel.org,
  linux-kselftest@vger.kernel.org, linux-doc@vger.kernel.org,
  linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next 08/15] xsk: Receive in the device's buffer layout
-In-Reply-To: <179561570478.3135.6883565218778603025@kernel.org>
-References: <20261124125654.183091-8-bjorn@kernel.org>
- <179561570478.3135.6883565218778603025@kernel.org>
-Date: Wed, 25 Nov 2026 21:16:39 +0100
-Message-ID: <875wxkmztk.fsf@all.your.base.are.belong.to.us>
+Subject: Re: [PATCH net-next 12/15] eth: mlx5e: Receive into XDP-only memory
+ providers
+In-Reply-To: <179561570896.3135.8953893024403211017@kernel.org>
+References: <20261124125654.183091-12-bjorn@kernel.org>
+ <179561570896.3135.8953893024403211017@kernel.org>
+Date: Wed, 25 Nov 2026 21:26:57 +0100
+Message-ID: <87tsl4lkry.fsf@all.your.base.are.belong.to.us>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -82,10 +83,10 @@ Content-Transfer-Encoding: quoted-printable
 
 netdev-bot+sashiko@kernel.org writes:
 
-> Thank you for your contribution! Sashiko AI review found 6 potential
+> Thank you for your contribution! Sashiko AI review found 3 potential
 > issue(s) to consider.
 >
-> Critical: 0 =C2=B7 High: 1 =C2=B7 Medium: 2 =C2=B7 Low: 3
+> Critical: 0 =C2=B7 High: 2 =C2=B7 Medium: 1 =C2=B7 Low: 0
 >
 > If you believe none of the issues are legitimate, please reply to each
 > issue of Medium severity or higher and explain why the AI is wrong.
@@ -93,304 +94,182 @@ netdev-bot+sashiko@kernel.org writes:
 > know by including "pw-bot: cr" as a separate line at the end of your reply
 > (one such reply per series is enough).
 >
-> - [High] Since this patch, a process with only CAP_NET_RAW in the
->   device's netns can install an XDP-only memory provider on an RX queue.
-> - [Medium] With an XDP_UMEM_DRV_LAYOUT UMEM, a bind that passes
->   XDP_ZEROCOPY succeeds, but the socket is not reported or treated as=E2=
-=80=A6
-> - [Medium] xsk: skipped synchronous unbind in xsk_sink_release() for TX-
->   only pool
-> - [Low] xsk_sink_wakeup() (net/xdp/xsk_sink.c) is the first lockless
->   reader of rxq->napi.
-> - [Low] The commit message of "xsk: Receive in the device's buffer
->   layout" lists the new bind rules in detail: one receiver, -EBUSY,=E2=80=
+> - [High] net/mlx5e: deferred close in mlx5e_switch_priv_channels()
+>   starves XDP-only MP
+> - [High] net/mlx5e: NAPI busy loop and refill rollback in
+>   mlx5e_post_rx_wqes()
+> - [Medium] The mlx5 patch lets the nonlinear striding RQ take an XDP-only
+>   (AF_XDP sink) provider, but the commit message only describes the=E2=80=
 =A6
-> - [Low] (Baseline: rejected.) The concern was that XDP_UMEM_DRV_LAYOUT
->   and XDP_RX_CHUNK_FREE have no documentation or selftests.
 >
 > --
 >
-> xsk: Receive in the device's buffer layout
+> eth: mlx5e: Receive into XDP-only memory providers
 >
-> This patch accepts XDP_UMEM_DRV_LAYOUT at UMEM registration and installs
-> the xsk_sink memory provider when a socket with such a UMEM binds to a
-> queue. A queue in this mode has one receiving socket, and the provider is
-> removed when that socket closes. recvmsg() and poll() now schedule the
-> queue NAPI when the RX need_wakeup flag is set.
+> This patch lets the page pools of mlx5 RQs that run an XDP program take
+> XDP-only memory providers such as the AF_XDP sink. It also allows queue
+> restarts while a program is attached, and it skips the minimum posted
+> WQE wait for provider-backed RQs. Buffer addresses are now taken with
+> xdp_netmem_address() so XDP-only net_iovs are covered.
 >
->> diff --git a/net/xdp/xdp_umem.c b/net/xdp/xdp_umem.c
->> index cd8643360eb3a..5989e5e0e17e5 100644
->> --- a/net/xdp/xdp_umem.c
->> +++ b/net/xdp/xdp_umem.c
->> @@ -153,6 +153,7 @@ static int xdp_umem_account_pages(struct xdp_umem *u=
-mem)
->>  		XDP_UMEM_UNALIGNED_CHUNK_FLAG | \
->>  		XDP_UMEM_TX_SW_CSUM | \
->>  		XDP_UMEM_TX_METADATA_LEN | \
->> +		XDP_UMEM_DRV_LAYOUT | \
->>  	0)
+>> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers=
+/net/ethernet/mellanox/mlx5/core/en_main.c
+>> index 06a8a4be4be7c..a8d46508b6fc3 100644
+>> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+>> @@ -1012,6 +1012,9 @@ static int mlx5e_alloc_rq(struct mlx5e_params *par=
+ams,
+>>=20=20
+>>  		pp_params.order     =3D pool_order;
+>>  		pp_params.flags     =3D PP_FLAG_DMA_MAP | PP_FLAG_DMA_SYNC_DEV;
+>> +		/* Trap and PTP RQs use queue 0 too, without a program */
+>> +		if (params->xdp_prog)
+>> +			pp_params.flags |=3D PP_FLAG_ALLOW_XDP_ONLY_NETMEM;
+>
+> [Severity: Medium]
+> How does this behave for the nonlinear striding RQ? The flag is also set
+> there, but the commit message only talks about the linear striding RQ:
+>
+>     The RQ keeps its layout. A stride of the linear striding RQ still
+>     holds the shared info of the skb that XDP_PASS builds, ...
+>
+> The nonlinear striding RQ is used with XDP when the program is frags
+> aware and the MTU is above the linear XDP limit. With a program attached,
+> mlx5e_skb_from_cqe_mpwrq_nonlinear() builds an empty head in the linear
+> page:
+>
+> drivers/net/ethernet/mellanox/mlx5/core/en_rx.c:mlx5e_skb_from_cqe_mpwrq_=
+nonlinear() {
+>     ...
+> 	if (prog) {
+> 		...
+> 		va =3D mlx5e_mpwqe_get_linear_page_frag(rq);
+> 		...
+> 		linear_hr =3D XDP_PACKET_HEADROOM;
+> 		linear_data_len =3D 0;
+>     ...
+> }
+>
+> mlx5e_mpwqe_linear_page_refill() allocates that linear page from
+> rq->page_pool. With this flag set, the page is a UMEM chunk taken from
+> the socket's FILL ring, and it is only ever used for empty heads.
+>
+> mlx5e_fill_mxbuf() calls xdp_prepare_buff(..., true), so the program can
+> call bpf_xdp_adjust_meta() into that headroom. When an empty head
+> reaches the sink, xsk_sink_rcv() does this:
+>
+> net/xdp/xsk_sink.c:xsk_sink_rcv() {
+>     ...
+> 	if (!hlen) {
+> 		/* An empty linear part, as mlx5 builds for nonlinear RQs */
+> 		empty =3D niov;
+> 		headroom =3D 0;
+> 	} else {
+>     ...
+> 	if (metalen > headroom)
+> 		goto drop;
+>     ...
+> }
+>
+> Won't every packet on this RQ type whose program wrote metadata (RX hash,
+> timestamp and so on) be dropped and counted in rx_dropped? The same
+> program works on the linear striding RQ and on the cyclic RQ.
+>
+> That also seems to contradict the documentation added in this series,
+> which says bpf_xdp_adjust_meta() and the RX metadata kfuncs work as with
+> pages.
+>
+> Should the commit message and docs describe the nonlinear striding RQ
+> case, both the dropped metadata and the UMEM chunks spent on empty heads?
+> Or should this mode be handled differently?
+
+Will fix, and document. Metadata must work!
+
+>>  		pp_params.pool_size =3D pool_size;
+>>  		pp_params.nid       =3D node;
+>>  		pp_params.dev       =3D rq->pdev;
+>
+> [ ... ]
+>
+>> @@ -3050,6 +3053,14 @@ static int mlx5e_wait_channels_min_rx_wqes(struct=
+ mlx5e_channels *chs)
+>>  		if (test_bit(MLX5E_CHANNEL_STATE_XSK, c->state))
+>>  			continue;
+>>=20=20
+>> +		/* An RQ that an XDP-only provider backs fills from the FILL
+>> +		 * ring of its socket, which stays empty until the socket
+>> +		 * gets its chunks back, so a queue that restarts under a
+>> +		 * slow reader would never meet the bound.
+>> +		 */
+>> +		if (netif_rxq_has_xdp_only_mp(c->netdev, c->ix))
+>> +			continue;
+>> +
+>>  		err |=3D mlx5e_wait_for_min_rx_wqes(&c->rq, timeout);
+>>=20=20
+>>  		/* Don't wait on the XSK RQ, because the newer xdpsock sample
 >
 > [Severity: High]
+> How does this behave on a cyclic RQ? The flag is set for both RQ
+> types, and mlx5e_skb_from_cqe_linear() and
+> mlx5e_skb_from_cqe_nonlinear() now take XDP-only net_iovs. A provider
+> can therefore back an RQ that runs with striding RQ disabled through
+> the priv flag, or on a device that lacks it.
 >
-> With this flag accepted, can a process that has only CAP_NET_RAW in the
-> device's netns take over an RX queue that the administrator's native XDP
-> program runs on?
+> There, rq->post_wqes is mlx5e_post_rx_wqes(), which asks
+> mlx5e_refill_rx_wqes() for the whole missing part of the ring as one
+> wqe_bulk. The FILL ring of the socket may hold fewer chunks than
+> that, which is the normal case at bind time and under a slow reader.
+> mlx5e_alloc_rx_wqes() then stops short, and mlx5e_refill_rx_wqes()
+> jumps to err_free. It frees everything it allocated with
+> mlx5e_free_rx_wqes() and returns 0.
 >
-> xsk_create() only checks:
+> mlx5e_post_rx_wqes() then sees count !=3D wqe_bulk and sets busy
+> regardless of rq->xsk_pool. mlx5e_napi_poll() returns the full budget
+> without calling napi_complete_done(). NAPI keeps rescheduling itself
+> in softirq, posts nothing to the hardware, and never parks to wait
+> for the socket to wake it. If the UMEM has fewer chunks than the
+> ring, the bulk can never be satisfied and the CPU spins
+> indefinitely.
 >
-> 	if (!ns_capable(net->user_ns, CAP_NET_RAW))
-> 		return -EPERM;
->
-> The bind path xsk_bind()->xp_assign_dev()->xsk_sink_bind() checks device
-> features, queue leasing and dev_xdp_drv_prog_held(). It does not check
-> privilege before:
->
-> 	err =3D netif_mp_open_rxq(dev, queue_id, &p, NULL);
->
-> Once the provider is installed, bpf_prog_run_xdp() overrides the
-> program's verdicts for every buffer on that queue:
->
-> 	if (static_branch_unlikely(&xdp_sink_key) && xdp_buff_is_sink(xdp) &&
-> 	    (act =3D=3D XDP_PASS || act =3D=3D XDP_TX))
-> 		act =3D XDP_DROP;
->
-> While dev_has_xdp_only_mp() is true, dev_xdp_attach() also refuses with
-> -EBUSY to detach the native program. If netif_mp_close_rxq() fails at
-> socket close, xsk_sink_unbind() calls netif_close() on the whole device.
->
-> The other memory provider install paths require CAP_NET_ADMIN. io_uring
-> zcrx uses capable(CAP_NET_ADMIN), and the devmem netlink bind is admin
-> only. Classic AF_XDP zero copy under CAP_NET_RAW does not override
-> XDP_PASS or XDP_TX on the queue.
->
-> Should xsk_sink_bind() require CAP_NET_ADMIN in the device's netns before
-> it installs the provider?
+> The striding path posts what it got and only reports busy when
+> rq->xsk_pool is set, so it idles until xsk_sink_wakeup(). Should the
+> cyclic path do the same for a provider-backed RQ, posting partial
+> bulks and not reporting busy? Or should
+> PP_FLAG_ALLOW_XDP_ONLY_NETMEM be limited to the striding RQ until it
+> does?
 
-Ah, yes, like devmem and iouring rz do.
+Yeah, bind on cyclic RQ will fail in the next version.
 
-> [Severity: Low]
+> [Severity: High]
+> Can the new RQ end up with no posted WQEs at all when the channels
+> are switched while a provider is bound? Before this change, the wait
+> here would at least time out and queue rx_timeout_work. Now the RQ is
+> skipped silently.
 >
-> This isn't a bug, but this change makes XDP_UMEM_DRV_LAYOUT (and
-> XDP_RX_CHUNK_FREE) usable from userspace before they have documentation
-> or selftests.
+> On devices with tis_tir_td_order, mlx5e_switch_priv_channels() only
+> deactivates the old channels. mlx5e_close_channels_xsk() then closes
+> just the RQs that have MLX5E_CHANNEL_STATE_XSK set. The regular RQ of
+> old_chs and its page_pool stay open while
+> mlx5e_activate_priv_channels() activates the new channels and
+> mlx5e_trigger_napi_icosq() runs their first refill.
+> mlx5e_safe_switch_params() closes old_chs only after that.
 >
-> Two later patches in the series close this gap:
+> The chunks that the old page_pool has taken from the provider keep it
+> as their owner. When the new RQ refills, sink->released is still
+> empty. A chunk from the FILL ring that the old pool owned is put back
+> into the old pool's ring rather than handed to the new one. The
+> allocation fails. mlx5e_post_rx_mpwqes() posts nothing and returns
+> false, since rq->xsk_pool is NULL, and NAPI completes.
 >
->   "selftests: net: xsk: Test the device's RX buffer layout" adds -D mode
->   to xskxceiver.
+> When mlx5e_close_channels(old_chs) later destroys the old pool, its
+> chunks move to sink->released, but nothing schedules NAPI on the new
+> channel. No RX WQEs are posted and no UMR is in flight on the ICOSQ,
+> so no completion will arrive to wake it. The queue stops receiving.
 >
->   "Documentation: networking: Describe AF_XDP RX in the device's layout"
->   adds a Device Buffer Layout section to af_xdp.rst.
->
-> [ ... ]
+> This is reachable from MTU changes, ethtool ring and channel changes,
+> priv flag changes, and mlx5e_safe_reopen_channels() during recovery.
+> Should the RQ that a provider backs be closed before the new channels
+> are activated, as is already done for the XSK RQ? Or should NAPI on
+> the new channel be kicked once old_chs is closed?
 
-Right.
-
->> diff --git a/net/xdp/xsk_sink.c b/net/xdp/xsk_sink.c
->> index 9f1f7cf822667..2c23fecb59d41 100644
->> --- a/net/xdp/xsk_sink.c
->> +++ b/net/xdp/xsk_sink.c
->
-> [ ... ]
->
->> @@ -501,6 +501,10 @@ int xsk_sink_bind(struct xsk_buff_pool *pool, struc=
-t net_device *dev,
->>  	struct xsk_sink *sink;
->>  	int err;
->>=20=20
->> +	/* Without a wakeup, a queue that used up the FILL ring stays dry */
->> +	if (!(flags & XDP_USE_NEED_WAKEUP))
->> +		return -EINVAL;
->> +
->
-> [Severity: Low]
->
-> The commit message lists the new bind rules: one receiver, -EBUSY,
-> XDP_COPY fails, no fallback. It does not mention this new -EINVAL for a
-> bind without XDP_USE_NEED_WAKEUP.
->
-> It also does not mention that the pool->uses_need_wakeup checks are
-> removed from xsk_sink_bind() and xsk_sink_alloc_netmems(). Those checks
-> were added by "xsk: Lend UMEM chunks to the page pools of a queue".
->
-> The UAPI comment on XDP_UMEM_DRV_LAYOUT in include/uapi/linux/if_xdp.h
-> only lists the registration constraints ("Needs aligned page-sized chunks
-> and no headroom").
->
-> af_xdp.rst documents the EINVAL later in the series, so this only affects
-> the description of this patch. Could the commit message mention that
-> XDP_USE_NEED_WAKEUP is now required, and why the uses_need_wakeup guards
-> are removed?
-
-Yeah, I'll add this.
-
->>  	if (flags & XDP_USE_SG)
->>  		needed |=3D NETDEV_XDP_ACT_RX_SG;
->>  	if (flags & XDP_COPY || !dev->queue_mgmt_ops ||
->
-> [Severity: Medium]
->
-> XDP_COPY is rejected here. What happens with XDP_ZEROCOPY?
->
-> xp_assign_dev() sends every DRV_LAYOUT pool to xsk_sink_bind(). It
-> returns before the force_zc and zero copy setup:
->
-> 	if (pool->umem->flags & XDP_UMEM_DRV_LAYOUT) {
-> 		err =3D xsk_sink_bind(pool, netdev, queue_id, flags);
-> 		...
-> 		return 0;
-> 	}
->
-> So umem->zc stays false, and xsk_bind() then sets xs->zc =3D xs->umem->zc.
->
-> A bind with XDP_ZEROCOPY | XDP_USE_NEED_WAKEUP therefore succeeds. After
-> that, getsockopt(XDP_OPTIONS) does not report XDP_OPTIONS_ZEROCOPY, and
-> TX goes through xsk_generic_xmit() in copy mode.
->
-> Documentation/networking/af_xdp.rst says "the XDP_ZEROCOPY flag will
-> force the socket into zero-copy mode or fail". The section added at the
-> end of the series says these sockets transmit in copy mode. It does not
-> say what XDP_ZEROCOPY means for them.
->
-> Should xsk_sink_bind() also reject XDP_ZEROCOPY? Otherwise, should the
-> documented semantics be updated before this becomes ABI?
-
-Same as patch 6.
-
-> [ ... ]
->
->> @@ -591,6 +594,22 @@ void xsk_sink_unbind(struct xsk_buff_pool *pool)
->>  	xsk_sink_detach(pool);
->>  }
->>=20=20
->> +int xsk_sink_wakeup(struct xsk_sink *sink)
->> +{
->> +	struct netdev_rx_queue *rxq;
->> +	struct napi_struct *napi;
->> +
->> +	rxq =3D READ_ONCE(sink->rxq);
->> +	napi =3D rxq ? READ_ONCE(rxq->napi) : NULL;
->
-> [Severity: Low]
->
-> Does this lockless read of rxq->napi pair with anything on the writer
-> side?
->
-> struct netdev_rx_queue documents napi as "ops protected". Other readers,
-> such as xsk_bind() and netdev-genl, hold the instance lock. This one is
-> reached from recvmsg() and poll() through xsk_wakeup() with only
-> rcu_read_lock() held.
->
-> The writer, netif_queue_set_napi(), does a plain store:
->
-> 	rxq->napi =3D napi;
->
-> Drivers call it during queue restarts, for example in
-> mlx5e_activate_channel() and mlx5e_deactivate_channel(). A poll() that
-> races with an ethtool ring change would then be an unannotated data race
-> that KCSAN reports.
->
-> The lifetime of the napi_struct is also not tied to the sink:
->
->   The synchronize_net() in xsk_sink_stop() covers sink->rxq, not the
->   NAPI.
->
->   __netif_napi_del_locked() does not clear rxq->napi.
->
-> mlx5, bnxt and fbnic all clear rxq->napi and go through synchronize_net()
-> before they free the NAPI. The core does not document or enforce that.
->
-> Would this need WRITE_ONCE() in netif_queue_set_napi() and a documented
-> RCU rule for rxq->napi?
-
-We can do that, and document the rules.
-
->> +	if (!napi)
->> +		return -ENETDOWN;
->> +
->> +	local_bh_disable();
->> +	napi_schedule(napi);
->> +	local_bh_enable();
->> +	return 0;
->> +}
->
-> [ ... ]
->
->> diff --git a/net/xdp/xsk.c b/net/xdp/xsk.c
->> --- a/net/xdp/xsk.c
->> +++ b/net/xdp/xsk.c
->> @@ -1585,6 +1605,29 @@ static void xsk_delete_from_maps(struct xdp_sock =
-*xs)
->>  	}
->>  }
->>=20=20
->> +/* The pool may outlive the socket, see xp_put_pool(). A queue in the
->> + * device's buffer layout stops receiving when its receiving socket goe=
-s,
->> + * so that its program can go right after.
->> + */
->> +static void xsk_sink_release(struct xdp_sock *xs)
->> +{
->> +	struct xsk_buff_pool *pool =3D READ_ONCE(xs->pool);
->> +	struct net_device *dev;
->> +
->> +	if (!pool || !READ_ONCE(pool->sink))
->> +		return;
->> +
->> +	rtnl_lock();
->> +	dev =3D pool->netdev;
->> +	if (dev) {
->> +		netdev_lock_ops(dev);
->> +		if (pool->sink && xsk_sink_sock(pool->sink) =3D=3D xs)
->> +			xsk_sink_unbind(pool);
->> +		netdev_unlock_ops(dev);
->> +	}
->> +	rtnl_unlock();
->> +}
->> +
->>  static int xsk_release(struct socket *sock)
->>  {
->>  	struct sock *sk =3D sock->sk;
->
-> [Severity: Medium]
-> What happens when the socket that creates a DRV_LAYOUT pool has no RX
-> ring?
->
-> xsk_bind() only requires xs->rx or xs->tx. A TX-only socket with a
-> FILL and COMPLETION ring can therefore create its own pool, either
-> with its own UMEM or through XDP_SHARED_UMEM on another queue or
-> device. xp_assign_dev() then hands the pool to xsk_sink_bind() without
-> looking at xs->rx, and netif_mp_open_rxq() installs the provider on
-> the RX queue. xsk_sink_add_sock() only records a socket that has an RX
-> ring, so sink->xs stays NULL.
->
-> While that socket is open, the queue runs with the provider, but its
-> packets reach no socket.
->
-> When it closes, xsk_sink_release() compares xsk_sink_sock(pool->sink)
-> with xs. The sink socket is NULL, so xsk_sink_unbind() is skipped.
->
-> The provider then stays until the pool itself goes:
->
->   The socket is SOCK_RCU_FREE, so its destructor runs after a grace
->   period.
->
->   The destructor drops the pool with xp_put_pool(), which defers
->   xp_release_deferred() to system_freezable_wq.
->
->   Other TX-only sockets that share the pool keep it longer still.
->
-> Until then dev_has_xdp_only_mp() stays true, and dev_xdp_attach()
-> refuses to detach the program with -EBUSY.
->
-> The commit message says the provider goes with the receiving socket so
-> that the program can be detached right after. That does not hold when
-> no receiving socket ever bound.
->
-> Should xsk_sink_bind() refuse a bind without an RX ring? Or should
-> xsk_sink_release() also unbind when sink->xs is NULL and xs is the
-> last socket of the pool? The -EBUSY check in xsk_bind() lets a later
-> RX socket join a sink that has no receiver yet, so it is not clear
-> which of the two is intended.
-
-Good one! TX-only sockets has to keep working.
+Hmm... I think you're right. Let's try that.
