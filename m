@@ -1,61 +1,74 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795636601;
-	b=E1I1t7vlLAwyyFcRdTKG+NLlCZwfBShxilhPsYXgLAsa4fqcvh3/Sq8M0EOFWw3de+No
-	 lL3i+IrSXf0ZKygKAS/Twii9PxmAZXRCxl/QW9INyLpIQxj4Zp3Ko44lSvKowjXo/hWxH
-	 pTjavhv5YLhUA6sDqaOGWpbW/69tONknFMcxoSwcOV/gm1PpEG8MlQBDkH4fApP7RWC3Y
-	 rHwIsl9TI3I/sg7RA9g40MQzbN5MxTUHfnUrw3rwVUFEJ+8dVzCrv26z08VK+ar79AoSo
-	 3swrtL3uT9cgp5suXr3N6hlcvFhoI7b3vOW27Ucqj99Kcoy8Ai+VksUS5fTIO7z9HDA==
+	t=1795636979;
+	b=UiK1tHEUw50KTeVAG8pYv0oHCn2AgjME9SGY+t16ev8WKcMvZb9jh93H+mA5W7Fden1L
+	 6zdjHaHjvKa+Eu55pwgkkGw9SoCx0lXOiDKbfqe5WIOdn3wttZBJHvAxGJdpYmA0YtL4J
+	 8FqRuIVwMcPeL0h1bLjH7mMzwufATfsaIF2+kCIMlIN9TuYH5D9j/CMAMqyrbpgLFkSqy
+	 c8h63QBvu/kj+TCZ6SBSl49vwQTlGIeN03xP+ZPkQkJYkYHHlq7E6E5rEIuMLzrFzvQ7e
+	 AeWdH3nKqkU5gEb/6DjkT1HtQ+hnBLMKkkUvVNIye43yHvolB8WfgIpve1dT6Q96d4g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795636601;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=XOYGr6mGTO5dHIksaFqfCwRcnXV79g+A4iGwHsLu4gE=;
-	b=GSL30cm9LX1p9tNipoHnz8f/fBFNvYJDMGg14JeHwTaJhKSmrTpp3YPKRGoflphEdVnT
-	 cZaHvHTZ1I/BBwhDEwZSrhWVBqrPjcxZZrJxIzmfD8xZlK6Nx3luws/QxWc8emlEc6PUu
-	 MJKF1WyML5l0Y5GFPdIISm25dkeJ9pi7sg9lNrOHlW81cJ9zjM+iXULaXPf/UkVjUrpRj
-	 F7FAov5gFoDW8Pwfld/fgypDWZgUHuxC0ygkkP8bF4lV7+BjIFyx7gs04v5FZqe4ICaAb
-	 YwU3HBK+wbf4pt+0nFTUocyt/ILK1QqBzKPo6gUfirWHB/8I1w15nE56SvXX7sYWlLg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795636979;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:In-Reply-To:References:
+	 Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=NV3qax3E8dMyFntuLziYflS0O+a/VnhBgje6LaQOMxM=;
+	b=LiYUhYiZ1lphylD7tO0dhAuc5SLr/jRXMmMCvvbLjr2XodrOPM3DjyRljxmSQmay/Dga
+	 jvo+v9ObQ9reAb35ljCQCfUNQfM1Zpa1A/O7zloiqD2J9CUXqn0NoZZQAWItYp46FyE2O
+	 3zMZ9jOed3eOvhDsvlH8YBMEagyNJiMNqN+AorWAyLVizA5Th4/96G1L2eNghwBOJT7Pe
+	 pw+KRd5vvTUMqgbYJSHodL2NfUTdaRELeMbRg/D8fEmF0+LrNrI1nArXqAHyvHWzYN9XV
+	 RkvpS+odSVwCerPBbbDRdnSXrpVrb6e4ve5FyjRGzwvebtoX2u+awcm21HsXZCMIlEg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hoDFsHJ1;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="nySpZ5/M";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAC76606A31E;
-	Wed, 25 Nov 2026 19:56:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39FE9606A32C;
+	Wed, 25 Nov 2026 20:02:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hoDFsHJ1
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF6141F000C4;
-	Wed, 25 Nov 2026 19:56:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nySpZ5/M
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 313FD1F000C4;
+	Wed, 25 Nov 2026 20:02:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795636601;
-	bh=XOYGr6mGTO5dHIksaFqfCwRcnXV79g+A4iGwHsLu4gE=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=hoDFsHJ1wM9WuGVG69rLaZWdgmdUdh9OO3HkgamR+qjnJO+P6EtONzVmtAP3Kcz6T
-	 +JIyxWRXz/9zEYhhcYxEs50RUuc+Pt2Ehrpve8PmNE639Kj0hnWuXowiecKZemI2ST
-	 at+tOSK1+P5KIHO6AIgKZfbLzJwGOW0s39Y6b1rLJTUWRbshHRQEeHLSzKA0vQSSRT
-	 XbmkW8yBYmL1nXV5gkf5TCVzM6sKBNobUhiZCkVC6silHV03B2eQvxXlzYxbvvo+W1
-	 0Nwzu5rHFR4YecV+1z0RVL0czW6IW1V44V0cwuWj6Po54R7FBCQWDyN8f4MoTsodjA
-	 qcJKIgTtPgZ2w==
-Subject: Re: [PATCH net] net/smc: validate the peer's CDC cursors against our
- own buffers
-From: netdev-bot+sashiko@kernel.org
-To: piyus@iiitd.ac.in
-Cc: alibuda@linux.alibaba.com, dust.li@linux.alibaba.com,
- sidraya@linux.ibm.com, mjambigi@linux.ibm.com, netdev@vger.kernel.org,
- tonylu@linux.alibaba.com, guwen@linux.alibaba.com, linux-rdma@vger.kernel.org,
- linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org,
- kapil@presceralabs.ai, kuba@kernel.org
-Date: Wed, 25 Nov 2026 19:56:40 +0000
-Message-ID: <179563660031.3135.15892342003977704361@kernel.org>
-In-Reply-To: <20261121193345.2148966-2-piyus@iiitd.ac.in>
-References: <20261121193345.2148966-2-piyus@iiitd.ac.in>
-X-sashiko-severity: High
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	s=k20260515; t=1795636978;
+	bh=NV3qax3E8dMyFntuLziYflS0O+a/VnhBgje6LaQOMxM=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date;
+	b=nySpZ5/MW6+gjcbBaeaWrhgIi8D48C1+VVcEGsZagwxO/eo2C0gGTOJnMz+N1CbDq
+	 YPx4iCKqzaih8Sb847jrdY1J7c7xoYyRdY3irUMMAqnvHWsezNgcRtjXKeSuQrVdWP
+	 LRCE4i5lj8HLFTpn8v5EbVl8NN3MJx4ZDjJud5Mr8j0r1JILUx63+84n4LvAw/pFih
+	 o5GZXoRrUmfAs5KdlmhlgIinO67I2viMQSBSRtcCPykfqG9Z5qGZXrWB8p2mNvl0Nw
+	 UT76ALR9rLcaSWyzJ5J+32No4XEAZC/sUX6+qpx2+A+f8VxAc83WpE2O9KDM8fIetf
+	 rI/kh/72JPM6Q==
+From: =?utf-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>
+To: netdev-bot+sashiko@kernel.org
+Cc: magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
+ davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org,
+ pabeni@redhat.com, andrew+netdev@lunn.ch, ast@kernel.org,
+ daniel@iogearbox.net, hawk@kernel.org, john.fastabend@gmail.com,
+ andrii@kernel.org, eddyz87@gmail.com, memxor@gmail.com,
+ ilias.apalodimas@linaro.org, alexanderduyck@fb.com, saeedm@nvidia.com,
+ tariqt@nvidia.com, mbloch@nvidia.com, leon@kernel.org,
+ michael.chan@broadcom.com, pavan.chebbi@broadcom.com, corbet@lwn.net,
+ shuah@kernel.org, bpf@vger.kernel.org, netdev@vger.kernel.org,
+ stuclar@meta.com, sdf@fomichev.me, horms@kernel.org, martin.lau@linux.dev,
+ almasrymina@google.com, song@kernel.org, yonghong.song@linux.dev,
+ jolsa@kernel.org, emil@etsalapatis.com, ihor.solodrai@linux.dev,
+ rdunlap@infradead.org, kernel-team@meta.com,
+ dimitri.daskalakis1@gmail.com, bobbyeshleman@meta.com,
+ mohsin.bashr@gmail.com, kees@kernel.org, leitao@debian.org,
+ maxime.chevallier@bootlin.com, cuitao@kylinos.cn,
+ vadim.fedorenko@linux.dev, mike.marciniszyn@gmail.com, kuniyu@google.com,
+ jiayuan.chen@linux.dev, mkarsten@uwaterloo.ca, razor@blackwall.org,
+ dw@davidwei.uk, asml.silence@gmail.com, linux-rdma@vger.kernel.org,
+ linux-kselftest@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net-next 06/15] xsk: Lend UMEM chunks to the page pools
+ of a queue
+In-Reply-To: <179561569684.3135.6558736307763434214@kernel.org>
+References: <20261124125654.183091-6-bjorn@kernel.org>
+ <179561569684.3135.6558736307763434214@kernel.org>
+Date: Wed, 25 Nov 2026 21:02:55 +0100
+Message-ID: <87pkvsn0gg.fsf@all.your.base.are.belong.to.us>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -65,289 +78,305 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+netdev-bot+sashiko@kernel.org writes:
+
+> Thank you for your contribution! Sashiko AI review found 6 potential
+> issue(s) to consider.
+>
+> Critical: 0 =C2=B7 High: 2 =C2=B7 Medium: 2 =C2=B7 Low: 2
+>
+> If you believe none of the issues are legitimate, please reply to each
+> issue of Medium severity or higher and explain why the AI is wrong.
+> If any of them are legitimate and you plan to respin, please let patchwork
+> know by including "pw-bot: cr" as a separate line at the end of your reply
+> (one such reply per series is enough).
+>
+> - [High] When a DRV_LAYOUT UMEM is shared across two queues of one netdev
+>   whose per-queue DMA devices differ, xsk_sink_bind() gives the second=E2=
+=80=A6
+> - [High] xsk: xsk_sink_take_fill() recycles old-pool chunks instead of
+>   releasing them
+> - [Medium] The 'chunk lent twice' check only works inside one sink, so a
+>   UMEM shared across queues or devices with XDP_SHARED_UMEM gets around=
+=E2=80=A6
+> - [Medium] xsk: xp_assign_dev() blocks standard zero-copy when
+>   MP_XDP_ONLY is active
+> - [Low] A DRV_LAYOUT bind accepts XDP_ZEROCOPY but delivers neither zero-
+>   copy TX nor a zero-copy report.
+> - [Low] xsk_sink_nl_fill() returns 0 and emits no attribute, so a page
+>   pool backed by an AF_XDP sink cannot be identified in page-pool-=E2=80=
+=A6
+>
+> --
+>
+> xsk: Lend UMEM chunks to the page pools of a queue
+>
+> This adds a sink memory provider. With it, the chunks of a UMEM
+> registered with XDP_UMEM_DRV_LAYOUT back the RX page pools of the bound
+> queue, and the device lays out RX buffers in those chunks as it does in
+> pages. FILL entries lend chunks to the kernel, the UMEM is DMA mapped
+> once at bind, and binding requires a held native XDP program.
+>
+>> diff --git a/net/xdp/xsk_buff_pool.c b/net/xdp/xsk_buff_pool.c
+>> index 5ec092f7cb6f7..7ece7d9e39376 100644
+>> --- a/net/xdp/xsk_buff_pool.c
+>> +++ b/net/xdp/xsk_buff_pool.c
+>
+> [ ... ]
+>
+>> @@ -211,6 +215,13 @@ int xp_assign_dev(struct xsk_buff_pool *pool,
+>>  	 */
+>>  	hlist_add_head(&pool->dev_node, &netdev->xsk_pools);
+>>=20=20
+>> +	if (pool->umem->flags & XDP_UMEM_DRV_LAYOUT) {
+>> +		err =3D xsk_sink_bind(pool, netdev, queue_id, flags);
+>> +		if (err)
+>> +			goto err_unbind;
+>> +		return 0;
+>> +	}
+>
+> [Severity: Medium]
+> After xsk_sink_bind() installs the provider on one queue,
+> dev_get_min_mp_channel_count() returns non-zero for the whole device.
+> It checks mp_params.mp_priv on every RX queue and does not skip
+> MP_XDP_ONLY providers. Further down, xp_assign_dev() still uses it to
+> gate classic zero copy:
+>
+> 	if (dev_get_min_mp_channel_count(netdev)) {
+> 		err =3D -EBUSY;
+> 		goto err_unreg_pool;
+> 	}
+>
+> So once a DRV_LAYOUT socket is bound to one queue, a regular AF_XDP
+> socket on another queue of the same device fails with -EBUSY if it
+> asked for XDP_ZEROCOPY. Without that flag it silently falls back to
+> copy mode.
+>
+> Earlier in this series, dev_mp_blocks_xdp() replaced this helper in
+> dev_xdp_install(), netif_xdp_propagate() and the ethtool rings path,
+> because an MP_XDP_ONLY provider does not stop native XDP. Was this
+> caller left out on purpose? If not, would dev_mp_blocks_xdp() be the
+> right test here? A sink on the queue being bound is already caught by
+> the earlier xsk_get_pool_from_qid() check, so the device-wide test
+> only needs to catch providers that block XDP.
+
+Not on purpose, will fix!
+
+> [Severity: Low]
+> This branch returns success without setting pool->umem->zc, so xsk_bind()
+> ends up with xs->zc =3D false. Should a bind that passes XDP_ZEROCOPY be
+> accepted here?
+>
+> xsk_sink_bind() rejects XDP_COPY but lets XDP_ZEROCOPY through:
+>
+> 	if (flags & XDP_COPY || !dev->queue_mgmt_ops ||
+>
+> TX on such a socket still goes through xsk_generic_xmit(). Also,
+> getsockopt(XDP_OPTIONS) sets XDP_OPTIONS_ZEROCOPY only when xs->zc is
+> true, so it reports copy mode even though RX is zero copy through the
+> page pool.
+>
+> So a bind that asks for forced zero copy succeeds, TX runs in copy mode,
+> and XDP_OPTIONS says the socket is not zero copy. The documentation patch
+> later in the series says these sockets transmit in copy mode. It does not
+> say that XDP_ZEROCOPY is accepted or what XDP_OPTIONS reports. Both become
+> uAPI once registration accepts the flag. Could this be made consistent,
+> either by rejecting XDP_ZEROCOPY or by reporting the RX mode?
+
+It should be rejected. Will fix.
+
+> [ ... ]
+>
+>> diff --git a/net/xdp/xsk_sink.c b/net/xdp/xsk_sink.c
+>> new file mode 100644
+>> index 0000000000000..b78116f25e712
+>> --- /dev/null
+>> +++ b/net/xdp/xsk_sink.c
+>
+> [ ... ]
+>
+>> +static u32 xsk_sink_take_fill(struct xsk_sink *sink, struct page_pool *=
+pp)
+>> +{
+>
+> [ ... ]
+>
+>> +	for (i =3D 0; i < entries; i++) {
+>> +		addr =3D ring->desc[(cons + i) & mask];
+>> +		niov =3D &niovs[array_index_nospec((u32)(addr >> PAGE_SHIFT),
+>> +						 nr)];
+>> +		/* A chunk lent twice would be in two places at once */
+>> +		if (unlikely(addr >=3D (u64)nr << PAGE_SHIFT ||
+>> +			     READ_ONCE(niov->mp_state) =3D=3D XSK_SINK_LENT)) {
+>> +			fq->invalid_descs++;
+>> +			continue;
+>> +		}
+>
+> [Severity: High]
+> Once the next patch hands chunks back to userspace while they stay
+> attached to the page pool that received into them, can this branch
+> starve a new page pool on a queue restart?
+>
+> netdev_rx_queue_reconfig() calls ndo_queue_mem_alloc() and, for most
+> drivers, ndo_queue_start() before ndo_queue_mem_free() destroys the
+> old page pool. When the new pool pp first refills, every chunk that
+> userspace posts back on FILL still has the old pool as owner, and
+> sink->released is still empty.
+>
+> For each such chunk, xsk_sink_take_fill() marks it XSK_SINK_LENT,
+> consumes the FILL entry and calls page_pool_put_unrefed_netmem() on
+> the old pool. For a net_iov, __page_pool_page_can_be_recycled() is
+> always true, so the chunk lands in owner->alloc.cache or owner->ring.
+> page_pool_return_netmem(), and with it xsk_sink_release_netmem(),
+> runs only when that ring is full. The chunk never reaches
+> sink->released.
+>
+> So xsk_sink_take_fill() can consume up to PP_ALLOC_CACHE_SIZE FILL
+> entries and still return 0. xsk_sink_take_released() then finds
+> nothing, and xsk_sink_alloc_netmems() returns 0 and bumps
+> queue_empty_descs even though FILL was not empty. The driver's ring
+> fill in ndo_queue_mem_alloc() or ndo_queue_start() can then fail, or
+> the new queue comes up without buffers.
+>
+> After page_pool_destroy() runs on the old pool, the chunks still held
+> by userspace keep it inflight. Its ring is then scrubbed only from
+> page_pool_release_retry(), once every DEFER_TIME. Until that happens,
+> each refill of the new pool keeps pushing FILL chunks into the ring
+> of a pool that is going away.
+>
+> Should a chunk whose owner is not pp be released to the sink, or moved
+> to pp directly, rather than recycled into the old pool? Once a new
+> pool exists for the queue, does the old pool ever need these chunks
+> back?
+
+Hmm, I'll try to address this.
+
+> [Severity: Medium]
+> Does this check still hold when the UMEM is shared with XDP_SHARED_UMEM
+> across queues or devices?
+>
+> xp_assign_dev_shared() now sends DRV_LAYOUT UMEMs into xp_assign_dev()
+> with flags =3D 0. A socket that shares the UMEM on another queue or device
+> gets its own xsk_buff_pool and its own FILL ring. Then
+> xsk_sink_bind()->xsk_sink_create() allocates a separate niov array over
+> the same umem->chunks:
+>
+> 	sink->area.niovs =3D kvcalloc(nr, sizeof(*niov), GFP_KERNEL_ACCOUNT);
+>
+> The mp_state checked here belongs only to this sink, and it is checked
+> under this sink's lock. Suppose userspace posts the same chunk address on
+> both FILL rings. Each sink sees XSK_SINK_USER and lends the chunk. Two RX
+> queues then DMA into the same UMEM page, and both sockets later get that
+> chunk back as free.
+>
+> The commit message says:
+>
+>   A chunk that is lent twice, or lies outside the UMEM, counts as an
+>   invalid FILL entry, so userspace cannot make the device use a chunk
+>   twice.
+>
+> Is this guarantee meant to cover the shared UMEM case? As far as I can
+> tell, the end of the series refuses a second receiving socket only on the
+> same pool. The cross-queue branch of xsk_bind() still creates a second,
+> independent sink.
+
+Partly. The check is per queue, but the kernel does not need more! Each
+sink has its own net_iovs, so a chunk on two FILL rings leaves the
+kernel state on both sinks consistent. Two devices then write the same
+chunk, which only correupts the application's OWN data. The kernel keeps
+nothing in the UMEM and takes no bounds from it.
+
+Let's try to fix the commit message and af_xdp.rst to make it clearer.
+
+> [ ... ]
+>
+>> +static int xsk_sink_nl_fill(void *mp_priv, struct sk_buff *rsp,
+>> +			    struct netdev_rx_queue *rxq)
+>> +{
+>> +	return 0;
+>> +}
+>
+> [Severity: Low]
+> Should this emit an attribute that identifies the provider?
+> page_pool_nl_fill() calls:
+>
+> 	if (pool->mp_ops && pool->mp_ops->nl_fill(pool->mp_priv, rsp, NULL))
+>
+> That call is the only way a page-pool dump says which memory provider
+> backs a pool. In devmem, mp_dmabuf_devmem_nl_fill() emits
+> NETDEV_A_PAGE_POOL_DMABUF and NETDEV_A_QUEUE_DMABUF, and io_uring zcrx
+> emits its IO_URING nest.
+>
+> With this stub, a page pool backed by UMEM chunks looks like an ordinary
+> pool in page-pool-get dumps. Queue dumps still show NETDEV_A_QUEUE_XSK
+> through rxq->pool, but the page-pool side has nothing. The function is
+> unchanged at the end of the series.
+
+Maybe add an empty xsk nest?
+
+> [ ... ]
+>
+>> +int xsk_sink_bind(struct xsk_buff_pool *pool, struct net_device *dev,
+>> +		  u16 queue_id, u16 flags)
+>> +{
+>
+> [ ... ]
+>
+>> +	/* The device of the queue's page pools, which may differ per queue */
+>> +	dma_dev =3D netdev_queue_get_dma_dev(dev, queue_id, NETDEV_QUEUE_TYPE_=
+RX);
+>> +	if (!dma_dev)
+>> +		return -EOPNOTSUPP;
+>> +
+>> +	/* Without a program, drivers would build skbs from the buffers */
+>> +	if (!dev_xdp_drv_prog_held(dev))
+>> +		return -ENOENT;
+>> +
+>> +	err =3D xp_dma_map(pool, dma_dev, XSK_SINK_DMA_ATTR, pool->umem->pgs,
+>> +			 pool->umem->npgs);
+>
+> [Severity: High]
+> Can the second queue end up with IOVAs that were mapped for a different
+> struct device here?
+>
+> Take a DRV_LAYOUT UMEM shared across two queues of one netdev.
+> xp_dma_map() first calls xp_find_dma_map(), which matches only on the
+> netdev:
+>
+> 	if (dma_map->netdev =3D=3D pool->netdev)
+> 		return dma_map;
+>
+> xp_init_dma_info() then copies that map's dma_pages into the pool and
+> sets pool->dev =3D dma_map->dev, which is the first queue's device. Nothi=
+ng
+> compares dma_dev with dma_map->dev.
+>
+> xsk_sink_create() builds every net_iov DMA address from
+> pool->dma_pages[i], but stores sink->dev =3D dma_dev, the second queue's
+> device. So this check in xsk_sink_init() passes:
+>
+> 	if (pp->p.dev !=3D sink->dev || pp->p.offset + pp->p.max_len > PAGE_SIZE)
+>
+> The second queue's page pool then posts IOVAs from the first device's
+> mapping to the second device. xsk_sink_alloc_netmems() also calls
+> dma_sync_single_range_for_device(pp->p.dev, ...) on addresses that
+> pp->p.dev never mapped.
+>
+> mlx5e_queue_get_dma_dev() returns ch->pdev, which differs per channel on
+> multi-PF and socket-direct NICs. The mlx5 patch later in this series lets
+> mlx5 RQs use this provider.
+>
+> If the two functions sit in separate IOMMU domains, won't the second
+> device DMA to IOVAs that are unmapped in its domain, or mapped to
+> something else there?
+>
+> The devmem bind path already rejects queues whose DMA devices differ, for
+> this reason. Should xsk_sink_bind() do the same?
+
+Probably. I'll try to address it.
+
+pw-bot: cr
 
-Thank you for your contribution! Sashiko AI review found 6 potential
-issue(s) to consider.
-
-Critical: 0 · High: 2 · Medium: 1 · Low: 3
-
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [High] The fix is incomplete: it checks only the `count` half of each
-  peer cursor and never looks at `wrap`.
-- [High] The new validation runs only on the SMC-R receive path,
-  `smc_cdc_rx_handler()`.
-- [Medium] This finding is speculative.
-- [Low] `smcr_cdc_cursors_invalid()` uses `>` and so accepts `prod.count
-  == rmb_desc->len` and `cons.count == peer_rmbe_size`.
-- [Low] The commit fixes a remotely triggerable out-of-bounds read that
-  leaks kernel memory to userspace (KASAN-confirmed per the commit…
-- [Low] The trailer chain is inconsistent with submitting-patches.rst.
-
---
-
-net/smc: validate the peer's CDC cursors against our own buffers
-
-This patch adds smcr_cdc_cursors_invalid(). It drops an SMC-R CDC message
-in smc_cdc_rx_handler() when the peer's producer cursor count is larger
-than rmb_desc->len, or when the consumer cursor count is larger than
-peer_rmbe_size. The goal is to stop the out-of-bounds reads that a forged
-cursor causes in the urgent-data and recvmsg() paths.
-
-> Signed-off-by: Kapil Vaswani <kapil@presceralabs.ai>
-> Signed-off-by: Piyus Kedia <piyus@iiitd.ac.in>
-
-[Severity: Low]
-The From: line is Piyus Kedia, but the first Signed-off-by is Kapil
-Vaswani, and there is no Co-developed-by tag.
-
-Should a Co-developed-by: Kapil Vaswani tag go with that sign-off, as
-submitting-patches.rst describes? Or should Kapil Vaswani be the author?
-
-[Severity: Low]
-This fixes an out-of-bounds read that a remote peer can trigger and that
-reaches userspace. Would a Fixes: tag and Cc: stable be appropriate?
-
-According to git blame, the diff_prod to bytes_to_rcv accounting in
-smc_cdc_msg_recv_action() came from:
-
-5f08318f617b ("smc: connection data control (CDC)")
-
-It was later switched to rmb_desc->len by:
-
-69cb7dc0218b ("net/smc: add common buffer size in send and receive buffer descriptors")
-
-The urgent byte index in smc_cdc_handle_urg_data_arrival() came from:
-
-de8474eb9d50 ("net/smc: urgent data support")
-
-> diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
-> index 32d6d03df3214..03ff10fef7da6 100644
-> --- a/net/smc/smc_cdc.c
-> +++ b/net/smc/smc_cdc.c
-> @@ -466,6 +466,26 @@ void smcd_cdc_rx_init(struct smc_connection *conn)
-
-[ ... ]
-
-> +static bool smcr_cdc_cursors_invalid(struct smc_connection *conn,
-> +				     struct smc_cdc_msg *cdc)
-> +{
-> +	if (!conn->rmb_desc)
-> +		return true;
-
-[Severity: Medium]
-This one may be speculative. Can conn->rmb_desc change between this check
-and the places that use it?
-
-The check runs in smc_cdc_rx_handler() after conns_lock has been dropped
-and before smc_cdc_msg_recv() takes bh_lock_sock().
-smc_cdc_msg_recv_action(), smc_cdc_handle_urg_data_arrival() and
-smc_rx_recvmsg() each read conn->rmb_desc again, so the check and the use
-do not work on the same snapshot:
-
-	diff_prod = smc_curs_diff(conn->rmb_desc->len, &prod_old,
-				  &conn->local_rx_ctrl.prod);
-
-The handshake can retry with another device or SMC version on the same
-connection. smc_listen_find_device() falls through from ISM to
-smc_find_rdma_v2_device_serv() and then to
-smc_find_rdma_v1_device_serv(). Each one calls smc_conn_create() and
-smc_buf_create(), and calls smc_conn_abort() on failure.
-
-On that path, smc_conn_free() unregisters the connection but never clears
-conn->rmb_desc:
-
-	if (!list_empty(&lgr->list))
-		smc_buf_unuse(conn, lgr); /* allow buffer reuse */
-	smc_lgr_unregister_conn(conn);
-
-smc_conn_create() then registers the connection again, and
-__smc_buf_create() installs the new buffer with a plain store:
-
-	conn->rmb_desc = buf_desc;
-
-Suppose an RX handler on the old SMC-R link has already found the
-connection. Could it pass this check against the old, larger
-rmb_desc->len, and then run smc_cdc_msg_recv_action() against the new,
-smaller buffer?
-
-Between smc_conn_create() and smc_buf_create(), the connection can be
-found while rmb_desc still holds the old pointer, which is not NULL. That
-buffer may already have been freed by the is_reg_err branch of
-smcr_buf_unuse(). The !conn->rmb_desc test would not catch this. Would the
-check itself then read freed memory?
-
-bh_lock_sock() does not exclude the process-context writer, which holds
-lock_sock(). The stale rmb_desc lifetime predates this patch; only the
-split between check and use is new.
-
-Would it be safer to do the check inside smc_cdc_msg_recv_action(), using
-the same READ_ONCE() snapshot of rmb_desc as the arithmetic?
-
-> +	if (ntohl(cdc->prod.count) > (u32)conn->rmb_desc->len)
-> +		return true;
-
-[Severity: High]
-This only checks the count field. Can a peer still push
-conn->bytes_to_rcv past rmb_desc->len by using the wrap field?
-
-smc_cdc_cursor_to_host() only rejects a cursor that moves backwards, so it
-accepts any increase in wrap:
-
-net/smc/smc_cdc.h:smc_cdc_cursor_to_host() {
-    ...
-	if ((old.wrap > temp.wrap) && temp.wrap)
-		return;
-	if ((old.wrap == temp.wrap) &&
-	    (old.count > temp.count))
-		return;
-	smc_curs_copy(local, &temp, conn);
-}
-
-smc_curs_diff() does not clamp the result when the wraps differ:
-
-net/smc/smc_cdc.h:smc_curs_diff() {
-	if (old->wrap != new->wrap)
-		return max_t(int, 0,
-			     ((size - old->count) + new->count));
-    ...
-}
-
-Its header comment says the "difference cannot exceed size". Nothing on
-this path makes sure of that.
-
-For example, start from prod {wrap=0, count=0}. Three CDC messages with
-increasing seqno carry prod {1,0}, {2,0} and {3,0}. All three pass
-smcr_cdc_cursors_invalid(), and each one adds rmb_desc->len in
-smc_cdc_msg_recv_action():
-
-	atomic_add(diff_prod, &conn->bytes_to_rcv);
-	/* guarantee 0 <= bytes_to_rcv <= rmb_desc->len */
-
-bytes_to_rcv then reaches 3 * len. A single message carrying
-{old.wrap + 1, count = len} adds 2 * len - old.count.
-
-In smc_rx_recvmsg(), only the first chunk is clamped, to
-rmb_desc->len - cons.count. The second chunk is read from offset 0 with no
-bound:
-
-	chunk_len = copylen - chunk_len; /* remainder */
-	chunk_len_sum += chunk_len;
-	chunk_off = 0; /* modulo offset in recv ring buffer */
-
-So memcpy_to_msg() can still copy bytes from past the end of the RMB to
-userspace. If cons.count > 0, a bytes_to_rcv of 2 * len is already enough.
-
-The same trick on the consumer cursor would push peer_rmbe_space above
-peer_rmbe_size through the diff_cons addition.
-
-Given this, is this part of the commit message accurate?
-
-  "Validate both cursors where the message is accepted, next to the
-  existing length and sequence-number checks, so that one test covers
-  every consumer."
-
-Would it work better to bound the computed difference instead of the raw
-count? One option is to require the new prod cursor to be no more than
-rmb_desc->len ahead of the local consumer cursor. Another is to limit the
-resulting bytes_to_rcv and peer_rmbe_space. smc_curs_diff_large() already
-clamps in a similar way.
-
-> +	if (ntohl(cdc->cons.count) > conn->peer_rmbe_size)
-> +		return true;
-
-[Severity: Low]
-The commit message says:
-
-  "A cursor equal to the buffer length is legitimate (a full ring), so
-  only a larger one is rejected."
-
-Is that true for Linux peers? smc_curs_add() always normalises the
-cursor:
-
-net/smc/smc_cdc.h:smc_curs_add() {
-	curs->count += value;
-	if (curs->count >= size) {
-		curs->wrap++;
-		curs->count -= size;
-	}
-}
-
-So a correct Linux peer never sends count == size. A full ring appears as
-the same count with a wrap one higher. Should both comparisons here use >=
-instead of >?
-
-Accepting count == len does not cause a separate out-of-bounds access,
-because {w, len} behaves like {w + 1, 0} in smc_curs_diff(). Combined with
-a wrap increase, though, it lets one message add the maximum of
-2 * len - old.count.
-
-It isn't clear whether any non-Linux SMC implementation sends
-count == size.
-
-> +	return false;
-> +}
-> +
->  static void smc_cdc_rx_handler(struct ib_wc *wc, void *buf)
->  {
->  	struct smc_link *link = (struct smc_link *)wc->qp->qp_context;
-> @@ -499,6 +519,9 @@ static void smc_cdc_rx_handler(struct ib_wc *wc, void *buf)
->  			   conn->local_rx_ctrl.seqno))
->  		/* received seqno is old */
->  		goto out;
-> +	if (smcr_cdc_cursors_invalid(conn, cdc))
-> +		/* peer cursor outside the buffer it describes */
-> +		goto out;
-
-[Severity: High]
-This check is only added on the SMC-R receive path. Is the SMC-D path
-still open to the same out-of-bounds reads?
-
-smcd_cdc_rx_tsklet() takes a snapshot of the cursors the peer wrote into
-the DMB and goes straight into the shared receive code:
-
-net/smc/smc_cdc.c:smcd_cdc_rx_tsklet() {
-    ...
-	data_cdc = (struct smcd_cdc_msg *)conn->rmb_desc->cpu_addr;
-	smcd_curs_copy(&cdc.prod, &data_cdc->prod, conn);
-	smcd_curs_copy(&cdc.cons, &data_cdc->cons, conn);
-	smc = container_of(conn, struct smc_sock, conn);
-	smc_cdc_msg_recv(smc, (struct smc_cdc_msg *)&cdc);
-}
-
-The call chain is then
-smc_cdc_msg_recv()->smc_cdc_msg_recv_action()->smc_cdc_msg_to_host(),
-which ends up in smcd_cdc_msg_to_host(). That function copies the raw wrap
-and count. It has no range check, and it lacks even the backwards check
-that smc_cdc_cursor_to_host() does:
-
-	temp.wrap = peer->prod.wrap;
-	temp.count = peer->prod.count;
-	smc_curs_copy(&local->prod, &temp, conn);
-
->From there, the consumers listed in the commit message are shared with
-SMC-R:
-
-- the urgent byte read in smc_cdc_handle_urg_data_arrival():
-
-	conn->urg_rx_byte = *(base + conn->urg_curs.count - 1);
-
-- the bytes_to_rcv accounting that feeds the second chunk in
-  smc_rx_recvmsg();
-
-- with dmb_nocopy, the diff_tx addition to sndbuf_space.
-
-On s390, the ISM peer is another LPAR or guest. On loopback-ism it is the
-local kernel.
-
-Could the check move into smc_cdc_msg_recv_action(), after the host
-conversion, so that both paths are covered? For SMC-D it would need to
-work on the tasklet's local snapshot, since the peer can rewrite the DMB
-at any time.
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261121193345.2148966-2-piyus%40iiitd.ac.in
