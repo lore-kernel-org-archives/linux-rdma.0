@@ -1,83 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.171
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.215.171
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795629631;
-	b=RXDpOLYiuFXz/hmj2+K78HEyjMILAKySMLv2xwIxeZX9ZtkyotdWnoG2iE73tFlP748g
-	 xDOidrtgLv3EdoBPVGTLyjmzuX/MWI/FqAJIRP9IxobIaSSpcTf38gXpDTwF3LY00CrHE
-	 LaIu6qlq0cEco+sLyEo1EoU7DVpijOJ2wWTzxgSs7fHzJyj00xvkF89064YXX5SEJ05rA
-	 TEGO2sG7Ev8AurrIzcpUxKA6IVNNTdh0UwHQVIVkMrpBs2xyTCeMopZkSs3D6ZOOt0KXZ
-	 ETUIRVaBAeila3witJeGV4T7JZa63IHUGvZz9PEqrNWv/SV38SvFKc7V8xWUKh9hfPQ==
+	t=1795629633;
+	b=hZcu8EJUlmkJYrwrkvsMMy0wTnRUkWdQAtAWpiONgWD+W71uURhI4Np7KDA+RQ4GJqAN
+	 kpXWfxyh+b37u8cENTUR6LtwTjmWLJ1RQw0mwb9oSNJpK1PBmH8To/NBtpC2n+qD2ZMsN
+	 gWRSq6bykXq9DU4L/bICVPZibbWzWBo9nSZadaY5JD5aWd6nh6I1kJh0hibCVhU9la3sI
+	 lMVoToSpx3vySeJ+nmOsxOSPuVxjC/p89jWkVOM9TLSuRk6R2TsRFBgI0iqgp4rb1BV/m
+	 7+yCLCQKLCrXWfjBmlK0kKlqnpllftULMFFUU6idbwEVql8CPCqOgwNK1jFadqzX00g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795629631;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795629633;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
 	 MIME-Version:Content-Transfer-Encoding;
-	bh=ybq08NfCGGRDLgIcrDYKd/XJOpQjXuujh7BORjeX0cc=;
-	b=R8cbnPBJhNFk/0LRdLakbD9wjVjX4lS2YEu7/bSWkcTZPQSu5+TphLu2Hq4Np/kjy3XG
-	 XYzAZJwVoeg6k4ZZa/shUr/3ctqW29uwBx5VMyy8sutD4hz7avZiW50u4T2sv6FF604ZC
-	 6rnH/f4OyuqxPf1GngrTwzgmsnPwGftDBBV2Euswo42ABRDceWg+fWK6g26P4kFfWXtNU
-	 O9FgvBqwx5A9FVA5ulfYjxVEcxhwuQDRAAxe/HmQ5F/kqsz/S/2k1NHebGdV2Sl1iextH
-	 VKGUA4mTl7M9JIfAkpL5LCxojJ4Qs2IhySCPahu4cL0Sy4r3eVrj8bidQuUY2qgKWFA==
+	bh=04zPH8pKbZgStm3VZ5cSIvhJbVCbZaL1fubS+I8F7Z8=;
+	b=TuJprR4iKSovPhqGYyDUFEWPGUWBus83k9CscuFQdW60N/gVRbxzZeVewxpEZbMAgSak
+	 Q40tXk2XFxO3dmGNi3i7HK/arSL+yfocLL8xVEDfFGpaVxG3mio5sLF0KYrWLOnRGt+TV
+	 8ALCpO3kOcyk8fI/IyCIEp1bAzh4Fxout8S+Sqr1k6DJRIurs7GsFvG6Ng+7rG8pPm0p3
+	 vqymhLlWeyQogqOblGMYoWiBKKDvJM7YPVcDYqPkRnEje7UJcK+x7MVLiE4wq6ipeY7fm
+	 oUpwFnRbBJhk6fM/e8UMbMbH4feRZ59SzNelP07et3nmFKlelzwOhFCCcPBcHOGdaUg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=dama.to;
 	spf=none smtp.mailfrom=dama.to;
-	dkim=pass header.d=dama-to.20260707.gappssmtp.com header.i=@dama-to.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=gq5yHQ9V;
-	arc=none smtp.remote-ip=209.85.214.171
-Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
+	dkim=pass header.d=dama-to.20260707.gappssmtp.com header.i=@dama-to.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=hi9CsyCU;
+	arc=none smtp.remote-ip=209.85.215.171
+Received: from mail-pg1-f171.google.com (mail-pg1-f171.google.com [209.85.215.171])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 799B6606A323
-	for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 18:00:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 799B6606A323
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2623606A684
+	for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 18:00:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A2623606A684
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dama.to
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=dama.to
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=dama-to.20260707.gappssmtp.com header.i=@dama-to.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=gq5yHQ9V
-Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-2f04244c3d0so49803415ad.3
-        for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 10:00:30 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=dama-to.20260707.gappssmtp.com header.i=@dama-to.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=hi9CsyCU
+Received: by mail-pg1-f171.google.com with SMTP id 41be03b00d2f7-cde827b7b95so1832266a12.0
+        for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 10:00:32 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=dama-to.20260707.gappssmtp.com; s=20260707; t=1795629630; x=1796234430; darn=vger.kernel.org;
+        d=dama-to.20260707.gappssmtp.com; s=20260707; t=1795629632; x=1796234432; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=ybq08NfCGGRDLgIcrDYKd/XJOpQjXuujh7BORjeX0cc=;
-        b=gq5yHQ9VLcwYkwjr1vkTpEDyAlBQ4Sd3FCsFvzewZ+ebZZFnyePB8yPDif9oy3gME6
-         ITa1WdI2UIk9dbCgxH0ruYuIf+nC9giMFawzjryr/7c5qDhxZkurJ8NGYfMNDMmGEoYV
-         rl0E5COxhONIBIibPCroq2M1Lwdk0qQRPl4Mf1uYxEoeOcRwVZxyGODpxHmrtQdsKYnW
-         FB1LazRC470fCGwZNUtXmV8rfPWeHW6sDHJ3Bg5K/bW7CtLSJZGTyHN8wM7D9rrJb1u8
-         MMHKXygbp0655+fkMJPo42dk4PB8a99j0KRoM6au7Gcd8oDgG9NGAWijdbYFPS2N1KlH
-         4xQw==
+        bh=04zPH8pKbZgStm3VZ5cSIvhJbVCbZaL1fubS+I8F7Z8=;
+        b=hi9CsyCUf/b/0VqLamSne6wspz7YbpnBm8Y1GiHDoxoAKD+Q+n68UBacSdCO/w40Lz
+         QKAJPb7pNp57A4kkRCkKzFkyZ6DYXM06miTxqwk5MlAeNooOB9ZmH1D6lva6j3+XYsCI
+         F1kWKTf/iOFRDShDnOINWpnaxlJh2ReLcgI7EqxyuR4W4cr/vzpIjibqysMZ04yz9Yw2
+         SAPY0jcsa8SR0bJKRoNuvrUr/dSscDoCupnTwbuDO30RnopBYjgsmpSFdhYtsAEF7Y86
+         lP8pxE/M9llm6kp9OOuA/TCba8nvEBxOZSSHQJSrmzxOGFhXSdC3tLsJGjW6nk5yS/KD
+         NKSQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795629630; x=1796234430;
+        d=1e100.net; s=20260707; t=1795629632; x=1796234432;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=ybq08NfCGGRDLgIcrDYKd/XJOpQjXuujh7BORjeX0cc=;
-        b=Fg3uUid1VJKMqIN8ajcxgFkgMEI9ZregMVdQsnTL728Vw8YjJS0QaL/npAkH0BA+Or
-         8EGAqPy63WRriASx7DWIC6J0G0/Kq5+AmXwyQnD4y2SNJKWhgacNRDYWjC1GYIw8sq7L
-         fsAoyXi3jsSfm+riQyL6b4bItjAhwT77qrw2fOk7Tvg1N2Mvj5XWY6gIEWBGwjloREi3
-         tVKlyF0KBg7JJFJtzk4u4bXV5uBON+FvOj7I+BDIT6tWIEtclMp01cHMY/5MrEcy9YSX
-         rW7N7ZRMsTKk30RP+Sdj34jJZWsyNlv9u3kK1XHkh80GcDBjI8KzGOUNIBLl7e3FZV6u
-         XTzw==
-X-Forwarded-Encrypted: i=1; AL+hErEu7tWwYbWLt8bPIW3phfLVsg9qsqNxOzuupi7vUAoG2DISTpYsz4VWysQYCV2t9l/tFLJC23EBJqvw@vger.kernel.org
-X-Gm-Message-State: APuU4Z9RulM6G++iazVt9D9fsdt+xZM3/wHWwF++fdbyXMDj5ag5VFbU
-	JMFOItITNUPPfLRLWMBkGdV69N7zWIIIOWmNcCsB/R8eX7dqmHorf0w0vgWXNguSEUY=
-X-Gm-Gg: AZFdTZeWy4sLM7UhOr2v3gUXk5NQZMJ0SWxfRG17FP49DVaS/5vaMGB3RVnV82ZIsuc
-	M9oqrH5HH474XZdKES9D0OW5p85E+cAJp6s6fW/51QYjGj9fyimyA0nK8wsJc8dae1JUNJNoOfg
-	f1KQ1A+z6ABO7koN4BERSZ7g5sd/5Eimx340mLWsTWPwGJDVAujF+7sJTP4x7Uz84Tsph6Ubzl5
-	7KS9gfXt+hRitHKhBhOW8sJMIQTJcFyJS/HmfBovwYG1mF9w46lQr/xmJUbGyvOb4z0NuRZeSlS
-	9gPYL7WKG5KSav1MYdsonQYxX7riKh7WvVsXxP5Xy7Kw4XgRHekMdyZMpc4ktgcIBs8Fzp4E9K/
-	OPjB1V+rcwkaD13T2PPxIa/cq/8wPetTMfpE/ZdbR8Ffrtr+2C+MC1W3WhPR/rBFbeb177G0nZF
-	SedT0bvW9g5qSAxLLOm06CNOSZG9wAZUp/+u8gsfVM35IbWeLmQF92MKcMi5jVd6W44JPsF9+ry
-	QTwX9UuJ2P8vJ/JlmETnfKEbM8cfEeDJ41tmV3gY/9rsW4wRLaijTGuuZLSQOLC0vTI+TM3bxGl
-	2jMQuqzNo5ci3Lihs6im+RCQXQ4YH0toH+6Ufo8nxQs=
-X-Received: by 2002:a17:902:da83:b0:2ef:e5b9:5841 with SMTP id d9443c01a7336-2f050c1d8cemr175723835ad.35.1795629629861;
-        Wed, 25 Nov 2026 10:00:29 -0800 (PST)
-Received: from localhost ([2a03:2880:2ff:57::])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2f03f1215e2sm91189495ad.63.2026.11.25.10.00.28
+        bh=04zPH8pKbZgStm3VZ5cSIvhJbVCbZaL1fubS+I8F7Z8=;
+        b=otbEgu0CGAmA8nX34hW4uHyxjx4M1T7NMIhrtdPxNHssqC59PWoKGljt97FcGDve1/
+         yr1O9vYlLmjmwE/bn+lokWRNU9yaCegHh4TKBqnHxzoQ7AyQIo4B1i/Hdt2OBeal6jtF
+         cbLGqM9MX/Ui0I/UltzhXDnnYx6+R586K6YM3pa55Bc5M3UmY7Y3Gt/0rgDhT8dWMGIO
+         Dsi8AR/aG0aGRUForrSpblDuMU/HcfBErMr5MipMN8d6JecMHrGT39Gixi1srJYMY9zK
+         RrotEtUm2NnY3hPn55OUPEPYBKqPIi8GEvQn+WF4Px8mI9hj94q8Svh4Dkpn+IwXnCbK
+         B7xQ==
+X-Forwarded-Encrypted: i=1; AL+hErG6T6zvTmwbu5s8qCsEvFnPe2DkG9zbcl1N+cjHxVZasbAfMhGnoluRDp+uScjH8raBI5UarQwmJ2gk@vger.kernel.org
+X-Gm-Message-State: APuU4Z8+8PFxjlAylj6ILNDUVgkqBxvtFelaVilMcCmuBlnJc/kHZ9yb
+	RnT6cRVfkZsLEBAOPJdDiDU7h6NOIcB1cHFqQo7IBvWtRrVRjvIdTgTBQnf9GoLtiHw=
+X-Gm-Gg: AZFdTZcHVMxH7ahyH9t342ZVEit+hFjwDLAKmW92lKJGcfA5FigFIjIXdoulv6P4cFs
+	s2T+YHn3NolcMUfr+vKlBQJIL1lm3k4MnQ0YcLDIrsogyG3tRBelrzx+sVeBBAqYlU7yc/rdoeu
+	GedLBOY/vw/MSxIyofk2r81ZUFluJAsaWy9RT1ahKuSmL4gBQSFOckjKm0DtYPbgI43fMgLFtZz
+	4lNYFMAeRp3eRPtX1Gw+uvT7Y4/wD3AwQ2JG1F7pJdlvkIJxtU3+ngfE3qWYK8CxPmwq3uDClzE
+	zKT6y8C8C2qES4jaPfzUUSSgzKiS5oMs4CFMYl9qaDGQRxfM++WtjKqLvYDI7Kg4IACh0G2r7R+
+	ou8yCZudJQ3yDDvEAf+oV2+pWCkdNKdCihrHdLApnyKD5cIfEUozZoyu1Y1MNjFmLrZZM0XTYFj
+	+U9rgMGnGD8cI7WWshxr6tUHEVxsfPHPP+vXBd74ZCer7nm+y9d8SD4QGu+euAXLmL13BNlUoqB
+	qHVlLKYnN8piTGTDe2VzRq0F+EGnsdZ8ZZuJmSDQJ3R7pi3/8cpU9Oyi8obBl4qTsBUonFsj2yi
+	CPQxMufMrjYSDQ2YIX2aD6P/keCJr9HwO9e0I80S/7w=
+X-Received: by 2002:a17:90b:3b86:b0:3b3:fe22:2739 with SMTP id 98e67ed59e1d1-3b41c9c34b5mr17223800a91.54.1795629631705;
+        Wed, 25 Nov 2026 10:00:31 -0800 (PST)
+Received: from localhost ([2a03:2880:2ff:54::])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b44b792474sm13401830a91.3.2026.11.25.10.00.30
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 25 Nov 2026 10:00:29 -0800 (PST)
+        Wed, 25 Nov 2026 10:00:31 -0800 (PST)
 From: Joe Damato <joe@dama.to>
 To: netdev@vger.kernel.org,
 	Tariq Toukan <tariqt@nvidia.com>,
@@ -93,9 +93,9 @@ Cc: edumazet@google.com,
 	mbloch@nvidia.com,
 	Joe Damato <joe@dama.to>,
 	linux-rdma@vger.kernel.org
-Subject: [PATCH net-next v3 2/5] net/mlx4: factor csum flags into mlx4_en_csum_flags()
-Date: Wed, 25 Nov 2026 10:00:15 -0800
-Message-ID: <20261125180021.1804204-3-joe@dama.to>
+Subject: [PATCH net-next v3 3/5] net/mlx4: factor HW loopback DMAC into mlx4_en_set_loopback_dmac()
+Date: Wed, 25 Nov 2026 10:00:16 -0800
+Message-ID: <20261125180021.1804204-4-joe@dama.to>
 X-Mailer: git-send-email 2.53.1
 In-Reply-To: <20261125180021.1804204-1-joe@dama.to>
 References: <20261125180021.1804204-1-joe@dama.to>
@@ -110,68 +110,63 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Extract the code which converts skb csum fields to WQE fields into a
-helper. This helper will be used by a follow-up series implementing
-software USO, to reduce code duplication.
+Extract the code which copies the destination MAC into the WQE for
+eSwitch loopback into a helper. This helper will be used by a follow-up
+series implementing software USO, so USO packets between functions on
+the same port are looped back too.
 
 Signed-off-by: Joe Damato <joe@dama.to>
 Reviewed-by: Daniel Machon <daniel.machon@microchip.com>
 ---
- drivers/net/ethernet/mellanox/mlx4/en_tx.c | 22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/en_tx.c | 28 ++++++++++++++--------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx4/en_tx.c b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
-index 29eda78b9977..1fb265a30a30 100644
+index 1fb265a30a30..40dc4f6a7329 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/en_tx.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
-@@ -860,6 +860,16 @@ static bool mlx4_en_build_dma_wqe(struct mlx4_en_priv *priv,
- 	return false;
+@@ -870,6 +870,23 @@ static __be32 mlx4_en_csum_flags(const struct sk_buff *skb)
+ 	return cpu_to_be32(MLX4_WQE_CTRL_IP_CSUM | MLX4_WQE_CTRL_TCP_UDP_CSUM);
  }
  
-+static __be32 mlx4_en_csum_flags(const struct sk_buff *skb)
++static void mlx4_en_set_loopback_dmac(const struct mlx4_en_priv *priv,
++				      struct mlx4_en_tx_desc *tx_desc,
++				      const struct sk_buff *skb)
 +{
-+	if (unlikely(skb->ip_summed != CHECKSUM_PARTIAL))
-+		return 0;
-+	if (skb->encapsulation)
-+		return cpu_to_be32(MLX4_WQE_CTRL_IP_CSUM);
++	struct ethhdr *ethh;
 +
-+	return cpu_to_be32(MLX4_WQE_CTRL_IP_CSUM | MLX4_WQE_CTRL_TCP_UDP_CSUM);
++	if (!(priv->flags & MLX4_EN_FLAG_ENABLE_HW_LOOPBACK))
++		return;
++
++	/* Copy dst mac address to wqe. This allows loopback in eSwitch,
++	 * so that VFs and PF can communicate with each other
++	 */
++	ethh = (struct ethhdr *)skb->data;
++	tx_desc->ctrl.srcrb_flags16[0] = get_unaligned((__be16 *)ethh->h_dest);
++	tx_desc->ctrl.imm = get_unaligned((__be32 *)(ethh->h_dest + 2));
 +}
 +
  static bool mlx4_en_prep_vlan(const struct sk_buff *skb,
  			      union mlx4_wqe_qpn_vlan *qpn_vlan)
  {
-@@ -890,12 +900,12 @@ netdev_tx_t mlx4_en_xmit(struct sk_buff *skb, struct net_device *dev)
- 	struct mlx4_wqe_data_seg *data;
- 	struct mlx4_en_tx_info *tx_info;
- 	u32 __maybe_unused ring_cons;
-+	__be32 op_own, csum_flags;
- 	int tx_ind;
- 	int nr_txbb;
- 	int desc_size;
- 	int real_size;
- 	u32 index, bf_index;
--	__be32 op_own;
- 	int lso_header_size;
- 	void *fragptr = NULL;
- 	bool bounce = false;
-@@ -990,12 +1000,10 @@ netdev_tx_t mlx4_en_xmit(struct sk_buff *skb, struct net_device *dev)
- 	/* Prepare ctrl segment apart opcode+ownership, which depends on
- 	 * whether LSO is used */
- 	tx_desc->ctrl.srcrb_flags = priv->ctrl_flags;
--	if (likely(skb->ip_summed == CHECKSUM_PARTIAL)) {
--		if (!skb->encapsulation)
--			tx_desc->ctrl.srcrb_flags |= cpu_to_be32(MLX4_WQE_CTRL_IP_CSUM |
--								 MLX4_WQE_CTRL_TCP_UDP_CSUM);
--		else
--			tx_desc->ctrl.srcrb_flags |= cpu_to_be32(MLX4_WQE_CTRL_IP_CSUM);
-+
-+	csum_flags = mlx4_en_csum_flags(skb);
-+	if (csum_flags) {
-+		tx_desc->ctrl.srcrb_flags |= csum_flags;
+@@ -1007,16 +1024,7 @@ netdev_tx_t mlx4_en_xmit(struct sk_buff *skb, struct net_device *dev)
  		ring->tx_csum++;
  	}
  
+-	if (priv->flags & MLX4_EN_FLAG_ENABLE_HW_LOOPBACK) {
+-		struct ethhdr *ethh;
+-
+-		/* Copy dst mac address to wqe. This allows loopback in eSwitch,
+-		 * so that VFs and PF can communicate with each other
+-		 */
+-		ethh = (struct ethhdr *)skb->data;
+-		tx_desc->ctrl.srcrb_flags16[0] = get_unaligned((__be16 *)ethh->h_dest);
+-		tx_desc->ctrl.imm = get_unaligned((__be32 *)(ethh->h_dest + 2));
+-	}
++	mlx4_en_set_loopback_dmac(priv, tx_desc, skb);
+ 
+ 	/* Handle LSO (TSO) packets */
+ 	if (lso_header_size) {
 -- 
 2.53.1-Meta
 
