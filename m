@@ -1,74 +1,87 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795635962;
-	b=srOzr2v7oXAr1gUNZiShTcHXn3b6qguJm5mo0RSBhOHwWRWuGHWNY48dY43eVXaR2/pj
-	 Q2V5dBtm++VC6yegtbtXq/ZsAI9eQ0PzZyHeXPile1sTRuZBIU/xxGavqOZgsm/ueDhvT
-	 xpPnbBD0V1gp+Dk/Gh3w9YTeD04h35oCP1jiBlMPsrrBhT7SkPlAvJhDu2MY62D4VZHd/
-	 bqC3dkphqcPS4QlbESZqO9W8sAqR5fGUPXCl8j1mSZSKT+upvrT0NLDlGt21aP7t8n802
-	 vvwrIWi5sWaYbCLWWsyJFGiYVfoet2yNSGjUCfmJFL0Hc3knhtceouVGDtuiKZRXHGQ==
+	t=1795636220;
+	b=ddA1givSzULJOiXAfBAxYBhQYeH3BkD5VFFKeHPTPW7imh4dQ4kan9M4jA7cwc9gC/4F
+	 V6Zen9ZMN4EKBI1Fi+LLh14JWSgDAk7jWOJv9fdmoenhflh1lpwn0azRsLzomJSwf4gip
+	 Gd8CsCr6IzfQW5fLWn7ynRHCqhGSOdAOIaCttZLNKGoeVdzKx9C5jRZyMFSFJbilOEOdo
+	 onI6OWdKeoXLMIwkLIpzueSwOJdRxJkZvj7O23qGA+EJZwi8vBg1QzbcledM1dl858gGj
+	 Zyh+cJ7S7wjcDMgxkXvWJEjt8JozAr8IKwmlDjJdnLAf/EwaJHyXsxGnKTB4/FF4sKg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795635962;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795636220;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:In-Reply-To:References:
 	 Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding;
-	bh=vYrHubQhIzK/ork0V0gkVDMcpei3zJK7hFk5RZ+fCWw=;
-	b=NeCMDq18cvJgjgouYyH4mOiiQYkW+r0uFcsToZQ3KDMO0Hw5Mb8K8kY3Lov+n6xR69dS
-	 CHP8tlZE9P3riUfz1poZiZ3IviGLtOsjvWiqCNYSSsE+B+2xnsM1FqqlUut6UaumCMPJb
-	 6u6TW/QjeNKssXKqJL8VxoHSXceRrOIkvOD4XEW8ENRPWXySXicXCh0ulTF/Cw2EuGN2M
-	 tojelY7MAXsm1BpflTRTRUI3Gyzv3N6sArr4NzglQdFnc1VFtki4c08eXLMCpI4NbeTvG
-	 YJ2+EkDiRyoSf5PzUwGtyWZCn43wLwGm9EvwRf2FAdNTRHGVrGWL+uHnows4HtXwQ5g==
+	bh=QM3eA59kfAmko2h6w0lhdnOjVX+zvtHEYYmZknhRfY0=;
+	b=19QDIlDhbWMmslR5Vmc0M6/hqcP5UCD0DYevvNecq3vPt5AEyQwwcLs3ThxKWJBtROKi
+	 XM04ClavnTWplmKIFQuqVFBcFooG4CrAGTuKvLMzh3NCjmEXZdDwh4Z8wNLXnLcbateJr
+	 jgeBRPylWZi0112VrcScaKEAOYG+2Xp68Bi2vDL0uGwvrd7WBkgF/BERSHF/n96rcq2b8
+	 YIp9uYdfgJbPoAwigF+1O4GUbUtAm1kmUurvVOYmPPnjDLrHodoOAFxuVN9SCHpA6tt1Q
+	 EfglyAvlE8HdWk3le8/n78Mf1uFLq2DmTc48V6qTISzjNZznyrFvYMGOSP7LEFtLNrQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=A5VgDqTH;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iGNhLSiM;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6321C606A323;
-	Wed, 25 Nov 2026 19:46:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C74C9606A329;
+	Wed, 25 Nov 2026 19:50:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=A5VgDqTH
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 550CF1F000E6;
-	Wed, 25 Nov 2026 19:46:01 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iGNhLSiM
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 652A41F000C6;
+	Wed, 25 Nov 2026 19:50:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795635961;
-	bh=vYrHubQhIzK/ork0V0gkVDMcpei3zJK7hFk5RZ+fCWw=;
+	s=k20260515; t=1795636220;
+	bh=QM3eA59kfAmko2h6w0lhdnOjVX+zvtHEYYmZknhRfY0=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date;
-	b=A5VgDqTHBQBIcGWxj8ZlWowBpHDzCW7y8I+5bmgx99dahG052n5ez8Y5oLeMxv6UZ
-	 O4dpKL90vapusvkXypytmxThWxcZhZTdSlLHt6XGohKfhpLwp5dvAlHpqpGQLRhNeP
-	 pxCDCnt8cgAFaaqEA6id/VtfF06vyWsEcGRMVwxNKCBGw9BNRRx0/e3UhupBTPQd7l
-	 4SwWcBMhIAgW0lYLeJ3KJYLpN36e+Ar123CE7QVrLR5V2IjzeFDW8eH5nQJGuw7usk
-	 YjU/fJSONeysT1XOzyHxC1R68KgDf3mj+O73DAoo30030IBzmQatD4mlX5dU9AoOrT
-	 stbbXFnrwwpng==
+	b=iGNhLSiMgKF6+m0ChpnHIHvmkrkC3j2St+TRFQkyy+QkmYLtkwfmC5F30JYh3MPLf
+	 gyQF++J+IODjjeayKXffQghl4jIvlcZC21Sg3GNFn5cAT7PTdcxkuJBi2Vc/fqHDUY
+	 KFAlFD5Y5apAiMdynX2JJfi4mF8qAx6k37eY1+8K6IazzpmrtmTOKQIYw7uJMDQyWs
+	 R0UVQEq5tIQqLrMBGjzsZXdIAr2D9UURcNDAD4fDLiuJzPJiuKsPhQVqswyFFdbjA1
+	 Xs0TveRe4BmdYAvuuwb8WLBR5Q2m5ujSl4kBn1ty2VLp7l8eXk9yIur+hbWqy33HdT
+	 TLlbO8HV4M2Aw==
 From: =?utf-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>
-To: netdev-bot+sashiko@kernel.org
-Cc: magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
- davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org,
- pabeni@redhat.com, andrew+netdev@lunn.ch, ast@kernel.org,
- daniel@iogearbox.net, hawk@kernel.org, john.fastabend@gmail.com,
- andrii@kernel.org, eddyz87@gmail.com, memxor@gmail.com,
- ilias.apalodimas@linaro.org, alexanderduyck@fb.com, saeedm@nvidia.com,
- tariqt@nvidia.com, mbloch@nvidia.com, leon@kernel.org,
- michael.chan@broadcom.com, pavan.chebbi@broadcom.com, corbet@lwn.net,
- shuah@kernel.org, bpf@vger.kernel.org, netdev@vger.kernel.org,
- stuclar@meta.com, sdf@fomichev.me, horms@kernel.org, martin.lau@linux.dev,
- almasrymina@google.com, song@kernel.org, yonghong.song@linux.dev,
- jolsa@kernel.org, emil@etsalapatis.com, ihor.solodrai@linux.dev,
- rdunlap@infradead.org, kernel-team@meta.com,
- dimitri.daskalakis1@gmail.com, bobbyeshleman@meta.com,
- mohsin.bashr@gmail.com, kees@kernel.org, leitao@debian.org,
- maxime.chevallier@bootlin.com, cuitao@kylinos.cn,
- vadim.fedorenko@linux.dev, mike.marciniszyn@gmail.com, kuniyu@google.com,
- jiayuan.chen@linux.dev, mkarsten@uwaterloo.ca, razor@blackwall.org,
- dw@davidwei.uk, asml.silence@gmail.com, linux-rdma@vger.kernel.org,
+To: Maciej Fijalkowski <maciej.fijalkowski@intel.com>
+Cc: Magnus Karlsson <magnus.karlsson@intel.com>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
+ <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Andrew Lunn
+ <andrew+netdev@lunn.ch>, Alexei Starovoitov <ast@kernel.org>, Daniel
+ Borkmann <daniel@iogearbox.net>, Jesper Dangaard Brouer <hawk@kernel.org>,
+ John
+ Fastabend <john.fastabend@gmail.com>, Andrii Nakryiko <andrii@kernel.org>,
+ Eduard Zingerman <eddyz87@gmail.com>, Kumar Kartikeya Dwivedi
+ <memxor@gmail.com>, Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+ Alexander Duyck <alexanderduyck@fb.com>, Saeed Mahameed
+ <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>, Mark Bloch
+ <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Michael Chan
+ <michael.chan@broadcom.com>, Pavan Chebbi <pavan.chebbi@broadcom.com>,
+ Jonathan Corbet <corbet@lwn.net>, Shuah Khan <shuah@kernel.org>,
+ bpf@vger.kernel.org, netdev@vger.kernel.org, Stuart Clark
+ <stuclar@meta.com>, Stanislav Fomichev <sdf@fomichev.me>, Simon Horman
+ <horms@kernel.org>, Martin KaFai Lau <martin.lau@linux.dev>, Mina Almasry
+ <almasrymina@google.com>, Song Liu <song@kernel.org>, Yonghong Song
+ <yonghong.song@linux.dev>, Jiri Olsa <jolsa@kernel.org>, Emil Tsalapatis
+ <emil@etsalapatis.com>, Ihor Solodrai <ihor.solodrai@linux.dev>, Randy
+ Dunlap <rdunlap@infradead.org>, kernel-team@meta.com, Dimitri Daskalakis
+ <dimitri.daskalakis1@gmail.com>, Bobby Eshleman <bobbyeshleman@meta.com>,
+ Mohsin Bashir <mohsin.bashr@gmail.com>, Kees Cook <kees@kernel.org>, Breno
+ Leitao <leitao@debian.org>, Maxime Chevallier
+ <maxime.chevallier@bootlin.com>, Tao Cui <cuitao@kylinos.cn>, Vadim
+ Fedorenko <vadim.fedorenko@linux.dev>, "Mike Marciniszyn (Meta)"
+ <mike.marciniszyn@gmail.com>, Kuniyuki Iwashima <kuniyu@google.com>,
+ Jiayuan
+ Chen <jiayuan.chen@linux.dev>, Martin Karsten <mkarsten@uwaterloo.ca>,
+ Nikolay Aleksandrov <razor@blackwall.org>, David Wei <dw@davidwei.uk>,
+ Pavel
+ Begunkov <asml.silence@gmail.com>, linux-rdma@vger.kernel.org,
  linux-kselftest@vger.kernel.org, linux-doc@vger.kernel.org,
  linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next 04/15] page_pool: Let memory providers take
- back net_iovs
-In-Reply-To: <179561568855.3135.15810206390695616800@kernel.org>
-References: <20261124125654.183091-4-bjorn@kernel.org>
- <179561568855.3135.15810206390695616800@kernel.org>
-Date: Wed, 25 Nov 2026 20:45:59 +0100
-Message-ID: <87bj7coft4.fsf@all.your.base.are.belong.to.us>
+Subject: Re: [PATCH net-next 05/15] xdp: Run programs on buffers that must
+ not hold kernel structures
+In-Reply-To: <awb9GzkXa9Z9LxuP@boxer>
+References: <20261124112707.118678-1-bjorn@kernel.org>
+ <20261124125654.183091-5-bjorn@kernel.org> <awb9GzkXa9Z9LxuP@boxer>
+Date: Wed, 25 Nov 2026 20:50:16 +0100
+Message-ID: <877bi0oflz.fsf@all.your.base.are.belong.to.us>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -81,80 +94,74 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-netdev-bot+sashiko@kernel.org writes:
+Maciej Fijalkowski <maciej.fijalkowski@intel.com> writes:
 
-> Thank you for your contribution! Sashiko AI review found more severe
-> issue(s) in other patches of this series. This mail is only an FYI, in ca=
-se
-> you want to address the nit picks below when you respin.
+> On Tue, Nov 24, 2026 at 01:56:40PM +0100, Bj=C3=B6rn T=C3=B6pel wrote:
+>> Currently, the core refuses native XDP programs next to a memory
+>> provider. An AF_XDP sink needs XDP to steer its packets and to use the
+>> RX metadata kfuncs. Its buffers are UMEM chunks that XDP may read
+>> through the kernel mapping, but that userspace may write at any time,
+>> also while the kernel reads them. If drivers build XDP buffers on them
+>> as on pages, the core puts kernel structures into them, such as the
+>> shared info of a multi-buffer packet, the xdp_frame of XDP_TX and
+>> redirects, and the skb of XDP_PASS.
+>>=20
+>> Let programs run on sink buffers as on pages, and keep every kernel
+>> structure out of them.
+>>=20
+>> A sink offers an XDP view of its UMEM, so drivers build the buffer as
+>> for a page, while netmem_address() and skb_frag_address() still give
+>> NULL for sink net_iovs. Programs and helpers read and write the packet
+>> in place, fragments included. xdp_prepare_buff() tells a sink head by
+>> its address, with one range check under a static key, and marks the
+>> buffer before the driver adds fragments. Other buffers pay nothing
+>> while no sink is bound.
+>>=20
+>> A marked buffer keeps its shared info in the queue, with
+>> XDP_FLAGS_SINFO_EXT, set up when the driver registers a sink page pool
+>> as its memory model.
+>>=20
+>> A sink buffer may only go to the AF_XDP socket of its queue. The core
+>> turns XDP_TX and XDP_PASS into XDP_DROP, so drivers need no checks of
+>> their own. XDP_ABORTED and invalid verdicts reach the driver, which
+>> traces them and drops the packet. Frame conversion and skb
+>> construction refuse sink buffers too, so devmap and cpumap drop them,
+>> and sink net_iovs never become skb frags, so every net_iov frag stays
+>> unreadable.
+>>=20
+>> As userspace may change the bytes meanwhile, the kernel takes bounds
+>> only from its own fields, and only the program and its helpers read
+>> the bytes. A helper that reads bytes twice must check a copy.
+>>=20
+>> Signed-off-by: Bj=C3=B6rn T=C3=B6pel <bjorn@kernel.org>
+>> ---
+>>  include/net/netmem.h          |  5 ++-
+>>  include/net/page_pool/types.h |  7 ++--
+>>  include/net/xdp.h             | 60 +++++++++++++++++++++++++++++++++--
+>>  net/core/xdp.c                | 46 +++++++++++++++++++++++++--
+>>  4 files changed, 108 insertions(+), 10 deletions(-)
 >
-> Low priority / nit picks for your consideration:
+>>  	xdp_frame->data =3D xdp->data;
+>> @@ -763,6 +812,11 @@ static __always_inline u32 bpf_prog_run_xdp(const s=
+truct bpf_prog *prog,
+>>  	 */
+>>  	u32 act =3D __bpf_prog_run(prog, xdp, BPF_DISPATCHER_FUNC(xdp));
+>>=20=20
+>> +	/* Sink buffers go to the AF_XDP socket of their queue, or nowhere */
+>> +	if (static_branch_unlikely(&xdp_sink_key) && xdp_buff_is_sink(xdp) &&
+>> +	    (act =3D=3D XDP_PASS || act =3D=3D XDP_TX))
+>> +		act =3D XDP_DROP;
 >
-> - [Low] page_pool_hand_off() in net/core/page_pool.c (lines 846-851)
->   branches on netmem_is_net_iov() and casts the netmem down to a net_iov=
-=E2=80=A6
-> - [Low] The kernel-doc for memory_provider_ops.hand_off in
->   include/net/page_pool/memory_provider.h (lines 39-44) says a false=E2=
-=80=A6
+> I think it would be better to follow SEC(xdp.frags) approach and from
+> verifier POV disallow progs doing anything different than XDP_REDIRECT...?
 >
-> --
->
-> page_pool: Let memory providers take back net_iovs
->
-> This commit adds a hand_off() memory provider op and an mp_hand_off flag
-> in struct net_iov. When a net_iov is marked, its last put goes to the
-> provider instead of the page pool cache, and it stays charged to the
-> pool. The hook is wired into __page_pool_put_page(),
-> page_pool_drain_frag() and page_pool_free_frag(). The commit also adds a
-> provider-owned mp_state byte.
->
->> diff --git a/include/net/page_pool/memory_provider.h b/include/net/page_=
-pool/memory_provider.h
->> index d52c7a450c68e..bfc2841582225 100644
->> --- a/include/net/page_pool/memory_provider.h
->> +++ b/include/net/page_pool/memory_provider.h
->> @@ -36,6 +36,12 @@ enum mp_flags {
->>  struct memory_provider_ops {
->>  	netmem_ref (*alloc_netmems)(struct page_pool *pool, gfp_t gfp);
->>  	bool (*release_netmem)(struct page_pool *pool, netmem_ref netmem);
->> +	/* Takes a free net_iov marked mp_hand_off that stays charged to the
->> +	 * pool; the provider puts it back later. Returns false to have the
->> +	 * pool recycle it instead. Called where the pool puts netmem, outside
->> +	 * hard IRQ context. Needed by providers that mark net_iovs.
->> +	 */
->
-> [Severity: Low]
->
-> Is "Returns false to have the pool recycle it instead" true for every
-> caller?
+> Here you affect whole system.
 
-You're right, at destroy a false return releases the net_iov, which is
-what a dying pool should do. I'll fix the comment.
+This will go away once PASS/TX is supported in the follow up.
 
-> [Severity: Low]
->
-> This isn't a bug, but does this fit the netmem abstraction rules?
-> page_pool_hand_off() branches on netmem_is_net_iov() and downcasts with
-> netmem_to_net_iov() inside page_pool core. Before this patch, page_pool.c
-> had no netmem_to_net_iov() call.
->
-> The netmem_ref kernel-doc in include/net/netmem.h says:
->
->   Downcasting netmem_ref via netmem_to_page() or netmem_to_net_iov() in
->   callers is not allowed unless a code path strictly requires a specific
->   backing type ... In such cases, add a netmem helper here that handles
->   both page and net_iov cases
->
-> Documentation/networking/netmem.rst also says core code should avoid
-> per-netmem-type branching. It also says new code must not assume that
-> using a memory provider implies net_iov memory.
->
-> The mp_hand_off flag lives in struct net_iov, and the hand_off() contract
-> only covers net_iovs. So a provider that hands out page-backed netmems
-> can't use this hook.
->
-> Would a netmem.h helper fit better here? For example, something like
-> netmem_mp_hand_off() that returns false for pages and is called from
-> page_pool core.
+> Also, I don't follow currently why xdp pass is not allowed, management
+> traffic gonna be dead on this queue.
 
-Yeah, let's use a helper.
+This is to keep the size of the series down, to make it reviewable.
+XDP_PASS and XDP_TX will be added in a follow up. You can have a look at
+the patches on the github branch I linked in the cover.
