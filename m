@@ -1,46 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795615708;
-	b=Ql9J6nvb2/xqD9FkDZ7HU/IWJThz7KNXaPNlDKyxUjGRk7Rd6BhMOVodvMYv+UnowwPT
-	 4LOxhmCPJKed9oKlQY8Pd9JYkRLzsUK3So2GNCRI0LoY8L7fMu+NSr1ZDTL7m0sLXJY9w
-	 7PXohWwKnnT2PUozb3ucSyMaZR0wTi9F8ULbNW13boxqyO2KY+inXVIVfUZKpS+kDss9C
-	 6mpK/gjlrdaect9eI0HwI+dSMC4WmxjeAfi0tXWFFhgZAAMisyGel+7DfzCBAmljWogAu
-	 C3Z/imRYGOjX7VpgiCOrtxbSAD8ifdtqIYX9U+YVZmfA/6O9S5Z3oSLTxWuLe1st5lg==
+	t=1795615721;
+	b=kF2k2q/zGQstw5/DlUvhz6q+xnCZBCMMl8zy2Gr2JxtgGI9WoAY8cbH8dRzsW6qJhfRm
+	 TZKrjPMwWLVjvcfDGr+pV5gXG1WiwWx32+0ww6dqGmYYOYaPacuRgT9PjlNXowuUxCHOp
+	 SPhl+oVdhQN/R4wIliFpBTL8NG+p1UeQLN9UipC9LmXhOlzmpclW6HYmXGWYi2YK+wyTf
+	 1eNT3b2j1/EnSIy8pT12H/gbzx7vkn7KiyVze0PdQpFli4Qfw/Pf4EKfjoyLT0oUaCWcK
+	 Rh7WotR0hlMmFD0K3ia9QWCs6qREPpKRoRqMF6LVZPoHAYB3WHBftg8BW7dLFJTvhjA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795615708;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795615721;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=VOxw1fDPc2KUOtXD8ctqx98CYltJSNe0uDtdCmLWsow=;
-	b=BbqNLYTwFoHnLR+5Nfq8nscGNvgGBorF+j9foXy+4wLBLJE2T3l9/ztEamzQmxKrsC2I
-	 qqAeJhs4k2gjn15vpNATLlwh29QtNmwMeFa7OK5gawAM/6nzHON7TZccuGdcjbGN/+JEG
-	 rzyEmS4VVhK/e9i3VHI8iIvsiKJUe62N3dbToDTKhDbm7dGLbXqmgzkCWqUOCQgNn2XgC
-	 JbAvMQSGNiRlD8QB8vg/gSEh5d11Lc4xkqmC9y9qc2i0/6D8h7dECNyBXdgX8ZVCW4Glm
-	 p5wMlqAh1yX7Q4NbyBH9lJ5ODHL/0LwVCoKtWXwSq4WveXCnmxmfGZApEpShqiy7ybw==
+	bh=5RDXUf24OP+IGwqTymupqSLNWGk88EXXkm2+JJNuDt8=;
+	b=XSfcQnBrk92VWTh/drvYdK8ctZ+pHdsL/qu7jdYARlER8exazmi9xBa/5+73J+uO3yQc
+	 21PcXsL5TmhSRDF2sbbN/ejhGiLZozexVc0AGqvkr/LO48ZvCOugJ+TSVm7/FiM4HXEXI
+	 vAWgobcj4CzFUVXk7FE9QT5f67F7QF9n0/q2W4dg19pWSpL3ZZNqTDcdNf0qJnP5gbuli
+	 g4bOeexneONVEj9tpG5GWY/8/UXx9kC7qTHlVS5CnCsTOPmk31Lba1r4WwXUg4ufXdVK2
+	 g06B97K4YEEfi3Oe6a8ATjVMhB6KnY3IyR57rLno2cYYntz4H5vfqUE6Nf2/nyDXhkA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oYesgiLO;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JpJKKCrk;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8127606A69C;
-	Wed, 25 Nov 2026 14:08:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21DE7606A684;
+	Wed, 25 Nov 2026 14:08:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oYesgiLO
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C1DB1F000C6;
-	Wed, 25 Nov 2026 14:08:25 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JpJKKCrk
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D76C1F000F0;
+	Wed, 25 Nov 2026 14:08:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795615708;
-	bh=VOxw1fDPc2KUOtXD8ctqx98CYltJSNe0uDtdCmLWsow=;
+	s=k20260515; t=1795615720;
+	bh=5RDXUf24OP+IGwqTymupqSLNWGk88EXXkm2+JJNuDt8=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=oYesgiLOgwnbQAI6JWR6H366w4MngC1MAv9b+imrigZe/egTIcocXV9ZxvM4SeFOv
-	 aaqe/k0VsOKPYfvlpYvkz2tGHFcDp6ibkZitGUmmTaF8AxtG6ww8DACXii7C3op1Ie
-	 RP+VtamtBLdnIb8cEgyTHQGMzulh4KZxMDRNV3qShrcVZ2IxGC63roUcIN1ybOBdkW
-	 BUlGf322U9vspQUw2OJg7gKEMLrlEKMNJiSBnbeEmmm8hauX1591s25PFuExNQKDsk
-	 uMRBEfGJb96icFjG+NQzu64MHV9KvNFjXIuu9++EImCcd6+zk+AsfJ0owSTRnAfZ0f
-	 7aKawQ83SJuKQ==
-Subject: Re: [PATCH net-next 08/15] xsk: Receive in the device's buffer layout
+	b=JpJKKCrkhZosCdM9rNokWxoj4qCRx9vQ1DivHA+hwr94W2FA3McPo7YnrhjBmLNz6
+	 xuPH/Rwa3nnOywmavxZlcn3IdOSq54DvHgCZVjcaQ4JoLeye/SWyPKx0Vhdwd0xjXn
+	 +8OVLAXzYtai7o9KwaPGH8v4ezvJNoLksWcyseO4DwAyIUmJui33pyzSiDizuyt2Pu
+	 +z3U8D1RE0oh/8h03583yPFSW5X0Y9PK1a40LgmYYe57TjELqqPNyGkOqNbATnJdnw
+	 WKbQq0omR2DhSpDTyr3vURBYD1QQp+ixen39kGUQ5Tj2+Ek2RDZVslNE7ka3Cj2u05
+	 SKZ9ZGtX3Hk5w==
+Subject: Re: [PATCH net-next 14/15] selftests: net: xsk: Test the device's RX
+ buffer layout
 From: netdev-bot+sashiko@kernel.org
 To: bjorn@kernel.org
 Cc: magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
@@ -62,11 +63,11 @@ Cc: magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
  dw@davidwei.uk, asml.silence@gmail.com, linux-rdma@vger.kernel.org,
  linux-kselftest@vger.kernel.org, linux-doc@vger.kernel.org,
  linux-kernel@vger.kernel.org
-Date: Wed, 25 Nov 2026 14:08:24 +0000
-Message-ID: <179561570478.3135.6883565218778603025@kernel.org>
-In-Reply-To: <20261124125654.183091-8-bjorn@kernel.org>
-References: <20261124125654.183091-8-bjorn@kernel.org>
-X-sashiko-severity: High
+Date: Wed, 25 Nov 2026 14:08:37 +0000
+Message-ID: <179561571702.3135.12462188305615084284@kernel.org>
+In-Reply-To: <20261124125654.183091-14-bjorn@kernel.org>
+References: <20261124125654.183091-14-bjorn@kernel.org>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -79,10 +80,10 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 6 potential
+Thank you for your contribution! Sashiko AI review found 10 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 · Medium: 2 · Low: 3
+Critical: 0 · High: 0 · Medium: 6 · Low: 4
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -90,289 +91,480 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] Since this patch, a process with only CAP_NET_RAW in the
-  device's netns can install an XDP-only memory provider on an RX queue.
-- [Medium] With an XDP_UMEM_DRV_LAYOUT UMEM, a bind that passes
-  XDP_ZEROCOPY succeeds, but the socket is not reported or treated as…
-- [Medium] xsk: skipped synchronous unbind in xsk_sink_release() for TX-
-  only pool
-- [Low] xsk_sink_wakeup() (net/xdp/xsk_sink.c) is the first lockless
-  reader of rxq->napi.
-- [Low] The commit message of "xsk: Receive in the device's buffer
-  layout" lists the new bind rules in detail: one receiver, -EBUSY,…
-- [Low] (Baseline: rejected.) The concern was that XDP_UMEM_DRV_LAYOUT
-  and XDP_RX_CHUNK_FREE have no documentation or selftests.
+- [Medium] With -D, the test puts XDP_UMEM_DRV_LAYOUT on every UMEM.
+- [Medium] The commit says drv layout skips tests that need one RX
+  descriptor per packet, but testapp_hw_sw_min_ring_size() is not…
+- [Medium] With -D, main() probes zero-copy support through
+  ifobj_zc_avail(ifobj_tx).
+- [Medium] Drv-layout runs keep the fixed UMEM size: DEFAULT_UMEM_BUFFERS
+  (1024) page chunks, doubled to 2048 in the single-netdev shared-UMEM…
+- [Medium] selftests: net: xsk: testapp_stats_fill_empty() fails in drv
+  layout mode
+- [Medium] selftests: net: xsk: __receive_pkts() infinite spin reserving
+  rcvd FILL slots
+- [Low] The kernel accepts XDP_UMEM_DRV_LAYOUT only when chunk_size ==
+  PAGE_SIZE (xdp_umem_reg()).
+- [Low] __receive_pkts() calls count_drv_shared() for each data
+  descriptor as soon as it is validated, before it knows whether the…
+- [Low] The comment on is_frag_valid_drv() says the last payload word
+  needs only the right sequence number because XDP_ADJUST_TAIL_GROW…
+- [Low] In drv layout, xsk_configure_socket() always adds XDP_USE_SG, and
+  xsk_sink_bind() then requires NETDEV_XDP_ACT_RX_SG in…
 
 --
 
-xsk: Receive in the device's buffer layout
+selftests: net: xsk: Test the device's RX buffer layout
 
-This patch accepts XDP_UMEM_DRV_LAYOUT at UMEM registration and installs
-the xsk_sink memory provider when a socket with such a UMEM binds to a
-queue. A queue in this mode has one receiving socket, and the provider is
-removed when that socket closes. recvmsg() and poll() now schedule the
-queue NAPI when the RX need_wakeup flag is set.
+This commit adds a -D option to xskxceiver. In drv mode it registers the
+UMEM with XDP_UMEM_DRV_LAYOUT and binds multi-buffer sockets without
+XDP_COPY. The receive path checks buffers by packet offset, returns chunks
+to FILL only on XDP_RX_CHUNK_FREE, and populates FILL before bind. Tests
+that cannot run in this layout are skipped.
 
-> diff --git a/net/xdp/xdp_umem.c b/net/xdp/xdp_umem.c
-> index cd8643360eb3a..5989e5e0e17e5 100644
-> --- a/net/xdp/xdp_umem.c
-> +++ b/net/xdp/xdp_umem.c
-> @@ -153,6 +153,7 @@ static int xdp_umem_account_pages(struct xdp_umem *umem)
->  		XDP_UMEM_UNALIGNED_CHUNK_FLAG | \
->  		XDP_UMEM_TX_SW_CSUM | \
->  		XDP_UMEM_TX_METADATA_LEN | \
-> +		XDP_UMEM_DRV_LAYOUT | \
->  	0)
-
-[Severity: High]
-
-With this flag accepted, can a process that has only CAP_NET_RAW in the
-device's netns take over an RX queue that the administrator's native XDP
-program runs on?
-
-xsk_create() only checks:
-
-	if (!ns_capable(net->user_ns, CAP_NET_RAW))
-		return -EPERM;
-
-The bind path xsk_bind()->xp_assign_dev()->xsk_sink_bind() checks device
-features, queue leasing and dev_xdp_drv_prog_held(). It does not check
-privilege before:
-
-	err = netif_mp_open_rxq(dev, queue_id, &p, NULL);
-
-Once the provider is installed, bpf_prog_run_xdp() overrides the
-program's verdicts for every buffer on that queue:
-
-	if (static_branch_unlikely(&xdp_sink_key) && xdp_buff_is_sink(xdp) &&
-	    (act == XDP_PASS || act == XDP_TX))
-		act = XDP_DROP;
-
-While dev_has_xdp_only_mp() is true, dev_xdp_attach() also refuses with
--EBUSY to detach the native program. If netif_mp_close_rxq() fails at
-socket close, xsk_sink_unbind() calls netif_close() on the whole device.
-
-The other memory provider install paths require CAP_NET_ADMIN. io_uring
-zcrx uses capable(CAP_NET_ADMIN), and the devmem netlink bind is admin
-only. Classic AF_XDP zero copy under CAP_NET_RAW does not override
-XDP_PASS or XDP_TX on the queue.
-
-Should xsk_sink_bind() require CAP_NET_ADMIN in the device's netns before
-it installs the provider?
-
-[Severity: Low]
-
-This isn't a bug, but this change makes XDP_UMEM_DRV_LAYOUT (and
-XDP_RX_CHUNK_FREE) usable from userspace before they have documentation
-or selftests.
-
-Two later patches in the series close this gap:
-
-  "selftests: net: xsk: Test the device's RX buffer layout" adds -D mode
-  to xskxceiver.
-
-  "Documentation: networking: Describe AF_XDP RX in the device's layout"
-  adds a Device Buffer Layout section to af_xdp.rst.
+> diff --git a/tools/testing/selftests/net/lib/xsk/test_xsk.c b/tools/testing/selftests/net/lib/xsk/test_xsk.c
+> index ca161511f1e5f..bae503432eeb3 100644
+> --- a/tools/testing/selftests/net/lib/xsk/test_xsk.c
+> +++ b/tools/testing/selftests/net/lib/xsk/test_xsk.c
 
 [ ... ]
 
-> diff --git a/net/xdp/xsk_sink.c b/net/xdp/xsk_sink.c
-> index 9f1f7cf822667..2c23fecb59d41 100644
-> --- a/net/xdp/xsk_sink.c
-> +++ b/net/xdp/xsk_sink.c
-
-[ ... ]
-
-> @@ -501,6 +501,10 @@ int xsk_sink_bind(struct xsk_buff_pool *pool, struct net_device *dev,
->  	struct xsk_sink *sink;
->  	int err;
+> @@ -94,6 +99,8 @@ int xsk_configure_umem(struct ifobject *ifobj, struct xsk_umem_info *umem, void
 >  
-> +	/* Without a wakeup, a queue that used up the FILL ring stays dry */
-> +	if (!(flags & XDP_USE_NEED_WAKEUP))
-> +		return -EINVAL;
-> +
-
-[Severity: Low]
-
-The commit message lists the new bind rules: one receiver, -EBUSY,
-XDP_COPY fails, no fallback. It does not mention this new -EINVAL for a
-bind without XDP_USE_NEED_WAKEUP.
-
-It also does not mention that the pool->uses_need_wakeup checks are
-removed from xsk_sink_bind() and xsk_sink_alloc_netmems(). Those checks
-were added by "xsk: Lend UMEM chunks to the page pools of a queue".
-
-The UAPI comment on XDP_UMEM_DRV_LAYOUT in include/uapi/linux/if_xdp.h
-only lists the registration constraints ("Needs aligned page-sized chunks
-and no headroom").
-
-af_xdp.rst documents the EINVAL later in the series, so this only affects
-the description of this patch. Could the commit message mention that
-XDP_USE_NEED_WAKEUP is now required, and why the uses_need_wakeup guards
-are removed?
-
->  	if (flags & XDP_USE_SG)
->  		needed |= NETDEV_XDP_ACT_RX_SG;
->  	if (flags & XDP_COPY || !dev->queue_mgmt_ops ||
+>  	if (umem->unaligned_mode)
+>  		cfg.flags |= XDP_UMEM_UNALIGNED_CHUNK_FLAG;
+> +	if (opt_drv_layout)
+> +		cfg.flags |= XDP_UMEM_DRV_LAYOUT;
+>  
+>  	ret = xsk_umem__create(&umem->umem, buffer, size,
+>  			       &umem->fq, &umem->cq, &cfg);
 
 [Severity: Medium]
+Does this also put XDP_UMEM_DRV_LAYOUT on the TX-only UMEM?
 
-XDP_COPY is rejected here. What happens with XDP_ZEROCOPY?
+xsk_configure_umem() sets the flag without looking at ifobj->rx_on. In
+test_init(), the TX ifobject also loses XDP_COPY:
 
-xp_assign_dev() sends every DRV_LAYOUT pool to xsk_sink_bind(). It
-returns before the force_zc and zero copy setup:
+		else if (!opt_drv_layout || mode != TEST_MODE_DRV)
+			ifobj->bind_flags |= XDP_COPY;
 
+In the two-netdev setup, ifobj_tx registers its own UMEM. In the kernel,
+every pool with this flag goes through the sink:
+
+net/xdp/xsk_buff_pool.c:xp_assign_dev() {
+    ...
 	if (pool->umem->flags & XDP_UMEM_DRV_LAYOUT) {
 		err = xsk_sink_bind(pool, netdev, queue_id, flags);
-		...
-		return 0;
-	}
+    ...
+}
 
-So umem->zc stays false, and xsk_bind() then sets xs->zc = xs->umem->zc.
+xsk_sink_bind() then calls netif_mp_open_rxq(), which restarts RX queue 0
+of the TX device on the TX UMEM. That FILL ring is never populated:
 
-A bind with XDP_ZEROCOPY | XDP_USE_NEED_WAKEUP therefore succeeds. After
-that, getsockopt(XDP_OPTIONS) does not report XDP_OPTIONS_ZEROCOPY, and
-TX goes through xsk_generic_xmit() in copy mode.
+- thread_common_ops() returns before xsk_populate_fill_ring() when rx_on
+  is false.
+- fill_first is also gated on rx_on.
 
-Documentation/networking/af_xdp.rst says "the XDP_ZEROCOPY flag will
-force the socket into zero-copy mode or fail". The section added at the
-end of the series says these sockets transmit in copy mode. It does not
-say what XDP_ZEROCOPY means for them.
+xsk_sink_add_sock() only adopts sockets that have xs->rx, so nothing ever
+receives on that queue.
 
-Should xsk_sink_bind() also reject XDP_ZEROCOPY? Otherwise, should the
-documented semantics be updated before this becomes ABI?
+Wouldn't the TX NIC's RX queue 0 then have no buffers for the whole run,
+so any host traffic steered to it is dropped?
 
-[ ... ]
-
-> @@ -591,6 +594,22 @@ void xsk_sink_unbind(struct xsk_buff_pool *pool)
->  	xsk_sink_detach(pool);
->  }
->  
-> +int xsk_sink_wakeup(struct xsk_sink *sink)
-> +{
-> +	struct netdev_rx_queue *rxq;
-> +	struct napi_struct *napi;
-> +
-> +	rxq = READ_ONCE(sink->rxq);
-> +	napi = rxq ? READ_ONCE(rxq->napi) : NULL;
-
-[Severity: Low]
-
-Does this lockless read of rxq->napi pair with anything on the writer
-side?
-
-struct netdev_rx_queue documents napi as "ops protected". Other readers,
-such as xsk_bind() and netdev-genl, hold the instance lock. This one is
-reached from recvmsg() and poll() through xsk_wakeup() with only
-rcu_read_lock() held.
-
-The writer, netif_queue_set_napi(), does a plain store:
-
-	rxq->napi = napi;
-
-Drivers call it during queue restarts, for example in
-mlx5e_activate_channel() and mlx5e_deactivate_channel(). A poll() that
-races with an ethtool ring change would then be an unannotated data race
-that KCSAN reports.
-
-The lifetime of the napi_struct is also not tied to the sink:
-
-  The synchronize_net() in xsk_sink_stop() covers sink->rxq, not the
-  NAPI.
-
-  __netif_napi_del_locked() does not clear rxq->napi.
-
-mlx5, bnxt and fbnic all clear rxq->napi and go through synchronize_net()
-before they free the NAPI. The core does not document or enforce that.
-
-Would this need WRITE_ONCE() in netif_queue_set_napi() and a documented
-RCU rule for rxq->napi?
-
-> +	if (!napi)
-> +		return -ENETDOWN;
-> +
-> +	local_bh_disable();
-> +	napi_schedule(napi);
-> +	local_bh_enable();
-> +	return 0;
-> +}
-
-[ ... ]
-
-> diff --git a/net/xdp/xsk.c b/net/xdp/xsk.c
-> --- a/net/xdp/xsk.c
-> +++ b/net/xdp/xsk.c
-> @@ -1585,6 +1605,29 @@ static void xsk_delete_from_maps(struct xdp_sock *xs)
->  	}
->  }
->  
-> +/* The pool may outlive the socket, see xp_put_pool(). A queue in the
-> + * device's buffer layout stops receiving when its receiving socket goes,
-> + * so that its program can go right after.
-> + */
-> +static void xsk_sink_release(struct xdp_sock *xs)
-> +{
-> +	struct xsk_buff_pool *pool = READ_ONCE(xs->pool);
-> +	struct net_device *dev;
-> +
-> +	if (!pool || !READ_ONCE(pool->sink))
-> +		return;
-> +
-> +	rtnl_lock();
-> +	dev = pool->netdev;
-> +	if (dev) {
-> +		netdev_lock_ops(dev);
-> +		if (pool->sink && xsk_sink_sock(pool->sink) == xs)
-> +			xsk_sink_unbind(pool);
-> +		netdev_unlock_ops(dev);
-> +	}
-> +	rtnl_unlock();
-> +}
-> +
->  static int xsk_release(struct socket *sock)
->  {
->  	struct sock *sk = sock->sk;
+There is also the case of a TX device that lacks queue_mgmt_ops, REDIRECT
+or RX_SG. Wouldn't the TX bind fail with -EOPNOTSUPP there, so every test
+reports FAIL? The help text, "Receive in the device's buffer layout",
+reads like an RX-only feature.
 
 [Severity: Medium]
-What happens when the socket that creates a DRV_LAYOUT pool has no RX
-ring?
+Can this abort the whole -D run on kernels where PAGE_SIZE is not 4096?
 
-xsk_bind() only requires xs->rx or xs->tx. A TX-only socket with a
-FILL and COMPLETION ring can therefore create its own pool, either
-with its own UMEM or through XDP_SHARED_UMEM on another queue or
-device. xp_assign_dev() then hands the pool to xsk_sink_bind() without
-looking at xs->rx, and netif_mp_open_rxq() installs the provider on
-the RX queue. xsk_sink_add_sock() only records a socket that has an RX
-ring, so sink->xs stays NULL.
+main() probes zero-copy support through ifobj_zc_avail(), which also
+reaches this code:
 
-While that socket is open, the queue runs with the provider, but its
-packets reach no socket.
+tools/testing/selftests/net/lib/xsk/xskxceiver.c:ifobj_zc_avail() {
+    ...
+	umem->frame_size = XSK_UMEM__DEFAULT_FRAME_SIZE;
+	ret = xsk_configure_umem(ifobject, umem, bufs, umem_sz);
+	if (ret)
+		exit_with_error(-ret);
+    ...
+}
 
-When it closes, xsk_sink_release() compares xsk_sink_sock(pool->sink)
-with xs. The sink socket is NULL, so xsk_sink_unbind() is skipped.
+With the flag set, xdp_umem_reg() rejects a 4096-byte chunk on such
+kernels:
 
-The provider then stays until the pool itself goes:
+	if (mr->flags & XDP_UMEM_DRV_LAYOUT &&
+	    (unaligned_chunks || chunk_size != PAGE_SIZE || headroom))
+		return -EINVAL;
 
-  The socket is SOCK_RCU_FREE, so its destructor runs after a grace
-  period.
+-D forces drv mode, and drv mode requires is_xdp_supported(), so this
+probe always runs. The program would then exit with a failure before any
+test starts. The drv_layout_umem_ok() skip in __testapp_validate_traffic()
+would never be reached.
 
-  The destructor drops the pool with xp_put_pool(), which defers
-  xp_release_deferred() to system_freezable_wq.
+> @@ -161,7 +168,8 @@ int xsk_configure_socket(struct xsk_socket_info *xsk, struct xsk_umem_info *umem
+>  	cfg.bind_flags = ifobject->bind_flags;
+>  	if (shared)
+>  		cfg.bind_flags |= XDP_SHARED_UMEM;
+> -	if (ifobject->mtu > MAX_ETH_PKT_SIZE)
+> +	/* The device may split any frame, see XDP_UMEM_DRV_LAYOUT */
+> +	if (ifobject->mtu > MAX_ETH_PKT_SIZE || opt_drv_layout)
+>  		cfg.bind_flags |= XDP_USE_SG;
 
-  Other TX-only sockets that share the pool keep it longer still.
+[Severity: Low]
+With XDP_USE_SG forced here, xsk_sink_bind() also requires RX_SG:
 
-Until then dev_has_xdp_only_mp() stays true, and dev_xdp_attach()
-refuses to detach the program with -EBUSY.
+	if (flags & XDP_USE_SG)
+		needed |= NETDEV_XDP_ACT_RX_SG;
+	if (flags & XDP_COPY || !dev->queue_mgmt_ops ||
+	    (dev->xdp_features & needed) != needed ||
+	    queue_id >= dev->real_num_rx_queues)
+		return -EOPNOTSUPP;
 
-The commit message says the provider goes with the receiving socket so
-that the program can be detached right after. That does not hold when
-no receiving socket ever bound.
+The test already records ifobj->multi_buff_supp. However,
+__testapp_validate_traffic() only checks it when
+test->mtu > MAX_ETH_PKT_SIZE.
 
-Should xsk_sink_bind() refuse a bind without an RX ring? Or should
-xsk_sink_release() also unbind when sink->xs is NULL and xs is the
-last socket of the pool? The -EBUSY check in xsk_bind() lets a later
-RX socket join a sink that has no receiver yet, so it is not clear
-which of the two is intended.
+On a device that does not currently advertise RX_SG, would every
+default-MTU drv layout test fail at bind and report FAIL? Today such
+devices get the "Multi buffer not supported" SKIP.
+
+[ ... ]
+
+> @@ -878,6 +887,77 @@ static bool is_frag_valid(struct xsk_umem_info *umem, u64 addr, u32 len, u32 exp
+>  	return false;
+>  }
+>  
+> +/* Driver layout: a buffer may start and end anywhere in the packet, and
+> + * anywhere in its chunk. Check its bytes against the generated pattern by
+> + * packet offset. XDP_ADJUST_TAIL_GROW zeroes the last @grow bytes and
+> + * writes the sequence number of the last word, so that word only needs the
+> + * right sequence number, and the bytes before it may be zero.
+> + */
+> +static bool is_frag_valid_drv(struct xsk_umem_info *umem, u64 addr, u32 len,
+> +			      u32 expected_pkt_nb, u32 bytes_processed,
+> +			      u32 pkt_len, u32 grow)
+> +{
+
+[ ... ]
+
+> +	for (i = 0; i < len; i++) {
+> +		off = bytes_processed + i;
+> +		if (off < PKT_HDR_SIZE || off >= payload_end)
+> +			continue;
+> +		if (off >= pkt_len - grow && !bytes[i])
+> +			continue;
+> +
+> +		off -= PKT_HDR_SIZE;
+> +		word = htonl(expected_pkt_nb << 16 | (off / 4));
+> +		if (off / 4 == (payload_end - PKT_HDR_SIZE) / 4 - 1 &&
+> +		    off % 4 < 2)
+> +			continue;
+
+[Severity: Low]
+The comment above says the last word only needs the right sequence number
+because XDP_ADJUST_TAIL_GROW rewrites it. Unlike the zero-byte check just
+above it, though, this skip is not gated on grow.
+
+xsk_xdp_adjust_tail() only rewrites the last word, leaving pkt_nb as zero,
+when the packet grew.
+
+Doesn't this leave the pkt_nb bytes of the last payload word unchecked for
+every drv layout packet, even when test->adjust_grow is 0? Should this
+skip depend on grow, as the comment suggests?
+
+[ ... ]
+
+> @@ -1050,46 +1151,74 @@ static int __receive_pkts(struct test_spec *test, struct xsk_socket_info *xsk)
+
+[ ... ]
+
+> +			count_drv_shared(umem, batch_chunks, batch_n++, addr);
+
+[ ... ]
+
+>  	if (nb_frags) {
+>  		/* In the middle of a packet. Start over from beginning of packet. */
+>  		idx_rx -= nb_frags;
+>  		xsk_ring_cons__cancel(&xsk->rx, nb_frags);
+> -		if (ifobj->use_fill_ring) {
+> +		if (ifobj->use_fill_ring && !opt_drv_layout) {
+>  			idx_fq -= nb_frags;
+>  			xsk_ring_prod__cancel(&umem->fq, nb_frags);
+>  		}
+>  		frags_processed -= nb_frags;
+> +		fills -= pkt_fills;
+>  		pkt_stream_cancel(pkt_stream);
+>  		pkts_sent--;
+>  	}
+
+[Severity: Low]
+fills is rolled back here. Should drv_rx_descs and drv_rx_shared be
+rolled back too?
+
+count_drv_shared() has already counted each data descriptor of the
+partial packet. After xsk_ring_cons__cancel(), the next __receive_pkts()
+call peeks the same descriptors and counts them again.
+
+Every -D socket uses XDP_USE_SG, so packets that span RX batches seem
+likely. Wouldn't that inflate the "rx descs" and "in a chunk shared within
+an RX batch" totals printed by run_pkt_test()? The extra counts would come
+from batching, not from how the device splits chunks.
+
+[ ... ]
+
+> @@ -1789,12 +1948,32 @@ static void clean_umem(struct test_spec *test, struct ifobject *ifobj1, struct i
+>  		testapp_clean_xsk_umem(ifobj2);
+>  }
+>  
+> +/* UMEM in the device's buffer layout: page chunks, no headroom */
+> +static bool drv_layout(struct test_spec *test)
+> +{
+> +	return opt_drv_layout && test->mode == TEST_MODE_DRV;
+> +}
+> +
+> +static bool drv_layout_umem_ok(struct ifobject *ifobj)
+> +{
+> +	struct xsk_umem_info *umem = ifobj->xsk->umem;
+> +
+> +	return umem->frame_size == getpagesize() && !umem->frame_headroom &&
+> +	       !umem->unaligned_mode;
+> +}
+
+[Severity: Low]
+__test_spec_init() always sets the frame size to 4096, and drv layout
+runs do not change it:
+
+		ifobj->xsk->umem->frame_size = XSK_UMEM__DEFAULT_FRAME_SIZE;
+
+On 16K or 64K page kernels, wouldn't drv_layout_umem_ok() then be false
+for every test, so -D gives no coverage there?
+
+The commit message says only the tests that need "other chunk sizes or
+headroom" are skipped. Could drv layout runs set frame_size to
+getpagesize(), or could the 4K page restriction be documented?
+
+>  static int __testapp_validate_traffic(struct test_spec *test, struct ifobject *ifobj1,
+>  				      struct ifobject *ifobj2)
+>  {
+>  	pthread_t t0, t1;
+>  	int err;
+>  
+> +	if (drv_layout(test) && (!drv_layout_umem_ok(ifobj1) ||
+> +				 (ifobj2 && !drv_layout_umem_ok(ifobj2)))) {
+> +		ksft_print_msg("drv layout needs page chunks without headroom\n");
+> +		return TEST_SKIP;
+> +	}
+
+[Severity: Medium]
+This pre-check covers chunk size and headroom. Should it also compare the
+UMEM size with the device's page pool?
+
+xsk_sink_init() rejects a page pool that is not well below the chunk
+count:
+
+	if (pp->p.pool_size + PP_ALLOC_CACHE_SIZE >= sink->area.num_niovs)
+		return -ENOSPC;
+
+Drv layout runs keep DEFAULT_UMEM_BUFFERS (1024) chunks, or 2048 with a
+shared UMEM. Some configurations would hit this limit:
+
+- mlx5 legacy RQs use pool_size = 1 << log_rq_mtu_frames, which is 1024
+  at the default ring size.
+- bnxt adds the agg ring fill level to the pool size.
+- testapp_hw_sw_max_ring_size() raises rx_pending to rx_max_pending,
+  while num_frames only grows to max_descs.
+
+The page pool is created in netif_mp_open_rxq() during bind, so the
+-ENOSPC comes back from xsk_socket__create(). thread_common_ops() then
+fails and the test reports FAIL rather than SKIP.
+
+Could this give false FAILs on such devices, with no hint that the UMEM is
+too small for the device rings?
+
+[ ... ]
+
+> @@ -2013,6 +2205,12 @@ int testapp_stats_rx_full(struct test_spec *test)
+>  {
+>  	struct pkt_stream *tmp;
+>  
+> +	/* Empty descriptors that give chunks back take RX slots too */
+> +	if (drv_layout(test)) {
+> +		ksft_print_msg("RX slots are not all packets in drv layout\n");
+> +		return TEST_SKIP;
+> +	}
+> +
+
+[Severity: Medium]
+The comment above says a test without the fill ring wants FILL to run
+dry, so it fills after bind as before. Does testapp_stats_fill_empty()
+actually work in drv layout?
+
+testapp_stats_fill_empty() clears use_fill_ring and sends
+DEFAULT_UMEM_BUFFERS + DEFAULT_UMEM_BUFFERS / 2 packets. It then
+expects exactly DEFAULT_UMEM_BUFFERS of them, in order. That assumes
+one chunk per packet and no recycling.
+
+With fill_first false here, xsk_configure() binds and xsk_sink_bind()
+calls netif_mp_open_rxq() while FILL is still empty:
+
+- On bnxt, bnxt_queue_mem_alloc() fills the RX ring during the queue
+  restart. With nothing on FILL it posts no buffers, and the ring is
+  only refilled from bnxt_rx_pkt() on a completion. Wouldn't
+  receive_pkts() then wait until THREAD_TMOUT, even after
+  xsk_populate_fill_ring() has run?
+- On other drivers, the empty FILL at queue start can bump
+  rx_fill_ring_empty_descs before any traffic. validate_fill_empty()
+  could then pass for the wrong reason.
+
+Populating FILL before bind would not seem to fix it either. In this
+layout 1024 chunks are not 1024 packets, which is the same reason
+testapp_stats_rx_full() is skipped:
+
+- Chunks also sit in payload or agg rings and in the page pool cache,
+  so fewer packets get through.
+- A device such as fbnic packs several 64-byte frames into one 4K
+  chunk, so all 1536 frames fit and FILL never runs dry.
+  pkt_stream_get_next_rx_pkt() then returns NULL, and the test fails
+  with "received too many packets".
+
+Should testapp_stats_fill_empty() be skipped under drv_layout(), the
+same way testapp_stats_rx_full() is?
+
+[Severity: Medium]
+The commit message says tests that need "an RX descriptor per packet" are
+skipped. Should testapp_hw_sw_min_ring_size() be skipped as well? It
+sets:
+
+	test->ifobj_rx->xsk->batch_size = 1;
+
+Under -D every socket binds with XDP_USE_SG. xsk_sink_rcv() writes one RX
+descriptor per buffer, with XDP_PKT_CONTD on all but the last.
+
+Suppose the device delivers a frame in two or more buffers:
+
+- __receive_pkts() peeks one descriptor, sees XDP_PKT_CONTD, and leaves
+  the loop with nb_frags == 1.
+- The partial-packet block cancels it, so frags_processed is 0 and
+  nothing is released.
+
+Wouldn't each later call peek the same descriptor again, until
+receive_pkts() hits THREAD_TMOUT and reports "Receive loop timed out"?
+
+Whether 64-byte frames are split depends on the device. fbnic, for
+example, splits all frames when hds_thresh is set below
+FBNIC_HDR_BYTES_MIN.
+
+[ ... ]
+
+> @@ -1050,46 +1151,74 @@ static int __receive_pkts(struct test_spec *test, struct xsk_socket_info *xsk)
+>  		print_verbose("Rx: addr: %lx len: %u options: %u pkt_nb: %u valid: %u\n",
+>  			      addr, desc->len, desc->options, pkt->pkt_nb, pkt->valid);
+>  
+> -		if (!is_frag_valid(umem, addr, desc->len, pkt->pkt_nb, pkt_len) ||
+> -		    !is_offset_correct(umem, pkt, addr) || (ifobj->use_metadata &&
+> -		    !is_metadata_correct(pkt, umem->buffer, addr)))
+> +		if (opt_drv_layout) {
+> +			/* The device picks offsets; metadata precedes the
+> +			 * head
+> +			 */
+> +			if (!is_frag_valid_drv(umem, addr, desc->len,
+> +					       pkt->pkt_nb, pkt_len,
+> +					       pkt->len, test->adjust_grow) ||
+> +			    (ifobj->use_metadata && !nb_frags &&
+> +			     !is_metadata_correct(pkt, umem->buffer, addr)))
+> +				return TEST_FAILURE;
+> +			count_drv_shared(umem, batch_chunks, batch_n++, addr);
+> +		} else if (!is_frag_valid(umem, addr, desc->len, pkt->pkt_nb,
+> +					  pkt_len) ||
+> +			   !is_offset_correct(umem, pkt, addr) ||
+> +			   (ifobj->use_metadata &&
+> +			    !is_metadata_correct(pkt, umem->buffer, addr))) {
+>  			return TEST_FAILURE;
+> +		}
+>  
+>  		if (!nb_frags++)
+>  			first_addr = addr;
+>  		frags_processed++;
+>  		pkt_len += desc->len;
+> -		if (ifobj->use_fill_ring)
+> +		if (!ifobj->use_fill_ring) {
+> +		} else if (!opt_drv_layout) {
+>  			*xsk_ring_prod__fill_addr(&umem->fq, idx_fq++) = orig;
+> +		} else if (desc->options & XDP_RX_CHUNK_FREE) {
+> +			/* Driver layout: only a free chunk goes back to FILL */
+> +			*xsk_ring_prod__fill_addr(&umem->fq, idx_fq++) =
+> +				orig - orig % umem->frame_size;
+> +			fills++;
+> +			pkt_fills++;
+> +		}
+>  
+>  		if (pkt_continues(desc->options))
+>  			continue;
+>  
+>  		/* The complete packet has been received */
+>  		if (!is_pkt_valid(pkt, umem->buffer, first_addr, pkt_len) ||
+> -		    !is_offset_correct(umem, pkt, addr))
+> +		    (!opt_drv_layout && !is_offset_correct(umem, pkt, addr)))
+>  			return TEST_FAILURE;
+>  
+>  		pkt_stream->nb_rx_pkts++;
+>  		nb_frags = 0;
+>  		pkt_len = 0;
+> +		pkt_fills = 0;
+>  	}
+>  
+>  	if (nb_frags) {
+>  		/* In the middle of a packet. Start over from beginning of packet. */
+>  		idx_rx -= nb_frags;
+>  		xsk_ring_cons__cancel(&xsk->rx, nb_frags);
+> -		if (ifobj->use_fill_ring) {
+> +		if (ifobj->use_fill_ring && !opt_drv_layout) {
+>  			idx_fq -= nb_frags;
+>  			xsk_ring_prod__cancel(&umem->fq, nb_frags);
+>  		}
+>  		frags_processed -= nb_frags;
+> +		fills -= pkt_fills;
+>  		pkt_stream_cancel(pkt_stream);
+>  		pkts_sent--;
+>  	}
+>  
+> -	if (ifobj->use_fill_ring)
+> +	if (ifobj->use_fill_ring && opt_drv_layout) {
+> +		xsk_ring_prod__cancel(&umem->fq, rcvd - fills);
+> +		xsk_ring_prod__submit(&umem->fq, fills);
+> +	} else if (ifobj->use_fill_ring) {
+>  		xsk_ring_prod__submit(&umem->fq, frags_processed);
+> +	}
+>  	if (ifobj->release_rx)
+>  		xsk_ring_cons__release(&xsk->rx, frags_processed);
+>  
+
+[Severity: Medium]
+__receive_pkts() still reserves rcvd FILL slots before it walks the RX
+descriptors, and retries xsk_ring_prod__reserve() until it gets all of
+them. In drv layout only descriptors carrying XDP_RX_CHUNK_FREE produce
+a FILL entry, so fills can be well below rcvd. The surplus is only
+cancelled here at the end.
+
+Can that up-front reservation spin forever when several descriptors
+share a chunk?
+
+testapp_hw_sw_max_ring_size() sets num_frames and fill_size to
+max_descs, and fill_first puts every chunk on FILL before bind. The
+free FILL slots are then just the chunks the device has taken and not
+yet had returned. If the device packs several frames into one chunk, a
+single peeked batch can hold more descriptors than chunks consumed.
+Reserving rcvd slots would then never succeed.
+
+FILL is nearly full in that state, so xsk_ring_prod__needs_wakeup()
+stays false and the loop never polls. The device will not take more
+chunks while the descriptors wait to be released, and the loop has no
+timeout. So receive_pkts() never gets to its THREAD_TMOUT check.
+
+In drv layout, would it be better to count the XDP_RX_CHUNK_FREE
+descriptors of the batch first and reserve only that many, or to
+reserve after the scan?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261124112707.118678-1-bjorn%40kernel.org
