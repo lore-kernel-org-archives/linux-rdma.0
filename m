@@ -1,44 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795635548;
-	b=HQUrgx+/Zb9svwvJWcgFIvMb4efxUUGG3YmtyUl0le99NPuRvMTyhUmRgj0SYF2GV0Sp
-	 e6M2lAHUJEArJDKwMT4kOANwUWuBqpMsNshCMcsJfWl0tNwRzz/ajnEQSRYEyfP/eGjdw
-	 T0vx+rgvtKnaCMyn47QI32IY/KBhZpCF/B8MbcDF+u1NA9J6vIxJiMS/JCLbDlcjiN9Qe
-	 uqUWxbi7D0ODbWIuWwriFUDKYsxabdp5AiWWs4gJquwYCauy7PW/nzj3Knas4Fh17gqxc
-	 e1E/52BAFcwrj20X6iuVuvHf4QybihRccx83UtV3kc6jZSDPXWc5kTfbML+1hn710yw==
+	t=1795635789;
+	b=nu3LWheMd/PSSb1wOKC2MG0PCJi8ZRbFAGLQvNH02xGp2wD1Mb7wXoNyTH8xEzYVtOi+
+	 84ZQGIckw0hW40uzd98xW1WT2JLCfx0gR+O4/7s6s6nURM8eNWv7dM09HP/k25ImaaOQ7
+	 1c/9EgLo+m1vK8J7JFbwR5YiN+flThUmYpFYMVdKeNtzLOHd/0w8XENDusZ0SQ3M+YMFy
+	 4ZjMTfGOnWIq/r8lq1UGId5J04/s3FTTHY3yJmlmZJLFsuO6HYEGg9KU7vjFngmKmZMMC
+	 gzY6/DIJjIQyQXJqe7pl/xbZ+faBZeDsjoqZOmGNOppwDwITtzoKSKedyBtZNW1iEJQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795635548;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795635789;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:In-Reply-To:References:
-	 Date:Message-ID:MIME-Version:Content-Type;
-	bh=4JIpkbzf9JBuRi7wi/hXUTx/9PeRcB5EF6i+tZhvo4s=;
-	b=eWrIgM3lZBYS/dNOvlDNrDGoX3hMjdPR1osVnf320EBsk862pk+xzQIW8gZ2CDBFXhA/
-	 QTaxlBzEEm/x+i/IN28C7x+G45dWKbH26ZdrFplqJ/x3XY5VrgYXYumuk5EVO7njyOXox
-	 1stbnTuljktvuZfXj+MqXpQNAAG4HZwKrR4d+lCMze+f/ZDkuSQ1Oe/JYFps8zzTeU7r5
-	 CleLMaIudqtukPVzI6AcdwP9pAyHZGyfGxS9SQHntjz1GM6y+4tA8x3gXN2UImEUgUJVl
-	 /zh19lZ8w5Ij86IZWXOizF1t0/nq3HxFjnsmmn2aQ7E8loUpLgk+hsTg/Qq44L+0X1g==
+	 Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=MLc4/6k9Z6sxMwo5Ugfr+gMYCrDQyFv5j935bfc4lHg=;
+	b=0+j9OmUKBgDnpXmxqqXR7VXlVd57wa/S3/JDFylYumfqlkk0nP9+/CU3FKJCelvhpegm
+	 qQG+bcoaqaGvIeJdMRPqkKAfHyctjGxvZcq2q1Nzo2McCK3ZlYjtegKF1oxqqpXLLt/dD
+	 vbhOUQHcuNrQ3/qX6yO8tQCrL506hb1VjIxxx5bfFq+dBWt05DswG9TD7xj6ckXYwvpJR
+	 B8XoKXirqzwuLYdRihrebYDwjMdfdFoV8LK0q5rC/sxaDPRzYD5oyGGzamaDtFjJmJdNg
+	 0E4P0tN0zOkNLxc1Tz7nJivYnOYfSJwCJjVvxSCbKQHtpgakxwDn/8yx01WfXRErXxw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QbuEShLi;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IlB4xbnc;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2113606A321;
-	Wed, 25 Nov 2026 19:39:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6667606A321;
+	Wed, 25 Nov 2026 19:43:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QbuEShLi
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4EE21F000C4;
-	Wed, 25 Nov 2026 19:39:06 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IlB4xbnc
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07B731F000C0;
+	Wed, 25 Nov 2026 19:43:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795635547;
-	bh=4JIpkbzf9JBuRi7wi/hXUTx/9PeRcB5EF6i+tZhvo4s=;
+	s=k20260515; t=1795635789;
+	bh=MLc4/6k9Z6sxMwo5Ugfr+gMYCrDQyFv5j935bfc4lHg=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date;
-	b=QbuEShLi544NaqUt1tLMA3EEz4cc//Z80hoJf2oz3FNzqzd1oMQc6bu7mZPjIM3L4
-	 aPysv0MrQF5mpM3fjFSc3MzO1wpRIQP98KRBYcuP6Y8MfZd1zitnhm7W8gIj9K5XZR
-	 AxCa+Ytjhw7GZsJEpUSHLenk7kb7Uiv6eOTwsekLT01X1ipiUViZmzpQgE+cSMK2Tg
-	 wWfzRS+gFM8Y5CCIus+57t1dQZM1giVuQkMOezHnsargX42ERMy2dp+kQp4dTKLuAs
-	 ZbUerKPMxG37Rl81ezxfLltmCIUycyfjK1ziTtnQqeQPCLPw2MCu34fOxsQhmYZVKz
-	 gALHJ2T8i6w7w==
+	b=IlB4xbncT7TdKfveO1rm1FT2gCv4IrTSQ05brtd2009HIOI86yf1t3YO9xQcOpuqm
+	 plQ3clS+mv14LdeWvVQeB80S43PeuiptlMEkhkm7cvp4Zc0wqB9563ctgrQ+Fi2TMq
+	 sLGpJdYdnBreL+XLlfv1CXxOCcvZ1CNSI24CocAOUeNwUwRrfpnACcwrDRfjpuPgpH
+	 s7/V3e5TEknLqvfFLiOoFQ+VvEaIl4LLR0jAZ92VEtv7Zo2MQs03phRdNTCbhi+zQl
+	 WQGXej1P1//AE8xrQwLbF466qrnPQPcZCp8bOtqmfAvdFovymXQuqLh8M2zCmK3wX9
+	 N6hMNK3MH/JTw==
 From: =?utf-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>
 To: netdev-bot+sashiko@kernel.org
 Cc: magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
@@ -62,13 +62,13 @@ Cc: magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
  dw@davidwei.uk, asml.silence@gmail.com, linux-rdma@vger.kernel.org,
  linux-kselftest@vger.kernel.org, linux-doc@vger.kernel.org,
  linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next 02/15] xdp: Keep the shared info of a buffer in
- kernel memory
-In-Reply-To: <179561567996.3135.9952128421877275714@kernel.org>
-References: <20261124125654.183091-2-bjorn@kernel.org>
- <179561567996.3135.9952128421877275714@kernel.org>
-Date: Wed, 25 Nov 2026 20:39:04 +0100
-Message-ID: <87ld6gog4n.fsf@all.your.base.are.belong.to.us>
+Subject: Re: [PATCH net-next 03/15] net: Add memory providers that only feed
+ XDP
+In-Reply-To: <179561568417.3135.7506567631056689365@kernel.org>
+References: <20261124125654.183091-3-bjorn@kernel.org>
+ <179561568417.3135.7506567631056689365@kernel.org>
+Date: Wed, 25 Nov 2026 20:43:05 +0100
+Message-ID: <87h5h4ofxy.fsf@all.your.base.are.belong.to.us>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -78,145 +78,115 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
 netdev-bot+sashiko@kernel.org writes:
 
-> Thank you for your contribution! Sashiko AI review found more severe
-> issue(s) in other patches of this series. This mail is only an FYI, in case
-> you want to address the nit picks below when you respin.
+> Thank you for your contribution! Sashiko AI review found 1 potential
+> issue(s) to consider.
 >
-> Low priority / nit picks for your consideration:
+> Critical: 0 =C2=B7 High: 0 =C2=B7 Medium: 1 =C2=B7 Low: 0
 >
-> - [Low] A comment is now stale.
+> If you believe none of the issues are legitimate, please reply to each
+> issue of Medium severity or higher and explain why the AI is wrong.
+> If any of them are legitimate and you plan to respin, please let patchwork
+> know by including "pw-bot: cr" as a separate line at the end of your reply
+> (one such reply per series is enough).
 >
-> Pre-existing issues:
-> - [High] This problem wasn't introduced by this patch, but the patch's
->   commit message names it and the series leaves it open.
+> - [Medium] This patch adds MP_XDP_ONLY providers, which by design sit
+>   next to native XDP and AF_XDP.
 >
 > --
 >
-> xdp: Keep the shared info of a buffer in kernel memory
+> net: Add memory providers that only feed XDP
 >
-> This patch lets an RX queue keep the skb_shared_info of its XDP buffers
-> in kernel memory, allocated by xdp_rxq_info_reg_ext_sinfo(). Buffers
-> with the new XDP_FLAGS_SINFO_EXT flag look up their shared info there.
-> For such buffers xdp_data_hard_end() reserves no tailroom, and frame
-> and skb conversion refuse them.
+> This patch lets a memory provider mark itself XDP-only with MP_XDP_ONLY.
+> Such a provider needs no header split and does not block native XDP. A pa=
+ge
+> pool takes it only when the driver sets PP_FLAG_ALLOW_XDP_ONLY_NETMEM. The
+> XDP install, XDP propagate and ethtool rings checks move from
+> dev_get_min_mp_channel_count() to the new dev_mp_blocks_xdp().
 >
->> diff --git a/include/net/xdp.h b/include/net/xdp.h
->> index 1629e347b71fb..944418111a86e 100644
->> --- a/include/net/xdp.h
->> +++ b/include/net/xdp.h
+>> diff --git a/net/core/dev.c b/net/core/dev.c
+>> index 4ca8a9f5a7a5c..8a1d5a284e53c 100644
+>> --- a/net/core/dev.c
+>> +++ b/net/core/dev.c
 >
 > [ ... ]
 >
->> @@ -212,17 +226,27 @@ xdp_prepare_buff(struct xdp_buff *xdp, unsigned char *hard_start,
->>  
->>  /* Reserve memory area at end-of data area.
->>   *
->> - * This macro reserves tailroom in the XDP buffer by limiting the
->> - * XDP/BPF data access to data_hard_end.  Notice same area (and size)
->> - * is used for XDP_PASS, when constructing the SKB via build_skb().
->> + * This reserves tailroom in the XDP buffer by limiting the XDP/BPF data
->> + * access to data_hard_end.  Notice same area (and size) is used for
->> + * XDP_PASS, when constructing the SKB via build_skb(). Buffers with
->> + * %XDP_FLAGS_SINFO_EXT keep the shared info elsewhere and reserve none.
->>   */
->> -#define xdp_data_hard_end(xdp)				\
->> -	((xdp)->data_hard_start + (xdp)->frame_sz -	\
->> -	 SKB_DATA_ALIGN(sizeof(struct skb_shared_info)))
->> +static __always_inline void *xdp_data_hard_end(const struct xdp_buff *xdp)
+>> @@ -11146,6 +11146,23 @@ int dev_change_xdp_fd(struct net_device *dev, s=
+truct netlink_ext_ack *extack,
+>>  	return err;
+>>  }
+>>=20=20
+>> +/* Native XDP runs next to XDP-only providers only, see %MP_XDP_ONLY */
+>> +bool dev_mp_blocks_xdp(const struct net_device *dev)
 >> +{
->> +	u32 tailroom = SKB_DATA_ALIGN(sizeof(struct skb_shared_info));
+>> +	const struct memory_provider_ops *ops;
+>> +	unsigned int i;
 >> +
->> +	if (xdp->flags & XDP_FLAGS_SINFO_EXT)
->> +		tailroom = 0;
->> +	return xdp->data_hard_start + xdp->frame_sz - tailroom;
+>> +	netdev_assert_locked_ops_compat(dev);
+>> +
+>> +	for (i =3D 0; i < dev->real_num_rx_queues; i++) {
+>> +		ops =3D dev->_rx[i].mp_params.mp_ops;
+>> +		if (ops && !(ops->flags & MP_XDP_ONLY))
+>> +			return true;
+>> +	}
+>> +
+>> +	return false;
 >> +}
+>> +
 >
-> [Severity: Low]
-> This isn't a bug, but should the comment in bpf_xdp_adjust_tail() be
-> updated along with this change?
+> [Severity: Medium]
+> Should the AF_XDP zero-copy setup paths use this helper too?
 >
-> net/core/filter.c:bpf_xdp_adjust_tail() {
+> Two callers still use dev_get_min_mp_channel_count(). It counts every
+> provider by mp_priv, including XDP-only ones:
+>
+> net/xdp/xsk_buff_pool.c:xp_assign_dev() {
 >     ...
-> 	/* Notice that xdp_data_hard_end have reserved some tailroom */
-> 	if (unlikely(data_end > data_hard_end))
-> 		return -EINVAL;
+> 	if (dev_get_min_mp_channel_count(netdev)) {
+> 		err =3D -EBUSY;
+> 		goto err_unreg_pool;
+> 	}
+>     ...
+> err_unreg_pool:
+> 	if (!force_zc)
+> 		err =3D 0; /* fallback to copy mode */
 >     ...
 > }
 >
-> xdp_data_hard_end() no longer reserves tailroom for XDP_FLAGS_SINFO_EXT
-> buffers. For those buffers this bound reaches the end of the frame, and
-> frame_sz is the only limit.
+> drivers/net/netkit.c:netkit_xsk() {
+>     ...
+> 	if (!create || !dev_get_min_mp_channel_count(phys))
+> 		ret =3D phys->netdev_ops->ndo_bpf(phys, &xdp_lower);
+>     ...
+> }
+>
+> Later in the series, xsk_sink_bind() installs an MP_XDP_ONLY provider
+> (xsk_sink_ops) on q0. After that, a classic AF_XDP socket that binds q1 on
+> the same device would see this:
+>
+>   bind with XDP_ZEROCOPY fails with -EBUSY
+>   bind without a mode flag falls back to copy mode and does not report it
+>   XSK pool creation through a netkit leased queue returns -EBUSY
+>
+> The result also seems to depend on bind order. Suppose the classic
+> zero-copy socket binds q1 first. The sink can then still be installed on
+> q0, because __netif_mp_open_rxq() only checks the pool of its own queue:
+>
+> net/core/netdev_rx_queue.c:__netif_mp_open_rxq() {
+>     ...
+> 	if (rxq->pool && !xdp_only) {
+>     ...
+> }
+>
+> So the same end state (sink on q0, zero copy on q1) is accepted in one
+> order and refused in the other. Is that intended?
 
-Yes, will fix.
+No, that's not intended. The device-wide check in
+xp_assign_dev()/netkit_xsk() predates this work, and a sink on another
+queue does not stop native XDP. I'll switch both to dev_mp_blocks_xdp()
+in the next version, so the bind order no longer mattters.
 
->>  
->>  static inline struct skb_shared_info *
->>  xdp_get_shared_info_from_buff(const struct xdp_buff *xdp)
->>  {
->> +	/* Kernel structures stay out of memory that userspace may write */
->> +	if (unlikely(xdp->flags & XDP_FLAGS_SINFO_EXT))
->> +		return xdp->rxq->ext_sinfo;
->> +
->>  	return (struct skb_shared_info *)xdp_data_hard_end(xdp);
->>  }
->
-> [Severity: High]
-> This is a pre-existing issue, not one introduced by this patch. The
-> commit message gives it as the motivation:
->
->     Classic AF_XDP zero copy keeps it in the tail of a UMEM chunk, where
->     userspace can rewrite it.
->
-> Is classic AF_XDP zero copy meant to stay exposed? XSK pool buffers
-> never get XDP_FLAGS_SINFO_EXT, either here or later in the series. Later
-> in the series only xdp_sink_mark() sets the flag, and only for
-> MP_XDP_ONLY page pools.
->
-> So xsk_buff_add_frag() still writes the fragment list into the UMEM
-> tail:
->
-> xsk_buff_add_frag()
->   __xdp_buff_add_frag(head, ...)
->     xdp_get_shared_info_from_buff(head)
->       xdp_data_hard_end(head)
->
-> That is the tailroom that xsk_pool_get_rx_frame_size() reserves when
-> XDP_UMEM_SG_FLAG is set.
->
-> Userspace can rewrite nr_frags and frags[] of chunks it has handed over
-> through the fill ring while NAPI builds a multi-buffer packet. Can a
-> forged nr_frags then overflow sinfo->frags[]? __xdp_buff_add_frag()
-> only checks:
->
-> 	} else if (unlikely(nr_frags == MAX_SKB_FRAGS)) {
-> 		return false;
->
-> With a value above MAX_SKB_FRAGS, it writes frags[nr_frags] past the
-> end of the chunk.
->
-> On XDP_PASS, xdp_copy_frags_from_zc() in net/core/xdp.c has the same
-> problem:
->
-> 	xinfo = xdp_get_shared_info_from_buff(xdp);
-> 	nr_frags = xinfo->nr_frags;
->
-> 	for (u32 i = 0; i < nr_frags; i++) {
->
-> There is no bound on nr_frags here. It indexes skb_shinfo()->frags[] of
-> the new skb and copies from skb_frag_address() of the forged frag
-> netmems. xsk_rcv_zc() also sizes its RX ring reservation from nr_frags.
->
-> Triggering this needs a zero-copy AF_XDP socket with XDP_UMEM_SG_FLAG
-> and an attached XDP program.
->
-> Could the commit message say that classic zero copy stays out of scope?
-> Or could MEM_TYPE_XSK_BUFF_POOL buffers use ext_sinfo as well?
-
-This is older than this series, and the series does not change it.
-Classic is out of scope here.
-
-I'll work with Magnus and Maciej to get a fix out for classic.
