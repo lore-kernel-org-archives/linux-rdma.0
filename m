@@ -1,88 +1,88 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.99
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.228
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795638563;
-	b=c1fRO8XG00coHrYgnS94MgWsWAGHCfL+wrKsMhvzvbJzoc2QKqB3qqZIL4Oja+ZF7Kgi
-	 3ELoASrRsVkxGtU1Y0BdLrUFTcPsH4A80KtwgbYVk3iYxaAuIprRCH3v8BSlprv/UISU4
-	 /0mNw+aKI+h2sMU0mOvhfNCnkGdEItWIKc4onNTnl5zrJN6YGQQ1raRQnrHXM8oZd/7a/
-	 AsEOnR/AI1ukVXBBQE6uhZEn4N6Ud/uDCIFSyThke6RXHj2A86X+MljzUjyM4WK7o3nah
-	 L4rlah/hb997t4du/BKFT0bncSMu1zkvWgFVRXJUtHKateh/jygVgeaTUgkABw0tLWA==
+	t=1795638593;
+	b=vDiQHDsZ0WFQ87YN9YFJTe9E9kugJVIZJX7rDgxJiY8zQ1JlNXpA8RcKibyjhHWrG52+
+	 8lQ3lYKiuWMk4GepMi+SDDre6YIdPl0+sXoRNUJaaGizfSg4Dl9o4vU4asPEah6BWRVG+
+	 ONVClQ2AxsvfIi1ucHX6QqN1AXHwmScCewH4+IhTXn9reMR1IRQXOIqJhWtLaMxk9pGL4
+	 HsvNgHw5PAziU7/XZRpBKuWMRBAQNGSkw4Y/8BfdaVAe3yHq7yeaXoCYfnohCiBetGkZX
+	 s5Z84ZvxtkhyDrGZL8PHRcjYgXNkCgvQfBdVJdWublg5zbKOmMUVBPMWEEQA26Ij2dQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795638563;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795638593;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 X-Relaying-Domain:Received:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding:Subject:From:To:Cc:In-Reply-To:References:
 	 Date:Message-Id:X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=l8Vm7b6mvicOGbNITWz8S9UqTwj9675iuxlFyNmsQcY=;
-	b=mvxQnOER3cKi6hM+vxq/QqR8j8bFpzTjtYF80YzxPKv1FMsvG1t1SZqyiPPXk0sV4LLV
-	 4gI2ozyFJ7DflHBxeUBhBgOe0jTxg/6MVT5Hd/XIWeM3v8QdtN0K0rnuMJnwom7U8YFna
-	 SiUHHjyTiP3XXlFyN+o4QlklZCCn3ESWobHMzABmnqANoVmhMZI70R9dE2nTt3xPinQeI
-	 CKS5U9BAT/Df3ifSmXLKzI2UmUtgL2AgbiAzaSTeQQLtrkJbmZOhcwPR7j2CYGuhQoxFl
-	 eQUF51hGXO7Xfis14oprImvlNH5kxmLOUVgAzK6jyu11xsT9O/6AuTY4IdCJvsMBuKQ==
+	bh=5by1QEX/cGC23E25Nzrw5GrZTEPj5OnY/lGT7wIEPVw=;
+	b=U6TDo1T5LZwzzf62bErASGwa7qMlycXID19m7Y+VBSkGAubweBdoLt7oGS9hfQvb6LPp
+	 ECZ1dRsh73BywwDIGUJ+Llyu6lrP4MQZTCq+QO3ej4lGDEKU4Ih2BFIKe4IimODmWrKIG
+	 vP3qwUzYYvDW/RWkI/8R6IklMcZxSZA0jmoHhnHzU0FY+6F6LbXFwPM2Igt3/48OJOaGR
+	 SPZjrbQPof3xTPQdKmRYi1Dy1OK+UpE4EHhRVBoCZz9uASzMGZ34SMw0C5MXh85NtWM4M
+	 MCCzjhOkuaZqd1XC7II7JmSLzmAuksq9U/6gIYt1oBhNxRH8e5xzqrADyXQKMldQs8w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=purestorage.com;
 	spf=pass smtp.mailfrom=purestorage.com;
-	dkim=pass header.d=purestorage.com header.i=@purestorage.com header.a=rsa-sha256 header.s=google2022 header.b=LApZd8rh;
-	arc=none smtp.remote-ip=209.85.216.99
-Received: from mail-pj1-f99.google.com (mail-pj1-f99.google.com [209.85.216.99])
+	dkim=pass header.d=purestorage.com header.i=@purestorage.com header.a=rsa-sha256 header.s=google2022 header.b="I+MxKs/p";
+	arc=none smtp.remote-ip=74.125.82.228
+Received: from mail-dy1-f228.google.com (mail-dy1-f228.google.com [74.125.82.228])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BB30606A323
-	for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 20:29:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4BB30606A323
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96E6E606A326
+	for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 20:29:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 96E6E606A326
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=purestorage.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=purestorage.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=purestorage.com header.i=@purestorage.com header.a=rsa-sha256 header.s=google2022 header.b=LApZd8rh
-Received: by mail-pj1-f99.google.com with SMTP id 98e67ed59e1d1-3b41e627cadso3886412a91.1
-        for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 12:29:22 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=purestorage.com header.i=@purestorage.com header.a=rsa-sha256 header.s=google2022 header.b=I+MxKs/p
+Received: by mail-dy1-f228.google.com with SMTP id 5a478bee46e88-386b8f2f671so3244209eec.1
+        for <linux-rdma@vger.kernel.org>; Wed, 25 Nov 2026 12:29:52 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=purestorage.com; s=google2022; t=1795638561; x=1796243361; darn=vger.kernel.org;
+        d=purestorage.com; s=google2022; t=1795638592; x=1796243392; darn=vger.kernel.org;
         h=message-id:date:references:in-reply-to:cc:to:from:subject
          :content-transfer-encoding:content-type:mime-version:from:to:cc
          :subject:date:message-id:reply-to:content-type;
-        bh=l8Vm7b6mvicOGbNITWz8S9UqTwj9675iuxlFyNmsQcY=;
-        b=LApZd8rh/oPgJtsMdJZnCK6600SYC8qzkNvEgzFB5VzozYeVst2oxxhwbl9/2qsv1G
-         CuyXxOD461T9nazzw2PqtjHtqHeEzQ87ihdLEgNkhuRti1uGOXV4aNl1J917YQRCG3dP
-         PJAMDfLxc4daKZk3MrXcJA58vZiz1GrLXwk5dsff908QWqgQUf7hUCRamjlEAXBdvIR9
-         WTqjf30rL+eAxjPG0dtshlshCBNdFj07he5/yG0VKfHq/kLmMhZ1KrMIxQMBdlsBH8q/
-         38pnMC6xZ4NikFRFFE+PoW4p7XsVd3CASnyJYmGVeI+S02o8L0JKRww8+yC08NtDmOOS
-         bnVQ==
+        bh=5by1QEX/cGC23E25Nzrw5GrZTEPj5OnY/lGT7wIEPVw=;
+        b=I+MxKs/pMhX9Lj7v1b+pmXCQGTFkou16/qGRsto0wbGAUWQ3XXn+aSRSICAMwXsnkN
+         Lir3Ad13iPHE/klgrh1D1amjN7jyUF14MN4Hf5XwHQ23CXLJgptV6+7655hf0dMcFkM7
+         f37KztvfT8gUm0Tc21eq75yL/QjOQ+RnKIaARtYTnIIBcuaf3/y6XoFy6eTpASUtOVkQ
+         u9jO17NSMpZQFnKDv4D8MTtY6CY3HoX4AswUfqWxpKRO/IBI6kfcZKkNh9c/62jdEr2y
+         PmE4pCnc15x+tCmJY1nBLRghFI4OCiKsr0liwdqIgjg6a/q1qJT3ixv5I7I6W1b7Myws
+         XT3w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795638561; x=1796243361;
+        d=1e100.net; s=20260707; t=1795638592; x=1796243392;
         h=message-id:date:references:in-reply-to:cc:to:from:subject
          :content-transfer-encoding:content-type:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=l8Vm7b6mvicOGbNITWz8S9UqTwj9675iuxlFyNmsQcY=;
-        b=jDQiIBJiiNTBo20jsHzwEskrgStb5VzWiboeMm2VB+ihYBDyIg2KXf85CdreHhZLHq
-         bICqk4Ap7P5vBwXHJ+c4+76BCwzwQpLOp6lt6gykvh2fueDR76qpH6n3QOXd5uLmO71J
-         y2zaOBnQ5FtqXWZzHK9lDVUeEG48tgW2dQkBNxGLhGd4HRlH+x/rzaee2fETV9/ZhsRC
-         jTW4Xce8E/JNN9IyDyRw/BasCtj3NKmlcYjZBUEQXU1fx68snfhbiUfB80T7bFZp96k7
-         uWa731xknSIBuLBEOlEI8AG5VH3hLGEwSYBEVviLv8AciGTFruXbwhB4m92WEw43HsTU
-         E1fw==
-X-Forwarded-Encrypted: i=1; AL+hErEuPnRJ+2YhIlOjm5PiGnnQjvSYWSGQTvi+90qKZuyradO2fBKVesQRITUm2/3KhDXcuHxslyPmZ8F0@vger.kernel.org
-X-Gm-Message-State: APuU4Z+Qa4qwEToAX1vZnK9nX1xT6t+99VeNLGVKJKAVmSrC2qTM414/
-	D/u2lacnHXLs/KEX+BAFow7YkJXJB+l8HbI5++ZrI3bvXu93MS8kp+gGbPZqY2O75NBOQ0YUsm+
-	GTbausRqCzvJ6oILbm4ChrHiFc2yl41VVR1wKxxH0TGE9kGNXKLX4CADDIZQu04AGFMIQhbAtJg
-	/8aTXopDqnDW1Df6C7XS5ELKUsWE4cYxlg3g/elKVZekQYd37o2x4hp66MzWap+UU5fvqHrrfzi
-	Yk+oSJU1208X0x5HkSfkP4vvwj2
-X-Gm-Gg: AZFdTZfKA1h7C1hP3vPz+LTmETDdkcqywUdGsctIlcJmtd+puQWUSGhKJyHEnUtkk0/
-	QkITSPIYuNioXbH0vf0Ysy2DnYcRSedEXd9HsdL0XbHyUfe0gyGb9H8rhV4MjGYGA79AN4ZIDLy
-	2igJi69q45t/QtR3Ir2M3Y61EmIWew4oA95nGT0Yn2BEg799NydmNszr8C9F1LJT3lDqXAH07Cu
-	sinDrzNYUW9WfQr/FfxM+VXR7iBG0LVZMFmpo5ClaZq3qBc/lmxWlgdToLRh21PlTMUpy9RaVw2
-	CtnAA0iMZKWfj+hz1nWvQfEa0tIzW3Vrmyg5O1vR+2Q56Re5sfG9oikCe9U2e7zH6gbXvvzfMuU
-	C9nkbO72JIlAi+12lDRkLMQkzotzB3YlJhSEjvg==
-X-Received: by 2002:a17:90a:ec86:b0:3b4:889:883a with SMTP id 98e67ed59e1d1-3b41c9bacbbmr19118124a91.66.1795638561597;
-        Wed, 25 Nov 2026 12:29:21 -0800 (PST)
-Received: from c14-smtp-2023.dev.purestorage.com ([208.88.158.128])
-        by smtp-relay.gmail.com with ESMTPS id 98e67ed59e1d1-3b41ffad038sm6179778a91.3.2026.11.25.12.29.21
+        bh=5by1QEX/cGC23E25Nzrw5GrZTEPj5OnY/lGT7wIEPVw=;
+        b=TYSk5juAOqYYbBIm8UqHw+TeR7BucOqu4jpvFLRVZRMF9vhPI0SPckYSXKv+icrb/g
+         B5mhy10Dp1YNrFBd6rcROtC4CrGpSAjs52Jm57Plzv8PjjYzZhioJPvIQ/U8GtyqJ7TF
+         Zpy4sFhhyCjYUYS2l+e13Rq1ZMoUIegjImX9rioAEqJKuNnQyLSp87RggUZuC7RlCi2s
+         DcGc5GOwvxeVF8TEry8PVXJy6PH0hp8ZDlXa+9CRWUJSfPnqtie+WCdwWvygMOWxyDbW
+         pIzVdFK0uSk8q5NAPh3O+MGE+dHs4Xmqi/ncnlX/DFCwvEN9XmHfRmLdbkaYEDk+RSzt
+         sGCw==
+X-Forwarded-Encrypted: i=1; AL+hErHdw/RRqIwpC3BaTgFt2ZvPyuxuACRIBerCm7SiXsyNHG4jDym+ax35EKZPRFG7aAm5EF+sZy4HJr9C@vger.kernel.org
+X-Gm-Message-State: APuU4Z916IX1CH9920j1zMdgFrJb9v4YjlTyUap6iwg/5MSkRGnuMxz0
+	0jaOlx7WK7JaanNzUliU31cUp5LS+BAjBax2WylNylc5DF95v/YxLdPZK/fzEhPD6c/9fbzKoTJ
+	8yjrtxlYgysAT0zmU9RuR2FlfEV3aW3XTPSXffQdCXNv05+woHdskxQBPe/ImI3B6LGNrDU0YUR
+	OoR+t6ZdZmF8R+V8o0hGC1dGN1/j6AmlbxGv8TJVONpREaeLmixeee0b1hXEP9C40NewcSktK8i
+	BPeBh1LqLSQhjh3qe8sQlORb5av
+X-Gm-Gg: AZFdTZclB3VY1foClr24TbOYLbfJxzrUuWBGOUGh7kw2fc5HQzmhxPzoFDci7dEh8Cq
+	eAOYY0syA8XKEmaPueXwSpcAA3UEg9uIL9DoQVmxHdR65MciPYqRxJ9CjXWLpTXSg6hOjDPOFvx
+	+94oD6DDQ4nJiRDC/Bq/aTgUDmOJe8RJ/gkkUZGi2Ao/h8fzpShc5y6h0U4pU4EoxPu/m5JtK21
+	Hqf3BtSBbh4kNdgFc7n5/14SK6cjXUjvAUQUNu/3l1DinbU7Yyin7L/WwWdQmHhcwWr1e8mXE4v
+	4uwuPmzoqQYNW3VsFeWaj+BkGFfXLErx/SJ3fTY2J/IqESsONShmrGa3OU5YmgzgbmwzdziqHxc
+	Baq9+BSDxMJ+4pzQbqvoRS1+bp+W1clZ5b72cpQ==
+X-Received: by 2002:a05:7301:391c:b0:379:f7aa:1013 with SMTP id 5a478bee46e88-3856fd59fcemr19297575eec.15.1795638591450;
+        Wed, 25 Nov 2026 12:29:51 -0800 (PST)
+Received: from c14-smtp-2023.dev.purestorage.com ([208.88.158.129])
+        by smtp-relay.gmail.com with ESMTPS id 5a478bee46e88-386c213b6c6sm1225263eec.5.2026.11.25.12.29.51
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 25 Nov 2026 12:29:21 -0800 (PST)
+        Wed, 25 Nov 2026 12:29:51 -0800 (PST)
 X-Relaying-Domain: purestorage.com
 Received: from irdv-tmenninger.dev.purestorage.com (irdv-tmenninger.dev.purestorage.com [10.32.149.15])
-	by c14-smtp-2023.dev.purestorage.com (Postfix) with ESMTPS id A45EC3400BB;
+	by c14-smtp-2023.dev.purestorage.com (Postfix) with ESMTPS id AC32934038A;
 	Wed, 25 Nov 2026 12:29:20 -0800 (PST)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -95,8 +95,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH v3 1/3] rpcrdma: Serialize notification registration
- with device removal
+Subject: Re: [PATCH v3 3/3] xprtrdma: Wake connect worker on device removal
 From: tmenninger@purestorage.com
 To: Li Xiasong <lixiasong1@huawei.com>
 Cc: Chuck Lever <cel@kernel.org>, Jeff Layton <jlayton@kernel.org>, 
@@ -106,34 +105,65 @@ Cc: Chuck Lever <cel@kernel.org>, Jeff Layton <jlayton@kernel.org>,
  linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org, 
  stable@vger.kernel.org, yuehaibing@huawei.com, zhangchangzhong@huawei.com, 
  weiyongjun1@huawei.com
-In-Reply-To: <20261124021842.130141-2-lixiasong1@huawei.com>
+In-Reply-To: <20261124021842.130141-4-lixiasong1@huawei.com>
 References: <20261124021842.130141-1-lixiasong1@huawei.com>
- <20261124021842.130141-2-lixiasong1@huawei.com>
+ <20261124021842.130141-4-lixiasong1@huawei.com>
 Date: Wed, 25 Nov 2026 20:29:19 +0000
-Message-Id: <179563855914.3954750.1491302687768867001.b4-review@b4>
+Message-Id: <179563855914.3954750.11018048330217114132.b4-review@b4>
 X-Mailer: b4 0.16.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1795638560; l=523;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1795638560; l=2167;
  i=tmenninger@everpuredata.com; s=20261125; h=from:subject:message-id;
- bh=K/W7Ttia59kCaqhW00kObD6UYvl0Cy15KvgQbFPRCIA=;
- b=K3KNfLNZW+MlbKg74QBHj05k2lRDd141UEooqOB2WaXr5NbI41rEq9YGVr/e2MQ8pyMpgsa08
- 4c/z4AJoO9ABaP2mrNVrAEwbDZbx926CtRckrQhyMUoC7Oo+j0qU8il
+ bh=Kd2c2EKrkQoXWQCM5emjG4zJKJ8aBSctLvqtZYaDmn0=;
+ b=1V7sWT7lWWf0f8yfMDpj+BIRdbhVgODSyOZTykZ9roGfZtm7tD1sUCxO14/jnJRB0pHPY/wI1
+ EgFk+lSkYfJDaPC2jMoNoxwp/6D3les2LPYNSdfYjt9mCQz3/cfkBmY
 X-Developer-Key: i=tmenninger@everpuredata.com; a=ed25519;
  pk=nZPlfTnkwWNTqraxDCv+eNh7JBZRFxAoLY1xeLR6zXI=
 
-> @@ -187,8 +209,11 @@ static void rpcrdma_remove_one(struct ib_device *device,
->  	}
->  
->  	trace_rpcrdma_client_remove_one_done(device);
-> +	mutex_lock(&rpcrdma_device_mutex);
-> +	ib_set_client_data(device, &rpcrdma_ib_client, NULL);
->  	xa_destroy(&rd->rd_xa);
->  	kfree(rd);
-> +	mutex_unlock(&rpcrdma_device_mutex);
+> Device removal only forces a transport disconnect, leaving a connect
+> worker asleep while re_connect_status is zero and blocking endpoint
+> cleanup.
+> 
+> Set -ENODEV and wake pending connects on removal. Give -ENODEV
+> precedence over other failures so late CM events cannot mask device
+> removal. Force established connections to disconnect and use atomic
+> transitions to prevent late ESTABLISHED events from overwriting errors.
+> Handle REJECTED with an atomic status update. Wake the connect worker
+> if the connection is still pending, or force an established connection
+> to disconnect without relying on CQ flushes.
+> 
+> The final endpoint put can free id->context before rdma_destroy_id()
+> synchronizes with CM callbacks. Destroy the CM ID in the endpoint
+> destructor before freeing its context to close this window. Remove the
+> CM callback get/put pairs so final puts occur outside CM callbacks.
+> Initialize the connect waitqueue before notification registration.
 
-Seconding Chuck's nit that you can mutex_unlock before xa_destroy and
-kfree.
+A bit of a nit...
 
-Reviewed-by: Tim Menninger <tmenninger@everpuredata.com>
+Could you split these endpoint/CM ID lifetime changes into a separate
+patch, ahead of the connect-worker wakeup changes?
+
+Moving rdma_destroy_id() into the endpoint destructor and removing the
+CM callback get/put pairs changes the endpoint ownership and teardown
+rules. That addresses a different failure mode from the connect worker
+remaining asleep during device removal, and I think it warrants its own
+commit and explanation.
+
+> 
+> If transport pinning fails, fail and wake a pending connect under the
+> device mutex before skipping the notification. The final transport put
+> can be waiting for that worker to release XPRT_LOCKED.
+> 
+> Translate -ENODEV from the connection status to -ENOTCONN so pending
+> RPCs retry on a hard mount when the device disappears during setup.
+> 
+> Fixes: 3f4eb9ff9234 ("xprtrdma: Handle device removal outside of the CM event handler")
+> Signed-off-by: Li Xiasong <lixiasong1@huawei.com>
+>
+
+I have no other feedback on this series that wasn't already brought up
+by Chuck.
+
+I'm still working on a reproducer to give you a tested tag.
 
 -- 
 Tim Menninger <tmenninger@everpuredata.com>
