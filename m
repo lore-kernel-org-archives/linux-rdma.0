@@ -1,57 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.10.208.52
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795645181;
-	b=vEedjHGbBkewno9oIkxtCinV8GavAoa8aTGa0Rg32DDWfocTANvWMDN4xbjzxh40rcOG
-	 4ufKvLMXWv1aSE+c0yj3NS4sLwdLdjoH30bIEmBwSfdkNHYYudojr3QMC7cuFMlLxOhXu
-	 U+RrF0R2brvFz0DnXm78ozk4M4TgINfecZlbdegq4JCqZvac0y+MDcrNTZG/v7ahzDBI0
-	 ZMZRsq2dG1lU5DkLU4RUR2fylI+gWzeOi7V19uCvHW5Glo5PvpzPQfWRCY3ANN2a927Xn
-	 grZHrbenTudeziLaVY8noFfmRA2zrMcGdTD+tydL40u+bJEV0qUx85YxzqSPJs4QM8Q==
+	t=1795652222;
+	b=kMSo3XGKMlPyzo/AUVty0Tw4a3oGoOCsSoFB1l5e9bHn0nLTjM00yrFmP9KDGwW5Xabi
+	 D525FP6sjeJsro2eVpTse983B81J5yCZXjNpfIHMq4wAUkuoaanxU9039Oro1Dm/3Gvoh
+	 DRNtjtntEwCnHQhRpHcnjb5UOch6giXjLoEWdzfGNnMMeA8zwz9ARZMEEeFMPsLYFHMu+
+	 rWG5flcrvk32CD8K3r8SKEFsDyywHaAUJRsTs3y2Gd4Z+c+hZPZ1fJMYRM3y3uewFix9F
+	 FVTsZpZzBKxIWEHYQWspglu97YxwNdDXaEjWspeHlyTTfGW34qf6W50inlJwdlVhDpw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795645181;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=sZp4LycKK/CTCz9//GVr/ley7FRAUQuSGC++d0eGt8g=;
-	b=XHAkkbSixX/PDlYVWHv+AGt8F8Rh9irvmIAevclyXMUCqhhoaIGv3tLOE+kJFdgo3ZWu
-	 93RM8shyZgRIXdJDF2D/wkBIJWE23uQ+fjVD+BSASTMTS/aKnrmqXfx6wjUxFkL7oJTwe
-	 eJpWG5SgDHuppqf5zrsI7/kaN4O+pNXMMJldr24E/ofp4QD95wEpwsBncljXefxeNFzH+
-	 WAwo/v9vqrDXzY3ogb7gm2dRoW6wjym7iaOMUGq1ds5P05n5gRTtWfqojAOw6iyx9dEYf
-	 P0GGKD7paQLkrBeqbfJqhWpiTETYBWtRu89bqruT58b3ulncrsdSr1s+LX3Zd6TxlJQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795652222;
+	h=DMARC-Filter:Received:DKIM-Signature:Message-ID:Date:MIME-Version:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:
+	 Organization:In-Reply-To:Content-Type:Content-Transfer-Encoding:
+	 X-Rspamd-Queue-Id;
+	bh=NJjDKjcR3y2MEVYEI6NpdcGn2af2AgvOjoZTpqMcRfE=;
+	b=G8UXPvk4jdfkfl9Bahramsurzu9CxYRR/IHVuRkK1eemEbxOPi5VIFhFYQX9xuKaLrSm
+	 xFWDAfX1vhdfcGUSQwRGY/bWzIYYl4oiKdYTE1A3YRXlb1w1kE7SI/pyWRkfRfDxLVgoc
+	 swSbbmiMPENGw8l8T9lLhvFYXK8xCWCnDNdiNkoFYA0ap2a2ptNIENfeDqodPrrVQ7u3v
+	 XIVntgbrzkZCR+gcVRc8q9xYfqn8GEoAokDcGMlL4g7GYVekM86Tt6B47NKFAH04cyWJT
+	 SZAGZ7pPenBNM+/7W118jF5dvGZcd5uBjX66UCn2t/jk9UvkQ1nCjirmLFJTZi+O9eg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=V5Ujo6Jp;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=none header.from=mandelbit.com;
+	spf=pass smtp.mailfrom=mandelbit.com;
+	dkim=pass header.d=mandelbit.com header.i=@mandelbit.com header.a=rsa-sha256 header.s=MBO0001 header.b=cukjlgCE;
+	arc=none smtp.remote-ip=195.10.208.52
+Received: from mout-b-203.mailbox.org (mout-b-203.mailbox.org [195.10.208.52])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76C6F606A31E;
-	Wed, 25 Nov 2026 22:19:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C31CC606A321;
+	Thu, 26 Nov 2026 00:17:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C31CC606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mandelbit.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mandelbit.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=V5Ujo6Jp
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E74CC1F000C6;
-	Wed, 25 Nov 2026 22:19:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795645181;
-	bh=sZp4LycKK/CTCz9//GVr/ley7FRAUQuSGC++d0eGt8g=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=V5Ujo6JpCwf1rziWgyimiRNaXvBGlRzare9YyhCaRo3oNzjGNLrIBseTyAarZbvkP
-	 GswbsrYhbEbBJCYe/cBNbiWDQrQJxN+wcdd+v/QgeDPGuY4eWi3Ke2H9EzB0h76jOK
-	 4lFwcFkaGDX4JpNyGUJ4ckW8MatIVs3luJ5JA6/Pk506TGSfuOT28D3h5x0smRBj+H
-	 EJW+V7vIotOvUhBPloHKxV+Q9+eqeTC2NMcSrrhJM/IHBev/XdRVQ3EF91HeXvz7b/
-	 LnoH8NIUoWKykVaSsOd0ZAd7O77gS0w35E5LFRRxxEClsyfrXO5vraPipmwFqSHuvY
-	 dYKWf+oJG85Kg==
-Message-ID: <sashiko-outbox-234240@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net-next v3 05/12] net: add METADATA_PSP dst to carry a
- psp association on an skb
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Todd Freed" <toddfreed@meta.com>
-Cc: linux-rdma@vger.kernel.org, bpf@vger.kernel.org
-In-Reply-To: <20261124221758.3230929-6-toddfreed@meta.com>
-References: <20261124221758.3230929-1-toddfreed@meta.com>
- <20261124221758.3230929-6-toddfreed@meta.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Wed, 25 Nov 2026 22:19:40 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=mandelbit.com header.i=@mandelbit.com header.a=rsa-sha256 header.s=MBO0001 header.b=cukjlgCE
+Received: from smtp102.mailbox.org (smtp102.mailbox.org [IPv6:2001:67c:2050:b231:465::102])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519MLKEM768 server-signature RSA-PSS (4096 bits) server-digest SHA512)
+	(No client certificate requested)
+	by mout-b-203.mailbox.org (Postfix) with ESMTPS id 4jZcYH6PZxzLm0Y;
+	Thu, 26 Nov 2026 01:16:51 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mandelbit.com;
+	s=MBO0001; t=1795652211;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=NJjDKjcR3y2MEVYEI6NpdcGn2af2AgvOjoZTpqMcRfE=;
+	b=cukjlgCEF4cFyHFiW/XrSM87E4gFrCzAmsD+kxAyEUW+URhHfvkgrahTGy7nX6HbQDYE3q
+	Tdb6Ytlr8pSCVl23gvxfYS1MMYNGz9DPnpK916sNG/D+zpae3EXKipIRbyd5rANaXsYaIt
+	KNGjJAYvxoG2o5Xd5TXaRd0fv1fQAmwUVLECI1yujL7sUf2hpshJSQbAidTib3+zM9xUSd
+	S6kjIWJgnR0gq4MsKhGB9Os0o36NlG5MnDUEVaXU4MLaUA+BhudTKp1E0fzPHe6h3qu7v8
+	w4ZGxVjedMAsZkqoxio7/j1OZNA9TeD0GpHWo4rIDQ1G/LrYc/+G7lxL2vLhGg==
+Authentication-Results: outgoing_mbo_mout;
+	dkim=none;
+	spf=pass (outgoing_mbo_mout: domain of antonio@mandelbit.com designates 2001:67c:2050:b231:465::102 as permitted sender) smtp.mailfrom=antonio@mandelbit.com
+Message-ID: <b201287c-002e-421b-880e-be1da8419e37@mandelbit.com>
+Date: Thu, 26 Nov 2026 01:16:49 +0100
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,86 +65,89 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next v2] net/mlx5e: Prefetch the packet a few strides
+ ahead in the linear MPWQE path
+To: Dragos Tatulea <dtatulea@nvidia.com>
+Cc: netdev@vger.kernel.org, saeedm@nvidia.com, tariqt@nvidia.com,
+ mbloch@nvidia.com, leon@kernel.org, cratiu@nvidia.com,
+ andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, pabeni@redhat.com, ast@kernel.org, daniel@iogearbox.net,
+ hawk@kernel.org, john.fastabend@gmail.com, sdf@fomichev.me,
+ linux-rdma@vger.kernel.org, bpf@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20261104195241.1883539-1-antonio@mandelbit.com>
+ <a31e1e60-7e31-4a14-a087-428d1e3627f2@nvidia.com>
+ <674eb8ef-c93f-4926-a760-62df154ed3eb@mandelbit.com>
+ <20261125215233.3422038-1-dtatulea@nvidia.com>
+Content-Language: en-US
+From: Antonio Quartulli <antonio@mandelbit.com>
+Organization: Mandelbit SRL
+In-Reply-To: <20261125215233.3422038-1-dtatulea@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Rspamd-Queue-Id: 4jZcYH6PZxzLm0Y
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue to consider:
-- [Medium] net: skipped sk_validate_xmit_skb() on gso_skb requeue in
-  dequeue_skb()
---
+Hi Dragos,
 
-commit 8a561ec981f5fecca95918e822dec6211fad4e8e
-Author: Todd Freed <toddfreed@meta.com>
+On 25/11/2026 22:52, Dragos Tatulea wrote:
+> Overall I think these results are quite good. I was expecting to
+> see some issues at scale but nothing really stands out to be
+> honest.
 
-net: add METADATA_PSP dst to carry a psp association on an skb
+Well, thank you for running all of this on hardware I can't get my hands
+on!
 
-This commit adds a METADATA_PSP metadata_dst type to carry a PSP
-association on socket-less skbs and validates it in __dev_queue_xmit()
-and sk_validate_xmit_skb().
+> 
+> I wondered how much each prefetch bings and gathered some data
+> about that as well on the AMD system:
+> 
+>                            v2    without   without   without
+>                                  page      headers   shinfo
+>    UDP 64B flood          +7%     +7%       +3%       +7%
+>    UDP 512B flood         +8%     +8%        0%       +8%
+>    TCP 1 stream          +18%    +17%        0%      +18%
+>    XDP_DROP read         +81%    +81%       -2%      +82%
+>    XDP_DROP no-touch      -6%     -6%       -4%       -5%
+>    XDP_TX               +106%   +106%       -1%      +108%
+> 
+> It does look like the big bulk of the advantage comes from
+> the header fetch.
 
-> diff --git a/net/core/dev.c b/net/core/dev.c
-> index a44b314f387bb..2b1a2736ab3f9 100644
-> --- a/net/core/dev.c
-> +++ b/net/core/dev.c
-[ ... ]
-> @@ -4156,13 +4162,32 @@ static struct sk_buff *sk_validate_xmit_skb(struc=
-t sk_buff *skb,
->  	sk_validate =3D NULL;
->  	if (sk) {
->  		if (sk_fullsock(sk))
-> -			sk_validate =3D sk->sk_validate_xmit_skb;
-> +			sk_validate =3D READ_ONCE(sk->sk_validate_xmit_skb);
->  		else if (sk_is_inet(sk) && sk->sk_state =3D=3D TCP_TIME_WAIT)
->  			sk_validate =3D inet_twsk(sk)->tw_validate_xmit_skb;
->  	}
-> =20
->  	if (sk_validate) {
-> -		skb =3D sk_validate(sk, dev, skb);
-> +		/* the socket's validator would apply instead of checking the
-> +		 * association. A METADATA_PSP dst isn't given to the packets
-> +		 * of a socket with its own offload, but the socket can gain
-> +		 * one while such a packet is queued.
-> +		 */
-> +		if (psp_md_needed_on() && skb_psp_md(skb)) {
-> +			kfree_skb_reason(skb, SKB_DROP_REASON_PSP_OUTPUT);
-> +			skb =3D NULL;
-> +		} else {
-> +			skb =3D sk_validate(sk, dev, skb);
-> +		}
-> +	} else if (psp_md_needed_on() && skb_psp_md(skb)) {
-> +		int psp =3D psp_xmit_md(skb, dev);
-> +
-> +		if (psp <=3D 0) {
-> +			kfree_skb_reason(skb, psp =3D=3D -EMSGSIZE ?
-> +					 SKB_DROP_REASON_PKT_TOO_BIG :
-> +					 SKB_DROP_REASON_PSP_OUTPUT);
-> +			skb =3D NULL;
-> +		}
+Agreed, for these tests.
 
-[Severity: Medium]
-Can a packet carrying a METADATA_PSP dst bypass sk_validate_xmit_skb() if
-it is requeued onto q->gso_skb after initial validation?
+The skb_shared_info prefetch pays off when the stack keeps each packet
+in its own skb: with TCP through an ovpn UDP tunnel on my setup it
+carries most of the gain (+34% with it, +4-5% without), while plain TCP
+and pktgen were within 2% either way, which matches what you see.
 
-When sch_direct_xmit() validates an skb via validate_xmit_skb_list() and
-then finds the TX queue stopped or busy, dev_requeue_skb() parks the skb
-on q->gso_skb.  When dequeue_skb() later pops it from q->gso_skb, it
-skips re-validation unless xfrm_offload(skb) is set:
+> 
+>> I'm also testing a small follow-up: v2 doesn't prefetch when the stride
+>> 4 ahead is in the next WQE, so the first strides of every WQE are never
+>> prefetched. Following the WQ list to the next WQE (only when
+>> cur_sz >= 2, so it is posted and its pages are allocated) removes 26-32%
+>> of the remaining DRAM demand fills on the RX CPU and adds 1.8-3.3%
+>> throughput, measured with TCP inside an ovpn UDP tunnel (where the RX
+>> CPU is the bottleneck); its latency is the "+next" column above.
+>>
+>> I had planned to send it as a follow-up patch, but I can also fold it in
+>> a v3, whatever you prefer once you have your results.
+>>
+> Do you have some results for this?
 
-net/sched/sch_generic.c:dequeue_skb() {
-    ...
-		/* skb in gso_skb were already validated */
-		*validate =3D false;
-		if (xfrm_offload(skb))
-			*validate =3D true;
-    ...
-}
+Well... after running more extensive tests I came to the conclusion that 
+my follow-up is not bringing any gain, despite what I anticipated.
 
-If psp_dev_unregister() runs while the skb is parked in q->gso_skb (or
-skb->sk gains its own encryption offload), the subsequent
-sch_direct_xmit() call skips validate_xmit_skb_list() and hands the skb
-directly to ndo_start_xmit(), where the driver (such as
-mlx5e_psp_set_state()) retrieves pas via psp_skb_get_assoc_rcu() and reads
-a destroyed hardware encryption key ID from pas->drv_data.
+Therefore I'd just keep v2 as is.
 
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261124221758.3230=
-929-1-toddfreed@meta.com?part=3D5
+Thanks!
+
+Regards,
+
+-- 
+Antonio Quartulli
+
+CEO and Co-Founder
+Mandelbit Srl
+https://www.mandelbit.com
+
