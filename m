@@ -1,120 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.62.70
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795730279;
-	b=C5c/3DVrPvhSAQFH7PeY3ZZREqgECcDe0RcnPNtnzvR2uMNBOtc1uAxjuiGPXZNhqFoO
-	 xzEy8aOxHcMgxjLxa6vDpslQ6QFTGDMrrsTrwEr/ap+dZhVdzT464/lFADWyk33l1s9ya
-	 6xFiN7U5aInOp/QVQrtliwOpsXvaeQEzGLMBAo++utTFTcbrxPJYBpWOFa792n5QWptFA
-	 awm+2CXxdf3fat6ZBWmrd76VC/qYxdeR3kSln4QJ5I3XoE+4nNcG3MVsb5PlbtUnwMfy4
-	 9vCe80A4Zl/8RCdJbof80s/VcQlwJxd2fTD31xDNSHkpE9bp9z3LvhAaDEQ/AKMrz4w==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795730279;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:
-	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
-	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:
-	 Content-Type:X-NV-OnPremToCloud:X-EOPAttributedMessage:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-Id:
-	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=TglRTeWqOzhe2hQ0RDp7JOZgUmNQyKkZ3pGDFAEkads=;
-	b=0f72XK7qVNiZ67Of426Jk4DL5SHlR22Z+66tbEsgWk7MX+wY+o8xbGzG/ZqRXrlbIxtw
-	 +PpXSVq4ASyradDj3Pzfu76lOtwmkNkd6DD2m3s23WBTDAZgTswjVDTVl8+QfhXqKiApl
-	 dw7Qzp8zojmTAtr1ABsYDI+f7KHEy8wIG72WS3/IFScQ6eQNaLf/CKFmdlK6Znxv+JhwC
-	 vLpaQMFbT6oDsgTNRjdcpyKn5PapRI5NhUzZfyasExCngAp82FOLFG+/oy2POPGi4CXOn
-	 MZfkK50NfUCEgLPwXUAffbeF4c3TeL6Ch70dHxXOSjPfDnr280WNYxbuWOgMfej2d1Q==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=UyYDoMfR;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.62.70
-Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011070.outbound.protection.outlook.com [52.101.62.70])
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795731016;
+	b=Bv0KtJPZWknzdKFpX8nBLe6QkIMzcPp3sP8ZNUh6hg5Wc70eY3aqgpVG6mAFFvW/+YVn
+	 hcx1lDZoqKw6ByDSCL0oelRfx9LEiOGbU+3V+nqHZ/9AJqynHaZbP3TOnYP0fr9i13Tv5
+	 U5qIo3hNnIEIociwiYg1PJ3kpxon0YVHvqE5FNM/a/J6FDAYV45ym5j0e7jAN5dpRQwzg
+	 FbEp/fjJQvOg2JKR2RwVG7L4A2HqMnq+qJ9YnMSAT2ikYLeT6g6ERDr3aj1e2I2yip+dF
+	 zmE4ms4pZhZVYs1+R0rye01YnJPndQ6aNnuipQcVIHZy+apTNJKwOBQv+TEDzQyC26Q==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795731016;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=XXGep82Zdw9pDfzZhrZHSfxim7KEgQkccoa4MLC4KXg=;
+	b=Ojku98wNwcPFUsJ1nXKQL6Ug2bVF8pBbbhor1J4GLDT7XLuJnVHWr9+qaPT4cDUYnr+8
+	 hwcolVX1BMsNKPK6pDicHZ8lHSAr3uda/+H+nsOovaa1xtwvlLvKCmyXcjnK8LFPo/UwB
+	 1mr1YXEv/R0aNwk/Iv7/Xf/VQy3yr2a/p1mfT0+4DK8F4fuXRdoTuOGk0cOitKZP+FUYg
+	 Lt3lvZ4DmXQ7p1K82pUuxGYBWhP5d5E/97FXOlZuRtIsPQX9QV5/1ubdRc028c2T+wOSg
+	 Qmts2CexQAxX+7JzMfRxG6E7mEykH/EOJALRvsLxAGTGQFPBvny1m8MWxhZmyxJw8zw==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=e9wy9LkY;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9A44606A339;
-	Thu, 26 Nov 2026 21:57:58 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A9A44606A339
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 949A8606A31E;
+	Thu, 26 Nov 2026 22:10:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=UyYDoMfR
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=qJyeh7kk2xh2c7oOcX3PQI5hmEaeuRi+brISF64DoR/AdtfqAfoZyvy9olGNS8W7kO5ngH9gUjXFv0CvuK/1tP82dGu5Mtyi0ObcGLkp9iOBHqWuWXcbDHWHpdffM2r4stGf4ppxwdhRF4TYEwRY51nBeLPwLVVvvFGtQnYHqZOziuyrXdUCSPkFjH3J3brjFSulbt4Spet77UBXeAhYPCrnlPfN5jx6+eoGQhRhwMsqQGhIjw0YH0Bu6L+UkZQgQqHuGy7SfkaAkB7VUfTRjwg5nAgo0SlYeaVUU9hQKuSDPQh4n5KTFKyAyrUOyRKAILPH7HB0kANGqgiU3pJuug==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=TglRTeWqOzhe2hQ0RDp7JOZgUmNQyKkZ3pGDFAEkads=;
- b=Ti1lVoGV6R9uWGfKUvKskHJNZ/UyqbBhDLD0u4TiSqvWdIRtnpnY63u0MeWlP0XkXv3jIc81pAn+trv1lY9lhN/tqc3PlrCz1jfoDgPvgAUquyBMWoDobqwm2lPWWzmwfvk8shqzZSn9UHKDorCevOWNuT0L/0D6Gm1Giw/KXfhsleCbyT3cZyunUA7OvlVfC3ceBmzCxgc7+WBwUURfjh0Iyeyx7zn0qAM+jWyVNxBN+voZ58GxqWqj2ka6qqnjLQZ3EAK/LJPXW/JJrexZruU7SuHueJJSddy9NJeJMLGEOgpM5hq6TuTXocCubOOPAJcb4ZnHFBcIRxhlu3/x7g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.232) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=TglRTeWqOzhe2hQ0RDp7JOZgUmNQyKkZ3pGDFAEkads=;
- b=UyYDoMfRcGbOaIGxUqqmRRRWxGpXSsT0INPU4om3/1r7RZzs+Pxm+3K+ATo6HYXN54M5/lO8xKcn1MpoVrzE0zQFXkGDxZd/tRCCHNCFk3JwHCixb5vAD+bLUVDB/hZFKZuolvDZ0XgebhqY5NCaWjWPnVnLUC4U4NbgW/IRxCM7HKLEpgeSbuZ9RMjxoep239aXGyisXYTlGrxE5qZtl7SJ+0CTB718n3a7mHLlG03XsSNNHZfEb2TemNhnU02YLbkybOE+SKbUTvIRDo4ygErSfK0cIuNuCNLp51O3j9+pGJd61Ofgx9e4rG0a1V3GWzJlUj2/qSlvDPJKlX2ncg==
-Received: from CH2PR18CA0038.namprd18.prod.outlook.com (2603:10b6:610:55::18)
- by DS4PR12MB912252.namprd12.prod.outlook.com (2603:10b6:8:4f0::7) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.662.7; Thu, 26 Nov
- 2026 21:57:42 +0000
-Received: from CH2PEPF000166BB.namprd04.prod.outlook.com
- (2603:10b6:610:55:cafe::73) by CH2PR18CA0038.outlook.office365.com
- (2603:10b6:610:55::18) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.662.7 via Frontend Transport; Thu, 26
- Nov 2026 21:57:42 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 216.228.118.232) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.232) by
- CH2PEPF000166BB.mail.protection.outlook.com (10.167.252.5) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.688.5 via Frontend Transport; Thu, 26 Nov 2026 21:57:41 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
- (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.57; Thu, 26 Nov
- 2026 13:57:33 -0800
-Received: from drhqmail203.nvidia.com (10.126.190.182) by
- drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.57; Thu, 26 Nov 2026 13:57:33 -0800
-Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
- (10.126.190.182) with Microsoft SMTP Server id 15.2.2562.57 via Frontend
- Transport; Thu, 26 Nov 2026 13:57:27 -0800
-From: Tariq Toukan <tariqt@nvidia.com>
-To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
-	<davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
-	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Willem de Bruijn <willemb@google.com>
-CC: Andrea Parri <parri.andrea@gmail.com>, Boris Pismenny <borisp@nvidia.com>,
-	Cosmin Ratiu <cratiu@nvidia.com>, Elliot Edmunds <eedmunds@nvidia.com>, "Gal
- Pressman" <gal@nvidia.com>, Jeroen Massar <jmassar@nvidia.com>, Jianbo Liu
-	<jianbol@nvidia.com>, Kuniyuki Iwashima <kuniyu@google.com>, Leon Romanovsky
-	<leon@kernel.org>, <linux-rdma@vger.kernel.org>, Mark Bloch
-	<mbloch@nvidia.com>, Patrisious Haddad <phaddad@nvidia.com>, Raed Salem
-	<raeds@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Simon Horman
-	<horms@kernel.org>, Sridhar Samudrala <sridhar.samudrala@intel.com>, "Steffen
- Klassert" <steffen.klassert@secunet.com>, Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH net 08/10] net/mlx5e: Validate neighbour events before updating IPsec SAs
-Date: Thu, 26 Nov 2026 23:56:12 +0200
-Message-ID: <20261126215614.792598-9-tariqt@nvidia.com>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <20261126215614.792598-1-tariqt@nvidia.com>
-References: <20261126215614.792598-1-tariqt@nvidia.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=e9wy9LkY
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BA4B1F000C1;
+	Thu, 26 Nov 2026 22:10:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795731016;
+	bh=XXGep82Zdw9pDfzZhrZHSfxim7KEgQkccoa4MLC4KXg=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=e9wy9LkYVjdJtnSeFD2icGT5SmcQt+sSCbrTbGMrQuPX7YMhgs6qFfMH7tZeT/ELo
+	 sXqcs1dAAUgsmxMwJaqicd5b+wNR9xHMs5RYu0z2iLWdC7ln2kKJNGtp07d6rrNBCs
+	 Y8oU3YTI3uKzWCXKx3KKTQeecd0EucsiT6xJbGnIriaClB4nc2kwBtWhCv3W+XjYeN
+	 hSELLBX4DjW/1xQBoOxB9EU+pDzZOaCaDsWlYQDNkTDsu2KhhnZNcFqDz/9dSwjngj
+	 N4k2Uhku8zmwt3yvINYTiZkEdN5NU+Z7P+U+pDksG0zJhjPlZMf/cB39jEQPWfFUu7
+	 +bFD6+qNR7H/A==
+Subject: Re: [PATCH net-next 2/2] net/mlx5: Add controller number for SF and
+ ECVF phys_port_name
+From: netdev-bot+sashiko@kernel.org
+To: tariqt@nvidia.com
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, netdev@vger.kernel.org, pabeni@redhat.com,
+ cjubran@nvidia.com, cmi@nvidia.com, gal@nvidia.com, kees+treewide@kernel.org,
+ leon@kernel.org, linux-rdma@vger.kernel.org, mbloch@nvidia.com,
+ moshe@nvidia.com, ohartoov@nvidia.com, parav@nvidia.com, saeedm@nvidia.com,
+ shayd@nvidia.com
+Date: Thu, 26 Nov 2026 22:10:14 +0000
+Message-ID: <179573101472.3135.6016882066220406695@kernel.org>
+In-Reply-To: <20261125212032.243064-3-tariqt@nvidia.com>
+References: <20261125212032.243064-3-tariqt@nvidia.com>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -124,207 +66,368 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH2PEPF000166BB:EE_|DS4PR12MB912252:EE_
-X-MS-Office365-Filtering-Correlation-Id: 686f07ee-79cb-4e2e-001f-08df4c084b48
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|376014|7416014|36860700016|1800799024|82310400026|261022105027099003|261102123227099003|10067099003|56012099006|11063799006|261021130227099003|261026135527099003|261026140227099003|261026130827099003|261022115727099003|261021133027099003|261026121527099003|261022113327099003|261021135927099003|261021121427099003|261022075727099003|261028144727099003|261021123027099003|261009223027099003|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	yCFpN7uAvsUcaBMkECNTRPWhoGKooscY6QoabHOjmVi6ZIjCMCzuaYloQGcw8yWL6fh110jfIrRBpDCXluJEPsPou2vOM9jSR7r72oLDqK0KOOwePA01AygfwIJcD3ZOalEoNbhOKc/bDQixXXjbKq/aHTMw4wxX47w55vLYd+CTIZGNj8ETU9TIeQP2tm6JaVms6Y6jLniG+j3xQ9q7jvDG0nCxwD/l4JZ1KwlNbCQgbD1zq4I2o7l2R2HU1wZm7DorZAVTiJ6CYwC1v4XJusBTNlgiaeY2zY+gpa/DENSN5zysVZH3OiTphdp3jtEaJj4oq4azjetzU725ryOlRAdivnIktLxF+PssZchC+9rFUjhEZaAOH1gZXwS0YLiOQfcI2u1axgmc9EuchoNnn2xJC/21wRSwZQCqQutGJGGCwAjIl2Qi9fH3t7qCgUyyBtnyZmimPiWo4hCv9m6pNDu0pW18jg226wPIQIjYdq62no45VVXx4NsHc5uWQgFdqJh+XdrQU70N9kM3JJSnFMRnSe84eJAdd/oAhMBDudz/bTWzDuuUbLBklruCtbF7oEZxyZHFByyZHSDBcJgYbKhIa7XAccjtvxagO1/QGUVS+vYWw4QYwc/qh98EW9GRfwhOxWG7aqcJN5gi2jJPUk6GIrpUQG1psK6LbeBRZDK3mD7CloJ8TeRMejXz8Hba
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(376014)(7416014)(36860700016)(1800799024)(82310400026)(261022105027099003)(261102123227099003)(10067099003)(56012099006)(11063799006)(261021130227099003)(261026135527099003)(261026140227099003)(261026130827099003)(261022115727099003)(261021133027099003)(261026121527099003)(261022113327099003)(261021135927099003)(261021121427099003)(261022075727099003)(261028144727099003)(261021123027099003)(261009223027099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	ZgCxvtzJ2vAIFfpF61H5fRgpVG/X0SE8Pn1zn6dqS+IIRXR2vQNqXZkPBryzHMrWxw3N8btXXPc86WOtQYF00NgJKawmRwuiSIHJrgb1kyoE/g7a8ujpM6NjCNDwrqz73apFqo/So+J55bDJXl5jK0LdiPSFSocy9oCEYuKT1LMK/FW6FYbE69vuuiKJS4Rs+eB2CwpFaJ3eezrbsdcqiGoa+wFJCbxBBQaEvrrUV6eIwEaKcwXjrtlOUUPFYYtqjkRBFOboZvP66egKPhJev89JS7xTu5XlRXFO9+POYP1zPfftR+TzV2AMTi/YGpQbWmzApULzKy1S0cyC+kF+56bmZakmVL6Ip1UI6tmI1wYEp4yZm8m780P4eJm22lw+s7MnRSWdSp7rpUvvCLqpNE8PP4yPMNcXHotS2YbQsTyOB6WqDfDge2SD/+GN5rbh
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Nov 2026 21:57:41.4732
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 686f07ee-79cb-4e2e-001f-08df4c084b48
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CH2PEPF000166BB.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS4PR12MB912252
 
-From: Jianbo Liu <jianbol@nvidia.com>
+Thank you for your contribution! Sashiko AI review found 6 potential
+issue(s) to consider.
 
-mlx5e_ipsec_netevent_event() runs for every valid neighbour update on
-the global netevent chain. It matched the event by the SA source or
-destination address, which is wrong:
+Critical: 0 · High: 1 · Medium: 5 · Low: 0
 
-- a foreign neighbour (veth, other netdev or netns) sharing the SA
-  address overwrites the programmed MAC;
-- for a routed peer the MAC is taken from the nexthop gateway, whose
-  address never equals the SA address, so gateway MAC changes are
-  missed.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-Snapshot the resolved nexthop (table, ifindex, key) when its MAC is
-read in mlx5e_ipsec_init_macs(), and match events against it. The
-neighbour tables are per netns, so matching the table also keeps
-neighbours of other namespaces out. The ifindex tells apart one gateway
-IP on several netdevs in a netns. Save it only when the nexthop is on
-the SA's offload device (xso.dev): xfrm flushes the SA when that device
-goes down, so the saved ifindex can never be reused by another device.
-For any other device, e.g. a bond slave when the fallback path is used,
-save ifindex 0 and match the key on any device in the netns.
+- [High] The controller prefix only reaches devlink ports created while
+  the shared FDB is active, so phys_port_names can still collide.
+- [Medium] The SF-add validators disagree on what the 'self controller'
+  is.
+- [Medium] Local SFs on the non-master link now carry a non-zero
+  sf->controller (phys_port_cnum, via mlx5_sf_get_self_controller() ->…
+- [Medium] Nothing serialises esw_funcs->phys_port_cnum between its
+  writers and the devlink SF port_new readers.
+- [Medium] mlx5_esw_sf_controller_to_pfnum_valid() now accepts any
+  satellite PF whose (host_number+1, pf_num) matches the request.
+- [Medium] The patch gives the self PF controller_num = QUERY_PF
+  host_number + 1.
 
-This depends on "net/mlx5e: Copy back only replay_esn after an IPsec
-ESN update": without it an ESN update replaces nh with a fresh lookup
-while the hardware keeps the old MACs, and writes it while
-mlx5e_ipsec_netevent_event() reads it without a lock.
+--
 
-Observed on a ConnectX-8 Kubernetes cluster: a pod learns its node IP
-with the host veth MAC, that MAC is programmed and the peer drops the
-tunnel traffic. Reproduced on ConnectX-7 (fw 28.48.1000):
-- neighbour for the peer address added on a dummy netdev: ping loss
-  100%, 0% with the fix;
-- routed peer, wrong gateway MAC corrected after the SA was added:
-  ping loss 100%, 0% with the fix.
+net/mlx5: Add controller number for SF and ECVF phys_port_name
 
-Fixes: 4c24272b4e2b ("net/mlx5e: Listen to ARP events to update IPsec L2 headers in tunnel mode")
-Co-developed-by: Elliot Edmunds <eedmunds@nvidia.com>
-Signed-off-by: Elliot Edmunds <eedmunds@nvidia.com>
-Signed-off-by: Jianbo Liu <jianbol@nvidia.com>
-Reviewed-by: Saeed Mahameed <saeedm@nvidia.com>
-Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
----
- .../mellanox/mlx5/core/en_accel/ipsec.c       | 48 +++++++++++++------
- .../mellanox/mlx5/core/en_accel/ipsec.h       |  8 ++++
- 2 files changed, 41 insertions(+), 15 deletions(-)
+This commit gives the non-master PCI link in a BlueField-4 Socket-Direct
+shared FDB a non-zero controller number (QUERY_PF host_number + 1). SFs
+and EC VFs on that link then get a cN prefix in phys_port_name. It tracks
+the self PF controller and pfnum in the eswitch, sets and resets
+phys_port_cnum on shared FDB create and destroy, and updates SF
+validation and hwc table selection.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
-index 4084f8a88695..cc75fcb0aa15 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
-@@ -256,6 +256,17 @@ static void mlx5e_ipsec_init_limits(struct mlx5e_ipsec_sa_entry *sa_entry,
- 	attrs->lft.numb_rounds_soft = (u64)n;
- }
- 
-+static void mlx5e_ipsec_set_tnl_nh(struct mlx5e_ipsec_sa_entry *sa_entry,
-+				   struct mlx5_accel_esp_xfrm_attrs *attrs,
-+				   const struct neigh_table *tbl,
-+				   const struct net_device *dev,
-+				   const void *pkey)
-+{
-+	attrs->nh.tbl = tbl;
-+	attrs->nh.ifindex = dev == sa_entry->x->xso.dev ? dev->ifindex : 0;
-+	memcpy(attrs->nh.key, pkey, tbl->key_len);
-+}
-+
- static void mlx5e_ipsec_init_macs(struct mlx5e_ipsec_sa_entry *sa_entry,
- 				  struct mlx5_accel_esp_xfrm_attrs *attrs)
- {
-@@ -263,6 +274,7 @@ static void mlx5e_ipsec_init_macs(struct mlx5e_ipsec_sa_entry *sa_entry,
- 	struct net_device *netdev = sa_entry->dev;
- 	struct xfrm_state *x = sa_entry->x;
- 	struct dst_entry *rt_dst_entry;
-+	const struct neigh_table *tbl;
- 	struct flowi4 fl4 = {};
- 	struct flowi6 fl6 = {};
- 	struct neighbour *n;
-@@ -360,6 +372,7 @@ static void mlx5e_ipsec_init_macs(struct mlx5e_ipsec_sa_entry *sa_entry,
- 	if (attrs->dir == XFRM_DEV_OFFLOAD_OUT &&
- 	    is_zero_ether_addr(addr))
- 		neigh_event_send(n, NULL);
-+	mlx5e_ipsec_set_tnl_nh(sa_entry, attrs, n->tbl, n->dev, n->primary_key);
- 	dst_release(rt_dst_entry);
- 	neigh_release(n);
- 	return;
-@@ -375,13 +388,20 @@ static void mlx5e_ipsec_init_macs(struct mlx5e_ipsec_sa_entry *sa_entry,
- 		else
- 			n = ipv6_neigh_create(netdev, pkey);
- 		attrs->drop = true;
--		if (IS_ERR(n))
-+		if (IS_ERR(n)) {
-+			tbl = addrs->family == AF_INET ?
-+			      arp_table(dev_net(netdev)) :
-+			      nd_table(dev_net(netdev));
-+			mlx5e_ipsec_set_tnl_nh(sa_entry, attrs, tbl, netdev,
-+					       pkey);
- 			return;
-+		}
- 		neigh_event_send(n, NULL);
- 	} else {
- 		neigh_ha_snapshot(addr, n, netdev);
- 		ether_addr_copy(dst, addr);
- 	}
-+	mlx5e_ipsec_set_tnl_nh(sa_entry, attrs, n->tbl, n->dev, n->primary_key);
- 	neigh_release(n);
- }
- 
-@@ -973,10 +993,20 @@ static void mlx5e_xfrm_free_state(struct net_device *dev, struct xfrm_state *x)
- 	kfree(sa_entry);
- }
- 
-+static bool
-+mlx5e_ipsec_neigh_matches(const struct mlx5e_ipsec_sa_entry *sa_entry,
-+			  const struct neighbour *n)
-+{
-+	const struct mlx5_accel_esp_xfrm_attrs *attrs = &sa_entry->attrs;
-+
-+	return attrs->nh.tbl == n->tbl &&
-+	       (!attrs->nh.ifindex || attrs->nh.ifindex == n->dev->ifindex) &&
-+	       !memcmp(attrs->nh.key, n->primary_key, n->tbl->key_len);
-+}
-+
- static int mlx5e_ipsec_netevent_event(struct notifier_block *nb,
- 				      unsigned long event, void *ptr)
- {
--	struct mlx5_accel_esp_xfrm_attrs *attrs;
- 	struct mlx5e_ipsec_netevent_data *data;
- 	struct mlx5e_ipsec_sa_entry *sa_entry;
- 	struct mlx5e_ipsec *ipsec;
-@@ -988,21 +1018,9 @@ static int mlx5e_ipsec_netevent_event(struct notifier_block *nb,
- 
- 	ipsec = container_of(nb, struct mlx5e_ipsec, netevent_nb);
- 	xa_for_each_marked(&ipsec->sadb, idx, sa_entry, MLX5E_IPSEC_TUNNEL_SA) {
--		attrs = &sa_entry->attrs;
--
--		if (attrs->addrs.family != n->tbl->family)
-+		if (!mlx5e_ipsec_neigh_matches(sa_entry, n))
- 			continue;
- 
--		if (attrs->addrs.family == AF_INET) {
--			if (!neigh_key_eq32(n, &attrs->addrs.saddr.a4) &&
--			    !neigh_key_eq32(n, &attrs->addrs.daddr.a4))
--				continue;
--		} else {
--			if (!neigh_key_eq128(n, &attrs->addrs.saddr.a4) &&
--			    !neigh_key_eq128(n, &attrs->addrs.daddr.a4))
--				continue;
--		}
--
- 		data = sa_entry->work->data;
- 
- 		neigh_ha_snapshot(data->addr, n, sa_entry->dev);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h
-index 6c17bd997a0c..d60c72df0bf1 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h
-@@ -119,6 +119,14 @@ struct mlx5_accel_esp_xfrm_attrs {
- 		u8 dmac[ETH_ALEN];
- 		__be16 dport;
- 	};
-+	struct {
-+		/* Neighbour tables are per netns, so matching the table
-+		 * also keeps neighbours of other namespaces out.
-+		 */
-+		const struct neigh_table *tbl;
-+		int ifindex;
-+		u8 key[sizeof(struct in6_addr)];
-+	} nh;
- };
- 
- enum mlx5_ipsec_cap {
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
+> index 8b46634203b37..fa07a571c1b99 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
+> @@ -83,7 +83,9 @@ static void mlx5_esw_offloads_pf_vf_devlink_port_attrs_set(struct mlx5_eswitch *
+>  
+>  		memcpy(dl_port->attrs.switch_id.id, ppid.id, ppid.id_len);
+>  		dl_port->attrs.switch_id.id_len = ppid.id_len;
+> -		devlink_port_attrs_pci_vf_set(dl_port, 0, pfnum,
+> +		controller_num = mlx5_esw_get_self_pf_ctrl_num(esw);
+> +		pfnum = mlx5_esw_get_self_pf_pfnum(esw);
+> +		devlink_port_attrs_pci_vf_set(dl_port, controller_num, pfnum,
+>  					      vport_num - base_vport, false);
+
+[Severity: High]
+Are these attrs ever refreshed after phys_port_cnum changes?
+
+mlx5_esw_get_self_pf_ctrl_num() reads phys_port_cnum here only once, when
+the EC VF vport is loaded. Only mlx5_self_controller_set() sets
+phys_port_cnum, and it runs as the last step of
+mlx5_lag_shared_fdb_create().
+
+In the SD flow, mlx5_devlink_eswitch_mode_set() runs esw_offloads_start()
+first:
+
+esw_offloads_start()
+  mlx5_eswitch_enable_pf_vf_vports()
+    mlx5_eswitch_load_ec_vf_vports()
+      mlx5_eswitch_load_pf_vf_vport()
+        mlx5_esw_offloads_init_pf_vf_rep()
+          mlx5_esw_offloads_pf_vf_devlink_port_attrs_set()
+
+Only after that does it run:
+
+mlx5_sd_eswitch_mode_set()
+  mlx5_sd_activate_shared_fdb()
+    mlx5_lag_shared_fdb_create()
+      mlx5_self_controller_set()
+
+The later rep reload paths (mlx5_eswitch_reload_reps_blocked() and the IB
+rep reload) reuse the existing vport->dl_port, so the attrs keep
+controller 0.
+
+Would EC VFs that exist at switchdev entry still be named pf0vf0 and
+collide with the master's ports? The same question applies to SFs added
+through mlx5_sf_get_self_controller() before the shared FDB exists, which
+would still be named pf0sf0.
+
+In the other direction, mlx5_self_controller_reset() clears phys_port_cnum
+on destroy. Ports that are already registered keep the cN prefix, while
+new ones get none. Does phys_port_name then depend on the order of
+operations?
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+> index 8c2c55ba5c35e..09a29280c48e3 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+
+[ ... ]
+
+> +bool mlx5_esw_sf_controller_to_pfnum_valid(struct mlx5_core_dev *dev,
+> +					   u32 controller, u32 pfnum)
+>  {
+>  	struct mlx5_eswitch *esw = dev->priv.eswitch;
+>  	struct mlx5_esw_functions *esw_funcs;
+> +	bool known_controller = false;
+>  	int i;
+>  
+> -	if (!controller)
+> -		return PCI_FUNC(dev->pdev->devfn);
+> +	if (!MLX5_CAP_GEN(dev, query_host_net_function_v1))
+> +		return pfnum == PCI_FUNC(dev->pdev->devfn);
+>  
+>  	esw_funcs = &esw->esw_funcs;
+> -	for (i = 0; i < esw_funcs->num_spfs; i++)
+> -		if (controller == esw_funcs->spfs[i].host_number + 1)
+> -			return esw_funcs->spfs[i].pf_num;
+> +	if (!controller || controller == esw_funcs->controller_num) {
+> +		known_controller = true;
+> +		if (mlx5_esw_get_self_pf_pfnum(esw) == pfnum)
+> +			return true;
+> +	}
+
+[Severity: Medium]
+Does this check agree with mlx5_esw_offloads_controller_valid()?
+
+This function accepts controller_num with the self pfnum on every device,
+whatever the LAG or master state. mlx5_sf_controller_to_hwc() also maps
+(controller_num, self pfnum) to hwc[MLX5_SF_HWC_LOCAL] on any device.
+
+mlx5_esw_offloads_controller_valid(), however, accepts the self controller
+only when it equals a non-zero phys_port_cnum.
+
+mlx5_sf_new_check_attr() rejects an explicit controller 0 when
+phys_port_cnum is set. It has no matching rejection of an explicit
+controller_num when phys_port_cnum is 0, which is the case on the master,
+on a standalone device, or after mlx5_lag_shared_fdb_destroy().
+
+On such a device, "devlink port add ... pfnum <self> controller
+<controller_num>" passes mlx5_sf_new_check_attr() and this function. After
+that, it either fails in mlx5_sf_alloc() with "Invalid controller number",
+or it succeeds if an SPF shares that host_number.
+
+In the success case, would a local SF taken from the LOCAL hwc be labelled
+cNpfXsfY on the master?
+
+The commit message says:
+
+    But if user specifies other controller number, command fails.
+
+Does that still hold for this case?
+
+The "Local controller is always valid" comment in
+mlx5_esw_offloads_controller_valid() also looks stale now, because an
+explicit controller 0 is rejected earlier when phys_port_cnum is set.
+
+[ ... ]
+
+> +static int mlx5_esw_self_pf_init(struct mlx5_eswitch *esw)
+> +{
+> +	struct mlx5_esw_functions *esw_funcs = &esw->esw_funcs;
+> +	struct mlx5_core_dev *dev = esw->dev;
+
+[ ... ]
+
+> +	entry = MLX5_ADDR_OF(query_esw_functions_out, out, net_function_params);
+> +	for (i = 0; i < num_entries; i++) {
+> +		int pf_type;
+> +
+> +		pf_type = MLX5_GET(network_function_params, entry, pci_pf_type);
+> +		if (pf_type != MLX5_PCI_PF_TYPE_QUERY_PF) {
+> +			entry += MLX5_UN_SZ_BYTES(net_function_params);
+> +			continue;
+> +		}
+> +
+> +		esw_funcs->controller_num =
+> +			MLX5_GET(network_function_params,
+> +				 entry, host_number) + 1;
+> +		esw_funcs->self_pf_pfnum =
+> +			MLX5_GET(network_function_params,
+> +				 entry, pci_device_function);
+
+[Severity: Medium]
+Is pci_device_function enough to tell the self PF apart from a satellite
+PF?
+
+The commit message says the self PF and the satellite PFs share a
+controller number, so self_pf_pfnum is the only tie-breaker. Neither this
+function nor mlx5_esw_spfs_init() records pci_bus from
+network_function_params, and pci_device_function is only unique per bus.
+
+Suppose a self PF and an SPF of the same host both report function 0 on
+different buses, like 0002:01:00.0 and 0006:01:00.0 in the commit example.
+mlx5_sf_controller_to_hwc() would then return hwc[MLX5_SF_HWC_LOCAL]
+before it scans the SPF tables. mlx5_esw_sf_controller_to_pfnum_valid()
+would also accept the request as a self PF SF before it checks the SPFs.
+
+Would an SF requested on the SPF then be allocated from the self PF's
+function ID range via mlx5_sf_sw_to_hw_id()? If so, the SPF's hwc table
+could not be reached for that controller/pfnum pair.
+
+[ ... ]
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/shared_fdb.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/shared_fdb.c
+> index 404278a15ef73..fb96e9c3a5d84 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/shared_fdb.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/shared_fdb.c
+> @@ -190,6 +190,44 @@ void mlx5_lag_destroy_single_fdb(struct mlx5_lag *ldev)
+>  	mlx5_lag_destroy_single_fdb_filter(ldev, MLX5_LAG_FILTER_ALL);
+>  }
+>  
+> +static void mlx5_self_controller_set(struct mlx5_lag *ldev, u32 filter)
+> +{
+> +	struct mlx5_core_dev *dev, *master_dev = NULL;
+> +	struct mlx5_esw_functions *esw_funcs;
+> +	struct mlx5_eswitch *esw;
+> +	int i;
+> +
+> +	mlx5_lag_for_each(i, 0, ldev, filter) {
+> +		dev = mlx5_lag_fn(ldev, i)->dev;
+> +		esw = dev->priv.eswitch;
+> +		esw_funcs = &esw->esw_funcs;
+> +		if (!mlx5_lag_is_master(dev))
+> +			esw_funcs->phys_port_cnum = esw_funcs->controller_num;
+> +		else
+> +			master_dev = dev;
+> +	}
+> +
+> +	if (!master_dev)
+> +		return;
+> +
+> +	mlx5_lag_for_each(i, 0, ldev, filter) {
+
+[ ... ]
+
+> +		if (host_ctrl_num == master_host_ctrl_num)
+> +			esw_funcs->phys_port_cnum = 0;
+> +	}
+> +}
+
+[Severity: Medium]
+What serializes phys_port_cnum against the devlink port_new path?
+
+mlx5_self_controller_set() and mlx5_self_controller_reset() run under
+ldev->lock, called from bond work or mlx5_sd_activate_shared_fdb(). They
+write this field for every eswitch in the group, including peers whose
+devlink lock isn't held.
+
+mlx5_devlink_sf_port_new() holds only the PF devlink instance lock. It
+reads phys_port_cnum three separate times:
+
+mlx5_sf_new_check_attr()
+mlx5_sf_add()
+  mlx5_sf_get_self_controller()
+  mlx5_sf_alloc()
+    mlx5_esw_offloads_controller_valid()
+
+Suppose mlx5_sf_new_check_attr() sees 0 and accepts an explicit controller
+0, and the shared FDB is then created with phys_port_cnum set to 4. Can
+the SF be created as pf0sf0 and collide with the master?
+
+In the reverse order, mlx5_sf_get_self_controller() returns 4 and a
+concurrent destroy then resets the field. Can
+mlx5_esw_offloads_controller_valid(4) then fail with a spurious "Invalid
+controller number"?
+
+This function also writes in two passes. It first sets controller_num on
+every non-master, then zeroes the ones that match the master. Can a
+concurrent reader see the transient non-zero value?
+
+The EC VF read in mlx5_esw_get_self_pf_ctrl_num() is not synchronized
+either.
+
+[ ... ]
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/devlink.c b/drivers/net/ethernet/mellanox/mlx5/core/sf/devlink.c
+> index 2002b7f376ee6..c8aa1b0b9319d 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/sf/devlink.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/devlink.c
+> @@ -237,6 +237,18 @@ int mlx5_devlink_sf_port_fn_state_set(struct devlink_port *dl_port,
+>  	return mlx5_sf_state_set(dev, table, sf, state, extack);
+>  }
+>  
+> +static u32
+> +mlx5_sf_get_self_controller(struct mlx5_eswitch *esw,
+> +			    const struct devlink_port_new_attrs *new_attr)
+> +{
+> +	struct mlx5_esw_functions *esw_funcs = &esw->esw_funcs;
+> +
+> +	if (!new_attr->controller_valid && esw_funcs->phys_port_cnum)
+> +		return esw_funcs->phys_port_cnum;
+> +
+> +	return new_attr->controller;
+> +}
+
+[Severity: Medium]
+Local SFs on the non-master link now carry a non-zero sf->controller.
+Existing code treats any non-zero controller as an external host SF. Does
+that code handle these local SFs correctly?
+
+When the external host PF is disabled, esw_vfs_changed_event_handler()
+calls mlx5_sf_table_esw_changed_event_handler(). That handler only skips
+SFs whose sf->controller is 0:
+
+    if (!sf->controller)
+        continue;
+
+    if (sf->hw_state == MLX5_VHCA_STATE_IN_USE)
+        sf->hw_state = MLX5_VHCA_STATE_ACTIVE;
+    else if (sf->hw_state == MLX5_VHCA_STATE_TEARDOWN_REQUEST)
+        sf->hw_state = MLX5_VHCA_STATE_ALLOCATED;
+
+Take a deactivated local SF that gets rolled back from TEARDOWN_REQUEST to
+ALLOCATED. A later port del goes through mlx5_sf_dealloc() ->
+mlx5_sf_free() -> mlx5_sf_hw_table_sf_free() and skips
+mlx5_sf_hw_table_sf_deferred_free().
+
+Could the function ID then be reused while firmware still holds it, and
+would opstate report the wrong value?
+
+Also, mlx5_sf_hw_table_sf_alloc() arms vhca events under "if
+(controller)", and its comment says that is for external controllers. Is
+it intended to arm them for these local SFs too?
+
+The same applies to SFs created on the master with an explicit
+controller_num, as described above.
+
+[ ... ]
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c b/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c
+> index d8d0616834978..b7e8a8d7cc646 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c
+> @@ -40,8 +40,18 @@ static struct mlx5_sf_hwc_table *
+>  mlx5_sf_controller_to_hwc(struct mlx5_core_dev *dev, u32 controller, u32 pfnum)
+>  {
+>  	struct mlx5_sf_hw_table *table = dev->priv.sf_hw_table;
+> +	struct mlx5_eswitch *esw = dev->priv.eswitch;
+> +	struct mlx5_esw_functions *esw_funcs;
+>  	int i;
+>  
+> +	/* If shared fdb is destroyed, phys_port_cnum is reset to 0.
+> +	 * So use controller_num directly which is read from firmware.
+> +	 */
+> +	esw_funcs = &esw->esw_funcs;
+> +	if (controller == esw_funcs->controller_num &&
+> +	    pfnum == mlx5_esw_get_self_pf_pfnum(esw))
+> +		return &table->hwc[MLX5_SF_HWC_LOCAL];
+> +
+>  	for (i = MLX5_SF_HWC_FIRST_SPF; i < table->num_hwc; i++) {
+>  		if (table->hwc[i].controller == controller)
+>  			return &table->hwc[i];
+
+[Severity: Medium]
+mlx5_esw_sf_controller_to_pfnum_valid() now accepts any SPF whose
+host_number + 1 and pf_num both match. This loop, however, still picks
+the SPF hwc by controller alone.
+
+Suppose two SPFs on one eswitch share a host_number. Could a request for
+the second SPF's pfnum pass validation and then be allocated from the
+first SPF's hwc range? Both mlx5_sf_hw_table_id_alloc() and
+mlx5_sf_sw_to_hw_id() take the first match, while the devlink port would
+report the second pfnum.
+
+Before this patch, mlx5_esw_sf_controller_to_pfnum() returned only the
+first matching SPF's pf_num, so validation and hwc selection agreed.
+
 -- 
-2.44.0
-
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261125212032.243064-1-tariqt%40nvidia.com
