@@ -1,60 +1,96 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795717651;
-	b=l5FY5GyE7BeVpPz6+/9wSkqwUBqg7eAbwuTMpE9shA5TxPruURCyrQ0vOQy7lNJwQx5N
-	 DRKMrGRkh4TPjtsJNWiHNhTa/pEML+q3OcER77GgOyZuS6ayidzs0m/ZrflB55PccpL+p
-	 vVQE0Z1BVetGJOzjnW1/h3/RKkNEZhl8fF1tnzNW+wwIWsVwNGbsepHavw3LTQY5eLlxg
-	 RxaiAFAOTNnqSeQQYGSf4CWkwcWAuDPcf8oCaOHtt5DzY1b52uP6W4un/E4tu0taKwH0y
-	 ToFi+HxEP9GqfAyXuaueLnHXQ3ekxFGMkld2EXc/I+HR/A/rbXy1nofJnobJZo9eIsg==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795717651;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=UP+g+jLUJt1VJnbL+dTM9FJbop57Dq2KJ57hkYZxwNA=;
-	b=SvH/tyTMOWlaHjG7bN66M/rhGa0TTBV65d5LOVgVAwcspY4QWyTGtOLJHngdGdAN6BZg
-	 UcsCChTRpG7JZAoUZKpjpK9WyKAjAin2M1xszVho2M476tlKyPzUM3vVgRzBdiKpt2FGe
-	 hHUUFv8s9MF6+vZYwlpxMZFC1SRwUrL+MNjvfILOylJ+I5jE9y/RUm3MNht9qWbiE58ik
-	 lcAZ3uzAiLLKsO4GRh1Wtr7B0/12kliAWeR8AhLTNbom9/hmeSNR23gpCSiJJj3FIcE8J
-	 hjvGGN1JxIWtBkiDByveMHy62uzYQImrP0am4EGp+ZVzTr5QC8AB13Zbb0EVB7S9r3w==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aJHbRUc1;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.48.61
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795718127;
+	b=J3/8LQ1XnmLi7B7rIy+LaXTz9gPk7F0fboKoqr0wthNJGkhvwsXzHxAOR4vomwLrQnJ+
+	 OP6APbXiQ2bwhwVLKCIfMT0sKUOtmEcBbRz/szgCRGmcSTQYK917+r9XQKDvMNYf0h6N6
+	 iTDtEe70V1uNTxh6PQhsILLzPbPYmBAt73tXpxgRGsm4Gwi/yTxjttsBOjoiFse+MsW4K
+	 dBbXJVJ4sVfm/Svii48T+/BlaUKTNSa3IW71VWYaZNorunyvuWLlv2bxC5okW7TFPHWDk
+	 cmE1Vu0LCk/gkNIfm/WOJ7leilh2PkOROTzrzlckpjkNvMH/s2dIcy1Vv2HtqvcY17w==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795718127;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
+	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=dtNGikoQZBwXBTRU0hKkPA0/G37rLWHt+tuMUfY3VC0=;
+	b=datZNokkAq4mNGsvQZQ6Fz2OYRIe0+ffhPyOSNbh/Z3DJ6XSyKiSfmEjPUMJG8ceGil8
+	 b+5NrJRqVQb0u4LsTzRdEXCY+QHiRKCPq/bijNvjXTXLLtzGvp10/653m35eoqqV1cgoP
+	 2nwSN/3UK90BMQa5aWwlGux/9tG8mtgTsj3LR2mC9nhZg29jXpzNz0heTYvnjSXWZpKWB
+	 t3uQIVqNjCMC6WKelzLG25ZpkEuOe4mWXNMQqJN/SDg8KXkBWwzA48EfaELG9LOb7vA21
+	 HDYmqRKdG4ux7MJ3/+lDglN2hBJFoBcmwizNsySJJtjq5ngFH9NK3LvvmXCzmy9pPaw==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=uqwR9ZaT;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.48.61
+Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012061.outbound.protection.outlook.com [52.101.48.61])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1B42606A31C;
-	Thu, 26 Nov 2026 18:27:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54887606A31C;
+	Thu, 26 Nov 2026 18:35:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 54887606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aJHbRUc1
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 830871F000C6;
-	Thu, 26 Nov 2026 18:27:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795717651;
-	bh=UP+g+jLUJt1VJnbL+dTM9FJbop57Dq2KJ57hkYZxwNA=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=aJHbRUc1oFRZ3O/QHV55ga7bEgqjd8xKAbrAnC4eOTpQW3bWZEySr3kd+KURBDG+C
-	 aBrQTmJDGvczyIfi9avJ1nje3IpwXIMn7Jsh7PmRrZRoDKg+ilufWb5zTtx/uvdKII
-	 PYlDPSYrYgLR/g99EtRLvJQdMz0FKOJKqaCGEiSKwLPY9ayfbqrHgeif9RAhc9EUvG
-	 USTL9dVjUdgB/b2DF8MrgMzYVAXRESR0o5sHf0qQP4kdB+xctQAl+WzRu9roHTn+ok
-	 WgX0zXKzsD5J7IZCl/Ax42aJDqI6k4rvPCVqb+zK7lZPGCurSj82QdZQiFBKaocTBH
-	 HAxVg2oZlEDbQ==
-Subject:
- Re: [PATCH net] net/mlx5e: guard child PKEY channel stats lookup in rx path
-From: netdev-bot+sashiko@kernel.org
-To: eaujames@ddn.com
-Cc: tariqt@nvidia.com, saeedm@nvidia.com, leon@kernel.org, dtatulea@nvidia.com,
- mbloch@nvidia.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- feliu@nvidia.com, davem@davemloft.net, guillaume.courrier@cea.fr,
- kuba@kernel.org
-Date: Thu, 26 Nov 2026 18:27:30 +0000
-Message-ID: <179571765003.3135.3532444751948893709@kernel.org>
-In-Reply-To: <awcn1-LpcFgzRKgq@eaujamesFR0130>
-References: <awcn1-LpcFgzRKgq@eaujamesFR0130>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=uqwR9ZaT
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=wEXKW2g6C5Sp6W7vs7vz9hxNPpc88XpfufOHv1FgpkAyn78oZ4xjqf3E+ee0VelHHZbLcRqKRNWU5Fkkr3WKv0MxLFpXZN8ENQZ1Q+wY+BGINQ1u8+mjgKWoCwqEkNAzOTwchugr/ZMe4lX12c8OkKHRuSxzH2gT/Fwqo93wt+Pdp39Ep4AhP+ZDEOhOrvs8OO+80gZUusd+r+rodMYoUkOg7FZUT3Ia9EEpLxsZttXqSSMtIJHlfZYhxdpP6engeAu0mjX3iRAY5cIyyKL0LAh7gchrgRecTlkl/vMaDiuH253kv/VsC0uNUofl3t8YSYiSvB9S9J8/B3LYuE93Yg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=dtNGikoQZBwXBTRU0hKkPA0/G37rLWHt+tuMUfY3VC0=;
+ b=Wl4oZMkxSOzHwwlthWlebl6+EpgtWZIE6nCAg8oJwxdgrEU5BmxUrjoT7RkID5OZvu3MZaZClgOHs22KwwlOBnnWE9MO/i58w1Nt7Rn2ITRLuXLqDYwaShVh+q0vbHiC5+kajl/ERdWBnDKmMRpFz+YtcZQVqNIDq6eUnO2TwIm/VXPB7rhGOpTHVYY8QtITjs433qynFT4YFoQGy6vBTr/gcpXxQx7KGfgNHeszHjciCVjf8crf3bxrRxhT4/xVEsRCMFDMRkM9pRC8dAA1UpzEU48M+fur8U7NqaYaNlYuT5bYZPSqqsu9vhCeU1kK6TL0meI84oPhJIgxOkeosw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=dtNGikoQZBwXBTRU0hKkPA0/G37rLWHt+tuMUfY3VC0=;
+ b=uqwR9ZaTLg+wc/RhYibvG4qy3uayF1TCi2B39oz01HOzq/1zmIBVLh3ngAVKGOaLnKgjkI0VDewzEu5wrv8CkA2QU6Hsf6wseDMlmA0C2DzpjuoJLEy/309JNAe9oeig2qym0Wdw6q/SjJ413sT9EqTnpqZra3RQ2aWdiCLMS+cYbNrA5WLkiK3Of+qSdKx2Xw3chSPnJtmGta3xpBHno2/YQ+VEGvEjr6p23AbiAxIb8k90t3r64AUGFxSP/1akdNFujwUvKug29QUM+HgneX7mQq7g7Lbk6OSYbq+dQo4xG+Icp3JVeEA4Um9zUD3ZihsDVy1NX20YxTCLxr9i3w==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from SA0PR12MB4367.namprd12.prod.outlook.com (2603:10b6:806:94::13)
+ by SJ0PR12MB7067.namprd12.prod.outlook.com (2603:10b6:a03:4ae::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.662.6; Thu, 26 Nov
+ 2026 18:35:23 +0000
+Received: from SA0PR12MB4367.namprd12.prod.outlook.com
+ ([fe80::2815:8a95:1a44:be1c]) by SA0PR12MB4367.namprd12.prod.outlook.com
+ ([fe80::2815:8a95:1a44:be1c%6]) with mapi id 15.21.0662.004; Thu, 26 Nov 2026
+ 18:35:23 +0000
+Message-ID: <3680bfc9-8309-4eec-a35a-217eada75ae8@nvidia.com>
+Date: Thu, 26 Nov 2026 20:35:20 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] net/mlx5: Free the table after storing failure in
+ mlx5dr_domain_get_recalc_cs_ft_addr()
+To: Wanhui Fu <fuwh1120@163.com>, saeedm@nvidia.com, leon@kernel.org,
+ tariqt@nvidia.com, andrew+netdev@lunn.ch, davem@davemloft.net,
+ edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com, kliteyn@nvidia.com,
+ muhammads@nvidia.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+References: <20261126132229.4028110-1-fuwh1120@163.com>
+Content-Language: en-US
+From: Mark Bloch <mbloch@nvidia.com>
+In-Reply-To: <20261126132229.4028110-1-fuwh1120@163.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: TL2P290CA0012.ISRP290.PROD.OUTLOOK.COM
+ (2603:1096:950:2::16) To SA0PR12MB4367.namprd12.prod.outlook.com
+ (2603:10b6:806:94::13)
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -64,102 +100,104 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA0PR12MB4367:EE_|SJ0PR12MB7067:EE_
+X-MS-Office365-Filtering-Correlation-Id: 793ca73e-019e-479d-a1fa-08df4bec085e
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|366016|376014|23010399003|921020|261026121527099003|10067099003|11063799006|56012099006|261009223027099003|261021121427099003|261021123027099003|261102123227099003|261026140227099003|261028144727099003|261022105027099003|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	z21XsEg3D0afXGJ+M60HRmGYbdmOXN071Y6suILy3P2fj3VxNzEGAf3dYYiUdrYnkzVkdBFjqE6r+NLH5xbT85979PbeAqx3DKdYTGr0AJpFPzy3mck4pyu5d9WbBfKy3c1lQBXkUqb/a39AOzaz+iFjb0AhCvrzFxXNmqB4CNwRS2KU4FvZVhnqci/b0H/5zuV+rDW8sD0boF0lxaQpYiarBwcDzPDUPE1rkOg+HKYzWzHZ+Flp1KFYcHrbIwfmyD128kMNFUUVTh8JooG/oyPFZp80POopM2Qc0EgSrqmdW7HlIt3saCBGi8th8RrX37R5f17KBs8UUPG8bwW9RLuT49fEu1D6xKB6GL0NiD1laCdEp0simHUXlsQgpMWidDbw2Gfr3zZXMEs+iRgwpkf4bH4L1+2OS1IsimuLaC94BNgfTPcTDIk0UBBaRW5LPaGafjv6R2sSQiM7tMbWFb8xPjS0Oo3JFtpFa2AYcoOo5pVqDgI0FKqUaPPW1n7L5fah9O+Ou13nx8oSvy7T+iiicKYi1A303kvaQpB/XA9drA7tkmqLtfUCprxE01jRLqsqmdwIEMiTcZac2pdpeH2uQpO1w4pmJcMjLOyacSt8PS4S+yXq/SuZ36Qq+SZqx7iuBNUu7WoBG4d0t3guOm9cx73gEvYcGWc6YXnSP4J8hG0mbimox/CkDcPSrU+mq5iM9DnuxFVkPmfV/JYZ5A==
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA0PR12MB4367.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(23010399003)(921020)(261026121527099003)(10067099003)(11063799006)(56012099006)(261009223027099003)(261021121427099003)(261021123027099003)(261102123227099003)(261026140227099003)(261028144727099003)(261022105027099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?ZTlSazlNRnJtWnZqQjU3RUR6bkg2NTZMVUt3WEoyY051a1RVMlFxdFJRN3lX?=
+ =?utf-8?B?RW5uSkVNNU0veUFibFgzSGNucDNUTUNKemxSSEdZbXdvRVlWcXVSUFl5d3M0?=
+ =?utf-8?B?blA5b1B1RW50cHV2dDJ1aUkvVGhlU3htcTg1a3BEdzU3K2VSa3BCRkMwaEM5?=
+ =?utf-8?B?L091S2pJRzJUWDdtcmplaGV1MG84Q3JScm9DYm0rY0YwOFVMNTB1YkpwYTVh?=
+ =?utf-8?B?c2VkZ3FpcHRkWkhFVlltN3NrdmYrNmFFYmhINUNuR1NsSm4yK1p0UmRZMmgr?=
+ =?utf-8?B?VnYxbE1IRTI2U0tBeHczRGt0SGIyd1M3MUpIbm0zQW92QXdJVDRUNDd4NGFR?=
+ =?utf-8?B?QUMyV0FqWkNFa20xZGp0S3ZSMFVhSURPVEU4dy9PTjVpT0NHUmN2VzQ4cFpV?=
+ =?utf-8?B?TnQxcmJnTTE0YzNrWHV6YTFiWW5EQ2ZONXhZVDVNNWNjQTRvb1A4R0F4b3Iv?=
+ =?utf-8?B?TElvUlVlalZ5MGRva1lMZXpTRitFcHNCdFZJSWhCSE1MSWtrRVZ3LytQdWIw?=
+ =?utf-8?B?R2hDNzVQK25lV20zNmx0aDc0dzlXVjgvQ0duSm9SUEVhL01QNjVmTzJ6bVVu?=
+ =?utf-8?B?Z1pGVUM3M3BqYVhLNURjSEQrWWFvSHZIeFRndktjZTVsZS94QUMybm4zVVFi?=
+ =?utf-8?B?NFUweU9zdFdMM2pjRDlpNEViOWFMRDM3Mmd3WFJaaTMzUEd4aWEwODgxSjIy?=
+ =?utf-8?B?c3Q4TDNOQVlyNHg4K0RnZGh1Z2tNREhjaEpuL0tnZVVNVmczdE41MjNQS2c4?=
+ =?utf-8?B?UFl2VWtpY01mbzZyVnVLUzhlNjJNWlNQQTFTWDQ2cUVhQjNvKzFsKzFTLzEx?=
+ =?utf-8?B?bSs5eG8vem1HUWdnMVoxZnNESUIvSzQxYXhmTmZtamlOYXNxRnVrNkRoeFhj?=
+ =?utf-8?B?U2dmRTVQendCOTkrNHZab09JQ1NoeHNPM1J1NkZCNllUV0Y3THlVcnU2eUpR?=
+ =?utf-8?B?c1B1cWtIdXRvcFVCV0ZTZFBVSjBoN1ZIRGo5bkFqUjdTZUkwaHlGYkEyYlJj?=
+ =?utf-8?B?amt1dHNHeG9hb2JlT2Rjckk4bnJFWnRKV1QzdmIvZGNSZ2xraFRiNnlmQ1NW?=
+ =?utf-8?B?bjBiN2tGV3phelZNZzBsa1IyeG0xUDErVjcweTFDR3FrNmdXZlpCdWpPRHlZ?=
+ =?utf-8?B?K1RIK2ZzQlhjY0NmS21YakxrQ2FxV2NES3huUnpaS0svaHJWZDNubERKMm9P?=
+ =?utf-8?B?KzFsb3VUY1ExTm14ODJpbjlDeThvNjl6UXY0QWFpVnhQQVZYUFlWYWNWMld6?=
+ =?utf-8?B?elBid1pjV0JtTmovb0tiQURQZFRFOEFLSFU0TWZ3eHNuWmpwTjludW81bHo5?=
+ =?utf-8?B?c1FkNXZsVXNienZRSkVVV3ZOdmc2QktJakRUUDRmSk8zS2tvVlVDZmVxSkYv?=
+ =?utf-8?B?YXYrTEcyRWQ4ZTlkemVLYzVCb0IwcEwvRHhKTUtWeDBQM3JDZUZTUVZxajBJ?=
+ =?utf-8?B?cWtMSmtBbG9nOFltTlJoaVdpcmY5b2RLTVA5Qy9aTTFaZ29ERnJUZlQ1V1ox?=
+ =?utf-8?B?c3ZoeVZYdUZxYjdzclBueklnSzgxVVluUTc2Mi9PcEovTXErL0YvVXA4VzNi?=
+ =?utf-8?B?UHF1T0NQL2d6NVF6aVJzZWhTN28rb2oya05kZkhwQTFndnVXNU5uZWs1MUd2?=
+ =?utf-8?B?cjV1TEsreTY5N1Ara3NkdUVZenp6K2N4anZZS2dxclFJNmhUK0FGTllScUl1?=
+ =?utf-8?B?Wmhkakp6OWE0d1BnWTNjUEx2a2NkajRkWGd4U1cwb1hZQ1psRlZWNmZjZklG?=
+ =?utf-8?B?MnhCTm91RWIzN0ZPamx3Qk54aURtTk4xbVNzRUdISzNkNkwzOTJxTG1iVWNH?=
+ =?utf-8?B?S0luai9wVUl3eEJxRXRXV2QvR3hFVEZRbFJwcmFTcFFqZHpnMjV4WitSVnpI?=
+ =?utf-8?B?MXZ3VVZROU9lQjc5QlBNMlpPb2lieEhCYVJoc3F2KzBSbjJ4KzFvbUNmcXJz?=
+ =?utf-8?B?Zk0xS1BSdXJlQy81TWRKUE9ObDFpTVRlemo1QWllQTJoS2p4Sm9sbXB6cnYx?=
+ =?utf-8?B?T0JWZmRRbjhaSFFNRWl0R05vRnozdjMvbUE1dVl5SkVvSnhBbERlZGV5UDlT?=
+ =?utf-8?B?dHlyb1hDUURyZnFWVDRhZ1RlWlJDcTV0QUhvTFFrRjdEVDhDUktoc09VTThX?=
+ =?utf-8?B?YVBYek5GTm1TYzFtUTFiZ1VwTWdSSUpXcTh1UDdMakxsWGNlMzBndUNxZUto?=
+ =?utf-8?B?bGMweE4yYnJkWFpKQ2dKN3gyWUFwUHlwQjQrZE1zQTQraTVzdTdKbU5acEg0?=
+ =?utf-8?B?eHMrVFZOZFl1OWdoQXFHb1ZVRm9PSDlHMHVSOVlLUkRXeWFEMXJiQUZPRmNs?=
+ =?utf-8?B?SHhGMnZSU1RpTzNYcmkva09XMFRuNFBjNlducDAxWDhEcUI5YWpzZz09?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 793ca73e-019e-479d-a1fa-08df4bec085e
+X-MS-Exchange-CrossTenant-AuthSource: SA0PR12MB4367.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Nov 2026 18:35:23.6361
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: h33xhP0e+ZItpshrnYvXOmSeEW+r3bM740BDqGvdfOTFXG2KTUlNdYLftuioo4ue2zpEVXPXvrICIWWY0SBTfg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB7067
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 0
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+On 26/11/2026 15:22, Wanhui Fu wrote:
+> If xa_store() fails, the entry recalc_cs_ft has not been stored in
+> XArray. Therefore dr_domain_uninit_csum_recalc_fts() would not destroy
+> this entry. Just call mlx5dr_fw_destroy_recalc_cs_ft if xa_store() fails.
+> 
+> Found it by a self-developed static analysis tool and compile-test passed.
+> 
+> Fixes: c0e90fc2ccaa ("net/mlx5: DR, Support csum recalculation flow table on SFs")
+> Signed-off-by: Wanhui Fu <fuwh1120@163.com>
 
-- [Medium] When the child PKEY priv has no channel_stats entry for the
-  parent RQ index, the new fallback in mlx5i_complete_rx_cqe()…
+Thank you for the fix,
 
---
+Reviewed-by: Mark Bloch <mbloch@nvidia.com>
 
-net/mlx5e: guard child PKEY channel stats lookup in rx path
-
-This adds a helper, mlx5e_channel_stats_get(), that checks the channel
-index against stats_nch. mlx5i_complete_rx_cqe() now uses it to look up
-the child PKEY priv's channel_stats[]. If the child has no entry for the
-parent's rq->ix, the stats go to the parent's rq->stats instead.
-
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-> index 1586cb2404c01..5f2347672cf33 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-
-[ ... ]
-
-> @@ -2552,7 +2553,8 @@ static inline void mlx5i_complete_rx_cqe(struct mlx5e_rq *rq,
+> ---
+>  .../net/ethernet/mellanox/mlx5/core/steering/sws/dr_domain.c  | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_domain.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_domain.c
+> index fedefb565a21..3747c217b61c 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_domain.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_domain.c
+> @@ -87,8 +87,10 @@ int mlx5dr_domain_get_recalc_cs_ft_addr(struct mlx5dr_domain *dmn,
+>  
+>  		ret = xa_err(xa_store(&dmn->csum_fts_xa, vport_num,
+>  				      recalc_cs_ft, GFP_KERNEL));
+> -		if (ret)
+> +		if (ret) {
+> +			mlx5dr_fw_destroy_recalc_cs_ft(dmn, recalc_cs_ft);
+>  			return ret;
+> +		}
 >  	}
 >  
->  	priv = mlx5i_epriv(netdev);
-> -	stats = &priv->channel_stats[rq->ix]->rq;
-> +	channel_stats = mlx5e_channel_stats_get(priv, rq->ix);
-> +	stats = likely(channel_stats) ? &channel_stats->rq : rq->stats;
+>  	*rx_icm_addr = recalc_cs_ft->rx_icm_addr;
 
-[Severity: Medium]
-
-Does this fallback count child PKEY traffic on the parent netdev?
-
-For a parent RQ, rq->stats points into the parent priv:
-
-mlx5e_init_rxq_rq() {
-    ...
-	rq->stats        = &c->priv->channel_stats[c->ix]->rq;
-    ...
-}
-
-When the lookup returns NULL, the csum_complete/csum_none updates and the
-packets/bytes updates at the end of mlx5i_complete_rx_cqe() all land on
-the parent. The skb itself is still delivered to the child:
-
-	skb->dev = netdev;
-
-	stats->packets++;
-	stats->bytes += cqe_bcnt;
-
-mlx5i_grp_sw_update_stats() only sums a netdev's own
-channel_stats[0..stats_nch). So the parent's rx_packets/rx_bytes would be
-too high, and the child's would be missing these packets.
-
-For these indexes, isn't this the same misattribution that b5e23931c45a
-("net/mlx5e: IPoIB, Fix child PKEY interface stats on rx path") fixed?
-
-Could this also last beyond the window in mlx5i_pkey_open() between
-mlx5_fs_add_rx_underlay_qpn() and mlx5e_open_channels()?
-
-The child's channel count defaults to:
-
-mlx5e_build_nic_params() {
-    ...
-	params->num_channels = min_t(unsigned int, MLX5E_MAX_NUM_CHANNELS / 2,
-				     priv->max_nch);
-    ...
-}
-
-mlx5i_pkey_ethtool_ops has no set_channels, so the child can't change
-this value.
-
-The parent can be raised above 128 channels with ethtool -L as long as no
-child exists yet, because mlx5i_set_channels() only refuses when:
-
-	if (ipriv->num_sub_interfaces > 0) {
-
-On hosts where max_nch is above 128, a child could then be created after
-the parent was raised. Every child packet that RSS steers to a parent RQ
-with rq->ix >= the child's stats_nch would then be counted on the parent
-for good, not just during the open race.
-
-The commit message says the fallback "adds no new data race", but it
-doesn't mention that the per-netdev RX counters become wrong. Should the
-fallback avoid charging the parent's rq->stats? If the current behaviour
-is intended, could the commit message describe it?
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/awcn1-LpcFgzRKgq%40eaujamesFR0130
