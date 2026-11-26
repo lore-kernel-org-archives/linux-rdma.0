@@ -1,56 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.219
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795695542;
-	b=DnM70GV+WGnPicVUvLfUsIBtBDgBe0z1dO+znTYf+kEHAN8V2wp3tuzfCeFNuyh49L3G
-	 TvnZzB6nblz8jgg9hApd9w0i3NOED4de+JlOkyt4WxQAl9W0DGBaoqjTsvqft/TPjeZCL
-	 fFWRvBFdHh7ec5JYXBB9SGC4EiBqOB8S1y1HAuY3RpOwojiNPauoJ2CbWqgwLXkKYJZ9Q
-	 fZyV8VLrVlMYHppKkrE05nUtoE+lSeZ6uL7JkEs5HqX1shhq3Q7EjKoVtHsl7E7Vk1aBi
-	 ghiL1G0HO7rsTCXZiXWQWBGtq7BGfr3F3LM15QkTWDxZnvh1RwqVNhUxw3F+P5d8KSg==
+	t=1795695630;
+	b=Jrm+aONv+go1owVY7FKtvzNjM6DCsMtKi82oQcp0sNrsLuk7bF1ScqOaKL3CbwLdvXbM
+	 p88VM/sqm7BuLYu6Xngf1/xF4sjMvpYTUSZMW6O/X33KkNuciKynutEl/VBhzZxmbVlTM
+	 xwNmnPY+D5J7+dF7hAAbUq6lNsEbd+tSgCML9zeI4T2nahaD75Oo8TMgm4c1D4kcdUqhA
+	 5a+Nl0ahtx+wJm4z7yeC4F7H/f6MX/eKuGD/fWbOB2HXNkAskM5oXOyz93Gr09sNxVaO4
+	 j9CkI/TO+xAgQSW6JRlARr2QixN0ZZi4raN3KEIxptd2cjvyA9d0ROld5gJIao+b9Gg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795695542;
-	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
-	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Mailer;
-	bh=2TVWFja+Cth+NdMQkyy4msOvx7MobbwbldDKZj2x2+M=;
-	b=RBlaVmBZh91aGJEk/ou9uz5JtB727Ogs/KvdCKoaBigLqTuMWFffaF53O0uZYQnIaJ5n
-	 SkJM90/xJwRwkG8x5OG5tIyCkr5xsisPtXGoBa4H0coA3roKXc45xM1xUGkfZsnq2aUXN
-	 ehe1UE+affkjqPdWgZqIgTowDRgpP4FCIrBa3kuOHss1vc2+ZvYtlfr2+NPt3vLXlvN6L
-	 LtVyGJe6YAsC4uqqgqDiNzt1nEqR4t8zlxbCA0Tt2+hBH0v7rUm12wJzhN3nbxH0AEWjL
-	 JOe0oS0z9P7XGRUpJl97VR/pMNhRL/l1KcSYZz05pXh0FwaypFPOZcGWl2hhw1V96iQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795695630;
+	h=DMARC-Filter:dkim-signature:Received:Received:Received:Message-ID:
+	 Date:MIME-Version:User-Agent:Subject:To:CC:References:In-Reply-To:
+	 From:Content-Type:Content-Transfer-Encoding:X-Originating-IP:
+	 X-ClientProxiedBy;
+	bh=bR8azapuIm6gND1BCKfwp153fvy53Jfj0Qmpom7VgG0=;
+	b=XWNes9PGmMla8DKSpahZSauKnDfZBMHHUrD56dDc9veOQl+NvT69MhrhDCzo2OYIhJdS
+	 Yd64FeUtU4piDCgVNoT8JOjx8ORSx1ZnR0VwE0kNmkc6B16ZFzJvtldie2EQLDOJSj/2o
+	 jb3z2FxILK6wcckgwdlj0OxpfuJUDDx3R6xB62lfV5i57r/vmr4SII5lpdr3bt8QKYqSq
+	 6n+jFT4YYlzThJbl0dz1ORMnPLDZbw4or725ymiUeAMeDvIrWmmiB9qIbjMjDvBV9mR3R
+	 Q2JfGufUHFUW95Yn+WPD4Ynmcqg0TSurqcSLpki/WRCQMjiHt3Md3J8YEXJqU4t7iag==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=orXGA7BV;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=huawei.com;
+	spf=pass smtp.mailfrom=huawei.com;
+	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b="o1j/DIFm";
+	arc=none smtp.remote-ip=113.46.200.219
+Received: from canpmsgout04.his.huawei.com (canpmsgout04.his.huawei.com [113.46.200.219])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 528B5606A31C;
-	Thu, 26 Nov 2026 12:19:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 678FC606A31C;
+	Thu, 26 Nov 2026 12:20:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 678FC606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=orXGA7BV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D4F81F000C0;
-	Thu, 26 Nov 2026 12:19:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795695542;
-	bh=2TVWFja+Cth+NdMQkyy4msOvx7MobbwbldDKZj2x2+M=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=orXGA7BVheuI9J6jXHqYnDnO1N9D9xDQWsqA4Cm5A2fp9Bmpbt5i0AMuR+cDKmrN1
-	 8QPE732WTNocxJOPOmv+cO8eSqaieyLlVCai4N1v+1Gz3/8cZwFVABtCSyZWg7S32s
-	 6ewPfWxWWzSnaPJuNpFA3pFf6hF8EwcRcyUUZImdxLg/+XX0TOYXir+Zy8+45H2sDN
-	 VjoDKcbJqMZZ3DUCB27QOS43BtqdkMAnSebeYlTy4eK3UgxUe6C6xRi5lhK5lhTmUY
-	 +VVdblDFe/IwISS66JrKYj9dVjogVabxQnT+g319cV2qGYqUy8/Z5A7Mr9n/hnIU5m
-	 GEEMfVknjauGQ==
-From: Leon Romanovsky <leon@kernel.org>
-To: Zhu Yanjun <zyjzyj2000@gmail.com>, 
- Andrew Stellman <astellman@stellman-greene.com>
-Cc: Zhu Yanjun <yanjun.zhu@linux.dev>, Jason Gunthorpe <jgg@ziepe.ca>, 
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <20261123140620.64393-1-astellman@stellman-greene.com>
-References: <20261123140620.64393-1-astellman@stellman-greene.com>
-Subject: Re: [PATCH rdma-rc] RDMA/rxe: Zero struct rxe_mmap_info on
- allocation
-Message-Id: <179569553925.1262876.4833992620993528543.b4-ty@kernel.org>
-Date: Thu, 26 Nov 2026 07:18:59 -0500
+	dkim=pass (1024-bit key, unprotected) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=o1j/DIFm
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=bR8azapuIm6gND1BCKfwp153fvy53Jfj0Qmpom7VgG0=;
+	b=o1j/DIFmJzlB2Mlzls2lw7Bhpj2OKKbQ6ovNSQepgOjJAoOXBsyGEQeuUjfjcM57YESShuv6I
+	bO5kL9S8DgZK2SBboIo/RApBbgUTS0NjTMz/O+s05JFyIBMbxsUYdWcWpGvYEKp3c6Q58u8b04q
+	jfrk87D8lgFScrQqJh7YhKw=
+Received: from mail.maildlp.com (unknown [172.19.162.223])
+	by canpmsgout04.his.huawei.com (SkyGuard) with ESMTPS id 4jZwbp4Q1Xz1prLJ;
+	Thu, 26 Nov 2026 20:20:06 +0800 (CST)
+Received: from whupemk300014.china.huawei.com (unknown [7.152.185.8])
+	by mail.maildlp.com (Postfix) with ESMTPS id 4C34B40561;
+	Thu, 26 Nov 2026 20:20:24 +0800 (CST)
+Received: from [10.174.177.221] (10.174.177.221) by
+ whupemk300014.china.huawei.com (7.152.185.8) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Thu, 26 Nov 2026 20:20:22 +0800
+Message-ID: <3e8628bd-2171-4e70-b448-4feb8a7e9eba@huawei.com>
+Date: Thu, 26 Nov 2026 20:20:21 +0800
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,32 +62,41 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 3/3] xprtrdma: Wake connect worker on device removal
+To: "tmenninger@purestorage.com" <tmenninger@purestorage.com>
+CC: Chuck Lever <cel@kernel.org>, Jeff Layton <jlayton@kernel.org>, NeilBrown
+	<neil@brown.name>, Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo
+	<Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>, Trond Myklebust
+	<trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>,
+	"linux-nfs@vger.kernel.org" <linux-nfs@vger.kernel.org>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+	"stable@vger.kernel.org" <stable@vger.kernel.org>, yuehaibing
+	<yuehaibing@huawei.com>, zhangchangzhong <zhangchangzhong@huawei.com>,
+	"weiyongjun (A)" <weiyongjun1@huawei.com>
+References: <20261124021842.130141-1-lixiasong1@huawei.com>
+ <20261124021842.130141-4-lixiasong1@huawei.com>
+ <179563855914.3954750.11018048330217114132.b4-review@b4>
+In-Reply-To: 179563855914.3954750.11018048330217114132.b4-review@b4
+From: Li Xiasong <lixiasong1@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-18f8f
+X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
+ whupemk300014.china.huawei.com (7.152.185.8)
 
+On 11/26/2026 4:29 AM, tmenninger@purestorage.com wrote:
+> Could you split these endpoint/CM ID lifetime changes into a separate
+> patch, ahead of the connect-worker wakeup changes?
 
-On Mon, 23 Nov 2026 09:06:20 -0500, Andrew Stellman wrote:
-> rxe_create_mmap_info() allocates the structure with kmalloc_obj() and
-> does not set info.pad. do_mmap_info() copies ip->info to userspace with
-> copy_to_user(), so the 4 pad bytes of struct mminfo come from
-> uninitialized kernel heap memory.
+That makes sense. I started out fixing the missed wakeup and ended
+up folding the teardown changes in during the v1 review. I'll give
+the teardown fix its own patch and put it ahead of the wakeup fix
+in v4.
+
 > 
-> On x86_64 v7.4-rc3 under QEMU with init_on_alloc=0, an unprivileged
-> user (CapEff 0) issued 300 CQ_CREATE ioctls on rxe0 and read the driver
-> response. After the guest had run ls -lR on /proc and /sys and read
-> /proc/*/status and /proc/*/stat, 101 of the 300 pads were nonzero. In a
-> separate boot with slub_debug=P, all 300 pads were 0x6b6b6b6b. With
-> this patch, all 300 pads were zero in both configurations.
+> I'm still working on a reproducer to give you a tested tag.
 > 
-> [...]
 
-Applied, thanks!
+Thanks for working on a reproducer, Tim.
 
-[1/1] RDMA/rxe: Zero struct rxe_mmap_info on allocation
-      https://git.kernel.org/rdma/rdma/c/5d298f34048ba4
-
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
-
+Li Xiasong
