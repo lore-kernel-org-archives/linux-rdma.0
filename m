@@ -1,56 +1,82 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=68.232.153.233
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795700104;
-	b=ScS+8PEqCv7JL66g2K7IvEY0RfFh7W6cNIh2FPb1R7SAh4rp3iAwJmXWAhcYTyitWGn1
-	 eqHx2rV2NyUP64d4GIyT7Qs2t5ZHT5mLpSdLvuaI50Ut0rLQemijngn55HwXw6CPq9/EO
-	 cwKOB61rG74pcK5/RnYDHXKmbKutGnUpm2Oa+zR1wTKFy1ZN6kx6wZOfQdeNluLanErZV
-	 WTz465U9CCb+0CxEZidGTu09xwSeY3kCJ9XJ1y/BMWbVxTr+A7LSGfYw7u8v/NM/CJSMV
-	 DU8Vr3UleQ00eWCaw4GOvFC71FmycF10zNvkFx9XWdnk++j/bTQBaAIOja0mIfscKkw==
+	t=1795700293;
+	b=D4M2VGnV1Wn0iAV70MHQI27Tue1RXqMEOecoUOu/mcoHw01F45eWnj3OmQUbfVhkQ9nh
+	 v3HsZuZzABp80g4+gQvGeIywpvr3S5y8ZHcQszg/U8Qqxg9jWJPnu2HxnjHErU3CZ/cIH
+	 oKUYpx3NLrBlGid/DLjLcVPQTjVG+CrgxdZS/jn3OWnCnKjZ37yJA52Fqpt6aHesaLGbB
+	 jas6WthhiiAygLu++0lfVD6poRGmZwILU6xiqQXW5O4RljqHb77gSl2MpbjFJByiHsIX0
+	 wNQGMfzbJ2n1ZSoTYtJYWWcJ1I5ejkZgTiAwPYJkaCNPhPJAg/mtAtmJc+dV5VWg0Yg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795700104;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=uxZFYp0iD5XWnqO4XEfJ/0Wb+IyoQJyhBLC5CzOa+VU=;
-	b=NwODRu+YlQOmGLlmoiGs0h/KW5n1gf0piAnQHF96rDq5W3fTIpvoeFhpYWE/dwDLaZJn
-	 uT2Bla6mFfzTQ7y72IsT5TG0xrvqHDVt6TBS/HkITsPRZ3GakzCDDUzAfOkXlfGTu0xDc
-	 d/+VLS7rIyVxx95yPAqbxRCYnqxt23ea0TxZslKlpARNgRhQkAfxJ+kJmGIrgnH/rWzcy
-	 zioiDGMvVHus42WCk5qZ3yCghmLHgsraAoFvmNW84abICS3Agb/sMj5X6Bzjiuqy+IdMd
-	 qBoOIyp8dnuDBnnxii3mX15wmXgqUp17SaOUBjWbbwZPmKknDhH2Q0RCvFX3QhDCsNA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795700293;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-Amp-Result:Received:Received:Received:Date:From:To:CC:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=UB4R9+g+/1K+GpovN9vjde8xK9vvArzBeCX49NLeBVM=;
+	b=wed2wzGzAHfe7J/8F7RaEunQ50u16Jxz3vjb39RjgX+/8vwlea3huofxitF27GKK9fbh
+	 tJzWOKptosZIXo84VgJMYXjhUcgPohR0DwHFBNGXqWMWs9VgUnSTzSGB2acsqQbc688wr
+	 enyPn+GiX6bN+jaKKIODFyHcyjgeIXnDw1p8TRKJ4QC1HYcvDdaJ2lb8qtE9eqG6LENg6
+	 oJ0DwNADNHLUl3jsAdBMBp0KvTX5JcgLAC+dBTkVL/dLLvAXiWQ/6QD19AVlM5GerVQsX
+	 +qHWYDZtbyfpYYLrqoiAnpFUcjac4sjG6MdmX8qh8zeo/c80EaXZiHVHxZUBbOqpBaQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ioGpJG4a;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=microchip.com;
+	spf=pass smtp.mailfrom=microchip.com;
+	dkim=pass header.d=microchip.com header.i=@microchip.com header.a=rsa-sha256 header.s=mchp header.b=j599wb4N;
+	arc=none smtp.remote-ip=68.232.153.233
+Received: from esa.microchip.iphmx.com (esa.microchip.iphmx.com [68.232.153.233])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BFED606A321
-	for <linux-rdma@vger.kernel.org>; Thu, 26 Nov 2026 13:35:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AFA0606A31C;
+	Thu, 26 Nov 2026 13:38:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1AFA0606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microchip.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microchip.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ioGpJG4a
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CDEB1F000CA;
-	Thu, 26 Nov 2026 13:35:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795700103;
-	bh=uxZFYp0iD5XWnqO4XEfJ/0Wb+IyoQJyhBLC5CzOa+VU=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=ioGpJG4aptnoG0kRuJeaSGuD5YVZX6B9rIROWaVXMDx0SJ2iHz/HNlLH5FzspPMWI
-	 PwmSOXUL3EIgX5KyfJHvUxvQzEX/OrdSem/QRh7TuzoFUR+2Wf/NZ3fjx46kb8c2Lw
-	 8SEgJ4e24JSGfMx5a/8pd11amwfFEH5O0tfvbIjUyJB0nzOxU3KozqEb1cIjDJ9cfB
-	 zfcoPQPv2aUUMQz63+lRUYOw/KcnEwvrr6wh7MoQ+696Sv7wLd8oGXvWz+QZJHBsHp
-	 DDNNU1r7qRrxv7opHTHN+qwWI64/xz8iR3zgfUXsJsqmdoT7Xl2tG8RWn9oRUkA8KZ
-	 2kiM8Uw1OMkaQ==
-Message-ID: <sashiko-outbox-235622@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH] net/mlx5: Free the table after storing failure in
- mlx5dr_domain_get_recalc_cs_ft_addr()
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Wanhui Fu" <fuwh1120@163.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261126132229.4028110-1-fuwh1120@163.com>
-References: <20261126132229.4028110-1-fuwh1120@163.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 26 Nov 2026 13:35:02 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=microchip.com header.i=@microchip.com header.a=rsa-sha256 header.s=mchp header.b=j599wb4N
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=microchip.com; i=@microchip.com; q=dns/txt; s=mchp;
+  t=1795700301; x=1827236301;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=G4zsWeUju+IWgiWPQzRUVrkAwzZVYkalz/qY46Q3Yh0=;
+  b=j599wb4NtXMxfaGWrAn0WnQ4MdDszOMt3DTeWkBs8QT85cHFeE2iSJPO
+   grTBBP7pgCWz7JC7thg3ae3DgV/xuw1/N4X7B0fpbCNhqNC/BjNShbPx3
+   cXNaRaPmB5IC6hZCtrpKsB4XqpZp5ebWO+z+ogj8Ce21NjPc8pGKcIqMY
+   N3ZahKIESA0VhFKkIZtlqJbzYAJuL2VMMhR0rntsGkHKpLrsuHWgbpQc7
+   9XwOQaoMjn7wM/u70ciB0EZqF4xYlG3kwzKwPTcxpUGVo4w1rO1dWrTWK
+   L7tiUpY62tK1AIXkpwADvv3/QDi5bPr/+94bjatgxrANMcEU0H5HXR8et
+   Q==;
+X-CSE-ConnectionGUID: eKHu6kANRpC25hSdYnGHwA==
+X-CSE-MsgGUID: GSlVHfESQC61gBgrgTfi3Q==
+X-IronPort-AV: E=Sophos;i="6.27,235,1787036400"; 
+   d="scan'208";a="298499061"
+X-Amp-Result: SKIPPED(no attachment in message)
+Received: from unknown (HELO email.microchip.com) ([170.129.1.10])
+  by esa5.microchip.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES128-GCM-SHA256; 26 Nov 2026 06:38:14 -0700
+Received: from chn-vm-ex04.mchp-main.com (10.10.85.152) by
+ chn-vm-ex02.mchp-main.com (10.10.85.144) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.58; Thu, 26 Nov 2026 06:38:05 -0700
+Received: from DEN-DL-M70577.microsemi.net (10.10.85.11) by
+ chn-vm-ex04.mchp-main.com (10.10.85.152) with Microsoft SMTP Server id
+ 15.1.2507.58 via Frontend Transport; Thu, 26 Nov 2026 06:38:01 -0700
+Date: Thu, 26 Nov 2026 14:38:01 +0100
+From: Daniel Machon <daniel.machon@microchip.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+CC: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
+	<kuba@kernel.org>, <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Willem de Bruijn <willemb@google.com>, Ariel Levkovich <lariel@mellanox.com>,
+	Cosmin Ratiu <cratiu@nvidia.com>, Gal Pressman <gal@nvidia.com>, Leon
+ Romanovsky <leon@kernel.org>, <linux-rdma@vger.kernel.org>, Mark Bloch
+	<mbloch@nvidia.com>, Muhammad Zuhayr al-Tayyar <mzuhayr@earthlink.iq>, Roi
+ Dayan <roid@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Saeed
+ Mahameed <saeedm@nvidia.com>
+Subject: Re: [PATCH net] net/mlx5: E-Switch, Fix offloaded nf flowtable rules
+ never being hit
+Message-ID: <20261126133801.mvor2d6hxa4icwrq@DEN-DL-M70577.microsemi.net>
+References: <20261125115815.87909-1-tariqt@nvidia.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,19 +85,42 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20261125115815.87909-1-tariqt@nvidia.com>
 
-> If xa_store() fails, the entry recalc_cs_ft has not been stored in
-> XArray. Therefore dr_domain_uninit_csum_recalc_fts() would not destroy
-> this entry. Just call mlx5dr_fw_destroy_recalc_cs_ft if xa_store() fails.
->=20
-> Found it by a self-developed static analysis tool and compile-test passed.
->=20
-> Fixes: c0e90fc2ccaa ("net/mlx5: DR, Support csum recalculation flow table=
- on SFs")
-> Signed-off-by: Wanhui Fu <fuwh1120@163.com>
+> In switchdev mode, nf flowtable entries offloaded to the FDB are
+> installed but never hit, and the traffic keeps going through the slow
+> path.
+> 
+> esw_chains_create() opens the nf flowtable chain, then the root table
+> (chain 0, prio 1), and only then sets the nf flowtable table as the end
+> table of the chains. mlx5_chains_create_prio() takes the miss
+> destination of a new prio from the end table when the prio is created,
+> which for the root is still the default table, i.e. the slow path. So
+> the root misses to the slow path, and the nf flowtable chain is never
+> reached.
+> 
+> Another chain 0 prio, e.g. of a tc rule, hides the issue: the root's
+> miss is rewired to it, and its own miss goes to the nf flowtable chain.
+> This stays so after that prio is destroyed, until the eswitch is set up
+> again. Setups that always have such a prio, like OVS, don't hit it.
+> 
+> Set the end table before opening the root, as it was before the
+> offending commit.
+> 
+> Tested on ConnectX-6 Dx in switchdev mode, with two VFs routed through
+> their representors and an nftables flowtable with offload on them.
+> Without this patch, the connections are HW_OFFLOAD but 99% of their
+> packets go through the representors until a chain 0 prio 2 tc rule is
+> added; with it, they are forwarded by the eswitch from the start, in
+> both SMFS and DMFS.
+> 
+> Fixes: ae430332557a ("net/mlx5: Refactor multi chains and prios support")
+> Reported-by: Muhammad Zuhayr al-Tayyar <mzuhayr@earthlink.iq>
+> Closes: https://lore.kernel.org/netdev/AM0PR02MB4307F6D53A2B0AD628D91C81C6682@AM0PR02MB4307.eurprd02.prod.outlook.com/
+> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+> Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
 
-Sashiko has reviewed this patch and found no issues.
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261126132229.4028=
-110-1-fuwh1120@163.com?part=3D1
+Reviewed-by: Daniel Machon <daniel.machon@microchip.com>
