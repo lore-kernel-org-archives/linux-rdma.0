@@ -1,52 +1,53 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.27.60.169
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795700600;
-	b=Az46wLoMB9IdWX2opzw+dPXwu3uaK9HdltEDGMASPTudxcTUmvn3MJOTY7y3HIfrRNpI
-	 97oEIZXP4GVAzNlFG/5bqvEO/tLOiE0A+YWhTbNjhKX6ZENhmGOR3jXd9eD/+Fyvl+OwM
-	 WqbvF8tz8Z2cUIO4RhiGT0x2CaHMHsfDtfKIXwI3RIsjUuMwsen76r/9mBFIveyV1UUpL
-	 mYDWDpDfm5y6Lqw+fcqY8dp2HqBFvCeJI/ylSe5cVbKY4Y5ZKiR7lkN9Af+N/WEd9Nfs7
-	 e9mJb5gARKjbCPRI+Z5PuPlhr8m/4zM5bQoPpYWbv3+dCOu9PNVn3IiB9PN/tA6I5Vg==
+	t=1795701313;
+	b=VzB07uF0iXTuBdxIGyJqPGi2vO98JVbi8fiB2SRUUVoGRer5lW42Szwn/fj3ia346hj+
+	 rF8B+fAR5P0E+IVTrVHWP5Z1RvpnszaTtSZ1lkUwHcjjb5L9/nuhf/PspV08LviDkqGiu
+	 p+dmqKCwtwb4OkjLqhtuNRQs3v0yFa1XkEigkNktoJjwlT9i9Z3UDPcAAOJ92Zqe3NDM6
+	 nzvElu5wMi5j6JtAd1K91JPZ626HS7yWpNUiWux0efniOl07OXuHlaIOzmAd24ARgSlCs
+	 Q4/sEqqly2HJQvqAYM7js42entx3dMA50iJLBHdzgl0ENQ4niO98DBXS3gkyhNnKF6A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795700600;
-	h=DMARC-Filter:DKIM-Signature:Received:Message-ID:Date:MIME-Version:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=ko4eL4z4K6V3lb/3C7dqqajHBKs8W+KA+MAk4fHSYBk=;
-	b=KiJU3PGBZqS22Xjh79Wn9jHGY5DvvWbsU8dc0y7viRQX4s4NpBDaPBwgNMLxdjVykqUv
-	 OaiqZwdaGpabqi2igXI4xlDFuZKDDbCzQ8jcIWEdy9c3yHaz5Ene//kFHMF49I+xdAPgM
-	 5o9/5vPe0ss9By3B3J/WzOAgumqG1+eBiAfdOt1DylGKssKpX4930HfGdqioSm3iqpLmq
-	 xH8d9ruj7rGGxlwOg7SCTOekkvrokCZpkuHjw8cA/IN/Yr68e1mF6y/GaG0FlQlWGIuVK
-	 Zihkq7RhvC2XKu8S6ikauKqLMdlvoGTYE4pnafNBoMINrbqNVdbGvVviZ43RfPv2tZA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795701313;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=vKIf+WNo5OzHHAJYkS+pAgKjd3TBVYejDD4IVW523e4=;
+	b=XEiFfqvhZfdpAGYLkXDqOZRheyID5G7iXyR9kEuSzC3Hxag/IE0VScNmkqD34Zfy970y
+	 Yfne4laIwmsx5uLFI68XPgSKDFGTUtYVHOHFyUFoL6nv71u1d/VooMPpO8ZwfKP0P58ss
+	 46vjMy8h2tU399zi54x5Qm9lNo7sK7OsE2KjikSinsJ3mPUzERdP2IvP14N8yztTmhWa2
+	 Pc/nFHDg0/0YSviWLrHLthUSwKIwgXVgJlrbFXWI10vYGYjeLYOnq9Mol71sH0UCdcHat
+	 IZzKx6JiMhtij2yODGS7fn0UxQZopDgIlVHHfvRtcj+IlRIQ/W3/2kZNs6Xk6AJvEsg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=corp.free.fr;
-	spf=pass smtp.mailfrom=corp.free.fr;
-	dkim=pass header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=SH7PBekn;
-	arc=none smtp.remote-ip=212.27.60.169
-Received: from rcs.proxad.net (rcs.proxad.net [212.27.60.169])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FDYomTmu;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A261606A31C;
-	Thu, 26 Nov 2026 13:43:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0A261606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=corp.free.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=corp.free.fr
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CB8E606A31C;
+	Thu, 26 Nov 2026 13:55:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=corp.free.fr header.i=@corp.free.fr header.a=rsa-sha256 header.s=rcs header.b=SH7PBekn
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=corp.free.fr; s=rcs;
-	t=1795700590; bh=Ru+TyEI2Iupe+FdyreM1ZguqMa4aXugpSK2X1PFjJ3M=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=SH7PBeknUlBS+Ko3TQRwaap3XHmzEB/MeBQW/HN6w6bUpjw67MJLZvURDtbHYG1C1
-	 WwKRadD1dZSjfkjOWwqlGzsmgkGAxIiU5aT7NyNE6mxTOwnG2VD2a13oIC38VBFs2D
-	 jHY9qhDDo67hlYzC7M5Wb0LmY84iJRLMlZBQRSwtiSlQHlaIzMT7YrwPbbIt4araBL
-	 8UR+H0Ag4ltugh0+YFVvhmZYbc9OzXai1ioACygfh+vXDZ+rZa6YxgFSTh0rEalBcW
-	 GqEKokbJDejQ3pdF3O0RLYObZ8B6lWC2bBft8UyKgZYfqVUmC2kjDXOtYY+gj4dKaC
-	 T5cXTxh9t/YZQ==
-Received: from [0.0.0.0] (unknown [213.228.1.188])
-	by rcs.proxad.net (Postfix) with ESMTPSA id 512E444C025D;
-	Thu, 26 Nov 2026 14:43:09 +0100 (CET)
-Message-ID: <c3f3dd4c-5dfa-4fb0-9a64-016192be5782@corp.free.fr>
-Date: Thu, 26 Nov 2026 14:43:08 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FDYomTmu
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3A511F000C0;
+	Thu, 26 Nov 2026 13:55:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795701312;
+	bh=vKIf+WNo5OzHHAJYkS+pAgKjd3TBVYejDD4IVW523e4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=FDYomTmuQZ6AIJRVZKh9cY6orkhEsTfU4F0Ule5osgzmdGCRgcoqotLvV3sk7l2R3
+	 uAI3QddPJIxni3Bb3tDiBfknIbnBkRCeYm8a9slPLGqEa4Aly7+yPWOe7LT7CTWT0x
+	 LsceOvQ/jI0j/YsNxbO1f7zkrZZsXr+nN7ai9HIxcaHjqcwL/DTjsNmPL9ugOEVPR8
+	 H6E0xt4CDXjNFgKU1kMAub0O8JdtOf5ASAXTj7CZXQjmDcocUZvi/aTQAlMN7ibN6b
+	 BDQLYD/ITt4mWndUxcclR/BIbZmam7P41NHEWDBm5QBbz4fiRH8+RNQ/eg2cvy1fVz
+	 00wQKvPHYuQ9w==
+Date: Thu, 26 Nov 2026 15:55:08 +0200
+From: Leon Romanovsky <leon@kernel.org>
+To: Cygnus Qiu <eritque-arcus@ikuyo.dev>
+Cc: bernard.metzler@linux.dev, jgg@ziepe.ca, cel@kernel.org,
+	linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH] RDMA/siw: don't complete a fenced READ twice on flush
+Message-ID: <20261126135508.GO774860@unreal>
+References: <20261125060646.155172-1-eritque-arcus@ikuyo.dev>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -56,68 +57,85 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v2] net/mlx5e: Prefetch the packet a few strides
- ahead in the linear MPWQE path
-To: Antonio Quartulli <antonio@mandelbit.com>, netdev@vger.kernel.org
-Cc: saeedm@nvidia.com, tariqt@nvidia.com, mbloch@nvidia.com, leon@kernel.org,
- dtatulea@nvidia.com, cratiu@nvidia.com, andrew+netdev@lunn.ch,
- davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org,
- pabeni@redhat.com, ast@kernel.org, daniel@iogearbox.net, hawk@kernel.org,
- john.fastabend@gmail.com, sdf@fomichev.me, linux-rdma@vger.kernel.org,
- bpf@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20261104195241.1883539-1-antonio@mandelbit.com>
-Content-Language: en-US
-From: Alexandre Cassen <acassen@corp.free.fr>
-In-Reply-To: <20261104195241.1883539-1-antonio@mandelbit.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261125060646.155172-1-eritque-arcus@ikuyo.dev>
 
-Hi Antonio, Dragos,
+On Wed, Nov 25, 2026 at 01:06:46AM -0500, Cygnus Qiu wrote:
+> siw_sq_flush() completes the READ in the TX slot while it is still
+> SIW_WR_QUEUED, assuming a queued READ is not in the ORQ yet. That only
+> holds when a full ORQ fenced it. siw_activate_tx_from_sq() copies a READ
+> into a free ORQ slot, and siw_check_tx_fence() copies a fenced READ into
+> the ORQ once a Read Response frees a slot; in both cases the WQE stays
+> QUEUED until the TX path sends the Read Request. A flush in that window
+> completes the READ from the ORQ and again from the TX slot: two
+> IB_WC_WR_FLUSH_ERR completions for one work request.
+> 
+> The peer controls the window. It advertises IRD 1, so the ORQ holds one
+> READ, and answers the first Read Request with a Read Response and a FIN
+> in one TCP segment: the FIN suspends TX before the Read Response moves
+> the next READ into the ORQ, and the close flushes it.
+> 
+> svcrdma's svc_rdma_wc_read_done() then puts the receive context twice,
+> which links it into sc_recv_ctxts as a loop, and svc_rdma_free() reads
+> it after freeing it and frees it a second time, a double free. svcrdma
+> pulls the Read chunk before it decodes the RPC, so the peer needs no
+> RPC credentials and no export access.
+> 
+> Complete a QUEUED READ from the TX slot only while the ORQ fence is set.
+> 
+> Found with afb-afl, an LLM-driven kernel audit/repro pipeline; the fix
+> and this changelog were also drafted with LLM assistance. Reproduced on
+> an unmodified KASAN build of mainline: a plain TCP client sends nfsd's
+> svcrdma listener on siw an RDMA_NOMSG call whose Read chunk has two
+> segments and answers the first Read Request as above.
+> svcrdma_wc_read_flush fires twice for the chunk (5 of 5 runs), then:
+> 
+>   BUG: KASAN: slab-use-after-free in llist_del_first+0x150/0x170
+>   Read of size 8 at addr ffff8881119d9000 by task nfsd/183
+>    llist_del_first+0x150/0x170
+>    svc_rdma_recv_ctxts_destroy+0xf3/0x1b0
+>    svc_rdma_free+0xd8/0x2e0
+>    svc_xprt_free+0x22c/0x420
+>   Freed by task 183:
+>    kfree+0x162/0x500
+>    svc_rdma_recv_ctxts_destroy+0xe7/0x1b0
+> 
+> Without KASAN and with SLAB_FREELIST_HARDENED, the double free is
+> caught as "kernel BUG at mm/slub.c:605" in kfree() from
+> svc_rdma_recv_ctxts_destroy() (4 of 4 runs).
+> 
+> With this patch the chunk is flushed once and KASAN stays silent (4 of 4
+> runs). The rdma-core tests could not run: the siw provider of rdma-core
+> 66 fails an assertion in siw_destroy_cq() on the first test, with and
+> without this patch.
+> 
+> Fixes: f29dd55b0236 ("rdma/siw: queue pair methods")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Cygnus Qiu <eritque-arcus@ikuyo.dev>
+> ---
+> Tested on mainline 4405c18c95d2 (v7.4-rc3+) in QEMU. Applies to
+> mainline 8d7fe9885c62.
+> 
+> Sending the FIN only after the second Read Request has gone out, or
+> with no Read Response at all (the fenced READ never enters the ORQ),
+> gives one flush completion before and after the patch.
+> 
+> siw_sq_flush() now relies on orq_fence. That bit shares a byte with
+> tx_suspend, which siw_cm_llp_state_change() sets without the QP state
+> lock. A lost update there already stalls the fenced READ in
+> siw_check_tx_fence(); with this patch it would also lose that READ's
+> flush completion. I did not try to hit that window.
+> 
+> A reproducer and the test logs are available on request.
+> 
+>  drivers/infiniband/sw/siw/siw_qp.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
 
-On 11/4/26 20:52, Antonio Quartulli wrote:
- > numbers from DDIO/SDCI systems and CX-6/CX-7 would be welcome.
 
-we are running perf tests over our 5G UPF code (pure XDP with mlx5), 
-just get your patch and test it over our stuff.
+Please read this suggestion https://lore.kernel.org/all/0037554862c0d9dce3ddafd1238347e4b16a5079.1795581896.git.wqu@suse.com
+It is applicable to this patch as well. 
 
-use-case here is GTP-U encap, I tweaked your patch to fit tunneling 
-use-case around the net_prefetch() to add 128 bytes more.
+Rewrote the commit message, add full KASAN stack trace and resubmit.
 
-setup is Xeon Gold 6342 (DDIO) wiht ConnectX-7 (fw 28.48.1000): 2 ports 
-x 8 queues. 5G UPF in XDP (GTP-U and MAP-E, ~3200 insns per packet, 
-XDP_TX only) with 100k sessions running live mobile network traffic 
-pattern. Mpps per port with the 16 cores busy:
-
-                                   base      v2    v2+256B
-   RQ just opened                  10.55    10.85   >11.10
-   RQ after a burst                 9.96    10.82    10.95
-   L1 stride prefetcher off         9.85    10.72    10.84
-
-
-With DDIO the gain depends on the history of the RQ. Under XDP a stride
-is a page. While the pages of a WQE are adjacent the L1 stride
-prefetcher fetches the next packet by itself. Once XDP_TX completions 
-overflow the page pool cache then pages come back shuffled where the 
-vanilla driver loses 5%.
-
-
- > +	head_offset &= (1 << rq->mpwqe.page_shift) - 1;
-
-cosmetics: BIT(rq->mpwqe.page_shift) - 1
-
-
- > +	net_prefetch(va + rq->buff.headroom);
-
-For our tunneling use-case I just added:
-
-+       net_prefetch(va + rq->buff.headroom + 128);
-
-
-I will run production with your patch with the +128 for our stuff... 
-thanks for that !
-
-
-cheers,
-Alexandre
-
+Thanks
