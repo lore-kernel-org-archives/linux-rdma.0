@@ -1,11 +1,11 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.198.52
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.62.70
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
 	t=1795730279;
-	b=XMn0heWIULcgDgvPyv7N8sdSnVrnzMSUBvLMPx16fvPksnqZ2BYcGMKtx6j3yZrvNDms
-	 r/+5Mw6Iom9nrSKRUR6Pl5wMxVJjFmu4zrBORvSOEMqQSM0RTGaDs3oRtkrZzowbwXxVZ
-	 EIG6RwKvMyRvMiBj4EuuANYUKn94aJXQUovUVWlWcM5Tpt5Hlcg6lfUv5JGbLgJVXi5BN
-	 twuYOylrKUilzVgbEy05A2e8DKZdgD5M66aN80cD4ifp16PwfQFrUtDstCUjnZIBYASDm
-	 w/PnBB7TrSQMYAgwr8I9ERzRhtdcSOwGp9K7NV4H21lE6byW/vxuEkTrPMaoao1Pcgg==
+	b=C5c/3DVrPvhSAQFH7PeY3ZZREqgECcDe0RcnPNtnzvR2uMNBOtc1uAxjuiGPXZNhqFoO
+	 xzEy8aOxHcMgxjLxa6vDpslQ6QFTGDMrrsTrwEr/ap+dZhVdzT464/lFADWyk33l1s9ya
+	 6xFiN7U5aInOp/QVQrtliwOpsXvaeQEzGLMBAo++utTFTcbrxPJYBpWOFa792n5QWptFA
+	 awm+2CXxdf3fat6ZBWmrd76VC/qYxdeR3kSln4QJ5I3XoE+4nNcG3MVsb5PlbtUnwMfy4
+	 9vCe80A4Zl/8RCdJbof80s/VcQlwJxd2fTD31xDNSHkpE9bp9z3LvhAaDEQ/AKMrz4w==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1795730279;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:
@@ -26,35 +26,35 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
 	 X-MS-Exchange-CrossTenant-FromEntityHeader:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=9HXlr4f4Ox9AJPk/EuRJ8qOJ/ixhl9N5NbgODab4Q0E=;
-	b=ZYAHdxSJTUP8l46r7/cV+r420M51/0sGI9g0SIu4rUzlElvRtwYUetPPmxpSfVSx52td
-	 37RDqhKRm5VYLtLYKX4jSVg8v1e/oQNDSfJdyO/yHJYA7rE91vvpI/uHfcf+VzsOQkjIB
-	 9Z1/3vTES/5z8hmn4SkpqzlI4X5OAHUmKBBM3VXh51sjFvxWTSxApMOUlu7A3sEMgyVh1
-	 e/OTRkoALQLuXSGILjKOeGthcIIWyLSnbv7VbwZul94yTHaED6WmQBQdd7rgDM1q5WiS9
-	 AhfcS/L0ccC5BxIhtz4mwF8ydFcqGJ0jJNa26ONg+jTIUMwOSmJe36zTmBdhrhO900g==
+	bh=TglRTeWqOzhe2hQ0RDp7JOZgUmNQyKkZ3pGDFAEkads=;
+	b=0f72XK7qVNiZ67Of426Jk4DL5SHlR22Z+66tbEsgWk7MX+wY+o8xbGzG/ZqRXrlbIxtw
+	 +PpXSVq4ASyradDj3Pzfu76lOtwmkNkd6DD2m3s23WBTDAZgTswjVDTVl8+QfhXqKiApl
+	 dw7Qzp8zojmTAtr1ABsYDI+f7KHEy8wIG72WS3/IFScQ6eQNaLf/CKFmdlK6Znxv+JhwC
+	 vLpaQMFbT6oDsgTNRjdcpyKn5PapRI5NhUzZfyasExCngAp82FOLFG+/oy2POPGi4CXOn
+	 MZfkK50NfUCEgLPwXUAffbeF4c3TeL6Ch70dHxXOSjPfDnr280WNYxbuWOgMfej2d1Q==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nvidia.com;
 	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=AqDkb3Z4;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.198.52
-Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010052.outbound.protection.outlook.com [40.93.198.52])
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=UyYDoMfR;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.62.70
+Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011070.outbound.protection.outlook.com [52.101.62.70])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5317606A330;
-	Thu, 26 Nov 2026 21:57:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D5317606A330
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9A44606A339;
+	Thu, 26 Nov 2026 21:57:58 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A9A44606A339
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=AqDkb3Z4
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=UyYDoMfR
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=X+C9oVYQvfDlxCv9MQKrVtOuY2FHUGvOeeAe7SFzUmpeX5aO7i79CENMpmTzOiB12xeQUcAzHfP17RiXF/3DewJKmeP3bkRrifNf2m6AZXc1gK8I5RaJHibB4GzRprnfsK9GaTy0UMAPZR52xFbe3MoSBZIhEKHs6wk7z2C+IF0X7H1kHxyZ25NDDj+MahIbCQSh8UII9Qs/OQ6wdDMrTwl16VuCFnoREAZJTIalgqAsX0U1N0YF+0kltVFxevO76HTn+m2vmrsZ4IkJuV5x6G22QiHpPHIiqRmzcJhx4iEQpQh1+E2lc4xWbPbWPOOCV+HBxlSr0bdvriJUFvfqew==
+ b=qJyeh7kk2xh2c7oOcX3PQI5hmEaeuRi+brISF64DoR/AdtfqAfoZyvy9olGNS8W7kO5ngH9gUjXFv0CvuK/1tP82dGu5Mtyi0ObcGLkp9iOBHqWuWXcbDHWHpdffM2r4stGf4ppxwdhRF4TYEwRY51nBeLPwLVVvvFGtQnYHqZOziuyrXdUCSPkFjH3J3brjFSulbt4Spet77UBXeAhYPCrnlPfN5jx6+eoGQhRhwMsqQGhIjw0YH0Bu6L+UkZQgQqHuGy7SfkaAkB7VUfTRjwg5nAgo0SlYeaVUU9hQKuSDPQh4n5KTFKyAyrUOyRKAILPH7HB0kANGqgiU3pJuug==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=9HXlr4f4Ox9AJPk/EuRJ8qOJ/ixhl9N5NbgODab4Q0E=;
- b=yfK4goNUEXPNQrX1LqVJgm5psqfS2MVcKnEJYB6BTI2kPPT934lKcE2elq+4cXxmVk1YLVO5HKR6Jic+RyYbHT2afoE+VCZUWHJdxpdHAwPfO6oCkZWnw/O3aYEzEKswI2R1qrbBVZ4NNBc3MKmYE4k0HzhmvukKgWM2oeFGiTRMdmMAiuqjpEChoWSVa43DauFW/Ahw3C1hqiOUMvcTOFPA46CXIq79jO2X/tHoNRaEcMth6iOwSIxLdnZc16Zs65KgeKnlTJXWQINefXj0BR3Rxw/f6qJYnnlRptVHDCluxraOZQziHDGW0By5l2FtYeMTi9nsL0rl51YACvYB/g==
+ bh=TglRTeWqOzhe2hQ0RDp7JOZgUmNQyKkZ3pGDFAEkads=;
+ b=Ti1lVoGV6R9uWGfKUvKskHJNZ/UyqbBhDLD0u4TiSqvWdIRtnpnY63u0MeWlP0XkXv3jIc81pAn+trv1lY9lhN/tqc3PlrCz1jfoDgPvgAUquyBMWoDobqwm2lPWWzmwfvk8shqzZSn9UHKDorCevOWNuT0L/0D6Gm1Giw/KXfhsleCbyT3cZyunUA7OvlVfC3ceBmzCxgc7+WBwUURfjh0Iyeyx7zn0qAM+jWyVNxBN+voZ58GxqWqj2ka6qqnjLQZ3EAK/LJPXW/JJrexZruU7SuHueJJSddy9NJeJMLGEOgpM5hq6TuTXocCubOOPAJcb4ZnHFBcIRxhlu3/x7g==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.118.232) smtp.rcpttodomain=lunn.ch smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -62,18 +62,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9HXlr4f4Ox9AJPk/EuRJ8qOJ/ixhl9N5NbgODab4Q0E=;
- b=AqDkb3Z47i65Wla1nX1/Wx2LExygB1FvjvwHVHQo9/g3e3Uo4zgVdwfeYwKlQc1Hl54A3XoAr7kAXmEcylBoKPkkCDMjggIJJLiDg39ujrUJKVqmLmX8dQ53mqXsmKETzwhrt7meh+1Ghh3QALkAvBOMFhFaat6QQaf3Yjzs0sJdvD+vjgnqiHsioskBXF7YVF34xvvkxqdnkxvo23QedmdwvOlAnZnCcAtyZsNN0l2uHzyJMPoU1UZCvy+VFbr050eggaeXDDBsukzhRMgfkF26uhauYvdPPLP1yM3LO3bezP9ol6FTD6I8HQDJaUTdD7ZzBqZHq1b0c6efS/pMDw==
-Received: from CH2PR18CA0044.namprd18.prod.outlook.com (2603:10b6:610:55::24)
- by SA1PR12MB999227.namprd12.prod.outlook.com (2603:10b6:806:4de::19) with
+ bh=TglRTeWqOzhe2hQ0RDp7JOZgUmNQyKkZ3pGDFAEkads=;
+ b=UyYDoMfRcGbOaIGxUqqmRRRWxGpXSsT0INPU4om3/1r7RZzs+Pxm+3K+ATo6HYXN54M5/lO8xKcn1MpoVrzE0zQFXkGDxZd/tRCCHNCFk3JwHCixb5vAD+bLUVDB/hZFKZuolvDZ0XgebhqY5NCaWjWPnVnLUC4U4NbgW/IRxCM7HKLEpgeSbuZ9RMjxoep239aXGyisXYTlGrxE5qZtl7SJ+0CTB718n3a7mHLlG03XsSNNHZfEb2TemNhnU02YLbkybOE+SKbUTvIRDo4ygErSfK0cIuNuCNLp51O3j9+pGJd61Ofgx9e4rG0a1V3GWzJlUj2/qSlvDPJKlX2ncg==
+Received: from CH2PR18CA0038.namprd18.prod.outlook.com (2603:10b6:610:55::18)
+ by DS4PR12MB912252.namprd12.prod.outlook.com (2603:10b6:8:4f0::7) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.662.7; Thu, 26 Nov
- 2026 21:57:48 +0000
+ 2026 21:57:42 +0000
 Received: from CH2PEPF000166BB.namprd04.prod.outlook.com
- (2603:10b6:610:55:cafe::9f) by CH2PR18CA0044.outlook.office365.com
- (2603:10b6:610:55::24) with Microsoft SMTP Server (version=TLS1_3,
+ (2603:10b6:610:55:cafe::73) by CH2PR18CA0038.outlook.office365.com
+ (2603:10b6:610:55::18) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.21.662.7 via Frontend Transport; Thu, 26
- Nov 2026 21:57:48 +0000
+ Nov 2026 21:57:42 +0000
 X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
  is 216.228.118.232) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -83,18 +83,18 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
 Received: from mail.nvidia.com (216.228.118.232) by
  CH2PEPF000166BB.mail.protection.outlook.com (10.167.252.5) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.688.5 via Frontend Transport; Thu, 26 Nov 2026 21:57:48 +0000
-Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
+ 15.21.688.5 via Frontend Transport; Thu, 26 Nov 2026 21:57:41 +0000
+Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
  (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.57; Thu, 26 Nov
- 2026 13:57:46 -0800
+ 2026 13:57:33 -0800
 Received: from drhqmail203.nvidia.com (10.126.190.182) by
- drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
+ drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.57; Thu, 26 Nov 2026 13:57:45 -0800
+ 15.2.2562.57; Thu, 26 Nov 2026 13:57:33 -0800
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
  (10.126.190.182) with Microsoft SMTP Server id 15.2.2562.57 via Frontend
- Transport; Thu, 26 Nov 2026 13:57:40 -0800
+ Transport; Thu, 26 Nov 2026 13:57:27 -0800
 From: Tariq Toukan <tariqt@nvidia.com>
 To: Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
 	<davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
@@ -109,9 +109,9 @@ CC: Andrea Parri <parri.andrea@gmail.com>, Boris Pismenny <borisp@nvidia.com>,
 	<raeds@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>, Simon Horman
 	<horms@kernel.org>, Sridhar Samudrala <sridhar.samudrala@intel.com>, "Steffen
  Klassert" <steffen.klassert@secunet.com>, Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH net 10/10] net/mlx5e: Create IPsec flow counters once per SA
-Date: Thu, 26 Nov 2026 23:56:14 +0200
-Message-ID: <20261126215614.792598-11-tariqt@nvidia.com>
+Subject: [PATCH net 08/10] net/mlx5e: Validate neighbour events before updating IPsec SAs
+Date: Thu, 26 Nov 2026 23:56:12 +0200
+Message-ID: <20261126215614.792598-9-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20261126215614.792598-1-tariqt@nvidia.com>
 References: <20261126215614.792598-1-tariqt@nvidia.com>
@@ -129,491 +129,202 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH2PEPF000166BB:EE_|SA1PR12MB999227:EE_
-X-MS-Office365-Filtering-Correlation-Id: 24cb6d14-bbc2-45ea-4f44-08df4c084f31
+X-MS-TrafficTypeDiagnostic: CH2PEPF000166BB:EE_|DS4PR12MB912252:EE_
+X-MS-Office365-Filtering-Correlation-Id: 686f07ee-79cb-4e2e-001f-08df4c084b48
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|23010399003|7416014|376014|36860700016|1800799024|6133799003|261009223027099003|261009223327099003|261009221727099003|261009221227099003|261009220027099003|22082099003|18002099003|3023799007|10067099003|11063799006|261026135527099003|261022105027099003|261022113327099003|261026130827099003|261022115727099003|261028144727099003|261022075727099003|56012099006|261026140227099003|261026121527099003|261021135927099003|261021121427099003|261021133027099003|261021130227099003|261021123027099003|261102123227099003;
+	BCL:0;ARA:13230040|23010399003|376014|7416014|36860700016|1800799024|82310400026|261022105027099003|261102123227099003|10067099003|56012099006|11063799006|261021130227099003|261026135527099003|261026140227099003|261026130827099003|261022115727099003|261021133027099003|261026121527099003|261022113327099003|261021135927099003|261021121427099003|261022075727099003|261028144727099003|261021123027099003|261009223027099003|18002099003|22082099003;
 X-Microsoft-Antispam-Message-Info:
-	HAf4tifasSB4zZgD/hXomZiokrgHae1/Ef9amaUkk/PCPEqaE25XFkPuqcDp17JQbiI1LcxVGO9eCb51sSF3gdal0VBQKGO5Sv4RkT2a0LKEB/RCVyRlg1nn7KfHL4dvfBZ2mlqChBkcxq/2hLzjhV91NdY3/NyRkpLLkg1pD4Em3gUMdeJWPqsQVJrU7YZp2Nvbd+2TWKQ1geEEboKshuTzynrK8cFUlGKNqUtBz8gJeV3oHd5DgACbU2sNgPzwDN1QZ9iyYH6726ld7ixQOPb5TfpiW3CQ+2HlDtOtWVxEaCtowBmkLwpBCZbxTYBG95jaZkadyh1pMGMtSUixF4aSbHioacsFz37FSgiwJkCcb9eaeDJbWqwuPmrF6ApVOmJFqKEk+0mapVQs0bqunPjcG7iMJPMptEz4TELsG+44Z6cm7MyiEnQzdiAmyIkxrsueAeFrVMd90M+Z95Wvs40cFZhGw1iA1IGXfELCM2e80bokiwCknihImqnkp4IT5pMTcki3cF/HR6scjDTfstwWzhGXWVCUv5DBRYqQQ/J71jxqU65lo46gd3aFJy/gfgN2bT35cWh7Y+wQ4pgHIIdlzo9L5vZKd1XuxOUZ/r10r4NqB0HEXWBuu9LGXxctO+95SoxEJK62jp5IaGihYJyEU54/kJH7pdyQuqdGXefuwDSWmQ5FSFzrxb2rWODKcDrLgYkNDEmkaol18a+Dbg==
+	yCFpN7uAvsUcaBMkECNTRPWhoGKooscY6QoabHOjmVi6ZIjCMCzuaYloQGcw8yWL6fh110jfIrRBpDCXluJEPsPou2vOM9jSR7r72oLDqK0KOOwePA01AygfwIJcD3ZOalEoNbhOKc/bDQixXXjbKq/aHTMw4wxX47w55vLYd+CTIZGNj8ETU9TIeQP2tm6JaVms6Y6jLniG+j3xQ9q7jvDG0nCxwD/l4JZ1KwlNbCQgbD1zq4I2o7l2R2HU1wZm7DorZAVTiJ6CYwC1v4XJusBTNlgiaeY2zY+gpa/DENSN5zysVZH3OiTphdp3jtEaJj4oq4azjetzU725ryOlRAdivnIktLxF+PssZchC+9rFUjhEZaAOH1gZXwS0YLiOQfcI2u1axgmc9EuchoNnn2xJC/21wRSwZQCqQutGJGGCwAjIl2Qi9fH3t7qCgUyyBtnyZmimPiWo4hCv9m6pNDu0pW18jg226wPIQIjYdq62no45VVXx4NsHc5uWQgFdqJh+XdrQU70N9kM3JJSnFMRnSe84eJAdd/oAhMBDudz/bTWzDuuUbLBklruCtbF7oEZxyZHFByyZHSDBcJgYbKhIa7XAccjtvxagO1/QGUVS+vYWw4QYwc/qh98EW9GRfwhOxWG7aqcJN5gi2jJPUk6GIrpUQG1psK6LbeBRZDK3mD7CloJ8TeRMejXz8Hba
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(23010399003)(7416014)(376014)(36860700016)(1800799024)(6133799003)(261009223027099003)(261009223327099003)(261009221727099003)(261009221227099003)(261009220027099003)(22082099003)(18002099003)(3023799007)(10067099003)(11063799006)(261026135527099003)(261022105027099003)(261022113327099003)(261026130827099003)(261022115727099003)(261028144727099003)(261022075727099003)(56012099006)(261026140227099003)(261026121527099003)(261021135927099003)(261021121427099003)(261021133027099003)(261021130227099003)(261021123027099003)(261102123227099003);DIR:OUT;SFP:1101;
+	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(376014)(7416014)(36860700016)(1800799024)(82310400026)(261022105027099003)(261102123227099003)(10067099003)(56012099006)(11063799006)(261021130227099003)(261026135527099003)(261026140227099003)(261026130827099003)(261022115727099003)(261021133027099003)(261026121527099003)(261022113327099003)(261021135927099003)(261021121427099003)(261022075727099003)(261028144727099003)(261021123027099003)(261009223027099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	stj27ByrOl63tJ/3WERwwfx549CCZV47EiNNM+CvQ1ZyvDI1OCcxoXW622UbHkS2rK9YpJ/4hxkLlPXQYnLN0PhlTEV4+Ida35MXTDOk/27qQbsP2o9VzFKTn2XW68bCRdzHpCXIwjJ5dLPppNsy4HUf9opWapg0DpXbHbYPQ+GL89O2MuY1vT42JIknaQlf5hQ2PzvJvUh1cAFQiF/DLvP2kUcA3unvDDOtB1HjsNauyKw/EG4NPBQFXKdzfkUMZwfybELQ6YAP0O8t+JFj+BfeB6QaDJ16POQsKUqKNNJADNkrVzLvaiGYMMwUc2L8xGeohkINdvhWoN03DvqQGYjYUW5CwjKtEAcHYvFl1Vm8pldst//PzoWs2/9UQS86ZpqBXbhGptnpqTu+Pc16klwQ8tQi/T/cZEEANxsv1/pEKBDWlEVVbYpikkDVH5e2
+	ZgCxvtzJ2vAIFfpF61H5fRgpVG/X0SE8Pn1zn6dqS+IIRXR2vQNqXZkPBryzHMrWxw3N8btXXPc86WOtQYF00NgJKawmRwuiSIHJrgb1kyoE/g7a8ujpM6NjCNDwrqz73apFqo/So+J55bDJXl5jK0LdiPSFSocy9oCEYuKT1LMK/FW6FYbE69vuuiKJS4Rs+eB2CwpFaJ3eezrbsdcqiGoa+wFJCbxBBQaEvrrUV6eIwEaKcwXjrtlOUUPFYYtqjkRBFOboZvP66egKPhJev89JS7xTu5XlRXFO9+POYP1zPfftR+TzV2AMTi/YGpQbWmzApULzKy1S0cyC+kF+56bmZakmVL6Ip1UI6tmI1wYEp4yZm8m780P4eJm22lw+s7MnRSWdSp7rpUvvCLqpNE8PP4yPMNcXHotS2YbQsTyOB6WqDfDge2SD/+GN5rbh
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Nov 2026 21:57:48.0508
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Nov 2026 21:57:41.4732
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 24cb6d14-bbc2-45ea-4f44-08df4c084f31
+X-MS-Exchange-CrossTenant-Network-Message-Id: 686f07ee-79cb-4e2e-001f-08df4c084b48
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
 	CH2PEPF000166BB.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR12MB999227
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS4PR12MB912252
 
 From: Jianbo Liu <jianbol@nvidia.com>
 
-IPsec counters are recreated on rule updates (e.g. due to a neighbour
-update), which loses the previous counter values and may race with the
-stats update itself.
+mlx5e_ipsec_netevent_event() runs for every valid neighbour update on
+the global netevent chain. It matched the event by the SA source or
+destination address, which is wrong:
 
-Create the counters once when the SA is added and destroy them when it
-is freed. Move the counters to the SA itself now that they're no longer
-owned by the rule.
+- a foreign neighbour (veth, other netdev or netns) sharing the SA
+  address overwrites the programmed MAC;
+- for a routed peer the MAC is taken from the nexthop gateway, whose
+  address never equals the SA address, so gateway MAC changes are
+  missed.
 
-Triggered in CI testing. Reproduced on ConnectX-7 (fw 28.48.1000):
-800 pings through tunnel mode SAs while about 3900 "ip neigh replace"
-commands switch the peer neighbour between reachable, stale and delay
-(same MAC). x->curlft.packets shows 180 on the TX SA and 88 on the RX
-SA. With the fix both show 800.
+Snapshot the resolved nexthop (table, ifindex, key) when its MAC is
+read in mlx5e_ipsec_init_macs(), and match events against it. The
+neighbour tables are per netns, so matching the table also keeps
+neighbours of other namespaces out. The ifindex tells apart one gateway
+IP on several netdevs in a netns. Save it only when the nexthop is on
+the SA's offload device (xso.dev): xfrm flushes the SA when that device
+goes down, so the saved ifindex can never be reused by another device.
+For any other device, e.g. a bond slave when the fallback path is used,
+save ifindex 0 and match the key on any device in the netns.
+
+This depends on "net/mlx5e: Copy back only replay_esn after an IPsec
+ESN update": without it an ESN update replaces nh with a fresh lookup
+while the hardware keeps the old MACs, and writes it while
+mlx5e_ipsec_netevent_event() reads it without a lock.
+
+Observed on a ConnectX-8 Kubernetes cluster: a pod learns its node IP
+with the host veth MAC, that MAC is programmed and the peer drops the
+tunnel traffic. Reproduced on ConnectX-7 (fw 28.48.1000):
+- neighbour for the peer address added on a dummy netdev: ping loss
+  100%, 0% with the fix;
+- routed peer, wrong gateway MAC corrected after the SA was added:
+  ping loss 100%, 0% with the fix.
 
 Fixes: 4c24272b4e2b ("net/mlx5e: Listen to ARP events to update IPsec L2 headers in tunnel mode")
-Fixes: dddb49b63d86 ("net/mlx5e: Add IPsec and ASO syndromes check in HW")
+Co-developed-by: Elliot Edmunds <eedmunds@nvidia.com>
+Signed-off-by: Elliot Edmunds <eedmunds@nvidia.com>
 Signed-off-by: Jianbo Liu <jianbol@nvidia.com>
 Reviewed-by: Saeed Mahameed <saeedm@nvidia.com>
 Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- .../mellanox/mlx5/core/en_accel/ipsec.c       |  20 ++-
- .../mellanox/mlx5/core/en_accel/ipsec.h       |  12 +-
- .../mellanox/mlx5/core/en_accel/ipsec_fs.c    | 135 +++++++++---------
- 3 files changed, 92 insertions(+), 75 deletions(-)
+ .../mellanox/mlx5/core/en_accel/ipsec.c       | 48 +++++++++++++------
+ .../mellanox/mlx5/core/en_accel/ipsec.h       |  8 ++++
+ 2 files changed, 41 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
-index 60f7dc3df355..d37c1deca307 100644
+index 4084f8a88695..cc75fcb0aa15 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
-@@ -900,12 +900,16 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
- 	if (err)
- 		goto release_dwork;
+@@ -256,6 +256,17 @@ static void mlx5e_ipsec_init_limits(struct mlx5e_ipsec_sa_entry *sa_entry,
+ 	attrs->lft.numb_rounds_soft = (u64)n;
+ }
  
--	err = mlx5e_accel_ipsec_fs_add_rule(sa_entry);
-+	err = mlx5e_accel_ipsec_fs_alloc_counters(sa_entry);
- 	if (err)
- 		goto err_hw_ctx;
- 
- 	INIT_WORK(&sa_entry->event_work, mlx5e_ipsec_handle_event);
- 
-+	err = mlx5e_accel_ipsec_fs_add_rule(sa_entry);
-+	if (err)
-+		goto err_counters;
++static void mlx5e_ipsec_set_tnl_nh(struct mlx5e_ipsec_sa_entry *sa_entry,
++				   struct mlx5_accel_esp_xfrm_attrs *attrs,
++				   const struct neigh_table *tbl,
++				   const struct net_device *dev,
++				   const void *pkey)
++{
++	attrs->nh.tbl = tbl;
++	attrs->nh.ifindex = dev == sa_entry->x->xso.dev ? dev->ifindex : 0;
++	memcpy(attrs->nh.key, pkey, tbl->key_len);
++}
 +
- 	/* We use *_bh() variant because xfrm_timer_handler(), which runs
- 	 * in softirq context, can reach our state delete logic and we need
- 	 * xa_erase_bh() there.
-@@ -938,6 +942,8 @@ static int mlx5e_xfrm_add_state(struct net_device *dev,
- 
- err_add_rule:
- 	mlx5e_accel_ipsec_fs_del_rule(sa_entry);
-+err_counters:
-+	mlx5e_accel_ipsec_fs_free_counters(sa_entry);
- err_hw_ctx:
- 	mlx5_ipsec_free_sa_ctx(sa_entry);
- release_dwork:
-@@ -991,6 +997,7 @@ static void mlx5e_xfrm_free_state(struct net_device *dev, struct xfrm_state *x)
- 		cancel_delayed_work_sync(&sa_entry->dwork->dwork);
- 
- 	mlx5e_accel_ipsec_fs_del_rule(sa_entry);
-+	mlx5e_accel_ipsec_fs_free_counters(sa_entry);
- 	mlx5_ipsec_free_sa_ctx(sa_entry);
- 	kfree(sa_entry->dwork);
- 	if (sa_entry->work)
-@@ -1151,8 +1158,8 @@ static void mlx5e_xfrm_advance_esn_state(struct xfrm_state *x)
- static void mlx5e_xfrm_update_stats(struct xfrm_state *x)
+ static void mlx5e_ipsec_init_macs(struct mlx5e_ipsec_sa_entry *sa_entry,
+ 				  struct mlx5_accel_esp_xfrm_attrs *attrs)
  {
- 	struct mlx5e_ipsec_sa_entry *sa_entry = to_ipsec_sa_entry(x);
--	struct mlx5e_ipsec_rule *ipsec_rule = &sa_entry->ipsec_rule;
- 	struct net *net = dev_net(x->xso.dev);
-+	struct mlx5_fc **fcs = sa_entry->fcs;
- 	u64 trailer_packets = 0, trailer_bytes = 0;
- 	u64 replay_packets = 0, replay_bytes = 0;
- 	u64 auth_packets = 0, auth_bytes = 0;
-@@ -1168,12 +1175,12 @@ static void mlx5e_xfrm_update_stats(struct xfrm_state *x)
- 		return;
- 
- 	if (sa_entry->attrs.dir == XFRM_DEV_OFFLOAD_IN) {
--		mlx5_fc_query_cached(ipsec_rule->auth.fc, &auth_bytes,
-+		mlx5_fc_query_cached(fcs[MLX5_IPSEC_FC_AUTH], &auth_bytes,
- 				     &auth_packets, &lastuse);
- 		x->stats.integrity_failed += auth_packets;
- 		XFRM_ADD_STATS(net, LINUX_MIB_XFRMINSTATEPROTOERROR, auth_packets);
- 
--		mlx5_fc_query_cached(ipsec_rule->trailer.fc, &trailer_bytes,
-+		mlx5_fc_query_cached(fcs[MLX5_IPSEC_FC_TRAILER], &trailer_bytes,
- 				     &trailer_packets, &lastuse);
- 		XFRM_ADD_STATS(net, LINUX_MIB_XFRMINHDRERROR, trailer_packets);
+@@ -263,6 +274,7 @@ static void mlx5e_ipsec_init_macs(struct mlx5e_ipsec_sa_entry *sa_entry,
+ 	struct net_device *netdev = sa_entry->dev;
+ 	struct xfrm_state *x = sa_entry->x;
+ 	struct dst_entry *rt_dst_entry;
++	const struct neigh_table *tbl;
+ 	struct flowi4 fl4 = {};
+ 	struct flowi6 fl6 = {};
+ 	struct neighbour *n;
+@@ -360,6 +372,7 @@ static void mlx5e_ipsec_init_macs(struct mlx5e_ipsec_sa_entry *sa_entry,
+ 	if (attrs->dir == XFRM_DEV_OFFLOAD_OUT &&
+ 	    is_zero_ether_addr(addr))
+ 		neigh_event_send(n, NULL);
++	mlx5e_ipsec_set_tnl_nh(sa_entry, attrs, n->tbl, n->dev, n->primary_key);
+ 	dst_release(rt_dst_entry);
+ 	neigh_release(n);
+ 	return;
+@@ -375,13 +388,20 @@ static void mlx5e_ipsec_init_macs(struct mlx5e_ipsec_sa_entry *sa_entry,
+ 		else
+ 			n = ipv6_neigh_create(netdev, pkey);
+ 		attrs->drop = true;
+-		if (IS_ERR(n))
++		if (IS_ERR(n)) {
++			tbl = addrs->family == AF_INET ?
++			      arp_table(dev_net(netdev)) :
++			      nd_table(dev_net(netdev));
++			mlx5e_ipsec_set_tnl_nh(sa_entry, attrs, tbl, netdev,
++					       pkey);
+ 			return;
++		}
+ 		neigh_event_send(n, NULL);
+ 	} else {
+ 		neigh_ha_snapshot(addr, n, netdev);
+ 		ether_addr_copy(dst, addr);
  	}
-@@ -1182,13 +1189,14 @@ static void mlx5e_xfrm_update_stats(struct xfrm_state *x)
- 		return;
++	mlx5e_ipsec_set_tnl_nh(sa_entry, attrs, n->tbl, n->dev, n->primary_key);
+ 	neigh_release(n);
+ }
  
- 	if (sa_entry->attrs.dir == XFRM_DEV_OFFLOAD_IN) {
--		mlx5_fc_query_cached(ipsec_rule->replay.fc, &replay_bytes,
-+		mlx5_fc_query_cached(fcs[MLX5_IPSEC_FC_REPLAY], &replay_bytes,
- 				     &replay_packets, &lastuse);
- 		x->stats.replay += replay_packets;
- 		XFRM_ADD_STATS(net, LINUX_MIB_XFRMINSTATESEQERROR, replay_packets);
- 	}
+@@ -973,10 +993,20 @@ static void mlx5e_xfrm_free_state(struct net_device *dev, struct xfrm_state *x)
+ 	kfree(sa_entry);
+ }
  
--	mlx5_fc_query_cached(ipsec_rule->fc, &bytes, &packets, &lastuse);
-+	mlx5_fc_query_cached(fcs[MLX5_IPSEC_FC_RULE], &bytes, &packets,
-+			     &lastuse);
- 	success_packets = packets - auth_packets - trailer_packets - replay_packets;
- 	x->curlft.packets += success_packets;
- 	/* NIC counts all bytes passed through flow steering and doesn't have
++static bool
++mlx5e_ipsec_neigh_matches(const struct mlx5e_ipsec_sa_entry *sa_entry,
++			  const struct neighbour *n)
++{
++	const struct mlx5_accel_esp_xfrm_attrs *attrs = &sa_entry->attrs;
++
++	return attrs->nh.tbl == n->tbl &&
++	       (!attrs->nh.ifindex || attrs->nh.ifindex == n->dev->ifindex) &&
++	       !memcmp(attrs->nh.key, n->primary_key, n->tbl->key_len);
++}
++
+ static int mlx5e_ipsec_netevent_event(struct notifier_block *nb,
+ 				      unsigned long event, void *ptr)
+ {
+-	struct mlx5_accel_esp_xfrm_attrs *attrs;
+ 	struct mlx5e_ipsec_netevent_data *data;
+ 	struct mlx5e_ipsec_sa_entry *sa_entry;
+ 	struct mlx5e_ipsec *ipsec;
+@@ -988,21 +1018,9 @@ static int mlx5e_ipsec_netevent_event(struct notifier_block *nb,
+ 
+ 	ipsec = container_of(nb, struct mlx5e_ipsec, netevent_nb);
+ 	xa_for_each_marked(&ipsec->sadb, idx, sa_entry, MLX5E_IPSEC_TUNNEL_SA) {
+-		attrs = &sa_entry->attrs;
+-
+-		if (attrs->addrs.family != n->tbl->family)
++		if (!mlx5e_ipsec_neigh_matches(sa_entry, n))
+ 			continue;
+ 
+-		if (attrs->addrs.family == AF_INET) {
+-			if (!neigh_key_eq32(n, &attrs->addrs.saddr.a4) &&
+-			    !neigh_key_eq32(n, &attrs->addrs.daddr.a4))
+-				continue;
+-		} else {
+-			if (!neigh_key_eq128(n, &attrs->addrs.saddr.a4) &&
+-			    !neigh_key_eq128(n, &attrs->addrs.daddr.a4))
+-				continue;
+-		}
+-
+ 		data = sa_entry->work->data;
+ 
+ 		neigh_ha_snapshot(data->addr, n, sa_entry->dev);
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h
-index e70189f81ffb..2e8c6fc216de 100644
+index 6c17bd997a0c..d60c72df0bf1 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h
-@@ -216,13 +216,20 @@ struct mlx5e_ipsec_drop {
- 	struct mlx5_fc *fc;
+@@ -119,6 +119,14 @@ struct mlx5_accel_esp_xfrm_attrs {
+ 		u8 dmac[ETH_ALEN];
+ 		__be16 dport;
+ 	};
++	struct {
++		/* Neighbour tables are per netns, so matching the table
++		 * also keeps neighbours of other namespaces out.
++		 */
++		const struct neigh_table *tbl;
++		int ifindex;
++		u8 key[sizeof(struct in6_addr)];
++	} nh;
  };
  
-+enum {
-+	MLX5_IPSEC_FC_RULE,
-+	MLX5_IPSEC_FC_REPLAY,
-+	MLX5_IPSEC_FC_AUTH,
-+	MLX5_IPSEC_FC_TRAILER,
-+	MLX5_IPSEC_FC_NUM,
-+};
-+
- struct mlx5e_ipsec_rule {
- 	struct mlx5_flow_handle *rule;
- 	struct mlx5_flow_handle *status_pass;
- 	struct mlx5_flow_handle *sa_sel;
- 	struct mlx5_modify_hdr *modify_hdr;
- 	struct mlx5_pkt_reformat *pkt_reformat;
--	struct mlx5_fc *fc;
- 	struct mlx5e_ipsec_drop replay;
- 	struct mlx5e_ipsec_drop auth;
- 	struct mlx5e_ipsec_drop trailer;
-@@ -295,6 +302,7 @@ struct mlx5e_ipsec_sa_entry {
- 	u32 ipsec_obj_id;
- 	u32 enc_key_id;
- 	struct mlx5e_ipsec_rule ipsec_rule;
-+	struct mlx5_fc *fcs[MLX5_IPSEC_FC_NUM];
- 	struct mlx5e_ipsec_work *work;
- 	struct mlx5e_ipsec_dwork *dwork;
- 	struct work_struct event_work;
-@@ -329,6 +337,8 @@ void mlx5e_accel_ipsec_fs_cleanup(struct mlx5e_ipsec *ipsec);
- int mlx5e_accel_ipsec_fs_init(struct mlx5e_ipsec *ipsec, struct mlx5_devcom_comp_dev **devcom);
- int mlx5e_accel_ipsec_fs_add_rule(struct mlx5e_ipsec_sa_entry *sa_entry);
- void mlx5e_accel_ipsec_fs_del_rule(struct mlx5e_ipsec_sa_entry *sa_entry);
-+int mlx5e_accel_ipsec_fs_alloc_counters(struct mlx5e_ipsec_sa_entry *sa_entry);
-+void mlx5e_accel_ipsec_fs_free_counters(struct mlx5e_ipsec_sa_entry *sa_entry);
- int mlx5e_accel_ipsec_fs_add_pol(struct mlx5e_ipsec_pol_entry *pol_entry);
- void mlx5e_accel_ipsec_fs_del_pol(struct mlx5e_ipsec_pol_entry *pol_entry);
- void mlx5e_accel_ipsec_fs_modify(struct mlx5e_ipsec_sa_entry *sa_entry);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
-index d0f738fdeff3..df90ae327f23 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
-@@ -195,6 +195,39 @@ static void ipsec_rx_rule_add_match_obj(struct mlx5e_ipsec_sa_entry *sa_entry,
- 	}
- }
- 
-+static const char * const fc_names[MLX5_IPSEC_FC_NUM] = {
-+	[MLX5_IPSEC_FC_RULE] = "decrypt",
-+	[MLX5_IPSEC_FC_REPLAY] = "replay drop",
-+	[MLX5_IPSEC_FC_AUTH] = "auth drop",
-+	[MLX5_IPSEC_FC_TRAILER] = "trailer drop",
-+};
-+
-+static int rx_create_counters(struct mlx5e_ipsec_sa_entry *sa_entry)
-+{
-+	bool packet = sa_entry->attrs.type == XFRM_DEV_OFFLOAD_PACKET;
-+	struct mlx5_core_dev *mdev = mlx5e_ipsec_sa2dev(sa_entry);
-+	struct mlx5_fc *fc;
-+	int i, err;
-+
-+	for (i = 0; i < MLX5_IPSEC_FC_NUM; i++) {
-+		if (i == MLX5_IPSEC_FC_REPLAY && !packet)
-+			continue;
-+
-+		fc = mlx5_fc_create(mdev, true);
-+		if (IS_ERR(fc)) {
-+			err = PTR_ERR(fc);
-+			mlx5_core_err(mdev,
-+				      "Failed to create ipsec rx %s counter, err=%d\n",
-+				      fc_names[i], err);
-+			mlx5e_accel_ipsec_fs_free_counters(sa_entry);
-+			return err;
-+		}
-+		sa_entry->fcs[i] = fc;
-+	}
-+
-+	return 0;
-+}
-+
- static int rx_add_rule_drop_auth_trailer(struct mlx5e_ipsec_sa_entry *sa_entry,
- 					 struct mlx5e_ipsec_rx *rx)
- {
-@@ -204,7 +237,6 @@ static int rx_add_rule_drop_auth_trailer(struct mlx5e_ipsec_sa_entry *sa_entry,
- 	struct mlx5_flow_destination dest = {};
- 	struct mlx5_flow_act flow_act = {};
- 	struct mlx5_flow_handle *rule;
--	struct mlx5_fc *flow_counter;
- 	struct mlx5_flow_spec *spec;
- 	int err;
- 
-@@ -212,19 +244,10 @@ static int rx_add_rule_drop_auth_trailer(struct mlx5e_ipsec_sa_entry *sa_entry,
- 	if (!spec)
- 		return -ENOMEM;
- 
--	flow_counter = mlx5_fc_create(mdev, true);
--	if (IS_ERR(flow_counter)) {
--		err = PTR_ERR(flow_counter);
--		mlx5_core_err(mdev,
--			      "Failed to add ipsec rx status drop rule counter, err=%d\n", err);
--		goto err_cnt;
--	}
--	sa_entry->ipsec_rule.auth.fc = flow_counter;
--
- 	flow_act.action = MLX5_FLOW_CONTEXT_ACTION_DROP | MLX5_FLOW_CONTEXT_ACTION_COUNT;
- 	flow_act.flags = FLOW_ACT_NO_APPEND;
- 	dest.type = MLX5_FLOW_DESTINATION_TYPE_COUNTER;
--	dest.counter = flow_counter;
-+	dest.counter = sa_entry->fcs[MLX5_IPSEC_FC_AUTH];
- 	if (rx == ipsec->rx_esw)
- 		spec->flow_context.flow_source = MLX5_FLOW_CONTEXT_FLOW_SOURCE_UPLINK;
- 
-@@ -241,16 +264,7 @@ static int rx_add_rule_drop_auth_trailer(struct mlx5e_ipsec_sa_entry *sa_entry,
- 	}
- 	sa_entry->ipsec_rule.auth.rule = rule;
- 
--	flow_counter = mlx5_fc_create(mdev, true);
--	if (IS_ERR(flow_counter)) {
--		err = PTR_ERR(flow_counter);
--		mlx5_core_err(mdev,
--			      "Failed to add ipsec rx status drop rule counter, err=%d\n", err);
--		goto err_cnt_2;
--	}
--	sa_entry->ipsec_rule.trailer.fc = flow_counter;
--
--	dest.counter = flow_counter;
-+	dest.counter = sa_entry->fcs[MLX5_IPSEC_FC_TRAILER];
- 	MLX5_SET(fte_match_param, spec->match_value, misc_parameters_2.ipsec_syndrome, 2);
- 	rule = mlx5_add_flow_rules(ft, spec, &flow_act, &dest, 1);
- 	if (IS_ERR(rule)) {
-@@ -265,12 +279,8 @@ static int rx_add_rule_drop_auth_trailer(struct mlx5e_ipsec_sa_entry *sa_entry,
- 	return 0;
- 
- err_rule_2:
--	mlx5_fc_destroy(mdev, sa_entry->ipsec_rule.trailer.fc);
--err_cnt_2:
- 	mlx5_del_flow_rules(sa_entry->ipsec_rule.auth.rule);
- err_rule:
--	mlx5_fc_destroy(mdev, sa_entry->ipsec_rule.auth.fc);
--err_cnt:
- 	kvfree(spec);
- 	return err;
- }
-@@ -283,7 +293,6 @@ static int rx_add_rule_drop_replay(struct mlx5e_ipsec_sa_entry *sa_entry, struct
- 	struct mlx5_flow_destination dest = {};
- 	struct mlx5_flow_act flow_act = {};
- 	struct mlx5_flow_handle *rule;
--	struct mlx5_fc *flow_counter;
- 	struct mlx5_flow_spec *spec;
- 	int err;
- 
-@@ -291,18 +300,10 @@ static int rx_add_rule_drop_replay(struct mlx5e_ipsec_sa_entry *sa_entry, struct
- 	if (!spec)
- 		return -ENOMEM;
- 
--	flow_counter = mlx5_fc_create(mdev, true);
--	if (IS_ERR(flow_counter)) {
--		err = PTR_ERR(flow_counter);
--		mlx5_core_err(mdev,
--			      "Failed to add ipsec rx status drop rule counter, err=%d\n", err);
--		goto err_cnt;
--	}
--
- 	flow_act.action = MLX5_FLOW_CONTEXT_ACTION_DROP | MLX5_FLOW_CONTEXT_ACTION_COUNT;
- 	flow_act.flags = FLOW_ACT_NO_APPEND;
- 	dest.type = MLX5_FLOW_DESTINATION_TYPE_COUNTER;
--	dest.counter = flow_counter;
-+	dest.counter = sa_entry->fcs[MLX5_IPSEC_FC_REPLAY];
- 	if (rx == ipsec->rx_esw)
- 		spec->flow_context.flow_source = MLX5_FLOW_CONTEXT_FLOW_SOURCE_UPLINK;
- 
-@@ -319,14 +320,11 @@ static int rx_add_rule_drop_replay(struct mlx5e_ipsec_sa_entry *sa_entry, struct
- 	}
- 
- 	sa_entry->ipsec_rule.replay.rule = rule;
--	sa_entry->ipsec_rule.replay.fc = flow_counter;
- 
- 	kvfree(spec);
- 	return 0;
- 
- err_rule:
--	mlx5_fc_destroy(mdev, flow_counter);
--err_cnt:
- 	kvfree(spec);
- 	return err;
- }
-@@ -2049,7 +2047,6 @@ static int rx_add_rule(struct mlx5e_ipsec_sa_entry *sa_entry)
- 	struct mlx5_flow_handle *rule;
- 	struct mlx5_flow_spec *spec;
- 	struct mlx5e_ipsec_rx *rx;
--	struct mlx5_fc *counter;
- 	int err = 0;
- 
- 	rx = rx_ft_get(mdev, ipsec, attrs->addrs.family, attrs->type);
-@@ -2094,11 +2091,6 @@ static int rx_add_rule(struct mlx5e_ipsec_sa_entry *sa_entry)
- 		break;
- 	}
- 
--	counter = mlx5_fc_create(mdev, true);
--	if (IS_ERR(counter)) {
--		err = PTR_ERR(counter);
--		goto err_add_cnt;
--	}
- 	flow_act.crypto.type = MLX5_FLOW_CONTEXT_ENCRYPT_DECRYPT_TYPE_IPSEC;
- 	flow_act.crypto.obj_id = sa_entry->ipsec_obj_id;
- 	flow_act.flags |= FLOW_ACT_NO_APPEND;
-@@ -2117,7 +2109,7 @@ static int rx_add_rule(struct mlx5e_ipsec_sa_entry *sa_entry)
- 		dest[0].type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
- 		dest[0].ft = rx->ft.status;
- 		dest[1].type = MLX5_FLOW_DESTINATION_TYPE_COUNTER;
--		dest[1].counter = counter;
-+		dest[1].counter = sa_entry->fcs[MLX5_IPSEC_FC_RULE];
- 		rule = mlx5_add_flow_rules(rx->ft.sa, spec, &flow_act, dest, 2);
- 	}
- 	if (IS_ERR(rule)) {
-@@ -2145,15 +2137,12 @@ static int rx_add_rule(struct mlx5e_ipsec_sa_entry *sa_entry)
- 
- 	sa_entry->ipsec_rule.rule = rule;
- 	sa_entry->ipsec_rule.modify_hdr = flow_act.modify_hdr;
--	sa_entry->ipsec_rule.fc = counter;
- 	sa_entry->ipsec_rule.pkt_reformat = flow_act.pkt_reformat;
- 	return 0;
- 
- err_drop_reason:
--	if (sa_entry->ipsec_rule.replay.rule) {
-+	if (sa_entry->ipsec_rule.replay.rule)
- 		mlx5_del_flow_rules(sa_entry->ipsec_rule.replay.rule);
--		mlx5_fc_destroy(mdev, sa_entry->ipsec_rule.replay.fc);
--	}
- err_add_replay:
- 	if (sa_entry->ipsec_rule.sa_sel) {
- 		mlx5_del_flow_rules(sa_entry->ipsec_rule.sa_sel);
-@@ -2162,8 +2151,6 @@ static int rx_add_rule(struct mlx5e_ipsec_sa_entry *sa_entry)
- err_add_sa_sel:
- 	mlx5_del_flow_rules(rule);
- err_add_flow:
--	mlx5_fc_destroy(mdev, counter);
--err_add_cnt:
- 	if (flow_act.pkt_reformat)
- 		mlx5_packet_reformat_dealloc(mdev, flow_act.pkt_reformat);
- err_pkt_reformat:
-@@ -2186,7 +2173,6 @@ static int tx_add_rule(struct mlx5e_ipsec_sa_entry *sa_entry)
- 	struct mlx5_flow_handle *rule;
- 	struct mlx5_flow_spec *spec;
- 	struct mlx5e_ipsec_tx *tx;
--	struct mlx5_fc *counter;
- 	int err;
- 
- 	tx = tx_ft_get(mdev, ipsec, attrs->type);
-@@ -2222,12 +2208,6 @@ static int tx_add_rule(struct mlx5e_ipsec_sa_entry *sa_entry)
- 		break;
- 	}
- 
--	counter = mlx5_fc_create(mdev, true);
--	if (IS_ERR(counter)) {
--		err = PTR_ERR(counter);
--		goto err_add_cnt;
--	}
--
- 	flow_act.crypto.type = MLX5_FLOW_CONTEXT_ENCRYPT_DECRYPT_TYPE_IPSEC;
- 	flow_act.crypto.obj_id = sa_entry->ipsec_obj_id;
- 	flow_act.flags |= FLOW_ACT_NO_APPEND;
-@@ -2241,7 +2221,7 @@ static int tx_add_rule(struct mlx5e_ipsec_sa_entry *sa_entry)
- 	dest[0].ft = tx->ft.status;
- 	dest[0].type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
- 	dest[1].type = MLX5_FLOW_DESTINATION_TYPE_COUNTER;
--	dest[1].counter = counter;
-+	dest[1].counter = sa_entry->fcs[MLX5_IPSEC_FC_RULE];
- 	rule = mlx5_add_flow_rules(tx->ft.sa, spec, &flow_act, dest, 2);
- 	if (IS_ERR(rule)) {
- 		err = PTR_ERR(rule);
-@@ -2251,13 +2231,10 @@ static int tx_add_rule(struct mlx5e_ipsec_sa_entry *sa_entry)
- 
- 	kvfree(spec);
- 	sa_entry->ipsec_rule.rule = rule;
--	sa_entry->ipsec_rule.fc = counter;
- 	sa_entry->ipsec_rule.pkt_reformat = flow_act.pkt_reformat;
- 	return 0;
- 
- err_add_flow:
--	mlx5_fc_destroy(mdev, counter);
--err_add_cnt:
- 	if (flow_act.pkt_reformat)
- 		mlx5_packet_reformat_dealloc(mdev, flow_act.pkt_reformat);
- err_pkt_reformat:
-@@ -2645,7 +2622,6 @@ void mlx5e_accel_ipsec_fs_del_rule(struct mlx5e_ipsec_sa_entry *sa_entry)
- 	struct mlx5_core_dev *mdev = mlx5e_ipsec_sa2dev(sa_entry);
- 
- 	mlx5_del_flow_rules(ipsec_rule->rule);
--	mlx5_fc_destroy(mdev, ipsec_rule->fc);
- 	if (ipsec_rule->pkt_reformat)
- 		mlx5_packet_reformat_dealloc(mdev, ipsec_rule->pkt_reformat);
- 
-@@ -2661,25 +2637,48 @@ void mlx5e_accel_ipsec_fs_del_rule(struct mlx5e_ipsec_sa_entry *sa_entry)
- 		mlx5_modify_header_dealloc(mdev, ipsec_rule->modify_hdr);
- 
- 	mlx5_del_flow_rules(ipsec_rule->trailer.rule);
--	mlx5_fc_destroy(mdev, ipsec_rule->trailer.fc);
- 
- 	mlx5_del_flow_rules(ipsec_rule->auth.rule);
--	mlx5_fc_destroy(mdev, ipsec_rule->auth.fc);
- 
- 	if (ipsec_rule->sa_sel) {
- 		mlx5_del_flow_rules(ipsec_rule->sa_sel);
- 		mlx5_del_flow_rules(ipsec_rule->status_pass);
- 	}
- 
--	if (ipsec_rule->replay.rule) {
-+	if (ipsec_rule->replay.rule)
- 		mlx5_del_flow_rules(ipsec_rule->replay.rule);
--		mlx5_fc_destroy(mdev, ipsec_rule->replay.fc);
--	}
- 	mlx5_esw_ipsec_rx_id_mapping_remove(sa_entry);
- 	rx_ft_put(sa_entry->ipsec, sa_entry->attrs.addrs.family,
- 		  sa_entry->attrs.type);
- }
- 
-+int mlx5e_accel_ipsec_fs_alloc_counters(struct mlx5e_ipsec_sa_entry *sa_entry)
-+{
-+	struct mlx5_core_dev *mdev = mlx5e_ipsec_sa2dev(sa_entry);
-+	struct mlx5_fc *fc;
-+
-+	if (sa_entry->attrs.dir == XFRM_DEV_OFFLOAD_IN)
-+		return rx_create_counters(sa_entry);
-+
-+	fc = mlx5_fc_create(mdev, true);
-+	if (IS_ERR(fc))
-+		return PTR_ERR(fc);
-+
-+	sa_entry->fcs[MLX5_IPSEC_FC_RULE] = fc;
-+	return 0;
-+}
-+
-+void mlx5e_accel_ipsec_fs_free_counters(struct mlx5e_ipsec_sa_entry *sa_entry)
-+{
-+	struct mlx5_core_dev *mdev = mlx5e_ipsec_sa2dev(sa_entry);
-+	int i;
-+
-+	for (i = 0; i < MLX5_IPSEC_FC_NUM; i++) {
-+		mlx5_fc_destroy(mdev, sa_entry->fcs[i]);
-+		sa_entry->fcs[i] = NULL;
-+	}
-+}
-+
- int mlx5e_accel_ipsec_fs_add_pol(struct mlx5e_ipsec_pol_entry *pol_entry)
- {
- 	int err;
+ enum mlx5_ipsec_cap {
 -- 
 2.44.0
 
