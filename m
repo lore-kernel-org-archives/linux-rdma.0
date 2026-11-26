@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795690207;
-	b=CdLYsr2vgyeznZHHwBVH/+s7H7JtFTxuStEa0QawsVzAcd9YCD1Ds1JD+tApFvWu3GLn
-	 ya3noddYaKTAyoBp+uXLqf6yji9IJ7XUwfNROYtZ6yWA7pfTRouEY47kzP6An2I9d6QkY
-	 rUDu6dZC1mnKwkMs/hVzkCUA824JDVAT/vwhjQsAN50pOVifstgCgp0aof3hedQHVKzEO
-	 Vo1Sb0tZDWILzQhQVclKmphUvHwkVSzgadBrIey0gYwz9xgWZJ5QOT10TMgJiR7lK53uk
-	 cCH6IWpd9jbgKhnQA8k+QzmxQXLENoaSvz8covz3OTHKuxnsFwaUfTroHFVNmWc1qoQ==
+	t=1795690806;
+	b=K2ZUNbxe0pJG+h6B/0fa24pbFUeRV87mYz742asD0CkSbw7f0I0dgbH85QjuaXFNN677
+	 QuxOvVs6VddelgVdZBJ/h8mjpbffg84RtufrYOo8ZCWcHagESoXQ+Z3xZ4NTIO3mpon8c
+	 TjKRUOstfJuoTU+RfJ4BFo+Lm1S0OwlLzJ2GdytySaWH7hXmSQuJC1NCEnlf9oHQwrRk/
+	 GNesC0X+U4lyP/R6k8KUEuvj4HBDMphps0KaduC0GKPJCHzMKKkL/4k5UUn/Uh5sVWIu8
+	 ZK8UyhcOrLzRmY3I4M63iU8b6SHlP+TdvFe5a24SL+wdUyq1a+SzzYuuEa9LkmXlWeQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795690207;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795690806;
 	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
 	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
 	 In-Reply-To:To:Cc;
-	bh=RAGDpCNfxKiB8/M15XUf+EmRm7rjiAlqeMsjC2/ZhGU=;
-	b=o3ySth7IyM2xlqbZaqf8lY72OU2gPysoPJ7xJOf6oO3amM2PcbfcDiuMk8sTogSRl491
-	 cd90EErBDEB49A2V2Bwhx1+eFRiajcfFrrdrLQmpMsGmDxd1otTJovjCIr860humbgs8T
-	 rb3egKtko48DCdMe1XPZdQfj2l9MOoU0ekfbpuy1Ho+8JaNKJQFxChqKRYM1b4SCgw7Md
-	 TjIrHFW8CSforsXeB/XHN8wgmAhhyMBOE+cRBdfvSCTwoudgTeF6ooTQBVZnRe3TnpUWH
-	 LWjnAzxsXn4CdLNwDdXCs9Va404baDM/XxFTIQNGv5izwqSFCt8PgweeFFFc/iXNo6Q==
+	bh=P7WOki1fLGaeak+JkWZkty6grxAVOxRWnTkGYsL2nic=;
+	b=raP0TcboIQ+Yb2bvLtFMgYBl0C4vCtyDc1ahXQE8J3X9UNiXQFNjvMjTrJjeGvcmjFiL
+	 4xTmY4y0OU9QWs7VZLkKzwT/F4CTO1udtYgmXNCIFjEWn0IhONucIsgYWjogwS1kJihJE
+	 q10qI8jb7J7Xua8mq+V0l7ZOxw0HxSCZ0yk/ReGEUCzzdprll9r9qHCJFc0vad8VAaWio
+	 FDlxux/xwvZgi2WZ8CzjAJwKoPJTLR0Hxw2uqejtaUwyj+eM3aBHBJchiK7yUGn4bOVt7
+	 DzrcNheYdV4IfVpDyN/fHvCCsFTEu7AfWVNVnQz5qS5+lp/9zesk6b1dIWfVsAvYYYg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mJSMECBZ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iNCyUWAd;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5459F606A31C;
-	Thu, 26 Nov 2026 10:50:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAC80606A31C;
+	Thu, 26 Nov 2026 11:00:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mJSMECBZ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF7431F000EF;
-	Thu, 26 Nov 2026 10:50:06 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iNCyUWAd
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CFFC1F000C4;
+	Thu, 26 Nov 2026 11:00:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795690206;
-	bh=RAGDpCNfxKiB8/M15XUf+EmRm7rjiAlqeMsjC2/ZhGU=;
+	s=k20260515; t=1795690806;
+	bh=P7WOki1fLGaeak+JkWZkty6grxAVOxRWnTkGYsL2nic=;
 	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=mJSMECBZaRI3nTi1NWZDIB5UyRPSdPXhfi073W7qdz/utvwibOP7AmRpT4gD4W9v1
-	 MtMQmP3UtyRdwiWl2nGZGKoOE5gpzrt2Za4iGzHWKUvmLvli80cYDRZICHOshrpU7v
-	 fHFLyIv5UtO3sCckf+876CUH4mbFxPCtkU8SwHY5EVXJd2EVgVhfUyLB+7hyjn2BGV
-	 FgCib0ABXQQUT4l8v+1d44Al3M1OY8bZANa9D19rn0EZFdNm08PsCqElPoZMPm32kS
-	 6aYGynoGbNJ37AIEu/4H0tqCtxg30ZoUCN6Nsp61ZAV/kdmLPDbPhkE/SBN25kGwBO
-	 I0bZKNUqZH4UQ==
+	b=iNCyUWAd6qCIjsPqslDn6/s9o6z2VtFp0bOoKPNiNtRFZWPOLos86S9v2XXnTFQpF
+	 5n4dNFGSUflQd40OfmCWBPhMj0a1XTfJQhS/aPfjYQxQnGo0nLRhPHCAgz1SCkE7oz
+	 IYzkCSotkTgoD3AzdmT/YRswEIb1OyEc54ePug9tQW6eZBs4WTs/IC2HfrDpMK9THj
+	 m6p0yhBvLkt1RzlOz/Y1vDDxYygx7SIGeacUhOGs0ICwLL3C2fB+HoXXyuEgylKLjF
+	 JXzxamX/uAcOR7dIP8VWS1pVUThU6ehreYPhsJ2qNZcfXq7JVcL9nVwX2pygKo+0H2
+	 2F+ZQOgE6P7Eg==
 Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id B4643380A95A;
-	Thu, 26 Nov 2026 10:50:06 +0000 (UTC)
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3A3F2380A962;
+	Thu, 26 Nov 2026 11:00:06 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -54,39 +54,40 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net v2] net/mlx5e: Skip hairpin entries not ready in
- debugfs
- dump
+Subject: Re: [PATCH net v2] net/mlx5e: IPsec,
+ Fix RX mapped ID leak when adding a rule fails
 From: patchwork-bot+netdevbpf@kernel.org
 Message-Id: 
- <179569020553.1743253.12065164933418041046.git-patchwork-notify@kernel.org>
-Date: Thu, 26 Nov 2026 10:50:05 +0000
-References: <20261120021557.1630138-1-lcy8047@gmail.com>
-In-Reply-To: <20261120021557.1630138-1-lcy8047@gmail.com>
+ <179569080477.1746679.10791522789512013648.git-patchwork-notify@kernel.org>
+Date: Thu, 26 Nov 2026 11:00:04 +0000
+References: <20261120025501.1675212-1-lcy8047@gmail.com>
+In-Reply-To: <20261120025501.1675212-1-lcy8047@gmail.com>
 To: Changyul Lee <lcy8047@gmail.com>
 Cc: saeedm@nvidia.com, leon@kernel.org, tariqt@nvidia.com, mbloch@nvidia.com,
  andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
- kuba@kernel.org, pabeni@redhat.com, gal@nvidia.com, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+ kuba@kernel.org, pabeni@redhat.com, borisp@nvidia.com, jianbol@nvidia.com,
+ netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org
 
 Hello:
 
 This patch was applied to netdev/net-next.git (main)
 by Paolo Abeni <pabeni@redhat.com>:
 
-On Thu, 19 Nov 2026 21:15:57 -0500 you wrote:
-> mlx5e_hairpin_flow_add() adds a new hairpin entry to hairpin_tbl and
-> drops hairpin_tbl_lock before creating the hairpin, and sets hpe->hp
-> only after mlx5e_hairpin_create() returns. Other users of the entry wait
-> for res_ready, but debugfs_hairpin_table_dump_show() does not, so
-> reading hairpin_table_dump in that window dereferences a NULL hpe->hp,
-> or an ERR_PTR when the creation fails.
+On Thu, 19 Nov 2026 21:55:01 -0500 you wrote:
+> In switchdev mode, rx_add_rule() calls
+> mlx5_esw_ipsec_rx_setup_modify_header(), which allocates a mapped ID for
+> the SA in ipsec->ipsec_obj_id_map. If a later step fails, the error path
+> frees the modify header but leaves the ID in the XArray, and
+> mlx5e_xfrm_add_state() then frees the SA entry. Each failed inbound
+> packet offload SA leaks one of the 2047 IDs. Once they are used up, no
+> new inbound SA can be offloaded until the IPsec context is cleaned up.
 > 
 > [...]
 
 Here is the summary with links:
-  - [net,v2] net/mlx5e: Skip hairpin entries not ready in debugfs dump
-    https://git.kernel.org/netdev/net-next/c/65413721880b
+  - [net,v2] net/mlx5e: IPsec, Fix RX mapped ID leak when adding a rule fails
+    https://git.kernel.org/netdev/net-next/c/a6e391baedf3
 
 You are awesome, thank you!
 -- 
