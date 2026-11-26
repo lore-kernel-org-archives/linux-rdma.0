@@ -1,56 +1,108 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795667030;
-	b=is8QSk61DyI4THMSfd/0l50AKfnXRucCDW9RgEsxWGyQMyA3Z6JOWE0nzWS0aXgUpv+8
-	 ESwkJLTHLYwuFxEZbi8U1qNDTOp7FQrwePY/Xcw8WE4/Wuty1MIzHRuCvB487U9KH7LpT
-	 CmGz53hy4aroqw6/2kSC3+9D3W56a/fvDg7HiS3OV/tC+J4BgMrP0ASHxHMZb5/B/te53
-	 cLWruSF0drq/OzjbFGNOVxsStHjCDHTWFa2mYB9BLo7U4u5LWiHt6UeEQxFTQp2vgaMMm
-	 1PsGr5Z9IPmt1Px8EwWoyZlMsrhHPQOIBs3kTw7wpQviWS+CBTvZmCWjONyJRHwW56g==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795667030;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=w0lR5VgpvDJ6T2cHqvlo9xPbD/OBlV8OGcQdybspTMM=;
-	b=FychM7+haw+oXwsrdYcVAzgkYijZK9hLLiB+7XS9FBkmK8ryI8itj/NZegCj8/B9eyFu
-	 +/2Vqwlz4yIdahc+9LFMFeUjZF/088Mb5feh+9JosXOfIzAukTPYNj+/pJiaET5uJAdH+
-	 4qYNtHXafzYwtjX4m3So06ifMA+532BenbbR53zrP75/FL2MQTMkYP3J7BdgbfPL2mjy9
-	 WqjvGWb65Gp+9EBBoZoZF0oedMUp/ImcjuUDc4UknovKqa/1MdcGUjPR/4CHtVftl9G/+
-	 6uhyePQbcljZqtjutCMKeAgiNqZ7lrMmNA+FYeprVLhTocj9UrFU6lk5Enk0pnZIomA==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fjHX9ZzO;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.194.44
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795668509;
+	b=iOID1wysgZBfF4D1G5hlpr4zOsEsqQoupxnTH4AM3WasNHyp9TfnUlNEb4GdAdEvBlhA
+	 PFnSsS9qSfASqQgsDVlFKP7yZfZzysOm5q63MR0g/0RmRUcpghJjCQy2PBJMG98ACLoBR
+	 fImECQDoWDzCPL6TPMlVMJ3YHB46lVcQnfwdsV/qESS/RlV7tm+3rMTcFyFMJlDJMBjDW
+	 3CMwfbiRgvy33c79AhkJBhQJ+54Qf+vPYBN3OELrhhdKt6/fzafZboynfJGFRsZbBzwUk
+	 TxNz7HlBKtGEtc+T0TBka1xWPtD4RfXcfFnfPiLYPaYloMqeDmq6ID8GqFS2jZuw8/Q==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795668509;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:
+	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
+	 Received:Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding:Content-Type:
+	 X-EOPAttributedMessage:X-MS-PublicTrafficType:
+	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
+	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
+	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+	 X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-Id:
+	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=t46/frKB84oMOXWaY0bZfTbUAiQZCi4vZI9dZMxOfzM=;
+	b=ePfonDEX54tDlAIiAc7Udv62XcM4Mtlczn2cr5Rr7vrRrXVLtSkeEtx59t8QdjseCvKx
+	 RsuzpZt4DwKsrL8hJFoFMKmciLoVqXj8SGXruQJSUjgcTH8u9N1kd9APW5H2JwWM6Lbop
+	 pXa9SpPTmvTJwaP1+gfOCOKk9ZP78rnIyPufxlxQVC2yEDLcwxRF5jAVdaddSqkNTXZvB
+	 hpUU0jvI6iUEAjc/earkn20+d5r6HKpEAhHy/XoMwl00g5NeEShQIxGNMG5Q+/Hil+U+2
+	 PGJF/Tpofg42mbYfjKNivJY5rDMXzL2lI1wcLMk2Uys5et37b+t8KV8VyNFp4aXRCNg==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=amd.com;
+	spf=fail smtp.mailfrom=amd.com;
+	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=YKJLd2d+;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.194.44
+Received: from SN4PR0501CU005.outbound.protection.outlook.com (mail-southcentralusazon11011044.outbound.protection.outlook.com [40.93.194.44])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB2BB606A31E
-	for <linux-rdma@vger.kernel.org>; Thu, 26 Nov 2026 04:23:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29DA9606A31C;
+	Thu, 26 Nov 2026 04:48:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 29DA9606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fjHX9ZzO
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED80D1F000CF;
-	Thu, 26 Nov 2026 04:23:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795667030;
-	bh=w0lR5VgpvDJ6T2cHqvlo9xPbD/OBlV8OGcQdybspTMM=;
-	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=fjHX9ZzOf9CvVDP1dy7VoTUPkaLV4UWioNSD1ZKtaVuf5iqVren4DOX/62cSs3src
-	 NJra7NOK2ApjZ8eZhhIgKiIbdGb9Ya5cBEgoPPFEqk1NPMNrWVGdzsfQCFLUIlfc47
-	 B0DQkjh1frFr7NJBkHG9LHvSxdYOwjaYohP0pouQq6TZlnqA+f0QHwHncyKfid7F3k
-	 kE7KG0aj9E1rgvuCnlxo8+K0Q0Vr4IeLU2f9vEHx0n/KpBskXKBfLYDAG6SE/vpoKN
-	 NSOn54phm6F9JUJtf4f4xJUU3pOmISHzsphZ1YWrxzmsPzaJ+vufzXYYtkhkzpqD9X
-	 LDQTzvI76Dk0g==
-Message-ID: <sashiko-outbox-234731@kernel.org>
-From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net] net/mlx5e: Fix deadlock when parsing flow actions
- fails
-Reply-To: sashiko-reviews@lists.linux.dev
-To: "Ziyu Zhang" <ziyuzhang201@gmail.com>
-Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261125042323.88050-1-ziyuzhang201@gmail.com>
-References: <20261125042323.88050-1-ziyuzhang201@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 26 Nov 2026 04:23:49 +0000
+	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=YKJLd2d+
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=dS/ZsTOReGnrch/Ic7ppr93IMiBE5OzZ7l7aLmJOb5mxJH2yvezUZKhAi/28SyyoqU8zxEE3YwfjMFjiVuHsJ4PEMhNRroJLEQCRGjFjxzBshsw5JBUmhVaci0Y9IoOMrctsYFDJl7i5lXjMQ04ihLVw1lmicbE1NLKyXm3/QYDgeBTjTBGBTQki93W8i5CVqYP7rB/Vyuxr5tPHiHhDz3975iZbAIKm26kzbuxSXkNqOLP17+WUIjAsx+LR+M7DGIUP9bgYLoKrTY/nQQaSnrEH2JVdOzM+h2aE9Ngq+NfqHnaUYc+YCfHM5erwSaUlJGnVozHi3YhUReUgQzswhw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=t46/frKB84oMOXWaY0bZfTbUAiQZCi4vZI9dZMxOfzM=;
+ b=LTJphRsNhmm0hy9XfB9n7qCT97tJCPKjrn+kXWIBEWVJuO+MO44f9a3muW+VmJpbgywWAE/n3nqmSHVTn7BedsMTmS0Fu/eKHNNSo0RtFwPjFdHLSshWcd8hD18Hx7qivWA+rMuxdrks6wfZvMYjb47jbMdXd4euO9cEWdFNTd0Fx8lIzT0yZdOkJCLnY5F43NEBM3hgLftaOaZCUm7VPNGpi00U40JBe6yTVEUehhc4y09wuszTT85lfDtp0me40qSGfTx08C2b+wMqabV/9l942I4Uc1FInlc627Q7vMvWL/a+UcMs6wI+YTwTgdJlSenjJI8GIRW1RFSL5nZ6tg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=ziepe.ca smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=t46/frKB84oMOXWaY0bZfTbUAiQZCi4vZI9dZMxOfzM=;
+ b=YKJLd2d+f/sNX5oxZ38Ik4WGbzZiIgKyYfFMlY3/BM3MdHjstZ+va3emaT9v7r72M9XdnLOPu4Qe/7yQo6e7NFTuLJdtbP0OdCXFrQ9N+gv/dAxuy227n8R0kX3L/qgd+NUIrAzxoCFwDVP+MupoeM6s/cCBG4p6L2mGN2AO4IE=
+Received: from MN2PR08CA0011.namprd08.prod.outlook.com (2603:10b6:208:239::16)
+ by SJ0PR12MB6925.namprd12.prod.outlook.com (2603:10b6:a03:483::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.662.7; Thu, 26 Nov
+ 2026 04:48:25 +0000
+Received: from BN1PEPF00018072.namprd04.prod.outlook.com
+ (2603:10b6:208:239:cafe::ad) by MN2PR08CA0011.outlook.office365.com
+ (2603:10b6:208:239::16) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.662.7 via Frontend Transport; Thu, 26
+ Nov 2026 04:48:24 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 165.204.84.17) smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb08.amd.com; pr=C
+Received: from satlexmb08.amd.com (165.204.84.17) by
+ BN1PEPF00018072.mail.protection.outlook.com (10.167.245.200) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.662.3 via Frontend Transport; Thu, 26 Nov 2026 04:48:24 +0000
+Received: from satlexmb10.amd.com (10.181.42.219) by satlexmb08.amd.com
+ (10.181.42.217) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.57; Wed, 25 Nov
+ 2026 22:48:24 -0600
+Received: from satlexmb08.amd.com (10.181.42.217) by satlexmb10.amd.com
+ (10.181.42.219) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.57; Wed, 25 Nov
+ 2026 22:48:24 -0600
+Received: from xhdipdslab46.xilinx.com (10.180.168.240) by satlexmb08.amd.com
+ (10.181.42.217) with Microsoft SMTP Server id 15.2.2562.57 via Frontend
+ Transport; Wed, 25 Nov 2026 22:48:22 -0600
+From: Abhijit Gangurde <abhijit.gangurde@amd.com>
+To: <jgg@ziepe.ca>, <leon@kernel.org>
+CC: <allen.hubbe@amd.com>, <nikhil.agarwal@amd.com>,
+	<linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>, "Abhijit
+ Gangurde" <abhijit.gangurde@amd.com>
+Subject: [for-next v2 0/3] RDMA/ionic: Accept CQ, SQ, and RQ rings as umem attributes
+Date: Thu, 26 Nov 2026 10:18:07 +0530
+Message-ID: <20261126044811.3458258-1-abhijit.gangurde@amd.com>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -59,174 +111,70 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN1PEPF00018072:EE_|SJ0PR12MB6925:EE_
+X-MS-Office365-Filtering-Correlation-Id: 2f712f23-537f-45bc-f3e1-08df4b788167
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|36860700016|376014|23010399003|82310400026|1800799024|56012099006|11063799006|10067099003|261022105027099003|261021121427099003|261021123027099003|261021135927099003|261026140227099003|261026121527099003|261028144727099003|261102123227099003|261009223027099003|18002099003|13003099007;
+X-Microsoft-Antispam-Message-Info:
+	SuCzM8tK2lTmIT9E8ftH5vmRENa3KBZ2+zlnXj6nuBoL73VC+GY/FT7+vNGvJSOkn3qXT8z5wfOkE8zINCzNm4V+MCSxmDS0DhWiDSqZAjx6Bkc4QxPSUrhQNi9lk4FBnPtYHzAPh7ZBPC6niMgb4Pndnouva2Mtu1xMRh5rqa8lIbfM2pcHlVGTgynH+IzSGNJqDtrSJQzXIMKlx/hc2q0Pj5eqRfK0tnoYmGiFhcxSqw79h7NiB7h5Wl763BRWsW7G1KPoUpaA6rP6NM8tNzhy9ZST/I/GMvcNi/fjL51puiNq/CYlBuKLs7KYuViU6k+Lz08BqFwgHSonGAzpkL07Hj5HFhy/8Vx99SKRPbqIZi0X2SpbXNo9N7BrsXzHSF48Mb7N/0dQBi8lbjfUNPz3N3qu+9+PkXmFoUdqbR+Bg0RR+VKVFVyw1N+d405yYHOFPcfTEoMLvSY764GnVQ9nK4lKlwYIOixZFEHxv6AqvwqzKb3pFxPhSGx0s/axKEnmdBEUHAb5HfhnGY/Hl4IMa0zLrgiONmXey/Y4ayjw3CNmg20jKPnwAEF5lsXbm2lP4taS3M+dLl1Gt7bZA0BMgaEm/Pw9gDpHoelDGQIQgDDxTodinQbH0Iv6cYu9knenxFjfOSu+OACtAYooog==
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb08.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700016)(376014)(23010399003)(82310400026)(1800799024)(56012099006)(11063799006)(10067099003)(261022105027099003)(261021121427099003)(261021123027099003)(261021135927099003)(261026140227099003)(261026121527099003)(261028144727099003)(261102123227099003)(261009223027099003)(18002099003)(13003099007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	h4ra96Voof0VqHSumtn9kgBfjfL+yZYibKJBV4CJ+3qtLHnQORJ2giH+xpyWuyqXRnmvRYF3nJ+sOq/lcSe6Ns6fDP35B6/oyjbqtekvbijlSehN9QXK6hqjyBG2yOqOF/WtmTTaW351/KHlEsE45rS2FCmF9DATe/eycpAKaFIaaeZZ3SvlXAIttx0KFb5xU/qOv08uFoKpkUQIJrGjfgkUvBnNcew3cQft6yRBvO/wEXOm7K7WGoRhX4D+OyVnQwCoiVSnXNPZ3woOMSr8mqpeSG+cs9Vq6Bub5ZbDc9zYGUxmCiArnltveHunAveu9qgioknvEyBIcTIAZU4WXjJyf96pPJvEmN97kh7wjqoCx/yVI/LlEQC/Pz//WNGdCvo7EPRWxxlq1lYf7tLFWB2esRELD4Zu43WhOG+EU5W269+ZXuBrhYQkl4196CgN
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Nov 2026 04:48:24.8732
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2f712f23-537f-45bc-f3e1-08df4b788167
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb08.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BN1PEPF00018072.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB6925
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue to consider:
-- [Medium] net/mlx5e: skipped encap detach in __mlx5e_add_fdb_flow() on
-  action parse error
-It also noticed 2 related pre-existing issues this patch does not
-introduce:
-- [High] net/mlx5e: list corruption and encap leak in
-  mlx5e_tc_tun_encap_dests_set() [1]
-- [Critical] net/mlx5e: unguarded TUN_RX state in
-  mlx5e_tc_add_fdb_flow() on retry [2]
---
+Let userspace hand ionic queue rings to create_cq and create_qp as
+struct ib_uverbs_buffer_desc, instead of only as a raw address in the
+driver request. A ring may be a virtual address or a page-aligned
+slice of a dma-buf, so several rings can share one dma-buf.
 
-commit d3aaf145c0b29688154f5549282aa0654096d594
-Author: Ziyu Zhang <ziyuzhang201@gmail.com>
+The get_context bit IONIC_CTX_CMASK_CQ_QP_BUF_UMEM tells userspace it
+may send the descriptors. ionic_cq_req and ionic_qp_req are unchanged,
+so a provider that does not send them still uses the existing write
+path and ib_umem_get_va.
 
-net/mlx5e: Fix deadlock when parsing flow actions fails
+Userspace: https://github.com/linux-rdma/rdma-core/pull/1862
 
-This commit marks the flow as FAILED, deletes post action rules, and
-completes flow->init_done before detaching encap entries when parsing flow
-actions fails, avoiding a deadlock with neighbour and route updates waiting
-on flow->init_done under encap_tbl_lock.
+v2:
+  - Fix sashiko reported comments
+    - New patch 1: bound depth/stride shift counts
+    - Reject non-zero qdesc addr for dma-buf
+    - QP: pin validated descriptor copy
+v1:
+  https://lore.kernel.org/linux-rdma/20261118152313.113714-1-abhijit.gangurde@amd.com/
 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/ne=
-t/ethernet/mellanox/mlx5/core/en_tc.c
-> index 011741553f5b9..d97612a7190b9 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+Abhijit Gangurde (3):
+  RDMA/ionic: Bound user queue depth and stride before shifting
+  RDMA/ionic: Accept CQ ring buffers as ioctl umem attributes
+  RDMA/ionic: Accept QP SQ and RQ rings as ioctl umem attributes
 
-[ ... ]
+ drivers/infiniband/hw/ionic/ionic_admin.c     |   2 +-
+ .../infiniband/hw/ionic/ionic_controlpath.c   | 200 +++++++++++++++---
+ drivers/infiniband/hw/ionic/ionic_ibdev.c     |  17 ++
+ drivers/infiniband/hw/ionic/ionic_ibdev.h     |   2 +
+ include/uapi/rdma/ionic-abi.h                 |   1 +
+ include/uapi/rdma/ionic_user_ioctl_cmds.h     |  15 ++
+ 6 files changed, 203 insertions(+), 34 deletions(-)
+ create mode 100644 include/uapi/rdma/ionic_user_ioctl_cmds.h
 
-> @@ -4580,8 +4615,11 @@ __mlx5e_add_fdb_flow(struct mlx5e_priv *priv,
->  		goto err_free;
-> =20
->  	err =3D parse_tc_fdb_actions(priv, &rule->action, flow, extack);
-> -	if (err)
-> +	if (err) {
-> +		del_flow_post_act_handles(flow);
-> +		mlx5e_flow_init_failed(flow);
->  		goto err_free;
-> +	}
+-- 
+2.43.0
 
-[Severity: Medium]
-Does jumping to err_free without calling free_flow_post_acts(flow) leave
-the flow attached to e->flows when a waiter is woken on flow->init_done?
-
-Before waiting on flow->init_done, mlx5e_take_tmp_flow() calls
-mlx5e_flow_get(flow), raising flow->refcnt to 2.  When
-parse_tc_fdb_actions() fails after alloc_flow_post_acts() has already
-succeeded, waking the waiter in mlx5e_flow_init_failed(flow) and calling
-mlx5e_flow_put() at err_free can drop flow->refcnt from 2 to 1 and return
-without running mlx5e_tc_del_flow() -> free_flow_post_acts():
-
-CPU0                                CPU1
-__mlx5e_add_fdb_flow()
-  parse_tc_fdb_actions()
-    alloc_flow_post_acts()
-      /* attaches flow to e1, e2 */
-                                    mlx5e_update_route_encaps()
-                                      lock(&esw->offloads.encap_tbl_lock)
-                                      mlx5e_take_all_encap_flows(e1, ...)
-                                        mlx5e_flow_get(flow) /* refcnt=3D2 =
-*/
-                                        list_add(&flow->tmp_list, ...)
-                                        wait_for_completion(&flow->init_don=
-e)
-    /* later check fails */
-  del_flow_post_act_handles(flow)
-  mlx5e_flow_init_failed(flow)
-    complete_all(&flow->init_done)
-  mlx5e_flow_put(priv, flow)
-    /* refcnt 2 -> 1, returns */
-                                      mlx5e_take_all_encap_flows(e2, ...)
-                                        list_add(&flow->tmp_list, ...)
-                                        /* corrupts flow->tmp_list */
-
-Because flow is still on e2->flows, the next iteration of
-mlx5e_update_route_encaps() (or another thread acquiring encap_tbl_lock
-before CPU1 runs mlx5e_put_flow_list()) takes the flow again and calls
-list_add() on an already-linked flow->tmp_list, corrupting the list and
-leaking a flow reference.
-
-Calling free_flow_post_acts(flow) before goto err_free, just as
-alloc_flow_post_acts() does at out_free, ensures mlx5e_detach_encap()
-waits for encap_tbl_lock and removes the flow from e->flows before
-__mlx5e_add_fdb_flow() returns.
-
-> =20
->  	err =3D mlx5e_tc_add_fdb_flow(priv, flow, extack);
->  	complete_all(&flow->init_done);
-
-[Severity: High]
-This problem wasn't introduced by this patch, but can a partial failure in
-mlx5e_tc_tun_encap_dests_set() [1] corrupt e->flows and leak encap
-references when an unready multipath flow is retried?
-
-When mlx5e_tc_add_fdb_flow() calls post_process_attr() ->
-mlx5e_tc_tun_encap_dests_set() for a rule with multiple tunnel encap
-destinations, each successful mlx5e_attach_encap() links
-flow->encaps[out_index].list into e->flows:
-
-drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun_encap.c:mlx5e_tc_tun_enca=
-p_dests_set() {
-	...
-	for (out_index =3D 0; out_index < MLX5_MAX_FLOW_FWD_VPORTS; out_index++) {
-		...
-		err =3D mlx5e_attach_encap(priv, flow, attr, out_dev, out_index,
-					 extack, &encap_dev);
-		dev_put(out_dev);
-		if (err)
-			goto out;
-		...
-	}
-}
-
-If a later destination fails with -ENETUNREACH on a multipath LAG setup,
-mlx5e_tc_tun_encap_dests_set() returns without detaching the earlier
-destinations, and __mlx5e_add_fdb_flow() queues the flow via
-add_unready_flow(flow) instead of freeing it.  When
-mlx5e_tc_reoffload_flows_work() retries mlx5e_tc_add_fdb_flow(),
-mlx5e_attach_encap() runs again from out_index 0, overwriting
-flow->encaps[out_index].e and calling list_add() on the already-linked
-flow->encaps[out_index].list.
-
-[Severity: Critical]
-This problem wasn't introduced by this patch, but can retrying an unready
-TUN_RX flow in mlx5e_tc_add_fdb_flow() [2] corrupt r->decap_flows,
-leak references, and append duplicate modify-header actions?
-
-In mlx5e_tc_add_fdb_flow(), the TUN_RX handling runs before
-post_process_attr():
-
-drivers/net/ethernet/mellanox/mlx5/core/en_tc.c:mlx5e_tc_add_fdb_flow() {
-	...
-	if (flow_flag_test(flow, TUN_RX)) {
-		err =3D mlx5e_attach_decap_route(priv, flow);
-		if (err)
-			goto err_out;
-
-		if (!attr->chain && esw_attr->int_port &&
-		    attr->action & MLX5_FLOW_CONTEXT_ACTION_FWD_DEST) {
-			...
-			err =3D mlx5e_tc_match_to_reg_set(priv->mdev, &parse_attr->mod_hdr_acts,
-							MLX5_FLOW_NAMESPACE_FDB, VPORT_TO_REG,
-							metadata);
-			...
-		}
-	}
-	...
-	err =3D post_process_attr(flow, attr, extack);
-	if (err)
-		goto err_out;
-}
-
-If mlx5e_attach_decap_route() succeeds and post_process_attr() then fails
-with -ENETUNREACH on a multipath LAG setup, err_out does not unwind the
-TUN_RX state before __mlx5e_add_fdb_flow() calls add_unready_flow(flow).
-When mlx5e_tc_reoffload_flows_work() retries mlx5e_tc_add_fdb_flow(),
-mlx5e_attach_decap_route() runs a second time on the same flow: for a VF
-tunnel decap route it grabs another reference to the mlx5e_route_entry and
-calls list_add(&flow->decap_routes, &r->decap_flows) on an already-linked
-node, and for an OVS internal port route it overwrites esw_attr->int_port
-without releasing the previous reference and appends a duplicate
-VPORT_TO_REG action to parse_attr->mod_hdr_acts.
-
-[1] https://sashiko.dev/#/bug/linux-5302f345-b229-43c7-a40a-117aaaf5a0ba
-[2] https://sashiko.dev/#/bug/linux-5f514873-9967-4a3f-b7c5-4fc8e750cbf6
-
---=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261125042323.8805=
-0-1-ziyuzhang201@gmail.com?part=3D1
