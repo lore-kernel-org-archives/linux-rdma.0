@@ -1,44 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795706828;
-	b=lfee4/YD3U/VFTB3tlVgyyWrqPLsHrYiqqEb2uSolpbFCEDTrWw3K+AKBDiFuUR80XJh
-	 4Z90mq4CxnLn6pTzIrrRaFqKsJgtPYEJRyX7ZrlG+7V9EPHFfetiA0CQ/1usSaguBroNY
-	 seyKHRTbOg6QppHWyJsqkioNMDuu1FUdOgAdWzTTRT6EvdbrrFcz9cx4zZBJBLML7B5BI
-	 dakHnqBL9n75lEH/3dBTYlWqTfjyjGWm0tU0U8spp377v1b2ct0Rx1gjAB81fwGuslX/A
-	 rEZSJ1QQ7B8UuZLd00KjHgNiPYxMa8+QX2NNNZg7eRGIh33vvVlcts7C7MfC/nWiRWw==
+	t=1795707959;
+	b=jJdWHMkvUljmvtFTmJUP0x0DNpnCKzI7UuDdRAGTFwkjI1/54mYUYzcslCqEUxCzEssI
+	 tp2lPur90wbYPPyMrFZzSKs6ANA7eCZuu0rc3+mTwqNbE4Sikqap4foj59df0obtFi/n7
+	 ekUh97VoeYGi+sI0ywIXTd5Gmo8d7MTLjgzJCR4+pgdQjaOpgvOcBvUaVJhWEnSeuItPA
+	 OOiQjTEsEfjnYgF9bRmsX1bs9gReU1y1G8lKf0q4JDshjWX5yNff4hRpkwRurURgWdOAz
+	 zyCNmwkzooSnAAxwcdwbWJYiRCyTaPZ8pcqhQmfOgC/UW1VH8dxEgAgM5FwMpKLaDOA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795706828;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795707959;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:In-Reply-To:References:
 	 Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding;
-	bh=pQbqZcGbxJ+uscPuSMz/IRzY0GOV2w0fU4mvW1Tzpqk=;
-	b=IKLXwfYwgetExAe9AEQ6Tc8v/gxC5h2w6oRIj5qvuaqQs0wEUGrXvgnQ95tdnybd22pW
-	 8kS7tNf7Tnbba6gfsL8c15uQpvh26eUPAviKdJi/TYWUJ3GedE64o/eaz2jZjNwgb1yWX
-	 usKlF2hs0mTquMnqKGJQnoEiben0iVebUF23i4bpM+OD8wOUfV6XDY9j8aeo4CTnzBuR7
-	 vm34NhXIj1vEL4DROUdjYVl+43YVV3tAKShannROwWm8GIpI4Flw1Z4ZrxntFVOJuWbE5
-	 NDs9EowhDZVS05dN/K0inQ2JoOqHegL0ALIcmRBzRLjQVQ9z9Nf3dBgwcb9aTdkOCUQ==
+	bh=AlTkCdvZxwlRFxOm9+L2PEiwYGztHAFlTo7TXnt3Gs0=;
+	b=P07+iP0eXCYdiNdAfLlU3l6MrCqutWPoQ/5PPLJfwSpD8F1D+N01zPxYDBfQJQUoCQ8p
+	 IzqKmymGcmFMRlRQiscApEZo0esuUsRgD3+ScpDHDb9z+AC9vYdcdDkVJJrjgOvO65vD5
+	 a6xzVistw8yj4yPClSJxpFL84MS/FH6FECMVsFRhyqnfriL6ZwGAjMv0ZBbVyjUfTTh3R
+	 dVzS4A7tq7IFyerCT0bdI+hCOaVnVHNeOy6ruEhRo4b/Hz18a6aQamii6WfH2sW7/QAtm
+	 44K5H8g1YjYb+zgFvdmANlgT/RyzXrJWQOdBMYIZr+s54HO+HMU+hsUi1QqMB098b5Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=i98MPiPp;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RnVzj++6;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DE24606A326;
-	Thu, 26 Nov 2026 15:27:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36B41606A31C;
+	Thu, 26 Nov 2026 15:45:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=i98MPiPp
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DA9C1F000C0;
-	Thu, 26 Nov 2026 15:27:07 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RnVzj++6
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A47771F000D3;
+	Thu, 26 Nov 2026 15:45:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795706828;
-	bh=pQbqZcGbxJ+uscPuSMz/IRzY0GOV2w0fU4mvW1Tzpqk=;
+	s=k20260515; t=1795707958;
+	bh=AlTkCdvZxwlRFxOm9+L2PEiwYGztHAFlTo7TXnt3Gs0=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date;
-	b=i98MPiPpHdRyKLUYgLKAMej7QhKr9tu3lSzCbrCqmNcCmrUAQDfMibatJjZerutim
-	 oett7b21vDlQ56v9pKMwpj92D+qZjZEybmAHikLaNAluJkqWeO3xqWWGWIfVAYxWHF
-	 aqbUSEq5jMk47WVsUupd3b7L28mhah6QHl5FG6/y7oszmYeYAQrfIQ7Pei2p94nKOE
-	 ybPrKVIpfZN2ZqwQk8F9c8roJ5lgpfOGdGR4fw0ZQiG5uQojAVQDAd5RuyU82vUzQH
-	 zwEKLkqeQP/rczVL8hCbZZtybfgvxPPHPYtAlRWhodjw2Debmz8B9L7F9824TbxkA+
-	 597gUVt/ctzRg==
+	b=RnVzj++6RzzZyV1zjJJwGqvBKqxcUgQ5bCAEs7cOdyx8FOJyTr3RZgA3M3DQjpble
+	 yhjE10b9QPUyXaDetA2fgcg/8tRBRCNWJnyINqv9qxJE1oNsSYeB5uV92Sap/jBeT3
+	 5GTZienki64DHpZfGNYsG/nq+DLKs7jIclWxUj5hWHyM+IEn6qcRL4gsclaG/fcXtj
+	 beCZlRKgpSDuqhuzRzKDg4AB4ztohUNoWO8LAZKDTS3Sy/RQcFZKYNYJi6sn9EFKle
+	 44sVNJKOlbpPHM+QmTzOkpXLGMjEobd8kOBKYS8Duqzih5iYhvj8IKoc1udqL1hktn
+	 DzgcezFX0ar+g==
 From: =?utf-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>
 To: Todd Freed <toddfreed@meta.com>, netdev@vger.kernel.org
 Cc: "David S. Miller" <davem@davemloft.net>, Andrew Lunn
@@ -64,13 +64,13 @@ Cc: "David S. Miller" <davem@davemloft.net>, Andrew Lunn
  Baerts <matttbe@kernel.org>, David Ahern <dsahern@kernel.org>, Jonas
  =?utf-8?Q?K=C3=B6ppeler?= <j.koeppeler@tu-berlin.de>, Hangbin Liu
  <hangbin.liu@linux.dev>
-Subject: Re: [PATCH net-next v3 05/12] net: add METADATA_PSP dst to carry a
- psp association on an skb
-In-Reply-To: <20261124221758.3230929-6-toddfreed@meta.com>
+Subject: Re: [PATCH net-next v3 06/12] net/sched: add act_psp for psp
+ transport mode
+In-Reply-To: <20261124221758.3230929-7-toddfreed@meta.com>
 References: <20261124221758.3230929-1-toddfreed@meta.com>
- <20261124221758.3230929-6-toddfreed@meta.com>
-Date: Thu, 26 Nov 2026 16:27:04 +0100
-Message-ID: <875wxjipfb.fsf@all.your.base.are.belong.to.us>
+ <20261124221758.3230929-7-toddfreed@meta.com>
+Date: Thu, 26 Nov 2026 16:45:55 +0100
+Message-ID: <871p87iojw.fsf@all.your.base.are.belong.to.us>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -85,379 +85,350 @@ Content-Transfer-Encoding: quoted-printable
 
 Todd Freed <toddfreed@meta.com> writes:
 
-> Add a metadata_dst type holding a reference to a PSP association, so
-> that an association can be attached to an skb that has no socket, e.g.
-> by a tc action.
+> Add the tc action act_psp, for PSP transport mode encapsulation and
+> encryption.
 >
-> Change psp_skb_get_assoc_rcu() to check for METADATA_PSP, then fall back
-> to the socket, so that existing driver Tx paths (mlx5, netdevsim)
-> encrypt such packets without any changes.
+> encap attaches a PSP Tx association to the skb as a METADATA_PSP dst.
+> The packet must then be transmitted on the main netdev of the
+> association's PSP device, which encrypts it: encap on that netdev's
+> egress, or a redirect there from another netdev's egress. Any other
+> device drops it.
 >
-> Once an skb has been marked for PSP xmit, it must be transmitted on the
-> correct device, otherwise it may go onto the wire in clear text. For
-> packets of a PSP socket, sk_validate_xmit_skb() handles this.
+> Encap on ingress isn't supported. Routing replaces the dst of a packet
+> entering the stack, so the packet would lose its association before it
+> reaches the PSP device.
+> A later series will add support for encap on ingress, in hardware
+> offload only.
 >
-> For socket-less PSP packets, the PSP metadata dst carries this
-> information, but __dev_queue_xmit() normally releases the dst before
-> queueing. Add a new check for a PSP metadata dst at that point. If it's
-> the wrong device, drop the packet; if it's the right device, keep the
-> dst so that the driver can use it.
+> On egress, encap sets skb->decrypted, so that sk_validate_xmit_skb()
+> drops the packet if it loses the METADATA_PSP dst on the way.
 >
-> The right device is the PSP device's main netdev: devices associated
-> with it (dev-assoc, e.g. veth or netkit) have its psp_dev too, but
-> forward the packet rather than encrypt it, and drop the dst on the way.
-> Prevent xmit on those.
+> Some kinds of packets are not supported and are dropped:
 >
-> Also check that the packet will still fit the device's MTU once the
-> device adds the PSP encapsulation (UDP + PSP + ICV, 40 bytes), and drop
-> it with SKB_DROP_REASON_PKT_TOO_BIG otherwise. Note that no ICMP error
-> is sent in this case. PSP sockets do leave room for it
-> (psp_sk_overhead()).
+>  - IPv4 and IPv6 fragments. Encap inserts UDP + PSP between the L3 and
+>    L4 headers, and non-initial fragments don't have L4 headers, so
+>    transport mode can't support fragments. Tunnel mode PSP, which a later
+>    series adds, does support them.
+>  - IPv6 packets with extension headers. Some extension headers could be
+>    supported in the future.
+>  - Packets already encapsulated for a tunnel (skb->encapsulation). Some
+>    tunnel types could be supported in the future.
+>  - Packets which are too large. On transmit, packets which won't fit the
+>    device's MTU once encapsulated are dropped (see the METADATA_PSP
+>    patch). The traffic's MTU needs to leave room for the PSP encap.
+>  - Packets with another encryption offload. Packets of a PSP or kTLS
+>    offload socket, for which sk_validate_xmit_skb() would apply the
+>    socket's validator instead of checking the association.
 >
-> Check a packet with a METADATA_PSP dst again when it is validated at
-> dequeue, in sk_validate_xmit_skb(). If the PSP device was unregistered
-> since enqueue, the packet is dropped.
->
-> A packet of a socket with its own encryption offload (PSP or kTLS) must
-> not carry a METADATA_PSP dst: sk_validate_xmit_skb() would apply the
-> socket's validator instead of checking the association. Whatever attaches
-> the dst refuses such packets, but the socket can gain an offload while
-> the packet is queued, so sk_validate_xmit_skb() drops a packet which has
-> both. It reads sk->sk_validate_xmit_skb with READ_ONCE(), which pairs
-> with the WRITE_ONCE() in psp_sock_set_tx_key().
->
-> Put the new checks behind a static key, psp_md_needed, so that
-> configurations which aren't using socket-less PSP don't pay to evaluate
-> them. It's enabled while any METADATA_PSP dst exists.
+> Decap removes the PSP Rx state of a packet the device decrypted. To
+> take the packets of only one Rx SPI, a rule matches the PSP header
+> fields it was decrypted with: psp_spi, psp_ver and psp_dev. Those
+> flower matches are added in a subsequent patch.
 >
 > Signed-off-by: Todd Freed <toddfreed@meta.com>
 > ---
->  include/net/dst_metadata.h  |  19 +++++++
->  include/net/psp/functions.h | 105 +++++++++++++++++++++++++++++++++++-
->  net/core/dev.c              |  50 ++++++++++++++---
->  net/core/dst.c              |   5 ++
->  net/psp/psp_main.c          |  31 +++++++++++
->  5 files changed, 201 insertions(+), 9 deletions(-)
+>  MAINTAINERS                        |   3 +
+>  include/net/tc_act/tc_psp.h        |  23 ++
+>  include/uapi/linux/pkt_cls.h       |   1 +
+>  include/uapi/linux/tc_act/tc_psp.h |  28 ++
+>  net/sched/Kconfig                  |  13 +
+>  net/sched/Makefile                 |   1 +
+>  net/sched/act_psp.c                | 437 +++++++++++++++++++++++++++++
+>  7 files changed, 506 insertions(+)
+>  create mode 100644 include/net/tc_act/tc_psp.h
+>  create mode 100644 include/uapi/linux/tc_act/tc_psp.h
+>  create mode 100644 net/sched/act_psp.c
 >
-> diff --git a/include/net/dst_metadata.h b/include/net/dst_metadata.h
-> index 02fffbb85099..bc6ac51dde9c 100644
-> --- a/include/net/dst_metadata.h
-> +++ b/include/net/dst_metadata.h
-> @@ -13,6 +13,7 @@ enum metadata_type {
->  	METADATA_HW_PORT_MUX,
->  	METADATA_MACSEC,
->  	METADATA_XFRM,
-> +	METADATA_PSP,
->  };
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 97308edec53d..63c5c4c084dd 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -22573,8 +22573,11 @@ F:	Documentation/netlink/specs/psp.yaml
+>  F:	Documentation/networking/psp.rst
+>  F:	include/net/psp/
+>  F:	include/net/psp.h
+> +F:	include/net/tc_act/tc_psp.h
+>  F:	include/uapi/linux/psp.h
+> +F:	include/uapi/linux/tc_act/tc_psp.h
+>  F:	net/psp/
+> +F:	net/sched/act_psp.c
+>  K:	struct\ psp(_assoc|_dev|hdr)\b
 >=20=20
->  struct hw_port_info {
-> @@ -30,6 +31,14 @@ struct xfrm_md_info {
->  	struct dst_entry *dst_orig;
->  };
->=20=20
-> +/**
-> + * struct psp_md_info - PSP association to encrypt a packet with
-> + * @pas: association, the metadata_dst holds a reference on it
-> + */
-> +struct psp_md_info {
-> +	struct psp_assoc *pas;
+>  PSTORE FILESYSTEM
+> diff --git a/include/net/tc_act/tc_psp.h b/include/net/tc_act/tc_psp.h
+> new file mode 100644
+> index 000000000000..8640d7685475
+> --- /dev/null
+> +++ b/include/net/tc_act/tc_psp.h
+> @@ -0,0 +1,23 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +#ifndef __NET_TC_PSP_H
+> +#define __NET_TC_PSP_H
+> +
+> +#include <net/act_api.h>
+> +#include <net/dst_metadata.h>
+> +#include <linux/tc_act/tc_psp.h>
+> +
+> +struct tcf_psp_params {
+> +	struct rcu_head		rcu;
+> +	int			action;
+> +	int			psp_action;
+> +	struct metadata_dst	*md;
 > +};
 > +
->  struct metadata_dst {
->  	struct dst_entry		dst;
->  	enum metadata_type		type;
-> @@ -38,6 +47,7 @@ struct metadata_dst {
->  		struct hw_port_info	port_info;
->  		struct macsec_info	macsec_info;
->  		struct xfrm_md_info	xfrm_info;
-> +		struct psp_md_info	psp_info;
->  	} u;
+> +struct tcf_psp {
+> +	struct tc_action		common;
+> +	struct tcf_psp_params __rcu	*params;
+> +};
+> +
+> +#define to_psp(a) ((struct tcf_psp *)a)
+> +
+> +#endif /* __NET_TC_PSP_H */
+> diff --git a/include/uapi/linux/pkt_cls.h b/include/uapi/linux/pkt_cls.h
+> index 28d94b11d1aa..14cff8f5da74 100644
+> --- a/include/uapi/linux/pkt_cls.h
+> +++ b/include/uapi/linux/pkt_cls.h
+> @@ -139,6 +139,7 @@ enum tca_id {
+>  	TCA_ID_MPLS,
+>  	TCA_ID_CT,
+>  	TCA_ID_GATE,
+> +	TCA_ID_PSP,
+>  	/* other actions go here */
+>  	__TCA_ID_MAX =3D 255
 >  };
+> diff --git a/include/uapi/linux/tc_act/tc_psp.h b/include/uapi/linux/tc_a=
+ct/tc_psp.h
+> new file mode 100644
+> index 000000000000..e58ebcae77be
+> --- /dev/null
+> +++ b/include/uapi/linux/tc_act/tc_psp.h
+> @@ -0,0 +1,28 @@
+> +/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+> +#ifndef __LINUX_TC_PSP_H
+> +#define __LINUX_TC_PSP_H
+> +
+> +#include <linux/pkt_cls.h>
+> +
+> +#define TCA_PSP_ACT_ENCAP	1	/* attach a PSP association */
+> +#define TCA_PSP_ACT_DECAP	2	/* drop PSP Rx state */
+> +
+> +struct tc_psp {
+> +	tc_gen;
+> +};
+> +
+> +enum {
+> +	TCA_PSP_UNSPEC,
+> +	TCA_PSP_TM,
+> +	TCA_PSP_PARMS,
+> +	TCA_PSP_PAD,
+> +	TCA_PSP_ACTION,		/* u32, TCA_PSP_ACT_* */
+> +	TCA_PSP_ASSOC_ID,	/* u32, encap only: Tx association ID from
+> +				 * the PSP netlink family (assoc-add)
+> +				 */
+> +	__TCA_PSP_MAX,
+> +};
+> +
+> +#define TCA_PSP_MAX (__TCA_PSP_MAX - 1)
+> +
+> +#endif
+> diff --git a/net/sched/Kconfig b/net/sched/Kconfig
+> index 6ddff028b81a..35f9d76c4cae 100644
+> --- a/net/sched/Kconfig
+> +++ b/net/sched/Kconfig
+> @@ -939,6 +939,19 @@ config NET_ACT_GATE
+>  	  To compile this code as a module, choose M here: the
+>  	  module will be called act_gate.
 >=20=20
-> @@ -51,6 +61,13 @@ static inline struct metadata_dst *skb_metadata_dst(co=
-nst struct sk_buff *skb)
->  	return NULL;
->  }
->=20=20
-> +static inline bool skb_psp_md(const struct sk_buff *skb)
-> +{
-> +	struct metadata_dst *md_dst =3D skb_metadata_dst(skb);
+> +config NET_ACT_PSP
+> +	tristate "PSP encryption tc action"
+> +	depends on NET_CLS_ACT && INET_PSP
+> +	help
+> +	  Say Y here to allow PSP associations, created through the PSP
+> +	  netlink family, to be attached to packets. PSP capable devices can
+> +	  then encrypt them on transmit. Enables transparent psp tunnels for
+> +	  forwarded traffic.
 > +
-> +	return md_dst && md_dst->type =3D=3D METADATA_PSP;
-> +}
+> +	  If unsure, say N.
+> +	  To compile this code as a module, choose M here: the
+> +	  module will be called act_psp.
 > +
->  static inline struct ip_tunnel_info *
->  skb_tunnel_info(const struct sk_buff *skb)
->  {
-> @@ -127,6 +144,8 @@ static inline int skb_metadata_dst_cmp(const struct s=
-k_buff *skb_a,
->  	case METADATA_XFRM:
->  		return memcmp(&a->u.xfrm_info, &b->u.xfrm_info,
->  			      sizeof(a->u.xfrm_info));
-> +	case METADATA_PSP:
-> +		return a->u.psp_info.pas !=3D b->u.psp_info.pas;
->  	default:
->  		return 1;
->  	}
-> diff --git a/include/net/psp/functions.h b/include/net/psp/functions.h
-> index 2380af3b9c86..8704e41a7fda 100644
-> --- a/include/net/psp/functions.h
-> +++ b/include/net/psp/functions.h
-> @@ -5,7 +5,10 @@
->=20=20
->  #include <linux/skbuff.h>
->  #include <linux/rcupdate.h>
-> +#include <linux/jump_label_ratelimit.h>
->  #include <linux/udp.h>
-> +#include <net/dst_metadata.h>
-> +#include <net/gso.h>
->  #include <net/sock.h>
->  #include <net/tcp.h>
->  #include <net/psp/types.h>
-> @@ -22,10 +25,25 @@ bool psp_dev_encapsulate(struct net *net, struct sk_b=
-uff *skb, __be32 spi,
->  int psp_dev_rcv(struct sk_buff *skb, u16 dev_id, u8 generation, bool str=
-ip_icv);
->=20=20
->  /* Kernel-facing API */
-> +#if IS_ENABLED(CONFIG_INET_PSP)
->  void psp_assoc_put(struct psp_assoc *pas);
->  struct psp_assoc *psp_assoc_get_by_id(struct net *net, u32 id);
-> +struct metadata_dst *psp_md_alloc(struct psp_assoc *pas);
-> +
-> +extern struct static_key_false_deferred psp_md_needed;
-> +
-> +/* A METADATA_PSP dst may exist: the transmit path has to check for it */
-> +static inline bool psp_md_needed_on(void)
-> +{
-> +	return static_branch_unlikely(&psp_md_needed.key);
-> +}
-> +
-> +/* Pairs with psp_md_alloc(), from metadata_dst_free() */
-> +static inline void psp_md_put(void)
-> +{
-> +	static_branch_slow_dec_deferred(&psp_md_needed);
-> +}
->=20=20
-> -#if IS_ENABLED(CONFIG_INET_PSP)
->  unsigned int psp_key_size(u32 version);
->  void psp_sk_assoc_free(struct sock *sk);
->  void psp_twsk_init(struct inet_timewait_sock *tw, const struct sock *sk);
-> @@ -137,14 +155,84 @@ static inline struct psp_assoc *psp_sk_get_assoc_rc=
-u(const struct sock *sk)
->  	return pas;
->  }
->=20=20
-> +static inline struct psp_assoc *psp_skb_md_assoc(const struct sk_buff *s=
-kb)
-> +{
-> +	struct metadata_dst *md_dst;
-> +
-> +	if (!psp_md_needed_on())
-> +		return NULL;
-> +
-> +	md_dst =3D skb_metadata_dst(skb);
-> +	if (md_dst && md_dst->type =3D=3D METADATA_PSP)
-> +		return md_dst->u.psp_info.pas;
-> +
-> +	return NULL;
-> +}
-> +
->  static inline struct psp_assoc *psp_skb_get_assoc_rcu(struct sk_buff *sk=
-b)
->  {
-> +	struct psp_assoc *pas;
-> +
-> +	pas =3D psp_skb_md_assoc(skb);
-> +	if (pas)
-> +		return pas;
-> +
->  	if (!skb->decrypted || !skb->sk)
->  		return NULL;
->=20=20
->  	return psp_sk_get_assoc_rcu(skb->sk);
->  }
->=20=20
-> +/**
-> + * psp_xmit_md() - validate psp association attached as a metadata dst
-> + * @skb: packet about to be queued for transmission, or validated before
-> + *	 the device transmits it
-> + * @dev: device it is queued on, or transmitted by
+>  config NET_IFE_SKBMARK
+>  	tristate "Support to encoding decoding skb mark on IFE action"
+>  	depends on NET_ACT_IFE
+> diff --git a/net/sched/Makefile b/net/sched/Makefile
+> index 5078ea84e6ad..9fe8cc0abfdf 100644
+> --- a/net/sched/Makefile
+> +++ b/net/sched/Makefile
+> @@ -31,6 +31,7 @@ obj-$(CONFIG_NET_IFE_SKBTCINDEX)	+=3D act_meta_skbtcind=
+ex.o
+>  obj-$(CONFIG_NET_ACT_TUNNEL_KEY)+=3D act_tunnel_key.o
+>  obj-$(CONFIG_NET_ACT_CT)	+=3D act_ct.o
+>  obj-$(CONFIG_NET_ACT_GATE)	+=3D act_gate.o
+> +obj-$(CONFIG_NET_ACT_PSP)	+=3D act_psp.o
+>  obj-$(CONFIG_NET_SCH_FIFO)	+=3D sch_fifo.o
+>  obj-$(CONFIG_NET_SCH_HTB)	+=3D sch_htb.o
+>  obj-$(CONFIG_NET_SCH_HFSC)	+=3D sch_hfsc.o
+> diff --git a/net/sched/act_psp.c b/net/sched/act_psp.c
+> new file mode 100644
+> index 000000000000..757b15a812a2
+> --- /dev/null
+> +++ b/net/sched/act_psp.c
+> @@ -0,0 +1,437 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * tc action that attaches a PSP association to packets.
 > + *
-> + * If the skb has a psp association attached as metadata dst, this indic=
-ates
-> + * intent to transmit encrypted, which will only happen when transmit on
-> + * the main netdev of its psp device.
-> + *
-> + * Also check that the packet will still fit @dev's MTU once the device =
-has
-> + * added the PSP encapsulation. Sockets leave room for it (psp_sk_overhe=
-ad()),
-> + * whoever attached the association may not have.
-> + *
-> + * returns:
-> + *   0 if @skb carries no psp association
-> + *   1 if it does and the dst must be kept for the driver
-> + *  -EINVAL if the packet must be dropped, @dev isn't the main netdev of
-> + *	    its psp device
-> + *  -EMSGSIZE if the packet must be dropped, too big once encapsulated
+> + * encap: attach a Tx association referenced by its ID, as a METADATA_PS=
+P dst.
+> + *        The PSP device's netdev encrypts the packet on transmit. Egress
+> + *        only: encap on ingress isn't supported, and drops the packet.
+> + * decap: drop the PSP Rx state (SKB_EXT_PSP) of a decrypted packet. It
+> + *        takes no association. A rule which should only take the packets
+> + *        of one Rx SPI matches what they were decrypted with (flower
+> + *        psp_spi / psp_ver / psp_dev).
 > + */
-> +static inline int psp_xmit_md(const struct sk_buff *skb,
-> +			      const struct net_device *dev)
-> +{
-> +	unsigned int psp_encap =3D sizeof(struct udphdr) + PSP_HDR_SIZE +
-> +				 PSP_TRL_SIZE;
-> +	struct psp_assoc *pas =3D psp_skb_md_assoc(skb);
-> +	unsigned int mtu;
 > +
-> +	if (likely(!pas))
-> +		return 0;
-> +
-> +	if (rcu_access_pointer(dev->psp_dev) !=3D pas->psd ||
-> +	    dev !=3D pas->psd->main_netdev)
-> +		return -EINVAL;
-> +
-> +	mtu =3D READ_ONCE(dev->mtu);
-> +	if (mtu <=3D psp_encap)
-> +		return -EMSGSIZE;
-> +	mtu -=3D psp_encap;
-> +	if (skb_is_gso(skb)) {
-> +		if (!skb_gso_validate_network_len(skb, mtu))
-> +			return -EMSGSIZE;
-> +	} else if (skb->len - skb_network_offset(skb) > mtu) {
-> +		return -EMSGSIZE;
-> +	}
-> +
-> +	return 1;
-> +}
-> +
->  static inline unsigned int psp_sk_overhead(const struct sock *sk)
->  {
->  	int psp_encap =3D sizeof(struct udphdr) + PSP_HDR_SIZE + PSP_TRL_SIZE;
-> @@ -153,6 +241,21 @@ static inline unsigned int psp_sk_overhead(const str=
-uct sock *sk)
->  	return pas && pas->tx.spi ? psp_encap : 0;
->  }
->  #else
-> +static inline void psp_assoc_put(struct psp_assoc *pas) { }
-> +static inline bool psp_md_needed_on(void) { return false; }
-> +static inline void psp_md_put(void) { }
-> +
-> +static inline struct psp_assoc *psp_assoc_get_by_id(struct net *net, u32=
- id)
-> +{
-> +	return NULL;
-> +}
-> +
-> +static inline int psp_xmit_md(const struct sk_buff *skb,
-> +			      const struct net_device *dev)
-> +{
-> +	return 0;
-> +}
-> +
->  static inline void psp_sk_assoc_free(struct sock *sk) { }
->  static inline void
->  psp_twsk_init(struct inet_timewait_sock *tw, const struct sock *sk) { }
-> diff --git a/net/core/dev.c b/net/core/dev.c
-> index a44b314f387b..2b1a2736ab3f 100644
-> --- a/net/core/dev.c
-> +++ b/net/core/dev.c
-> @@ -111,6 +111,7 @@
->  #include <net/pkt_cls.h>
->  #include <net/checksum.h>
->  #include <net/xfrm.h>
+> +#include <linux/ip.h>
+> +#include <linux/ipv6.h>
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/skbuff.h>
+> +#include <net/dst.h>
+> +#include <net/inet_timewait_sock.h>
+> +#include <net/ip.h>
+> +#include <net/netlink.h>
+> +#include <net/pkt_cls.h>
+> +#include <net/pkt_sched.h>
 > +#include <net/psp/functions.h>
->  #include <net/tcx.h>
->  #include <linux/highmem.h>
->  #include <linux/init.h>
-> @@ -4141,9 +4142,14 @@ int skb_csum_hwoffload_help(struct sk_buff *skb,
->  }
->  EXPORT_SYMBOL(skb_csum_hwoffload_help);
->=20=20
-> -/* Checks if this SKB belongs to an HW offloaded socket
-> - * and whether any SW fallbacks are required based on dev.
-> - * Check decrypted mark in case skb_orphan() cleared socket.
-> +/* Validate an skb for device encryption offload. If the skb belongs to =
-an HW
-> + * offloaded socket, apply the socket's callback, unless the skb also ca=
-rries a
-> + * PSP association: then it is dropped. Otherwise, an skb which carries =
-a PSP
-> + * association is checked again against dev: the PSP device may have been
-> + * unregistered while the skb was queued. An skb marked decrypted (to be
-> + * encrypted by the device) without either is dropped rather than sent i=
-n clear
-> + * text. The mark survives losing the socket to skb_orphan(), or the PSP
-> + * metadata dst to routing.
->   */
->  static struct sk_buff *sk_validate_xmit_skb(struct sk_buff *skb,
->  					    struct net_device *dev)
-> @@ -4156,13 +4162,32 @@ static struct sk_buff *sk_validate_xmit_skb(struc=
-t sk_buff *skb,
->  	sk_validate =3D NULL;
->  	if (sk) {
->  		if (sk_fullsock(sk))
-> -			sk_validate =3D sk->sk_validate_xmit_skb;
-> +			sk_validate =3D READ_ONCE(sk->sk_validate_xmit_skb);
->  		else if (sk_is_inet(sk) && sk->sk_state =3D=3D TCP_TIME_WAIT)
->  			sk_validate =3D inet_twsk(sk)->tw_validate_xmit_skb;
->  	}
->=20=20
->  	if (sk_validate) {
-> -		skb =3D sk_validate(sk, dev, skb);
-> +		/* the socket's validator would apply instead of checking the
-> +		 * association. A METADATA_PSP dst isn't given to the packets
-> +		 * of a socket with its own offload, but the socket can gain
-> +		 * one while such a packet is queued.
-> +		 */
-> +		if (psp_md_needed_on() && skb_psp_md(skb)) {
-> +			kfree_skb_reason(skb, SKB_DROP_REASON_PSP_OUTPUT);
-> +			skb =3D NULL;
-> +		} else {
-> +			skb =3D sk_validate(sk, dev, skb);
-> +		}
-> +	} else if (psp_md_needed_on() && skb_psp_md(skb)) {
-> +		int psp =3D psp_xmit_md(skb, dev);
+> +#include <net/tc_act/tc_psp.h>
 > +
-> +		if (psp <=3D 0) {
-> +			kfree_skb_reason(skb, psp =3D=3D -EMSGSIZE ?
-> +					 SKB_DROP_REASON_PKT_TOO_BIG :
-> +					 SKB_DROP_REASON_PSP_OUTPUT);
-> +			skb =3D NULL;
-> +		}
->  	} else if (unlikely(skb_is_decrypted(skb))) {
->  		pr_warn_ratelimited("unencrypted skb with no associated socket - dropp=
-ing\n");
->  		kfree_skb(skb);
-> @@ -5002,7 +5027,7 @@ int __dev_queue_xmit(struct sk_buff *skb, struct ne=
-t_device *sb_dev)
->  	struct net_device *dev =3D skb->dev;
->  	struct netdev_queue *txq =3D NULL;
->  	enum skb_drop_reason reason;
-> -	int cpu, rc =3D -ENOMEM;
-> +	int cpu, psp, rc =3D -ENOMEM;
->  	bool again =3D false;
->  	struct Qdisc *q;
->=20=20
-> @@ -5051,10 +5076,19 @@ int __dev_queue_xmit(struct sk_buff *skb, struct =
-net_device *sb_dev)
->  			txq =3D netdev_tx_queue_mapping(dev, skb);
->  	}
->  #endif
-> +	psp =3D psp_xmit_md(skb, dev);
-> +	if (unlikely(psp < 0)) {
-> +		reason =3D psp =3D=3D -EMSGSIZE ? SKB_DROP_REASON_PKT_TOO_BIG :
-> +					    SKB_DROP_REASON_PSP_OUTPUT;
-> +		rc =3D psp;
-> +		goto drop;
+> +static struct tc_action_ops act_psp_ops;
+> +
+> +/* The device inserts UDP + PSP between the IP header and the transport
+> + * header, so the transport header must be right by the time the packet
+> + * gets there. On a forwarded packet it may not be. Transport mode doesn=
+'t
+> + * support IP fragments or IPv6 extension headers.
+> + */
+> +static bool tcf_psp_set_transport_header(struct sk_buff *skb)
+> +{
+> +	unsigned int off =3D skb_network_offset(skb);
+> +	const struct iphdr *iph;
+> +	unsigned int hlen, len;
+> +
+> +	switch (skb->protocol) {
+> +	case htons(ETH_P_IP):
+> +		if (!pskb_may_pull(skb, off + sizeof(*iph)))
+> +			return false;
+> +		iph =3D ip_hdr(skb);
+> +		if (iph->version !=3D 4 || iph->ihl < 5 || ip_is_fragment(iph))
+> +			return false;
+> +		hlen =3D iph->ihl * 4;
+> +		len =3D ntohs(iph->tot_len);
+> +		if (!pskb_may_pull(skb, off + hlen))
+> +			return false;
+> +		break;
+> +	case htons(ETH_P_IPV6):
+> +		if (!pskb_may_pull(skb, off + sizeof(struct ipv6hdr)))
+> +			return false;
+> +		if (ipv6_hdr(skb)->version !=3D 6 ||
+> +		    ipv6_ext_hdr(ipv6_hdr(skb)->nexthdr))
+> +			return false;
+> +		hlen =3D sizeof(struct ipv6hdr);
+> +		len =3D hlen + ntohs(ipv6_hdr(skb)->payload_len);
+> +		break;
+> +	default:
+> +		return false;
 > +	}
 > +
+> +	/* The device takes the length of the payload from the packet: it must
+> +	 * hold the IP length, and L2 padding, e.g. of a minimum size frame,
+> +	 * must not be encrypted as payload. A GSO skb's header doesn't always
+> +	 * carry its length (BIG TCP).
+> +	 */
+> +	if (!skb_is_gso(skb)) {
+> +		if (len < hlen || skb->len - off < len)
+> +			return false;
+> +		if (pskb_trim_rcsum(skb, off + len))
+> +			return false;
+> +	}
+> +
+> +	skb_set_transport_header(skb, off + hlen);
+> +	return true;
+> +}
+> +
+> +/* The socket of the packet has its own encryption offload, kTLS or PSP:
+> + * sk_validate_xmit_skb() then applies the socket's validator instead of
+> + * checking the association.
+> + */
+> +static bool tcf_psp_sk_offload(const struct sk_buff *skb)
+> +{
+> +#ifdef CONFIG_SOCK_VALIDATE_XMIT
+> +	struct sock *sk =3D skb->sk;
+> +
+> +	if (!sk)
+> +		return false;
+> +	if (sk_fullsock(sk))
+> +		return !!READ_ONCE(sk->sk_validate_xmit_skb);
+> +	return sk_is_inet(sk) && sk->sk_state =3D=3D TCP_TIME_WAIT &&
+> +	       inet_twsk(sk)->tw_validate_xmit_skb;
+> +#else
+> +	return false;
+> +#endif
+> +}
+> +
+> +static int tcf_psp_drop(struct tcf_psp *p, struct sk_buff *skb,
+> +			enum skb_drop_reason reason)
+> +{
+> +	tcf_action_inc_drop_qstats(&p->common);
+> +	tcf_set_drop_reason(skb, reason);
+> +	return TC_ACT_SHOT;
+> +}
+> +
+> +static int tcf_psp_act(struct sk_buff *skb, const struct tc_action *a,
+> +		       struct tcf_result *res)
+> +{
+> +	struct tcf_psp *p =3D to_psp(a);
+> +	struct tcf_psp_params *params;
+> +
+> +	params =3D rcu_dereference_bh(p->params);
+> +
+> +	tcf_lastuse_update(&p->tcf_tm);
+> +	tcf_action_update_bstats(&p->common, skb);
+> +
+> +	switch (params->psp_action) {
+> +	case TCA_PSP_ACT_ENCAP:
+> +		/* Encap on ingress isn't supported: routing replaces the
+> +		 * dst of a packet entering the stack, so it would lose its
+> +		 * association before it reaches the PSP device
+> +		 */
+> +		if (unlikely(skb_at_tc_ingress(skb)))
+> +			return tcf_psp_drop(p, skb, SKB_DROP_REASON_PSP_OUTPUT);
+> +		/* PSP on a tunnel isn't supported: the encap would overwrite
+> +		 * the inner headers which the device's tunnel offloads use
+> +		 */
+> +		if (unlikely(skb->encapsulation))
+> +			return tcf_psp_drop(p, skb, SKB_DROP_REASON_PSP_OUTPUT);
+> +		/* Don't mix the association with another encryption
+> +		 * offload: the packet is already marked decrypted, or its
+> +		 * socket has an offload of its own
+> +		 */
+> +		if (unlikely(skb_is_decrypted(skb) || tcf_psp_sk_offload(skb)))
+> +			return tcf_psp_drop(p, skb, SKB_DROP_REASON_PSP_OUTPUT);
+> +		if (unlikely(!tcf_psp_set_transport_header(skb)))
+> +			return tcf_psp_drop(p, skb, SKB_DROP_REASON_PSP_OUTPUT);
+> +		skb_dst_drop(skb);
+> +		skb_dst_set(skb, dst_clone(&params->md->dst));
 
-Performance thoughts. These two functions (__dev_queue_xmit and
-sk_validate_xmit_skb) are in the hotpath. The static key is globally for
-all netdevs. My worry is that packets that doesn't care about PSP has to
-touch more cachelines during ptr chasing. Cheaper, less instrusive
-(flag?) per-skb check possible? (Or proof that it doesn't matter! ;-))
+I'll continue my perf questions! dst_clone() -- potential contention
+point/cacheline ping-pong for multiple cores sharing the assoc?
+
+> +		/* Must be encrypted: sk_validate_xmit_skb() drops it unless
+> +		 * it still carries the association when it is transmitted
+> +		 */
+> +		skb->decrypted =3D 1;
+
+My Q on the previous patch -- can this flag be used as a cheaper check?
 
 
 Bj=C3=B6rn
