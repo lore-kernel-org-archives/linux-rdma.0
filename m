@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795701474;
-	b=aUc7kG5LmpLRoePgCK/Z5GLyYzFux4srDEJchllS6flD5xL4zBuzGU0VhtG1/6UorGOt
-	 zBPRqjBjfG2vj2S8y44a2O20EJ3VjcVagYdwzWR5HhBWjh4dXkbeLau/JtvVdVLu8gV6G
-	 cv06iA8nZvGibCNZvfFrcfUpFgwQrtzVA6aiikzUYb8LNiKQwO4nkOzCdH3/KpiEjrV5J
-	 N1sRqsONdnqtubKkrNi+8XWq9g5qsmB60O4lCoYtV1AFcxLTteV7NOi+Q2oBUO6i5uS7E
-	 5oVm4XlgNvbAMHfe5flE4RJwJnPnGzILCY4SEtcM6dGKXEdF9kJwu+STfOGG2DlK3ZA==
+	t=1795701612;
+	b=WWCkZR+vV+3bplyz5tg9CUeGOGt9mzeT4ZNebApXRYk/mCPn6buJWoxBD3uvcIck0DvJ
+	 0me7EHODTNR27ag1UXEchpwXL+b+GWzd+xcrkdqOaGmsr0x5hAEQ6O87NdwzOsmhcxInh
+	 6s2OnxU7scIu11JHRB5tBc8TWUHci4RRsDbhY6OyGPMB7ZK+w/mU4tSqkmAHcnx7U3Rjt
+	 d82FXuLVMMnFLalBk2euFKXD97Bq2QbejAEd4yNOkMPMmxWuoPTmN+q6X/7B5R8rytNdz
+	 DFd8VX9L+vEgsA6y4Hd/Qz9eCb1l/aORSwtwQQDWUauLqj49laiTvSJ0z5QKbuZEpLg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795701474;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795701612;
 	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
 	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
 	 X-Mailer;
-	bh=oFxbX5GmOwQ/mB0J3seWtRVSnrdoHA20aPgMXi8ZrAE=;
-	b=45rmVMgEFfsH6Q1SoFRykFbkN6sHCsqjmOQsg9t8foxDs0nicjuaC2OfMqXY0FGDDt6M
-	 TIJj/88igcIpvX3jTMrEm1cGxOJpv1Rr5L5QPVqXgQmJMxq85OHAT6lsjatqnHPCA+Y/m
-	 yyie0WKgKnGbPTbA5T4UBHqCjX09UJragLKA9bOJgL/YN0qdLrFYrOBXCKidKzEotYjXb
-	 ylinDwcG+aNebVrliZl644Sg/+zTNX6SjOV185UPWT7h2yUWe3UgwiqsiL+wJt252yrWR
-	 iOfDdb5xFqkleLI5jJbSLbKQdqjZQ+9On5SOwXT7JPPDCLDJXHeI8mtPHNZ35Ql8xNg==
+	bh=afr0WWbPAo4uI6sGvyvDO8Ffgg+XtZm65AKUzb2v8GE=;
+	b=K/fVYgAAaAynCGALqLvh5Nyhp0D402FLWiXXskguCnNFh9Q1GjjhOGZO1Xu5Aw9SkM0b
+	 weEwpVqEsjSTBXvgQ7E4Gfi45nQTMsicKUFXioi7zlSx9BNsRO2fm/VSm7SaLSS1f/ROg
+	 jyJocBqLtzNT1Pwh8SiRDCOdWs9aGhWoxJTxwFQ26uJjShQbbsjNktn9E8fxeTErGW6C/
+	 I2q9fcB4El4ZAB2WU7ig1tyClD+0XxSmhAqGlJzm864rI3H1RQC4otoU8C4gsOUyEjdKV
+	 xs2yTifqX0l68ZPGvdz2Y1JxtIn1uya29ZT3wM7QeIHVAYCR99eGJEmdFLxNDZpyu1w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GuxfGXUW;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nO82qoad;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E40A606A31C;
-	Thu, 26 Nov 2026 13:57:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02B5C606A31E;
+	Thu, 26 Nov 2026 14:00:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GuxfGXUW
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3383B1F000C0;
-	Thu, 26 Nov 2026 13:57:53 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nO82qoad
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3C4C1F000C4;
+	Thu, 26 Nov 2026 14:00:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795701473;
-	bh=oFxbX5GmOwQ/mB0J3seWtRVSnrdoHA20aPgMXi8ZrAE=;
+	s=k20260515; t=1795701611;
+	bh=afr0WWbPAo4uI6sGvyvDO8Ffgg+XtZm65AKUzb2v8GE=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=GuxfGXUWk5lu85fiRFsQvZzX+DoKoKavyQ0zBzdm2wPMzQ/GNDleLygUfU4xos1Ll
-	 g7fsP08KMJ9dvEOdKBVHWHjFFoLN75ebB6j29ZK33J3C+6eUD35KKt6K5jwPmN6C3l
-	 BgHu1q4WlPpn0hbWR0G4D8S+FAH0bimTVDfuVU06RQ8x+6jsMnf2L6nSME0GuwHgYs
-	 QPQzMBYRFgJ+RBBrlrTfFJzMK9WgJJJepVhSTye+xjTbfvNXEHrQoO44Q09kG5ek4g
-	 X4EMHOQFbbMDoGoHjJLeSOFiq2AchWmUtz/Kzc/JhAmRUjQ3cs9L/68n/16quS5+aO
-	 48v7wAIA7DehA==
+	b=nO82qoadSC+WyC80fAVIuxxT+ewJX18V5Jar6jSJ4aP6TjFlz5iI0UWNi0UShH6mK
+	 7auI+YGNiKHJIWhfQdifNgT7UqHbuYR+af1SKRAhe4ZX9f9hq9yIH7smNULYxpCy4K
+	 736bF9HM39huo+J3QxtJQV/es/+xDY0H7CYC5g+J5p6AqI9MyTpRK48mnPYG/3T+hH
+	 W85FJ5yE4hTRQM4JW1tY/4Yi7D2gEUboG29ygaXGwcKwGcIX0EEMfAef5hU9pwqlCL
+	 myudh7ajvw4hq3f3ozPHGQwjfWL08qOMOX8yzd9peQASnN4MgYccNJMoMNp+sh5Y54
+	 IPFO0SXZxj0/g==
 From: Leon Romanovsky <leon@kernel.org>
-To: Zhu Yanjun <zyjzyj2000@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
- Li Zhijian <lizhijian@fujitsu.com>, Qiliang Yuan <qiliang.yuan@linux.dev>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Zhu Yanjun <yanjun.zhu@linux.dev>, stable@vger.kernel.org
-In-Reply-To: <20261123-bug-rdma-rxe-large-mr-v1-1-8d0748ac4a3f@linux.dev>
-References: <20261123-bug-rdma-rxe-large-mr-v1-1-8d0748ac4a3f@linux.dev>
-Subject: Re: [PATCH for-rc] RDMA/rxe: Allocate the MR page array with
- kvzalloc()
-Message-Id: <179570147092.1268685.12258502184760865370.b4-ty@kernel.org>
-Date: Thu, 26 Nov 2026 08:57:50 -0500
+To: Abhijit Gangurde <abhijit.gangurde@amd.com>, 
+ Allen Hubbe <allen.hubbe@amd.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+ Andrew Boyer <andrew.boyer@amd.com>, "Nikhil P. Rao" <nikhil.rao@amd.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20261118-b4-ionic-rdma-admin-timeout-v1-1-39536999a3e4@amd.com>
+References: <20261118-b4-ionic-rdma-admin-timeout-v1-1-39536999a3e4@amd.com>
+Subject: Re: [PATCH rdma-rc] RDMA/ionic: Wait the device command timeout
+ for admin queue commands
+Message-Id: <179570160885.1269533.5766510850700105572.b4-ty@kernel.org>
+Date: Thu, 26 Nov 2026 09:00:08 -0500
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -65,21 +65,21 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Mon, 23 Nov 2026 04:26:42 -0500, Qiliang Yuan wrote:
-> A user MR keeps a struct rxe_mr_page, 16 bytes on 64-bit, for every
-> PAGE_SIZE page it covers, in one array allocated with kzalloc() when the
-> MR is registered. Before the array, the pages were kept in an xarray.
-> 
-> With 4 KiB pages, the array of an MR larger than 1 GiB exceeds
-> KMALLOC_MAX_SIZE, so registering it fails with -ENOMEM, and the first
-> attempt warns:
+On Wed, 18 Nov 2026 21:57:52 +0000, Nikhil P. Rao wrote:
+> Commit ec8ee714736e ("ionic: stretch heartbeat detection") notes that
+> firmware can take more than 2 seconds to service a device or admin
+> queue request, and is only expected to complete it within the ionic
+> command timeout of 5 seconds. The RDMA admin queue watchdog gives up
+> after 2 seconds, and a timeout resets the RDMA LIF, after which every
+> verb fails with -ENODEV. Wait 5 seconds, as ionic does for its own
+> admin queue.
 > 
 > [...]
 
 Applied, thanks!
 
-[1/1] RDMA/rxe: Allocate the MR page array with kvzalloc()
-      https://git.kernel.org/rdma/rdma/c/80ca1d1f85f410
+[1/1] RDMA/ionic: Wait the device command timeout for admin queue commands
+      https://git.kernel.org/rdma/rdma/c/58b15c7123d493
 
 Best regards,
 -- 
