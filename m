@@ -1,67 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795727608;
-	b=d+999scL5aJUiZ0OeWiiliBSsOc0ONwBVDWQFm+IjwxxZwQuHiWA7je5W4VjA84AjZQd
-	 F/PiuF6ajsh0gjI3yTVG0QukZlUAH+xbJWBbj8QgaZKUtakzmChEyt1+O5ftCaVuh4+Ce
-	 tRZCjd0tH7eJaNOy3hc+0F6F/E5yViHohCvcEKNyAPSj0gfa8e+Uuk0hPT4T5DclJwNuh
-	 mYBJDevTjonnJXgfxRFKchUaM3P4GBy87ocsDIHlPSR+0wGmOnSKgm2vJu7kuJhnVep5K
-	 zoaGliC3yoY/Pt3vMNirzZ88R0kYGq75/WTfSYhEu7YtKG+cjR+GIJmn70mX63iSxLQ==
+	t=1795727666;
+	b=B8Zwjq+Bih7na2xZZpYH6kSaUZcaBsngRKos7mbSZ6Sk1e+Hxma/wYb6evDmyR/PHC31
+	 ZOPYM9Ex+qYeZaYkx6cDTEvTwK6BYp/5lRtq5bLkYlNrb0i5gY/GBX+E1w868rTMHGfZP
+	 isqAYHbjuuswpNX0ilMiCdnnA4PwSUSfz16tSpFO4RrYVhVIqLz8oKw+XhKErGZ7sQ+7q
+	 50Xri/B/ajSnzgq2vh5HfhWmq3poVl3AyzHrgFP204w66gch31XE4QLcSmwxp2zvKqw4v
+	 XruknpWos3eCTnAcMFNwqjtuVNH3W/EBJOy0ERkyZNigiSyO4ieeKc2JeY7YxNMNoSQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795727608;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
-	 In-Reply-To:References:Auto-Submitted:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=oj2zs7YpNjut+Fle9NDI2/nVbuq1xcuWOh/20pAlrQ0=;
-	b=f4cniUeotoOj+5m3uGA6zLjnIV6IMCcfepDyKGsRUShEcQbU+787/vVBQgOkYx3iCDTk
-	 NqzrcPcOTO3cIO1D2M3o9WifS/IHZDPvGDIZl8yygw7jpfqYqP6cNms0DayyyStpeOWPc
-	 L3wtL0E18MFLVQ1bv7A+MK05xhKdOehxEtd7ktzJ+J5SpXcgOYHoDymVpVDwjzWZRRCto
-	 ewCvXQ46BTPwXiKZ/s6QSPqJRuPvkSCsZWJWNVC3XCjvbvU4WaRtSbKBya+el4B1Sw9hj
-	 MODpauXKjUMSQHjWMpIrCaor4HiYVnKwVEwoLMshW16Ism7xZezwMH6AbfdoKwvGuWA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795727666;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=/ku9zQZbZlWnGiOe4sDVKzfmLrRQvcm2yDmQg9N43qc=;
+	b=qyMZs+Nb9NDy7uIclunAcU3E8zsEDsYLlsWMSBlTcZII/WwpqfAHAQu7Ylck1ElE5+5C
+	 YuSMuSF6nSoKbTJJ7+Eg2b8dxQWW0c0RbStZwJFNOp0NcUgquU0fRxSDY2ChrijD0o2EP
+	 kCVUGbvn5DJ5gjHXIzLgGXic8AL+xVLKy8matdulcTrSEP212Qlhxk4NRajz0XH4Q4iBh
+	 Ui/HNKyUXJ5ZYmCpiS6lx2PgeFqHVFzg518HsNTwPmCYxYj1OcxzdYdMr4KpANuwKve50
+	 0HsxudnaB4RnADfQ2YybgQYF1yQnlYhei9Y5+p/0RzzW/4zH8gFcvUL0hBN3wBAszhA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Y+F2681g;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NP2J46vC;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CC08606A31C;
-	Thu, 26 Nov 2026 21:13:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 371B0606A31C
+	for <linux-rdma@vger.kernel.org>; Thu, 26 Nov 2026 21:14:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Y+F2681g
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A18C1F000C1;
-	Thu, 26 Nov 2026 21:13:26 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NP2J46vC
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F310A1F00893;
+	Thu, 26 Nov 2026 21:14:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795727607;
-	bh=oj2zs7YpNjut+Fle9NDI2/nVbuq1xcuWOh/20pAlrQ0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Y+F2681gJ5JuaTeV/gpkfDYlLJRTBYWI601R96kVMflmSkJ9s72mTu82jatdBw/HU
-	 SbAHn7qxFqSPSe5W2OpN/srQgaoPGRRTUU/sTToUDfXySmAt+fF00VRdPv+HiOYcb3
-	 CBvpv2dLnhBYqcS8o86CmGCt4Vasm52XTQSTb9mHjW1dGuJ2BtRRBCQFu157IEVTo+
-	 +2kWflrwkho+pi7kbyyjbznzy7tIxzsCO/Q8mp9XzF4SNB4VLBTJcTIybZXNXlCDjn
-	 +J1q1XxR9ozt/Zgd5FW4x2SH9Gc4BI2n46fz59jKyBwW9cZK5VgghNbatoFozZCLru
-	 7GMO2Sj1rMY3w==
-From: netdev-bot+sinfo@kernel.org
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
- Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
- Paolo Abeni <pabeni@redhat.com>, Willem de Bruijn <willemb@google.com>,
- Aleksandr Loktionov <aleksandr.loktionov@intel.com>,
- Boris Pismenny <borisp@nvidia.com>, Cosmin Ratiu <cratiu@nvidia.com>,
- Daniel Zahka <daniel.zahka@gmail.com>, Dragos Tatulea <dtatulea@nvidia.com>,
- Gal Pressman <gal@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
- linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
- Raed Salem <raeds@nvidia.com>, Rahul Rameshbabu <rrameshbabu@nvidia.com>,
- Saeed Mahameed <saeedm@nvidia.com>
-Subject: 
- Re: [PATCH net] net/mlx5e: psp: Fix stack info leak in PSP device stats
-Date: Thu, 26 Nov 2026 21:13:25 +0000
-Message-ID: <179572760597.3294.6336919055347712801@kernel.org>
+	s=k20260515; t=1795727666;
+	bh=/ku9zQZbZlWnGiOe4sDVKzfmLrRQvcm2yDmQg9N43qc=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=NP2J46vCGEdckrd185P5tj9cuDIx0+KmkxrUFKL6NIPYnuN0d2R68KFwuyim7MrWw
+	 3xiZYTM9MffAb4jqVFMqoR8arM5uHs0S3LJOxMDCk3IAnvPhtdN+hOxvX/TnE0NWoe
+	 5extk+GHN+h5aNPb9KcaIBWT+bkNKu+1NVH+pKsi666XAB61f7LVis1593ZR9o7e/H
+	 TboduwF6t4ZxGQQ0/FiN/67e5vDVyiz1S6DcvjSWyvVDkcl4CdM5AQW/PoZGNNTgko
+	 z40zipIBtHWI2muwuduZlzaB+ecnmDG4LoLfP/QkDOAWks47EDupImjEWsCB/zhO7E
+	 4a2PFT/Fd//gA==
+Message-ID: <sashiko-outbox-236220@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net] net/mlx5e: psp: Fix stack info leak in PSP device
+ stats
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Tariq Toukan" <tariqt@nvidia.com>
+Cc: linux-rdma@vger.kernel.org
 In-Reply-To: <20261126211115.767481-1-tariqt@nvidia.com>
 References: <20261126211115.767481-1-tariqt@nvidia.com>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Thu, 26 Nov 2026 21:14:25 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -70,27 +59,21 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
 
-Hi!
+> mlx5e_psp_get_stats() reads the PSP flow counters into an uninitialized
+> on-stack struct. mlx5e_accel_psp_fs_get_stats_fill() ignores the
+> mlx5_fc_query() return value, and a failed query, e.g. -ENOLINK when the
+> device is in internal error state, leaves the counter fields unset. The
+> uninitialized stack values are then reported to user space through the
+> PSP get-stats netlink command.
+>=20
+> Zero-initialize the struct, so the counters of a failed query read 0.
+>=20
+> Fixes: b1346219e535 ("net/mlx5e: Add PSP stats support for Rx/Tx flows")
+> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+Sashiko has reviewed this patch and found no issues.
 
- - How the issue was discovered, e.g. hit in production, hit during
-   development, syzbot report, manual code inspection, LLM or static
-   analysis tool scan.
-
- - Whether the issue was actually triggered, or is only theoretical
-   (e.g. found by LLM and not proven at runtime). If it was triggered
-   please include the symptoms, like the stack trace or kernel messages.
-
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account.
-
-*IMPORTANT*: If you do repost (for other reasons) - please include
-the relevant info in the cover letter or commit messages.
--- 
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261126211115.7674=
+81-1-tariqt@nvidia.com?part=3D1
