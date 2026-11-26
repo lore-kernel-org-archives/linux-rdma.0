@@ -1,71 +1,73 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.197
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.224.72
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795719232;
-	b=z5EzsVS3MjCZ9+bqjb5hN8P1oFHcibh4MoEzN1aMQXbhOyBro99qKuflqahLWOVkXMxu
-	 BFr7GCOUwMaOA1JiIiEDnDDyJSZJxo/Pph5W+y9ypwf0BTEwFXfySdzIWjURBrKScAp9C
-	 WUp1rWDQyi/yrWAgAmJ8OMEuj2j/2XtNeFEKPLk2LPAATheiRH2pwMuTzPHuUrMn0EnDR
-	 F5Y5Nuolb3YFUAKHgpoDAcFycwZjTI0vSvnSyzNruo3kJUJZzEb4fmIQZTDz9u+wZRdbt
-	 L5yBupvU+ZPsooBqxc5rN2/xkkgG4onyTJRCMg3Rr41WXEgGtm/AOH21RYTn07QCupw==
+	t=1795719237;
+	b=i9JdR4OjQ4nBjJzToe1nt7gEDJvcEoMZUivl4ppwz/2m9JLM8gcDiw57mgfWahoD3A6f
+	 MZZ3PCC37shbwfMwesqX2zniCGDUv8IOANvsuEs8WsMmEbJWPhdiOP2YisR68XEnFHtiO
+	 dcEUss9/0uoeZvOh+ZfFi5XBnAUcygZVCsnVxHP5SGVXWN29Jzm7FmwKHQ5RMYVdhiR15
+	 6/alRrxcWIDONFs1eziG2L49kldOAG+8qOSfa6nSYLi0xioTSBT0xFi7DJCuKwcZNND8H
+	 GWTNwKwcX95oMYDMzX6XLzYKJjTS4d/BK+VUcxfDaqvMPuSsBWMrskPBZTFs9IUqgeQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795719232;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795719237;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Received:Date:Mime-Version:X-Mailer:Message-ID:
-	 Subject:From:To:Cc:Content-Type;
-	bh=229nMf9ZvmF+Q4/uF15mLyWpts8NJTx8zSYRFTYPe40=;
-	b=WMUsNkmlO4zoS7IlDxXAL2+klfYhqEvcUQDrDAnhvcCBm0K2RfQOKCGP5s5XEJLRBxnj
-	 cH1sm/jJ9saimLVUwTwhdeOFN9fjTnVpLyPJKmHr9KsLUaGFjdz872ljvaQ/biB8KTzuJ
-	 iU/tAxxl7F/xOBcMRWYqMLw7Wtdy68Mz0nDWr8MjVEcmNfxuWrMcTao+ykqKbJ1bHoLUT
-	 UtjS3h5tYiMAFjX6uYDpsIhkIBBtERlfq6S1/7s1XcxTbUktCj+/FxUCjy67iPP7ZtOrX
-	 av6424hi7v7jCwAedNaZtaw8SENcM+Ga+HGZwPXEXz04Jk0svqAHecuSfcIQwkj8kfQ==
+	 X-Gm-Message-State:X-Received:Date:In-Reply-To:Mime-Version:
+	 References:X-Mailer:Message-ID:Subject:From:To:Cc:Content-Type;
+	bh=xx54c/YrKUGoOzZzBwsQKcCC5vdStUmPtFn8xMOsAMc=;
+	b=BdNLMKPWhIZAS1u1azIVHMkZ/vpBWipjNCBJNY0ESVVYdW9DMarjg5pvVQvQxGljQpMX
+	 QDGnvM/Do7sFVWA6ebPydNBjG5ILKQT7B8Jf3OkMsnL9KvN6VCBYF2mLVOMNo4Dyek35V
+	 sjSgZIleA2AdcTnXa8cpKvYaTkJDLQD1R94DLoCvXl+H+rLANa+5ZRsgO7w0CyT+TKnxc
+	 rxLOiVbcKEg8Mq1e2zdZA5ecqyuMsoJ0NcbQlVXcMFb08UaLjK6IiCSIT+ILGiW+irNos
+	 TDiBQKry9T+Qh5Drgjkpfzwhh5dGzmBjx/kVXRLlAKlN4gIeDg4L3P5npmWTkbgX89Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=google.com;
 	spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com;
-	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=DUsVtqHE;
-	arc=none smtp.remote-ip=209.85.160.197
-Received: from mail-qt1-f197.google.com (mail-qt1-f197.google.com [209.85.160.197])
+	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=M3Kw4uIZ;
+	arc=none smtp.remote-ip=74.125.224.72
+Received: from mail-yx1-f72.google.com (mail-yx1-f72.google.com [74.125.224.72])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BD8C606A31C
-	for <linux-rdma@vger.kernel.org>; Thu, 26 Nov 2026 18:53:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5BD8C606A31C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A69B1606A323
+	for <linux-rdma@vger.kernel.org>; Thu, 26 Nov 2026 18:53:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A69B1606A323
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--jmoroni.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=DUsVtqHE
-Received: by mail-qt1-f197.google.com with SMTP id d75a77b69052e-55d414ff1e9so134273111cf.3
-        for <linux-rdma@vger.kernel.org>; Thu, 26 Nov 2026 10:53:52 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=M3Kw4uIZ
+Received: by mail-yx1-f72.google.com with SMTP id 956f58d0204a3-677deb12bceso10938379d50.0
+        for <linux-rdma@vger.kernel.org>; Thu, 26 Nov 2026 10:53:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20260707; t=1795719231; x=1796324031; darn=vger.kernel.org;
-        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=229nMf9ZvmF+Q4/uF15mLyWpts8NJTx8zSYRFTYPe40=;
-        b=DUsVtqHEdIRosgjlGaHpPAwZ1bbH/k7Jvxg4eGwa7QVbZx+sZFZjaOt0w9DpfX7W7I
-         gUOiPGAL4y7hW3vkRkZvJ7YWr0WkqQIcNIRwMWVOCZsztsf8Pmkh/ddapYQyBYBdQQMw
-         Ck2O+PMVK08cBKZ6x5pJmg6I/LppDGmCD/aKRaULNizHMB19pS6vz8jmIZ104uP65YB3
-         CPWIuFFvrAG898pU18jGebQMplUlPQ9QjRzX0UMaM0Xez8OXa6UwQCvHFLsPRmPfE4Og
-         H6hg3H4IZG+SBYp/YN5M/hqTHat208T5+5sot4jQb5vNQ41Xqm2a7qPOfpgPWBhFZZgR
-         kL1Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795719231; x=1796324031;
-        h=content-type:cc:to:from:subject:message-id:mime-version:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=google.com; s=20260707; t=1795719236; x=1796324036; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=229nMf9ZvmF+Q4/uF15mLyWpts8NJTx8zSYRFTYPe40=;
-        b=EBtLOvEhTj2h664mJqIHrmAXj2bJ2woT3r+aS/nxggz7w7Xl843Y4HuVQ/cmUZ//oG
-         uieIWv1h5fsByauR+VpLFIBP1Rx5x7LQYxMmzScXMhwwxda82Bx1VXvrGIkhsF0+QD0K
-         f1IUcsowfnASYW99BKkC/lHfKfTPEL5CY/yR2zE8gnoxO5CkW+n03BoEGTCym/zJoIxL
-         /YvZSOnfJfx59CIxMSYgcai/7u7EmDuabtE1DJIOWzuJnNr5yk3BLX7hEC01Xu5bYgow
-         KBPgXlnzFPFT7tduwphj0Uim4ADFGASju7N3Ps3W9DPLwKhlvBJyBUsgQG7w170QJ5iQ
-         YOcA==
-X-Gm-Message-State: APuU4Z81my7PTxzzj5cWcY7yXrTu1auE4kqxm7nyjEHHHkvpdbTO4CV2
-	Jt5EtUtSPRSgCZbcJQndas5cRbNWnFp9YyFU2gzzAF8qLirK2cZjjWlFg5sNcKE0S9Po2eoBEjP
-	HZri84ArGDA==
-X-Received: from qtbnn24-n2.prod.google.com ([2002:a05:622a:7918:20b0:535:31b7:1b4d])
- (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:622a:a0d:b0:55d:32d3:758b
- with SMTP id d75a77b69052e-55d76aa2af2mr378446511cf.59.1795719231006; Thu, 26
- Nov 2026 10:53:51 -0800 (PST)
-Date: Thu, 26 Nov 2026 18:53:43 +0000
+        bh=xx54c/YrKUGoOzZzBwsQKcCC5vdStUmPtFn8xMOsAMc=;
+        b=M3Kw4uIZdjNxPbGJPbB+Jike/X7MWfqb2FbHDug8/l1t8BA9EivcpwQl4EqHJFx2wY
+         6sSAx2HFEdNC2zDJl8oShJyDq83bqH5ZiJF0ctjK0SSSmFbVWdu1U9tBSdV/7exi9SrD
+         A+cr9ZUQdLoGo6HFv3zOJ6B7Wga20BVPxYnbvtmY9/srKaG4siOdAOMzQNKXHV1AyGXS
+         6GLhNTUe9/79yiIBy2z0wPCzazOdrFKRxWEouyoM5GVRK9zgH7bPvHwIx7kR+5o8QDuX
+         nd8kiYWMTqbeZy38GQmzjWJxM1Z2w/1GZs4v2XTDYSnrR4hi5B8Bj0Imm++12OCDBo2R
+         wYvw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795719236; x=1796324036;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=xx54c/YrKUGoOzZzBwsQKcCC5vdStUmPtFn8xMOsAMc=;
+        b=doxlIYEedHPjuB+BBPbAPo5MiL4cNrre9MZQwD9Rf3NjHMFLYtmdEmBnkztno5GvgS
+         +ySuwLB4JFvZM6nBUolMsvm7dTBNZG06oW9fQ7uRFFtlEIr1zcbRPJ/BWw5YgVtnlbu0
+         9zNSaznhT7AMOdr3oKoRpMD7ZKOu+WIqhTrlQ0yeqOm2Xvn3Q571oFJheuP1EtRh/o4x
+         x5jSVXf/5N+V6s0HowUipKjJ14mFwMBbENXKCqiXz85ruHj6h6q9n/xd9mDkbjaSS5zf
+         VAQgaR7JifH5tmLcrfvBHrDu6VCgN37YhAOVzf5+DN18ToLJvAYR2ecpiVTz3Nk3zVO3
+         x/Dw==
+X-Gm-Message-State: APuU4Z96FMTFfLqWtdUGKHAy6KbAaWeWTMp3tMZnP5MTPQd+qLAMjYpw
+	/VhX7tqitsNApzQpsY4+XS/MZTjV2uTPVzkMCQJQkawHkr+QDDntCuPavmW1g/L5rpHho88qyTK
+	dNLMrlIYItQ==
+X-Received: from yxoo15.prod.google.com ([2002:a05:690e:24cf:b0:67d:aba9:9204])
+ (user=jmoroni job=prod-delivery.src-stubby-dispatcher) by 2002:a05:690e:12c7:b0:67d:bff8:c405
+ with SMTP id 956f58d0204a3-67df42b57d5mr8132876d50.5.1795719235398; Thu, 26
+ Nov 2026 10:53:55 -0800 (PST)
+Date: Thu, 26 Nov 2026 18:53:44 +0000
+In-Reply-To: <20261126185344.2784303-1-jmoroni@google.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -75,48 +77,79 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 Mime-Version: 1.0
+References: <20261126185344.2784303-1-jmoroni@google.com>
 X-Mailer: git-send-email 2.56.1.839.g22a8290db9-goog
-Message-ID: <20261126185344.2784303-1-jmoroni@google.com>
-Subject: [PATCH rdma-next 1/2] RDMA/irdma: Wait for all refs to drop when
- destroying RoCE QPs
+Message-ID: <20261126185344.2784303-2-jmoroni@google.com>
+Subject: [PATCH rdma-next 2/2] RDMA/irdma: Scrub software flush completions on
+ QP destroy
 From: Jacob Moroni <jmoroni@google.com>
 To: tatyana.e.nikolova@intel.com, jgg@ziepe.ca, leon@kernel.org
-Cc: linux-rdma@vger.kernel.org, Jacob Moroni <jmoroni@google.com>
+Cc: linux-rdma@vger.kernel.org, Owen Gentry <owengentry@google.com>, 
+	Jacob Moroni <jmoroni@google.com>
 Content-Type: text/plain; charset="UTF-8"
 
-Commit 6f52370970ac ("RDMA/irdma: Fix deadlock during netdev reset
-with active connections") made QP destruction skip the refcount wait
-if the device is being reset in order to fix a deadlock that could
-occur for iWARP mode QPs due to refs still being held by the CM.
+From: Owen Gentry <owengentry@google.com>
 
-RoCE mode QPs are not subject to that issue and should still wait
-for all of the references to be dropped. Otherwise, the QP could
-be freed while the AEQ handler or disconnect work still holds a
-reference, leading to a UAF. In RoCE mode, any remaining references
-held by the AEQ handler/disconnect work are always transient so
-the wait is bounded.
+When a kernel QP transitions to error state, irdma_flush_worker() can
+append software-generated flush completions. During QP teardown,
+irdma scrubs HW CQEs but leaves SW CQEs intact, causing subsequent
+CQ polling to dereference the freed QP.
 
-Fix this by restoring the original logic for RoCE QPs.
+In addition, _irdma_destroy_qp() calls irdma_modify_qp_to_err() before
+cancelling iwqp->dwork_flush with cancel_delayed_work_sync(), which
+needlessly arms the flush work during teardown and leaves a window where
+concurrent paths can re-schedule dwork_flush after CQEs are scrubbed and
+before the QP is freed.
 
-Fixes: 6f52370970ac ("RDMA/irdma: Fix deadlock during netdev reset with active connections")
+Disable and drain iwqp->dwork_flush via disable_delayed_work_sync()
+before calling irdma_modify_qp_to_err(), and free matching SW CQEs from
+iwcq->cmpl_generated in irdma_clean_cqes().
+
+Fixes: 81091d7696ae ("RDMA/irdma: Add SW mechanism to generate completions on error")
+Signed-off-by: Owen Gentry <owengentry@google.com>
 Signed-off-by: Jacob Moroni <jmoroni@google.com>
 ---
- drivers/infiniband/hw/irdma/verbs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/irdma/verbs.c | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index e07b6b40dd99..29ccd19da032 100644
+index 29ccd19da032..04ebba436eea 100644
 --- a/drivers/infiniband/hw/irdma/verbs.c
 +++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -592,7 +592,7 @@ static void _irdma_destroy_qp(struct ib_qp *ibqp)
- 	}
+@@ -514,10 +514,17 @@ static struct irdma_pbl *irdma_get_pbl(unsigned long va,
+ static void irdma_clean_cqes(struct irdma_qp *iwqp, struct irdma_cq *iwcq)
+ {
+ 	struct irdma_cq_uk *ukcq = &iwcq->sc_cq.cq_uk;
++	struct irdma_cmpl_gen *cmpl, *tmp;
+ 	unsigned long flags;
  
- 	irdma_qp_rem_ref(&iwqp->ibqp);
--	if (!iwdev->rf->reset)
-+	if (!iwdev->rf->reset || iwdev->roce_mode)
- 		wait_for_completion(&iwqp->free_qp);
- 	irdma_free_lsmm_rsrc(iwqp);
- 	irdma_cqp_qp_destroy_cmd(&iwdev->rf->sc_dev, &iwqp->sc_qp);
+ 	spin_lock_irqsave(&iwcq->lock, flags);
+ 	irdma_uk_clean_cq(&iwqp->sc_qp.qp_uk, ukcq);
++	list_for_each_entry_safe(cmpl, tmp, &iwcq->cmpl_generated, list) {
++		if (cmpl->cpi.qp_handle != &iwqp->sc_qp.qp_uk)
++			continue;
++		list_del(&cmpl->list);
++		kfree(cmpl);
++	}
+ 	spin_unlock_irqrestore(&iwcq->lock, flags);
+ }
+ 
+@@ -577,12 +584,12 @@ static void _irdma_destroy_qp(struct ib_qp *ibqp)
+ 
+ 	iwqp->sc_qp.qp_uk.destroy_pending = true;
+ 
++	if (!iwqp->user_mode)
++		disable_delayed_work_sync(&iwqp->dwork_flush);
++
+ 	if (iwqp->iwarp_state >= IRDMA_QP_STATE_IDLE)
+ 		irdma_modify_qp_to_err(&iwqp->sc_qp);
+ 
+-	if (!iwqp->user_mode)
+-		cancel_delayed_work_sync(&iwqp->dwork_flush);
+-
+ 	if (!iwqp->user_mode) {
+ 		if (iwqp->iwscq) {
+ 			irdma_clean_cqes(iwqp, iwqp->iwscq);
 -- 
 2.56.1.839.g22a8290db9-goog
 
