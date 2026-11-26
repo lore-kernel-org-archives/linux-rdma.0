@@ -1,54 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.216
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795694668;
-	b=4pAXTDPS8+DlrbFRk4lJQq7fEAULA2MbW/5pgMAi+D8yRjvSDCQMxFbNSuRfqpc9bhlS
-	 v0TsNGyKrT0lKonP62zlFCSQbklDeJIIiyLjWpuQENzC2LwTrXuiqOfcB+7n1msjnriat
-	 UbI6Px4lv8LMzoQirA5qa3KPQqRwkMLKq1l/lDbeLLJqtSFirTypXtmeGMoA1gfBCqfwq
-	 0Ig/CBuh1WpDENN1FOQ/0rdM8URjimhCH0n2AUxmAtubeJ2nLC58IvYcqfauvT2Qe9ymt
-	 OiqYVr0bs2CrTwHDsM5rhfd/MfpDUtIxIiAK9bNLr2AR9ux1+xudmOxbLVcziMiDC2w==
+	t=1795694917;
+	b=f0ZpzjHWYRzuc0mXZY0X20FM15M4zLT2IRyp0ojZx/oIMwVERNg4jc2VnGHrB65Foq5R
+	 Wib5GDfbbaoemyJ7RzEfy0nAw8RqMinL33lC/ERJMZ0NR0LfVSQF+OeBJdK1FcPzLa4Ll
+	 ZHioxxjtzpPs0OW8PCzaE/akOiwGV9stHB5SJSRa3mRZ3PsuBCYvZNYsSfqFhFcch6vKF
+	 tOSQu38sc+pQmYKZVFGqD+JbONBNCbYeMz86zCka05v9BWxxevrvy4CSqHoVGkBaWA7uC
+	 WQmmdeOHN+WYs13g5zt0P1PY5bmaXh/nQyd6YRd43TZijSqQHgGhHMmEt+VNCqK8EIA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795694668;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=kP9909YZOHJ/yyoxYA4yDZI5lpWuHUiSSOlW6VYlpew=;
-	b=5dYzmd6ANa+woERSOO/nNVFrBbol8cx291uXwUkpPtuZQd1YR05tVGFHuAI9I4+NEnus
-	 2etobPCcVN5pFo1Qh6KlZvPLbw3tpXk9mpsGnCf4TCmwA5atvxVncFxbK0ZGJn9+LJPKM
-	 1HoiyRalvegnxr0s6KOVCx5DSutsfJRsOFjDowZQcYUrXYl1THkKYRtTmvdIWHIHTiTsu
-	 26529SIXftppff6c2L33cExf5IoJvTzvzf2Xr10ShOPpX8UJ8iB6wkzU2cWQVbCIXNxGu
-	 z7pKSj+dzVOyX8cO4tAhVosmkCLuIMIg45glzGl1Q+9dSIt8ZDUO7xMW9XtU6mlWxog==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795694917;
+	h=DMARC-Filter:dkim-signature:Received:Received:Received:Message-ID:
+	 Date:MIME-Version:User-Agent:Subject:To:CC:References:In-Reply-To:
+	 From:Content-Type:Content-Transfer-Encoding:X-Originating-IP:
+	 X-ClientProxiedBy;
+	bh=QKC85Ts+xyxVK/C+TeFLmxbktABJxaqhmjGLCcNn1e4=;
+	b=31WBbPi/l9vMEnf0liU8uzLVgqg2EzY0sCzM3u62k7yGX1bI4+AAJ/1Mz0ItRKZK9fC7
+	 iX9SK6FboLjkI7e3Il4/CdS0J3kojuU+7Af06GuIDMSQ1Z5L9uYr1LeBRN8YHaoeQn9wI
+	 qWBooctNo9DO4Rsk0XGIVqhT3TUa+qZ48ON/c3NpA3S1QsVuqIxGmdnzOo3jOH/xClYnT
+	 iKaPSfwqtNYO0cRssOSdj0UEJfOhi8g3BQLLy3xXjR7dfEo8dfHeR6btYb6qDEljrknvs
+	 HcnT6Oeb0nHxBbli2VQQsCfsmlfm8GRWTznmlBtRjbLZpKTEb+3BZZU3NJssMWmsqEw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Jm+6UvF6;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=huawei.com;
+	spf=pass smtp.mailfrom=huawei.com;
+	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=M5EBzfCo;
+	arc=none smtp.remote-ip=113.46.200.216
+Received: from canpmsgout01.his.huawei.com (canpmsgout01.his.huawei.com [113.46.200.216])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B74A606A31C
-	for <linux-rdma@vger.kernel.org>; Thu, 26 Nov 2026 12:04:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AD30606A31C;
+	Thu, 26 Nov 2026 12:08:34 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2AD30606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Jm+6UvF6
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21A961F000C0;
-	Thu, 26 Nov 2026 12:04:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795694667;
-	bh=kP9909YZOHJ/yyoxYA4yDZI5lpWuHUiSSOlW6VYlpew=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Jm+6UvF6d9Stos68cY/iOukqixGjw7OSKSWUJHqNMklfAxLkFSsEQrQHbPozGuBlL
-	 d4noK27otpXuzyNO3UAv2jtLgAHp1Eplv6eh+cDmoMZQK4FJSFkPJjEs76iBOMGqeM
-	 5ZVtIVgc8wMRFlzQmjYnGgK0u2hg/rBPU+O1ZGLbQlftsXW9ZToyngSGNBNscwFMbZ
-	 YNUUBk+RmBvRzETJkhuLXaKF3KlL+MZaw26x0Ui+oFIT2OJeExTUiFQadVzcyfU1cI
-	 eOLgB5OuyNJIIFUSLL4wu2W3hFiJXUaYiibyd1Y9+ypHwUbXdNV19RiaX7dTZgXj4D
-	 2r4bIqMYzuayg==
-Date: Thu, 26 Nov 2026 14:04:24 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Md Haris Iqbal <haris.iqbal@ionos.com>
-Cc: linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>,
-	Shuangpeng Bai <shuangpeng.kernel@gmail.com>
-Subject: Re: [PATCH 9/9] RDMA/rtrs-clt: Close all paths before freeing any in
- rtrs_clt_close()
-Message-ID: <20261126120424.GJ774860@unreal>
-References: <20261123143719.938876-1-haris.iqbal@ionos.com>
- <20261123143719.938876-10-haris.iqbal@ionos.com>
+	dkim=pass (1024-bit key, unprotected) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=M5EBzfCo
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=QKC85Ts+xyxVK/C+TeFLmxbktABJxaqhmjGLCcNn1e4=;
+	b=M5EBzfCo8Jbho9y1ciCD8TWkQM8iuZcZSHKLZc32vqr6uDs2GGjgBovofB5sXPKbXLlGLFyHz
+	8ET/AN2NIV1keaMPOrkx3nJmcus1UQLD+QuqEhAPxiJdBxXSELvQRx3i/k1vSFfZV1Et82imogd
+	CWyacF+K/KH1ueS9G4Emtw0=
+Received: from mail.maildlp.com (unknown [172.19.162.223])
+	by canpmsgout01.his.huawei.com (SkyGuard) with ESMTPS id 4jZwKQ2pXQz1T4Fv;
+	Thu, 26 Nov 2026 20:07:38 +0800 (CST)
+Received: from whupemk300014.china.huawei.com (unknown [7.152.185.8])
+	by mail.maildlp.com (Postfix) with ESMTPS id A9E1740561;
+	Thu, 26 Nov 2026 20:08:29 +0800 (CST)
+Received: from [10.174.177.221] (10.174.177.221) by
+ whupemk300014.china.huawei.com (7.152.185.8) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Thu, 26 Nov 2026 20:08:28 +0800
+Message-ID: <826aff50-15d9-4a4a-acd5-c3e7e985d975@huawei.com>
+Date: Thu, 26 Nov 2026 20:08:26 +0800
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,131 +62,48 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261123143719.938876-10-haris.iqbal@ionos.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 3/3] xprtrdma: Wake connect worker on device removal
+To: Chuck Lever <cel@kernel.org>
+CC: Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Olga
+ Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey
+	<tom@talpey.com>, Trond Myklebust <trondmy@kernel.org>, Anna Schumaker
+	<anna@kernel.org>, "linux-nfs@vger.kernel.org" <linux-nfs@vger.kernel.org>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+	"stable@vger.kernel.org" <stable@vger.kernel.org>, yuehaibing
+	<yuehaibing@huawei.com>, zhangchangzhong <zhangchangzhong@huawei.com>,
+	"weiyongjun (A)" <weiyongjun1@huawei.com>
+References: <20261124021842.130141-1-lixiasong1@huawei.com>
+ <20261124021842.130141-4-lixiasong1@huawei.com>
+ <40af69a1-be6b-4afd-acba-2185a7ad832a@slotpi15m67>
+In-Reply-To: 40af69a1-be6b-4afd-acba-2185a7ad832a@slotpi15m67
+From: Li Xiasong <lixiasong1@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
+ whupemk300014.china.huawei.com (7.152.185.8)
 
-On Mon, Nov 23, 2026 at 03:37:19PM +0100, Md Haris Iqbal wrote:
-> rtrs_clt_close() closes and frees the paths one at a time. Meanwhile, the
-> paths that are not closed yet can still walk clt->paths_list: a reconnect
-> fires link_ev(RECONNECTED), whose handler calls rtrs_clt_query(), and a
-> closing path fails its requests over through rtrs_clt_failover_req().
-> Either can then touch a path that is already freed:
-> 
->   BUG: KASAN: slab-use-after-free in rtrs_clt_query
->   Workqueue: rtrs_client_wq rtrs_clt_reconnect_work
->    rtrs_clt_query
->    rnbd_clt_link_ev
->    init_path
->    rtrs_clt_reconnect_work
+On 11/25/2026 1:01 AM, Chuck Lever wrote:
 
-Please include the full dmesg stack trace in commit messages for RDMA-related changes.
+> On iWARP, then, this patch moves the wait from re_connect_wait into
+> rdma_destroy_id(). I don't see a way around that in xprtrdma. The
+> patch description should still not claim that removal unblocks
+> endpoint cleanup on every device type.
+> 
 
-Thanks
+Agreed. The worker can hit that wait in rdma_disconnect(), too:
+iw_cm_disconnect() waits for IWCM_F_CONNECT_WAIT to clear.
+I'll note in the commit message that iWARP teardown can still
+wait for the provider's connect reply after the worker wakes up.
 
+> Removing the get/put pairs from the CM event handler also moves the
+> last ep put into rpcrdma_xprt_disconnect(), before xprt_rdma_destroy()
+> reaches xprt_free(). That ordering closes the stale ep->re_xprt window
+> I described in my reply to patch 2/3. Let's mention that ordering in
+> this patch's commit message, since patch 2/3 relies on it.
 > 
-> Move every path to CLOSING first, wait for all close works, and only then
-> unlink and free the paths. A close work cancels the reconnect work of its
-> path synchronously, so no path is freed while another one still uses the
-> list.
-> 
-> rtrs_clt_open() tears down its paths on error the same way, so move the
-> sequence into rtrs_clt_destroy_all_paths() and use it from both, with
-> sysfs torn down first.
-> 
-> Fixes: 6a98d71daea1 ("RDMA/rtrs: client: main functionality")
-> Reported-by: Shuangpeng Bai <shuangpeng.kernel@gmail.com>
-> Closes: https://lore.kernel.org/linux-rdma/20261105202939.3104321-1-shuangpeng.kernel@gmail.com/
-> Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
-> ---
->  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 49 ++++++++++++++++++--------
->  1 file changed, 34 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> index 7930039dcd32..760ae71c9230 100644
-> --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> @@ -2862,6 +2862,38 @@ static void free_clt(struct rtrs_clt_sess *clt)
->  	device_unregister(&clt->dev);
->  }
->  
-> +/*
-> + * Close and free every path of @clt.  The caller has torn down sysfs, so
-> + * no paths can be added or removed, and does not use the session any more
-> + * (no IO, no rtrs_clt_query()).
-> + *
-> + * Until its close work has finished, a path can still reconnect (firing
-> + * link_ev, whose user may call rtrs_clt_query()) or fail requests over,
-> + * and both walk clt->paths_list.  So move every path to CLOSING first,
-> + * which keeps further reconnect attempts from starting, wait for all of
-> + * them, and only then free.
-> + */
-> +static void rtrs_clt_destroy_all_paths(struct rtrs_clt_sess *clt)
-> +{
-> +	struct rtrs_clt_path *clt_path, *tmp;
-> +
-> +	list_for_each_entry(clt_path, &clt->paths_list, s.entry)
-> +		rtrs_clt_close_conns(clt_path, false);
-> +	list_for_each_entry(clt_path, &clt->paths_list, s.entry)
-> +		flush_work(&clt_path->close_work);
-> +
-> +	/*
-> +	 * The close works have flushed every reconnect and stopped the
-> +	 * heartbeat, and the caller issues nothing, so nobody walks the list
-> +	 * any more and no grace period is needed.
-> +	 */
-> +	list_for_each_entry_safe(clt_path, tmp, &clt->paths_list, s.entry) {
-> +		list_del(&clt_path->s.entry);
-> +		rtrs_clt_destroy_path_files(clt_path, NULL);
-> +		kobject_put(&clt_path->kobj);
-> +	}
-> +}
-> +
->  /**
->   * rtrs_clt_open() - Open a path to an RTRS server
->   * @ops: holds the link event callback and the private pointer.
-> @@ -2887,7 +2919,6 @@ struct rtrs_clt_sess *rtrs_clt_open(struct rtrs_clt_ops *ops,
->  				 size_t pdu_sz, u8 reconnect_delay_sec,
->  				 s16 max_reconnect_attempts, u32 nr_poll_queues)
->  {
-> -	struct rtrs_clt_path *clt_path, *tmp;
->  	struct rtrs_clt_sess *clt;
->  	int err, i;
->  
-> @@ -2943,12 +2974,8 @@ struct rtrs_clt_sess *rtrs_clt_open(struct rtrs_clt_ops *ops,
->  	return clt;
->  
->  close_all_path:
-> -	list_for_each_entry_safe(clt_path, tmp, &clt->paths_list, s.entry) {
-> -		rtrs_clt_destroy_path_files(clt_path, NULL);
-> -		rtrs_clt_close_conns(clt_path, true);
-> -		kobject_put(&clt_path->kobj);
-> -	}
->  	rtrs_clt_destroy_sysfs_root(clt);
-> +	rtrs_clt_destroy_all_paths(clt);
->  	free_clt(clt);
->  
->  out:
-> @@ -2962,17 +2989,9 @@ EXPORT_SYMBOL(rtrs_clt_open);
->   */
->  void rtrs_clt_close(struct rtrs_clt_sess *clt)
->  {
-> -	struct rtrs_clt_path *clt_path, *tmp;
-> -
->  	/* Firstly forbid sysfs access */
->  	rtrs_clt_destroy_sysfs_root(clt);
-> -
-> -	/* Now it is safe to iterate over all paths without locks */
-> -	list_for_each_entry_safe(clt_path, tmp, &clt->paths_list, s.entry) {
-> -		rtrs_clt_close_conns(clt_path, true);
-> -		rtrs_clt_destroy_path_files(clt_path, NULL);
-> -		kobject_put(&clt_path->kobj);
-> -	}
-> +	rtrs_clt_destroy_all_paths(clt);
->  	free_permits(clt);
->  	free_clt(clt);
->  }
-> -- 
-> 2.43.0
-> 
-> 
+
+I'll spell out that ordering in the commit message.
+
+Thanks,
+Li Xiasong
