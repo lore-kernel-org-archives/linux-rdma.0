@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795695483;
-	b=hcFCzH0TY5QrPFKlMNzaXpeO+AGKllTX+xwJx9RYq7xdgBT1ujoFFiU0vpha5olFGWbP
-	 BfwTXovdAJ4dMV/QAh/JOkMS6Xk9TQ5R93Pg05m9OLuqP8FgtRmPKcDdaz9HdDJGPLdd3
-	 s9Pb842EkisWo5rw99woGBapUoiQXX6BENV8QY6Yps+axtl5/jLAx3aehhK1Af7lsqQ5M
-	 OSqrpM1JreJpW24xqe99xI5JzPH3OZeWn+n0cQh36zEO5NpfQaxI0yZNUD5wWdSr+yPJ6
-	 u8r7grfw0wtw6yxc6RDSXu+/P0vk2h1XmZGdpMJLTYsHTYS0Hrf1dm9ScOB4RTCc3Wg==
+	t=1795695542;
+	b=DnM70GV+WGnPicVUvLfUsIBtBDgBe0z1dO+znTYf+kEHAN8V2wp3tuzfCeFNuyh49L3G
+	 TvnZzB6nblz8jgg9hApd9w0i3NOED4de+JlOkyt4WxQAl9W0DGBaoqjTsvqft/TPjeZCL
+	 fFWRvBFdHh7ec5JYXBB9SGC4EiBqOB8S1y1HAuY3RpOwojiNPauoJ2CbWqgwLXkKYJZ9Q
+	 fZyV8VLrVlMYHppKkrE05nUtoE+lSeZ6uL7JkEs5HqX1shhq3Q7EjKoVtHsl7E7Vk1aBi
+	 ghiL1G0HO7rsTCXZiXWQWBGtq7BGfr3F3LM15QkTWDxZnvh1RwqVNhUxw3F+P5d8KSg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795695483;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:
-	 Content-Transfer-Encoding:In-Reply-To;
-	bh=PS7PSHtqOkpJCiWY6ZWwLrcNTeyjRBncMWEQHa5lM/c=;
-	b=U5FArGEiMNarwxcqtRTvjUPrE9qGPce7fC8QqKUzTlO9Der2JVYHHi1iDNeI/AY6UIUM
-	 iUIIUJrswKtvERqbeXSC7MaE/5pZDIsB24VZyHVOUTPk7Ky9/wzfl+hTd4ANph/DoL4Qz
-	 8GPbWTuLmDIezXQnuYYHMB+2l8KzlynhD09rC3ipioRz8c6Eim4QY1/0urJ47BUSgOBa/
-	 uQv8ilRpCVfMlv3PKnoi+cjMJjSvns9EK4b+mMuRvvJjqOG4wP0/8BNfgI46P+FY1fFpw
-	 GmnFq/YekwZuTwzkRKi2/8iCYIYNaUG/SqZ80XR5ub+P6PYUzZ2pYG3UP2mBWp5nx/Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795695542;
+	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
+	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Mailer;
+	bh=2TVWFja+Cth+NdMQkyy4msOvx7MobbwbldDKZj2x2+M=;
+	b=RBlaVmBZh91aGJEk/ou9uz5JtB727Ogs/KvdCKoaBigLqTuMWFffaF53O0uZYQnIaJ5n
+	 SkJM90/xJwRwkG8x5OG5tIyCkr5xsisPtXGoBa4H0coA3roKXc45xM1xUGkfZsnq2aUXN
+	 ehe1UE+affkjqPdWgZqIgTowDRgpP4FCIrBa3kuOHss1vc2+ZvYtlfr2+NPt3vLXlvN6L
+	 LtVyGJe6YAsC4uqqgqDiNzt1nEqR4t8zlxbCA0Tt2+hBH0v7rUm12wJzhN3nbxH0AEWjL
+	 JOe0oS0z9P7XGRUpJl97VR/pMNhRL/l1KcSYZz05pXh0FwaypFPOZcGWl2hhw1V96iQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lSwPIgyA;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=orXGA7BV;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4287606A31C;
-	Thu, 26 Nov 2026 12:18:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 528B5606A31C;
+	Thu, 26 Nov 2026 12:19:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lSwPIgyA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 789201F000CF;
-	Thu, 26 Nov 2026 12:18:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=orXGA7BV
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D4F81F000C0;
+	Thu, 26 Nov 2026 12:19:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795695483;
-	bh=PS7PSHtqOkpJCiWY6ZWwLrcNTeyjRBncMWEQHa5lM/c=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=lSwPIgyAcLSz0W3hs3jRjrPjhy/xRVtl5/M/H9ylb9yY+9mQ8r5VHx6mxFkvRG1h5
-	 znxv6Vu5JV5L5jLyRSUu+rSckC0pUViMRNzoFvIgi1/iowXR6Ov52CIUf/U/XeUy+U
-	 zMfDJFsWTfCiJ+GGvGrOwNFf3GcJymmZA3m0qSOFhXvA8QwiOxDCenL2QtL9DMwevx
-	 VIdOvmkuKFS7kE1p9AOxZGpNT3+ozYKXLG/uqASn1MapVmcNcckQTi9mPwZ8SIheRK
-	 SdzFnlJIyln0RKyRfwoetfGwMPkvUJqlu1MNmEFe8V1sLa09CBH/KEj4vZk3t/F8Ax
-	 2VGH7dGNrzw7Q==
-Date: Thu, 26 Nov 2026 14:17:59 +0200
+	s=k20260515; t=1795695542;
+	bh=2TVWFja+Cth+NdMQkyy4msOvx7MobbwbldDKZj2x2+M=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Date;
+	b=orXGA7BVheuI9J6jXHqYnDnO1N9D9xDQWsqA4Cm5A2fp9Bmpbt5i0AMuR+cDKmrN1
+	 8QPE732WTNocxJOPOmv+cO8eSqaieyLlVCai4N1v+1Gz3/8cZwFVABtCSyZWg7S32s
+	 6ewPfWxWWzSnaPJuNpFA3pFf6hF8EwcRcyUUZImdxLg/+XX0TOYXir+Zy8+45H2sDN
+	 VjoDKcbJqMZZ3DUCB27QOS43BtqdkMAnSebeYlTy4eK3UgxUe6C6xRi5lhK5lhTmUY
+	 +VVdblDFe/IwISS66JrKYj9dVjogVabxQnT+g319cV2qGYqUy8/Z5A7Mr9n/hnIU5m
+	 GEEMfVknjauGQ==
 From: Leon Romanovsky <leon@kernel.org>
-To: Habil Eren =?iso-8859-1?Q?T=FCrker?= <habilerenturker@hotmail.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Parav Pandit <parav@nvidia.com>,
-	Jiri Pirko <jiri@resnulli.us>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"syzbot+8c2fa00c27ecafd148f5@syzkaller.appspotmail.com" <syzbot+8c2fa00c27ecafd148f5@syzkaller.appspotmail.com>
-Subject: Re: [PATCH] RDMA/core: Fix slab-use-after-free in kernfs_find_ns()
-Message-ID: <20261126121759.GK774860@unreal>
-References: <20261124163151.50468-2-habilerenturker@hotmail.com>
+To: Zhu Yanjun <zyjzyj2000@gmail.com>, 
+ Andrew Stellman <astellman@stellman-greene.com>
+Cc: Zhu Yanjun <yanjun.zhu@linux.dev>, Jason Gunthorpe <jgg@ziepe.ca>, 
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20261123140620.64393-1-astellman@stellman-greene.com>
+References: <20261123140620.64393-1-astellman@stellman-greene.com>
+Subject: Re: [PATCH rdma-rc] RDMA/rxe: Zero struct rxe_mmap_info on
+ allocation
+Message-Id: <179569553925.1262876.4833992620993528543.b4-ty@kernel.org>
+Date: Thu, 26 Nov 2026 07:18:59 -0500
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,64 +60,32 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20261124163151.50468-2-habilerenturker@hotmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.15-dev-18f8f
 
-On Tue, Nov 24, 2026 at 04:32:26PM +0000, Habil Eren Türker wrote:
-> In drivers/infiniband/core/device.c, remove_one_compat_dev() unlocks
-> device->compat_devs_mutex immediately after erasing cdev from
-> the xarray. device_del(&cdev->dev) is performed outside the lock.
-> 
-> When IB device removal races with network namespace teardown
-> (cleanup_net() -> rdma_dev_exit_net()), rdma_dev_exit_net() calls
-> remove_one_compat_dev() and observes NULL from xa_erase(), and
-> returns without waiting for device_del() to finish.
 
-Please include the KASAN report in the commit message
-and rewrite the AI-generated prose in function-ladder format.
+On Mon, 23 Nov 2026 09:06:20 -0500, Andrew Stellman wrote:
+> rxe_create_mmap_info() allocates the structure with kmalloc_obj() and
+> does not set info.pad. do_mmap_info() copies ip->info to userspace with
+> copy_to_user(), so the 4 pad bytes of struct mminfo come from
+> uninitialized kernel heap memory.
+> 
+> On x86_64 v7.4-rc3 under QEMU with init_on_alloc=0, an unprivileged
+> user (CapEff 0) issued 300 CQ_CREATE ioctls on rxe0 and read the driver
+> response. After the guest had run ls -lR on /proc and /sys and read
+> /proc/*/status and /proc/*/stat, 101 of the 300 pads were nonzero. In a
+> separate boot with slub_debug=P, all 300 pads were 0x6b6b6b6b. With
+> this patch, all 300 pads were zero in both configurations.
+> 
+> [...]
 
-Thanks
+Applied, thanks!
 
-> 
-> cleanup_net() frees struct net while device_del() is still executing,
-> causing device_remove_class_symlinks() -> sysfs_delete_link() ->
-> kernfs_ns_id() to read ns->ns_id from the freed struct net,
-> which triggers a slab-use-after-free.
-> 
-> Fix this by moving mutex_unlock(&device->compat_devs_mutex) after
-> device_del(&cdev->dev) finishes, while keeping put_device(&cdev->dev)
-> outside the lock.
-> 
-> Fixes: 4e0f7b907072 ("RDMA/core: Implement compat device/sysfs tree in net namespace")
-> Reported-by: syzbot+8c2fa00c27ecafd148f5@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=8c2fa00c27ecafd148f5
-> Signed-off-by: Habil Eren Türker <habilerenturker@hotmail.com>
-> ---
->  drivers/infiniband/core/device.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-> index 29af9fe860e2..f2a52af64718 100644
-> --- a/drivers/infiniband/core/device.c
-> +++ b/drivers/infiniband/core/device.c
-> @@ -1030,12 +1030,13 @@ static void remove_one_compat_dev(struct ib_device *device, u32 id)
->  
->  	mutex_lock(&device->compat_devs_mutex);
->  	cdev = xa_erase(&device->compat_devs, id);
-> -	mutex_unlock(&device->compat_devs_mutex);
->  	if (cdev) {
->  		ib_free_port_attrs(cdev);
->  		device_del(&cdev->dev);
-> -		put_device(&cdev->dev);
->  	}
-> +	mutex_unlock(&device->compat_devs_mutex);
-> +	if (cdev)
-> +		put_device(&cdev->dev);
->  }
->  
->  static void remove_compat_devs(struct ib_device *device)
-> -- 
-> 2.47.3
-> 
+[1/1] RDMA/rxe: Zero struct rxe_mmap_info on allocation
+      https://git.kernel.org/rdma/rdma/c/5d298f34048ba4
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
+
