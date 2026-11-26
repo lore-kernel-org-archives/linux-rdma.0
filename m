@@ -1,58 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.227
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795694248;
-	b=3FGikjrb2U3Tk7JV+2eN50Dl38Kb9nqBuDcz69zaFoaosf7ulKCj/qOa642xIagw6Wmz
-	 XVESC/dNGRxkygP0nct3L2rhZIc68FnE30oeLW+OvXCTWR2ftWJCe4aXXsJTh7G+Rtpue
-	 JjwuYUIbEz+F9slODlnNFf65WtBcvwm21ZVlha651uKWbmGXDzo2971DylM+PDdaqcb22
-	 YLb2XcSTAQUu35bHaclhg+6gU8TKxjRJn8gPNE7PH2CjamloG7z817aHxxiuM7BkGFCel
-	 LgElbnXWBWFcULXdfo8mqKMdrrf8Z0genqJn8v8rF7d9PJHOmjPA+6kJFaMmKHkesog==
+	t=1795694337;
+	b=ZBQB4DrSxOtxNGVzh7AcRi2lriFtx7rJcAAm6ffpuMXWmDyglJPL6cFYgUX7XJXgvXtD
+	 XOqkae0Y+eGav5ti3zo/Zmjgh3l54xX58hGXNee4JHgeTWmleywAbDNVp3x8O/61HuH70
+	 r5ZkpUWsNYYcnEMenbzOOhfLu/G8SlQzdPAfjF6xGSqYhwbj5PaIU/VdFkoewe7NB9mDC
+	 bIIgAZ9FY+l+ZZZHOshQT0/Ap+q3rFsivmiccqVhi21FjpeTFHMPWJvQmk2Oyg89pUYzm
+	 yjdLM6UOKva3KAY7Wlb1L1QRCQm77R4oMCnIVz0NJZvxLBRAxHEZkPaIttbuvtr8dXQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795694248;
-	h=DMARC-Filter:dkim-signature:Received:Received:Received:Message-ID:
-	 Date:MIME-Version:User-Agent:Subject:To:CC:References:In-Reply-To:
-	 From:Content-Type:Content-Transfer-Encoding:X-Originating-IP:
-	 X-ClientProxiedBy;
-	bh=Orjg/Sm3uWrFea5Qd+IH/YEbQtQgcSirRXSwttytYyQ=;
-	b=ijPB+xSl22sAwoTIl342cPEW3yowK+l77AEjLVPiMkBDRq03O9MBAkGxmgt6AmEtsWUj
-	 bleLQcYIvDFYc8XOVJEm7WT3DO9BMJgjAmCApeDB08dNC0zxz9XRBiGwxI7yDi2l1Ki6L
-	 VXb7admA0uEaI1+e8rR8WCLt8qXdM7e1fW6uOWgZSdOVpeGaD0wiFq/nKt9NxVjgVIsx9
-	 aH6hYu2LweWr712Qf0b+LnHq5h74hzOIv3wM50tUj0CTQMEWDQtjJZzShW3ZA4bmz5fpC
-	 JTBGkbN/eiUMmlcIusYdzj2xH++TEENLpx3Httvi0gZkSRAVWutXe+5EsdjFvtb0Lcw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795694337;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=jUXOb/7NHDhl2KO9+Lfn/n76yOctCL6VjT5ewWWHbTc=;
+	b=aytuFnpNaOZRNRRYvI31zIU7rXLTVm9sdCUKwYjyJzseNjhTBpIxYO03RjMgtxi3GX9+
+	 ghB+TPhYvw5fGK0iJImpaGlkvFPiDinXFizBHqJK0M+XCdY1OC/RmxyqExW6XYl0AYOH0
+	 808Q1baNOpAM8zcxw7cvA5z+EJu+TG90zk3Mh41E4A6elHSuQzE18X9uiOd44MJa+NwVW
+	 ug2cLsMm5QYAnFnXrdxbGuaxFyicwgGm0peJHp675UNnPDI66G5LGl65esZwswAANUmPR
+	 NvxatYYCuM3Cq15PpBwSNLFb/c+zGvtStFe9TiMqErAUsqJGlQ2pv6ARLF7MZCEW/jQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=huawei.com;
-	spf=pass smtp.mailfrom=huawei.com;
-	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=5VBd8MWe;
-	arc=none smtp.remote-ip=113.46.200.227
-Received: from canpmsgout12.his.huawei.com (canpmsgout12.his.huawei.com [113.46.200.227])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=N9pov8ir;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40B12606A31C;
-	Thu, 26 Nov 2026 11:57:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 40B12606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C536606A31C
+	for <linux-rdma@vger.kernel.org>; Thu, 26 Nov 2026 11:58:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=5VBd8MWe
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=Orjg/Sm3uWrFea5Qd+IH/YEbQtQgcSirRXSwttytYyQ=;
-	b=5VBd8MWeQouIX/NZgbHZYWmU6dkfFK3cyfUJlvorUQ2pavMZR9nYI5PiTqza6Fv/vKoHsReFk
-	uZU4z0masDC9CU5zgDH929vQkyoTPodUTQNHGXDvdlE9gdtMmktYMxFSli0xocrxuy0BiHdfgzZ
-	sY6xMFilWGtSbUVCxXtjkKA=
-Received: from mail.maildlp.com (unknown [172.19.163.15])
-	by canpmsgout12.his.huawei.com (SkyGuard) with ESMTPS id 4jZw4d4z28znTXh;
-	Thu, 26 Nov 2026 19:56:33 +0800 (CST)
-Received: from whupemk300014.china.huawei.com (unknown [7.152.185.8])
-	by mail.maildlp.com (Postfix) with ESMTPS id 142E44058E;
-	Thu, 26 Nov 2026 19:57:22 +0800 (CST)
-Received: from [10.174.177.221] (10.174.177.221) by
- whupemk300014.china.huawei.com (7.152.185.8) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Thu, 26 Nov 2026 19:57:20 +0800
-Message-ID: <294d1cbc-9137-4d13-ad61-625db76bd9f9@huawei.com>
-Date: Thu, 26 Nov 2026 19:57:19 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=N9pov8ir
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AEBB1F000C0;
+	Thu, 26 Nov 2026 11:58:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795694337;
+	bh=jUXOb/7NHDhl2KO9+Lfn/n76yOctCL6VjT5ewWWHbTc=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=N9pov8iru6PtLwZ6LeQHy8tGP/hGW0HgBtXCxhG5/1tGeVVksvJNkWz6cPuxo8m8z
+	 bEQyb/LCFlAYCnwghEmP4K/4cnBph1Sx9+16lvPA7ySbeqsMBCPfbchEsXA+dCZHBr
+	 tyZJ++b4eJY4tyOq/DZE5n+BvtcENtl8zkj1YD2miVqppkJdcjNhza7KNvXrfzQ24D
+	 EjMZ+U86sJAGtmT7H/gBCI+5hXsj6fXJ9RxkzpcwfMCYgBMyT8i6a3hqIgW5gtgTYy
+	 FNZqNhbLNGLM2W+5UFTF+rFr/Wyeeq9IbHYH+PThai2evwDKIjGY+w9A6QGlq25dMU
+	 1JDuOj3f7Nxpg==
+Message-ID: <sashiko-outbox-235455@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH net] net/mlx5: E-Switch, Fix offloaded nf flowtable
+ rules never being hit
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Tariq Toukan" <tariqt@nvidia.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261125115815.87909-1-tariqt@nvidia.com>
+References: <20261125115815.87909-1-tariqt@nvidia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Thu, 26 Nov 2026 11:58:56 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,53 +59,85 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 2/3] rpcrdma: Serialize removal callbacks with
- unregister
-To: Chuck Lever <cel@kernel.org>
-CC: Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Olga
- Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey
-	<tom@talpey.com>, Trond Myklebust <trondmy@kernel.org>, Anna Schumaker
-	<anna@kernel.org>, "linux-nfs@vger.kernel.org" <linux-nfs@vger.kernel.org>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-	"stable@vger.kernel.org" <stable@vger.kernel.org>, yuehaibing
-	<yuehaibing@huawei.com>, zhangchangzhong <zhangchangzhong@huawei.com>,
-	"weiyongjun (A)" <weiyongjun1@huawei.com>
-References: <20261124021842.130141-1-lixiasong1@huawei.com>
- <20261124021842.130141-3-lixiasong1@huawei.com>
- <aa51ee58-3404-494b-bbdc-2f9b6a6a7cd6@slotpi15m67>
-In-Reply-To: aa51ee58-3404-494b-bbdc-2f9b6a6a7cd6@slotpi15m67
-From: Li Xiasong <lixiasong1@huawei.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
- whupemk300014.china.huawei.com (7.152.185.8)
 
-On 11/25/2026 12:56 AM, Chuck Lever wrote:
+Thank you for your contribution! Sashiko AI review found no new issues
+in this patch, but noticed 1 related pre-existing issue it does not
+introduce:
+- [High] net/mlx5: off-by-one FDB sub-namespace priority in
+  esw_chains_create() [1]
+--
 
-> 
-> Can rpcrdma_remove_one() call rn_done() for every registrant first,
-> and run the release hooks after the walk finishes? The hooks would
-> have to be collected somewhere, because a registrant can unregister as
-> soon as the mutex is dropped.
-> 
+commit 60c8dade186c303e933b7f1b16d70cd37bc59342
+Author: Tariq Toukan <tariqt@nvidia.com>
 
-Thanks, Chuck. I'll run the release hooks after the walk.
+net/mlx5: E-Switch, Fix offloaded nf flowtable rules never being hit
 
-The server calls svc_xprt_close() from its release hook, so a client
-xprt_put() that blocks can still delay a server close if the hooks
-run serially. I'll look at that ordering too.
+This commit sets the nf flowtable as the chains end table before creating
+the root flow table in esw_chains_create(), ensuring the root table's miss
+rule points to the nf flowtable chain rather than the slow path.
 
-> But "Pin the client transport during its callback" in the patch
-> description promises more than xprt_get() provides. Let's reword the
-> description or note that 3/3 is what makes ep->re_xprt safe to
-> dereference in this callback.
-> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b=
+/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> index 4747841310914..f71cd03035924 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> @@ -1693,6 +1693,11 @@ esw_chains_create(struct mlx5_eswitch *esw, struct=
+ mlx5_flow_table *miss_fdb)
+>  		goto nf_ft_err;
+>  	}
+> =20
+> +	/* Set the end table before opening the root, so that the root's
+> +	 * miss rule goes to the nf flowtable chain, not to the slow path.
+> +	 */
+> +	mlx5_chains_set_end_ft(chains, nf_ft);
+> +
+>  	/* Always open the root for fast path */
+>  	ft =3D mlx5_chains_get_table(chains, 0, 1, 0);
+>  	if (IS_ERR(ft)) {
+> @@ -1707,8 +1712,6 @@ esw_chains_create(struct mlx5_eswitch *esw, struct =
+mlx5_flow_table *miss_fdb)
+>  			goto level_1_err;
+>  	}
+> =20
+> -	mlx5_chains_set_end_ft(chains, nf_ft);
+> -
+>  	return 0;
+> =20
+>  level_1_err:
 
-Agreed. xprt_get() assumes ep->re_xprt is already valid. I'll note
-in the commit message that the teardown change unregisters the
-endpoint before xprt_free().
+[Severity: High]
+This problem wasn't introduced by this patch, but does setting
+attr.fs_base_prio to FDB_BYPASS_PATH (1) earlier in esw_chains_create()
+cause an off-by-one priority lookup [1] when mlx5_chains_get_table()
+creates managed FDB tables?
 
-Thanks,
-Li Xiasong
+When mlx5_chains_create_table() creates a managed table in
+MLX5_FLOW_NAMESPACE_FDB (the root table at chain 0, prio 1, level 0, or any
+table when ignore_flow_level is not supported), it looks up the per-chain
+sub-namespace and adds chains->fs_base_prio:
+
+drivers/net/ethernet/mellanox/mlx5/core/lib/fs_chains.c:mlx5_chains_create_=
+table() {
+    ...
+	if (!mlx5_chains_ignore_flow_level_supported(chains) ||
+	    (chain =3D=3D 0 && prio =3D=3D 1 && level =3D=3D 0)) {
+		ft_attr.level =3D chains->fs_base_level;
+		ft_attr.prio =3D chains->fs_base_prio + prio - 1;
+		ns =3D (chains->ns =3D=3D MLX5_FLOW_NAMESPACE_FDB) ?
+			mlx5_get_fdb_sub_ns(chains->dev, chain) :
+			mlx5_get_flow_namespace(chains->dev, chains->ns);
+    ...
+}
+
+However, create_fdb_sub_ns_prio_chain() initializes each FDB sub-namespace
+with 0-based priorities 0 through FDB_TC_MAX_PRIO - 1 (0..15).  Adding
+FDB_BYPASS_PATH (1) places the root table at sub-namespace priority 1
+instead of 0, and on devices without ignore_flow_level support, creating a
+table at the maximum priority FDB_TC_MAX_PRIO (16) asks for ft_attr.prio =3D
+16 and fails in find_prio() with -EINVAL.
+
+[1] https://sashiko.dev/#/bug/linux-9702e5c8-96e6-42e9-a756-b9f79ba339e1
+
+--=20
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261125115815.8790=
+9-1-tariqt@nvidia.com?part=3D1
