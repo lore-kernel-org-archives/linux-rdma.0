@@ -1,58 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795683332;
-	b=lUPZ3tm5iuQ/5HIspph950RCy9/PlL4wip0v0N94rtO0fCT3t7vUWFJ/mbXyTZKBdYmX
-	 FPiRaLO0qfZ0x2jlNPRjvwUlLvChxcYDtpG/fv728aRGX45cFM5rq3gdTgHBvrjMnUyjV
-	 mEvuJXat8ZsowRxQdiWeAsYzVPXlxkJ2e46TTLvviE7ukMhcI0R7pNenpnPbDcm/Ytv+7
-	 FPsjO7HEKo8wvEYsUKmkjHNdwMouX+74egC6hTUrmQ6TpPelrK/UuPoEURHZV4QEI6beP
-	 wlACvZgcbN5cYqhq6l4kM6z9ULZgMrWeyWFb5eyKGn4oAphQJr/aw+dql9ic4qxhwZQ==
+	t=1795683430;
+	b=Lj7/2sDuCY7KFkotVhe2KkUK8q3lS1csUDJyveHBsF5hu1CSykafCxTz2ylPde72EgIj
+	 xjGkCQNJzsy9PuaFA/fxiAC8JQtokwOBdelv0drxGxuDP1ySyq7DZNhx6L8GaxdZMi1P/
+	 zIEkg0dpLe+vN8vVOTHQmI52XWbrH9etLFyQXV/WjMYpzTN3/TvZsTyrPVE1oancQCYbC
+	 AmH214MTSvQ/vXLa416/thnOsvZSC81CPp3S8aRK8cInij9gerMdXmAdrC73lo9qm28s4
+	 s+adZukp6vrNTDXeOfyM306o9rn5aSXC9gYs8fTHL+UHM2TjloNJCDTzEb+LM9bTEyg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795683332;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795683430;
 	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
 	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
 	 X-Mailer;
-	bh=HqWxM4sTStKjFp4q0IoH0AiF+PXEee7+fHFB3ji0SXk=;
-	b=4S7gK2z6Pd1tDrGdiIc/3sPB0A/aFkX+8lvFqyQykYimBgxDVijBjkl36CN9BeQviybt
-	 ftk+8cvBbQ8yRobQ37XYcU2d8ECLzNWUrMlxdGiX6SeIUmPti7/IsK4UWzB+PvF8RVWuJ
-	 BO4iY6aNi1TYZasPAzQqXdlfwq6qJ6Dc4fsb6JYsoQHTps+RcOfIB/OZSoxTC0cwnWlBd
-	 ahuRivkT0hhzkFpfjGFtZRJ+w4jCBndhFIJZwMu8MgbbgTBDKF3dKMEE5nmQ0dmkKVcu6
-	 MyroX8947AD7NOP4sE/Kjt0Wg8quuUS4gD6jZEmmS2CeoVU4wAwElbIm5mMUMUWqC/A==
+	bh=c8eXb6MPyyPDuG7fWkku3VOTMsmdQ5zJqCf3p5BmCmA=;
+	b=WDMfv/zNsXKov/AfQpcqfzJ+AtY3wGjVny5rIyZnmozxBD6aFQgXbsdJeLlfm/blwZO4
+	 QlDXMGbG1P9fxiwvYGQiOG2w7srtQ7gyfmj3gcIkX+C1Vx6HabxHlFGgM3DgJh8Ck40f0
+	 1CKT2z6LO6iu/0QHrK/MgQgrLydjqsd3N6XWDdmGeNx1ola8XDRxccrC1STsZ+Jn4ky+N
+	 gOs8cYT1BSqtfX4cHGW4EcsTb8577tALd+7ranNK3XWd7XdPht7bdqEBUxWMy/OKOadFs
+	 Ftc4JyxbAAGNn6+tVAo2JijzqLbHqvanCHZLIlHC81QreufL+N5SsiY9lKoyg4DjRbQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bMaiWCp5;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="mu/Qtpfj";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B339D606A326;
-	Thu, 26 Nov 2026 08:55:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C271B606A32D;
+	Thu, 26 Nov 2026 08:57:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bMaiWCp5
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02B2C1F000C4;
-	Thu, 26 Nov 2026 08:55:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mu/Qtpfj
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 668621F000C6;
+	Thu, 26 Nov 2026 08:57:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795683332;
-	bh=HqWxM4sTStKjFp4q0IoH0AiF+PXEee7+fHFB3ji0SXk=;
+	s=k20260515; t=1795683430;
+	bh=c8eXb6MPyyPDuG7fWkku3VOTMsmdQ5zJqCf3p5BmCmA=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=bMaiWCp5KspGN4lA5icZTBR0qngrGj35PeNTZDNXEjbUzm1Zlm2t6pCk8kN2Hn0KA
-	 mLlDHjEMrSclrphZUeODQTXUQ3f4SbBzMR0BwWMcKAfUtcca8Z7H1BCxxopA/5/yTN
-	 6pE31pAtsWmsZZyfAgxApwJbrqfI2H8ldVT3k2oR0hsF3meOeTVWJS+7IQeAn/SrM1
-	 VeV6qdS+5OYAnVXZ+0bs4AN5UpLPxlOzIL8E4RqSDCZ6VHlfvwNMTszB1U7cgyOcXx
-	 0qMtiRA68jW+y9NN75StgGuuZU73sKHmFDdC35z2XnKopxmBW98tHNIHnBnFeRpASQ
-	 24bVXXcB720jw==
+	b=mu/QtpfjGKXegsH13hhds3olZJA9A5aGEyvkzLIF1twPMK2FrrB2HstxUZJTclybe
+	 Cz8rSYWwoboY6jGa1DjCj3x5OaObt8X3pIFj0CmK5a8/mHmKnOIV2G0ebRZYxe7/ZS
+	 ClBisQ3u94UvfR/RXaIXO9H8AMGPNQdLSW9434Rjn89osAqFqI8vbp46Py6fwLzA3y
+	 UXjVLnyY4IOm7F74DugQfMMCB1Z7fY0deneEZ4StOpbf1El/X0d6Nca+PZ7CmcNpss
+	 5UHBir8hdb27yJ/+UVrQtX2UwVeBAs0d+GE7tsqZdhFyoxqTutl3Pyt2KuGfDmNkq1
+	 UbayDbAWtbrbw==
 From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Maor Gottlieb <maorg@nvidia.com>, 
- Chiara Meiohas <cmeiohas@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, 
- Maher Sanalla <msanalla@nvidia.com>, Patrisious Haddad <phaddad@nvidia.com>, 
- Edward Srouji <edwards@nvidia.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Michael Gur <michaelgur@nvidia.com>
-In-Reply-To: <20261122-mlx5-port-events-probe-v1-0-0d54e3d53c61@nvidia.com>
-References: <20261122-mlx5-port-events-probe-v1-0-0d54e3d53c61@nvidia.com>
-Subject: Re: [PATCH rdma-next 0/9] RDMA/mlx5: Don't lose port configuration
- events during probe
-Message-Id: <179568332961.1250082.2132083992228429570.b4-ty@kernel.org>
-Date: Thu, 26 Nov 2026 03:55:29 -0500
+To: Bernard Metzler <bernard.metzler@linux.dev>, 
+ Andrew Stellman <astellman@stellman-greene.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, 
+ linux-kernel@vger.kernel.org
+In-Reply-To: <20261122191122.65240-1-astellman@stellman-greene.com>
+References: <20261122191122.65240-1-astellman@stellman-greene.com>
+Subject: Re: [PATCH rdma-rc] RDMA/siw: Don't send stale data for a queued
+ zero length Read Request
+Message-Id: <179568342728.1250831.15769582279657645593.b4-ty@kernel.org>
+Date: Thu, 26 Nov 2026 03:57:07 -0500
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -67,38 +65,21 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-18f8f
 
 
-On Sun, 22 Nov 2026 19:39:08 +0200, Edward Srouji wrote:
-> mlx5_ib registers its event notifier after ib_register_device() and
-> dispatches no event until the device is active, so a port
-> configuration change that races with probe is lost: ib_core and the
-> clients keep what they read. A lost P_Key change leaves ib_sa on a
-> stale P_Key index and IPoIB without a carrier for good, as OpenSM
-> writes a P_Key block only when it differs from the one on the port.
-> This is hit on hypervisor setups, where the SM can program a VF's
-> partitions while it probes.
+On Sun, 22 Nov 2026 14:11:22 -0500, Andrew Stellman wrote:
+> siw_init_rresp() queues an inbound RDMA Read Request in the inbound read
+> queue (IRQ) when the TX work request is busy. For a zero length Read
+> Request the IRQ entry has num_sge 0, and siw_activate_tx() then leaves
+> wqe->sqe.sge[0] as the previous work request left it.
+> siw_qp_sq_proc_tx() sets num_sge to 1 for every Read Response, so the
+> Read Response is built from the previous work request's sge[0]. RFC
+> 5040, section 5.2.1, requires a zero length Read Response.
 > 
 > [...]
 
 Applied, thanks!
 
-[1/9] RDMA/mlx5: Validate port number in handle_port_change()
-      https://git.kernel.org/rdma/rdma/c/b60b42559388d3
-[2/9] RDMA/mlx5: Don't let a slave port mark its master active
-      https://git.kernel.org/rdma/rdma/c/57e8846fbc47fa
-[3/9] RDMA/mlx5: Flush system error and slave port event work
-      https://git.kernel.org/rdma/rdma/c/4104da4f89854a
-[4/9] RDMA/core: Derive enforce_security from the cache event
-      https://git.kernel.org/rdma/rdma/c/5e2c7d3b46a3a2
-[5/9] RDMA/core: Add ib_dispatch_event_sync()
-      https://git.kernel.org/rdma/rdma/c/40fde0fd31f0b1
-[6/9] RDMA/mlx5: Pass the port and subtype to handle_port_change()
-      https://git.kernel.org/rdma/rdma/c/6db275d186dc45
-[7/9] RDMA/mlx5: Activate the device in a stage of its own
-      https://git.kernel.org/rdma/rdma/c/9c31888fdaf66a
-[8/9] RDMA/mlx5: Replay port configuration events after probe
-      https://git.kernel.org/rdma/rdma/c/c32ba2c6e113a6
-[9/9] RDMA/mlx5: Register event notifier before IB registration
-      https://git.kernel.org/rdma/rdma/c/bcfc30f05f9b87
+[1/1] RDMA/siw: Don't send stale data for a queued zero length Read Request
+      https://git.kernel.org/rdma/rdma/c/da570e4488d197
 
 Best regards,
 -- 
