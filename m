@@ -1,55 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795766999;
-	b=LYBgmQlW+NJfdo3+OhygfbJuAY4QiPsJiniunDOh1lDSlYGVAA8rAvpF1DU8rrxGzti/
-	 XdvJFCuVIJHHn5qAP7ipq9QH3hoih5Om2fJ55J0f1tL3i9H46KcKyICsBpj7j7+toqzQ3
-	 JbSWwt4hiKYjTKcIfEOyywQORG+U+O/daHp3OjpxVL75+TvOk2q31JshXy2uzyT4x12BI
-	 1g1sYEUX+SFmMWKJVZVsqetS1MgPRdKpxf4UU68RNufSKUCT02NqjZGQhptJFWqdJhkZZ
-	 eM1/fQIn1esT8ADsJnCICoyRq2p4GgUXn56OUDIy0tUYk/SnIZTyVvyXq1/V94fnWTw==
+	t=1795768961;
+	b=2+B/QLbipQNRgAIrRcHTnK1XEHuv7RkEDJC+qv0Y5jesznrzt9za8QR4EYexrrbapGDM
+	 nofRjNhXI8CdrEXn+gJO8yOrZwTQv9ege2Pc+rnFD9eJRw2hLpEeDEo2Wrp9deCCq1jRR
+	 D2Id+sLNrAPfiXhte/cFj/qFpNwHPGMQZZMXyeaPGB/OWVd3gBIk8NYEOsW3e6J+25zGG
+	 4xNmVUUcDS7y4+rGx2YtqZoqwQxgUoB3oQ/nGQVp0t/GWRNPeNGMNQ9xa7Tp5BQVZfWwm
+	 azVRRhT8rDM1r87ZQdj7z9T3HI2AUgX7c7TpKEVOTJIuBB9s3qqwBKBSamU3jqwYI/A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795766999;
-	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:
+	a=rsa-sha256; c=relaxed/relaxed; t=1795768961;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=PtMd5bHyxAX75xvcow0ZIWCdrcbjcSRrlqxxdQU8jqA=;
-	b=EiTanZ3GBqaMfkX9Dg8xTklU3c+uMAqslDIAS7Ayr34vJJMmKZRttFGR0hEP4FWv1w55
-	 k9eiaiZOzGBERhlXCZy4+M740ru/NElE5oCMLeAX9yPJi7ge0MA4nQeY0r4SGRX2gaYmt
-	 rgyHq4HdwTh8qGwXaobAf7MZCoTCD5c+c6PtOUnp5G4xyMV7K5neaSNv1WAEIENf5Xcmc
-	 aE7zBr6cMx1q5BkwgcepMnu1IriftCkjH1tf/Rwnl8ffGZQw+Q3pZUx5ZbphPY06JN4YP
-	 z1ko+CGp1kqQuUT1c17s1Scf2Fr86PkaTCv7s5u6PfD0DrsSr+vblM/CFi4QT67Ez4Q==
+	bh=EBgqf2o5HZzB1803xaxbO8yypvQOndIrlJKcoBBvnZY=;
+	b=Z8DmOeEnMYgx4QZW8knR6zdorg4K8kkiniWmvL1a6bYdgOQiY6+F5LgM1GsIb3h1xnkM
+	 5yVnG9FZnM2Cl6e2soMYfrvztUYlYw3J45RLCwijGqRK8Y6qgE4LJ5dzsYqCuionIst5N
+	 uDHjGmu29qOQDUAm7Ls1jgd1s3gkdWw9WqFsa1eiuwmmjMkYPrr1yS0uY5ALg7jBxfffz
+	 O3+Z1EVh9tnTJKWRVkkUiE9si5++7tHmTNKS7SF5ShRgcyWMpGiFqRd/kULn8ZwfVO7pb
+	 MjlIxJdRUv0Co22Y0MTpct9kFK9yG8vi8qhzvBOhQ8xjqxgKzX9lR8Om7LGwfTIN1Mg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="OFCs/jpL";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XVooSYCF;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 792D7606A31C
-	for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 08:09:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24BAE606A31E
+	for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 08:42:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OFCs/jpL
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D199A1F000C1;
-	Fri, 27 Nov 2026 08:09:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XVooSYCF
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45CB71F0089F;
+	Fri, 27 Nov 2026 08:42:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795766998;
-	bh=PtMd5bHyxAX75xvcow0ZIWCdrcbjcSRrlqxxdQU8jqA=;
-	h=From:Subject:Reply-To:To:In-Reply-To:References:Date;
-	b=OFCs/jpL5dueKRhmcq1G581yUENO5/d8vKMpQeJN2IURSB/TtVnkx8PblkkgrLTls
-	 5HEzSRevJ87NSpg6gt8EL1wHP1PAc7k8g7I12w9yaJe92WisK8HNLBjcIyq+Fx8x5N
-	 2FZTX0ACq21AMrk1nHsgo+giELocd5hyWiQI9xS1UCYTGP6H+aiM4XXcMh5D8ecmMK
-	 g2v+JliGQvr1WaMrrljIdweAnzffwRUxnucSH2a5beEFUmDZxgMaUMIq6xOynuVGgg
-	 d29Oz/4FneVi/wp2M8/agAPZdQykxfYHX2OXNgP3iERKSYaSHd3oDHsduZA8EZIME4
-	 RQwcSi7FM04sQ==
-Message-ID: <sashiko-outbox-236868@kernel.org>
+	s=k20260515; t=1795768960;
+	bh=EBgqf2o5HZzB1803xaxbO8yypvQOndIrlJKcoBBvnZY=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=XVooSYCFvEqhCCOHY6y+F4Dlt6KN3iQXM38j9Kz0RQ1q/PvsCrLSTg/EQ+HWNcC3x
+	 UI/uFVuXNLFXovNeBUfMQKCXCgWictKqGe8NH8PN3eJtiU6+UMV+yYIcV8IxGg34st
+	 qZdOWsfCRb3e1jm2Ok3NfoEPm2IZgFE/T8CXxxbiCsfIQmi/cH0Cd3XUuXaHCxwErB
+	 VA8042w8ZwXenjjpHGvGy8gxPDiOKl/uGX9fpSlFGGtDnR0K+YBuES+mD49rvDw4KQ
+	 Jirz/m5RJDwXDp63lB2JZytDEvDh8xdKpAuvO6/uGAopVWIQWb6O7g1KzzPZHJH3Gs
+	 gbApEpOlTnXVA==
+Message-ID: <sashiko-outbox-236897@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH rdma-next v3] RDMA/mlx5: Read the CQ consumer index
- under cq->lock when arming
+Subject: Re: [PATCH net v2] net/mlx5e: Fix deadlock when parsing flow
+ actions fails
 Reply-To: sashiko-reviews@lists.linux.dev
-To: "Mahanta Jambigi" <mjambigi@linux.ibm.com>, linux-rdma@vger.kernel.org
-In-Reply-To: <20261127075323.4099367-1-mjambigi@linux.ibm.com>
-References: <20261127075323.4099367-1-mjambigi@linux.ibm.com>
+To: "Ziyu Zhang" <ziyuzhang201@gmail.com>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <20261126084216.26436-1-ziyuzhang201@gmail.com>
+References: <20261126084216.26436-1-ziyuzhang201@gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 27 Nov 2026 08:09:58 +0000
+Date: Fri, 27 Nov 2026 08:42:39 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -61,90 +62,80 @@ Precedence: list
 
 Thank you for your contribution! Sashiko AI review found 1 potential
 issue to consider:
-- [Medium] RDMA/mlx5: stale cons_index and arm_db race in
-  mlx5_ib_arm_cq()
+- [High] net/mlx5e: unorted post-actions on mlx5e_tc_add_fdb_flow()
+  failure
 --
 
-commit cd4a8e789a4da161bb086eeea0e1e95d45a10710
-Author: Mahanta Jambigi <mjambigi@linux.ibm.com>
+commit 80bfe544864e1741e156f9fe2cf078e4de48e16b
+Author: Ziyu Zhang <ziyuzhang201@gmail.com>
 
-RDMA/mlx5: Read the CQ consumer index under cq->lock when arming
+net/mlx5e: Fix deadlock when parsing flow actions fails
 
-This commit snapshots cq->mcq.cons_index under cq->lock in
-mlx5_ib_arm_cq() before unlocking and calling mlx5_cq_arm().
+This commit avoids a deadlock between flow action parsing failure cleanup
+and neighbour or route updates by deleting post-action rules, setting
+MLX5E_TC_FLOW_FLAG_PARSE_FAILED, and completing flow->init_done before
+detaching encap entries under encap_tbl_lock.
 
-> diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5=
-/cq.c
-> index 2581a7693585b..65badcb90d34a 100644
-> --- a/drivers/infiniband/hw/mlx5/cq.c
-> +++ b/drivers/infiniband/hw/mlx5/cq.c
-> @@ -651,6 +651,7 @@ int mlx5_ib_arm_cq(struct ib_cq *ibcq, enum ib_cq_not=
-ify_flags flags)
->  	struct mlx5_ib_cq *cq =3D to_mcq(ibcq);
->  	void __iomem *uar_page =3D mdev->priv.bfreg.up->map;
->  	unsigned long irq_flags;
-> +	u32 cons_index;
->  	int ret =3D 0;
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/ne=
+t/ethernet/mellanox/mlx5/core/en_tc.c
+> index 011741553f5b9..9175fd469fdcd 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+
+[ ... ]
+
+> @@ -4580,8 +4605,10 @@ __mlx5e_add_fdb_flow(struct mlx5e_priv *priv,
+>  		goto err_free;
 > =20
->  	spin_lock_irqsave(&cq->lock, irq_flags);
-> @@ -659,12 +660,16 @@ int mlx5_ib_arm_cq(struct ib_cq *ibcq, enum ib_cq_n=
-otify_flags flags)
+>  	err =3D parse_tc_fdb_actions(priv, &rule->action, flow, extack);
+> -	if (err)
+> +	if (err) {
+> +		abort_flow_post_acts(flow);
+>  		goto err_free;
+> +	}
 > =20
->  	if ((flags & IB_CQ_REPORT_MISSED_EVENTS) && !list_empty(&cq->wc_list))
->  		ret =3D 1;
-> +	/* The poll path advances cons_index under cq->lock; take the
-> +	 * snapshot here so the doorbell sees a consistent index.
-> +	 */
-> +	cons_index =3D cq->mcq.cons_index;
->  	spin_unlock_irqrestore(&cq->lock, irq_flags);
-> =20
->  	mlx5_cq_arm(&cq->mcq,
->  		    (flags & IB_CQ_SOLICITED_MASK) =3D=3D IB_CQ_SOLICITED ?
->  		    MLX5_CQ_DB_REQ_NOT_SOL : MLX5_CQ_DB_REQ_NOT,
-> -		    uar_page, to_mcq(ibcq)->mcq.cons_index);
-> +		    uar_page, cons_index);
-> =20
->  	return ret;
->  }
+>  	err =3D mlx5e_tc_add_fdb_flow(priv, flow, extack);
+>  	complete_all(&flow->init_done);
 
-[Severity: Medium]
-Can snapshotting cons_index before spin_unlock_irqrestore() cause
-mlx5_cq_arm() to overwrite *cq->mcq.arm_db and MLX5_CQ_DOORBELL with a
-stale index?
+[Severity: High]
+What happens when parse_tc_fdb_actions() succeeds (attaching post-action
+encaps and offloading post-action rules in alloc_flow_post_acts()), and
+then mlx5e_tc_add_fdb_flow() fails (other than the multipath -ENETUNREACH
+unready case)?
 
-Reading cons_index under cq->lock and dropping the lock before calling
-mlx5_cq_arm() does not serialize the doorbell update against concurrent
-polls and re-arms, and introduces a local-CPU race across interrupt
-re-enablement when called from process context with softirqs enabled
-(such as smc_wr_reg_send()):
+On failure, mlx5e_tc_add_fdb_flow() sets MLX5E_TC_FLOW_FLAG_FAILED,
+leaving PARSE_FAILED and OFFLOADED unset, and __mlx5e_add_fdb_flow()
+calls complete_all(&flow->init_done) before mlx5e_flow_put().  Because
+mlx5e_take_tmp_flow() now waits for init_done before mlx5e_flow_get() and
+only skips flows with PARSE_FAILED set:
 
-mlx5_ib_arm_cq()
-  spin_lock_irqsave(&cq->lock, irq_flags)
-  cons_index =3D cq->mcq.cons_index          /* N */
-  spin_unlock_irqrestore(&cq->lock, irq_flags)
-    <hardirq>
-      mlx5_eq_comp_int()
-        ++cq->arm_sn
-    <softirq>
-      smc_wr_tx_tasklet_fn()
-        ib_poll_cq()                       /* cons_index -> N + k */
-        ib_req_notify_cq()
-          mlx5_cq_arm(..., N + k)
-  mlx5_cq_arm(..., N)                      <-- rewinds arm_db to N
+CPU0                                  CPU1
+__mlx5e_add_fdb_flow()
+  parse_tc_fdb_actions()
+    alloc_flow_post_acts()
+                                      mlx5e_tc_fib_event_work()
+                                        mutex_lock(&esw->offloads.encap_tbl=
+_lock)
+                                        mlx5e_take_tmp_flow()
+                                          wait_for_completion(&flow->init_d=
+one)
+  mlx5e_tc_add_fdb_flow() -> fails
+    flow_flag_set(flow, FAILED)
+  complete_all(&flow->init_done)
+                                          flow_flag_test(flow, PARSE_FAILED=
+) -> false
+                                          mlx5e_flow_get(flow) -> succeeds
+                                          list_add(&flow->tmp_list, ...)
+  mlx5e_flow_put(priv, flow)
 
-Before this change, cons_index was read after spin_unlock_irqrestore()
-returned and observed N + k on the local CPU.  Across CPUs, if the first
-caller also reads cq->mcq.arm_sn in mlx5_cq_arm() before
-mlx5_eq_comp_int() increments it and the tasklet re-arms the CQ at
-(sn + 1, N + k), the delayed caller overwrites *cq->mcq.arm_db in DMA
-memory with the already-fired sequence number sn and stale index N,
-which can cause spurious interrupts or a lost completion notification
-during doorbell recovery.
-
-Calling mlx5_cq_arm() while holding cq->lock before
-spin_unlock_irqrestore() would keep cons_index, *cq->mcq.arm_db, and the
-doorbell write serialized with the poll path.
+If the route update encounters the failed flow through two encap entries
+before cleanup detaches them, mlx5e_take_tmp_flow() calls
+list_add(&flow->tmp_list, flow_list) twice on the same node, corrupting
+flow_list.  In addition, because OFFLOADED is not set,
+mlx5e_tc_encap_flows_del() skips unoffloading the flow's post-action rules
+and calls mlx5_packet_reformat_dealloc() on e->pkt_reformat while the
+installed post-action hardware rules still reference it.
 
 --=20
-Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261127075323.4099=
-367-1-mjambigi@linux.ibm.com?part=3D1
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261126084216.2643=
+6-1-ziyuzhang201@gmail.com?part=3D1
