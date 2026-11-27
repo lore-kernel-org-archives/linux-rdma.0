@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795795084;
-	b=escVnzD90qwBiAWyGigVv92s/paZEHbijw9oRe29398gZcmCmhrWeFEaq55ogeutbQx7
-	 L2tkVl/phq/FTgh5GaoiE88Iprb7WwBkZ5AlJGamaCKQ5a3ZpaR24RIA2viZ7mKaqO63U
-	 M9q+mHkBBBa7K5LAEguYrrpIfBRhSCHupar2U7oo8IAgHQTysPUzdbfjEnGR12xJstZKw
-	 t3sMu0wlDbnFgbTDluTL5zHq2tm/DReQXUZAQ0QMEHriLRGE7x/mFc79gw0FYN2sOathe
-	 jsme1ekp4xP4WflpYCHpZyLxn6RXrB/bZ+m8WxWH6zKAVCA8Ikj8dxQ/SeHDNeXCmrQ==
+	t=1795795085;
+	b=wzapffFXsZQmj41QSFgNWpk2wPU2D+TyH9rs/8nRp6q8ufIC8U8oeiq22LyUh83XzJpz
+	 LbQTAnE2XUGBP793A4reWpBQP6RZWv+gfL5trNgK8YYuQSPa99BKzZQ/eLEAuYJV/LTOX
+	 +rXfiB4WBE5L4wpddSMhUdJIdl2Wj7bFnHPcwlQXlcR5jADjJZWrMunrnKw3ydhR7PAGq
+	 oQeGahV8iugO/8vqO4VwC2Xm/LAWixdB428S+Xru2LgJmYxr3KYLD5xVtR3POqnc0vStI
+	 OpCLDyp253AueNaBmj4WCHhgHcFgfSfBzgc8axrZg/NufOhqGSSCDd5h0zNR6TPkilA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795795084;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795795085;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=CeZRPXeRorY9T3lOBlDRy3V+DbTeNZvNb7pbJXo/C8c=;
-	b=H6rMiNKMDKJMllqW+Uj/ROe80DvNy6YD6bd5h70kI3bXEFJddyX5VFCTv+K5ZvFZxxYq
-	 04AvTkgLQTVdc+lNeTzmO668QZNkNSK+OmusY8uErGYP3RzZg3Y7GuU1+linP1aDab6V8
-	 5RDEe6Lg11G3GNpGfGVLVaLqUAxVc2tp2EHlquc+kE8fK3naBolrfxILEYGhZRlDsKIYB
-	 eJ4aPH35UlO0AAnBD4OIdcXgyFc9o/3drV8/1AZ1kbmW0gb+n2M1AVQUWXgHhkdd/Q2+p
-	 CUO6ePA3VOYjCkWbWhsY98YP2xsESUajylRaXWZg/E5p8xUAM9elDeZ+WeBjK5dDe2A==
+	bh=7KGeFjs5PX/tkxJAUFM5Z/NmhcKaV2QlvKHXrIhvBs0=;
+	b=O04/7dAg8ehY6pI+doJuVyH1u/cYu9bCAyJ/bk9v4iJ18CWCa/2vcmFxQG/5tCodL38V
+	 6tEigWT9clLieFdnT/D58mnZd1/IIF5SJdjfW4lkE1d3fU9vvnM0VXuaBnNL1WywKN1w4
+	 yhVwZZIE3VOH9Rta3DH1n+4q9fKwcXGtbxz/5v2PDsFcRP1pSp6NETAm4V9tUZBbjazoZ
+	 rEhDLlBAzCcGPM/svWaIx6DD+Aib8JyLwJUSSeIoQPvzQVWE7VAuDeULMGeo5VQhPnU6n
+	 MLFUVsBc99VcXeQNP9tWh7QxmyCfPr9LG06mELJ/sMwX47ZWXHHbmergjay4oimlZ8g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=McG2s3X1;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=My2MzzJ3;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34D1C606A695;
-	Fri, 27 Nov 2026 15:58:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDCE3606A6B6;
+	Fri, 27 Nov 2026 15:58:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=McG2s3X1
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F21B11F00923;
-	Fri, 27 Nov 2026 15:58:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=My2MzzJ3
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF2051F00919;
+	Fri, 27 Nov 2026 15:58:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795795083;
-	bh=CeZRPXeRorY9T3lOBlDRy3V+DbTeNZvNb7pbJXo/C8c=;
+	s=k20260515; t=1795795085;
+	bh=7KGeFjs5PX/tkxJAUFM5Z/NmhcKaV2QlvKHXrIhvBs0=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=McG2s3X1bwhR7VwyKzxxFj8/Fd2sQdClyCHEDCbRhiO8bJxebnqsTcVeF1gvttj5o
-	 +JwtD73mnvcdkz0mbTHBE4imi88P9LEjd7rlUZW3z1S/jXx2hBlhnDjZ0vXdczWG25
-	 au7lVMv/+jZI/N+/tWiV5xdQseUEzZkzyTqM++n16zY56SJUrwXXgwllV2az+k7khM
-	 /QiDipDrYv7XlqOzTkzQ++YX5zSCE6nw8mt7yTBXptu+h+XGq9HQ+Gw65EJWnaMJAf
-	 pIqQ9/ueYeZArOaN6uSxK9F22nV45XXxmJlkI/qXg2uT7eS8rMg4qvu5aMG3eTGtUI
-	 p/JzqimxL1vsg==
-Subject: Re: [PATCH v2 09/11] net/xsc: report link state changes
+	b=My2MzzJ33v5yEC0fEtDE0zVv0XGghwkpGU/rRK4ZRlDT7inZZwMYWsfmO62NrCT7g
+	 7bTuTowcyj8sboqPkd9pH1SjyNQjR7aGvsxFqBIqYKJgxBNhsBcf750TYUMHquPSTR
+	 rqyui/iftzcgMJ2APe6oaoVKGx2tT3lrk42CMS0IrLuFDUrPal5tjg9LR7GiVFJxoi
+	 fxKVCo1OPrjfmIiHKOHeTGpygx/GClaPxM5pL+GkbzHV80P6QwWnCBSK3lS3hMVkfM
+	 ejEPcKf0+B+z7nO/CBTV6Bzh0MczPGwy/CvAgWCh8KDua5/2stFtnpr8mbFGM+Shdd
+	 rd2uq548m5R4g==
+Subject: Re: [PATCH v2 10/11] net/xsc: add the transmit path
 From: netdev-bot+sashiko@kernel.org
 To: tianx@yunsilicon.com
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
@@ -48,11 +48,11 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
  huangjunxian6@hisilicon.com, weihg@yunsilicon.com,
  linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
  linux-rdma@vger.kernel.org, kerneljasonxing@gmail.com
-Date: Fri, 27 Nov 2026 15:58:02 +0000
-Message-ID: <179579508256.3135.6252294453824096365@kernel.org>
-In-Reply-To: <20261126145736.70868-10-tianx@yunsilicon.com>
-References: <20261126145736.70868-10-tianx@yunsilicon.com>
-X-sashiko-severity: Medium
+Date: Fri, 27 Nov 2026 15:58:04 +0000
+Message-ID: <179579508443.3135.6949667103028918025@kernel.org>
+In-Reply-To: <20261126145740.70868-11-tianx@yunsilicon.com>
+References: <20261126145740.70868-11-tianx@yunsilicon.com>
+X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -65,10 +65,10 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 4 potential
+Thank you for your contribution! Sashiko AI review found 7 potential
 issue(s) to consider.
 
-Critical: 0 · High: 0 · Medium: 3 · Low: 1
+Critical: 0 · High: 1 · Medium: 5 · Low: 1
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -76,227 +76,313 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [Medium] In xsc_eth_open()
-  (drivers/net/ethernet/yunsilicon/xsc/net/main.c), the initial carrier…
-- [Medium] xsc_eth_link_event_handler() (main.c:765-778) runs from
-  xsc_event_work() on xdev->event_wq with no lock held.
-- [Medium] xsc_eth_open() (main.c:883-893) samples the link state with
-  xsc_eth_get_link_status() and sets the carrier before it sets…
-- [Low] The comment above xsc_event_work() in
-  drivers/net/ethernet/yunsilicon/xsc/pci/pci_irq.c (lines 164-169) says…
+- [High] net/xsc: lockless TX queue stop/wake race in xsc_eth_xmit()
+- [Medium] The new transmit path in xsc_eth_xmit()
+  (drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_tx.c) drops frames…
+- [Medium] The RX and TX paths fill the same hardware descriptor, struct
+  xsc_wqe_data_seg, with a raw DMA address in ->va, but they set ->mkey…
+- [Medium] The SQ and its completion queue are sized from unrelated
+  capabilities, while the new TX path asks for one CQE per WQE and…
+- [Medium] net/xsc: unconditional CQ doorbell MMIO write in
+  xsc_poll_tx_cq()
+- [Medium] net/xsc: xsc_poll_tx_cq() frees completed TX skbs with
+  dev_kfree_skb_any()
+- [Low] xsc_eth_xmit() starts with `if (!adapter->opened) return
+  NETDEV_TX_BUSY;`.
 
 --
 
-net/xsc: report link state changes
+net/xsc: add the transmit path
 
-This commit adds xsc_core_query_vport_state() and uses it to set the
-netdev carrier in xsc_eth_open(). It also registers a link event callback
-with the PCI layer, so the port is re-queried and the carrier updated on
-every XSC_CMD_EVENT_RESP_CHANGE_LINK event.
+This adds an ndo_start_xmit implementation to the xsc ethernet driver. It
+posts linear skbs to the send queue and rings the doorbell. A TX completion
+handler unmaps and frees the skbs once they have been sent.
 
-> diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/main.c b/drivers/net/ethernet/yunsilicon/xsc/net/main.c
-> index 1c7bbc27d8c4f..75a6abd6ed136 100644
-> --- a/drivers/net/ethernet/yunsilicon/xsc/net/main.c
-> +++ b/drivers/net/ethernet/yunsilicon/xsc/net/main.c
-> @@ -721,6 +721,62 @@ static void xsc_eth_sw_deinit(struct xsc_adapter *adapter)
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_tx.c b/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_tx.c
+> new file mode 100644
+> index 0000000000000..580af1f231056
+> --- /dev/null
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_tx.c
+> @@ -0,0 +1,87 @@
 
 [ ... ]
 
-> +static int xsc_eth_change_link_status(struct xsc_adapter *adapter)
+> +netdev_tx_t xsc_eth_xmit(struct sk_buff *skb, struct net_device *netdev)
 > +{
-> +	bool link_up;
-> +	int err;
-> +
-> +	err = xsc_eth_get_link_status(adapter, &link_up);
-> +	if (err) {
-> +		netdev_err(adapter->netdev, "failed to query link status, err=%d\n",
-> +			   err);
-> +		return err;
-> +	}
-> +
-> +	if (link_up && !netif_carrier_ok(adapter->netdev)) {
-> +		netdev_info(adapter->netdev, "Link up\n");
-> +		netif_carrier_on(adapter->netdev);
-> +	} else if (!link_up && netif_carrier_ok(adapter->netdev)) {
-> +		netdev_info(adapter->netdev, "Link down\n");
-> +		netif_carrier_off(adapter->netdev);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Registered with the PCI layer, which runs it on its own workqueue for
-> + * every XSC_CMD_EVENT_RESP_CHANGE_LINK event.
-> + */
-> +static void xsc_eth_link_event_handler(void *arg)
-> +{
-> +	struct xsc_core_device *xdev = arg;
-> +	struct xsc_adapter *adapter = xdev->eth_priv;
-> +	int err;
-> +
-> +	if (!adapter || !adapter->opened)
-> +		return;
-> +
-> +	err = xsc_eth_change_link_status(adapter);
 
-[Severity: Medium]
-Can this race with xsc_eth_close() and leave the carrier on for a closed
-device?
+[ ... ]
 
-The handler runs from xsc_event_work() on xdev->event_wq with no lock
-held. Its only guard is a plain read of adapter->opened. After that it
-sends a sleeping firmware command and then checks and sets the carrier
-in two separate steps.
-
-xsc_eth_close() writes opened and the carrier under RTNL. It does not
-exclude or wait for a handler that has already passed the check:
-
-event_wq                              ip link set down (RTNL)
-xsc_eth_link_event_handler()
-  adapter->opened == true
-  xsc_eth_change_link_status()
-    xsc_core_query_vport_state()
-                                      xsc_eth_close()
-                                        adapter->opened = false;
-                                        netif_carrier_off()
-                                        xsc_eth_sw_deinit()
-                                        ...
-    link_up && !netif_carrier_ok()
-    netif_carrier_on()
-
-On the next xsc_eth_open(), the "Link down" branch never calls
-netif_carrier_off(). If the link is down at reopen, the interface comes
-up with carrier and operstate up and stays that way until the next link
-transition.
-
-The opened bool acts as a gate guard rather than a real lock. It is also
-read and written without READ_ONCE()/WRITE_ONCE().
-
-Would it work to take rtnl_lock() in the handler, or a driver state mutex
-that open and close also hold (like state_lock in
-mlx5e_update_carrier_work()), and re-check opened under it? Remove and
-the probe error path call xsc_irq_event_unregister() without RTNL, so
-its flush_workqueue() should not deadlock against that.
-
-> +	if (err)
-> +		netdev_err(adapter->netdev, "failed to change linkstatus, err=%d\n",
-> +			   err);
-> +}
+> +	if (!adapter->opened)
+> +		return NETDEV_TX_BUSY;
 
 [Severity: Low]
-This isn't a bug, but once this handler is registered, the comment above
-xsc_event_work() in drivers/net/ethernet/yunsilicon/xsc/pci/pci_irq.c no
-longer matches what the work does:
+Is this check needed? adapter->opened is a plain bool. xsc_eth_open() and
+xsc_eth_close() write it without WRITE_ONCE(), and this code reads it
+without a lock or READ_ONCE(). KCSAN would likely report the pair as a data
+race.
 
-/*
- * Handle an asynchronous event. This runs on the PCI layer's own workqueue,
- * so it outlives any auxiliary driver: the driver only ever registers a
- * callback here, and the memory this touches belongs to xsc_core_device
- * rather than to the eth private area.
- */
+On close, the core has already quiesced TX before ndo_stop runs.
 
-xsc_event_work() calls the callback inline:
+On open, the queue is woken and the carrier is turned on before the flag is
+set:
 
-	handler = READ_ONCE(xdev->link_event_handler);
-	if (handler)
-		handler(xdev);
+xsc_eth_activate_channel()
+    netif_tx_start_queue(psq->txq);
+...
+xsc_eth_open()
+    netif_carrier_on(adapter->netdev);
+    ...
+    adapter->opened = true;
 
-xsc_eth_link_event_handler() dereferences xdev->eth_priv,
-adapter->opened and adapter->netdev. All of these live in the
-alloc_etherdev() private area that free_netdev() frees.
+In that window, could a PACKET_QDISC_BYPASS sender going through
+__dev_direct_xmit() reach xsc_eth_xmit()? It would get NETDEV_TX_BUSY on an
+awake queue, and its skb would be dropped.
 
-What actually keeps this safe is that xsc_eth_remove() and the probe
-error path call xsc_irq_event_unregister() before free_netdev().
+The driver API also discourages returning NETDEV_TX_BUSY without stopping
+the queue. Could this check be removed so that queue start/stop ordering
+handles it, or could the accesses at least be annotated?
 
-Could the comment say that callbacks may touch client-owned memory, and
-that clients must unregister before freeing it?
+> +
+> +	if (unlikely(skb_is_nonlinear(skb) || skb->len == 0 ||
+> +		     skb->len > sq->hw_mtu))
+> +		goto err_drop;
+> +
+> +	pi = xsc_wq_cyc_ctr2ix(&sq->wq, sq->pc);
+> +	wqe = xsc_wq_cyc_get_wqe(&sq->wq, pi);
+> +	memset(wqe, 0, xdev->caps.send_ds_num * XSC_SEND_WQE_DS);
 
 [ ... ]
 
-> @@ -823,6 +880,16 @@ static int xsc_eth_open(struct net_device *netdev)
->  	if (ret)
->  		goto err_sw_deinit;
->  
-> +	ret = xsc_eth_get_link_status(adapter, &link_up);
-> +	if (ret) {
-> +		netdev_warn(netdev, "failed to query link status, err=%d\n", ret);
-> +	} else if (link_up) {
-> +		netdev_info(netdev, "Link up\n");
-> +		netif_carrier_on(adapter->netdev);
-> +	} else {
-> +		netdev_info(netdev, "Link down\n");
+> +	cseg->data3 = cpu_to_le32(XSC_WQE_CTRL_SEG_DATA3_CE);
+> +	wqe->data[0].data0 =
+> +		cpu_to_le32(FIELD_PREP(XSC_WQE_DATA_SEG_DATA0_SEG_LEN_MASK,
+> +				       skb->len));
+> +	wqe->data[0].va = cpu_to_le64(dma_addr);
+
+[Severity: Medium]
+Should data[0].mkey be set here too? The memset() leaves it at 0.
+
+The RX path fills the same struct xsc_wqe_data_seg with a raw DMA address
+and marks it with XSC_INVALID_LKEY:
+
+drivers/net/ethernet/yunsilicon/xsc/net/main.c:xsc_eth_alloc_rq() {
+    ...
+		wqe->data[0].mkey = cpu_to_le32(XSC_INVALID_LKEY);
+    ...
+}
+
+Suppose the device treats any mkey other than XSC_INVALID_LKEY (0x100) as a
+real memory key. Would every TX descriptor then be checked against MR 0 and
+complete with an error, or put the wrong data on the wire?
+
+The tree doesn't show whether the hardware reads mkey on raw ethernet send
+WQEs. Still, the two writers of this descriptor disagree. Could the TX path
+set mkey to cpu_to_le32(XSC_INVALID_LKEY) the same way RX does?
+
+> +
+> +	sq->pc++;
+> +	if (unlikely(!xsc_wqc_has_room_for(&sq->wq, sq->cc, sq->pc,
+> +					   sq->stop_room)))
+> +		netif_tx_stop_queue(sq->txq);
+
+[Severity: Medium]
+Can the SQ completion queue overflow here? Every WQE sets
+XSC_WQE_CTRL_SEG_DATA3_CE, so every posted WQE produces a CQE. The queue
+is only stopped when the SQ ring itself is full.
+
+xsc_eth_build_queue_param() sizes the SQ and its CQ from different
+capabilities:
+
+	adapter->nic_param.sq_size = min_t(u32,
+					   BIT(xdev->caps.log_max_qp_depth),
+					   XSC_SQCQ_ELE_NUM);
+    ...
+	} else if (type == XSC_QUEUE_TYPE_SQCQ) {
+		attr->ele_num = min_t(int, XSC_SQCQ_ELE_NUM,
+				      xdev->caps.max_cqes);
+
+caps.max_cqes is 1 << log_max_cq_sz as reported by firmware. If
+log_max_cq_sz is below 10 while log_max_qp_depth is 10 or more, up to 1024
+WQEs, and so up to 1024 CQEs, can be outstanding against a smaller CQ
+before NAPI reaps them.
+
+If that happens, the CQ error event would only be logged by
+xsc_eth_cq_error_event(), and TX completions would stall.
+
+Neither xsc_eth_xmit() nor xsc_wqc_has_room_for() takes the CQ capacity
+into account. Should sq_size be clamped to the SQ CQ size?
+
+> +
+> +	if (!netdev_xmit_more() || netif_xmit_stopped(sq->txq))
+> +		xsc_update_tx_db(xdev, sq->sqn, sq->pc << ds_num_log);
+> +
+> +	return NETDEV_TX_OK;
+> +
+> +err_drop:
+> +	dev_kfree_skb_any(skb);
+
+[Severity: Medium]
+Are these drops counted anywhere? Four cases end up here: non-linear skbs,
+zero-length skbs, skbs longer than sq->hw_mtu, and dma_map_single()
+failures. Nothing calls dev_core_stats_tx_dropped_inc() or updates a driver
+counter.
+
+Successful sends aren't counted either. No tx_packets or tx_bytes are kept,
+and xsc_netdev_ops has only ndo_open, ndo_stop and ndo_start_xmit, with no
+ndo_get_stats64. This seems to still be the case after the later commit
+"net/xsc: add the receive path".
+
+Won't ip -s link then show no TX activity and no TX drops for this device,
+even when DMA mapping fails or frames are rejected?
+
+> +	if (!netdev_xmit_more() || netif_xmit_stopped(sq->txq))
+> +		xsc_update_tx_db(xdev, sq->sqn, sq->pc << ds_num_log);
+> +	return NETDEV_TX_OK;
+> +}
+
+[ ... ]
+
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c b/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c
+> --- /dev/null
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c
+> @@ -0,0 +1,70 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/* Copyright (C) 2021-2026, Shanghai Yunsilicon Technology Co., Ltd.
+> + * All rights reserved.
+> + */
+> +
+> +#include "xsc_eth.h"
+> +#include "xsc_eth_txrx.h"
+> +
+> +struct xsc_cqe *xsc_cqwq_get_cqe(struct xsc_cqwq *wq)
+> +{
+> +	struct xsc_cqe *cqe = xsc_frag_buf_get_wqe(&wq->fbc,
+> +						   xsc_cqwq_get_ci(wq));
+> +
+> +	if (!!(le32_to_cpu(cqe->data1) & XSC_CQE_DATA1_OWNER) !=
+> +	    (xsc_cqwq_get_wrap_cnt(wq) & 1))
+> +		return NULL;
+> +
+> +	return cqe;
+> +}
+> +
+> +int xsc_poll_tx_cq(struct xsc_cq *cq, int budget)
+> +{
+> +	struct xsc_cqe *cqe;
+> +	struct device *dev;
+> +	struct xsc_sq *sq;
+> +	u16 sqcc;
+> +	int i = 0;
+> +
+> +	sq = container_of(cq, struct xsc_sq, cq);
+> +	if (!test_bit(XSC_ETH_SQ_STATE_ENABLED, &sq->state))
+> +		return 0;
+> +
+> +	dev = sq->channel->adapter->dev;
+> +	sqcc = sq->cc;
+> +
+> +	while (i < budget) {
+> +		struct xsc_tx_wqe_info *wi;
+> +		struct sk_buff *skb;
+> +
+> +		cqe = xsc_cqwq_get_cqe(&cq->wq);
+> +		if (!cqe)
+> +			break;
+> +		/* ensure cqe content is read after cqe ownership bit */
+> +		dma_rmb();
+> +
+> +		xsc_cqwq_pop(&cq->wq);
+> +		wi = &sq->wqe_info[xsc_wq_cyc_ctr2ix(&sq->wq, sqcc)];
+> +
+> +		skb = wi->skb;
+> +		wi->skb = NULL;
+> +		if (skb) {
+> +			dma_unmap_single(dev, wi->dma_addr, skb->len,
+> +					 DMA_TO_DEVICE);
+> +			dev_kfree_skb_any(skb);
+> +		}
+> +
+> +		sqcc++;
+> +		i++;
 > +	}
 > +
->  	adapter->opened = true;
+> +	xsc_update_cq_ci(cq->xdev, cq->xcq.cqn, cq->wq.cc);
+> +
+> +	sq->cc = sqcc;
+> +
+> +	if (netif_tx_queue_stopped(sq->txq) &&
+> +	    xsc_wqc_has_room_for(&sq->wq, sq->cc, sq->pc, sq->stop_room))
+> +		netif_tx_wake_queue(sq->txq);
+> +
+> +	return i == budget;
+> +}
 
 [Severity: Medium]
-Can a link change event get lost between the query and this assignment?
+Is dev_kfree_skb_any() the right call for a completed TX skb? It goes
+through dev_kfree_skb_any_reason() with SKB_DROP_REASON_NOT_SPECIFIED.
+Every frame that was transmitted successfully would then be reported
+as a drop by the skb:kfree_skb tracepoint and by drop_monitor.
 
-The link state is sampled before adapter->opened is set. While opened is
-false, xsc_eth_link_event_handler() returns early and records nothing:
+This runs from the channel NAPI poll, so napi_consume_skb() would
+account the skb as consumed. It would also let the skb use the NAPI
+bulk free path. That needs the NAPI budget to reach
+xsc_poll_tx_cq(), with a budget of 0 passed through when called from
+netpoll. Would napi_consume_skb(skb, budget) work here, or at least
+dev_consume_skb_any()?
 
-	if (!adapter || !adapter->opened)
-		return;
+[Severity: High]
+What orders the queue stop in xsc_eth_xmit() against the wake here?
+xsc_poll_tx_cq() runs from NAPI without the TX queue lock. Neither
+side has the barriers that netif_txq_maybe_stop() and
+netif_txq_completed_wake() provide.
 
-Suppose the link changes after the firmware answers QUERY_VPORT_STATE,
-and the CHANGE_LINK work reaches that check before adapter->opened is
-set to true. The event is dropped. Nothing re-queries afterwards, so the
-carrier stays wrong until the next link transition, which may never come
-on a stable link. This looks reachable at least on the first open after
-probe.
+In xsc_eth_xmit(), netif_tx_stop_queue() is called based on a plain
+read of sq->cc. There is no smp_mb__after_atomic() and no re-check
+of xsc_wqc_has_room_for() afterwards. Here, sq->cc = sqcc is followed
+directly by netif_tx_queue_stopped() with no smp_mb() in between.
+Couldn't this interleave as:
 
-Also, if xsc_eth_get_link_status() fails here, for example because
-xsc_cmd_exec() times out, open only warns and returns 0. The carrier
-stays off and the query is never retried. A link that is up and stays
-up would then be reported down indefinitely.
+CPU0 (xsc_eth_xmit)            CPU1 (xsc_poll_tx_cq)
+reads old sq->cc, ring full
+                               sq->cc = sqcc
+                               netif_tx_queue_stopped() == false
+netif_tx_stop_queue()
 
-Would either of these close the window and let a later event correct a
-failed query?
+That would leave the queue stopped with free descriptors and no
+further completions to wake it.
 
-  - set opened before the query, as mlx5e_open_locked() does with
-    MLX5E_STATE_OPENED before updating the carrier
-  - re-query once opened and admin-up are both set
+The other direction looks worse. Suppose this function observes
+__QUEUE_STATE_DRV_XOFF but loads a stale sq->pc from before the
+final post. It can then call netif_tx_wake_queue() on a full ring,
+even on a poll that reaped no CQEs. Nothing orders the state bit
+test before the sq->pc load.
 
->  
->  	xsc_set_port_admin_status(adapter, XSC_PORT_UP);
+xsc_eth_xmit() never checks for room before deriving pi from sq->pc.
+The next frame would then overwrite the WQE and sq->wqe_info[pi] of a
+descriptor the device still owns, leaking that skb and its DMA
+mapping. Once sq->pc is more than a ring size ahead of sq->cc,
+xsc_wqc_has_room_for() wraps and reports room again. The queue would
+stay awake and keep overwriting in-flight entries.
+
+Would it make sense to use netif_txq_maybe_stop() and
+netif_txq_completed_wake() from include/net/netdev_queues.h? That
+would go with READ_ONCE()/WRITE_ONCE() on sq->cc and sq->pc. Could
+xsc_eth_xmit() also stop the queue and return NETDEV_TX_BUSY if it is
+ever entered without room?
 
 [Severity: Medium]
-Does the oper state read above mean anything while the port is still
-admin-down?
+Does this need to ring the CQ consumer doorbell when nothing was
+reaped? If xsc_cqwq_get_cqe() returns NULL on the first iteration,
+i is 0 and cq->wq.cc has not moved. xsc_update_cq_ci() still issues
+a wmb() and an uncached writel() to DB_CQ_CID_DIRECT_MEM_ADDR.
 
-xsc_eth_close() always ends with:
+The channel NAPI poll will call this on every pass, including passes
+that only have RX work. With RX-heavy traffic or idle TX, most of
+these MMIO writes would be redundant. The sq->cc = sqcc store is also
+unconditional and dirties the cacheline that xsc_eth_xmit() reads on
+the transmitting CPU.
 
-	xsc_set_port_admin_status(adapter, XSC_PORT_DOWN);
-
-So on every re-open, xsc_eth_get_link_status() queries a port the driver
-has just set admin-down. XSC_PORT_UP is only sent after the carrier has
-been decided.
-
-The reply carries separate admin and oper nibbles:
-
-#define XSC_QUERY_VPORT_ADMIN_STATE_MASK	GENMASK(3, 0)
-#define XSC_QUERY_VPORT_STATE_MASK		GENMASK(7, 4)
-
-xsc_core_query_vport_state() returns the oper nibble.
-
-If the firmware reports oper-down while the port is admin-down, open
-takes the "Link down" branch. After that, only a later
-XSC_CMD_EVENT_RESP_CHANGE_LINK event can turn the carrier on.
-
-Does the firmware raise that event when admin-up changes the oper state?
-If it does not, the netdev stays carrier-off after ip link set down
-followed by ip link set up, even though the physical link is up. It
-would stay that way until the link next flaps.
-
-mlx5e queries the state before admin-up in the same way and relies on
-firmware port change events. So this may be fine if the xsc firmware
-behaves the same way.
-
-Would setting opened, then sending XSC_PORT_UP, and only then sampling
-the link state make the initial sample match the real link?
-
-[ ... ]
+Could the doorbell and the sq->cc update be skipped when i == 0?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261126145711.70868-1-tianx%40yunsilicon.com
