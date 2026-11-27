@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795795073;
-	b=PeI5VSoFZaU8fUpCJFCVE7HqkUbQ59Hr346Xhx9aBjOxvXMAL9ZJV4KK1a3x6w216KAp
-	 TnK7iUDomFFb2RSiHSX6zoIHnMbYMZzZZ8cDYS3fGpct7pRXIiM/YxAS5aj7ttKwzSuLx
-	 p/mqcKgCh3zcOVdw7RSMYZ6Pp1R5wqjP7oJ1xQk27pUoQRS7J0k4Ur5JoAtfDWx7CccrM
-	 fIvqVWDpVzrcLPuMouWzvF2j4V0B+KsLgwvPnORendvLBAwFc+qkzAfE4EJIcmi9YfHzG
-	 wOQrToY+01jMz4TXnwTfLz0i9B8NE538nbMzRBq1AlV1Xa93tdShtXapvRZT58VQ1QA==
+	t=1795795084;
+	b=escVnzD90qwBiAWyGigVv92s/paZEHbijw9oRe29398gZcmCmhrWeFEaq55ogeutbQx7
+	 L2tkVl/phq/FTgh5GaoiE88Iprb7WwBkZ5AlJGamaCKQ5a3ZpaR24RIA2viZ7mKaqO63U
+	 M9q+mHkBBBa7K5LAEguYrrpIfBRhSCHupar2U7oo8IAgHQTysPUzdbfjEnGR12xJstZKw
+	 t3sMu0wlDbnFgbTDluTL5zHq2tm/DReQXUZAQ0QMEHriLRGE7x/mFc79gw0FYN2sOathe
+	 jsme1ekp4xP4WflpYCHpZyLxn6RXrB/bZ+m8WxWH6zKAVCA8Ikj8dxQ/SeHDNeXCmrQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795795073;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795795084;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=x6kIKvotnGfyF+LHAJIdpxCafMgTkU1XXwAbkkw4uXo=;
-	b=v6Ge6PT//yGlTYxdEkWXDRA9mLIZ+jIfX/XO6OoBBtR1cvrthqno1czeY7ngQoAN+nR4
-	 Sol6EJ1bMAQUpF2Wrtj5G7oXDHE6VpVBo1jrdFI+knxDV5bO5GnJKw5BiBNG1rNpo7azL
-	 Q/QoV+r4C7L0+4pLmSZjPW5BeYrJXlkXBw3V/4aKHYNguGOxVsmRgZ73aPFphu9a8szFY
-	 mHEFj1bET9MKs8/1ZejN1EdRflp2JKRTYrQQen7+/3AgD5PlgVF7p0QXNpWWL6MtOrwBU
-	 8MxiHhIFOEANzqCs2km70y80B3QaO4gGZ4zdOCzrYwogalGta2ubKgvwPeGg+ICDdRA==
+	bh=CeZRPXeRorY9T3lOBlDRy3V+DbTeNZvNb7pbJXo/C8c=;
+	b=H6rMiNKMDKJMllqW+Uj/ROe80DvNy6YD6bd5h70kI3bXEFJddyX5VFCTv+K5ZvFZxxYq
+	 04AvTkgLQTVdc+lNeTzmO668QZNkNSK+OmusY8uErGYP3RzZg3Y7GuU1+linP1aDab6V8
+	 5RDEe6Lg11G3GNpGfGVLVaLqUAxVc2tp2EHlquc+kE8fK3naBolrfxILEYGhZRlDsKIYB
+	 eJ4aPH35UlO0AAnBD4OIdcXgyFc9o/3drV8/1AZ1kbmW0gb+n2M1AVQUWXgHhkdd/Q2+p
+	 CUO6ePA3VOYjCkWbWhsY98YP2xsESUajylRaXWZg/E5p8xUAM9elDeZ+WeBjK5dDe2A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iJhd2J6Z;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=McG2s3X1;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 857CC606A32D;
-	Fri, 27 Nov 2026 15:57:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34D1C606A695;
+	Fri, 27 Nov 2026 15:58:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iJhd2J6Z
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6222E1F000C1;
-	Fri, 27 Nov 2026 15:57:52 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=McG2s3X1
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F21B11F00923;
+	Fri, 27 Nov 2026 15:58:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795795073;
-	bh=x6kIKvotnGfyF+LHAJIdpxCafMgTkU1XXwAbkkw4uXo=;
+	s=k20260515; t=1795795083;
+	bh=CeZRPXeRorY9T3lOBlDRy3V+DbTeNZvNb7pbJXo/C8c=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=iJhd2J6ZwGR4TusVgBY5fehf8HVUG98CxVUveO5nCAeCWbBql+Q3YoFrfFKuOhZ2s
-	 e5HRS1Ru2opXqPgVy/E+2dfyi8RWFJWdj6JJfzLUvkKMYs35RdoPbipf3E70+p6gQc
-	 g0+Y9n5VoKpSIEtwTew+SVIzMTDQ5AAGYLWgYwKoI/HgbX+67NVkzPJ2yEYpkA6wvD
-	 kAQnidXH3TJT382YdA5Rk5xuHX5V95kGDymJaX3Y9gKzlUGc1q9u8zueQm/hJnT9xi
-	 FVUO/O5jWoiOInZWwTXBQav9FnqWAW0Tdn3BtvXmdbqpW+dBPhQggrIPGxMwaY8mHh
-	 jSyMjNKlgeJ7Q==
-Subject: Re: [PATCH v2 03/11] net/xsc: add the command queue
+	b=McG2s3X1bwhR7VwyKzxxFj8/Fd2sQdClyCHEDCbRhiO8bJxebnqsTcVeF1gvttj5o
+	 +JwtD73mnvcdkz0mbTHBE4imi88P9LEjd7rlUZW3z1S/jXx2hBlhnDjZ0vXdczWG25
+	 au7lVMv/+jZI/N+/tWiV5xdQseUEzZkzyTqM++n16zY56SJUrwXXgwllV2az+k7khM
+	 /QiDipDrYv7XlqOzTkzQ++YX5zSCE6nw8mt7yTBXptu+h+XGq9HQ+Gw65EJWnaMJAf
+	 pIqQ9/ueYeZArOaN6uSxK9F22nV45XXxmJlkI/qXg2uT7eS8rMg4qvu5aMG3eTGtUI
+	 p/JzqimxL1vsg==
+Subject: Re: [PATCH v2 09/11] net/xsc: report link state changes
 From: netdev-bot+sashiko@kernel.org
 To: tianx@yunsilicon.com
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
@@ -48,11 +48,11 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
  huangjunxian6@hisilicon.com, weihg@yunsilicon.com,
  linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
  linux-rdma@vger.kernel.org, kerneljasonxing@gmail.com
-Date: Fri, 27 Nov 2026 15:57:51 +0000
-Message-ID: <179579507193.3135.14971802624950078162@kernel.org>
-In-Reply-To: <20261126145718.70868-4-tianx@yunsilicon.com>
-References: <20261126145718.70868-4-tianx@yunsilicon.com>
-X-sashiko-severity: High
+Date: Fri, 27 Nov 2026 15:58:02 +0000
+Message-ID: <179579508256.3135.6252294453824096365@kernel.org>
+In-Reply-To: <20261126145736.70868-10-tianx@yunsilicon.com>
+References: <20261126145736.70868-10-tianx@yunsilicon.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -65,10 +65,10 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 8 potential
+Thank you for your contribution! Sashiko AI review found 4 potential
 issue(s) to consider.
 
-Critical: 0 · High: 2 · Medium: 5 · Low: 1
+Critical: 0 · High: 0 · Medium: 3 · Low: 1
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -76,360 +76,227 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] Race on cmd->ent_arr[idx] can leave a live command with a NULL
-  slot, and the polling kthread then dereferences NULL.
-- [High] xsc_cmd_cleanup() frees the request ring (cmd_buf), the response
-  ring (cq_buf), the dma_pool and the mailboxes of timed-out commands…
-- [Medium] One command timeout permanently disables the command
-  interface.
-- [Medium] A timed-out command's xsc_cmd_work_ent and its inb/outb
-  mailboxes can leak permanently.
-- [Medium] xsc_cmd_comp_handler() matches a response to a waiter using
-  only the device-supplied rsp->idx.
-- [Medium] The ring is sized so that a full ring cannot be told apart
-  from an empty one.
-- [Medium] xsc_cmd_cq_polling() learns the expected owner/phase bit from
-  the slot it is about to validate (cmd.c:450-452: `if…
-- [Low] The command-queue poller is one kthread per device, and it polls
-  even when no command is outstanding.
+- [Medium] In xsc_eth_open()
+  (drivers/net/ethernet/yunsilicon/xsc/net/main.c), the initial carrier…
+- [Medium] xsc_eth_link_event_handler() (main.c:765-778) runs from
+  xsc_event_work() on xdev->event_wq with no lock held.
+- [Medium] xsc_eth_open() (main.c:883-893) samples the link state with
+  xsc_eth_get_link_status() and sets the carrier before it sets…
+- [Low] The comment above xsc_event_work() in
+  drivers/net/ethernet/yunsilicon/xsc/pci/pci_irq.c (lines 164-169) says…
 
 --
 
-net/xsc: add the command queue
+net/xsc: report link state changes
 
-This commit adds the mailbox-based firmware command interface for the xsc
-driver. A single polling kthread collects responses, command status is
-mapped to errno values, and the cmdq version is checked at probe time.
+This commit adds xsc_core_query_vport_state() and uses it to set the
+netdev carrier in xsc_eth_open(). It also registers a link event callback
+with the PCI layer, so the port is re-queried and the carrier updated on
+every XSC_CMD_EVENT_RESP_CHANGE_LINK event.
 
-> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/cmd.c b/drivers/net/ethernet/yunsilicon/xsc/pci/cmd.c
-> new file mode 100644
-> index 0000000000000..45dcdb2b47eb0
-> --- /dev/null
-> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/cmd.c
-> @@ -0,0 +1,708 @@
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/main.c b/drivers/net/ethernet/yunsilicon/xsc/net/main.c
+> index 1c7bbc27d8c4f..75a6abd6ed136 100644
+> --- a/drivers/net/ethernet/yunsilicon/xsc/net/main.c
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/net/main.c
+> @@ -721,6 +721,62 @@ static void xsc_eth_sw_deinit(struct xsc_adapter *adapter)
 
 [ ... ]
 
-> +static int xsc_cmd_invoke(struct xsc_core_device *xdev, struct xsc_cmd_msg *in,
-> +			  struct xsc_cmd_msg *out, u8 *status)
+> +static int xsc_eth_change_link_status(struct xsc_adapter *adapter)
 > +{
-
-[ ... ]
-
-> +	ent->token = ent->idx + 1;
-> +	cmd->ent_arr[ent->idx] = ent;
+> +	bool link_up;
+> +	int err;
 > +
-
-[ ... ]
-
-> +	timeout = msecs_to_jiffies(XSC_CMD_TIMEOUT_MSEC);
-> +	if (!wait_for_completion_timeout(&ent->done, timeout)) {
-> +		cmd->cmd_status = XSC_CMD_STATUS_TIMEDOUT;
-> +		pci_err(xdev->pdev, "wait for opcode 0x%x response timeout\n",
-> +			xsc_msg_to_opcode(in));
-> +		/* the entry stays registered for the completion handler */
-> +		return -ETIMEDOUT;
+> +	err = xsc_eth_get_link_status(adapter, &link_up);
+> +	if (err) {
+> +		netdev_err(adapter->netdev, "failed to query link status, err=%d\n",
+> +			   err);
+> +		return err;
 > +	}
 > +
-> +	err = ent->ret;
-> +	*status = ent->status;
+> +	if (link_up && !netif_carrier_ok(adapter->netdev)) {
+> +		netdev_info(adapter->netdev, "Link up\n");
+> +		netif_carrier_on(adapter->netdev);
+> +	} else if (!link_up && netif_carrier_ok(adapter->netdev)) {
+> +		netdev_info(adapter->netdev, "Link down\n");
+> +		netif_carrier_off(adapter->netdev);
+> +	}
 > +
-> +	spin_lock_irqsave(&cmd->alloc_lock, flags);
-> +	if (cmd->ent_arr[ent->idx] == ent)
-> +		cmd->ent_arr[ent->idx] = NULL;
-> +	spin_unlock_irqrestore(&cmd->alloc_lock, flags);
-> +	kfree(ent);
-
-[Severity: High]
-Can a live command end up with a NULL slot here?
-
-xsc_cmd_comp_handler() releases the slot bit with xsc_free_ent() before it
-calls complete(). So xsc_alloc_ent() can give the same idx to another caller
-while this waiter still has its pointer in ent_arr[]. find_first_bit()
-always picks the lowest free bit, so reusing the same idx is the normal
-case.
-
-The new owner publishes its entry with the plain
-cmd->ent_arr[ent->idx] = ent store above, outside alloc_lock. That makes
-this compare-and-clear atomic only against other locked accessors:
-
-T1 (old waiter, idx 0)            T2 (new owner of idx 0)
-spin_lock(alloc_lock)
-ent_arr[0] == ent1 -> true
-                                  cmd->ent_arr[0] = ent2;
-ent_arr[0] = NULL
-spin_unlock(alloc_lock)
-
-When T2's response arrives, xsc_cmd_comp_handler() sees bit 0 allocated
-and does this with ent == NULL:
-
-	ent = cmd->ent_arr[idx];
-	memcpy(ent->out->first, rsp->out, sizeof(rsp->out));
-
-Wouldn't that oops the polling kthread? Every later command would then
-time out.
-
-If T2 times out instead, xsc_cmd_cleanup() can no longer reach its entry
-and mailboxes.
-
-The window is narrow. On PREEMPT_RT it is wider, because spinlock_t holders
-can be preempted. In this patch only the serial probe-time version check
-runs. However, the semaphore and bitmap allow 32 concurrent commands, and
-later patches in the series add concurrent xsc_cmd_exec() callers.
-
-> +
-> +	return err;
+> +	return 0;
 > +}
 > +
-> +static void xsc_cmd_comp_handler(struct xsc_core_device *xdev, u8 idx,
-> +				 struct xsc_rsp_layout *rsp)
+> +/*
+> + * Registered with the PCI layer, which runs it on its own workqueue for
+> + * every XSC_CMD_EVENT_RESP_CHANGE_LINK event.
+> + */
+> +static void xsc_eth_link_event_handler(void *arg)
 > +{
-> +	struct xsc_cmd *cmd = xdev->cmd;
-> +	struct xsc_cmd_work_ent *ent;
+> +	struct xsc_core_device *xdev = arg;
+> +	struct xsc_adapter *adapter = xdev->eth_priv;
+> +	int err;
 > +
-> +	if (idx >= cmd->max_reg_cmds || (cmd->cmd_entry_mask & BIT(idx))) {
-> +		pci_err(xdev->pdev, "idx[%d] exceeds max cmds or has no request\n",
-> +			idx);
+> +	if (!adapter || !adapter->opened)
 > +		return;
-> +	}
-> +	ent = cmd->ent_arr[idx];
 > +
-> +	memcpy(ent->out->first, rsp->out, sizeof(rsp->out));
+> +	err = xsc_eth_change_link_status(adapter);
 
 [Severity: Medium]
-Can a stale response be given to the wrong command here?
+Can this race with xsc_eth_close() and leave the carrier on for a closed
+device?
 
-The only matching is on the device-supplied rsp->idx, plus a lockless read
-of cmd_entry_mask. ent_arr[idx] is not checked for NULL.
+The handler runs from xsc_event_work() on xdev->event_wq with no lock
+held. Its only guard is a plain read of adapter->opened. After that it
+sends a sleeping firmware command and then checks and sets the carrier
+in two separate steps.
 
-rsp->token is never compared with ent->token, even though xsc_cmd_invoke()
-writes the token into the request:
+xsc_eth_close() writes opened and the carrier under RTNL. It does not
+exclude or wait for a handler that has already passed the check:
 
-	lay->token = ent->token;
+event_wq                              ip link set down (RTNL)
+xsc_eth_link_event_handler()
+  adapter->opened == true
+  xsc_eth_change_link_status()
+    xsc_core_query_vport_state()
+                                      xsc_eth_close()
+                                        adapter->opened = false;
+                                        netif_carrier_off()
+                                        xsc_eth_sw_deinit()
+                                        ...
+    link_up && !netif_carrier_ok()
+    netif_carrier_on()
 
-The token is idx + 1, so even if it were checked it could not tell two uses
-of the same slot apart.
+On the next xsc_eth_open(), the "Link down" branch never calls
+netif_carrier_off(). If the link is down at reopen, the interface comes
+up with carrier and operstate up and stays that way until the next link
+transition.
 
-A late response can come from a command that timed out in this instance,
-or from a request the firmware still holds from a previous driver instance.
-Either one would complete whichever command now owns that idx.
-xsc_cmd_handle_rsp_before_reload() only skips responses that were already
-posted at load time. Allocation starts at bit 0, so the version check is the
-likely victim.
+The opened bool acts as a gate guard rather than a real lock. It is also
+read and written without READ_ONCE()/WRITE_ONCE().
 
-There is also a duplicate-response case. Suppose the response arrives after
-the idx has been re-allocated, but while ent_arr[idx] still points at the
-previous entry that its waiter is freeing. Could the memcpy() into
-ent->out->first and complete(&ent->done) then write into freed memory?
+Would it work to take rtnl_lock() in the handler, or a driver state mutex
+that open and close also hold (like state_lock in
+mlx5e_update_carrier_work()), and re-check opened under it? Remove and
+the probe error path call xsc_irq_event_unregister() without RTNL, so
+its flush_workqueue() should not deadlock against that.
 
-> +	ent->ret = 0;
-> +	ent->status = ((struct xsc_outbox_hdr *)ent->out->first)->status;
-> +	cmd->retry_cnt = 0;
-> +
-> +	xsc_free_ent(cmd, ent->idx);
-> +	complete(&ent->done);
-> +	up(&cmd->sem);
+> +	if (err)
+> +		netdev_err(adapter->netdev, "failed to change linkstatus, err=%d\n",
+> +			   err);
 > +}
-
-[Severity: Medium]
-Does this leak the timed-out command's xsc_cmd_work_ent and its inb/outb
-mailboxes?
-
-After a timeout, entA stays in cmd->ent_arr[X] and owns both mailboxes
-("the command owns both mailboxes now" in _xsc_cmd_exec()). When the late
-response arrives, this path frees bit X and returns a semaphore permit. It
-does not clear ent_arr[X] or free entA.
-
-The timeout check at the top of _xsc_cmd_exec() is a plain lockless read. A
-caller that already passed it can still get idx X from xsc_alloc_ent(), for
-example one sleeping in xsc_alloc_msg() or blocked in down().
-xsc_cmd_invoke() then overwrites the slot unconditionally:
-
-	cmd->ent_arr[ent->idx] = ent;
-
-That command NULLs the slot when it finishes. From then on, entA, its two
-xsc_cmd_msg chains and their dma_pool blocks are unreachable.
-xsc_cmd_cleanup() cannot free them, and dma_pool_destroy() would report a
-busy pool.
-
-[ ... ]
-
-> +static int xsc_cmd_cq_polling(void *data)
-> +{
-
-[ ... ]
-
-> +		cq_pid = xsc_get_cmdq_rsp_pid(xdev) & XSC_CMDQ_INDEX_MASK;
-> +		if (cmd->cq_cid == cq_pid) {
-> +			usleep_range(1000, 2000);
-> +			continue;
-> +		}
 
 [Severity: Low]
-This isn't a bug, but this loop keeps polling when no command is
-outstanding. Each idle iteration does two non-posted MMIO reads (the error
-status and RSP_PID), then usleep_range(1000, 2000).
+This isn't a bug, but once this handler is registered, the comment above
+xsc_event_work() in drivers/net/ethernet/yunsilicon/xsc/pci/pci_irq.c no
+longer matches what the work does:
 
-That is roughly 500-1000 wakeups and 1000-2000 PCIe reads per second for
-each bound device, for as long as it stays bound. In this patch, commands
-are only issued at probe.
+/*
+ * Handle an asynchronous event. This runs on the PCI layer's own workqueue,
+ * so it outlives any auxiliary driver: the driver only ever registers a
+ * callback here, and the memory this touches belongs to xsc_core_device
+ * rather than to the eth private area.
+ */
 
-The commit message mentions "a single polling thread" but not this idle
-cost. Could the thread poll only while commands are outstanding, or back
-off when idle?
+xsc_event_work() calls the callback inline:
 
-> +
-> +		rsp = xsc_get_cq_inst(cmd, cmd->cq_cid);
-> +		if (!cmd->ownerbit_learned) {
-> +			cmd->ownerbit_learned = 1;
-> +			cmd->owner_bit = xsc_rsp_owner_bit(rsp);
-> +		}
-> +		if (cmd->owner_bit != xsc_rsp_owner_bit(rsp)) {
+	handler = READ_ONCE(xdev->link_event_handler);
+	if (handler)
+		handler(xdev);
 
-[Severity: Medium]
-The expected owner bit is learned from the same slot being validated, so the
-readiness check always passes for the first response. Is that safe?
+xsc_eth_link_event_handler() dereferences xdev->eth_priv,
+adapter->opened and adapter->netdev. All of these live in the
+alloc_etherdev() private area that free_netdev() frees.
 
-The "rsp doorbell advanced but buffer not ready" branch suggests RSP_PID can
-become visible before the slot contents. Suppose that happens on the first
-response after init:
+What actually keeps this safe is that xsc_eth_remove() and the probe
+error path call xsc_irq_event_unregister() before free_netdev().
 
-- The zeroed cq_buf slot is consumed with rsp->idx == 0 and status 0.
-- The version check completes with a zeroed payload (cmdq_ver == 0), so
-  probe fails.
-- owner_bit is learned as 0.
-
-The queue is never reset, so the hardware phase carries over from earlier
-driver instances. If that phase is 1, every later slot fails the owner
-check. The poller then loops on msleep(20) forever and every command times
-out.
+Could the comment say that callbacks may touch client-owned memory, and
+that clients must unregister before freeing it?
 
 [ ... ]
 
-> +static int _xsc_cmd_exec(struct xsc_core_device *xdev,
-> +			 void *in, unsigned int in_size,
-> +			 void *out, unsigned int out_size)
-> +{
-
-[ ... ]
-
-> +	if (cmd->cmd_status == XSC_CMD_STATUS_TIMEDOUT)
-> +		return -ETIMEDOUT;
-
-[Severity: Medium]
-Is it intended that one timeout disables the command interface for good?
-
-xsc_cmd_invoke() sets cmd->cmd_status = XSC_CMD_STATUS_TIMEDOUT on timeout.
-Nothing outside xsc_cmd_init() ever sets it back to XSC_CMD_STATUS_NORMAL.
-That holds even when the late response arrives and xsc_cmd_comp_handler()
-frees the slot and calls up(&cmd->sem).
-
-After one firmware stall longer than XSC_CMD_TIMEOUT_MSEC, every later
-xsc_cmd_exec() returns -ETIMEDOUT until the device is unbound and rebound.
-Later in the series this covers CQ/QP/EQ create and destroy, MTU, port admin
-status, vport state and event query.
-
-The commit message only says "Event-driven mode is deferred". It does not
-mention that timeouts are terminal.
-
-[ ... ]
-
-> +int xsc_cmd_init(struct xsc_core_device *xdev)
-> +{
-
-[ ... ]
-
-> +	cmd->log_sz = XSC_CMDQ_Q_DEPTH_LOG;
-> +	cmd->log_stride = XSC_CMDQ_ELEMENT_SIZE_LOG;
-> +	cmd->max_reg_cmds = 1 << cmd->log_sz;
-> +	bitmap_fill(&cmd->cmd_entry_mask, cmd->max_reg_cmds);
-> +
-> +	spin_lock_init(&cmd->alloc_lock);
-> +	spin_lock_init(&cmd->doorbell_lock);
-> +	sema_init(&cmd->sem, cmd->max_reg_cmds);
-
-[Severity: Medium]
-With this sizing, can a full response ring be told apart from an empty one?
-
-max_reg_cmds and the semaphore both allow 32 outstanding commands. The
-request and response rings have exactly 32 slots, and indices are compared
-modulo 32 (XSC_CMDQ_INDEX_MASK). A permit is only returned after the poller
-consumes the response.
-
-xsc_cmd_cq_polling() treats cq_cid == cq_pid as empty:
-
-	if (cmd->cq_cid == cq_pid) {
-		usleep_range(1000, 2000);
-		continue;
-	}
-
-Suppose the device posts 32 responses while the poller is in
-usleep_range(). The masked RSP_PID wraps back to cq_cid, so all 32 responses
-are skipped. Every waiter then times out, the XSC_CMD_STATUS_TIMEDOUT latch
-disables the interface, and the owner phase no longer matches the hardware.
-
-The request side has the same issue. xsc_cmd_invoke() never compares cmd_pid
-with the hardware consumer index, so a 32nd unconsumed request also makes
-REQ_PID equal to the consumer index.
-
-The code does not show whether the hardware posts into all 32 slots. Would
-limiting outstanding commands to (1 << log_sz) - 1 avoid this?
-
-[ ... ]
-
-> +void xsc_cmd_cleanup(struct xsc_core_device *xdev)
-> +{
-
-[ ... ]
-
-> +	/* a timed-out command stays registered for a response that may never
-> +	 * come; with the polling thread stopped nothing can touch it anymore
-> +	 */
-> +	for (i = 0; i < cmd->max_reg_cmds; i++) {
-> +		if (!cmd->ent_arr[i])
-> +			continue;
-> +		xsc_free_msg(xdev, cmd->ent_arr[i]->in);
-> +		xsc_free_msg(xdev, cmd->ent_arr[i]->out);
-> +		kfree(cmd->ent_arr[i]);
-> +		cmd->ent_arr[i] = NULL;
+> @@ -823,6 +880,16 @@ static int xsc_eth_open(struct net_device *netdev)
+>  	if (ret)
+>  		goto err_sw_deinit;
+>  
+> +	ret = xsc_eth_get_link_status(adapter, &link_up);
+> +	if (ret) {
+> +		netdev_warn(netdev, "failed to query link status, err=%d\n", ret);
+> +	} else if (link_up) {
+> +		netdev_info(netdev, "Link up\n");
+> +		netif_carrier_on(adapter->netdev);
+> +	} else {
+> +		netdev_info(netdev, "Link down\n");
 > +	}
 > +
-> +	dma_free_coherent(&xdev->pdev->dev, PAGE_SIZE, cmd->cq_buf, cmd->cq_dma);
-> +	dma_free_coherent(&xdev->pdev->dev, PAGE_SIZE, cmd->cmd_buf, cmd->dma);
-> +	dma_pool_destroy(cmd->pool);
+>  	adapter->opened = true;
 
-[Severity: High]
-Can the device still DMA into these buffers after they are freed?
+[Severity: Medium]
+Can a link change event get lost between the query and this assignment?
 
-With the polling thread stopped, the host will not touch a timed-out entry.
-The device, though, still holds the ring and mailbox addresses. Nothing here
-does any of the following:
+The link state is sampled before adapter->opened is set. While opened is
+false, xsc_eth_link_event_handler() returns early and records nothing:
 
-- reset the queue
-- clear the CMDQM_HOST_REQ/RSP_BUF_BASE registers
-- drain outstanding commands
+	if (!adapter || !adapter->opened)
+		return;
 
-Bus mastering is also still enabled, because xsc_pci_fini() only clears it
-afterwards:
+Suppose the link changes after the firmware answers QUERY_VPORT_STATE,
+and the CHANGE_LINK work reaches that check before adapter->opened is
+set to true. The event is dropped. Nothing re-queries afterwards, so the
+carrier stays wrong until the next link transition, which may never come
+on a stable link. This looks reachable at least on the first open after
+probe.
 
-	xsc_cmd_cleanup(xdev);
-	pci_iounmap(pdev, xdev->bar);
-	pci_clear_master(pdev);
+Also, if xsc_eth_get_link_status() fails here, for example because
+xsc_cmd_exec() times out, open only warns and returns 0. The carrier
+stays off and the query is never retried. A link that is up and stays
+up would then be reported down indefinitely.
 
-The xsc_pci_init() unwind uses the same order. The probe path reaches this
-directly when xsc_cmd_version_check() times out and jumps to
-err_cmd_cleanup.
+Would either of these close the window and let a later event correct a
+failed query?
 
-On rebind, pci_set_master() runs before xsc_cmd_init() reprograms the base
-addresses. xsc_cmd_handle_rsp_before_reload() also writes RSP_CID before
-that. A response the firmware still holds could then be written into the
-previous instance's freed, and possibly reused, pages.
+  - set opened before the query, as mlx5e_open_locked() does with
+    MLX5E_STATE_OPENED before updating the carrier
+  - re-query once opened and admin-up are both set
 
-The kthread_create() failure path in xsc_cmd_init() has the same problem,
-because the rings were already programmed into the device:
+>  
+>  	xsc_set_port_admin_status(adapter, XSC_PORT_UP);
 
-err_free_cq:
-	dma_free_coherent(&xdev->pdev->dev, PAGE_SIZE, cmd->cq_buf, cmd->cq_dma);
+[Severity: Medium]
+Does the oper state read above mean anything while the port is still
+admin-down?
+
+xsc_eth_close() always ends with:
+
+	xsc_set_port_admin_status(adapter, XSC_PORT_DOWN);
+
+So on every re-open, xsc_eth_get_link_status() queries a port the driver
+has just set admin-down. XSC_PORT_UP is only sent after the carrier has
+been decided.
+
+The reply carries separate admin and oper nibbles:
+
+#define XSC_QUERY_VPORT_ADMIN_STATE_MASK	GENMASK(3, 0)
+#define XSC_QUERY_VPORT_STATE_MASK		GENMASK(7, 4)
+
+xsc_core_query_vport_state() returns the oper nibble.
+
+If the firmware reports oper-down while the port is admin-down, open
+takes the "Link down" branch. After that, only a later
+XSC_CMD_EVENT_RESP_CHANGE_LINK event can turn the carrier on.
+
+Does the firmware raise that event when admin-up changes the oper state?
+If it does not, the netdev stays carrier-off after ip link set down
+followed by ip link set up, even though the physical link is up. It
+would stay that way until the link next flaps.
+
+mlx5e queries the state before admin-up in the same way and relies on
+firmware port change events. So this may be fine if the xsc firmware
+behaves the same way.
+
+Would setting opened, then sending XSC_PORT_UP, and only then sampling
+the link state make the initial sample match the real link?
+
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261126145711.70868-1-tianx%40yunsilicon.com
