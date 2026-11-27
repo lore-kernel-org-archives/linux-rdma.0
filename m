@@ -1,78 +1,132 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.21
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.180
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795734939;
-	b=QSL8ESGc1WaNf7npe5PHt4CUpV6qUMSWnMCM+hopRBqkkPbR2V2YbDksH5wKAnU1StD3
-	 Cw5zL6paBPtOuVUbhuPAq0hF1iAAFsvkPqsg2VR5+oNBg4QyKgmiTz55My/+ZzNuIpaa1
-	 ZW/DuvySHMn6Fy0fEnHIBQI2DylleXrHxUW415sfPfAfYQAEXSKvNEakX0CQxsJbqoryH
-	 saeTB6vNiCwJ0IucdSVKA8EfjKHpBb3ezHbZuMI73D9p4na1b8YXc4A622w9ZbMpJGFrT
-	 A22tpAcNN7bkwPC88QnhdwO9UoTYSUCBCdkU+ENKZvEGTmjkGSPSL0imPrrO2LcojfA==
+	t=1795739841;
+	b=hh1ngW8CjZ+qqtF7X1rsduKHNYzJdrFnlt4BuY47HgYjBOfMLN75W6o9anPiDy2CP4Q9
+	 Xq0tzGnKQaDeR+362f7Y+zqotcI2qNPGq0jlhD25fiuZzMB84gF5HWi4zq0zHJAzrwNUN
+	 FaoUBmICjSZid04uORDNkVa4LXFe42/hK1uBLoXfSDltsuonVX+4VU9T4+wBJh111OVWJ
+	 Kh3oeIwLfSg5693iUouqgUjBMk4AfWbX8K5QQITpiT8sr4Y6I2M3L0fULpU8jydD4I9+g
+	 6OL63VagkYV/5iEcW7yPlQkcmcdb7MaAHtycRbRdO0p9xWljU+NwNYbOJXMlZLsPFXg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795734939;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:User-Agent;
-	bh=60vvLuN6cDazj57LrWATrAO7V/mmYw10iEcyu6so+68=;
-	b=krtxJV+KQeSo4yf1lu/YZjf+MrXYjJ3KyzFqSkGvhvOzyNRGGIvudx46O7u7vw59lE3l
-	 sMKImGr0ok1RfQ7U0+fjLVb/DGlsUwzTN/G6xRBppMkFmbkeyAiS08/J31q8yzk7r5YmL
-	 aPjjonIjRUWxbP84fMluZVEXhhWzd0WE9ip/PCxFixB871FUstc5cipYTNPycpMhOhiPK
-	 +tTUzaJBAI7+twTTNPUU7TFXSLHJ3QyB/Gy4khhcqLvanVurMa0E4ruMzhBU7hjwr4LQ4
-	 YoSLMcyxibyasyvWiGdCgfu56vpGYHMhaaE3wAnlhu2dKYjxmPxSfYZH55O8xJa6KNw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795739841;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:Content-Transfer-Encoding:
+	 In-Reply-To;
+	bh=BYEpToCdu/Jrl7504w/3VIKWXqy3i8TunCn9olVHqm8=;
+	b=AGI+h48TIiwkqlSbDtXSTyEdzfOyVc6L6079FU+j3TRiYb0IlokxKdDIaKZFEoe1Le0i
+	 UfN0ug47wwhaPN8Mt2ZSpYPc0sNyoFRcm1iay2ZXqziMBLtp/Mg91LVJy3G9Qdf7BNgBT
+	 FYx1mYuYpYvmoeccXweoR+jwTFja+VbqO1lmRzVfOZ5TQcMqVbf5V9lLHmg0xbRzSG0MX
+	 lS9OoPw6BzoHuoPUCRkKpX3kY4IeesacmvD2r6mh5NwxYA8YSY6jlnQJbuuy8dsXCaZVB
+	 JQcnUOURJKsFqtDNbU5VZ/fK6Hr9xVGGgTz7ur1SuLH1jPLnU+b9Z11Db86sk9TAQzQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=DQwwbjRm;
-	arc=none smtp.remote-ip=198.175.65.21
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=none header.from=ziepe.ca;
+	spf=pass smtp.mailfrom=ziepe.ca;
+	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=RYi3Edqp;
+	arc=none smtp.remote-ip=209.85.160.180
+Received: from mail-qt1-f180.google.com (mail-qt1-f180.google.com [209.85.160.180])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FB02606A31C
-	for <linux-rdma@vger.kernel.org>; Thu, 26 Nov 2026 23:15:37 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9FB02606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D6A2606A323
+	for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 00:37:20 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6D6A2606A323
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=DQwwbjRm
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1795734938; x=1827270938;
-  h=date:from:to:cc:subject:message-id;
-  bh=9melxTcORrNdY4iA4zzSPybrme3jEN29eRCU75dOS6A=;
-  b=DQwwbjRmivtmyK3HtzD7Nak09s5/1D/TpYh3BhottsxebmkEaPQoi2YZ
-   vBIS8Cc0to6n7ryDg6+FEhdWdFSx2paRuM41h/K9CLCNpE1/aIL0PjtOh
-   qeBJKKqEiR+c5nmZKQdBfIqhALooJcqvwMt5C/b2Bi0V8FbLm7IY0U09o
-   HY95cHnE+yi4kNLstqzntTu9kMu9Z0E7Ip3mic80/YlkcsgZSP7fqaslD
-   gX0KjQqDz3hduQ4olkAY++STUUSe7HZyhP89bN13jwEn38inlzXia/Ge3
-   GwvFMP++zuxa1wBliFiJatARk83QzsiqUx4zTjiszHc4emB1JBEgMAb5k
-   A==;
-X-CSE-ConnectionGUID: D1jE/ro1Tjqd2yRFwaSvbQ==
-X-CSE-MsgGUID: 5ShIe1KyTyqD0C2hOja9CQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11978"; a="4734910"
-X-IronPort-AV: E=Sophos;i="6.27,235,1787036400"; 
-   d="scan'208";a="4734910"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Nov 2026 15:15:37 -0800
-X-CSE-ConnectionGUID: 6aPoUMezTdKZCauhxk/MEw==
-X-CSE-MsgGUID: Y77fmrqcQbiTffKfLcKunQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,235,1787036400"; 
-   d="scan'208";a="12300771"
-Received: from igk-lkp-server01.igk.intel.com (HELO 800201f3098f) ([10.211.93.152])
-  by orviesa006.jf.intel.com with ESMTP; 26 Nov 2026 15:15:32 -0800
-Received: from kbuild by 800201f3098f with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xWigb-000000000EK-1iEj;
-	Thu, 26 Nov 2026 23:15:29 +0000
-Date: Fri, 27 Nov 2026 00:14:45 +0100
-From: kernel test robot <lkp@intel.com>
-To: Yuho Choi <oss.patchbox@gmail.com>
-Cc: oe-kbuild-all@lists.linux.dev, Doug Ledford <dledford@redhat.com>,
- Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org,
- Leon Romanovsky <leon@kernel.org>
-Subject: [rdma:wip/leon-for-next 63/69]
- drivers/infiniband/hw/bnxt_re/ib_verbs.c:953:6: warning: unused variable 'rc'
-Message-ID: <20261127001029.bEUPKsfa-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=RYi3Edqp
+Received: by mail-qt1-f180.google.com with SMTP id d75a77b69052e-5363c8de563so76138911cf.0
+        for <linux-rdma@vger.kernel.org>; Thu, 26 Nov 2026 16:37:20 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1795739839; x=1796344639; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=BYEpToCdu/Jrl7504w/3VIKWXqy3i8TunCn9olVHqm8=;
+        b=RYi3Edqp0iJYoWgnyFakqRlcBMM8VcDiE8d4VlY5bSzWrQs7C3jbXpEvdsf5xbs0HR
+         k8SJFejOERTl3boet9eADaubxky0nrElyxMPXPWpVpP4P4sFBNoLT0vNQZStolAgoetA
+         AVu2Mh8zCbpacWNyUVPHGl3RGM6A9CQHETQIX4aOfJBdNhGQef7KqYfIDR6ufufdP8LP
+         5jHoiOvsTjxDjWW0L90H9rgfkvqlxNkDfm7h3cX67l/8MpA/9M1cz2dLCiNt8o5kr/5Q
+         JdnVCeij4xVh62dHP4PJZYsGnouQAS5wg9J0Y6QCTQui72S1909B3CcTDDr25xXeCo8X
+         2BJw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795739839; x=1796344639;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=BYEpToCdu/Jrl7504w/3VIKWXqy3i8TunCn9olVHqm8=;
+        b=X2Zugf4Cla7jbC1FjGPE+JQxkxe1kFoUhdm799cDqgjik2m5Nq4IFdRWYW1rd65Vtx
+         MinhYmx9DtqRVqqRrz04Bi7Q48ShPvcyVFRstSZBM/XdReJBvnbc1Ex2lWRS0hJb+CU9
+         3fzOzBH+8VfVCfBT4NRNeFqxCT9uQ3VGZqMutYA/3Wcu/58dJsFRXGUr1mjDbPaKt3ff
+         WfAlz6kgvOsjhaguoPG3QT+gZqAUw9Mn0PXu6tavU2PwOxB+84DWI2gWJVStG3o9a/NW
+         5C8zm7cjfHGZyVDKQGSH55B2rpC1v3L88xT3/Yq9yglJOVcrnMI2uoL2wrSkkzZGJub6
+         WN7A==
+X-Forwarded-Encrypted: i=1; AL+hErFxQHUESEFr10tcvKpi5E3RLxuAI/fJ7O77l0eUgPpUPeQRGYw7O+I7f1W/WLLZBDYhaE43vS+j6nY9@vger.kernel.org
+X-Gm-Message-State: APuU4Z8J5nABeDQHM52lyXE7swgq/TVIOTqFiiHAI614Z7WRzY0HIfef
+	a0+K9VROYXs0DA34H7zLUnqabDG9YaCqakBB98Oo+ZS6LvODnvrrx9deBeNatRKdVik=
+X-Gm-Gg: AZFdTZd51LZ4YeVURncISKRIbZNYh+6DrszH1TbGPtlDO8CB/mfyyCHw2XWfL2qI96+
+	eKlJEqBZkske4BQ//Vqfs7ErStO+vp1AEAM8BXQ/GKkR70ZBJmbjCzBgdES9Cmm453VSHOpHi6Q
+	hdQ/3ekG4m0uwPVb1QBXUqaoUbMxcWQm2TJQwF6Ah8GlzV/L8uMbwz4FhBekgcmzcLLPE5cCnEM
+	gb3YMxDLD5FNkMYlxGS/29kimmv8Gwf94iMQQd27Cz88nPPHMoE/PiwQPIVy3KdQR67e+/o0GG9
+	Eb6Cmqev7lrG8c3YSmt3ICUwCqY+7rzeAcQFGDav9/1Alm1XPOf1TsOZGPWhDeuSx567egbuPPJ
+	UpLgzkdK/QYtZs0UL2HICsDDo6qcoPAOgKAbZBMJxmiC3vhYP67JuZrvOB279duiOviQHTnhj7Y
+	ZVvLBWWFV881AaR2Cj0hCSD9KwtUUEXE8OGbySXuXto0JYD8kN+PW7Vu8ejueI71pFwvxF4OZoM
+	kmjh+CNBtAzK88iw+Eq6yz072WSJBCRkW8Hd+d3+souXUnlPGQESZB/rKoCdwaZYK43o64fYC01
+	yWVHNA==
+X-Received: by 2002:a05:622a:1f13:b0:533:8900:4eae with SMTP id d75a77b69052e-55d76a168d0mr403124891cf.13.1795739839275;
+        Thu, 26 Nov 2026 16:37:19 -0800 (PST)
+Received: from ziepe.ca ([142.177.118.84])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-55d788506b0sm192115611cf.17.2026.11.26.16.37.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 26 Nov 2026 16:37:18 -0800 (PST)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1xWjxm-00000005OdJ-0d4j;
+	Thu, 26 Nov 2026 20:37:18 -0400
+Date: Thu, 26 Nov 2026 20:37:18 -0400
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>
+Cc: Alistair Popple <apopple@nvidia.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
+	Simona Vetter <simona.vetter@ffwll.ch>,
+	Matthew Brost <matthew.brost@intel.com>,
+	Vivek Kasireddy <vivek.kasireddy@intel.com>,
+	Dongwon Kim <dongwon.kim@intel.com>,
+	Kevin Tian <kevin.tian@intel.com>,
+	Xu Yilun <yilun.xu@linux.intel.com>,
+	Karl Mehltretter <kmehltretter@gmail.com>,
+	Baolu Lu <baolu.lu@linux.intel.com>,
+	Felix Kuehling <felix.kuehling@amd.com>,
+	Alex Deucher <alexander.deucher@amd.com>,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	intel-xe@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	linux-rdma@vger.kernel.org, iommu@lists.linux.dev,
+	Keith Busch <kbusch@kernel.org>, Jens Axboe <axboe@kernel.dk>,
+	Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>,
+	linux-nvme@lists.infradead.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Mina Almasry <almasrymina@google.com>, netdev@vger.kernel.org,
+	Alexey Kardashevskiy <aik@amd.com>, zhipingz@meta.com,
+	treding@nvidia.com, jhubbard@nvidia.com, chaitanyak@nvidia.com,
+	Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v3 03/24] dma-buf: Add the SGT DMA mapping type
+Message-ID: <20261127003718.GR246011@ziepe.ca>
+References: <20261124142032.GN9566@ziepe.ca>
+ <7a5a2d3a-e42e-4dc0-8d22-8dd1bd249501@amd.com>
+ <20261124194618.GC114530@ziepe.ca>
+ <awZ_Os1pXelOGaFP@nvdebian.thelocal>
+ <fb9a6b12-c134-4e40-86a5-dbcb59c0b91b@amd.com>
+ <20261125155559.GL246011@ziepe.ca>
+ <5fb8bb60-7d9f-49b1-899c-40a890fdc14b@amd.com>
+ <20261125190705.GN246011@ziepe.ca>
+ <awfMy1d8ICL6mr9i@nvdebian.thelocal>
+ <a8c00bbf-dddb-4207-bcdf-af58d27116c5@amd.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -81,75 +135,19 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <a8c00bbf-dddb-4207-bcdf-af58d27116c5@amd.com>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
-head:   d24184a64765d7797ff0f46f6872aa91a6a1a5da
-commit: a95c6b735017c61d92e7465d153fb06d540f2132 [63/69] RDMA/bnxt_re: Don't republish a QP whose destroy failed
-config: x86_64-allmodconfig (https://download.01.org/0day-ci/archive/20261127/20261127001029.bEUPKsfa-lkp@intel.com/config)
-compiler: clang version 22.1.8 (https://github.com/llvm/llvm-project ca7933e47d3a3451d81e72ac174dcb5aa28b59d1)
-rustc: rustc 1.96.0 (ac68faa20 2026-05-25)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261127/20261127001029.bEUPKsfa-lkp@intel.com/reproduce)
+On Thu, Nov 26, 2026 at 10:58:13AM +0100, Christian König wrote:
+> Would it help if have a call on Teams or similar services to discuss the whole thing?
+> 
+> That might be easier and especially faster than by mail.
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/20261127001029.bEUPKsfa-lkp@intel.com/
+I think that is a good idea, I suggest you and Alistair should pick a
+time and see who else can come. From experience eu/au/eastern na
+doesn't jive :)
 
-All warnings (new ones prefixed by >>):
-
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:953:6: warning: unused variable 'rc' [-Wunused-variable]
-     953 |         int rc;
-         |             ^~
-   1 warning generated.
-
-
-vim +/rc +953 drivers/infiniband/hw/bnxt_re/ib_verbs.c
-
-3b921e3bc4c20a Selvin Xavier      2018-02-15  947  
-88de89f184661e YanLong Dai        2025-09-24  948  static void bnxt_re_destroy_gsi_sqp(struct bnxt_re_qp *qp)
-8dae419f9ec730 Devesh Sharma      2020-02-15  949  {
-8dae419f9ec730 Devesh Sharma      2020-02-15  950  	struct bnxt_re_qp *gsi_sqp;
-8dae419f9ec730 Devesh Sharma      2020-02-15  951  	struct bnxt_re_ah *gsi_sah;
-8dae419f9ec730 Devesh Sharma      2020-02-15  952  	struct bnxt_re_dev *rdev;
-14611b9b984125 Kalesh AP          2023-08-03 @953  	int rc;
-8dae419f9ec730 Devesh Sharma      2020-02-15  954  
-8dae419f9ec730 Devesh Sharma      2020-02-15  955  	rdev = qp->rdev;
-8dae419f9ec730 Devesh Sharma      2020-02-15  956  	gsi_sqp = rdev->gsi_ctx.gsi_sqp;
-8dae419f9ec730 Devesh Sharma      2020-02-15  957  	gsi_sah = rdev->gsi_ctx.gsi_sah;
-8dae419f9ec730 Devesh Sharma      2020-02-15  958  
-6ccad8483b2866 Devesh Sharma      2020-02-15  959  	ibdev_dbg(&rdev->ibdev, "Destroy the shadow AH\n");
-8dae419f9ec730 Devesh Sharma      2020-02-15  960  	bnxt_qplib_destroy_ah(&rdev->qplib_res,
-8dae419f9ec730 Devesh Sharma      2020-02-15  961  			      &gsi_sah->qplib_ah,
-8dae419f9ec730 Devesh Sharma      2020-02-15  962  			      true);
-063975feedb143 Chandramohan Akula 2023-07-26  963  	atomic_dec(&rdev->stats.res.ah_count);
-8dae419f9ec730 Devesh Sharma      2020-02-15  964  	bnxt_qplib_clean_qp(&qp->qplib_qp);
-8dae419f9ec730 Devesh Sharma      2020-02-15  965  
-6ccad8483b2866 Devesh Sharma      2020-02-15  966  	ibdev_dbg(&rdev->ibdev, "Destroy the shadow QP\n");
-a95c6b735017c6 Yuho Choi          2026-11-24  967  	bnxt_qplib_destroy_qp(&rdev->qplib_res, &gsi_sqp->qplib_qp);
-88de89f184661e YanLong Dai        2025-09-24  968  
-8dae419f9ec730 Devesh Sharma      2020-02-15  969  	bnxt_qplib_free_qp_res(&rdev->qplib_res, &gsi_sqp->qplib_qp);
-8dae419f9ec730 Devesh Sharma      2020-02-15  970  
-097a9d23b72503 Selvin Xavier      2020-08-24  971  	/* remove from active qp list */
-097a9d23b72503 Selvin Xavier      2020-08-24  972  	mutex_lock(&rdev->qp_lock);
-097a9d23b72503 Selvin Xavier      2020-08-24  973  	list_del(&gsi_sqp->list);
-097a9d23b72503 Selvin Xavier      2020-08-24  974  	mutex_unlock(&rdev->qp_lock);
-063975feedb143 Chandramohan Akula 2023-07-26  975  	atomic_dec(&rdev->stats.res.qp_count);
-097a9d23b72503 Selvin Xavier      2020-08-24  976  
-8dae419f9ec730 Devesh Sharma      2020-02-15  977  	kfree(rdev->gsi_ctx.sqp_tbl);
-8dae419f9ec730 Devesh Sharma      2020-02-15  978  	kfree(gsi_sah);
-8dae419f9ec730 Devesh Sharma      2020-02-15  979  	kfree(gsi_sqp);
-8dae419f9ec730 Devesh Sharma      2020-02-15  980  	rdev->gsi_ctx.gsi_sqp = NULL;
-8dae419f9ec730 Devesh Sharma      2020-02-15  981  	rdev->gsi_ctx.gsi_sah = NULL;
-8dae419f9ec730 Devesh Sharma      2020-02-15  982  	rdev->gsi_ctx.sqp_tbl = NULL;
-8dae419f9ec730 Devesh Sharma      2020-02-15  983  }
-8dae419f9ec730 Devesh Sharma      2020-02-15  984  
-
-:::::: The code at line 953 was first introduced by commit
-:::::: 14611b9b984125b2da5966d0725fdd89f6564c45 RDMA/bnxt_re: Remove unnecessary variable initializations
-
-:::::: TO: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
-:::::: CC: Leon Romanovsky <leon@kernel.org>
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Jason
