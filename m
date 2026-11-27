@@ -1,60 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=109.224.244.22
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795749062;
-	b=z7Z94hTejZzgJtmLfyu9D5ml5VM547VOPSjl+4FsvTf1CAKxXfPGTM+dQ7oQ3Orc7YqP
-	 nzqCK5mIYwY+by9KFqpT2WvtPF3s7nmOzuOxOKx9lmSlwlIsKWL7FQAXd18Dj9TrBOtxt
-	 Ga0QD9Z/WkZX7WWvhnYsbLSRLbxBDLB8KjO6LgXf96HxhkpftoLzWNOnVDF+dPhipZhP5
-	 sQP5G9QwIJmeVELJP0zeh3K/7VGsD+kMOrb7fFE0o/8AyoRiLH8noAuj5E0HRmI9FrQKU
-	 glUlGS7bqyOpPSEDAV8E1eO5KY1w2S0+oI3cr9eya40iS3BVto/2EOSLedqKWV+/85A==
+	t=1795750007;
+	b=YX24QfVO+wectWBnowJmuItdKodoeRLGEsxv3+DVr7cxegaWlJbOayKGqemljFoDQSQR
+	 1yWcqhxSAYatcHkfwDNLEo5GHO7/cRlFcIfdjEoqQqk2ON3qGxxX1kFE8wjMbz8jKxANb
+	 DiUC1PWBpuIVu+96icmIs7fGzvVPdim7PpNijFP6PUQ7H+SeLd2EuVlCQIYMTmBzmhySj
+	 eu6TM6oK055zxYzlPTXwxNyScKymCHMH/lUAChdI/27ZmdpTxODvsMggTLc4gZ1GKyzS/
+	 MdpsuXVfhNjJt2sslUqn7lyyodhhcy+3SKPhHOuQAi4Y9F1HMgOzTeYAA/cbU+nOcJA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795749062;
-	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
-	 In-Reply-To:References:Feedback-ID:X-Pm-Message-ID:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=wHp+e3aR7rIbxlOtPRoLgM0Yx1gXW62yOBOxxAW76U4=;
-	b=SnLMn55W+4ysvbckcXTwiaYIAhFEhh9jkc38Q60+FyP7pg3N8YorizUw+dG+XUGnv9ch
-	 WsPkUljb81nrsRv9wIVeo/G0klfBQSM3wj4Vqn3XAehlaCbcuPROL1WnQ5kUlMqLyGi5q
-	 SL4kFKGdVlYkAY+/8qIv+SKjAoWOsp+tCgGElc3cChKKcvraG33CvyaN4pC2IHmYz0wo1
-	 s0wrZ5XhWiyhFM2xlqVsG3MbQddTWIfTy5AdRq8TX07IOtNuKIRM0qrlUotD4zWaf/qA7
-	 7gaAvGz/aGCNUvw2kP5c72nFbniLxbQFOJNjmZt1PeleRJSB6zOcwObylxLI1rKz/uQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795750007;
+	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
+	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
+	bh=AidAI+a7QOu/h5AJZg3F8Qjo+SbCrYRGo5IJPB2FHWQ=;
+	b=tz4BZWnDFzKdteEZRhPoETZFCK1MljidpFd/HJL3eKoqFpNcKQDA2s0Pwu6JOawQNdfA
+	 LlWRwZb3ndtoUpvmpUT8HyyNTd7vmRrX54fbf3DflzVEXoxcdvUK5pejioaGqs1oMVdVj
+	 mSeRn2SNYMsfzMFO2IoY+klkeYmxoI6hVLtldES9/7Ome0W5Q95lPx3I36JwJHRGsUdKL
+	 WR+OpnPJvNA1ZUWHPgoaLiWcQtcaxTZzuAtJduAiF58hsP92Jacn+4OUsQrAZOOuiPvEY
+	 Mu67PN/1v8Y2CwXB3qHJji13i7FPX3w0tI1Cas6XWMcr21sAxXzg0sCrR6ZGzY/WnZA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=jaeyeong.cc;
-	spf=pass smtp.mailfrom=jaeyeong.cc;
-	dkim=pass header.d=jaeyeong.cc header.i=@jaeyeong.cc header.a=rsa-sha256 header.s=protonmail2 header.b=A0VohSvt;
-	arc=none smtp.remote-ip=109.224.244.22
-Received: from mail-24422.protonmail.ch (mail-24422.protonmail.ch [109.224.244.22])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=C67iLB0j;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4121606A331;
-	Fri, 27 Nov 2026 03:11:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E4121606A331
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=jaeyeong.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=jaeyeong.cc
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65D78606A31C
+	for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 03:26:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=jaeyeong.cc header.i=@jaeyeong.cc header.a=rsa-sha256 header.s=protonmail2 header.b=A0VohSvt
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=jaeyeong.cc;
-	s=protonmail2; t=1795749059; x=1796008259;
-	bh=wHp+e3aR7rIbxlOtPRoLgM0Yx1gXW62yOBOxxAW76U4=;
-	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
-	 Message-ID:BIMI-Selector;
-	b=A0VohSvtLu23ll3ZjmX5r8qh29efkxGFhyuGk5VrpwRCFslbOC+oIKWFOkfcUHsIZ
-	 ay6VJH/oZfjZ3QnwWiaQ/33u/BOTLRkIw/BFHMjzU9ulEU81RAuU3U4DVrWvFL+Ilv
-	 8PEN2QqXgAmgMlyQMljahLaEldvyMw/Aw7vtC+bB3bgUE014A9by0KvJF4qOIWDflH
-	 UcEK4ezcxtGm3UDiMe3F1qbz2hl99ZbsdzXm0Ek0OKS/ItydKNW1Xs/b0Oj9yvQaOn
-	 eqORRr91ZD2CE7zRDRxAlhg80T/BcVaqXX71xvtJBWfmAyqMtD9+J0G1DcRsKvDiZ+
-	 lWs78ky5Mw5gQ==
-Date: Fri, 27 Nov 2026 03:10:55 +0000
-To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>
-From: Jaeyeong Lee <lee@jaeyeong.cc>
-Cc: Artemy Kovalyov <artemyko@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: [PATCH v3] RDMA/mlx5: Preserve DEVX objects after failed output copy
-Message-ID: <179574905000.68536.2524255610860968331@jaeyeong.cc>
-In-Reply-To: <20261122103715.51731-1-lee@jaeyeong.cc>
-References: <20261111105346.3220427-1-lee@jaeyeong.cc> <20261115135123.GD42525@unreal> <20261122103715.51731-1-lee@jaeyeong.cc>
-Feedback-ID: 177356447:user:proton
-X-Pm-Message-ID: f67b138fcdff37f68344eb7af0628cad44256252
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=C67iLB0j
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E1A31F00897;
+	Fri, 27 Nov 2026 03:26:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795750006;
+	bh=AidAI+a7QOu/h5AJZg3F8Qjo+SbCrYRGo5IJPB2FHWQ=;
+	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
+	b=C67iLB0j7T2PgxFuxRwIZtnQNgCV8aoV80ay3K4i24O7x9+A/4TNlYVRe8aesSfjk
+	 J9auX2E+pqPwixaiD8wvoDTeCbetPdHtNZPUC2esRBjvk7n4O1arzQozeE7v0xlAIh
+	 9w8YPZ1yNnGUGiPBJNLEnJ9fzCvPvyOWZT2TFzkFX4Bpkm+2WzmrOFpnpHCHVqAmrV
+	 hbmps7w5tvDjOZxCfkbKw/H9UsC9zXw5A9pQEKGAH3hh08NJk9bPoTzEiM1Biy6A1e
+	 hhLFSOd0nzlOn9ueLFHiCSux5PTQOf4+BpVCtPadu+xN0jcj2QKpUnHALl2eHs5QuO
+	 HpOHWi2o99uGw==
+Message-ID: <sashiko-outbox-236528@kernel.org>
+From: sashiko-bot@kernel.org
+Subject: Re: [PATCH v3] RDMA/mlx5: Preserve DEVX objects after failed output
+ copy
+Reply-To: sashiko-reviews@lists.linux.dev
+To: "Jaeyeong Lee" <lee@jaeyeong.cc>
+Cc: linux-rdma@vger.kernel.org
+In-Reply-To: <179574905000.68536.2524255610860968331@jaeyeong.cc>
+References: <20261111105346.3220427-1-lee@jaeyeong.cc>
+ <20261115135123.GD42525@unreal> <20261122103715.51731-1-lee@jaeyeong.cc>
+ <179574905000.68536.2524255610860968331@jaeyeong.cc>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Date: Fri, 27 Nov 2026 03:26:45 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -63,101 +61,32 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 
-A DEVX create command can succeed before indirect mkey registration or
-copying the command output to userspace fails. The current unwind path
-destroys the hardware object directly, ignores a destroy failure, and
-frees struct devx_obj.
+> A DEVX create command can succeed before indirect mkey registration or
+> copying the command output to userspace fails. The current unwind path
+> destroys the hardware object directly, ignores a destroy failure, and
+> frees struct devx_obj.
+>=20
+> If the object cannot be destroyed, it remains live while its software
+> wrapper is gone. A later event or cleanup can then access the freed
+> wrapper.
+>=20
+> Mark the uobject as containing a valid hardware object once all state
+> required by devx_obj_cleanup() is initialized. Return later errors
+> directly so the uverbs abort path runs devx_obj_cleanup(). If destruction
+> fails, rdma_alloc_abort_uobject() commits the uobject and keeps it alive
+> for another cleanup attempt at file close.
+>=20
+> This also routes indirect mkey registration failures through the same
+> cleanup path and removes the duplicate manual unwind.
+>=20
+> Fixes: 7efce3691d33 ("IB/mlx5: Add obj create and destroy functionality")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Finder16 <nakamurajames123@gmail.com>
+> Signed-off-by: Jaeyeong Lee <lee@jaeyeong.cc>
 
-If the object cannot be destroyed, it remains live while its software
-wrapper is gone. A later event or cleanup can then access the freed
-wrapper.
+Sashiko has reviewed this patch and found no issues.
 
-Mark the uobject as containing a valid hardware object once all state
-required by devx_obj_cleanup() is initialized. Return later errors
-directly so the uverbs abort path runs devx_obj_cleanup(). If destruction
-fails, rdma_alloc_abort_uobject() commits the uobject and keeps it alive
-for another cleanup attempt at file close.
-
-This also routes indirect mkey registration failures through the same
-cleanup path and removes the duplicate manual unwind.
-
-Fixes: 7efce3691d33 ("IB/mlx5: Add obj create and destroy functionality")
-Cc: stable@vger.kernel.org
-Signed-off-by: Finder16 <nakamurajames123@gmail.com>
-Signed-off-by: Jaeyeong Lee <lee@jaeyeong.cc>
----
-Changes in v3:
-- Finalize the uobject before indirect mkey registration and output copy.
-- Route both failure paths through the uverbs abort cleanup.
-- Remove the manual obj_destroy unwind.
-- Describe the generic failed-destroy lifetime issue instead of relying on
-  the DCT-specific reproducer.
-
- drivers/infiniband/hw/mlx5/devx.c | 23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5=
-/devx.c
-index 5ba783bc7f9b7..b6ba6d7aa5c8f 100644
---- a/drivers/infiniband/hw/mlx5/devx.c
-+++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -1535,7 +1535,6 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CRE=
-ATE)(
- =09struct mlx5_ib_ucontext *c =3D rdma_udata_to_drv_context(
- =09=09&attrs->driver_udata, struct mlx5_ib_ucontext, ibucontext);
- =09struct mlx5_ib_dev *dev =3D to_mdev(c->ibucontext.device);
--=09u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)];
- =09struct devx_obj *obj;
- =09u16 obj_type =3D 0;
- =09int err, err2 =3D 0;
-@@ -1614,29 +1613,25 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_C=
-REATE)(
- =09=09=09=09   &obj_id);
- =09WARN_ON(obj->dinlen > MLX5_MAX_DESTROY_INBOX_SIZE_DW * sizeof(u32));
-=20
--=09err =3D uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_OBJ_CREATE_CMD_OUT, cmd=
-_out, cmd_out_len);
--=09if (err)
--=09=09goto obj_destroy;
--
- =09if (opcode =3D=3D MLX5_CMD_OP_CREATE_GENERAL_OBJECT)
- =09=09obj_type =3D MLX5_GET(general_obj_in_cmd_hdr, cmd_in, obj_type);
- =09obj->obj_id =3D get_enc_obj_id(opcode | obj_type << 16, obj_id);
-+=09uverbs_finalize_uobj_create(attrs,
-+=09=09=09=09    MLX5_IB_ATTR_DEVX_OBJ_CREATE_HANDLE);
-=20
- =09if (obj->flags & DEVX_OBJ_FLAGS_INDIRECT_MKEY) {
- =09=09err =3D devx_handle_mkey_indirect(obj, dev, cmd_in, cmd_out);
- =09=09if (err)
--=09=09=09goto obj_destroy;
-+=09=09=09return err;
- =09}
-+
-+=09err =3D uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_OBJ_CREATE_CMD_OUT,
-+=09=09=09     cmd_out, cmd_out_len);
-+=09if (err)
-+=09=09return err;
-+
- =09return 0;
-=20
--obj_destroy:
--=09if (obj->flags & DEVX_OBJ_FLAGS_DCT)
--=09=09mlx5_core_destroy_dct(obj->ib_dev, &obj->core_dct);
--=09else if (obj->flags & DEVX_OBJ_FLAGS_CQ)
--=09=09mlx5_core_destroy_cq(obj->ib_dev->mdev, &obj->core_cq);
--=09else
--=09=09mlx5_cmd_exec(obj->ib_dev->mdev, obj->dinbox, obj->dinlen, out,
--=09=09=09      sizeof(out));
- obj_free:
- =09kfree(obj);
- =09return err2 ?: err;
-
-base-commit: 94e81a1f3ffabb388f7d0a9674bb1d3acc067e00
 --=20
-2.43.0
-
-
+Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/179574905000.68536.=
+2524255610860968331@jaeyeong.cc?part=3D1
