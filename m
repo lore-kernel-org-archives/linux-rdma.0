@@ -1,54 +1,70 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.44
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=144.76.82.148
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795781640;
-	b=TNZiwbIeFORGOgD0XrOrFQmbVHaqySMsD6GDaly3Trof2lyL15pNf0rjOfVtHs/ZDQv7
-	 VCD3K6W4p4nzkGfbUeArflrKeqyw2h86Y68sQvznV9b4cO/fVj49FXaYw6sCDxRjIhGZI
-	 S4dvqgH9iYOrsUhCUyhcqBAavQJ9/wd8L2jNjAdGw9wLE4mV5rnzWL2SMyYolU+ZLf6qK
-	 /caLLl+bSDwhcGUPZAlUhImN/tj2G0aii1PHtaxEFCnLtBtuavnZ/82aK+ZD4DcV00za1
-	 +KiQsO1Z1/1SwpL9MfHuM4sBzDuK0+XDA/4W/gLC6iHl9twoAqpxzCoG5mvZ4G0G9TQ==
+	t=1795782623;
+	b=PRr+rlIZoJDCFFMXnisXyBe6i2fXPTVxN4Vs/iai6QGhk9TTCZxrGifAtzGAZqNSzREi
+	 73o2GzE6OIZkP9saDVfFLeYuzON27Vni40GPIT/y5l3Hv5Veiiy7V9rXs7QzYO00Y+Zku
+	 ISVF9CdD8evcJwjuDQwB1JgZpy0Fty0LRB7O4k8k4FwMJhbzxM38smViOVN5WvihH3u7T
+	 vJtuXnv8zwerg9svdh4uCEZ7CVD9APwWMVg7o/p6MGbIyr9rpzW2BmfHjObrDWC2wcm5u
+	 bNwkIhsbiKO2sfOAJmFj5Piiz82XGtiPkQr4UuqACVJ7kbWzryvUew2V/BTh4Ff5ksg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795781640;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:From:In-Reply-To:Content-Type:
+	a=rsa-sha256; c=relaxed/relaxed; t=1795782623;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=qCoEzJI5/N2sQ/738mLqdHEf8qRTgH5fccEHKybhjlI=;
-	b=g9YwefMrDPOHoGwIJGJbPJ72Z5bVOfvQXeieP3kM8xEbHheHUnZRB99MqroRa92YpmZj
-	 GF1FnmyGXjld1Lc1/g70HLVmlJvUDxKviSkNpp3HE45Du9Nr8NVg4/1d7YK/wL/xvjbvn
-	 SoGJPBc7/rTckhuN6gTggC7gJuRSJJBTDcqsh5bgydYm20Y7CUiOIy/z2KXr2IcrYHl4o
-	 BODpX7Y0QCQgwpTH2MzyUzvnrhwVDDvqamqCK2fD4RqDrJDLcJfmAXEX/rBjwoNQptHOR
-	 aLx3KW8AOJAF6r3PtTXh3XbYUbB0xkfRBXUrbKr9lOLWBZQmVElvy2yI2GuNHq/QeGw==
+	bh=Px6oQu/+YXlBGjcwOwuY9O/TtoFIV63D/vvY74zG5uQ=;
+	b=N3xIvkuHXlID0fugsNTPLXGI4LJrVCUo4lGN33DwVANnTfZL6OnXgy7xco62wPDVpCZm
+	 gIV/d3QUKEkWGozAqJor53jz6e3ZUSusCeSmri8hmUNwMssomFdXBMOjCBo11MBzQvhwa
+	 ZSw6hdBQurqRFghiZkY0qP/StX2zo+V+Agjy/GguKbebcNmlGH4UR4h1mReCwg9Sk8pwy
+	 FDhQLI0hTkyJVKQi4qasv+D7BsNFljMneI+7jW047SkJ4DnXes0gLSd4xK3SaY+tUUItn
+	 P1B78IaB43TKVPjXgAVyDi/YBtHtv6aPn0SMj3u+ycBdup5uSVzL3ozrKwlopkJKiKQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=lu79UmFN;
-	arc=none smtp.remote-ip=95.215.58.44
-Received: from mta1.migadu.com (out-44.mta1.migadu.com [95.215.58.44])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=samba.org;
+	spf=pass smtp.mailfrom=samba.org;
+	dkim=pass header.d=samba.org header.i=@samba.org header.a=rsa-sha256 header.s=42 header.b=n7uH0j5I;
+	arc=none smtp.remote-ip=144.76.82.148
+Received: from hr2.samba.org (hr2.samba.org [144.76.82.148])
+	(using TLSv1.3 with cipher TLS_CHACHA20_POLY1305_SHA256 (256/256 bits)
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 769E1606A31C
-	for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 12:13:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 769E1606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3474606A31C;
+	Fri, 27 Nov 2026 12:30:22 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B3474606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samba.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=lu79UmFN
-X-Envelope-To: linux-rdma@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=6vHRWvrua0fQYBdh7FtUgGXCTKDmCgIIqUhwP5LG/Xo=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1795781637; v=1; x=1796386437;
- b=lu79UmFN4HW9fTuJoYrmpHrKSONr7DoC/Kuxf+HEhdviW0Rutz38qxELgpMESgTSVdOrEuWb
- K96T0ho7diIYpECkcYDSt2N5FKkd05djRG+PpMwtglxa/tDAORrovm90fOydSamanO/CRZ44rF4
- sbkPoWofoIrD6tAqddybBmIE=
-X-Envelope-To: linux-rdma@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 1c9234c01c8a2ff2;
-	Fri, 27 Nov 2026 12:13:57 +0000
-X-Mizu-Trace-ID: 1c9234c01c8a2ff2
-X-Migadu-Flow: FLOW_OUT
-Message-ID: <4611d7da-478c-43ba-917a-03e5bba4fbbe@linux.dev>
-Date: Fri, 27 Nov 2026 13:13:51 +0100
+	dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.a=rsa-sha256 header.s=42 header.b=n7uH0j5I
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=samba.org;
+	s=42; h=Message-ID:Date:Cc:To:From;
+	bh=Px6oQu/+YXlBGjcwOwuY9O/TtoFIV63D/vvY74zG5uQ=; b=n7uH0j5ITV6/SZXCJDshZKCear
+	EG1RoS2NtERssbshOPzWMiJ7ALLAHvgbN3VRwgnCbPiaHoAfcQqRJsytzD+UiDQ+qR4IWxoFk7Oq2
+	SGDT2248fG8gz1IErDEYFefz6yoppPePl+pCiAks8am56bDy9uzBBCWqNz5K2vg+Pm71XW7uKoxWg
+	qa8BdAC/DQ5ry9LviYKl1z9IUJYw4rYgtE75xeu1YIZ7+HmSRRA7lMGU0l2W1mYDCC/hBDAB26c+b
+	AYXKsjHDtVAFH89DdCZtU3luaT4rj9qofGmHPeQVsOiomK7nKVDMd7YScHLxsx92Su7ku88ZcZvyw
+	vtsKWMtGjMTLE2B6pCBOdJ8HTMjwEk5Xz2lHsdnh0VBgyh8fFeqtCx4iQEqWXbIUK6cXiz2S7tOv9
+	mgLXckngTjPWG4AEFNsdRbF6W0nz+//J8f9G+a5zoTg6yrbpSsm2afuRxJDlxK29GEM06Jet8zCeT
+	gG49LAJVL3cnqoAquBMulvZt;
+Received: from [127.0.0.2] (localhost [127.0.0.1])
+	by hr2.samba.org with esmtpsa (TLS1.3:ECDHE_SECP256R1__ECDSA_SECP256R1_SHA256__CHACHA20_POLY1305:256)
+	(Exim)
+	id 1xWv5m-00000001Lho-387A;
+	Fri, 27 Nov 2026 12:30:18 +0000
+From: Stefan Metzmacher <metze@samba.org>
+To: linux-cifs@vger.kernel.org,
+	samba-technical@lists.samba.org
+Cc: metze@samba.org,
+	stable@vger.kernel.org,
+	Namjae Jeon <linkinjeon@kernel.org>,
+	Paulo Alcantara <pc@manguebit.org>,
+	Tom Talpey <tom@talpey.com>,
+	Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
+	Jacob Moroni <jmoroni@google.com>,
+	linux-rdma@vger.kernel.org
+Subject: [PATCH 10/10] smb: smbdirect: don't expose DMA addresses as iova of our MRs
+Date: Fri, 27 Nov 2026 13:29:07 +0100
+Message-ID: <98fe98df62a28f8842f5ed2bf0e375e5ada6bea7.1795781300.git.metze@samba.org>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <cover.1795781300.git.metze@samba.org>
+References: <cover.1795781300.git.metze@samba.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -58,257 +74,99 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] RDMA/siw: don't complete a fenced READ twice on flush
-To: Cygnus Qiu <eritque-arcus@ikuyo.dev>, jgg@ziepe.ca, leon@kernel.org
-Cc: cel@kernel.org, linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-kernel@vger.kernel.org, stable@vger.kernel.org
-References: <20261127005304.366336-1-eritque-arcus@ikuyo.dev>
-From: Bernard Metzler <bernard.metzler@linux.dev>
-In-Reply-To: <20261127005304.366336-1-eritque-arcus@ikuyo.dev>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 27.11.2026 01:53, Cygnus Qiu wrote:
-> siw_sq_flush() completes a QUEUED READ in the TX slot, assuming the READ
-> is not in the ORQ yet. That holds only while a full ORQ fences it.
-> siw_check_tx_fence() copies a fenced READ into the ORQ when a Read
-> Response frees a slot, and siw_activate_tx_from_sq() copies a READ into
-> a free slot. In both cases the READ stays QUEUED until the TX path sends
-> it, and a flush in that window completes it twice.
-> 
-> A peer can hold the window open. It advertises IRD 1, so the ORQ holds
-> one READ: READ1 is in the ORQ and sent, READ2 waits fenced in the TX
-> slot. The peer then sends Read Response 1 and a FIN in one TCP segment:
-> 
->    softirq (TCP receive)                 siw_cm_wq worker
->    tcp_data_queue()
->    |-tcp_fin()
->    | \-siw_cm_llp_state_change()
->    |   Sets tx_suspend and
->    |   queues the close.
->    |
->    \-tcp_data_ready()
->      \-siw_qp_llp_data_ready()
->        |-down_read_trylock(state_lock)
->        |-tcp_read_sock()
->        | \-siw_tcp_rx_data()
->        |   \-siw_rdmap_complete()
->        |     \-siw_check_tx_fence()
->        |       |-siw_read_to_orq()
->        |       | READ2 enters the ORQ.
->        |       |
->        |       \-siw_sq_start()
->        |         orq_fence is now 0.
->        |         TX is suspended:
->        |         READ2 stays QUEUED.
->        |
->        \-up_read(state_lock)
->                                          siw_cm_work_handler()
->                                          \-siw_qp_llp_close()
->                                            |-down_write(state_lock)
->                                            \-siw_sq_flush()
->                                              |-siw_sqe_complete()
->                                              | READ2 from the ORQ.
->                                              |
->                                              \-siw_sqe_complete()
->                                                READ2 again, from the
->                                                TX slot.
-> 
-> The FIN only queues the close, so the receive path normally gets
-> qp->state_lock first.
-> 
-> nfsd's svcrdma gets two flush completions for one Read chunk:
-> 
->    svc_rdma_wc_read_done()
->    \-svc_rdma_recv_ctxt_put()
->      Runs twice for the same ctxt. The second llist_add()
->      links ctxt->rc_node to itself.
-> 
->    svc_rdma_free()
->    \-svc_rdma_recv_ctxts_destroy()
->      |-svc_rdma_recv_ctxt_destroy()
->      | Frees ctxt.
->      |
->      |-llist_del_first()
->      | Reads the freed ctxt and returns it again.
->      |
->      \-svc_rdma_recv_ctxt_destroy()
->        Frees ctxt a second time.
-> 
-> svcrdma pulls the Read chunk before it decodes the RPC, so the peer
-> needs no RPC credentials and no export access.
-> 
-> Complete a QUEUED READ from the TX slot only while orq_fence is set.
-> orq_fence now decides whether the TX slot completes the READ, so move
-> it out of the bitfield it shared with tx_suspend:
-> siw_cm_llp_state_change() sets tx_suspend without taking a QP lock,
-> and a lost update could drop or duplicate the completion.
-> 
-> Found with afb-afl, an LLM-driven kernel audit/repro pipeline; the fix
-> and this changelog were also drafted with LLM assistance.
-> 
-> Reproduced on an unmodified KASAN build of mainline. A plain TCP client
-> sends nfsd's svcrdma listener on siw an RDMA_NOMSG call with a
-> two-segment Read chunk and answers as above. KASAN reports the read of
-> the freed ctxt; here the second destroy then faults in kfree():
-> 
->    BUG: KASAN: slab-use-after-free in llist_del_first+0x150/0x170
->    Read of size 8 at addr ffff8881119d9000 by task nfsd/183
-> 
->    Call Trace:
->     <TASK>
->     dump_stack_lvl+0x5d/0x80
->     print_report+0x14b/0x4b0
->     kasan_report+0xfa/0x120
->     llist_del_first+0x150/0x170
->     svc_rdma_recv_ctxts_destroy+0xf3/0x1b0
->     svc_rdma_free+0xd8/0x2e0
->     svc_xprt_free+0x22c/0x420
->     svc_recv+0x103f/0x25b0
->     nfsd+0x35c/0xc80
->     kthread+0x34d/0x460
->     ret_from_fork+0x339/0x620
->     ret_from_fork_asm+0x1a/0x30
->     </TASK>
-> 
->    Allocated by task 183:
->     kasan_save_stack+0x2f/0x50
->     kasan_save_track+0x14/0x40
->     __kasan_kmalloc+0x7f/0x90
->     __kmalloc_node_noprof+0x207/0x680
->     svc_rdma_post_recvs+0x664/0xbf0
->     svc_rdma_accept+0xc27/0x1980
->     svc_recv+0x12c2/0x25b0
->     nfsd+0x35c/0xc80
->     kthread+0x34d/0x460
->     ret_from_fork+0x339/0x620
->     ret_from_fork_asm+0x1a/0x30
-> 
->    Freed by task 183:
->     kasan_save_stack+0x2f/0x50
->     kasan_save_track+0x14/0x40
->     kasan_save_free_info+0x3b/0x60
->     __kasan_slab_free+0x57/0x80
->     kfree+0x162/0x500
->     svc_rdma_recv_ctxts_destroy+0xe7/0x1b0
->     svc_rdma_free+0xd8/0x2e0
->     svc_xprt_free+0x22c/0x420
->     svc_recv+0x103f/0x25b0
->     nfsd+0x35c/0xc80
->     kthread+0x34d/0x460
->     ret_from_fork+0x339/0x620
->     ret_from_fork_asm+0x1a/0x30
-> 
->    The buggy address belongs to the object at ffff8881119d9000
->     which belongs to the cache kmalloc-2k of size 2048
->    The buggy address is located 0 bytes inside of
->     freed 2048-byte region [ffff8881119d9000, ffff8881119d9800)
-> 
->    BUG: unable to handle page fault for address: ffffeb860011a6c8
->    #PF: supervisor read access in kernel mode
->    #PF: error_code(0x0000) - not-present page
->    Oops: Oops: 0000 [#1] SMP KASAN NOPTI
->    RIP: 0010:kfree+0x69/0x500
->    Call Trace:
->     <TASK>
->     svc_rdma_recv_ctxts_destroy+0xdf/0x1b0
->     svc_rdma_free+0xd8/0x2e0
->     svc_xprt_free+0x22c/0x420
->     svc_recv+0x103f/0x25b0
->     nfsd+0x35c/0xc80
->     kthread+0x34d/0x460
->     ret_from_fork+0x339/0x620
->     ret_from_fork_asm+0x1a/0x30
->     </TASK>
-> 
-> Without KASAN, SLAB_FREELIST_HARDENED catches the double free as
-> "kernel BUG at mm/slub.c:605" in kfree() from
-> svc_rdma_recv_ctxts_destroy(). With neither KASAN nor
-> SLAB_FREELIST_HARDENED, nfsd pops the freed ctxt again. If another
-> kmalloc-2k allocation has overwritten it by then, nfsd faults; if not,
-> nfsd frees it again and repeats, so later allocations can get that one
-> object many times.
-> 
-> With this patch the READ is flushed once and KASAN stays silent.
-> 
-> Fixes: f29dd55b0236 ("rdma/siw: queue pair methods")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Cygnus Qiu <eritque-arcus@ikuyo.dev>
-> ---
-> Changes in v2:
-> - Rewrite the commit message: charts for the race and the svcrdma free
->    path, and the full KASAN report.
-> - Give orq_fence its own byte, as Sashiko suggested on v1. The lost
->    update was not reproduced.
-> - v1: https://lore.kernel.org/r/20261125060646.155172-1-eritque-arcus@ikuyo.dev
-> 
-> Tested on mainline 4405c18c95d2 (v7.4-rc3+) in QEMU. Applies to rdma
-> for-next 94e81a1f3ffa, wip/leon-for-next d24184a64765 and
-> wip/leon-for-rc e7732ec135b5.
-> 
-> Unpatched, the KASAN use-after-free report came in 5 of 5 runs, the
-> hardened BUG in 4 of 4, and with neither, nfsd faulted or spun in
-> svc_rdma_recv_ctxts_destroy() in 15 of 15; add_key() as an
-> unprivileged user got three keys backed by one object in 1 of 6.
-> Patched, the KASAN build flushed once in 3 of 3 runs, and the build
-> with neither showed no fault, spin or shared key in 10 of 10.
-> 
-> Controls (FIN after the second Read Request, or no Read Response)
-> flush once with and without the patch. The rdma-core tests could not
-> run: rdma-core 66's siw provider asserts in siw_destroy_cq() on the
-> first test, on an unpatched kernel and with v1.
-> 
-> A reproducer and the test logs are available on request.
-> 
->   drivers/infiniband/sw/siw/siw.h    | 2 +-
->   drivers/infiniband/sw/siw/siw_qp.c | 7 ++++---
->   2 files changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/infiniband/sw/siw/siw.h b/drivers/infiniband/sw/siw/siw.h
-> index dbc998248b..82dc88b6a4 100644
-> --- a/drivers/infiniband/sw/siw/siw.h
-> +++ b/drivers/infiniband/sw/siw/siw.h
-> @@ -394,12 +394,12 @@ struct siw_iwarp_tx {
->   
->   	u32 mpa_crc;
->   	bool mpa_crc_enabled;
-> +	bool orq_fence; /* ORQ full or Send fenced: not a bitfield */
+ib_map_mr_sg() uses the DMA address of the first page as iova of the
+MR and smbdirect sends that iova to the peer as offset of the buffer
+descriptor, so the peer learns our DMA addresses, without an IOMMU
+these are the physical addresses of the buffers.
 
-"not a bitfield" is a strange /* comment */ to me.
-A brief explanation of why the change was made fits very well
-in the commit message.
+The peer just uses the offset as base address of its RDMA READs and
+WRITEs, so the value is up to us, the hardware only needs the offset
+within the first page in the low bits of the iova. So keep these bits,
+leave the rest of the low 24 bits zero (more for a page size above
+16 MiB), so that the addresses the peer uses show the position within
+the MR in traces, and put random bits above them up to bit 55, which
+also makes it harder to reuse an old offset with a token whose key
+wrapped around.
 
->   
->   	u8 do_crc : 1; /* do crc for segment */
->   	u8 use_sendpage : 1; /* send w/o copy */
->   	u8 tx_suspend : 1; /* stop sending DDP segs. */
->   	u8 pad : 2; /* # pad in current fpdu */
-> -	u8 orq_fence : 1; /* ORQ full or Send fenced */
->   	u8 in_syscall : 1; /* TX out of user context */
->   	u8 zcopy_tx : 1; /* Use TCP_SENDPAGE if possible */
->   	u8 gso_seg_limit; /* Maximum segments for GSO, 0 = unbound */
-> diff --git a/drivers/infiniband/sw/siw/siw_qp.c b/drivers/infiniband/sw/siw/siw_qp.c
-> index bb780e3904..2cc0f466e7 100644
-> --- a/drivers/infiniband/sw/siw/siw_qp.c
-> +++ b/drivers/infiniband/sw/siw/siw_qp.c
-> @@ -1188,10 +1188,11 @@ void siw_sq_flush(struct siw_qp *qp)
->   		if (tx_type(wqe) != SIW_OP_READ_RESPONSE &&
->   		    ((tx_type(wqe) != SIW_OP_READ &&
->   		      tx_type(wqe) != SIW_OP_READ_LOCAL_INV) ||
-> -		     wqe->wr_status == SIW_WR_QUEUED))
-> +		     (wqe->wr_status == SIW_WR_QUEUED &&
-> +		      qp->tx_ctx.orq_fence)))
->   			/*
-> -			 * An in-progress Read Request is already in
-> -			 * the ORQ
-> +			 * A Read Request is already in the ORQ unless
-> +			 * a full ORQ fenced it
->   			 */
->   			siw_sqe_complete(qp, &wqe->sqe, wqe->bytes,
->   					 SIW_WC_WR_FLUSH_ERR);
+The top byte is always 0, so iova + length stays far below 2^64 even
+for a length of U32_MAX. This also avoids a problem with irdma: with
+an IOMMU that allocates IOVAs top-down, the first 64-bit IOVA range of
+a device ends exactly at 2^64. If that is the buffer of an MR,
+iova + length is 0 and irdma rejects the RDMA READ of the peer with
+IRDMA_AE_AMP_TO_WRAP (ae_id 0x10a), even if the last byte of the MR is
+at 2^64 - 1, so the connection is torn down.
 
-Otherwise: Excellent finding, thanks!
+Fixes: c7398583340a ("CIFS: SMBD: Implement RDMA memory registration")
+Cc: stable@vger.kernel.org
+Cc: Namjae Jeon <linkinjeon@kernel.org>
+Cc: Paulo Alcantara <pc@manguebit.org>
+Cc: Tom Talpey <tom@talpey.com>
+Cc: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
+Cc: Jacob Moroni <jmoroni@google.com>
+Cc: linux-cifs@vger.kernel.org
+Cc: samba-technical@lists.samba.org
+Cc: linux-rdma@vger.kernel.org
+Signed-off-by: Stefan Metzmacher <metze@samba.org>
+---
+ fs/smb/smbdirect/mr.c | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-Acked-by: Bernard Metzler <bernard.metzler@linux.dev>
+diff --git a/fs/smb/smbdirect/mr.c b/fs/smb/smbdirect/mr.c
+index 70fc4a2fc7a8..03d3b2fb3f97 100644
+--- a/fs/smb/smbdirect/mr.c
++++ b/fs/smb/smbdirect/mr.c
+@@ -5,6 +5,7 @@
+  */
+ 
+ #include "internal.h"
++#include <linux/random.h>
+ 
+ /*
+  * Allocate MRs used for RDMA read/write
+@@ -300,6 +301,8 @@ smbdirect_connection_register_mr_io(struct smbdirect_socket *sc,
+ 	struct smbdirect_mr_io *mr;
+ 	int ret, num_pages, num_mapped;
+ 	struct ib_reg_wr *reg_wr;
++	u64 random_bits, page_offset;
++	unsigned int shift;
+ 	unsigned long flags;
+ 
+ 	num_pages = iov_iter_npages(iter, sp->max_frmr_depth + 1);
+@@ -373,6 +376,32 @@ smbdirect_connection_register_mr_io(struct smbdirect_socket *sc,
+ 		goto map_mr_error;
+ 	}
+ 
++	/*
++	 * ib_map_mr_sg() uses the DMA address of the first page as
++	 * iova, which goes to the peer as offset of the buffer
++	 * descriptor. Don't expose DMA addresses (without an IOMMU
++	 * physical addresses) to the peer, the hardware only needs
++	 * the offset within the first page in the low bits, all
++	 * other bits are up to us.
++	 *
++	 * The low 24 bits (or more for a page size above 16 MiB) are
++	 * only that page offset, so in traces they show the position
++	 * within the MR plus that offset (an SMB3 READ/WRITE is at
++	 * most 16 MiB). The bits above up to bit 55 are random, which
++	 * makes it harder to reuse an old offset with a token whose
++	 * key wrapped around.
++	 *
++	 * The top byte is always 0, so iova + length stays far below
++	 * 2^64 even for a length of U32_MAX. irdma rejects the access
++	 * to an MR ending exactly at 2^64 with IRDMA_AE_AMP_TO_WRAP,
++	 * which happened with an IOMMU that allocates the first
++	 * 64-bit IOVA range at the very top.
++	 */
++	shift = max_t(unsigned int, 24, ilog2(mr->mr->page_size));
++	random_bits = ((u64)get_random_u32() << shift) & GENMASK_ULL(55, 24);
++	page_offset = mr->mr->iova & (mr->mr->page_size - 1);
++	mr->mr->iova = random_bits | page_offset;
++
+ 	ib_update_fast_reg_key(mr->mr, ib_inc_rkey(mr->mr->rkey));
+ 	if (mr->mr->rkey == mr->base_tag)
+ 		ib_update_fast_reg_key(mr->mr, ib_inc_rkey(mr->mr->rkey));
+-- 
+2.43.0
 
