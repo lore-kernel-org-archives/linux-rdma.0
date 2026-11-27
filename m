@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795818735;
-	b=VKAUi//1f4v0F56vxcs0J5Kh7DC6a01t/4fnWg8W1ryV9RISsc1I4/yA2fzdeFtlU0wo
-	 chDEASqJGDEViyCD9yp7Y8fTi/c4Wx7td5GXD+drYkL6rkpU6p0stuhKVKB/xhPSirSIP
-	 IFJU2EIieeCO8ERhmUYpayR7YkCKvO9LtwWarhtj02daL18oJ1nmOhkSqTx0bHMIczOo4
-	 AHuxl/j5ptP66YuQkyPWtbexZggDeAavWIDfdo80QgGoj2E/65rcUaXfM0K/BSeqXHJ2x
-	 8fETXL3LkQzHeKjpzcKG8xQLTsB9cvrFbWZfHw7HpDr9Du4AZRlyp6JDMkwY4X3Yr5g==
+	t=1795818738;
+	b=mAu+JviCZ5H5jKdoWgobbhtxt6WmbYe+hwdunvkjUta0Np3/dwrCO4gpTJjRXqlBMOq1
+	 ayjkQUmQip09XL6s4cdIZlccM/EpNStz2xeZbqkROwZOfYAfRdeyyokljjSvmcP9cL6f7
+	 cFGeGB3yQgiN2hpk4exZBfUVD0JllQE6fJA4R0Y9SouMSvmfQmrlUe+9Fsfy1xzYCuAYE
+	 7+HxxNUGBzXYymlxMig0hOl0at46P40aBdSDhR1VyOxr2lho32HbbmbDniACbthPDDiKd
+	 zwnsfbcEFqEda7UKUg9scHDZ7eM9nyqiaUa7npVStb47inVrGVXly0PiTYXhrXJHqPg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795818735;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795818738;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=u72xTXVvYB/9IUxRBnyZjZslgn01rWlXQAM57XGcgvo=;
-	b=yXJsOApQHiRuUgB1KncNU5QaeZznfNJ5APKN9GJyS2EcLhlVLjMFTKX+LYafcDD4hsGH
-	 nok/a0EdZQjFypBkCoUt83AqJG5TA4V3BH5T3vfYHeOHOinyL3ZAaWXI4+GNOTW4C6kCY
-	 /veNfwln19J6hDq3vePX2NBQbL9AcGcHafwz7sXMc8M2nJWEKDiAEVobft3huXsZOd+i2
-	 f+XLS6vb5xVEMmq3zVOU23vMqtWzG3r/GFViAdnH576uo2awkDrUEiMiRflzzZrMk6t7k
-	 zmlDrf/KgMS/txtJWRG99M+bkUPPyTdVpP6E0mLzKCj4dDIY3f0oug+Zh4irZba/XHg==
+	bh=Uy3i8hRJJm8f7lYjXs5CtnhHjt88mvlRID2CRQj4Jgs=;
+	b=t1xItxZhBlH+SaPom2nKCHhElpykBAxf6i/pjSP3DXLKycpBt/YBOHd0N8VG98G1DEoy
+	 19lyV4S3tEL8KJjIAjn47ryyECVfVWu8ZYritbk7Wtseb/cetZlG4+Zjb8UBRPS8LWSOP
+	 3GEj2PkZ5Jqz0sQ+HIItZIhuWXGgX1OsvNMO+O6PzgGln52SwrplBuKHwoTYKAKpSl646
+	 BFkxUNwAlANDcfWbwLbwSLfRXzvmtpMHu/CseGwCWUJyZTATeG7lBRY0Rl1yiaM6Xz35K
+	 QxRAdJ6wv24KHTF3MXBhXS7DpswIKlQYZnIUPEcOOTLBsxkfWSYZL64yKlnnVPRjCpg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bA64pSbp;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hm7FCe3H;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7024606A321;
-	Fri, 27 Nov 2026 22:32:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4FB9606A31E;
+	Fri, 27 Nov 2026 22:32:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bA64pSbp
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF4261F0092A;
-	Fri, 27 Nov 2026 22:32:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hm7FCe3H
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CD0A1F00924;
+	Fri, 27 Nov 2026 22:32:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795818735;
-	bh=u72xTXVvYB/9IUxRBnyZjZslgn01rWlXQAM57XGcgvo=;
+	s=k20260515; t=1795818737;
+	bh=Uy3i8hRJJm8f7lYjXs5CtnhHjt88mvlRID2CRQj4Jgs=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=bA64pSbpLy4zZGX5vKWzhtx52dF9QJ9db3RM5wAA15Xpx303abDCRI46yt7ley9xm
-	 cgNSBWFhM8QF0Zp2/WsbkfuHwJDt6dKgzhzfKrfSL6RqB113aWbABgucgSfFj2mnQw
-	 NLwyDOVRYe9oCColPyl/rlEyzfmgNjObMwzP8cZa65rFOW0BWxykkd3DJZZu4CFYtS
-	 K1yfxQImpneKpLRsAzlJv7Mlz+KgRNpIkgdbwXRxORCY6MNhxkpGkjA9lIKAMgIL+v
-	 +K2zyW1arQX1U+LxWVPWk7pBlae/UZrxXST45HPDbf7+nGUxybNTdnZ0GFMIQnYqfE
-	 MXynmv95WMrVQ==
-Subject: Re: [PATCH net 05/10] net/mlx5e: Drop IPsec tunnel traffic if the
- neigh cannot be created
+	b=hm7FCe3HTOWDXcyZNYiW66bk/NQGIp82cY6sGUIjnwzSIPwvc8+SsWMk8yUrBAJy9
+	 3psQfYtCglb6p9u7Ur6ex0+TW9+tLeFfQff24prUlRKGVGXmEcHyqBeGpTj65lIdhi
+	 MCL33DwVvkInRjIWwBm71vs9WuH9g0ui8R9XlG+bXu5tGhJc/4ItGt+Frvr0MhQ3Q5
+	 NqtyV9uYSSX/JQIHrFI7TAR1NusU8b/UfUtxHCINTMLy5WZBStGab1y0OjLHHmzgjA
+	 0Avz9vidcz0bvNzoPnU5Mj5VQ/u7DvUnw3iq4u/fTi4GG6OJ4E+Ph3hiNjqQEXFwlw
+	 F7AA9B3WkxSDg==
+Subject: Re: [PATCH net 08/10] net/mlx5e: Validate neighbour events before
+ updating IPsec SAs
 From: netdev-bot+sashiko@kernel.org
 To: tariqt@nvidia.com
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
@@ -52,10 +52,10 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
  linux-rdma@vger.kernel.org, mbloch@nvidia.com, phaddad@nvidia.com,
  raeds@nvidia.com, saeedm@nvidia.com, horms@kernel.org,
  sridhar.samudrala@intel.com, steffen.klassert@secunet.com
-Date: Fri, 27 Nov 2026 22:32:13 +0000
-Message-ID: <179581873325.3135.13078869091632134545@kernel.org>
-In-Reply-To: <20261126215614.792598-6-tariqt@nvidia.com>
-References: <20261126215614.792598-6-tariqt@nvidia.com>
+Date: Fri, 27 Nov 2026 22:32:15 +0000
+Message-ID: <179581873585.3135.8443874889177753516@kernel.org>
+In-Reply-To: <20261126215614.792598-9-tariqt@nvidia.com>
+References: <20261126215614.792598-9-tariqt@nvidia.com>
 X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -69,10 +69,10 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 3 potential
+Thank you for your contribution! Sashiko AI review found 1 potential
 issue(s) to consider.
 
-Critical: 0 · High: 0 · Medium: 3 · Low: 0
+Critical: 0 · High: 0 · Medium: 1 (1) · Low: 0 (1)
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -80,168 +80,162 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [Medium] The patch only covers the case where neighbour creation fails.
-- [Medium] Setting attrs->drop = true when the neighbour cannot be
-  created permanently stops the SA's software lifetime worker.
-- [Medium] The new 'attrs->drop = true' on neighbour-creation failure in
-  mlx5e_ipsec_init_macs() (ipsec.c:371) is not limited to the TX…
+- [Medium] With nh.ifindex == 0, a foreign neighbour on any device in the
+  same netns can still overwrite the hardware MAC.
+
+Pre-existing issues:
+- [Medium] In the route-resolved branch of mlx5e_ipsec_init_macs(),
+  dst_neigh_lookup() can return an unresolved neighbour with an all-zero…
+- [Low] In this commit, the per-SA MAC buffer work->data->addr has no
+  synchronization.
 
 --
 
-net/mlx5e: Drop IPsec tunnel traffic if the neigh cannot be created
+net/mlx5e: Validate neighbour events before updating IPsec SAs
 
-This patch moves the attrs->drop assignment in mlx5e_ipsec_init_macs() so
-it happens before the IS_ERR() check on the result of ipv4_neigh_create().
-When the peer neighbour cannot be created, the tunnel packet offload SA
-is now installed as a drop rule. Before, it forwarded traffic with an
-all-zero destination MAC.
+The patch stops matching neighbour events against the SA source and
+destination addresses. Instead it saves a snapshot of the resolved nexthop
+(neigh table, ifindex, key) in mlx5e_ipsec_init_macs() and matches events
+against that. The ifindex is saved only when the nexthop device is the SA's
+offload device (xso.dev); otherwise 0 is saved and any device in the netns
+matches.
 
 > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
-> index ea7a1ae2056fa..4daad648460fe 100644
+> index 4084f8a88695b..cc75fcb0aa152 100644
 > --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
 > +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
-> @@ -368,10 +368,10 @@ static void mlx5e_ipsec_init_macs(struct mlx5e_ipsec_sa_entry *sa_entry,
->  	n = ipv4_neigh_lookup(netdev, pkey);
->  	if (!n) {
->  		n = ipv4_neigh_create(netdev, pkey);
-> +		attrs->drop = true;
->  		if (IS_ERR(n))
->  			return;
+> @@ -256,6 +256,17 @@ static void mlx5e_ipsec_init_limits(struct mlx5e_ipsec_sa_entry *sa_entry,
+>  	attrs->lft.numb_rounds_soft = (u64)n;
+>  }
+>  
+> +static void mlx5e_ipsec_set_tnl_nh(struct mlx5e_ipsec_sa_entry *sa_entry,
+> +				   struct mlx5_accel_esp_xfrm_attrs *attrs,
+> +				   const struct neigh_table *tbl,
+> +				   const struct net_device *dev,
+> +				   const void *pkey)
+> +{
+> +	attrs->nh.tbl = tbl;
+> +	attrs->nh.ifindex = dev == sa_entry->x->xso.dev ? dev->ifindex : 0;
 
 [Severity: Medium]
-Should this drop be limited to XFRM_DEV_OFFLOAD_OUT?
+If the nexthop device is not xso.dev, nh.ifindex is saved as 0.
+mlx5e_ipsec_neigh_matches() then treats 0 as "any device":
 
-For an inbound SA, mlx5e_ipsec_init_macs() sets src = attrs->dmac (the
-netdev's own MAC) and dst = attrs->smac (the peer MAC). The unresolved
-peer MAC only becomes the source MAC of the L2 header that
-setup_pkt_reformat() adds to the decrypted inner frame:
+    (!attrs->nh.ifindex || attrs->nh.ifindex == n->dev->ifindex) &&
 
-drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c:setup_pkt_reformat() {
-    ...
-	ether_addr_copy(eth_hdr->h_dest, attrs->dmac);
-	ether_addr_copy(eth_hdr->h_source, attrs->smac);
-    ...
-}
+In that case, can a foreign neighbour on another device in the same netns
+still overwrite the programmed MAC?
 
-Before this patch, an RX SA in this state still delivered decrypted
-traffic to the host, with h_source set to 00:00:00:00:00:00. With drop
-set, rx_add_rule() now installs CRYPTO_DECRYPT|DROP:
+This looks like it always happens in the bonding fallback path.
+bond_ipsec_add_sa() calls:
 
-drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c:rx_add_rule() {
-    ...
-	if (attrs->drop) {
-		flow_act.action |= MLX5_FLOW_CONTEXT_ACTION_DROP;
-		rule = mlx5_add_flow_rules(rx->ft.sa, spec, &flow_act, NULL, 0);
-    ...
-}
+    real_dev->xfrmdev_ops->xdo_dev_state_add(real_dev, xs, extack);
 
-n is an ERR_PTR here, so neigh_event_send() is never called and no
-resolution starts.
+so mlx5e_xfrm_add_state() sets sa_entry->dev to the slave, while xso.dev is
+the bond. The neigh: and IS_ERR branches of mlx5e_ipsec_init_macs() pass
+that slave netdev, so ifindex 0 is saved. The route branch ends up the same
+way whenever the route's output device is not xso.dev.
 
-Could inbound traffic for this SA stay blackholed until some unrelated
-event creates and validates the neighbour? That can't happen while the
-table is still full.
+For example, a container behind a host-side veth could send an ARP request
+with sip set to the nexthop IP and tip set to a host address.
+arp_process()->neigh_event_ns() then creates a NUD_STALE neighbour on the
+host veth and raises NETEVENT_NEIGH_UPDATE.
 
-The commit message only describes the TX case ("add the TX SA ...").
+The table, the wildcard ifindex and the key all match. neigh_ha_snapshot()
+copies the attacker's MAC, and the worker reprograms the TX dmac or RX smac.
 
-[Severity: Medium]
-Does setting drop here permanently stop the software lifetime worker for
-this SA?
+The commit message documents the ifindex 0 trade-off. However, this looks
+like the case it describes as fixed:
 
-mlx5e_xfrm_add_state() queues sa_entry->dwork once, MLX5_IPSEC_RESCHED
-after install. mlx5e_ipsec_handle_sw_limits() returns early when drop is
-set and only re-queues itself at the end:
+  "a foreign neighbour (veth, other netdev or netns) sharing the SA
+   address overwrites the programmed MAC"
 
-mlx5e_ipsec_handle_sw_limits() {
-	...
-	if (sa_entry->attrs.drop)
-		return;
-	...
-	xfrm_state_check_expire(x);
-	spin_unlock_bh(&x->lock);
+The only difference is that the nexthop IP is the target instead of the SA
+IP.
 
-	queue_delayed_work(sa_entry->ipsec->wq, &dwork->dwork,
-			   MLX5_IPSEC_RESCHED);
-}
+Would a tighter match close this? For example, n->dev could be accepted
+only when it is xso.dev or the nexthop device, instead of using a wildcard.
 
-This IS_ERR() branch sends no probe. Drop is therefore almost certainly
-still set when the worker first runs, and the worker is never queued
-again.
+> +	memcpy(attrs->nh.key, pkey, tbl->key_len);
+> +}
 
-If the neighbour resolves later, mlx5e_ipsec_handle_netdev_event()
-clears the flag and reprograms the rules to forward:
+[ ... ]
 
-	attrs->drop = false;
-	mlx5e_accel_ipsec_fs_modify(sa_entry);
-
-It does not re-arm the dwork. Would the SA then forward traffic without
-any xfrm_state_check_expire() calls, so the soft and hard byte limits
-are never enforced?
-
-Before this patch, the IS_ERR() branch left drop false and the worker
-kept running. The root cause seems to be that attrs->drop means both
-"expired" and "neighbour unresolved".
-
-A later commit in the series, "net/mlx5e: Copy back only replay_esn
-after an IPsec ESN update", fixes the ESN rebuild variant of this
-problem. At the end of the series, the early return in
-mlx5e_ipsec_handle_sw_limits() and the missing re-arm in
-mlx5e_ipsec_handle_netdev_event() are both still there.
-
+> @@ -360,6 +372,7 @@ static void mlx5e_ipsec_init_macs(struct mlx5e_ipsec_sa_entry *sa_entry,
+>  	if (attrs->dir == XFRM_DEV_OFFLOAD_OUT &&
+>  	    is_zero_ether_addr(addr))
 >  		neigh_event_send(n, NULL);
-> -		attrs->drop = true;
->  	} else {
->  		neigh_ha_snapshot(addr, n, netdev);
->  		ether_addr_copy(dst, addr);
+> +	mlx5e_ipsec_set_tnl_nh(sa_entry, attrs, n->tbl, n->dev, n->primary_key);
 
 [Severity: Medium]
-The commit message says this makes creation failure behave "as for a
-created but still unresolved neigh". Does that hold outside the create
-branch of the fallback path?
+This is a pre-existing issue and was not introduced by this patch. Should
+the route branch of mlx5e_ipsec_init_macs() set attrs->drop while the
+nexthop MAC is still zero?
 
-In this else branch, ipv4_neigh_lookup() can return an existing
-neighbour that is INCOMPLETE or FAILED. Its zero ha is copied into dmac,
-drop stays false, and no probe is sent.
+dst_neigh_lookup() can return an unresolved neighbour whose ha is all
+zeros. For IPv4, the route's neigh_lookup creates one if it is missing.
+This branch already checks for that with is_zero_ether_addr(addr).
 
-The route path earlier in mlx5e_ipsec_init_macs() shows the same
-symptom. dst_neigh_lookup() goes through
-ipv4_dst_neigh_lookup()->ip_neigh_gw4(), which calls __neigh_create()
-on a miss. It returns a new unresolved neighbour instead of NULL, so the
-fallback is never reached:
+The zero address is still copied into attrs->dmac (OUT) or attrs->smac
+(IN), and attrs->drop stays false.
 
-	n = dst_neigh_lookup(rt_dst_entry, pkey);
-	...
-	neigh_ha_snapshot(addr, n, netdev);
-	ether_addr_copy(dst, addr);
-	if (attrs->dir == XFRM_DEV_OFFLOAD_OUT &&
-	    is_zero_ether_addr(addr))
-		neigh_event_send(n, NULL);
+The TX rule adds MLX5_FLOW_CONTEXT_ACTION_DROP only when attrs->drop is
+set. setup_pkt_tunnel_reformat() copies attrs->dmac into the encap header
+as is:
 
-attrs->drop is never set on that path, and tx_add_rule() chooses the
-action from attrs->drop alone:
+    ether_addr_copy(eth_hdr->h_dest, attrs->dmac);
 
-drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c:tx_add_rule() {
-    ...
-	if (attrs->drop)
-		flow_act.action |= MLX5_FLOW_CONTEXT_ACTION_DROP;
-	else
-		flow_act.action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
-    ...
-}
+Until the neighbour resolves and the netevent worker reprograms the rule,
+could encrypted tunnel frames go out with destination MAC
+00:00:00:00:00:00?
 
-Suppose a route to the peer exists but the next hop is not resolved yet,
-for example the first SA toward a new peer. Won't the TX SA still be
-installed with dmac 00:00:00:00:00:00 and forwarding enabled? That is
-the symptom this commit describes.
+The fallback branch sets attrs->drop = true for the same unresolved state.
+So does the IS_ERR case added by "net/mlx5e: Drop IPsec tunnel traffic if
+the neigh cannot be created".
 
-Commit 9ab89bde13e5 describes this route path case ("the hardware rule
-is programmed with an all-zero destination MAC address") but only adds a
-probe, not a drop. The route path still has no drop at the end of the
-series.
+The problem is still there at the end of the series. This patch does make
+the window shorter: gateway events now match, so the rule gets reprogrammed
+once the gateway resolves.
 
-A later commit in the series, "net/mlx5e: Validate neighbour events
-before updating IPsec SAs", fixes the related problem that gateway
-neighbour updates were never matched.
+>  	dst_release(rt_dst_entry);
+>  	neigh_release(n);
+>  	return;
+
+[ ... ]
+
+> @@ -988,21 +1018,9 @@ static int mlx5e_ipsec_netevent_event(struct notifier_block *nb,
+>  
+>  	ipsec = container_of(nb, struct mlx5e_ipsec, netevent_nb);
+>  	xa_for_each_marked(&ipsec->sadb, idx, sa_entry, MLX5E_IPSEC_TUNNEL_SA) {
+> -		attrs = &sa_entry->attrs;
+> -
+> -		if (attrs->addrs.family != n->tbl->family)
+> +		if (!mlx5e_ipsec_neigh_matches(sa_entry, n))
+>  			continue;
+
+[ ... ]
+
+>  		data = sa_entry->work->data;
+>  
+>  		neigh_ha_snapshot(data->addr, n, sa_entry->dev);
+
+[Severity: Low]
+This isn't a bug introduced by this patch, but nothing synchronizes access
+to data->addr here. mlx5e_ipsec_netevent_event() writes it from the atomic
+netevent chain. mlx5e_ipsec_handle_netdev_event() reads it from the
+workqueue and programs the result into hardware:
+
+    ether_addr_copy(attrs->dmac, data->addr);
+
+Can a worker that is already running read a torn MAC while the notifier
+rewrites the buffer? With the ifindex 0 wildcard, two notifier calls on
+different CPUs could also write the buffer at the same time.
+
+The next patch in the series, "net/mlx5e: Serialize IPsec netevent MAC
+snapshots", appears to fix this. It adds a spinlock_t to struct
+mlx5e_ipsec_netevent_data and takes spin_lock_bh() around
+neigh_ha_snapshot(). The worker then copies data->addr into a local buffer
+under the same lock.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261126215614.792598-1-tariqt%40nvidia.com
