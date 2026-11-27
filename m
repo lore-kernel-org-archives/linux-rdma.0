@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795816686;
-	b=4J9Xn7Tf++dG9k8INNyyNYJUWKjRvE/38EbVRtfqwGpuaUcfEJIn7owItJZgzV/4OL+t
-	 DyDVcniSCD0tdx5O3L49PtGNYumECDgvsYCe+v5rVjmIMumFyMRTQjt6pSq8mSkk6ouoM
-	 rkgJ6WWLvbTxRvbnnUdPOZ4iuntdCt5JgZ4U9MO4Kdjn47TBj+czgPXzrtsGyj+tyACqi
-	 5xBF3f65Z7oniLGG1cZXRokOLXaOIO3DEoEooqCfqNt3pBQEIza+yoroVRh9sgQr5fGhz
-	 zuEiRsNlSokrPmBZOYfIlwKP8B20gzedp9ORM2iUnfUUY/DJj8ZoEIibcCnRG1FCdLA==
+	t=1795816690;
+	b=wbNU9FmrrS/easmiIwKLeFwjJL4SzL4gxtb/jhnAiwSnh5GD0P5z8eUsVKkKGMvgIGtR
+	 GQL+42aFeihiTwnR4awlUxaxmfXKJtsbUvxy+gwlYUYcLJ4PIX93ZCCaPnUpDrzE1e2L5
+	 DINkI1hJEDHs0plwQpuFLj39zGCfx2RUqcU1DIT+SAN9E84hYorE577L8UuFx3zt9M243
+	 fsatMb0PEV+d0ays79pm/BLUG6BLiXTfxXaJjK6M4Z78m7C71WqNLr/T+xSQE8NwexyTj
+	 Pxg3zaulH05up9kzofrVJptXOq9u6pdm349JSEV7s1/LPrDhroaEabgVuSO7VqK6cjA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795816686;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795816690;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=kzRuCoqIbS37GKkeoJ9OwR11nJk73DST2omF1WqQtWU=;
-	b=eQtUAP0TU+3fyZQf+H+xey51C7ii9J38VocuupAHRo3qUYsX4Twg4ixtd6RqeJLyapC3
-	 PMoDmFy1v5NrA/XJ+Suu5xUrhHnlq5W7sOskEOBTey15oTSZQjSJqFQNIzpS3jvhicFA2
-	 WVAnOfRhPVFhvg4U05hUhsZREfPjikJ/oyiCwzk6jrYuYKrDJBhfOmCEWrAbB4usxxPqc
-	 KT+cUFWwqfYsYTpAuwTaNB8MZoLXayx8yEno97nkHH6AFSwJiQiZ7POmzhp1LsNIHFYEA
-	 WgCzpLOb6GavgBn4DYzQYc/Ef8n53CCTYaeV9BFKiGfltA3ujHMUp/cm2nmn1UtyA3w==
+	bh=f+3w8nAYy0wfqGEeSlI8U43Ygr7DxwuMGDFST6VOkO4=;
+	b=SqHxrb142TbTnDQ+aDEflwSBFs5J+wBL3cTy+hWIAiNoZopUG2cPlskEMiEOVTOa/ve0
+	 kHUTY8Z8Fa+JDI3m3jAHKqQ8SIsujGEZv5YAw7HgQlMqHok8oGQ9Crs6SqpqvVof+AfN5
+	 rDJEcYSbtlV3wc80CoXeWJ3zxzfMgeiM5ga+15ZQFPXvoHPSlGjJgnyvk4GeSAm/NphfZ
+	 yfuS8+UrMud5nnaTNhFM8f8xKSLoi/9PmZ6eGDzO0CfIlsbAPbqi0rkJBQvwP7r1/TbG6
+	 OB4u26IeLCBqR5plnQUGC6GXAf1nm0UNYbcST8TE0P0xinXAAaRmAIhP9ze9vMGd3TQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BFWXzW6U;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=K8LQMPc7;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C1A8606A31C
-	for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 21:58:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 992CC606A31C
+	for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 21:58:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BFWXzW6U
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A98F1F000C1;
-	Fri, 27 Nov 2026 21:58:05 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=K8LQMPc7
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81A4D1F000C1;
+	Fri, 27 Nov 2026 21:58:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795816685;
-	bh=kzRuCoqIbS37GKkeoJ9OwR11nJk73DST2omF1WqQtWU=;
+	s=k20260515; t=1795816689;
+	bh=f+3w8nAYy0wfqGEeSlI8U43Ygr7DxwuMGDFST6VOkO4=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=BFWXzW6UXhbGxba11VNvmrBvA+7o6yCLm3bk9w6EY7wOizA48+6QV+acAouGU2wFo
-	 sDASFpZULGfMZvYv343/7DLQoPDOkxa+P2IaKhgy2oqB/Y5vX45M3PxmUxs1Eb/8Tp
-	 PIoLKafCfwwPgOdrio6QH93Ea3TTx/A+L5Qq0wowvCMeR7TnpgMGgKxx+tqv53VSeF
-	 EOlg15u505J9gF7pOPNVSeRz/tRoGkM5ddMEVzADOs9PWGR2VMyv5fEMNxS+fzq26S
-	 dYKIHzGW035dvxxmAjKwOYO31gs3r4Nmnj3P2POearLOBUt9ngQalfZHSTU7uPb2RA
-	 qYwOqa2+Ez8FA==
-Message-ID: <sashiko-outbox-238304@kernel.org>
+	b=K8LQMPc7O4kQB7y1dFY0XEh8KyB+yHKLMzXThvcm4ncEsT95PRl0o5zU3uCqT3dkB
+	 jaNlbisL+g9MkmOvzDEeV2Uq4Er3g5bElYM48EBwLJZ/yFEsfTIhpdYRTjxO5jiIga
+	 gAlCMOLDZ8hKcSow+D15W8pplND1TXu6asuqSgO756qgyW3/FunHNhsISERZ4xxpSA
+	 T1EyAtE+5PEad1mnNBL+k/oswGOhujZb0w96fQjKM6uBcAg3yN6TRSNhGLFnwR0F/k
+	 6jJzNa1H+c6u1yiRcnncVq8fg9IL+LSvSMtFu3HeVrJGFT/3WTyh2tlKcul7lDbqmv
+	 daSTEy/LW17Lw==
+Message-ID: <sashiko-outbox-238308@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH net 01/10] net/mlx5e: Initialize IPsec XArrays with
- XA_FLAGS_LOCK_BH
+Subject: Re: [PATCH net 05/10] net/mlx5e: Drop IPsec tunnel traffic if the
+ neigh cannot be created
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Tariq Toukan" <tariqt@nvidia.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261126215614.792598-2-tariqt@nvidia.com>
+In-Reply-To: <20261126215614.792598-6-tariqt@nvidia.com>
 References: <20261126215614.792598-1-tariqt@nvidia.com>
- <20261126215614.792598-2-tariqt@nvidia.com>
+ <20261126215614.792598-6-tariqt@nvidia.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 27 Nov 2026 21:58:04 +0000
+Date: Fri, 27 Nov 2026 21:58:06 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -64,64 +64,52 @@ Precedence: list
 Thank you for your contribution! Sashiko AI review found no new issues
 in this patch, but noticed 1 related pre-existing issue it does not
 introduce:
-- [Critical] net/mlx5e: use-after-free in mlx5e_ipsec_netevent_event()
-  [1]
+- [High] net/mlx5e: use of IPv4 ARP table for IPv6 in
+  mlx5e_ipsec_init_macs() [1]
 --
 
-commit 766bb77d37b4fbf59433c00ce0e158a9137f45fc
+commit 219ed936793954d216c649a4142781d59b610e93
 Author: Jianbo Liu <jianbol@nvidia.com>
 
-net/mlx5e: Initialize IPsec XArrays with XA_FLAGS_LOCK_BH
+net/mlx5e: Drop IPsec tunnel traffic if the neigh cannot be created
 
-This commit adds XA_FLAGS_LOCK_BH when initializing the ipsec->sadb and
-ipsec->ipsec_obj_id_map XArrays to match their _bh accessor usage.
+This commit sets attrs->drop =3D true before checking whether
+ipv4_neigh_create() failed in mlx5e_ipsec_init_macs(), so IPsec tunnel
+packets are dropped instead of transmitted with a zero destination MAC when
+neighbour creation fails.
 
 > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c b/d=
 rivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
-> index fa6cb51fdb939..a549851c83827 100644
+> index ea7a1ae2056fa..4daad648460fe 100644
 > --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
 > +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
-> @@ -1014,7 +1014,7 @@ void mlx5e_ipsec_init(struct mlx5e_priv *priv)
->  	if (!ipsec)
->  		return;
-> =20
-> -	xa_init_flags(&ipsec->sadb, XA_FLAGS_ALLOC);
-> +	xa_init_flags(&ipsec->sadb, XA_FLAGS_ALLOC | XA_FLAGS_LOCK_BH);
->  	ipsec->mdev =3D priv->mdev;
->  	init_completion(&ipsec->comp);
->  	ipsec->wq =3D alloc_workqueue("mlx5e_ipsec: %s", WQ_UNBOUND, 0,
+> @@ -368,10 +368,10 @@ static void mlx5e_ipsec_init_macs(struct mlx5e_ipse=
+c_sa_entry *sa_entry,
+>  	n =3D ipv4_neigh_lookup(netdev, pkey);
+>  	if (!n) {
+>  		n =3D ipv4_neigh_create(netdev, pkey);
+> +		attrs->drop =3D true;
+>  		if (IS_ERR(n))
+>  			return;
+>  		neigh_event_send(n, NULL);
+> -		attrs->drop =3D true;
+>  	} else {
+>  		neigh_ha_snapshot(addr, n, netdev);
+>  		ether_addr_copy(dst, addr);
 
-[Severity: Critical]
-This problem wasn't introduced by this patch, but can
-mlx5e_ipsec_netevent_event() hit a use-after-free on sa_entry while
-iterating ipsec->sadb [1]?
+[Severity: High]
+This problem wasn't introduced by this patch, but does this fallback path
+query and populate the IPv4 ARP table even for AF_INET6 SAs [1]?
 
-xa_for_each_marked() only holds the RCU read lock during the XArray lookup,
-leaving the loop body unprotected while mlx5e_xfrm_free_state() frees
-sa_entry synchronously with kfree():
+When addrs->family is AF_INET6, pkey points to a 16-byte IPv6 address
+(&addrs->saddr.a6 or &addrs->daddr.a6), and if ip6_dst_lookup() or
+dst_neigh_lookup() fails, jumping to neigh: passes pkey to
+ipv4_neigh_lookup() and ipv4_neigh_create().  That treats the first 4 bytes
+of the IPv6 address as an IPv4 neighbour key in arp_tbl instead of resolving
+the IPv6 neighbour.
 
-drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c:mlx5e_ipsec_neteve=
-nt_event() {
-	...
-	xa_for_each_marked(&ipsec->sadb, idx, sa_entry, MLX5E_IPSEC_TUNNEL_SA) {
-		attrs =3D &sa_entry->attrs;
-		...
-		queue_work(ipsec->wq, &sa_entry->work->work);
-	}
-	...
-}
-
-CPU0                                CPU1
-mlx5e_ipsec_netevent_event()
-  xa_for_each_marked(&ipsec->sadb, ...)
-                                    mlx5e_xfrm_free_state()
-                                      kfree(sa_entry)
-    attrs =3D &sa_entry->attrs;
-    ...
-    queue_work(..., &sa_entry->work->work);  <-- use-after-free
-
-[1] https://sashiko.dev/#/bug/linux-e041e0a2-c15e-4144-a77f-97cf6554a9fa
+[1] https://sashiko.dev/#/bug/linux-38e0271d-7232-4b1a-b4a7-ed3c33c14790
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261126215614.7925=
-98-1-tariqt@nvidia.com?part=3D1
+98-1-tariqt@nvidia.com?part=3D5
