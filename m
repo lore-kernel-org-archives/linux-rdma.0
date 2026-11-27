@@ -1,60 +1,106 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795750838;
-	b=hafrZBCjRMM8Yzd6a2w7JH0mv/unIMK45QqHKdPPJr8S743xYLohOcT3MYMYFMe8OalC
-	 JsZyYq324c6DUr7NCpLxUFQ8IhtZSB23uFclvrGFyWBU8sXNA/B9WvEzKZ2kgYF2iSwCx
-	 H31QQ/TqpofUk5vjplSZpwjN13ASJYafDAk9pvJ65pBNHU+o1NnODvsRdDwICPa7nVYwD
-	 yFx06VoL5u+uEE42ihHXGdInA4LSAOzUolijXzc9FTI+d+JRPAZ7yX9JgyQbwTb8YkuuL
-	 xBeedSQKelmNoDT7taonWgZYgRvfTEQi1Awi844GCOmXCKFHg3QftnU4eqVRL5xLaJA==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795750838;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=8/qQkcae65QKdmEUw9cyp/yjiIcf3CtxelHf3pV2GhU=;
-	b=0tKnfwuLQ7dFai20c905L4wz2G7zyogdGDyh67SY7ZZH8JjTbGc0AMMV7fos5FnHH+r1
-	 8vbIFKxc/wHX4ZKz6/ygkn0O0JCbt8kpg76/OW+TQmyV36dUBnPIdsLIR2r2gS8bsEi7u
-	 eud9ox6WV3OBBYXL2rIdNTTR8R1NycpMw9DR51xztahzONW2MzSOii6epRiUPwhGJ9LtS
-	 DD/DsxIA8mjPId7HsOJgqXWZKXla9hrgcI0S3e5Ts3MHgZ4VLzSG6WhYz0Ukre1fQBNiD
-	 iGyFWofYLdKkM9kWoH5JEDe4pYTlta9/bEJUXQhelz4sid/yYEVF6T8Ef23o1BEGh8g==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=orESze8m;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.48.68
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795752531;
+	b=CPTbjS4UU2I+UP1Q4c+uojBYZqL2Fk5iJdbHKWNXAxyMOHXRLfkMbUDzPALGn8XLCMcC
+	 vROJ/GV6pHjUeEJw61vjsjiS1kyKS4PQoVi/YQiITM12lmWbQcegvilR7OnNx7uUMt+1L
+	 Ym1poZGjdEQXbBbMTctdWv/0CCjI+7jDknEu1RqICeGTVfEf7fubbXOq+cMO5OU0Oz1pa
+	 rHco8euD8EhBC8zjFBZkVOMUJW7maurLkJ+Ys3wId6nI1D5UwxZJ7XKBcD8ZxYjfb15dY
+	 1mj747p1WhtEgxaaDDjUFI1gSa9x0ZB9RN93t0p1ylHPuGMGx18BXdnZOu20TRoQLXA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795752531;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:
+	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
+	 Received:From:To:CC:Subject:Date:Message-ID:X-Mailer:In-Reply-To:
+	 References:MIME-Version:Content-Transfer-Encoding:Content-Type:
+	 X-EOPAttributedMessage:X-MS-PublicTrafficType:
+	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
+	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
+	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+	 X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-Id:
+	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=rdlfWvzfISzn8kQMrAn9T5LiEAF04o/rwCujocnADxw=;
+	b=KfwOPsvCvecUeflW5Squ4BCyD5g2xjlPobPi9etVlULhIKNQqVm1XWBa/U7x1VuNlje4
+	 2zyEvOGOt8oLAmePkA4EeWM8GQV8lyhosG/jFktFbLx3Feb6tjkAlXr5ELBdnB+Lnokpi
+	 Pt7MHDCjTbxW8qnL/CD69Dgvav6wUk5t8qZyu+zCKw6pQFt4PJqq4iGa/Ox8qdt+dcCeQ
+	 zmy5RQfaiit7I4jhfsV5ZoVM+H4cuoNSkK3QnVvQ2cz5ek6J5M62UJyw49k8PU5acH+DF
+	 X2bhIHKIrWlwi+NH6lbil50ObvBU4nFyjyAfcHgZHSxmZRF+MLel/l3pXJqbNM12Jnw==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=amd.com;
+	spf=fail smtp.mailfrom=amd.com;
+	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=mXHMkNOQ;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.48.68
+Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012068.outbound.protection.outlook.com [52.101.48.68])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFF35606A31C;
-	Fri, 27 Nov 2026 03:40:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 783D8606A31E;
+	Fri, 27 Nov 2026 04:08:51 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 783D8606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=orESze8m
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCD3C1F000C1;
-	Fri, 27 Nov 2026 03:40:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795750838;
-	bh=8/qQkcae65QKdmEUw9cyp/yjiIcf3CtxelHf3pV2GhU=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=orESze8mqEofav3l7R19Sv4/btDUWEWOypOTmQ/g2jKWZTVlzbKqlVvY9p68bJUCH
-	 RFZiUo8W8e4EPJ0siaXMvKlk7fKpP2+blPFQALlcAuzsY2VZm/3GC4QsC7zR29wgDb
-	 DFViYlToNj0AbaMEBfBaJx9OW6lQV2KkdSjlStec4dNQEqqeoIwo+zVOjm5NmbvcbM
-	 +BdMSu/NM6eKUpSC1qaYe9edZ0ehtjmaaR9TbXb9Dki53KjjBRJ44DgrY9M/tO4V0k
-	 2CxkfaSTTsGR1T7SRwvavnSlgv8UGnvapbcCyMuZ11o40FonaKgbRqx5jy0OoStY3W
-	 /cYlBPncFO79g==
-Subject: Re: [PATCH net v2] net/rds: tcp: bound the message length announced
- by the peer
-From: netdev-bot+sashiko@kernel.org
-To: weidongw@illinois.edu
-Cc: achender@kernel.org, andy.grover@oracle.com, davem@davemloft.net,
- edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
- linux-kernel@vger.kernel.org, stable@vger.kernel.org, zijie4@illinois.edu
-Date: Fri, 27 Nov 2026 03:40:37 +0000
-Message-ID: <179575083740.3135.167711549334185146@kernel.org>
-In-Reply-To: <20261125-h047-send-v2-1-b29031cf6b93@illinois.edu>
-References: <20261125-h047-send-v2-1-b29031cf6b93@illinois.edu>
-X-sashiko-severity: High
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=mXHMkNOQ
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=mo/RumGKs3LKuQ8TaoIWP5mPV0Auk/pwfupACBixeIpvc1VkXh7BggeAfX9GoY7/KZxmKTtzeuucvOtcB2GtvrbXxRcFCpR4AZneb1gOn/DBywhuus36bMUHL/8DYkiImzImk0K7BPDo9g4jirCd5DLqxOgfvuMs7r6eF1cudCdcYC2jYIdrWOoPBIfLdQMmBUXI9uVwd36CqRVtpypc4s3z1+k6nu1OCpOi1HhKWYt1tNO/K7OJdR1y7o0S8Hv5JMHZdofziLfFpL7etA+rNmA1gbwZ1zXR0qXYkdpT4NM5C7zMEZqadNLJRfOqav1+KUNnpZ8/zfxjjalvRF9mng==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=rdlfWvzfISzn8kQMrAn9T5LiEAF04o/rwCujocnADxw=;
+ b=SR2TY231+oIikFXAvnLfpwBEqUcCev00xPIp2HUspHpsQMUD0d0ZzlUVYoakqzQpJSWkRgJcAtCFkUX7iWSNyQqPgn2lIFOvtr+wiOykQo5YJuNMxXzQ8VwLxU7J4TXxUnvV4hoIlyMM3eVsedSsXBMdfue4coGvZWYZ8dFSheNB6RKo2VQF8vYJS5T5GPp4LUS0ZF44GH4zaJ0G3utq0vssKSV9HPL+GKH3ISvwzQNyAKyeHJq7IXxoPC7K1ebZ+A8g9OHlxN7YAQFdZT564kxvCmQcU6bjZ86cH9wQw5Eky4Mc1k9liNGv4DRt/GFRaY3B436tshj6Nrp7/Ivp1A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=ziepe.ca smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=rdlfWvzfISzn8kQMrAn9T5LiEAF04o/rwCujocnADxw=;
+ b=mXHMkNOQaCjT2OujPSZqTKWnpgqOqZk2D1P9TQl+7Tr9JFyuL87BJQQxRTpLu9gBdHu7fe3mAjg7mqZdt8wG4+kLiSeXc2LCHG87sE0dyEA8VJAqgjP7ZuLsvLIxpXhgNJ9wO9BuQT4aMmA6Agyo/8g+3Yayh6ARo4djk4uq3pI=
+Received: from PH7P220CA0039.NAMP220.PROD.OUTLOOK.COM (2603:10b6:510:32b::26)
+ by LV3PR12MB9168.namprd12.prod.outlook.com (2603:10b6:408:19a::6) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.662.4; Fri, 27 Nov
+ 2026 04:08:47 +0000
+Received: from BY1PEPF0001AE18.namprd04.prod.outlook.com
+ (2603:10b6:510:32b:cafe::5e) by PH7P220CA0039.outlook.office365.com
+ (2603:10b6:510:32b::26) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.662.9 via Frontend Transport; Fri, 27
+ Nov 2026 04:08:46 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 165.204.84.17) smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb08.amd.com; pr=C
+Received: from satlexmb08.amd.com (165.204.84.17) by
+ BY1PEPF0001AE18.mail.protection.outlook.com (10.167.242.100) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.688.5 via Frontend Transport; Fri, 27 Nov 2026 04:08:46 +0000
+Received: from satlexmb08.amd.com (10.181.42.217) by satlexmb08.amd.com
+ (10.181.42.217) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.57; Thu, 26 Nov
+ 2026 22:08:46 -0600
+Received: from xhdipdslab46.xilinx.com (10.180.168.240) by satlexmb08.amd.com
+ (10.181.42.217) with Microsoft SMTP Server id 15.2.2562.57 via Frontend
+ Transport; Thu, 26 Nov 2026 22:08:44 -0600
+From: Abhijit Gangurde <abhijit.gangurde@amd.com>
+To: <jgg@ziepe.ca>, <leon@kernel.org>
+CC: <allen.hubbe@amd.com>, <nikhil.agarwal@amd.com>,
+	<linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>, "Abhijit
+ Gangurde" <abhijit.gangurde@amd.com>
+Subject: [for-next v3 1/3] RDMA/ionic: Bound user queue depth and stride before shifting
+Date: Fri, 27 Nov 2026 09:38:30 +0530
+Message-ID: <20261127040832.16908-2-abhijit.gangurde@amd.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20261127040832.16908-1-abhijit.gangurde@amd.com>
+References: <20261127040832.16908-1-abhijit.gangurde@amd.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -64,112 +110,73 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BY1PEPF0001AE18:EE_|LV3PR12MB9168:EE_
+X-MS-Office365-Filtering-Correlation-Id: 64a08c2e-a6dc-4057-4fc3-08df4c3c2264
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|82310400026|1800799024|23010399003|36860700016|376014|18002099003|261009223027099003|22082099003|56012099006|11063799006|261021121427099003|261102123227099003|261021135927099003|10067099003;
+X-Microsoft-Antispam-Message-Info:
+	BH8hwiiFBE0/PAVTmDnhbk5paHRwsyfBsAHL0hnjtryfo2BHpqI3Y/+jtlcaMQfJdSnlGeozJP6WdEs+ecwiSqx4hBRIcj7NZBOeSOkbinrBRxtnKpaxwz6gThos6yIP0P8zlIRxoGblo/ukb5cMEiw2yKOv9PWNltps5+tQzfoVylHT8mWmjWcG1HIVcyxemDmSaICCAegb86xPlNMNUgjguy3Ca9fYYCQ/3HQ/Zpu9/sxUD40jJ/7A3+4zHuAfIqAoWDkVdU8M/yukMqyhZG2nwPvTxlRYLIR/bnr8lQseLDAQQ1sKoJHd4VLXV359mihzTomDkjU+Ex/ZbHbNjulKKEgkhaCSw+u+rJ3mNdqGs+bUAa24ZzDep4ynKWUdUOt5CawEGMQeF4tZ9wjDudujRnMvyHGkZA6NXI8BFrIEaQTkyPbOKHDK6scmGPxSdoJY3+gPhF5LjJUu73nb420qHx/7Uw8McqVCejfcDtiOQEH/t4NMhLzVTGabfJeXZZkuBh/9cp6fdPokBHmyU18OIMBjr/mxwVByxM+Caiz1v/zNX1One8gVb9mOuIWe71Epv2w2x3ns3+BapyUp4L6Ugu3VtIMmAmgqlFIuWPuWle2RlvyNsx1g4++6Jj5P1X0c5k/Hcp6VmmoIK7msKOk1ZhCsA4FyLaCFHkorFCd2yzfJObDShaNpuisqOeFCP8mTH+N4V94XfkDNvgiSVQ==
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb08.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(23010399003)(36860700016)(376014)(18002099003)(261009223027099003)(22082099003)(56012099006)(11063799006)(261021121427099003)(261102123227099003)(261021135927099003)(10067099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	7EZR/rRFYUl7CW4lyhAqNV0gs26gmU4qxbAstGaWsXXBYqTG4Tkp4eBL9LlzqppqHmzx++QUsuBAmMLQFfgyxb1onEXJbOxqzuyU/eEu4Cq6n5CghGI5otdZ1iPqdzrpvjGvHHfBhsMRhBxpfpBbGenFNk/jhz2wesIRkRsb+2OXefobhU339hsmD6jAPZ40RoxzXoiirtia/4WPZgPAgLBAZ5mbTM40UZxaGFOpz16yDXGjtZ3eLXrb9xD6W7IiXhjfsMCGdumRNvOGhrhnJTHAsxkdTKoCfy0tLadUcffziRnHnDHEuphcF0hB42jtHRzv8BNw4GwYHW8agipnEbSpTQ4br0hXdQkg83pviApewf9K4+yiCeRN8KhSfA4LReKSvYuKZyo59z7qlj+gqmoAdsTSoAh0Dcb2qSVve8Bo4YNHX2xNhIzy/5wN0vj5
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Nov 2026 04:08:46.8017
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 64a08c2e-a6dc-4057-4fc3-08df4c3c2264
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb08.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BY1PEPF0001AE18.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV3PR12MB9168
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
+ionic_validate_qdesc() uses depth_log2 and stride_log2 from the user
+request as shift counts without an upper bound. Both are u8, so
+BIT(depth_log2) and BIT_ULL(depth_log2 + stride_log2) can shift by the
+width of the type or more, which is undefined behaviour.
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 0
+Where the shift count wraps, as on x86-64, the size check can be
+bypassed. With depth_log2 = 4, mask = 15 and stride_log2 = 60, the
+required size BIT_ULL(64) evaluates to 1, so a one page ring passes
+validation with a depth and stride it cannot hold.
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+Reject a depth_log2 above order_base_2(IONIC_MAX_DEPTH), and a
+depth_log2 + stride_log2 of BITS_PER_LONG_LONG or more, before either
+shift.
 
-- [High] The new check in rds_tcp_data_recv() (net/rds/tcp_recv.c:219-220
-  and 230-234) limits the number of payload bytes a peer can announce…
+Fixes: f3bdbd42702c ("RDMA/ionic: Create device queues to support admin operations")
+Signed-off-by: Abhijit Gangurde <abhijit.gangurde@amd.com>
+---
+ drivers/infiniband/hw/ionic/ionic_controlpath.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
---
-
-net/rds: tcp: bound the message length announced by the peer
-
-This patch limits the h_len announced in an incoming RDS/TCP header to
-RDS_MAX_MSG_SIZE in rds_tcp_data_recv(). If a header is larger, the
-connection is dropped. The rest of the stream is then consumed and
-discarded until shutdown, so the receive queue keeps draining.
-
-> diff --git a/net/rds/tcp_recv.c b/net/rds/tcp_recv.c
-> index ffe843ca219c7..4ca25b9d25d40 100644
-> --- a/net/rds/tcp_recv.c
-> +++ b/net/rds/tcp_recv.c
-> @@ -210,9 +210,29 @@ static int rds_tcp_data_recv(read_descriptor_t *desc, struct sk_buff *skb,
->  					be32_to_cpu(tinc->ti_inc.i_hdr.h_len);
->  				tinc->ti_inc.i_rx_lat_trace[RDS_MSG_RX_START] =
->  					local_clock();
-> +				/*
-> +				 * The payload is queued on tinc until the
-> +				 * whole message has arrived, so a peer must
-> +				 * not announce more than a sender is allowed
-> +				 * to send.
-> +				 */
-> +				if (tc->t_tinc_data_rem > RDS_MAX_MSG_SIZE)
-> +					rds_conn_path_drop(cp, false);
-
-[Severity: High]
-
-Does this check bound the memory held for a partially received message,
-or only the announced length?
-
-A peer can announce h_len = RDS_MAX_MSG_SIZE, which passes this check.
-It can then send the payload as roughly one million 1-byte segments.
-Each segment goes through:
-
-rds_tcp_data_ready()
-  rds_tcp_read_sock(cp, GFP_ATOMIC)
-    tcp_read_sock()
-      rds_tcp_data_recv()
-        pskb_extract()
-
-Each one ends up as its own clone on tinc->ti_skb_list, further down in
-rds_tcp_data_recv():
-
-	clone = pskb_extract(skb, offset, to_copy, arg->gfp);
-	...
-	skb_queue_tail(&tinc->ti_skb_list, clone);
-
-pskb_extract() calls skb_clone(). The clone has no sk and no destructor,
-so nothing is charged to the socket.
-
-It then calls pskb_carve(). For linear data, pskb_carve_inside_header()
-allocates a new head of skb_end_offset(skb) bytes with kmalloc_reserve().
-For nonlinear data, pskb_carve_inside_nonlinear() also takes
-skb_frag_ref() on the rx page frags. Either way, the allocation does not
-depend on how few bytes are extracted.
-
-rds_tcp_data_ready() drains sk_receive_queue on every data_ready. That
-means tcp_try_coalesce() never has a tail skb to merge small segments
-into, so every segment becomes a separate clone.
-
-Wouldn't that leave on the order of 1M uncharged clones per connection
-path? Each has an sk_buff plus a new head or pinned page, so the total
-is roughly 1 GiB or more, and the receive window stays open.
-
-rds_recv_incoming() later charges only h_len to rs_rcv_bytes, so the
-actual truesize is never accounted.
-
-The commit message describes the problem as the receiver holding large
-amounts of memory that is not charged to the socket. To close that
-fully, could this bound the total truesize on ti_skb_list, or copy or
-coalesce small chunks, rather than only check h_len?
-
->  			}
->  		}
->  
-> +		/*
-> +		 * After an oversized header the connection is being dropped:
-> +		 * consume and discard the rest of the stream until it is shut
-> +		 * down, so that the receive queue drains and the shutdown is
-> +		 * not held up.
-> +		 */
-> +		if (!tc->t_tinc_hdr_rem &&
-> +		    tc->t_tinc_data_rem > RDS_MAX_MSG_SIZE) {
-> +			left = 0;
-> +			break;
-> +		}
-> +
->  		if (left && tc->t_tinc_data_rem) {
->  			to_copy = min(tc->t_tinc_data_rem, left);
->
-
+diff --git a/drivers/infiniband/hw/ionic/ionic_controlpath.c b/drivers/infiniband/hw/ionic/ionic_controlpath.c
+index bf012f886fbc..717ab78b603c 100644
+--- a/drivers/infiniband/hw/ionic/ionic_controlpath.c
++++ b/drivers/infiniband/hw/ionic/ionic_controlpath.c
+@@ -23,6 +23,13 @@ static int ionic_validate_qdesc(struct ionic_qdesc *q)
+ 	if (q->addr & (PAGE_SIZE - 1))
+ 		return -EINVAL;
+ 
++	/* Keep the shift counts below within the width of their types */
++	if (q->depth_log2 > order_base_2(IONIC_MAX_DEPTH))
++		return -EINVAL;
++
++	if (q->depth_log2 + q->stride_log2 >= BITS_PER_LONG_LONG)
++		return -EINVAL;
++
+ 	if (q->mask != BIT(q->depth_log2) - 1)
+ 		return -EINVAL;
+ 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261125-h047-send-v2-1-b29031cf6b93%40illinois.edu
+2.43.0
+
