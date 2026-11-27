@@ -1,47 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795795074;
-	b=hsgfUXHonR1Xbi5kegr+9JQiwS9ZDI+T0O9jlCpyr7rRu9C1ShWwR4kyQXOGLRQUwASO
-	 NBwAflAn3dq+/CkMmBvVh/JOj6hkz/5yX28bxsYJBbpCIwuIDv8TrG3v9LnLzSWj8U16M
-	 uppfJYlNPHKV40aXE213f5o9scICrv3FH9OxDvsV7xiBFz8r4q+g2P2TDtAXLbzKrPjps
-	 RGIL5sFG5bgWLrKFAzeSWGkqchzslwGBX3vG0lAqaqQYy56EievGChd/Z2lZR0S/juT/E
-	 39Jnvi83TmCIiHlWqhjGYiCSKOW9hwPmVqMXN55fetCrOx0kYaw5S2ezKdpLFV1UTWw==
+	t=1795795080;
+	b=KTORLsLZe9NS1X33i70oUmyfdIonhLdyXmbG7l5ACmPnDH2ufgNSsribRDcvEnXP9lMh
+	 z4uNzgf3f2cGYOf219l8w1W7FHosDnYn9ngROKETAFSkEQj13VabDyezuCK72UxiE2hI9
+	 34SNVbHlGRccOIETTLdE9KtxaysnzqWKlOGQuo/8QbQdOu5V/pWU6Du3e1dkFgOPSZEQs
+	 tmgS17XsGCYwmDkgYT7G0XbH9RJN/rr6r4XwAeHDxufxM6fNUB3uAthkOjYxf/W2OnqjB
+	 8PHU/EJbtBRBBI1Zyi2fAZEvafKfU6dMb1E8jP3qL5r0xsV8asbRQAK+JW1EUVBEciA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795795074;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795795080;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=1Uf6rEZNwkBmln35150GQlXwSl97Nl4pLzD4EjTrQQw=;
-	b=R7wqtMErCFbhtDhXLgUk0IAf0dZxMkp0gRYA7CUE3WO67VDVRL+gh5ZkkqRkYR0WR+0h
-	 Y9iLt0cPcKUfAxDm/FoA2Rydfds0/UKtYpt39aeCFbb1z8E8s3CJLMVL6pcPHFGuYG4nM
-	 aG5Yu0GRxVYSC7h8eVk40HVP9tphH60278TFMkb0Uhw27P+AnxBfN+bU0wJm1o+PQ1Nc+
-	 8Jx1qkTST5mcBlwYRRUdhnSamYvw5S1U2E7oXL55bOJFMh6qWlclKsdx7Z0Kvt3t9YUKb
-	 uym6o6lo9yGZvac0SFA+uKFbSJGeKr+7zjWsZMi9HJpcpLg+ZGkxWlXC1qQgfHHzLiA==
+	bh=+OsaqsCkNdK9D8OyjJZhYRSnDVykyRA4x+r6AKpq0wk=;
+	b=mpAnIM8zfW4gsj0mJWdwN7s5CgaqxFn/OA9I8lnU0VhZ/tdsclCgVaeIvVW0k7E5nQOy
+	 7O5B+HuFeBn41hmvvdLTJMBHSlTK6GFwaX0ND73CvB/fMW+VKjo5WsDvGiOscyHw48cjL
+	 15pgKFhU1aPDXT6KSGkBSGsIq8Fpndt70MCI7pDuTT0g50sntcIZLyAAW/paLaCdHmwgX
+	 7ENXCvUMntJ+8Meg5s11aVUUe65fHAciSGbntTMKeGXhFUkE3DGRKacHD1+9T8KBLbHZc
+	 nqgN3A1qsSHkst4pwwd5vU/RUIHp1f0cZNdQEzLd3jGRHcQafkH6yFUgEP1FICTVnFw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DNVVYJbJ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QGl5RZKP;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABB76606A33D;
-	Fri, 27 Nov 2026 15:57:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B329E606A69B;
+	Fri, 27 Nov 2026 15:58:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DNVVYJbJ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF8761F000C1;
-	Fri, 27 Nov 2026 15:57:53 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QGl5RZKP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 741181F00A21;
+	Fri, 27 Nov 2026 15:57:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795795074;
-	bh=1Uf6rEZNwkBmln35150GQlXwSl97Nl4pLzD4EjTrQQw=;
+	s=k20260515; t=1795795080;
+	bh=+OsaqsCkNdK9D8OyjJZhYRSnDVykyRA4x+r6AKpq0wk=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=DNVVYJbJd8Wr/iau/0IOpFDh3/sejQiBg6bjbhCzYfdnCZvyy1ERG9rnR1swZpE/2
-	 06Sn00UjAOMC/ZyBtvBEJ9VFEOkxeOcjnoi3h+HAbQn8IFOQGIoExxl31ICHjpF3Rm
-	 X8EggNOb+FGL5mi3TYLaSEKQOt/M5iO9L2k7uzmkKohxWXt3cjLhQNHyUrlN+3ypZG
-	 GRp4F+Fs/WxJFR9USH2GxuGrspaM+u9D2dM9PMAgoqforoZ48uNglZGuHnJKbPIRzh
-	 u2JtS+SkKPxT8qw/Qe7VtV9YCbrMhQ2F9arFVk2HqJS5tAZn08xlBEbS6fBJoLyW56
-	 XQxYljvXcwSuA==
-Subject:
- Re: [PATCH v2 04/11] net/xsc: query HCA capabilities and reset function
+	b=QGl5RZKPp3CqfzSCKUEx27+hGxnSyeqhLXDG3IkFsoM3N0uM4ltV/sYYQECiAnpN3
+	 H6RjcAol9UcH+jyHiQhpv5W+Vb01woTiVgrNeFlBlAQwBY4YRB1dLN8dobqybHaY1P
+	 KGuWNqopWDnBPZJsCwGEP/k2rGNpZPRPcT5YCIofjnlaHOv0j+Tr2msQbpftr2jCmp
+	 Hx2bIDjLwTmCWMn6KUHJBKfiJ9LXv6Dg4mUEA/KjQlQU2kmhgwoHN0M9b2kXTz8DL1
+	 ANhsgm6+M7K3KnSOjSkfqn9kDotMioQxy3sxd39hLEULQlBZ/lgvBe0cqDwDQBRiED
+	 bHZ3rzRuDiYqg==
+Subject: Re: [PATCH v2 07/11] net/xsc: add the ethernet netdev
 From: netdev-bot+sashiko@kernel.org
 To: tianx@yunsilicon.com
 Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
@@ -49,11 +48,11 @@ Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
  huangjunxian6@hisilicon.com, weihg@yunsilicon.com,
  linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
  linux-rdma@vger.kernel.org, kerneljasonxing@gmail.com
-Date: Fri, 27 Nov 2026 15:57:53 +0000
-Message-ID: <179579507336.3135.5729346813922191216@kernel.org>
-In-Reply-To: <20261126145721.70868-5-tianx@yunsilicon.com>
-References: <20261126145721.70868-5-tianx@yunsilicon.com>
-X-sashiko-severity: High
+Date: Fri, 27 Nov 2026 15:57:58 +0000
+Message-ID: <179579507899.3135.7831191822723271418@kernel.org>
+In-Reply-To: <20261126145730.70868-8-tianx@yunsilicon.com>
+References: <20261126145730.70868-8-tianx@yunsilicon.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -69,7 +68,7 @@ MIME-Version: 1.0
 Thank you for your contribution! Sashiko AI review found 5 potential
 issue(s) to consider.
 
-Critical: 0 · High: 1 · Medium: 1 · Low: 3
+Critical: 0 · High: 0 · Medium: 1 · Low: 4
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -77,266 +76,234 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] In xsc_pci_init()
-  (drivers/net/ethernet/yunsilicon/xsc/pci/main.c), the new…
-- [Medium] net/xsc: missing in.hdr.ver initialization in
-  xsc_cmd_query_hca_cap()
-- [Low] xsc_cmd_query_hca_cap() in
-  drivers/net/ethernet/yunsilicon/xsc/pci/main.c computes…
-- [Low] The subject line is split across two lines.
-- [Low] xsc_cmd_query_hca_cap()
-  (drivers/net/ethernet/yunsilicon/xsc/pci/main.c) takes an unneeded…
+- [Medium] At this commit, xsc_eth_probe() registers a netdev whose ops
+  table (xsc_netdev_ops in…
+- [Low] This patch adds calls to the auxiliary bus API.
+- [Low] At this commit, xsc_eth_wq.h declares xsc_eth_cqwq_create(),
+  xsc_eth_wq_cyc_create(), xsc_eth_wq_destroy() and…
+- [Low] Several comments do not match the code.
+- [Low] xsc_eth_l2_addr_init()
+  (drivers/net/ethernet/yunsilicon/xsc/net/main.c:156) declares `char…
 
 --
 
-net/xsc: query HCA capabilities and reset function
+net/xsc: add the ethernet netdev
 
-During probe, this commit queries the firmware HCA capabilities (CQ size,
-segment counts, MSI-X range, port and PF identifiers). It stores them in
-struct xsc_caps and struct xsc_core_device, then sends the firmware
-FUNCTION_RESET command to reset the function's resources.
+This patch registers an ethernet auxiliary device from the xsc PCI core and
+adds an auxiliary driver that creates a netdev. The netdev queries the MAC
+address, sets the hardware MTU, and implements ndo_open/ndo_stop. The queue
+and data path are left to follow-up patches.
 
-> net/xsc: query HCA capabilities and reset function
->
-> resources
-
-[Severity: Low]
-This isn't a bug, but the subject line looks like it was wrapped onto two
-lines. Git will use "net/xsc: query HCA capabilities and reset function"
-as the subject, and "resources" will become the first paragraph of the
-body.
-
-The cut-off shortlog also reads like a PCI function-level reset. The patch
-actually sends the firmware XSC_CMD_OP_FUNCTION_RESET command.
-
-Could the subject be joined back into a single line?
-
-> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/main.c b/drivers/net/ethernet/yunsilicon/xsc/pci/main.c
-> index 9b08580f52f38..42c5a1baed23b 100644
-> --- a/drivers/net/ethernet/yunsilicon/xsc/pci/main.c
-> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/main.c
-> @@ -29,6 +29,63 @@ static int xsc_set_dma_caps(struct pci_dev *pdev)
->  	return err;
->  }
->  
-> +static int xsc_cmd_query_hca_cap(struct xsc_core_device *xdev,
-> +				 struct xsc_caps *caps)
-> +{
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/Kconfig b/drivers/net/ethernet/yunsilicon/xsc/net/Kconfig
+> new file mode 100644
+> index 0000000000000..7428b26295b66
+> --- /dev/null
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/net/Kconfig
+> @@ -0,0 +1,17 @@
 
 [ ... ]
 
-> +	xdev->glb_func_id = be32_to_cpu(out->hca_cap.glb_func_id);
-> +
-> +	caps->max_cqes = 1 << out->hca_cap.log_max_cq_sz;
+> +config YUNSILICON_XSC_ETH
+> +	tristate "Yunsilicon XSC ethernet driver"
+> +	depends on YUNSILICON_XSC_PCI
+> +	depends on NET
+> +	select PAGE_POOL
 
 [Severity: Low]
-log_max_cq_sz is a u8 that comes straight from firmware, and nothing
-checks its range. The 1 here is a signed int, so a value of 31 shifts into
-the sign bit, and a value of 32 or more is undefined behaviour.
 
-Later in the series, xsc_eth_build_queue_param() does:
+Should this entry select AUXILIARY_BUS? xsc_eth uses
+module_auxiliary_driver(). xsc_pci now builds adev.o, and xsc_adev_add()
+in that file calls auxiliary_device_init() and auxiliary_device_add().
 
-    min_t(int, XSC_RQCQ_ELE_NUM, xdev->caps.max_cqes)
+AUXILIARY_BUS is a bool with no prompt in drivers/base/Kconfig:
 
-A max_cqes of 0x80000000 would become INT_MIN there and give a negative
-queue size. log_max_qp_depth is also stored unchecked, and the same
-function uses it in BIT(xdev->caps.log_max_qp_depth) for rq_size with no
-upper clamp.
+config AUXILIARY_BUS
+	bool
 
-Would it make sense to use 1U << n (or BIT()) here, and reject or clamp
-out-of-range exponents?
+auxiliary.o is only built under obj-$(CONFIG_AUXILIARY_BUS), and
+include/linux/auxiliary_bus.h has no stubs for the disabled case.
 
-> +	caps->send_ds_num = out->hca_cap.send_seg_num;
-> +	caps->recv_ds_num = out->hca_cap.recv_seg_num;
-> +
-> +	caps->nic_caps = (caps->nic_caps & ~XSC_CAP_MAC_PORT_MASK) |
-> +			 FIELD_PREP(XSC_CAP_MAC_PORT_MASK,
-> +				    out->hca_cap.mac_port & 0xff);
-> +	xdev->mac_port = FIELD_GET(XSC_CAP_MAC_PORT_MASK, caps->nic_caps);
+If nothing else in the config selects AUXILIARY_BUS, won't the link or
+modpost fail with undefined references to __auxiliary_device_add() and
+__auxiliary_driver_register()?
 
-[Severity: Low]
-This isn't a bug, but is the round trip through caps->nic_caps needed?
-Packing mac_port with FIELD_PREP() and then unpacking it with FIELD_GET()
-gives the same result as:
+At the end of the series, neither YUNSILICON_XSC_PCI nor YUNSILICON_XSC_ETH
+selects it.
 
-    xdev->mac_port = out->hca_cap.mac_port;
-
-As far as I can tell, nothing else in the series reads caps->nic_caps. That
-leaves the nic_caps field and XSC_CAP_MAC_PORT_MASK otherwise unused. The
-other capability fields are read by later patches, so this applies only to
-nic_caps.
-
-The & 0xff masks on the u8 fields mac_port and log_max_qp_depth also have
-no effect.
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/main.c b/drivers/net/ethernet/yunsilicon/xsc/net/main.c
+> new file mode 100644
+> index 0000000000000..b9e75d7e14e78
+> --- /dev/null
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/net/main.c
+> @@ -0,0 +1,263 @@
 
 [ ... ]
 
-> @@ -90,6 +147,19 @@ static int xsc_pci_init(struct xsc_core_device *xdev,
->  		goto err_cmd_cleanup;
->  	}
->  
-> +	err = xsc_cmd_query_hca_cap(xdev, &xdev->caps);
-> +	if (err) {
-> +		pci_err(pdev, "failed to query hca caps: err=%d\n", err);
-> +		goto err_cmd_cleanup;
-> +	}
-> +
-> +	err = xsc_reset_function_resource(xdev);
-> +	if (err) {
-> +		pci_err(pdev, "failed to reset function resource: err=%d\n",
-> +			err);
-> +		goto err_cmd_cleanup;
-> +	}
-
-[Severity: High]
-What happens to the device's DMA if one of these commands times out and
-probe takes the err_cmd_cleanup path?
-
-On a timeout, xsc_cmd_invoke() leaves the entry registered, and
-_xsc_cmd_exec() leaves both mailboxes owned by the device:
-
-drivers/net/ethernet/yunsilicon/xsc/pci/cmd.c:xsc_cmd_invoke() {
-    ...
-	if (!wait_for_completion_timeout(&ent->done, timeout)) {
-		cmd->cmd_status = XSC_CMD_STATUS_TIMEDOUT;
-		...
-		/* the entry stays registered for the completion handler */
-		return -ETIMEDOUT;
-	}
-    ...
-}
-
-drivers/net/ethernet/yunsilicon/xsc/pci/cmd.c:_xsc_cmd_exec() {
-    ...
-	err = xsc_cmd_invoke(xdev, inb, outb, &status);
-	if (err == -ETIMEDOUT)
-		/* the command owns both mailboxes now */
-		return err;
-    ...
-}
-
-The device still holds out->next->dma through lay->out_ptr. It also still
-has cq_buf and cmd_buf programmed as DMA targets.
-
-xsc_cmd_cleanup() then stops only the polling kthread. It frees all of
-that memory while bus mastering is still enabled:
-
-drivers/net/ethernet/yunsilicon/xsc/pci/cmd.c:xsc_cmd_cleanup() {
-    ...
-		xsc_free_msg(xdev, cmd->ent_arr[i]->in);
-		xsc_free_msg(xdev, cmd->ent_arr[i]->out);
-    ...
-	dma_free_coherent(&xdev->pdev->dev, PAGE_SIZE, cmd->cq_buf, cmd->cq_dma);
-	dma_free_coherent(&xdev->pdev->dev, PAGE_SIZE, cmd->cmd_buf, cmd->dma);
-	dma_pool_destroy(cmd->pool);
-    ...
-}
-
-pci_clear_master() only runs later, at err_clr_master, after
-pci_iounmap(). If the firmware finishes the timed-out command late, can it
-DMA the response and completion entry into memory that has already gone
-back to the page allocator or the dma_pool?
-
-The comment in xsc_cmd_cleanup() describes a response that "may never
-come", which suggests the driver expects a late response is possible.
-
-This ordering comes from the earlier "net/xsc: add the command queue"
-patch in this series. The xsc_cmd_version_check() error path can already
-reach it, and xsc_pci_fini() also calls xsc_cmd_cleanup() before
-pci_clear_master(). This patch adds two more probe paths into it.
-FUNCTION_RESET is a firmware resource teardown, so it seems likely to run
-long and time out.
-
-Should the device's cmdq be quiesced, or bus mastering cleared, before
-the mailboxes and rings are freed?
-
-[ ... ]
-
-> @@ -29,6 +29,63 @@ static int xsc_set_dma_caps(struct pci_dev *pdev)
->  	return err;
->  }
->  
-> +static int xsc_cmd_query_hca_cap(struct xsc_core_device *xdev,
-> +				 struct xsc_caps *caps)
-> +{
-> +	struct xsc_cmd_query_hca_cap_mbox_out *out;
-> +	struct xsc_cmd_query_hca_cap_mbox_in in;
-> +	int err;
-> +
-> +	out = kzalloc_obj(*out, GFP_KERNEL);
-> +	if (!out)
-> +		return -ENOMEM;
-> +
-> +	memset(&in, 0, sizeof(in));
-> +	in.hdr.opcode = cpu_to_be16(XSC_CMD_OP_QUERY_HCA_CAP);
-> +	in.cpu_num = cpu_to_be16(num_online_cpus());
-> +
-> +	err = xsc_cmd_exec(xdev, &in, sizeof(in), out, sizeof(*out));
-> +	if (err)
-> +		goto err_free;
-> +
-> +	xdev->glb_func_id = be32_to_cpu(out->hca_cap.glb_func_id);
-> +
-> +	caps->max_cqes = 1 << out->hca_cap.log_max_cq_sz;
-> +	caps->send_ds_num = out->hca_cap.send_seg_num;
-> +	caps->recv_ds_num = out->hca_cap.recv_seg_num;
-> +
-> +	caps->nic_caps = (caps->nic_caps & ~XSC_CAP_MAC_PORT_MASK) |
-> +			 FIELD_PREP(XSC_CAP_MAC_PORT_MASK,
-> +				    out->hca_cap.mac_port & 0xff);
-> +	xdev->mac_port = FIELD_GET(XSC_CAP_MAC_PORT_MASK, caps->nic_caps);
-> +
-> +	caps->msix_base = be16_to_cpu(out->hca_cap.msix_base);
-> +	caps->msix_num = be16_to_cpu(out->hca_cap.msix_num);
-> +
-> +	caps->log_max_qp_depth = out->hca_cap.log_max_qp_depth & 0xff;
-> +
-> +	xdev->pcie_no = out->hca_cap.pcie_no;
-> +	xdev->pf_id = out->hca_cap.pf_id;
-> +
-> +	kfree(out);
-> +	return 0;
-> +err_free:
-> +	kfree(out);
-> +	return err;
-> +}
-> +
-> +static int xsc_reset_function_resource(struct xsc_core_device *xdev)
-> +{
-> +	struct xsc_function_reset_mbox_out out;
-> +	struct xsc_function_reset_mbox_in in;
-> +
-> +	memset(&in, 0, sizeof(in));
-> +	in.hdr.opcode = cpu_to_be16(XSC_CMD_OP_FUNCTION_RESET);
-> +	in.glb_func_id = cpu_to_be16(xdev->glb_func_id);
-> +
-> +	return xsc_cmd_exec(xdev, &in, sizeof(in), &out, sizeof(out));
-> +}
-> +
->  static int xsc_pci_init(struct xsc_core_device *xdev,
->  			const struct pci_device_id *id)
->  {
+> +static const struct net_device_ops xsc_netdev_ops = {
+> +	.ndo_open		= xsc_eth_open,
+> +	.ndo_stop		= xsc_eth_close,
+> +};
 
 [Severity: Medium]
-The input mailbox is zeroed by memset(), and only in.hdr.opcode and
-in.cpu_num are filled in, so in.hdr.ver goes to the firmware as 0.
-xsc_cmd.h defines XSC_CMD_QUERY_HCA_CAP_V1 as the hca_cap mbox
-version, but nothing in the driver uses it.
 
-This matters because the function then reads out->hca_cap.pcie_no and
-out->hca_cap.pf_id without any check. Those fields are part of the
-versioned extension of struct xsc_hca_cap, and later in the series
-xsc_core_eth_modify_raw_qp() uses them to set up raw QP port routing.
+The commit message says the netdev "must not be brought up in this state".
+Does anything enforce that?
 
-The firmware might validate hdr.ver, or fill in the extended fields
-only for a V1 request. In that case a version 0 request could fail
-the query and abort probe. It could also leave pcie_no and pf_id at
-zero from the kzalloc. In that second case probe succeeds and the raw
-QPs are set up with the wrong port routing, and nothing is logged.
+xsc_netdev_ops has no ndo_start_xmit. xsc_eth_open() always returns 0, so
+the interface can be brought up once xsc_eth_probe() has called
+register_netdev().
 
-Should this set in.hdr.ver = cpu_to_be16(XSC_CMD_QUERY_HCA_CAP_V1)?
-If the firmware is meant to return the full structure for version 0,
-could the commit message say so, and the unused define be dropped?
+Carrier stays off at this commit, so the qdisc path drops packets. netpoll
+does not check carrier, though:
+
+__netpoll_send_skb()
+    if (!npinfo || !netif_running(dev) || !netif_device_present(dev)) {
+    ...
+    netpoll_start_xmit()
+        netdev_start_xmit()
+            ops->ndo_start_xmit()    <- NULL here
+
+__netpoll_setup() only rejects IFF_DISABLE_NETPOLL devices. Can
+configuring netconsole on this interface end in a NULL function pointer
+call?
+
+Later in the series, "net/xsc: report link state changes" adds
+netif_carrier_on() while xsc_netdev_ops still has no ndo_start_xmit. At
+that commit, a plain "ip link set up" with the link up seems to be enough
+to hit this.
+
+"net/xsc: add the transmit path" adds .ndo_start_xmit = xsc_eth_xmit, so
+the end of the series is fine. The intermediate commits are still
+bisectable, though.
+
+Would a stub ndo_start_xmit that drops the skb work until the transmit
+patch lands? Failing ndo_open with an error would be another option.
+
+[ ... ]
+
+> +static void xsc_eth_l2_addr_init(struct xsc_adapter *adapter)
+> +{
+> +	struct net_device *netdev = adapter->netdev;
+> +	char mac[6] = {0};
+> +	int ret = 0;
+> +
+> +	ret = xsc_eth_get_mac(adapter->xdev, mac);
+
+[Severity: Low]
+
+Is mac[] guaranteed to be u16 aligned here?
+
+xsc_eth_get_mac() fills it with ether_addr_copy(mac, out->mac). It is then
+passed to is_valid_ether_addr(), which calls is_zero_ether_addr().
+include/linux/etherdevice.h documents that both need u16 alignment:
+
+ * Please note: dst & src must both be aligned to u16.
+
+A char[6] on the stack is only 1-byte aligned. Without
+CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS, could these become unaligned u16
+accesses?
+
+Would u8 mac[ETH_ALEN] __aligned(2), with xsc_eth_get_mac() taking a u8 *,
+avoid this? The code is unchanged at the end of the series.
+
+[ ... ]
+
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_wq.h b/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_wq.h
+> new file mode 100644
+> index 0000000000000..35206ddf42f46
+> --- /dev/null
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_wq.h
+> @@ -0,0 +1,150 @@
+
+[ ... ]
+
+> +u32 xsc_wq_cyc_get_size(struct xsc_wq_cyc *wq);
+> +
+> +int xsc_eth_cqwq_create(struct xsc_core_device *xdev,
+> +			struct xsc_wq_param *param,
+> +			u8 q_log_size,
+> +			u8 ele_log_size,
+> +			struct xsc_cqwq *wq,
+> +			struct xsc_wq_ctrl *wq_ctrl);
+> +
+> +int xsc_eth_wq_cyc_create(struct xsc_core_device *xdev,
+> +			  struct xsc_wq_param *param,
+> +			  u8 q_log_size,
+> +			  u8 ele_log_size,
+> +			  struct xsc_wq_cyc *wq,
+> +			  struct xsc_wq_ctrl *wq_ctrl);
+> +void xsc_eth_wq_destroy(struct xsc_wq_ctrl *wq_ctrl);
+
+[Severity: Low]
+
+This isn't a bug, but these prototypes have no definitions at this commit.
+The net Makefile only builds main.o:
+
+xsc_eth-y := main.o
+
+Several other items are also unused here:
+
+  xsc_queue.h
+  the queue parameter structs
+  the CQE/WQE layouts
+  XSC_INVALID_LKEY and XSC_QUEUE_TYPE_RAW*
+  adapter->channel
+  select PAGE_POOL
+
+Nothing calls these functions, so this commit builds and links. Later in
+the series, "net/xsc: add the single TX/RX channel" adds xsc_eth_wq.c, and
+the transmit and receive patches use the rest.
+
+Could these definitions move into the patches that first use them?
+
+[ ... ]
+
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/adev.c b/drivers/net/ethernet/yunsilicon/xsc/pci/adev.c
+> new file mode 100644
+> index 0000000000000..3376ed10ba6ca
+> --- /dev/null
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/adev.c
+> @@ -0,0 +1,133 @@
+
+[ ... ]
+
+> +static void xsc_adev_del(struct xsc_core_device *xdev, int idx)
+> +{
+
+[ ... ]
+
+> +	/* Clear the slot before teardown: the driver's remove callback runs
+> +	 * synchronously inside auxiliary_device_delete() and may re-enter
+> +	 * xsc_adev_add() for this index.
+> +	 */
+> +	xdev->xsc_adev_list[idx] = NULL;
+
+[Severity: Low]
+
+Is this comment accurate? xsc_adev_add() is static, and its only caller is
+xsc_adev_init(). xsc_adev_init() is only called from xsc_pci_init().
+
+xsc_eth_remove() never calls back into the PCI layer. It doesn't look like
+the remove callback can re-enter xsc_adev_add(). The comment is unchanged
+at the end of the series.
+
+A couple of other descriptions don't seem to match the code at this commit
+either. xsc_eth_remove() has:
+
+	/* Runs ndo_stop(), so the queues and the HCA are shut down first. */
+
+xsc_eth_close() only clears adapter->opened, turns the carrier off and
+sends XSC_PORT_DOWN. Queue and HCA teardown only arrive in later patches.
+
+The commit message says:
+
+  create the device, program the MAC address and MTU
+
+xsc_eth_l2_addr_init() only queries the MAC with XSC_CMD_OP_QUERY_ETH_MAC
+and calls eth_hw_addr_set(). Nothing is written to the device.
+
+The commit message also doesn't mention that ndo_open sets the port admin
+status to up.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261126145711.70868-1-tianx%40yunsilicon.com
