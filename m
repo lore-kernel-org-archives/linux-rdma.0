@@ -1,70 +1,128 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=144.76.82.148
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.177
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795782623;
-	b=PRr+rlIZoJDCFFMXnisXyBe6i2fXPTVxN4Vs/iai6QGhk9TTCZxrGifAtzGAZqNSzREi
-	 73o2GzE6OIZkP9saDVfFLeYuzON27Vni40GPIT/y5l3Hv5Veiiy7V9rXs7QzYO00Y+Zku
-	 ISVF9CdD8evcJwjuDQwB1JgZpy0Fty0LRB7O4k8k4FwMJhbzxM38smViOVN5WvihH3u7T
-	 vJtuXnv8zwerg9svdh4uCEZ7CVD9APwWMVg7o/p6MGbIyr9rpzW2BmfHjObrDWC2wcm5u
-	 bNwkIhsbiKO2sfOAJmFj5Piiz82XGtiPkQr4UuqACVJ7kbWzryvUew2V/BTh4Ff5ksg==
+	t=1795784277;
+	b=W0h2b4CzjjpiYzQs/qI4eWRzkCS3uB3zjwM6PwG0H9C59vliT9enJewI7ILn6N6XJYeP
+	 Qa4P+de7yZYfx4JCXzG13QsckhoF2Vj1htTXrPN1K8wgsAaWfFOVmV1Jlfva3i1r+Xqc4
+	 Rt4m9//F3kE0uCuTYzFmFp2Qer/awXa7hn9u4B8TwMc2dgCXH86NIilQ1qQjM8eKsc7fQ
+	 tiV0n0FZ+sxIdAmd8IP7ewftXjP+Gb6uoN1iQ0gKwZwGtHJf63SAHs+/3WDpj3TAQKI3L
+	 SCtagwXZKvQOzjtffFADsnl2kl6u/SaVl2cIHdEq5vy42lGchb12lfEA4LxQz7BOsBg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795782623;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=Px6oQu/+YXlBGjcwOwuY9O/TtoFIV63D/vvY74zG5uQ=;
-	b=N3xIvkuHXlID0fugsNTPLXGI4LJrVCUo4lGN33DwVANnTfZL6OnXgy7xco62wPDVpCZm
-	 gIV/d3QUKEkWGozAqJor53jz6e3ZUSusCeSmri8hmUNwMssomFdXBMOjCBo11MBzQvhwa
-	 ZSw6hdBQurqRFghiZkY0qP/StX2zo+V+Agjy/GguKbebcNmlGH4UR4h1mReCwg9Sk8pwy
-	 FDhQLI0hTkyJVKQi4qasv+D7BsNFljMneI+7jW047SkJ4DnXes0gLSd4xK3SaY+tUUItn
-	 P1B78IaB43TKVPjXgAVyDi/YBtHtv6aPn0SMj3u+ycBdup5uSVzL3ozrKwlopkJKiKQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795784277;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:Content-Transfer-Encoding:
+	 In-Reply-To;
+	bh=hpgxxji67KrMZBTg6jUjcNbfY5cNwEwJL3jB25wL4Zo=;
+	b=p9xWNRp5lI72pf4LkTw02S7Je84M3j8XGuMoFKdCyz6uQhqNKVzcNJYeb+VgDzXADNBf
+	 z1KVbtnjwfJEvttUl5JE5ne7I9AKgK9H1JpAEc3DVJeEw20+1aQc31GQ/svKNv4EfOs90
+	 4AJXq2hz29zFgc8gM4SPcPlsQDP8BsPz3XrGC89JlanhNhMA2luQ3u5FhS+2iLiYsz2rK
+	 OWfHO8s+QkByMxEsi/ev9LbVvpnHl29J8HCUEdXwydrhLIdq6cjYHKHYM1M8ah60nw+HH
+	 ijr55F8aAgdR01BcrWtAVdVTGJIxRwcfSttolYIV8UlzTMobe71KT0R+IQ4XWB/76YQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=samba.org;
-	spf=pass smtp.mailfrom=samba.org;
-	dkim=pass header.d=samba.org header.i=@samba.org header.a=rsa-sha256 header.s=42 header.b=n7uH0j5I;
-	arc=none smtp.remote-ip=144.76.82.148
-Received: from hr2.samba.org (hr2.samba.org [144.76.82.148])
-	(using TLSv1.3 with cipher TLS_CHACHA20_POLY1305_SHA256 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=none header.from=ziepe.ca;
+	spf=pass smtp.mailfrom=ziepe.ca;
+	arc=none smtp.remote-ip=209.85.160.177
+Received: from mail-qt1-f177.google.com (mail-qt1-f177.google.com [209.85.160.177])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3474606A31C;
-	Fri, 27 Nov 2026 12:30:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B3474606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=samba.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samba.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (3072-bit key) header.d=samba.org header.i=@samba.org header.a=rsa-sha256 header.s=42 header.b=n7uH0j5I
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=samba.org;
-	s=42; h=Message-ID:Date:Cc:To:From;
-	bh=Px6oQu/+YXlBGjcwOwuY9O/TtoFIV63D/vvY74zG5uQ=; b=n7uH0j5ITV6/SZXCJDshZKCear
-	EG1RoS2NtERssbshOPzWMiJ7ALLAHvgbN3VRwgnCbPiaHoAfcQqRJsytzD+UiDQ+qR4IWxoFk7Oq2
-	SGDT2248fG8gz1IErDEYFefz6yoppPePl+pCiAks8am56bDy9uzBBCWqNz5K2vg+Pm71XW7uKoxWg
-	qa8BdAC/DQ5ry9LviYKl1z9IUJYw4rYgtE75xeu1YIZ7+HmSRRA7lMGU0l2W1mYDCC/hBDAB26c+b
-	AYXKsjHDtVAFH89DdCZtU3luaT4rj9qofGmHPeQVsOiomK7nKVDMd7YScHLxsx92Su7ku88ZcZvyw
-	vtsKWMtGjMTLE2B6pCBOdJ8HTMjwEk5Xz2lHsdnh0VBgyh8fFeqtCx4iQEqWXbIUK6cXiz2S7tOv9
-	mgLXckngTjPWG4AEFNsdRbF6W0nz+//J8f9G+a5zoTg6yrbpSsm2afuRxJDlxK29GEM06Jet8zCeT
-	gG49LAJVL3cnqoAquBMulvZt;
-Received: from [127.0.0.2] (localhost [127.0.0.1])
-	by hr2.samba.org with esmtpsa (TLS1.3:ECDHE_SECP256R1__ECDSA_SECP256R1_SHA256__CHACHA20_POLY1305:256)
-	(Exim)
-	id 1xWv5m-00000001Lho-387A;
-	Fri, 27 Nov 2026 12:30:18 +0000
-From: Stefan Metzmacher <metze@samba.org>
-To: linux-cifs@vger.kernel.org,
-	samba-technical@lists.samba.org
-Cc: metze@samba.org,
-	stable@vger.kernel.org,
-	Namjae Jeon <linkinjeon@kernel.org>,
-	Paulo Alcantara <pc@manguebit.org>,
-	Tom Talpey <tom@talpey.com>,
-	Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
-	Jacob Moroni <jmoroni@google.com>,
-	linux-rdma@vger.kernel.org
-Subject: [PATCH 10/10] smb: smbdirect: don't expose DMA addresses as iova of our MRs
-Date: Fri, 27 Nov 2026 13:29:07 +0100
-Message-ID: <98fe98df62a28f8842f5ed2bf0e375e5ada6bea7.1795781300.git.metze@samba.org>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <cover.1795781300.git.metze@samba.org>
-References: <cover.1795781300.git.metze@samba.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D90F2606A323
+	for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 12:57:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D90F2606A323
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+Received: by mail-qt1-f177.google.com with SMTP id d75a77b69052e-5363316fa0cso83569011cf.3
+        for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 04:57:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1795784275; x=1796389075; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=hpgxxji67KrMZBTg6jUjcNbfY5cNwEwJL3jB25wL4Zo=;
+        b=j7O+BfN8/f6PwjasmxVhCBoceSC0sabwtMYxOvl/V+So2Mtlli7upfWXQOxdcMdwlP
+         kdbWoj9wMH2VLhhxx9/W4qCwnXSv4SqCJA4dPFpucC+JLWjduqow4FxZ+HWokuT7I32r
+         ZWkzzsm9oj4IR+X9hFXovpTueZ77GXxtTqpSEnUit2eZjN+4tGNr/uSL7JrpEgDwlfsZ
+         gb6ILQTqqyaZeZUvLD8uZG2VKKCPgLdNfX2MOIWU/36VOy9usYwIOe5sNoISKHnEYyvA
+         l0mQ01iQ4VywPJOhfdj9Spm6TD5MFnNoXSCtVssrDxM7oa6Cq3wIYpgkEkUlt2jLsmWD
+         VJ/A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795784276; x=1796389076;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=hpgxxji67KrMZBTg6jUjcNbfY5cNwEwJL3jB25wL4Zo=;
+        b=p3Bu8VOwwzhmD7UChZ83Npkh6OQnLs+3LXo/9lyQmLCPf1t9xdwQ5ts/hxnmzQGQBG
+         /wkD9fSHusDBaMd5xZZnDcAX2jzTG7lVkWfBt5fzGN/2TJX5eFF+Akhyj6AxAjCK93Fk
+         +xtdkIMGfL6ad3TYIpnqtoa0n976HkGlKYI8BbhUzla4hFftgy3UxTgTULujbNiHHZcO
+         2L2tD8hIXKrWgYN3Teb5dxgnf9uZl952Zl7hMcv3N2MVre5ZHJPC5enyfUeKxW6fPtaP
+         8/nuTEfRKnO53WFGij8+I/z59ViGDW325gooQFTytyhIr+w2hbg2h3vyH35tIcYFgKbA
+         //yA==
+X-Forwarded-Encrypted: i=1; AL+hErGAfu2E5wShwLfwqTje0Vcncn7Wz5p9hXqFcLwlMBxssD+PFUOA5akky8xUANxsV8w3vGHxb60JWpDJ@vger.kernel.org
+X-Gm-Message-State: APuU4Z+jCiP7uxmFqZ8bzM/4Q53guta7tBJYA6uPV0kNQ6ukPP6RndDw
+	eKm1lRLlZXsdXN5QIzts8hRfEgqW8aKEJkMFK/y9h0ReABRDTPpPF7SAK6ucQPtV5MA=
+X-Gm-Gg: AZFdTZdy9dokEB3oTUbdlWhY8wyo3EotzbZaRvBWPFI4Bm1w7wAooHWV39ogHn3vWoZ
+	7zv+O7iqt9RmZz3LIhuWv2F0NVGatJinaK2x4vsBXmhD/RpvPJTovMRraFlbWiXGJ/lIY1CUxjU
+	CbZnKUn7qd3j/NqcnQ6KwNIn3T4lprKY5DQPZ3se2mOkxElrEVoymLfCfL3cn8eBfxyDISo724z
+	ICv9YrGSqGbn/q6bVoqLyzrRpOJUTm6dHcwk2MMIPVpQ7mpGvcuwxWbC61vsQ4/feldKBZclRNZ
+	eDjosDAtx0BM8lzri75XJPbYD+tML0IUE0wWGaa6lHTO/e2lNeRmMGPAspnofNpfxbbLBwf1vWv
+	VMKi5DWsKcasSUgZCrix+WPLIzcHlywwAVfzPHzbgE1gq6T9bc5fAN9wt05KqjPL+RBf8TTYfZe
+	tQj5OQzgiJa6CYCbP6H3eo5giArUrNXl0ldG0xpJfpq7ibEC0dTW/MkTjjd0nymApZo2ERHD4Rp
+	NmFqA29Vw6QTJVGDhk7GywRbJSk34hTFrdnoaUZv/uKxztnSr035id84dUVghCmE7FuOxtghDy7
+	5gqINQ==
+X-Received: by 2002:a05:622a:48d:b0:55d:3689:913 with SMTP id d75a77b69052e-55d76aad14fmr455567241cf.77.1795784275571;
+        Fri, 27 Nov 2026 04:57:55 -0800 (PST)
+Received: from ziepe.ca ([142.177.118.84])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-55dbeae112bsm55627651cf.8.2026.11.27.04.57.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 27 Nov 2026 04:57:55 -0800 (PST)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1xWvWT-00000006hYF-3LIW;
+	Fri, 27 Nov 2026 08:57:53 -0400
+Date: Fri, 27 Nov 2026 08:57:53 -0400
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>
+Cc: Dave Airlie <airlied@gmail.com>, Alistair Popple <apopple@nvidia.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
+	Simona Vetter <simona.vetter@ffwll.ch>,
+	Matthew Brost <matthew.brost@intel.com>,
+	Vivek Kasireddy <vivek.kasireddy@intel.com>,
+	Dongwon Kim <dongwon.kim@intel.com>,
+	Kevin Tian <kevin.tian@intel.com>,
+	Xu Yilun <yilun.xu@linux.intel.com>,
+	Karl Mehltretter <kmehltretter@gmail.com>,
+	Baolu Lu <baolu.lu@linux.intel.com>,
+	Felix Kuehling <felix.kuehling@amd.com>,
+	Alex Deucher <alexander.deucher@amd.com>,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	intel-xe@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	linux-rdma@vger.kernel.org, iommu@lists.linux.dev,
+	Keith Busch <kbusch@kernel.org>, Jens Axboe <axboe@kernel.dk>,
+	Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>,
+	linux-nvme@lists.infradead.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Mina Almasry <almasrymina@google.com>, netdev@vger.kernel.org,
+	Alexey Kardashevskiy <aik@amd.com>, zhipingz@meta.com,
+	treding@nvidia.com, jhubbard@nvidia.com, chaitanyak@nvidia.com,
+	Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v3 03/24] dma-buf: Add the SGT DMA mapping type
+Message-ID: <20261127125753.GS246011@ziepe.ca>
+References: <20261120-dma_mapping_type_v4-v3-0-c0183a409bdf@nvidia.com>
+ <20261120-dma_mapping_type_v4-v3-3-c0183a409bdf@nvidia.com>
+ <ad46d60a-189d-4dd5-9ad8-ecfd3c90f9d9@amd.com>
+ <20261123165716.GM179082@ziepe.ca>
+ <7ac7edd0-5c38-440a-b26a-21bcbb6f4702@amd.com>
+ <awT8prWsj11TBdmP@nvdebian.thelocal>
+ <63eb7b6e-e0a8-4443-a434-0301ed59beae@amd.com>
+ <CAPM=9txheaE3=fp7=n4fYh-xshxOm+Tv=eQn9wvHVAc-b1JKDQ@mail.gmail.com>
+ <79d62f9a-cea8-4149-a673-7ef86942410d@amd.com>
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -74,99 +132,72 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <79d62f9a-cea8-4149-a673-7ef86942410d@amd.com>
 
-ib_map_mr_sg() uses the DMA address of the first page as iova of the
-MR and smbdirect sends that iova to the peer as offset of the buffer
-descriptor, so the peer learns our DMA addresses, without an IOMMU
-these are the physical addresses of the buffers.
+On Fri, Nov 27, 2026 at 09:04:15AM +0100, Christian König wrote:
 
-The peer just uses the offset as base address of its RDMA READs and
-WRITEs, so the value is up to us, the hardware only needs the offset
-within the first page in the low bits of the iova. So keep these bits,
-leave the rest of the low 24 bits zero (more for a page size above
-16 MiB), so that the addresses the peer uses show the position within
-the MR in traces, and put random bits above them up to bit 55, which
-also makes it harder to reuse an old offset with a token whose key
-wrapped around.
+> If we somehow prevent the CPU physical address from being casted to
+> a struct page and/or used with vmf_insert_pfn/page/dma_map_page
+> etc.. then there is not much of a problem with passing around
+> physical addresses.
 
-The top byte is always 0, so iova + length stays far below 2^64 even
-for a length of U32_MAX. This also avoids a problem with irdma: with
-an IOMMU that allocates IOVAs top-down, the first 64-bit IOVA range of
-a device ends exactly at 2^64. If that is the buffer of an MR,
-iova + length is 0 and irdma rejects the RDMA READ of the peer with
-IRDMA_AE_AMP_TO_WRAP (ae_id 0x10a), even if the last byte of the MR is
-at 2^64 - 1, so the connection is torn down.
+I already offered that in v1 of the series using limits on
+EXPORT_SYMBOL and you NAK'd it too.
 
-Fixes: c7398583340a ("CIFS: SMBD: Implement RDMA memory registration")
-Cc: stable@vger.kernel.org
-Cc: Namjae Jeon <linkinjeon@kernel.org>
-Cc: Paulo Alcantara <pc@manguebit.org>
-Cc: Tom Talpey <tom@talpey.com>
-Cc: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
-Cc: Jacob Moroni <jmoroni@google.com>
-Cc: linux-cifs@vger.kernel.org
-Cc: samba-technical@lists.samba.org
-Cc: linux-rdma@vger.kernel.org
-Signed-off-by: Stefan Metzmacher <metze@samba.org>
----
- fs/smb/smbdirect/mr.c | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+> > If we need to shared object backings and have clearly typed and
+> > negotiated on what the backing contains then we should allow it.
+> > However I mostly agree on the mapping thing, I'd want drivers to
+> > negotiate and natively support whatever backings they can rather than
+> > having an intermediate trying to handle the conversions Not saying the
+> 
+> Yes, exactly that's my concern as well. We need to avoid this middle
+> layer trap.
 
-diff --git a/fs/smb/smbdirect/mr.c b/fs/smb/smbdirect/mr.c
-index 70fc4a2fc7a8..03d3b2fb3f97 100644
---- a/fs/smb/smbdirect/mr.c
-+++ b/fs/smb/smbdirect/mr.c
-@@ -5,6 +5,7 @@
-  */
- 
- #include "internal.h"
-+#include <linux/random.h>
- 
- /*
-  * Allocate MRs used for RDMA read/write
-@@ -300,6 +301,8 @@ smbdirect_connection_register_mr_io(struct smbdirect_socket *sc,
- 	struct smbdirect_mr_io *mr;
- 	int ret, num_pages, num_mapped;
- 	struct ib_reg_wr *reg_wr;
-+	u64 random_bits, page_offset;
-+	unsigned int shift;
- 	unsigned long flags;
- 
- 	num_pages = iov_iter_npages(iter, sp->max_frmr_depth + 1);
-@@ -373,6 +376,32 @@ smbdirect_connection_register_mr_io(struct smbdirect_socket *sc,
- 		goto map_mr_error;
- 	}
- 
-+	/*
-+	 * ib_map_mr_sg() uses the DMA address of the first page as
-+	 * iova, which goes to the peer as offset of the buffer
-+	 * descriptor. Don't expose DMA addresses (without an IOMMU
-+	 * physical addresses) to the peer, the hardware only needs
-+	 * the offset within the first page in the low bits, all
-+	 * other bits are up to us.
-+	 *
-+	 * The low 24 bits (or more for a page size above 16 MiB) are
-+	 * only that page offset, so in traces they show the position
-+	 * within the MR plus that offset (an SMB3 READ/WRITE is at
-+	 * most 16 MiB). The bits above up to bit 55 are random, which
-+	 * makes it harder to reuse an old offset with a token whose
-+	 * key wrapped around.
-+	 *
-+	 * The top byte is always 0, so iova + length stays far below
-+	 * 2^64 even for a length of U32_MAX. irdma rejects the access
-+	 * to an MR ending exactly at 2^64 with IRDMA_AE_AMP_TO_WRAP,
-+	 * which happened with an IOMMU that allocates the first
-+	 * 64-bit IOVA range at the very top.
-+	 */
-+	shift = max_t(unsigned int, 24, ilog2(mr->mr->page_size));
-+	random_bits = ((u64)get_random_u32() << shift) & GENMASK_ULL(55, 24);
-+	page_offset = mr->mr->iova & (mr->mr->page_size - 1);
-+	mr->mr->iova = random_bits | page_offset;
-+
- 	ib_update_fast_reg_key(mr->mr, ib_inc_rkey(mr->mr->rkey));
- 	if (mr->mr->rkey == mr->base_tag)
- 		ib_update_fast_reg_key(mr->mr, ib_inc_rkey(mr->mr->rkey));
--- 
-2.43.0
+You avoid middle layers by having reasonable subsystem helpers for
+things to use to build their stuff, especially to encapsulate common
+patterns. These helpers are part of the subsystem, or in a related
+subysstem helper library.
 
+In Linux terms middle layer almost always means something wrapping a
+function pointer callback into a driver and enforcing specific actions
+on top of that. The recommended counter is to have the driver perform
+the actions with helpers and not wrapper the ops. It particularly came
+from the block world where they stuck something like SCSI after the
+block ops but before the driver.
+
+It is hard to see that DMABUF is anywhere close to a middle layer.
+
+This is also why we don't understand your remarks about
+dma_buf_phys_vec_to_sgt(). Of course it belongs in dmabuf, it produces
+the dmabuf spec'd mangled scatterlist that only dmabuf uses. Where
+else would you put this code?
+
+> > code doing the conversions can't be a helper, bit it shouldn't ever be
+> > autoamtic or outside driver control.
+
+I think you do want it automatic, if an exporter is new and makes,
+say, a dma_addr_t[] and the importer is old and wants a sgt, why
+should we be open coding anything in every driver to deal with this?
+
+You can argue if it is automatic because the driver called a very
+general helper or automatic because the helper is wrapping a callback,
+but that should be a fairly minor quibble not a huge thread full of
+NAKs.
+
+Ultimately DMABUF has a fairly simple flow:
+ 1) Allow importer/exporter to negotiate what kind of interconnect
+    they want to use (PCI, ualink, etc)
+ 2) Give the exporter enough information about the interconect path to
+    make a placement decision
+ 3) Describe the exporter's buffer so any mappings/translation/etc can
+    be setup for the importer
+ 4) Program the importers HW.
+
+Many of these have very common patterns, like PCI GPUs always make the
+same kind of VRAM placement decision in #2 based on P2P support. This
+should all be in helpers under the dmabuf umbrella and not open coded.
+
+Jason
