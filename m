@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795791491;
-	b=E8kSNenHe1m/SNqjTTfohrBo5ZWngkOwXrwu5dZR7MqH58C5fUP00GP9FzNleL3wJocT
-	 WvYqZ8hbz0UlmVSjEcEO87UKYCyTERglIMuBEz98UxUaffVQt0jQdI3glgnYqTtd0WoMD
-	 nwTn/TkNo3vkRcIM/ZkD3kT3psW2NtN9hvfRFsIk+TwxvU36fLLhAkB3ryhV4jOdEd1eU
-	 6Cj7oDVqiph4gHzOzvNJnLlEJCt4jAN4lrMvZRmIeg+DRKaKqS3dufYvGu4NgjMEzEk/V
-	 Gp1S6eePOVmfR5AgdK+Ef6bmvDOGxpEqMdF0gomJ3K46NPz2yWjLztWpvNP7h220+Wg==
+	t=1795791493;
+	b=dGQuQu5E00cXHLEdwKEq7adh5pdYKkf1ZXGDTcIxoa3AZl3c5GQRIoPRzE70WoAcDbWM
+	 2RkFVIUWXM+lPDaVyq+/KnMEJS7r8/PfIU+HS0KHv6SO/+MXw0+WHye2S0aA2ulZeg79+
+	 keoZ0EnIoZix7G4uxPyr7sB9ieIlLTZ8JBL77K9B3Uuatqe5vrnaqIzpAhx5CRQ5PRInY
+	 v9rcaMEGzg5KbiNFIbS1n4yqf+uywCn5IwYcfq0F0xvoFidYGgwYkq/+o0whrvcadfqbL
+	 4syw22kTTUn80NXOAJDcGqu7texGAtjeWBjR4cniw5mWNaFa1275etDLcPrZSxg2VFQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795791491;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795791493;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=PzCwcsdujtzXaGsZkDusvoM2GFrPvOTFYYksQXR49Mw=;
-	b=uyQpwVxeV2Bc/vPUuHhzm+Tvs4RrV8QJJzEIN0oiyowkX1wfKXjLBE3Am7Ff1X4NjGr3
-	 4iy7LofK0fj6YpiboAjlPfvMfDZIKazGyUOeVyYpbAKn4UoUnNnE3pH75mJX1rSxyoA6L
-	 2n5sc3DI3H4HXWK+ppZhjIlAtF6f5cuayhvtfwu8bKVNWa+70mwgEQDYZqokuDMysrU6E
-	 wWXy/Kf5vgAS6x5WfIC38jefJjN1lajsxB7CqdJhjEa3rg8Qfg9V00LEndcb7ghL0v6rK
-	 9KwogZ/WtckHdMiuqK4v35EPpWCnaJyfu/s/4YFfWItdJvF3DwCpktN2ALwL8PbkKzw==
+	bh=U1pS98C1MYYaPn+zo1XszYOPAQGN7aWYQw4m45Wj/A4=;
+	b=fj2LMys9ZV4lNMixBP6CJDPppXeX7zKJ93HXSvdLUe4idj9BjMFGpCuh8LfKcfURzuHE
+	 LolpL1C5oiXygmVI4oxkKLELVc2OfKgOMday4/JMuMzZZvYBcPe4GuFbeURpnSfpHMZvS
+	 ZkVkRkr44B6mnLfamh+2wDm0sMU3XJ/Ia7CvZ8Qb6XFhoBCnXBLUloQ95kyndjV2jMOgc
+	 Ws6wpDmPz6oMIfKktyggqmMTTaUKskZgrSCUBtNtWuPx7+lm7IQy2uc3u8zuD/AvYURVQ
+	 5w8sJF0GMOMU5lTO3Zjw/AK6JFsUD15CJP+zWKhxIuUHcvmmnaB/qtSAXYhMkCeR/hg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="QT70/cQM";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OuogaF2f;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FD34606A31C
-	for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 14:58:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D94EC606A31F
+	for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 14:58:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QT70/cQM
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 388BF1F00897;
-	Fri, 27 Nov 2026 14:58:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OuogaF2f
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB3941F00897;
+	Fri, 27 Nov 2026 14:58:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795791491;
-	bh=PzCwcsdujtzXaGsZkDusvoM2GFrPvOTFYYksQXR49Mw=;
+	s=k20260515; t=1795791493;
+	bh=U1pS98C1MYYaPn+zo1XszYOPAQGN7aWYQw4m45Wj/A4=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=QT70/cQMs5f9zKaSZdqGe+bssxLG1NGxEslU0syiYNz6hwFR2DdQ+MB4iQR3rmBOP
-	 TCWRqKVGk+bnI8JOHJc/Hy/1KVAq55q4XdTQrsSflVwk7cONfJCEDqHDIqC0zXE1a/
-	 a4e+eduWexOsIqQV4CCusUBMY1UFVxTyf9CpfYcrMmhulpF4AqyQHmrGt6TLiJiC5N
-	 cf24enLpsVOmCZlXZvFKAzpYzi1F5uXmlDZ89lKjqLKpxVVPCp5k+iswyz8uJ7vc5V
-	 olrk2zRRo1sha+ZKGnMDyrmBay1W99IBBxcGf+KyzLhO+oUCwhjfK2LZ7yvJlbsGAf
-	 l1QtS4JpLpbwg==
-Message-ID: <sashiko-outbox-237641@kernel.org>
+	b=OuogaF2fqaFC2N8JGxBaVai7VIEGrfjC8v2emwX0seLk6RX+U+Bj5CcPejHR8qL4F
+	 i6fH6rmYmi/t/6yOvaJJTMmY2eI26Gt/uPrPELexKCeEdyCXaHd+G4d8lSgQBwaVtu
+	 4+vn6kFKGrwP95ik4hbDFNKtGkIx2xkUcioXXzOxdFkyFX+LtCP4An3sryB15K659A
+	 02FxLMa1cfMbSUVKsArRot0U6pV9gyQ4zkZXpFtNiwawzf2bsIVO4iIbICwGdxwk/E
+	 E2eH/3Dp2eXSI/Iu6mnLlwZKkd59KtkSWItFv+U4iS7CGC3vyL09U6cX11YyQuwHOT
+	 xFZYhh6odCidQ==
+Message-ID: <sashiko-outbox-237642@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2 08/11] net/xsc: add the single TX/RX channel
+Subject: Re: [PATCH v2 09/11] net/xsc: report link state changes
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Xin Tian" <tianx@yunsilicon.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261126145733.70868-9-tianx@yunsilicon.com>
+In-Reply-To: <20261126145736.70868-10-tianx@yunsilicon.com>
 References: <20261126145711.70868-1-tianx@yunsilicon.com>
- <20261126145733.70868-9-tianx@yunsilicon.com>
+ <20261126145736.70868-10-tianx@yunsilicon.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 27 Nov 2026 14:58:10 +0000
+Date: Fri, 27 Nov 2026 14:58:11 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,237 +60,157 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 5 potential
-issues to consider:
-- [Medium] net/xsc: return -ENOMEM on di alloc failure in
-  xsc_eth_alloc_rq()
-- [Medium] net/xsc: disable NIC HCA and port before queue teardown in
-  xsc_eth_close()
-- [Medium] net/xsc: WQ DMA buffers freed on xsc_core_eth_destroy_qp()
-  rollback failure
-- [Medium] net/xsc: unsafe CQ teardown and memset on failure in
-  xsc_eth_close_channel()
-- [Medium] net/xsc: unsynchronized set_dev_node() in
-  xsc_dma_zalloc_coherent_node()
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue to consider:
+- [Medium] net/xsc: unsynchronized carrier updates in
+  xsc_eth_link_event_handler()
 --
 
-commit 72a1cf783f0fa5afa01bbb9581c2a8a19828e758
+commit e468bd52287d3b4539c22501cb440d036af1c666
 Author: Xin Tian <tianx@yunsilicon.com>
 
-net/xsc: add the single TX/RX channel
+net/xsc: report link state changes
 
-This commit brings up a single TX/RX channel on the netdev by building queue
-parameters, creating the CQs, SQ, and RQ, enabling the NIC HCA, and adding
-the queue ring and fragmented DMA buffer helpers.
+This commit queries virtual port state to update the netdev carrier and
+registers an event handler for PCI link state change notifications.
 
 > diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/main.c b/drivers/net=
 /ethernet/yunsilicon/xsc/net/main.c
-> index b9e75d7e14e78..1c7bbc27d8c4f 100644
+> index 1c7bbc27d8c4f..75a6abd6ed136 100644
 > --- a/drivers/net/ethernet/yunsilicon/xsc/net/main.c
 > +++ b/drivers/net/ethernet/yunsilicon/xsc/net/main.c
-> @@ -25,6 +25,774 @@ static void xsc_eth_netdev_init(struct xsc_adapter *a=
-dapter)
-
-[ ... ]
-
-> +static int xsc_eth_open_qp_sq(struct xsc_channel *c,
-> +			      struct xsc_sq *psq,
-> +			      struct xsc_sq_param *psq_param)
+> @@ -721,6 +721,62 @@ static void xsc_eth_sw_deinit(struct xsc_adapter *ad=
+apter)
+>  	xsc_eth_close_channels(adapter);
+>  }
+> =20
+> +static int xsc_eth_get_link_status(struct xsc_adapter *adapter, bool *li=
+nk_up)
 > +{
-
-[ ... ]
-
-> +err_sq_modify_in_destroy:
-> +	kvfree(modify_in);
+> +	struct xsc_core_device *xdev =3D adapter->xdev;
+> +	u8 state;
+> +	int err;
 > +
-> +err_sq_common_destroy:
-> +	xsc_free_qp_sq_db(psq);
+> +	err =3D xsc_core_query_vport_state(xdev, 0, &state);
+> +	if (err)
+> +		return err;
 > +
-> +	xsc_core_destroy_resource_common(xdev, &psq->cqp);
-> +
-> +err_sq_destroy:
-> +	xsc_core_eth_destroy_qp(xdev, psq->cqp.qpn);
-> +
-> +err_sq_in_destroy:
-> +	kvfree(in);
-> +
-> +err_sq_wq_destroy:
-> +	xsc_eth_wq_destroy(&psq->wq_ctrl);
-> +	return ret;
+> +	*link_up =3D state;
+> +	return 0;
 > +}
-
-[Severity: Medium]
-Can this free psq->wq_ctrl while the SQ is still live in firmware if
-xsc_core_eth_destroy_qp() fails during error rollback?  Unlike
-xsc_eth_close_qp_sq() and xsc_eth_close_qp_rq(), which leak the WQ buffer
-when DESTROY_QP fails so the device cannot DMA into freed pages,
-err_sq_destroy here and err_destroy_qp in xsc_eth_open_qp_rq() ignore the
-return value of xsc_core_eth_destroy_qp() and unconditionally free the WQ
-DMA buffers (and prq->page_pool in the RQ case).
-
-[ ... ]
-
-> +static int xsc_eth_alloc_rq(struct xsc_channel *c,
-> +			    struct xsc_rq *prq,
-> +			    struct xsc_rq_param *prq_param)
+> +
+> +static int xsc_eth_change_link_status(struct xsc_adapter *adapter)
 > +{
-> +	u8 ele_log_size =3D prq_param->rq_attr.ele_log_size;
-> +	struct page_pool_params pagepool_params =3D {0};
-> +	u8 q_log_size =3D prq_param->rq_attr.q_log_size;
-> +	u32 wq_sz;
-> +	int ret =3D 0;
-> +	int i;
+> +	bool link_up;
+> +	int err;
 > +
-> +	prq_param->wq.db_numa_node =3D cpu_to_node(c->cpu);
+> +	err =3D xsc_eth_get_link_status(adapter, &link_up);
+> +	if (err) {
+> +		netdev_err(adapter->netdev, "failed to query link status, err=3D%d\n",
+> +			   err);
+> +		return err;
+> +	}
 > +
-> +	ret =3D xsc_eth_wq_cyc_create(c->adapter->xdev, &prq_param->wq,
-> +				    q_log_size, ele_log_size, &prq->wqe.wq,
-> +				    &prq->wq_ctrl);
-> +	if (ret)
-> +		return ret;
+> +	if (link_up && !netif_carrier_ok(adapter->netdev)) {
+> +		netdev_info(adapter->netdev, "Link up\n");
+> +		netif_carrier_on(adapter->netdev);
+> +	} else if (!link_up && netif_carrier_ok(adapter->netdev)) {
+> +		netdev_info(adapter->netdev, "Link down\n");
+> +		netif_carrier_off(adapter->netdev);
+> +	}
 > +
-> +	wq_sz =3D xsc_wq_cyc_get_size(&prq->wqe.wq);
-> +	prq->wqe.di =3D kvzalloc_node(array_size(wq_sz, sizeof(*prq->wqe.di)),
-> +				    GFP_KERNEL, cpu_to_node(c->cpu));
-> +	if (!prq->wqe.di)
-> +		goto err_destroy_wq;
-
-[ ... ]
-
-> +err_free_di:
-> +	kvfree(prq->wqe.di);
-> +err_destroy_wq:
-> +	xsc_eth_wq_destroy(&prq->wq_ctrl);
-> +	return ret;
+> +	return 0;
 > +}
-
-[Severity: Medium]
-Does xsc_eth_alloc_rq() return 0 when kvzalloc_node() fails to allocate
-prq->wqe.di?  Because ret is still 0 from xsc_eth_wq_cyc_create(), jumping
-to err_destroy_wq frees prq->wq_ctrl.buf and returns success to
-xsc_eth_open_qp_rq(), which then reads the freed prq->wq_ctrl.buf.frags in
-xsc_core_fill_page_frag_array() and double frees prq->wq_ctrl on teardown.
-
-[ ... ]
-
-> +static void xsc_eth_close_channel(struct xsc_channel *c, bool free_rq)
+> +
+> +/*
+> + * Registered with the PCI layer, which runs it on its own workqueue for
+> + * every XSC_CMD_EVENT_RESP_CHANGE_LINK event.
+> + */
+> +static void xsc_eth_link_event_handler(void *arg)
 > +{
-> +	if (free_rq)
-> +		xsc_eth_close_qp_rq(c, &c->qp.rq);
-> +	xsc_eth_close_cq(c, &c->qp.rq.cq);
-> +	memset(&c->qp.rq, 0, sizeof(struct xsc_rq));
+> +	struct xsc_core_device *xdev =3D arg;
+> +	struct xsc_adapter *adapter =3D xdev->eth_priv;
+> +	int err;
 > +
-> +	xsc_eth_close_qp_sq(c, &c->qp.sq);
-> +	xsc_eth_close_cq(c, &c->qp.sq.cq);
-> +	memset(&c->qp.sq, 0, sizeof(struct xsc_sq));
+> +	if (!adapter || !adapter->opened)
+> +		return;
+> +
+> +	err =3D xsc_eth_change_link_status(adapter);
+> +	if (err)
+> +		netdev_err(adapter->netdev, "failed to change linkstatus, err=3D%d\n",
+> +			   err);
 > +}
-
-[Severity: Medium]
-What happens in xsc_eth_close_channel() if xsc_core_eth_destroy_qp() or
-xsc_core_eth_destroy_cq() fails?  When QP destruction fails in
-xsc_eth_close_qp_rq() or xsc_eth_close_qp_sq(), the QP remains live in
-firmware, yet xsc_eth_close_channel() still destroys and frees its bound CQ.
-In addition, when xsc_core_eth_destroy_cq() fails, xsc_destroy_cq() returns
-before waiting on xcq->free for in-flight event or completion handlers, and
-the unconditional memset() zeroes xcq->free, xcq->refcount, and cq->xdev
-while a handler can still be using them.
-
-[ ... ]
-
-> @@ -45,25 +813,46 @@ static void xsc_set_port_admin_status(struct xsc_ada=
-pter *adapter,
+> +
+>  static bool xsc_get_pct_drop_config(struct xsc_core_device *xdev)
+>  {
+>  	return (xdev->pdev->device =3D=3D XSC_MC_PF_DEV_ID) ||
+> @@ -813,6 +869,7 @@ static void xsc_set_port_admin_status(struct xsc_adap=
+ter *adapter,
 >  static int xsc_eth_open(struct net_device *netdev)
 >  {
 >  	struct xsc_adapter *adapter =3D netdev_priv(netdev);
-> +	int ret;
-> +
-> +	ret =3D xsc_eth_sw_init(adapter);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret =3D xsc_eth_enable_nic_hca(adapter);
-> +	if (ret)
-> +		goto err_sw_deinit;
+> +	bool link_up;
+>  	int ret;
 > =20
+>  	ret =3D xsc_eth_sw_init(adapter);
+> @@ -823,6 +880,16 @@ static int xsc_eth_open(struct net_device *netdev)
+>  	if (ret)
+>  		goto err_sw_deinit;
+> =20
+> +	ret =3D xsc_eth_get_link_status(adapter, &link_up);
+> +	if (ret) {
+> +		netdev_warn(netdev, "failed to query link status, err=3D%d\n", ret);
+> +	} else if (link_up) {
+> +		netdev_info(netdev, "Link up\n");
+> +		netif_carrier_on(adapter->netdev);
+> +	} else {
+> +		netdev_info(netdev, "Link down\n");
+> +	}
+> +
 >  	adapter->opened =3D true;
 > =20
 >  	xsc_set_port_admin_status(adapter, XSC_PORT_UP);
-> =20
->  	return 0;
-> +
-> +err_sw_deinit:
-> +	xsc_eth_sw_deinit(adapter);
-> +	return ret;
->  }
-> =20
->  static int xsc_eth_close(struct net_device *netdev)
->  {
->  	struct xsc_adapter *adapter =3D netdev_priv(netdev);
-> +	int ret;
-> =20
->  	adapter->opened =3D false;
-> =20
->  	netif_carrier_off(adapter->netdev);
-> =20
-> +	xsc_eth_sw_deinit(adapter);
-> +
-> +	ret =3D xsc_eth_disable_nic_hca(adapter);
-> +	if (ret)
-> +		netdev_err(adapter->netdev, "failed to disable nic hca, err=3D%d\n",
-> +			   ret);
-> +
->  	xsc_set_port_admin_status(adapter, XSC_PORT_DOWN);
-> =20
-> -	return 0;
-> +	return ret;
->  }
 
 [Severity: Medium]
-Should xsc_eth_close() bring the port down and disable the NIC HCA before
-calling xsc_eth_sw_deinit()?  Right now xsc_eth_sw_deinit() destroys the RQ,
-SQ, and CQs and frees their DMA buffers and page_pool while the port is
-still admin-up and the NIC HCA is still steering incoming packets to
-adapter->channel.qp.rq.rqn.
+Can xsc_eth_link_event_handler() race with xsc_eth_close() and
+xsc_eth_open() and leave the netdev carrier state out of sync?
 
-> diff --git a/drivers/net/ethernet/yunsilicon/xsc/pci/alloc.c b/drivers/ne=
-t/ethernet/yunsilicon/xsc/pci/alloc.c
-> index 46eb0b031511d..0b0478c64be3b 100644
-> --- a/drivers/net/ethernet/yunsilicon/xsc/pci/alloc.c
-> +++ b/drivers/net/ethernet/yunsilicon/xsc/pci/alloc.c
-> @@ -121,3 +121,105 @@ void xsc_fill_page_array(struct xsc_buf *buf, __be6=
-4 *pas, unsigned int npages)
+xsc_eth_link_event_handler() checks adapter->opened without locking and
+then sleeps in xsc_core_query_vport_state() -> xsc_cmd_exec(), while
+xsc_eth_close() clears adapter->opened and calls netif_carrier_off()
+without waiting for in-flight link event work:
 
-[ ... ]
+drivers/net/ethernet/yunsilicon/xsc/net/main.c:xsc_eth_close() {
+	adapter->opened =3D false;
 
-> +static void *xsc_dma_zalloc_coherent_node(struct xsc_core_device *xdev,
-> +					  size_t size, dma_addr_t *dma_handle,
-> +					  int node)
-> +{
-> +	struct device *device =3D &xdev->pdev->dev;
-> +	int original_node;
-> +	void *cpu_handle;
-> +
-> +	/* WA for kernels that don't use numa_mem_id in alloc_pages_node */
-> +	if (node =3D=3D NUMA_NO_NODE)
-> +		node =3D numa_mem_id();
-> +
-> +	original_node =3D dev_to_node(device);
-> +	set_dev_node(device, node);
-> +	cpu_handle =3D dma_alloc_coherent(device, size, dma_handle, GFP_KERNEL);
-> +	set_dev_node(device, original_node);
-> +
-> +	return cpu_handle;
-> +}
+	netif_carrier_off(adapter->netdev);
+    ...
+}
 
-[Severity: Medium]
-Can xsc_dma_zalloc_coherent_node() use dma_alloc_coherent_node() instead of
-mutating xdev->pdev->dev.numa_node with set_dev_node()?  Overwriting the
-shared device's NUMA node across a sleeping dma_alloc_coherent() call
-without locking exposes the temporary node to concurrent readers of
-dev_to_node(&xdev->pdev->dev), and two concurrent callers of
-xsc_core_frag_buf_alloc_node() can save the overwritten value as
-original_node and permanently corrupt the device's NUMA node.
+CPU0 (event_wq)                   CPU1
+xsc_eth_link_event_handler()
+  if (!adapter->opened)
+  xsc_eth_change_link_status()
+    xsc_eth_get_link_status()
+      /* sleeps in cmd exec */
+                                  xsc_eth_close()
+                                    adapter->opened =3D false;
+                                    netif_carrier_off(netdev);
+    netif_carrier_on(netdev);
+      /* carrier enabled while closed */
+
+Because xsc_eth_open() only calls netif_carrier_on() when link_up is true
+and does not call netif_carrier_off() in the else branch, if the physical
+link goes down while the interface is closed, a subsequent xsc_eth_open()
+logs "Link down" but leaves netif_carrier_ok() true.
+
+Also in xsc_eth_open(), xsc_eth_get_link_status() runs before
+adapter->opened =3D true and before xsc_set_port_admin_status(adapter,
+XSC_PORT_UP).  That queries the vport while it is still administratively
+down from a prior close, and any link change event arriving between
+xsc_eth_get_link_status() and adapter->opened =3D true is dropped by
+xsc_eth_link_event_handler().
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261126145711.7086=
-8-1-tianx@yunsilicon.com?part=3D8
+8-1-tianx@yunsilicon.com?part=3D9
