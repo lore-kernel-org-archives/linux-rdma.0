@@ -1,84 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.224.41
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.44
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795780461;
-	b=mWPvIt67bmMLMcS/XSfJcEXLuhBjJWisQ7k2UlIoTkSneXgaM2v0Gs1b8qQdjxjyJthh
-	 2UbcKJEXJ01M7Cd1KxR+dnxsB7C3oRYlnqmIQR5Wc/caR4V5ZPn4iYr9RYQRkW5NGZVrJ
-	 MJfU38l8YJRal1BuYo7BHbuo5djvVP5jwyHvFqgFxpq4wCEoIWZr2+DQDbYyAyL1YjD9l
-	 oLSO5d12GE5rdo++eVNiXo/jKqCztt9bSKlrqPOe3EfgRCE6r4mVqEo1UsUZoslbhTcAp
-	 WDiIqNHP8Mv5Y6T4QSWY42CymXDemGBVLKOwS/BwmTjgVwRkKTrQ6U/IHVgrP0gOGgg==
+	t=1795781640;
+	b=TNZiwbIeFORGOgD0XrOrFQmbVHaqySMsD6GDaly3Trof2lyL15pNf0rjOfVtHs/ZDQv7
+	 VCD3K6W4p4nzkGfbUeArflrKeqyw2h86Y68sQvznV9b4cO/fVj49FXaYw6sCDxRjIhGZI
+	 S4dvqgH9iYOrsUhCUyhcqBAavQJ9/wd8L2jNjAdGw9wLE4mV5rnzWL2SMyYolU+ZLf6qK
+	 /caLLl+bSDwhcGUPZAlUhImN/tj2G0aii1PHtaxEFCnLtBtuavnZ/82aK+ZD4DcV00za1
+	 +KiQsO1Z1/1SwpL9MfHuM4sBzDuK0+XDA/4W/gLC6iHl9twoAqpxzCoG5mvZ4G0G9TQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795780461;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Mime-Version:Content-Transfer-Encoding:Content-Type:Date:Message-Id:
-	 Cc:Subject:From:To:X-Mailer:References:In-Reply-To;
-	bh=NPgplNj9APhcuna/gT9kuV7uUH+wy+QbbxgJJDCKr4Q=;
-	b=0dLeeT/36rESUP9E/TxZUNgYEQR887lF0RjU7r+357K645+rX3RDlqsIJttw4/un7EUR
-	 CR3zD7n3TdjUb1UhFGUihcddAzpi7i8s1wWv4S8OegYLoglZ3gCewTUks81UYquLwe1pl
-	 t2LuJaIsP676ttVyn3eON02ezE3NNrNVbXN2wRJagLEs2gLMhlfsJGQBiNS60z4z98n62
-	 9qZpDxakQSgmOuEzmIc2yO9rvY06WbyRvwYbniTAFUHRP4QX+ZyTyzSOfS5fwKckSOlTc
-	 sLy5rfyl3r3wW3rYOE0csRRGfX9pakoE7waI1d2TnPhnvmKY7UZEJfqjuSn5TbN3IBg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795781640;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=qCoEzJI5/N2sQ/738mLqdHEf8qRTgH5fccEHKybhjlI=;
+	b=g9YwefMrDPOHoGwIJGJbPJ72Z5bVOfvQXeieP3kM8xEbHheHUnZRB99MqroRa92YpmZj
+	 GF1FnmyGXjld1Lc1/g70HLVmlJvUDxKviSkNpp3HE45Du9Nr8NVg4/1d7YK/wL/xvjbvn
+	 SoGJPBc7/rTckhuN6gTggC7gJuRSJJBTDcqsh5bgydYm20Y7CUiOIy/z2KXr2IcrYHl4o
+	 BODpX7Y0QCQgwpTH2MzyUzvnrhwVDDvqamqCK2fD4RqDrJDLcJfmAXEX/rBjwoNQptHOR
+	 aLx3KW8AOJAF6r3PtTXh3XbYUbB0xkfRBXUrbKr9lOLWBZQmVElvy2yI2GuNHq/QeGw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=D9Ulw5Xf;
-	arc=none smtp.remote-ip=74.125.224.41
-Received: from mail-yx1-f41.google.com (mail-yx1-f41.google.com [74.125.224.41])
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=lu79UmFN;
+	arc=none smtp.remote-ip=95.215.58.44
+Received: from mta1.migadu.com (out-44.mta1.migadu.com [95.215.58.44])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA359606A31C
-	for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 11:54:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CA359606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 769E1606A31C
+	for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 12:13:59 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 769E1606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=D9Ulw5Xf
-Received: by mail-yx1-f41.google.com with SMTP id 956f58d0204a3-67db6d4054eso8544038d50.1
-        for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 03:54:20 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795780460; x=1796385260; darn=vger.kernel.org;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-type:content-transfer-encoding:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=NPgplNj9APhcuna/gT9kuV7uUH+wy+QbbxgJJDCKr4Q=;
-        b=D9Ulw5Xf/Akan+JoLGp7KULBPG4cEl0Qlr0l8NqNb0IIBAGnM8C3dOTvxifDntne9d
-         +ItaobNdFuV7xZZSZdK02FHB6hV/oCpGnt8X5iEZoAN+KxK47nUxrFGqGPj9wEATzltR
-         B1Rpn2p6yOdZF80QgC/bKXQIM23vh7IybD7e2aIZP6wTj8oMit1ln6kNIN5yHGzI4uE5
-         tq6tZSbx8AoVQhTKkjf0uTR/Bcu6G89lH2vLrsyB7ZsGbVxLNvBKxeDajO+DFdosnlC4
-         6kJa388eHluLWJYA2qUZMlnOH8FznOB4rLjhEpJTRJio1rLsG3d6dYXx0Kf1aPo9q7qt
-         DJsw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795780460; x=1796385260;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-type:content-transfer-encoding:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=NPgplNj9APhcuna/gT9kuV7uUH+wy+QbbxgJJDCKr4Q=;
-        b=oz8BJUaGCrc7pwuKS36NZJgmX501LT6hw+exaQhitkzpOmkL3wrKWUgU8eImKd1yJJ
-         8sL0z8GTfgX3hZDeskzNGU75gfITml4GV6NTkcQmdBZ5ApGgSmRAVV4rmJreOyFlgjWg
-         BnelQbgdzIgmzJmaXH+8Oxv/cgAQ60GMEjhnFRsV7WP5sHnocQdGtmOIPMJn0UjAtCtU
-         plZN0amWANGANMuBe6aAOdeDDWIRVJJ6EK8wwg9ohq3eqw3VI5gpk8iw2vxWU41ZGs6D
-         lC3x06qq2reNTGATSDOq0Z+0DKISiAYcWdDGMZ3nzew++MininRv+nxM0L4KRI90LcHu
-         xlgw==
-X-Forwarded-Encrypted: i=1; AL+hErG0e2ceEv8I9L9dGnGLCuR+kG6jdH0UnalFaXx9pEWpjYQ1jNg8gJ/Qm6yxjIlXbBbVCREOEfFqinFq@vger.kernel.org
-X-Gm-Message-State: APuU4Z9dqwyWDs2qfIWQ5DFayXbdqGxWl5srV3Altc8ITwhe2j02oPoR
-	v5Ml9HKnv3wtcpcG2YP2Ma83QiCJYVy76WINuhRc9rwHwYmyB04+dKZU
-X-Gm-Gg: AZFdTZfcTj3nu5+4EYuwMgYiUJ5fzADIqvfO8TDAcNqYhVo4Dvst8xP2WXjgFIlS20L
-	L140LeeJO2r/dCu5e9vVveRmGoBUYtnfVChsCwYyXB3eTvJNIFcJcWf8N1DvUT2BNyTiHxxv/rV
-	kKiI18511xRYgJJpszyZz+JOMvNgEhFdPpsP6BACNcXQT4SBgdus84DULABQNAPTaCBbs4hoBPn
-	X6Clz2MEL37rnEU4WdrPj0wqlm1rHC+ZCGPadV/1MEnW2FW49av6GDWWTDcQ5BTaklLf1dygFAl
-	6m6bj7wOs3t0SXvBt1mavhXdIu8/b4hcWpgEnl9ZX8ZwWhAiwBjSk0dGtcVaMsdhecXtKyQZeTB
-	JPi95bcOqtdRD9J/qjKxMhcjeR+5d1mu+Ua2NkPNnCTiNa0XQVliKDzJF2SmSQQDriU5pBrncfb
-	7/XpvqAFxFeB5HU43XUsaCXvF+IJkgZERclceYwyw9H5njHcZ4ZwyPMe5rWiYpBfm+bVvkfbJQi
-	JMtRfbxU9RfRDEKzHmntazwDejWDJARttWfy2l7UjsU83G1pvTljhrsuuJAwtHkCFp3yPjmzIoU
-	qW2XuCy7KzA2Trw22ogPM3UKc6tPxW90g/HitG0VTObQ6gfJVmFSsm0=
-X-Received: by 2002:a05:690e:13ca:b0:67d:e97e:3283 with SMTP id 956f58d0204a3-67df43ce140mr10731749d50.24.1795780459895;
-        Fri, 27 Nov 2026 03:54:19 -0800 (PST)
-Received: from localhost ([2600:1700:4a51:221f:cd57:192:f9db:90dc])
-        by smtp.gmail.com with ESMTPSA id 956f58d0204a3-67df335b3aesm11118579d50.12.2026.11.27.03.54.18
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 27 Nov 2026 03:54:19 -0800 (PST)
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=lu79UmFN
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=6vHRWvrua0fQYBdh7FtUgGXCTKDmCgIIqUhwP5LG/Xo=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1795781637; v=1; x=1796386437;
+ b=lu79UmFN4HW9fTuJoYrmpHrKSONr7DoC/Kuxf+HEhdviW0Rutz38qxELgpMESgTSVdOrEuWb
+ K96T0ho7diIYpECkcYDSt2N5FKkd05djRG+PpMwtglxa/tDAORrovm90fOydSamanO/CRZ44rF4
+ sbkPoWofoIrD6tAqddybBmIE=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 1c9234c01c8a2ff2;
+	Fri, 27 Nov 2026 12:13:57 +0000
+X-Mizu-Trace-ID: 1c9234c01c8a2ff2
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <4611d7da-478c-43ba-917a-03e5bba4fbbe@linux.dev>
+Date: Fri, 27 Nov 2026 13:13:51 +0100
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -87,62 +57,258 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Fri, 27 Nov 2026 06:54:18 -0500
-Message-Id: <DN5Z1LNNUIXI.33NZ6QHK9ZS99@gmail.com>
-Cc: "Aleksandr Loktionov" <aleksandr.loktionov@intel.com>, "Boris Pismenny"
- <borisp@nvidia.com>, "Cosmin Ratiu" <cratiu@nvidia.com>, "Daniel Zahka"
- <daniel.zahka@gmail.com>, "Dragos Tatulea" <dtatulea@nvidia.com>, "Gal
- Pressman" <gal@nvidia.com>, "Leon Romanovsky" <leon@kernel.org>,
- <linux-rdma@vger.kernel.org>, "Mark Bloch" <mbloch@nvidia.com>, "Raed
- Salem" <raeds@nvidia.com>, "Rahul Rameshbabu" <rrameshbabu@nvidia.com>,
- "Saeed Mahameed" <saeedm@nvidia.com>
-Subject: Re: [PATCH net] net/mlx5e: psp: Fix stack info leak in PSP device
- stats
-From: "Daniel Zahka" <daniel.zahka@gmail.com>
-To: "Tariq Toukan" <tariqt@nvidia.com>, "Andrew Lunn"
- <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, "Eric
- Dumazet" <edumazet@kernel.org>, "Jakub Kicinski" <kuba@kernel.org>,
- <netdev@vger.kernel.org>, "Paolo Abeni" <pabeni@redhat.com>, "Willem de
- Bruijn" <willemb@google.com>
-X-Mailer: aerc 0.21.0-threadmapfix
-References: <20261126211115.767481-1-tariqt@nvidia.com>
-In-Reply-To: <20261126211115.767481-1-tariqt@nvidia.com>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2] RDMA/siw: don't complete a fenced READ twice on flush
+To: Cygnus Qiu <eritque-arcus@ikuyo.dev>, jgg@ziepe.ca, leon@kernel.org
+Cc: cel@kernel.org, linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org, stable@vger.kernel.org
+References: <20261127005304.366336-1-eritque-arcus@ikuyo.dev>
+From: Bernard Metzler <bernard.metzler@linux.dev>
+In-Reply-To: <20261127005304.366336-1-eritque-arcus@ikuyo.dev>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Thu Nov 26, 2026 at 4:11 PM EST, Tariq Toukan wrote:
-> mlx5e_psp_get_stats() reads the PSP flow counters into an uninitialized
-> on-stack struct. mlx5e_accel_psp_fs_get_stats_fill() ignores the
-> mlx5_fc_query() return value, and a failed query, e.g. -ENOLINK when the
-> device is in internal error state, leaves the counter fields unset. The
-> uninitialized stack values are then reported to user space through the
-> PSP get-stats netlink command.
->
-> Zero-initialize the struct, so the counters of a failed query read 0.
->
-> Fixes: b1346219e535 ("net/mlx5e: Add PSP stats support for Rx/Tx flows")
-> Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-> Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
+On 27.11.2026 01:53, Cygnus Qiu wrote:
+> siw_sq_flush() completes a QUEUED READ in the TX slot, assuming the READ
+> is not in the ORQ yet. That holds only while a full ORQ fences it.
+> siw_check_tx_fence() copies a fenced READ into the ORQ when a Read
+> Response frees a slot, and siw_activate_tx_from_sq() copies a READ into
+> a free slot. In both cases the READ stays QUEUED until the TX path sends
+> it, and a flush in that window completes it twice.
+> 
+> A peer can hold the window open. It advertises IRD 1, so the ORQ holds
+> one READ: READ1 is in the ORQ and sent, READ2 waits fenced in the TX
+> slot. The peer then sends Read Response 1 and a FIN in one TCP segment:
+> 
+>    softirq (TCP receive)                 siw_cm_wq worker
+>    tcp_data_queue()
+>    |-tcp_fin()
+>    | \-siw_cm_llp_state_change()
+>    |   Sets tx_suspend and
+>    |   queues the close.
+>    |
+>    \-tcp_data_ready()
+>      \-siw_qp_llp_data_ready()
+>        |-down_read_trylock(state_lock)
+>        |-tcp_read_sock()
+>        | \-siw_tcp_rx_data()
+>        |   \-siw_rdmap_complete()
+>        |     \-siw_check_tx_fence()
+>        |       |-siw_read_to_orq()
+>        |       | READ2 enters the ORQ.
+>        |       |
+>        |       \-siw_sq_start()
+>        |         orq_fence is now 0.
+>        |         TX is suspended:
+>        |         READ2 stays QUEUED.
+>        |
+>        \-up_read(state_lock)
+>                                          siw_cm_work_handler()
+>                                          \-siw_qp_llp_close()
+>                                            |-down_write(state_lock)
+>                                            \-siw_sq_flush()
+>                                              |-siw_sqe_complete()
+>                                              | READ2 from the ORQ.
+>                                              |
+>                                              \-siw_sqe_complete()
+>                                                READ2 again, from the
+>                                                TX slot.
+> 
+> The FIN only queues the close, so the receive path normally gets
+> qp->state_lock first.
+> 
+> nfsd's svcrdma gets two flush completions for one Read chunk:
+> 
+>    svc_rdma_wc_read_done()
+>    \-svc_rdma_recv_ctxt_put()
+>      Runs twice for the same ctxt. The second llist_add()
+>      links ctxt->rc_node to itself.
+> 
+>    svc_rdma_free()
+>    \-svc_rdma_recv_ctxts_destroy()
+>      |-svc_rdma_recv_ctxt_destroy()
+>      | Frees ctxt.
+>      |
+>      |-llist_del_first()
+>      | Reads the freed ctxt and returns it again.
+>      |
+>      \-svc_rdma_recv_ctxt_destroy()
+>        Frees ctxt a second time.
+> 
+> svcrdma pulls the Read chunk before it decodes the RPC, so the peer
+> needs no RPC credentials and no export access.
+> 
+> Complete a QUEUED READ from the TX slot only while orq_fence is set.
+> orq_fence now decides whether the TX slot completes the READ, so move
+> it out of the bitfield it shared with tx_suspend:
+> siw_cm_llp_state_change() sets tx_suspend without taking a QP lock,
+> and a lost update could drop or duplicate the completion.
+> 
+> Found with afb-afl, an LLM-driven kernel audit/repro pipeline; the fix
+> and this changelog were also drafted with LLM assistance.
+> 
+> Reproduced on an unmodified KASAN build of mainline. A plain TCP client
+> sends nfsd's svcrdma listener on siw an RDMA_NOMSG call with a
+> two-segment Read chunk and answers as above. KASAN reports the read of
+> the freed ctxt; here the second destroy then faults in kfree():
+> 
+>    BUG: KASAN: slab-use-after-free in llist_del_first+0x150/0x170
+>    Read of size 8 at addr ffff8881119d9000 by task nfsd/183
+> 
+>    Call Trace:
+>     <TASK>
+>     dump_stack_lvl+0x5d/0x80
+>     print_report+0x14b/0x4b0
+>     kasan_report+0xfa/0x120
+>     llist_del_first+0x150/0x170
+>     svc_rdma_recv_ctxts_destroy+0xf3/0x1b0
+>     svc_rdma_free+0xd8/0x2e0
+>     svc_xprt_free+0x22c/0x420
+>     svc_recv+0x103f/0x25b0
+>     nfsd+0x35c/0xc80
+>     kthread+0x34d/0x460
+>     ret_from_fork+0x339/0x620
+>     ret_from_fork_asm+0x1a/0x30
+>     </TASK>
+> 
+>    Allocated by task 183:
+>     kasan_save_stack+0x2f/0x50
+>     kasan_save_track+0x14/0x40
+>     __kasan_kmalloc+0x7f/0x90
+>     __kmalloc_node_noprof+0x207/0x680
+>     svc_rdma_post_recvs+0x664/0xbf0
+>     svc_rdma_accept+0xc27/0x1980
+>     svc_recv+0x12c2/0x25b0
+>     nfsd+0x35c/0xc80
+>     kthread+0x34d/0x460
+>     ret_from_fork+0x339/0x620
+>     ret_from_fork_asm+0x1a/0x30
+> 
+>    Freed by task 183:
+>     kasan_save_stack+0x2f/0x50
+>     kasan_save_track+0x14/0x40
+>     kasan_save_free_info+0x3b/0x60
+>     __kasan_slab_free+0x57/0x80
+>     kfree+0x162/0x500
+>     svc_rdma_recv_ctxts_destroy+0xe7/0x1b0
+>     svc_rdma_free+0xd8/0x2e0
+>     svc_xprt_free+0x22c/0x420
+>     svc_recv+0x103f/0x25b0
+>     nfsd+0x35c/0xc80
+>     kthread+0x34d/0x460
+>     ret_from_fork+0x339/0x620
+>     ret_from_fork_asm+0x1a/0x30
+> 
+>    The buggy address belongs to the object at ffff8881119d9000
+>     which belongs to the cache kmalloc-2k of size 2048
+>    The buggy address is located 0 bytes inside of
+>     freed 2048-byte region [ffff8881119d9000, ffff8881119d9800)
+> 
+>    BUG: unable to handle page fault for address: ffffeb860011a6c8
+>    #PF: supervisor read access in kernel mode
+>    #PF: error_code(0x0000) - not-present page
+>    Oops: Oops: 0000 [#1] SMP KASAN NOPTI
+>    RIP: 0010:kfree+0x69/0x500
+>    Call Trace:
+>     <TASK>
+>     svc_rdma_recv_ctxts_destroy+0xdf/0x1b0
+>     svc_rdma_free+0xd8/0x2e0
+>     svc_xprt_free+0x22c/0x420
+>     svc_recv+0x103f/0x25b0
+>     nfsd+0x35c/0xc80
+>     kthread+0x34d/0x460
+>     ret_from_fork+0x339/0x620
+>     ret_from_fork_asm+0x1a/0x30
+>     </TASK>
+> 
+> Without KASAN, SLAB_FREELIST_HARDENED catches the double free as
+> "kernel BUG at mm/slub.c:605" in kfree() from
+> svc_rdma_recv_ctxts_destroy(). With neither KASAN nor
+> SLAB_FREELIST_HARDENED, nfsd pops the freed ctxt again. If another
+> kmalloc-2k allocation has overwritten it by then, nfsd faults; if not,
+> nfsd frees it again and repeats, so later allocations can get that one
+> object many times.
+> 
+> With this patch the READ is flushed once and KASAN stays silent.
+> 
+> Fixes: f29dd55b0236 ("rdma/siw: queue pair methods")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Cygnus Qiu <eritque-arcus@ikuyo.dev>
 > ---
->  drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c b/dri=
-vers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-> index 73b232379263..4aacb4173b1b 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/psp.c
-> @@ -995,7 +995,7 @@ static void
->  mlx5e_psp_get_stats(struct psp_dev *psd, struct psp_dev_stats *stats)
->  {
->  	struct mlx5e_priv *priv =3D netdev_priv(psd->main_netdev);
-> -	struct mlx5e_psp_stats nstats;
-> +	struct mlx5e_psp_stats nstats =3D {};
-> =20
->  	mlx5e_accel_psp_fs_get_stats_fill(priv, &nstats);
->  	stats->rx_packets =3D nstats.psp_rx_pkts;
->
-> base-commit: e1055cbfd6eb578417f3ce983cf44462e8465267
+> Changes in v2:
+> - Rewrite the commit message: charts for the race and the svcrdma free
+>    path, and the full KASAN report.
+> - Give orq_fence its own byte, as Sashiko suggested on v1. The lost
+>    update was not reproduced.
+> - v1: https://lore.kernel.org/r/20261125060646.155172-1-eritque-arcus@ikuyo.dev
+> 
+> Tested on mainline 4405c18c95d2 (v7.4-rc3+) in QEMU. Applies to rdma
+> for-next 94e81a1f3ffa, wip/leon-for-next d24184a64765 and
+> wip/leon-for-rc e7732ec135b5.
+> 
+> Unpatched, the KASAN use-after-free report came in 5 of 5 runs, the
+> hardened BUG in 4 of 4, and with neither, nfsd faulted or spun in
+> svc_rdma_recv_ctxts_destroy() in 15 of 15; add_key() as an
+> unprivileged user got three keys backed by one object in 1 of 6.
+> Patched, the KASAN build flushed once in 3 of 3 runs, and the build
+> with neither showed no fault, spin or shared key in 10 of 10.
+> 
+> Controls (FIN after the second Read Request, or no Read Response)
+> flush once with and without the patch. The rdma-core tests could not
+> run: rdma-core 66's siw provider asserts in siw_destroy_cq() on the
+> first test, on an unpatched kernel and with v1.
+> 
+> A reproducer and the test logs are available on request.
+> 
+>   drivers/infiniband/sw/siw/siw.h    | 2 +-
+>   drivers/infiniband/sw/siw/siw_qp.c | 7 ++++---
+>   2 files changed, 5 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/infiniband/sw/siw/siw.h b/drivers/infiniband/sw/siw/siw.h
+> index dbc998248b..82dc88b6a4 100644
+> --- a/drivers/infiniband/sw/siw/siw.h
+> +++ b/drivers/infiniband/sw/siw/siw.h
+> @@ -394,12 +394,12 @@ struct siw_iwarp_tx {
+>   
+>   	u32 mpa_crc;
+>   	bool mpa_crc_enabled;
+> +	bool orq_fence; /* ORQ full or Send fenced: not a bitfield */
 
-Reviewed-by: Daniel Zahka <daniel.zahka@gmail.com>
+"not a bitfield" is a strange /* comment */ to me.
+A brief explanation of why the change was made fits very well
+in the commit message.
+
+>   
+>   	u8 do_crc : 1; /* do crc for segment */
+>   	u8 use_sendpage : 1; /* send w/o copy */
+>   	u8 tx_suspend : 1; /* stop sending DDP segs. */
+>   	u8 pad : 2; /* # pad in current fpdu */
+> -	u8 orq_fence : 1; /* ORQ full or Send fenced */
+>   	u8 in_syscall : 1; /* TX out of user context */
+>   	u8 zcopy_tx : 1; /* Use TCP_SENDPAGE if possible */
+>   	u8 gso_seg_limit; /* Maximum segments for GSO, 0 = unbound */
+> diff --git a/drivers/infiniband/sw/siw/siw_qp.c b/drivers/infiniband/sw/siw/siw_qp.c
+> index bb780e3904..2cc0f466e7 100644
+> --- a/drivers/infiniband/sw/siw/siw_qp.c
+> +++ b/drivers/infiniband/sw/siw/siw_qp.c
+> @@ -1188,10 +1188,11 @@ void siw_sq_flush(struct siw_qp *qp)
+>   		if (tx_type(wqe) != SIW_OP_READ_RESPONSE &&
+>   		    ((tx_type(wqe) != SIW_OP_READ &&
+>   		      tx_type(wqe) != SIW_OP_READ_LOCAL_INV) ||
+> -		     wqe->wr_status == SIW_WR_QUEUED))
+> +		     (wqe->wr_status == SIW_WR_QUEUED &&
+> +		      qp->tx_ctx.orq_fence)))
+>   			/*
+> -			 * An in-progress Read Request is already in
+> -			 * the ORQ
+> +			 * A Read Request is already in the ORQ unless
+> +			 * a full ORQ fenced it
+>   			 */
+>   			siw_sqe_complete(qp, &wqe->sqe, wqe->bytes,
+>   					 SIW_WC_WR_FLUSH_ERR);
+
+Otherwise: Excellent finding, thanks!
+
+Acked-by: Bernard Metzler <bernard.metzler@linux.dev>
+
