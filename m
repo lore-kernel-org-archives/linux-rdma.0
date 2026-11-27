@@ -1,132 +1,65 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.180
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795739841;
-	b=hh1ngW8CjZ+qqtF7X1rsduKHNYzJdrFnlt4BuY47HgYjBOfMLN75W6o9anPiDy2CP4Q9
-	 Xq0tzGnKQaDeR+362f7Y+zqotcI2qNPGq0jlhD25fiuZzMB84gF5HWi4zq0zHJAzrwNUN
-	 FaoUBmICjSZid04uORDNkVa4LXFe42/hK1uBLoXfSDltsuonVX+4VU9T4+wBJh111OVWJ
-	 Kh3oeIwLfSg5693iUouqgUjBMk4AfWbX8K5QQITpiT8sr4Y6I2M3L0fULpU8jydD4I9+g
-	 6OL63VagkYV/5iEcW7yPlQkcmcdb7MaAHtycRbRdO0p9xWljU+NwNYbOJXMlZLsPFXg==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795739841;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:Content-Transfer-Encoding:
-	 In-Reply-To;
-	bh=BYEpToCdu/Jrl7504w/3VIKWXqy3i8TunCn9olVHqm8=;
-	b=AGI+h48TIiwkqlSbDtXSTyEdzfOyVc6L6079FU+j3TRiYb0IlokxKdDIaKZFEoe1Le0i
-	 UfN0ug47wwhaPN8Mt2ZSpYPc0sNyoFRcm1iay2ZXqziMBLtp/Mg91LVJy3G9Qdf7BNgBT
-	 FYx1mYuYpYvmoeccXweoR+jwTFja+VbqO1lmRzVfOZ5TQcMqVbf5V9lLHmg0xbRzSG0MX
-	 lS9OoPw6BzoHuoPUCRkKpX3kY4IeesacmvD2r6mh5NwxYA8YSY6jlnQJbuuy8dsXCaZVB
-	 JQcnUOURJKsFqtDNbU5VZ/fK6Hr9xVGGgTz7ur1SuLH1jPLnU+b9Z11Db86sk9TAQzQ==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=ziepe.ca;
-	spf=pass smtp.mailfrom=ziepe.ca;
-	dkim=pass header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=RYi3Edqp;
-	arc=none smtp.remote-ip=209.85.160.180
-Received: from mail-qt1-f180.google.com (mail-qt1-f180.google.com [209.85.160.180])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=165.173.180.15
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795740818;
+	b=HrwuhvOlxRqgkqCpg0FzMQvDAO70tN9pFShwzDtjqZkWKfWvQXFqkCw9hhrMDgq69iVV
+	 wVlnCncNI0Sa4kXJ9PBqvotm0PBnGPfaiFcinWKiXWXg72IjIIgWpXBqtKDtOQZ6R1nyn
+	 BLBhKPGY+UfSIO6wzJL4TBUg5VV5oUXFHixskyLlzImXHJxTPS54aeSlr1QMrpR9ddtt2
+	 8QqQL5t/lWO+wimagL48MddrEty6htCKUNUmzHk06kpyQfqzlYvsdNxjvjIjARbC7KCYN
+	 7c8qQj5VjhxXNfEEUKBpHBZvO/ncrIbc6OhoFpTZmacPpWibF8mpmZv3JL3Q7gxEgAg==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795740818;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=iSy/0O7S8ijEUnPgOjETIvR+sXgU6Nc1zbtPE0TV8d0=;
+	b=zMkChR9MhxkNdvbQwH2iB4sc2nKt7aDsJnZjR/BtUAxkspJ6LlBg3bvU9BvJMHxzaoSj
+	 CeSvoTWvtJ7uO3l9/LGV/pdY+zM5hg8LQcV3pyYhKTF/up25cZFOA8+6sK51FlIOlTdI/
+	 m+MLTznjISn3zAgBMSRWVoGV7P7L7ttIbdCBGc+FGxe5eAfl51HwQJrdSeyqI0HyhasOA
+	 f6V+kDcswmHQLJU8DcqNRNodadz/LztQ6E95jlVtVout9hGU4rTnoEFnhgT86abjt+Xcg
+	 J74ciqSxoXoQkdr8CXECkj//GxJNkEsjdh/URMXhBv3hJYfhseW5jrACV4aMTD2aTtg==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=ikuyo.dev;
+	spf=pass smtp.mailfrom=ikuyo.dev;
+	dkim=pass header.d=ikuyo.dev header.i=@ikuyo.dev header.a=rsa-sha256 header.s=s1 header.b=H5t2Bh27;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=165.173.180.15
+Received: from sender6-op-o15.zoho.com (sender6-op-o15.zoho.com [165.173.180.15])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D6A2606A323
-	for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 00:37:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6D6A2606A323
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65B4A606A31E;
+	Fri, 27 Nov 2026 00:53:37 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 65B4A606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=ikuyo.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ikuyo.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.a=rsa-sha256 header.s=google header.b=RYi3Edqp
-Received: by mail-qt1-f180.google.com with SMTP id d75a77b69052e-5363c8de563so76138911cf.0
-        for <linux-rdma@vger.kernel.org>; Thu, 26 Nov 2026 16:37:20 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1795739839; x=1796344639; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=BYEpToCdu/Jrl7504w/3VIKWXqy3i8TunCn9olVHqm8=;
-        b=RYi3Edqp0iJYoWgnyFakqRlcBMM8VcDiE8d4VlY5bSzWrQs7C3jbXpEvdsf5xbs0HR
-         k8SJFejOERTl3boet9eADaubxky0nrElyxMPXPWpVpP4P4sFBNoLT0vNQZStolAgoetA
-         AVu2Mh8zCbpacWNyUVPHGl3RGM6A9CQHETQIX4aOfJBdNhGQef7KqYfIDR6ufufdP8LP
-         5jHoiOvsTjxDjWW0L90H9rgfkvqlxNkDfm7h3cX67l/8MpA/9M1cz2dLCiNt8o5kr/5Q
-         JdnVCeij4xVh62dHP4PJZYsGnouQAS5wg9J0Y6QCTQui72S1909B3CcTDDr25xXeCo8X
-         2BJw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795739839; x=1796344639;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:from
-         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=BYEpToCdu/Jrl7504w/3VIKWXqy3i8TunCn9olVHqm8=;
-        b=X2Zugf4Cla7jbC1FjGPE+JQxkxe1kFoUhdm799cDqgjik2m5Nq4IFdRWYW1rd65Vtx
-         MinhYmx9DtqRVqqRrz04Bi7Q48ShPvcyVFRstSZBM/XdReJBvnbc1Ex2lWRS0hJb+CU9
-         3fzOzBH+8VfVCfBT4NRNeFqxCT9uQ3VGZqMutYA/3Wcu/58dJsFRXGUr1mjDbPaKt3ff
-         WfAlz6kgvOsjhaguoPG3QT+gZqAUw9Mn0PXu6tavU2PwOxB+84DWI2gWJVStG3o9a/NW
-         5C8zm7cjfHGZyVDKQGSH55B2rpC1v3L88xT3/Yq9yglJOVcrnMI2uoL2wrSkkzZGJub6
-         WN7A==
-X-Forwarded-Encrypted: i=1; AL+hErFxQHUESEFr10tcvKpi5E3RLxuAI/fJ7O77l0eUgPpUPeQRGYw7O+I7f1W/WLLZBDYhaE43vS+j6nY9@vger.kernel.org
-X-Gm-Message-State: APuU4Z8J5nABeDQHM52lyXE7swgq/TVIOTqFiiHAI614Z7WRzY0HIfef
-	a0+K9VROYXs0DA34H7zLUnqabDG9YaCqakBB98Oo+ZS6LvODnvrrx9deBeNatRKdVik=
-X-Gm-Gg: AZFdTZd51LZ4YeVURncISKRIbZNYh+6DrszH1TbGPtlDO8CB/mfyyCHw2XWfL2qI96+
-	eKlJEqBZkske4BQ//Vqfs7ErStO+vp1AEAM8BXQ/GKkR70ZBJmbjCzBgdES9Cmm453VSHOpHi6Q
-	hdQ/3ekG4m0uwPVb1QBXUqaoUbMxcWQm2TJQwF6Ah8GlzV/L8uMbwz4FhBekgcmzcLLPE5cCnEM
-	gb3YMxDLD5FNkMYlxGS/29kimmv8Gwf94iMQQd27Cz88nPPHMoE/PiwQPIVy3KdQR67e+/o0GG9
-	Eb6Cmqev7lrG8c3YSmt3ICUwCqY+7rzeAcQFGDav9/1Alm1XPOf1TsOZGPWhDeuSx567egbuPPJ
-	UpLgzkdK/QYtZs0UL2HICsDDo6qcoPAOgKAbZBMJxmiC3vhYP67JuZrvOB279duiOviQHTnhj7Y
-	ZVvLBWWFV881AaR2Cj0hCSD9KwtUUEXE8OGbySXuXto0JYD8kN+PW7Vu8ejueI71pFwvxF4OZoM
-	kmjh+CNBtAzK88iw+Eq6yz072WSJBCRkW8Hd+d3+souXUnlPGQESZB/rKoCdwaZYK43o64fYC01
-	yWVHNA==
-X-Received: by 2002:a05:622a:1f13:b0:533:8900:4eae with SMTP id d75a77b69052e-55d76a168d0mr403124891cf.13.1795739839275;
-        Thu, 26 Nov 2026 16:37:19 -0800 (PST)
-Received: from ziepe.ca ([142.177.118.84])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-55d788506b0sm192115611cf.17.2026.11.26.16.37.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 26 Nov 2026 16:37:18 -0800 (PST)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1xWjxm-00000005OdJ-0d4j;
-	Thu, 26 Nov 2026 20:37:18 -0400
-Date: Thu, 26 Nov 2026 20:37:18 -0400
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>
-Cc: Alistair Popple <apopple@nvidia.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
-	Simona Vetter <simona.vetter@ffwll.ch>,
-	Matthew Brost <matthew.brost@intel.com>,
-	Vivek Kasireddy <vivek.kasireddy@intel.com>,
-	Dongwon Kim <dongwon.kim@intel.com>,
-	Kevin Tian <kevin.tian@intel.com>,
-	Xu Yilun <yilun.xu@linux.intel.com>,
-	Karl Mehltretter <kmehltretter@gmail.com>,
-	Baolu Lu <baolu.lu@linux.intel.com>,
-	Felix Kuehling <felix.kuehling@amd.com>,
-	Alex Deucher <alexander.deucher@amd.com>,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	intel-xe@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	linux-rdma@vger.kernel.org, iommu@lists.linux.dev,
-	Keith Busch <kbusch@kernel.org>, Jens Axboe <axboe@kernel.dk>,
-	Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>,
-	linux-nvme@lists.infradead.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Mina Almasry <almasrymina@google.com>, netdev@vger.kernel.org,
-	Alexey Kardashevskiy <aik@amd.com>, zhipingz@meta.com,
-	treding@nvidia.com, jhubbard@nvidia.com, chaitanyak@nvidia.com,
-	Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v3 03/24] dma-buf: Add the SGT DMA mapping type
-Message-ID: <20261127003718.GR246011@ziepe.ca>
-References: <20261124142032.GN9566@ziepe.ca>
- <7a5a2d3a-e42e-4dc0-8d22-8dd1bd249501@amd.com>
- <20261124194618.GC114530@ziepe.ca>
- <awZ_Os1pXelOGaFP@nvdebian.thelocal>
- <fb9a6b12-c134-4e40-86a5-dbcb59c0b91b@amd.com>
- <20261125155559.GL246011@ziepe.ca>
- <5fb8bb60-7d9f-49b1-899c-40a890fdc14b@amd.com>
- <20261125190705.GN246011@ziepe.ca>
- <awfMy1d8ICL6mr9i@nvdebian.thelocal>
- <a8c00bbf-dddb-4207-bcdf-af58d27116c5@amd.com>
+	dkim=pass (2048-bit key, unprotected) header.d=ikuyo.dev header.i=@ikuyo.dev header.a=rsa-sha256 header.s=s1 header.b=H5t2Bh27
+ARC-Seal: i=1; a=rsa-sha256; t=1795740801; cv=none; 
+	d=zohomail.com; s=zohoarc; 
+	b=VNFOZirqG0fxj4ePEop9nibohca7oMtnRRLMteaPMm6fUshuwkvj/JDCPJxFbCtdEZQGZjzsVOKgkEr6qSeTkfOz+elW81m/P2gYHxH4KFsG/BWQ7vo7rZA3u5t960Bm2plxG2Mpn8qGH7nfDhJTCqBTdD9uwZi9BW703ZhwhR8=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
+	t=1795740801; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=iSy/0O7S8ijEUnPgOjETIvR+sXgU6Nc1zbtPE0TV8d0=; 
+	b=lLBFlDsUHmWE2G62MupTclYnB9u/ENI/OqxoCOuMxxjG49xOKhynPc6faZr/bSKJ8OaxPvXtmD906iy9pTcRMClQXEl1/fuS1AWtOYlRPNZE5DThvgTkZKH91xL7XY0+TVD/FC6t0yQe7orMIJn5h65hhukdQRAaVaGtFbHHFI8=
+ARC-Authentication-Results: i=1; mx.zohomail.com;
+	dkim=pass  header.i=ikuyo.dev;
+	spf=pass  smtp.mailfrom=eritque-arcus@ikuyo.dev;
+	dmarc=pass header.from=<eritque-arcus@ikuyo.dev>
+DKIM-Signature: a=rsa-sha256; b=H5t2Bh27jQPBv8EcrnRC4V2Oq/4cP5dydW/p7MQyStoIKyt1mWJRWGpGjtHHRrHDAeOP109LA6KI562xBlPr5ABYz8X3GtA0ix/sqamVhIQtsZ6jykhrg3dxB5au7iZBRSmUi47tkQrj1xHm99mIyW5Kb9FsTtAnAlfVDFSt/CtNdINQjItwOM+O5u9mbOcCFH7YtDvGYMSFx5iKcQJn3O2X2CCmVaYRo6U0A2zjiqq0K/UWsMHnO7LP8w6+xx5rA5wst4ZSWbGWwAWHA+SriPiFKLC48cUcLoE/CNzMAedKMYFBee91PvJyNrF5XakMc3N8tvVYf/NKvPZJY/Z8OQ==; c=relaxed/relaxed; s=s1; d=ikuyo.dev; v=1; bh=iSy/0O7S8ijEUnPgOjETIvR+sXgU6Nc1zbtPE0TV8d0=; h=Content-Description:Content-ID:Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:List-Subscribe:List-Post:List-Owner:List-Id:List-Archive:List-Help:List-Unsubscribe:MIME-Version:Message-ID:Resent-Sender:Resent-Cc:Resent-Date:Resent-To:Reply-To:Resent-Message-ID:Resent-From:Sender:Subject:To:Date:From:Message-Id:Reply-To:Subject:To:Cc;
+Received: by smtp.zohomail.com with SMTPS id 179574079924073.2582039212607;
+	Thu, 26 Nov 2026 16:53:19 -0800 (PST)
+From: Cygnus Qiu <eritque-arcus@ikuyo.dev>
+To: bernard.metzler@linux.dev,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Cc: cel@kernel.org,
+	linux-nfs@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Cygnus Qiu <eritque-arcus@ikuyo.dev>,
+	stable@vger.kernel.org
+Subject: [PATCH v2] RDMA/siw: don't complete a fenced READ twice on flush
+Date: Thu, 26 Nov 2026 19:53:04 -0500
+Message-ID: <20261127005304.366336-1-eritque-arcus@ikuyo.dev>
+X-Mailer: git-send-email 2.56.1
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -136,18 +69,240 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <a8c00bbf-dddb-4207-bcdf-af58d27116c5@amd.com>
 
-On Thu, Nov 26, 2026 at 10:58:13AM +0100, Christian König wrote:
-> Would it help if have a call on Teams or similar services to discuss the whole thing?
-> 
-> That might be easier and especially faster than by mail.
+siw_sq_flush() completes a QUEUED READ in the TX slot, assuming the READ
+is not in the ORQ yet. That holds only while a full ORQ fences it.
+siw_check_tx_fence() copies a fenced READ into the ORQ when a Read
+Response frees a slot, and siw_activate_tx_from_sq() copies a READ into
+a free slot. In both cases the READ stays QUEUED until the TX path sends
+it, and a flush in that window completes it twice.
 
-I think that is a good idea, I suggest you and Alistair should pick a
-time and see who else can come. From experience eu/au/eastern na
-doesn't jive :)
+A peer can hold the window open. It advertises IRD 1, so the ORQ holds
+one READ: READ1 is in the ORQ and sent, READ2 waits fenced in the TX
+slot. The peer then sends Read Response 1 and a FIN in one TCP segment:
 
-Jason
+  softirq (TCP receive)                 siw_cm_wq worker
+  tcp_data_queue()
+  |-tcp_fin()
+  | \-siw_cm_llp_state_change()
+  |   Sets tx_suspend and
+  |   queues the close.
+  |
+  \-tcp_data_ready()
+    \-siw_qp_llp_data_ready()
+      |-down_read_trylock(state_lock)
+      |-tcp_read_sock()
+      | \-siw_tcp_rx_data()
+      |   \-siw_rdmap_complete()
+      |     \-siw_check_tx_fence()
+      |       |-siw_read_to_orq()
+      |       | READ2 enters the ORQ.
+      |       |
+      |       \-siw_sq_start()
+      |         orq_fence is now 0.
+      |         TX is suspended:
+      |         READ2 stays QUEUED.
+      |
+      \-up_read(state_lock)
+                                        siw_cm_work_handler()
+                                        \-siw_qp_llp_close()
+                                          |-down_write(state_lock)
+                                          \-siw_sq_flush()
+                                            |-siw_sqe_complete()
+                                            | READ2 from the ORQ.
+                                            |
+                                            \-siw_sqe_complete()
+                                              READ2 again, from the
+                                              TX slot.
+
+The FIN only queues the close, so the receive path normally gets
+qp->state_lock first.
+
+nfsd's svcrdma gets two flush completions for one Read chunk:
+
+  svc_rdma_wc_read_done()
+  \-svc_rdma_recv_ctxt_put()
+    Runs twice for the same ctxt. The second llist_add()
+    links ctxt->rc_node to itself.
+
+  svc_rdma_free()
+  \-svc_rdma_recv_ctxts_destroy()
+    |-svc_rdma_recv_ctxt_destroy()
+    | Frees ctxt.
+    |
+    |-llist_del_first()
+    | Reads the freed ctxt and returns it again.
+    |
+    \-svc_rdma_recv_ctxt_destroy()
+      Frees ctxt a second time.
+
+svcrdma pulls the Read chunk before it decodes the RPC, so the peer
+needs no RPC credentials and no export access.
+
+Complete a QUEUED READ from the TX slot only while orq_fence is set.
+orq_fence now decides whether the TX slot completes the READ, so move
+it out of the bitfield it shared with tx_suspend:
+siw_cm_llp_state_change() sets tx_suspend without taking a QP lock,
+and a lost update could drop or duplicate the completion.
+
+Found with afb-afl, an LLM-driven kernel audit/repro pipeline; the fix
+and this changelog were also drafted with LLM assistance.
+
+Reproduced on an unmodified KASAN build of mainline. A plain TCP client
+sends nfsd's svcrdma listener on siw an RDMA_NOMSG call with a
+two-segment Read chunk and answers as above. KASAN reports the read of
+the freed ctxt; here the second destroy then faults in kfree():
+
+  BUG: KASAN: slab-use-after-free in llist_del_first+0x150/0x170
+  Read of size 8 at addr ffff8881119d9000 by task nfsd/183
+
+  Call Trace:
+   <TASK>
+   dump_stack_lvl+0x5d/0x80
+   print_report+0x14b/0x4b0
+   kasan_report+0xfa/0x120
+   llist_del_first+0x150/0x170
+   svc_rdma_recv_ctxts_destroy+0xf3/0x1b0
+   svc_rdma_free+0xd8/0x2e0
+   svc_xprt_free+0x22c/0x420
+   svc_recv+0x103f/0x25b0
+   nfsd+0x35c/0xc80
+   kthread+0x34d/0x460
+   ret_from_fork+0x339/0x620
+   ret_from_fork_asm+0x1a/0x30
+   </TASK>
+
+  Allocated by task 183:
+   kasan_save_stack+0x2f/0x50
+   kasan_save_track+0x14/0x40
+   __kasan_kmalloc+0x7f/0x90
+   __kmalloc_node_noprof+0x207/0x680
+   svc_rdma_post_recvs+0x664/0xbf0
+   svc_rdma_accept+0xc27/0x1980
+   svc_recv+0x12c2/0x25b0
+   nfsd+0x35c/0xc80
+   kthread+0x34d/0x460
+   ret_from_fork+0x339/0x620
+   ret_from_fork_asm+0x1a/0x30
+
+  Freed by task 183:
+   kasan_save_stack+0x2f/0x50
+   kasan_save_track+0x14/0x40
+   kasan_save_free_info+0x3b/0x60
+   __kasan_slab_free+0x57/0x80
+   kfree+0x162/0x500
+   svc_rdma_recv_ctxts_destroy+0xe7/0x1b0
+   svc_rdma_free+0xd8/0x2e0
+   svc_xprt_free+0x22c/0x420
+   svc_recv+0x103f/0x25b0
+   nfsd+0x35c/0xc80
+   kthread+0x34d/0x460
+   ret_from_fork+0x339/0x620
+   ret_from_fork_asm+0x1a/0x30
+
+  The buggy address belongs to the object at ffff8881119d9000
+   which belongs to the cache kmalloc-2k of size 2048
+  The buggy address is located 0 bytes inside of
+   freed 2048-byte region [ffff8881119d9000, ffff8881119d9800)
+
+  BUG: unable to handle page fault for address: ffffeb860011a6c8
+  #PF: supervisor read access in kernel mode
+  #PF: error_code(0x0000) - not-present page
+  Oops: Oops: 0000 [#1] SMP KASAN NOPTI
+  RIP: 0010:kfree+0x69/0x500
+  Call Trace:
+   <TASK>
+   svc_rdma_recv_ctxts_destroy+0xdf/0x1b0
+   svc_rdma_free+0xd8/0x2e0
+   svc_xprt_free+0x22c/0x420
+   svc_recv+0x103f/0x25b0
+   nfsd+0x35c/0xc80
+   kthread+0x34d/0x460
+   ret_from_fork+0x339/0x620
+   ret_from_fork_asm+0x1a/0x30
+   </TASK>
+
+Without KASAN, SLAB_FREELIST_HARDENED catches the double free as
+"kernel BUG at mm/slub.c:605" in kfree() from
+svc_rdma_recv_ctxts_destroy(). With neither KASAN nor
+SLAB_FREELIST_HARDENED, nfsd pops the freed ctxt again. If another
+kmalloc-2k allocation has overwritten it by then, nfsd faults; if not,
+nfsd frees it again and repeats, so later allocations can get that one
+object many times.
+
+With this patch the READ is flushed once and KASAN stays silent.
+
+Fixes: f29dd55b0236 ("rdma/siw: queue pair methods")
+Cc: stable@vger.kernel.org
+Signed-off-by: Cygnus Qiu <eritque-arcus@ikuyo.dev>
+---
+Changes in v2:
+- Rewrite the commit message: charts for the race and the svcrdma free
+  path, and the full KASAN report.
+- Give orq_fence its own byte, as Sashiko suggested on v1. The lost
+  update was not reproduced.
+- v1: https://lore.kernel.org/r/20261125060646.155172-1-eritque-arcus@ikuyo.dev
+
+Tested on mainline 4405c18c95d2 (v7.4-rc3+) in QEMU. Applies to rdma
+for-next 94e81a1f3ffa, wip/leon-for-next d24184a64765 and
+wip/leon-for-rc e7732ec135b5.
+
+Unpatched, the KASAN use-after-free report came in 5 of 5 runs, the
+hardened BUG in 4 of 4, and with neither, nfsd faulted or spun in
+svc_rdma_recv_ctxts_destroy() in 15 of 15; add_key() as an
+unprivileged user got three keys backed by one object in 1 of 6.
+Patched, the KASAN build flushed once in 3 of 3 runs, and the build
+with neither showed no fault, spin or shared key in 10 of 10.
+
+Controls (FIN after the second Read Request, or no Read Response)
+flush once with and without the patch. The rdma-core tests could not
+run: rdma-core 66's siw provider asserts in siw_destroy_cq() on the
+first test, on an unpatched kernel and with v1.
+
+A reproducer and the test logs are available on request.
+
+ drivers/infiniband/sw/siw/siw.h    | 2 +-
+ drivers/infiniband/sw/siw/siw_qp.c | 7 ++++---
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/sw/siw/siw.h b/drivers/infiniband/sw/siw/siw.h
+index dbc998248b..82dc88b6a4 100644
+--- a/drivers/infiniband/sw/siw/siw.h
++++ b/drivers/infiniband/sw/siw/siw.h
+@@ -394,12 +394,12 @@ struct siw_iwarp_tx {
+ 
+ 	u32 mpa_crc;
+ 	bool mpa_crc_enabled;
++	bool orq_fence; /* ORQ full or Send fenced: not a bitfield */
+ 
+ 	u8 do_crc : 1; /* do crc for segment */
+ 	u8 use_sendpage : 1; /* send w/o copy */
+ 	u8 tx_suspend : 1; /* stop sending DDP segs. */
+ 	u8 pad : 2; /* # pad in current fpdu */
+-	u8 orq_fence : 1; /* ORQ full or Send fenced */
+ 	u8 in_syscall : 1; /* TX out of user context */
+ 	u8 zcopy_tx : 1; /* Use TCP_SENDPAGE if possible */
+ 	u8 gso_seg_limit; /* Maximum segments for GSO, 0 = unbound */
+diff --git a/drivers/infiniband/sw/siw/siw_qp.c b/drivers/infiniband/sw/siw/siw_qp.c
+index bb780e3904..2cc0f466e7 100644
+--- a/drivers/infiniband/sw/siw/siw_qp.c
++++ b/drivers/infiniband/sw/siw/siw_qp.c
+@@ -1188,10 +1188,11 @@ void siw_sq_flush(struct siw_qp *qp)
+ 		if (tx_type(wqe) != SIW_OP_READ_RESPONSE &&
+ 		    ((tx_type(wqe) != SIW_OP_READ &&
+ 		      tx_type(wqe) != SIW_OP_READ_LOCAL_INV) ||
+-		     wqe->wr_status == SIW_WR_QUEUED))
++		     (wqe->wr_status == SIW_WR_QUEUED &&
++		      qp->tx_ctx.orq_fence)))
+ 			/*
+-			 * An in-progress Read Request is already in
+-			 * the ORQ
++			 * A Read Request is already in the ORQ unless
++			 * a full ORQ fenced it
+ 			 */
+ 			siw_sqe_complete(qp, &wqe->sqe, wqe->bytes,
+ 					 SIW_WC_WR_FLUSH_ERR);
+-- 
+2.56.1
+
