@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795791494;
-	b=vQ/ZM/AmCgj9EVYa/V15vDdXWGm7RQZMzlOuNnsd0f6OgjcRk+ZH+FJDdnJ68EHJ82Ml
-	 Ugq0u++gJDhBJowl43fpkPrCGxNSXTPXEyV5i2uCpwAudgDpOXlQ7dnb0RN5Xded9RsQt
-	 JMtS6p7IvpYaetNueUfWVm8KGPjVN/jLx8GFsN+cd+4JENF6j8NPL5seVEiMG7ko/80qb
-	 h59KM7peMYX/KeSxGzx9WvwWRUCZhu5i3/kr5mD3hdT36KHvRd5R/x4k10dqmrdXnAwjd
-	 /YNL8wJjsoGwq++W7h7yE5OXRSQAXX1I1K9dTrFycU0ph1HXSU42kUJPZVN8NmEVaqA==
+	t=1795791496;
+	b=ppLonITcMpbMMH18mk5cOGeLugDONenFgpq7K4yw5VTBtztaJnGt/1yY/fPRh3P1vixB
+	 WiKmFpV2p0rE5uZFKk8v2Ps4VdRUEffu7Q1087deWVUPdidLTLHraxuJat9QfhHph3rNZ
+	 zkZc/w89t2M9/QzPQB4EaCjj5kOjhDnRm5lCMI6BIPu8xErw57ZMgx6SaEzAHZ89ES7oy
+	 JZFS+KKKuUG7Z/MB1lObQmdzDLm8o7oGsS9TnCXeAJzdijND/aOBB7XMY3tVLGqFTpWO9
+	 dwNMZ91ZsySQmKKnIBnPEFHAQ2buP9ez8md/3OG4ceNhE2azvYBNcyF7NuoNlMZ7ByA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795791494;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795791496;
 	h=Received:DKIM-Signature:Message-ID:From:Subject:Reply-To:To:Cc:
 	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:Date;
-	bh=mtCTdXqxG2+Td6nJooriykLm9tIXcIaZr4JUOW5b8VA=;
-	b=WFYZI6+v1+ENup8WIDH9lJh3aGKCD6ndzxnL1eooU6xp/VHJZtnbiQ237G8g/XsAigQ5
-	 GKiWzAghUAm9q5GVbGTfSn9V+RjrR7qR3LdBLQ4LlaVo+a9jF7OaUkRH7g+WGub3lfv+t
-	 rsZigqsbqmNalM8VNl7okCZjUrFVM+bK5+iT31kb3KecDelUGmVpJRVDbWQzWvrkB0d6K
-	 RNm3oSFxRu8NpM6siByW6jUsu/SqFDJXb3m+9iqZ4e7XUqsPqq98IyBQiTerj2FX7v4ay
-	 GXhZ61RI/igkHR4X7widDrM/bSVDh007yK0TXDyTsUM/EH4ozwhbIqiUFW3H7KsWwWw==
+	bh=Qg1yzUQi17BOTC9YagrYryW12ztINsd2+7V8HQBlo+E=;
+	b=vpYJgj6D2pdglTV2ydDouV68b0iMiiVM9yURE2nczn54T9vbhxnNtzOV4ErhcvyPwS0V
+	 yQ14jCV7fDbxpyr1BI6mUE/+Bm/TT7rlxQNuRHpjEZlKhjCC+IqbjsrRbTWROzhW2pD1/
+	 Rjlf0fUQVAo1ki1wg74WsveSgsJ37sKL2tfizbZ63KncJaGOaPBa0ZhDvZf0rnvMSk1QC
+	 sMIS2CX9rCFxgRTeDsC21N+X7KdLaGmZX0H3u8HIdIOxqvBns3h/LFprgiF2X8MiyxgQ+
+	 63WcqKwT9UBYkehdA53N4wSHPxoVCezmR/H2e1FkXuquWydvmT1Vc4jxXHLm8S/Epbg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="foc5Z+R/";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XN4d04Wv;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D569D606A326
-	for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 14:58:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 578C3606A31C
+	for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 14:58:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=foc5Z+R/
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1C011F00893;
-	Fri, 27 Nov 2026 14:58:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XN4d04Wv
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 355ED1F00893;
+	Fri, 27 Nov 2026 14:58:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795791494;
-	bh=mtCTdXqxG2+Td6nJooriykLm9tIXcIaZr4JUOW5b8VA=;
+	s=k20260515; t=1795791495;
+	bh=Qg1yzUQi17BOTC9YagrYryW12ztINsd2+7V8HQBlo+E=;
 	h=From:Subject:Reply-To:To:Cc:In-Reply-To:References:Date;
-	b=foc5Z+R/oUA7sAmMute7NjiuFaHS3a9rHKwNfeQuy6mdogHBtOIj5JS0dsSVlPX7T
-	 CLWB649/JZtiTemSZmuLMLElFTSXVJ+PyxHR//GR+OpC1rjsBQaig4KlRCzTJ2h07R
-	 mqZwtr3ruiwOgEhIBZFJ4DL7aOdkXCY8AwhM45dAY/0ho+kP1hHgryxoIqMXjrItkj
-	 KxqEWde8spbsEMBIB3jHXkKriAuXufImm8auAluKO2Ic99GJd89SG0wl+ZnOSUNhn2
-	 NxJqkQJtiuQet/4gvmWkq6641x0i12S2Tl8dGGFQEwnHaaVMw0TKaUDcWtYnLsXMvi
-	 zgZNYL7MXLb4g==
-Message-ID: <sashiko-outbox-237643@kernel.org>
+	b=XN4d04WvzsJkvzc/6xagHpt0xG4mA0iBKuXym4Lo1cNo/GmXNOAAMSfMn6sFr6oCW
+	 52CzsPCNOVsGB74u098Ey+vaOmUh9h8oGNum8+yhiujhL7+/l9LSexcB1YWFP1E7U/
+	 N1sDHKUwaK62WfEIup8dGmGEWJjbxw+t0SSIYfuf8hNEYekRX2uuxmnFOkbl6hyTus
+	 I2S4SxziH3JrrAMDuYXpYnhFlpbksMaQr1fB0vEiNWd6TmYpxEmoEtu0pTONXl3vvN
+	 n3En8tg93Wo8Ed4WWtepyYGTb0vyAqswe4VknAHqIvATAnhbEbqLYFV+MOyMuqFzmT
+	 ZWvamUQ/aux7g==
+Message-ID: <sashiko-outbox-237644@kernel.org>
 From: sashiko-bot@kernel.org
-Subject: Re: [PATCH v2 10/11] net/xsc: add the transmit path
+Subject: Re: [PATCH v2 11/11] net/xsc: add the receive path
 Reply-To: sashiko-reviews@lists.linux.dev
 To: "Xin Tian" <tianx@yunsilicon.com>
 Cc: linux-rdma@vger.kernel.org
-In-Reply-To: <20261126145740.70868-11-tianx@yunsilicon.com>
+In-Reply-To: <20261126145742.70868-12-tianx@yunsilicon.com>
 References: <20261126145711.70868-1-tianx@yunsilicon.com>
- <20261126145740.70868-11-tianx@yunsilicon.com>
+ <20261126145742.70868-12-tianx@yunsilicon.com>
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-Date: Fri, 27 Nov 2026 14:58:13 +0000
+Date: Fri, 27 Nov 2026 14:58:14 +0000
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -60,238 +60,367 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 
-Thank you for your contribution! Sashiko AI review found 4 potential
+Thank you for your contribution! Sashiko AI review found 7 potential
 issues to consider:
-- [High] net/xsc: lockless TX queue stop/wake race in xsc_eth_xmit()
-- [Medium] net/xsc: xsc_eth_xmit() returns NETDEV_TX_BUSY without
-  stopping TX queue
-- [Medium] net/xsc: xsc_poll_tx_cq() frees completed TX skbs with
-  dev_kfree_skb_any()
-- [Medium] net/xsc: unconditional CQ doorbell MMIO write in
+- [High] net/xsc: missing RX doorbell on partial alloc in
+  xsc_eth_post_rx_wqes()
+- [High] net/xsc: missing RQ state check in xsc_eth_post_rx_wqes() and
+  early NAPI enable
+- [Medium] net/xsc: CQs armed before NAPI init in xsc_eth_open_cq() and
+  open_channel()
+- [Medium] net/xsc: netif_napi_del() called before closing CQs in
+  xsc_eth_close_channel()
+- [Medium] net/xsc: missing pagepool_params.napi assignment in
+  xsc_eth_alloc_rq()
+- [Medium] net/xsc: wrong prefetch offset and DMA sync length in
+  xsc_skb_from_cqe()
+- [Medium] net/xsc: unconditional TX CQ doorbell MMIO write in
   xsc_poll_tx_cq()
 --
 
-commit a6c0dbbfbb297d8daa2d0367ab92f524118727e6
+commit 5c867b6dd2012f64299cb03411c3483a056f2b36
 Author: Xin Tian <tianx@yunsilicon.com>
 
-net/xsc: add the transmit path
+net/xsc: add the receive path
 
-This commit adds the transmit path for the xsc Ethernet driver, including
-posting linear skbs to the send queue, ringing the TX doorbell, and
-polling the TX completion queue.
+This commit adds the receive path for the xsc ethernet driver, building
+linear skbs from page_pool buffers and polling both TX and RX completion
+queues from a single NAPI instance.
 
-> diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_tx.c b/drive=
-rs/net/ethernet/yunsilicon/xsc/net/xsc_eth_tx.c
-> new file mode 100644
-> index 0000000000000..580af1f231056
-> --- /dev/null
-> +++ b/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_tx.c
-> @@ -0,0 +1,87 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/* Copyright (C) 2021-2026, Shanghai Yunsilicon Technology Co., Ltd.
-> + * All rights reserved.
-> + */
-> +
-> +#include "xsc_eth.h"
-> +#include "xsc_eth_txrx.h"
-> +
-> +#define XSC_OPCODE_RAW			7
-> +
-> +netdev_tx_t xsc_eth_xmit(struct sk_buff *skb, struct net_device *netdev)
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/main.c b/drivers/net=
+/ethernet/yunsilicon/xsc/net/main.c
+> index 8eda3c8b12f25..e7b0871c1ccb7 100644
+> --- a/drivers/net/ethernet/yunsilicon/xsc/net/main.c
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/net/main.c
+> @@ -106,6 +106,13 @@ static void xsc_eth_cq_error_event(struct xsc_core_c=
+q *xcq,
+>  		   "Eth catch CQ ERROR: %x, cqn: %d\n", event, xcq->cqn);
+>  }
+> =20
+> +static void xsc_eth_comp(struct xsc_core_cq *xcq)
 > +{
-> +	struct xsc_adapter *adapter =3D netdev_priv(netdev);
-> +	struct xsc_core_device *xdev =3D adapter->xdev;
-> +	struct xsc_send_wqe_ctrl_seg *cseg;
-> +	struct xsc_tx_wqe_info *wi;
-> +	struct xsc_sq *sq =3D &adapter->channel.qp.sq;
-> +	struct xsc_tx_wqe *wqe;
-> +	u32 ds_num_log =3D ilog2(xdev->caps.send_ds_num);
-> +	dma_addr_t dma_addr;
-> +	u16 pi;
+> +	struct xsc_cq *cq =3D container_of(xcq, struct xsc_cq, xcq);
 > +
-> +	if (!adapter->opened)
-> +		return NETDEV_TX_BUSY;
+> +	napi_schedule(cq->napi);
+> +}
+> +
+>  static int xsc_eth_alloc_cq(struct xsc_channel *c, struct xsc_cq *pcq,
+>  			    struct xsc_cq_param *pcq_param)
+>  {
+> @@ -125,6 +132,7 @@ static int xsc_eth_alloc_cq(struct xsc_channel *c, st=
+ruct xsc_cq *pcq,
+>  	if (ret)
+>  		return ret;
+> =20
+> +	core_cq->comp =3D xsc_eth_comp;
+>  	core_cq->event =3D xsc_eth_cq_error_event;
+>  	core_cq->vector =3D 0;
+> =20
+> @@ -204,6 +212,7 @@ static int xsc_eth_open_cq(struct xsc_channel *c,
+> =20
+>  	xsc_arm_cq(pcq->xdev, pcq->xcq.cqn, pcq->wq.cc, 0);
+> =20
+> +	pcq->napi =3D &c->napi;
+>  	pcq->channel =3D c;
+> =20
+>  	return 0;
+> @@ -448,6 +457,8 @@ static int xsc_eth_open_channel(struct xsc_adapter *a=
+dapter,
+>  	if (ret)
+>  		goto err_close_sq_cq;
+> =20
+> +	netif_napi_add(adapter->netdev, &c->napi, xsc_eth_napi_poll);
+> +
+>  	netdev_dbg(adapter->netdev, "open channel ok\n");
+>  	return 0;
 
 [Severity: Medium]
-Does returning NETDEV_TX_BUSY here without stopping sq->txq cause a
-busy-requeue loop in sch_direct_xmit()?
+Can an EQ completion interrupt reach xsc_eth_comp() before pcq->napi and
+c->napi are initialized?
 
-In xsc_eth_open(), xsc_eth_sw_init() starts sq->txq and
-netif_carrier_on() runs before adapter->opened is set to true, and in
-xsc_eth_close(), adapter->opened is cleared before xsc_eth_sw_deinit()
-disables the TX queue:
+xsc_eth_open_cq() registers pcq->xcq in xdev->cq_table.tree via
+xsc_eth_set_cq() and arms it with xsc_arm_cq() before assigning pcq->napi,
+and xsc_eth_open_channel() opens both CQs before calling netif_napi_add():
 
-drivers/net/ethernet/yunsilicon/xsc/net/main.c:xsc_eth_close() {
-	adapter->opened =3D false;
+CPU0                              <hardirq>
+xsc_eth_open_channel()
+  xsc_eth_open_cq(&c->qp.rq.cq)
+    xsc_eth_set_cq()
+    xsc_arm_cq()
+                                  xsc_eq_int()
+                                    xsc_cq_completion()
+                                      xsc_eth_comp()
+                                        napi_schedule(cq->napi)
+                                          <-- NULL or uninitialized napi
+    pcq->napi =3D &c->napi
+  ...
+  netif_napi_add(&c->napi)
 
-	netif_carrier_off(adapter->netdev);
+If an EQ event arrives in that window, napi_schedule() either dereferences
+NULL or schedules a zeroed napi_struct whose NAPI_STATE_SCHED bit is clear
+and poll callback is NULL.  Calling netif_napi_add() before opening the
+CQs and setting pcq->napi before xsc_eth_set_cq() would close this window.
 
-	xsc_eth_sw_deinit(adapter);
+[ ... ]
+
+> @@ -625,11 +640,17 @@ static void xsc_eth_close_qp_rq(struct xsc_channel =
+*c, struct xsc_rq *prq)
+>  		return;
+>  	}
+> =20
+> +	/* return the pages still posted to hardware before the pool dies */
+> +	for (i =3D 0; i < wq_sz; i++)
+> +		xsc_eth_dealloc_rx_wqe(prq, i);
+> +
+>  	xsc_eth_free_qp_rq(prq);
+>  }
+> =20
+>  static void xsc_eth_close_channel(struct xsc_channel *c, bool free_rq)
+>  {
+> +	netif_napi_del(&c->napi);
+> +
+>  	if (free_rq)
+>  		xsc_eth_close_qp_rq(c, &c->qp.rq);
+>  	xsc_eth_close_cq(c, &c->qp.rq.cq);
+
+[Severity: Medium]
+Should netif_napi_del(&c->napi) run after both CQs are closed in
+xsc_eth_close_channel()?
+
+While xsc_eth_close_qp_rq(), xsc_eth_close_qp_sq() and xsc_eth_close_cq()
+are still running, the CQs remain in xdev->cq_table.tree and an arriving
+EQ interrupt can invoke xsc_eth_comp() -> napi_schedule(&c->napi) on the
+already deleted napi_struct.
+
+> @@ -644,6 +665,7 @@ static int xsc_eth_open_channels(struct xsc_adapter *=
+adapter)
+>  {
+>  	struct xsc_channel_param *chl_param;
+>  	bool free_rq =3D false;
+> +	bool napi_enabled =3D false;
+>  	int ret =3D 0;
+> =20
+>  	chl_param =3D kvzalloc_obj(*chl_param, GFP_KERNEL);
+> @@ -662,6 +684,9 @@ static int xsc_eth_open_channels(struct xsc_adapter *=
+adapter)
+>  		goto err_close_channel;
+>  	free_rq =3D true;
+> =20
+> +	napi_enable(&adapter->channel.napi);
+> +	napi_enabled =3D true;
+> +
+>  	ret =3D xsc_eth_modify_qps_channel(adapter, &adapter->channel);
+>  	if (ret)
+>  		goto err_close_channel;
+> @@ -670,6 +695,8 @@ static int xsc_eth_open_channels(struct xsc_adapter *=
+adapter)
+>  	return 0;
+> =20
+>  err_close_channel:
+> +	if (napi_enabled)
+> +		napi_disable(&adapter->channel.napi);
+>  	xsc_eth_close_channel(&adapter->channel, free_rq);
+>  err_free_param:
+>  	kvfree(chl_param);
+> @@ -702,6 +729,9 @@ static void xsc_eth_deactivate_channel(struct xsc_cha=
+nnel *c)
+>  	clear_bit(XSC_ETH_SQ_STATE_ENABLED, &c->qp.sq.state);
+> =20
+>  	synchronize_net();
+> +
+> +	/* last doorbell out */
+> +	napi_disable(&c->napi);
+>  }
+
+[Severity: High]
+Can xsc_eth_napi_poll() race with xsc_eth_modify_qps_channel() or run
+while XSC_ETH_RQ_STATE_ENABLED is clear?
+
+xsc_eth_open_channels() calls napi_enable() while both CQs are already
+armed, before xsc_eth_modify_qps_channel() posts the initial RX WQEs and
+before xsc_eth_activate_channel() sets XSC_ETH_RQ_STATE_ENABLED and
+XSC_ETH_SQ_STATE_ENABLED.  Because xsc_eth_post_rx_wqes() does not check
+XSC_ETH_RQ_STATE_ENABLED, an EQ interrupt during open can run
+xsc_eth_post_rx_wqes() in NAPI concurrently with process context:
+
+CPU0 (process)                    CPU1 (<softirq>)
+xsc_eth_open_channels()
+  napi_enable(&c->napi)
+  xsc_eth_modify_qps_channel()
+    xsc_eth_post_rx_wqes(rq)
+      xsc_alloc_rx_wqes()
+                                  xsc_eth_napi_poll()
+                                    xsc_eth_post_rx_wqes(rq)
+                                      xsc_alloc_rx_wqes()
+                                        <-- concurrent page_pool alloc
+                                            and rq->wqe.wq corruption
+
+This violates the single-consumer BH invariant of page_pool_dev_alloc_pages=
+()
+and corrupts rq->wqe.wq and rq->wqe.di[].
+
+In addition, when xsc_eth_napi_poll() runs while the ENABLED bits are
+clear (either before xsc_eth_activate_channel(), or in
+xsc_eth_deactivate_channel() between clear_bit() and napi_disable()):
+- xsc_eth_post_rx_wqes() still allocates pages and rings the RX doorbell,
+  and if xsc_alloc_rx_wqes() fails with -ENOMEM it returns true (busy),
+  preventing napi_complete_done() so napi_disable() hangs forever.
+- xsc_poll_tx_cq() and xsc_poll_rx_cq() return 0 without draining pending
+  CQEs, yet xsc_eth_napi_poll() unconditionally rearms both CQs at the
+  unconsumed cq->wq.cc index, causing an immediate re-interrupt loop.
+
+> diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_rx.c b/drive=
+rs/net/ethernet/yunsilicon/xsc/net/xsc_eth_rx.c
+> new file mode 100644
+> index 0000000000000..2c07f80928ea2
+> --- /dev/null
+> +++ b/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_rx.c
+> @@ -0,0 +1,210 @@
+
+[ ... ]
+
+> +static struct sk_buff *xsc_skb_from_cqe(struct xsc_rq *rq,
+> +					struct xsc_dma_info *di,
+> +					u32 cqe_bcnt)
+> +{
+> +	struct sk_buff *skb;
+> +	void *va;
+> +	u32 frag_size;
+> +
+> +	va =3D page_address(di->page);
+> +	frag_size =3D XSC_SKB_FRAG_SZ(cqe_bcnt);
+> +
+> +	dma_sync_single_range_for_cpu(rq->cq.xdev->device, di->addr,
+> +				      0, frag_size, DMA_FROM_DEVICE);
+> +	net_prefetch(va + SKB_DATA_ALIGN(sizeof(struct skb_shared_info)));
+
+[Severity: Medium]
+Does net_prefetch() prefetch past the packet headers here?
+
+xsc_alloc_rx_wqes() programs wqe->data[0].va with di->addr (offset 0 of
+di->page), and napi_build_skb(va, frag_size) places struct skb_shared_info
+at the end of the buffer, not at the start.  Prefetching
+va + SKB_DATA_ALIGN(sizeof(struct skb_shared_info)) skips the first 320
+bytes where the Ethernet, IP, and transport headers sit (and prefetches
+past the end of frames <=3D 320 bytes), while dma_sync_single_range_for_cpu=
+()
+also syncs the trailing skb_shared_info region instead of cqe_bcnt bytes.
+
+> +
+> +	skb =3D napi_build_skb(va, frag_size);
+> +	if (unlikely(!skb))
+> +		return NULL;
+> +
+> +	skb_put(skb, cqe_bcnt);
+> +	skb_mark_for_recycle(skb);
+> +
+> +	return skb;
+> +}
+
+[Severity: Medium]
+Does skb_mark_for_recycle() ever use the lockless NAPI page_pool cache
+without pagepool_params.napi set?
+
+In xsc_eth_alloc_rq(), pagepool_params.napi is left NULL:
+
+drivers/net/ethernet/yunsilicon/xsc/net/main.c:xsc_eth_alloc_rq() {
+    ...
+	pagepool_params.dev =3D c->adapter->dev;
+	pagepool_params.dma_dir =3D DMA_FROM_DEVICE;
+	pagepool_params.max_len =3D PAGE_SIZE;
+	prq->page_pool =3D page_pool_create(&pagepool_params);
     ...
 }
 
-While sq->txq is running and adapter->opened is false, returning
-NETDEV_TX_BUSY causes sch_direct_xmit() to requeue skb and immediately
-reschedule the qdisc via __netif_schedule().  Also, if earlier packets in
-a batch were posted with netdev_xmit_more() true and adapter->opened
-becomes false before the last packet of the batch, returning early here
-skips xsc_update_tx_db() for the already-posted WQEs.
+Because pool->p.napi is NULL, napi_pp_put_page() -> page_pool_napi_local()
+always returns false when freeing recycled skbs, bypassing
+pool->alloc.cache and forcing every recycled page through the locked
+ptr_ring slow path.
 
+[ ... ]
+
+> +bool xsc_eth_post_rx_wqes(struct xsc_rq *rq)
+> +{
+> +	struct xsc_wq_cyc *wq =3D &rq->wqe.wq;
+> +	int alloc;
+> +	u16 head;
 > +
-> +	if (unlikely(skb_is_nonlinear(skb) || skb->len =3D=3D 0 ||
-> +		     skb->len > sq->hw_mtu))
-> +		goto err_drop;
+> +	if (xsc_wq_cyc_missing(wq) < rq->wqe.wqe_bulk)
+> +		return false;
 > +
-> +	pi =3D xsc_wq_cyc_ctr2ix(&sq->wq, sq->pc);
-> +	wqe =3D xsc_wq_cyc_get_wqe(&sq->wq, pi);
-> +	memset(wqe, 0, xdev->caps.send_ds_num * XSC_SEND_WQE_DS);
+> +	do {
+> +		head =3D xsc_wq_cyc_get_head(wq);
+> +		alloc =3D min_t(int, rq->wqe.wqe_bulk, xsc_wq_cyc_missing(wq));
 > +
-> +	dma_addr =3D dma_map_single(sq->channel->adapter->dev, skb->data,
-> +				  skb->len, DMA_TO_DEVICE);
-> +	if (unlikely(dma_mapping_error(sq->channel->adapter->dev, dma_addr)))
-> +		goto err_drop;
+> +		if (xsc_alloc_rx_wqes(rq, head, alloc))
+> +			return true;
 > +
-> +	wi =3D &sq->wqe_info[pi];
-> +	wi->skb =3D skb;
-> +	wi->dma_addr =3D dma_addr;
+> +		xsc_wq_cyc_push_n(wq, alloc);
+> +	} while (xsc_wq_cyc_missing(wq) >=3D rq->wqe.wqe_bulk);
 > +
-> +	cseg =3D &wqe->ctrl;
-> +	cseg->data0 =3D cpu_to_le32(FIELD_PREP(XSC_WQE_CTRL_SEG_DATA0_MSG_OPCOD=
-E_MASK,
-> +					     XSC_OPCODE_RAW) |
-> +				  FIELD_PREP(XSC_WQE_CTRL_SEG_DATA0_DS_DATA_NUM_MASK,
-> +					     1) |
-> +				  FIELD_PREP(XSC_WQE_CTRL_SEG_DATA0_WQE_ID_MASK,
-> +					     sq->pc << ds_num_log));
-> +	cseg->msg_len =3D cpu_to_le32(skb->len);
-> +	cseg->data3 =3D cpu_to_le32(XSC_WQE_CTRL_SEG_DATA3_CE);
-> +	wqe->data[0].data0 =3D
-> +		cpu_to_le32(FIELD_PREP(XSC_WQE_DATA_SEG_DATA0_SEG_LEN_MASK,
-> +				       skb->len));
-> +	wqe->data[0].va =3D cpu_to_le64(dma_addr);
+> +	dma_wmb();
 > +
-> +	sq->pc++;
-> +	if (unlikely(!xsc_wqc_has_room_for(&sq->wq, sq->cc, sq->pc,
-> +					   sq->stop_room)))
-> +		netif_tx_stop_queue(sq->txq);
+> +	/* ensure wqes are visible to device before updating doorbell record */
+> +	xsc_rq_notify_hw(rq);
+> +
+> +	return false;
+> +}
 
 [Severity: High]
-Can the lockless stop/wake protocol between xsc_eth_xmit() and
-xsc_poll_tx_cq() race to either wake a full ring or leave sq->txq
-permanently stopped?
+If xsc_alloc_rx_wqes() fails after earlier loop iterations already pushed
+WQEs, doesn't returning true immediately skip dma_wmb() and
+xsc_rq_notify_hw(rq)?
 
-xsc_eth_xmit() does not barrier and re-check xsc_wqc_has_room_for() after
-netif_tx_stop_queue(), and xsc_poll_tx_cq() updates sq->cc and checks
-netif_tx_queue_stopped(sq->txq) and sq->pc without memory barriers (even
-when 0 CQEs were reaped):
+Those earlier batches are already accounted for in wq->wqe_ctr and
+wq->cur_sz via xsc_wq_cyc_push_n(), so skipping the doorbell leaves
+hardware unaware of the posted descriptors.  Furthermore,
+xsc_eth_modify_qps_channel() ignores the return value of
+xsc_eth_post_rx_wqes(&c->qp.rq) during initial fill; if any batch fails
+during ndo_open, the RX doorbell is never rung at all and the RX queue
+starts in RTS with 0 descriptors notified to hardware, stalling RX
+permanently.
 
-CPU0 (xsc_eth_xmit)               CPU1 (xsc_poll_tx_cq)
--------------------               ---------------------
-/* 1 slot left:
- * pc - cc =3D=3D sz - 1
- */
-                                  /* 0 CQEs reaped; loads old
-                                   * sq->pc before CPU0's store
-                                   * is visible
-                                   */
-sq->pc++;
-/* pc - cc =3D=3D sz (full) */
-netif_tx_stop_queue(sq->txq);
-                                  if (netif_tx_queue_stopped(sq->txq) &&
-                                      xsc_wqc_has_room_for(..., old_pc, ...=
-))
-                                    netif_tx_wake_queue(sq->txq);
-                                      <-- wakes full SQ
-
-Because xsc_eth_xmit() does not check xsc_wqc_has_room_for() at entry,
-the next xsc_eth_xmit() call indexes pi at sq->cc, overwriting the
-in-flight WQE and sq->wqe_info[pi] (leaking wi->skb and wi->dma_addr) and
-wrapping sq->pc past sq->cc + sz so the queue stays awake.
-
-Conversely, when CPU1 reaps completions and writes sq->cc =3D sqcc while
-CPU0 reads the old sq->cc and stops the queue, the lack of a store-load
-barrier after sq->cc =3D sqcc on CPU1 and after netif_tx_stop_queue() on
-CPU0 allows CPU1 to observe netif_tx_queue_stopped(sq->txq) =3D=3D false and
-skip waking the queue, leaving sq->txq stopped with free descriptors.
-Using netif_txq_maybe_stop() in xsc_eth_xmit() and only checking for wake
-when i > 0 after smp_mb() in xsc_poll_tx_cq() would close both races.
-
-[ ... ]
-
-> diff --git a/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c b/dri=
-vers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c
-> new file mode 100644
-> index 0000000000000..ee6554ed80040
-> --- /dev/null
-> +++ b/drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c
-> @@ -0,0 +1,70 @@
-
-[ ... ]
-
-> +int xsc_poll_tx_cq(struct xsc_cq *cq, int budget)
+> +
+> +int xsc_eth_napi_poll(struct napi_struct *napi, int budget)
 > +{
-> +	struct xsc_cqe *cqe;
-> +	struct device *dev;
-> +	struct xsc_sq *sq;
-> +	u16 sqcc;
-> +	int i =3D 0;
+> +	struct xsc_channel *c =3D container_of(napi, struct xsc_channel, napi);
+> +	struct xsc_rq *rq =3D &c->qp.rq;
+> +	bool busy;
+> +	int work_done;
 > +
-> +	sq =3D container_of(cq, struct xsc_sq, cq);
-> +	if (!test_bit(XSC_ETH_SQ_STATE_ENABLED, &sq->state))
-> +		return 0;
-> +
-> +	dev =3D sq->channel->adapter->dev;
-> +	sqcc =3D sq->cc;
-> +
-> +	while (i < budget) {
-> +		struct xsc_tx_wqe_info *wi;
-> +		struct sk_buff *skb;
-> +
-> +		cqe =3D xsc_cqwq_get_cqe(&cq->wq);
-> +		if (!cqe)
-> +			break;
-> +		/* ensure cqe content is read after cqe ownership bit */
-> +		dma_rmb();
-> +
-> +		xsc_cqwq_pop(&cq->wq);
-> +		wi =3D &sq->wqe_info[xsc_wq_cyc_ctr2ix(&sq->wq, sqcc)];
-> +
-> +		skb =3D wi->skb;
-> +		wi->skb =3D NULL;
-> +		if (skb) {
-> +			dma_unmap_single(dev, wi->dma_addr, skb->len,
-> +					 DMA_TO_DEVICE);
-> +			dev_kfree_skb_any(skb);
-> +		}
+> +	busy =3D xsc_poll_tx_cq(&c->qp.sq.cq, xsc_cqwq_get_size(&c->qp.sq.cq.wq=
+));
 
 [Severity: Medium]
-Should xsc_poll_tx_cq() free completed TX packets with
-napi_consume_skb(skb, budget) instead of dev_kfree_skb_any(skb)?
+Does xsc_poll_tx_cq() ring the TX CQ consumer-index doorbell on every NAPI
+poll even when no TX completions were processed?
 
-dev_kfree_skb_any() records SKB_DROP_REASON_NOT_SPECIFIED instead of
-SKB_CONSUMED, which reports every transmitted packet as a drop in
-skb:kfree_skb tracepoints and drop_monitor, and bypasses NAPI bulk skb
-freeing.
+Unlike xsc_poll_rx_cq(), which guards xsc_cq_notify_hw() with
+if (work_done), xsc_poll_tx_cq() calls xsc_update_cq_ci() unconditionally
+when i =3D=3D 0, issuing an unnecessary wmb() and PCIe MMIO writel() on eve=
+ry
+RX-only NAPI poll:
 
-> +
-> +		sqcc++;
-> +		i++;
-> +	}
-> +
-> +	xsc_update_cq_ci(cq->xdev, cq->xcq.cqn, cq->wq.cc);
-> +
-> +	sq->cc =3D sqcc;
+drivers/net/ethernet/yunsilicon/xsc/net/xsc_eth_txrx.c:xsc_poll_tx_cq() {
+    ...
+		if (skb) {
+			dma_unmap_single(dev, wi->dma_addr, skb->len,
+					 DMA_TO_DEVICE);
+			dev_kfree_skb_any(skb);
+		}
 
-[Severity: Medium]
-When no TX completions are reaped (i =3D=3D 0), does xsc_poll_tx_cq() still
-issue an unconditional doorbell MMIO write?
+		sqcc++;
+		i++;
+	}
 
-xsc_update_cq_ci() executes a wmb() and a writel() to the PCIe BAR, and
-sq->cc =3D sqcc dirties the sq->cc cacheline on every NAPI poll even when
-the TX completion queue was empty.  Guarding the doorbell update, sq->cc
-write, and wake check on i > 0 avoids the barrier and MMIO write on
-idle-TX polls.
+	xsc_update_cq_ci(cq->xdev, cq->xcq.cqn, cq->wq.cc);
+    ...
+}
+
+Also, since xsc_poll_tx_cq() runs from NAPI poll context, using
+napi_consume_skb(skb, budget) instead of dev_kfree_skb_any(skb) would
+enable NAPI skb bulk freeing.
 
 --=20
 Sashiko AI review =C2=B7 https://sashiko.dev/#/patchset/20261126145711.7086=
-8-1-tianx@yunsilicon.com?part=3D10
+8-1-tianx@yunsilicon.com?part=3D11
