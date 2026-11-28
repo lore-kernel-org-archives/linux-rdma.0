@@ -1,80 +1,79 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795875841;
-	b=Hah0IF2xIM/e9zCGEUKFfXeuFBeoRckZSF3JI/decApd/xNdAYLol6ka4NB+w7LOePTB
-	 ZuMMyHrT9WB3h9vhxQRaYyeMpL500xr/5AealB9mGRzyuNqfE97CXr8Uh2Wwd5474sYrf
-	 3/mBIoF2SlKltPIVy5XOV3/s842LwhomibH/tp71yXfdCH3Q+XrroapEF0tH67c4Ohz6u
-	 07vwkeNqzjttju0QnaRVW9pI0XKyEGikbDMyFVbgLblBSA1ni1uPHhZ+HKeYCxuAgf2ae
-	 3Ev+wPr8M34vNS3vaf4gR4Sck6R6IAPstDlRxj3M6WlGXkcWrCpB0HTd1GOmnnH5xvg==
+	t=1795875836;
+	b=rTh2PcUJOnhOkeK/NsBrpKk9wzH0ruQZN/c27jqImR1KXOk7I/3Efa18TtPMvM4wYtWx
+	 jdg2tCPSNQnvZKokF4ZYeLyJDuqdGYOAMKjCllLfmw24o6xNTd4OGJhYbauixa7MqbHQg
+	 GuLpVhwuPzFZ+YOKiTqhlaVXy9TwAiwjc4T9Dz/0KcPZ6uDXS+nGj652HNzOPolLJyaGt
+	 xPhFIA2yeF7r9hv+qISoSeHz0KHBkaGQ95TYf+CqZ0fPvP6FPH5veWNZlOCkj3oMuxFSJ
+	 Gl+VEzHAAhvPrkhPGGTSZw41yyprUrgUMq99tH38kSvMBGiGNcTEbjA5r6RGupv7WaA==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795875841;
-	h=Received:DKIM-Signature:Received:From:Subject:Date:Message-Id:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding:X-B4-Tracking:
-	 X-Change-ID:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key:
-	 X-Endpoint-Received:X-Original-From:Reply-To;
-	bh=wzdXUl3Do4AcHnkMS3z03aZIs6RvIbloLaVWojWuykc=;
-	b=Lp/W24GupfoEcT1MkhLarkw3CRASyyZtmCIg0rDZR6ARKvVuXG75UhfCnqOXEdcUvjIG
-	 sxowdWw+RvRWdXvUG6W+oEyuJfL0PZoc52pXPf2gnFW8CNHF57MBa3ZueHraQ1Y/Z0ADF
-	 sy/MQIY5AFncrM9z8D13k6gCv+ITAIa33BLrQDZIpEptw8xExf6AEVghrqRr3BHj5zynE
-	 agHtYepKYIe5mcOMMbx6YAio4EE9EtRdTkQfff36rd4reVv04DXCWSzs09gEBDfE6bjsH
-	 Dmb+qx/xnHvVjDXAyN4LMsb2RTTFuAf6TNygi29d2VMlijS5gZZMOP6vvW8OrEp8k+w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795875836;
+	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
+	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=Kv7pdAIuxaJIEPokEi6ey+MAceVbmrIyDVFIOKizjlc=;
+	b=yBcvH7/PywrbHx14uXRaPEufYO4mWZ48VleK28vPi2yhq7BnuAjz0iIUT+amxIHeCI2I
+	 EK5uXEcDznBzuF9LsK7UtMUGXOuR/y8I4aAqEFaTtnA6BJflL6XtWyRwYXpW74f9+/aBq
+	 hem63VdRgsqHaMqpNRK8bJNSxRh6+n42YrJj9msbe8BvNA35U+qBiSyNIxKAN76nlyqXS
+	 Q1Xams4QP95HkdWufMT1gLLNpbTyOytuEV5IhVMT73J2NDj5HA08g0U9xR5K3hxuK+lue
+	 UQLg1/WygIScrUHO5UbTnFWItOQIg10ASrSVkyfIHhBnrgKU2UIez6m8LRBWOkhLymQ==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FrgM3LE1;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OX5IZgus;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47BE1606A327;
-	Sat, 28 Nov 2026 14:24:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AF33606A331;
+	Sat, 28 Nov 2026 14:23:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FrgM3LE1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OX5IZgus
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1795875840;
-	b=1nmhvq2zgYJ5y2V2C/vrHj/1vKE7NV9M+HhAQFw8PopAZXft5+xa7cel13eo2aCQTIte
-	 tvAlX1BChIXS60lMm2PVRjRAIKeeXggvbDDjVHr9UsA98PNs7JYnH/hbxg70Tz03r4fBV
-	 rQMF7GbyC4rUpVUd/U3epkAG8IfgyO88PspzuTvVyWX2KSf8MGak/tm8099v+KbzjmEDn
-	 o79eQJzBebn2ilW35mIqMlY+MbBZvKq41sJvcXPWgCaiF2dMj/8ansNyaAopTjGvihr+n
-	 7wx+bCLe4UiQCU853qV8Pfl+kRlqb69zDY+fkeTIp90PbYrEtNzXXdtcX5gmUxc8VLA==
+	t=1795875835;
+	b=HSBO1w+O2CrSbC3KG0M6ReAPTvT+y6+wXHYPWYTML/1h1RNHF1c7dx+U7NDR5cX3NaU0
+	 QcGCDBQqro1OHVxMCX/roA6k11+Ml0ITWUOuBix44QXTHm2NOAslLaNmH68tZ07FUS9ZH
+	 jvEBhHfWVNj6FNsCKcC8+tKLcr1jo7FNX5FR8CITN7cKvktKOv7CZT3jFfoljEMtCzmOf
+	 jtxbAv04YF2CN+/Car0uWqikOyUEaNidmRpTeaDnwfAgLqviR+b9zugUdIMtLNfAf39bm
+	 uDujsQXJY+VHoq0pJA+mGDp5z1o3Rj0TS+rSVkSLEe9oTjcObMITxujsnMjr6pp8eog==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1795875840;
-	h=DKIM-Signature:Received:From:Subject:Date:Message-Id:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:X-B4-Tracking:X-Change-ID:To:
-	 Cc:X-Mailer:X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
-	 X-Original-From:Reply-To;
-	bh=wzdXUl3Do4AcHnkMS3z03aZIs6RvIbloLaVWojWuykc=;
-	b=lQnMOwmN4BtObYRDWmPjSOOkaQcQUJS2npv8/iY60deN9WoHdDbtRvIrIKkwMs82jE+a
-	 3FDGbSj0jRWAMrXszmhCyIjYIuHUjDHxkvnct+QRhBTLV9293Ogi1csKFOOTG+PjC9ABH
-	 4qBOipfFDk3aSOVbn8c8XcRYVzUrskKACRSYcXK8XIH7BgxFMg/CliGLWXsH/FpIhl8b/
-	 /Op6AODnT0VUBNsUJZPMP5tpXEcaVLKFb41trn0WNZOBmW8PHhMWZMoZRvuiNGY4laFs9
-	 L6jLUii2U59DZA88pUGIWTyXJO9ofpwBOE+auVf/YKYAbTtuRitr5oiXMbtpvQdI0oQ==
+	c=relaxed/relaxed; t=1795875835;
+	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
+	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=Kv7pdAIuxaJIEPokEi6ey+MAceVbmrIyDVFIOKizjlc=;
+	b=1mo3sBWkJ16ickCNavcFu3XM7ho0dpZbYSenJrRivEo5FxiovxByLqJ79S0qdEpC0SxP
+	 prmg6WW9MxflZHE8wtOTRfLoSqsIXl+kNrvgqnrP2LkI6PwbqXpXvRwAG0cBnttrFl/4n
+	 5DGFYZey88/NF0RYFCg7qyBQ/xNpyKWC+zgswdMe05rehHYLHWrVlw7fxWDdOEcdGJnCU
+	 +xdoCeyvOVFdTSmAHoi3eijeA39pferiKkEoi93CHmR0iE/h2sPRiRIyG/qKCVuq/RqIe
+	 RpFJvT7mbey5oWF5bCIPNQsTjJWyLBNt9d1f+yYK218NwZXipb2bMn+KMrYkxbnes4w==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id 2124B1F00897;
-	Sat, 28 Nov 2026 14:23:44 +0000 (UTC)
+	by smtp.kernel.org (Postfix) with ESMTPS id 3B8F41F000C1;
+	Sat, 28 Nov 2026 14:23:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795875840;
-	bh=wzdXUl3Do4AcHnkMS3z03aZIs6RvIbloLaVWojWuykc=;
-	h=From:Subject:Date:To:Cc:Reply-To;
-	b=FrgM3LE13nvx0cw56ZzfsVlSLxa59hVC7REhCpR47M/1BdVjA0HvhKh9aGtAtP6tL
-	 XIHDjT0YNiEaUyU95+hKuETUO5H61n3nSoBIC94ajZtf+FBj2gsUQYLrQMI0x0+AvF
-	 6qzfFcHV1TtKbztoh3HUoz8YznJdvF1mx5eh3Cyi6f6fOLedsenpZyboW6yulRx8U5
-	 qlx7y6K0ipp7RPdn788kgMIOLBDfcPMAP9UvtdRYpo4TEYcqan+AtyaSqfdpVmqesh
-	 rSrd2wLrgGDGWs8jefkE4TfrxA4LcqDxwCjtT6JvNHfdfQsNT37Ivwxz/zrG6iOjIG
-	 BmP4/f3v7AMqw==
+	s=k20260515; t=1795875835;
+	bh=Kv7pdAIuxaJIEPokEi6ey+MAceVbmrIyDVFIOKizjlc=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
+	b=OX5IZgus2lOAJOLtuoHXPrgTCt/cMa8xoxm1zynVqWTpQOwDGKXPk+ExF3DHzPPov
+	 pbVogSr8GL1PPN/VvZaZxnAArDASjSwDTw+ePPG+8ayLHuCFMFXey7BVgYCahojAne
+	 fci+R4kFydegOmaoWCUr2YmWwlX6aX4Ye9gv6npcO7FLSbFeXFnVrX5KQVxWDpbkUU
+	 IbtVoWqvz6I3hLIAiDU6gp0vpbYnCWjmUm88d4sD5JU9tewGbfx8CyFAP6w4cl6q6v
+	 3Lalv/wmPvs4glABtl/WGURZ6XAB/2+Iq7rttT08Q8e9jnqziFnTBsAb0bEINLajOW
+	 MCy4tOlFEUtTw==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 770394E106;
-	Sat, 28 Nov 2026 14:23:43 +0000 (UTC)
+	by lkml.kernel.org (Postfix) with ESMTP id 586234E116;
+	Sat, 28 Nov 2026 14:23:44 +0000 (UTC)
 From: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
-Subject: [PATCH net v2 0/6] net/smc: fix the failover cursor switch and
- wrap rollover
-Date: Sat, 28 Nov 2026 09:23:42 -0500
-Message-Id: <20261128-b4-disp-360e65c5-v2-0-d9c05004d430@proton.me>
+Date: Sat, 28 Nov 2026 09:23:47 -0500
+Subject: [PATCH net v2 5/6] net/smc: order the urgent mark across the
+ cursor wrap rollover
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -85,11 +84,9 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yWMwQrCQAwFf6XkbKBNukvxV8SD3T41HtayaUUo/
- XdXPc7AzEaOYnA6NhsVvMztmSvIoaF0v+Qb2KbKJK3ErpOBx54n85k1toghBQaSDr2oBo1Us7n
- gau/f8kQZC53/0tfxgbR8Z7TvH6ntiFN5AAAA
-X-Change-ID: 20261128-b4-disp-360e65c5-eec384233536
+Message-Id: <20261128-b4-disp-360e65c5-v2-5-d9c05004d430@proton.me>
+References: <20261128-b4-disp-360e65c5-v2-0-d9c05004d430@proton.me>
+In-Reply-To: <20261128-b4-disp-360e65c5-v2-0-d9c05004d430@proton.me>
 To: Mahanta Jambigi <mjambigi@linux.ibm.com>, 
  "D. Wythe" <alibuda@linux.alibaba.com>, Eric Dumazet <edumazet@kernel.org>, 
  "David S. Miller" <davem@davemloft.net>, 
@@ -103,222 +100,104 @@ Cc: Stefan Raspl <raspl@linux.ibm.com>, Simon Horman <horms@kernel.org>,
  Ursula Braun <ubraun@linux.ibm.com>, Hidayath Khan <hidayath@linux.ibm.com>, 
  Wenjia Zhang <wenjia@linux.ibm.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1795875822; l=11907;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1795875822; l=3361;
  i=hexlabsecurity@proton.me; s=default; h=from:subject:message-id;
- bh=hNsS+F6klXASIIdN/mjH0/jpkgd//le+doZX/sNfPPI=;
- b=/+6dxNQCkGQl7G8yuuEo9cQyv3bD/9qFvkxRokIacnvS9/1cG4ADAGPT6ZPcLKe7vdKDkhZJr
- 62zT/pEFIbfDY/tfo589FqlnvLFsEqyBGzWklOwpEcUdVcgsJ0iDTuE
+ bh=Rc4x6htG50veeFexiJAu4UvukFo13BH1Sck0r9zaQTY=;
+ b=j4YK2CVd4P1ZR5Zj0nEBlLM12vRNgq6xNEgx/lFQebYHO6m3RflBXw0d942nMmqCSUIIRNfaa
+ BI5CIUtZRVkDNogPrXIx9megx8qC5C9pfDV1GU/oJFTpRIHu7dmiwDM
 X-Developer-Key: i=hexlabsecurity@proton.me; a=ed25519;
  pk=xw1AhCtQdvuoQc+bOQIYy9o8G++cp4/VniI2G/tc3G8=
 X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/default with
  auth_id=893
 X-Original-From: Bryam Vargas <hexlabsecurity@proton.me>
 Reply-To: hexlabsecurity@proton.me
+Content-Transfer-Encoding: 7bit
 
-smc_switch_cursor() runs at SMC-R link failover under send_lock only,
-while smc_cdc_tx_handler() and the CDC receive handler update the same
-cursors under the socket spinlock. Its catch-up orders the peer's
-consumer cursor against local_tx_ctrl_fin with smc_curs_comp(), which
-misorders two cursors across the u16 wrap rollover. A successful
-completion on the old link handled after the switch still credits bytes
-that are being resent. The urgent mark has the same rollover problem,
-and recv() tests and sets the urgent state under the socket lock only,
-while the CDC receive handler sets it under the socket spinlock.
+From: Bryam Vargas <hexlabsecurity@proton.me>
 
-1/6 takes the socket spinlock around the switch. 2/6 tags each CDC pend
-with a switch generation and credits a completion only from the current
-generation and never backwards; both checks rely on 1/6's lock. 3/6
-makes the switch work on copies of the cursors and store each one once.
-4/6 computes the catch-up from the signed cursor distance, bounds it by
-tx_curs_prep and advances the RMB cursors across wraps. 5/6 uses the
-signed distance for the urgent mark. 6/6 takes the socket spinlock
-around the reader's two test-and-set sequences on the urgent state.
-From 2/6 on each patch needs the ones before it.
+smc_rx_update_consumer() orders the consumer cursor against urg_curs
+with smc_curs_comp(), which misorders them across the 65535 -> 0
+rollover of the RMB wrap. Without SO_OOBINLINE, with the reader on wrap
+65535 and the urgent byte on wrap 0, the mark reads as already passed:
+urg_state becomes SMC_URG_READ before the byte is reached and
+recv(MSG_OOB) fails with -EINVAL. The urgent byte, which bytes_to_rcv
+leaves out, is then never skipped. The sender waits for its urgent data
+to be consumed before it sends more, so the connection stalls.
+smc_rx_recv_urg() compares the same two cursors with smc_curs_diff(). A
+consumer cursor that is past the mark on the RMB's next wrap reads as
+far behind it, and urg_rx_skip_pend is set with nothing left to skip.
 
-Sidraya's review of v1 had three points: the half-updated cursor [2],
-the bound of 3/4 [3] and the smc_rx_recv_urg() race [4]. They are 3/6,
-the bound in 4/6, and 6/6. v1's 3/4 bounded the catch-up by
-tx_curs_sent as it was before the rewind; an earlier failover whose
-resend has not run leaves that cursor on tx_curs_fin, and the bound
-then cuts a conforming peer's catch-up to nothing. tx_curs_prep is not
-rewound. A consumer cursor past tx_curs_prep, which only a forging peer
-has, is still clamped and leaves the producer cursor behind it (first
-item of "Not fixed here").
+Use smc_curs_sdiff() in both, which orders the two cursors whatever
+their wraps. smc_curs_comp() has no other user; remove it.
 
-Tested in an x86 KVM guest on a v7.4-rc4 KASAN kernel, with net/smc from
-the base below built as a module, over soft-RoCE on veth between two
-network namespaces. RMB 16 KiB, sndbuf 64 KiB. A failover is
-triggered by deleting an rdma device, except in v1's first test (the
-switch against a held completion handler) and the held CDC test below,
-where a test hook takes the link down. The module had test counters
-and test-only knobs, named where they are used. The knob that holds
-back the completions of the bytes in flight is also set in the wrap
-65535 test, in the forged cursor test and in the resend test of "Not
-fixed here". No KASAN report or WARN in any run.
-
-The tests in the v1 cover, except the one with a 16 KiB send buffer,
-were run again on this kernel with the same results: each fails on net
-and passes with v2. A failover with no knob is clean on net, with 1/6
-to 3/6, with 1/6 to 4/6 and with v2. v1's short catch-up test still
-fails with 1/6 to 3/6, v1's urgent test with 1/6 to 4/6, and the two
-urgent tests of 6/6 below with 1/6 to 5/6. 1/6 and 2/6 are unchanged;
-v1's runs without each of them were not repeated. The torn read that
-3/6 closes was not run; in the object code, with 3/6 each of the four
-cursors the switch updates is written by one 64-bit store, and without
-it there are 12 narrower stores into them.
-
-New in v2:
-
-- Two failovers of one connection. A knob holds back the completions of
-  the bytes in flight on the first link and a second knob holds the
-  resend. After the first failover the peer reads 4000 of those bytes,
-  across the end of its RMB, then the second link's device is deleted:
-  net catches up 4000 bytes at the second switch and all data arrives.
-  v1 catches up nothing, peer_rmbe_space is -12384, an RDMA write is
-  refused and the reader gets wrong data from byte 20001 on. v2 catches
-  up 4000 and all data arrives. With the 4000 bytes read before the
-  first failover and short of the end of the RMB, all data arrives with
-  v1 and with v2.
-- recv(MSG_OOB) held by a knob between its test of the urgent state and
-  its copy of the byte while a second urgent byte arrives: on net and
-  with 1/6 to 5/6 it returns the second byte, and the next
-  recv(MSG_OOB) returns it again. With 6/6 the softirq waits for the
-  spinlock: the first byte, then the second.
-- recv() held by a knob in smc_rx_update_consumer() between its test
-  and its store of the urgent state while a second urgent byte arrives,
-  then a recv() and a recv(MSG_OOB): on net and with 1/6 to 5/6 the new
-  mark is overwritten, the recv() skips nothing, recv(MSG_OOB) fails
-  with EINVAL and the sender's next send() times out. With 6/6 the
-  recv() skips the byte, recv(MSG_OOB) returns it and the data behind
-  it arrives. Without the recv() in between, with 6/6 recv(MSG_OOB)
-  returns the byte and the sender's next send() still times out: the
-  last item of "Not fixed here".
-- A CDC that moves the consumer cursor, held by a knob in
-  smc_cdc_msg_recv_action() while the link goes down: on net the switch
-  runs while the CDC is held and the CDC's credit is added on top.
-  peer_rmbe_space is 20384 for the 16384-byte RMB, one RDMA write is
-  longer than the RMB and the reader gets wrong data. With 1/6 and
-  2/6, and with v2, the switch waits for the CDC: peer_rmbe_space is
-  16384 and all data arrives.
-- A failover with local_tx_ctrl_fin on wrap 65535 and the peer's
-  consumer cursor on wrap 0, 6144 bytes ahead: on net and with 1/6 to
-  3/6 the catch-up is skipped, peer_rmbe_space is -10240, send()
-  returns EAGAIN and the reader times out. With 1/6 to 4/6 and with v2
-  the catch-up runs and all data arrives. With the same failover
-  16384 bytes later in the stream, all data arrives on net too.
-- A knob raises the consumer cursor in one received CDC before a
-  failover: to 1000 bytes past tx_curs_prep, to one wrap ahead, and to
-  one wrap ahead with a count of 20000 (the RMB has 16384 bytes). On net
-  and with 1/6 to 3/6, tx_curs_sent and tx_curs_fin end past
-  tx_curs_prep and sndbuf_space is 66536, 77920 and 89920 for the
-  65536-byte sndbuf. With 1/6 to 4/6 and with v2 they stop at
-  tx_curs_prep and sndbuf_space is 65536 in all three. What then
-  happens to the data is in the first item of "Not fixed here".
-- recv(MSG_OOB) with the urgent state still valid and the consumer
-  cursor past the mark on the RMB's next wrap. The reader reads up to
-  the urgent byte, which is skipped, sets SO_OOBINLINE with the next
-  bytes already queued, reads 15883 bytes, clears the option and
-  calls recv(MSG_OOB). On net and with 1/6 to 4/6, urg_rx_skip_pend is
-  then left set with no byte to skip; with 1/6 to 5/6 and with v2 it
-  is not. The byte is returned once and the data behind it arrives in
-  all four. With the cursor and the mark on one wrap the flag is not
-  set, with 1/6 to 4/6 or with v2.
-
-On a PROVE_LOCKING build of the same kernel there is no lockdep report
-with v2 in a failover with no knob, v1's test of the switch against a
-held completion handler, the two-failover test and the two urgent tests
-of 6/6. With the two locks of 1/6 taken in the other order lockdep
-reports the inversion, and without the BH disable in
-smc_rx_update_consumer() an inconsistent lock state.
-
-With 6/6 smc_rx_update_consumer() takes the socket spinlock only while
-an urgent mark is valid or its skip is pending; a first test without
-the lock keeps every other read as it is. A mark that arrives right
-after that test is picked up by the next recv(): run with the reader
-held there, same result on net and with 6/6. The cost while a mark is
-valid was not measured.
-
-The series is on net and does not depend on the CDC cursor bounds
-series [1], which is marked changes requested. 1/6, 2/6, 5/6 and 6/6
-apply on top of [1] as they are. 3/6 and 4/6 rewrite the block that
-[1] 6/6 changes in smc_switch_cursor() and replace it. The bound is the
-same, tx_curs_prep. [1] 6/6 also refuses the catch-up for a consumer
-cursor whose count is not inside the RMB; that check goes away, the
-bound caps the credit without it (the forged cursor test above).
-
-Not fixed here:
-
-- A peer whose consumer cursor is past tx_curs_prep, IOW past every
-  byte queued for it. The catch-up stops at tx_curs_prep and leaves the
-  producer cursor behind the consumer cursor, so peer_rmbe_space is
-  wrong. In the forged cursor test, 1000 bytes past: the next write
-  covers bytes the peer has not read and its reader gets wrong data,
-  as on net. One wrap ahead: tx stops. It started again when the
-  peer's next CDC carried its real cursor, and all data arrived; a
-  cursor that goes back is only accepted on wrap 0, and the real one
-  was on wrap 0. net delivers wrong data and is 16384 bytes short.
-  A count beyond the RMB: the next RDMA write ends past the RMB and is
-  refused, and the link group is terminated, as on net. It is the
-  forging peer's own link group.
-- A conforming peer that keeps reading between the switch and the
-  resend. Its consumer cursor passes the rewound producer cursor, as
-  on net; if it crosses the end of the RMB the resend's write ends
-  past it and is refused, and the link group is terminated ([1] 5/6
-  keeps that write inside the RMB). Until the resend, peer_rmbe_space
-  is above the RMB size (20384 after a read of 4000), so a sender
-  waiting for its urgent byte to be consumed is not released (by
-  inspection). The rest, except [1] 5/6, was run with a knob holding
-  the resend, on net and with v2: same result. The link group had one
-  link left after the failover.
-- recv(MSG_OOB) with the urgent byte as the next unread byte returns
-  the byte (0 and MSG_TRUNC for a zero length) but does not skip it,
-  and the sender's next send() times out. Same on net and with the
-  series; 6/6 rewrites that function and keeps this.
-
-Test patch and logs on request.
-
-v2:
- - 3/6: new. smc_switch_cursor() stores each cursor once; a reader
-   outside the locks could see tx_curs_sent half updated [5].
- - 4/6 (v1 3/4): the catch-up is bounded by tx_curs_prep, not by the
-   pre-failover tx_curs_sent [6].
- - 5/6 (v1 4/4): also orders the two cursors in smc_rx_recv_urg(); the
-   distance is kept in an s64.
- - 6/6: new. The urgent state is tested and set under the socket
-   spinlock in smc_rx_recv_urg() [7] and in smc_rx_update_consumer().
- - 1/6, 2/6: unchanged.
- - On net e9e45fcb6d39; net/smc has not changed since v1's base.
-v1: https://lore.kernel.org/all/20261113-b4-disp-1a9ab9b0-v1-0-4a7c8d85d849@proton.me/
-
-[1] https://lore.kernel.org/all/20261112-b4-disp-0287c16e-v9-0-e5e8fa688177@proton.me/
-[2] https://lore.kernel.org/all/83784e4c2e7a0df1e16a791dfe588f36@linux.ibm.com/
-[3] https://lore.kernel.org/all/366063ac0493ac4f48df9947b98d6613@linux.ibm.com/
-[4] https://lore.kernel.org/all/c769cd79c084c38804b606cbe0b0d79a@linux.ibm.com/
-[5] https://lore.kernel.org/all/sashiko-outbox-215218@kernel.org/
-[6] https://lore.kernel.org/all/sashiko-outbox-215219@kernel.org/
-[7] https://lore.kernel.org/all/sashiko-outbox-215220@kernel.org/
-
+Fixes: de8474eb9d50 ("net/smc: urgent data support")
+Cc: stable@vger.kernel.org
+Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
 ---
-Bryam Vargas (6):
-      net/smc: take the socket spinlock across the failover cursor switch
-      net/smc: do not credit stale CDC completions after a link switch
-      net/smc: store each cursor once in smc_switch_cursor()
-      net/smc: fix the failover catch-up across the cursor wrap rollover
-      net/smc: order the urgent mark across the cursor wrap rollover
-      net/smc: update the urgent state under the socket spinlock
+ net/smc/smc_cdc.h | 13 -------------
+ net/smc/smc_rx.c  | 11 ++++++-----
+ 2 files changed, 6 insertions(+), 18 deletions(-)
 
- net/smc/smc.h      |   3 ++
- net/smc/smc_cdc.c  |  11 +++++-
- net/smc/smc_cdc.h  |  28 +++++++++-----
- net/smc/smc_core.c |  59 ++++++++++++++++++-----------
- net/smc/smc_rx.c   | 109 ++++++++++++++++++++++++++++++++---------------------
- 5 files changed, 135 insertions(+), 75 deletions(-)
----
-base-commit: e9e45fcb6d39bee9325e6a7dca72bd14e82760f3
-change-id: 20261128-b4-disp-360e65c5-eec384233536
+diff --git a/net/smc/smc_cdc.h b/net/smc/smc_cdc.h
+index 4b586a20dfc2..eecd0cc5bb79 100644
+--- a/net/smc/smc_cdc.h
++++ b/net/smc/smc_cdc.h
+@@ -167,19 +167,6 @@ static inline int smc_curs_diff(unsigned int size,
+ 	return max_t(int, 0, (new->count - old->count));
+ }
+ 
+-/* calculate cursor difference between old and new - returns negative
+- * value in case old > new
+- */
+-static inline int smc_curs_comp(unsigned int size,
+-				union smc_host_cursor *old,
+-				union smc_host_cursor *new)
+-{
+-	if (old->wrap > new->wrap ||
+-	    (old->wrap == new->wrap && old->count > new->count))
+-		return -smc_curs_diff(size, new, old);
+-	return smc_curs_diff(size, old, new);
+-}
+-
+ /* signed distance from old to new; the wrap difference is taken as s16,
+  * so it holds across the u16 wrap rollover, for cursors less than 32768
+  * rings apart
+diff --git a/net/smc/smc_rx.c b/net/smc/smc_rx.c
+index 63c178c10bf1..564b976426ca 100644
+--- a/net/smc/smc_rx.c
++++ b/net/smc/smc_rx.c
+@@ -62,14 +62,15 @@ static int smc_rx_update_consumer(struct smc_sock *smc,
+ 	struct smc_connection *conn = &smc->conn;
+ 	struct sock *sk = &smc->sk;
+ 	bool force = false;
+-	int diff, rc = 0;
++	int rc = 0;
++	s64 diff;
+ 
+ 	smc_curs_add(conn->rmb_desc->len, &cons, len);
+ 
+ 	/* did we process urgent data? */
+ 	if (conn->urg_state == SMC_URG_VALID || conn->urg_rx_skip_pend) {
+-		diff = smc_curs_comp(conn->rmb_desc->len, &cons,
+-				     &conn->urg_curs);
++		diff = smc_curs_sdiff(conn->rmb_desc->len, &cons,
++				      &conn->urg_curs);
+ 		if (sock_flag(sk, SOCK_URGINLINE)) {
+ 			if (diff == 0) {
+ 				force = true;
+@@ -330,8 +331,8 @@ static int smc_rx_recv_urg(struct smc_sock *smc, struct msghdr *msg, int len,
+ 				rc = memcpy_to_msg(msg, &conn->urg_rx_byte, 1);
+ 			len = 1;
+ 			smc_curs_copy(&cons, &conn->local_tx_ctrl.cons, conn);
+-			if (smc_curs_diff(conn->rmb_desc->len, &cons,
+-					  &conn->urg_curs) > 1)
++			if (smc_curs_sdiff(conn->rmb_desc->len, &cons,
++					   &conn->urg_curs) > 1)
+ 				conn->urg_rx_skip_pend = true;
+ 			/* Urgent Byte was already accounted for, but trigger
+ 			 * skipping the urgent byte in non-inline case
 
-Best regards,
---  
-Bryam Vargas <hexlabsecurity@proton.me>
+-- 
+2.56.1
 
 
