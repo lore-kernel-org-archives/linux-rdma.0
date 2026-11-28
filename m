@@ -1,66 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.120
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795883993;
-	b=fkRxgsI4yajJ3Ge/TWAB0xRwFkVBQfW64O9xZgPMapW+SWAUe3/A+0UOd9Tyb8Z7VXTe
-	 7XbPgnGolM9zsZl6C5Oqcr3d8Zuh6R5XiDBMDVtLbVCk8oNIK/FlDyb5X15MqqU3O380r
-	 cbUPRkHkC76rWYBD6MowmryIuIkxctKz5HAu3IdrsQB3kgJFbpJHiecVFjeXDs2Gam8p5
-	 /NV7trvLQs7buCbT3XOgh3hCLNV/2MwUXH/6xiF8+NC+I13WZ72GyxrA1MCGMshCLCnFp
-	 xdPy+FNHjKR9aBXKhPqx9fpRDrOhxymu3fV7LM26XlkF0PwvZlPP3gjLul7+OGnLZ2A==
+	t=1795886529;
+	b=v3uufGJkzv2LS9EkvcxHOpvf9/mD5f6XtfALizYJqocqIkIjZKmdniZWd26RrbCkojjV
+	 zdC/q1GiZ1JB9mdbwQHbhIQe7tW3cfCoP8U386ODFI+rfO55cQhqjnouRw77Eflbj9zTI
+	 YDSZhvht32en671asPafs/wOV3jXnEgrwhWIqqVk9iVFi1SpJjkbWul6q6ZnXwn7YM4nE
+	 QLHfpp50hnP9xCh4ii7/cD8s524LrWmNBR7iig0ngnM2bfA+/mBBu+4hpuzghWwV4P2kf
+	 8oxxCNRhxZFLCW+iG03GlyF3HiOmgDEZLh7MamwS2HPkNTDLoUZFyC/0W4bo2HlHJhg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795883993;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=qn6LMNicVfMg/B4YWT5Q+Gix1LmHpcsLlWyOcRLrIBI=;
-	b=hxeKzqIrMSPqaIyTjApPra2JOkDTedPFq19Q7mrCEJ7roQh3P+nvzllJcJ2kp4LztilR
-	 vX3krFvpwApaf7r5ZmnfNZgSkfOyofFrSSHmqZ2eaCRxNj0gYJYl785Ps36UGUtyezHkF
-	 VjG6+G8MOH4u/5/Du0niJyf8yIsKAr2xOCXfUqas2pUEEpQ4Tir3juUDRmV3fTXgV0PtC
-	 lbuDznudk8lIpsN7NY7eqYPS8TtMd3BSN8vOXMs57ZMmSd9S5/oDjQLYShAdlgH7z6YY9
-	 IGPGx2GZr01K/VUkB/iQPdjL0770NOP0apT8MLoe4rZoBaSegFHzo0jzGkS15cmkcsQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795886529;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=WwiZc2KBx1fIpHwsENuqW3ABJGvetEHXL0OyCBITUTc=;
+	b=KvXAHJh+3d7Y/89xp1bFNBIiPWBQBVJ8Yr0TrIS403xFWadJ3PT4ev4PoX3CMIdh2pD8
+	 I0mt5QFld7d/aY1RaypWNLjFjsrEkvxhff9aEwvGaS37RjJC8FLvMIihrusH5lrhkO/vB
+	 dsrPNOvATSCV3PXVuu4OsJQtLTNS7zSMc515l2hFBIHK2Al94mQ8UsFebEnD0fEnT7Zzh
+	 bcazJJPwC6cXRlFsVQRjlQp1DxijCh3ZhSI9UYV9mUfblBOHFLTElCaEABtPTdq9osTJo
+	 BoCvwe/AUoIkC+sLjU4ofevHTNaMHQjwmsBuXUg6RUcroc3FkJ/YrjIjjvszsm0vi8g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JsEXwXbB;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=jNRxV0yO;
+	arc=none smtp.remote-ip=95.215.58.120
+Received: from mta1.migadu.com (out-120.mta1.migadu.com [95.215.58.120])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E410606A32F;
-	Sat, 28 Nov 2026 16:39:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AE17606A321
+	for <linux-rdma@vger.kernel.org>; Sat, 28 Nov 2026 17:22:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0AE17606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JsEXwXbB
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE46D1F00923;
-	Sat, 28 Nov 2026 16:39:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795883993;
-	bh=qn6LMNicVfMg/B4YWT5Q+Gix1LmHpcsLlWyOcRLrIBI=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=JsEXwXbBTYIWBtRk9X5UKLFCDfwGcx5PN7xCM706nq7cnajrkVUN1j5UAMelr2i6O
-	 HQjeKon2SPNuASYQ7S4ulcBzhDcb+HLHwsMNAeUkVZFA6z2mJGDOecMPtNS7sE8+Gi
-	 egKm0fZLTzgasTp+nxYwUHhIov81y1dBysG63FqZg6cQcQF001a1AtaOzA8G70QIlW
-	 0ZRcvBOJ7GpCSIL68Ifb4x0v2pljMIKpYdYF7O2iQaxxQQjvjswdRu/0lw1a2hFM/F
-	 vOwtBXBvOiDTffDVYUoGLjgwYhuJEHb3RSOlTA15Pbtj67Bo4pFuXqkb8C29FkX8na
-	 +FUqLpw4HDdMA==
-Subject:
- Re: [PATCH net-next v12 4/5] net: mana: support concurrent HWC requests
-From: netdev-bot+sashiko@kernel.org
-To: weh@linux.microsoft.com
-Cc: longli@kernel.org, kotaranov@microsoft.com, kuba@kernel.org,
- davem@davemloft.net, pabeni@redhat.com, edumazet@google.com,
- andrew+netdev@lunn.ch, jgg@ziepe.ca, leon@kernel.org, haiyangz@microsoft.com,
- wei.liu@kernel.org, decui@microsoft.com, shradhagupta@linux.microsoft.com,
- horms@kernel.org, ernis@linux.microsoft.com, stephen@networkplumber.org,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
- gargaditya@linux.microsoft.com, kees+treewide@kernel.org, kees@kernel.org,
- mawasthi@linux.microsoft.com, weh@microsoft.com, edumazet@kernel.org,
- shacharr@microsoft.com
-Date: Sat, 28 Nov 2026 16:39:51 +0000
-Message-ID: <179588399135.3135.15300357859014042755@kernel.org>
-In-Reply-To: <hwc-v12.91ec3eff9cb647d5bc5cc932b3c6f60c.4@linux.microsoft.com>
-References: <hwc-v12.91ec3eff9cb647d5bc5cc932b3c6f60c.4@linux.microsoft.com>
-X-sashiko-severity: High
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=jNRxV0yO
+X-Envelope-To: linux-rdma@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=1+UCRr2bWvu5HBEUfsmgNjhgA4Aa79bT9LX73YF2hRE=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1795886526; v=1; x=1796491326;
+ b=jNRxV0yOKhBOKBsRyeOWLOVjYgyWNNhEzdlSNuX+XhM7uUtYCIsGoy8b7gz5QaJx/lCTjs4I
+ FzA3YGe9CdDiLsvmwuO41gBtc54K0IjkbHaxeFRypSRd53mMcEYQ1JqttiuBFo8ouWlsrPz9+kG
+ ma2PpFY32gHZ6CQihyLZ8ZJw=
+X-Envelope-To: linux-rdma@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 2f83b088c200e9a5;
+	Sat, 28 Nov 2026 17:22:05 +0000
+X-Mizu-Trace-ID: 2f83b088c200e9a5
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <cc328545-3721-45c9-bcca-fa4d851bc6c6@linux.dev>
+Date: Sat, 28 Nov 2026 09:21:58 -0800
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -70,336 +58,128 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH rdma-rc] RDMA/rxe: Bound MR copy and flush chunks to MR
+ pages
+To: Andrew Stellman <bugs@stellman-greene.com>,
+ Zhu Yanjun <zyjzyj2000@gmail.com>,
+ "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>
+Cc: Li Zhijian <lizhijian@fujitsu.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+References: <20261128140840.59003-1-bugs@stellman-greene.com>
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <20261128140840.59003-1-bugs@stellman-greene.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found 4 potential
-issue(s) to consider.
 
-Critical: 0 · High: 2 · Medium: 1 · Low: 1
+在 2026/11/28 6:08, Andrew Stellman 写道:
+> From: Andrew Stellman <astellman@stellman-greene.com>
+>
+> A fast-reg MR can use 4 KiB pages on a 64 KiB-page kernel, with each
+> MR page in its own page_info entry. rxe_mr_copy_xarray() limits each
+> chunk to the end of the system page, not the end of the MR page, so a
+> copy that crosses an MR-page boundary continues in the same system
+> page instead of moving to the next page_info entry.
+> rxe_mr_flush_pmem_iova() has the same bound.
+>
+> Limit each chunk to the end of the MR page when MR pages are smaller
+> than PAGE_SIZE. For MR pages of PAGE_SIZE or larger the bound is
+> unchanged.
+>
+> On arm64 with 64 KiB pages (QEMU TCG, mainline 7cd8495c0f16), a
+> test-only hook built an MR by hand with two 4 KiB pages at offsets
+> 0x1000 and 0x3000 of two different system pages and called
+> rxe_mr_copy() for 32 bytes starting 16 bytes before the MR-page
+> boundary, checking that the last 16 bytes came from or went to the
+> second MR page. Without this patch, both the read and the write check
+> failed. With it, both passed, and they failed again with it reverted.
+> A 32-byte read within one MR page passed on all three builds. The
+> flush path was not run.
+>
+> The issue was found by Claude Opus 5.5 running Quality Playbook, an
+> LLM-driven code review tool:
+> https://github.com/andrewstellman/quality-playbook
+> The fix was drafted with OpenAI GPT-6 (Codex) and this changelog with
+> Claude Opus 5.5, and both were reviewed by me.
+static int rxe_mr_fill_pages_from_sgt(struct rxe_mr *mr, struct sg_table 
+*sgt)
+{
+     struct sg_page_iter sg_iter;
+     struct page *page;
+     bool persistent = !!(mr->access & IB_ACCESS_FLUSH_PERSISTENT);
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+     WARN_ON(mr_page_size(mr) != PAGE_SIZE);
 
-- [High] After an HWC timeout, RDMA DESTROY_MR, DESTROY_DM and DESTROY_PD
-  report success even if the PF never received them, and the callers…
-- [High] mana_hwc_check_deadlines() runs before a reply is accepted (at
-  the top of mana_hwc_handle_resp(), under r->lock) and before…
-- [Medium] When any pending slot in a batch passes its deadline,
-  mana_hwc_fail_pending(hwc, HWC_DMA_DRAINED) overwrites ctx->error on…
-- [Low] The new comment on mana_need_log() says it suppresses only
-  follow-on failures ("Once admission is closed, follow-on request…
+     __sg_page_iter_start(&sg_iter, sgt->sgl, sgt->orig_nents, 0);
+     if (!__sg_page_iter_next(&sg_iter))
 
---
+         return 0;
 
-net: mana: support concurrent HWC requests
+rxe_mr_fill_pages_from_sgt() assumes a 1:1 mapping between MR pages and
+kernel PAGE_SIZE pages returned by sg_page_iter. When mr_page_size(mr)
+differs from PAGE_SIZE—such as 4 KiB MR pages on a 64 KiB-page
+kernel—this triggers a WARN_ON() call trace in dmesg, and stepping in
+PAGE_SIZE increments risks misaligning MR page indices, offsets, or
+entry counts if the warning is simply removed.
 
-This patch replaces the HWC semaphore and per-slot locks with a
-submission list. Competing callers are batched behind one SQ doorbell,
-and replies are tracked under the inflight map lock. When a posted
-command passes a host-side deadline, the channel moves to HWC_TIMED_OUT
-and later requests fail without being posted. A new
-mana_gd_send_teardown_request() lets RDMA destroy paths report success
-in that state.
+Please also modify rxe_mr_fill_pages_from_sgt() to account for 
+mr_page_size(mr)
+relative to PAGE_SIZE when populating MR page entries and offsets, and
+remove the obsolete WARN_ON() check.
 
-> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> index 2d495db51d746..0ada3861e259f 100644
-> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> @@ -142,22 +142,21 @@ int mana_gd_init_registers(struct gdma_context *gc)
->  		return mana_gd_init_vf_regs(gc);
->  }
->  
-> -/* Suppress logging when we set timeout to zero */
-> +/* Once admission is closed, follow-on request failures are expected. */
->  bool mana_need_log(struct gdma_context *gc, int err)
->  {
->  	struct hw_channel_context *hwc;
-> +	unsigned long flags;
-> +	bool log;
->  
-> -	if (err != -ETIMEDOUT)
-> -		return true;
-> -
-> -	if (!gc)
-> +	if (!gc || (err != -ETIMEDOUT && err != -ENODEV))
->  		return true;
->  
-> +	spin_lock_irqsave(&gc->hwc_lock, flags);
->  	hwc = gc->hwc.driver_data;
-> -	if (hwc && hwc->hwc_timeout == 0)
-> -		return false;
-> -
-> -	return true;
-> +	log = hwc && READ_ONCE(hwc->state) == HWC_READY;
-> +	spin_unlock_irqrestore(&gc->hwc_lock, flags);
-> +	return log;
->  }
+Thanks a lot.
 
-[Severity: Low]
-Does this also hide the first timeout, the one that triggers the state
-change? The comment says only follow-on failures are suppressed.
+Yanjun Zhu
 
-mana_hwc_check_deadlines() sets HWC_TIMED_OUT before the sender whose
-deadline expired returns -ETIMEDOUT. That error then reaches callers
-such as mana_gd_disable_queue(), mana_gd_destroy_dma_region(),
-mana_gd_deregister_device() or mana_gd_destroy_eq(). By then
-mana_need_log() sees a non-READY state, so their dev_err() is skipped.
-
-This patch also removes the "Command 0x%x timed out: %u ms" message
-from mana_hwc_send_request(). The only log left is:
-
-    dev_err(hwc->dev, "HWC request %u timed out\n", i);
-
-It prints a slot index rather than the opcode. Before this patch the
-first timeout always logged the command. Could the opcode of the command
-that timed out still be logged somewhere?
-
-[ ... ]
-
-> diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> index a98e58b83f9c7..cf1b9c75b10e2 100644
-> --- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> +++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-> @@ -6,61 +6,103 @@
-
-[ ... ]
-
-> -static void mana_hwc_put_msg_index(struct hw_channel_context *hwc, u16 msg_id)
-> +static void mana_hwc_fail_pending(struct hw_channel_context *hwc, int result)
->  {
->  	struct gdma_resource *r = &hwc->inflight_msg_res;
-> -	unsigned long flags;
-> -
-> -	spin_lock_irqsave(&r->lock, flags);
-> -	bitmap_clear(hwc->inflight_msg_res.map, msg_id, 1);
-> -	spin_unlock_irqrestore(&r->lock, flags);
-> +	unsigned int i;
-> +
-> +	lockdep_assert_held(&r->lock);
-> +	for_each_set_bit(i, r->map, r->size) {
-> +		struct hwc_caller_ctx *ctx = &hwc->caller_ctx[i];
-> +
-> +		/* Retirement also invalidates a reply not yet consumed. An
-> +		 * ordinary stop has no such guarantee: keep a completed reply.
-> +		 */
-> +		if (!ctx->sender)
-> +			continue;
-> +		if (ctx->error != -EINPROGRESS && result != HWC_DMA_DRAINED)
-> +			continue;
-> +		ctx->error = result;
-> +		complete(&ctx->comp_event);
-> +	}
-> +}
-
-[Severity: Medium]
-Can this throw away a reply the PF has already sent?
-
-When result is HWC_DMA_DRAINED, the -EINPROGRESS check is skipped. A
-slot whose reply has arrived and been stored (ctx->error == 0 and
-ctx->reply set), but not yet consumed by its sender, gets overwritten.
-mana_hwc_wait_for_response() then skips the memcpy into resp. The
-caller gets -ETIMEDOUT, or 0 for a teardown request even if the PF
-returned a failure status.
-
-The commit message only says "Unanswered commands have no effect". An
-answered CREATE_DMA_REGION, CREATE_MR or CREATE_PD did take effect on
-the PF.
-
-Would its handle be lost, leaving an orphaned PF object while the
-caller's error path frees the backing gmi buffer or umem?
-
-At this commit the bootstrap depth is 1, so a batch holds one entry and
-this cannot trigger. The next patch in the series, "net: mana: use the
-reported HWC queue depth", allows batches larger than one, and this
-logic is unchanged at the end of the series.
-
-The sequence would be:
-
-  1. Command A is answered and its reply is stored.
-  2. Command B's deadline expires before A's sender takes r->lock again.
-
-[ ... ]
-
-> @@ -86,44 +128,60 @@ static int mana_hwc_post_rx_wqe(const struct hwc_wq *hwc_rxq,
-
-[ ... ]
-
->  static void mana_hwc_handle_resp(struct hw_channel_context *hwc, u32 resp_len,
->  				 struct hwc_work_request *rx_req, u16 msg_id)
->  {
-> -	const struct gdma_resp_hdr *resp_msg = rx_req->buf_va;
-> +	struct gdma_resource *r = &hwc->inflight_msg_res;
->  	struct hwc_caller_ctx *ctx;
-> -	int err;
->  
-> -	if (!test_bit(msg_id, hwc->inflight_msg_res.map)) {
-> -		dev_err(hwc->dev, "hwc_rx: invalid msg_id = %u\n", msg_id);
-> -		mana_hwc_post_rx_wqe(hwc->rxq, rx_req);
-> -		return;
-> +	spin_lock(&r->lock);
-> +	mana_hwc_check_deadlines(hwc);
-> +	if (msg_id >= r->size || !test_bit(msg_id, r->map)) {
-> +		dev_err_ratelimited(hwc->dev, "Unexpected HWC response ID %u\n",
-> +				    msg_id);
-> +		goto repost;
->  	}
->  
-> -	ctx = hwc->caller_ctx + msg_id;
-> -
-> -	spin_lock(&ctx->lock);
-> -	if (!ctx->output_buf) {
-> -		spin_unlock(&ctx->lock);
-> -		mana_hwc_post_rx_wqe(hwc->rxq, rx_req);
-> -		return;
-> -	}
-> +	ctx = &hwc->caller_ctx[msg_id];
-> +	if (!ctx->pending)
-> +		goto repost;
->  
-> -	err = mana_hwc_verify_resp_msg(ctx, resp_msg, resp_len);
-> -	if (!err) {
-> -		ctx->status_code = resp_msg->status;
-> -		memcpy(ctx->output_buf, resp_msg, resp_len);
-> +	ctx->pending = false;
-> +	if (!ctx->sender) {
-> +		__clear_bit(msg_id, r->map);
-> +		goto repost;
->  	}
-> +	if (ctx->error != -EINPROGRESS)
-> +		goto repost;
-
-[Severity: High]
-Should mana_hwc_check_deadlines() run before the reply in hand has been
-accepted?
-
-The deadline check uses only host jiffies:
-
-    if (time_after_eq(now, ctx->deadline)) {
-        WRITE_ONCE(hwc->state, HWC_TIMED_OUT);
-        mana_hwc_fail_pending(hwc, HWC_DMA_DRAINED);
-
-The deadline is set from the host doorbell write in
-mana_hwc_post_batch(). Suppose the device wrote the reply within its
-window, but the host handled it late (EQ interrupt latency, a
-descheduled vCPU, steal time). This call then marks the channel timed
-out and sets ctx->error. The reply being handled fails the -EINPROGRESS
-check above and is reposted.
-
-mana_hwc_wait_for_response() has the same ordering:
-
-    for (;;) {
-        remaining = mana_hwc_check_deadlines(hwc);
-        if (ctx->error != -EINPROGRESS)
-            break;
-
-A waiter woken by wait_for_completion_timeout() at the deadline can
-declare a timeout while the CQE is already in the ring but not yet
-polled.
-
-In that case the PF never reached its own timeout. By the commit
-message's reasoning, it has not drained DMA or invalidated anything, yet
-the driver treats the generation as drained.
-
-Would non-teardown callers then get -ETIMEDOUT for commands the PF
-executed, for example an answered CREATE_MR whose caller unwinds and
-frees the umem? And would every later teardown request return 0 without
-being posted, unpinning memory behind live PF objects?
-
-HWC_DATA_CFG_HWC_TIMEOUT lets the PF shorten hwc_timeout for later
-batches, so replies landing close to the deadline may not be unusual.
-
-[ ... ]
-
-> @@ -1058,108 +1201,183 @@ static int mana_hwc_response_status(struct hw_channel_context *hwc,
-
-[ ... ]
-
-> +	remaining = mana_hwc_check_deadlines(hwc);
-> +	if (hwc->state == HWC_READY)
-> +		return remaining;
->  
-> -	tx_wr->msg_size = req_len;
-> -	command = req_msg->req.msg_type;
-> +	sub->err = hwc->state == HWC_TIMED_OUT ? HWC_DMA_DRAINED : -ENODEV;
-> +	list_del_init(&sub->entry);
-> +	return 0;
-> +}
-
-[ ... ]
-
-> +	finish_wait(&hwc->admission_waitq, &wait);
-> +	err = sub.err;
-> +	if (!err)
-> +		err = mana_hwc_wait_for_response(hwc, sub.id, hdr->req.msg_type,
-> +						 resp_len, resp);
-> +
-> +	if (err == HWC_DMA_DRAINED)
-> +		return teardown ? 0 : -ETIMEDOUT;
-> +	return err;
->  }
-
-[Severity: High]
-Can this report a DESTROY_MR, DESTROY_DM or DESTROY_PD as successful
-when the PF never received it?
-
-Once mana_hwc_check_deadlines() moves the channel to HWC_TIMED_OUT,
-mana_hwc_admit() gives every queued or new submission HWC_DMA_DRAINED
-without staging it on the SQ. For teardown requests that turns into 0
-here. So mana_ib_gd_destroy_mr(), mana_ib_gd_destroy_dm() and
-mana_gd_destroy_pd() report success for a destroy that was never
-posted.
-
-The callers then release memory the device can still reach:
-
-drivers/infiniband/hw/mana/mr.c:mana_ib_dereg_mr() {
-    ...
-	err = mana_ib_gd_destroy_mr(dev, mr->mr_handle);
-	if (err)
-		return err;
-
-	if (mr->umem)
-		ib_umem_release(mr->umem);
-    ...
-}
-
-drivers/infiniband/hw/mana/mr.c:mana_ib_dealloc_dm() {
-    ...
-	err = mana_ib_gd_destroy_dm(dev, dm);
-	if (err)
-		return err;
-
-	kfree(dm);
-    ...
-}
-
-mana_ib_dealloc_mw() also goes through mana_ib_gd_destroy_mr().
-
-One reachable path starts with any HWC response timeout followed by
-reset recovery. For example, mana_gf_stats_work_handler() sees
--ETIMEDOUT and schedules GDMA_EQE_HWC_RESET_REQUEST. Recovery then runs
-mana_rdma_remove()->ib_unregister_device()->mana_ib_dereg_mr().
-
-Before this patch a timed-out destroy returned an error and the pages
-stayed pinned.
-
-The only justification in the commit message is:
-
-  "On normal response timeout the PF drains old client DMA and
-  invalidates outstanding commands."
-
-Even taken as given, that covers in-flight DMA and outstanding commands.
-Does it also cover MR, DM or PD objects that were created and
-acknowledged earlier, and whose DESTROY was never posted?
-
-The HWC teardown path in this same patch does not seem to rely on such
-a guarantee. It keeps the HWC buffers mapped until DESTROY_HWC is
-acknowledged. It also still expects late replies after HWC_TIMED_OUT,
-through the pending and refill_needed tracking.
-
-Is there a PF specification that could be cited for this? If not,
-could teardown requests that were never posted keep returning an error?
+>
+> Fixes: 12985e5915a0 ("RDMA/rxe: Fix iova-to-va conversion for MR page sizes != PAGE_SIZE")
+> Signed-off-by: Andrew Stellman <astellman@stellman-greene.com>
+> ---
+> A reproducer is available on request.
+>
+>   drivers/infiniband/sw/rxe/rxe_mr.c | 8 ++++++--
+>   1 file changed, 6 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+> index 13cb28d3916f6e..258f8524ef06b4 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_mr.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+> @@ -333,12 +333,14 @@ static int rxe_mr_copy_xarray(struct rxe_mr *mr, u64 iova, void *addr,
+>   		unsigned long index = rxe_mr_iova_to_index(mr, iova);
+>   		struct rxe_mr_page *info = &mr->page_info[index];
+>   		unsigned int page_offset = rxe_mr_iova_to_page_offset(mr, iova);
+> +		unsigned int chunk = min_t(unsigned int, PAGE_SIZE,
+> +					   mr_page_size(mr)) - page_offset;
+>   
+>   		if (!info->page)
+>   			return -EFAULT;
+>   
+>   		page_offset += info->offset;
+> -		bytes = min_t(unsigned int, length, PAGE_SIZE - page_offset);
+> +		bytes = min_t(unsigned int, length, chunk);
+>   		va = kmap_local_page(info->page);
+>   
+>   		if (dir == RXE_FROM_MR_OBJ)
+> @@ -519,12 +521,14 @@ static int rxe_mr_flush_pmem_iova(struct rxe_mr *mr, u64 iova, unsigned int leng
+>   		unsigned long index = rxe_mr_iova_to_index(mr, iova);
+>   		struct rxe_mr_page *info = &mr->page_info[index];
+>   		unsigned int page_offset = rxe_mr_iova_to_page_offset(mr, iova);
+> +		unsigned int chunk = min_t(unsigned int, PAGE_SIZE,
+> +					   mr_page_size(mr)) - page_offset;
+>   
+>   		if (!info->page)
+>   			return -EFAULT;
+>   
+>   		page_offset += info->offset;
+> -		bytes = min_t(unsigned int, length, PAGE_SIZE - page_offset);
+> +		bytes = min_t(unsigned int, length, chunk);
+>   
+>   		va = kmap_local_page(info->page);
+>   		arch_wb_cache_pmem(va + page_offset, bytes);
 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/hwc-v12.91ec3eff9cb647d5bc5cc932b3c6f60c.0%40linux.microsoft.com
+Best Regards,
+Yanjun.Zhu
+
