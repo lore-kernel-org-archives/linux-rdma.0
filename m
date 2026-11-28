@@ -1,79 +1,79 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795875837;
-	b=LTQc7ZH1REED/BVrO2OGmt9Xn+EaENUb1eeD32MnMpRzqga2ckyL/8EGIu1Q0NNfMuCz
-	 jRyvPH+MxXy+ZxcXWhRlIhh//bOu8mmOq2jVXXYJQbtml2Rl9dGyXMcAP8phm1aS4C1lX
-	 nwryyJgdmlmfpdnC3WWhlWzEiNqycclgry27MgcKkAuMe6/y8z+zFTda1szGwWrp+mpyZ
-	 xVIvwNv4YM9W7JRcuIA49L0gApG2SfFyNP5wkqoqp9kE/ZdIOD7h8L9zo11bVCq2cEWNj
-	 WiyI41O//fox2z/Y7QPCUOatnrC4KEV9wUPqIV9aZHCAs+9Fa+ulmerH59U5PokxE0A==
+	t=1795875830;
+	b=ncEVAxsur5rUvYUK5g1bFI3mX/abFOlOkfS6KzO0Hb7baek6TJcqRpQiE5JAmDCQkrTH
+	 Cajh2ZeRbeLelmK5GBIATaj4y9FBdimzMZJBArPiCdbxt/MdA3pah/0954Yrao5VaPmA/
+	 EKAqPnhi+8dxqJ1/oU9JI9p6lZdtjegjh3YnUsOS8N7aUePzKWQT+omSsDRCbuymVRP+3
+	 rMWe1ECudiNAiBkCZLxY32zHnSE/hV2ZKimsAYorGeaogs2lVOHM85jVMMNxdmRTKDrAO
+	 QOra+UkMXR8TTK+vbKlGmrLsRb0CT7+NNYT8wCL39pQi9TzFbJjkdPrL1M0R+ebskQA==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795875837;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795875830;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=iOdlr+hAudjJtdZCZwaNvwXRL9n65jjtLwRHKgG6moQ=;
-	b=DUH6tXlW6oF43bz57ezV2+nv+9NzLf79lCiH/v02pE5itaAR/BOKsmughJkvPKHIFuCa
-	 YWWXrvOaNA6M1B6dsgCy1wYq6XTUmdPuzQu/0KfUbwFWOThU6wAkZ4flTlq71YQmWZt9d
-	 xlrudi/7IsfMo9Xo1pWKQsCDGmxmmDc89CgvTMVebkRIaNzEX3yPlu/WFkEC05qkvLaI0
-	 PrjG04ZVUMIDYaa2vBlMJH7S2Cykvvw5rqx2Yf8prTXiORuV3R7HrB1/BU6ev2/GQpwXH
-	 zfo4Ve4qGatRz4hRZ5XEEZ2A4qt2KcpeVpCftVsolbjVtQ70AMJGVtj+a3M5vfQSu8A==
+	bh=qByUafIOgSdBAiit45uOKICijzwkgBEm95DFlzoW9Cs=;
+	b=0DN1+mt8rWGotPjppTHTUheX5+FlS/ZhlPIDx3I5rkv0iArT7+SNmwlAnjnx52lYYIEh
+	 1bxildonsCs96PgfyQTCpDZwmccwoVQeFqKECxewc5yWmOMV60KssC5IZxY30ZFNoziyS
+	 b9tnl7zr/xz+g690p+uCc03ozzPNrvIGqMRIHZeOmf5Un+I8JBpvebGeoBwpogwLK6C7W
+	 M/vYt8/KzETzSpXDP10hCRpvSI4Cx5sS+106AKgqBKIgxxHDOT3V6xp4Qddxjlxz07aa1
+	 SiOwadzbqS05kCUVVUltgaHGXZQ7dxiHEm4Wym2VRy8V5e/5rXVJwkymU06SVsMsqrA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Bbcz5UtF;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WULPx8FI;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11AE2606A338;
-	Sat, 28 Nov 2026 14:23:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B505F606A32F;
+	Sat, 28 Nov 2026 14:23:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Bbcz5UtF
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WULPx8FI
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1795875836;
-	b=m8rARjpVCbwGhg9FQhOhlVZ0vrlf+z8458LMxtmq2Ng0VkFW1l1pTh/3h2ZUJLq4m+2v
-	 5sGBqPaBe3t9imCfJHEqDxuWRI1eU4pO0mxT8sj8O97c5Awg0WSDVlYvUbzLyBNRaiBGy
-	 OGRZaHsxON4Ryq/DA0YUAZBdfHh5gnHEDmwrMP3DE7A/rTkn8LsCkKlUTfPeTgNTo13m+
-	 M12m6O8vau4+taJ4dHrE/0aNfnwdUxtrtI5zlU3o2VuWC4jxMlhWK4jQfHf7bD8o4hwvy
-	 jG33HhTiRpmz7sNK/4PEKH7rNZxqbrI9Xrhat/H0hmjqmcygDAOJlCCcymF8zPvdJ6A==
+	t=1795875830;
+	b=L0CZN5Uq/c35sBnOYYMm2NLHbI4yU5BDQvhnHnXwFDDZ8L9DfgDj8KUswQrin2eGGcsF
+	 2X/HkauOWQ6p0BcQN1nR2LX0Kopv1rCQH04l3A8EdjM8yPti4Efct9LrAoYz6qtZ6ZQ5Q
+	 frQL99IWPYH71Tp2t8vnkV3v8Gef+hAK1+AZEHdGA/Atmya9y6V1aXW3wJZ2faLYtbp8J
+	 S564NqfiMng1S8uAABEaNKYdpYIVnKP7H39LP79E9O1UTfMFnhqUK9dFKJclHyUtacFB/
+	 nt+JYZG3OfdZOT7jc/DNw5vkKpu5qAO2suh86pfIDk0nm0gcqm3h2BBzTLdA6n4l9ag==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1795875836;
+	c=relaxed/relaxed; t=1795875830;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=iOdlr+hAudjJtdZCZwaNvwXRL9n65jjtLwRHKgG6moQ=;
-	b=fdN8eAO6mrquPGz+EFO6LjgvNDcqDEJ2BkYailiZWOhdURC4SZPDOiqLmKhOpOa+8Jld
-	 vmMrcPoxUJ/HHjPQUhngCHolQmsgftdW5Y5MvMmj8n45/cSuEXzHW9AgEIb4CgoXuq1Gh
-	 lG8uEGuEkwmgr0n/oOWtY9sjOzeXp1yf/ze6Q9Tmg10GhUdi6aTiTs0wpklW7JJlfoMy5
-	 48e0tTanOcJed2/LJSzWZG9562b03V5lWNXyZoiUW8/49VzXGXOAZxXXZr/q+0O0Lzg4d
-	 Fdmmy4tMjkpCXAD8U2DIvQrtbIwjQ6o+q4TlzMMYMJITPez3/ReMOONuajzgvR7i6Ow==
+	bh=qByUafIOgSdBAiit45uOKICijzwkgBEm95DFlzoW9Cs=;
+	b=1q2RtWMqPqeHf0zcg5k+ob+KGkJvVDYfStBAo0DIH8ebyWxN8k/FxpegTf6NDDV983/C
+	 XdyZFoWI2ymMDEzQFByhlD7nQfcnNIigMPRxe5Ers9TPcMiOOdpfzxwayx326CUdJimEA
+	 KVawTUYA84T0suUxagzwv8wnDzusqx4zFdBeoeSO5/BzMJZdNzcoys3uMKiL6X1un7WoJ
+	 xRqSTU1o3GR+8d2as3dQ7433fJdcHgqbsT9z1MGV4U1EZTUuLIstRVbKG0hdWSKik9TlD
+	 Qs33i2IBP+39zBVKG63Pm8P1lQXwOvk9sniJoWFMsCaYIUxr4NizjsSDBUN5u8UsufQ==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id 40B961F00893;
-	Sat, 28 Nov 2026 14:23:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795875836;
-	bh=iOdlr+hAudjJtdZCZwaNvwXRL9n65jjtLwRHKgG6moQ=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=Bbcz5UtFQS3FhIAS8SfqGXrEckQ43Yhxm2Fp7Z3NuIcMLPvaBd6QG4mx0snYMoWcp
-	 L6AWLWe95BvS0ChGK+EI9voNaH75JxqnkRqxTkMzs8ZpsVlqa2LwW6mUWLr07hNzaG
-	 GC17VTlpixPau0EyDzTPjhWwsEkbIGpRz7/Ie0zRySdWRebr9FO4WS7YJNWUtw3cN1
-	 +QVi0w04P9Cc0znNLzm/jgMC9a3q0ZNrPNLisjJ6IwQGTn3qqZJrphvvb1GkJne4jQ
-	 kYK65Awf8k9uSri0PgzEgnCicO7grInmwKUEcDnAqbf0ghyv55nq7ytZFyAwaICZ91
-	 8BP3P1QuPr9TA==
-Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 8BF164E11A;
+	by smtp.kernel.org (Postfix) with ESMTPS id 493E51F00898;
 	Sat, 28 Nov 2026 14:23:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795875830;
+	bh=qByUafIOgSdBAiit45uOKICijzwkgBEm95DFlzoW9Cs=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
+	b=WULPx8FILNW4ss0FO+Z0jiCoKgUr8XUGEkdR6mANg6/TuXmll9Rz8idDeMH4y77gz
+	 HO0UWP5NVvj2z9YmE+ZPkbLOT6DixielkftdQpp9YuRS+4iUoDxA6LB5UcNJz3059U
+	 +ONCQd25JLwjELRC1sQJq2UKzDDM4IUKt6mhQLKmdFxwvfsL60hPTsf2lwf1OmhTgd
+	 ikzY/0DmUVxm0k2+M22IJ/FMvQrbmTBespXXx/1+Hl1NbEmmuvCXwujDrdFJY4AiKj
+	 ZR9FQgSPWUGkTFayp+JzEOKFDeHH1dHNBcegiBogdCP93CjA7+lcIHx1A2vB/Pazxl
+	 VPGUtwNPCvTsg==
+Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
+	by lkml.kernel.org (Postfix) with ESMTP id CAA004E10A;
+	Sat, 28 Nov 2026 14:23:43 +0000 (UTC)
 From: Bryam Vargas via B4 Relay <devnull+hexlabsecurity.proton.me@kernel.org>
-Date: Sat, 28 Nov 2026 09:23:48 -0500
-Subject: [PATCH net v2 6/6] net/smc: update the urgent state under the
- socket spinlock
+Date: Sat, 28 Nov 2026 09:23:44 -0500
+Subject: [PATCH net v2 2/6] net/smc: do not credit stale CDC completions
+ after a link switch
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Post: <mailto:linux-rdma@vger.kernel.org>
@@ -84,7 +84,7 @@ List-Owner: <mailto:linux-rdma+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261128-b4-disp-360e65c5-v2-6-d9c05004d430@proton.me>
+Message-Id: <20261128-b4-disp-360e65c5-v2-2-d9c05004d430@proton.me>
 References: <20261128-b4-disp-360e65c5-v2-0-d9c05004d430@proton.me>
 In-Reply-To: <20261128-b4-disp-360e65c5-v2-0-d9c05004d430@proton.me>
 To: Mahanta Jambigi <mjambigi@linux.ibm.com>, 
@@ -100,11 +100,11 @@ Cc: Stefan Raspl <raspl@linux.ibm.com>, Simon Horman <horms@kernel.org>,
  Ursula Braun <ubraun@linux.ibm.com>, Hidayath Khan <hidayath@linux.ibm.com>, 
  Wenjia Zhang <wenjia@linux.ibm.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1795875822; l=5552;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1795875822; l=4521;
  i=hexlabsecurity@proton.me; s=default; h=from:subject:message-id;
- bh=cKpQorhXG1R2EN46yHv6FFpnAnjJofWItGyhdXnydh0=;
- b=52EUOOBVkeHj+JcivLB6j18Lkd0sR+ndlUwrnY10S/5+FMUFasZ8e86P7S1tW4YaceKCl57zI
- AjySuahXMNJD8vTzUUnmN6riZ2jncGCSxYKbSfVBTt5aedvm3zL4FCy
+ bh=zzOvqduRiIo0CNAjRfKew9eNo+7gHqCtG9mU3EVCFjI=;
+ b=R31T76xcM7wqPTxV31OIIyKyq3hLaKsg7SH9NknagPbyrLFK8dUo2lw94IRFh5nR8iGCcH/BR
+ w0CSfs+qajtCdWreRzOjkopLQfJiE6VIH9ggYUvWiQnKHljaRJ2xAi0
 X-Developer-Key: i=hexlabsecurity@proton.me; a=ed25519;
  pk=xw1AhCtQdvuoQc+bOQIYy9o8G++cp4/VniI2G/tc3G8=
 X-Endpoint-Received: by B4 Relay for hexlabsecurity@proton.me/default with
@@ -115,167 +115,115 @@ Content-Transfer-Encoding: 7bit
 
 From: Bryam Vargas <hexlabsecurity@proton.me>
 
-smc_cdc_msg_recv_action() sets a new urgent mark, byte and state under
-the socket spinlock, even while a reader owns the socket, and the
-reader tests and changes urg_state under the socket lock only. In
-smc_rx_recv_urg() a second urgent byte that arrives after the state was
-set to SMC_URG_READ is returned in place of the first, and the next
-recv(MSG_OOB) returns it again. In smc_rx_update_consumer() a mark set
-after the test is overwritten with SMC_URG_READ: its byte is neither
-returned nor skipped, and the sender, which waits for its urgent data
-to be consumed, stalls.
+A successful completion on the old link handled after
+smc_switch_cursor() credits bytes that were rewound for resend, so the
+application can overwrite send buffer data before it is resent. A
+connection in a closing state is moved to the new link without a rewind;
+when completions on the two links are then handled out of order, one
+whose cursor is behind tx_curs_fin moves tx_curs_fin back and the same
+bytes are credited again, which can take sndbuf_space past the send
+buffer size.
 
-Take the socket spinlock around both test-and-set sequences.
-smc_rx_update_consumer() takes it only after a test without the lock
-finds a mark or a pending skip, so a read with no urgent data is
-unchanged. The lines of smc_rx_recv_urg() after its SMC_URG_VALID block
-could only be reached through this race; drop them.
+Tag each CDC pend with a switch generation that smc_switch_cursor()
+bumps, and credit a completion only if it is of the current generation
+and its cursor is not behind tx_curs_fin.
 
-Fixes: de8474eb9d50 ("net/smc: urgent data support")
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://lore.kernel.org/all/sashiko-outbox-215220@kernel.org/
+Fixes: c6f02ebeea3a ("net/smc: switch connections to alternate link")
 Cc: stable@vger.kernel.org
 Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
 ---
- net/smc/smc_rx.c | 102 +++++++++++++++++++++++++++++++++----------------------
- 1 file changed, 62 insertions(+), 40 deletions(-)
+ net/smc/smc.h      |  3 +++
+ net/smc/smc_cdc.c  | 11 ++++++++++-
+ net/smc/smc_cdc.h  | 13 +++++++++++++
+ net/smc/smc_core.c |  1 +
+ 4 files changed, 27 insertions(+), 1 deletion(-)
 
-diff --git a/net/smc/smc_rx.c b/net/smc/smc_rx.c
-index 564b976426ca..2680b91e882b 100644
---- a/net/smc/smc_rx.c
-+++ b/net/smc/smc_rx.c
-@@ -67,26 +67,38 @@ static int smc_rx_update_consumer(struct smc_sock *smc,
- 
- 	smc_curs_add(conn->rmb_desc->len, &cons, len);
- 
--	/* did we process urgent data? */
-+	/* did we process urgent data? smc_cdc_msg_recv_action() sets a new
-+	 * mark under the socket spinlock, even while we own the socket:
-+	 * test again under it. A mark set after the first test is left to
-+	 * the next call, like one set after the unlock.
+diff --git a/net/smc/smc.h b/net/smc/smc.h
+index 36b243b34a9a..96f017938b9c 100644
+--- a/net/smc/smc.h
++++ b/net/smc/smc.h
+@@ -233,6 +233,9 @@ struct smc_connection {
+ 	atomic_t		sndbuf_space;	/* remaining space in sndbuf */
+ 	u16			tx_cdc_seq;	/* sequence # for CDC send */
+ 	u16			tx_cdc_seq_fin;	/* sequence # - tx completed */
++	u16			tx_switch_gen;	/* bumped when a link switch
++						 * rewinds the tx cursors
++						 */
+ 	spinlock_t		send_lock;	/* protect wr_sends */
+ 	atomic_t		cdc_pend_tx_wr; /* number of pending tx CDC wqe
+ 						 * - inc when post wqe,
+diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
+index 32d6d03df321..d1f346376c08 100644
+--- a/net/smc/smc_cdc.c
++++ b/net/smc/smc_cdc.c
+@@ -36,7 +36,15 @@ static void smc_cdc_tx_handler(struct smc_wr_tx_pend_priv *pnd_snd,
+ 	sndbuf_desc = conn->sndbuf_desc;
+ 	smc = container_of(conn, struct smc_sock, conn);
+ 	bh_lock_sock(&smc->sk);
+-	if (!wc_status && sndbuf_desc) {
++	/* A CDC posted before a link switch rewound the cursors: its bytes
++	 * are resent on the new link or credited by the switch's catch-up.
++	 * A cursor behind tx_curs_fin (completions on two links in any
++	 * order) was credited already.
 +	 */
- 	if (conn->urg_state == SMC_URG_VALID || conn->urg_rx_skip_pend) {
--		diff = smc_curs_sdiff(conn->rmb_desc->len, &cons,
--				      &conn->urg_curs);
--		if (sock_flag(sk, SOCK_URGINLINE)) {
--			if (diff == 0) {
--				force = true;
--				rc = 1;
--				conn->urg_state = SMC_URG_READ;
-+		local_bh_disable();
-+		bh_lock_sock(sk);
-+		if (conn->urg_state == SMC_URG_VALID ||
-+		    conn->urg_rx_skip_pend) {
-+			diff = smc_curs_sdiff(conn->rmb_desc->len, &cons,
-+					      &conn->urg_curs);
-+			if (sock_flag(sk, SOCK_URGINLINE)) {
-+				if (diff == 0) {
-+					force = true;
-+					rc = 1;
-+					conn->urg_state = SMC_URG_READ;
-+				}
-+			} else {
-+				if (diff == 1) {
-+					/* skip urgent byte */
-+					force = true;
-+					smc_curs_add(conn->rmb_desc->len,
-+						     &cons, 1);
-+					conn->urg_rx_skip_pend = false;
-+				} else if (diff < -1)
-+					/* we read past urgent byte */
-+					conn->urg_state = SMC_URG_READ;
- 			}
--		} else {
--			if (diff == 1) {
--				/* skip urgent byte */
--				force = true;
--				smc_curs_add(conn->rmb_desc->len, &cons, 1);
--				conn->urg_rx_skip_pend = false;
--			} else if (diff < -1)
--				/* we read past urgent byte */
--				conn->urg_state = SMC_URG_READ;
- 		}
-+		bh_unlock_sock(sk);
-+		local_bh_enable();
- 	}
- 
- 	smc_curs_copy(&conn->local_tx_ctrl.cons, &cons, conn);
-@@ -314,42 +326,52 @@ static int smc_rx_recv_urg(struct smc_sock *smc, struct msghdr *msg, int len,
- 	struct smc_connection *conn = &smc->conn;
- 	union smc_host_cursor cons;
- 	struct sock *sk = &smc->sk;
-+	bool valid;
-+	char byte;
- 	int rc = 0;
- 
--	if (sock_flag(sk, SOCK_URGINLINE) ||
--	    !(conn->urg_state == SMC_URG_VALID) ||
--	    conn->urg_state == SMC_URG_READ)
-+	if (sock_flag(sk, SOCK_URGINLINE))
- 		return -EINVAL;
- 
--	SMC_STAT_INC(smc, urg_data_cnt);
--	if (conn->urg_state == SMC_URG_VALID) {
--		if (!(flags & MSG_PEEK))
--			smc->conn.urg_state = SMC_URG_READ;
--		msg->msg_flags |= MSG_OOB;
-+	/* smc_cdc_msg_recv_action() sets a new mark and byte under the
-+	 * socket spinlock, even while we own the socket: take the byte
-+	 * together with the state it belongs to.
-+	 */
-+	local_bh_disable();
-+	bh_lock_sock(sk);
-+	valid = conn->urg_state == SMC_URG_VALID;
-+	if (valid) {
-+		byte = conn->urg_rx_byte;
- 		if (len > 0) {
--			if (!(flags & MSG_TRUNC))
--				rc = memcpy_to_msg(msg, &conn->urg_rx_byte, 1);
--			len = 1;
- 			smc_curs_copy(&cons, &conn->local_tx_ctrl.cons, conn);
- 			if (smc_curs_sdiff(conn->rmb_desc->len, &cons,
- 					   &conn->urg_curs) > 1)
- 				conn->urg_rx_skip_pend = true;
--			/* Urgent Byte was already accounted for, but trigger
--			 * skipping the urgent byte in non-inline case
--			 */
--			if (!(flags & MSG_PEEK))
--				smc_rx_update_consumer(smc, cons, 0);
--		} else {
--			msg->msg_flags |= MSG_TRUNC;
- 		}
--
--		return rc ? -EFAULT : len;
-+		if (!(flags & MSG_PEEK))
-+			conn->urg_state = SMC_URG_READ;
- 	}
-+	bh_unlock_sock(sk);
-+	local_bh_enable();
-+	if (!valid)
-+		return -EINVAL;
- 
--	if (sk->sk_state == SMC_CLOSED || sk->sk_shutdown & RCV_SHUTDOWN)
--		return 0;
-+	SMC_STAT_INC(smc, urg_data_cnt);
-+	msg->msg_flags |= MSG_OOB;
-+	if (len > 0) {
-+		if (!(flags & MSG_TRUNC))
-+			rc = memcpy_to_msg(msg, &byte, 1);
-+		len = 1;
-+		/* Urgent Byte was already accounted for, but trigger
-+		 * skipping the urgent byte in non-inline case
-+		 */
-+		if (!(flags & MSG_PEEK))
-+			smc_rx_update_consumer(smc, cons, 0);
-+	} else {
-+		msg->msg_flags |= MSG_TRUNC;
-+	}
- 
--	return -EAGAIN;
-+	return rc ? -EFAULT : len;
++	if (!wc_status && sndbuf_desc &&
++	    cdcpend->switch_gen == conn->tx_switch_gen &&
++	    smc_curs_sdiff(sndbuf_desc->len, &conn->tx_curs_fin,
++			   &cdcpend->cursor) >= 0) {
+ 		diff = smc_curs_diff(sndbuf_desc->len,
+ 				     &cdcpend->conn->tx_curs_fin,
+ 				     &cdcpend->cursor);
+@@ -107,6 +115,7 @@ static inline void smc_cdc_add_pending_send(struct smc_connection *conn,
+ 	pend->cursor = conn->tx_curs_sent;
+ 	pend->p_cursor = conn->local_tx_ctrl.prod;
+ 	pend->ctrl_seq = conn->tx_cdc_seq;
++	pend->switch_gen = conn->tx_switch_gen;
  }
  
- static bool smc_rx_recvmsg_data_available(struct smc_sock *smc, size_t peeked)
+ int smc_cdc_msg_send(struct smc_connection *conn,
+diff --git a/net/smc/smc_cdc.h b/net/smc/smc_cdc.h
+index 696cc11f2303..597acb2e123f 100644
+--- a/net/smc/smc_cdc.h
++++ b/net/smc/smc_cdc.h
+@@ -170,6 +170,18 @@ static inline int smc_curs_comp(unsigned int size,
+ 	return smc_curs_diff(size, old, new);
+ }
+ 
++/* signed distance from old to new; the wrap difference is taken as s16,
++ * so it holds across the u16 wrap rollover, for cursors less than 32768
++ * rings apart
++ */
++static inline s64 smc_curs_sdiff(unsigned int size,
++				 union smc_host_cursor *old,
++				 union smc_host_cursor *new)
++{
++	return (s64)(s16)(new->wrap - old->wrap) * size +
++	       (s64)new->count - old->count;
++}
++
+ /* calculate cursor difference between old and new, where old <= new and
+  * difference may exceed size
+  */
+@@ -284,6 +296,7 @@ struct smc_cdc_tx_pend {
+ 	union smc_host_cursor	cursor;		/* tx sndbuf cursor sent */
+ 	union smc_host_cursor	p_cursor;	/* rx RMBE cursor produced */
+ 	u16			ctrl_seq;	/* conn. tx sequence # */
++	u16			switch_gen;	/* tx_switch_gen at send */
+ };
+ 
+ int smc_cdc_get_free_slot(struct smc_connection *conn,
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 73e86100e6db..fb9f6a4eb683 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -1058,6 +1058,7 @@ static int smc_switch_cursor(struct smc_sock *smc, struct smc_cdc_tx_pend *pend,
+ 	int rc = 0;
+ 	int diff;
+ 
++	conn->tx_switch_gen++;	/* completions of earlier sends: no credit */
+ 	smc_curs_copy(&conn->tx_curs_sent, &conn->tx_curs_fin, conn);
+ 	smc_curs_copy(&fin, &conn->local_tx_ctrl_fin, conn);
+ 	/* set prod cursor to old state, enforce tx_rdma_writes() */
 
 -- 
 2.56.1
