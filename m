@@ -1,80 +1,80 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.181
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.173
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795837063;
-	b=HYVydB3TcixOtO70pofueD7IK75SECyyHa5S72rGdQm5+VsX6ufeFe9BTbMwM9kp7LTP
-	 8S32BlpRHabXvJHxqV22y9RkuDpWow1sILl29ipd1ivoTobXokUzmPTdRcM+0QFcm8Zqg
-	 oQNfzF9p8ZsFz+qrJqNpcL0AvpRA7rnYwC4QWulPzuMPjqxMrVCJgy8Fo65I7H5n/YbYe
-	 bgR2ZsZeD4sC4GQJHt/ymUoivzF+bixTpozScuS4X3Z3g+I9c+u/vYinpQLdBACRHEPxp
-	 rnABlZLon7URGBudSvvZI/XN+kcqWOs5vaunU6W3nlJk2WQ2hXwyDKvtKMhFvBgBSeA==
+	t=1795837064;
+	b=gkoTjIBpX8oIlTp5gcBif8d+6WlsttTHZy9M+0S7sIgE3479mzR0PHtDIYHWQM8cZWRM
+	 Gy8rIsf0oAeSaLbE/LCZYp1fib3yhLd9dHr8gVIL4LdCg2CMO5RzkvEvjAHC2Dyf2vSvq
+	 ZAEpPSCW7Hq/+O+csYWGJOo86XeApQtRPkvLPgVEuTf2MiSYk2JKAa2QJ4oe6vDyzGK+J
+	 XLgKqs4csKfimPzNW78V22CmnmnnWy9Td1pKQnST5pLM2wffkppOd+3G6NkcdImXWlonH
+	 o422Rk9XINA1Y0OTiSw6TlRqtmRRcgYsw1IutOAOB+Q8JevBzOEXwAWbHSqtKGbu0YA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795837063;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795837064;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-Id:X-Mailer:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=8kVwYZ1mIBLHJGNNGwqW6ng8APu6uVBnAbfyiIE9tJs=;
-	b=DAT7e7O3UQCh1+D3zD74ios4cnlayh5xPPaOMGYQhbAvOwz/Kt/YouUVaYB6/TIZJQHr
-	 cM6D4J1Z9ffiATgJgcL3sNt2+4KE0ipHBiRp7Ax0ZF1Y6wdREANERFeRxGkows5LWPy4J
-	 K4SQPYXXkKZze26W4wF/nhoikOMFxXnb3oe4uhPVOhAvJtzzPZfeTx+6VJaBFOn/KFQl9
-	 rR14hDSXwQs8oL5JguvcnOQUaDZiEjHgEJI10mGbG+84d2NRT+dkk2weQ+y5Mol7m+Llz
-	 DMyNjjrODsJMRm0qQBxXP5rSpBubqQT15DTS8oLsT8FtEs6mrftpEhaXdZHa2IzP3tQ==
+	bh=CoOSrxK+y3duBfRBPRX/cABY+OCMf/PDrt2oQl6NHUg=;
+	b=bGAhm0WSs4Vo4G1Rjim0iZU3xx4nmEaMegElpmTvKvK+Vo3nB54HOQSr+cwBsi9KJTdK
+	 wvX4dQQvQ/tc28gWBcgK04If7Q1mIE2ZKujZQrcoyD/DDL7TmTYNwGiMkW+tTuE08tgUl
+	 ta/nXFgzkssS7ErZL+KC9IyVYXbjkPBJRW1ZgfxU5u4AQaGmms6wJdzXk1U2W8G4cuWTb
+	 Ajsu8lOhvx5KRQSuFfw78ifTbDSpTr3/xBPvcvr1TlzAGTxhqULtCaJ0rRpgHvRknQAbC
+	 4btirgcHfcb9xxl6JNES1LJkxP9831odfDDREi8m/IH4EGXYS7UCD0B/vQv0tFVBbvw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=iiitd.ac.in;
 	spf=pass smtp.mailfrom=iiitd.ac.in;
-	dkim=pass header.d=iiitd.ac.in header.i=@iiitd.ac.in header.a=rsa-sha256 header.s=google header.b=DYUo+wws;
-	arc=none smtp.remote-ip=209.85.210.181
-Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
+	dkim=pass header.d=iiitd.ac.in header.i=@iiitd.ac.in header.a=rsa-sha256 header.s=google header.b=ZVqfHwS0;
+	arc=none smtp.remote-ip=209.85.210.173
+Received: from mail-pf1-f173.google.com (mail-pf1-f173.google.com [209.85.210.173])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32C5D606A31F
-	for <linux-rdma@vger.kernel.org>; Sat, 28 Nov 2026 03:37:37 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 32C5D606A31F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD1E1606A32C
+	for <linux-rdma@vger.kernel.org>; Sat, 28 Nov 2026 03:37:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DD1E1606A32C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iiitd.ac.in
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iiitd.ac.in
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=iiitd.ac.in header.i=@iiitd.ac.in header.a=rsa-sha256 header.s=google header.b=DYUo+wws
-Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-8b600fae14dso3197621b3a.2
-        for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 19:37:37 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=iiitd.ac.in header.i=@iiitd.ac.in header.a=rsa-sha256 header.s=google header.b=ZVqfHwS0
+Received: by mail-pf1-f173.google.com with SMTP id d2e1a72fcca58-8a070755c8cso4192665b3a.0
+        for <linux-rdma@vger.kernel.org>; Fri, 27 Nov 2026 19:37:43 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=iiitd.ac.in; s=google; t=1795837056; x=1796441856; darn=vger.kernel.org;
+        d=iiitd.ac.in; s=google; t=1795837063; x=1796441863; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=8kVwYZ1mIBLHJGNNGwqW6ng8APu6uVBnAbfyiIE9tJs=;
-        b=DYUo+wwsdvZ2uBVBZOzEm5U5W9GPYaVG1B8lE1wMMB7M3GYkXY/ojl5G64dKGlD5tr
-         +q62VVyLgX2hgoJ5ZMiqd416cH3sn1HOGQznwFmVhzGhK8TRN0DxLf60ZTJD2CIYBGh3
-         Uq5Ey4kfu+SBCGCHCr+DVX4r/H76UKVF2MX/U=
+        bh=CoOSrxK+y3duBfRBPRX/cABY+OCMf/PDrt2oQl6NHUg=;
+        b=ZVqfHwS0yY6hgOTchfvwgYvA39Vbn9CgOLbgnbOhlMuIrvLQo1S95FPGUYgXzRDkwi
+         R4jeXPmLTI8dz76eAd5GrGUHAOINYeuavetVDJRVWkUyqg1D4UzwTim1ZyS3k0N9nFAY
+         rbgGTTTZoVtxZDdwOXuDAMWkQ6EimirerceNA=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795837056; x=1796441856;
+        d=1e100.net; s=20260707; t=1795837063; x=1796441863;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=8kVwYZ1mIBLHJGNNGwqW6ng8APu6uVBnAbfyiIE9tJs=;
-        b=bBgkzrW3j8e7h7oZ8XFl5oubuT6IWSZWU7zzka3Dl05VH9mhcT+rl+A6KamZimkRhS
-         6Mj6LHtTdjqvkCM+rI1NmIlKd2WL7K890VAK+dVLMeIQNYlLoSDbQRoTqJ0rnjIX/HVa
-         bsnCKRDVx1x0G3wetZBWBxCGSls+I+qLeo2pvbPNuT47/jWsM7enkLS+RqRqjPCEyYrP
-         aZwSRq3TI1zzDj6YOHiaw6NheVqNwAXf+2yzXuqcXRfZbX4f+iszSjYrdyBBW7kuftUJ
-         RJnhUGorpidtFSyPMsQ6A2T5tmfwcagjT3Trdqzc05Z7PQof5TH807K1x2JXvmXwQFdy
-         t1Ow==
-X-Forwarded-Encrypted: i=1; AL+hErF5b8IZBVpDUdwQRPGTUbDTWAX6WRqrjWEdNiHzG9hU7Ck0HIVR/DVip47EPXg0pDcko+x5T2dd2eon@vger.kernel.org
-X-Gm-Message-State: APuU4Z/LFzAaIrNaGUv184QVv30cUpF3BWZlH31clOQzUHLXrlSmFXVN
-	6NT6mmigHvTEvgTpBmuagCj3Roo7m+vealaMlbgD0+o1Z1fl26uH/UmNiaWh3CzmfeE=
-X-Gm-Gg: AZFdTZcKklpw2Y7wiqw6TRQL45hELkL0KwywxLy4ILITvUBriAyA6+sEiKUyJ5JyCaM
-	bRcEIAoVsTlNlrQ7wPSiwJcF/gMokRfkiEvIZG17H3BmlYmAiwdtUClSBnUeDknosgMzx4Lk461
-	TfPNFcoB8QqvrfDPu2JyXiVTaxW4/GaJacjy3hYbfeKM2OhoZqHU2sRLkP5poHDn732lRhkZFii
-	1b0fWjqQIDhXOcksxLHrkujFwfd+w/YReAbta935IkSccTM6cM3lPEQYqixEAyPxRySP1bTx+U/
-	ngMdQnxiBuZ0P8SiJR+AhiURMxYLtTWYPXA2TOXpdnkRNZNjVFPmUsoqYyi/3yQbNvt2UMBj4OW
-	cIvwo8tLPDLKpa9/NNWrsPZn4IxUPZnMCSuV3Gw+mYsVqaz3o/H24Xq7zg/q6t8xoiah40KdYPL
-	S3IzWI1af9R3ErXFgJRZK/V0czs+yERMupyOqYSYUpoqOUFbxkRlLimB46F0QoA6O7bB0qfrtEE
-	yh9vPGh+vZ2Z2OtweHIxZ+KuNdhF5mHGPei1PnPYeV7XgPjAS2TUCBZuDMvY9xW5ufebMpbpjx1
-	zZvbPkdi2phQqbSa50P2cVDY3PmH8cJxbikwKTR67F85cTcwDgf2j2BJ5rHk08bCgp6t9ocVa4Z
-	MonRPI9dr5m6TZm2czP75rfrCOwjzBEyYDpPA9wOAj0Vh0DkHQP2KteVjQfaAxnJo
-X-Received: by 2002:a05:6a00:f8e:b0:89f:d620:232 with SMTP id d2e1a72fcca58-8c87c864543mr23366688b3a.35.1795837056560;
-        Fri, 27 Nov 2026 19:37:36 -0800 (PST)
+        bh=CoOSrxK+y3duBfRBPRX/cABY+OCMf/PDrt2oQl6NHUg=;
+        b=L0uespGZxh29mE+V4tIFJec9Fv40Fm5AI3jn9qbNx8v1HpPNFoRBdAH28XmcLZmm/S
+         WvMXJoC6FUakgS5Pmp932RTZUb9mpliozxhP7D+0d0v4d7y0R2pGiQWl35vhK0r5Kmdk
+         zu2wE+ZcOc7IaHIMywDoGzWfnnwxq997bRwEEQ+EI0a9n+d56bMFpETj7PP8YNxd0h34
+         qn5Oy6peTMbTYdJ+BPcWm3f7ovHAYAFjFzLlepxyp0XiOydwjox+fItxByxVfd8MziMi
+         49j78vqq0fgqctcoRW8Ew3NF12T8AgcqaE49/7MilzTZjZ88rxKKpr0EsxMkSV5O0qqU
+         rTpg==
+X-Forwarded-Encrypted: i=1; AL+hErGCMj6RzUOAO1Z643HfbGG8T984GJ2tTf8wY0J3ZYwaWjrYJf9OF3cpVd1p/CcDyzKZIlJ+106xW/Oj@vger.kernel.org
+X-Gm-Message-State: APuU4Z9efpBqk+VhuSeH9U8+1nmM5+ue4WxBrHbFVJas+8FIJ5u4GaHA
+	wtw7StDvhXTKCEbp37RsWLYj+0slLOgyf4JCEzvzKLpKar5ZR28ywfZubzQP48rnSYw=
+X-Gm-Gg: AZFdTZeeT97C5rmNwBN3tjhquatyJ3aZKSKJ8EQu0JU8joGI4f3VtXKHV/0uGPkO5Mc
+	LS6ip+SZ0NIIFJByqTbdNXoCoYUMIAACf4uu4pMoYtZvAohSvQIEzUP0mLb59HNZzMZqliJs1lk
+	VN0w7khJaHSDV3acMkPXezJGINe581WSMBz9XlAvZDpezh397r6eRuFUUtawbHciFIYN0bWoDtT
+	J08+nsdWA5ILrtrRw8C3fjoAAFvyAaawHib7dCmXA05+aFsAMSXCI7spp29qYdQR0Gnd9+pz5Rx
+	F0iG9N0ovVXgJZk/AXkV/8ZGHIi6BM/1CpxSoLJBy7b3YcKUoSE3RoUqn8pPjq5g7dqP5vNvBXk
+	8Yx+2Fx/TEkpJvMnm0VXlmYXknLsF73FZeqffimsCxV2ZnYHErVoNEzpk+l9tRpKKgl+ihD4Nyr
+	I4AXZ0+5jcJyYQejTEXt2pp+Wxr/Wm6GmU6FH3ltYDQ+upmuyNMaO79IBIQoRp5RbYJkHbAWVPG
+	sI687fhADGi1IaZgMBoBEjOTXn5dS0QNFNGH99Bl5eNCecqA8CMG82GTcfXjwfuZ/w0QcL8x66Q
+	Xhdp+NdEJG/T+vSA/AkLAl+Gdf1i40Wm1XF2jA2AjRRIQ6iQttJnG8oqQaoUKyr8NtcHilaAa8O
+	UvDlM6Lv6BJ7uiOfE7paVIGKR4Bl/k+U1TzuNxq80q7JDFbqfC/Ww1/hn+uOB6xyhCw==
+X-Received: by 2002:aa7:88d4:0:b0:880:7dad:3e5 with SMTP id d2e1a72fcca58-8c87d12283bmr26030379b3a.51.1795837063176;
+        Fri, 27 Nov 2026 19:37:43 -0800 (PST)
 Received: from iiitd-S2600STB.iiitd.edu.in ([103.25.231.160])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8c87343f83dsm13590256b3a.39.2026.11.27.19.37.32
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8c872e4aca2sm13517969b3a.32.2026.11.27.19.37.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 27 Nov 2026 19:37:36 -0800 (PST)
+        Fri, 27 Nov 2026 19:37:42 -0800 (PST)
 From: Piyus Kedia <piyus@iiitd.ac.in>
 To: Allison Henderson <achender@kernel.org>,
 	netdev@vger.kernel.org,
@@ -86,9 +86,9 @@ Cc: "David S . Miller" <davem@davemloft.net>,
 	Simon Horman <horms@kernel.org>,
 	linux-kernel@vger.kernel.org,
 	Kapil Vaswani <kapil@presceralabs.ai>
-Subject: [BUG] net/rds: use-after-free of the rdma_cm_id freed by connection shutdown
-Date: Sat, 28 Nov 2026 09:07:30 +0530
-Message-Id: <20261128033730.467831-1-piyus@iiitd.ac.in>
+Subject: [PATCH net] net/rds: do not leave ic->i_cm_id pointing at a freed cm_id
+Date: Sat, 28 Nov 2026 09:07:37 +0530
+Message-Id: <20261128033737.467966-1-piyus@iiitd.ac.in>
 X-Mailer: git-send-email 2.34.1
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -101,33 +101,23 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+rds_ib_conn_path_shutdown() frees the connection's rdma_cm_id and only
+clears ic->i_cm_id afterwards:
 
-rds_ib_conn_path_shutdown() frees the connection's rdma_cm_id and clears
-ic->i_cm_id only afterwards:
-
-  net/rds/ib_cm.c
 	rdma_destroy_id(ic->i_cm_id);
 	if (ic->rds_ibdev)
 		rds_ib_remove_conn(ic->rds_ibdev, conn);
 	ic->i_cm_id = NULL;
 
-rds_ib_remove_conn() takes locks and can sleep, so ic->i_cm_id points at
-freed memory for a while.  Both FRMR paths read it with nothing excluding
-this teardown:
-
-  - rds_ib_get_mr(), from sendmsg()'s RDS_CMSG_RDMA_MAP handling, which
-    tests !ic->i_cm_id || !ic->i_cm_id->qp and then registers;
-  - rds_ib_unreg_frmr(), from the MR pool flush.
-
-The NULL test in rds_ib_unreg_frmr() does not help: the pointer is not
-NULL, it is dangling.
-
-Reproduced on 7.4.0-rc1 (63fe746a609a) with KASAN, by closing a socket
-whose MR pool still holds segments while the connection is shutting down:
+rds_ib_remove_conn() takes locks and can sleep, so the pointer is left
+pointing at freed memory for a while.  Both FRMR paths read it with
+nothing that excludes this teardown - rds_ib_get_mr() from sendmsg()'s
+RDS_CMSG_RDMA_MAP handling, and rds_ib_unreg_frmr() from the MR pool
+flush - and the NULL test in rds_ib_unreg_frmr() does not help, because
+the pointer is not NULL, it is dangling:
 
   BUG: KASAN: slab-use-after-free in rds_ib_unreg_frmr+0x119/0x860
-  Read of size 8 at addr ffff888022d67010 by task poc/9559
+  Read of size 8 at addr ffff888022d67010
    rds_ib_unreg_frmr+0x119/0x860
    rds_ib_flush_mr_pool+0x685/0x9f0
    rds_ib_flush_mrs+0x57/0xc0
@@ -144,51 +134,99 @@ whose MR pool still holds segments while the connection is shutting down:
    rds_ib_conn_path_shutdown+0xc2b/0xd30
    rds_conn_shutdown+0x3ca/0x940
 
-The registration side reaches the same dangling pointer.  On 7.3.1 a
-fuzzer caught it posting a work request to the QP of a cm_id already
-destroyed, which rxe reports itself - WARN_ON_ONCE(!qp->valid), "qp has
-been destroyed" - before faulting on qp->state_lock:
+The same dangling pointer reaches the registration side, where a fuzzer
+found it posting a work request to the QP of a cm_id already destroyed -
+rxe reports that as "qp has been destroyed" from its own
+WARN_ON_ONCE(!qp->valid) and then faults on qp->state_lock.
 
-  BUG: KASAN: slab-use-after-free in do_raw_spin_unlock+0x15/0xf0
-   rxe_post_send+0xfa0/0x1130
-   ib_post_send+0x9c/0xe0
-   rds_ib_post_reg_frmr+0x396/0x570   net/rds/ib_frmr.c:167
-   rds_ib_get_mr+0x26d/0x470
-   __rds_rdma_map+0x555/0x7d0
-   rds_cmsg_send+0x27c/0x3b0
-   rds_sendmsg+0xda0/0x16a0
-  freed by rds_ib_conn_path_shutdown -> rdma_destroy_qp -> ib_destroy_qp_user
+Clear ic->i_cm_id before destroying it, so a racing reader sees NULL
+rather than freed memory, and check the pointer in rds_ib_post_reg_frmr()
+the way rds_ib_unreg_frmr() already does - it is the one FRMR site that
+dereferenced it without a test.
 
-How reliably it reproduces.  The window is the span between the free and
-the clear, so hitting it needs a registration or a pool flush to land in
-it.  To make that dependable we inserted a 300 ms sleep there - debug
-only, not part of the patch - and then ran six processes registering
-memory regions on a connection being torn down repeatedly.  With the sleep
-the KASAN report above appears within a few minutes; without it, it is a
-fuzzer's odds, which is how it was first seen.
-
-One detail worth passing on, since it cost us several runs: an address is
-only in rds_ib_devices' list while a connection using it is up, so
-rds_ib_get_mr() returns -ENODEV for a socket whose connection has gone.
-A reproducer that tears connections down aggressively never reaches the
-FRMR code at all - 2096 of 2096 calls to __rds_rdma_map returned -ENODEV
-in one of our runs.  The connection has to be up when the registration
-starts.
-
-A patch follows.  It clears ic->i_cm_id before destroying the cm_id, so a
-racing reader sees NULL instead of freed memory, and adds the pointer test
-to rds_ib_post_reg_frmr(), which was the one FRMR site dereferencing it
-without one.  With the patch applied - and the 300 ms sleep still in place
-- the same six processes produced no report over 14 teardowns and 17636
-registrations.
-
-It does not serialise the two sides: a reader that has already loaded a
+This does not serialise the two sides: a reader that has already loaded a
 non-NULL pointer can still be preempted before using it.  Closing that
-needs the registration path to take the exclusion the other users of
-ic->i_cm_id have, which seemed a bigger change than we should propose
-uninvited.
+would mean giving the registration path the exclusion the other users of
+ic->i_cm_id have, which is a larger change than this one.
 
-The reproducer is fuzzer-derived and we are happy to send it on request.
+We found this with a syzkaller-based fuzzing harness driven by an AI tool.
 
-Thanks,
-Piyus
+Fixes: 1659185fb4d0 ("RDS: IB: Support Fastreg MR (FRMR) memory registration mode")
+Cc: stable@vger.kernel.org
+Signed-off-by: Kapil Vaswani <kapil@presceralabs.ai>
+Signed-off-by: Piyus Kedia <piyus@iiitd.ac.in>
+---
+ net/rds/ib_cm.c   | 12 ++++++++++--
+ net/rds/ib_frmr.c | 12 +++++++++++-
+ 2 files changed, 21 insertions(+), 3 deletions(-)
+
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index 16bfeaaf3b97..17d748f08607 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -1077,6 +1077,7 @@ void rds_ib_conn_path_shutdown(struct rds_conn_path *cp)
+ {
+ 	struct rds_connection *conn = cp->cp_conn;
+ 	struct rds_ib_connection *ic = conn->c_transport_data;
++	struct rdma_cm_id *cm_id;
+ 	int err = 0;
+ 
+ 	rdsdebug("cm %p pd %p cq %p %p qp %p\n", ic->i_cm_id,
+@@ -1178,7 +1179,15 @@ void rds_ib_conn_path_shutdown(struct rds_conn_path *cp)
+ 		if (ic->i_recvs)
+ 			rds_ib_recv_clear_ring(ic);
+ 
+-		rdma_destroy_id(ic->i_cm_id);
++		/* Clear the pointer before freeing what it points at.
++		 * rds_ib_unreg_frmr() and rds_ib_get_mr() read ic->i_cm_id
++		 * without holding anything that excludes this teardown, and
++		 * rds_ib_remove_conn() below can sleep, so a pointer left
++		 * behind here is one they dereference after the free.
++		 */
++		cm_id = ic->i_cm_id;
++		ic->i_cm_id = NULL;
++		rdma_destroy_id(cm_id);
+ 
+ 		/*
+ 		 * Move connection back to the nodev list.
+@@ -1186,7 +1195,6 @@ void rds_ib_conn_path_shutdown(struct rds_conn_path *cp)
+ 		if (ic->rds_ibdev)
+ 			rds_ib_remove_conn(ic->rds_ibdev, conn);
+ 
+-		ic->i_cm_id = NULL;
+ 		ic->i_pd = NULL;
+ 		ic->i_send_cq = NULL;
+ 		ic->i_recv_cq = NULL;
+diff --git a/net/rds/ib_frmr.c b/net/rds/ib_frmr.c
+index 8397aa4a17ac..09e732ac2324 100644
+--- a/net/rds/ib_frmr.c
++++ b/net/rds/ib_frmr.c
+@@ -124,6 +124,7 @@ static int rds_ib_post_reg_frmr(struct rds_ib_mr *ibmr)
+ {
+ 	struct rds_ib_frmr *frmr = &ibmr->u.frmr;
+ 	struct ib_reg_wr reg_wr;
++	struct rdma_cm_id *i_cm_id;
+ 	int ret, off = 0;
+ 
+ 	while (atomic_dec_return(&ibmr->ic->i_fastreg_wrs) <= 0) {
+@@ -164,7 +165,16 @@ static int rds_ib_post_reg_frmr(struct rds_ib_mr *ibmr)
+ 			IB_ACCESS_REMOTE_WRITE;
+ 	reg_wr.wr.send_flags = IB_SEND_SIGNALED;
+ 
+-	ret = ib_post_send(ibmr->ic->i_cm_id->qp, &reg_wr.wr, NULL);
++	/* Check it the way rds_ib_unreg_frmr() does: the teardown clears
++	 * ic->i_cm_id, and nothing here excludes it.
++	 */
++	i_cm_id = ibmr->ic->i_cm_id;
++	if (!i_cm_id || !i_cm_id->qp) {
++		rds_transition_frwr_state(ibmr, FRMR_IS_INUSE, FRMR_IS_STALE);
++		ret = -ECONNABORTED;
++		goto out_inc;
++	}
++	ret = ib_post_send(i_cm_id->qp, &reg_wr.wr, NULL);
+ 	if (unlikely(ret)) {
+ 		/* Failure here can be because of -ENOMEM as well */
+ 		rds_transition_frwr_state(ibmr, FRMR_IS_INUSE, FRMR_IS_STALE);
+-- 
+2.34.1
+
